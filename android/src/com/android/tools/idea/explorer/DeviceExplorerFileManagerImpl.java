@@ -33,12 +33,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtilRt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.filechooser.FileSystemView;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -60,7 +61,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   @NotNull private final Project myProject;
   @NotNull private final List<VirtualFile> myTemporaryEditorFiles = new ArrayList<>();
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
-  @Nullable private Path myAppDataPath;
+  @Nullable private Path myDefaultDownloadPath;
 
   public DeviceExplorerFileManagerImpl(@NotNull Project project, @NotNull Executor edtExecutor) {
     myProject = project;
@@ -69,28 +70,25 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   }
 
   @NotNull
-  public Path getLocalPathForDevice(@NotNull DeviceFileSystem device) {
-    Path rootPath = getAppDataPath();
+  public Path getDefaultLocalPathForDevice(@NotNull DeviceFileSystem device) {
+    Path rootPath = getDefaultDownloadPath();
     return rootPath.resolve(mapName(device.getName()));
   }
 
-  /**
-   * Download asynchronously the content of a {@link DeviceFileEntry} onto the local file system.
-   * and returns a {@link ListenableFuture} the contains the local {@link Path} of the downloaded
-   * file once the download is completed. The <code>progress</code> callback is regularly notified
-   * of the current progress of the download operation.
-   */
   @NotNull
   @Override
-  public ListenableFuture<Path> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull FileTransferProgress progress) {
-    SettableFuture<Path> futureResult = SettableFuture.create();
+  public Path getDefaultLocalPathForEntry(@NotNull DeviceFileEntry entry) {
+    Path devicePath = getDefaultLocalPathForDevice(entry.getFileSystem());
+    Path relativePath = getEntryPath(entry);
+    return devicePath.resolve(relativePath);
+  }
 
-    Path localPath;
+  @NotNull
+  @Override
+  public ListenableFuture<Void> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull FileTransferProgress progress) {
+    SettableFuture<Void> futureResult = SettableFuture.create();
+
     try {
-      Path devicePath = getLocalPathForDevice(entry.getFileSystem());
-      Path relativePath = getEntryPath(entry);
-      localPath = devicePath.resolve(relativePath);
-
       // Ensure parent directories are created and file is not present
       FileUtils.mkdirs(localPath.getParent().toFile());
       FileUtils.deleteIfExists(localPath.toFile());
@@ -105,7 +103,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     myEdtExecutor.addCallback(result, new FutureCallback<Void>() {
       @Override
       public void onSuccess(@Nullable Void result) {
-        futureResult.set(localPath);
+        futureResult.set(null);
       }
 
       @Override
@@ -118,44 +116,35 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     return futureResult;
   }
 
-  /**
-   * Open a downloaded file in an editor window.
-   */
   @Override
   public void openFileInEditor(@NotNull Path localPath, boolean focusEditor) {
-    try {
-      openFileInEditorWorker(localPath, focusEditor);
-    } catch(Throwable t){
-      deleteTemporaryFile(localPath);
-      throw t;
-    }
+    openFileInEditorWorker(localPath, focusEditor);
   }
 
   @NotNull
-  private Path getAppDataPath() {
-    if (myAppDataPath == null) {
-      myAppDataPath = getAppDataPathWorker();
+  private Path getDefaultDownloadPath() {
+    if (myDefaultDownloadPath == null) {
+      myDefaultDownloadPath = getDefaultDownloadPathWorker();
     }
-    return myAppDataPath;
+    return myDefaultDownloadPath;
   }
 
   @NotNull
-  private static Path getAppDataPathWorker() {
+  private static Path getDefaultDownloadPathWorker() {
     String userHome = System.getProperty("user.home");
     String path = null;
     if (SystemInfo.isWindows) {
-      path = System.getenv("LOCALAPPDATA");
-      if (StringUtil.isEmpty(path)) {
-        path = System.getenv("APPDATA");
-      }
+      // On Windows, we need the localized "Documents" folder name
+      path = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
     }
     else if (SystemInfo.isMac) {
-      path = FileUtil.join(userHome, "Library");
+      // On OSX, "Documents" is not localized
+      path = FileUtil.join(userHome, "Documents");
     }
     else if (SystemInfo.isLinux) {
-      path = FileUtil.join(userHome, ".local", "share");
+      // On Linux, there is no standard "Documents" folder, so use the home folder
+      path = userHome;
     }
-
     if (StringUtil.isEmpty(path)) {
       throw new RuntimeException("Platform is not supported");
     }
@@ -182,7 +171,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   }
 
   private void openFileInEditorWorker(@NotNull Path localPath, boolean focusEditor) {
-    VirtualFile file = LocalFileSystem.getInstance().refreshAndFindFileByPath(localPath.toString());
+    VirtualFile file = VfsUtil.findFileByIoFile(localPath.toFile(), true);
     if (file == null) {
       throw new RuntimeException(String.format("Unable to locate file \"%s\"", localPath));
     }
