@@ -35,8 +35,8 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
   @Override
   @Nullable
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull NlComponent layout,
-                                       @NotNull List<NlComponent> components,
+                                       @NotNull SceneComponent layout,
+                                       @NotNull List<SceneComponent> components,
                                        @NotNull DragType type) {
     return new SceneDragHandler(editor, this, layout, components, type);
   }

@@ -18,11 +18,14 @@ package com.android.tools.idea.uibuilder.handlers.preference;
 import android.widget.ListView;
 import com.android.SdkConstants.PreferenceTags;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
+import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
+import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 
@@ -32,9 +35,13 @@ import java.util.List;
 
 import static com.android.SdkConstants.FQCN_LIST_VIEW;
 
-public final class PreferenceScreenDragHandlerLayoutTest extends LayoutTestCase {
+public final class PreferenceScreenDragHandlerLayoutTest extends PreferenceScreenTestCase {
   public void testCommit() {
     NlModel model = buildModel();
+    ScreenFixture screenFixture = surface().screen(model).withScale(1);
+    Scene scene = Scene.createScene(model, screenFixture.getScreen());
+    scene.buildDisplayList(new DisplayList(), 0);
+
     NlComponent screen = model.getComponents().get(0);
     List<NlComponent> actualCategoryChildren = screen.getChildren().get(1).getChildren();
     NlComponent preference = new NlComponent(model, NlModel.createTag(myModule.getProject(), "<CheckBoxPreference />"));
@@ -45,10 +52,11 @@ public final class PreferenceScreenDragHandlerLayoutTest extends LayoutTestCase 
       actualCategoryChildren.get(1),
       actualCategoryChildren.get(2));
 
-    DragHandler handler = new PreferenceScreenDragHandler(mockEditor(model), new ViewGroupHandler(), screen,
-                                                          Collections.singletonList(preference), DragType.MOVE);
+    DragHandler handler =
+      new PreferenceScreenDragHandler(editor(screenFixture.getScreen()), new ViewGroupHandler(), scene.getSceneComponent(screen),
+                                      Collections.singletonList(new TemporarySceneComponent(scene, preference)), DragType.MOVE);
 
-    handler.update(360, 502, 0);
+    handler.update(180, 251, 0);
     handler.commit(360, 502, 0, InsertType.CREATE);
 
     assertEquals(expectedCategoryChildren, actualCategoryChildren);
@@ -71,27 +79,5 @@ public final class PreferenceScreenDragHandlerLayoutTest extends LayoutTestCase 
 
     return model("pref_general.xml", screen)
       .build();
-  }
-
-  @NotNull
-  @SuppressWarnings("SameParameterValue")
-  private ComponentDescriptor checkBoxPreference(int x, int y, int width, int height) {
-    return component(PreferenceTags.CHECK_BOX_PREFERENCE)
-      .withBounds(x, y, width, height);
-  }
-
-  @NotNull
-  private static ViewEditor mockEditor(@NotNull NlModel model) {
-    ListView listView = Mockito.mock(ListView.class);
-    Mockito.when(listView.getDividerHeight()).thenReturn(2);
-
-    ViewInfo view = new ViewInfo(FQCN_LIST_VIEW, null, 0, 0, 0, 0, listView, null);
-
-    ViewEditor editor = Mockito.mock(ViewEditor.class);
-
-    Mockito.when(editor.getModel()).thenReturn(model);
-    Mockito.when(editor.getRootViews()).thenReturn(Collections.singletonList(view));
-
-    return editor;
   }
 }
