@@ -21,7 +21,6 @@ import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,17 +64,28 @@ public class Coordinates {
     return Math.round(androidDp * (dpiValue / DEFAULT_DENSITY));
   }
 
-  public static int dpToPx(@NotNull SceneView view, @AndroidDpCoordinate float androidDp) {
-    final Configuration configuration = view.getConfiguration();
+  @AndroidCoordinate
+  public static int dpToPx(@NotNull NlModel model, @AndroidDpCoordinate float androidDp) {
+    final Configuration configuration = model.getConfiguration();
     final int dpiValue = configuration.getDensity().getDpiValue();
     return Math.round(androidDp * (dpiValue / DEFAULT_DENSITY));
   }
 
   @AndroidDpCoordinate
-  public static int pxToDp(@NotNull SceneView view, @AndroidCoordinate int androidPx) {
-    final Configuration configuration = view.getConfiguration();
+  public static int pxToDp(@NotNull NlModel model, @AndroidCoordinate int androidPx) {
+    final Configuration configuration = model.getConfiguration();
     final int dpiValue = configuration.getDensity().getDpiValue();
     return Math.round(androidPx * (DEFAULT_DENSITY / dpiValue));
+  }
+
+  @AndroidCoordinate
+  public static int dpToPx(@NotNull SceneView view, @AndroidDpCoordinate float androidDp) {
+    return dpToPx(view.getModel(), androidDp);
+  }
+
+  @AndroidDpCoordinate
+  public static int pxToDp(@NotNull SceneView view, @AndroidCoordinate int androidPx) {
+    return pxToDp(view.getModel(), androidPx);
   }
 
   /**
@@ -83,7 +93,7 @@ public class Coordinates {
    * system) of the given x coordinate in the Android screen coordinate system in Dip
    */
   @SwingCoordinate
-  public static int getSwingXDip(@NotNull ScreenView view, @AndroidDpCoordinate int androidDpX) {
+  public static int getSwingXDip(@NotNull SceneView view, @AndroidDpCoordinate int androidDpX) {
     return getSwingX(view, dpToPx(view, androidDpX));
   }
 
@@ -92,7 +102,7 @@ public class Coordinates {
    * system) of the given x coordinate in the Android screen coordinate system in Dip
    */
   @SwingCoordinate
-  public static int getSwingYDip(@NotNull ScreenView view, @AndroidDpCoordinate int androidDpY) {
+  public static int getSwingYDip(@NotNull SceneView view, @AndroidDpCoordinate int androidDpY) {
     return getSwingY(view, dpToPx(view, androidDpY));
   }
 
