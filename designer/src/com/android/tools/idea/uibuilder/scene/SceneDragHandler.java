@@ -16,10 +16,7 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
@@ -41,10 +38,10 @@ public class SceneDragHandler extends DragHandler {
   private NlComponent myComponent;
 
   public SceneDragHandler(@NotNull ViewEditor editor,
-                          @NotNull ConstraintLayoutHandler constraintLayoutHandler,
+                          @NotNull ViewGroupHandler handler,
                           @NotNull NlComponent layout,
                           @NotNull List<NlComponent> components, DragType type) {
-    super(editor, constraintLayoutHandler, layout, components, type);
+    super(editor, handler, layout, components, type);
     if (components.size() == 1) {
       myComponent = components.get(0);
       Scene scene = ((ViewEditorImpl) editor).getSceneView().getScene();
