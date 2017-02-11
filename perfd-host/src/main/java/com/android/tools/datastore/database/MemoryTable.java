@@ -88,14 +88,6 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
     VMSTATS,
   }
 
-  /**
-   * TODO: currently we are using the same PreparedStatements across different threads. This can lead to a ResultSet resetting/closing
-   * while another thread is still iterating results. For now we use a lock to synchronize queries, but should we ensure each thread
-   * execute its own unique PreparedStatements?
-   */
-  @NotNull
-  private final Object myDataQueryLock = new Object();
-
   @Override
   public void initialize(Connection connection) {
     super.initialize(connection);
@@ -129,85 +121,74 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
 
   @NotNull
   public MemoryData getData(MemoryRequest request) {
-    synchronized (myDataQueryLock) {
-      int pid = request.getProcessId();
-      long startTime = request.getStartTime();
-      long endTime = request.getEndTime();
-      List<MemoryData.MemorySample> memorySamples =
-        getResultsInfo(MemoryStatements.QUERY_MEMORY, pid, startTime, endTime, MemoryData.MemorySample.getDefaultInstance());
-      List<MemoryData.VmStatsSample> vmStatsSamples =
-        getResultsInfo(MemoryStatements.QUERY_VMSTATS, pid, startTime, endTime, MemoryData.VmStatsSample.getDefaultInstance());
-      List<HeapDumpInfo> heapDumpSamples =
-        getResultsInfo(MemoryStatements.QUERY_HEAP_INFO_BY_TIME, pid, startTime, endTime, HeapDumpInfo.getDefaultInstance());
-      List<AllocationsInfo> allocationSamples =
-        getResultsInfo(MemoryStatements.QUERY_ALLOCATION_INFO_BY_TIME, pid, startTime, endTime, AllocationsInfo.getDefaultInstance());
-      MemoryData.Builder response = MemoryData.newBuilder()
-        .addAllMemSamples(memorySamples)
-        .addAllVmStatsSamples(vmStatsSamples)
-        .addAllHeapDumpInfos(heapDumpSamples)
-        .addAllAllocationsInfo(allocationSamples);
-      return response.build();
-    }
+    int pid = request.getProcessId();
+    long startTime = request.getStartTime();
+    long endTime = request.getEndTime();
+    List<MemoryData.MemorySample> memorySamples =
+      getResultsInfo(MemoryStatements.QUERY_MEMORY, pid, startTime, endTime, MemoryData.MemorySample.getDefaultInstance());
+    List<MemoryData.VmStatsSample> vmStatsSamples =
+      getResultsInfo(MemoryStatements.QUERY_VMSTATS, pid, startTime, endTime, MemoryData.VmStatsSample.getDefaultInstance());
+    List<HeapDumpInfo> heapDumpSamples =
+      getResultsInfo(MemoryStatements.QUERY_HEAP_INFO_BY_TIME, pid, startTime, endTime, HeapDumpInfo.getDefaultInstance());
+    List<AllocationsInfo> allocationSamples =
+      getResultsInfo(MemoryStatements.QUERY_ALLOCATION_INFO_BY_TIME, pid, startTime, endTime, AllocationsInfo.getDefaultInstance());
+    MemoryData.Builder response = MemoryData.newBuilder()
+      .addAllMemSamples(memorySamples)
+      .addAllVmStatsSamples(vmStatsSamples)
+      .addAllHeapDumpInfos(heapDumpSamples)
+      .addAllAllocationsInfo(allocationSamples);
+    return response.build();
   }
 
   public void insertMemory(int pid, List<MemoryData.MemorySample> samples) {
-    synchronized (myDataQueryLock) {
-      for (MemoryData.MemorySample sample : samples) {
-        execute(MemoryStatements.INSERT_SAMPLE, pid, sample.getTimestamp(), MemorySamplesType.MEMORY.ordinal(), sample.toByteArray());
-      }
+    for (MemoryData.MemorySample sample : samples) {
+      execute(MemoryStatements.INSERT_SAMPLE, pid, sample.getTimestamp(), MemorySamplesType.MEMORY.ordinal(), sample.toByteArray());
     }
   }
 
+
   public void insertVmStats(int pid, List<MemoryData.VmStatsSample> samples) {
-    synchronized (myDataQueryLock) {
-      for (MemoryData.VmStatsSample sample : samples) {
-        execute(MemoryStatements.INSERT_SAMPLE, pid, sample.getTimestamp(), MemorySamplesType.VMSTATS.ordinal(), sample.toByteArray());
-      }
+    for (MemoryData.VmStatsSample sample : samples) {
+      execute(MemoryStatements.INSERT_SAMPLE, pid, sample.getTimestamp(), MemorySamplesType.VMSTATS.ordinal(), sample.toByteArray());
     }
   }
+
 
   /**
    * Note: this will reset the row's Status and DumpData to NOT_READY and null respectively, if an info with the same DumpId already exist.
    */
   public void insertOrReplaceHeapInfo(int pid, HeapDumpInfo info) {
-    synchronized (myDataQueryLock) {
-      execute(MemoryStatements.INSERT_OR_REPLACE_HEAP_INFO, pid, info.getStartTime(), info.getEndTime(),
-              DumpDataResponse.Status.NOT_READY.ordinal(), info.toByteArray());
-    }
+    execute(MemoryStatements.INSERT_OR_REPLACE_HEAP_INFO, pid, info.getStartTime(), info.getEndTime(),
+            DumpDataResponse.Status.NOT_READY.ordinal(), info.toByteArray());
   }
 
   /**
    * @return the dump status corresponding to a particular dump. If the entry does not exist, NOT_FOUND is returned.
    */
   public DumpDataResponse.Status getHeapDumpStatus(int pid, long dumpTime) {
-    synchronized (myDataQueryLock) {
-      try {
-        ResultSet result = executeQuery(MemoryStatements.QUERY_HEAP_STATUS_BY_ID, pid, dumpTime);
-        if (result.next()) {
-          return DumpDataResponse.Status.forNumber(result.getInt(1));
-        }
+    try {
+      ResultSet result = executeQuery(MemoryStatements.QUERY_HEAP_STATUS_BY_ID, pid, dumpTime);
+      if (result.next()) {
+        return DumpDataResponse.Status.forNumber(result.getInt(1));
       }
-      catch (SQLException ex) {
-        getLogger().error(ex);
-      }
-      return DumpDataResponse.Status.NOT_FOUND;
     }
+    catch (SQLException ex) {
+      getLogger().error(ex);
+    }
+    return DumpDataResponse.Status.NOT_FOUND;
   }
 
+
   public List<HeapDumpInfo> getHeapDumpInfoByRequest(int pid, ListDumpInfosRequest request) {
-    synchronized (myDataQueryLock) {
-      return getResultsInfo(MemoryStatements.QUERY_HEAP_INFO_BY_TIME, pid, request.getStartTime(), request.getEndTime(),
-                            HeapDumpInfo.getDefaultInstance());
-    }
+    return getResultsInfo(MemoryStatements.QUERY_HEAP_INFO_BY_TIME, pid, request.getStartTime(), request.getEndTime(),
+                          HeapDumpInfo.getDefaultInstance());
   }
 
   /**
    * Adds/updates the status and raw dump data associated with a dump sample's id.
    */
   public void insertHeapDumpData(int pid, long dumpTime, DumpDataResponse.Status status, ByteString data) {
-    synchronized (myDataQueryLock) {
-      execute(MemoryStatements.UPDATE_HEAP_DUMP, data.toByteArray(), status.getNumber(), pid, dumpTime);
-    }
+    execute(MemoryStatements.UPDATE_HEAP_DUMP, data.toByteArray(), status.getNumber(), pid, dumpTime);
   }
 
   /**
@@ -215,39 +196,35 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
    */
   @Nullable
   public byte[] getHeapDumpData(int pid, long dumpTime) {
-    synchronized (myDataQueryLock) {
-      try {
-        ResultSet resultSet = executeQuery(MemoryStatements.QUERY_HEAP_DUMP_BY_ID, pid, dumpTime);
-        if (resultSet.next()) {
-          return resultSet.getBytes(1);
-        }
+    try {
+      ResultSet resultSet = executeQuery(MemoryStatements.QUERY_HEAP_DUMP_BY_ID, pid, dumpTime);
+      if (resultSet.next()) {
+        return resultSet.getBytes(1);
       }
-      catch (SQLException ex) {
-        getLogger().error(ex);
-      }
-      return null;
     }
+    catch (SQLException ex) {
+      getLogger().error(ex);
+    }
+    return null;
   }
+
 
   /**
    * Note: this will reset the allocation events and its raw dump byte content associated with a tracking start time if an entry already exists.
    */
   public void insertOrReplaceAllocationsInfo(int pid, AllocationsInfo info) {
-    synchronized (myDataQueryLock) {
-      execute(MemoryStatements.INSERT_OR_REPLACE_ALLOCATIONS_INFO, pid, info.getStartTime(), info.getEndTime(), info.toByteArray());
-    }
+    execute(MemoryStatements.INSERT_OR_REPLACE_ALLOCATIONS_INFO, pid, info.getStartTime(), info.getEndTime(), info.toByteArray());
   }
 
   public void updateAllocationEvents(int pid, long trackingStartTime, @NotNull AllocationEventsResponse allocationData) {
-    synchronized (myDataQueryLock) {
-      execute(MemoryStatements.UPDATE_ALLOCATIONS_INFO_EVENTS, allocationData.toByteArray(), pid, trackingStartTime);
-    }
+
+    execute(MemoryStatements.UPDATE_ALLOCATIONS_INFO_EVENTS, allocationData.toByteArray(), pid, trackingStartTime);
   }
 
+
   public void updateAllocationDump(int pid, long trackingStartTime, byte[] data) {
-    synchronized (myDataQueryLock) {
-      execute(MemoryStatements.UPDATE_ALLOCATIONS_INFO_DUMP, data, pid, trackingStartTime);
-    }
+
+    execute(MemoryStatements.UPDATE_ALLOCATIONS_INFO_DUMP, data, pid, trackingStartTime);
   }
 
   /**
@@ -255,100 +232,98 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
    */
   @Nullable
   public AllocationsInfo getAllocationsInfo(int pid, long trackingStartTime) {
-    synchronized (myDataQueryLock) {
+    try {
       ResultSet results = executeQuery(MemoryStatements.QUERY_ALLOCATION_INFO_BY_ID, pid, trackingStartTime);
-      try {
-        if (results.next()) {
-          byte[] bytes = results.getBytes(1);
-          if (bytes != null) {
-            return AllocationsInfo.parseFrom(bytes);
-          }
+      if (results.next()) {
+        byte[] bytes = results.getBytes(1);
+        if (bytes != null) {
+          return AllocationsInfo.parseFrom(bytes);
         }
       }
-      catch (InvalidProtocolBufferException | SQLException ex) {
-        getLogger().error(ex);
-      }
-
-      return null;
     }
+    catch (InvalidProtocolBufferException | SQLException ex) {
+      getLogger().error(ex);
+    }
+
+    return null;
   }
+
 
   /**
    * @return the AllocationEventsResponse associated with the tracking start time. Null if an entry does not exist.
    */
   @Nullable
   public AllocationEventsResponse getAllocationData(int pid, long trackingStartTime) {
-    synchronized (myDataQueryLock) {
-      try {
-        ResultSet resultSet = executeQuery(MemoryStatements.QUERY_ALLOCATION_EVENTS_BY_ID, pid, trackingStartTime);
-        if (resultSet.next()) {
-          byte[] bytes = resultSet.getBytes(1);
-          if (bytes != null) {
-            return AllocationEventsResponse.parseFrom(resultSet.getBytes(1));
-          }
+
+    try {
+      ResultSet resultSet = executeQuery(MemoryStatements.QUERY_ALLOCATION_EVENTS_BY_ID, pid, trackingStartTime);
+      if (resultSet.next()) {
+        byte[] bytes = resultSet.getBytes(1);
+        if (bytes != null) {
+          return AllocationEventsResponse.parseFrom(resultSet.getBytes(1));
         }
       }
-      catch (InvalidProtocolBufferException | SQLException ex) {
-        getLogger().error(ex);
-      }
-      return null;
     }
+    catch (InvalidProtocolBufferException | SQLException ex) {
+      getLogger().error(ex);
+    }
+    return null;
   }
+
 
   /**
    * @return the raw legacy allocation tracking byte data associated with the tracking start time. Null if an entry does not exist.
    */
   @Nullable
   public byte[] getAllocationDumpData(int pid, long trackingStartTime) {
-    synchronized (myDataQueryLock) {
-      try {
-        ResultSet resultSet = executeQuery(MemoryStatements.QUERY_ALLOCATION_DUMP_BY_ID, pid, trackingStartTime);
-        if (resultSet.next()) {
-          return resultSet.getBytes(1);
-        }
+
+    try {
+      ResultSet resultSet = executeQuery(MemoryStatements.QUERY_ALLOCATION_DUMP_BY_ID, pid, trackingStartTime);
+      if (resultSet.next()) {
+        return resultSet.getBytes(1);
       }
-      catch (SQLException ex) {
-        getLogger().error(ex);
-      }
-      return null;
     }
+    catch (SQLException ex) {
+      getLogger().error(ex);
+    }
+    return null;
   }
 
   public void insertAllocationContext(@NotNull List<AllocatedClass> classes, @NotNull List<AllocationStack> stacks) {
-    synchronized (myDataQueryLock) {
-      // TODO: batch insert
-      classes.forEach(klass -> execute(MemoryStatements.INSERT_ALLOCATED_CLASS, klass.getClassId(), klass.toByteArray()));
-      stacks.forEach(stack -> execute(MemoryStatements.INSERT_ALLOCATION_STACK, stack.getStackId().toByteArray(), stack.toByteArray()));
-    }
+
+    // TODO: batch insert
+    classes.forEach(klass -> execute(MemoryStatements.INSERT_ALLOCATED_CLASS, klass.getClassId(), klass.toByteArray()));
+    stacks.forEach(stack -> execute(MemoryStatements.INSERT_ALLOCATION_STACK, stack.getStackId().toByteArray(), stack.toByteArray()));
   }
+
 
   public AllocationContextsResponse listAllocationContexts(@NotNull AllocationContextsRequest request) {
-    synchronized (myDataQueryLock) {
-      AllocationContextsResponse.Builder builder = AllocationContextsResponse.newBuilder();
-      // TODO optimize queries
-      try {
-        for (int i = 0; i < request.getClassIdsCount(); i++) {
-          ResultSet classResultSet = executeQuery(MemoryStatements.QUERY_ALLOCATED_CLASS, request.getClassIds(i));
-          if (classResultSet.next()) {
-            AllocatedClass data = AllocatedClass.newBuilder().mergeFrom(classResultSet.getBytes(1)).build();
-            builder.addAllocatedClasses(data);
-          }
-        }
 
-        for (int i = 0; i < request.getStackIdsCount(); i++) {
-          ResultSet stackResultSet = executeQuery(MemoryStatements.QUERY_ALLOCATION_STACK, request.getStackIds(i).toByteArray());
-          if (stackResultSet.next()) {
-            AllocationStack data = AllocationStack.newBuilder().mergeFrom(stackResultSet.getBytes(1)).build();
-            builder.addAllocationStacks(data);
-          }
+    AllocationContextsResponse.Builder builder = AllocationContextsResponse.newBuilder();
+    // TODO optimize queries
+    try {
+      for (int i = 0; i < request.getClassIdsCount(); i++) {
+        ResultSet classResultSet = executeQuery(MemoryStatements.QUERY_ALLOCATED_CLASS, request.getClassIds(i));
+        if (classResultSet.next()) {
+          AllocatedClass data = AllocatedClass.newBuilder().mergeFrom(classResultSet.getBytes(1)).build();
+          builder.addAllocatedClasses(data);
         }
       }
-      catch (InvalidProtocolBufferException | SQLException ex) {
-        getLogger().error(ex);
+
+      for (int i = 0; i < request.getStackIdsCount(); i++) {
+        ResultSet stackResultSet = executeQuery(MemoryStatements.QUERY_ALLOCATION_STACK, request.getStackIds(i).toByteArray());
+        if (stackResultSet.next()) {
+          AllocationStack data = AllocationStack.newBuilder().mergeFrom(stackResultSet.getBytes(1)).build();
+          builder.addAllocationStacks(data);
+        }
       }
-      return builder.build();
     }
+    catch (InvalidProtocolBufferException | SQLException ex) {
+      getLogger().error(ex);
+    }
+    return builder.build();
   }
+
 
   /**
    * A helper method for querying samples for MemorySample, VMStatsSample, HeapDumpInfo and AllocationsInfo
