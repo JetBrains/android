@@ -42,6 +42,7 @@ public class ProfilerServiceProxyTest {
     when(mockDevice.getVersion()).thenReturn(new AndroidVersion(1, "API"));
     when(mockDevice.isOnline()).thenReturn(true);
     when(mockDevice.getClients()).thenReturn(new Client[0]);
+    when(mockDevice.getState()).thenReturn(IDevice.DeviceState.ONLINE);
     ManagedChannel channel = InProcessChannelBuilder.forName("ProfilerServiceProxyTest").build();
     ProfilerServiceProxy proxy = new ProfilerServiceProxy(mockDevice, channel);
 
