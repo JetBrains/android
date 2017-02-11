@@ -20,7 +20,7 @@ import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.ViewBinder;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
@@ -39,19 +39,17 @@ import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
 
 class CpuCaptureView {
-  private static final List<Tab> TABS =
-    new ImmutableList.Builder<Tab>()
-      .add(new Tab<>("Top Down", CpuProfilerStage.TopDown.class, CpuProfilerStage.TopDown::new))
-      .add(new Tab<>("Bottom Up", CpuProfilerStage.BottomUp.class, CpuProfilerStage.BottomUp::new))
-      .add(new Tab<>("Chart", CpuProfilerStage.TreeChart.class, CpuProfilerStage.TreeChart::new))
-      .build();
+  private static final Map<String, CpuProfilerStage.CaptureDetails.Type> TABS = ImmutableMap.of(
+      "Top Down", CpuProfilerStage.CaptureDetails.Type.TOP_DOWN,
+      "Bottom Up", CpuProfilerStage.CaptureDetails.Type.BOTTOM_UP,
+      "Chart", CpuProfilerStage.CaptureDetails.Type.CHART);
 
   private static final Comparator<DefaultMutableTreeNode> DEFAULT_SORT_ORDER =
     Collections.reverseOrder(new DoubleValueNodeComparator(CpuTreeNode::getTotal));
@@ -69,10 +67,10 @@ class CpuCaptureView {
     myView = view;
 
     myPanel = new JBTabbedPane();
-    for (Tab tab: TABS) {
-      myPanel.add(tab.myLabel, new JPanel());
+    for (String label: TABS.keySet()) {
+      myPanel.add(label, new JPanel());
     }
-    myPanel.getModel().addChangeListener(event -> updateCaptureDetails());
+    myPanel.getModel().addChangeListener(event -> setCaptureDetailToTab());
 
     myBinder = new ViewBinder<>();
     myBinder.bind(CpuProfilerStage.TopDown.class, TopDownView::new);
@@ -92,23 +90,21 @@ class CpuCaptureView {
       return;
     }
 
-    int actualIndex = -1;
-    for (int i = 0; i < TABS.size(); ++i) {
-      if (details.getClass().equals(TABS.get(i).myClazz)) {
-        actualIndex = i;
+    int current = myPanel.getSelectedIndex();
+    for (int i = 0; i < myPanel.getTabCount(); i++) {
+      String title = myPanel.getTitleAt(i);
+      if (current != i && TABS.get(title).equals(details.getType())) {
+        myPanel.setSelectedIndex(i);
+        current = i;
+        break;
       }
     }
-
-    if (actualIndex != myPanel.getSelectedIndex()) {
-      myPanel.setSelectedIndex(actualIndex);
-      return;
-    }
-
-    myPanel.setComponentAt(actualIndex, myBinder.build(this, details).getComponent());
+    myPanel.setComponentAt(current, myBinder.build(this, details).getComponent());
   }
 
-  void updateCaptureDetails() {
-    myView.getStage().changeCaptureDetails(TABS.get(myPanel.getSelectedIndex()).myBuilder);
+  void setCaptureDetailToTab() {
+    int index = myPanel.getSelectedIndex();
+    myView.getStage().setCaptureDetails(TABS.get(myPanel.getTitleAt(index)));
   }
 
   @NotNull
@@ -179,25 +175,6 @@ class CpuCaptureView {
   private static CpuTreeNode getNode(Object value) {
     DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
     return (CpuTreeNode)node.getUserObject();
-  }
-
-  private static class Tab<T extends CpuProfilerStage.CaptureDetails> {
-    @NotNull
-    private final String myLabel;
-
-    @NotNull
-    private final Class<T> myClazz;
-
-    @NotNull
-    private final BiFunction<Range, HNode<MethodModel>, T> myBuilder;
-
-    private Tab(@NotNull String label,
-                @NotNull Class<T> clazz,
-                @NotNull BiFunction<Range, HNode<MethodModel>, T> builder) {
-      myLabel = label;
-      myClazz = clazz;
-      myBuilder = builder;
-    }
   }
 
   private abstract static class CaptureDetailsView {
