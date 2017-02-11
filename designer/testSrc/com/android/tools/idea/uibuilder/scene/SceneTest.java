@@ -30,10 +30,10 @@ import java.util.Arrays;
  */
 public abstract class SceneTest extends LayoutTestCase {
 
-  NlModel myModel;
-  Scene myScene;
-  ScreenFixture myScreen;
-  SceneMouseInteraction myInteraction;
+  protected NlModel myModel;
+  protected Scene myScene;
+  protected ScreenFixture myScreen;
+  protected SceneMouseInteraction myInteraction;
 
   @Override
   protected void setUp() throws Exception {
