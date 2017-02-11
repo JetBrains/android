@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
+import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
@@ -37,7 +39,7 @@ public class DragDndTarget extends DragTarget {
   }
 
   @Override
-  public void mouseDrag(int x, int y, @Nullable Target closestTarget) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
     if (myComponent instanceof TemporarySceneComponent) {
       Scene scene = myComponent.getScene();
       int dx = snapX(x);

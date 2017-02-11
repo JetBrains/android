@@ -256,10 +256,12 @@ public class NlComponent implements NlAttributesHolder {
     return Ranges.contains(this.y, this.y + h, y);
   }
 
+  @AndroidCoordinate
   public int getMidpointX() {
     return x + w / 2;
   }
 
+  @AndroidCoordinate
   public int getMidpointY() {
     return y + h / 2;
   }
