@@ -16,12 +16,20 @@
 package com.android.tools.idea.explorer;
 
 import com.android.tools.idea.explorer.fs.*;
+import com.android.utils.FileUtils;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.fileChooser.FileSaverDescriptor;
+import com.intellij.openapi.fileChooser.FileSaverDialog;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.util.Alarm;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
@@ -30,9 +38,11 @@ import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
+import java.awt.datatransfer.StringSelection;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
@@ -46,8 +56,9 @@ public class DeviceExplorerController {
   private int myShowLoadingNodeDelayMillis = 200;
   private int myDownloadingNodeRepaintMillis = 100;
 
-  @NotNull private final DeviceExplorerView myView;
+  @NotNull private final Project myProject;
   @NotNull private final DeviceExplorerModel myModel;
+  @NotNull private final DeviceExplorerView myView;
   @NotNull private final DeviceFileSystemService myService;
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
   @NotNull private final DeviceExplorerFileManager myFileManager;
@@ -63,6 +74,7 @@ public class DeviceExplorerController {
                                   @NotNull DeviceFileSystemService service,
                                   @NotNull DeviceExplorerFileManager fileManager,
                                   @NotNull Executor edtExecutor) {
+    myProject = project;
     myModel = model;
     myView = view;
     myService = service;
@@ -269,15 +281,104 @@ public class DeviceExplorerController {
     }
 
     @Override
-    public void treeNodeActionPerformed(@NotNull DeviceFileEntryNode treeNode) {
-      if (treeNode.isDownloading()) {
+    public void openNodeInEditorInvoked(@NotNull DeviceFileEntryNode treeNode) {
+      if (treeNode.getEntry().isDirectory()) {
         return;
       }
 
+      if (treeNode.isDownloading()) {
+        myView.reportErrorRelatedToNode(treeNode, "Entry is already downloading", new RuntimeException());
+        return;
+      }
+
+      ListenableFuture<Path> futurePath = downloadFileEntry(treeNode, false);
+      myEdtExecutor.addCallback(futurePath, new FutureCallback<Path>() {
+        @Override
+        public void onSuccess(@Nullable Path localPath) {
+          assert localPath != null;
+          try {
+            myFileManager.openFileInEditor(localPath, true);
+          } catch(Throwable t) {
+            String message = String.format("Unable to open file \"%s\" in editor", localPath);
+            myView.reportErrorRelatedToNode(treeNode, message, t);
+          }
+        }
+
+        @Override
+        public void onFailure(@NotNull Throwable t) {
+          String message = String.format("Error downloading contents of device file %s", getUserFacingNodeName(treeNode));
+          myView.reportErrorRelatedToNode(treeNode, message, t);
+        }
+      });
+    }
+
+    @Override
+    public void saveNodeAsInvoked(@NotNull DeviceFileEntryNode treeNode) {
+      if (treeNode.getEntry().isDirectory()) {
+        return;
+      }
+
+      if (treeNode.isDownloading()) {
+        myView.reportErrorRelatedToNode(treeNode, "Entry is already downloading", new RuntimeException());
+        return;
+      }
+
+      ListenableFuture<Path> futurePath = downloadFileEntry(treeNode, true);
+      myEdtExecutor.addCallback(futurePath, new FutureCallback<Path>() {
+        @Override
+        public void onSuccess(@Nullable Path localPath) {
+          assert localPath != null;
+          String message = String.format("Device file %s successfully downloaded to local file \"%s\"",
+                                         getUserFacingNodeName(treeNode),
+                                         localPath);
+          myView.reportMessageRelatedToNode(treeNode, message);
+        }
+
+        @Override
+        public void onFailure(@NotNull Throwable t) {
+          String message = String.format("Error saving contents of device file %s", getUserFacingNodeName(treeNode));
+          myView.reportErrorRelatedToNode(treeNode, message, t);
+        }
+      });
+    }
+
+    @Override
+    public void copyNodePathInvoked(@NotNull DeviceFileEntryNode treeNode) {
+      CopyPasteManager.getInstance().setContents(new StringSelection(getEntryPath(treeNode.getEntry())));
+    }
+
+    @NotNull
+    private String getEntryPath(@NotNull DeviceFileEntry entry) {
+      if (entry.getParent() == null) {
+        return "";
+      } else {
+        return getEntryPath(entry.getParent()) + "/" + entry.getName();
+      }
+    }
+
+    @NotNull
+    private ListenableFuture<Path> downloadFileEntry(@NotNull DeviceFileEntryNode treeNode, boolean askForLocation) {
+      SettableFuture<Path> futureResult = SettableFuture.create();
+
+      // Figure out local path, ask user in "Save As" dialog if required
+      Path localPath;
+      try {
+        if (askForLocation) {
+          localPath = chooseSaveAsLocalPath(treeNode.getEntry());
+        }
+        else {
+          localPath = myFileManager.getDefaultLocalPathForEntry(treeNode.getEntry());
+        }
+      }
+      catch (Throwable t) {
+        futureResult.setException(t);
+        return futureResult;
+      }
+
+      // Download the entry to the local path
       DeviceFileEntry entry = treeNode.getEntry();
       startDownloadNode(treeNode);
-
-      ListenableFuture<Path> future = myFileManager.downloadFileEntry(entry, new FileTransferProgress() {
+      ListenableFuture<Void> future = myFileManager.downloadFileEntry(entry, localPath, new FileTransferProgress() {
         @Override
         public void progress(long currentBytes, long totalBytes) {
           treeNode.setDownloadProgress(currentBytes, totalBytes);
@@ -288,25 +389,41 @@ public class DeviceExplorerController {
           return false;
         }
       });
-      myEdtExecutor.addCallback(future, new FutureCallback<Path>() {
+
+      myEdtExecutor.addCallback(future, new FutureCallback<Void>() {
         @Override
-        public void onSuccess(Path result) {
+        public void onSuccess(@Nullable Void result) {
           stopDownloadNode(treeNode);
-          try {
-            myFileManager.openFileInEditor(result, true);
-          } catch(Throwable t) {
-            String message = String.format("Unable to open file %s in editor", getUserFacingNodeName(treeNode));
-            myView.reportErrorRelatedToNode(treeNode, message, t);
-          }
+          futureResult.set(localPath);
         }
 
         @Override
         public void onFailure(@NotNull Throwable t) {
           stopDownloadNode(treeNode);
-          String message = String.format("Unable to download contents of file %s", getUserFacingNodeName(treeNode));
-          myView.reportErrorRelatedToNode(treeNode, message, t);
+          futureResult.setException(t);
         }
       });
+
+      return futureResult;
+    }
+
+    @NotNull
+    private Path chooseSaveAsLocalPath(@NotNull DeviceFileEntry entry) {
+      Path localPath = myFileManager.getDefaultLocalPathForEntry(entry);
+
+      FileUtils.mkdirs(localPath.getParent().toFile());
+      VirtualFile baseDir = VfsUtil.findFileByIoFile(localPath.getParent().toFile(), true);
+      if (baseDir == null) {
+        throw new RuntimeException(String.format("Unable to locate file \"%s\"", localPath.getParent()));
+      }
+
+      FileSaverDescriptor descriptor = new FileSaverDescriptor("Save As", "");
+      FileSaverDialog saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, myProject);
+      VirtualFileWrapper fileWrapper = saveFileDialog.save(baseDir, localPath.getFileName().toString());
+      if (fileWrapper == null) {
+        throw new CancellationException();
+      }
+      return fileWrapper.getFile().toPath();
     }
 
     @Override
