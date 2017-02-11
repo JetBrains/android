@@ -19,9 +19,11 @@ import com.android.tools.idea.explorer.*;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
+import com.intellij.icons.AllIcons;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
@@ -58,6 +60,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   @NotNull private final DeviceFileSystemRenderer myDeviceRenderer;
   @Nullable private JBLoadingPanel myLoadingPanel;
   @Nullable private DeviceExplorerPanel myPanel;
+  @Nullable private ComponentPopupMenu myTreePopupMenu;
   private int myTreeLoadingCount;
 
   public DeviceExplorerViewImpl(@NotNull Project project,
@@ -84,11 +87,21 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
   @TestOnly
   @Nullable
-  public JBLoadingPanel getLoadingPanel() { return myLoadingPanel;}
+  public ActionGroup getFileTreeActionGroup() {
+    return myTreePopupMenu == null ? null : myTreePopupMenu.getActionGroup();
+  }
 
   @TestOnly
   @Nullable
-  public DeviceExplorerPanel getDeviceExplorerPanel() { return myPanel;}
+  public JBLoadingPanel getLoadingPanel() {
+    return myLoadingPanel;
+  }
+
+  @TestOnly
+  @Nullable
+  public DeviceExplorerPanel getDeviceExplorerPanel() {
+    return myPanel;
+  }
 
   @Override
   public void addListener(@NotNull DeviceExplorerViewListener listener) {
@@ -131,18 +144,32 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     reportError(message, t);
   }
 
-  private static void reportError(@NotNull String msg, @NotNull Throwable t) {
+  @Override
+  public void reportMessageRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message) {
+    reportMessage(message);
+  }
+
+  private static void reportMessage(@NotNull String message) {
+    Notification notification = new Notification(DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID,
+                                                 DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID,
+                                                 message,
+                                                 NotificationType.INFORMATION);
+
+    ApplicationManager.getApplication().invokeLater(() -> Notifications.Bus.notify(notification));
+  }
+
+  private static void reportError(@NotNull String message, @NotNull Throwable t) {
     if (t instanceof CancellationException) {
       return;
     }
 
     if (t.getMessage() != null) {
-      msg += ": " + t.getMessage();
+      message += ": " + t.getMessage();
     }
 
     Notification notification = new Notification(DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID,
                                                  DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID,
-                                                 msg,
+                                                 message,
                                                  NotificationType.WARNING);
 
     ApplicationManager.getApplication().invokeLater(() -> Notifications.Bus.notify(notification));
@@ -204,8 +231,19 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
       }
     });
 
+    createTreePopupMenu();
     myLoadingPanel.setLoadingText("Initializing ADB");
     myLoadingPanel.startLoading();
+  }
+
+  private void createTreePopupMenu() {
+    assert myPanel != null;
+    myTreePopupMenu = new ComponentPopupMenu(myPanel.getTree());
+    myTreePopupMenu.addItem(new OpenMenuItem());
+    myTreePopupMenu.addItem(new SaveAsMenuItem());
+    myTreePopupMenu.addSeparator();
+    myTreePopupMenu.addItem(new CopyPathMenuItem());
+    myTreePopupMenu.install();
   }
 
   private void openSelectedNode(@Nullable TreePath selPath) {
@@ -216,9 +254,19 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     if (node == null) {
       return;
     }
-    if (node.getEntry().isFile()) {
-      myListeners.forEach(x -> x.treeNodeActionPerformed(node));
-    }
+    openNode(node);
+  }
+
+  private void copyNodePath(@NotNull DeviceFileEntryNode treeNode) {
+    myListeners.forEach(x -> x.copyNodePathInvoked(treeNode));
+  }
+
+  private void openNode(@NotNull DeviceFileEntryNode treeNode) {
+    myListeners.forEach(x -> x.openNodeInEditorInvoked(treeNode));
+  }
+
+  private void saveNodeAs(@NotNull DeviceFileEntryNode treeNode) {
+    myListeners.forEach(x -> x.saveNodeAsInvoked(treeNode));
   }
 
   @Override
@@ -313,6 +361,139 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     @Override
     public void treeModelChanged(@Nullable DefaultTreeModel newTreeModel) {
       setRootFolder(newTreeModel);
+    }
+  }
+
+  private abstract class TreeMenuItem implements PopupMenuItem {
+    @NotNull
+    @Override
+    public abstract String getText();
+
+    @Nullable
+    @Override
+    public abstract Icon getIcon();
+
+    @Override
+    public final boolean isEnabled() {
+      DeviceFileEntryNode node = getSelectedNode();
+      if (node == null) {
+        return false;
+      }
+      return isEnabled(node);
+    }
+
+    @Override
+    public final boolean isVisible() {
+      DeviceFileEntryNode node = getSelectedNode();
+      if (node == null) {
+        return false;
+      }
+      return isVisible(node);
+    }
+
+    @Override
+    public final void run() {
+      DeviceFileEntryNode node = getSelectedNode();
+      if (node == null) {
+        return;
+      }
+      run(node);
+    }
+
+    public final DeviceFileEntryNode getSelectedNode() {
+      assert myPanel != null;
+      TreePath path = myPanel.getTree().getSelectionPath();
+      if (path == null) {
+        return null;
+      }
+      return DeviceFileEntryNode.fromNode(path.getLastPathComponent());
+    }
+
+    public boolean isVisible(@NotNull DeviceFileEntryNode node) {
+      return true;
+    }
+
+    public boolean isEnabled(@NotNull DeviceFileEntryNode node) {
+      return isVisible(node);
+    }
+
+    public abstract void run(@NotNull DeviceFileEntryNode node);
+  }
+
+  private class CopyPathMenuItem extends TreeMenuItem {
+    @NotNull
+    @Override
+    public String getText() {
+      return "Copy Path";
+    }
+
+    @Override
+    public String getShortcutId() {
+      return "CopyPaths"; // Re-use shortcut from existing action
+    }
+
+    @Nullable
+    @Override
+    public Icon getIcon() {
+      return AllIcons.Actions.Copy;
+    }
+
+    @Override
+    public boolean isVisible(@NotNull DeviceFileEntryNode node) {
+      return true;
+    }
+
+    @Override
+    public void run(@NotNull DeviceFileEntryNode node) {
+      copyNodePath(node);
+    }
+  }
+
+  private class OpenMenuItem extends TreeMenuItem {
+    @NotNull
+    @Override
+    public String getText() {
+      return "Open";
+    }
+
+    @Nullable
+    @Override
+    public Icon getIcon() {
+      return AllIcons.Actions.Menu_open;
+    }
+
+    @Override
+    public boolean isVisible(@NotNull DeviceFileEntryNode node) {
+      return node.getEntry().isFile();
+    }
+
+    @Override
+    public void run(@NotNull DeviceFileEntryNode node) {
+      openNode(node);
+    }
+  }
+
+  private class SaveAsMenuItem extends TreeMenuItem {
+    @NotNull
+    @Override
+    public String getText() {
+      return "Save As...";
+    }
+
+    @Nullable
+    @Override
+    public Icon getIcon() {
+      return AllIcons.Actions.Menu_saveall;
+    }
+
+    @Override
+    public boolean isVisible(@NotNull DeviceFileEntryNode node) {
+      return node.getEntry().isFile();
+    }
+
+    @Override
+    public void run(@NotNull DeviceFileEntryNode node) {
+      saveNodeAs(node);
     }
   }
 }

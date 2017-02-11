@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer;
+package com.android.tools.idea.explorer.ui;
 
-import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface DeviceExplorerViewListener {
-  void deviceSelected(@Nullable DeviceFileSystem device);
-  void treeNodeExpanding(@NotNull DeviceFileEntryNode treeNode);
-  void openNodeInEditorInvoked(@NotNull DeviceFileEntryNode treeNode);
-  void saveNodeAsInvoked(@NotNull DeviceFileEntryNode treeNode);
-  void copyNodePathInvoked(@NotNull DeviceFileEntryNode treeNode);
+import javax.swing.*;
+
+/**
+ * A wrapper for creating popup menu items for a UI component.
+ */
+public interface PopupMenuItem extends Runnable {
+  @NotNull
+  String getText();
+
+  @Nullable
+  Icon getIcon();
+
+  boolean isEnabled();
+
+  default boolean isVisible() {
+    return true;
+  }
+
+  @Nullable
+  default String getShortcutId() {
+    return null;
+  }
 }

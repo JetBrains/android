@@ -18,6 +18,7 @@ package com.android.tools.idea.explorer;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -32,8 +33,21 @@ import java.util.Queue;
  */
 public class FutureValuesTracker<V> {
   private final Object LOCK = new Object();
-  private final Queue<V> myValues = new LinkedList<>();
+  private final Queue<Entry> myValues = new LinkedList<>();
   private final Queue<SettableFuture<V>> myWaitingFutures = new LinkedList<>();
+
+  private class Entry {
+    public V value;
+    public Throwable error;
+
+    public Entry(V value) {
+      this.value = value;
+    }
+
+    public Entry(Throwable t) {
+      this.error = t;
+    }
+  }
 
   /**
    * Makes a new value available
@@ -49,7 +63,25 @@ public class FutureValuesTracker<V> {
       }
 
       // If none found, enqueue the value for later
-      myValues.add(value);
+      myValues.add(new Entry(value));
+    }
+  }
+
+  /**
+   * Makes a new exception available
+   */
+  public void produceException(@NotNull Throwable t) {
+    synchronized (LOCK) {
+      // Look for a non-cancelled future
+      while (myWaitingFutures.size() >= 1) {
+        SettableFuture<V> future = myWaitingFutures.remove();
+        if (future.setException(t)) {
+          return;
+        }
+      }
+
+      // If none found, enqueue the value for later
+      myValues.add(new Entry(t));
     }
   }
 
@@ -61,8 +93,12 @@ public class FutureValuesTracker<V> {
     synchronized (LOCK) {
       // Look for available value
       if (myValues.size() >= 1) {
-        V value = myValues.remove();
-        return Futures.immediateFuture(value);
+        Entry entry = myValues.remove();
+        if (entry.error != null) {
+          return Futures.immediateFailedFuture(entry.error);
+        } else {
+          return Futures.immediateFuture(entry.value);
+        }
       }
 
       // Otherwise enqueue a future
