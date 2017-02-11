@@ -25,6 +25,7 @@ import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
@@ -146,18 +147,24 @@ public class StudioProfilersView extends AspectObserver {
     }
 
     public void renderDeviceName(@NotNull Profiler.Device d) {
-      // As of 2016-11, only model and serial are populated in Profiler.Device.
-      // Model seems to be a string in the form of "model-serial". Here we are trying
-      // to divide it into real model name and serial number, and then render them nicely.
-      // TODO: Render better structured info when more fields are populated in Profiler.Device.
+      // TODO: Share code between here and DeviceRenderer#renderDeviceName
+      String manufacturer = d.getManufacturer();
       String model = d.getModel();
       String serial = d.getSerial();
       String suffix = String.format("-%s", serial);
       if (model.endsWith(suffix)) {
         model = model.substring(0, model.length() - suffix.length());
       }
+      if (!StringUtil.isEmpty(manufacturer)) {
+        append(String.format("%s ", manufacturer), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+      }
       append(model, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
       append(String.format(" (%1$s)", serial), SimpleTextAttributes.GRAY_ATTRIBUTES);
+
+      Profiler.Device.State state = d.getState();
+      if (state != Profiler.Device.State.ONLINE && state != Profiler.Device.State.UNSPECIFIED) {
+        append(String.format(" [%s]", state), SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
+      }
     }
 
     @NotNull
@@ -185,6 +192,7 @@ public class StudioProfilersView extends AspectObserver {
     }
 
     private void renderProcessName(@NotNull Profiler.Process process) {
+      // TODO: Share code between here and ClientCellRenderer#renderClient
       String name = process.getName();
       // Highlight the last part of the process name.
       int index = name.lastIndexOf('.');
