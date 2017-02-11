@@ -29,6 +29,8 @@ public interface DeviceExplorerView {
   void reportErrorRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message, @NotNull Throwable t);
   void reportErrorRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message, @NotNull Throwable t);
 
+  void reportMessageRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message);
+
   void serviceSetupSuccess();
 
   void startTreeBusyIndicator();

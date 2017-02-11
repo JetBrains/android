@@ -27,21 +27,30 @@ import java.nio.file.Path;
  */
 public interface DeviceExplorerFileManager {
   /**
-   * Download asynchronously the content of a {@link DeviceFileEntry} onto the local file system.
-   * and returns a {@link ListenableFuture} the contains the local {@link Path} of the downloaded
-   * file once the download is completed. The <code>progress</code> callback is regularly notified
-   * of the current progress of the download operation.
+   * Returns the default {@link Path} where to store the {@code entry} on the local file system.
    */
   @NotNull
-  ListenableFuture<Path> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull FileTransferProgress progress);
+  Path getDefaultLocalPathForEntry(@NotNull DeviceFileEntry entry);
 
   /**
-   * Opens a previously downloaded file in an editor window.
+   * Download asynchronously the content of a {@link DeviceFileEntry} onto the local file system.
+   * Returns a {@link ListenableFuture} that completes when the download has completed.
+   * The <code>progress</code> callback is regularly notified of the current progress of the
+   * download operation.
+   */
+  @NotNull
+  ListenableFuture<Void> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull FileTransferProgress progress);
+
+  /**
+   * Opens a previously downloaded file in an editor window. If the file contents is
+   * not recognized, the implementation may open a dialog box asking the user to pick
+   * the best editor type.
    *
-   * The current implementation deletes the local file after the editor
-   * windows is closed, or if no editor window can be opened. This
-   * behavior will be changed when a better synchronization mechanism
-   * is put in place.
+   * <ul>
+   * <li>Throws a {@link RuntimeException} exception if the file can not be opened.</li>
+   * <li>Throws a {@link java.util.concurrent.CancellationException} if the user cancels
+   * the editor type dialog.</li>
+   * </ul>
    */
   void openFileInEditor(@NotNull Path localPath, boolean focusEditor);
 }

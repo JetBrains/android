@@ -59,24 +59,31 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
 
   @NotNull
   @Override
-  public ListenableFuture<Path> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull FileTransferProgress progress) {
+  public ListenableFuture<Void> downloadFileEntry(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull FileTransferProgress progress) {
     myDownloadFileEntryTracker.produce(entry);
 
     myDevices.add(entry.getFileSystem());
-    ListenableFuture<Path> futureResult = myFileManagerImpl.downloadFileEntry(entry, progress);
-    myEdtExecutor.addCallback(futureResult, new FutureCallback<Path>() {
+
+    ListenableFuture<Void> futureResult = myFileManagerImpl.downloadFileEntry(entry, localPath, progress);
+    myEdtExecutor.addCallback(futureResult, new FutureCallback<Void>() {
       @Override
-      public void onSuccess(@Nullable Path result) {
+      public void onSuccess(@Nullable Void result) {
         myDownloadFileEntryCompletionTracker.produce(entry);
       }
 
       @Override
       public void onFailure(@NotNull Throwable t) {
-        myDownloadFileEntryCompletionTracker.produce(entry);
+        myDownloadFileEntryCompletionTracker.produceException(t);
       }
     });
 
     return futureResult;
+  }
+
+  @NotNull
+  @Override
+  public Path getDefaultLocalPathForEntry(@NotNull DeviceFileEntry entry) {
+    return myFileManagerImpl.getDefaultLocalPathForEntry(entry);
   }
 
   @Override
@@ -102,7 +109,7 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
 
     // Delete local directories associated to test devices
     myDevices.forEach(fileSystem -> {
-      Path path = myFileManagerImpl.getLocalPathForDevice(fileSystem);
+      Path path = myFileManagerImpl.getDefaultLocalPathForDevice(fileSystem);
       try {
         PathKt.deleteRecursively(path);
       }
