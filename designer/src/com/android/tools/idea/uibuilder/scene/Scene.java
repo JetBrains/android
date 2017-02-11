@@ -633,7 +633,10 @@ public class Scene implements ModelListener, SelectionListener {
       }
       // if the baseline shows, hide all the targets others than ActionTarget, DragTarget and ResizeTarget
       if (component.canShowBaseline()) {
-        return (target instanceof ActionTarget) || (target instanceof DragTarget) || (target instanceof ResizeTarget);
+        return (target instanceof ActionTarget) ||
+               (target instanceof DragTarget) ||
+               (target instanceof DragBaseTarget) ||
+               (target instanceof ResizeBaseTarget);
       }
       return !component.isDragging();
     }
@@ -654,7 +657,7 @@ public class Scene implements ModelListener, SelectionListener {
         return true;
       }
     }
-    if (myFilterTarget == FilterType.RESIZE && target instanceof ResizeTarget) {
+    if (myFilterTarget == FilterType.RESIZE && target instanceof ResizeBaseTarget) {
       return true;
     }
     if (target instanceof DragTarget) {

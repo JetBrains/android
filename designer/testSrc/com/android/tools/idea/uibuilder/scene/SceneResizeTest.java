@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.scene.target.ResizeTarget;
+import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
@@ -51,7 +51,7 @@ public class SceneResizeTest extends SceneTest {
 
   public void testResizeLeftTop() {
     myInteraction.select("button", true);
-    myInteraction.mouseDown("button", ResizeTarget.Type.LEFT_TOP);
+    myInteraction.mouseDown("button", ResizeBaseTarget.Type.LEFT_TOP);
     myInteraction.mouseRelease(300, 300);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
@@ -64,7 +64,7 @@ public class SceneResizeTest extends SceneTest {
 
   public void testResizeRightTop() {
     myInteraction.select("button", true);
-    myInteraction.mouseDown("button", ResizeTarget.Type.RIGHT_TOP);
+    myInteraction.mouseDown("button", ResizeBaseTarget.Type.RIGHT_TOP);
     myInteraction.mouseRelease(900, 300);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
@@ -77,7 +77,7 @@ public class SceneResizeTest extends SceneTest {
 
   public void testResizeLeftBottom() {
     myInteraction.select("button", true);
-    myInteraction.mouseDown("button", ResizeTarget.Type.LEFT_BOTTOM);
+    myInteraction.mouseDown("button", ResizeBaseTarget.Type.LEFT_BOTTOM);
     myInteraction.mouseRelease(300, 700);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
@@ -90,7 +90,7 @@ public class SceneResizeTest extends SceneTest {
 
   public void testResizeRightBottom() {
     myInteraction.select("button", true);
-    myInteraction.mouseDown("button", ResizeTarget.Type.RIGHT_BOTTOM);
+    myInteraction.mouseDown("button", ResizeBaseTarget.Type.RIGHT_BOTTOM);
     myInteraction.mouseRelease(900, 700);
     myScreen.get("@id/button")
       .expectXml("<TextView\n" +
