@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.ndk.ContentRootModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkFacetModuleSetupStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
@@ -35,7 +38,7 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public NdkModuleModelDataService() {
-    this(new NdkModuleSetup());
+    this(new NdkModuleSetup(new NdkFacetModuleSetupStep(), new ContentRootModuleSetupStep()));
   }
 
   @VisibleForTesting
@@ -54,9 +57,11 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
                             @NotNull Map<String, NdkModuleModel> modelsByName) {
+    boolean syncSkipped = GradleSyncState.getInstance(project).isSyncSkipped();
+
     for (Module module : modelsProvider.getModules()) {
       NdkModuleModel ndkModuleModel = modelsByName.get(module.getName());
-      myModuleSetup.setUpModule(module, modelsProvider, ndkModuleModel, null, null);
+      myModuleSetup.setUpModule(module, modelsProvider, ndkModuleModel, null, null, syncSkipped);
     }
   }
 }

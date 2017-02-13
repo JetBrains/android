@@ -55,4 +55,28 @@ public class AvdScreenDataTest {
     assertThat( AvdScreenData.getScreenDensity(true, 480.0, 1080) ).isEqualTo(Density.XHIGH);
     assertThat( AvdScreenData.getScreenDensity(true, 480.0, 2048) ).isEqualTo(Density.XHIGH); // May change in the future
   }
+
+  // Helper function
+  static private Double pythag(Double ww, Double hh) {
+    return Math.sqrt(ww * ww + hh * hh);
+  }
+
+  @Test
+  public void testCalculateDpi() throws Exception {
+    final Double TOLERANCE = 0.01;
+
+    Double dpi;
+
+    dpi = AvdScreenData.calculateDpi(1080.0, 1920.0, 5.5, false);
+    assertThat(dpi).isWithin(TOLERANCE).of(pythag(1080.0, 1920.0) / 5.5);
+
+    dpi = AvdScreenData.calculateDpi(1920.0, 1080.0, 5.5, false);
+    assertThat(dpi).isWithin(TOLERANCE).of(pythag(1080.0, 1920.0) / 5.5);
+
+    dpi = AvdScreenData.calculateDpi(400.0, 400.0, 1.5, false);
+    assertThat(dpi).isWithin(TOLERANCE).of(pythag(400.0, 400.0) / 1.5);
+
+    dpi = AvdScreenData.calculateDpi(400.0, 400.0, 1.5, true);
+    assertThat(dpi).isWithin(TOLERANCE).of(400.0 / 1.5);
+  }
 }

@@ -15,13 +15,20 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.TreeWalker;
+import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.memory.MemoryMonitor;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.network.NetworkMonitor;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,20 +40,21 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class StudioProfilersViewTest {
 
   private final FakeProfilerService myService = new FakeProfilerService();
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("StudioProfilerTestChannel", myService);
+  @Rule public FakeGrpcServer myGrpcChannel = new FakeGrpcServer("StudioProfilerTestChannel", myService);
   private StudioProfilers myProfilers;
   private FakeTimer myTimer;
   private StudioProfilersView myView;
-
+  private FakeUi myUi;
 
   @Before
   public void setUp() throws Exception {
@@ -54,9 +62,12 @@ public class StudioProfilersViewTest {
     myTimer = new FakeTimer();
     myProfilers = new StudioProfilers(myGrpcChannel.getClient(), ide, myTimer);
     // Make sure a process is selected
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myView = new StudioProfilersView(myProfilers, new IdeProfilerComponentsStub());
+    myView = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
     myView.bind(FakeStage.class, FakeView::new);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    JPanel component = myView.getComponent();
+    component.setSize(1024, 450);
+    myUi = new FakeUi(component);
   }
 
   @Test
@@ -66,7 +77,71 @@ public class StudioProfilersViewTest {
     StageView view = myView.getStageView();
 
     myProfilers.setStage(stage);
-    assertEquals(view, myView.getStageView());
+    assertThat(myView.getStageView()).isEqualTo(view);
+  }
+
+  @Test
+  public void testMonitorExpansion() throws IOException {
+    assertThat(myProfilers.getStage()).isInstanceOf(StudioMonitorStage.class);
+
+    List<Point> points = new TreeWalker(myView.getComponent()).descendantStream()
+      .filter(d -> d instanceof LineChart)
+      .map(c -> myUi.getPosition(c))
+      .collect(Collectors.toList());
+    // Test that we have three monitors
+    assertThat(points.size()).isEqualTo(3);
+
+    // Test the first monitor goes to cpu profiling
+    myUi.mouse.click(points.get(0).x + 1, points.get(0).y + 1);
+    assertThat(myProfilers.getStage()).isInstanceOf(CpuProfilerStage.class);
+    myProfilers.setMonitoringStage();
+
+    myUi.layout();
+    // Test the second monitor goes to memory profiling
+    myUi.mouse.click(points.get(1).x + 1, points.get(1).y + 1);
+    assertThat(myProfilers.getStage()).isInstanceOf(MemoryProfilerStage.class);
+    myProfilers.setMonitoringStage();
+
+    myUi.layout();
+    // Test the third monitor goes to network profiling
+    myUi.mouse.click(points.get(2).x + 1, points.get(2).y + 1);
+    assertThat(myProfilers.getStage()).isInstanceOf(NetworkProfilerStage.class);
+  }
+
+  @Test
+  public void testMonitorTooltip() throws IOException {
+    assertThat(myProfilers.getStage()).isInstanceOf(StudioMonitorStage.class);
+    StudioMonitorStage stage = (StudioMonitorStage)myProfilers.getStage();
+
+    List<Point> points = new TreeWalker(myView.getComponent()).descendantStream()
+      .filter(d -> d instanceof LineChart)
+      .map(c -> myUi.getPosition(c))
+      .collect(Collectors.toList());
+    // Test that we have three monitors
+    assertThat(points.size()).isEqualTo(3);
+
+    // cpu monitoring
+    myUi.mouse.moveTo(points.get(0).x + 1, points.get(0).y + 1);
+    assertThat(stage.getTooltip()).isInstanceOf(CpuMonitor.class);
+    assertThat(stage.getTooltip().isFocused()).isTrue();
+    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isEqualTo(monitor == stage.getTooltip()));
+
+    // memory monitoring
+    myUi.mouse.moveTo(points.get(1).x + 1, points.get(1).y + 1);
+    assertThat(stage.getTooltip()).isInstanceOf(MemoryMonitor.class);
+    assertThat(stage.getTooltip().isFocused()).isTrue();
+    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isEqualTo(monitor == stage.getTooltip()));
+
+    // network monitoring
+    myUi.mouse.moveTo(points.get(2).x + 1, points.get(2).y + 1);
+    assertThat(stage.getTooltip()).isInstanceOf(NetworkMonitor.class);
+    assertThat(stage.getTooltip().isFocused()).isTrue();
+    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isEqualTo(monitor == stage.getTooltip()));
+
+    // no tooltip
+    myUi.mouse.moveTo(0, 0);
+    assertThat(stage.getTooltip()).isNull();
+    stage.getMonitors().forEach(monitor -> assertThat(monitor.isFocused()).isFalse());
   }
 
   @Test
@@ -76,7 +151,7 @@ public class StudioProfilersViewTest {
     // Null device
     Profiler.Device device = null;
     Component component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertEquals(renderer.getEmptyText(), component.toString());
+    assertThat(component.toString()).isEqualTo(renderer.getEmptyText());
 
     // Standard case
     device = Profiler.Device.newBuilder()
@@ -84,7 +159,7 @@ public class StudioProfilersViewTest {
       .setSerial("1234")
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertEquals("Model (1234)", component.toString());
+    assertThat(component.toString()).isEqualTo("Model (1234)");
 
     // Suffix not serial
     device = Profiler.Device.newBuilder()
@@ -92,7 +167,7 @@ public class StudioProfilersViewTest {
       .setSerial("1234")
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertEquals("Model-9999 (1234)", component.toString());
+    assertThat(component.toString()).isEqualTo("Model-9999 (1234)");
 
     // Suffix serial
     device = Profiler.Device.newBuilder()
@@ -100,7 +175,7 @@ public class StudioProfilersViewTest {
       .setSerial("1234")
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
-    assertEquals("Model (1234)", component.toString());
+    assertThat(component.toString()).isEqualTo("Model (1234)");
   }
 
   @Test
@@ -110,7 +185,7 @@ public class StudioProfilersViewTest {
     // Null process
     Profiler.Process process = null;
     Component component = renderer.getListCellRendererComponent(list, process, 0, false, false);
-    assertEquals(renderer.getEmptyText(), component.toString());
+    assertThat(component.toString()).isEqualTo(renderer.getEmptyText());
 
     // Process
     process = Profiler.Process.newBuilder()
@@ -118,7 +193,7 @@ public class StudioProfilersViewTest {
       .setPid(1234)
       .build();
     component = renderer.getListCellRendererComponent(list, process, 0, false, false);
-    assertEquals("MyProcessName (1234)", component.toString());
+    assertThat(component.toString()).isEqualTo("MyProcessName (1234)");
   }
 
   @Test
@@ -143,7 +218,7 @@ public class StudioProfilersViewTest {
 
   @Test
   public void testNoStage() throws Exception {
-    StudioProfilersView view = new StudioProfilersView(myProfilers, new IdeProfilerComponentsStub());
+    StudioProfilersView view = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
     JPanel component = view.getComponent();
     assertNotReachable(myProfilers, view, component);
   }
@@ -177,7 +252,8 @@ public class StudioProfilersViewTest {
    * Collects all the objects reachable from "object" by following hard links. This method doesn't dive in if it finds
    * objects within java.lang or io.grpc.
    */
-  private void collectReachable(LinkedList<Object> path, Object object, Predicate<Object> invalid, Set<Object> reachable) throws IllegalAccessException {
+  private void collectReachable(LinkedList<Object> path, Object object, Predicate<Object> invalid, Set<Object> reachable)
+    throws IllegalAccessException {
     if (object == null || object.getClass().equals(WeakReference.class) || object.getClass().equals(WeakHashMap.class)) {
       return;
     }
@@ -199,7 +275,7 @@ public class StudioProfilersViewTest {
         for (Object previous : path) {
           error += " > \"" + previous + "\" :: " + previous.getClass().getName() + "\n";
         }
-        assertFalse(error, true);
+        Assert.fail(error);
       }
     }
     if (!object.getClass().isArray() && (name.startsWith("java.lang") || name.startsWith("io.grpc"))) {
@@ -237,14 +313,17 @@ public class StudioProfilersViewTest {
     public FakeStage(@NotNull StudioProfilers profilers) {
       super(profilers);
     }
+
     @Override
     public void enter() {
 
     }
+
     @Override
     public void exit() {
 
     }
+
     @Override
     public ProfilerMode getProfilerMode() {
       return ProfilerMode.NORMAL;

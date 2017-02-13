@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -46,6 +47,8 @@ import java.util.Map;
 
 public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, AndroidDebugBridge.IDebugBridgeChangeListener,
                                     AndroidDebugBridge.IClientChangeListener, Disposable {
+  private static final Logger LOG = Logger.getInstance(DevicePanel.class);
+
   private JPanel myPanel;
 
   private final DeviceContext myDeviceContext;
@@ -165,64 +168,41 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
   @Override
   public void bridgeChanged(final AndroidDebugBridge bridge) {
-    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> {
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          myBridge = bridge;
-          updateDeviceCombo();
-        }
-      });
-    });
+    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> UIUtil.invokeLaterIfNeeded(() -> {
+        myBridge = bridge;
+        updateDeviceCombo();
+      }));
   }
 
   @Override
-  public void deviceConnected(final IDevice device) {
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
+  public void deviceConnected(@NotNull final IDevice device) {
+    LOG.info("Device connected: " + device.getName());
+    UIUtil.invokeLaterIfNeeded(this::updateDeviceCombo);
+  }
+
+  @Override
+  public void deviceDisconnected(@NotNull final IDevice device) {
+    LOG.info("Device disconnected: " + device.getName());
+    UIUtil.invokeLaterIfNeeded(this::updateDeviceCombo);
+  }
+
+  @Override
+  public void deviceChanged(@NotNull final IDevice device, final int changeMask) {
+    UIUtil.invokeLaterIfNeeded(() -> {
+      if ((changeMask & IDevice.CHANGE_CLIENT_LIST) != 0) {
+        updateClientCombo();
+      }
+      else if ((changeMask & IDevice.CHANGE_STATE) != 0) {
         updateDeviceCombo();
       }
+      myDeviceContext.fireDeviceChanged(device, changeMask);
     });
   }
 
   @Override
-  public void deviceDisconnected(final IDevice device) {
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        updateDeviceCombo();
-      }
-    });
-  }
-
-  @Override
-  public void deviceChanged(final IDevice device, final int changeMask) {
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        if ((changeMask & IDevice.CHANGE_CLIENT_LIST) != 0) {
-          updateClientCombo();
-        }
-        else if ((changeMask & IDevice.CHANGE_STATE) != 0) {
-          updateDeviceCombo();
-        }
-        if (device != null) {
-          myDeviceContext.fireDeviceChanged(device, changeMask);
-        }
-      }
-    });
-  }
-
-  @Override
-  public void clientChanged(Client client, int changeMask) {
+  public void clientChanged(@NotNull Client client, int changeMask) {
     if ((changeMask & Client.CHANGE_NAME) != 0) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          updateClientCombo();
-        }
-      });
+      ApplicationManager.getApplication().invokeLater(this::updateClientCombo);
     }
   }
 

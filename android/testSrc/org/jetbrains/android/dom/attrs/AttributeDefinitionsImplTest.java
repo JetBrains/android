@@ -18,6 +18,7 @@ package org.jetbrains.android.dom.attrs;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
@@ -32,7 +33,7 @@ public class AttributeDefinitionsImplTest extends AndroidTestCase {
     super.setUp();
     myFixture.copyFileToProject("dom/resources/attrs6.xml", "res/values/attrs.xml");
     myDefs = LocalResourceManager.getInstance(myModule).getAttributeDefinitions();
-    mySystemDefs = myFacet.getSystemResourceManager().getAttributeDefinitions();
+    mySystemDefs = ModuleResourceManagers.getInstance(myFacet).getSystemResourceManager().getAttributeDefinitions();
     assertNotNull(myDefs);
   }
 

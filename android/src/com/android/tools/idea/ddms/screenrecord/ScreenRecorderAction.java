@@ -16,12 +16,11 @@
 
 package com.android.tools.idea.ddms.screenrecord;
 
-import com.android.ddmlib.CollectingOutputReceiver;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.ScreenRecorderOptions;
+import com.android.ddmlib.*;
 import com.intellij.CommonBundle;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.fileChooser.FileSaverDialog;
@@ -40,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -70,7 +70,11 @@ public class ScreenRecorderAction {
     final CountDownLatch latch = new CountDownLatch(1);
     final CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);
 
+    boolean showTouchEnabled = isShowTouchEnabled(myDevice);
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      if (options.showTouches != showTouchEnabled) {
+        setShowTouch(myDevice, options.showTouches);
+      }
       try {
         myDevice.startScreenRecorder(REMOTE_PATH, options, receiver);
       }
@@ -78,11 +82,39 @@ public class ScreenRecorderAction {
         showError(myProject, "Unexpected error while launching screen recorder", e);
         latch.countDown();
       }
+      finally {
+        if (options.showTouches != showTouchEnabled) {
+          setShowTouch(myDevice, showTouchEnabled);
+        }
+      }
     });
 
     Task.Modal screenRecorderShellTask = new ScreenRecorderTask(myProject, myDevice, latch, receiver);
     screenRecorderShellTask.setCancelText("Stop Recording");
     screenRecorderShellTask.queue();
+  }
+
+  private void setShowTouch(@NotNull IDevice device, boolean isEnabled) {
+    int value = isEnabled ? 1 : 0;
+    try {
+      device.executeShellCommand("settings put system show_touches " + value, new NullOutputReceiver());
+    }
+    catch (AdbCommandRejectedException|ShellCommandUnresponsiveException|IOException|TimeoutException e) {
+      Logger.getInstance(ScreenRecorderAction.class).warn("Failed to set show taps to " + isEnabled, e);
+    }
+  }
+
+  private boolean isShowTouchEnabled(@NotNull IDevice device) {
+    CollectingOutputReceiver receiver = new CollectingOutputReceiver();
+    try {
+      device.executeShellCommand("settings get system show_touches", receiver);
+      String output = receiver.getOutput();
+      return output.equals("1");
+    }
+    catch (AdbCommandRejectedException|ShellCommandUnresponsiveException|IOException|TimeoutException e) {
+      Logger.getInstance(ScreenRecorderAction.class).warn("Failed to retrieve setting", e);
+    }
+    return false;
   }
 
   private static class ScreenRecorderTask extends Task.Modal {

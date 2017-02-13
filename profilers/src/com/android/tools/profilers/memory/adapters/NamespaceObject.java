@@ -28,4 +28,16 @@ public class NamespaceObject implements MemoryObject {
   public String getName() {
     return myName;
   }
+
+  public int getTotalCount() {
+    return INVALID_VALUE;
+  }
+
+  public int getHeapCount() {
+    return INVALID_VALUE;
+  }
+
+  public long getRetainedSize() {
+    return INVALID_VALUE;
+  }
 }

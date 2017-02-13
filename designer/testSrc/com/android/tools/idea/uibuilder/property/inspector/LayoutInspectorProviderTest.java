@@ -15,47 +15,45 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector;
 
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.project.Project;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.xml.XmlName;
+import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.SdkConstants.ATTR_LAYOUT_WEIGHT;
-import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
 public class LayoutInspectorProviderTest extends PropertyTestCase {
 
+  private NlComponent myCoordinatorLayout;
+  private NlComponent myAppBarLayout;
+  private NlComponent myCollapsingToolbarLayout;
+  private NlComponent myToolbar;
+  private NlComponent myFakeImageView;
   private LayoutInspectorProvider myProvider;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-
-    // Use the fake version of ViewHandlerManager in this test so that we can test the LayoutInspectorProvider with
-    // a view handler that extends extends ViewHandler#getLayoutInspectorProperties
-    // because only the NlComponent for the classes that extends android.view.View are correctly handled by the
-    // PropertyTestCase#getPropertyMap(components) method.
-    // At this moment, FlexboxLayoutHandler is the only class that overrides
-    // ViewHandler#getLayoutInspectorProperties but FlexboxLayout is not included as the default
-    // Android SDK.
-    // Thus in this test, fake version of the view handler is injected for LinearLayout.
-    ViewHandlerManager fakeViewHandlerManager = new FakeViewHandlerManager(getProject());
-    Project mockProject = mock(Project.class);
-    when(mockProject.getComponent(ViewHandlerManager.class)).thenReturn(fakeViewHandlerManager);
-    myProvider = new LayoutInspectorProvider(mockProject);
+    myCoordinatorLayout = newFakeNlComponent(COORDINATOR_LAYOUT);
+    myAppBarLayout = newFakeNlComponent(APP_BAR_LAYOUT);
+    myCollapsingToolbarLayout = newFakeNlComponent(COLLAPSING_TOOLBAR_LAYOUT);
+    myToolbar = newFakeNlComponent(TOOLBAR_V7);
+    myFakeImageView = newFakeNlComponent(IMAGE_VIEW);
+    myProvider = new LayoutInspectorProvider(getProject());
+    initFakeHierarchy();
   }
 
   public void testIsApplicable() {
@@ -63,13 +61,27 @@ public class LayoutInspectorProviderTest extends PropertyTestCase {
     assertThat(isApplicable(myProvider, myTextView)).isFalse();
     assertThat(isApplicable(myProvider, myCheckBox1)).isFalse();
     assertThat(isApplicable(myProvider, myButton)).isFalse();
-    assertThat(isApplicable(myProvider, myButtonInLinearLayout)).isTrue();
-    assertThat(isApplicable(myProvider, myTextViewInLinearLayout, myButtonInLinearLayout)).isTrue();
+    assertThat(isApplicable(myProvider, myToolbar)).isTrue();
+    assertThat(isApplicable(myProvider, myCollapsingToolbarLayout)).isTrue();
+    assertThat(isApplicable(myProvider, myAppBarLayout)).isTrue();
+    assertThat(isApplicable(myProvider, myToolbar, myFakeImageView)).isTrue();
   }
 
-  public void testInspectorComponent() {
-    List<NlComponent> components = ImmutableList.of(myTextViewInLinearLayout, myButtonInLinearLayout);
-    Map<String, NlProperty> properties = getPropertyMap(components);
+  public void testInspectorForCollapsingToolbarLayout() {
+    assertInspectorPanel(myToolbar, "CollapsingToolbarLayout_layout", ATTR_LAYOUT_COLLAPSE_MODE, ATTR_COLLAPSE_PARALLAX_MULTIPLIER);
+  }
+
+  public void testInspectorForAppBarLayout() {
+    assertInspectorPanel(myCollapsingToolbarLayout, "AppBarLayout_layout", ATTR_LAYOUT_SCROLL_FLAGS);
+  }
+
+  public void testInspectorForCoordinatorLayout() {
+    assertInspectorPanel(myAppBarLayout, "CoordinatorLayout_layout", ATTR_LAYOUT_BEHAVIOR);
+  }
+
+  private void assertInspectorPanel(@NotNull NlComponent component, @NotNull String expectedTitle, @NotNull String... expectedProperties) {
+    List<NlComponent> components = Collections.singletonList(component);
+    Map<String, NlProperty> properties = getFakePropertyMap(components);
     assertThat(myProvider.isApplicable(components, properties, myPropertiesManager)).isTrue();
     InspectorComponent inspector = myProvider.createCustomInspector(components, properties, myPropertiesManager);
 
@@ -78,54 +90,46 @@ public class LayoutInspectorProviderTest extends PropertyTestCase {
     inspector.attachToInspector(panel);
 
     List<NlComponentEditor> editors = inspector.getEditors();
-    assertThat(editors.size()).isEqualTo(1);
-    assertThat(inspector.getMaxNumberOfRows()).isEqualTo(2);
-    NlComponentEditor editor = editors.get(0);
-    NlProperty property = editor.getProperty();
-    assertThat(property).isNotNull();
-    verify(panel).addTitle("LinearLayout_layout");
-    verify(panel).addComponent(eq(ATTR_LAYOUT_WEIGHT), eq(property.getTooltipText()), eq(editor.getComponent()));
-  }
+    assertThat(editors.size()).isEqualTo(expectedProperties.length);
+    assertThat(inspector.getMaxNumberOfRows()).isEqualTo(expectedProperties.length + 1);
+    verify(panel).addTitle(expectedTitle);
 
-  /**
-   * Fake implementation of the {@link ViewHandlerManager} to inject a test only view handler.
-   */
-  private static class FakeViewHandlerManager extends ViewHandlerManager {
-
-    public FakeViewHandlerManager(@NotNull Project project) {
-      super(project);
-    }
-
-    @Nullable
-    @Override
-    public ViewHandler getHandler(@NotNull String viewTag) {
-      ViewHandler viewHandler = createViewHandler(viewTag);
-      if (viewHandler == null) {
-        viewHandler = super.getHandler(viewTag);
-      }
-      return viewHandler;
-    }
-
-    private static ViewHandler createViewHandler(String viewTag) {
-      ViewHandler viewHandler = null;
-      switch (viewTag) {
-        case LINEAR_LAYOUT:
-          viewHandler = new FakeLinearLayoutHandler();
-      }
-      return viewHandler;
+    int editorIndex = 0;
+    for (String expectedPropertyName : expectedProperties) {
+      verify(panel).addComponent(eq(expectedPropertyName), eq(expectedPropertyName), eq(editors.get(editorIndex++).getComponent()));
     }
   }
 
-  /**
-   * Fake implementation for the LinearLayout so that {@link ViewHandler#getLayoutInspectorProperties()}
-   * can be overridden.
-   */
-  private static class FakeLinearLayoutHandler extends ViewGroupHandler {
+  // We do not have access to the design library in this type of test. Fake the hierarchy:
+  private void initFakeHierarchy() {
+    myCoordinatorLayout.addChild(myAppBarLayout);
+    myAppBarLayout.addChild(myCollapsingToolbarLayout);
+    myCollapsingToolbarLayout.addChild(myToolbar);
+    myCollapsingToolbarLayout.addChild(myFakeImageView);
+  }
 
-    @NotNull
-    @Override
-    public List<String> getLayoutInspectorProperties() {
-      return ImmutableList.of(ATTR_LAYOUT_WEIGHT);
-    }
+  // We do not have access to the design library in this type of test. Fake the creation of the NlComponents:
+  private NlComponent newFakeNlComponent(@NotNull String tagName) {
+    XmlTag tag = mock(XmlTag.class);
+    when(tag.getName()).thenReturn(tagName);
+
+    return new NlComponent(myModel, tag);
+  }
+
+  // We do not have access to the design library in this type of test. Fake the properties:
+  @NotNull
+  private Map<String, NlProperty> getFakePropertyMap(@NotNull List<NlComponent> components) {
+    Map<String, NlProperty> map = new HashMap<>();
+    addFakeProperty(map, ATTR_LAYOUT_BEHAVIOR, components);
+    addFakeProperty(map, ATTR_LAYOUT_SCROLL_FLAGS, components);
+    addFakeProperty(map, ATTR_LAYOUT_COLLAPSE_MODE, components);
+    addFakeProperty(map, ATTR_COLLAPSE_PARALLAX_MULTIPLIER, components);
+    return map;
+  }
+
+  private void addFakeProperty(@NotNull Map<String, NlProperty> map, @NotNull String propertyName, @NotNull List<NlComponent> components) {
+    AttributeDefinition definition = new AttributeDefinition(propertyName, null, null, Collections.emptyList());
+    NlProperty property = NlPropertyItem.create(new XmlName(propertyName), definition, components, myPropertiesManager);
+    map.put(propertyName, property);
   }
 }

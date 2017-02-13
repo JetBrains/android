@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.deprecated;
 
-import com.android.tools.idea.npw.*;
 import com.android.tools.adtui.LabelWithEditLink;
+import com.android.tools.idea.npw.*;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.ide.util.PropertiesComponent;
@@ -68,6 +68,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
   private JTextField myAppName;
   private LabelWithEditLink myPackageName;
   private JCheckBox myInstantAppCheckbox;
+  private JCheckBox myBaseAtomCheckbox;
 
 
   public ConfigureAndroidModuleStepDynamic(@Nullable Disposable parentDisposable, @NotNull FormFactor formFactor) {
@@ -100,9 +101,16 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
       myState.put(COMPANY_DOMAIN_KEY, savedCompanyDomain);
     }
 
-    if (template.getFormFactor() == FormFactor.MOBILE && myState.get(WH_SDK_ENABLED_KEY)) {
+    if (template.getFormFactor() == FormFactor.MOBILE && myState.getNotNull(AIA_SDK_ENABLED_KEY, false)) {
       register(IS_INSTANT_APP_KEY, myInstantAppCheckbox);
       myInstantAppCheckbox.setVisible(true);
+      if (myState.getNotNull(IS_LIBRARY_KEY, false)) {
+        register(IS_BASE_ATOM_KEY, myBaseAtomCheckbox);
+        myBaseAtomCheckbox.setVisible(true);
+        myInstantAppCheckbox.addChangeListener(e -> {
+          myBaseAtomCheckbox.setEnabled(myInstantAppCheckbox.isSelected());
+        });
+      }
     }
 
     super.init();
@@ -156,6 +164,16 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
       // where we deliberately update those values only when the values are
       // actually committed from the new module wizard package panel.
       ((NewFormFactorModulePath)myPath).updatePackageDerivedValues();
+    }
+
+    if (commit && myState.getNotNull(IS_INSTANT_APP_KEY, false)) {
+      // If we have an auto-generated package name and we are making an instant app, strip off the module name as this will go in the
+      // "split" attribute (if required)
+      String packageName = myState.getNotNull(PACKAGE_NAME_KEY,"");
+      if (packageName.equals(PACKAGE_NAME_DERIVER.deriveValue(myState, null, null))) {
+        ScopedStateStore.Key<String> targetKey = myState.getNotNull(IS_BASE_ATOM_KEY, false) ? PACKAGE_NAME_KEY : MANIFEST_PACKAGE_NAME_KEY;
+        myState.put(targetKey, packageName.substring(0, packageName.lastIndexOf('.')));
+      }
     }
 
     return commit;

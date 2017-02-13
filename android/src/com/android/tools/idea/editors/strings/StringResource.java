@@ -15,8 +15,17 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.tools.idea.rendering.Locale;
+import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.res2.ValueXmlHelper;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.res.LocalResourceRepository;
+import com.google.common.base.Strings;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,25 +38,78 @@ import java.util.Map;
  */
 public final class StringResource {
   @NotNull
-  private String myKey;
+  private StringResourceKey myKey;
+
+  @NotNull
+  private final String myResourceFolder;
+
+  private boolean myTranslatable;
+
   @NotNull
   private ResourceItemEntry myDefaultValue;
-  private boolean myTranslatable = true;
-  @NotNull
-  private final Map<Locale, ResourceItemEntry> myLocaleToTranslationMap = new HashMap<>();
 
-  public StringResource(@NotNull String key) {
+  @NotNull
+  private final Map<Locale, ResourceItemEntry> myLocaleToTranslationMap;
+
+  public StringResource(@NotNull StringResourceKey key, @NotNull Iterable<ResourceItem> items, @NotNull Project project) {
+    boolean translatable = true;
+    ResourceItemEntry defaultValue = new ResourceItemEntry();
+    Map<Locale, ResourceItemEntry> localeToTranslationMap = new HashMap<>();
+
+    for (ResourceItem item : items) {
+      XmlTag tag = LocalResourceRepository.getItemTag(project, item);
+
+      if (tag != null && "false".equals(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE))) {
+        translatable = false;
+      }
+
+      LocaleQualifier qualifier = item.getConfiguration().getLocaleQualifier();
+
+      if (qualifier == null) {
+        defaultValue = new ResourceItemEntry(item, toString(item, tag));
+      }
+      else {
+        localeToTranslationMap.put(Locale.create(qualifier), new ResourceItemEntry(item, toString(item, tag)));
+      }
+    }
+
     myKey = key;
-    myDefaultValue = new ResourceItemEntry();
+
+    VirtualFile folder = key.getDirectory();
+    myResourceFolder = folder == null ? "" : VirtualFiles.toString(folder, project);
+
+    myTranslatable = translatable;
+    myDefaultValue = defaultValue;
+    myLocaleToTranslationMap = localeToTranslationMap;
   }
 
   @NotNull
-  String getKey() {
+  private static String toString(@NotNull ResourceItem item, @Nullable XmlTag tag) {
+    if (tag != null) {
+      return Strings.nullToEmpty(ValueXmlHelper.unescapeResourceString(tag.getValue().getText(), false, false));
+    }
+
+    ResourceValue value = item.getResourceValue(false);
+
+    if (value == null) {
+      return "";
+    }
+
+    return Strings.nullToEmpty(ValueXmlHelper.unescapeResourceString(value.getRawXmlValue(), false, false));
+  }
+
+  @NotNull
+  StringResourceKey getKey() {
     return myKey;
   }
 
-  void setKey(@NotNull String key) {
+  void setKey(@NotNull StringResourceKey key) {
     myKey = key;
+  }
+
+  @NotNull
+  public String getResourceFolder() {
+    return myResourceFolder;
   }
 
   @Nullable

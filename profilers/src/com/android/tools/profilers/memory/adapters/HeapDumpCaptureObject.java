@@ -15,26 +15,38 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.perflib.heap.ProguardMap;
 import com.android.tools.perflib.heap.Snapshot;
 import com.android.tools.perflib.heap.io.InMemoryBuffer;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpDataRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
-import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.profilers.RelativeTimeConverter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public final class HeapDumpCaptureObject implements CaptureObject {
+
   @NotNull
   private final MemoryServiceBlockingStub myClient;
 
-  private final int myAppId;
+  private final int myProcessId;
+
+  private final Common.Session mySession;
+
+  @NotNull
+  private final String myLabel;
 
   @NotNull
   private final HeapDumpInfo myHeapDumpInfo;
@@ -48,13 +60,21 @@ public final class HeapDumpCaptureObject implements CaptureObject {
   private volatile boolean myIsLoadingError = false;
 
   public HeapDumpCaptureObject(@NotNull MemoryServiceBlockingStub client,
+                               Common.Session session,
                                int appId,
                                @NotNull HeapDumpInfo heapDumpInfo,
-                               @Nullable ProguardMap proguardMap) {
+                               @Nullable ProguardMap proguardMap,
+                               @NotNull RelativeTimeConverter converter) {
     myClient = client;
-    myAppId = appId;
+    myProcessId = appId;
+    mySession = session;
     myHeapDumpInfo = heapDumpInfo;
     myProguardMap = proguardMap;
+    myLabel =
+      "Heap Dump @ " +
+      TimeAxisFormatter.DEFAULT
+        .getFixedPointFormattedString(TimeUnit.MILLISECONDS.toMicros(1),
+                                      TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myHeapDumpInfo.getStartTime())));
   }
 
   @Override
@@ -64,22 +84,31 @@ public final class HeapDumpCaptureObject implements CaptureObject {
     }
 
     HeapDumpCaptureObject other = (HeapDumpCaptureObject)obj;
-    return other.myAppId == myAppId && other.myIsLoadingError == myIsLoadingError && other.myHeapDumpInfo == myHeapDumpInfo;
-  }
-
-  @Override
-  public void dispose() {
-    Snapshot snapshot = mySnapshot;
-    if (snapshot != null) {
-      snapshot.dispose();
-      mySnapshot = null;
-    }
+    return other.myProcessId == myProcessId && other.myIsLoadingError == myIsLoadingError && other.myHeapDumpInfo == myHeapDumpInfo;
   }
 
   @NotNull
   @Override
   public String getLabel() {
-    return "Heap Dump " + myHeapDumpInfo.getDumpId() + " @" + myHeapDumpInfo.getStartTime();
+    return myLabel;
+  }
+
+  @Nullable
+  @Override
+  public String getExportableExtension() {
+    return "hprof";
+  }
+
+  @Override
+  public void saveToFile(@NotNull OutputStream outputStream) throws IOException {
+    DumpDataResponse response = myClient.getHeapDump(
+      DumpDataRequest.newBuilder().setProcessId(myProcessId).setSession(mySession).setDumpTime(myHeapDumpInfo.getStartTime()).build());
+    if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
+      response.getData().writeTo(outputStream);
+    }
+    else {
+      throw new IOException("Could not retrieve hprof dump.");
+    }
   }
 
   @NotNull
@@ -90,11 +119,6 @@ public final class HeapDumpCaptureObject implements CaptureObject {
       return Collections.emptyList();
     }
     return snapshot.getHeaps().stream().map(HeapDumpHeapObject::new).collect(Collectors.toList());
-  }
-
-  @VisibleForTesting
-  public int getDumpId() {
-    return myHeapDumpInfo.getDumpId();
   }
 
   @Override
@@ -112,7 +136,10 @@ public final class HeapDumpCaptureObject implements CaptureObject {
     DumpDataResponse response;
     while (true) {
       // TODO move this to another thread and complete before we notify
-      response = myClient.getHeapDump(HeapDumpDataRequest.newBuilder().setAppId(myAppId).setDumpId(myHeapDumpInfo.getDumpId()).build());
+      response = myClient.getHeapDump(DumpDataRequest.newBuilder()
+                                        .setProcessId(myProcessId)
+                                        .setSession(mySession)
+                                        .setDumpTime(myHeapDumpInfo.getStartTime()).build());
       if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
         break;
       }

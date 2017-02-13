@@ -16,11 +16,9 @@
 package com.android.tools.idea.npw.template;
 
 import com.android.builder.model.SourceProvider;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
-import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
@@ -37,7 +35,6 @@ import com.android.tools.idea.ui.properties.swing.IconProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.ui.properties.swing.VisibleProperty;
-import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
@@ -55,14 +52,12 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.RecentsManager;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,8 +67,6 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
-import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
@@ -85,9 +78,6 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
  * previously configured values, etc.
  */
 public final class ConfigureTemplateParametersStep extends ModelWizardStep<RenderTemplateModel> {
-
-  private static final String PROJECT_LOCATION_ID = "projectLocation";
-
   private final List<AndroidSourceSet> mySourceSets;
   private final StringProperty myPackageName;
 
@@ -161,28 +151,27 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     return "android.template." + parameter.id;
   }
 
-  /**
-   * Helper method for converting two paths relative to one another into a String path, since this
-   * ends up being a common pattern when creating values to put into our template's data model.
-   */
-  @Nullable
-  private static String getRelativePath(@NotNull File base, @NotNull File file) {
-    // Note: Use FileUtil.getRelativePath(String, String, char) instead of FileUtil.getRelativePath(File, File), because the second version
-    // will use the base.getParent() if base directory is not yet created  (when adding a new module, the directory is created later)
-    return FileUtil.getRelativePath(FileUtil.toSystemIndependentName(base.getPath()),
-                                    FileUtil.toSystemIndependentName(file.getPath()), '/');
-  }
-
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
 
-    if (getModel().getTemplateHandle().getMetadata().getIconType() == AndroidIconType.NOTIFICATION) {
-      return Collections.singletonList(new GenerateIconsStep(getModel()));
+    TemplateHandle template = getModel().getTemplateHandle();
+    if (template != null && template.getMetadata().getIconType() == AndroidIconType.NOTIFICATION) {
+      // myFacet will only be null if this step is being shown for a brand new, not-yet-created project (a project must exist
+      // before it gets a facet associated with it). However, there are currently no activities in the "new project" flow that
+      // need to create notification icons, so we can always assume that myFacet will be non-null here.
+      assert myFacet != null;
+      int minSdkVersion = AndroidModuleInfo.getInstance(myFacet).getMinSdkVersion().getApiLevel();
+      return Collections.singletonList(new GenerateIconsStep(getModel(), minSdkVersion));
     }
     else {
       return super.createDependentSteps();
     }
+  }
+
+  @Override
+  protected boolean shouldShow() {
+    return getModel().getTemplateHandle() != null;
   }
 
   @Override
@@ -272,8 +261,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       sourceSet.addListener(sender -> enqueueEvaluateParameters());
     }
 
-    myValidatorPanel.registerValidator(myInvalidParameterMessage, message ->
-      (message.isEmpty() ? Validator.Result.OK : new Validator.Result(Validator.Severity.ERROR, message)));
+    myValidatorPanel.registerMessageSource(myInvalidParameterMessage);
 
     // TODO: This code won't be needed until we migrate this enough to support
     // NewAndroidApplication/template.xml and NewAndroidLibrary/template.xml
@@ -580,49 +568,20 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
     }
 
-    templateValues.put(ATTR_PACKAGE_NAME, myPackageName.get());
     templateValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.getName());
-    templateValues.put(ATTR_IS_NEW_PROJECT, isNewModule()); // Android Modules are called Gradle Projects
     if (isNewModule()) {
       templateValues.put(ATTR_IS_LAUNCHER, true);
     }
 
-    try {
-      File sha1File = myFacet == null ? getOrCreateDefaultDebugKeystore() : getDebugKeystore(myFacet);
-      templateValues.put(ATTR_DEBUG_KEYSTORE_SHA1, KeystoreUtils.sha1(sha1File));
-    }
-    catch (Exception e) {
-      getLog().info("Could not compute SHA1 hash of debug keystore.", e);
-      templateValues.put(ATTR_DEBUG_KEYSTORE_SHA1, "");
-    }
+    TemplateValueInjector templateInjector = new TemplateValueInjector(templateValues)
+      .setModuleRoots(paths, myPackageName.get());
 
     if (myFacet == null) {
       // If we don't have an AndroidFacet, we must have the Android Sdk info
-      AndroidVersionsInfo.VersionItem buildVersion = getModel().androidSdkInfo().getValue();
-
-      templateValues.put(ATTR_MIN_API_LEVEL, buildVersion.getApiLevel());
-      templateValues.put(ATTR_MIN_API, buildVersion.getApiLevelStr());
-      templateValues.put(ATTR_BUILD_API, buildVersion.getBuildApiLevel());
-      templateValues.put(ATTR_BUILD_API_STRING, buildVersion.getBuildApiLevelStr());
-      templateValues.put(ATTR_TARGET_API, buildVersion.getTargetApiLevel());
-      templateValues.put(ATTR_TARGET_API_STRING, buildVersion.getTargetApiLevelStr());
+      templateInjector.setBuildVersion(getModel().androidSdkInfo().getValue());
     }
     else {
-      AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
-      if (platform != null) {
-        templateValues.put(ATTR_BUILD_API, platform.getTarget().getVersion().getFeatureLevel());
-        templateValues.put(ATTR_BUILD_API_STRING, getBuildApiString(platform.getTarget().getVersion()));
-      }
-
-      AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(myFacet);
-      AndroidVersion minSdkVersion = moduleInfo.getMinSdkVersion();
-      String minSdkName = minSdkVersion.getApiString();
-
-      templateValues.put(ATTR_MIN_API, minSdkName);
-      templateValues.put(ATTR_TARGET_API, moduleInfo.getTargetSdkVersion().getApiLevel());
-      templateValues.put(ATTR_MIN_API_LEVEL, minSdkVersion.getFeatureLevel());
-
-      templateValues.put(ATTR_IS_LIBRARY_MODULE, myFacet.isLibraryProject());
+      templateInjector.setFacet(myFacet);
 
       // Register application-wide settings
       String applicationPackage = AndroidPackageUtils.getPackageForApplication(myFacet);
@@ -630,51 +589,6 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
         templateValues.put(ATTR_APPLICATION_PACKAGE, AndroidPackageUtils.getPackageForApplication(myFacet));
       }
     }
-
-    // Register the resource directories associated with the active source provider
-    templateValues.put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
-
-    String packageAsDir = myPackageName.get().replace('.', File.separatorChar);
-    File srcDir = paths.getSrcDirectory();
-    if (srcDir != null) {
-      srcDir = new File(srcDir, packageAsDir);
-
-      templateValues.put(ATTR_SRC_DIR, getRelativePath(moduleRoot, srcDir));
-      templateValues.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcDir.getAbsolutePath()));
-    }
-
-    File testDir = paths.getTestDirectory();
-    if (testDir != null) {
-      testDir = new File(testDir, packageAsDir);
-
-      templateValues.put(ATTR_TEST_DIR, getRelativePath(moduleRoot, testDir));
-      templateValues.put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testDir.getAbsolutePath()));
-    }
-
-    File resDir = paths.getResDirectory();
-    if (resDir != null) {
-      templateValues.put(ATTR_RES_DIR, getRelativePath(moduleRoot, resDir));
-      templateValues.put(ATTR_RES_OUT, FileUtil.toSystemIndependentName(resDir.getPath()));
-    }
-
-    File manifestDir = paths.getManifestDirectory();
-    if (manifestDir != null) {
-      templateValues.put(ATTR_MANIFEST_DIR, getRelativePath(moduleRoot, manifestDir));
-      templateValues.put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(manifestDir.getPath()));
-    }
-
-    File aidlDir = paths.getAidlDirectory();
-    if (aidlDir != null) {
-      templateValues.put(ATTR_AIDL_DIR, getRelativePath(moduleRoot, aidlDir));
-      templateValues.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
-    }
-
-    templateValues.put(PROJECT_LOCATION_ID, moduleRoot.getParent());
-
-    // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
-    // name as its containing project.
-    String moduleName = moduleRoot.getName();
-    templateValues.put(ATTR_MODULE_NAME, moduleName);
   }
 
   /**

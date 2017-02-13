@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -31,6 +32,7 @@ import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.impl.RunManagerImpl;
+import com.intellij.mock.MockProgressIndicator;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -51,7 +53,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private IdeInfo myIdeInfo;
   @Mock private GradleSyncInvoker mySyncInvoker;
   @Mock private GradleSyncState mySyncState;
-  @Mock private DependencySetupErrors myDependencySetupErrors;
+  @Mock private DependencySetupIssues myDependencySetupIssues;
   @Mock private ProjectSetup myProjectSetup;
   @Mock private ModuleSetup myModuleSetup;
   @Mock private GradleSyncSummary mySyncSummary;
@@ -61,8 +63,8 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
   @Mock private CommonModuleValidator.Factory myModuleValidatorFactory;
   @Mock private CommonModuleValidator myModuleValidator;
   @Mock private RunManagerImpl myRunManager;
-  @Mock private ProgressIndicator myProgressIndicator;
 
+  private ProgressIndicator myProgressIndicator;
   private PostSyncProjectSetup mySetup;
 
   @Override
@@ -70,12 +72,14 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
+    myProgressIndicator = new MockProgressIndicator();
+
     Project project = getProject();
     myRunManager = RunManagerImpl.getInstanceImpl(project);
     when(mySyncState.getSummary()).thenReturn(mySyncSummary);
     when(myModuleValidatorFactory.create(project)).thenReturn(myModuleValidator);
 
-    mySetup = new PostSyncProjectSetup(project, myIdeInfo, mySyncInvoker, mySyncState, myDependencySetupErrors, myProjectSetup,
+    mySetup = new PostSyncProjectSetup(project, myIdeInfo, mySyncInvoker, mySyncState, myDependencySetupIssues, myProjectSetup,
                                        myModuleSetup, myVersionUpgrade, myVersionCompatibilityChecker, myProjectBuilder,
                                        myModuleValidatorFactory, myRunManager);
   }
@@ -99,7 +103,9 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     RunConfiguration runConfiguration = junitRunConfigurations[0];
     List<BeforeRunTask> tasks = new LinkedList<>(myRunManager.getBeforeRunTasks(runConfiguration));
 
-    BeforeRunTask newTask = new MakeBeforeRunTaskProvider(project, AndroidProjectInfo.getInstance(project)).createTask(runConfiguration);
+    MakeBeforeRunTaskProvider taskProvider = new MakeBeforeRunTaskProvider(project, AndroidProjectInfo.getInstance(project),
+                                                                           GradleProjectInfo.getInstance(project));
+    BeforeRunTask newTask = taskProvider.createTask(runConfiguration);
     newTask.setEnabled(true);
     tasks.add(newTask);
     myRunManager.setBeforeRunTasks(runConfiguration, tasks, false);
@@ -140,7 +146,7 @@ public class PostSyncProjectSetupTest extends IdeaTestCase {
     mySetup.setUpProject(request, myProgressIndicator);
 
     Project project = getProject();
-    verify(myDependencySetupErrors, times(1)).reportErrors();
+    verify(myDependencySetupIssues, times(1)).reportIssues();
     verify(myVersionCompatibilityChecker, times(1)).checkAndReportComponentIncompatibilities(project);
 
     for (Module module : ModuleManager.getInstance(project).getModules()) {

@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import java.util.*;
 
 /**
@@ -33,9 +34,9 @@ import java.util.*;
 public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTreeNode {
   @Nullable protected MemoryObjectTreeNode<T> myParent;
 
-  @Nullable private Comparator<MemoryObjectTreeNode<T>> myComparator = null;
+  @NotNull protected List<MemoryObjectTreeNode<T>> myChildren = new ArrayList<>();
 
-  @NotNull private List<MemoryObjectTreeNode<T>> myChildren = new ArrayList<>();
+  @Nullable protected Comparator<MemoryObjectTreeNode<T>> myComparator = null;
 
   @NotNull private final T myAdapter;
 
@@ -76,6 +77,7 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
     return Collections.enumeration(myChildren);
   }
 
+  @NotNull
   public ImmutableList<MemoryObjectTreeNode<T>> getChildren() {
     return ContainerUtil.immutableList(myChildren);
   }
@@ -110,10 +112,12 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
   @Override
   public void remove(MutableTreeNode node) {
     assert node instanceof MemoryObjectTreeNode;
+    ((MemoryObjectTreeNode)node).myParent = null;
     myChildren.remove(node);
   }
 
   public void removeAll() {
+    myChildren.forEach(child -> child.myParent = null);
     myChildren.clear();
   }
 
@@ -148,11 +152,29 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
     ensureOrder();
   }
 
+  @NotNull
+  public List<MemoryObjectTreeNode<T>> getPathToRoot() {
+    List<MemoryObjectTreeNode<T>> path = new ArrayList<>();
+    MemoryObjectTreeNode<T> currentNode = this;
+    MemoryObjectTreeNode<T> cycleDetector = this;
+    while (currentNode != null) {
+      for (int i = 0; i < 2 && cycleDetector != null; i++) {
+        assert cycleDetector.myParent != currentNode;
+        cycleDetector = cycleDetector.myParent;
+      }
+
+      path.add(currentNode);
+      currentNode = currentNode.myParent;
+    }
+    Collections.reverse(path);
+    return path;
+  }
+
   private void ensureOrder() {
     if ((myParent != null && myParent.myComparator != myComparator)
         || myParent == null && myComparator != null) {
       myComparator = myParent != null ? myParent.myComparator : myComparator;
-      Collections.sort(myChildren, myComparator);
+      myChildren.sort(myComparator);
     }
   }
 }

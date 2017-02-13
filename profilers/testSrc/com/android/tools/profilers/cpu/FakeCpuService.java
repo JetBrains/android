@@ -125,7 +125,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   @Override
   public void startMonitoringApp(CpuProfiler.CpuStartRequest request, StreamObserver<CpuProfiler.CpuStartResponse> responseObserver) {
     CpuProfiler.CpuStartResponse.Builder response = CpuProfiler.CpuStartResponse.newBuilder();
-    myAppId = request.getAppId();
+    myAppId = request.getProcessId();
 
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
@@ -134,13 +134,13 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   @Override
   public void stopMonitoringApp(CpuProfiler.CpuStopRequest request, StreamObserver<CpuProfiler.CpuStopResponse> responseObserver) {
     CpuProfiler.CpuStopResponse.Builder response = CpuProfiler.CpuStopResponse.newBuilder();
-    myAppId = request.getAppId();
+    myAppId = request.getProcessId();
 
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
   }
 
-  public int getAppId() {
+  public int getProcessId() {
     return myAppId;
   }
 
@@ -158,11 +158,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   @Override
   public void getData(CpuProfiler.CpuDataRequest request, StreamObserver<CpuProfiler.CpuDataResponse> responseObserver) {
     CpuProfiler.CpuDataResponse.Builder response = CpuProfiler.CpuDataResponse.newBuilder();
-    if (myEmptyUsageData) {
-      // Add another type of data to the response
-      CpuProfiler.ThreadActivities.Builder activities = CpuProfiler.ThreadActivities.newBuilder();
-      response.addData(CpuProfiler.CpuProfilerData.newBuilder().setThreadActivities(activities));
-    } else {
+    if (!myEmptyUsageData) {
       // Add first usage data
       CpuProfiler.CpuUsageData.Builder cpuUsageData = CpuProfiler.CpuUsageData.newBuilder();
       cpuUsageData.setElapsedTimeInMillisec(0);

@@ -19,7 +19,7 @@
     <action class="com.intellij.ide.actions.HelpTopicsAction" id="IntelliJ.HelpTopics" text="IntelliJ IDEA Help">
       <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="HelpTopics" />
     </action>
-    <action class="com.android.tools.idea.actions.ShowLicensesUsedAction" id="Android.ShowLicenses">
+    <action class="com.android.tools.idea.actions.license.ShowLicensesUsedAction" id="Android.ShowLicenses">
       <add-to-group group-id="HelpMenu" anchor="before" relative-to-action="Help.KeymapReference" />
     </action>
   </actions>

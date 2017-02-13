@@ -50,6 +50,7 @@ import com.intellij.psi.xml.*;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.Contract;
@@ -82,7 +83,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   private final AndroidFacet myFacet;
   private final PsiListener myListener;
   private final VirtualFile myResourceDir;
-  private final String myLibraryName;
   private final Map<ResourceType, ListMultimap<String, ResourceItem>> myItems = Maps.newEnumMap(ResourceType.class);
   private final Map<VirtualFile, ResourceFile> myResourceFiles = Maps.newHashMap();
   // qualifiedName -> PsiResourceFile
@@ -95,13 +95,12 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   @VisibleForTesting
   static int ourFullRescans;
 
-  private ResourceFolderRepository(@NotNull AndroidFacet facet, @NotNull VirtualFile resourceDir, @Nullable String libraryName) {
+  private ResourceFolderRepository(@NotNull AndroidFacet facet, @NotNull VirtualFile resourceDir) {
     super(resourceDir.getName());
     myFacet = facet;
     myModule = facet.getModule();
     myListener = new PsiListener();
     myResourceDir = resourceDir;
-    myLibraryName = libraryName;
 
     ResourceMerger merger = loadPreviousStateIfExists();
     myInitialScanState = new InitialScanState(merger, VfsUtilCore.virtualToIoFile(myResourceDir));
@@ -123,14 +122,21 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     return myFacet;
   }
 
-  VirtualFile getResourceDir() {
+  @NotNull
+  public VirtualFile getResourceDir() {
     return myResourceDir;
+  }
+
+  @Override
+  @Nullable
+  public String getLibraryName() {
+    return null;
   }
 
   /** NOTE: You should normally use {@link ResourceFolderRegistry#get} rather than this method. */
   @NotNull
-  static ResourceFolderRepository create(@NotNull final AndroidFacet facet, @NotNull VirtualFile dir, @Nullable String libraryName) {
-    return new ResourceFolderRepository(facet, dir, libraryName);
+  static ResourceFolderRepository create(@NotNull final AndroidFacet facet, @NotNull VirtualFile dir) {
+    return new ResourceFolderRepository(facet, dir);
   }
 
   /**
@@ -237,7 +243,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
   private ResourceMerger createFreshResourceMerger() {
     ResourceMerger merger = new ResourceMerger(0 /* minSdk */);
-    ResourceSet myData = new ResourceSet(myResourceDir.getName(), myLibraryName, false /* validateEnabled */);
+    ResourceSet myData = new ResourceSet(myResourceDir.getName(), getLibraryName(), false /* validateEnabled */);
     File resourceDir = VfsUtilCore.virtualToIoFile(myResourceDir);
     myData.addSource(resourceDir);
     merger.addDataSet(myData);
@@ -544,7 +550,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       // We create the items without adding it to the resource set / resource merger.
       // No need to write these out to blob files, as the item is easily reconstructed from the filename.
       String name = ResourceHelper.getResourceName(file);
-      ResourceItem item = new ResourceItem(name, type, null, myLibraryName);
+      ResourceItem item = new ResourceItem(name, type, null, getLibraryName());
       map.put(name, item);
       resourceFile = new ResourceFile(VfsUtilCore.virtualToIoFile(file), item, qualifiers, folderConfiguration);
       item.setIgnoredFromDiskMerge(true);
@@ -560,7 +566,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       return null;
     }
     for (ResourceItem item : resourceItems) {
-      final ResourceFile source = item.getSource();
+      ResourceFile source = item.getSource();
       if (source instanceof PsiResourceFile && ((PsiResourceFile) source).getDataBindingInfo() != null) {
         return ((PsiResourceFile) source).getDataBindingInfo();
       }
@@ -578,7 +584,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     myDataBindingResourceFilesModificationCount = modificationCount;
     Map<String, List<LayoutDataBindingInfo>> infoFilesByConfiguration = myResourceFiles.values().stream()
       .map(resourceFile -> resourceFile instanceof PsiResourceFile ? (((PsiResourceFile)resourceFile).getDataBindingInfo()) : null)
-      .filter(info -> info != null)
+      .filter(Objects::nonNull)
       .collect(Collectors.groupingBy(LayoutDataBindingInfo::getFileName));
 
     Map<String, DataBindingInfo> selected = infoFilesByConfiguration.entrySet().stream().flatMap(entry -> {
@@ -606,7 +612,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     if (!(element instanceof XmlFile)) {
       return null;
     }
-    final XmlTag rootTag = ((XmlFile) element).getRootTag();
+    XmlTag rootTag = ((XmlFile) element).getRootTag();
     if (rootTag != null && TAG_LAYOUT.equals(rootTag.getName())) {
       return rootTag;
     }
@@ -951,7 +957,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   }
 
   @VisibleForTesting
-  void rescan(@NonNull final PsiFile psiFile, final @NonNull ResourceFolderType folderType) {
+  void rescan(@NonNull PsiFile psiFile, @NonNull ResourceFolderType folderType) {
     synchronized(SCAN_LOCK) {
       if (isScanPending(psiFile)) {
         return;
@@ -993,7 +999,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   public void sync() {
     super.sync();
 
-    final List<PsiFile> files;
+    List<PsiFile> files;
     synchronized(SCAN_LOCK) {
       if (myPendingScans == null || myPendingScans.isEmpty()) {
         return;
@@ -1017,7 +1023,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     }
   }
 
-  private void rescanImmediately(@NonNull final PsiFile psiFile, final @NonNull ResourceFolderType folderType) {
+  private void rescanImmediately(@NonNull PsiFile psiFile, @NonNull ResourceFolderType folderType) {
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
       ApplicationManager.getApplication().runReadAction(() -> rescanImmediately(psiFile, folderType));
       return;
@@ -1393,7 +1399,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
             PsiDirectory parentDirectory = ((PsiDirectory)child).getParent();
             if (parentDirectory != null) {
               VirtualFile dir = parentDirectory.getVirtualFile();
-              if  (!myFacet.getLocalResourceManager().isResourceDir(dir)) {
+              if  (!ModuleResourceManagers.getInstance(myFacet).getLocalResourceManager().isResourceDir(dir)) {
                 return;
               }
             } else {
@@ -2344,7 +2350,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         if (otherItemsList == null) {
           return false;
         }
-        final ResourceItem item = itemEntry.getValue();
+        ResourceItem item = itemEntry.getValue();
         if (!ContainerUtil.exists(otherItemsList, resourceItem -> {
           // Use #compareTo instead of #equals because #equals compares pointers of mSource.
           if (resourceItem.compareTo(item) != 0) {

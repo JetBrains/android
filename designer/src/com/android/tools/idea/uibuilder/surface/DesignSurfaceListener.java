@@ -30,7 +30,7 @@ public interface DesignSurfaceListener {
   void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection);
 
   /** The current screen, if any, changed */
-  void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView);
+  void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView);
 
   /** The current model changed */
   void modelChanged(@NotNull DesignSurface surface, @Nullable NlModel model);

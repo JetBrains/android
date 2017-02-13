@@ -41,6 +41,9 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
                                @Nullable ProjectData projectData,
                                @NotNull Project project,
                                @NotNull IdeModifiableModelsProvider modelsProvider) {
+    if (toImport.isEmpty()) {
+      return;
+    }
     try {
       importData(toImport, project, modelsProvider);
     }

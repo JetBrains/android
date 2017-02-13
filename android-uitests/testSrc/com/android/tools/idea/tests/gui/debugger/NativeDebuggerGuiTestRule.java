@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.intellij.openapi.application.PathManager;
@@ -49,14 +50,7 @@ public class NativeDebuggerGuiTestRule extends GuiTestRule {
 
   @NotNull
   public static File getAndroidNdkPath() {
-    String path = System.getenv(TEST_NDK_PATH_ENV);
-    if (isNullOrEmpty(path)) {
-      String message = String.format("Please specify the path of an Android NDK in the environment variable '%1$s'",
-                                     TEST_NDK_PATH_ENV);
-      fail(message);
-    }
-    // If we got here is because the path is not null or empty.
-    return new File(toCanonicalPath(path));
+    return TestUtils.getNdk();
   }
 
 }

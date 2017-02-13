@@ -31,7 +31,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.jdom.Document;
@@ -247,12 +246,8 @@ public class GuiTestRule implements TestRule {
   private IdeFrameFixture importProject(@NotNull String projectDirName, String gradleVersion) throws IOException {
     setUpProject(projectDirName, gradleVersion);
     VirtualFile toSelect = VfsUtil.findFileByIoFile(myProjectPath, true);
-    GuiActionRunner.execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        GradleProjectImporter.getInstance().importProject(toSelect);
-      }
-    });
+    GuiTask.execute(() -> GradleProjectImporter.getInstance().importProject(toSelect));
+
     return ideFrame();
   }
 

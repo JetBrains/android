@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering;
 
-import com.android.ide.common.rendering.RenderSecurityException;
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.configurations.Configuration;
@@ -224,11 +223,9 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     Configuration configuration = configurationManager.getConfiguration(file);
     assertSame(target, configuration.getRealTarget());
 
-    if (!LayoutLibraryLoader.USE_SDK_LAYOUTLIB) {
-      // TODO: Remove this after http://b.android.com/203392 is released
-      // If we are using the embedded layoutlib, use a recent theme to avoid missing styles errors.
-      configuration.setTheme("android:Theme.Material");
-    }
+    // TODO: Remove this after http://b.android.com/203392 is released
+    // If we are using the embedded layoutlib, use a recent theme to avoid missing styles errors.
+    configuration.setTheme("android:Theme.Material");
 
     RenderService renderService = RenderService.getInstance(facet);
     RenderLogger logger = renderService.createLogger();

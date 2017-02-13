@@ -90,13 +90,16 @@ public class RenderResult {
   @NotNull
   public static RenderResult createSessionInitializationError(@NotNull RenderTask renderTask,
                                                               @NotNull PsiFile file,
-                                                              @NotNull RenderLogger logger) {
+                                                              @NotNull RenderLogger logger,
+                                                              @Nullable Throwable throwable) {
+    Module module = logger.getModule();
+    assert module != null;
     return new RenderResult(
       file,
-      renderTask.getModule(),
+      module, // do not use renderTask.getModule as a disposed renderTask could be the reason we are here
       logger,
       renderTask,
-      Result.Status.ERROR_UNKNOWN.createResult("Failed to initialize session"),
+      Result.Status.ERROR_UNKNOWN.createResult("Failed to initialize session", throwable),
       Collections.emptyList(),
       Collections.emptyList(),
       ImagePool.NULL_POOLED_IMAGE,

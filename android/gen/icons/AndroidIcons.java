@@ -321,6 +321,10 @@ public class AndroidIcons {
     public static final Icon VerticalExpand = load("/icons/sherpa/expand-vertically_b.png");
     public static final Icon verticallyDistributeB = load("/icons/sherpa/distribute-vertically.png");
     public static final Icon verticallyDistribute = load("/icons/sherpa/distribute-vertically_b.png");
+    public static final Icon Chain = load("/icons/sherpa/chain.png");
+    public static final Icon ChainBlue = load("/icons/sherpa/chain-blue.png");
+    public static final Icon BaselineColor = load("/icons/sherpa/baseline-color.png");
+    public static final Icon BaselineBlue = load("/icons/sherpa/baseline-blue.png");
   }
 
   public static class Views {
@@ -556,6 +560,12 @@ public class AndroidIcons {
   public static class ToolWindows {
     public static final Icon HeapAnalysis = IconLoader.getIcon("/icons/toolwindows/toolWindowHeapAnalysis.png"); // 13x13
     public static final Icon Warning = IconLoader.getIcon("/icons/toolwindows/toolWindowWarning.png"); // 13x13
+  }
+
+  public static class DeviceExplorer {
+    public static final Icon DatabaseFolder = load("/icons/explorer/DatabaseFolder.png"); // 16x16
+    public static final Icon SdcardFolder = load("/icons/explorer/SdcardFolder.png"); // 16x16
+    public static final Icon SharedPrefs = load("/icons/explorer/SharedPrefs.png"); // 16x16
   }
 
   public static class Assistant {

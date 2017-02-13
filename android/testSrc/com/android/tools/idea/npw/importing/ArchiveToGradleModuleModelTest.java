@@ -16,12 +16,18 @@
 
 package com.android.tools.idea.npw.importing;
 
-import com.android.SdkConstants;
-import com.android.tools.idea.gradle.parser.GradleBuildFile;
-import com.android.tools.idea.gradle.parser.GradleSettingsFile;
+import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.FileTreeDependencyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.google.common.base.Joiner;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -29,11 +35,31 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
-import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.testing.TestProjectPaths.IMPORTING;
+import static com.google.common.truth.Truth.*;
+import static com.intellij.openapi.util.io.FileUtil.copyFileOrDir;
+import static com.intellij.openapi.util.io.FileUtil.join;
 
-public class ArchiveToGradleModuleModelTest extends AndroidGradleImportTestCase {
+/**
+ * This class tests {@link ArchiveToGradleModuleModel}. It is testing that a JAR or AAR can be imported into a project correctly. Several of
+ * the tests check that an archive that is not part of the project but is under the project root can be imported correctly into the parent
+ * project (this is required for importing multi-module projects from the Eclipse ADT to Android Studio).
+ */
+public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
+  private static final String ARCHIVE_DEFAULT_GRADLE_PATH = ":library";
+  private static final String ARCHIVE_JAR_NAME = "library.jar";
+  private static final String ARCHIVE_JAR_PATH = join("lib", ARCHIVE_JAR_NAME);
+  private static final String DEPENDENCY_MODULE_NAME = "withdependency";
+  private static final String MULTI_DEPENDENCY_MODULE_NAME = "withmultipledependencies";
+  private static final String PARENT_MODULE_NAME = "nested";
+  private static final String SIMPLE_MODULE_NAME = "simple";
+  private static final String NESTED_MODULE_NAME = "sourcemodule";
+
+  private File myJarOutsideProject;
 
   private void assertArchiveImportedCorrectly(@NotNull String newModuleGradlePath,
                                               @NotNull File archiveToImport) throws IOException {
@@ -41,33 +67,71 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleImportTestCase 
 
     File defaultSubprojectLocation = GradleUtil.getModuleDefaultPath(project.getBaseDir(), newModuleGradlePath);
     File importedArchive = new File(defaultSubprojectLocation, archiveToImport.getName());
-    assertWithMessage(String.format("File %s does not exist", importedArchive)).that(importedArchive.exists()).isTrue();
+    assertAbout(file()).that(importedArchive).isFile();
 
-    File buildGradle = new File(defaultSubprojectLocation, SdkConstants.FN_BUILD_GRADLE);
-    assertWithMessage(String.format("File %s does not exist", buildGradle)).that(buildGradle.exists()).isTrue();
+    File buildGradle = new File(defaultSubprojectLocation, FN_BUILD_GRADLE);
+    assertAbout(file()).that(buildGradle).isFile();
     VirtualFile vFile = VfsUtil.findFileByIoFile(buildGradle, true);
-    assertThat(vFile).isNotNull();
-    assertThat(CreateModuleFromArchiveAction.getBuildGradleText(archiveToImport)).isEqualTo(VfsUtilCore.loadText(vFile));
+    assertNotNull(vFile);
+    assertEquals(VfsUtilCore.loadText(vFile), CreateModuleFromArchiveAction.getBuildGradleText(archiveToImport));
 
-    GradleSettingsFile settingsFile = GradleSettingsFile.get(project);
-    assertThat(settingsFile).isNotNull();
-    Iterable<String> modules = settingsFile.getModules();
-    assertWithMessage("{ " + Joiner.on(", ").join(modules) + " }").that(modules).contains(newModuleGradlePath);
+    GradleSettingsModel settingsModel = GradleSettingsModel.get(project);
+    assertNotNull(settingsModel);
+    List<String> modules = settingsModel.modulePaths();
+    assertThat(modules).contains(newModuleGradlePath);
   }
 
-  private void assertSourceProjectCorrectlyModified(@NotNull String expectedBuildGradle, @NotNull String sourceModuleFilePath)
-    throws IOException {
-    Project project = getProject();
-    VirtualFile gradleBuildFile =
-      project.getBaseDir().findFileByRelativePath(sourceModuleFilePath + "/" + SdkConstants.FN_BUILD_GRADLE);
-    assertThat(gradleBuildFile).isNotNull();
-    GradleBuildFile buildModel = new GradleBuildFile(gradleBuildFile, project);
-    assertThat(expectedBuildGradle).isEqualTo(buildModel.getPsiFile().getText());
+  private static void assertIsValidAndroidBuildModel(@NotNull GradleBuildModel model) {
+    assertEquals(1, model.appliedPlugins().stream().filter(name -> name.value().equals("com.android.application")).count());
+
+    assertNotNull(model.android());
+
+    DependenciesModel dependencies = model.dependencies();
+    assertNotNull(dependencies);
+
+    List<ArtifactDependencyModel> artifacts = dependencies.artifacts();
+    assertEquals(1, artifacts.size());
+    assertEquals("com.android.support:support-v4:+", artifacts.get(0).compactNotation().value());
+
+    List<FileTreeDependencyModel> fileTrees = dependencies.fileTrees();
+    assertEquals(1, fileTrees.size());
+    FileTreeDependencyModel fileTreeModel = fileTrees.get(0);
+    assertEquals("lib", fileTreeModel.dir().value());
+    assertEquals(1, fileTreeModel.includes().size());
+    assertEquals("*.jar", fileTreeModel.includes().get(0).value());
+  }
+
+  private static void assertHasAddedModuleDependency(@NotNull GradleBuildModel model) {
+    DependenciesModel dependencies = model.dependencies();
+    assertNotNull(dependencies);
+
+    List<ModuleDependencyModel> modules = dependencies.modules();
+
+    assertEquals(1, modules.size());
+    assertEquals(ARCHIVE_DEFAULT_GRADLE_PATH, modules.get(0).path().value());
   }
 
   @NotNull
-  private File createArchiveInProjectAndDoImport(@NotNull String gradleBuildSource, boolean nested, boolean move) {
-    File archiveToImport = createArchiveInModuleWithinCurrentProject(nested, gradleBuildSource);
+  private GradleBuildModel getBuildModel(String moduleName) {
+    ModuleManager moduleManager = ModuleManager.getInstance(getProject());
+
+    for (Module module : moduleManager.getModules()) {
+      if (moduleName.equals(module.getName())) {
+        GradleBuildModel model = GradleBuildModel.get(module);
+        assertNotNull(model);
+        return model;
+      }
+    }
+
+    fail("Expected to find module called " + moduleName + "in project.");
+    return null;
+  }
+
+  @NotNull
+  private File loadProjectAndDoImport(@NotNull String relativePath, @NotNull String moduleName, boolean move) throws Exception {
+    loadProject(relativePath);
+    String archivePath = join(moduleName.equals(NESTED_MODULE_NAME) ? join(PARENT_MODULE_NAME, moduleName) : moduleName, ARCHIVE_JAR_PATH);
+    File archiveToImport = new File(getProject().getBasePath(), archivePath);
 
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject());
     model.archive().set(archiveToImport.getAbsolutePath());
@@ -78,46 +142,52 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleImportTestCase 
     return archiveToImport;
   }
 
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    myJarOutsideProject = new File(getTestDataPath(), join(IMPORTING, SIMPLE_MODULE_NAME, ARCHIVE_JAR_PATH));
+  }
+
   public void testImportStandaloneArchive() throws Exception {
-    File archiveToImport = getJarNotInProject();
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject());
-    model.archive().set(archiveToImport.getAbsolutePath());
+    model.archive().set(myJarOutsideProject.getAbsolutePath());
 
     model.gradlePath().set(ARCHIVE_DEFAULT_GRADLE_PATH);
     model.handleFinished();
 
-    assertArchiveImportedCorrectly(ARCHIVE_DEFAULT_GRADLE_PATH, archiveToImport);
-    assertWithMessage("Source file still exists").that(archiveToImport.isFile()).isTrue();
+    assertArchiveImportedCorrectly(ARCHIVE_DEFAULT_GRADLE_PATH, myJarOutsideProject);
+    assertWithMessage("Source file still exists").that(myJarOutsideProject.isFile()).isTrue();
   }
 
   public void testImportStandaloneArchiveWithCustomPath() throws Exception {
-    File archiveToImport = getJarNotInProject();
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject());
-    model.archive().set(archiveToImport.getAbsolutePath());
+    model.archive().set(myJarOutsideProject.getAbsolutePath());
 
     String gradlePath = ":amodulename";
     model.gradlePath().set(gradlePath);
     model.handleFinished();
 
-    assertArchiveImportedCorrectly(gradlePath, archiveToImport);
-    assertWithMessage("Source file still exists").that(archiveToImport.isFile()).isTrue();
+    assertArchiveImportedCorrectly(gradlePath, myJarOutsideProject);
+    assertWithMessage("Source file still exists").that(myJarOutsideProject.isFile()).isTrue();
   }
 
   public void testImportStandaloneArchiveWithNestedPath() throws Exception {
-    File archiveToImport = getJarNotInProject();
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject());
-    model.archive().set(archiveToImport.getAbsolutePath());
+    model.archive().set(myJarOutsideProject.getAbsolutePath());
 
     String gradlePath = ":category:module";
     model.gradlePath().set(gradlePath);
     model.handleFinished();
 
-    assertArchiveImportedCorrectly(gradlePath, archiveToImport);
-    assertWithMessage("Source file still exists").that(archiveToImport.isFile()).isTrue();
+    assertArchiveImportedCorrectly(gradlePath, myJarOutsideProject);
+    assertWithMessage("Source file still exists").that(myJarOutsideProject.isFile()).isTrue();
   }
 
   public void testMoveStandaloneArchive() throws Exception {
-    File archiveToImport = getJarNotInProject();
+    // Have to copy the file so we don't delete test data!
+    File archiveToImport = new File(FileUtil.createTempDirectory("archiveLocation", null), ARCHIVE_JAR_NAME);
+    copyFileOrDir(myJarOutsideProject, archiveToImport);
+
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject());
     model.archive().set(archiveToImport.getAbsolutePath());
 
@@ -129,82 +199,82 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleImportTestCase 
     assertWithMessage("Source file deleted").that(archiveToImport.isFile()).isFalse();
   }
 
-  public void testImportArchiveFromModuleWithinProject() throws IOException {
-    String initialGradleBuildSource = String.format(BUILD_GRADLE_TEMPLATE, LIBS_DEPENDENCY);
-    File archiveToImport = createArchiveInProjectAndDoImport(initialGradleBuildSource, false, false);
+  public void testImportArchiveFromModuleWithinProject() throws Exception {
+    String moduleName = SIMPLE_MODULE_NAME;
+    File archiveToImport = loadProjectAndDoImport(IMPORTING, moduleName, false);
 
     assertArchiveImportedCorrectly(ARCHIVE_DEFAULT_GRADLE_PATH, archiveToImport);
     assertWithMessage("Source file still exists").that(archiveToImport.isFile()).isTrue();
-    assertSourceProjectCorrectlyModified(initialGradleBuildSource, SOURCE_MODULE_NAME);
+
+    GradleBuildModel buildModel = getBuildModel(moduleName);
+    assertIsValidAndroidBuildModel(buildModel);
   }
 
-  public void testImportArchiveFromNestedModuleWithinProject() throws IOException {
-    String initialGradleBuildSource = String.format(BUILD_GRADLE_TEMPLATE, LIBS_DEPENDENCY);
-
-    File archiveToImport = createArchiveInProjectAndDoImport(initialGradleBuildSource, true, false);
+  public void testImportArchiveFromNestedModuleWithinProject() throws Exception {
+    String moduleName = NESTED_MODULE_NAME;
+    File archiveToImport = loadProjectAndDoImport(IMPORTING, moduleName, false);
 
     assertArchiveImportedCorrectly(ARCHIVE_DEFAULT_GRADLE_PATH, archiveToImport);
     assertWithMessage("Source file still exists").that(archiveToImport.isFile()).isTrue();
-    assertSourceProjectCorrectlyModified(initialGradleBuildSource, PARENT_MODULE_NAME + "/" + SOURCE_MODULE_NAME);
+
+    GradleBuildModel buildModel = getBuildModel(moduleName);
+    assertIsValidAndroidBuildModel(buildModel);
   }
 
 
-  public void testMoveArchiveFromModuleWithinProject() throws IOException {
-    String newModuleName = ARCHIVE_DEFAULT_GRADLE_PATH;
-    String initialGradleBuildSource = String.format(BUILD_GRADLE_TEMPLATE, LIBS_DEPENDENCY);
-    String modifiedGradleBuildSource = String.format(BUILD_GRADLE_TEMPLATE,
-                                                           LIBS_DEPENDENCY + "\n    compile project('" + newModuleName + "')");
-
-    File archiveToImport = createArchiveInProjectAndDoImport(initialGradleBuildSource, false, true);
-
-    assertArchiveImportedCorrectly(newModuleName, archiveToImport);
-    assertWithMessage("Source file deleted").that(archiveToImport.isFile()).isFalse();
-    assertSourceProjectCorrectlyModified(modifiedGradleBuildSource, SOURCE_MODULE_NAME);
-  }
-
-  public void testMoveArchiveFromNestedModuleWithinProject() throws IOException {
-    String newModuleName = ARCHIVE_DEFAULT_GRADLE_PATH;
-    String initialGradleBuildSource = String.format(BUILD_GRADLE_TEMPLATE, LIBS_DEPENDENCY);
-    String modifiedGradleBuildSource = String.format(BUILD_GRADLE_TEMPLATE,
-                                                           LIBS_DEPENDENCY + "\n    compile project('" + newModuleName + "')");
-
-    File archiveToImport = createArchiveInProjectAndDoImport(initialGradleBuildSource, true, true);
-
-    assertArchiveImportedCorrectly(newModuleName, archiveToImport);
-    assertWithMessage("Source file deleted").that(archiveToImport.isFile()).isFalse();
-    assertSourceProjectCorrectlyModified(modifiedGradleBuildSource, PARENT_MODULE_NAME + "/" + SOURCE_MODULE_NAME);
-  }
-
-  public void testMoveArchiveFromModuleWithFileDependencyWithinProject() throws IOException {
-    String initialGradleBuildSource = String.format(BUILD_GRADLE_TEMPLATE,
-                                                          LIBS_DEPENDENCY + "\n    compile files('lib/" + ARCHIVE_JAR_NAME + "')");
-    String modifiedGradleBuildSource = String.format(BUILD_GRADLE_TEMPLATE,
-                                                           LIBS_DEPENDENCY +
-                                                           "\n    compile project('" +
-                                                           ARCHIVE_DEFAULT_GRADLE_PATH +
-                                                           "')");
-
-    File archiveToImport = createArchiveInProjectAndDoImport(initialGradleBuildSource, false, true);
+  public void testMoveArchiveFromModuleWithinProject() throws Exception {
+    String moduleName = SIMPLE_MODULE_NAME;
+    File archiveToImport = loadProjectAndDoImport(IMPORTING, moduleName, true);
 
     assertArchiveImportedCorrectly(ARCHIVE_DEFAULT_GRADLE_PATH, archiveToImport);
     assertWithMessage("Source file deleted").that(archiveToImport.isFile()).isFalse();
-    assertSourceProjectCorrectlyModified(modifiedGradleBuildSource, SOURCE_MODULE_NAME);
+
+    GradleBuildModel buildModel = getBuildModel(moduleName);
+    assertIsValidAndroidBuildModel(buildModel);
+    assertHasAddedModuleDependency(buildModel);
   }
 
-  public void testMoveArchiveFromModuleWithMultipleFileDependenciesWithinProject() throws IOException {
-    String initialGradleBuildSource = String.format(BUILD_GRADLE_TEMPLATE,
-                                                          LIBS_DEPENDENCY +
-                                                          "\n    compile files('lib/" + ARCHIVE_JAR_NAME + "', 'some/other/file.jar')");
-    String modifiedGradleBuildSource = String.format(BUILD_GRADLE_TEMPLATE,
-                                                           LIBS_DEPENDENCY +
-                                                           "\n    compile files('some/other/file.jar')" +
-                                                           "\n    compile project('" + ARCHIVE_DEFAULT_GRADLE_PATH + "')");
-
-    File archiveToImport = createArchiveInProjectAndDoImport(initialGradleBuildSource, false, true);
+  public void testMoveArchiveFromNestedModuleWithinProject() throws Exception {
+    String moduleName = NESTED_MODULE_NAME;
+    File archiveToImport = loadProjectAndDoImport(IMPORTING, moduleName, true);
 
     assertArchiveImportedCorrectly(ARCHIVE_DEFAULT_GRADLE_PATH, archiveToImport);
     assertWithMessage("Source file deleted").that(archiveToImport.isFile()).isFalse();
-    assertSourceProjectCorrectlyModified(modifiedGradleBuildSource, SOURCE_MODULE_NAME);
+
+    GradleBuildModel buildModel = getBuildModel(moduleName);
+    assertIsValidAndroidBuildModel(buildModel);
+    assertHasAddedModuleDependency(buildModel);
+  }
+
+  public void testMoveArchiveFromModuleWithFileDependencyWithinProject() throws Exception {
+    String moduleName = DEPENDENCY_MODULE_NAME;
+    File archiveToImport = loadProjectAndDoImport(IMPORTING, moduleName, true);
+
+    assertArchiveImportedCorrectly(ARCHIVE_DEFAULT_GRADLE_PATH, archiveToImport);
+    assertWithMessage("Source file deleted").that(archiveToImport.isFile()).isFalse();
+
+    GradleBuildModel buildModel = getBuildModel(moduleName);
+    assertIsValidAndroidBuildModel(buildModel);
+    assertHasAddedModuleDependency(buildModel);
+
+    // Test that now-unused dependency is stripped
+    assertEquals(0, buildModel.dependencies().files().size());
+  }
+
+  public void testMoveArchiveFromModuleWithMultipleFileDependenciesWithinProject() throws Exception {
+    String moduleName = MULTI_DEPENDENCY_MODULE_NAME;
+    File archiveToImport = loadProjectAndDoImport(IMPORTING, moduleName, true);
+
+    assertArchiveImportedCorrectly(ARCHIVE_DEFAULT_GRADLE_PATH, archiveToImport);
+    assertWithMessage("Source file deleted").that(archiveToImport.isFile()).isFalse();
+
+    GradleBuildModel buildModel = getBuildModel(moduleName);
+    assertIsValidAndroidBuildModel(buildModel);
+    assertHasAddedModuleDependency(buildModel);
+
+    // Test that other dependency is preserved
+    assertEquals(1, buildModel.dependencies().files().size());
+    assertEquals("some/other/file.jar", buildModel.dependencies().files().get(0).file().value());
   }
 
   public void testPropertiesAreStripped() {
@@ -212,9 +282,9 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleImportTestCase 
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject());
 
     model.archive().set(" " + testString + " ");
-    assertThat(model.archive().get()).isEqualTo(testString);
+    assertEquals(testString, model.archive().get());
 
     model.gradlePath().set(" " + testString + " ");
-    assertThat(model.gradlePath().get()).isEqualTo(testString);
+    assertEquals(testString, model.gradlePath().get());
   }
 }

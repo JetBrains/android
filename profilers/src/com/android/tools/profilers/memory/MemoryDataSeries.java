@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
@@ -36,13 +37,16 @@ public final class MemoryDataSeries implements DataSeries<Long> {
 
   private final int myProcessId;
 
+  private final Common.Session mySession;
+
   @NotNull
   private Function<MemorySample, Long> mySampleTransformer;
 
-  public MemoryDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int id,
+  public MemoryDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int id, Common.Session session,
                           @NotNull Function<MemorySample, Long> transformer) {
     myClient = client;
     myProcessId = id;
+    mySession = session;
     mySampleTransformer = transformer;
   }
 
@@ -51,7 +55,8 @@ public final class MemoryDataSeries implements DataSeries<Long> {
     // TODO: Change the Memory API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setStartTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTime(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
     MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());

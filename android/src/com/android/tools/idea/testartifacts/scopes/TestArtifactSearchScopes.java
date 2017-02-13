@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependencySet;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -228,7 +229,9 @@ public final class TestArtifactSearchScopes implements Disposable {
                                           @Nullable DependencySet toMergeMain,
                                           @Nullable DependencySet toMergeAndroid,
                                           @Nullable DependencySet toMergeUnit) {
-    for (ModuleDependency moduleDependency : original.onModules()) {
+    // We have to copy the collection because the Map where it comes from is modified inside the loop (see http://b.android.com/230391)
+    Set<ModuleDependency> moduleDependencies = new HashSet<>(original.onModules());
+    for (ModuleDependency moduleDependency : moduleDependencies) {
       Module module = moduleDependency.getModule(myModule.getProject());
       if (module != null) {
         TestArtifactSearchScopes moduleScope = get(module);
@@ -248,7 +251,8 @@ public final class TestArtifactSearchScopes implements Disposable {
     }
   }
 
-  private void resolveDependencies() {
+  @VisibleForTesting
+  void resolveDependencies() {
     AndroidModuleModel androidModel = getAndroidModel();
     if (androidModel == null || alreadyResolved) {
       return;

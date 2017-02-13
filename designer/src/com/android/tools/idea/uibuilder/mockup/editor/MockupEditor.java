@@ -26,9 +26,9 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.ui.IdeBorderFactory;
@@ -77,7 +77,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
   private final JPanel myCenterPanel;
   private final CardLayout myCenterCardLayout;
 
-  @Nullable private DesignSurface mySurface;
+  @Nullable private NlDesignSurface mySurface;
   @Nullable private NlModel myModel;
   @Nullable private Mockup myMockup;
   // UI
@@ -86,7 +86,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
   private final JPanel myBottomPanel;
 
   /**
-   * Create a new mockup editor associated with the provided DesignSurface.
+   * Create a new mockup editor associated with the provided NlDesignSurface.
    * If a model is available at creation time, it can be provided as a parameter, otherwise
    * the design surface will notify the {@link MockupEditor} when the model is changed. ({@link DesignSurfaceListener}).
    */
@@ -325,7 +325,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
 
   /**
    * Set the current model associated with the editor. Typically, this is the model
-   * retrieve from the Design surface screen view{@link DesignSurface#getCurrentScreenView()}
+   * retrieve from the Design surface screen view{@link NlDesignSurface#getCurrentSceneView()}
    * or from the {@link NlComponent} of the {@link Mockup#getComponent()}
    *
    * @param model The model to set on this instance
@@ -374,16 +374,17 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
 
   @Override
   public void setToolContext(@Nullable DesignSurface newDesignSurface) {
+    assert newDesignSurface == null || newDesignSurface instanceof NlDesignSurface;
     if (mySurface != null) {
       mySurface.removeListener(myDesignSurfaceListener);
       mySurface = null;
       myExtractWidgetTool.setDesignSurface(null);
     }
-    ScreenView screenView = newDesignSurface != null ? newDesignSurface.getCurrentScreenView() : null;
-    if (screenView != null) {
-      mySurface = newDesignSurface;
+    SceneView sceneView = newDesignSurface != null ? newDesignSurface.getCurrentSceneView() : null;
+    if (sceneView != null) {
+      mySurface = (NlDesignSurface)newDesignSurface;
       mySurface.addListener(myDesignSurfaceListener);
-      setModel(screenView.getModel());
+      setModel(sceneView.getModel());
       myExtractWidgetTool.setDesignSurface(mySurface);
     }
   }
@@ -438,7 +439,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
     }
 
     @Override
-    public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
+    public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
     }
 
     @Override

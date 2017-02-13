@@ -15,9 +15,10 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.profilers.IdeProfilerServicesStub;
+import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.legend.Legend;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.google.common.collect.ImmutableList;
@@ -43,40 +44,101 @@ public class NetworkMonitorTest {
     new FakeGrpcChannel("NetworkMonitorTest", FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA).build());
   private NetworkMonitor myMonitor;
   private StudioProfilers myProfilers;
+  private FakeTimer myTimer;
 
   @Before
   public void setUp() {
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
+    myTimer = new FakeTimer();
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
     myMonitor = new NetworkMonitor(myProfilers);
+    myProfilers.getTimeline().getViewRange().set(0, TimeUnit.SECONDS.toMicros(10));
+    myMonitor.enter();
   }
 
   @Test
   public void getName() {
-    assertEquals("Network", myMonitor.getName());
+    assertEquals("NETWORK", myMonitor.getName());
   }
 
   @Test
-  public void getSpeedSeries() {
-    NetworkTrafficDataSeries series = myMonitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED);
-    List<SeriesData<Long>> result =series.getDataForXRange(new Range(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(5)));
-    assertEquals(1, result.size());
-    assertEquals(0, result.get(0).x);
-    assertEquals(2, result.get(0).value.longValue());
+  public void getNetworkUsage() {
+    List<RangedContinuousSeries> series = myMonitor.getNetworkUsage().getSeries();
+    assertEquals(2, series.size());
+    assertEquals("Receiving", series.get(0).getName());
+    assertEquals(1, series.get(0).getSeries().size());
+    assertEquals(0, series.get(0).getSeries().get(0).x);
+    assertEquals(2, series.get(0).getSeries().get(0).value.longValue());
 
-    series = myMonitor.getSpeedSeries(NetworkTrafficDataSeries.Type.BYTES_SENT);
-    result =series.getDataForXRange(new Range(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(5)));
-    assertEquals(1, result.size());
-    assertEquals(0, result.get(0).x);
-    assertEquals(1, result.get(0).value.longValue());
+    assertEquals("Sending", series.get(1).getName());
+    assertEquals(1, series.get(1).getSeries().size());
+    assertEquals(0, series.get(1).getSeries().get(0).x);
+    assertEquals(1, series.get(1).getSeries().get(0).value.longValue());
   }
 
   @Test
-  public void getOpenConnectionsSeries() {
-    NetworkOpenConnectionsDataSeries series = myMonitor.getOpenConnectionsSeries();
-    List<SeriesData<Long>> result =series.getDataForXRange(new Range(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(5)));
-    assertEquals(1, result.size());
-    assertEquals(TimeUnit.SECONDS.toMicros(2), result.get(0).x);
-    assertEquals(4, result.get(0).value.longValue());
+  public void getTrafficAxis() {
+    AxisComponentModel axis = myMonitor.getTrafficAxis();
+    assertNotNull(axis);
+    assertEquals(myMonitor.getNetworkUsage().getTrafficRange(), axis.getRange());
+  }
+
+  @Test
+  public void getLegends() {
+    NetworkMonitor.NetworkLegends networkLegends = myMonitor.getLegends();
+    assertEquals("Receiving", networkLegends.getRxLegend().getName());
+    assertEquals("2B/S", networkLegends.getRxLegend().getValue());
+    assertEquals("Sending", networkLegends.getTxLegend().getName());
+    assertEquals("1B/S", networkLegends.getTxLegend().getValue());
+
+    List<Legend> legends = networkLegends.getLegends();
+    assertEquals(2, legends.size());
+    assertEquals("Sending", legends.get(0).getName());
+    assertEquals("Receiving", legends.get(1).getName());
+  }
+
+  @Test
+  public void updaterRegisteredCorrectly() {
+    AspectObserver observer = new AspectObserver();
+
+    final boolean[] usageUpdated = {false};
+    myMonitor.getNetworkUsage().addDependency(observer).onChange(
+      LineChartModel.Aspect.LINE_CHART, () -> usageUpdated[0] = true);
+
+    final boolean[] legendUpdated = {false};
+    myMonitor.getLegends().addDependency(observer).onChange(
+      LegendComponentModel.Aspect.LEGEND, () -> legendUpdated[0] = true);
+
+    final boolean[] trafficAxisUpdated = {false};
+    myMonitor.getTrafficAxis().addDependency(observer).onChange(
+      AxisComponentModel.Aspect.AXIS, () -> trafficAxisUpdated[0] = true);
+
+    myTimer.tick(1);
+    assertTrue(usageUpdated[0]);
+    assertTrue(legendUpdated[0]);
+    assertTrue(trafficAxisUpdated[0]);
+  }
+
+  @Test
+  public void updaterUnregisteredCorrectlyOnExit() {
+    myMonitor.exit();
+    AspectObserver observer = new AspectObserver();
+
+    final boolean[] usageUpdated = {false};
+    myMonitor.getNetworkUsage().addDependency(observer).onChange(
+      LineChartModel.Aspect.LINE_CHART, () -> usageUpdated[0] = true);
+
+    final boolean[] legendUpdated = {false};
+    myMonitor.getLegends().addDependency(observer).onChange(
+      LegendComponentModel.Aspect.LEGEND, () -> legendUpdated[0] = true);
+
+    final boolean[] trafficAxisUpdated = {false};
+    myMonitor.getTrafficAxis().addDependency(observer).onChange(
+      AxisComponentModel.Aspect.AXIS, () -> trafficAxisUpdated[0] = true);
+
+    myTimer.tick(1);
+    assertFalse(usageUpdated[0]);
+    assertFalse(legendUpdated[0]);
+    assertFalse(trafficAxisUpdated[0]);
   }
 
   @Test

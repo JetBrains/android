@@ -19,9 +19,10 @@ import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
-import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 public final class MemoryProfilerSelection {
   @NotNull private final MemoryProfilerStage myStage;
@@ -59,13 +60,10 @@ public final class MemoryProfilerSelection {
    * @return true if the internal state changed, otherwise false
    */
   public boolean setCaptureObject(@Nullable CaptureObject captureObject) {
-    if (myCaptureObject == captureObject || (myCaptureObject != null && myCaptureObject.equals(captureObject))) {
+    if (Objects.equals(myCaptureObject, captureObject)) {
       return false;
     }
 
-    if (myCaptureObject != null) {
-      Disposer.dispose(myCaptureObject);
-    }
     setHeapObject(null);
     myCaptureObject = captureObject;
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE);
@@ -76,9 +74,10 @@ public final class MemoryProfilerSelection {
    * @return true if the internal state changed, otherwise false
    */
   public boolean setHeapObject(@Nullable HeapObject heapObject) {
-    if (myHeapObject == heapObject) {
+    if (Objects.equals(myHeapObject, heapObject)) {
       return false;
     }
+
     setClassObject(null);
     myHeapObject = heapObject;
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_HEAP);
@@ -89,9 +88,10 @@ public final class MemoryProfilerSelection {
    * @return true if the internal state changed, otherwise false
    */
   public boolean setClassObject(@Nullable ClassObject classObject) {
-    if (myClassObject == classObject) {
+    if (Objects.equals(myClassObject, classObject)) {
       return false;
     }
+
     setInstanceObject(null);
     myClassObject = classObject;
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_CLASS);
@@ -102,9 +102,10 @@ public final class MemoryProfilerSelection {
    * @return true if the internal state changed, otherwise false
    */
   public boolean setInstanceObject(@Nullable InstanceObject instanceObject) {
-    if (myInstanceObject == instanceObject) {
+    if (Objects.equals(myInstanceObject, instanceObject)) {
       return false;
     }
+
     myInstanceObject = instanceObject;
     myStage.getAspect().changed(MemoryProfilerAspect.CURRENT_INSTANCE);
     return true;

@@ -15,12 +15,12 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.Choreographer;
+import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.chart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ExpandedItemRendererComponentWrapper;
@@ -62,22 +62,49 @@ final class ConnectionsView {
     void showDetailedConnection(HttpData data);
   }
 
-  private enum NetworkState {
-    SENDING, RECEIVING, WAITING, NONE
-  }
-
-
   /**
    * Columns for each connection information
    */
   @VisibleForTesting
   enum Column {
-    URL(0.25, String.class),
-    SIZE(0.25/4, Integer.class),
-    TYPE(0.25/4, String.class),
-    STATUS(0.25/4, Integer.class),
-    TIME(0.25/4, Long.class),
-    TIMELINE(0.5, Long.class);
+    NAME(0.25, String.class) {
+      @Override
+      Object getValueFrom(@NotNull HttpData data) {
+        return HttpData.getUrlName(data.getUrl());
+      }
+    },
+    SIZE(0.25/4, Integer.class) {
+      @Override
+      Object getValueFrom(@NotNull HttpData data) {
+        String contentLength = data.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
+        return (contentLength != null) ? Integer.parseInt(contentLength) : -1;
+      }
+    },
+    TYPE(0.25/4, String.class) {
+      @Override
+      Object getValueFrom(@NotNull HttpData data) {
+        HttpData.ContentType type = data.getContentType();
+        return type == null ? "" : type.getMimeType();
+      }
+    },
+    STATUS(0.25/4, Integer.class) {
+      @Override
+      Object getValueFrom(@NotNull HttpData data) {
+        return data.getStatusCode();
+      }
+    },
+    TIME(0.25/4, Long.class) {
+      @Override
+      Object getValueFrom(@NotNull HttpData data) {
+        return data.getEndTimeUs() - data.getStartTimeUs();
+      }
+    },
+    TIMELINE(0.5, Long.class) {
+      @Override
+      Object getValueFrom(@NotNull HttpData data) {
+        return data.getStartTimeUs();
+      }
+    };
 
     private final double myWidthPercentage;
     private final Class<?> myType;
@@ -99,32 +126,7 @@ final class ConnectionsView {
       return StringUtil.capitalize(name().toLowerCase(Locale.getDefault()));
     }
 
-    public Object getValueFrom(HttpData data) {
-      switch (this) {
-        case URL:
-          return data.getUrl();
-
-        case SIZE:
-          String contentLength = data.getResponseField(HttpData.FIELD_CONTENT_LENGTH);
-          return (contentLength != null) ? Integer.parseInt(contentLength) : -1;
-
-        case TYPE:
-          String contentType = data.getResponseField(HttpData.FIELD_CONTENT_TYPE);
-          return StringUtil.notNullize(contentType);
-
-        case STATUS:
-          return data.getStatusCode();
-
-        case TIME:
-          return data.getEndTimeUs() - data.getStartTimeUs();
-
-        case TIMELINE:
-          return data.getStartTimeUs();
-
-        default:
-          throw new UnsupportedOperationException("getValueFrom not implemented for: " + this);
-      }
-    }
+    abstract Object getValueFrom(@NotNull HttpData data);
   }
 
   @NotNull
@@ -172,6 +174,10 @@ final class ConnectionsView {
 
     myConnectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myConnectionsTable.getSelectionModel().addListSelectionListener(e -> {
+      if (e.getValueIsAdjusting()) {
+        return; // Only handle listener on last event, not intermediate events
+      }
+
       int selectedRow = myConnectionsTable.getSelectedRow();
       if (0 <= selectedRow && selectedRow < myTableModel.getRowCount()) {
         int modelRow = myConnectionsTable.convertRowIndexToModel(selectedRow);
@@ -197,24 +203,23 @@ final class ConnectionsView {
 
     // Keep the previously selected row selected if it's still there
 
-    // IJ wants to use Application.invokeLater, but we use SwingUtilities.invokeLater because it's
-    // testable (Application is null in basic unit tests)
-    //noinspection SSBasedInspection
-    myTableModel.addTableModelListener(e ->
-      SwingUtilities.invokeLater(() -> {
-        // Invoke later, because table itself listener of table model.
-        HttpData selectedData = myStage.getSelectedConnection();
-        if (selectedData != null) {
-          for (int i = 0; i < myTableModel.getRowCount(); ++i) {
-            if (myTableModel.getHttpData(i).getId() == selectedData.getId()) {
-              int row = myConnectionsTable.convertRowIndexToView(i);
-              myConnectionsTable.setRowSelectionInterval(row, row);
-              break;
-            }
-          }
+    // We cannot update directly but have to invoke later as otherwise the table in some cases
+    // overwrites our value.
+    //noinspection SSBasedInspection: Prefer SwingUtilities for unit testing; Application is null in unit tests.
+    myTableModel.addTableModelListener(e -> SwingUtilities.invokeLater(this::updateTableSelection));
+  }
+
+  private void updateTableSelection() {
+    HttpData selectedData = myStage.getSelectedConnection();
+    if (selectedData != null) {
+      for (int i = 0; i < myTableModel.getRowCount(); ++i) {
+        if (myTableModel.getHttpData(i).getId() == selectedData.getId()) {
+          int row = myConnectionsTable.convertRowIndexToView(i);
+          myConnectionsTable.setRowSelectionInterval(row, row);
+          break;
         }
-      })
-    );
+      }
+    }
   }
 
   private final class ConnectionsTableModel extends AbstractTableModel {
@@ -265,6 +270,9 @@ final class ConnectionsView {
     public void rangeChanged() {
       myDataList = myStage.getConnectionsModel().getData(myRange);
       fireTableDataChanged();
+      // Although the selected data doesn't change on range moved, we do this here to prevent
+      // flickering that otherwise occurs in our table.
+      updateTableSelection();
     }
   }
 
@@ -299,18 +307,11 @@ final class ConnectionsView {
   }
 
   private final class TimelineRenderer implements TableCellRenderer, TableModelListener {
-    private final EnumColors<NetworkState> NETWORK_STATE_COLORS = new EnumColors.Builder<NetworkState>(2)
-      .add(NetworkState.SENDING, NETWORK_SENDING_COLOR, NETWORK_SENDING_COLOR)
-      .add(NetworkState.RECEIVING, NETWORK_RECEIVING_COLOR, NETWORK_RECEIVING_SELECTED_COLOR)
-      .add(NetworkState.WAITING, NETWORK_WAITING_COLOR, NETWORK_WAITING_COLOR)
-      .add(NetworkState.NONE, TRANSPARENT_COLOR, TRANSPARENT_COLOR)
-      .build();
-
     /**
      * Keep in sync 1:1 with {@link ConnectionsTableModel#myDataList}. When the table asks for the
      * chart to render, it will be converted from model index to view index.
      */
-    @NotNull private final List<StateChart<NetworkState>> myCharts = new ArrayList<>();
+    @NotNull private final List<RequestTimeline> myTimelines = new ArrayList<>();
     @NotNull private final JTable myTable;
     @NotNull private final Range myRange;
 
@@ -323,37 +324,40 @@ final class ConnectionsView {
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      StateChart<NetworkState> chart = myCharts.get(myTable.convertRowIndexToModel(row));
-      chart.getColors().setColorIndex(isSelected ? 1 : 0);
-
+      RequestTimeline timeline = myTimelines.get(myTable.convertRowIndexToModel(row));
+      timeline.getColors().setColorIndex(isSelected ? 1 : 0);
       JPanel panel = new JBPanel(new TabularLayout("*" , "*"));
-      panel.add(chart, new TabularLayout.Constraint(0, 0));
+      if (row == 0) {
+        AxisComponent axis = createAxis();
+        axis.setForeground(isSelected ? NETWORK_TABLE_AXIS_SELECTED : NETWORK_TABLE_AXIS);
+        panel.add(axis, new TabularLayout.Constraint(0, 0));
+      }
+      panel.add(timeline.getComponent(), new TabularLayout.Constraint(0, 0));
 
       return panel;
     }
 
     @Override
     public void tableChanged(TableModelEvent e) {
-      myCharts.clear();
+      myTimelines.clear();
       ConnectionsTableModel model = (ConnectionsTableModel)myTable.getModel();
       for (int i = 0; i < model.getRowCount(); ++i) {
-        HttpData data = model.getHttpData(i);
-        DefaultDataSeries<NetworkState> series = new DefaultDataSeries<>();
-        series.add(0, NetworkState.NONE);
-        series.add(data.getStartTimeUs(), NetworkState.SENDING);
-        if (data.getDownloadingTimeUs() > 0) {
-          series.add(data.getDownloadingTimeUs(), NetworkState.RECEIVING);
-        }
-        if (data.getEndTimeUs() > 0) {
-          series.add(data.getEndTimeUs(), NetworkState.NONE);
-        }
-
-        StateChartModel<NetworkState> stateModel = new StateChartModel<>();
-        StateChart<NetworkState> chart = new StateChart<>(stateModel, NETWORK_STATE_COLORS);
-        chart.setHeightGap(0.3f);
-        stateModel.addSeries(new RangedSeries<>(myRange, series));
-        myCharts.add(chart);
+        RequestTimeline timeline = new RequestTimeline(model.getHttpData(i), myRange);
+        timeline.setHeightGap(0.3f);
+        myTimelines.add(timeline);
       }
+    }
+
+    @NotNull
+    private AxisComponent createAxis() {
+      AxisComponentModel model = new AxisComponentModel(myRange, new TimeAxisFormatter(1, 4, 1));
+      model.setClampToMajorTicks(false);
+      model.setGlobalRange(myStage.getStudioProfilers().getTimeline().getDataRange());
+      AxisComponent axis = new AxisComponent(model, AxisComponent.AxisOrientation.BOTTOM);
+      axis.setShowAxisLine(false);
+
+      model.update(1);
+      return axis;
     }
   }
 
@@ -363,15 +367,24 @@ final class ConnectionsView {
 
     ConnectionsTable(@NotNull TableModel model) {
       super(model);
+
       MouseAdapter mouseAdapter = new MouseAdapter() {
         @Override
         public void mouseMoved(MouseEvent e) {
-          myHoveredRow = rowAtPoint(e.getPoint());
+          hoveredRowChanged(rowAtPoint(e.getPoint()));
         }
 
         @Override
         public void mouseExited(MouseEvent e) {
-          myHoveredRow = -1;
+          hoveredRowChanged(-1);
+        }
+
+        private void hoveredRowChanged(int row) {
+          if (row == myHoveredRow) {
+            return;
+          }
+          myHoveredRow = row;
+          ConnectionsTable.this.repaint();
         }
       };
       addMouseMotionListener(mouseAdapter);

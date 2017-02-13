@@ -20,6 +20,7 @@ import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.editors.strings.table.StringsCellEditor;
 import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.MultiResourceRepository;
 import com.android.tools.idea.ui.TableUtils;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -45,7 +46,9 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     myTable = myPanel.getTable();
 
     VirtualFile resourceDirectory = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
-    myPanel.parse(ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(resourceDirectory)));
+    MultiResourceRepository parent = ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(resourceDirectory));
+
+    myPanel.getTable().setModel(new StringResourceTableModel(new StringResourceRepository(parent).getData(myFacet)));
   }
 
   @Override
@@ -100,7 +103,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
 
   public void testRefilteringAfterEditingTranslationCells() {
     myTable.setRowFilter(new NeedsTranslationsRowFilter());
-    editCellAt("Key 3 en-rGB", 2, 4);
+    editCellAt("Key 3 en-rGB", 2, 5);
 
     assertEquals(6, myTable.getRowCount());
     assertEquals("key1", myTable.getValueAt(0, 0));

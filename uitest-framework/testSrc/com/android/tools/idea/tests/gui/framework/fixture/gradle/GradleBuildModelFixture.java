@@ -27,7 +27,6 @@ import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 
 import static junit.framework.Assert.fail;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 
 public class GradleBuildModelFixture {
   @NotNull private final GradleBuildModel myTarget;
@@ -64,20 +63,10 @@ public class GradleBuildModelFixture {
   }
 
   public void applyChanges() {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        WriteCommandAction.runWriteCommandAction(myTarget.getProject(), myTarget::applyChanges);
-      }
-    });
+    GuiTask.execute(() -> WriteCommandAction.runWriteCommandAction(myTarget.getProject(), myTarget::applyChanges));
   }
 
   public void reparse() {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        myTarget.reparse();
-      }
-    });
+    GuiTask.execute(() -> myTarget.reparse());
   }
 }

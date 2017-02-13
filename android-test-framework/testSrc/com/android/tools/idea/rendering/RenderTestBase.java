@@ -20,6 +20,7 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -95,7 +96,7 @@ public abstract class RenderTestBase extends AndroidTestCase {
 
     protected void checkRendering(RenderTask task, String thumbnailPath) throws IOException {
     // Next try a render
-    RenderResult result = task.render();
+    RenderResult result = Futures.getUnchecked(task.render());
     RenderResult render = renderOnSeparateThread(task);
     assertNotNull(render);
 
@@ -126,7 +127,7 @@ public abstract class RenderTestBase extends AndroidTestCase {
     Thread thread = new Thread("render test") {
       @Override
       public void run() {
-        holder.set(task.render());
+        holder.set(Futures.getUnchecked(task.render()));
       }
     };
     thread.start();

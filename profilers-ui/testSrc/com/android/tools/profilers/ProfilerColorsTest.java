@@ -25,7 +25,7 @@ import static org.junit.Assert.assertEquals;
 public class ProfilerColorsTest {
 
   @Test
-  public void testCannotInstanciate() throws IllegalAccessException, InvocationTargetException, InstantiationException {
+  public void testCannotInstantiate() throws IllegalAccessException, InvocationTargetException, InstantiationException {
     Constructor<?>[] constructors = ProfilerColors.class.getDeclaredConstructors();
     assertEquals(1, constructors.length);
     assertEquals(false, constructors[0].isAccessible());

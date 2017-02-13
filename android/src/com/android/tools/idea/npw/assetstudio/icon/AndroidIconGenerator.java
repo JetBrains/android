@@ -44,6 +44,11 @@ import java.util.Map;
 public abstract class AndroidIconGenerator {
   private final OptionalProperty<BaseAsset> mySourceAsset = new OptionalValueProperty<>();
   private final StringProperty myName = new StringValueProperty();
+  private final int myMinSdkVersion;
+
+  public AndroidIconGenerator(int minSdkVersion) {
+    myMinSdkVersion = minSdkVersion;
+  }
 
   @NotNull
   private static Logger getLog() {
@@ -142,8 +147,8 @@ public abstract class AndroidIconGenerator {
 
   @NotNull
   private GraphicGenerator.Options createOptions(@NotNull BaseAsset baseAsset) {
-    // TODO: Pass in minSdk value into options and generate only what's needed?
     GraphicGenerator.Options options = createOptions(baseAsset.getClass());
+    options.minSdk = myMinSdkVersion;
     options.sourceImage = baseAsset.toImage();
     return options;
   }

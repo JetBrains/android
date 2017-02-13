@@ -24,6 +24,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
@@ -45,9 +46,31 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class StringsWriteUtils {
+  static void removeLocale(@NotNull Locale locale, @NotNull AndroidFacet facet, @NotNull Object requestor) {
+    FolderConfiguration configuration = new FolderConfiguration();
+    configuration.setLocaleQualifier(locale.qualifier);
+
+    String name = configuration.getFolderName(ResourceFolderType.VALUES);
+
+    ApplicationManager.getApplication().runWriteAction(() -> facet.getAllResourceDirectories().stream()
+      .map(directory -> directory.findChild(name))
+      .filter(Objects::nonNull)
+      .forEach(directory -> delete(directory, requestor)));
+  }
+
+  private static void delete(@NotNull VirtualFile file, @NotNull Object requestor) {
+    try {
+      file.delete(requestor);
+    }
+    catch (IOException exception) {
+      Logger.getInstance(StringsWriteUtils.class).warn(exception);
+    }
+  }
+
   /**
    * Sets the value of an attribute for resource items.  If SdkConstants.ATTR_NAME is set to null or "", the items are deleted.
    *
@@ -168,18 +191,13 @@ public class StringsWriteUtils {
       return getStringResourceItem(facet, name, locale);
     }
     else {
-      return ApplicationManager.getApplication().runReadAction(new Computable<ResourceItem>() {
-        @Override
-        public ResourceItem compute() {
-          return getStringResourceItem(facet, name, locale);
-        }
-      });
+      return ApplicationManager.getApplication().runReadAction((Computable<ResourceItem>)() -> getStringResourceItem(facet, name, locale));
     }
   }
 
   @Nullable
   private static ResourceItem getStringResourceItem(@NotNull AndroidFacet facet, @NotNull String key, @Nullable Locale locale) {
-    LocalResourceRepository repository = facet.getModuleResources(true);
+    LocalResourceRepository repository = ModuleResourceRepository.getOrCreateInstance(facet);
     // Ensure that items *just* created are processed by the resource repository
     repository.sync();
     List<ResourceItem> items = repository.getResourceItem(ResourceType.STRING, key);

@@ -113,7 +113,7 @@ public class UniquePathModuleValidatorStrategyTest extends AndroidGradleTestCase
 
     SyncMessage message = syncMessages.getFirstReportedMessage();
     assertNotNull(message);
-    assertAbout(syncMessage()).that(message).hasMessageLine("The modules ['module1', 'module2'] point to same directory in the file system.", 0);
+    assertAbout(syncMessage()).that(message).hasMessageLine("The modules ['module1', 'module2'] point to the same directory in the file system.", 0);
   }
 
   public void testFixAndReportFoundIssuesWithUniquePaths() throws Exception {

@@ -18,7 +18,7 @@ package org.jetbrains.android.uipreview;
 
 import android.view.Gravity;
 import com.android.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.layoutlib.bridge.MockView;
@@ -63,6 +63,8 @@ import java.util.Set;
 
 import static com.android.SdkConstants.*;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 
 /**
  * Handler for loading views for the layout editor on demand, and reporting issues with class
@@ -137,8 +139,8 @@ public class ViewLoader {
       catch (LinkageError e) {
         final Throwable cause = e.getCause();
 
+        LOG.debug(e);
         if (cause instanceof ClassNotFoundException) {
-          LOG.debug(e);
           throw (ClassNotFoundException)cause;
         }
         throw e;
@@ -146,7 +148,13 @@ public class ViewLoader {
       for (Class<?> resClass : nestedClasses) {
         final ResourceType resType = ResourceType.getEnum(resClass.getSimpleName());
         if (resType == null) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("  '%s' is not a valid resource type", anonymizeClassName(resClass.getSimpleName())));
+          }
           continue;
+        }
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(String.format("  Defining resource type '%s'", anonymizeClassName(resClass.getSimpleName())));
         }
 
         final TObjectIntHashMap<String> resName2Id = new TObjectIntHashMap<>();
@@ -154,17 +162,27 @@ public class ViewLoader {
 
         for (Field field : resClass.getDeclaredFields()) {
           if (!Modifier.isStatic(field.getModifiers())) { // May not be final in library projects
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(String.format("  '%s' field is not static, skipping", field.getName()));
+            }
+
             continue;
           }
 
           final Class<?> type = field.getType();
           if (type.isArray() && type.getComponentType() == int.class) {
             styleableId2Res.put(new IntArrayWrapper((int[])field.get(null)), field.getName());
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(String.format("  '%s' defined as int[]", field.getName()));
+            }
           }
           else if (type == int.class) {
             final Integer value = (Integer)field.get(null);
             id2res.put(value, Pair.of(resType, field.getName()));
             resName2Id.put(field.getName(), value);
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(String.format("  '%s' defined as int", field.getName()));
+            }
           }
           else {
             LOG.error("Unknown field type in R class: " + type);
@@ -222,6 +240,10 @@ public class ViewLoader {
     assert myLogger != null;
     Class<?> aClass = myLoadedClasses.get(className);
 
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("loadClassA(%s)", anonymizeClassName(className)));
+    }
+
     try {
       if (aClass != null) {
         checkModified(className);
@@ -239,6 +261,9 @@ public class ViewLoader {
         try {
           final Object viewObject = createNewInstance(aClass, constructorSignature, constructorArgs, isView);
           myLoadedClasses.put(className, aClass);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("  instance created");
+          }
           return viewObject;
         }
         finally {
@@ -248,11 +273,20 @@ public class ViewLoader {
     }
     catch (InconvertibleClassError e) {
       myLogger.addIncorrectFormatClass(e.getClassName(), e);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(e);
+      }
     }
     catch (LinkageError | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InstantiationException e) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(e);
+      }
       myLogger.addBrokenClass(className, e);
     }
     catch (InvocationTargetException e) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(e);
+      }
       final Throwable cause = e.getCause();
       if (cause instanceof InconvertibleClassError) {
         InconvertibleClassError error = (InconvertibleClassError)cause;
@@ -397,7 +431,7 @@ public class ViewLoader {
 
         for (int j = k + 1; j <= i; j++) {
           if (j == 2) {
-            sig[j - 1] = clazz.getClassLoader().loadClass(CLASS_ATTRIBUTE_SET);
+            sig[j - 1] = myLayoutLibrary.getClassLoader().loadClass(CLASS_ATTRIBUTE_SET);
             params[j - 1] = null;
           }
           else if (j == 3) {
@@ -443,6 +477,10 @@ public class ViewLoader {
 
   @Nullable
   public Class<?> loadClass(@NotNull String className, boolean logError) throws InconvertibleClassError {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("loadClassB(%s)", anonymizeClassName(className)));
+    }
+
     try {
       return getModuleClassLoader().loadClass(className);
     }
@@ -459,6 +497,10 @@ public class ViewLoader {
   private Object createViewFromSuperclass(@NotNull final String className,
                                           @Nullable final Class<?>[] constructorSignature,
                                           @Nullable final Object[] constructorArgs) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("createViewFromSuperClass(%s)", anonymizeClassName(className)));
+    }
+
     // Creating views from the superclass calls into PSI which may need
     // I/O access (for example when it consults the Java class index
     // and that index needs to be lazily updated.)
@@ -480,6 +522,9 @@ public class ViewLoader {
 
         while (psiClass != null) {
           final String qName = psiClass.getQualifiedName();
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("  parent " + anonymizeClassName(qName));
+          }
 
           if (qName == null ||
               !visited.add(qName) ||
@@ -546,14 +591,26 @@ public class ViewLoader {
 
   @VisibleForTesting
   void loadAndParseRClass(@NotNull String className) throws ClassNotFoundException, InconvertibleClassError {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("loadAndParseRClass(%s)", anonymizeClassName(className)));
+    }
+
     Class<?> aClass = myLoadedClasses.get(className);
     AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(myModule);
     if (aClass == null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("  The R class is not loaded.");
+      }
+
       final ModuleClassLoader moduleClassLoader = getModuleClassLoader();
       final boolean isClassLoaded = moduleClassLoader.isClassLoaded(className);
       aClass = moduleClassLoader.loadClass(className);
 
       if (!isClassLoaded && aClass != null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(String.format("  Class found in module %s, first time load.", anonymize(myModule)));
+        }
+
         // This is the first time we've found the resources. The dynamic R classes generated for aar libraries are now stale and must be
         // regenerated. Clear the ModuleClassLoader and reload the R class.
         myLoadedClasses.clear();
@@ -564,7 +621,18 @@ public class ViewLoader {
           appResources.resetDynamicIds(true);
         }
       }
+      else {
+        if (LOG.isDebugEnabled()) {
+          if (isClassLoaded) {
+            LOG.debug(String.format("  Class already loaded in module %s.", anonymize(myModule)));
+          }
+        }
+      }
       if (aClass != null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("  Class loaded");
+        }
+
         assert myLogger != null;
         myLoadedClasses.put(className, aClass);
         myLogger.setHasLoadedClasses(true);
@@ -581,6 +649,9 @@ public class ViewLoader {
           appResources.setCompiledResources(id2res, styleableId2res, res2id);
         }
       }
+    }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("END loadAndParseRClass(%s)", anonymizeClassName(className)));
     }
   }
 }

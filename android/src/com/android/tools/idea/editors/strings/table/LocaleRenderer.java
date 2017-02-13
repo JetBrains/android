@@ -42,9 +42,8 @@ final class LocaleRenderer implements TableCellRenderer {
     Component component = myRenderer.getTableCellRendererComponent(table, value, selected, focused, row, column);
 
     if (component instanceof JLabel) {
-      Locale locale = myModel.getLocale(column);
+      Locale locale = myModel.getLocale(table.convertColumnIndexToModel(column));
       assert locale != null;
-
       ((JLabel)component).setIcon(locale.getFlagImage());
     }
 

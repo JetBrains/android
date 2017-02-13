@@ -20,7 +20,11 @@ import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.util.JavaDocViewer;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
@@ -32,7 +36,8 @@ import org.mockito.ArgumentCaptor;
 import javax.swing.*;
 import javax.xml.ws.Holder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
@@ -40,7 +45,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid.COMPONENT_HELP;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.findActionForKey;
 import static com.android.tools.idea.uibuilder.palette.PaletteTestCase.findItem;
 import static com.google.common.truth.Truth.assertThat;
 import static java.awt.event.InputEvent.BUTTON1_DOWN_MASK;
@@ -49,25 +54,25 @@ import static java.awt.event.MouseEvent.*;
 import static org.mockito.Mockito.*;
 
 public class NlPaletteTreeGridTest extends AndroidTestCase {
-  private DesignSurface mySurface;
+  private NlDesignSurface mySurface;
   private DependencyManager myDependencyManager;
   private NlPaletteTreeGrid myPanel;
   private IconPreviewFactory myIconPreviewFactory;
-  private NlPaletteTreeGrid.JavaDocViewer myJavaDocViewer;
+  private JavaDocViewer myJavaDocViewer;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     myDependencyManager = mock(DependencyManager.class);
-    mySurface = mock(DesignSurface.class);
-    myJavaDocViewer = mock(NlPaletteTreeGrid.JavaDocViewer.class);
+    mySurface = mock(NlDesignSurface.class);
+    myJavaDocViewer = mock(JavaDocViewer.class);
     Runnable closeToolWindowCallback = mock(Runnable.class);
     myIconPreviewFactory = new IconPreviewFactory();
-    myPanel = new NlPaletteTreeGrid(
-      getProject(), myDependencyManager, closeToolWindowCallback, mySurface, myIconPreviewFactory, myJavaDocViewer);
+    myPanel = new NlPaletteTreeGrid(getProject(), myDependencyManager, closeToolWindowCallback, mySurface, myIconPreviewFactory);
     PsiFile file = myFixture.configureByText("res/layout/mine.xml", "<LinearLayout/>");
     Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.getVirtualFile());
     when(mySurface.getConfiguration()).thenReturn(configuration);
+    registerApplicationComponent(JavaDocViewer.class, myJavaDocViewer);
   }
 
   @Override
@@ -256,11 +261,17 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
     Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
     clickOnItem(0, 1);  // Select Button
+    AnAction action = findActionForKey(myPanel.getComponentTree(), KeyEvent.VK_F1, InputEvent.SHIFT_MASK);
+    assertThat(action).isNotNull();
 
-    myPanel.getComponentTree().getActionMap().get(COMPONENT_HELP).actionPerformed(mock(ActionEvent.class));
-    ArgumentCaptor<PsiClass> psiClass = ArgumentCaptor.forClass(PsiClass.class);
-    verify(myJavaDocViewer).showExternalJavaDoc(psiClass.capture());
-    assertThat(psiClass.getValue().getQualifiedName()).isEqualTo("android.widget.Button");
+    DataContext context = mock(DataContext.class);
+    AnActionEvent event = mock(AnActionEvent.class);
+    when(event.getDataContext()).thenReturn(context);
+    ArgumentCaptor<PsiClass> psiClassCaptor = ArgumentCaptor.forClass(PsiClass.class);
+
+    action.actionPerformed(event);
+    verify(myJavaDocViewer).showExternalJavaDoc(psiClassCaptor.capture(), eq(context));
+    assertThat(psiClassCaptor.getValue().getQualifiedName()).isEqualTo("android.widget.Button");
   }
 
   private List<String> getVisibleTitles() {

@@ -936,6 +936,10 @@ public class AndroidLintTest extends AndroidTestCase {
                   "Escape Apostrophe", "/res/values/strings.xml", "xml");
   }
 
+  public void testRegistration() throws Exception {
+    doTestHighlighting(new AndroidLintRegisteredInspection(), "/src/p1/p2/RegistrationTest.java", "java");
+  }
+
   public void testExtendAppCompatWidgets() throws Exception {
     // Configure appcompat dependency
     Module[] modules = ModuleManager.getInstance(getProject()).getModules();
@@ -954,6 +958,41 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestWithFix(new AndroidLintExifInterfaceInspection(),
                   "Update all references in this file",
                   "/src/test/pkg/ExifUsage.java", "java");
+  }
+
+  public void testMissingWearStandaloneAppFlag() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintWearStandaloneAppFlagInspection(),
+                  "Add meta-data element for 'com.google.android.wearable.standalone'",
+                  "AndroidManifest.xml", "xml");
+  }
+
+  public void testInvalidWearStandaloneAppAttrValue() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintWearStandaloneAppFlagInspection(),
+                  "Replace with true",
+                  "AndroidManifest.xml", "xml");
+  }
+
+  public void testMissingWearStandaloneAppFlagValueAttr() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintWearStandaloneAppFlagInspection(),
+                  "Set value attribute",
+                  "AndroidManifest.xml", "xml");
+  }
+
+  public void testInvalidWearFeatureAttr() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintInvalidWearFeatureAttributeInspection(),
+                  "Remove attribute",
+                  "AndroidManifest.xml", "xml");
+  }
+
+  public void testWakelockTimeout() throws Exception {
+    deleteManifest();
+    doTestWithFix(new AndroidLintWakelockTimeoutInspection(),
+                  "Set timeout to 10 minutes",
+                  "/src/test/pkg/WakelockTest.java", "java");
   }
 
   private void doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {

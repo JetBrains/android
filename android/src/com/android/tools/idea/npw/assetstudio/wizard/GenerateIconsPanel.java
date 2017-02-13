@@ -100,6 +100,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
    */
   public GenerateIconsPanel(@NotNull Disposable disposableParent,
                             @NotNull AndroidProjectPaths defaultPaths,
+                            int minSdkVersion,
                             @NotNull AndroidIconType... supportedTypes) {
     super(new BorderLayout());
 
@@ -116,7 +117,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
 
     assert myConfigureIconPanels.getLayout() instanceof CardLayout;
     for (AndroidIconType iconType : supportedTypes) {
-      myConfigureIconPanels.add(new ConfigureIconPanel(this, iconType), iconType.toString());
+      myConfigureIconPanels.add(new ConfigureIconPanel(this, iconType, minSdkVersion), iconType.toString());
     }
 
     mySourceAssetMaxWidthPanel.addComponentListener(new ComponentAdapter() {
@@ -130,13 +131,25 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
     ImmutableMultimap.Builder<AndroidIconType, PreviewIconsPanel> previewPanelBuilder = ImmutableMultimap.builder();
     previewPanelBuilder.putAll(AndroidIconType.ACTIONBAR, new PreviewIconsPanel("", PreviewIconsPanel.Theme.TRANSPARENT));
     previewPanelBuilder.putAll(AndroidIconType.LAUNCHER, new PreviewIconsPanel("", PreviewIconsPanel.Theme.TRANSPARENT));
-    previewPanelBuilder.putAll(AndroidIconType.NOTIFICATION,
-      new PreviewIconsPanel("API 11+", PreviewIconsPanel.Theme.DARK,
-                              new CategoryIconMap.NotificationFilter(NotificationIconGenerator.Version.V11)),
-      new PreviewIconsPanel("API 9+", PreviewIconsPanel.Theme.LIGHT,
-                              new CategoryIconMap.NotificationFilter(NotificationIconGenerator.Version.V9)),
-      new PreviewIconsPanel("Older APIs", PreviewIconsPanel.Theme.GRAY,
-                              new CategoryIconMap.NotificationFilter(NotificationIconGenerator.Version.OLDER)));
+
+    if (minSdkVersion < 11) {
+      previewPanelBuilder.putAll(AndroidIconType.NOTIFICATION,
+                                 new PreviewIconsPanel("API 11+", PreviewIconsPanel.Theme.DARK,
+                                                       new CategoryIconMap.NotificationFilter(NotificationIconGenerator.Version.V11)),
+                                 new PreviewIconsPanel("API 9+", PreviewIconsPanel.Theme.LIGHT,
+                                                       new CategoryIconMap.NotificationFilter(NotificationIconGenerator.Version.V9)));
+      if (minSdkVersion < 9) {
+        previewPanelBuilder.put(AndroidIconType.NOTIFICATION,
+                                new PreviewIconsPanel("Older APIs", PreviewIconsPanel.Theme.GRAY,
+                                                      new CategoryIconMap.NotificationFilter(NotificationIconGenerator.Version.OLDER)));
+      }
+    }
+    else {
+      // need to not have filter for minSdk < 11 as NotificationIconGenerator.generate only put the display name for minSdk < 11
+      // {@link NotificationIconGenerator#generate(String, Map, GraphicGeneratorContext, GraphicGenerator.Options, String)}
+      previewPanelBuilder.put(AndroidIconType.NOTIFICATION, new PreviewIconsPanel("", PreviewIconsPanel.Theme.DARK));
+    }
+
     myOutputPreviewPanels = previewPanelBuilder.build();
     // @formatter:on
 

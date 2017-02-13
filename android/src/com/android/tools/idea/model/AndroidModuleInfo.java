@@ -24,7 +24,8 @@ import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.concurrent.GuardedBy;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.instantapp.InstantApps.findInstantAppBaseSplit;
 
 /**
  * Android information about a module, such as its application package, its minSdkVersion, and so on. This
@@ -36,22 +37,25 @@ import javax.annotation.concurrent.GuardedBy;
  * (e.g. minSdk, targetSdk, packageName, etc), or use {@link MergedManifest#get(Module)}.
  */
 public class AndroidModuleInfo extends AndroidFacetScopedService {
-  private static final Object KEY_LOCK = new Object();
-
-  @GuardedBy("KEY_LOCK")
   private static final Key<AndroidModuleInfo> KEY = Key.create(AndroidModuleInfo.class.getName());
 
   @NotNull
   public static AndroidModuleInfo getInstance(@NotNull AndroidFacet facet) {
-    AndroidModuleInfo androidModuleInfo;
-    synchronized (KEY_LOCK) {
-      androidModuleInfo = facet.getUserData(KEY);
-    }
+    AndroidModuleInfo androidModuleInfo = facet.getUserData(KEY);
     if (androidModuleInfo == null) {
-      androidModuleInfo = new AndroidModuleInfo(facet);
-      synchronized (KEY_LOCK) {
-        facet.putUserData(KEY, androidModuleInfo);
+      if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+        // If this is an AIA app module the info about the app module is actually held in the base split module. Try to set up a
+        // redirection to the AndroidModuleInfo of the base split.
+        Module baseSplit = findInstantAppBaseSplit(facet);
+        if (baseSplit != null) {
+          androidModuleInfo = getInstance(baseSplit);
+        }
       }
+
+      if (androidModuleInfo == null) {
+        androidModuleInfo = new AndroidModuleInfo(facet);
+      }
+      facet.putUserData(KEY, androidModuleInfo);
     }
     return androidModuleInfo;
   }
@@ -202,9 +206,6 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
 
   @Override
   protected void onServiceDisposal(@NotNull AndroidFacet facet) {
-    synchronized (KEY_LOCK) {
-      facet.putUserData(KEY, null);
-    }
-
+    facet.putUserData(KEY, null);
   }
 }

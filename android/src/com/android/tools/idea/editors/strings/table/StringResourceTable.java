@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.editors.strings.StringResourceData;
+import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.ui.TableUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.PasteProvider;
@@ -33,16 +34,22 @@ import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.datatransfer.Transferable;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
 
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.*;
 
 public final class StringResourceTable extends JBTable implements DataProvider, PasteProvider {
+  @Nullable private StringResourceTableColumnFilter myColumnFilter;
+
   public StringResourceTable() {
     super(new StringResourceTableModel());
 
@@ -102,6 +109,48 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
       sorter.setRowFilter(filter);
 
       setRowSorter(sorter);
+    }
+  }
+
+  @Nullable
+  public StringResourceTableColumnFilter getColumnFilter() {
+    return myColumnFilter;
+  }
+
+  public void setColumnFilter(@Nullable StringResourceTableColumnFilter filter) {
+    myColumnFilter = filter;
+    createDefaultColumnsFromModel();
+    setLocaleColumnHeaderRenderers();
+  }
+
+  @Override
+  public void createDefaultColumnsFromModel() {
+    Map<Integer, TableColumn> old = new HashMap<>();
+    // Remove any current columns
+    TableColumnModel columnModel = getColumnModel();
+    while (columnModel.getColumnCount() != 0) {
+      TableColumn col = columnModel.getColumn(0);
+      old.put(col.getModelIndex(), col);
+      columnModel.removeColumn(col);
+    }
+
+    StringResourceTableModel model = (StringResourceTableModel)getModel();
+    // Create new columns from the data model info
+    for (int i = 0; i < model.getColumnCount(); i++) {
+      Locale locale = model.getLocale(i);
+      if (i < FIXED_COLUMN_COUNT || myColumnFilter == null || myColumnFilter.include(locale)) {
+        TableColumn newColumn = old.get(i);
+        if (newColumn == null) {
+          newColumn = new TableColumn(i);
+          if (i != KEY_COLUMN) {
+            OptionalInt optionalWidth = getDefaultValueAndLocaleColumnPreferredWidths();
+            if (optionalWidth.isPresent()) {
+              newColumn.setPreferredWidth(optionalWidth.getAsInt());
+            }
+          }
+        }
+        addColumn(newColumn);
+      }
     }
   }
 

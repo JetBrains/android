@@ -15,15 +15,36 @@
  */
 package com.android.tools.idea.explorer;
 
+import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemRenderer;
+import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemService;
+import com.android.tools.idea.explorer.fs.DeviceFileSystemRenderer;
+import com.android.tools.idea.explorer.ui.DeviceExplorerViewImpl;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.ide.PooledThreadExecutor;
+
+import java.util.concurrent.Executor;
 
 public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFactory {
+  public static final String TOOL_WINDOW_ID = "Device Explorer";
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
+    Executor callbackExecutor = EdtExecutor.INSTANCE;
+    Executor taskExecutor = PooledThreadExecutor.INSTANCE;
+
+    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(project, callbackExecutor, taskExecutor);
+    DeviceFileSystemRenderer renderer = new AdbDeviceFileSystemRenderer(service);
+    DeviceExplorerFileManager fileManager = new DeviceExplorerFileManagerImpl(project, callbackExecutor);
+
+    DeviceExplorerModel model = new DeviceExplorerModel();
+    DeviceExplorerView view = new DeviceExplorerViewImpl(project, toolWindow, renderer, model);
+    DeviceExplorerController controller = new DeviceExplorerController(project, model, view, service, fileManager, callbackExecutor);
+
+    controller.setup();
   }
 }

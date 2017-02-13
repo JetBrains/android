@@ -105,6 +105,6 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
     assertNotNull(sdkData);
     IAndroidTarget target = sdkData.findTargetByHashString(targetHashString);
     assertNotNull(target);
-    AndroidSdks.getInstance().setUpSdk(sdk, target, target.getName(), Collections.singletonList(javaSdk), javaSdk, true);
+    AndroidSdks.getInstance().setUpSdk(sdk, target, target.getName(), Collections.singletonList(javaSdk), javaSdk);
   }
 }

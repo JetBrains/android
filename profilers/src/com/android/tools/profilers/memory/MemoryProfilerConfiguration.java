@@ -22,8 +22,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MemoryProfilerConfiguration {
   public enum ClassGrouping {
-    NO_GROUPING("Flat Classes List"),
-    GROUP_BY_PACKAGE("Group by Packages");
+    ARRANGE_BY_CLASS("Arrange by Class"),
+    ARRANGE_BY_PACKAGE("Arrange by Package");
 
     @NotNull
     String myLabel;
@@ -40,7 +40,7 @@ public class MemoryProfilerConfiguration {
 
   @NotNull private final MemoryProfilerStage myStage;
 
-  private ClassGrouping myClassGrouping = ClassGrouping.NO_GROUPING;
+  private ClassGrouping myClassGrouping = ClassGrouping.ARRANGE_BY_CLASS;
 
   MemoryProfilerConfiguration(@NotNull MemoryProfilerStage stage) {
     myStage = stage;

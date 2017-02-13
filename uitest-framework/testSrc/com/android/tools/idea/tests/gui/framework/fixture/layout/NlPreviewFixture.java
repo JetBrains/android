@@ -20,7 +20,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.project.Project;
@@ -46,7 +46,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
 
   public NlPreviewFixture(@NotNull Project project, @NotNull Robot robot) {
     super("Preview", project, robot);
-    myDesignSurfaceFixture = new DesignSurfaceFixture(robot, GuiTests.waitUntilShowing(robot, Matchers.byType(DesignSurface.class)));
+    myDesignSurfaceFixture = new DesignSurfaceFixture(robot, GuiTests.waitUntilShowing(robot, Matchers.byType(NlDesignSurface.class)));
     myDragAndDrop = new ComponentDragAndDrop(robot);
   }
 
@@ -54,7 +54,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
   public NlConfigurationToolbarFixture getConfigToolbar() {
     ActionToolbar toolbar = myRobot.finder().findByName("NlConfigToolbar", ActionToolbarImpl.class, false);
     Wait.seconds(1).expecting("Configuration toolbar to be showing").until(() -> toolbar.getComponent().isShowing());
-    return new NlConfigurationToolbarFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byType(DesignSurface.class)), toolbar);
+    return new NlConfigurationToolbarFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byType(NlDesignSurface.class)), toolbar);
   }
 
   @NotNull
@@ -119,14 +119,14 @@ public class NlPreviewFixture extends ToolWindowFixture {
    * Switch to showing only the blueprint view.
    */
   public NlPreviewFixture showOnlyBlueprintView() {
-    DesignSurface surface = myDesignSurfaceFixture.target();
-    if (surface.getScreenMode() != DesignSurface.ScreenMode.BLUEPRINT_ONLY) {
+    NlDesignSurface surface = (NlDesignSurface)myDesignSurfaceFixture.target();
+    if (surface.getScreenMode() != NlDesignSurface.ScreenMode.BLUEPRINT_ONLY) {
       getConfigToolbar().showBlueprint();
     }
     return this;
   }
 
-  public NlPreviewFixture waitForScreenMode(@NotNull DesignSurface.ScreenMode mode) {
+  public NlPreviewFixture waitForScreenMode(@NotNull NlDesignSurface.ScreenMode mode) {
     Wait.seconds(1).expecting("the design surface to be in mode " + mode).until(() -> myDesignSurfaceFixture.isInScreenMode(mode));
     return this;
   }

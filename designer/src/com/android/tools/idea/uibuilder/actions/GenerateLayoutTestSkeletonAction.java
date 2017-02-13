@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import com.google.common.base.Splitter;
@@ -90,7 +91,7 @@ public class GenerateLayoutTestSkeletonAction extends AnAction {
     if (surface == null) {
       return null;
     }
-    ScreenView screenView = surface.getCurrentScreenView();
+    SceneView screenView = surface.getCurrentSceneView();
     if (screenView == null) {
       return null;
     }

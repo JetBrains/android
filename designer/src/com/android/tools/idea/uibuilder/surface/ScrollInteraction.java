@@ -39,10 +39,10 @@ public class ScrollInteraction extends Interaction {
    * accelerates until it reaches {@link #MAX_SCROLL_MULTIPLIER}
    */
   private int myScrollMultiplier = 1;
-  private ScreenView myScreenView;
+  private SceneView mySceneView;
 
-  public ScrollInteraction(@NonNull ScreenView screenView, @NonNull ScrollHandler scrollHandler) {
-    myScreenView = screenView;
+  public ScrollInteraction(@NonNull SceneView sceneView, @NonNull ScrollHandler scrollHandler) {
+    mySceneView = sceneView;
     myHandler = scrollHandler;
   }
 
@@ -51,10 +51,10 @@ public class ScrollInteraction extends Interaction {
    * @return the {@link ScrollInteraction} or null if none of the components handle the scrolling
    */
   @Nullable
-  public static ScrollInteraction createScrollInteraction(@NonNull ScreenView screenView, @NonNull NlComponent component) {
+  public static ScrollInteraction createScrollInteraction(@NonNull SceneView sceneView, @NonNull NlComponent component) {
     NlComponent currentComponent = component;
     ScrollHandler scrollHandler = null;
-    ViewEditor editor = new ViewEditorImpl(screenView);
+    ViewEditor editor = new ViewEditorImpl(sceneView);
 
     // Find the component that is the lowest in the hierarchy and can take the scrolling events
     while (currentComponent != null) {
@@ -70,7 +70,7 @@ public class ScrollInteraction extends Interaction {
     if (scrollHandler == null) {
       return null;
     }
-    return new ScrollInteraction(screenView, scrollHandler);
+    return new ScrollInteraction(sceneView, scrollHandler);
   }
 
   @Override
@@ -91,7 +91,7 @@ public class ScrollInteraction extends Interaction {
 
     if (scrolled != 0) {
       myScrolledAmount += scrollAmount;
-      myScreenView.getModel().requestRender();
+      mySceneView.getModel().requestRender();
     }
   }
 
@@ -100,7 +100,7 @@ public class ScrollInteraction extends Interaction {
     if (canceled) {
       // Make sure we reset the scroll to where it was
       myHandler.update(0);
-      myScreenView.getModel().requestRender();
+      mySceneView.getModel().requestRender();
       return;
     }
 

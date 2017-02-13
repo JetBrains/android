@@ -33,31 +33,30 @@ import java.util.stream.Collectors;
 
 public class StringResourceData {
   private final AndroidFacet myFacet;
-  private final Map<String, StringResource> myKeyToResourceMap;
+  private final Map<StringResourceKey, StringResource> myKeyToResourceMap;
 
   public StringResourceData(@NotNull AndroidFacet facet,
-                            @NotNull Map<String, StringResource> keyToResourceMap) {
+                            @NotNull Map<StringResourceKey, StringResource> keyToResourceMap) {
     myFacet = facet;
     myKeyToResourceMap = keyToResourceMap;
   }
 
-  public void changeKeyName(@NotNull String oldKey, @NotNull String newKey) {
-    Set<String> keys = myKeyToResourceMap.keySet();
-    if (!keys.contains(oldKey)) {
+  public void changeKeyName(@NotNull StringResourceKey oldKey, @NotNull StringResourceKey newKey) {
+    if (!myKeyToResourceMap.containsKey(oldKey)) {
       throw new IllegalArgumentException("The old key \"" + oldKey + "\" doesn't exist.");
     }
 
-    if (keys.contains(newKey)) {
+    if (myKeyToResourceMap.containsKey(newKey)) {
       throw new IllegalArgumentException("The new key \"" + newKey + "\" already exists.");
     }
 
     StringResource stringResource = myKeyToResourceMap.remove(oldKey);
-    assert stringResource != null;
     stringResource.setKey(newKey);
+
     myKeyToResourceMap.put(newKey, stringResource);
   }
 
-  public boolean setTranslatable(String key, boolean translatable) {
+  public boolean setTranslatable(@NotNull StringResourceKey key, boolean translatable) {
     StringResource stringResource = getStringResource(key);
     ResourceItem item = stringResource.getDefaultValueAsResourceItem();
     if (item != null) {
@@ -77,7 +76,7 @@ public class StringResourceData {
     return false;
   }
 
-  public boolean setTranslation(@NotNull String key, @Nullable Locale locale, @NotNull String value) {
+  public boolean setTranslation(@NotNull StringResourceKey key, @Nullable Locale locale, @NotNull String value) {
     StringResource stringResource = getStringResource(key);
     ResourceItem currentItem =
       locale == null ? stringResource.getDefaultValueAsResourceItem() : stringResource.getTranslationAsResourceItem(locale);
@@ -108,11 +107,14 @@ public class StringResourceData {
       }
     }
     else { // create new item
-      @SuppressWarnings("deprecation") VirtualFile primaryResourceDir = myFacet.getPrimaryResourceDir();
-      assert primaryResourceDir != null;
+      VirtualFile directory = key.getDirectory();
 
-      boolean translatable = stringResource.isTranslatable();
-      ResourceItem item = StringsWriteUtils.createItem(myFacet, primaryResourceDir, locale, key, value, translatable);
+      if (directory == null) {
+        return false;
+      }
+
+      ResourceItem item = StringsWriteUtils.createItem(myFacet, directory, locale, key.getName(), value, stringResource.isTranslatable());
+
       if (item != null) {
         if (locale == null) {
           stringResource.setDefaultValue(item, value);
@@ -128,7 +130,7 @@ public class StringResourceData {
   }
 
   @Nullable
-  public String validateKey(@NotNull String key) {
+  public String validateKey(@NotNull StringResourceKey key) {
     if (!myKeyToResourceMap.keySet().contains(key)) {
       throw new IllegalArgumentException("Key " + key + " does not exist.");
     }
@@ -137,27 +139,26 @@ public class StringResourceData {
     if (!stringResource.isTranslatable()) {
       Collection<Locale> localesWithTranslation = stringResource.getTranslatedLocales();
       if (!localesWithTranslation.isEmpty()) {
-        return String.format("Key '%1$s' is marked as non translatable, but is translated in %2$s %3$s", key,
+        return String.format("Key '%1$s' is marked as non translatable, but is translated in %2$s %3$s", key.getName(),
                              StringUtil.pluralize("locale", localesWithTranslation.size()), summarizeLocales(localesWithTranslation));
       }
     }
     else { // translatable key
       if (stringResource.getDefaultValueAsResourceItem() == null) {
-        return "Key '" + key + "' missing default value";
+        return "Key '" + key.getName() + "' missing default value";
       }
 
       Collection<Locale> missingTranslations = getMissingTranslations(key);
       if (!missingTranslations.isEmpty()) {
-        return String
-          .format("Key '%1$s' has translations missing for %2$s %3$s", key, StringUtil.pluralize("locale", missingTranslations.size()),
-                  summarizeLocales(missingTranslations));
+        return String.format("Key '%1$s' has translations missing for %2$s %3$s", key.getName(),
+                             StringUtil.pluralize("locale", missingTranslations.size()), summarizeLocales(missingTranslations));
       }
     }
     return null;
   }
 
   @Nullable
-  public String validateTranslation(@NotNull String key, @Nullable Locale locale) {
+  public String validateTranslation(@NotNull StringResourceKey key, @Nullable Locale locale) {
     if (!myKeyToResourceMap.keySet().contains(key)) {
       throw new IllegalArgumentException("Key " + key + " does not exist.");
     }
@@ -166,23 +167,23 @@ public class StringResourceData {
 
     if (locale == null) {
       ResourceItem item = stringResource.getDefaultValueAsResourceItem();
-      return (item == null) ? String.format("Key '%1$s' is missing the default value", key) : null;
+      return (item == null) ? String.format("Key '%1$s' is missing the default value", key.getName()) : null;
     }
 
     final boolean translationMissing = stringResource.isTranslationMissing(locale);
     final boolean doNotTranslate = !stringResource.isTranslatable();
     if (translationMissing && !doNotTranslate) {
-      return String.format("Key '%1$s' is missing %2$s translation", key, getLabel(locale));
+      return String.format("Key '%1$s' is missing %2$s translation", key.getName(), getLabel(locale));
     }
     else if (doNotTranslate && !translationMissing) {
-      return "Key '" + key + "' is marked as untranslatable and should not be translated to " + getLabel(locale);
+      return "Key '" + key.getName() + "' is marked as untranslatable and should not be translated to " + getLabel(locale);
     }
     return null;
   }
 
   @NotNull
   @VisibleForTesting
-  Collection<Locale> getMissingTranslations(@NotNull String key) {
+  Collection<Locale> getMissingTranslations(@NotNull StringResourceKey key) {
     Set<Locale> missingTranslations = Sets.newHashSet();
     for (Locale locale : getLocales()) {
       StringResource stringResource = getStringResource(key);
@@ -220,7 +221,7 @@ public class StringResourceData {
   private static List<Locale> getLowest(Collection<Locale> locales, int n) {
     return locales.stream()
       .limit(n)
-      .sorted((locale1, locale2) -> getLabel(locale1).compareTo(getLabel(locale2)))
+      .sorted(Comparator.comparing(StringResourceData::getLabel))
       .collect(Collectors.toList());
   }
 
@@ -234,17 +235,19 @@ public class StringResourceData {
     return locale == null ? "" : LocaleMenuAction.getLocaleLabel(locale, false);
   }
 
-  boolean containsKey(@NotNull String key) {
+  boolean containsKey(@NotNull StringResourceKey key) {
     return myKeyToResourceMap.containsKey(key);
   }
 
   @NotNull
-  public StringResource getStringResource(@NotNull String key) {
-    StringResource stringResource = myKeyToResourceMap.get(key);
-    if (stringResource != null) {
-      return stringResource;
+  public StringResource getStringResource(@NotNull StringResourceKey key) {
+    StringResource resource = myKeyToResourceMap.get(key);
+
+    if (resource == null) {
+      throw new IllegalArgumentException(key.toString());
     }
-    throw new IllegalArgumentException("No StringResource for key " + key);
+
+    return resource;
   }
 
   @NotNull
@@ -253,10 +256,10 @@ public class StringResourceData {
   }
 
   @NotNull
-  public List<String> getKeys() {
-    List<String> keys = new ArrayList<>(myKeyToResourceMap.keySet());
-    Collections.sort(keys);
-    return keys;
+  public List<StringResourceKey> getKeys() {
+    return myKeyToResourceMap.keySet().stream()
+      .sorted()
+      .collect(Collectors.toList());
   }
 
   @NotNull

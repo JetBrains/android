@@ -167,7 +167,7 @@ public class BasicNativeDebuggerTest {
         resumeProgram();
       }
       final String[] expectedPatterns = breakpointToExpectedPatterns.get(breakPoints[i]);
-      Wait.seconds(1).expecting("the debugger tree to appear")
+      Wait.seconds(5).expecting("the debugger tree to appear")
         .until(() -> verifyVariablesAtBreakpoint(expectedPatterns, DEBUG_CONFIG_NAME));
     }
 
@@ -176,14 +176,14 @@ public class BasicNativeDebuggerTest {
 
   private void stopDebugSession(DebugToolWindowFixture debugToolWindowFixture) {
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
-    contentFixture.stop();
+    contentFixture.waitForStopClick();
     contentFixture.waitForExecutionToFinish();
   }
 
   private void waitForSessionStart(DebugToolWindowFixture debugToolWindowFixture) {
     // Wait for "Debugger attached to process.*" to be printed on the app-native debug console.
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
-    contentFixture.waitForOutput(new PatternTextMatcher(DEBUGGER_ATTACHED_PATTERN), 50);
+    contentFixture.waitForOutput(new PatternTextMatcher(DEBUGGER_ATTACHED_PATTERN), 70);
   }
 
   private void waitUntilDebugConsoleCleared(DebugToolWindowFixture debugToolWindowFixture) {
@@ -259,7 +259,7 @@ public class BasicNativeDebuggerTest {
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(debugConfigName);
 
     contentFixture.clickDebuggerTreeRoot();
-    Wait.seconds(1).expecting("debugger tree to appear").until(() -> contentFixture.getDebuggerTreeRoot() != null);
+    Wait.seconds(5).expecting("debugger tree to appear").until(() -> contentFixture.getDebuggerTreeRoot() != null);
 
     // Get the debugger tree and print it.
     XDebuggerTreeNode debuggerTreeRoot = contentFixture.getDebuggerTreeRoot();

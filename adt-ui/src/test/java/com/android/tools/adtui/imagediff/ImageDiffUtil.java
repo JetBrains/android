@@ -17,6 +17,7 @@
 package com.android.tools.adtui.imagediff;
 
 import com.android.testutils.TestResources;
+import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.common.AdtUiUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -114,7 +115,10 @@ public final class ImageDiffUtil {
    */
   public static BufferedImage getImageFromComponent(Component component) {
     // Call doLayout in the content pane and its children
-    doLayoutComponentTree(component);
+    synchronized (component.getTreeLock()) {
+      TreeWalker walker = new TreeWalker(component);
+      walker.descendantStream().forEach(Component::doLayout);
+    }
 
     @SuppressWarnings("UndesirableClassUsage") // Don't want Retina images in unit tests
     BufferedImage image = new BufferedImage(component.getWidth(), component.getHeight(), TYPE_INT_ARGB);
@@ -123,21 +127,6 @@ public final class ImageDiffUtil {
     g.dispose();
 
     return image;
-  }
-
-  /**
-   * Call doLayout in {@param component} and in its children, recursively.
-   */
-  private static void doLayoutComponentTree(Component component) {
-    synchronized (component.getTreeLock()) {
-      component.doLayout();
-      // If component is a container, call doLayout in its children
-      if (component instanceof Container) {
-        for (Component child : ((Container) component).getComponents()) {
-          doLayoutComponentTree(child);
-        }
-      }
-    }
   }
 
   /**

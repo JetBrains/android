@@ -41,6 +41,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -199,7 +200,7 @@ public class ResolutionUtils {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       assert facet != null : String.format("Module %s is not an Android module", module.getName());
 
-      definitions = facet.getLocalResourceManager().getAttributeDefinitions();
+      definitions = ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getAttributeDefinitions();
     }
     if (definitions == null) {
       return null;

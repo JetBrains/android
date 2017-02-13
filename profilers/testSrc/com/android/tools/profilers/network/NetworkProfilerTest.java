@@ -16,17 +16,18 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.profiler.proto.Profiler;
-import com.android.tools.profilers.IdeProfilerServicesStub;
-import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.*;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class NetworkProfilerTest {
   private static final int FAKE_PID = 111;
+  private static final String FAKE_DEVICE_SERIAL = "Test Device Serial";
 
   private final FakeNetworkService myService = FakeNetworkService.newBuilder().build();
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("NetworkProfilerTest", myService);
@@ -36,18 +37,25 @@ public class NetworkProfilerTest {
 
   @Before
   public void setUp() {
-    myProfiler = new NetworkProfiler(new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub()));
+    myProfiler = new NetworkProfiler(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices()));
+  }
+
+  @Test
+  public void newMonitor() {
+    ProfilerMonitor monitor = myProfiler.newMonitor();
+    assertNotNull(monitor);
+    assertTrue(monitor instanceof NetworkMonitor);
   }
 
   @Test
   public void startMonitoring() {
-    myProfiler.startProfiling(FAKE_PROCESS);
-    assertEquals(FAKE_PID, myService.getAppId());
+    myProfiler.startProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS);
+    assertEquals(FAKE_PID, myService.getProcessId());
   }
 
   @Test
   public void stopMonitoring() {
-    myProfiler.stopProfiling(FAKE_PROCESS);
-    assertEquals(FAKE_PID, myService.getAppId());
+    myProfiler.stopProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS);
+    assertEquals(FAKE_PID, myService.getProcessId());
   }
 }

@@ -16,10 +16,13 @@
 package com.android.tools.idea.uibuilder.handlers.ui;
 
 import com.android.ide.common.rendering.api.SessionParams;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -27,6 +30,7 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.RuntimeInterruptedException;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
@@ -44,6 +48,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -261,6 +266,10 @@ public class AppBarConfigurationDialog extends JDialog {
       }
     });
 
+    // For UI testing
+    myCollapsedPreview.setName("CollapsedPreview");
+    myExpandedPreview.setName("ExpandedPreview");
+
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     addWindowListener(new WindowAdapter() {
       @Override
@@ -271,6 +280,18 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   public boolean open(@NotNull final XmlFile file) {
+    Project project = file.getProject();
+    GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
+    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(DESIGN_LIB_ARTIFACT + ":+");
+    boolean added = manager.ensureLibraryIsIncluded(myEditor.getModel().getModule(), Collections.singletonList(coordinate), () -> {
+      if (isVisible()) {
+        generatePreviews();
+      }
+    });
+    if (!added) {
+      return false;
+    }
+
     myCollapsedPreview.setMinimumSize(new Dimension(START_WIDTH, START_HEIGHT));
     myExpandedPreview.setMinimumSize(new Dimension(START_WIDTH, START_HEIGHT));
     pack();
@@ -285,7 +306,6 @@ public class AppBarConfigurationDialog extends JDialog {
 
     setVisible(true);
     if (myWasAccepted) {
-      Project project = file.getProject();
       WriteCommandAction action = new WriteCommandAction(project, "Configure App Bar", file) {
         @Override
         protected void run(@NotNull Result result) throws Throwable {
@@ -324,8 +344,14 @@ public class AppBarConfigurationDialog extends JDialog {
     myExpandedPreviewFuture = cancel(myExpandedPreviewFuture);
     myCollapsedPreviewFuture = cancel(myCollapsedPreviewFuture);
     Application application = ApplicationManager.getApplication();
-    myExpandedPreviewFuture = application.executeOnPooledThread(() -> updateExpandedImage(expandedFile));
-    myCollapsedPreviewFuture = application.executeOnPooledThread(() -> updateCollapsedImage(collapsedFile));
+    myExpandedPreviewFuture = application.executeOnPooledThread(() -> {
+      DumbService.getInstance(myEditor.getModel().getProject()).waitForSmartMode();
+      updateExpandedImage(expandedFile);
+    });
+    myCollapsedPreviewFuture = application.executeOnPooledThread(() -> {
+      DumbService.getInstance(myEditor.getModel().getProject()).waitForSmartMode();
+      updateCollapsedImage(collapsedFile);
+    });
   }
 
   @Nullable
@@ -608,8 +634,7 @@ public class AppBarConfigurationDialog extends JDialog {
     if (task != null) {
       task.setRenderingMode(SessionParams.RenderingMode.NORMAL);
       task.setFolderType(ResourceFolderType.LAYOUT);
-      //noinspection deprecation
-      result = task.render();
+      result = Futures.getUnchecked(task.render());
       task.dispose();
     }
 

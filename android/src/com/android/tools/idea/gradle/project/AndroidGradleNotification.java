@@ -33,7 +33,8 @@ import org.jetbrains.annotations.Nullable;
  * Creates balloon notifications related to Gradle-based Android projects.
  */
 public class AndroidGradleNotification {
-  private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.balloonGroup("Android/Gradle Notification Group");
+  private static final NotificationGroup BALLOON_GROUP = NotificationGroup.balloonGroup("Android/Gradle Notification Group");
+  private static final NotificationGroup LOG_ONLY_GROUP = NotificationGroup.logOnlyGroup("Android/Gradle Notification Log-Only Group");
 
   @Nullable private Notification myNotification;
   @NotNull private final Project myProject;
@@ -47,6 +48,10 @@ public class AndroidGradleNotification {
     myProject = project;
   }
 
+  public void addLogEvent(@NotNull String title, @NotNull String text, @NotNull NotificationType type) {
+    showNotification(title, text, type, LOG_ONLY_GROUP, null);
+  }
+
   public void showBalloon(@NotNull String title, @NotNull String text, @NotNull NotificationType type) {
     showBalloon(title, text, type, (NotificationListener)null);
   }
@@ -55,7 +60,7 @@ public class AndroidGradleNotification {
                           @NotNull String text,
                           @NotNull NotificationType type,
                           @NotNull NotificationHyperlink... hyperlinks) {
-    showBalloon(title, text, type, NOTIFICATION_GROUP, hyperlinks);
+    showBalloon(title, text, type, BALLOON_GROUP, hyperlinks);
   }
 
   public void showBalloon(@NotNull String title,
@@ -65,7 +70,7 @@ public class AndroidGradleNotification {
                           @NotNull NotificationHyperlink... hyperlinks) {
     NotificationListener notificationListener = new CustomNotificationListener(myProject, hyperlinks);
     String newText = addHyperlinksToText(text, hyperlinks);
-    showBalloon(title, newText, type, group, notificationListener);
+    showNotification(title, newText, type, group, notificationListener);
   }
 
   @NotNull
@@ -89,14 +94,14 @@ public class AndroidGradleNotification {
                           @NotNull String text,
                           @NotNull NotificationType type,
                           @Nullable NotificationListener listener) {
-    showBalloon(title, text, type, NOTIFICATION_GROUP, listener);
+    showNotification(title, text, type, BALLOON_GROUP, listener);
   }
 
-  public void showBalloon(@NotNull String title,
-                          @NotNull String text,
-                          @NotNull NotificationType type,
-                          @NotNull NotificationGroup group,
-                          @Nullable NotificationListener listener) {
+  private void showNotification(@NotNull String title,
+                                @NotNull String text,
+                                @NotNull NotificationType type,
+                                @NotNull NotificationGroup group,
+                                @Nullable NotificationListener listener) {
     Notification notification = group.createNotification(title, text, type, listener);
     Runnable notificationTask = () -> {
       if (!myProject.isDisposed() && myProject.isOpen()) {

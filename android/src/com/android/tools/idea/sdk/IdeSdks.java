@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.google.common.base.Preconditions.checkState;
@@ -98,7 +99,7 @@ public class IdeSdks {
       sdkHome = sdk.getHomePath();
     }
     if (sdkHome != null) {
-      File candidate = new File(toSystemDependentName(sdkHome));
+      File candidate = toSystemDependentPath(sdkHome);
       // Check if the sdk home is still valid. See https://code.google.com/p/android/issues/detail?id=197401 for more details.
       if (isValidAndroidSdkPath(candidate)) {
         return candidate;
@@ -141,7 +142,7 @@ public class IdeSdks {
       if (jdk != null) {
         String jdkPath = jdk.getHomePath();
         if (jdkPath != null) {
-          return new File(toSystemDependentName(jdkPath));
+          return toSystemDependentPath(jdkPath);
         }
       }
     }
@@ -153,7 +154,7 @@ public class IdeSdks {
         if (jdk != null) {
           String jdkHomePath = jdk.getHomePath();
           if (jdkHomePath != null) {
-            return new File(toSystemDependentName(jdkHomePath));
+            return toSystemDependentPath(jdkHomePath);
           }
         }
       }

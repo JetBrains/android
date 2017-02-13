@@ -45,7 +45,6 @@ import com.sun.jdi.Field;
 import com.sun.jdi.Location;
 import com.sun.jdi.ReferenceType;
 import com.sun.jdi.Value;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,7 +52,6 @@ import java.util.Collection;
 import java.util.Map;
 
 public class InstantRunPositionManager extends PositionManagerImpl {
-  private static final boolean DISABLED = true;
   private Map<AndroidVersion, VirtualFile> mySourceFoldersByApiLevel;
 
   public InstantRunPositionManager(DebugProcessImpl debugProcess) {
@@ -108,7 +106,7 @@ public class InstantRunPositionManager extends PositionManagerImpl {
   @Nullable
   protected PsiFile getApiSpecificPsi(@NotNull Project project, @NotNull PsiFile file, @NotNull AndroidVersion version) {
     // we only care about providing an alternate source for files inside the platform.
-    if (!AndroidFacet.isInAndroidSdk(file)) {
+    if (!AndroidSdks.getInstance().isInAndroidSdk(file)) {
       return null;
     }
 
@@ -121,7 +119,7 @@ public class InstantRunPositionManager extends PositionManagerImpl {
   }
 
   @Nullable
-  private AndroidVersion getAndroidVersionFromDebugSession(@NotNull Project project) {
+  private static AndroidVersion getAndroidVersionFromDebugSession(@NotNull Project project) {
     XDebugSession session = XDebuggerManager.getInstance(project).getCurrentSession();
     if (session == null) {
       return null;

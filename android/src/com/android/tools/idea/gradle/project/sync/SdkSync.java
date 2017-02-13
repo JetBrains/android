@@ -93,20 +93,17 @@ public class SdkSync {
       ValidationResult validationResult = validateAndroidSdk(projectAndroidSdkPath, true);
       if (!validationResult.success) {
         // If we have the IDE default SDK and we don't have a valid project SDK, update local.properties with default SDK path and exit.
-        ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-          @Override
-          public void run() {
-            if (!ApplicationManager.getApplication().isUnitTestMode()) {
-              String error = validationResult.message;
-              if (isEmpty(error)) {
-                error = String.format("The path \n'%1$s'\n" + "does not refer to a valid Android SDK.", projectAndroidSdkPath.getPath());
-              }
-              String format =
-                "%1$s\n\nAndroid Studio will use this Android SDK instead:\n'%2$s'\nand will modify the project's local.properties file.";
-              Messages.showErrorDialog(String.format(format, error, ideAndroidSdkPath.getPath()), ERROR_DIALOG_TITLE);
+        ApplicationManager.getApplication().invokeAndWait(() -> {
+          if (!ApplicationManager.getApplication().isUnitTestMode()) {
+            String error = validationResult.message;
+            if (isEmpty(error)) {
+              error = String.format("The path \n'%1$s'\n" + "does not refer to a valid Android SDK.", projectAndroidSdkPath.getPath());
             }
-            setProjectSdk(localProperties, ideAndroidSdkPath);
+            String format =
+              "%1$s\n\nAndroid Studio will use this Android SDK instead:\n'%2$s'\nand will modify the project's local.properties file.";
+            Messages.showErrorDialog(String.format(format, error, ideAndroidSdkPath.getPath()), ERROR_DIALOG_TITLE);
           }
+          setProjectSdk(localProperties, ideAndroidSdkPath);
         });
         return;
       }
@@ -140,27 +137,24 @@ public class SdkSync {
                                  "Note that switching SDKs could cause compile errors if the selected SDK doesn't have the " +
                                  "necessary Android platforms or build tools.",
                                  ideAndroidSdkPath.getPath(), projectAndroidSdkPath.getPath());
-      ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-        @Override
-        public void run() {
-          // We need to pass the project, so on Mac, the "Mac sheet" showing this message shows inside the IDE during UI tests, otherwise
-          // it will show outside and the UI testing infrastructure cannot see it. It is overall a good practice to pass the project when
-          // showing a message, to ensure that the message shows in the IDE instance containing the project.
-          int result = MessageDialogBuilder.yesNo("Android SDK Manager", msg).yesText("Use Android Studio's SDK")
-            .noText("Use Project's SDK")
-            .project(project)
-            .show();
-          if (result == Messages.YES) {
-            // Use Android Studio's SDK
-            setProjectSdk(localProperties, ideAndroidSdkPath);
-          }
-          else {
-            // Use project's SDK
-            setIdeSdk(localProperties, projectAndroidSdkPath);
-          }
-          if (isGuiTestingMode() && !getGuiTestSuiteState().isSkipSdkMerge()) {
-            mergeIfNeeded(projectAndroidSdkPath, ideAndroidSdkPath);
-          }
+      ApplicationManager.getApplication().invokeAndWait(() -> {
+        // We need to pass the project, so on Mac, the "Mac sheet" showing this message shows inside the IDE during UI tests, otherwise
+        // it will show outside and the UI testing infrastructure cannot see it. It is overall a good practice to pass the project when
+        // showing a message, to ensure that the message shows in the IDE instance containing the project.
+        int result = MessageDialogBuilder.yesNo("Android SDK Manager", msg).yesText("Use Android Studio's SDK")
+          .noText("Use Project's SDK")
+          .project(project)
+          .show();
+        if (result == Messages.YES) {
+          // Use Android Studio's SDK
+          setProjectSdk(localProperties, ideAndroidSdkPath);
+        }
+        else {
+          // Use project's SDK
+          setIdeSdk(localProperties, projectAndroidSdkPath);
+        }
+        if (isGuiTestingMode() && !getGuiTestSuiteState().isSkipSdkMerge()) {
+          mergeIfNeeded(projectAndroidSdkPath, ideAndroidSdkPath);
         }
       });
     }

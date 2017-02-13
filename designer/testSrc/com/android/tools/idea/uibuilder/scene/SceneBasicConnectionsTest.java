@@ -45,6 +45,9 @@ public class SceneBasicConnectionsTest extends SceneTest {
 
   public void testConnectTop() {
     myInteraction.select("button", true);
+    NlComponent button = myScene.getSceneComponent("button").getNlComponent();
+    assertEquals(1, myScreen.getScreen().getSelectionModel().getSelection().size());
+    assertEquals(button, myScreen.getScreen().getSelectionModel().getPrimary());
     myInteraction.mouseDown("button", AnchorTarget.Type.TOP);
     myInteraction.mouseRelease("root", AnchorTarget.Type.TOP);
     myScreen.get("@id/button")
@@ -55,6 +58,8 @@ public class SceneBasicConnectionsTest extends SceneTest {
                  "    tools:layout_editor_absoluteX=\"100dp\"\n" +
                  "      android:layout_marginTop=\"8dp\"\n" +
                  "      app:layout_constraintTop_toTopOf=\"parent\" />");
+    assertEquals(button, myScreen.getScreen().getSelectionModel().getPrimary());
+    assertEquals(1, myScreen.getScreen().getSelectionModel().getSelection().size());
   }
 
   public void testConnectRight() {

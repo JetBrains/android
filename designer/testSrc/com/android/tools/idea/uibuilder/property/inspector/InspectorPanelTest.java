@@ -45,7 +45,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 public class InspectorPanelTest extends PropertyTestCase {
-  private PropertiesComponent myOldPropertiesComponent;
   private PropertiesComponent myPropertiesComponent;
   private Disposable myDisposable;
   private InspectorPanel myInspector;
@@ -58,7 +57,7 @@ public class InspectorPanelTest extends PropertyTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myPropertiesComponent = mock(PropertiesComponent.class);
-    myOldPropertiesComponent = registerApplicationComponent(PropertiesComponent.class, myPropertiesComponent);
+    registerApplicationComponent(PropertiesComponent.class, myPropertiesComponent);
     myDisposable = Disposer.newDisposable();
     myInspector = new InspectorPanel(myPropertiesManager, myDisposable, new JLabel());
   }
@@ -77,7 +76,6 @@ public class InspectorPanelTest extends PropertyTestCase {
   @Override
   public void tearDown() throws Exception {
     try {
-      registerApplicationComponent(PropertiesComponent.class, myOldPropertiesComponent);
       Disposer.dispose(myDisposable);
     }
     finally {
@@ -278,7 +276,7 @@ public class InspectorPanelTest extends PropertyTestCase {
     for (int row : components.keySet()) {
       JLabel label = findFirstLabelWithText(components.get(row));
       if (label != null) {
-        labelToRowNumber.put(label.getText(), row);
+        labelToRowNumber.put(StringUtil.removeHtmlTags(label.getText()), row);
       }
     }
     return labelToRowNumber;

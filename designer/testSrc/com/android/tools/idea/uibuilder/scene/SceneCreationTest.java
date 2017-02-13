@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
 /**
@@ -88,6 +89,33 @@ public class SceneCreationTest extends SceneTest {
     assertEquals(220, sceneTextView.getDrawY());
     assertEquals(200, sceneTextView.getDrawWidth());
     assertEquals(30, sceneTextView.getDrawHeight());
+  }
+
+  public void testSceneReparenting() {
+    ModelBuilder builder = createModel();
+    NlModel model = builder.build();
+    Scene scene = Scene.createScene(model, myScreen.getScreen());
+    scene.setDpiFactorOverride(1);
+    scene.setAnimate(false);
+    assertEquals(scene.getRoot().getChildren().size(), 1);
+    ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT);
+    parent.addChild(component(CONSTRAINT_LAYOUT)
+                      .id("@id/layout")
+                      .withBounds(200, 300, 200, 200)
+                      .width("200dp")
+                      .height("200dp"), null);
+    builder.updateModel(model, false);
+    scene.updateFrom(model);
+    assertEquals(2, scene.getRoot().getChildren().size());
+
+    NlComponent textView = scene.getRoot().getChild(0).getNlComponent();
+    NlComponent container = scene.getRoot().getChild(1).getNlComponent();
+    scene.getRoot().getNlComponent().removeChild(textView);
+    container.addChild(textView);
+    scene.updateFrom(model);
+    assertEquals(1, scene.getRoot().getChildCount());
+    SceneComponent layout = scene.getSceneComponent("layout");
+    assertEquals(1, layout.getChildCount());
   }
 
   public static int pxToDp(@AndroidCoordinate int px, float dpiFactor) {

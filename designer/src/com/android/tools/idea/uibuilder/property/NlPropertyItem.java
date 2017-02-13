@@ -169,6 +169,11 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     myDefaultValue = defaultValue;
   }
 
+  @Nullable
+  public PropertiesMap.Property getDefaultValue() {
+    return myDefaultValue;
+  }
+
   @Override
   @Nullable
   public String getValue() {

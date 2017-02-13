@@ -188,7 +188,7 @@ public class ProjectStructureUsageTracker {
 
   @VisibleForTesting static NativeBuildSystemType stringToBuildSystemType(@NotNull String buildSystem) {
     switch (buildSystem) {
-      case "ndk-build":
+      case "ndkBuild":
         return NativeBuildSystemType.NDK_BUILD;
       case "cmake":
         return NativeBuildSystemType.CMAKE;

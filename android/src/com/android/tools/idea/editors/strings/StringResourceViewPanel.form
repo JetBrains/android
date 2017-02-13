@@ -48,6 +48,7 @@
               </grid>
             </constraints>
             <properties>
+              <enabled value="false"/>
               <name value="keyTextField"/>
             </properties>
           </component>
@@ -71,13 +72,19 @@
             <constraints>
               <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
-            <properties/>
+            <properties>
+              <name value="defaultValueTextField"/>
+            </properties>
+            <properties>
+              <enabled value="false"/>
+            </properties>
           </component>
           <component id="60426" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myTranslationTextField" custom-create="true">
             <constraints>
               <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
+              <enabled value="false"/>
               <name value="translationTextField"/>
             </properties>
           </component>

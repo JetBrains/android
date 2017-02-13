@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.activity;
 
-import com.android.tools.idea.apk.AndroidApkFacet;
+import com.android.tools.idea.apk.ApkFacet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
@@ -131,7 +131,7 @@ public class ActivityLocatorUtils {
     PsiClass psiClass = activity.getActivityClass().getValue();
     if (psiClass == null) {
       Module module = activity.getModule();
-      if (module != null && AndroidApkFacet.getInstance(module) != null) {
+      if (module != null && ApkFacet.getInstance(module) != null) {
         // In APK project we doesn't necessarily have the source/class file of the activity.
         return activity.getActivityClass().getStringValue();
       }

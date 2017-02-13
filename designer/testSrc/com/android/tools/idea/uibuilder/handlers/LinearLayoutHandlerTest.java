@@ -52,8 +52,8 @@ public class LinearLayoutHandlerTest extends LayoutTestCase {
       .resize(BOTTOM, RIGHT)
       .drag(20, 30)
       .release()
-      .expectWidth("120dp")
-      .expectHeight("130dp");
+      .expectWidth("60dp")
+      .expectHeight("65dp");
   }
 
   public void testResizeTopLeft() throws Exception {
@@ -62,8 +62,8 @@ public class LinearLayoutHandlerTest extends LayoutTestCase {
       .resize(TOP, LEFT)
       .drag(-20, -30)
       .release()
-      .expectWidth("120dp")
-      .expectHeight("130dp");
+      .expectWidth("60dp")
+      .expectHeight("65dp");
   }
 
   public void testDrag() throws Exception {

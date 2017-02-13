@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
+import java.util.Comparator;
 import java.util.Enumeration;
 
 import static org.junit.Assert.assertEquals;
@@ -61,7 +62,7 @@ public class MemoryObjectTreeNodeTest {
     assertEquals(child1, children.nextElement());
     assertEquals(child2, children.nextElement());
     assertEquals(child3, children.nextElement());
-    node.sort((c1, c2) -> c1.getAdapter().getNum() - c2.getAdapter().getNum());
+    node.sort(Comparator.comparingInt(c -> c.getAdapter().getNum()));
     children = node.children();
     assertEquals(child2, children.nextElement());
     assertEquals(child3, children.nextElement());
@@ -82,6 +83,24 @@ public class MemoryObjectTreeNodeTest {
     TestMemoryObject adapter = new TestMemoryObject();
     MemoryObjectTreeNode<TestMemoryObject> node = new MemoryObjectTreeNode<>(adapter);
     assertEquals(adapter, node.getAdapter());
+  }
+
+  @Test(expected = AssertionError.class)
+  public void testGetPathToRootSelfCycleDetection() {
+    MemoryObjectTreeNode<TestMemoryObject> selfCycle = new MemoryObjectTreeNode<>(new TestMemoryObject());
+    selfCycle.myParent = selfCycle;
+    selfCycle.getPathToRoot();
+  }
+
+  @Test(expected = AssertionError.class)
+  public void testGetPathToRootCycleDetection() {
+    MemoryObjectTreeNode<TestMemoryObject> node1 = new MemoryObjectTreeNode<>(new TestMemoryObject());
+    MemoryObjectTreeNode<TestMemoryObject> node2 = new MemoryObjectTreeNode<>(new TestMemoryObject());
+    MemoryObjectTreeNode<TestMemoryObject> node3 = new MemoryObjectTreeNode<>(new TestMemoryObject());
+    node1.myParent = node2;
+    node2.myParent = node3;
+    node3.myParent = node1;
+    node1.getPathToRoot();
   }
 
   private static class TestMemoryObject implements MemoryObject {

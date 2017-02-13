@@ -21,13 +21,11 @@ import com.android.tools.adtui.model.formatter.MemoryAxisFormatter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
-import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.ProfilerTimeline;
-import com.android.tools.profilers.Stage;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.annotations.VisibleForTesting;
@@ -41,6 +39,8 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+
+import static com.android.tools.profilers.StudioProfilers.TIMELINE_BUFFER;
 
 public class MemoryProfilerStage extends Stage {
   private static Logger getLogger() {
@@ -56,10 +56,14 @@ public class MemoryProfilerStage extends Stage {
   private final MemoryStageLegends myLegends;
 
   private final int myProcessId;
+  private final Common.Session mySessionData;
   private DurationDataModel<GcDurationData> myGcCount;
 
   @NotNull
   private AspectModel<MemoryProfilerAspect> myAspect = new AspectModel<>();
+
+  @NotNull
+  private ProfilerMode myProfilerMode = ProfilerMode.NORMAL;
 
   private final MemoryServiceBlockingStub myClient;
   private final DurationDataModel<CaptureDurationData<HeapDumpCaptureObject>> myHeapDumpDurations;
@@ -78,11 +82,14 @@ public class MemoryProfilerStage extends Stage {
   MemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull CaptureObjectLoader loader) {
     super(profilers);
     myProcessId = profilers.getProcessId();
+    mySessionData = profilers.getSession();
     myClient = profilers.getClient().getMemoryClient();
     HeapDumpSampleDataSeries heapDumpSeries =
-      new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), profilers.getProcessId());
+      new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), mySessionData, myProcessId,
+                                   profilers.getRelativeTimeConverter());
     AllocationInfosDataSeries allocationSeries =
-      new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), profilers.getProcessId());
+      new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), mySessionData, myProcessId,
+                                    profilers.getRelativeTimeConverter());
     myLoader = loader;
 
     Range viewRange = profilers.getTimeline().getViewRange();
@@ -104,7 +111,8 @@ public class MemoryProfilerStage extends Stage {
 
     myLegends = new MemoryStageLegends(myDetailedMemoryUsage, profilers.getTimeline().getDataRange());
 
-    myGcCount = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, myProcessId)));
+    myGcCount = new DurationDataModel<>(new RangedSeries<>(viewRange, new GcStatsDataSeries(myClient, myProcessId, mySessionData)));
+    myGcCount.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries());
 
     myEventMonitor = new EventMonitor(profilers);
   }
@@ -140,9 +148,17 @@ public class MemoryProfilerStage extends Stage {
     myLoader.stop();
   }
 
+  @NotNull
   @Override
   public ProfilerMode getProfilerMode() {
-    return mySelection.getCaptureObject() == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
+    return myProfilerMode;
+  }
+
+  public void setProfilerMode(@NotNull ProfilerMode profilerMode) {
+    if (profilerMode != myProfilerMode) {
+      myProfilerMode = profilerMode;
+      getStudioProfilers().modeChanged();
+    }
   }
 
   @NotNull
@@ -157,10 +173,12 @@ public class MemoryProfilerStage extends Stage {
    */
   public void requestHeapDump(@Nullable Executor loadJoiner) {
     MemoryProfiler.TriggerHeapDumpResponse response =
-      myClient.triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setAppId(myProcessId).build());
+      myClient
+        .triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setSession(mySessionData).setProcessId(myProcessId).build());
     switch (response.getStatus()) {
       case SUCCESS:
-        selectCapture(new HeapDumpCaptureObject(myClient, myProcessId, response.getInfo(), null), loadJoiner);
+        selectCapture(new HeapDumpCaptureObject(myClient, mySessionData, myProcessId, response.getInfo(), null,
+                                                getStudioProfilers().getRelativeTimeConverter()), loadJoiner);
         break;
       case IN_PROGRESS:
         getLogger().debug(String.format("A heap dump for %d is already in progress.", myProcessId));
@@ -170,6 +188,11 @@ public class MemoryProfilerStage extends Stage {
       case UNRECOGNIZED:
         break;
     }
+  }
+
+  public void forceGarbageCollection(@NotNull Executor executor) {
+    executor.execute(() -> myClient.forceGarbageCollection(
+      MemoryProfiler.ForceGarbageCollectionRequest.newBuilder().setProcessId(myProcessId).setSession(mySessionData).build()));
   }
 
   public DurationDataModel<CaptureDurationData<HeapDumpCaptureObject>> getHeapDumpSampleDurations() {
@@ -184,13 +207,18 @@ public class MemoryProfilerStage extends Stage {
    * @return the actual status, which may be different from the input
    */
   public void trackAllocations(boolean enabled, @Nullable Executor loadJoiner) {
+    // Allocation tracking can go through the legacy tracker which does not reach perfd, so we need to pass in the current device(data) time.
+    long timeNs = TimeUnit.MICROSECONDS.toNanos((long)getStudioProfilers().getTimeline().getDataRange().getMax()) +
+                  TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER);
     TrackAllocationsResponse response = myClient.trackAllocations(
-      MemoryProfiler.TrackAllocationsRequest.newBuilder().setAppId(myProcessId).setEnabled(enabled).build());
+      MemoryProfiler.TrackAllocationsRequest.newBuilder().setRequestTime(timeNs).setSession(mySessionData).setProcessId(myProcessId)
+        .setEnabled(enabled).build());
     switch (response.getStatus()) {
       case SUCCESS:
         myTrackingAllocations = enabled;
         if (!myTrackingAllocations) {
-          selectCapture(new AllocationsCaptureObject(myClient, myProcessId, response.getInfo()), loadJoiner);
+          selectCapture(new AllocationsCaptureObject(myClient, myProcessId, mySessionData, response.getInfo(),
+                                                     getStudioProfilers().getRelativeTimeConverter()), loadJoiner);
         }
         break;
       case IN_PROGRESS:
@@ -248,8 +276,6 @@ public class MemoryProfilerStage extends Stage {
       return;
     }
 
-    getStudioProfilers().modeChanged();
-
     ProfilerTimeline timeline = getStudioProfilers().getTimeline();
     if (captureObject != null) {
       timeline.getSelectionRange().set(TimeUnit.NANOSECONDS.toMicros(captureObject.getStartTimeNs()),
@@ -260,6 +286,10 @@ public class MemoryProfilerStage extends Stage {
                              CaptureObject loadedCaptureObject = future.get();
                              if (loadedCaptureObject != null && loadedCaptureObject == mySelection.getCaptureObject()) {
                                myAspect.changed(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE);
+                             }
+                             else {
+                               // Capture loading failed. TODO: loading has somehow failed - we need to inform users about the error status.
+                               selectCapture(null, null);
                              }
                            }
                            catch (InterruptedException exception) {
@@ -274,9 +304,11 @@ public class MemoryProfilerStage extends Stage {
                            }
                          },
                          joiner == null ? MoreExecutors.directExecutor() : joiner);
+      setProfilerMode(ProfilerMode.EXPANDED);
     }
     else {
       timeline.getSelectionRange().clear();
+      setProfilerMode(ProfilerMode.NORMAL);
     }
   }
 
@@ -311,7 +343,7 @@ public class MemoryProfilerStage extends Stage {
   }
 
   public String getName() {
-    return "Memory";
+    return "MEMORY";
   }
 
   public static class MemoryStageLegends extends LegendComponentModel {
@@ -326,6 +358,7 @@ public class MemoryProfilerStage extends Stage {
     @NotNull private final SeriesLegend myObjectsLegend;
 
     public MemoryStageLegends(@NotNull DetailedMemoryUsage usage, @NotNull Range range) {
+      super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
       myJavaLegend = new SeriesLegend(usage.getJavaSeries(), MEMORY_AXIS_FORMATTER, range);
       myNativeLegend = new SeriesLegend(usage.getNativeSeries(), MEMORY_AXIS_FORMATTER, range);
       myGraphicsLegend = new SeriesLegend(usage.getGraphicsSeries(), MEMORY_AXIS_FORMATTER, range);
@@ -335,13 +368,13 @@ public class MemoryProfilerStage extends Stage {
       myTotalLegend = new SeriesLegend(usage.getTotalMemorySeries(), MEMORY_AXIS_FORMATTER, range);
       myObjectsLegend = new SeriesLegend(usage.getObjectsSeries(), OBJECT_COUNT_AXIS_FORMATTER, range);
 
+      add(myTotalLegend);
       add(myJavaLegend);
       add(myNativeLegend);
       add(myGraphicsLegend);
       add(myStackLegend);
       add(myCodeLegend);
       add(myOtherLegend);
-      add(myTotalLegend);
       add(myObjectsLegend);
     }
 

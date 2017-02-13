@@ -17,6 +17,7 @@ package com.android.tools.adtui.workbench;
 
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.workbench.AttachedToolWindow.ButtonDragListener;
 import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
 import com.google.common.base.Splitter;
@@ -29,6 +30,7 @@ import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.ui.components.JBLayeredPane;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,6 +40,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.*;
 import java.util.List;
 
@@ -71,10 +74,12 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   private final List<ToolWindowDefinition<T>> myToolDefinitions;
   private final SideModel<T> myModel;
   private final ThreeComponentsSplitter mySplitter;
+  private final JBLoadingPanel myLoadingPanel;
   private final JPanel myMainPanel;
   private final MinimizedPanel<T> myLeftMinimizePanel;
   private final MinimizedPanel<T> myRightMinimizePanel;
   private final ButtonDragListener<T> myButtonDragListener;
+  private final PropertyChangeListener myMyPropertyChangeListener = this::autoHide;
   private FileEditor myFileEditor;
 
   /**
@@ -98,6 +103,8 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   public void init(@NotNull JComponent content,
                    @NotNull T context,
                    @NotNull List<ToolWindowDefinition<T>> definitions) {
+    myLoadingPanel.stopLoading();
+    myMainPanel.setVisible(true);
     content.addComponentListener(createWidthUpdater());
     mySplitter.setInnerComponent(content);
     mySplitter.setFirstSize(getInitialSideWidth(Side.LEFT));
@@ -161,9 +168,13 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myMainPanel.add(myLeftMinimizePanel, BorderLayout.WEST);
     myMainPanel.add(layeredPanel, BorderLayout.CENTER);
     myMainPanel.add(myRightMinimizePanel, BorderLayout.EAST);
-    add(myMainPanel, JLayeredPane.DEFAULT_LAYER);
+    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project, 1000);
+    myLoadingPanel.add(myMainPanel);
     Disposer.register(this, mySplitter);
     Disposer.register(this, layeredPanel);
+    add(myLoadingPanel, JLayeredPane.DEFAULT_LAYER);
+    myMainPanel.setVisible(false);
+    myLoadingPanel.startLoading();
   }
 
   private boolean isCurrentEditor(@NotNull FileEditor fileEditor) {
@@ -178,13 +189,13 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   @Override
   public void addNotify() {
     super.addNotify();
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", this::autoHide);
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myMyPropertyChangeListener);
   }
 
   @Override
   public void removeNotify() {
     super.removeNotify();
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", this::autoHide);
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", myMyPropertyChangeListener);
   }
 
   private void autoHide(@NotNull PropertyChangeEvent event) {
@@ -221,16 +232,31 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   }
 
   @NotNull
-  private String getWidthPropertyName(@NotNull Layout layout, @NotNull Side side) {
+  private String getUnscaledWidthPropertyName(@NotNull Layout layout, @NotNull Side side) {
+    return TOOL_WINDOW_PROPERTY_PREFIX + layout.getPrefix() + myName + "." + side.name() + ".UNSCALED.WIDTH";
+  }
+
+  @NotNull
+  private String getScaledWidthPropertyName(@NotNull Layout layout, @NotNull Side side) {
     return TOOL_WINDOW_PROPERTY_PREFIX + layout.getPrefix() + myName + "." + side.name() + ".WIDTH";
   }
 
   private int getSideWidth(@NotNull Layout layout, @NotNull Side side) {
-    return myPropertiesComponent.getInt(getWidthPropertyName(layout, side), -1);
+    int width = myPropertiesComponent.getInt(getUnscaledWidthPropertyName(layout, side), -1);
+    if (width != -1) {
+      return JBUI.scale(width);
+    }
+    int scaledWidth = myPropertiesComponent.getInt(getScaledWidthPropertyName(layout, side), -1);
+    if (scaledWidth != -1) {
+      return -1;
+    }
+    myPropertiesComponent.unsetValue(getScaledWidthPropertyName(layout, side));
+    setSideWidth(layout, side, scaledWidth);
+    return scaledWidth;
   }
 
   private void setSideWidth(@NotNull Layout layout, @NotNull Side side, int value) {
-    myPropertiesComponent.setValue(getWidthPropertyName(layout, side), value, ToolWindowDefinition.DEFAULT_SIDE_WIDTH);
+    myPropertiesComponent.setValue(getUnscaledWidthPropertyName(layout, side), AdtUiUtils.unscale(value), -1);
   }
 
   private int getInitialSideWidth(@NotNull Side side) {
@@ -297,7 +323,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
       }
       tool.setToolOrder(placement);
     }
-    tools.sort((t1, t2) -> Integer.compare(t1.getToolOrder(), t2.getToolOrder()));
+    tools.sort(Comparator.comparingInt(AttachedToolWindow::getToolOrder));
   }
 
   private void storeToolOrder(@NotNull Layout layout, @NotNull List<AttachedToolWindow<T>> tools) {
@@ -318,7 +344,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     }
   }
 
-  private void modelChanged(@NotNull SideModel model, @NotNull SideModel.EventType type) {
+  private void modelChanged(@SuppressWarnings("unused") @NotNull SideModel model, @NotNull SideModel.EventType type) {
     switch (type) {
       case SWAP:
         mySplitter.setFirstSize(getSideWidth(Layout.CURRENT, Side.RIGHT));
@@ -391,7 +417,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
 
   @Override
   public void doLayout() {
-    myMainPanel.setBounds(0, 0, getWidth(), getHeight());
+    myLoadingPanel.setBounds(0, 0, getWidth(), getHeight());
   }
 
   private class MyButtonDragListener implements ButtonDragListener<T> {

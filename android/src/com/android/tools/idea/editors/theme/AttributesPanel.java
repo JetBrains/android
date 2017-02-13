@@ -106,6 +106,12 @@ public class AttributesPanel {
 
     myThemeCombo.setMaximumRowCount(MAX_SIZE_THEME_SELECTOR);
 
+    // this disables up and down keys from firing actions.
+    // https://tips4java.wordpress.com/2009/05/17/combo-box-no-action/
+    myThemeCombo.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
+    // there is also an option to set a global setting for this, but we probably do not want to do that:
+    // UIManager.getLookAndFeelDefaults().put("ComboBox.noActionOnKeyNavigation", true);
+
     // Set combo boxes names to be able to distinguish them in UI tests
     myThemeCombo.setName(THEME_SELECTOR_NAME);
     myModuleCombo.setName(MODULE_SELECTOR_NAME);

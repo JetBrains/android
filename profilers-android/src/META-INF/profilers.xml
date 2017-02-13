@@ -14,9 +14,13 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <application-components>
-    <component>
-      <implementation-class>com.android.tools.idea.profilers.ProfilerComponent</implementation-class>
-    </component>
-  </application-components>
+  <extensions defaultExtensionNs="com.intellij">
+    <facet.toolWindow id="Android Profiler"
+                      facetIdList="android"
+                      anchor="bottom"
+                      icon="AndroidIcons.AndroidToolWindow"
+                      conditionClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"
+                      factoryClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"/>
+    <applicationService serviceImplementation="com.android.tools.idea.profilers.ProfilerService"/>
+  </extensions>
 </idea-plugin>

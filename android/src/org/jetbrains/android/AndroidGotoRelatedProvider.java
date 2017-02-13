@@ -24,6 +24,8 @@ import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.LocalResourceManager;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -103,7 +105,7 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
 
   @Nullable
   public static Computable<List<GotoRelatedItem>> getLazyItemsForXmlFile(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
-    final ResourceFolderType resourceType = facet.getLocalResourceManager().getFileResourceFolderType(file);
+    ResourceFolderType resourceType = ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getFileResourceFolderType(file);
 
     // TODO: Handle menus as well!
     if (ResourceFolderType.LAYOUT == resourceType) {
@@ -274,7 +276,8 @@ public class AndroidGotoRelatedProvider extends GotoRelatedProvider {
           return;
         }
         final String resFieldName = info.getFieldName();
-        final List<PsiElement> resources = facet.getLocalResourceManager().findResourcesByFieldName(resClassName, resFieldName);
+        LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
+        final List<PsiElement> resources = resourceManager.findResourcesByFieldName(resClassName, resFieldName);
 
         for (PsiElement resource : resources) {
           if (resource instanceof PsiFile) {

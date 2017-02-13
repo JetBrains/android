@@ -248,47 +248,6 @@ public class NlComponent implements NlAttributesHolder {
     return result;
   }
 
-  /**
-   * Return the leaf at coordinates x, y that is an immediate child of this {@linkplain NlComponent}
-   *
-   * @param px x coordinate
-   * @param py y coordinate
-   * @return an immediate child, this (if under the coordinates), or null otherwise
-   */
-  @Nullable
-  public NlComponent findImmediateLeafAt(@AndroidCoordinate int px, @AndroidCoordinate int py) {
-    if (children != null) {
-      // Search BACKWARDS such that if the children are painted on top of each
-      // other (as is the case in a FrameLayout) I pick the last one which will
-      // be topmost!
-      for (int i = children.size() - 1; i >= 0; i--) {
-        NlComponent child = children.get(i);
-        if (child.x <= px && child.y <= py && (child.x + child.w >= px) && (child.y + child.h >= py)) {
-          return child;
-        }
-      }
-    }
-    return (x <= px && y <= py && x + w >= px && y + h >= py) ? this : null;
-  }
-
-  @Nullable
-  public NlComponent findLeafAt(@AndroidCoordinate int px, @AndroidCoordinate int py) {
-    if (children != null) {
-      // Search BACKWARDS such that if the children are painted on top of each
-      // other (as is the case in a FrameLayout) I pick the last one which will
-      // be topmost!
-      for (int i = children.size() - 1; i >= 0; i--) {
-        NlComponent child = children.get(i);
-        NlComponent result = child.findLeafAt(px, py);
-        if (result != null) {
-          return result;
-        }
-      }
-    }
-
-    return (x <= px && y <= py && x + w >= px && y + h >= py) ? this : null;
-  }
-
   public boolean containsX(@AndroidCoordinate int x) {
     return Ranges.contains(this.x, this.x + w, x);
   }
@@ -297,10 +256,12 @@ public class NlComponent implements NlAttributesHolder {
     return Ranges.contains(this.y, this.y + h, y);
   }
 
+  @AndroidCoordinate
   public int getMidpointX() {
     return x + w / 2;
   }
 
+  @AndroidCoordinate
   public int getMidpointY() {
     return y + h / 2;
   }
@@ -783,7 +744,10 @@ public class NlComponent implements NlAttributesHolder {
                                  @NotNull String fqcn,
                                  @Nullable NlComponent before,
                                  @NotNull InsertType insertType) {
-    return myModel.createComponent(((ViewEditorImpl)editor).getScreenView(), fqcn, this, before, insertType);
+    String tagName = viewClassToTag(fqcn);
+    XmlTag tag = getTag().createChildTag(tagName, null, null, false);
+
+    return myModel.createComponent(((ViewEditorImpl)editor).getSceneView(), tag, this, before, insertType);
   }
 
   /**

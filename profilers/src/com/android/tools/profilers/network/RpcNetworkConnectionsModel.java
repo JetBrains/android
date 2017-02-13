@@ -16,13 +16,14 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
- import com.android.tools.profiler.proto.NetworkProfiler;
-import com.android.tools.profiler.proto.NetworkServiceGrpc;
+import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.NetworkProfiler;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,20 +31,28 @@ import java.util.concurrent.TimeUnit;
  */
 public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
   @NotNull
+  private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerService;
   private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkService;
 
   private final int myPid;
+  private final Common.Session mySession;
 
-  public RpcNetworkConnectionsModel(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub service, int pid) {
-    myNetworkService = service;
+  public RpcNetworkConnectionsModel(@NotNull ProfilerServiceGrpc.ProfilerServiceBlockingStub profilerService,
+                                    @NotNull NetworkServiceGrpc.NetworkServiceBlockingStub networkService,
+                                    int pid, Common.Session session) {
+    myProfilerService = profilerService;
+    myNetworkService = networkService;
     myPid = pid;
+    mySession = session;
   }
 
   @NotNull
   @Override
   public List<HttpData> getData(@NotNull Range timeCurrentRangeUs) {
     NetworkProfiler.HttpRangeRequest request = NetworkProfiler.HttpRangeRequest.newBuilder()
-      .setAppId(myPid).setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
+      .setProcessId(myPid)
+      .setSession(mySession)
+      .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax())).build();
     NetworkProfiler.HttpRangeResponse response = myNetworkService.getHttpRange(request);
 
@@ -69,17 +78,20 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
   private void requestHttpRequest(long connectionId, @NotNull HttpData.Builder httpBuilder) {
     NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
       .setConnId(connectionId)
+      .setSession(mySession)
       .setType(NetworkProfiler.HttpDetailsRequest.Type.REQUEST)
       .build();
     NetworkProfiler.HttpDetailsResponse.Request result = myNetworkService.getHttpDetails(request).getRequest();
     httpBuilder.setUrl(result.getUrl());
     httpBuilder.setMethod(result.getMethod());
     httpBuilder.setTrace(result.getTrace());
+    httpBuilder.setRequestFields(result.getFields());
   }
 
   private void requestHttpResponseBody(long connectionId, @NotNull HttpData.Builder httpBuilder) {
     NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
       .setConnId(connectionId)
+      .setSession(mySession)
       .setType(NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY)
       .build();
     NetworkProfiler.HttpDetailsResponse response = myNetworkService.getHttpDetails(request);
@@ -95,16 +107,19 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
       return ByteString.EMPTY;
     }
 
-    NetworkProfiler.NetworkPayloadRequest payloadRequest = NetworkProfiler.NetworkPayloadRequest.newBuilder()
-      .setPayloadId(data.getResponsePayloadId())
+    Profiler.BytesRequest request = Profiler.BytesRequest.newBuilder()
+      .setId(data.getResponsePayloadId())
+      .setSession(mySession)
       .build();
-    NetworkProfiler.NetworkPayloadResponse payloadResponse = myNetworkService.getPayload(payloadRequest);
-    return payloadResponse.getContents();
+
+    Profiler.BytesResponse response = myProfilerService.getBytes(request);
+    return response.getContents();
   }
 
   private void requestHttpResponse(long connectionId, @NotNull HttpData.Builder httpBuilder) {
     NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
       .setConnId(connectionId)
+      .setSession(mySession)
       .setType(NetworkProfiler.HttpDetailsRequest.Type.RESPONSE)
       .build();
     NetworkProfiler.HttpDetailsResponse response = myNetworkService.getHttpDetails(request);

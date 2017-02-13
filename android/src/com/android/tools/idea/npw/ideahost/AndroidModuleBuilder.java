@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.ideahost;
 
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.project.ConfigureAndroidProjectStep;
 import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -75,8 +76,7 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
 
   @Override
   public String getPresentableName() {
-    // TODO: development code only. Once other plugins are deprecated, just return "Android"
-    if (Boolean.getBoolean("use.npw.modelwizard")) {
+    if (WizardUtils.isNpwModelWizardEnabled()) {
       return "Android (New)";
     }
     return MODULE_NAME;
@@ -122,8 +122,7 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
   @Nullable
   @Override
   public ModuleWizardStep getCustomOptionsStep(WizardContext context, Disposable parentDisposable) {
-    // TODO: development code only. Once other plugins are deprecated, delete this code
-    if (!Boolean.getBoolean("use.npw.modelwizard")) {
+    if (!WizardUtils.isNpwModelWizardEnabled()) {
       return null;
     }
     if (myWizardAdapter == null) {

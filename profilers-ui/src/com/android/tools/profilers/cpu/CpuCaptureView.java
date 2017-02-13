@@ -18,118 +18,153 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.HNode;
-import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.ViewBinder;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.ExpandVetoException;
+import javax.swing.tree.TreePath;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
 
-public class CpuCaptureView {
+class CpuCaptureView {
+  private static final Map<String, CpuProfilerStage.CaptureDetails.Type> TABS = ImmutableMap.of(
+      "Top Down", CpuProfilerStage.CaptureDetails.Type.TOP_DOWN,
+      "Bottom Up", CpuProfilerStage.CaptureDetails.Type.BOTTOM_UP,
+      "Chart", CpuProfilerStage.CaptureDetails.Type.CHART);
+
+  private static final Comparator<DefaultMutableTreeNode> DEFAULT_SORT_ORDER =
+    Collections.reverseOrder(new DoubleValueNodeComparator(CpuTreeNode::getTotal));
 
   @NotNull
-  private final CpuCapture myCapture;
-  private final HTreeChart<MethodModel> myCaptureTreeChart;
-  private final JBTabbedPane myPanel;
-  private final JTree myTree;
   private final CpuProfilerStageView myView;
-  private final CpuTraceTreeSorter myTreeSorter;
-  private final Comparator<DefaultMutableTreeNode> myDefaultSortOrder;
 
-  public CpuCaptureView(@NotNull CpuCapture capture, @NotNull CpuProfilerStageView view) {
+  @NotNull
+  private final JBTabbedPane myPanel;
 
-    ProfilerTimeline timeline = view.getStage().getStudioProfilers().getTimeline();
+  @NotNull
+  private final ViewBinder<CpuCaptureView, CpuProfilerStage.CaptureDetails, CaptureDetailsView> myBinder;
 
-    // Reverse the order as the default ordering is SortOrder.ASCENDING
-    myDefaultSortOrder = Collections.reverseOrder(new DoubleValueNodeComparator(TopDownNode::getTotal));
-    myCapture = capture;
+  CpuCaptureView(@NotNull CpuProfilerStageView view) {
     myView = view;
 
-    myCaptureTreeChart = new HTreeChart<>(timeline.getSelectionRange());
-    myCaptureTreeChart.setHRenderer(new SampledMethodUsageHRenderer());
-
-    myTree = new JTree();
-    myTreeSorter = new CpuTraceTreeSorter(myTree);
-    JComponent columnTree = new ColumnTreeBuilder(myTree)
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-          .setName("Name")
-          .setPreferredWidth(900)
-          .setHeaderAlignment(SwingConstants.LEFT)
-          .setRenderer(new MethodNameRenderer())
-          .setComparator(new NameValueNodeComparator()))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-          .setName("Self (μs)")
-          .setPreferredWidth(100)
-          .setHeaderAlignment(SwingConstants.RIGHT)
-          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getSelf, false))
-          .setComparator(new DoubleValueNodeComparator(TopDownNode::getSelf)))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-          .setName("%")
-          .setPreferredWidth(50)
-          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getSelf, true))
-          .setComparator(new DoubleValueNodeComparator(TopDownNode::getSelf)))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-          .setName("Children (μs)")
-          .setPreferredWidth(100)
-          .setHeaderAlignment(SwingConstants.RIGHT)
-          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getChildrenTotal, false))
-          .setComparator(new DoubleValueNodeComparator(TopDownNode::getChildrenTotal)))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-          .setName("%")
-          .setPreferredWidth(50)
-          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getChildrenTotal, true))
-          .setComparator(new DoubleValueNodeComparator(TopDownNode::getChildrenTotal)))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-          .setName("Total (μs)")
-          .setPreferredWidth(100)
-          .setHeaderAlignment(SwingConstants.RIGHT)
-          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getTotal, false))
-          .setComparator(myDefaultSortOrder))
-      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-          .setName("%")
-          .setPreferredWidth(50)
-          .setRenderer(new DoubleValueCellRenderer(TopDownNode::getTotal, true))
-          .setComparator(myDefaultSortOrder))
-      .setTreeSorter(myTreeSorter)
-      .build();
-
     myPanel = new JBTabbedPane();
-    myPanel.addTab("Top Down", columnTree);
-    myPanel.addTab("Chart", myCaptureTreeChart);
+    for (String label: TABS.keySet()) {
+      myPanel.add(label, new JPanel());
+    }
+    myPanel.getModel().addChangeListener(event -> setCaptureDetailToTab());
 
-    updateThread();
+    myBinder = new ViewBinder<>();
+    myBinder.bind(CpuProfilerStage.TopDown.class, TopDownView::new);
+    myBinder.bind(CpuProfilerStage.BottomUp.class, BottomUpView::new);
+    myBinder.bind(CpuProfilerStage.TreeChart.class, TreeChartView::new);
+
+    updateView();
   }
 
-  public void updateThread() {
-    int id = myView.getStage().getSelectedThread();
-    // Updates the horizontal tree displayed in capture panel
-    HNode<MethodModel> node = myCapture.getCaptureNode(id);
-    myCaptureTreeChart.setHTree(node);
-    // Updates the topdown column tree displayed in capture panel
-    TopDownTreeModel model = node == null ? null : new TopDownTreeModel(myView.getTimeline().getSelectionRange(), new TopDownNode(node));
-    myTree.setModel(model);
-    myTreeSorter.setModel(model, myDefaultSortOrder);
-    expandTreeNodes();
+  void updateView() {
+    for (int i = 0; i < myPanel.getTabCount(); ++i) {
+      myPanel.setComponentAt(i, new JPanel());
+    }
+
+    CpuProfilerStage.CaptureDetails details = myView.getStage().getCaptureDetails();
+    if (details == null) {
+      return;
+    }
+
+    int current = myPanel.getSelectedIndex();
+    for (int i = 0; i < myPanel.getTabCount(); i++) {
+      String title = myPanel.getTitleAt(i);
+      if (current != i && TABS.get(title).equals(details.getType())) {
+        myPanel.setSelectedIndex(i);
+        current = i;
+        break;
+      }
+    }
+    myPanel.setComponentAt(current, myBinder.build(this, details).getComponent());
+  }
+
+  void setCaptureDetailToTab() {
+    int index = myPanel.getSelectedIndex();
+    myView.getStage().setCaptureDetails(TABS.get(myPanel.getTitleAt(index)));
+  }
+
+  @NotNull
+  private static JComponent setUpCpuTree(@NotNull JTree tree, @NotNull CpuTreeModel model) {
+    tree.setModel(model);
+    CpuTraceTreeSorter sorter = new CpuTraceTreeSorter(tree);
+    sorter.setModel(model, DEFAULT_SORT_ORDER);
+
+    return new ColumnTreeBuilder(tree)
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("Name")
+                   .setPreferredWidth(900)
+                   .setHeaderAlignment(SwingConstants.LEFT)
+                   .setRenderer(new MethodNameRenderer())
+                   .setComparator(new NameValueNodeComparator()))
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("Self (μs)")
+                   .setPreferredWidth(100)
+                   .setHeaderAlignment(SwingConstants.RIGHT)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, false))
+                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getSelf)))
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("%")
+                   .setPreferredWidth(50)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getSelf, true))
+                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getSelf)))
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("Children (μs)")
+                   .setPreferredWidth(100)
+                   .setHeaderAlignment(SwingConstants.RIGHT)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, false))
+                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("%")
+                   .setPreferredWidth(50)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getChildrenTotal, true))
+                   .setComparator(new DoubleValueNodeComparator(CpuTreeNode::getChildrenTotal)))
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("Total (μs)")
+                   .setPreferredWidth(100)
+                   .setHeaderAlignment(SwingConstants.RIGHT)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, false))
+                   .setComparator(DEFAULT_SORT_ORDER))
+      .addColumn(new ColumnTreeBuilder.ColumnBuilder()
+                   .setName("%")
+                   .setPreferredWidth(50)
+                   .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, true))
+                   .setComparator(DEFAULT_SORT_ORDER))
+      .setTreeSorter(sorter)
+      .build();
   }
 
   /**
    * Expands a few nodes in order to improve the visual feedback of the list.
    */
-  private void expandTreeNodes() {
+  private static void expandTreeNodes(JTree tree) {
     int maxRowsToExpand = 8; // TODO: adjust this value if necessary.
     int i = 0;
-    while (i < myTree.getRowCount() && i < maxRowsToExpand) {
-      myTree.expandRow(i++);
+    while (i < tree.getRowCount() && i < maxRowsToExpand) {
+      tree.expandRow(i++);
     }
   }
 
@@ -137,44 +172,115 @@ public class CpuCaptureView {
     return myPanel;
   }
 
-  @NotNull
-  public CpuCapture getCapture() {
-    return myCapture;
-  }
-
-  private static TopDownNode getNode(Object value) {
+  private static CpuTreeNode getNode(Object value) {
     DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-    return (TopDownNode)node.getUserObject();
+    return (CpuTreeNode)node.getUserObject();
   }
 
+  private abstract static class CaptureDetailsView {
+    protected JComponent myComponent;
+
+    @NotNull
+    protected JComponent getComponent() {
+      return myComponent;
+    }
+  }
+
+  private static class TopDownView extends CaptureDetailsView {
+    @SuppressWarnings("unused")
+    private TopDownView(@NotNull CpuCaptureView view, @NotNull CpuProfilerStage.TopDown topDown) {
+      TopDownTreeModel model = topDown.getModel();
+      if (model == null) {
+        myComponent = new JLabel("No data available");
+        return;
+      }
+
+      JTree tree = new JTree();
+      myComponent = setUpCpuTree(tree, model);
+      expandTreeNodes(tree);
+    }
+  }
+
+  private static class BottomUpView extends CaptureDetailsView {
+    @SuppressWarnings("unused")
+    private BottomUpView(@NotNull CpuCaptureView view, @NotNull CpuProfilerStage.BottomUp bottomUp) {
+      BottomUpTreeModel model = bottomUp.getModel();
+      if (model == null) {
+        myComponent = new JLabel("No data available");
+        return;
+      }
+
+      JTree tree = new JTree();
+      myComponent = setUpCpuTree(tree, model);
+      tree.setRootVisible(false);
+
+      tree.addTreeWillExpandListener(new TreeWillExpandListener() {
+        @Override
+        public void treeWillExpand(TreeExpansionEvent event) throws ExpandVetoException {
+          DefaultMutableTreeNode node = (DefaultMutableTreeNode)event.getPath().getLastPathComponent();
+          ((BottomUpTreeModel)tree.getModel()).expand(node);
+        }
+
+        @Override
+        public void treeWillCollapse(TreeExpansionEvent event) throws ExpandVetoException {
+        }
+      });
+
+      model.addTreeModelListener(new TreeModelAdapter() {
+        @Override
+        protected void process(TreeModelEvent event, EventType type) {
+          // When the root loses all of its children it can't be expanded and when they're added it is still collapsed.
+          // As a result, nothing will be visible as the root itself isn't visible. So, expand it if it's the case.
+          if (type == EventType.NodesInserted && event.getTreePath().getPathCount() == 1) {
+            DefaultMutableTreeNode root = (DefaultMutableTreeNode)model.getRoot();
+            Object[] inserted = event.getChildren();
+            if (inserted != null && inserted.length == root.getChildCount()) {
+              tree.expandPath(new TreePath(root));
+            }
+          }
+        }
+      });
+    }
+  }
+
+  private class TreeChartView extends CaptureDetailsView {
+    @SuppressWarnings("unused")
+    private TreeChartView(@NotNull CpuCaptureView view, @NotNull CpuProfilerStage.TreeChart treeChart) {
+      HNode<MethodModel> node = treeChart.getNode();
+      HTreeChart<MethodModel> chart = new HTreeChart<>(myView.getTimeline().getSelectionRange());
+      chart.setHRenderer(new SampledMethodUsageHRenderer());
+      chart.setHTree(node);
+      myComponent = chart;
+    }
+  }
 
   private static class NameValueNodeComparator implements Comparator<DefaultMutableTreeNode> {
     @Override
     public int compare(DefaultMutableTreeNode o1, DefaultMutableTreeNode o2) {
-      return ((TopDownNode)o1.getUserObject()).getMethodName().compareTo(((TopDownNode)o2.getUserObject()).getMethodName());
+      return ((CpuTreeNode)o1.getUserObject()).getMethodName().compareTo(((CpuTreeNode)o2.getUserObject()).getMethodName());
     }
   }
 
-  private class DoubleValueNodeComparator implements Comparator<DefaultMutableTreeNode> {
-    private final Function<TopDownNode, Double> myGetter;
+  private static class DoubleValueNodeComparator implements Comparator<DefaultMutableTreeNode> {
+    private final Function<CpuTreeNode, Double> myGetter;
 
-    DoubleValueNodeComparator(Function<TopDownNode, Double> getter) {
+    DoubleValueNodeComparator(Function<CpuTreeNode, Double> getter) {
       myGetter = getter;
     }
 
     @Override
     public int compare(DefaultMutableTreeNode a, DefaultMutableTreeNode b) {
-      TopDownNode o1 = ((TopDownNode)a.getUserObject());
-      TopDownNode o2 = ((TopDownNode)b.getUserObject());
-      Double value = myGetter.apply(o1) - myGetter.apply(o2);
-      return value > 0 ? 1 : -1;
+      CpuTreeNode o1 = ((CpuTreeNode)a.getUserObject());
+      CpuTreeNode o2 = ((CpuTreeNode)b.getUserObject());
+      return Double.compare(myGetter.apply(o1), myGetter.apply(o2));
     }
   }
+
   private static class DoubleValueCellRenderer extends ColoredTreeCellRenderer {
-    private final Function<TopDownNode, Double> myGetter;
+    private final Function<CpuTreeNode, Double> myGetter;
     private final boolean myPercentage;
 
-    DoubleValueCellRenderer(Function<TopDownNode, Double> getter, boolean percentage) {
+    DoubleValueCellRenderer(Function<CpuTreeNode, Double> getter, boolean percentage) {
       myGetter = getter;
       myPercentage = percentage;
     }
@@ -188,13 +294,14 @@ public class CpuCaptureView {
                                       int row,
                                       boolean hasFocus) {
       setTextAlign(SwingConstants.RIGHT);
-      TopDownNode node = getNode(value);
-      if (node != null)  {
+      CpuTreeNode node = getNode(value);
+      if (node != null) {
         double v = myGetter.apply(node);
         if (myPercentage) {
-          TopDownNode root = getNode(tree.getModel().getRoot());
+          CpuTreeNode root = getNode(tree.getModel().getRoot());
           append(String.format("%.2f%%", v / root.getTotal() * 100));
-        } else {
+        }
+        else {
           append(String.format("%,.0f", v));
         }
       }
@@ -215,21 +322,23 @@ public class CpuCaptureView {
                                       int row,
                                       boolean hasFocus) {
       if (value instanceof DefaultMutableTreeNode &&
-          ((DefaultMutableTreeNode)value).getUserObject() instanceof TopDownNode) {
-        TopDownNode node = (TopDownNode)((DefaultMutableTreeNode)value).getUserObject();
+          ((DefaultMutableTreeNode)value).getUserObject() instanceof CpuTreeNode) {
+        CpuTreeNode node = (CpuTreeNode)((DefaultMutableTreeNode)value).getUserObject();
         if (node != null) {
           if (node.getMethodName().isEmpty()) {
             setIcon(AllIcons.Debugger.ThreadSuspended);
-            append(node.getPackage());
-          } else {
+            append(node.getClassName());
+          }
+          else {
             setIcon(PlatformIcons.METHOD_ICON);
             append(node.getMethodName() + "()");
-            if (node.getPackage() != null) {
-              append(" (" + node.getPackage() + ")", new SimpleTextAttributes(STYLE_PLAIN, JBColor.GRAY));
+            if (node.getClassName() != null) {
+              append(" (" + node.getClassName() + ")", new SimpleTextAttributes(STYLE_PLAIN, JBColor.GRAY));
             }
           }
         }
-      } else {
+      }
+      else {
         append(value.toString());
       }
     }

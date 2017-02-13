@@ -24,10 +24,15 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
+import com.google.common.html.HtmlEscapers;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.IdeGlassPane;
+import com.intellij.openapi.wm.IdeGlassPaneUtil;
+import com.intellij.ui.AbstractExpandableItemsHandler;
 import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -43,6 +48,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,6 +69,8 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   private final Map<JLabel, ExpandableGroup> myLabel2GroupMap = new IdentityHashMap<>(4);
   private final Multimap<JLabel, Component> myLabel2ComponentMap = HashMultimap.create();
   private final JLabel myDefaultLabel = new JLabel();
+  private final InspectorExpandableItemsHandler myExpandableItemsHandler;
+
   private List<InspectorComponent> myInspectors = Collections.emptyList();
   private ExpandableGroup myGroup;
   private GridConstraints myConstraints = new GridConstraints();
@@ -82,6 +90,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     myInspector = new GridInspectorPanel();
     myInspector.setBorder(BorderFactory.createEmptyBorder(0, HORIZONTAL_SPACING, 0, HORIZONTAL_SPACING));
     myComparator = new SpeedSearchComparator(false);
+    myExpandableItemsHandler = new InspectorExpandableItemsHandler(this);
     myFilter = "";
     add(myInspector, BorderLayout.CENTER);
   }
@@ -100,12 +109,14 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   public void addNotify() {
     super.addNotify();
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
+    myExpandableItemsHandler.install(myProviders);
   }
 
   @Override
   public void removeNotify() {
     super.removeNotify();
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
+    myExpandableItemsHandler.remove();
   }
 
   @Override
@@ -192,10 +203,11 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     if (myFilter.isEmpty()) {
       return true;
     }
-    if (StringUtil.isEmpty(label.getText()) || label.getFont() == myBoldLabelFont) {
+    String text = StringUtil.removeHtmlTags(label.getText());
+    if (StringUtil.isEmpty(text) || label.getFont() == myBoldLabelFont) {
       return false;
     }
-    return myComparator.matchingFragments(myFilter, label.getText()) != null;
+    return myComparator.matchingFragments(myFilter, text) != null;
   }
 
   private static GridLayoutManager createLayoutManager(int rows, int columns) {
@@ -356,9 +368,11 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   }
 
   private static JLabel createLabel(@NotNull String labelText, @Nullable String tooltip, @Nullable Component component) {
-    JBLabel label = new JBLabel(labelText);
+    // Use html such that we avoid ellipses in JLabels when the text is too large to fit on the left side of the inspector.
+    JLabel label = new JBLabel("<html>" + HtmlEscapers.htmlEscaper().escape(labelText) + "</html>");
     label.setLabelFor(component);
     label.setToolTipText(tooltip);
+    label.setSize(label.getPreferredSize());
     return label;
   }
 
@@ -412,7 +426,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     public ExpandableGroup(@NotNull JLabel label) {
       myLabel = label;
       myComponents = new ArrayList<>(4);
-      myExpanded = PropertiesComponent.getInstance().getBoolean(KEY_PREFIX + label.getText());
+      myExpanded = PropertiesComponent.getInstance().getBoolean(KEY_PREFIX + StringUtil.removeHtmlTags(label.getText()));
       label.setIcon(myExpanded ? EXPANDED_ICON : COLLAPSED_ICON);
       label.addMouseListener(new MouseAdapter() {
         @Override
@@ -438,7 +452,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
       myLabel.setIcon(expanded ? EXPANDED_ICON : COLLAPSED_ICON);
       myComponents.forEach(component -> component.setVisible(expanded));
       if (updateProperties) {
-        PropertiesComponent.getInstance().setValue(KEY_PREFIX + myLabel.getText(), expanded);
+        PropertiesComponent.getInstance().setValue(KEY_PREFIX + StringUtil.removeHtmlTags(myLabel.getText()), expanded);
       }
     }
   }
@@ -485,6 +499,63 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
         }
         else if (constraints.getColumn() == 1) {
           constraints.myMinimumSize.setSize((myWidth - 2 * HORIZONTAL_SPACING) * .6, -1);
+        }
+      }
+    }
+  }
+
+  private static class InspectorExpandableItemsHandler extends AbstractExpandableItemsHandler<JLabel, JPanel> {
+    private final MousePreprocessor myMousePreprocessor;
+    private final JLabel myRenderer;
+
+    protected InspectorExpandableItemsHandler(@NotNull InspectorPanel component) {
+      super(component.myInspector);
+      myMousePreprocessor = new MousePreprocessor();
+      myRenderer = new JLabel();
+    }
+
+    private void install(@NotNull Disposable parent) {
+      IdeGlassPane glassPane = IdeGlassPaneUtil.find(myComponent);
+      glassPane.addMouseMotionPreprocessor(myMousePreprocessor, parent);
+    }
+
+    private void remove() {
+      IdeGlassPane glassPane = IdeGlassPaneUtil.find(myComponent);
+      glassPane.removeMouseMotionPreprocessor(myMousePreprocessor);
+    }
+
+    @Nullable
+    @Override
+    protected Pair<Component, Rectangle> getCellRendererAndBounds(@NotNull JLabel key) {
+      myRenderer.setText(key.getText());
+      myRenderer.setFont(key.getFont());
+      myRenderer.setForeground(key.getForeground());
+      myRenderer.setBackground(key.getBackground());
+      Rectangle bounds = new Rectangle(key.getLocation(), key.getPreferredSize());
+      return Pair.create(myRenderer, bounds);
+    }
+
+    @Override
+    @NotNull
+    protected Rectangle getVisibleRect(@NotNull JLabel key) {
+      return SwingUtilities.convertRectangle(key, key.getVisibleRect(), myComponent);
+    }
+
+    @Nullable
+    @Override
+    protected JLabel getCellKeyForPoint(@NotNull Point point) {
+      return null;
+    }
+
+    private class MousePreprocessor extends MouseMotionAdapter {
+      @Override
+      public void mouseMoved(@NotNull MouseEvent event) {
+        Point point = SwingUtilities.convertPoint(event.getComponent(), event.getPoint(), myComponent);
+        if (myComponent.contains(point)) {
+          Component component = myComponent.getComponentAt(point.x, point.y);
+          if (component instanceof JLabel) {
+            handleSelectionChange((JLabel)component, true);
+          }
         }
       }
     }

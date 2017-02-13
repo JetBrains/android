@@ -50,6 +50,7 @@ public class ConstraintComponentUtilities {
   protected static final ArrayList<String> ourTopAttributes;
   protected static final ArrayList<String> ourRightAttributes;
   protected static final ArrayList<String> ourBottomAttributes;
+  protected static final ArrayList<String> ourBaselineAttributes;
   protected static final ArrayList<String> ourMarginAttributes;
   protected static final ArrayList<String> ourHorizontalAttributes;
   protected static final ArrayList<String> ourVerticalAttributes;
@@ -113,6 +114,9 @@ public class ConstraintComponentUtilities {
     ourBottomAttributes = new ArrayList<>();
     ourBottomAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
     ourBottomAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
+
+    ourBaselineAttributes = new ArrayList<>();
+    ourBaselineAttributes.add(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
 
     ourMarginAttributes = new ArrayList<>();
     ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN);
@@ -179,22 +183,21 @@ public class ConstraintComponentUtilities {
     return null;
   }
 
-  private static boolean hasConstraints(SceneComponent component, String uri, ArrayList<String> constraints) {
+  private static boolean hasConstraints(NlComponent component, String uri, ArrayList<String> constraints) {
     int count = constraints.size();
-    NlComponent nlComponent = component.getNlComponent();
     for (int i = 0; i < count; i++) {
-      if (nlComponent.getLiveAttribute(uri, constraints.get(i)) != null) {
+      if (component.getLiveAttribute(uri, constraints.get(i)) != null) {
         return true;
       }
     }
     return false;
   }
 
-  public static boolean hasHorizontalConstraints(SceneComponent component) {
+  public static boolean hasHorizontalConstraints(NlComponent component) {
     return hasConstraints(component, SdkConstants.SHERPA_URI, ourHorizontalAttributes);
   }
 
-  public static boolean hasVerticalConstraints(SceneComponent component) {
+  public static boolean hasVerticalConstraints(NlComponent component) {
     return hasConstraints(component, SdkConstants.SHERPA_URI, ourVerticalAttributes);
   }
 
@@ -265,6 +268,51 @@ public class ConstraintComponentUtilities {
     }
   }
 
+  public static void clearConnections(NlComponent component, ArrayList<String> attributes, AttributesTransaction transaction) {
+    int count = attributes.size();
+    for (int i = 0; i < count; i++) {
+      String attribute = attributes.get(i);
+      transaction.setAttribute(SdkConstants.SHERPA_URI, attribute, null);
+    }
+    if (attributes == ourLeftAttributes) {
+      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, null);
+      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, null);
+      transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
+    } else if (attributes == ourRightAttributes) {
+      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, null);
+      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, null);
+      transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
+    } else if (attributes == ourTopAttributes) {
+      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, null);
+      transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
+    } else if (attributes == ourBottomAttributes) {
+      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, null);
+      transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
+    }
+    if (!hasHorizontalConstraints(component)) {
+      int offsetX = 0;
+      NlComponent parent = component.getParent();
+      if (parent != null) {
+        offsetX = component.x - parent.x;
+        // convert px to dp
+        float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
+        offsetX = (int)(0.5f + offsetX / dpiFactor);
+      }
+      setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, offsetX);
+    }
+    if (!hasVerticalConstraints(component)) {
+      int offsetY = 0;
+      NlComponent parent = component.getParent();
+      if (parent != null) {
+        offsetY = component.y - parent.y;
+        // convert px to dp
+        float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
+        offsetY = (int)(0.5f + offsetY / dpiFactor);
+      }
+      setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, offsetY);
+    }
+  }
+
   private static void clearAllAttributes(SceneComponent component, AttributesTransaction transaction) {
     clearAttributes(SdkConstants.SHERPA_URI, ourLeftAttributes, transaction);
     clearAttributes(SdkConstants.SHERPA_URI, ourTopAttributes, transaction);
@@ -277,5 +325,54 @@ public class ConstraintComponentUtilities {
     clearAttributes(SdkConstants.ANDROID_URI, ourMarginAttributes, transaction);
     setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, component.getOffsetParentX());
     setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, component.getOffsetParentY());
+  }
+
+  public static void updateOnDelete(NlComponent component, String targetId) {
+    AttributesTransaction transaction = null;
+    transaction = updateOnDelete(component, ourLeftAttributes, transaction, targetId);
+    transaction = updateOnDelete(component, ourTopAttributes, transaction, targetId);
+    transaction = updateOnDelete(component, ourRightAttributes, transaction, targetId);
+    transaction = updateOnDelete(component, ourBottomAttributes, transaction, targetId);
+    transaction = updateOnDelete(component, ourBaselineAttributes, transaction, targetId);
+
+    if (transaction != null) {
+      transaction.apply();
+      NlModel nlModel = component.getModel();
+      Project project = nlModel.getProject();
+      XmlFile file = nlModel.getFile();
+
+      String label = "Remove constraints pointing to a deleted component";
+      AttributesTransaction finalTransaction = transaction;
+      WriteCommandAction action = new WriteCommandAction(project, label, file) {
+        @Override
+        protected void run(@NotNull Result result) throws Throwable {
+          finalTransaction.commit();
+        }
+      };
+      action.execute();
+    }
+  }
+
+  public static AttributesTransaction updateOnDelete(NlComponent component, ArrayList<String> attributes, AttributesTransaction transaction, String targetId) {
+    if (isConnectedTo(component, attributes, targetId)) {
+      if (transaction == null) {
+        transaction = component.startAttributeTransaction();
+      }
+      clearConnections(component, attributes, transaction);
+    }
+    return transaction;
+  }
+
+  public static boolean isConnectedTo(NlComponent component, ArrayList<String> attributes, String targetId) {
+    int count = attributes.size();
+    for (int i = 0; i < count; i++) {
+      String attribute = attributes.get(i);
+      String target = component.getLiveAttribute(SdkConstants.SHERPA_URI, attribute);
+      target = NlComponent.extractId(target);
+      if (target != null && target.equalsIgnoreCase(targetId)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

@@ -15,8 +15,10 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
+import com.google.protobuf3jarjar.ByteString;
 import com.intellij.util.containers.MultiMap;
 import io.grpc.stub.StreamObserver;
 
@@ -25,8 +27,9 @@ import java.util.Map;
 
 public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
   public static final String VERSION = "3141592";
-  private final Map<String, Profiler.Device> myDevices;
+  private final Map<Common.Session, Profiler.Device> myDevices;
   private final MultiMap<Profiler.Device, Profiler.Process> myProcesses;
+  private final Map<String, ByteString> myCache;
   private long myTimestampNs;
   private boolean myThrowErrorOnGetDevices;
 
@@ -40,23 +43,40 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   public FakeProfilerService(boolean connected) {
     myDevices = new HashMap<>();
     myProcesses = MultiMap.create();
+    myCache = new HashMap<>();
     if (connected) {
       Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
-      Profiler.Process process = Profiler.Process.newBuilder().setPid(20).setName("FakeProcess").build();
+      Profiler.Process process = Profiler.Process.newBuilder()
+        .setPid(20)
+        .setState(Profiler.Process.State.ALIVE)
+        .setName("FakeProcess")
+        .build();
       addDevice(device);
-      addProcess("FakeDevice", process);
+      Common.Session session = Common.Session.newBuilder()
+        .setBootId(device.getBootId())
+        .setDeviceSerial(device.getSerial())
+        .build();
+      addProcess(session, process);
     }
   }
 
-  public void addProcess(String serial, Profiler.Process process) {
-    if (!myDevices.containsKey(serial)) {
-      throw new IllegalArgumentException("Invalid device serial: " + serial);
+  public void addProcess(Common.Session session, Profiler.Process process) {
+    if (!myDevices.containsKey(session)) {
+      throw new IllegalArgumentException("Invalid device serial: " + session);
     }
-    myProcesses.putValue(myDevices.get(serial), process);
+    myProcesses.putValue(myDevices.get(session), process);
   }
 
   public void addDevice(Profiler.Device device) {
-    myDevices.put(device.getSerial(), device);
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    myDevices.put(session, device);
+  }
+
+  public void addFile(String id, ByteString contents) {
+    myCache.put(id, contents);
   }
 
   public void setTimestampNs(long timestamp) {
@@ -87,7 +107,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   @Override
   public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
     Profiler.GetProcessesResponse.Builder response = Profiler.GetProcessesResponse.newBuilder();
-    String serial = request.getSerial();
+    Common.Session serial = request.getSession();
     Profiler.Device device = myDevices.get(serial);
     if (device != null) {
       for (Profiler.Process process : myProcesses.get(device)) {
@@ -99,10 +119,21 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   }
 
   @Override
-  public void getTimes(Profiler.TimesRequest request, StreamObserver<Profiler.TimesResponse> responseObserver) {
-    Profiler.TimesResponse.Builder response = Profiler.TimesResponse.newBuilder();
+  public void getCurrentTime(Profiler.TimeRequest request, StreamObserver<Profiler.TimeResponse> responseObserver) {
+    Profiler.TimeResponse.Builder response = Profiler.TimeResponse.newBuilder();
     response.setTimestampNs(myTimestampNs);
     responseObserver.onNext(response.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getBytes(Profiler.BytesRequest request, StreamObserver<Profiler.BytesResponse> responseObserver) {
+    Profiler.BytesResponse.Builder builder = Profiler.BytesResponse.newBuilder();
+    ByteString bytes = myCache.get(request.getId());
+    if (bytes != null) {
+      builder.setContents(bytes);
+    }
+    responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
   }
 

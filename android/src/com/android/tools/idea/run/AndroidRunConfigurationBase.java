@@ -73,6 +73,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.*;
 
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements PreferGradleMake {
@@ -165,7 +166,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (facet.getConfiguration().getAndroidPlatform() == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("select.platform.error")));
     }
-    if (facet.getManifest() == null) {
+    if (facet.getManifest() == null && facet.getProjectType() != PROJECT_TYPE_INSTANTAPP) {
       errors.add(ValidationError.fatal(AndroidBundle.message("android.manifest.not.found.error")));
     }
     errors.addAll(getDeployTargetContext().getCurrentDeployTargetState().validate(facet));

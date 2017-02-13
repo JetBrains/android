@@ -25,7 +25,6 @@ import com.intellij.ui.components.JBList;
 import org.fest.swing.cell.JListCellReader;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
@@ -77,13 +76,7 @@ public class ProjectStructureDialogFixture implements ContainerFixture<JDialog> 
     jListFixture.replaceCellReader(CONFIGURATION_CELL_READER);
     JListItemFixture itemFixture = jListFixture.item(item);
     int itemIndex = itemFixture.index();
-    GuiActionRunner.execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        JList target = jListFixture.target();
-        target.getSelectionModel().setSelectionInterval(itemIndex, itemIndex);
-      }
-    });
+    GuiTask.execute(() -> jListFixture.target().getSelectionModel().setSelectionInterval(itemIndex, itemIndex));
     jListFixture.requireSelection(item);
     return this;
   }

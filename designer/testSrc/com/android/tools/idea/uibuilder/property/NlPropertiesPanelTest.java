@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
@@ -23,9 +24,9 @@ import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.testFramework.LeakHunter;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -36,6 +37,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.CARD_TABLE;
+import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PROPERTY_MODE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -53,6 +56,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);
+    registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
     myDisposable = Disposer.newDisposable();
     myModel = new PTableModel();
     myTable = new MyTable(myModel);
@@ -68,7 +72,6 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     }
     finally {
       super.tearDown();
-      LeakHunter.checkProjectLeak();
     }
   }
 
@@ -280,6 +283,30 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
     NlPropertiesPanel.MyFilter filter = new NlPropertiesPanel.MyFilter();
     filter.setPattern("bott");
     assertFalse(filter.include(myEntry));
+  }
+
+  public void testDefaultMode() {
+    assertThat(myPanel.isAllPropertiesPanelVisible()).isFalse();
+  }
+
+  public void testInitialModeIsReadFromOptions() {
+    PropertiesComponent.getInstance().setValue(PROPERTY_MODE, CARD_TABLE);
+    Disposer.dispose(myPanel);
+    myPanel = new NlPropertiesPanel(myPropertiesManager, myDisposable, myTable, myInspector);
+    assertThat(myPanel.isAllPropertiesPanelVisible()).isTrue();
+  }
+
+  public void testInitialModeFromMalformedOptionValueIsIgnored() {
+    PropertiesComponent.getInstance().setValue(PROPERTY_MODE, "malformed");
+    Disposer.dispose(myPanel);
+    myPanel = new NlPropertiesPanel(myPropertiesManager, myDisposable, myTable, myInspector);
+    assertThat(myPanel.isAllPropertiesPanelVisible()).isFalse();
+  }
+
+  public void testInitialModeIsSavedToOptions() {
+    assertThat(PropertiesComponent.getInstance().getValue(PROPERTY_MODE)).isNull();
+    myPanel.setAllPropertiesPanelVisible(true);
+    assertThat(PropertiesComponent.getInstance().getValue(PROPERTY_MODE)).isEqualTo(CARD_TABLE);
   }
 
   private int findRowOf(@NotNull String namespace, @NotNull String name) {

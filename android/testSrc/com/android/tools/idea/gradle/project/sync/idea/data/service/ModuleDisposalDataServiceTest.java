@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.ImportedModule;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule;
 import com.android.tools.idea.gradle.project.sync.setup.module.ModuleDisposer;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -42,11 +39,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link ModuleDisposalDataService}.
  */
 public class ModuleDisposalDataServiceTest extends IdeaTestCase {
-  @Mock private IdeInfo myIdeInfo;
   @Mock private ModuleDisposer myModuleDisposer;
 
-  private GradleSyncState myOriginalSyncState;
-  private GradleSyncState mySyncState;
   private ModuleDisposalDataService myDataService;
 
   @Override
@@ -54,48 +48,21 @@ public class ModuleDisposalDataServiceTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    Project project = getProject();
-    myOriginalSyncState = GradleSyncState.getInstance(project);
-    mySyncState = IdeComponents.replaceServiceWithMock(project, GradleSyncState.class);
-    myDataService = new ModuleDisposalDataService(myIdeInfo, myModuleDisposer);
+    myDataService = new ModuleDisposalDataService(myModuleDisposer);
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      if (myOriginalSyncState != null) {
-        IdeComponents.replaceService(getProject(), GradleSyncState.class, myOriginalSyncState);
-      }
-    }
-    finally {
-      super.tearDown();
-    }
-  }
-
-  public void testImportDataWithIdeNotAndroidStudio() {
-    when(myIdeInfo.isAndroidStudio()).thenReturn(false);
+  public void testImportDataWhenModulesCannotBeDisposed() {
+    when(myModuleDisposer.canDisposeModules(getProject())).thenReturn(false);
 
     IdeModifiableModelsProvider modelsProvider = mock(IdeModifiableModelsProvider.class);
     myDataService.importData(Collections.emptyList(), null, getProject(), modelsProvider);
 
     //noinspection unchecked
-    verify(myModuleDisposer, never()).disposeModulesAndMarkImlFilesForDeletion(anyList(), same(getProject()), same(modelsProvider));
+    verify(myModuleDisposer, never()).disposeModules(anyList(), same(getProject()), same(modelsProvider));
   }
 
-  public void testImportDataWithAndroidStudioAndSyncFailed() {
-    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(true);
-
-    IdeModifiableModelsProvider modelsProvider = mock(IdeModifiableModelsProvider.class);
-    myDataService.importData(Collections.emptyList(), null, getProject(), modelsProvider);
-
-    //noinspection unchecked
-    verify(myModuleDisposer, never()).disposeModulesAndMarkImlFilesForDeletion(anyList(), same(getProject()), same(modelsProvider));
-  }
-
-  public void testImportDataWithAndroidStudioAndSuccessfulSync() {
-    when(myIdeInfo.isAndroidStudio()).thenReturn(true);
-    when(mySyncState.lastSyncFailedOrHasIssues()).thenReturn(false);
+  public void testImportData() {
+    when(myModuleDisposer.canDisposeModules(getProject())).thenReturn(true);
 
     IdeaModule moduleModel = mock(IdeaModule.class);
     when(moduleModel.getName()).thenReturn(getModule().getName());
@@ -111,6 +78,6 @@ public class ModuleDisposalDataServiceTest extends IdeaTestCase {
     ApplicationManager.getApplication().runWriteAction(modelsProvider::dispose);
 
     Collection<Module> modulesToDispose = Collections.singletonList(libModule);
-    verify(myModuleDisposer).disposeModulesAndMarkImlFilesForDeletion(modulesToDispose, getProject(), modelsProvider);
+    verify(myModuleDisposer).disposeModules(modulesToDispose, getProject(), modelsProvider);
   }
 }

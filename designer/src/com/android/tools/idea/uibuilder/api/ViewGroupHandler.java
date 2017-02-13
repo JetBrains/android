@@ -17,10 +17,7 @@ package com.android.tools.idea.uibuilder.api;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.XmlBuilder;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SegmentType;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -125,8 +122,8 @@ public class ViewGroupHandler extends ViewHandler {
    */
   @Nullable
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull NlComponent layout,
-                                       @NotNull List<NlComponent> components,
+                                       @NotNull SceneComponent layout,
+                                       @NotNull List<SceneComponent> components,
                                        @NotNull DragType type) {
     return null;
   }
@@ -170,20 +167,6 @@ public class ViewGroupHandler extends ViewHandler {
   public void onChildInserted(@NotNull NlComponent layout,
                               @NotNull NlComponent newChild,
                               @NotNull InsertType insertType) {
-  }
-
-  /**
-   * Allows a ViewGroupHandler to update the mouse cursor
-   *
-   * @param screenView the ScreenView we are working on
-   * @param x          the current x mouse coordinate
-   * @param y          the current y mouse coordinate
-   * @return true if we modified the cursor
-   */
-  public boolean updateCursor(@NotNull ScreenView screenView,
-                              @AndroidCoordinate int x,
-                              @AndroidCoordinate int y) {
-    return false;
   }
 
   @Override

@@ -17,8 +17,8 @@ package com.android.tools.idea.rendering;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.HardwareConfigHelper;
-import com.android.ide.common.rendering.LayoutLibrary;
-import com.android.ide.common.rendering.RenderParamsFlags;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
 import com.android.ide.common.resources.ResourceResolver;
@@ -42,9 +42,9 @@ import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.AssetRepositoryImpl;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.android.tools.swing.layoutlib.FakeImageFactory;
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
@@ -67,13 +67,12 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
+import static com.android.annotations.VisibleForTesting.Visibility.PRIVATE;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 /**
@@ -141,7 +140,6 @@ public class RenderTask implements IImageFactory {
   private ResourceFolderType myFolderType;
 
   private boolean myProvideCookiesForIncludedViews = false;
-  private final FakeImageFactory myFakeImageFactory = new FakeImageFactory();
   private RenderSession myRenderSession;
   private IImageFactory myImageFactoryDelegate;
   /** Cached {@link BufferedImage} that will be returned when direct rendering is not used. See {@link #render(Graphics2D)} */
@@ -149,6 +147,9 @@ public class RenderTask implements IImageFactory {
 
   private boolean isSecurityManagerEnabled = true;
   private CrashReporter myCrashReporter;
+
+  private final List<ListenableFuture<?>> myRunningFutures = new LinkedList<>();
+  private boolean isDisposed = false;
 
   /**
    * Don't create this task directly; obtain via {@link RenderService}
@@ -251,23 +252,37 @@ public class RenderTask implements IImageFactory {
   }
 
   /**
-   * Disposes the RenderTask and releases the allocated resources. Do not call this method while holding the read lock.
+   * Disposes the RenderTask and releases the allocated resources. The execution of the dispose operation will run asynchronously.
+   * The returned {@link Future} can be used to wait for the dispose operation to complete.
    */
-  public void dispose() {
-    myLayoutlibCallback.setLogger(null);
-    myLayoutlibCallback.setResourceResolver(null);
-    if (myRenderSession != null) {
-      assert ApplicationManager.getApplication().isDispatchThread() ||
-             !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during dispose!";
-
-      try {
-        RenderService.runRenderAction(myRenderSession::dispose);
-        myRenderSession = null;
-      }
-      catch (Exception ignored) {
-      }
+  public Future<?> dispose() {
+    if (isDisposed) {
+      throw new IllegalStateException("Already disposed");
     }
-    myImageFactoryDelegate = null;
+
+    isDisposed = true;
+    return ForkJoinPool.commonPool().submit(() -> {
+      try {
+        synchronized (myRunningFutures) {
+          // Wait for all current running operations to complete
+          Futures.successfulAsList(myRunningFutures).get();
+        }
+      }
+      catch (InterruptedException | ExecutionException e) {
+        LOG.warn(e);
+      }
+      myLayoutlibCallback.setLogger(null);
+      myLayoutlibCallback.setResourceResolver(null);
+      if (myRenderSession != null) {
+        try {
+          RenderService.runAsyncRenderAction(myRenderSession::dispose);
+          myRenderSession = null;
+        }
+        catch (Exception ignored) {
+        }
+      }
+      myImageFactoryDelegate = null;
+    });
   }
 
   /**
@@ -543,59 +558,54 @@ public class RenderTask implements IImageFactory {
       myLayoutlibCallback.setLogger(myLogger);
       myLayoutlibCallback.setResourceResolver(resolver);
 
-      RenderResult result = ApplicationManager.getApplication().runReadAction(new Computable<RenderResult>() {
-        @NotNull
-        @Override
-        public RenderResult compute() {
-          Module module = myRenderService.getFacet().getModule();
-          RenderSecurityManager securityManager =
-            isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, getPlatform()) : null;
-          if (securityManager != null) {
-            securityManager.setActive(true, myCredential);
-          }
+      RenderSecurityManager securityManager =
+        isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, getPlatform()) : null;
+      if (securityManager != null) {
+        securityManager.setActive(true, myCredential);
+      }
 
-          try {
-            int retries = 0;
-            RenderSession session = null;
-            while (retries < 10) {
-              if (session != null) {
-                session.dispose();
-              }
-              session = myLayoutLib.createSession(params);
-              Result result = session.getResult();
-              if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
-                // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
-                if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
-                  retries++;
-                  continue;
-                }
-                break;
-              }
+      try {
+        int retries = 0;
+        RenderSession session = null;
+        while (retries < 10) {
+          if (session != null) {
+            session.dispose();
+          }
+          session = myLayoutLib.createSession(params);
+          Result result = session.getResult();
+          if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
+            // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
+            if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
+              // Added this assertion to check if we can remove this retries loop. I suspect this is not happening anymore.
+              // TODO: Remove assertion and retries loop
+              assert false : "createSession time";
+
               retries++;
+              continue;
             }
-
-            if (session.getResult().isSuccess()) {
-              // Advance the frame time to display the material progress bars
-              // TODO: Expose this through the RenderTask API to allow callers to customize this value
-              long now = System.nanoTime();
-              session.setSystemBootTimeNanos(now);
-              session.setSystemTimeNanos(now);
-              session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
-            }
-            RenderResult result =
-              RenderResult.create(RenderTask.this, session, myPsiFile, myLogger, myImagePool.copyOf(session.getImage()));
-            myRenderSession = session;
-            return result;
+            break;
           }
-          finally {
-            if (securityManager != null) {
-              securityManager.dispose(myCredential);
-            }
-          }
+          retries++;
         }
-      });
-      addDiagnostics(result.getRenderResult());
-      return result;
+
+        if (session.getResult().isSuccess()) {
+          long now = System.nanoTime();
+          session.setSystemBootTimeNanos(now);
+          session.setSystemTimeNanos(now);
+          // Advance the frame time to display the material progress bars
+          session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
+        }
+        RenderResult result =
+          RenderResult.create(RenderTask.this, session, myPsiFile, myLogger, myImagePool.copyOf(session.getImage()));
+        myRenderSession = session;
+        addDiagnostics(result.getRenderResult());
+        return result;
+      }
+      finally {
+        if (securityManager != null) {
+          securityManager.dispose(myCredential);
+        }
+      }
     }
     catch (RuntimeException t) {
       // Exceptions from the bridge
@@ -661,6 +671,37 @@ public class RenderTask implements IImageFactory {
   }
 
   /**
+   * Executes the passed {@link Callable} as an async render action and keeps track of it. If {@link #dispose()} is called, the call will
+   * wait until all the async actions have finished running.
+   * See {@link RenderService#runAsyncRenderAction(Callable)}.
+   */
+  @VisibleForTesting(visibility = PRIVATE)
+  @NotNull
+  <V> ListenableFuture<V> runAsyncRenderAction(@NotNull Callable<V> callable) {
+    if (isDisposed) {
+      Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
+    }
+
+    synchronized (myRunningFutures) {
+      ListenableFuture<V> newFuture = RenderService.runAsyncRenderAction(callable);
+      myRunningFutures.add(newFuture);
+      Futures.addCallback(newFuture, new FutureCallback<V>() {
+        @Override
+        public void onSuccess(@javax.annotation.Nullable V result) {
+          myRunningFutures.remove(newFuture);
+        }
+
+        @Override
+        public void onFailure(Throwable ignored) {
+          myRunningFutures.remove(newFuture);
+        }
+      });
+
+      return newFuture;
+    }
+  }
+
+  /**
    * Inflates the layout but does not render it.
    * @return A {@link RenderResult} with the result of inflating the inflate call. The result might not contain a result bitmap.
    */
@@ -687,21 +728,21 @@ public class RenderTask implements IImageFactory {
       if (message == null) {
         message = e.toString();
       }
-      myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myRenderService.getProject(), myLogger.getLinkManager(), e));
-      return RenderResult.createSessionInitializationError(this, myPsiFile, myLogger);
+      myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e));
+      return RenderResult.createSessionInitializationError(this, myPsiFile, myLogger, e);
     }
   }
 
   /**
    * Only do a measure pass using the current render session
    */
-  @Nullable
-  public RenderResult layout() {
+  @NotNull
+  public ListenableFuture<RenderResult> layout() {
     if (myRenderSession == null) {
-      return null;
+      return Futures.immediateFuture(null);
     }
     try {
-      return RenderService.runRenderAction(() -> {
+      return runAsyncRenderAction(() -> {
         myRenderSession.measure();
         return RenderResult.create(this, myRenderSession, myPsiFile, myLogger, ImagePool.NULL_POOLED_IMAGE);
       });
@@ -709,7 +750,7 @@ public class RenderTask implements IImageFactory {
     catch (final Exception e) {
       // nothing
     }
-    return null;
+    return Futures.immediateFuture(null);
   }
 
   /**
@@ -725,7 +766,8 @@ public class RenderTask implements IImageFactory {
   /**
    * Renders the layout to the current {@link IImageFactory} set in {@link #myImageFactoryDelegate}
    */
-  private RenderResult renderInner() {
+  @NotNull
+  private ListenableFuture<RenderResult> renderInner() {
     // During development only:
     //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during render!";
 
@@ -739,13 +781,13 @@ public class RenderTask implements IImageFactory {
           }
           myLogger.error(null, result.getErrorMessage(), result.getException(), null);
         }
-        return renderResult;
+        return Futures.immediateFuture(renderResult);
       }
     }
     assert myPsiFile != null;
 
     try {
-      return RenderService.runRenderAction(() -> {
+      return runAsyncRenderAction(() -> {
         myRenderSession.render();
         RenderResult result =
           RenderResult.create(this, myRenderSession, myPsiFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()));
@@ -762,7 +804,7 @@ public class RenderTask implements IImageFactory {
         message = e.toString();
       }
       myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e));
-      return RenderResult.createSessionInitializationError(this, myPsiFile, myLogger);
+      return Futures.immediateFuture(RenderResult.createSessionInitializationError(this, myPsiFile, myLogger, e));
     }
   }
 
@@ -771,11 +813,9 @@ public class RenderTask implements IImageFactory {
    * bitmap that can be accessed via the returned {@link RenderResult}.
    * <p/>
    * If {@link #inflate()} hasn't been called before, this method will implicitly call it.
-   * @deprecated use {@link #render(Graphics2D)} instead
    */
-  @Deprecated
-  @Nullable
-  public RenderResult render(@NotNull final IImageFactory factory) {
+  @NotNull
+  public ListenableFuture<RenderResult> render(@NotNull final IImageFactory factory) {
     myImageFactoryDelegate = factory;
 
     return renderInner();
@@ -786,24 +826,20 @@ public class RenderTask implements IImageFactory {
    * that can be accessed via the returned {@link RenderResult}
    * <p/>
    * If {@link #inflate()} hasn't been called before, this method will implicitly call it.
-   * @deprecated use {@link #render(Graphics2D)} instead
    */
-  @Nullable
-  public RenderResult render() {
+  @NotNull
+  public ListenableFuture<RenderResult> render() {
     return render(this);
   }
 
   /**
-   * Method that renders the layout to the given {@link Graphics2D}.
-   * <p/>
-   * If {@link #inflate()} hasn't been called before, this method will implicitly call it.
+   * Sets the time for which the next frame will be selected. The time is the elapsed time from
+   * the current system nanos time.
    */
-  @Nullable
-  public RenderResult render(@NotNull final Graphics2D g) {
-    myFakeImageFactory.setGraphics(g);
-    myImageFactoryDelegate = myFakeImageFactory;
-
-    return renderInner();
+  public void setElapsedFrameTimeNanos(long nanos) {
+    if (myRenderSession != null) {
+      myRenderSession.setElapsedFrameTimeNanos(nanos);
+    }
   }
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
@@ -848,7 +884,7 @@ public class RenderTask implements IImageFactory {
     params.setForceNoDecor();
     params.setAssetRepository(myAssetRepository);
 
-    ListenableFuture<Result> futureResult = RenderService.runAsyncRenderAction(() -> myLayoutLib.renderDrawable(params));
+    ListenableFuture<Result> futureResult = runAsyncRenderAction(() -> myLayoutLib.renderDrawable(params));
     return Futures.transform(futureResult, (Function<Result, BufferedImage>)result -> {
       if (result != null && result.isSuccess()) {
         Object data = result.getData();
@@ -908,7 +944,7 @@ public class RenderTask implements IImageFactory {
   }
 
   @NotNull
-  public LayoutLibrary getLayoutLib() {
+  private LayoutLibrary getLayoutLib() {
     return myLayoutLib;
   }
 
@@ -1026,11 +1062,7 @@ public class RenderTask implements IImageFactory {
 
         return map;
       } finally {
-        try {
-          RenderService.runRenderAction(session::dispose);
-        }
-        catch (Exception ignored) {
-        }
+        RenderService.runAsyncRenderAction(session::dispose);
       }
     }
 
@@ -1101,30 +1133,28 @@ public class RenderTask implements IImageFactory {
       myLayoutlibCallback.setLogger(myLogger);
       myLayoutlibCallback.setResourceResolver(resolver);
 
-      return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
-        @Nullable
-        @Override
-        public RenderSession compute() {
-          int retries = 0;
-          while (retries < 10) {
-            RenderSession session = myLayoutLib.createSession(params);
-            Result result = session.getResult();
-            if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
-              // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
-              if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
-                retries++;
-                session.dispose();
-                continue;
-              }
+      int retries = 0;
+      while (retries < 10) {
+        RenderSession session = myLayoutLib.createSession(params);
+        Result result = session.getResult();
+        if (result.getStatus() != Result.Status.ERROR_TIMEOUT) {
+          // Sometimes happens at startup; treat it as a timeout; typically a retry fixes it
+          if (!result.isSuccess() && "The main Looper has already been prepared.".equals(result.getErrorMessage())) {
+            // Added this assertion to check if we can remove this retries loop. I suspect this is not happening anymore.
+            // TODO: Remove assertion and retries loop
+            assert false : "createSession time";
 
-              return session;
-            }
             retries++;
+            session.dispose();
+            continue;
           }
 
-          return null;
+          return session;
         }
-      });
+        retries++;
+      }
+
+      return null;
     }
     catch (RuntimeException t) {
       // Exceptions from the bridge
@@ -1141,7 +1171,7 @@ public class RenderTask implements IImageFactory {
   /**
    * Bazel has its own security manager. We allow rendering tests to disable the security manager by calling this method.
    */
-  @VisibleForTesting
+  @VisibleForTesting(visibility = PRIVATE)
   public void disableSecurityManager() {
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       throw new IllegalStateException("This method can only be called in unit test mode");

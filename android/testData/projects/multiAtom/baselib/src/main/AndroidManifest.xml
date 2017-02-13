@@ -1,0 +1,53 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:instant="http://schemas.android.com/instantapps"
+    package="com.google.android.instantapps.samples.multiatom.baselib">
+    <application android:allowBackup="true"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme"
+        android:supportsRtl="true">
+        <activity split="feature1atom"
+            android:name="com.google.android.instantapps.samples.multiatom.feature1lib.Feature1Activity"
+            android:label="@string/feature1_activity_name"
+            android:theme="@style/AppTheme">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <intent-filter instant:order="1">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data
+                    android:host="multiatom.samples.androidinstantapps.com"
+                    android:scheme="https"
+                    android:pathPrefix="/feature1"/>
+                <data
+                    android:host="multiatom.samples.androidinstantapps.com"
+                    android:scheme="http"
+                    android:pathPrefix="/feature1"/>
+            </intent-filter>
+        </activity>
+        <activity split="feature2atom"
+            android:name="com.google.android.instantapps.samples.multiatom.feature2lib.Feature2Activity"
+            android:label="@string/feature2_activity_name"
+            android:theme="@style/AppTheme">
+
+            <intent-filter instant:order="2">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data
+                    android:host="multiatom.samples.androidinstantapps.com"
+                    android:scheme="https"
+                    android:pathPrefix="/feature2"/>
+                <data
+                    android:host="multiatom.samples.androidinstantapps.com"
+                    android:scheme="http"
+                    android:pathPrefix="/feature2"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

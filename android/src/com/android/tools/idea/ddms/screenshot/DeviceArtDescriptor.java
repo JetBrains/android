@@ -42,7 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.lint.detector.api.LintUtils.getChildren;
+import static com.android.utils.XmlUtils.getSubTags;
 
 /**
  * Descriptor for a device frame picture (background, shadow, reflection) which can be
@@ -158,8 +158,7 @@ public class DeviceArtDescriptor {
       myName = element.getAttribute(SdkConstants.ATTR_NAME);
       myFolder = new File(baseFolder, myId);
 
-      List<Element> children = getChildren(element);
-      for (Element child : children) {
+      for (Element child : getSubTags(element)) {
         OrientationData orientation = new OrientationData(this, child);
         if (orientation.isPortrait()) {
           myPortrait = orientation;

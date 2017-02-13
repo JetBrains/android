@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -37,7 +38,7 @@ import java.util.List;
 public class ResizeInteraction extends Interaction {
 
   /** The surface associated with this interaction. */
-  private final ScreenView myScreenView;
+  private final SceneView mySceneView;
 
   /** The component being resized */
   private final NlComponent myComponent;
@@ -51,9 +52,9 @@ public class ResizeInteraction extends Interaction {
   /** The resize handler for the layout view */
   private ResizeHandler myResizeHandler;
 
-  public ResizeInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component, @NotNull SelectionHandle handle) {
-    myScreenView = screenView;
-    myComponent = component;
+  public ResizeInteraction(@NotNull SceneView sceneView, @NotNull SceneComponent component, @NotNull SelectionHandle handle) {
+    mySceneView = sceneView;
+    myComponent = component.getNlComponent();
     myHorizontalEdge = handle.getHorizontalEdge();
     myVerticalEdge = handle.getVerticalEdge();
   }
@@ -64,15 +65,15 @@ public class ResizeInteraction extends Interaction {
     NlComponent parent = myComponent.getParent();
 
     if (parent != null) {
-      ViewGroupHandler viewGroupHandler = ViewHandlerManager.get(myScreenView.getModel().getFacet()).findLayoutHandler(parent, false);
+      ViewGroupHandler viewGroupHandler = ViewHandlerManager.get(mySceneView.getModel().getFacet()).findLayoutHandler(parent, false);
 
       if (viewGroupHandler != null) {
-        ViewEditor editor = new ViewEditorImpl(myScreenView);
+        ViewEditor editor = new ViewEditorImpl(mySceneView);
         myResizeHandler = viewGroupHandler.createResizeHandler(editor, myComponent, myHorizontalEdge, myVerticalEdge);
 
         if (myResizeHandler != null) {
-          int androidX = Coordinates.getAndroidX(myScreenView, myStartX);
-          int androidY = Coordinates.getAndroidY(myScreenView, myStartY);
+          int androidX = Coordinates.getAndroidX(mySceneView, myStartX);
+          int androidY = Coordinates.getAndroidY(mySceneView, myStartY);
 
           myResizeHandler.start(androidX, androidY, startMask);
         }
@@ -91,7 +92,7 @@ public class ResizeInteraction extends Interaction {
     super.end(x, y, modifiers, canceled);
     moveTo(x, y, modifiers, !canceled);
     if (!canceled) {
-      myScreenView.getModel().notifyModified(NlModel.ChangeType.RESIZE_END);
+      mySceneView.getModel().notifyModified(NlModel.ChangeType.RESIZE_END);
     }
   }
 
@@ -100,15 +101,15 @@ public class ResizeInteraction extends Interaction {
       return;
     }
 
-    final int ax = Coordinates.getAndroidX(myScreenView, x);
-    final int ay = Coordinates.getAndroidY(myScreenView, y);
-    final int deltaX = Coordinates.getAndroidDimension(myScreenView, x - myStartX);
-    final int deltaY = Coordinates.getAndroidDimension(myScreenView, y - myStartY);
+    final int ax = Coordinates.getAndroidX(mySceneView, x);
+    final int ay = Coordinates.getAndroidY(mySceneView, y);
+    final int deltaX = Coordinates.getAndroidDimension(mySceneView, x - myStartX);
+    final int deltaY = Coordinates.getAndroidDimension(mySceneView, y - myStartY);
 
     final Rectangle newBounds = getNewBounds(new Rectangle(myComponent.x, myComponent.y, myComponent.w, myComponent.h), deltaX, deltaY);
     myResizeHandler.update(ax, ay, modifiers, newBounds);
     if (commit) {
-      NlModel model = myScreenView.getModel();
+      NlModel model = mySceneView.getModel();
       Project project = model.getFacet().getModule().getProject();
       XmlFile file = model.getFile();
       String label = "Resize";
@@ -121,7 +122,7 @@ public class ResizeInteraction extends Interaction {
       action.execute();
       model.notifyModified(NlModel.ChangeType.RESIZE_COMMIT);
     }
-    myScreenView.getSurface().repaint();
+    mySceneView.getSurface().repaint();
   }
 
   /**
@@ -215,7 +216,7 @@ public class ResizeInteraction extends Interaction {
 
   @Override
   public List<Layer> createOverlays() {
-    return Collections.<Layer>singletonList(new ResizeLayer());
+    return Collections.singletonList(new ResizeLayer());
   }
 
   /**
@@ -237,7 +238,7 @@ public class ResizeInteraction extends Interaction {
     @Override
     public void paint(@NotNull Graphics2D gc) {
       if (myResizeHandler != null) {
-        myResizeHandler.paint(new NlGraphics(gc, myScreenView));
+        myResizeHandler.paint(new NlGraphics(gc, mySceneView));
       }
     }
   }

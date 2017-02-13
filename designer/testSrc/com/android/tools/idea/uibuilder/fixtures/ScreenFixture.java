@@ -41,7 +41,6 @@ public class ScreenFixture {
   private double myScale = 0.5;
   private int myTranslateX = 0;
   private int myTranslateY = 0;
-  private Density myDensity = Density.MEDIUM;
 
   public ScreenFixture(@NotNull SurfaceFixture surface, @NotNull NlModel model) {
     mySurface = surface;
@@ -193,12 +192,6 @@ public class ScreenFixture {
   }
 
   @NotNull
-  public ScreenFixture withDensity(@NotNull Density density) {
-    myDensity = density;
-    return this;
-  }
-
-  @NotNull
   public ScreenFixture withOffset(@SwingCoordinate int x, @SwingCoordinate int y) {
     myTranslateX = x;
     myTranslateY = y;
@@ -208,7 +201,7 @@ public class ScreenFixture {
   @NotNull
   public ScreenView getScreen() {
     if (myScreen == null) {
-      myScreen = createScreen(mySurface.getSurface(), myModel, new SelectionModel(), myScale, myTranslateX, myTranslateY, myDensity);
+      myScreen = createScreen(mySurface.getSurface(), myModel, new SelectionModel(), myScale, myTranslateX, myTranslateY);
     }
     return myScreen;
   }

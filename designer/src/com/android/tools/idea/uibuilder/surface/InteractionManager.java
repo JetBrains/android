@@ -21,9 +21,9 @@ import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.SceneInteraction;
+import com.android.tools.idea.uibuilder.scene.*;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
@@ -39,8 +39,10 @@ import java.awt.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
@@ -125,7 +127,7 @@ public class InteractionManager {
 
   /**
    * Constructs a new {@link InteractionManager} for the given
-   * {@link DesignSurface}.
+   * {@link NlDesignSurface}.
    *
    * @param surface The surface which controls this {@link InteractionManager}
    */
@@ -150,7 +152,7 @@ public class InteractionManager {
   /**
    * Returns the canvas associated with this {@linkplain InteractionManager}.
    *
-   * @return The {@link DesignSurface} associated with this {@linkplain InteractionManager}.
+   * @return The {@link NlDesignSurface} associated with this {@linkplain InteractionManager}.
    *         Never null.
    */
   @NotNull
@@ -289,98 +291,14 @@ public class InteractionManager {
    * </ul>
    */
   void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
-    // Set cursor for the canvas resizing interaction. If both screen views are present, only set it next to the normal one.
-    ScreenView screenView = mySurface.getCurrentScreenView(); // Gets the preview screen view if both are present
-    if (screenView != null) {
-      Dimension size = screenView.getSize();
-      Rectangle resizeZone =
-        new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-      if (resizeZone.contains(x, y)) {
-        mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+    SceneView sceneView = mySurface.getSceneView(x, y);
+    if (sceneView != null) {
+      sceneView.updateCursor(x, y);
+      if (mySurface.getCursor() != Cursor.getDefaultCursor()) {
         return;
       }
     }
-
-    // We don't hover on the root since it's not a widget per see and it is always there.
-    screenView = mySurface.getScreenView(x, y);
-    if (screenView == null) {
-      mySurface.setCursor(null);
-      return;
-    }
-    SelectionModel selectionModel = screenView.getSelectionModel();
-    if (!selectionModel.isEmpty()) {
-      // Gives a chance to the ViewGroupHandlers to update the cursor
-      int mx = Coordinates.getAndroidX(screenView, x);
-      int my = Coordinates.getAndroidY(screenView, y);
-
-      if (!selectionModel.isEmpty()) {
-        NlComponent primary = selectionModel.getPrimary();
-        NlComponent parent = primary != null ? primary.getParent() : null;
-        if (parent != null) {
-          ViewGroupHandler handler = parent.getViewGroupHandler();
-          if (handler != null) {
-            if (handler.updateCursor(screenView, mx, my)) {
-              return;
-            }
-          }
-        }
-      }
-
-      // TODO: we should have a better model for keeping track of regions handled
-      // by different view group handlers. This would let us better handles
-      // picking a handler over another one, as well as allowing mouse over behaviour
-      // in other cases than just for the currently selected widgets.
-      for (NlComponent component : selectionModel.getSelection()) {
-        ViewGroupHandler viewGroupHandler = component.getViewGroupHandler();
-        if (viewGroupHandler != null) {
-          if (viewGroupHandler.updateCursor(screenView, mx, my)) {
-            return;
-          }
-        }
-      }
-      int max = Coordinates.getAndroidDimension(screenView, PIXEL_RADIUS + PIXEL_MARGIN);
-      SelectionHandle handle = selectionModel.findHandle(mx, my, max);
-      if (handle != null) {
-        Cursor cursor = handle.getCursor();
-        if (cursor != mySurface.getCursor()) {
-          mySurface.setCursor(cursor);
-        }
-        return;
-      }
-
-      // See if it's over a selected view
-      NlComponent component = selectionModel.findComponent(mx, my);
-      if (component == null || component.isRoot()) {
-        // Finally pick any unselected component in the model under the cursor
-        component = screenView.getModel().findLeafAt(mx, my, false);
-      }
-
-      if (component != null && !component.isRoot()) {
-        Cursor cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
-        if (cursor != mySurface.getCursor()) {
-          mySurface.setCursor(cursor);
-        }
-        return;
-      }
-    }
-    else {
-      // Allow a view group handler to update the cursor
-      NlComponent component = Coordinates.findComponent(screenView, x, y);
-      if (component != null) {
-        ViewGroupHandler viewGroupHandler = component.getViewGroupHandler();
-        if (viewGroupHandler != null) {
-          int mx = Coordinates.getAndroidX(screenView, x);
-          int my = Coordinates.getAndroidY(screenView, y);
-          if (viewGroupHandler.updateCursor(screenView, mx, my)) {
-            mySurface.repaint();
-          }
-        }
-      }
-    }
-
-    if (!ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
-      mySurface.setCursor(null);
-    }
+    mySurface.setCursor(null);
   }
 
   /**
@@ -396,7 +314,8 @@ public class InteractionManager {
       if (event.getClickCount() == 2 && event.getButton() == MouseEvent.BUTTON1) {
         NlComponent component = getComponentAt(event.getX(), event.getY());
         if (component != null) {
-          if (mySurface.isPreviewSurface()) {
+          // TODO: find a way to move layout-specific logic elsewhere.
+          if (mySurface instanceof NlDesignSurface && ((NlDesignSurface)mySurface).isPreviewSurface()) {
             // Warp to the text editor and show the corresponding XML for the
             // double-clicked widget
             PsiNavigateUtil.navigate(component.getTag());
@@ -434,33 +353,37 @@ public class InteractionManager {
 
       // Deal with the canvas resizing interaction at the bottom right of the screen view.
       // If both screen views are present, only enable it next to the normal one.
-      ScreenView screenView = mySurface.getCurrentScreenView(); // Gets the preview screen view if both are present
-      if (screenView == null) {
+      SceneView sceneView = mySurface.getCurrentSceneView(); // Gets the preview screen view if both are present
+      if (sceneView == null) {
         return;
       }
-      Dimension size = screenView.getSize();
-      // TODO: use constants for those numbers
-      Rectangle resizeZone =
-        new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-      if (resizeZone.contains(myLastMouseX, myLastMouseY)) {
-        startInteraction(myLastMouseX, myLastMouseY, new CanvasResizeInteraction(mySurface), ourLastStateMask);
-        return;
+      // TODO: find a way to move layout-specific logic elsewhere.
+      if (mySurface instanceof NlDesignSurface) {
+        Dimension size = sceneView.getSize();
+        // TODO: use constants for those numbers
+        Rectangle resizeZone =
+          new Rectangle(sceneView.getX() + size.width, sceneView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
+        if (resizeZone.contains(myLastMouseX, myLastMouseY)) {
+          startInteraction(myLastMouseX, myLastMouseY, new CanvasResizeInteraction((NlDesignSurface)mySurface), ourLastStateMask);
+          return;
+        }
       }
 
       // Check if we have a ViewGroupHandler that might want
       // to handle the entire interaction
 
-      screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
-      if (screenView == null) {
+      sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
+      if (sceneView == null) {
         return;
       }
 
-      if (false && ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
-        Interaction interaction = new SceneInteraction(screenView);
+      if (!(sceneView instanceof ScreenView)) {
+        Interaction interaction = new SceneInteraction(sceneView);
         startInteraction(myLastMouseX, myLastMouseY, interaction, ourLastStateMask);
         return;
       }
 
+      ScreenView screenView = (ScreenView)sceneView;
       SelectionModel selectionModel = screenView.getSelectionModel();
       NlComponent component = Coordinates.findComponent(screenView, myLastMouseX, myLastMouseY);
       if (component == null) {
@@ -481,10 +404,10 @@ public class InteractionManager {
       Interaction interaction = null;
 
       // Give a chance to the current selection's parent handler
-      if (interaction == null && !selectionModel.isEmpty()) {
+      if (!selectionModel.isEmpty()) {
         NlComponent primary = screenView.getSelectionModel().getPrimary();
         NlComponent parent = primary != null ? primary.getParent() : null;
-        if (parent != null && interaction == null) {
+        if (parent != null) {
           int ax = Coordinates.getAndroidX(screenView, myLastMouseX);
           int ay = Coordinates.getAndroidY(screenView, myLastMouseY);
           if (primary.containsX(ax) && primary.containsY(ay)) {
@@ -549,18 +472,18 @@ public class InteractionManager {
     private void selectComponentAt(@SwingCoordinate int x, @SwingCoordinate int y, boolean allowToggle,
                                    boolean ignoreIfAlreadySelected) {
       // Just a click, select
-      ScreenView screenView = mySurface.getScreenView(x, y);
-      if (screenView == null) {
+      SceneView sceneView = mySurface.getSceneView(x, y);
+      if (sceneView == null) {
         return;
       }
-      SelectionModel selectionModel = screenView.getSelectionModel();
-      NlComponent component = Coordinates.findComponent(screenView, x, y);
+      SelectionModel selectionModel = sceneView.getSelectionModel();
+      NlComponent component = Coordinates.findComponent(sceneView, x, y);
 
       if (component == null) {
         // Clicked component resize handle?
-        int mx = Coordinates.getAndroidX(screenView, x);
-        int my = Coordinates.getAndroidY(screenView, y);
-        int max = Coordinates.getAndroidDimension(screenView, PIXEL_RADIUS + PIXEL_MARGIN);
+        int mx = Coordinates.getAndroidX(sceneView, x);
+        int my = Coordinates.getAndroidY(sceneView, y);
+        int max = Coordinates.getAndroidDimension(sceneView, PIXEL_RADIUS + PIXEL_MARGIN);
         SelectionHandle handle = selectionModel.findHandle(mx, my, max);
         if (handle != null) {
           component = handle.component;
@@ -584,11 +507,11 @@ public class InteractionManager {
 
     @Nullable
     private NlComponent getComponentAt(@SwingCoordinate int x, @SwingCoordinate int y) {
-      ScreenView screenView = mySurface.getScreenView(x, y);
-      if (screenView == null) {
+      SceneView sceneView = mySurface.getSceneView(x, y);
+      if (sceneView == null) {
         return null;
       }
-      return Coordinates.findComponent(screenView, x, y);
+      return Coordinates.findComponent(sceneView, x, y);
     }
 
     @Override
@@ -615,6 +538,7 @@ public class InteractionManager {
         //noinspection AssignmentToStaticFieldFromInstanceMethod
         ourLastStateMask = event.getModifiers();
         myCurrentInteraction.update(myLastMouseX, myLastMouseY, ourLastStateMask);
+        updateCursor(x, y);
         mySurface.getLayeredPane().scrollRectToVisible(
           new Rectangle(x - NlConstants.DEFAULT_SCREEN_OFFSET_X, y - NlConstants.DEFAULT_SCREEN_OFFSET_Y,
                         2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y));
@@ -626,25 +550,27 @@ public class InteractionManager {
         //noinspection AssignmentToStaticFieldFromInstanceMethod
         ourLastStateMask = modifiers;
         boolean toggle = (modifiers & (InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK)) != 0;
-        ScreenView screenView = mySurface.getScreenView(x, y);
-        if (screenView == null) {
+        SceneView sceneView = mySurface.getSceneView(x, y);
+        if (sceneView == null) {
           return;
         }
-        SelectionModel selectionModel = screenView.getSelectionModel();
+        Scene scene = sceneView.getScene();
+        SelectionModel selectionModel = sceneView.getSelectionModel();
 
-        int ax = Coordinates.getAndroidX(screenView, x);
-        int ay = Coordinates.getAndroidY(screenView, y);
+        int xDp = Coordinates.getAndroidXDip(sceneView, x);
+        int yDp = Coordinates.getAndroidYDip(sceneView, y);
 
         Interaction interaction;
         // Dragging on top of a selection handle: start a resize operation
-        int max = Coordinates.getAndroidDimension(screenView, PIXEL_RADIUS + PIXEL_MARGIN);
-        SelectionHandle handle = selectionModel.findHandle(ax, ay, max);
+        int max = Coordinates.getAndroidDimension(sceneView, PIXEL_RADIUS + PIXEL_MARGIN);
+        SelectionHandle handle =
+          selectionModel.findHandle(Coordinates.getAndroidX(sceneView, x), Coordinates.getAndroidY(sceneView, y), max);
         if (handle != null) {
-          interaction = new ResizeInteraction(screenView, handle.component, handle);
+          interaction = new ResizeInteraction(sceneView, scene.getSceneComponent(handle.component), handle);
         }
         else {
-          NlModel model = screenView.getModel();
-          NlComponent component = null;
+          NlModel model = sceneView.getModel();
+          SceneComponent component = null;
 
           // Make sure we start from root if we don't have anything selected
           if (selectionModel.isEmpty() && !model.getComponents().isEmpty()) {
@@ -653,31 +579,30 @@ public class InteractionManager {
 
           // See if you're dragging inside a selected parent; if so, drag the selection instead of any
           // leaf nodes inside it
-          NlComponent primary = selectionModel.getPrimary();
-          if (primary != null && !primary.isRoot() && primary.containsX(ax) && primary.containsY(ay)) {
+          NlComponent primaryNlComponent = selectionModel.getPrimary();
+          SceneComponent primary = scene.getSceneComponent(primaryNlComponent);
+          if (primary != null && primary.getParent() != null && primary.containsX(xDp) && primary.containsY(yDp)) {
             component = primary;
-          } else if (primary != null) {
-            component = primary.findImmediateLeafAt(ax, ay);
           }
           if (component == null) {
-            component = model.findLeafAt(ax, ay, false);
+            component = scene.findComponent(SceneContext.get(sceneView), xDp, yDp);
           }
 
-          if (component == null || component.isRoot()) {
+          if (component == null || component.getParent() == null) {
             // Dragging on the background/root view: start a marquee selection
-            interaction = new MarqueeInteraction(screenView, toggle);
+            interaction = new MarqueeInteraction(sceneView, toggle);
           }
           else {
-            List<NlComponent> dragged;
+            List<SceneComponent> dragged;
             // Dragging over a non-root component: move the set of components (if the component dragged over is
             // part of the selection, drag them all, otherwise drag just this component)
-            if (selectionModel.isSelected(component)) {
+            if (selectionModel.isSelected(component.getNlComponent())) {
               dragged = Lists.newArrayList();
 
               // Make sure the primary is the first element
               if (primary != null) {
-                if (primary.isRoot()) {
-                  primary = null;
+                if (primary.getParent() == null) {
+                  primaryNlComponent = null;
                 }
                 else {
                   dragged.add(primary);
@@ -685,18 +610,19 @@ public class InteractionManager {
               }
 
               for (NlComponent selected : selectionModel.getSelection()) {
-                if (!selected.isRoot() && selected != primary) {
-                  dragged.add(selected);
+                if (!selected.isRoot() && selected != primaryNlComponent) {
+                  dragged.add(scene.getSceneComponent(selected));
                 }
               }
             }
             else {
               dragged = Collections.singletonList(component);
             }
-            interaction = new DragDropInteraction(mySurface, dragged);
+            interaction = new DragDropInteraction(mySurface, dragged, ImmutableList.of());
           }
         }
         startInteraction(x, y, interaction, modifiers);
+        updateCursor(x, y);
       }
 
       myHoverTimer.restart();
@@ -778,29 +704,32 @@ public class InteractionManager {
         // Refresh layout
         RefreshRenderAction.clearCache(mySurface);
       } else if (keyChar == 'b') {
-        DesignSurface.ScreenMode nextMode = mySurface.getScreenMode().next();
-        mySurface.setScreenMode(nextMode, true);
+        // TODO: find a way to move layout-specific logic elsewhere.
+        if (mySurface instanceof NlDesignSurface) {
+          NlDesignSurface.ScreenMode nextMode = ((NlDesignSurface)mySurface).getScreenMode().next();
+          ((NlDesignSurface)mySurface).setScreenMode(nextMode, true);
+        }
       } else if (keyChar == '0') {
         mySurface.zoomToFit();
       } else if (keyChar == 'd') {
-        ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
-        if (screenView != null) {
-          screenView.switchDevice();
+        SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
+        if (sceneView != null) {
+          sceneView.switchDevice();
         }
       } else if (keyChar == 'o') {
-        ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
-        if (screenView != null) {
-          screenView.toggleOrientation();
+        SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
+        if (sceneView != null) {
+          sceneView.toggleOrientation();
         }
       } else if (keyChar == 'f') {
         mySurface.toggleDeviceFrames();
       } else if (keyCode == KeyEvent.VK_DELETE || keyCode == KeyEvent.VK_BACK_SPACE) {
-        ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
-        if (screenView != null) {
-          SelectionModel model = screenView.getSelectionModel();
+        SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
+        if (sceneView != null) {
+          SelectionModel model = sceneView.getSelectionModel();
           if (!model.isEmpty()) {
             List<NlComponent> selection = model.getSelection();
-            screenView.getModel().delete(selection);
+            sceneView.getModel().delete(selection);
           }
         }
       }
@@ -826,12 +755,12 @@ public class InteractionManager {
         myLastMouseX = location.x;
         myLastMouseY = location.y;
 
-        ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
-        if (screenView == null) {
+        SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
+        if (sceneView == null) {
           event.reject();
           return;
         }
-        NlModel model = screenView.getModel();
+        NlModel model = sceneView.getModel();
         DnDTransferItem item = NlModel.getTransferItem(event.getTransferable(), true /* allow placeholders */);
         if (item == null) {
           event.reject();
@@ -840,21 +769,34 @@ public class InteractionManager {
         DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
         InsertType insertType = model.determineInsertType(dragType, item, true /* preview */);
 
-        List<NlComponent> dragged = ApplicationManager.getApplication()
-          .runWriteAction((Computable<List<NlComponent>>)() -> model.createComponents(screenView, item, insertType));
+        List<NlComponent> draggedNl = ApplicationManager.getApplication()
+          .runWriteAction((Computable<List<NlComponent>>)() -> model.createComponents(sceneView, item, insertType));
 
-        if (dragged == null) {
+        if (draggedNl == null) {
           event.reject();
           return;
         }
-        int yOffset = 0;
-        for (NlComponent component : dragged) {
-          // todo: keep original relative position?
-          component.x = Coordinates.getAndroidX(screenView, myLastMouseX) - component.w / 2;
-          component.y = Coordinates.getAndroidY(screenView, myLastMouseY) - component.h / 2 + yOffset;
-          yOffset += component.h;
+
+        List<SceneComponent> dragged = new ArrayList<>();
+        Scene scene = sceneView.getScene();
+        List<SceneComponent> temporaryComponents = new ArrayList<>();
+        for (NlComponent draggedNlComponent : draggedNl) {
+          SceneComponent component = scene.getSceneComponent(draggedNlComponent);
+          if (component == null) {
+            component = new TemporarySceneComponent(scene, draggedNlComponent);
+            temporaryComponents.add(component);
+          }
+          dragged.add(component);
         }
-        DragDropInteraction interaction = new DragDropInteraction(mySurface, dragged);
+
+        @AndroidDpCoordinate int yOffset = 0;
+        for (SceneComponent component : dragged) {
+          // todo: keep original relative position?
+          component.setPosition(Coordinates.getAndroidXDip(sceneView, myLastMouseX) - component.getDrawWidth() / 2,
+                                Coordinates.getAndroidYDip(sceneView, myLastMouseY) - component.getDrawHeight() / 2 + yOffset);
+          yOffset += component.getDrawHeight();
+        }
+        DragDropInteraction interaction = new DragDropInteraction(mySurface, dragged, temporaryComponents);
         interaction.setType(dragType);
         interaction.setTransferItem(item);
         startInteraction(myLastMouseX, myLastMouseY, interaction, 0);
@@ -872,13 +814,13 @@ public class InteractionManager {
       Point location = event.getLocation();
       myLastMouseX = location.x;
       myLastMouseY = location.y;
-      ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
-      if (screenView != null && myCurrentInteraction instanceof DragDropInteraction) {
+      SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
+      if (sceneView != null && myCurrentInteraction instanceof DragDropInteraction) {
         DragDropInteraction interaction = (DragDropInteraction)myCurrentInteraction;
         interaction.update(myLastMouseX, myLastMouseY, ourLastStateMask);
         DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
         interaction.setType(dragType);
-        NlModel model = screenView.getModel();
+        NlModel model = sceneView.getModel();
         InsertType insertType = model.determineInsertType(dragType, interaction.getTransferItem(), true /* preview */);
 
         // This determines the icon presented to the user while dragging.
@@ -912,7 +854,8 @@ public class InteractionManager {
         // This determines how the DnD source acts to a completed drop.
         event.accept(insertType == InsertType.COPY ? event.getDropAction() : DnDConstants.ACTION_COPY);
         event.complete();
-      } else {
+      }
+      else {
         event.reject();
       }
     }
@@ -936,12 +879,12 @@ public class InteractionManager {
       if (item == null) {
         return null;
       }
-      ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
-      if (screenView == null) {
+      SceneView sceneView = mySurface.getSceneView(myLastMouseX, myLastMouseY);
+      if (sceneView == null) {
         return null;
       }
 
-      NlModel model = screenView.getModel();
+      NlModel model = sceneView.getModel();
       DragType dragType = dropAction == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
       InsertType insertType = model.determineInsertType(dragType, item, false /* not for preview */);
 
@@ -950,14 +893,14 @@ public class InteractionManager {
       interaction.setType(dragType);
       interaction.setTransferItem(item);
 
-      List<NlComponent> dragged = interaction.getDraggedComponents();
+      List<SceneComponent> dragged = interaction.getDraggedComponents();
       List<NlComponent> components;
       if (insertType.isMove()) {
         components = model.getSelectionModel().getSelection();
       }
       else {
         components = ApplicationManager.getApplication()
-          .runWriteAction((Computable<List<NlComponent>>)() -> model.createComponents(screenView, item, insertType));
+          .runWriteAction((Computable<List<NlComponent>>)() -> model.createComponents(sceneView, item, insertType));
 
         if (components == null) {
           return null;  // User cancelled
@@ -968,11 +911,11 @@ public class InteractionManager {
           String.format("Problem with drop: dragged.size(%1$d) != components.size(%2$d)", dragged.size(), components.size()));
       }
       for (int index = 0; index < dragged.size(); index++) {
-        components.get(index).x = dragged.get(index).x;
-        components.get(index).y = dragged.get(index).y;
+        components.get(index).x = dragged.get(index).getNlComponent().x;
+        components.get(index).y = dragged.get(index).getNlComponent().y;
       }
       dragged.clear();
-      dragged.addAll(components);
+      components.forEach(nl -> dragged.add(new TemporarySceneComponent(sceneView.getScene(), nl)));
       return insertType;
     }
 
@@ -998,13 +941,13 @@ public class InteractionManager {
       int x = e.getX();
       int y = e.getY();
 
-      ScreenView screenView = mySurface.getScreenView(x, y);
-      if (screenView == null) {
+      SceneView sceneView = mySurface.getSceneView(x, y);
+      if (sceneView == null) {
         e.getComponent().getParent().dispatchEvent(e);
         return;
       }
 
-      final NlComponent component = Coordinates.findComponent(screenView, x, y);
+      final NlComponent component = Coordinates.findComponent(sceneView, x, y);
       if (component == null) {
         // There is no component consuming the scroll
         e.getComponent().getParent().dispatchEvent(e);
@@ -1021,12 +964,13 @@ public class InteractionManager {
 
       boolean isScrollInteraction;
       if (myCurrentInteraction == null) {
-        ScrollInteraction scrollInteraction = ScrollInteraction.createScrollInteraction(screenView, component);
+        ScrollInteraction scrollInteraction = ScrollInteraction.createScrollInteraction(sceneView, component);
         if (scrollInteraction == null) {
           // There is no component consuming the scroll
           e.getComponent().getParent().dispatchEvent(e);
           return;
-        } else {
+        }
+        else {
           // If the design surface is zoomed in we should be panning it rather than the
           // designed view
           JScrollPane scrollPane = mySurface.getScrollPane();
@@ -1043,7 +987,8 @@ public class InteractionManager {
         startInteraction(x, y, scrollInteraction, 0);
         isScrollInteraction = true;
         myScrollEndTimer.addActionListener(myScrollEndListener);
-      } else {
+      }
+      else {
         isScrollInteraction = myCurrentInteraction instanceof ScrollInteraction;
       }
       myCurrentInteraction.scroll(e.getX(), e.getY(), scrollAmount);

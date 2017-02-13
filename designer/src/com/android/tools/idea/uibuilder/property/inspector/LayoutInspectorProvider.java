@@ -60,12 +60,15 @@ public class LayoutInspectorProvider implements InspectorProvider {
     if (parentTagName == null) {
       return false;
     }
+    String tagName = parentTagName.substring(parentTagName.lastIndexOf('.') + 1) + "_layout";
+    if (myParentInspectors.containsKey(tagName)) {
+      return true;
+    }
 
     ViewHandler handler = myViewHandlerManager.getHandler(parentTagName);
     if (handler == null || handler.getLayoutInspectorProperties().isEmpty()) {
       return false;
     }
-    String tagName = parentTagName.substring(parentTagName.lastIndexOf('.') + 1) + "_layout";
     myParentInspectors.put(parentTagName, new LayoutInspectorComponent(tagName, properties, propertiesManager,
                                                                        handler.getLayoutInspectorProperties()));
     return true;
@@ -143,14 +146,12 @@ public class LayoutInspectorProvider implements InspectorProvider {
       inspector.addTitle(myTagName);
       for (NlComponentEditor editor : myEditors) {
         NlProperty property = editor.getProperty();
-        if (property != null) {
-          String propertyName = property.getName();
-          JLabel label = inspector.addComponent(propertyName, property.getTooltipText(), editor.getComponent());
-          if (TOOLS_URI.equals(property.getNamespace())) {
-            label.setIcon(AndroidIcons.NeleIcons.DesignProperty);
-          }
-          editor.setLabel(label);
+        String propertyName = property.getName();
+        JLabel label = inspector.addComponent(propertyName, property.getTooltipText(), editor.getComponent());
+        if (TOOLS_URI.equals(property.getNamespace())) {
+          label.setIcon(AndroidIcons.NeleIcons.DesignProperty);
         }
+        editor.setLabel(label);
       }
     }
 

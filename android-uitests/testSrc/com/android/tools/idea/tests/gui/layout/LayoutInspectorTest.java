@@ -16,11 +16,12 @@
 package com.android.tools.idea.tests.gui.layout;
 
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.AndroidProcessChooserDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.LayoutInspectorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
@@ -105,6 +106,23 @@ public class LayoutInspectorTest {
       .selectProcess(PROCESS_NAME)
       .clickLayoutInspector()
       .getLayoutElements();
+    checkLayout(layoutElements);
+  }
+
+  @Test
+  @RunIn(TestGroup.UNRELIABLE)
+  public void launchLayoutInspectorViaChooser() throws Exception {
+    guiTest.ideFrame().runApp("app").selectDevice(AVD_NAME).clickOk();
+    // wait for background tasks to finish before requesting run tool window. otherwise run tool window won't activate.
+    guiTest.waitForBackgroundTasks();
+    guiTest.ideFrame().invokeMenuPath("Tools", "Android", "Layout Inspector");
+    // easier to select via index rather than by path string which changes depending on the api version
+    AndroidProcessChooserDialogFixture.find(guiTest.robot()).selectProcess().clickOk();
+    List<String> layoutElements = new LayoutInspectorFixture(guiTest.robot()).getLayoutElements();
+    checkLayout(layoutElements);
+  }
+
+  private void checkLayout(List<String> layoutElements) {
     assertThat(layoutElements).contains("android.widget.RelativeLayout");
     assertThat(layoutElements).contains("android.widget.TextView");
     assertThat(layoutElements).contains("android.widget.FrameLayout");

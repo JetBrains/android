@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.ScenePicker;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
@@ -23,14 +24,17 @@ import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
+
 public interface Target {
   // List of preference levels
   int LASSO_LEVEL = 10;
   int DRAG_LEVEL = 20;
-  int GUIDELINE_LEVEL = 30;
-  int RESIZE_LEVEL = 40;
-  int ANCHOR_LEVEL = 50;
-  int ACTION_LEVEL = 60;
+  int GUIDELINE_ANCHOR_LEVEL = 30;
+  int GUIDELINE_LEVEL = 40;
+  int RESIZE_LEVEL = 50;
+  int ANCHOR_LEVEL = 60;
+  int ACTION_LEVEL = 70;
 
   int getPreferenceLevel();
   boolean layout(@NotNull SceneContext context, int l, int t, int r, int b);
@@ -39,14 +43,16 @@ public interface Target {
   void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext);
   void setOver(boolean over);
 
-  void mouseDown(int x, int y);
-  void mouseDrag(int x, int y, @Nullable Target closestTarget);
-  void mouseRelease(int x, int y, @Nullable Target closestTarget);
+  void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y);
+  void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget);
+  void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget);
 
   SceneComponent getComponent();
 
-  int getMouseCursor();
+  Cursor getMouseCursor();
 
   float getCenterX();
   float getCenterY();
+
+  boolean canChangeSelection();
 }

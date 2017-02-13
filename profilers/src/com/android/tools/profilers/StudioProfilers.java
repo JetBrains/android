@@ -17,6 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.event.EventProfiler;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * The suite of profilers inside Android Studio. This object is responsible for maintaining the information
@@ -50,30 +52,39 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   public static final int TIMELINE_BUFFER = 1;
 
   private final ProfilerClient myClient;
-  @Nullable
-  private String myPreferredProcessName;
 
   private final ProfilerTimeline myTimeline;
+
   private final List<StudioProfiler> myProfilers;
-
-  private Map<Profiler.Device, List<Profiler.Process>> myProcesses;
-
-  private Profiler.Device myDevice;
-
-  @Nullable
-  private Profiler.Process myProcess;
-
-  private boolean myConnected;
-
-  @Nullable
-  private Stage myStage;
 
   @NotNull
   private final IdeProfilerServices myIdeServices;
 
+  private Map<Profiler.Device, List<Profiler.Process>> myProcesses;
+
+  @Nullable
+  private Profiler.Process myProcess;
+
+  @Nullable
+  private String myPreferredProcessName;
+
+  private Profiler.Device myDevice;
+
+  private Common.Session mySessionData;
+
+  @Nullable
+  private Stage myStage;
+
   private Updater myUpdater;
+
+  @NotNull
+  private RelativeTimeConverter myRelativeTimeConverter;
+
   private AxisComponentModel myViewAxis;
+
   private long myRefreshDevices;
+
+  private boolean myConnected;
 
   public StudioProfilers(ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
@@ -92,12 +103,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       new MemoryProfiler(this),
       new NetworkProfiler(this));
 
-    myTimeline = new ProfilerTimeline();
+    myRelativeTimeConverter = new RelativeTimeConverter(0);
+    myTimeline = new ProfilerTimeline(myRelativeTimeConverter);
 
     myProcesses = Maps.newHashMap();
     myConnected = false;
     myDevice = null;
     myProcess = null;
+    mySessionData = Common.Session.getDefaultInstance();
 
     myViewAxis = new AxisComponentModel(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT);
     myViewAxis.setGlobalRange(myTimeline.getDataRange());
@@ -114,7 +127,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   public void setPreferredProcessName(@Nullable String name) {
     myPreferredProcessName = name;
   }
-
 
   @Override
   public void update(long elapsedNs) {
@@ -134,9 +146,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       Set<Profiler.Device> devices = new HashSet<>(response.getDeviceList());
       Map<Profiler.Device, List<Profiler.Process>> newProcesses = new HashMap<>();
       for (Profiler.Device device : devices) {
-        Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setSerial(device.getSerial()).build();
+        Common.Session session = Common.Session.newBuilder()
+          .setDeviceSerial(device.getSerial())
+          .setBootId(device.getBootId())
+          .build();
+        Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setSession(session).build();
         Profiler.GetProcessesResponse processes = myClient.getProfilerClient().getProcesses(request);
-        newProcesses.put(device, processes.getProcessList());
+
+        //TODO: Have the UI handle dead processes properly
+        newProcesses.put(device, processes.getProcessList()
+          .stream()
+          .filter(process -> process.getState() == Profiler.Process.State.ALIVE)
+          .collect(Collectors.toList()));
       }
       if (!newProcesses.equals(myProcesses)) {
         myProcesses = newProcesses;
@@ -155,7 +176,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
   }
 
-
   /**
    * Chooses the given device. If the device is not known or null, the first available one will be chosen instead.
    */
@@ -170,10 +190,20 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       changed(ProfilerAspect.DEVICES);
 
       if (myDevice != null) {
+        mySessionData = Common.Session.newBuilder()
+          .setDeviceSerial(myDevice.getSerial())
+          .setBootId(myDevice.getBootId())
+          .build();
+
         // TODO: getTimes should take the device
-        Profiler.TimesResponse times = myClient.getProfilerClient().getTimes(Profiler.TimesRequest.getDefaultInstance());
-        myTimeline.reset(times.getTimestampNs() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
+        Profiler.TimeResponse times = myClient.getProfilerClient().getCurrentTime(Profiler.TimeRequest.newBuilder()
+                                                                                    .setSession(getSession())
+                                                                                    .build());
+        myRelativeTimeConverter = new RelativeTimeConverter(times.getTimestampNs() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
+        myTimeline.reset(myRelativeTimeConverter);
         myTimeline.setStreaming(true);
+      } else {
+        mySessionData = null;
       }
 
       // The device has changed, reset the process
@@ -199,14 +229,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
     if (!Objects.equals(process, myProcess)) {
       if (myDevice != null && myProcess != null) {
-        myProfilers.forEach(profiler -> profiler.stopProfiling(myProcess));
+        myProfilers.forEach(profiler -> profiler.stopProfiling(getSession(), myProcess));
       }
 
       myProcess = process;
       changed(ProfilerAspect.PROCESSES);
 
-      if (myProcess != null) {
-        myProfilers.forEach(profiler -> profiler.startProfiling(myProcess));
+      if (myDevice != null && myProcess != null) {
+        myProfilers.forEach(profiler -> profiler.startProfiling(getSession(), myProcess));
       }
       setStage(new StudioMonitorStage(this));
     }
@@ -255,6 +285,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myProcess != null ? myProcess.getPid() : INVALID_PROCESS_ID;
   }
 
+  public Common.Session getSession() {
+    return mySessionData;
+  }
+
   public void setStage(Stage stage) {
     if (myStage != null) {
       myStage.exit();
@@ -267,6 +301,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   public ProfilerTimeline getTimeline() {
     return myTimeline;
+  }
+
+  @NotNull
+  public RelativeTimeConverter getRelativeTimeConverter() {
+    return myRelativeTimeConverter;
   }
 
   public Profiler.Device getDevice() {

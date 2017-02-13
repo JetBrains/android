@@ -22,28 +22,28 @@ import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.ProfilerTimeline;
-import com.android.tools.profilers.Stage;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 
 public class CpuProfilerStage extends Stage {
 
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 5, 10, "%");
   private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(1, 5, 1, "");
+
   private final CpuThreadsModel myThreadsStates;
   private final AxisComponentModel myCpuUsageAxis;
   private final AxisComponentModel myThreadCountAxis;
@@ -67,11 +67,24 @@ public class CpuProfilerStage extends Stage {
     UNKNOWN
   }
 
+  public enum CaptureState {
+    // Waiting for a capture to start (displaying the current capture or not)
+    IDLE,
+    // There is a capture in progress
+    CAPTURING,
+    // A capture is being parsed
+    PARSING,
+    // Waiting for the service to respond a start capturing call
+    STARTING,
+    // Waiting for the service to respond a stop capturing call
+    STOPPING,
+  }
+
   private static final Logger LOG = Logger.getInstance(CpuProfilerStage.class);
-  @NotNull
-  private final CpuServiceGrpc.CpuServiceBlockingStub myCpuService;
+
   @NotNull
   private final CpuTraceDataSeries myCpuTraceDataSeries;
+
   private AspectModel<CpuProfilerAspect> myAspect = new AspectModel<>();
 
   /**
@@ -79,25 +92,31 @@ public class CpuProfilerStage extends Stage {
    */
   @Nullable
   private CpuCapture myCapture;
+
   /**
-   * Whether there is a capture in progress.
-   * TODO: Timeouts. Also, capturing state should come from the device instead of being kept here.
+   * Represents the current state of the capture.
+   * TODO: instead of keeping/setting all these state here, we might want to get the current state from perfd.
    */
-  private boolean myCapturing;
+  private CaptureState myCaptureState;
+
   /**
    * Id of the current selected thread.
-   * If this variable has a valid thread id, {@link #myCaptureNode} should store the value of the {@link HNode} correspondent to the thread.
    */
   private int mySelectedThread;
+
+  @NotNull
+  private CpuProfiler.CpuProfilingAppStartRequest.Mode myProfilingMode;
 
   /**
    * A cache of already parsed captures, indexed by trace_id.
    */
   private Map<Integer, CpuCapture> myTraceCaptures = new HashMap<>();
 
+  @Nullable
+  private CaptureDetails myCaptureDetails;
+
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
-    myCpuService = getStudioProfilers().getClient().getCpuClient();
     myCpuTraceDataSeries = new CpuTraceDataSeries();
 
     Range viewRange = getStudioProfilers().getTimeline().getViewRange();
@@ -115,9 +134,11 @@ public class CpuProfilerStage extends Stage {
 
     // Create an event representing the traces within the range.
     myTraceDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, getCpuTraceDataSeries()));
-    myThreadsStates = new CpuThreadsModel(viewRange, this, getStudioProfilers().getProcessId());
+    myThreadsStates = new CpuThreadsModel(viewRange, this, getStudioProfilers().getProcessId(), getStudioProfilers().getSession());
 
     myEventMonitor = new EventMonitor(profilers);
+    myCaptureState = CaptureState.IDLE;
+    myProfilingMode = CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED;
   }
 
   public AxisComponentModel getCpuUsageAxis() {
@@ -180,60 +201,82 @@ public class CpuProfilerStage extends Stage {
   }
 
   public void startCapturing() {
+    CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfiler.CpuProfilingAppStartRequest request = CpuProfiler.CpuProfilingAppStartRequest.newBuilder()
       .setAppPkgName(getStudioProfilers().getProcess().getName()) // TODO: Investigate if this is the right way of choosing the app
       .setProfiler(CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART) // TODO: support simpleperf
-      .setMode(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED) // TODO: support instrumented mode
+      .setMode(myProfilingMode)
+      .setSession(getStudioProfilers().getSession())
       .build();
 
-    CpuProfiler.CpuProfilingAppStartResponse response = myCpuService.startProfilingApp(request);
+    setCaptureState(CaptureState.STARTING);
+    CompletableFuture.supplyAsync(
+      () -> cpuService.startProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
+      .thenAcceptAsync(this::startCapturingCallback, getStudioProfilers().getIdeServices().getMainExecutor());
+  }
 
+  private void startCapturingCallback(CpuProfiler.CpuProfilingAppStartResponse response) {
     if (!response.getStatus().equals(CpuProfiler.CpuProfilingAppStartResponse.Status.SUCCESS)) {
       LOG.warn("Unable to start tracing: " + response.getStatus());
       LOG.warn(response.getErrorMessage());
-      myCapturing = false;
+      setCaptureState(CaptureState.IDLE);
     }
     else {
-      myCapturing = true;
+      setCaptureState(CaptureState.CAPTURING);
     }
-    myAspect.changed(CpuProfilerAspect.CAPTURE);
   }
 
   public void stopCapturing() {
+    CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfiler.CpuProfilingAppStopRequest request = CpuProfiler.CpuProfilingAppStopRequest.newBuilder()
       .setAppPkgName(getStudioProfilers().getProcess().getName()) // TODO: Investigate if this is the right way of choosing the app
       .setProfiler(CpuProfiler.CpuProfilingAppStopRequest.Profiler.ART) // TODO: support simpleperf
+      .setSession(getStudioProfilers().getSession())
       .build();
 
-    CpuProfiler.CpuProfilingAppStopResponse response = myCpuService.stopProfilingApp(request);
-    CpuCapture capture = null;
+    setCaptureState(CaptureState.STOPPING);
+    CompletableFuture.supplyAsync(
+      () -> cpuService.stopProfilingApp(request), getStudioProfilers().getIdeServices().getPoolExecutor())
+      .thenAcceptAsync(this::stopCapturingCallback, getStudioProfilers().getIdeServices().getMainExecutor());
+  }
 
+  private void stopCapturingCallback(CpuProfiler.CpuProfilingAppStopResponse response) {
     if (!response.getStatus().equals(CpuProfiler.CpuProfilingAppStopResponse.Status.SUCCESS)) {
       LOG.warn("Unable to stop tracing: " + response.getStatus());
       LOG.warn(response.getErrorMessage());
+      setCaptureState(CaptureState.IDLE);
     }
     else {
-      try {
-        capture = new CpuCapture(response.getTrace());
-        // Force parsing the capture. TODO: avoid parsing the capture twice.
-        getCapture(response.getTraceId());
-      } catch (IllegalStateException e) {
-        LOG.warn("Unable to parse capture: " + e.getMessage());
-      }
+      setCaptureState(CaptureState.PARSING);
+      CompletableFuture.supplyAsync(() -> new CpuCapture(response.getTrace()), getStudioProfilers().getIdeServices().getPoolExecutor())
+        .handleAsync((capture, exception) -> {
+        if (capture != null) {
+          myTraceCaptures.put(response.getTraceId(), capture);
+          // Intentionally not firing the aspect because it will be done by setCapture with the new capture value
+          myCaptureState = CaptureState.IDLE;
+          setCapture(capture);
+          setSelectedThread(capture.getMainThreadId());
+        } else {
+          assert exception != null;
+          LOG.warn("Unable to parse capture: " + exception.getMessage());
+          // Intentionally not firing the aspect because it will be done by setCapture with the new capture value
+          myCaptureState = CaptureState.IDLE;
+          setCapture(null);
+        }
+        return capture;
+      }, getStudioProfilers().getIdeServices().getMainExecutor());
     }
-    if (capture != null) {
-      setCapture(capture);
-      setSelectedThread(capture.getMainThreadId());
-    }
-    myCapturing = false;
   }
 
-  public void setCapture(@NotNull CpuCapture capture) {
+  public void setCapture(@Nullable CpuCapture capture) {
     myCapture = capture;
-    ProfilerTimeline timeline = getStudioProfilers().getTimeline();
-    timeline.setStreaming(false);
-    timeline.getSelectionRange().set(myCapture.getRange());
-    getStudioProfilers().modeChanged();
+    if (capture != null) {
+      ProfilerTimeline timeline = getStudioProfilers().getTimeline();
+      timeline.setStreaming(false);
+      timeline.getSelectionRange().set(myCapture.getRange());
+      setCaptureDetails(myCaptureDetails != null ? myCaptureDetails.getType() : CaptureDetails.Type.TOP_DOWN);
+      getStudioProfilers().modeChanged();
+    }
     myAspect.changed(CpuProfilerAspect.CAPTURE);
   }
 
@@ -243,6 +286,7 @@ public class CpuProfilerStage extends Stage {
 
   public void setSelectedThread(int id) {
     mySelectedThread = id;
+    setCaptureDetails(myCaptureDetails != null ? myCaptureDetails.getType() : CaptureDetails.Type.TOP_DOWN);
     myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
   }
 
@@ -255,8 +299,29 @@ public class CpuProfilerStage extends Stage {
     return myCapture;
   }
 
-  public boolean isCapturing() {
-    return myCapturing;
+  public CaptureState getCaptureState() {
+    return myCaptureState;
+  }
+
+  public void setCaptureState(CaptureState captureState) {
+    myCaptureState = captureState;
+    myAspect.changed(CpuProfilerAspect.CAPTURE);
+  }
+
+  @NotNull
+  public CpuProfiler.CpuProfilingAppStartRequest.Mode getProfilingMode() {
+    return myProfilingMode;
+  }
+
+  public void setProfilingMode(@NotNull CpuProfiler.CpuProfilingAppStartRequest.Mode mode) {
+    myProfilingMode = mode;
+    myAspect.changed(CpuProfilerAspect.PROFILING_MODE);
+  }
+
+  @NotNull
+  public ImmutableList<CpuProfiler.CpuProfilingAppStartRequest.Mode> getProfilingModes() {
+    return ContainerUtil.immutableList(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED,
+                                       CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
   }
 
   @NotNull
@@ -273,16 +338,117 @@ public class CpuProfilerStage extends Stage {
     CpuCapture capture = myTraceCaptures.get(traceId);
     if (capture == null) {
       CpuProfiler.GetTraceRequest request = CpuProfiler.GetTraceRequest.newBuilder()
-        .setAppId(getStudioProfilers().getProcessId())
+        .setProcessId(getStudioProfilers().getProcessId())
+        .setSession(getStudioProfilers().getSession())
         .setTraceId(traceId)
         .build();
-      CpuProfiler.GetTraceResponse trace = myCpuService.getTrace(request);
+      CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
+      CpuProfiler.GetTraceResponse trace = cpuService.getTrace(request);
       if (trace.getStatus() == CpuProfiler.GetTraceResponse.Status.SUCCESS) {
-        capture = new CpuCapture(trace.getData());
+        // TODO: move this parsing to a separate thread
+        try {
+          capture = new CpuCapture(trace.getData());
+        } catch (IllegalStateException e) {
+          // Don't crash studio if parsing fails.
+        }
       }
+      // TODO: Limit how many captures we keep parsed in memory
       myTraceCaptures.put(traceId, capture);
     }
     return capture;
+  }
+
+  public void setCaptureDetails(@Nullable CaptureDetails.Type type) {
+    if (type != null) {
+      Range range = getStudioProfilers().getTimeline().getSelectionRange();
+      HNode<MethodModel> node = myCapture != null ? myCapture.getCaptureNode(getSelectedThread()) : null;
+      myCaptureDetails = type.build(range, node);
+    } else {
+      myCaptureDetails = null;
+    }
+
+    myAspect.changed(CpuProfilerAspect.CAPTURE_DETAILS);
+  }
+
+  @Nullable
+  public CaptureDetails getCaptureDetails() {
+    return myCaptureDetails;
+  }
+
+  public interface CaptureDetails {
+    enum Type {
+      TOP_DOWN(TopDown::new),
+      BOTTOM_UP(BottomUp::new),
+      CHART(TreeChart::new);
+
+      @NotNull
+      private final BiFunction<Range, HNode<MethodModel>, CaptureDetails> myBuilder;
+
+      Type(@NotNull BiFunction<Range, HNode<MethodModel>, CaptureDetails> builder) {
+        myBuilder = builder;
+      }
+
+      public CaptureDetails build(Range range, HNode<MethodModel> node) {
+        return myBuilder.apply(range, node);
+      }
+    }
+
+    Type getType();
+  }
+
+  public static class TopDown implements CaptureDetails {
+    @Nullable private TopDownTreeModel myModel;
+
+    public TopDown(@NotNull Range range, @Nullable HNode<MethodModel> node) {
+      myModel = node == null ? null : new TopDownTreeModel(range, new TopDownNode(node));
+    }
+
+    @Nullable
+    public TopDownTreeModel getModel() {
+      return myModel;
+    }
+
+    @Override
+    public Type getType() {
+      return Type.TOP_DOWN;
+    }
+  }
+
+  public static class BottomUp implements CaptureDetails {
+    @Nullable private BottomUpTreeModel myModel;
+
+    public BottomUp(@NotNull Range range, @Nullable HNode<MethodModel> node) {
+      myModel = node == null ? null : new BottomUpTreeModel(range, new BottomUpNode(node));
+    }
+
+    @Nullable
+    public BottomUpTreeModel getModel() {
+      return myModel;
+    }
+
+    @Override
+    public Type getType() {
+      return Type.BOTTOM_UP;
+    }
+  }
+
+  public static class TreeChart implements CaptureDetails {
+    @Nullable private HNode<MethodModel> myNode;
+
+    @SuppressWarnings("unused")
+    public TreeChart(@NotNull Range range, @Nullable HNode<MethodModel> node) {
+      myNode = node;
+    }
+
+    @Nullable
+    public HNode<MethodModel> getNode() {
+      return myNode;
+    }
+
+    @Override
+    public Type getType() {
+      return Type.CHART;
+    }
   }
 
   @VisibleForTesting
@@ -292,9 +458,11 @@ public class CpuProfilerStage extends Stage {
       long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
       long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
 
-      CpuProfiler.GetTraceInfoResponse response = myCpuService.getTraceInfo(
+      CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
+      CpuProfiler.GetTraceInfoResponse response = cpuService.getTraceInfo(
         CpuProfiler.GetTraceInfoRequest.newBuilder().
-        setAppId(getStudioProfilers().getProcessId()).
+        setProcessId(getStudioProfilers().getProcessId()).
+        setSession(getStudioProfilers().getSession()).
         setFromTimestamp(rangeMin).setToTimestamp(rangeMax).build());
 
       List<SeriesData<CpuCapture>> seriesData = new ArrayList<>();
@@ -316,6 +484,7 @@ public class CpuProfilerStage extends Stage {
     @NotNull private final SeriesLegend myThreadsLegend;
 
     public CpuStageLegends(@NotNull DetailedCpuUsage cpuUsage, @NotNull Range dataRange) {
+      super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
       myCpuLegend = new SeriesLegend(cpuUsage.getCpuSeries(), CPU_USAGE_FORMATTER, dataRange);
       myOthersLegend = new SeriesLegend(cpuUsage.getOtherCpuSeries(), CPU_USAGE_FORMATTER, dataRange);
       myThreadsLegend = new SeriesLegend(cpuUsage.getThreadsCountSeries(), NUM_THREADS_AXIS, dataRange);

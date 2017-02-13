@@ -46,7 +46,7 @@ public class DetailedMemoryUsage extends MemoryUsage {
     myOtherSeries = createRangedSeries(profilers, "Others", getMemoryRange(), MemorySample::getOthersMem);
 
     MemoryServiceGrpc.MemoryServiceBlockingStub client = profilers.getClient().getMemoryClient();
-    VmStatsDataSeries series = new VmStatsDataSeries(client, profilers.getProcessId(), sample -> (long)(sample.getJavaAllocationCount() - sample.getJavaFreeCount()));
+    VmStatsDataSeries series = new VmStatsDataSeries(client, profilers.getProcessId(), profilers.getSession(), sample -> (long)(sample.getJavaAllocationCount() - sample.getJavaFreeCount()));
     myObjectsSeries = new RangedContinuousSeries("Allocated", profilers.getTimeline().getViewRange(), getObjectsRange(), series);
 
     add(myJavaSeries);
@@ -96,5 +96,10 @@ public class DetailedMemoryUsage extends MemoryUsage {
   @NotNull
   public RangedContinuousSeries getObjectsSeries() {
     return myObjectsSeries;
+  }
+
+  @Override
+  protected String getTotalSeriesLabel() {
+    return "Total";
   }
 }

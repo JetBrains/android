@@ -18,22 +18,25 @@ package com.android.tools.idea.editors.strings.table;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.editors.strings.StringResource;
 import com.android.tools.idea.editors.strings.StringResourceData;
+import com.android.tools.idea.editors.strings.StringResourceKey;
 import com.android.tools.idea.rendering.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.table.AbstractTableModel;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 public class StringResourceTableModel extends AbstractTableModel {
   public static final int KEY_COLUMN = 0;
-  public static final int UNTRANSLATABLE_COLUMN = 1;
-  public static final int DEFAULT_VALUE_COLUMN = 2;
-  public static final int FIXED_COLUMN_COUNT = 3;
+  public static final int RESOURCE_FOLDER_COLUMN = 1;
+  public static final int UNTRANSLATABLE_COLUMN = 2;
+  public static final int DEFAULT_VALUE_COLUMN = 3;
+  public static final int FIXED_COLUMN_COUNT = 4;
 
   private final StringResourceData myData;
-  private final List<String> myKeys;
+  private final List<StringResourceKey> myKeys;
   private final List<Locale> myLocales;
 
   StringResourceTableModel() {
@@ -59,8 +62,18 @@ public class StringResourceTableModel extends AbstractTableModel {
   }
 
   @NotNull
-  public String getKey(int row) {
+  public List<StringResourceKey> getKeys() {
+    return myKeys;
+  }
+
+  @NotNull
+  public StringResourceKey getKey(int row) {
     return myKeys.get(row);
+  }
+
+  @NotNull
+  public Collection<Locale> getLocales() {
+    return myLocales;
   }
 
   @Nullable
@@ -85,9 +98,14 @@ public class StringResourceTableModel extends AbstractTableModel {
 
     switch (column) {
       case KEY_COLUMN:
-        myData.changeKeyName(myKeys.get(row), (String)value);
+        StringResourceKey oldKey = myKeys.get(row);
+        StringResourceKey newKey = new StringResourceKey((String)value, oldKey.getDirectory());
+
+        myData.changeKeyName(oldKey, newKey);
         fireTableRowsUpdated(0, myKeys.size());
 
+        break;
+      case RESOURCE_FOLDER_COLUMN:
         break;
       case UNTRANSLATABLE_COLUMN:
         Boolean doNotTranslate = (Boolean)value;
@@ -110,7 +128,9 @@ public class StringResourceTableModel extends AbstractTableModel {
   public Object getValueAt(int row, int column) {
     switch (column) {
       case KEY_COLUMN:
-        return getKey(row);
+        return getKey(row).getName();
+      case RESOURCE_FOLDER_COLUMN:
+        return getStringResourceAt(row).getResourceFolder();
       case UNTRANSLATABLE_COLUMN:
         return !getStringResourceAt(row).isTranslatable();
       case DEFAULT_VALUE_COLUMN:
@@ -129,6 +149,8 @@ public class StringResourceTableModel extends AbstractTableModel {
     switch (column) {
       case KEY_COLUMN:
         return "Key";
+      case RESOURCE_FOLDER_COLUMN:
+        return "Resource Folder";
       case UNTRANSLATABLE_COLUMN:
         return "Untranslatable";
       case DEFAULT_VALUE_COLUMN:
@@ -150,6 +172,14 @@ public class StringResourceTableModel extends AbstractTableModel {
 
   @Nullable
   public String getCellProblem(int row, int column) {
-    return column == KEY_COLUMN ? myData.validateKey(getKey(row)) : myData.validateTranslation(getKey(row), getLocale(column));
+    switch (column) {
+      case KEY_COLUMN:
+        return myData.validateKey(getKey(row));
+      case RESOURCE_FOLDER_COLUMN:
+      case UNTRANSLATABLE_COLUMN:
+        return null;
+      default:
+        return myData.validateTranslation(getKey(row), getLocale(column));
+    }
   }
 }

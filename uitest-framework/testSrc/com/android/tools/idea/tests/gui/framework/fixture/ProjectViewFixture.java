@@ -37,10 +37,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.util.ui.tree.TreeUtil;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.JMenuItemFixture;
@@ -123,12 +121,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
     @NotNull
     public PaneFixture expand() {
-      GuiActionRunner.execute(new GuiTask() {
-        @Override
-        protected void executeInEDT() throws Throwable {
-          TreeUtil.expandAll(myPane.getTree());
-        }
-      });
+      GuiTask.execute(() -> TreeUtil.expandAll(myPane.getTree()));
       return this;
     }
 
@@ -217,7 +210,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
           return (PsiDirectoryNode)root;
         });
 
-      Wait.seconds(1).expecting("node to be selected").until(() -> GuiQuery.getNonNull(() -> {
+      Wait.seconds(3).expecting("node to be selected").until(() -> GuiQuery.getNonNull(() -> {
         DefaultMutableTreeNode selectedNode = myPane.getSelectedNode();
         return (selectedNode != null) && node.equals(selectedNode.getUserObject());
       }));
@@ -236,16 +229,14 @@ public class ProjectViewFixture extends ToolWindowFixture {
     @NotNull
     public List<NodeFixture> getChildren() {
       final List<NodeFixture> children = Lists.newArrayList();
-      GuiActionRunner.execute(new GuiTask() {
-        @Override
-        protected void executeInEDT() throws Throwable {
+      GuiTask.execute(
+        () -> {
           for (Object child : myTreeStructure.getChildElements(myNode)) {
             if (child instanceof ProjectViewNode) {
               children.add(new NodeFixture((ProjectViewNode<?>)child, myTreeStructure));
             }
           }
-        }
-      });
+        });
       return children;
     }
 

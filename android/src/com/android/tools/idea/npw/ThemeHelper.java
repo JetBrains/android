@@ -31,6 +31,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.intellij.openapi.util.text.StringUtil.trimStart;
+
 /**
  * Theme utility class for use with templates.
  */
@@ -44,16 +46,14 @@ public class ThemeHelper {
 
   public ThemeHelper(@NotNull Module module) {
     myModule = module;
-    myRepository = ModuleResourceRepository.getModuleResources(module, true);
+    myRepository = ModuleResourceRepository.getOrCreateInstance(module);
   }
 
   @Nullable
   public String getAppThemeName() {
     String manifestTheme = MergedManifest.get(myModule).getManifestTheme();
     if (manifestTheme != null) {
-      if (manifestTheme.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX)) {
-        manifestTheme = manifestTheme.substring(SdkConstants.STYLE_RESOURCE_PREFIX.length());
-      }
+      manifestTheme = trimStart(manifestTheme, SdkConstants.STYLE_RESOURCE_PREFIX);
       return manifestTheme;
     }
     if (getLocalStyleResource(DEFAULT_THEME_NAME) != null) {

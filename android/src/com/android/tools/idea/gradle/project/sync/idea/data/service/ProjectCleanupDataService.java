@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
 import com.google.common.annotations.VisibleForTesting;
@@ -62,12 +61,10 @@ public class ProjectCleanupDataService extends AbstractProjectDataService<Projec
     // IntelliJ supports several gradle projects linked to one IDEA project it will be separate processes for these gradle projects importing
     // also IntelliJ does not prevent to mix gradle projects with non-gradle ones.
     // See https://youtrack.jetbrains.com/issue/IDEA-137433
-    if(!myIdeInfo.isAndroidStudio()) {
+    if(toImport.isEmpty() || !myIdeInfo.isAndroidStudio()) {
       return;
     }
 
-    if (!GradleSyncState.getInstance(project).lastSyncFailedOrHasIssues()) {
-      myProjectCleanup.cleanUpProject(project, modelsProvider, null);
-    }
+    myProjectCleanup.cleanUpProject(project, modelsProvider, null);
   }
 }

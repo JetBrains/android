@@ -24,8 +24,6 @@ import java.util.List;
 
 public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspect> implements Updatable {
 
-  private static final int DEFAULT_UPDATE_FREQUENCY_MS = 100;
-
   public enum Aspect {
     LEGEND,
   }
@@ -40,8 +38,8 @@ public class LegendComponentModel extends AspectModel<LegendComponentModel.Aspec
   @NotNull
   private final ArrayList<String> myCurrentLegendValues;
 
-  public LegendComponentModel() {
-    mFrequencyMillis = DEFAULT_UPDATE_FREQUENCY_MS;
+  public LegendComponentModel(int updateFrequencyMs) {
+    mFrequencyMillis = updateFrequencyMs;
     mLastUpdate = 0;
     myCurrentLegendValues = new ArrayList<>();
     myLegends = new ArrayList<>();

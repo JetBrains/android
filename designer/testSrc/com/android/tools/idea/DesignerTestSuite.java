@@ -16,15 +16,18 @@
 package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.uibuilder.property.editors.support.StyleFilterTest;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeTest;
-import com.android.tools.idea.uibuilder.surface.DesignSurfaceTest;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurfaceTest;
 import com.android.tools.idea.uibuilder.surface.InteractionManagerTest;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import org.jetbrains.annotations.NotNull;
 import org.junit.AfterClass;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,14 +36,14 @@ import java.nio.file.Paths;
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
   DesignerTestSuite.class,
-  DesignSurfaceTest.class, // flaky in bazel
-  StyleFilterTest.class,
+  NlDesignSurfaceTest.class, // flaky in bazel
   NlComponentTreeTest.class,
   InteractionManagerTest.class
 })
 public class DesignerTestSuite {
 
   private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
+  private static final String HOST_DIR = OsType.getHostOs().getFolderName();
 
   static {
     System.setProperty("idea.home", createTmpDir("tools/idea").toString());
@@ -52,9 +55,32 @@ public class DesignerTestSuite {
     symbolicLinkInTmpDir("tools/adt/idea/android/testData");
     symbolicLinkInTmpDir("tools/adt/idea/designer/testData");
     symbolicLinkInTmpDir("tools/base/templates");
+    symbolicLinkInTmpDir("tools/idea/java/jdkAnnotations");
+    symbolicLinkInTmpDir("prebuilts/studio/sdk/" + HOST_DIR + "/platforms/" + TestUtils.getLatestAndroidPlatform());
+
+    provideRealJdkPathForGradle("prebuilts/studio/jdk");
   }
 
-  private static Path createTmpDir(String p) {
+
+  /**
+   * Gradle cannot handle a JDK set up with symlinks. It gets confused
+   * and in two consecutive executions it thinks that we are calling it
+   * with two different JDKs. See
+   * https://discuss.gradle.org/t/gradle-daemon-different-context/2146/3
+   */
+  private static void provideRealJdkPathForGradle(@NotNull String dir) {
+    try {
+      File jdk = TestUtils.getWorkspaceFile(dir);
+      File file = new File(jdk, "BUILD").toPath().toRealPath().toFile();
+      System.setProperty("studio.dev.jdk", file.getParentFile().getAbsolutePath());
+    }
+    catch (IOException e) {
+      // Ignore if we cannot resolve symlinks.
+    }
+  }
+
+  @NotNull
+  private static Path createTmpDir(@NotNull String p) {
     Path path = Paths.get(TMP_DIR, p);
     try {
       Files.createDirectories(path);
@@ -64,7 +90,7 @@ public class DesignerTestSuite {
     return path;
   }
 
-  private static void symbolicLinkInTmpDir(String target) {
+  private static void symbolicLinkInTmpDir(@NotNull String target) {
     Path targetPath = TestUtils.getWorkspaceFile(target).toPath();
     Path linkName = Paths.get(TMP_DIR, target);
     try {

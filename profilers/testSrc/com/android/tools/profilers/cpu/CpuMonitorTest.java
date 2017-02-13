@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.IdeProfilerServicesStub;
+import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
 import org.junit.Before;
 import org.junit.Rule;
@@ -34,7 +34,7 @@ public class CpuMonitorTest {
 
   @Before
   public void setUp() throws Exception {
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
     myMonitor = new CpuMonitor(myProfilers);
   }
 

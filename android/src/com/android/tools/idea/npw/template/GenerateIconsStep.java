@@ -40,12 +40,12 @@ public final class GenerateIconsStep extends ModelWizardStep<RenderTemplateModel
 
   private final ListenerManager myListeners = new ListenerManager();
 
-  public GenerateIconsStep(@NotNull RenderTemplateModel model) {
+  public GenerateIconsStep(@NotNull RenderTemplateModel model, int minSdkVersion) {
     super(model, "Generate Icons");
 
     AndroidIconType iconType = getModel().getTemplateHandle().getMetadata().getIconType();
     assert iconType != null; // It's an error to create <icon> tags w/o types
-    myGenerateIconsPanel = new GenerateIconsPanel(this, model.getSourceSet().get().getPaths(), iconType);
+    myGenerateIconsPanel = new GenerateIconsPanel(this, model.getSourceSet().get().getPaths(), minSdkVersion, iconType);
 
     myListeners.receiveAndFire(model.getSourceSet(), value -> myGenerateIconsPanel.setProjectPaths(value.getPaths()));
 

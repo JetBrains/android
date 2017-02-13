@@ -89,7 +89,6 @@ class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
       String[] text = {line, "Mismatching encodings can lead to serious bugs."};
 
       SyncMessage message = new SyncMessage(SyncMessage.DEFAULT_GROUP, INFO, text);
-      message.add(new OpenUrlHyperlink("http://tools.android.com/knownissues/encoding", "More Info..."));
 
       SyncMessages.getInstance(project).report(message);
     }

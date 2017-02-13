@@ -20,6 +20,11 @@ import com.android.tools.sherpa.drawing.ColorSet;
 
 import java.awt.*;
 
+import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
+import icons.AndroidIcons.SherpaIcons;
+
+import javax.swing.*;
+
 /**
  * Draw Action
  */
@@ -62,23 +67,39 @@ public class DrawAction extends DrawRegion {
       g.fillRoundRect(x, y, width, height, r, r);
       g.setColor(colorSet.getFrames());
       g.drawRoundRect(x, y, width, height, r, r);
-    } else {
+    }
+    else {
       g.setColor(colorSet.getFrames());
       g.fillRoundRect(x, y, width, height, r, r);
     }
     Color color = colorSet.getText();
     g.setColor(color);
-    String text = "X";
+    Icon icon = (colorSet.getStyle() == WidgetDecorator.BLUEPRINT_STYLE) ? SherpaIcons.DeleteConstraintB : SherpaIcons.DeleteConstraint;
     if (myMode == 1) {
-      text = "B";
-    } else if (myMode == 2) {
-      text = "C";
+      icon = (colorSet.getStyle() == WidgetDecorator.BLUEPRINT_STYLE) ? SherpaIcons.BaselineBlue : SherpaIcons.BaselineColor;
+    }
+    else if (myMode == 2) {
+      icon = (colorSet.getStyle() == WidgetDecorator.BLUEPRINT_STYLE) ? SherpaIcons.ChainBlue : SherpaIcons.Chain;
     }
     g.setFont(mFont);
     FontMetrics fontMetrics = g.getFontMetrics();
-    int tx = x + (width - fontMetrics.stringWidth(text))/2;
-    int ty = y + (height / 2) + fontMetrics.getDescent();
-    g.drawString(text, tx, ty);
+    int iw = icon.getIconWidth();
+    int ih = icon.getIconHeight();
+    if (iw > width || ih > height) {
+      double scale = Math.min(width / (double)iw, height / (double)ih);
+      Graphics2D g2 = (Graphics2D)g.create();
+
+      double tx = x + (width - iw * scale) / 2;
+      double ty = y + (height - ih * scale) / 2;
+      g2.translate(tx, ty);
+      g2.scale(scale, scale);
+      icon.paintIcon(null, g2, 0, 0);
+    }
+    else {
+      int tx = x + (width - iw) / 2;
+      int ty = y + (height - ih) / 2;
+      icon.paintIcon(null, g, tx, ty);
+    }
   }
 
   @Override

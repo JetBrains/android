@@ -1,6 +1,6 @@
 package org.jetbrains.android.uipreview;
 
-import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.editors.theme.ThemeEditorProvider;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
@@ -13,6 +13,7 @@ import com.android.tools.idea.res.FileResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.utils.SdkUtils;
 import com.google.common.collect.Maps;
+import com.google.common.hash.Hashing;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.CompilerModuleExtension;
@@ -31,11 +32,14 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 
 /**
  * Render class loader responsible for loading classes in custom views
@@ -45,7 +49,6 @@ import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXP
  */
 public final class ModuleClassLoader extends RenderClassLoader {
   private static final Logger LOG = Logger.getInstance(ModuleClassLoader.class);
-  public static final boolean DEBUG_CLASS_LOADING = false;
 
   /** The base module to use as a render context; the class loader will consult the module dependencies and library dependencies
    * of this class as well to find classes */
@@ -78,6 +81,10 @@ public final class ModuleClassLoader extends RenderClassLoader {
   @NotNull
   @Override
   protected Class<?> findClass(String name) throws ClassNotFoundException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("findClass(%s)", name));
+    }
+
     try {
       if (!myInsideJarClassLoader) {
         final Module module = myModuleReference.get();
@@ -88,15 +95,21 @@ public final class ModuleClassLoader extends RenderClassLoader {
               byte[] data = ResourceClassRegistry.get(module.getProject()).findClassDefinition(name, appResources);
               if (data != null) {
                 data = convertClass(data);
-                if (DEBUG_CLASS_LOADING) {
-                  //noinspection UseOfSystemOutOrSystemErr
-                  System.out.println("  defining class " + name + " from AAR registry");
+                if (LOG.isDebugEnabled()) {
+                  LOG.debug("  Defining class from AAR registry");
                 }
                 return defineClassAndPackage(name, data, 0, data.length);
               }
             }
+            else if (LOG.isDebugEnabled()) {
+              LOG.debug("  AppResourceRepositoryInstance not found");
+            }
           }
         }
+      }
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(String.format("  super.findClass(%s)", anonymizeClassName(name)));
       }
       return super.findClass(name);
     } catch (ClassNotFoundException e) {
@@ -108,8 +121,12 @@ public final class ModuleClassLoader extends RenderClassLoader {
         clazz = RecyclerViewHelper.getViewHolder();
       }
       if (clazz != null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("  Defining RecyclerView helper class");
+        }
         return defineClassAndPackage(name, clazz, 0, clazz.length);
       }
+      LOG.debug(e);
       throw e;
     }
   }
@@ -132,8 +149,15 @@ public final class ModuleClassLoader extends RenderClassLoader {
   @NotNull
   @Override
   protected Class<?> load(String name) throws ClassNotFoundException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("load(%s)", anonymizeClassName(name)));
+    }
+
     Module module = myModuleReference.get();
     if (module == null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(String.format("  ClassNotFoundException(%s)", name));
+      }
       throw new ClassNotFoundException(name);
     }
     Class<?> aClass = loadClassFromModuleOrDependency(module, name, new HashSet<>());
@@ -146,6 +170,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
       return aClass;
     }
 
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("  ClassNotFoundException(%s)", anonymizeClassName(name)));
+    }
     throw new ClassNotFoundException(name);
   }
 
@@ -192,6 +219,10 @@ public final class ModuleClassLoader extends RenderClassLoader {
       return null;
     }
 
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("loadClassFromModuleOrDependency(%s, %s)", anonymize(module), anonymizeClassName(name)));
+    }
+
     Class<?> aClass = loadClassFromModule(module, name);
     if (aClass != null) {
       return aClass;
@@ -216,7 +247,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
     if (extension == null) {
       return null;
     }
-
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("loadClassFromModule(%s, %s)", anonymize(module), anonymizeClassName(name)));
+    }
     VirtualFile vOutFolder = extension.getCompilerOutputPath();
     VirtualFile classFile = null;
     if (vOutFolder == null) {
@@ -232,6 +265,10 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
     if (classFile != null) {
       return loadClassFile(name, classFile);
+    }
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("  Class not found");
     }
     return null;
   }
@@ -414,26 +451,27 @@ public final class ModuleClassLoader extends RenderClassLoader {
    */
   @NotNull
   public static ModuleClassLoader get(@NotNull LayoutLibrary library, @NotNull Module module) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("ModuleClassLoader.get(%s)", anonymize(module)));
+    }
+
     ModuleClassLoader loader = ourCache.get(module);
     if (loader != null) {
       if (library != loader.myLibrary) {
-        if (DEBUG_CLASS_LOADING) {
-          //noinspection UseOfSystemOutOrSystemErr
-          System.out.println("Discarding loader because the layout library has changed");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("  Discarding loader because the layout library has changed");
         }
         loader = null;
       } else if (!loader.isUpToDate()) {
-        if (DEBUG_CLASS_LOADING) {
-          //noinspection UseOfSystemOutOrSystemErr
-          System.out.println("Discarding loader because some files have changed");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("  Discarding loader because some files have changed");
         }
         loader = null;
       } else {
         List<URL> updatedJarDependencies = loader.getExternalJars();
         if (loader.myJarClassLoader != null && !updatedJarDependencies.equals(loader.myJarClassLoader.getUrls())) {
-          if (DEBUG_CLASS_LOADING) {
-            //noinspection UseOfSystemOutOrSystemErr
-            System.out.println("Recreating jar class loader because dependencies have changed.");
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("  Recreating jar class loader because dependencies have changed.");
           }
           loader.myJarClassLoader = loader.createClassLoader(updatedJarDependencies);
         }
@@ -451,11 +489,13 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
 
     if (loader == null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("  New class loader");
+      }
       loader = new ModuleClassLoader(library, module);
       ourCache.put(module, loader);
-    } else if (DEBUG_CLASS_LOADING) {
-        //noinspection UseOfSystemOutOrSystemErr
-        System.out.println("Reused class loader for rendering");
+    } else if (LOG.isDebugEnabled()) {
+      LOG.debug("  Re-used class loader");
     }
 
     return loader;

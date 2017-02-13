@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.blame.Message;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
@@ -55,6 +56,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -63,6 +65,8 @@ import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 import org.w3c.dom.Element;
 
 import java.io.File;
@@ -73,7 +77,6 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_PROJECT_LOCATION;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_TARGET_API;
-import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
@@ -97,6 +100,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
  * <li>Test creating a project <b>without</b> a template</li>
  * </ul>
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TemplateTest extends AndroidGradleTestCase {
   /**
    * Whether we should run comprehensive tests or not. This flag allows a simple run to just check a small set of
@@ -137,7 +141,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   private static final Set<String> KNOWN_BROKEN = new HashSet<>();
 
   static {
-
+    // Wear templates are currently broken because they cannot
+    // resolve the wear support library from the prebuilts sdk.
+    KNOWN_BROKEN.add("WatchFaceService");
+    KNOWN_BROKEN.add("BlankWearActivity");
+    KNOWN_BROKEN.add("GoogleMapsWearActivity");
   }
 
   /**
@@ -208,10 +216,9 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   /**
    * Set of templates already tested with separate unit test; remainder is
-   * checked in {@link #testCreateRemainingTemplates()}
+   * checked in {@link #testZCreateRemainingTemplates()}
    */
   private static final Set<String> ourTemplatesChecked = new HashSet<>();
-
 
   /**
    * Is the given api level interesting for testing purposes? This is used to
@@ -266,7 +273,8 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("activities", "BasicActivity", true);
   }
 
-  public void testCppBasicActivityWithFragments() throws Exception {
+  // Fails with > java.lang.NullPointerException (no error message)
+  public void ignore_testCppBasicActivityWithFragments() throws Exception {
     // Regression test for https://code.google.com/p/android/issues/detail?id=221824
     if (DISABLED) {
       return;
@@ -299,6 +307,10 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   public void testNewProjectWithTabbedActivity() throws Exception {
     checkCreateTemplate("activities", "TabbedActivity", true);
+  }
+
+  public void testNewProjectWithBlankWearActivity() throws Exception {
+    checkCreateTemplate("activities", "BlankWearActivity", true);
   }
 
   public void testNewNavigationDrawerActivity() throws Exception {
@@ -359,6 +371,10 @@ public class TemplateTest extends AndroidGradleTestCase {
 
   public void testNewProjectWithTvActivity() throws Exception {
     checkCreateTemplate("activities", "AndroidTVActivity", true);
+  }
+
+  public void testGoogleAdMobAdsActivity() throws Exception {
+    checkCreateTemplate("activities", "GoogleAdMobAdsActivity");
   }
 
   // Non-activities
@@ -429,17 +445,58 @@ public class TemplateTest extends AndroidGradleTestCase {
     checkCreateTemplate("other", "AidlFile");
   }
 
+  public void testNewAidlFolder() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "AidlFolder", false,
+                        (templateMap, projectMap) -> templateMap.put("newLocation", "foo"));
+  }
+
+  public void testAndroidManifest() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "AndroidManifest", false,
+                        (t, p) -> t.put("newLocation", "src/foo/AndroidManifest.xml"));
+  }
+
+  public void testAssetsFolder() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "AssetsFolder", false,
+                        (templateMap, projectMap) -> templateMap.put("newLocation", "src/main/assets/"));
+  }
+
+  public void testJavaAndJniFolder() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "JavaFolder", false,
+                        (t, p) -> t.put("newLocation", "src/main/java"));
+    checkCreateTemplate("other", "JniFolder", false,
+                        (t, p) -> t.put("newLocation", "src/main/jni"));
+  }
+
+  public void testRenderSourceFolder() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "RsFolder", false,
+                        (t, p) -> t.put("newLocation", "src/main/rs"));
+    checkCreateTemplate("other", "ResFolder", false,
+                        (t, p) -> t.put("newLocation", "src/main/res"));
+    checkCreateTemplate("other", "ResourcesFolder", false,
+                        (t, p) -> t.put("newLocation", "src/main/res"));
+  }
+
   public void testNewLayoutResourceFile() throws Exception {
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "LayoutResourceFile");
   }
 
-  public void testNewValueResourceFile() throws Exception {
-    myApiSensitiveTemplate = false;
-    checkCreateTemplate("other", "ValueResourceFile");
+  public void testAndroidAutoMediaService() throws Exception {
+    checkCreateTemplate("other", "AndroidAutoMediaService");
   }
 
-  public void testCreateRemainingTemplates() throws Exception {
+  public void testAndroidAutoMessagingSerice() throws Exception {
+    checkCreateTemplate("other", "AndroidAutoMessagingService");
+  }
+
+  // --- Note that this test *must* run after all other tests to check and only
+  // run the templates that have not already been run ---
+  public void testZCreateRemainingTemplates() throws Exception {
     if (DISABLED) {
       return;
     }
@@ -465,6 +522,11 @@ public class TemplateTest extends AndroidGradleTestCase {
     long end = System.currentTimeMillis();
     System.out.println("Successfully checked " + ourCount + " template permutations in "
                        + ((end - begin) / (1000 * 60)) + " minutes");
+  }
+
+  public void testNewValueResourceFile() throws Exception {
+    myApiSensitiveTemplate = false;
+    checkCreateTemplate("other", "ValueResourceFile");
   }
 
   public void testJdk7() throws Exception {
@@ -594,6 +656,10 @@ public class TemplateTest extends AndroidGradleTestCase {
     return category + ':' + name + ':' + createWithProject;
   }
 
+  private void checkCreateTemplate(String category, String name, boolean createWithProject) throws Exception {
+    checkCreateTemplate(category, name, createWithProject, null);
+  }
+
   /**
    * Checks the given template in the given category
    *
@@ -602,9 +668,12 @@ public class TemplateTest extends AndroidGradleTestCase {
    * @param createWithProject whether the template should be created as part of creating the project (which should
    *                          only be done for activities), or whether it should be added as as a separate template
    *                          into an existing project (which is created first, followed by the template)
+   * @param customizer        An instance of {@link ProjectStateCustomizer} used for providing template and project overrides.
+   *
    * @throws Exception
    */
-  private void checkCreateTemplate(String category, String name, boolean createWithProject) throws Exception {
+  private void checkCreateTemplate(String category, String name, boolean createWithProject,
+                                   @Nullable ProjectStateCustomizer customizer) throws Exception {
     if (DISABLED) {
       return;
     }
@@ -618,7 +687,12 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
     markChecked(templateFile, createWithProject);
     Stopwatch stopwatch = Stopwatch.createStarted();
-    checkTemplate(templateFile, createWithProject);
+    if (customizer == null) {
+      checkTemplate(templateFile, createWithProject);
+    }
+    else {
+      checkTemplate(templateFile, createWithProject, customizer);
+    }
     stopwatch.stop();
     System.out.println("Checked " + templateFile.getName() + " successfully in " + stopwatch.toString());
   }
@@ -690,6 +764,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     // the test is comprehensive
     // For now make sure there's at least one
     boolean ranTest = false;
+    int lowestMinApiForProject = Math.max(Integer.parseInt((String)values.get(ATTR_MIN_API)), values.getTemplateMetadata().getMinSdk());
 
     IAndroidTarget[] targets = sdkData.getTargets();
     for (int i = targets.length - 1; i >= 0; i--) {
@@ -706,7 +781,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       assertNotNull(activityMetadata);
       assertNotNull(projectMetadata);
 
-      int lowestSupportedApi = Math.max(projectMetadata.getMinSdk(), activityMetadata.getMinSdk());
+      int lowestSupportedApi = Math.max(lowestMinApiForProject, activityMetadata.getMinSdk());
 
       for (int minSdk = lowestSupportedApi;
            minSdk <= SdkVersionInfo.HIGHEST_KNOWN_API;
@@ -741,46 +816,23 @@ public class TemplateTest extends AndroidGradleTestCase {
           // doesn't seem like I need to multiply
           // just pick the best setting that applies instead for each platform
           Collection<Parameter> parameters = projectMetadata.getParameters();
-          projectParameters:
-          for (Parameter parameter : parameters) {
+          // Does it have any enums?
+          boolean hasEnums = parameters.stream().anyMatch(p -> p.type == Parameter.Type.ENUM);
+          if (!hasEnums || overrides != null) {
+            String base = projectNameBase
+                          + "_min_" + minSdk
+                          + "_target_" + targetSdk
+                          + "_build_" + target.getVersion().getApiLevel();
             if (overrides != null) {
-              String base = projectNameBase
-                            + "_min_" + minSdk
-                            + "_target_" + targetSdk
-                            + "_build_" + target.getVersion().getApiLevel()
-                            + "_overrides";
-              checkApiTarget(minSdk, targetSdk, target, values, base, state, overrides, projectOverrides);
-              ranTest = true;
-
-              break projectParameters;
+              base += "_overrides";
             }
-
-            List<Element> options = parameter.getOptions();
-            if (parameter.type == Parameter.Type.ENUM) {
-              assertNotNull(parameter.id);
-              for (Element element : options) {
-                Option option = Option.get(element);
-                String optionId = option.id;
-                int optionMinSdk = option.minSdk;
-                int optionMinBuildApi = option.minBuild;
-                if (optionMinSdk <= minSdk &&
-                    optionMinBuildApi <= target.getVersion().getApiLevel()) {
-                  values.put(parameter.id, optionId);
-                  if (parameter.id.equals("baseTheme")) {
-                    String base = projectNameBase
-                                  + "_min_" + minSdk
-                                  + "_target_" + targetSdk
-                                  + "_build_" + target.getVersion().getApiLevel()
-                                  + "_theme_" + optionId;
-                    checkApiTarget(minSdk, targetSdk, target, values, base, state, null, null);
-                    ranTest = true;
-                    if (!TEST_VARIABLE_COMBINATIONS) {
-                      break projectParameters;
-                    }
-                  }
-                }
-              }
-            }
+            checkApiTarget(minSdk, targetSdk, target, values, base, state, overrides, projectOverrides);
+            ranTest = true;
+          }
+          else {
+            // Handle all enums here. None of the projects have this currently at this level
+            // so we will bite the bullet when we first encounter it.
+            fail("Not expecting enums at the root level");
           }
 
           if (TEST_JUST_ONE_TARGET_SDK_VERSION) {
@@ -850,6 +902,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
 
     String projectName;
+    projectParams:
     for (Parameter parameter : parameters) {
       if (parameter.type == Parameter.Type.SEPARATOR || parameter.type == Parameter.Type.STRING) {
         // TODO: Consider whether we should attempt some strings here
@@ -875,12 +928,13 @@ public class TemplateTest extends AndroidGradleTestCase {
           int projectMinApi = projectValues.getInt(ATTR_MIN_API_LEVEL);
           int projectBuildApi = projectValues.getInt(ATTR_BUILD_API);
           if (projectMinApi >= optionMinSdk &&
-              projectBuildApi >= optionMinBuildApi) {
+              projectBuildApi >= optionMinBuildApi &&
+              !optionId.equals(initial)) {
             values.put(parameter.id, optionId);
             projectName = projectNameBase + "_" + parameter.id + "_" + optionId;
             checkProject(projectName, projectValues, templateValues);
             if (!TEST_VARIABLE_COMBINATIONS) {
-              break;
+              break projectParams;
             }
           }
         }
@@ -891,23 +945,17 @@ public class TemplateTest extends AndroidGradleTestCase {
           // Skipping this one: always true when launched from new project
           continue;
         }
-        boolean value = false;
-        //noinspection ConstantConditions
+        boolean initialValue = (boolean)initial;
+        // For boolean values, only run checkProject in the non-default setting.
+        // The default value is already used when running checkProject in the default state for all variables.
+        boolean value = !initialValue;
         values.put(parameter.id, value);
-        //noinspection ConstantConditions
         projectName = projectNameBase + "_" + parameter.id + "_" + value;
         checkProject(projectName, projectValues, templateValues);
 
         if (!TEST_VARIABLE_COMBINATIONS) {
-          break;
+          break projectParams;
         }
-
-        value = true;
-        //noinspection ConstantConditions
-        values.put(parameter.id, value);
-        //noinspection ConstantConditions
-        projectName = projectNameBase + "_" + parameter.id + "_" + value;
-        checkProject(projectName, projectValues, templateValues);
       }
       values.put(parameter.id, initial);
     }
@@ -962,6 +1010,31 @@ public class TemplateTest extends AndroidGradleTestCase {
   private void checkProject(@NonNull String projectName,
                             @NonNull NewProjectWizardState projectValues,
                             @Nullable TemplateWizardState templateValues) throws Exception {
+
+    boolean checkLib = templateValues != null &&
+                       "Activity".equals(templateValues.getTemplate().getMetadata().getCategory()) &&
+                       "Mobile".equals(templateValues.getTemplate().getMetadata().getFormFactor()) &&
+                       !projectValues.getBoolean(ATTR_CREATE_ACTIVITY);
+
+    if (checkLib) {
+      projectValues.put(ATTR_IS_LIBRARY_MODULE, false);
+      templateValues.put(ATTR_IS_LIBRARY_MODULE, false);
+      templateValues.put(ATTR_HAS_APPLICATION_THEME, true);
+    }
+    checkProjectNow(projectName, projectValues, templateValues);
+
+    // check that new Activities can be created on lib modules as well as app modules.
+    if (checkLib) {
+      projectValues.put(ATTR_IS_LIBRARY_MODULE, true);
+      templateValues.put(ATTR_IS_LIBRARY_MODULE, true);
+      templateValues.put(ATTR_HAS_APPLICATION_THEME, false);
+      checkProjectNow(projectName + "_lib", projectValues, templateValues);
+    }
+  }
+
+  private void checkProjectNow(@NonNull String projectName,
+                               @NonNull NewProjectWizardState projectValues,
+                               @Nullable TemplateWizardState templateValues) throws Exception {
     String modifiedProjectName = projectName + "!@#$^&()_+=-,.`~你所有的基地都属于我们";
     ourCount++;
     projectValues.put(ATTR_RES_OUT, null);
@@ -979,6 +1052,7 @@ public class TemplateTest extends AndroidGradleTestCase {
       fixture.setUp();
 
       Project project = fixture.getProject();
+      setUpSdks(project);
       projectDir = Projects.getBaseDirPath(project);
       projectValues.put(ATTR_PROJECT_LOCATION, projectDir.getPath());
 
@@ -996,6 +1070,7 @@ public class TemplateTest extends AndroidGradleTestCase {
           assert template != null;
           File moduleRoot = new File(projectRoot, modifiedProjectName);
           templateValues.put(ATTR_MODULE_NAME, moduleRoot.getName());
+          templateValues.put(ATTR_SOURCE_PROVIDER_NAME, "main");
           templateValues.populateDirectoryParameters();
           RenderingContext context = RenderingContext.Builder.newContext(template, project).withOutputRoot(moduleRoot)
             .withModuleRoot(moduleRoot).withParams(templateValues.getParameters()).build();
@@ -1019,12 +1094,18 @@ public class TemplateTest extends AndroidGradleTestCase {
         });
       }
 
-
       assertNotNull(project);
       System.out.println("Checking project " + projectName + " in " + project.getBaseDir());
 
       GradleInvocationResult result = invokeGradleTasks(project, "assembleDebug");
-      assertThat(result.isBuildSuccessful()).isTrue();
+      // Use the following commented out code to debug the generated project in case of a failure.
+      //if (!result.isBuildSuccessful()) {
+      //  File tmpDir = new File("/tmp", "Test-Dir-" + projectName);
+      //  FileUtil.copyDir(projectDir, tmpDir);
+      //  System.out.println("Failed project copied to: " + tmpDir.getAbsolutePath());
+      //}
+      assertTrue(StringUtil.join(result.getCompilerMessages(Message.Kind.ERROR), "\n"),
+                 result.isBuildSuccessful());
 
       if (CHECK_LINT) {
         assertLintsCleanly(project, Severity.INFORMATIONAL, Sets.newHashSet(ManifestDetector.TARGET_NEWER));

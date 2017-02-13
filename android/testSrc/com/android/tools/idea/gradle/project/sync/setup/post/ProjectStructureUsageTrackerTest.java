@@ -21,6 +21,7 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -68,7 +69,7 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
     assertEquals(0, usage.getTimestamp());
     assertEquals(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS, usage.getStudioEvent().getKind());
     assertEquals(GradleBuildDetails.newBuilder()
-                   .setAndroidPluginVersion("2.3.0-dev")
+                   .setAndroidPluginVersion(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion())
                    .setGradleVersion(GradleVersions.removeTimestampFromGradleVersion(SdkConstants.GRADLE_LATEST_VERSION))
                    .setUserEnabledIr(true)
                    .setModelSupportsIr(true)
@@ -121,7 +122,7 @@ public class ProjectStructureUsageTrackerTest extends AndroidGradleTestCase {
 
   public void testStringToBuildSystemType() {
     assertEquals(GradleNativeAndroidModule.NativeBuildSystemType.NDK_BUILD,
-                 ProjectStructureUsageTracker.stringToBuildSystemType("ndk-build"));
+                 ProjectStructureUsageTracker.stringToBuildSystemType("ndkBuild"));
     assertEquals(GradleNativeAndroidModule.NativeBuildSystemType.CMAKE,
                  ProjectStructureUsageTracker.stringToBuildSystemType("cmake"));
     assertEquals(GradleNativeAndroidModule.NativeBuildSystemType.NDK_COMPILE,

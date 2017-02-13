@@ -68,7 +68,7 @@ public class CanvasResizeInteraction extends Interaction {
    */
   private static final String[] DEVICES_TO_SHOW = {"Nexus 5", "Nexus 6P", "Nexus 7", "Nexus 9", "Nexus 10"};
 
-  private final DesignSurface myDesignSurface;
+  private final NlDesignSurface myDesignSurface;
   private final boolean isPreviewSurface;
   private final List<FolderConfiguration> myFolderConfigurations;
   private final UnavailableSizesLayer myUnavailableLayer = new UnavailableSizesLayer();
@@ -82,7 +82,7 @@ public class CanvasResizeInteraction extends Interaction {
   private int myCurrentX;
   private int myCurrentY;
 
-  public CanvasResizeInteraction(DesignSurface designSurface) {
+  public CanvasResizeInteraction(NlDesignSurface designSurface) {
     myDesignSurface = designSurface;
     isPreviewSurface = designSurface.isPreviewSurface();
     myOrientationLayer = new OrientationLayer(myDesignSurface);
@@ -96,7 +96,7 @@ public class CanvasResizeInteraction extends Interaction {
     VirtualFile file = config.getFile();
     assert file != null;
     String layoutName = file.getNameWithoutExtension();
-    ProjectResourceRepository resourceRepository = ProjectResourceRepository.getProjectResources(config.getModule(), true);
+    ProjectResourceRepository resourceRepository = ProjectResourceRepository.getOrCreateInstance(config.getModule());
     assert resourceRepository != null;
 
     List<ResourceItem> layouts =
@@ -144,16 +144,12 @@ public class CanvasResizeInteraction extends Interaction {
     myCurrentX = x;
     myCurrentY = y;
 
-    ScreenView screenView = myDesignSurface.getCurrentScreenView();
-    if (screenView == null) {
-      return;
-    }
-    screenView.getSurface().setResizeMode(true);
-    updateUnavailableLayer(screenView, false);
+    myDesignSurface.setResizeMode(true);
+    updateUnavailableLayer(myDesignSurface.getCurrentSceneView(), false);
   }
 
   public void updatePosition(int x, int y) {
-    ScreenView screenView = myDesignSurface.getCurrentScreenView();
+    ScreenView screenView = myDesignSurface.getCurrentSceneView();
     if (screenView == null) {
       return;
     }
@@ -311,7 +307,7 @@ public class CanvasResizeInteraction extends Interaction {
 
   @Override
   public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
-    ScreenView screenView = myDesignSurface.getCurrentScreenView();
+    ScreenView screenView = myDesignSurface.getCurrentSceneView();
     if (screenView == null) {
       return;
     }
@@ -358,13 +354,13 @@ public class CanvasResizeInteraction extends Interaction {
   public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
     super.end(x, y, modifiers, canceled);
 
-    ScreenView screenView = myDesignSurface.getCurrentScreenView();
+    ScreenView screenView = myDesignSurface.getCurrentSceneView();
     if (screenView == null) {
       return;
     }
 
     // Set the surface in resize mode so it doesn't try to re-center the screen views all the time
-    screenView.getSurface().setResizeMode(false);
+    myDesignSurface.setResizeMode(false);
 
     // When disabling the resize mode, add a render handler to call zoomToFit
     screenView.getModel().addListener(new ModelListener() {
@@ -449,7 +445,7 @@ public class CanvasResizeInteraction extends Interaction {
 
     @Override
     public void paint(@NotNull Graphics2D g2d) {
-      ScreenView screenView = myDesignSurface.getCurrentScreenView();
+      ScreenView screenView = myDesignSurface.getCurrentSceneView();
       if (screenView == null) {
         return;
       }
@@ -479,7 +475,7 @@ public class CanvasResizeInteraction extends Interaction {
 
     @Override
     public void paint(@NotNull Graphics2D g2d) {
-      ScreenView screenView = myDesignSurface.getCurrentScreenView();
+      ScreenView screenView = myDesignSurface.getCurrentSceneView();
       if (screenView == null) {
         return;
       }
@@ -526,12 +522,12 @@ public class CanvasResizeInteraction extends Interaction {
 
   private static class DeviceLayer extends Layer {
     private final String myName;
-    private final DesignSurface myDesignSurface;
+    private final NlDesignSurface myDesignSurface;
     private final int myNameWidth;
     private int myBigDimension;
     private int mySmallDimension;
 
-    public DeviceLayer(@NotNull DesignSurface designSurface, int pxWidth, int pxHeight, @NotNull String name) {
+    public DeviceLayer(@NotNull NlDesignSurface designSurface, int pxWidth, int pxHeight, @NotNull String name) {
       myDesignSurface = designSurface;
       myBigDimension = Math.max(pxWidth, pxHeight);
       mySmallDimension = Math.min(pxWidth, pxHeight);
@@ -542,7 +538,7 @@ public class CanvasResizeInteraction extends Interaction {
 
     @Override
     public void paint(@NotNull Graphics2D g2d) {
-      ScreenView screenView = myDesignSurface.getCurrentScreenView();
+      ScreenView screenView = myDesignSurface.getCurrentSceneView();
       if (screenView == null) {
         return;
       }
@@ -569,11 +565,11 @@ public class CanvasResizeInteraction extends Interaction {
     private final Polygon myOrientationPolygon = new Polygon();
     private final double myPortraitWidth;
     private final double myLandscapeWidth;
-    private final DesignSurface myDesignSurface;
+    private final NlDesignSurface myDesignSurface;
     private BufferedImage myOrientationImage;
     private ScreenOrientation myLastOrientation;
 
-    public OrientationLayer(@NotNull DesignSurface designSurface) {
+    public OrientationLayer(@NotNull NlDesignSurface designSurface) {
       myDesignSurface = designSurface;
       FontMetrics fontMetrics = myDesignSurface.getFontMetrics(myDesignSurface.getFont());
       myPortraitWidth = fontMetrics.getStringBounds("Portrait", null).getWidth();
@@ -582,7 +578,7 @@ public class CanvasResizeInteraction extends Interaction {
 
     @Override
     public void paint(@NotNull Graphics2D g2d) {
-      ScreenView screenView = myDesignSurface.getCurrentScreenView();
+      ScreenView screenView = myDesignSurface.getCurrentSceneView();
       if (screenView == null) {
         return;
       }
@@ -674,7 +670,7 @@ public class CanvasResizeInteraction extends Interaction {
 
     @Override
     public void paint(@NotNull Graphics2D g2d) {
-      ScreenView screenView = myDesignSurface.getCurrentScreenView();
+      ScreenView screenView = myDesignSurface.getCurrentSceneView();
       if (screenView == null) {
         return;
       }

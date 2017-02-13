@@ -28,7 +28,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -48,7 +47,6 @@ public class FlightRecorderTest {
   @Test
   public void trimOldLogs() throws IOException {
     LocalDateTime now = LocalDateTime.now();
-    Random random = new Random(System.currentTimeMillis());
 
     // create 10 instants back in time
     List<LocalDateTime> instants = ThreadLocalRandom.current()

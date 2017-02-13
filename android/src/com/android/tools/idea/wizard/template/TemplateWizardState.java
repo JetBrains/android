@@ -126,6 +126,7 @@ public class TemplateWizardState implements Function<String, Object> {
     put(ATTR_IS_NEW_PROJECT, false);
     put(ATTR_IS_GRADLE, true);
     put(ATTR_IS_LIBRARY_MODULE, false);
+    put(ATTR_HAS_APPLICATION_THEME, true);
 
     put(ATTR_SRC_DIR, "src/main/java");
     put(ATTR_RES_DIR, "src/main/res");

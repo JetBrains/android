@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MockAxisFormatter extends BaseAxisFormatter {
 
-  private static final int[] MULTIPLIERS = new int[]{10, 100, 1000};   //
+  private static final int[] MULTIPLIERS = new int[]{10, 100, 10};   //
   private static final int BASE = 10;
   private static final int MIN_INTERVAL = 1;
   private static final String[] UNITS = new String[]{"mm", "cm", "m"};

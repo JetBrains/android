@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.android.builder.model.SyncIssue.TYPE_GRADLE_TOO_OLD;
-import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionErrorHandler.getQuickFixHyperlinks;
+import static com.android.tools.idea.gradle.project.sync.errors.UnsupportedGradleVersionErrorHandler.getQuickFixHyperlinksWithGradleVersion;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessage.DEFAULT_GROUP;
 
 class UnsupportedGradleReporter extends BaseSyncIssuesReporter {
@@ -44,7 +44,7 @@ class UnsupportedGradleReporter extends BaseSyncIssuesReporter {
     SyncMessage message = new SyncMessage(DEFAULT_GROUP, type, NonNavigatable.INSTANCE, text);
 
     String gradleVersion = syncIssue.getData();
-    List<NotificationHyperlink> quickFixes = getQuickFixHyperlinks(module.getProject(), gradleVersion);
+    List<NotificationHyperlink> quickFixes = getQuickFixHyperlinksWithGradleVersion(module.getProject(), gradleVersion);
     message.add(quickFixes);
 
     getSyncMessages(module).report(message);

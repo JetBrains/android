@@ -175,7 +175,12 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
       for (Rectangle2D.Float rect : myPathCache) {
         double scaledXStart = rect.x * dim.getWidth();
         double scaledXDuration = rect.width * dim.getWidth();
-        clipRect.setRect(scaledXStart, 0, scaledXDuration, dim.getHeight());
+        double newX = Math.max(scaledXStart, originalClip.getBounds().getX());
+        clipRect.setRect(newX,
+                         0,
+                         Math.min(scaledXDuration + scaledXStart - newX,
+                                  originalClip.getBounds().getX() + originalClip.getBounds().getWidth() - newX),
+                         dim.getHeight());
 
         // Clear the region by repainting the background
         g2d.setColor(host.getBackground());
@@ -286,7 +291,6 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     private boolean myIsBlocking = false;
     @Nullable private Icon myIcon = null;
     @Nullable private Stroke myStroke = null;
-    @Nullable private RangedContinuousSeries myAttachedLineSeries = null;
     @Nullable private Function<E, String> myTooltipProvider = null;
     @Nullable private Function<E, String> myLabelProvider = null;
     @Nullable private Consumer<E> myClickHandler = null;
@@ -321,15 +325,6 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
      */
     public Builder<E> setStroke(@NotNull Stroke stroke) {
       myStroke = stroke;
-      return this;
-    }
-
-    /**
-     * If set the renderer will attach the content (e.g. icon/text) of the DurationData on top of the closest point of the corresponding
-     * line series.
-     */
-    public Builder<E> setAttachLineSeries(@NotNull RangedContinuousSeries series) {
-      myAttachedLineSeries = series;
       return this;
     }
 

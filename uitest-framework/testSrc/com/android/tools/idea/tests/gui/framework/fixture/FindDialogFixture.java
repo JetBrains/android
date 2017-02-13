@@ -21,7 +21,6 @@ import com.intellij.openapi.ui.ComboBox;
 import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 
-import static org.fest.swing.edt.GuiActionRunner.execute;
 
 public class FindDialogFixture extends IdeaDialogFixture<FindDialog> {
   @NotNull
@@ -38,13 +37,7 @@ public class FindDialogFixture extends IdeaDialogFixture<FindDialog> {
 
   @NotNull
   public FindDialogFixture setTextToFind(@NotNull final String text) {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        ComboBox input = (ComboBox)getDialogWrapper().getPreferredFocusedComponent();
-        input.setSelectedItem(text);
-      }
-    });
+    GuiTask.execute(() -> ((ComboBox)getDialogWrapper().getPreferredFocusedComponent()).setSelectedItem(text));
     return this;
   }
 

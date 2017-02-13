@@ -16,26 +16,65 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.profilers.IdeProfilerServices;
-import com.intellij.openapi.project.Project;
-import com.intellij.pom.Navigatable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 
 public class IntellijProfilerServices implements IdeProfilerServices {
-  @NotNull private final Project myProject;
+  private static Logger getLogger() {
+    return Logger.getInstance(IntellijProfilerServices.class);
+  }
 
-  public IntellijProfilerServices(@NotNull Project project) {
-    myProject = project;
+  @NotNull
+  @Override
+  public Executor getMainExecutor() {
+    return ApplicationManager.getApplication()::invokeLater;
+  }
+
+  @NotNull
+  @Override
+  public Executor getPoolExecutor() {
+    return ApplicationManager.getApplication()::executeOnPooledThread;
   }
 
   @Override
-  public boolean navigateToStackTraceLine(@NotNull String line) {
-    CallStackLine stackLine = new CallStackLine(myProject, line);
-    Navigatable nav = stackLine.getNavigatable();
-    if (nav != null && nav.canNavigate()) {
-      nav.navigate(true);
-      return true;
+  public void saveFile(@NotNull File file, @NotNull Consumer<FileOutputStream> fileOutputStreamConsumer, @Nullable Runnable postRunnable) {
+    File parentDir = file.getParentFile();
+    if (!parentDir.exists()) {
+      //noinspection ResultOfMethodCallIgnored
+      parentDir.mkdirs();
+    }
+    if (!file.exists()) {
+      try {
+        if (!file.createNewFile()) {
+          getLogger().error("Could not create new file at: " + file.getPath());
+          return;
+        }
+      }
+      catch (IOException e) {
+        getLogger().error(e);
+      }
     }
 
-    return false;
+    try (FileOutputStream fos = new FileOutputStream(file)) {
+      fileOutputStreamConsumer.accept(fos);
+    }
+    catch (IOException e) {
+      getLogger().error(e);
+    }
+
+    VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, true);
+    if (virtualFile != null) {
+      virtualFile.refresh(true, false, postRunnable);
+    }
   }
 }

@@ -18,15 +18,16 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.common.*;
+import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.android.tools.profilers.memory.adapters.ReferenceObject;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ui.components.JBList;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +41,7 @@ import javax.swing.tree.TreePath;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A view object that is responsible for displaying the callstack + references of an {@link InstanceObject} based on whether the
@@ -52,57 +54,74 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
   @NotNull private final MemoryProfilerStage myStage;
 
-  @NotNull private final JTabbedPane myTabbedPane;
+  @NotNull private final IdeProfilerComponents myIdeProfilerComponents;
+
+  @NotNull private final TabsPanel myTabsPanel;
+
+  @NotNull private final StackTraceView myStackTraceView;
+
+  @Nullable private JComponent myReferenceColumnTree;
+
+  @Nullable private JTree myReferenceTree;
 
   @NotNull private final Map<InstanceAttribute, AttributeColumn> myAttributeColumns = new HashMap<>();
 
-  public MemoryInstanceDetailsView(@NotNull MemoryProfilerStage stage) {
+  public MemoryInstanceDetailsView(@NotNull MemoryProfilerStage stage, @NotNull IdeProfilerComponents ideProfilerComponents) {
     myStage = stage;
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, this::instanceChanged);
+    myIdeProfilerComponents = ideProfilerComponents;
 
-    // TODO fix tab styling. Currently tabs appear in the middle with too much padding.
-    myTabbedPane = new JBTabbedPane();
+    myTabsPanel = ideProfilerComponents.createTabsPanel();
+    myStackTraceView = ideProfilerComponents.createStackView(new StackTraceModel());
+    myStackTraceView.getModel().addDependency(this).onChange(
+      StackTraceModel.Aspect.SELECTED_LOCATION, () -> {
+        if (myStackTraceView.getModel().getSelectedType() == StackTraceModel.Type.STACK_FRAME) {
+          myStage.setProfilerMode(ProfilerMode.NORMAL);
+        }
+      });
 
     myAttributeColumns.put(
       InstanceObject.InstanceAttribute.LABEL,
       new AttributeColumn(
         "Reference",
-        () -> new DetailColumnRenderer(value -> {
-          StringBuilder builder = new StringBuilder();
-          assert value.getAdapter() instanceof InstanceObject;
-          InstanceObject node = (InstanceObject)value.getAdapter();
-          if (node instanceof ReferenceObject) {
-            ReferenceObject referrer = (ReferenceObject)node;
-            List<String> fieldNames = referrer.getReferenceFieldNames();
-            if (fieldNames.size() > 0) {
-              if (referrer.getIsArray()) {
-                builder.append("Index ");
+        () -> new SimpleColumnRenderer(
+          value -> {
+            StringBuilder builder = new StringBuilder();
+            assert value.getAdapter() instanceof InstanceObject;
+            InstanceObject node = (InstanceObject)value.getAdapter();
+            if (node instanceof ReferenceObject) {
+              ReferenceObject referrer = (ReferenceObject)node;
+              List<String> fieldNames = referrer.getReferenceFieldNames();
+              if (fieldNames.size() > 0) {
+                if (referrer.getIsArray()) {
+                  builder.append("Index ");
+                }
+                builder.append(String.join(",", fieldNames));
+                builder.append(" in ");
               }
-              builder.append(String.join(",", fieldNames));
-              builder.append(" in  ");
             }
-          }
 
-          builder.append(node.getName());
-          return builder.toString();
-        },
-                                       value -> MemoryProfilerStageView.getInstanceObjectIcon((InstanceObject)value.getAdapter()),
-                                       SwingConstants.LEFT),
+            builder.append(node.getDisplayLabel());
+            return builder.toString();
+          },
+          value -> MemoryProfilerStageView.getInstanceObjectIcon((InstanceObject)value.getAdapter()),
+          SwingConstants.LEFT),
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
         SortOrder.ASCENDING,
-        (o1, o2) -> ((InstanceObject)o1.getAdapter()).getName().compareTo(((InstanceObject)o2.getAdapter()).getName())));
+        Comparator.comparing(o -> ((InstanceObject)o.getAdapter()).getDisplayLabel())));
     myAttributeColumns.put(
       InstanceObject.InstanceAttribute.DEPTH,
       new AttributeColumn(
         "Depth",
-        () -> new DetailColumnRenderer(value -> {
+        () -> new SimpleColumnRenderer(value -> {
           MemoryObject node = value.getAdapter();
           if (node instanceof InstanceObject) {
             InstanceObject instanceObject = (InstanceObject)value.getAdapter();
-            if (instanceObject.getDepth() >= 0) {
-              return Integer.toString(instanceObject.getDepth());
+            int depth = instanceObject.getDepth();
+            if (depth >= 0 && depth < Integer.MAX_VALUE) {
+              return Integer.toString(depth);
             }
           }
           return "";
@@ -110,25 +129,26 @@ final class MemoryInstanceDetailsView extends AspectObserver {
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        (o1, o2) -> ((InstanceObject)o1.getAdapter()).getDepth() - ((InstanceObject)o2.getAdapter()).getDepth()));
+        Comparator.comparingInt(o -> ((InstanceObject)o.getAdapter()).getDepth())));
     myAttributeColumns.put(
       InstanceObject.InstanceAttribute.SHALLOW_SIZE,
       new AttributeColumn(
         "Shallow Size",
-        () -> new DetailColumnRenderer(value -> Integer.toString(((InstanceObject)value.getAdapter()).getShallowSize()), value -> null,
-                                       SwingConstants.RIGHT),
+        () -> new SimpleColumnRenderer(
+          value -> Integer.toString(((InstanceObject)value.getAdapter()).getShallowSize()), value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        (o1, o2) -> ((InstanceObject)o1.getAdapter()).getShallowSize() - ((InstanceObject)o2.getAdapter()).getShallowSize()));
+        Comparator.comparingInt(o -> ((InstanceObject)o.getAdapter()).getShallowSize())));
     myAttributeColumns.put(
       InstanceObject.InstanceAttribute.RETAINED_SIZE,
       new AttributeColumn(
         "Retained Size",
-        () -> new DetailColumnRenderer(value -> {
-          MemoryObject node = value.getAdapter();
-          return node instanceof InstanceObject ? Long.toString(((InstanceObject)value.getAdapter()).getRetainedSize()) : "";
-        }, value -> null, SwingConstants.RIGHT),
+        () -> new SimpleColumnRenderer(
+          value -> {
+            MemoryObject node = value.getAdapter();
+            return node instanceof InstanceObject ? Long.toString(((InstanceObject)value.getAdapter()).getRetainedSize()) : "";
+          }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
@@ -142,54 +162,70 @@ final class MemoryInstanceDetailsView extends AspectObserver {
   }
 
   @NotNull
-  public JComponent getComponent() {
-    return myTabbedPane;
+  JComponent getComponent() {
+    return myTabsPanel.getComponent();
+  }
+
+  @VisibleForTesting
+  @Nullable
+  JTree getReferenceTree() {
+    return myReferenceTree;
+  }
+
+  @VisibleForTesting
+  @Nullable
+  JComponent getReferenceColumnTree() {
+    return myReferenceColumnTree;
   }
 
   private void instanceChanged() {
     InstanceObject instance = myStage.getSelectedInstance();
     if (instance == null) {
-      myTabbedPane.setVisible(false);
+      myReferenceTree = null;
+      myReferenceColumnTree = null;
+      myTabsPanel.getComponent().setVisible(false);
       return;
     }
 
-    myTabbedPane.removeAll();
+    myTabsPanel.removeAll();
     boolean hasContent = false;
 
     // Populate Callstacks
     AllocationStack callStack = instance.getCallStack();
     if (callStack != null && !callStack.getStackFramesList().isEmpty()) {
-      DefaultListModel<StackTraceElement> model = new DefaultListModel<>();
-      callStack.getStackFramesList().forEach(frame -> model
-        .addElement(new StackTraceElement(frame.getClassName(), frame.getMethodName(), frame.getFileName(), frame.getLineNumber())));
-      myTabbedPane.add("Callstack", new JBScrollPane(new JBList(model)));
+      List<CodeLocation> stackFrames = callStack.getStackFramesList().stream()
+        .map((frame) -> new CodeLocation(frame.getClassName(), frame.getFileName(), frame.getMethodName(), frame.getLineNumber() - 1))
+        .collect(Collectors.toList());
+      myStackTraceView.getModel().setStackFrames(instance.getAllocationThreadId(), stackFrames);
+        myTabsPanel.addTab("Callstack", myStackTraceView.getComponent());
       hasContent = true;
     }
 
     // Populate references
-    JComponent tree = buildReferenceColumnTree(instance);
-    if (tree != null) {
-      myTabbedPane.add("References", tree);
+    myReferenceColumnTree = buildReferenceColumnTree(instance);
+    if (myReferenceColumnTree != null) {
+      myTabsPanel.addTab("References", myReferenceColumnTree);
       hasContent = true;
     }
 
-    myTabbedPane.setVisible(hasContent);
+    myTabsPanel.getComponent().setVisible(hasContent);
   }
 
   @Nullable
   private JComponent buildReferenceColumnTree(@NotNull InstanceObject instance) {
     if (instance.getReferences().isEmpty()) {
+      myReferenceTree = null;
       return null;
     }
 
-    JTree tree = buildTree(instance);
-    ColumnTreeBuilder builder = new ColumnTreeBuilder(tree);
+    myReferenceTree = buildTree(instance);
+    ColumnTreeBuilder builder = new ColumnTreeBuilder(myReferenceTree);
     for (InstanceAttribute attribute : instance.getReferenceAttributes()) {
       builder.addColumn(myAttributeColumns.get(attribute).getBuilder());
     }
     builder.setTreeSorter((Comparator<MemoryObjectTreeNode<InstanceObject>> comparator, SortOrder sortOrder) -> {
-      assert tree.getModel() instanceof DefaultTreeModel;
-      DefaultTreeModel treeModel = (DefaultTreeModel)tree.getModel();
+      assert myReferenceTree.getModel() instanceof DefaultTreeModel;
+      DefaultTreeModel treeModel = (DefaultTreeModel)myReferenceTree.getModel();
       assert treeModel.getRoot() instanceof MemoryObjectTreeNode;
       assert ((MemoryObjectTreeNode)treeModel.getRoot()).getAdapter() instanceof InstanceObject;
       //noinspection unchecked
@@ -238,9 +274,51 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       }
     });
 
+    myIdeProfilerComponents.installNavigationContextMenu(tree, () -> {
+      TreePath selection = tree.getSelectionPath();
+      if (selection == null) {
+        return null;
+      }
+
+      InstanceObject instanceObject = (InstanceObject)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
+      return new CodeLocation(instanceObject.getClassName());
+    }, () -> myStage.setProfilerMode(ProfilerMode.NORMAL));
+
+    myIdeProfilerComponents.installContextMenu(tree, new ContextMenuItem() {
+      @NotNull
+      @Override
+      public String getText() {
+        return "Go to Instance";
+      }
+
+      @Nullable
+      @Override
+      public Icon getIcon() {
+        return null;
+      }
+
+      @Override
+      public boolean isEnabled() {
+        return tree.getSelectionPath() != null;
+      }
+
+      @Override
+      public void run() {
+        TreePath selection = tree.getSelectionPath();
+        assert selection != null && ((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter() instanceof InstanceObject;
+        InstanceObject instance = (InstanceObject)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
+        ClassObject klass = instance.getClassObject();
+        assert klass != null;
+        myStage.selectHeap(klass.getHeapObject());
+        myStage.selectClass(klass);
+        myStage.selectInstance(instance);
+      }
+    });
+
     return tree;
   }
 
+  @SuppressWarnings("MethodMayBeStatic")
   private void populateReferenceNodesRecursive(@NotNull MemoryObjectTreeNode parent,
                                                @NotNull InstanceObject parentObject,
                                                int depth) {

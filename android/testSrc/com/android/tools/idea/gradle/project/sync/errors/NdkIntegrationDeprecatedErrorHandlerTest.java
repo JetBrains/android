@@ -42,7 +42,7 @@ public class NdkIntegrationDeprecatedErrorHandlerTest extends AndroidGradleTestC
   public void testHandleError() throws Exception {
     registerSyncErrorToSimulate("Error: NDK integration is deprecated in the current plugin.  Consider trying the new " +
                                 "experimental plugin.  For details, see " +
-                                "http://tools.android.com/tech-docs/new-build-system/gradle-experimental.  " +
+                                "https://developer.android.com/studio/build/experimental-plugin.html  " +
                                 "Set \"android.useDeprecatedNdk=true\" in gradle.properties to continue using the current " +
                                 "NDK integration.");
 

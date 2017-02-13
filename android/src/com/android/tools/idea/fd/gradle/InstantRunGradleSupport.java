@@ -17,11 +17,14 @@ package com.android.tools.idea.fd.gradle;
 
 import com.android.builder.model.InstantRun;
 import com.android.tools.idea.fd.InstantRunManager;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
 /** {@link InstantRunGradleSupport} indicates whether the current version of the gradle plugin supports an instant run build. */
 public enum InstantRunGradleSupport {
@@ -29,7 +32,7 @@ public enum InstantRunGradleSupport {
 
   NO_GRADLE_MODEL,
   GRADLE_PLUGIN_TOO_OLD(AndroidBundle.message("instant.run.notification.ir.disabled.plugin.too.old",
-                                              InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION_STRING)),
+                                              AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion())),
   VARIANT_DOES_NOT_SUPPORT_INSTANT_RUN(AndroidBundle.message("instant.run.notification.ir.disabled.for.current.variant")),
   LEGACY_MULTIDEX_REQUIRES_ART(AndroidBundle.message("instant.run.notification.ir.disabled.multidex.requires.21")),
 
@@ -37,6 +40,7 @@ public enum InstantRunGradleSupport {
   CANNOT_DEPLOY_FOR_SECONDARY_USER(AndroidBundle.message("instant.run.notification.ir.disabled.secondary.user")),
   TARGET_PLATFORM_NOT_INSTALLED(AndroidBundle.message("instant.run.notification.ir.disabled.target.platform.missing")),
   API_TOO_LOW_FOR_INSTANT_RUN, // we don't want a notification for this since w/ the current API level of 21, it'll be too annoying
+  INSTANT_APP, // for now just disable silently
 
   // Gradle 2.2.0-alpha6 and above can provide more fine grained info when IR is disabled.
   // The following status messages correspond to the values returned by the gradle plugin.
@@ -67,6 +71,10 @@ public enum InstantRunGradleSupport {
     boolean modelSupportsInstantRun = InstantRunGradleUtils.modelSupportsInstantRun(model);
     if (!modelSupportsInstantRun) {
       return GRADLE_PLUGIN_TOO_OLD;
+    }
+
+    if (model.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+      return INSTANT_APP;
     }
 
     int modelStatus;

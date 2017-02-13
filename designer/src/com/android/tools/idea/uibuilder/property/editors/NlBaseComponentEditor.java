@@ -21,6 +21,7 @@ import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 
@@ -102,6 +103,11 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor, Browse
   public void stopEditing(@Nullable Object newValue) {
     myListener.stopEditing(this, newValue);
     refresh();
+  }
+
+  @TestOnly
+  public NlEditingListener getEditingListener() {
+    return myListener;
   }
 
   protected void displayResourcePicker() {

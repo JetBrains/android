@@ -16,6 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.Range;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -26,9 +27,11 @@ public class ProfilerTimelineTest {
 
   public static final double DELTA = 0.001;
 
+  private final RelativeTimeConverter myRelativeTimeConverter = new RelativeTimeConverter(0);
+
   @Test
   public void streaming() throws Exception {
-    ProfilerTimeline timeline = new ProfilerTimeline();
+    ProfilerTimeline timeline = new ProfilerTimeline(myRelativeTimeConverter);
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
     dataRange.set(0, TimeUnit.SECONDS.toMicros(60));
@@ -61,7 +64,7 @@ public class ProfilerTimelineTest {
 
   @Test
   public void testZoomIn() throws Exception {
-    ProfilerTimeline timeline = new ProfilerTimeline();
+    ProfilerTimeline timeline = new ProfilerTimeline(myRelativeTimeConverter);
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
     dataRange.set(0, 100);
@@ -86,7 +89,7 @@ public class ProfilerTimelineTest {
 
   @Test
   public void testZoomOut() throws Exception {
-    ProfilerTimeline timeline = new ProfilerTimeline();
+    ProfilerTimeline timeline = new ProfilerTimeline(myRelativeTimeConverter);
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
     dataRange.set(0, 100);
@@ -123,7 +126,7 @@ public class ProfilerTimelineTest {
 
   @Test
   public void testPan() throws Exception {
-    ProfilerTimeline timeline = new ProfilerTimeline();
+    ProfilerTimeline timeline = new ProfilerTimeline(myRelativeTimeConverter);
     Range dataRange = timeline.getDataRange();
     Range viewRange = timeline.getViewRange();
     dataRange.set(0, 100);
@@ -140,5 +143,20 @@ public class ProfilerTimelineTest {
     timeline.pan(140);
     assertEquals(90, viewRange.getMin(), DELTA);
     assertEquals(100, viewRange.getMax(), DELTA);
+    assertFalse(timeline.isStreaming());
+
+    timeline.setStreaming(true);
+    assertTrue(timeline.isStreaming());
+    // Test moving to the left stops streaming
+    timeline.pan(-10);
+    assertFalse(timeline.isStreaming());
+
+    timeline.setStreaming(true);
+    assertTrue(timeline.isStreaming());
+    // Tests moving to the right doesn't stop streaming
+    timeline.pan(10);
+    assertTrue(timeline.isStreaming());
+    // Test moving past the end doesn't stop streaming either
+    timeline.pan(10);
   }
 }

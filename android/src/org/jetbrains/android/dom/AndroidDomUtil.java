@@ -16,7 +16,6 @@
 
 package org.jetbrains.android.dom;
 
-import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -41,6 +40,7 @@ import org.jetbrains.android.dom.menu.MenuItem;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.xml.XmlResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -177,7 +177,7 @@ public class AndroidDomUtil {
       return null;
     }
 
-    if (!SdkConstants.NS_RESOURCES.equals(attrName.getNamespaceKey())) {
+    if (!NS_RESOURCES.equals(attrName.getNamespaceKey())) {
       return null;
     }
 
@@ -308,7 +308,8 @@ public class AndroidDomUtil {
       }
     }
 
-    ResourceManager manager = facet.getResourceManager(isFramework ? SYSTEM_RESOURCE_PACKAGE : null);
+
+    ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(isFramework ? SYSTEM_RESOURCE_PACKAGE : null);
     if (manager != null) {
       AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
       if (attrDefs != null) {

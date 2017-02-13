@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.validation;
 
-import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.ObservableValue;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
@@ -53,7 +52,7 @@ public final class ValidatorPanel extends JPanel implements Disposable {
   private JPanel mySouthPanel;
   private JBLabel myValidationLabel;
 
-  public ValidatorPanel(@NotNull Disposable parentDisposable, @NotNull JPanel innerPanel) {
+  public ValidatorPanel(@NotNull Disposable parentDisposable, @NotNull JComponent innerPanel) {
     super(new BorderLayout());
 
     add(myRootPanel);
@@ -78,37 +77,55 @@ public final class ValidatorPanel extends JPanel implements Disposable {
    */
   public <T> void registerValidator(@NotNull final ObservableValue<T> value,
                                     @NotNull final Validator<T> validator) {
-    myListeners.listenAndFire(value, new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        Validator.Result result = validator.validate(value.get());
-        myMessages.column(value).clear();
-        if (result.getSeverity() != Validator.Severity.OK) {
-          myMessages.put(result.getSeverity(), value, result.getMessage());
-        }
-
-        updateValidationLabel();
+    myListeners.listenAndFire(value, sender -> {
+      Validator.Result result = validator.validate(value.get());
+      myMessages.column(value).clear();
+      if (result.getSeverity() != Validator.Severity.OK) {
+        myMessages.put(result.getSeverity(), value, result.getMessage());
       }
+
+      updateValidationLabel();
     });
   }
 
   /**
-   * Same as {@link #registerValidator(ObservableValue, Validator)}, using a {@link TrueValidator} with a severity of
-   * {@link Validator.Severity#ERROR}
-  **/
-  public void registerValidator(@NotNull ObservableValue<Boolean> value,
-                                @NotNull String errorMessage) {
-    registerValidator(value, new TrueValidator(errorMessage));
+   * Registers a target observable boolean as a simple test which, if {@code true}, means the
+   * {@code message} should be shown with the specified {@code severity}.
+   */
+  public void registerTest(@NotNull ObservableValue<Boolean> value,
+                           @NotNull Validator.Severity severity,
+                           @NotNull String message) {
+    registerValidator(value, new TrueValidator(severity, message));
   }
 
   /**
-   * Same as {@link #registerValidator(ObservableValue, Validator)}, using a {@link TrueValidator} with the specified
-   * {@link Validator.Severity}
+   * Calls {@link #registerTest(ObservableValue, Validator.Severity, String)} with an error
+   * severity.
+   */
+  public void registerTest(@NotNull ObservableValue<Boolean> value,
+                           @NotNull String message) {
+    registerTest(value, Validator.Severity.ERROR, message);
+  }
+
+  /**
+   * Registers a target observable string which represents an invalidation message. If the string
+   * is set to some value, this panel will display it with the specified {@code severity}.
    **/
-  public void registerValidator(@NotNull ObservableValue<Boolean> value,
-                                @NotNull Validator.Severity severity,
-                                @NotNull String errorMessage) {
-    registerValidator(value, new TrueValidator(severity, errorMessage));
+  public void registerMessageSource(@NotNull ObservableValue<String> message, @NotNull Validator.Severity severity) {
+    registerValidator(message, value -> {
+      if (value.isEmpty()) {
+        return Validator.Result.OK;
+      }
+      return new Validator.Result(severity, value);
+    });
+  }
+
+  /**
+   * Calls {@link #registerMessageSource(ObservableValue, Validator.Severity)} with an error
+   * severity.
+   */
+  public void registerMessageSource(@NotNull ObservableValue<String> message) {
+    registerMessageSource(message, Validator.Severity.ERROR);
   }
 
   /**

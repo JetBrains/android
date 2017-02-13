@@ -83,7 +83,7 @@ public class SingleWidgetView extends JPanel {
   JLabel mAspectLabel;
   JTextField mAspectText;
 
-  private String[] statusString = {"Fixed", "Any Size", "Wrap Content"};
+  private String[] statusString = {"Fixed", "Match Constraints", "Wrap Content"};
 
   public SingleWidgetView(WidgetConstraintPanel constraintPanel, ColorSet colorSet) {
     super(null);

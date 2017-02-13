@@ -20,7 +20,8 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import org.fest.swing.core.Robot;
@@ -35,13 +36,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.fest.swing.timing.Pause.pause;
 import static org.junit.Assert.assertTrue;
 
-public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture, DesignSurface> {
+public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture, NlDesignSurface> {
   private final JPanel myProgressPanel;
   private final RenderErrorPanel myRenderErrorPanel;
 
-  public DesignSurfaceFixture(@NotNull Robot robot, @NotNull DesignSurface designSurface) {
+  public DesignSurfaceFixture(@NotNull Robot robot, @NotNull NlDesignSurface designSurface) {
     super(DesignSurfaceFixture.class, robot, designSurface);
     myProgressPanel = robot.finder().findByName(target(), "Layout Editor Progress Panel", JPanel.class, false);
     myRenderErrorPanel = robot.finder().findByName(target(), "Layout Editor Error Panel", RenderErrorPanel.class, false);
@@ -50,7 +52,7 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
   public void waitForRenderToFinish(@NotNull Wait waitForRender) {
     waitForRender.expecting("render to finish").until(() -> !myProgressPanel.isVisible());
     waitForRender.expecting("render to finish").until(() -> {
-      ScreenView screenView = target().getCurrentScreenView();
+      ScreenView screenView = target().getCurrentSceneView();
       if (screenView == null) {
         return false;
       }
@@ -63,6 +65,8 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
       }
       return target().isShowing() && !myRenderErrorPanel.isShowing();
     });
+    // Wait for the animation to finish
+    pause(SceneComponent.ANIMATION_DURATION);
   }
 
   public boolean hasRenderErrors() {
@@ -103,7 +107,7 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
   @NotNull
   public NlComponentFixture findView(@NotNull final String tag, int occurrence) {
     waitForRenderToFinish(Wait.seconds(5));
-    final NlModel model = target().getCurrentScreenView().getModel();
+    final NlModel model = target().getCurrentSceneView().getModel();
     final java.util.List<NlComponent> components = Lists.newArrayList();
 
     model.getComponents().forEach(component -> addComponents(tag, component, components));
@@ -145,7 +149,7 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
   /** Returns the views and all the children */
   @NotNull
   public List<NlComponentFixture> getAllComponents() {
-    ScreenView screenView = target().getCurrentScreenView();
+    ScreenView screenView = target().getCurrentSceneView();
     if (screenView == null) {
       return Collections.emptyList();
     }
@@ -158,12 +162,13 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
   /** Returns a list of the selected views */
   @NotNull
   public List<NlComponent> getSelection() {
-    return (target().getCurrentScreenView() == null)
+    return (target().getCurrentSceneView() == null)
            ? Collections.emptyList()
-           : target().getCurrentScreenView().getModel().getSelectionModel().getSelection();
+           : target().getCurrentSceneView().getModel().getSelectionModel().getSelection();
   }
 
-  public boolean isInScreenMode(@NotNull DesignSurface.ScreenMode mode) {
+  // Only applicable to NlDesignSurface
+  public boolean isInScreenMode(@NotNull NlDesignSurface.ScreenMode mode) {
     return target().getScreenMode() == mode;
   }
 }

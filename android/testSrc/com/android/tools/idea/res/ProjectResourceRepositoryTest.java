@@ -73,8 +73,8 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   private static final String VALUES_OVERLAY2_NO = "resourceRepository/valuesOverlay2No.xml";
 
   public void testStable() {
-    assertSame(ProjectResourceRepository.getProjectResources(myFacet, true), ProjectResourceRepository.getProjectResources(myFacet, true));
-    assertSame(ProjectResourceRepository.getProjectResources(myFacet, true), ProjectResourceRepository.getProjectResources(myModule, true));
+    assertSame(ProjectResourceRepository.getOrCreateInstance(myFacet), ProjectResourceRepository.getOrCreateInstance(myFacet));
+    assertSame(ProjectResourceRepository.getOrCreateInstance(myFacet), ProjectResourceRepository.getOrCreateInstance(myModule));
   }
 
   // Ensure that we invalidate the id cache when the file is rescanned but ids don't change
@@ -163,15 +163,15 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertTrue(items.isEmpty());
 
     for (AndroidFacet facet : libraries) {
-      LocalResourceRepository moduleRepository = facet.getModuleResources(true);
+      LocalResourceRepository moduleRepository = ModuleResourceRepository.getOrCreateInstance(facet);
       assertNotNull(moduleRepository);
-      LocalResourceRepository moduleSetRepository = facet.getProjectResources(true);
+      LocalResourceRepository moduleSetRepository = ProjectResourceRepository.getOrCreateInstance(facet);
       assertNotNull(moduleSetRepository);
       LocalResourceRepository librarySetRepository = AppResourceRepository.getOrCreateInstance(facet);
       assertNotNull(librarySetRepository);
     }
-    myFacet.getModuleResources(true);
-    myFacet.getProjectResources(true);
+    ModuleResourceRepository.getOrCreateInstance(myFacet);
+    ProjectResourceRepository.getOrCreateInstance(myFacet);
     AppResourceRepository.getOrCreateInstance(myFacet);
   }
 

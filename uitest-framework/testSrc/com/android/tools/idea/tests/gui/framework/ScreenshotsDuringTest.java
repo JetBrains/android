@@ -20,22 +20,31 @@ import org.fest.swing.image.ScreenshotTaker;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static com.intellij.openapi.util.io.FileUtil.ensureExists;
 
 /**
  * Rule that takes a screenshot every second.
  */
-public class ScreenshotsDuringTest extends TestWatcher implements ActionListener {
+public class ScreenshotsDuringTest extends TestWatcher {
   private final ScreenshotTaker myScreenshotTaker = new ScreenshotTaker();
-  private final Timer myTimer = new Timer(100, this);
+  private final ScheduledExecutorService myExecutorService;
+  private final int myPeriod;
   private File myFolder;
-  private boolean myCurrentlyTakingScreenshot;
+
+  public ScreenshotsDuringTest() {
+    this(100);
+  }
+
+  public ScreenshotsDuringTest(int period) {
+    myPeriod = period;
+    myExecutorService = Executors.newScheduledThreadPool(1);
+  }
 
   @Override
   protected void starting(Description description) {
@@ -47,12 +56,25 @@ public class ScreenshotsDuringTest extends TestWatcher implements ActionListener
     catch (IOException e) {
       System.out.println("Could not create folder " + folderName);
     }
-    myTimer.start();
+    myExecutorService.scheduleAtFixedRate(() -> {
+      try {
+        myScreenshotTaker.saveDesktopAsPng(new File(myFolder, System.currentTimeMillis() + ".png").getPath());
+      }
+      catch (Throwable e) {
+        // Do nothing
+      }
+    }, 100, myPeriod, TimeUnit.MILLISECONDS);
   }
 
   @Override
   protected void finished(Description description) {
-    myTimer.stop();
+    myExecutorService.shutdown();
+    try {
+      myExecutorService.awaitTermination(myPeriod, TimeUnit.MILLISECONDS);
+    }
+    catch (InterruptedException e) {
+      // Do not report the timeout
+    }
   }
 
   @Override
@@ -60,23 +82,5 @@ public class ScreenshotsDuringTest extends TestWatcher implements ActionListener
     if (myFolder != null) {
       FileUtilRt.delete(myFolder);
     }
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    if (myCurrentlyTakingScreenshot) {
-      // Do not start taking a screenshot if one is in progress, that can cause a deadlock
-      return;
-    }
-    SwingWorker worker = new SwingWorker<Void, Object>() {
-      @Override
-      protected Void doInBackground() throws Exception {
-        myCurrentlyTakingScreenshot = true;
-        myScreenshotTaker.saveDesktopAsPng(new File(myFolder, System.currentTimeMillis() + ".png").getPath());
-        myCurrentlyTakingScreenshot = false;
-        return null;
-      }
-    };
-    worker.execute();
   }
 }

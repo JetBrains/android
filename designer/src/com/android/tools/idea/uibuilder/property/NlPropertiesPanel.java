@@ -30,6 +30,7 @@ import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.PasteProvider;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -45,6 +46,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+import sun.awt.CausedFocusEvent;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
@@ -54,6 +56,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -63,8 +66,9 @@ import static com.android.SdkConstants.TOOLS_URI;
 
 public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction.Model, Disposable,
                                                          DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
-  private static final String CARD_ADVANCED = "table";
-  private static final String CARD_DEFAULT = "default";
+  static final String PROPERTY_MODE = "properties.mode";
+  static final String CARD_TABLE = "table";
+  static final String CARD_INSPECTOR = "inspector";
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 25;
 
@@ -75,9 +79,9 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   private final JPanel myTablePanel;
   private final PTableModel myModel;
   private final InspectorPanel myInspectorPanel;
-  private final MyFocusTraversalPolicy myFocusTraversalPolicy;
-
+  private final JBCardLayout myCardLayout;
   private final JPanel myCardPanel;
+  private final PropertyChangeListener myPropertyChangeListener = this::scrollIntoView;
 
   private List<NlComponent> myComponents;
   private List<NlPropertyItem> myProperties;
@@ -115,24 +119,25 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
                        ? inspectorPanel
                        : new InspectorPanel(propertiesManager, parentDisposable, createViewAllPropertiesLinkPanel(true));
 
-    myCardPanel = new JPanel(new JBCardLayout());
     Disposer.register(parentDisposable, this);
 
-    add(myCardPanel, BorderLayout.CENTER);
-
-    myCardPanel.add(CARD_DEFAULT, ScrollPaneFactory.createScrollPane(myInspectorPanel,
-                                                                     ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                                                     ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER));
+    myCardLayout = new JBCardLayout();
+    myCardPanel = new JPanel(myCardLayout);
+    myCardPanel.add(CARD_INSPECTOR, ScrollPaneFactory.createScrollPane(myInspectorPanel,
+                                                                       ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                                                       ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER));
     JScrollPane tableScrollPane = ScrollPaneFactory.createScrollPane(myTablePanel);
     tableScrollPane.getVerticalScrollBar().setUnitIncrement(VERTICAL_SCROLLING_UNIT_INCREMENT);
     tableScrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
     tableScrollPane.setBorder(BorderFactory.createEmptyBorder());
-    myFocusTraversalPolicy = new MyFocusTraversalPolicy();
-    myCardPanel.add(CARD_ADVANCED, tableScrollPane);
+    myCardPanel.add(CARD_TABLE, tableScrollPane);
     myCardPanel.setFocusCycleRoot(true);
-    myCardPanel.setFocusTraversalPolicy(myFocusTraversalPolicy);
+    myCardPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
+    myAllPropertiesPanelVisible = getAllPropertiesPanelVisibleInitially();
+    myCardLayout.show(myCardPanel, myAllPropertiesPanelVisible ? CARD_TABLE : CARD_INSPECTOR);
     myComponents = Collections.emptyList();
     myProperties = Collections.emptyList();
+    add(myCardPanel, BorderLayout.CENTER);
   }
 
   @Override
@@ -145,13 +150,13 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   @Override
   public void addNotify() {
     super.addNotify();
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(this::scrollIntoView);
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(myPropertyChangeListener);
   }
 
   @Override
   public void removeNotify() {
     super.removeNotify();
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(this::scrollIntoView);
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(myPropertyChangeListener);
   }
 
   public void setFilter(@NotNull String filter) {
@@ -320,10 +325,15 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   @Override
   public void setAllPropertiesPanelVisible(boolean viewAllProperties) {
     myAllPropertiesPanelVisible = viewAllProperties;
-    JBCardLayout cardLayout = (JBCardLayout)myCardPanel.getLayout();
-    String name = viewAllProperties ? CARD_ADVANCED : CARD_DEFAULT;
+    String name = viewAllProperties ? CARD_TABLE : CARD_INSPECTOR;
     Component next = viewAllProperties ? myTable : myInspectorPanel;
-    cardLayout.swipe(myCardPanel, name, JBCardLayout.SwipeDirection.AUTO, next::requestFocus);
+    myCardLayout.swipe(myCardPanel, name, JBCardLayout.SwipeDirection.AUTO, next::requestFocus);
+    PropertiesComponent.getInstance().setValue(PROPERTY_MODE, name);
+  }
+
+  private static boolean getAllPropertiesPanelVisibleInitially() {
+    String value = PropertiesComponent.getInstance().getValue(PROPERTY_MODE, CARD_INSPECTOR);
+    return CARD_TABLE.equals(value);
   }
 
   public boolean activatePreferredEditor(@NotNull String propertyName, boolean afterload) {
@@ -334,20 +344,42 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   }
 
   private void scrollIntoView(@NotNull PropertyChangeEvent event) {
-    if (event.getNewValue() instanceof Component && "focusOwner".equals(event.getPropertyName())) {
+    if (needToScrollInView(event)) {
       Component newFocusedComponent = (Component)event.getNewValue();
-      if (isAncestorOf(newFocusedComponent) &&
-          newFocusedComponent.getParent() instanceof JComponent &&
-          myFocusTraversalPolicy.isLastFocusRecipient(newFocusedComponent)) {
-        JComponent parent1 = (JComponent)newFocusedComponent.getParent();
-        Rectangle bounds = newFocusedComponent.getBounds();
-        if (newFocusedComponent == myTable) {
-          bounds = myTable.getCellRect(myTable.getSelectedRow(), 1, true);
-          bounds.x = 0;
-        }
-        parent1.scrollRectToVisible(bounds);
+      JComponent parent = (JComponent)newFocusedComponent.getParent();
+      Rectangle bounds = newFocusedComponent.getBounds();
+      if (newFocusedComponent == myTable) {
+        bounds = myTable.getCellRect(myTable.getSelectedRow(), 1, true);
+        bounds.x = 0;
       }
+      parent.scrollRectToVisible(bounds);
     }
+  }
+
+  private boolean needToScrollInView(@NotNull PropertyChangeEvent event) {
+    AWTEvent awtEvent = EventQueue.getCurrentEvent();
+    if (!"focusOwner".equals(event.getPropertyName()) ||
+        !(event.getNewValue() instanceof Component)) {
+      return false;
+    }
+    Component newFocusedComponent = (Component)event.getNewValue();
+    if (!isAncestorOf(newFocusedComponent) ||
+        !(newFocusedComponent.getParent() instanceof JComponent) ||
+        !(awtEvent instanceof CausedFocusEvent)) {
+      return false;
+    }
+    CausedFocusEvent focusEvent = (CausedFocusEvent)awtEvent;
+    switch (focusEvent.getCause()) {
+      case TRAVERSAL:
+      case TRAVERSAL_UP:
+      case TRAVERSAL_DOWN:
+      case TRAVERSAL_FORWARD:
+      case TRAVERSAL_BACKWARD:
+        break;
+      default:
+        return false;
+    }
+    return true;
   }
 
   @NotNull
@@ -446,11 +478,6 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
       myPattern = pattern;
     }
 
-    @NotNull
-    private String getPattern() {
-      return myPattern;
-    }
-
     @Override
     public boolean include(Entry<? extends PTableModel, ? extends Integer> entry) {
       PTableItem item = (PTableItem)entry.getValue(0);
@@ -474,26 +501,6 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
 
     private boolean isMatch(@NotNull String text) {
       return myComparator.matchingFragments(myPattern, text) != null;
-    }
-  }
-
-  private static class MyFocusTraversalPolicy extends LayoutFocusTraversalPolicy {
-
-    private Component myLastFocusRecipient;
-
-    private boolean isLastFocusRecipient(@NotNull Component component) {
-      boolean isLastRecipient = component == myLastFocusRecipient;
-      myLastFocusRecipient = null;
-      return isLastRecipient;
-    }
-
-    @Override
-    protected boolean accept(@NotNull Component component) {
-      if (!super.accept(component)) {
-        return false;
-      }
-      myLastFocusRecipient = component;
-      return true;
     }
   }
 

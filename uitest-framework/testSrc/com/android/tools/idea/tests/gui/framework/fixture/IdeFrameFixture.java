@@ -35,6 +35,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerD
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleProjectEventListener;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.FluentMatcher;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -79,6 +80,7 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -93,12 +95,12 @@ import java.util.function.Function;
 import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.registerSyncErrorToSimulate;
 import static com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA;
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
 import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
@@ -182,9 +184,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     Module module = getModule(moduleName);
     ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
 
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    GuiTask.execute(
+      () -> {
         ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
         try {
           for (ContentEntry contentEntry : rootModel.getContentEntries()) {
@@ -192,7 +193,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
               JpsModuleSourceRootType<?> rootType = folder.getRootType();
               if (rootType.equals(sourceType)) {
                 String path = urlToPath(folder.getUrl());
-                String relativePath = getRelativePath(myProjectPath, new File(toSystemDependentName(path)));
+                String relativePath = getRelativePath(myProjectPath, toSystemDependentPath(path));
                 paths.add(PathUtil.toSystemIndependentName(relativePath));
               }
             }
@@ -201,8 +202,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
         finally {
           rootModel.dispose();
         }
-      }
-    });
+      });
 
     return paths;
   }
@@ -675,14 +675,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture updateAndroidGradlePluginVersion(@NotNull String version) throws IOException {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    GuiTask.execute(
+      () -> {
         AndroidPluginVersionUpdater versionUpdater = AndroidPluginVersionUpdater.getInstance(getProject());
         AndroidPluginVersionUpdater.UpdateResult result = versionUpdater.updatePluginVersion(GradleVersion.parse(version), null);
         assertTrue("Android Gradle plugin version was not updated", result.isPluginVersionUpdated());
-      }
-    });
+      });
     return this;
   }
 
@@ -720,19 +718,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
    */
   public void requestFocusIfLost() {
     KeyboardFocusManager keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-    Wait.seconds(1).expecting("a component to have the focus").until(() -> {
+    Wait.seconds(5).expecting("a component to have the focus").until(() -> {
       // Keep requesting focus until it is obtained. Since there is no guarantee that the request focus will be granted,
       // keep asking until it is. This problem has appeared at least when not using a window manager when running tests.
       if (keyboardFocusManager.getFocusOwner() == null) {
         if (SystemInfo.isMac) {
           robot().click(target(), new Point(1, 1)); // Simulate title bar click
         }
-        execute(new GuiTask() {
-          @Override
-          protected void executeInEDT() throws Throwable {
-            target().requestFocus();
-          }
-        });
+        GuiTask.execute(() -> target().requestFocus());
         return false;
       }
       return true;

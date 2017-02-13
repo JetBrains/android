@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="test.pkg">
+  <uses-feature android:name="android.hardware.type.watch"/>
+
+  <application android:allowBackup="false">
+      <<warning descr="Missing `android:value` attribute">meta-<caret>data</warning>
+          android:name="com.google.android.wearable.standalone" />
+  </application>
+
+</manifest>

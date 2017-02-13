@@ -22,6 +22,7 @@ import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
@@ -79,7 +80,7 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
 
 
     // trigger initialization
-    myAndroidFacet.getModuleResources(true);
+    ModuleResourceRepository.getOrCreateInstance(myAndroidFacet);
 
     File classesOut = new File(getProject().getBaseDir().getPath(), "/app/build/intermediates/classes/debug");
     //noinspection unchecked

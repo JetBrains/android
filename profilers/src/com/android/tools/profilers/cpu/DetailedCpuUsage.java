@@ -31,10 +31,10 @@ public class DetailedCpuUsage extends CpuUsage {
 
     myThreadRange = new Range(0, 8);
 
-    CpuUsageDataSeries others = new CpuUsageDataSeries(profilers.getClient().getCpuClient(), true, profilers.getProcessId());
+    CpuUsageDataSeries others = new CpuUsageDataSeries(profilers.getClient().getCpuClient(), true, profilers.getProcessId(), profilers.getSession());
     myOtherCpuSeries = new RangedContinuousSeries("Others", profilers.getTimeline().getViewRange(), getCpuRange(), others);
 
-    CpuThreadCountDataSeries threads = new CpuThreadCountDataSeries(profilers.getClient().getCpuClient(), profilers.getProcessId());
+    CpuThreadCountDataSeries threads = new CpuThreadCountDataSeries(profilers.getClient().getCpuClient(), profilers.getProcessId(), profilers.getSession());
     myThreadsCountSeries = new RangedContinuousSeries("Threads", profilers.getTimeline().getViewRange(), myThreadRange, threads);
     add(myOtherCpuSeries);
     add(myThreadsCountSeries);
@@ -53,5 +53,10 @@ public class DetailedCpuUsage extends CpuUsage {
   @NotNull
   public Range getThreadRange() {
     return myThreadRange;
+  }
+
+  @Override
+  protected String getCpuSeriesLabel() {
+    return "App";
   }
 }

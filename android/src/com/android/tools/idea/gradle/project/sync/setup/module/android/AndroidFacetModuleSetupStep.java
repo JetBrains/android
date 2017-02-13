@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.SyncAction;
+import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -117,5 +117,10 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
       return SEPARATOR + toSystemIndependentName(relativePath);
     }
     return "";
+  }
+
+  @Override
+  public boolean invokeOnSkippedSync() {
+    return true;
   }
 }

@@ -56,7 +56,8 @@ public class StringsCellRenderer extends ColoredTableCellRenderer {
 
     Font currentFont = table.getFont();
     Font f = FontUtil.getFontAbleToDisplay(s, currentFont);
-    if (currentFont != f) {
+
+    if (!currentFont.equals(f)) {
       setFont(f);
     }
 

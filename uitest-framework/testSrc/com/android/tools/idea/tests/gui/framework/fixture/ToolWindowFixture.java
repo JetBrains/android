@@ -30,8 +30,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.fest.swing.edt.GuiActionRunner.execute;
-
 public abstract class ToolWindowFixture {
 
   private static final int SECONDS_TO_WAIT = 120;
@@ -118,12 +116,7 @@ public abstract class ToolWindowFixture {
     Wait.seconds(SECONDS_TO_WAIT).expecting("ToolWindow '" + myToolWindowId + "' to be activated").until(() -> {
       boolean isActive = isActive();
       if (!isActive) {
-        execute(new GuiTask() {
-          @Override
-          protected void executeInEDT() throws Throwable {
-            myToolWindow.activate(null);
-          }
-        });
+        GuiTask.execute(() -> myToolWindow.activate(null));
       }
       return isActive;
     });

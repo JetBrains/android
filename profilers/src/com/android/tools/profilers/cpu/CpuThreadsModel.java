@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.*;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import org.jetbrains.annotations.NotNull;
@@ -32,14 +33,17 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
 
   private final int myProcessId;
 
+  private final Common.Session mySession;
+
   private final Range myRange;
 
   private final AspectObserver myAspectObserver;
 
-  public CpuThreadsModel(@NotNull Range range, @NotNull CpuProfilerStage stage, int id) {
+  public CpuThreadsModel(@NotNull Range range, @NotNull CpuProfilerStage stage, int id, Common.Session session) {
     myRange = range;
     myStage = stage;
     myProcessId = id;
+    mySession = session;
     myAspectObserver = new AspectObserver();
 
     myRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::rangeChanged);
@@ -47,7 +51,8 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
 
   public void rangeChanged() {
     CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myRange.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myRange.getMax()));
     CpuServiceGrpc.CpuServiceBlockingStub client = myStage.getStudioProfilers().getClient().getCpuClient();
@@ -95,7 +100,7 @@ public class CpuThreadsModel extends DefaultListModel<CpuThreadsModel.RangedCpuT
       myThreadId = threadId;
       myName = name;
       myModel = new StateChartModel<>();
-      ThreadStateDataSeries series = new ThreadStateDataSeries(myStage, myProcessId, myThreadId);
+      ThreadStateDataSeries series = new ThreadStateDataSeries(myStage, myProcessId, mySession, myThreadId);
       myModel.addSeries(new RangedSeries<>(myRange, series));
     }
 

@@ -33,10 +33,12 @@ import java.util.List;
 public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
   private final String myName;
   private final NlFlagPropertyItem myFlags;
+  private final int myMaskValue;
 
-  public NlFlagPropertyItemValue(@NotNull String name, @NotNull NlFlagPropertyItem flags) {
+  public NlFlagPropertyItemValue(@NotNull String name, int maskValue, @NotNull NlFlagPropertyItem flags) {
     myName = name;
     myFlags = flags;
+    myMaskValue = maskValue;
     setParent(flags);
   }
 
@@ -68,6 +70,13 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
   @Override
   public String getValue() {
     return myFlags.isItemSet(this) ? SdkConstants.VALUE_TRUE : SdkConstants.VALUE_FALSE;
+  }
+
+  public boolean getMaskValue() {
+    if (myMaskValue == 0) {
+      return myFlags.getMaskValue() == 0;
+    }
+    return (myMaskValue & myFlags.getMaskValue()) == myMaskValue;
   }
 
   @Override

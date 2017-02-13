@@ -47,7 +47,7 @@ public class GradleSyncStateTest extends IdeaTestCase {
 
     Project project = getProject();
     mySyncState = new GradleSyncState(myProject, AndroidProjectInfo.getInstance(project), GradleProjectInfo.getInstance(project),
-                                      messageBus, myChangeNotification, mySummary, myGradleFiles);
+                                      myGradleFiles, messageBus, myChangeNotification, mySummary);
 
     when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(mySyncListener);
   }

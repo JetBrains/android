@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -102,9 +103,11 @@ public class GradleBuildModel extends GradleFileModel {
   @NotNull
   public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file, @NotNull Project project, @NotNull String moduleName) {
     GradleBuildDslFile buildDslFile = new GradleBuildDslFile(file, project, moduleName);
-    populateWithParentModuleSubProjectsProperties(buildDslFile);
-    populateSiblingDslFileWithGradlePropertiesFile(buildDslFile);
-    buildDslFile.parse();
+    ApplicationManager.getApplication().runReadAction(() -> {
+      populateWithParentModuleSubProjectsProperties(buildDslFile);
+      populateSiblingDslFileWithGradlePropertiesFile(buildDslFile);
+      buildDslFile.parse();
+    });
     return new GradleBuildModel(buildDslFile);
   }
 

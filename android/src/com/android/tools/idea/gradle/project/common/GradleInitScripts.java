@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.common;
 
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.escape.Escapers;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -66,32 +67,36 @@ public class GradleInitScripts {
     return null;
   }
 
-  public void addProfilerClasspathInitScriptCommandLineArgTo(@NotNull List<String> allArgs) {
-    String content = "allprojects {\n" +
-                     "  buildscript {\n" +
-                     "    dependencies {\n" +
-                     "      classpath 'com.android.tools:studio-profiler-plugin:1.0'\n" +
-                     "    }\n" +
-                     "  }\n" +
-                     "}\n";
-
-    File initScriptFile = createInitScriptFile("asPerfClasspath", content);
-    if (initScriptFile != null) {
-      addInitScriptCommandLineArg(initScriptFile, allArgs);
-    }
+  private static String escapeAsStringLiteral(@NotNull String s) {
+    // JLS 3.10.6: Escape Sequences for Character and String Literals
+    return "\"" + Escapers.builder()
+      .addEscape('\b', "\\b")
+      .addEscape('\t', "\\t")
+      .addEscape('\n', "\\n")
+      .addEscape('\f', "\\f")
+      .addEscape('\r', "\\r")
+      .addEscape('"', "\\\"")
+      .addEscape('\\', "\\\\")
+      .build()
+      .escape(s)
+      + "\"";
   }
 
   @Nullable
   private static File createInitScriptFile(@NotNull String fileName, @NotNull String content) {
+    Logger logger = Logger.getInstance(GradleInitScripts.class);
     try {
       File file = createTempFile(fileName, DOT_GRADLE);
       file.deleteOnExit();
       writeToFile(file, content);
+      logger.info(String.format("init script file %s contents %s",
+                                escapeAsStringLiteral(fileName),
+                                escapeAsStringLiteral(content)));
       return file;
     }
     catch (Throwable e) {
       String message = String.format("Failed to set up  Gradle init script: '%1$s'", fileName);
-      Logger.getInstance(GradleInitScripts.class).warn(message, e);
+      logger.warn(message, e);
     }
     return null;
   }

@@ -29,7 +29,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerD
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import com.intellij.openapi.fileEditor.impl.EditorsSplitters;
 import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.driver.JListSelectedIndexQuery_selectedIndexOf_Test;
 import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.*;
@@ -91,13 +93,18 @@ public class NativeOptimizedWarningTest {
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
     {
       final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
-      contentFixture.waitForOutput(new PatternTextMatcher(Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL)), 50);
+      contentFixture.waitForOutput(new PatternTextMatcher(Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL)), 70);
     }
 
-    JListFixture listFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME).getFramesList();
+    Wait.seconds(5).expecting("Frame list populated").until(
+      () -> debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME).getFramesListFixture().selection().length > 0);
+    JListFixture listFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME).getFramesListFixture();
+
     EditorsSplitters editorTabs = guiTest.robot().finder().findByType(projectFrame.target(), EditorsSplitters.class, true);
     listFixture.requireSelection(0).requireSelection(".*func2.*");
     GuiTests.waitUntilGone(guiTest.robot(), editorTabs, myWarningMatcher);
+
+    Wait.seconds(5).expecting("Frame list long enough").until(() -> listFixture.contents().length > 2);
 
     listFixture.selectItem(1).requireSelection(".*func1.*");
     GuiTests.waitUntilShowing(guiTest.robot(), editorTabs, myWarningMatcher);

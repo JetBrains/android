@@ -76,13 +76,7 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
       psiChange(event);
     }
   };
-  private final BuildVariantView.BuildVariantSelectionChangeListener buildVariantListener =
-    new BuildVariantView.BuildVariantSelectionChangeListener() {
-      @Override
-      public void buildVariantsConfigChanged() {
-        reload();
-      }
-    };
+  private final BuildVariantView.BuildVariantSelectionChangeListener buildVariantListener = this::reload;
 
   ManifestEditor(@NotNull AndroidFacet facet, @NotNull VirtualFile manifestFile) {
     myFacet = facet;
@@ -96,12 +90,7 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
     if (file != null && SdkConstants.FN_ANDROID_MANIFEST_XML.equals(file.getName())) {
       // This method may still hold a writelock, and we are doing a UI update.
       // Avoid deadlocks, break out of writelock psi/thread for UI update.
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          reload();
-        }
-      });
+      ApplicationManager.getApplication().invokeLater(this::reload);
     }
   }
 

@@ -16,14 +16,22 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.Result;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.CrashReport;
 import com.android.tools.idea.diagnostics.crash.CrashReporter;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.vfs.VirtualFile;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.*;
 
 import static org.mockito.Mockito.*;
 
@@ -37,7 +45,7 @@ public class RenderTaskTest extends RenderTestBase {
     RenderTask task = createRenderTask(layoutFile, configuration, logger);
     task.setCrashReporter(mockCrashReporter);
     // Make sure we throw an exception during the inflate call
-    task.render((w, h) -> { throw new NullPointerException(); });
+    task.render((w, h) -> { throw new NullPointerException(); }).get();
 
     verify(mockCrashReporter, times(1)).submit(isNotNull(CrashReport.class));
   }
@@ -55,7 +63,7 @@ public class RenderTaskTest extends RenderTestBase {
 
     RenderTask task = createRenderTask(drawableFile, configuration, logger);
     // Workaround for a bug in layoutlib that will only fully initialize the static state if a render() call is made.
-    task.render();
+    task.render().get();
     BufferedImage result = task.renderDrawable(new ResourceValue(ResourceType.DRAWABLE, "test", "@drawable/test", false)).get();
 
     assertNotNull(result);
@@ -67,6 +75,87 @@ public class RenderTaskTest extends RenderTestBase {
     } finally {
       g.dispose();
     }
+
+    task.dispose();
+  }
+
+  public void testRender() throws Exception {
+    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml",
+                                                          "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                                          "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                                          "    android:layout_height=\"match_parent\"\n" +
+                                                          "    android:layout_width=\"match_parent\"\n" +
+                                                          "    android:orientation=\"vertical\">\n" +
+                                                          "\n" +
+                                                          "    <LinearLayout\n" +
+                                                          "        android:layout_width=\"50dp\"\n" +
+                                                          "        android:layout_height=\"50dp\"\n" +
+                                                          "        android:background=\"#F00\"/>\n" +
+                                                          "    <LinearLayout\n" +
+                                                          "        android:layout_width=\"50dp\"\n" +
+                                                          "        android:layout_height=\"50dp\"\n" +
+                                                          "        android:background=\"#0F0\"/>\n" +
+                                                          "    <LinearLayout\n" +
+                                                          "        android:layout_width=\"50dp\"\n" +
+                                                          "        android:layout_height=\"50dp\"\n" +
+                                                          "        android:background=\"#00F\"/>\n" +
+                                                          "    \n" +
+                                                          "\n" +
+                                                          "</LinearLayout>").getVirtualFile();
+    Configuration configuration = getConfiguration(file, DEFAULT_DEVICE_ID);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTask task = createRenderTask(file, configuration, logger);
+    ListenableFuture<RenderResult> resultFuture = task.render();
+    RenderResult result = Futures.getUnchecked(resultFuture);
+
+    assertNotNull(result);
+    assertEquals(Result.Status.SUCCESS, result.getRenderResult().getStatus());
+    List<ViewInfo> views = result.getRootViews().get(0).getChildren();
+    assertEquals(3, views.size());
+    for (int i = 0; i < 3; i++) {
+      assertEquals("android.widget.LinearLayout", views.get(0).getClassName());
+    }
+
+    task.dispose();
+  }
+
+  public void testAsyncCallAndDispose() throws IOException, ExecutionException, InterruptedException, BrokenBarrierException {
+    VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
+    Configuration configuration = getConfiguration(layoutFile, DEFAULT_DEVICE_ID);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTask task = createRenderTask(layoutFile, configuration, logger);
+    Semaphore semaphore = new Semaphore(0);
+    task.runAsyncRenderAction(() -> {
+      semaphore.acquire();
+
+      return null;
+    });
+    task.runAsyncRenderAction(() -> {
+      semaphore.acquire();
+
+      return null;
+    });
+
+    boolean timedOut = false;
+
+    Future<?> disposeFuture = task.dispose();
+    semaphore.release();
+
+    // The render tasks won't finish until all tasks are done
+    try {
+      disposeFuture.get(500, TimeUnit.MILLISECONDS);
+    }
+    catch (InterruptedException | ExecutionException ignored) {
+    }
+    catch (TimeoutException e) {
+      timedOut = true;
+    }
+    assertTrue(timedOut);
+
+    semaphore.release();
+    disposeFuture.get();
   }
 
 }

@@ -17,13 +17,17 @@ package com.android.tools.idea.gradle.variant.view;
 
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
+import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel.NdkVariant;
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.CompilerOutputModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.ContentRootsModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.ndk.ContentRootModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.intellij.openapi.application.ApplicationManager;
@@ -31,6 +35,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -51,7 +56,9 @@ import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
  * Updates the contents/settings of a module when a build variant changes.
  */
 class BuildVariantUpdater {
-  private static final Logger LOG = Logger.getInstance(BuildVariantUpdater.class);
+  private final AndroidModuleSetupStep[] myAndroidModuleSetupSteps =
+    {new ContentRootsModuleSetupStep(), new DependenciesAndroidModuleSetupStep(), new CompilerOutputModuleSetupStep()};
+  private final NdkModuleSetupStep[] myNdkModuleSetupSteps = {new ContentRootModuleSetupStep()};
 
   /**
    * Updates a module's structure when the user selects a build variant from the tool window.
@@ -75,7 +82,7 @@ class BuildVariantUpdater {
 
       PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
       setupRequest.setGenerateSourcesAfterSync(false).setCleanProjectAfterSync(false);
-      PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, null);
+      PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, new EmptyProgressIndicator());
 
       generateSourcesIfNeeded(affectedAndroidFacets);
     });
@@ -149,9 +156,9 @@ class BuildVariantUpdater {
     return true;
   }
 
-  private static boolean updateSelectedVariant(@NotNull NdkFacet ndkFacet,
-                                               @NotNull NdkModuleModel ndkModuleModel,
-                                               @NotNull String variantToSelect) {
+  private boolean updateSelectedVariant(@NotNull NdkFacet ndkFacet,
+                                        @NotNull NdkModuleModel ndkModuleModel,
+                                        @NotNull String variantToSelect) {
     NdkVariant selectedVariant = ndkModuleModel.getSelectedVariant();
     if (variantToSelect.equals(selectedVariant.getName())) {
       return false;
@@ -176,10 +183,10 @@ class BuildVariantUpdater {
   }
 
   @NotNull
-  private static Module setUpModule(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
+  private Module setUpModule(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
     IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(module.getProject());
     try {
-      for (AndroidModuleSetupStep setupStep : AndroidModuleSetupStep.getExtensions()) {
+      for (AndroidModuleSetupStep setupStep : myAndroidModuleSetupSteps) {
         if (setupStep.invokeOnBuildVariantChange()) {
           setupStep.setUpModule(module, modelsProvider, androidModel, null, null);
         }
@@ -194,10 +201,10 @@ class BuildVariantUpdater {
   }
 
   @NotNull
-  private static Module setUpModule(@NotNull Module module, @NotNull NdkModuleModel ndkModuleModel) {
+  private Module setUpModule(@NotNull Module module, @NotNull NdkModuleModel ndkModuleModel) {
     IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(module.getProject());
     try {
-      for (NdkModuleSetupStep setupStep : NdkModuleSetupStep.getExtensions()) {
+      for (NdkModuleSetupStep setupStep : myNdkModuleSetupSteps) {
         if (setupStep.invokeOnBuildVariantChange()) {
           setupStep.setUpModule(module, modelsProvider, ndkModuleModel, null, null);
         }
@@ -261,8 +268,13 @@ class BuildVariantUpdater {
   private static void logAndShowUpdateFailure(@NotNull String buildVariantName, @NotNull String reason) {
     String prefix = String.format("Unable to select build variant '%1$s':\n", buildVariantName);
     String msg = prefix + reason;
-    LOG.error(msg);
+    getLog().error(msg);
     msg += ".\n\nConsult IDE log for more details (Help | Show Log)";
     Messages.showErrorDialog(msg, "Error");
+  }
+
+  @NotNull
+  private static Logger getLog() {
+    return Logger.getInstance(BuildVariantUpdater.class);
   }
 }

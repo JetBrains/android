@@ -18,6 +18,7 @@ package org.jetbrains.android.databinding;
 import com.android.tools.idea.databinding.ModuleDataBinding;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.psi.JavaPsiFacade;
 
@@ -40,7 +41,7 @@ public class DataBindingScopeTest extends AndroidGradleTestCase {
     // app depends on lib depends on lib2
 
     // trigger initialization
-    myAndroidFacet.getModuleResources(true);
+    ModuleResourceRepository.getOrCreateInstance(myAndroidFacet);
 
     JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(getProject());
     String appBindingClassName = "com.android.example.appwithdatabinding.databinding.ActivityMainBinding";

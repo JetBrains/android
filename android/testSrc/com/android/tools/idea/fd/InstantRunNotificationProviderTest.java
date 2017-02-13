@@ -46,6 +46,17 @@ public class InstantRunNotificationProviderTest {
   }
 
   @Test
+  public void coldSwapWithNoChangesHasNoNotifications() {
+    BuildSelection buildSelection = new BuildSelection(BuildCause.APP_NOT_RUNNING, false);
+    InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.NO_CHANGES, "");
+    assertEquals("Instant Run restarted the application.", provider.getNotificationText());
+
+    buildSelection = new BuildSelection(BuildCause.USER_CHOSE_TO_COLDSWAP, false);
+    provider = new InstantRunNotificationProvider(buildSelection, DeployType.NO_CHANGES, "");
+    assertNull(provider.getNotificationText());
+  }
+
+  @Test
   public void cleanBuildOnUserRequest() {
     BuildSelection buildSelection = new BuildSelection(BuildCause.USER_REQUESTED_CLEAN_BUILD, false);
     InstantRunNotificationProvider provider = new InstantRunNotificationProvider(buildSelection, DeployType.FULLAPK, "");

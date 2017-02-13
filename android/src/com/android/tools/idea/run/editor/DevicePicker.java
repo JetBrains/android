@@ -19,6 +19,7 @@ import com.android.annotations.Nullable;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.avdmanager.*;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
@@ -26,6 +27,8 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.wireless.android.sdk.stats.AdbAssistantStats;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -88,7 +91,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     myRunContextId = runContextId;
     myFacet = facet;
 
-    myHelpHyperlink.addHyperlinkListener(e -> launchDiagnostics());
+    myHelpHyperlink.addHyperlinkListener(e -> launchDiagnostics(AdbAssistantStats.Trigger.DONT_SEE_DEVICE));
     myCompatibilityChecker = compatibilityChecker;
 
     mySpeedSearch = new DeviceListSpeedSearch(myDevicesList);
@@ -206,7 +209,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
     if (myDeviceCount == 0) {
       EditorNotificationPanel panel = new EditorNotificationPanel();
       panel.setText("No USB devices or running emulators detected");
-      panel.createActionLabel("Troubleshoot", this::launchDiagnostics);
+      panel.createActionLabel("Troubleshoot", () -> launchDiagnostics(AdbAssistantStats.Trigger.NO_RUNNING_DEVICE));
 
       myNotificationPanel.add(panel);
     }
@@ -227,14 +230,14 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
                 }
                 myNotificationPanel.add(new AccelerationErrorNotificationPanel(error, myFacet.getModule().getProject(),
                                                                                () -> updateErrorCheck()));
-                myPanel.revalidate();
-                myPanel.repaint();
               }
             });
           }
         }
       });
     }
+    myPanel.revalidate();
+    myPanel.repaint();
   }
 
   private void postUpdate() {
@@ -413,8 +416,11 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
   }
 
   // TODO: this needs to become a diagnostics dialog
-  public void launchDiagnostics() {
+  public void launchDiagnostics(AdbAssistantStats.Trigger trigger) {
     BrowserUtil.browse("https://developer.android.com/r/studio-ui/devicechooser.html", myFacet.getModule().getProject());
+    UsageTracker.getInstance()
+      .log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.ADB_ASSISTANT_STATS).setAdbAssistantStats(
+        AdbAssistantStats.newBuilder().setTrigger(trigger)));
   }
 
   public void installDoubleClickListener(@NotNull DoubleClickListener listener) {

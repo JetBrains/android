@@ -22,7 +22,8 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.DialogMatcher;
 import org.fest.swing.finder.WindowFinder;
-import org.fest.swing.fixture.*;
+import org.fest.swing.fixture.ContainerFixture;
+import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -31,9 +32,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilGone;
 import static com.google.common.truth.Truth.assertThat;
 
 /** Fixture for {@link com.android.tools.idea.run.editor.DeployTargetPickerDialog}. */
@@ -43,7 +44,7 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
   @NotNull
   public static DeployTargetPickerDialogFixture find(@NotNull Robot robot) {
     Dialog dialog = WindowFinder.findDialog(DialogMatcher.withTitle(AndroidBundle.message("choose.device.dialog.title")).andShowing())
-                                .withTimeout(TimeUnit.MINUTES.toMillis(2)).using(robot)
+                                .withTimeout(TimeUnit.SECONDS.toMillis(5)).using(robot)
                                 .target();
     assertThat(dialog).isInstanceOf(JDialog.class);
     // When adb & avd manager are not initialized, animated icons are displayed. We wait until those animated icons disappear.
@@ -88,8 +89,5 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
 
   public void clickOk() {
     findAndClickOkButton(this);
-    // Wait until the finish of background tasks.
-    // E.g., it is needed before activating Run tool window; otherwise Run tool window won't activate.
-    waitForBackgroundTasks(robot());
   }
 }

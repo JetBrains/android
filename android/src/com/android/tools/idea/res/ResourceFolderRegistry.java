@@ -61,7 +61,7 @@ public class ResourceFolderRegistry {
       ResourceFolderRepository repository = ourDirMap.get(dir);
       if (repository == null) {
         Project project = facet.getModule().getProject();
-        repository = ResourceFolderRepository.create(facet, dir, null);
+        repository = ResourceFolderRepository.create(facet, dir);
         putRepositoryInCache(project, dir, repository);
       }
       return repository;
@@ -202,7 +202,7 @@ public class ResourceFolderRegistry {
       @NotNull final BoundedTaskExecutor myParallelBuildExecutor,
       @NotNull final AndroidFacet facet,
       @NotNull final VirtualFile dir) {
-      return myParallelBuildExecutor.submit(() -> ResourceFolderRepository.create(facet, dir, null));
+      return myParallelBuildExecutor.submit(() -> ResourceFolderRepository.create(facet, dir));
     }
   }
 

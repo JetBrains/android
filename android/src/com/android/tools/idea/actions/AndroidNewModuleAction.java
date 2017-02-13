@@ -30,7 +30,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.event.InputEvent;
 import java.util.ArrayList;
 
 import static org.jetbrains.android.util.AndroidBundle.message;
@@ -48,8 +47,7 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (project != null) {
-      // TODO: before submitting this code, change this to only use the new wizard
-      if (Boolean.getBoolean("use.npw.modelwizard") && (e.getModifiers() & InputEvent.SHIFT_MASK) == 0) {
+      if (WizardUtils.isNpwModelWizardEnabled(e)) {
         ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
         for (ModuleDescriptionProvider provider : ModuleDescriptionProvider.EP_NAME.getExtensions()) {
           moduleDescriptions.addAll(provider.getDescriptions());

@@ -22,6 +22,43 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class ClassObject extends NamespaceObject {
+  public static final String JAVA_LANG_STRING = "java.lang.String";
+  public static final String JAVA_LANG_CLASS = "java.lang.Class";
+
+  public enum ClassAttribute {
+    LABEL,
+    TOTAL_COUNT,
+    HEAP_COUNT,
+    INSTANCE_SIZE,
+    SHALLOW_SIZE,
+    RETAINED_SIZE
+  }
+
+  public enum ValueType {
+    NULL(false),
+    BOOLEAN(true),
+    BYTE(true),
+    CHAR(true),
+    SHORT(true),
+    INT(true),
+    LONG(true),
+    FLOAT(true),
+    DOUBLE(true),
+    OBJECT(false),
+    CLASS(false),
+    STRING(false); // special case for strings
+
+    private boolean myIsPrimitive;
+
+    ValueType(boolean isPrimitive) {
+      myIsPrimitive = isPrimitive;
+    }
+
+    public boolean getIsPrimitive() {
+      return myIsPrimitive;
+    }
+  }
+
   @NotNull
   private final String myPackageName;
 
@@ -37,8 +74,16 @@ public abstract class ClassObject extends NamespaceObject {
   }
 
   @NotNull
+  public abstract HeapObject getHeapObject();
+
+  @NotNull
   public String getClassName() {
     return myClassName;
+  }
+
+  @NotNull
+  public String getPackageName() {
+    return myPackageName;
   }
 
   @NotNull
@@ -47,26 +92,47 @@ public abstract class ClassObject extends NamespaceObject {
     return myPackageName.isEmpty() ? new String[0] : myPackageName.split("\\.");
   }
 
-  public int getChildrenCount() {
-    return -1;
+  /**
+   * @return number of instances across all heaps.
+   */
+  @Override
+  public int getTotalCount() {
+    return INVALID_VALUE;
   }
 
-  public int getElementSize() {
-    return -1;
+  /**
+   * @return number of instances on current heap.
+   */
+  @Override
+  public int getHeapCount() {
+    return INVALID_VALUE;
   }
 
-  public int getDepth() {
-    return -1;
+  /**
+   * @return the (approximated?) size of each instance of the class.
+   */
+  public int getInstanceSize() {
+    return INVALID_VALUE;
   }
 
+  /**
+   * @return size of instances on current heap.
+   */
   public int getShallowSize() {
-    return -1;
+    return INVALID_VALUE;
   }
 
+  /**
+   * @return number of instances on current heap.
+   */
+  @Override
   public long getRetainedSize() {
-    return -1;
+    return INVALID_VALUE;
   }
 
+  /**
+   * @return list of instances on current heap.
+   */
   @NotNull
   public List<InstanceObject> getInstances() {
     return Collections.emptyList();

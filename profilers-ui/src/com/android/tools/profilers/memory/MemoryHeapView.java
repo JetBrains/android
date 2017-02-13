@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.List;
+import java.util.Objects;
 
 public class MemoryHeapView extends AspectObserver {
   @NotNull private final MemoryProfilerStage myStage;
@@ -91,7 +92,7 @@ public class MemoryHeapView extends AspectObserver {
   void refreshHeap() {
     HeapObject heapObject = myStage.getSelectedHeap();
     Object selectedObject = myComboBox.getSelectedItem();
-    if (heapObject != selectedObject) {
+    if (!Objects.equals(heapObject, selectedObject)) {
       myComboBox.setSelectedItem(heapObject);
     }
   }

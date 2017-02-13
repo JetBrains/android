@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk;
 
+import com.android.annotations.NonNull;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
@@ -29,14 +30,14 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.JavadocOrderRootType;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -50,7 +51,7 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.sdklib.IAndroidTarget.RESOURCES;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToFile;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
@@ -98,7 +99,7 @@ public class AndroidSdks {
         if (moduleSdk != null && isAndroidSdk(moduleSdk)) {
           String homePath = moduleSdk.getHomePath();
           if (homePath != null) {
-            File sdkHomePath = new File(toSystemDependentName(homePath));
+            File sdkHomePath = toSystemDependentPath(homePath);
             if (isMissingAddonsFolder(sdkHomePath)) {
               return sdkHomePath;
             }
@@ -164,7 +165,7 @@ public class AndroidSdks {
     File javaDocPath = findJavadocFolder(new File(getPlatformPath(target)));
 
     if (javaDocPath == null) {
-      File sdkDir = pathToFile(sdk.getHomePath());
+      File sdkDir = toSystemDependentPath(sdk.getHomePath());
       if (sdkDir != null) {
         javaDocPath = findJavadocFolder(sdkDir);
       }
@@ -287,9 +288,8 @@ public class AndroidSdks {
                        @NotNull IAndroidTarget target,
                        @NotNull String sdkName,
                        @NotNull Collection<Sdk> allSdks,
-                       @Nullable Sdk jdk,
-                       boolean addRoots) {
-    setUpSdkAndCommit(getAndInitialiseSdkModificator(androidSdk, target, jdk), sdkName, allSdks, addRoots);
+                       @Nullable Sdk jdk) {
+    setUpSdkAndCommit(getAndInitialiseSdkModificator(androidSdk, target, jdk), sdkName, allSdks, true /* add roots */);
   }
 
   @NotNull
@@ -317,17 +317,17 @@ public class AndroidSdks {
     IAndroidTarget target = data.getBuildTarget(androidSdkData);
     assert target != null;
 
-    findAndSetPlatformSources(target, sdkModificator);
-
     String name = createUniqueSdkName(sdkName, allSdks);
     sdkModificator.setName(name);
 
     if (addRoots) {
-      List<OrderRoot> newRoots = getLibraryRootsForTarget(target, pathToFile(sdkModificator.getHomePath()), true);
+      List<OrderRoot> newRoots = getLibraryRootsForTarget(target, toSystemDependentPath(sdkModificator.getHomePath()), true);
       sdkModificator.removeAllRoots();
       for (OrderRoot orderRoot : newRoots) {
         sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
       }
+      findAndSetPlatformSources(target, sdkModificator);
+
       // TODO move this method to Jdks.
       attachJdkAnnotations(sdkModificator);
     }
@@ -559,7 +559,7 @@ public class AndroidSdks {
         OrderRootType javaDocType = JavadocOrderRootType.getInstance();
         SdkModificator sdkModificator = sdk.getSdkModificator();
 
-        List<OrderRoot> newRoots = getLibraryRootsForTarget(target, pathToFile(sdkModificator.getHomePath()), true);
+        List<OrderRoot> newRoots = getLibraryRootsForTarget(target, toSystemDependentPath(sdkModificator.getHomePath()), true);
         sdkModificator.removeRoots(javaDocType);
         for (OrderRoot orderRoot : newRoots) {
           if (orderRoot.getType() == javaDocType) {
@@ -594,5 +594,31 @@ public class AndroidSdks {
       sdkModificator.addRoot(library, CLASSES);
     }
     sdkModificator.commitChanges();
+  }
+
+  public boolean isInAndroidSdk(@NonNull PsiElement element) {
+    VirtualFile file = getVirtualFile(element);
+    if (file == null) {
+      return false;
+    }
+
+    ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(element.getProject()).getFileIndex();
+    List<OrderEntry> entries = projectFileIndex.getOrderEntriesForFile(file);
+    for (OrderEntry entry : entries) {
+      if (entry instanceof JdkOrderEntry) {
+        Sdk sdk = ((JdkOrderEntry)entry).getJdk();
+
+        if (sdk != null && sdk.getSdkType() instanceof AndroidSdkType) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  @Nullable
+  private static VirtualFile getVirtualFile(@NotNull PsiElement element) {
+    PsiFile file = element.getContainingFile();
+    return file != null ? file.getVirtualFile() : null;
   }
 }

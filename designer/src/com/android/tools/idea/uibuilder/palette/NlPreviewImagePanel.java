@@ -25,7 +25,7 @@ import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.PanZoomListener;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.util.ui.UIUtil;
@@ -213,11 +213,11 @@ public class NlPreviewImagePanel extends JComponent implements Disposable {
     if (myDependencyManager.needsLibraryLoad(myItem)) {
       return null;
     }
-    ScreenView screenView = myDesignSurface.getCurrentScreenView();
-    if (screenView == null) {
+    SceneView sceneView = myDesignSurface.getCurrentSceneView();
+    if (sceneView == null) {
       return null;
     }
-    BufferedImage image = myIconPreviewFactory.renderDragImage(myItem, screenView);
+    BufferedImage image = myIconPreviewFactory.renderDragImage(myItem, sceneView);
     if (image == null) {
       return null;
     }

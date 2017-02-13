@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.DesignSurface.ScreenMode;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface.ScreenMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -26,16 +26,16 @@ import icons.AndroidIcons;
  * Mode for switching to both blueprint and design mode at the same time
  */
 public class BothModeAction extends AnAction {
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
 
-  public BothModeAction(DesignSurface surface) {
+  public BothModeAction(NlDesignSurface surface) {
     super(null, "Show Design + Blueprint", AndroidIcons.NeleIcons.BothMode);
     mySurface = surface;
   }
 
   @Override
   public void update(AnActionEvent event) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    ScreenView screenView = mySurface.getCurrentSceneView();
 
     if (screenView != null) {
       event.getPresentation().setEnabled(screenView.getModel().getType().isLayout());

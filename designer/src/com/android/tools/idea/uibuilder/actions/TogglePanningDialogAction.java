@@ -16,13 +16,14 @@
 package com.android.tools.idea.uibuilder.actions;
 
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
-import com.android.tools.idea.uibuilder.handlers.constraint.WidgetNavigatorPanel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.PanZoomPanel;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.ui.popup.JBPopup;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
 import java.util.Locale;
@@ -32,12 +33,11 @@ import java.util.Locale;
  */
 public class TogglePanningDialogAction extends ToggleAction {
 
-  private final DesignSurface mySurface;
-  WeakReference<JBPopup> myPopupReference;
+  private final NlDesignSurface mySurface;
 
-  public TogglePanningDialogAction(DesignSurface surface) {
+  public TogglePanningDialogAction(NlDesignSurface surface) {
     mySurface = surface;
-    String title = String.format(Locale.US, "%s %s", WidgetNavigatorPanel.TITLE, WidgetNavigatorPanel.HINT);
+    String title = String.format(Locale.US, "%s %s", PanZoomPanel.TITLE, PanZoomPanel.HINT);
     getTemplatePresentation().setIcon(AndroidIcons.NeleIcons.Pan);
     getTemplatePresentation().setDescription(title);
     getTemplatePresentation().setText(title);
@@ -45,26 +45,12 @@ public class TogglePanningDialogAction extends ToggleAction {
 
   @Override
   public boolean isSelected(AnActionEvent e) {
-    if (myPopupReference == null) {
-      return false;
-    }
-    JBPopup popup = myPopupReference.get();
+    PanZoomPanel popup = mySurface.getPanZoomPanel();
     return popup != null && popup.isVisible();
   }
 
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
-    if (state) {
-      NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.SHOW_PAN_AND_ZOOM);
-      myPopupReference = new WeakReference<>(WidgetNavigatorPanel.createPopup(mySurface));
-    }
-    else {
-      if (myPopupReference != null) {
-        JBPopup popup = myPopupReference.get();
-        if (popup != null) {
-          popup.cancel();
-        }
-      }
-    }
+    mySurface.setPanZoomPanelVisible(state);
   }
 }

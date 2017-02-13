@@ -120,6 +120,8 @@ public class FloatingToolWindowManagerTest {
     ArgumentCaptor<FileEditorManagerListener> captor = ArgumentCaptor.forClass(FileEditorManagerListener.class);
     //noinspection unchecked
     verify(myConnection).subscribe(any(Topic.class), captor.capture());
+    when(myFileEditor1.getComponent()).thenReturn(new JPanel());
+    when(myFileEditor2.getComponent()).thenReturn(new JPanel());
     myListener = captor.getValue();
     myManager.register(myFileEditor1, myWorkBench1);
     myManager.register(myFileEditor2, myWorkBench2);
@@ -155,6 +157,14 @@ public class FloatingToolWindowManagerTest {
   @Test
   public void testFileOpenedCausingFloatingToolWindowToDisplay() {
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor1});
+    myListener.fileOpened(myEditorManager, myVirtualFile);
+    //noinspection unchecked
+    verify(myFloatingToolWindow1).show(eq(myAttachedToolWindow1));
+  }
+
+  @Test
+  public void testFileOpenedCausingFloatingToolWindowToDisplay2() {
+    when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor1, myFileEditor2});
     myListener.fileOpened(myEditorManager, myVirtualFile);
     //noinspection unchecked
     verify(myFloatingToolWindow1).show(eq(myAttachedToolWindow1));

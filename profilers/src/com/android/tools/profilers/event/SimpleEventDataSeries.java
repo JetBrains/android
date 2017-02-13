@@ -16,6 +16,7 @@
 package com.android.tools.profilers.event;
 
 import com.android.tools.adtui.model.*;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.profilers.ProfilerClient;
@@ -35,10 +36,12 @@ public class SimpleEventDataSeries implements DataSeries<EventAction<EventAction
   @NotNull
   private ProfilerClient myClient;
   private final int myProcessId;
+  private final Common.Session mySession;
 
-  public SimpleEventDataSeries(@NotNull ProfilerClient client, int id) {
+  public SimpleEventDataSeries(@NotNull ProfilerClient client, int id, Common.Session session) {
     myClient = client;
     myProcessId = id;
+    mySession = session;
   }
 
   @Override
@@ -46,7 +49,8 @@ public class SimpleEventDataSeries implements DataSeries<EventAction<EventAction
     List<SeriesData<EventAction<EventAction.Action, EventActionType>>> seriesData = new ArrayList<>();
     EventServiceGrpc.EventServiceBlockingStub eventService = myClient.getEventClient();
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()))
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
     EventProfiler.SystemDataResponse response = eventService.getSystemData(dataRequestBuilder.build());

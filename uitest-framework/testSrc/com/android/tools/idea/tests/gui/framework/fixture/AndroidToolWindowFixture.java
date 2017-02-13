@@ -24,7 +24,9 @@ import com.intellij.ui.tabs.impl.TabLabel;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
+import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.timing.Wait;
@@ -33,13 +35,11 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.google.common.truth.Truth.assertThat;
-
 public class AndroidToolWindowFixture extends ToolWindowFixture {
   @NotNull private final ProcessListFixture myProcessListFixture;
 
   public AndroidToolWindowFixture(@NotNull Project project, final @NotNull Robot robot) {
-    super(AndroidToolWindowFactory.TOOL_WINDOW_ID, project, robot);
+    super(AndroidToolWindowFactory.getToolWindowId(), project, robot);
     show();
 
     final JPanel contentPanel = getContentPanel();
@@ -137,18 +137,19 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
     @NotNull
     public ProcessListFixture selectItem(@Nullable final String packageName) {
       clearSelection();
-      Integer index = GuiQuery.getNonNull(
-        () -> {
+      GuiActionRunner.execute(new GuiTask() {
+        @Override
+        protected void executeInEDT() {
           for (int i = 0; i < target().getModel().getSize(); ++i) {
             Client client = (Client)target().getModel().getElementAt(i);
             if (packageName.equals(client.getClientData().getClientDescription())) {
-              return i;
+              target().getModel().setSelectedItem(client);
+              return;
             }
           }
-          return -1;
-        });
-      assertThat(index).isAtLeast(0);
-      selectItem(index);
+          throw new RuntimeException("Failed to find " + packageName + " in process list.");
+        }
+      });
       return this;
     }
   }

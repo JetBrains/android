@@ -15,15 +15,25 @@
  */
 package com.android.tools.datastore;
 
+import com.android.tools.datastore.database.DatastoreTable;
 import io.grpc.ManagedChannel;
 import io.grpc.ServerServiceDefinition;
 
 import java.util.concurrent.RunnableFuture;
 
+/**
+ * Interface for a class that wraps a grpc service. Once connected to the service, you will need to
+ * trigger its runner (probably on a background thread) to begin polling it.
+ */
 public interface ServicePassThrough {
-  RunnableFuture<Void> getRunner();
 
-  ServerServiceDefinition getService();
+  /**
+   * @return bound service object for setting up an RPC client.
+   */
+  ServerServiceDefinition bindService();
 
-  void connectService(ManagedChannel channel);
+  /**
+   * @return a DatastoreTable for the Datastore to register a connection with, or null.
+   */
+  DatastoreTable getDatastoreTable();
 }

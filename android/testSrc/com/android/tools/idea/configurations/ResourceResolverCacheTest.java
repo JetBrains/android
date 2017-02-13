@@ -18,6 +18,7 @@ package com.android.tools.idea.configurations;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -71,7 +72,7 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     assertSame(resolver1b, configuration2.getResourceResolver());
 
     // Test project resource changes, should invalidate
-    final LocalResourceRepository resources = myFacet.getModuleResources(true);
+    final LocalResourceRepository resources = ModuleResourceRepository.getOrCreateInstance(myFacet);
     assertNotNull(resources); final long generation = resources.getModificationCount();
     assertEquals("Cancel", configuration1.getResourceResolver().findResValue("@string/cancel", false).getValue());
     WriteCommandAction.runWriteCommandAction(null, () -> {

@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.base.Strings;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
-import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.rename.RenameDialog;
@@ -36,7 +35,6 @@ import javax.swing.*;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.fest.reflect.core.Reflection.field;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 
 public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
 
@@ -81,12 +79,8 @@ public class RenameDialogFixture extends IdeaDialogFixture<RenameDialog> {
   }
 
   public void setNewName(@NotNull final String newName) {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        robot().finder().findByType(target(), EditorTextField.class).setText(newName);
-      }
-    });
+    // Typing in EditorTextField is very unreliable, set text directly
+    GuiTask.execute(() -> robot().finder().findByType(target(), EditorTextField.class).setText(newName));
   }
 
   /**

@@ -17,7 +17,6 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.InstallException;
-import com.android.ddmlib.SplitApkInstaller;
 import com.android.tools.fd.client.InstantRunArtifact;
 import com.android.tools.fd.client.InstantRunArtifactType;
 import com.android.tools.fd.client.InstantRunBuildInfo;
@@ -68,7 +67,7 @@ public class SplitApkDeployTask implements LaunchTask {
 
     List<String> installOptions = Lists.newArrayList(); // TODO: should we pass in pm install options?
 
-    if (!buildInfo.isFullBuild()) {
+    if (buildInfo.isPatchBuild()) {
       installOptions.add("-p"); // partial install
       installOptions.add(myInstantRunContext.getApplicationId());
     }
@@ -90,8 +89,7 @@ public class SplitApkDeployTask implements LaunchTask {
     }
 
     assert myInstantRunContext.getBuildSelection() != null;
-    InstantRunStatsService.get(myProject).notifyDeployType(DeployType.SPLITAPK, myInstantRunContext.getBuildSelection().why,
-                                                           myInstantRunContext.getInstantRunBuildInfo().getVerifierStatus(), device);
+    InstantRunStatsService.get(myProject).notifyDeployType(DeployType.SPLITAPK, myInstantRunContext, device);
 
     return status;
   }

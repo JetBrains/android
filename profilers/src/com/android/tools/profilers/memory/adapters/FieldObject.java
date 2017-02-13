@@ -18,6 +18,8 @@ package com.android.tools.profilers.memory.adapters;
 import org.jetbrains.annotations.NotNull;
 
 public interface FieldObject extends InstanceObject {
+  String FIELD_DISPLAY_FORMAT = "%s = %s";
+
   @NotNull
   String getFieldName();
 }

@@ -16,7 +16,8 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.profiler.proto.*;
-import com.android.tools.profilers.IdeProfilerServicesStub;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
 import org.junit.Before;
@@ -36,18 +37,18 @@ public class MemoryProfilerTest {
 
   @Before
   public void setUp() {
-    myProfiler = new MemoryProfiler(new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub()));
+    myProfiler = new MemoryProfiler(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices()));
   }
 
   @Test
   public void startMonitoring() {
-    myProfiler.startProfiling(FAKE_PROCESS);
-    assertEquals(FAKE_PID, myService.getAppId());
+    myProfiler.startProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS);
+    assertEquals(FAKE_PID, myService.getProcessId());
   }
 
   @Test
   public void stopMonitoring() {
-    myProfiler.stopProfiling(FAKE_PROCESS);
-    assertEquals(FAKE_PID, myService.getAppId());
+    myProfiler.stopProfiling(ProfilersTestData.SESSION_DATA, FAKE_PROCESS);
+    assertEquals(FAKE_PID, myService.getProcessId());
   }
 }

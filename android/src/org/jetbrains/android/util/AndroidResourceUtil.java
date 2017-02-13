@@ -65,6 +65,7 @@ import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -262,7 +263,7 @@ public class AndroidResourceUtil {
       return PsiField.EMPTY_ARRAY;
     }
 
-    final String resourceType = facet.getLocalResourceManager().getFileResourceType(file);
+    final String resourceType = ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getFileResourceType(file);
     if (resourceType == null) {
       return PsiField.EMPTY_ARRAY;
     }
@@ -412,7 +413,7 @@ public class AndroidResourceUtil {
   public static List<PsiElement> findResourcesByField(@NotNull PsiField field) {
     final AndroidFacet facet = AndroidFacet.getInstance(field);
     return facet != null
-           ? facet.getLocalResourceManager().findResourcesByField(field)
+           ? ModuleResourceManagers.getInstance(facet).getLocalResourceManager().findResourcesByField(field)
            : Collections.emptyList();
   }
 
@@ -482,7 +483,7 @@ public class AndroidResourceUtil {
    */
   @NotNull
   public static String getValidResourceFileName(@NotNull String base) {
-    return base.replace('-', '_').toLowerCase(Locale.US);
+    return base.replace('-', '_').replace(' ', '_').toLowerCase(Locale.US);
   }
 
   @Nullable
@@ -546,7 +547,8 @@ public class AndroidResourceUtil {
   }
 
   @NotNull
-  public static List<VirtualFile> getResourceSubdirs(@NotNull ResourceFolderType resourceType, @NotNull VirtualFile[] resourceDirs) {
+  public static List<VirtualFile> getResourceSubdirs(@NotNull ResourceFolderType resourceType,
+                                                     @NotNull Collection<VirtualFile> resourceDirs) {
     final List<VirtualFile> dirs = new ArrayList<>();
 
     for (VirtualFile resourcesDir : resourceDirs) {
@@ -663,7 +665,7 @@ public class AndroidResourceUtil {
 
     if (module != null) {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
-      return facet != null && facet.getLocalResourceManager().isResourceDir(dir);
+      return facet != null && ModuleResourceManagers.getInstance(facet).getLocalResourceManager().isResourceDir(dir);
     }
     return false;
   }
@@ -671,7 +673,7 @@ public class AndroidResourceUtil {
   public static boolean isResourceFile(@NotNull VirtualFile file, @NotNull AndroidFacet facet) {
     final VirtualFile parent = file.getParent();
     final VirtualFile resDir = parent != null ? parent.getParent() : null;
-    return resDir != null && facet.getLocalResourceManager().isResourceDir(resDir);
+    return resDir != null && ModuleResourceManagers.getInstance(facet).getLocalResourceManager().isResourceDir(resDir);
   }
 
   public static boolean isResourceDirectory(@NotNull PsiDirectory directory) {

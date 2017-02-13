@@ -17,7 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
-import com.android.tools.adtui.chart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
@@ -31,11 +31,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.EnumMap;
 
+import static com.android.tools.profilers.ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS;
 import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
 import static com.android.tools.profilers.network.NetworkRadioDataSeries.RadioState;
 
 public class NetworkRadioView {
-  private static final String LABEL = "Radio";
+  private static final String LABEL = "RADIO";
   private static final int MINIMUM_HEIGHT = JBUI.scale(45);
 
   private static final EnumMap<RadioState, Color> RADIO_STATE_COLOR = new EnumMap<>(RadioState.class);
@@ -74,7 +75,7 @@ public class NetworkRadioView {
     JLabel label = new JLabel(LABEL);
     label.setVerticalAlignment(SwingConstants.TOP);
 
-    LegendComponentModel legendModel = new LegendComponentModel();
+    LegendComponentModel legendModel = new LegendComponentModel(LEGEND_UPDATE_FREQUENCY_MS);
     Legend wifiLegend = new FixedLegend(RadioState.WIFI.toString());
     Legend highLegend = new FixedLegend(RadioState.HIGH.toString());
     Legend lowLegend = new FixedLegend(RadioState.LOW.toString());

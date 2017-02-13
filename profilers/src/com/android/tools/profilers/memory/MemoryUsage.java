@@ -33,14 +33,14 @@ public class MemoryUsage extends LineChartModel {
   public MemoryUsage(@NotNull StudioProfilers profilers) {
 
     myMemoryRange = new Range(0, 0);
-    myTotalMemorySeries = createRangedSeries(profilers, "Memory", myMemoryRange, MemorySample::getTotalMem);
+    myTotalMemorySeries = createRangedSeries(profilers, getTotalSeriesLabel(), myMemoryRange, MemorySample::getTotalMem);
 
     add(myTotalMemorySeries);
   }
 
   protected RangedContinuousSeries createRangedSeries(StudioProfilers profilers, String name, Range range, Function<MemorySample, Long> getter) {
     MemoryServiceGrpc.MemoryServiceBlockingStub client = profilers.getClient().getMemoryClient();
-    MemoryDataSeries series = new MemoryDataSeries(client, profilers.getProcessId(), getter);
+    MemoryDataSeries series = new MemoryDataSeries(client, profilers.getProcessId(), profilers.getSession(), getter);
     return new RangedContinuousSeries(name, profilers.getTimeline().getViewRange(), range, series);
   }
 
@@ -52,5 +52,9 @@ public class MemoryUsage extends LineChartModel {
   @NotNull
   public RangedContinuousSeries getTotalMemorySeries() {
     return myTotalMemorySeries;
+  }
+
+  protected String getTotalSeriesLabel() {
+    return "";
   }
 }

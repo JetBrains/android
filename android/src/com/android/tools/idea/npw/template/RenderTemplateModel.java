@@ -28,10 +28,10 @@ import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,12 +51,16 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
   @NotNull private final StringProperty myPackageName;
 
+  /**
+   * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
+   * try to render anything.
+   */
+  @Nullable private TemplateHandle myTemplateHandle;
   @NotNull private final Map<String, Object> myTemplateValues = Maps.newHashMap();
-  @NotNull private TemplateHandle myTemplateHandle;
   @Nullable private AndroidIconGenerator myIconGenerator;
 
   public RenderTemplateModel(@NotNull Project project,
-                             @NotNull TemplateHandle templateHandle,
+                             @Nullable TemplateHandle templateHandle,
                              @NotNull String initialPackageSuggestion,
                              @NotNull AndroidSourceSet sourceSet,
                              @NotNull String commandName) {
@@ -68,7 +72,7 @@ public final class RenderTemplateModel extends WizardModel {
   }
 
   public RenderTemplateModel(@NotNull NewModuleModel moduleModel,
-                             @NotNull TemplateHandle templateHandle,
+                             @Nullable TemplateHandle templateHandle,
                              @NotNull AndroidSourceSet sourceSet,
                              @NotNull String commandName) {
     myProject = moduleModel.getProject();
@@ -104,11 +108,11 @@ public final class RenderTemplateModel extends WizardModel {
     return myPackageName;
   }
 
-  public void setTemplateHandle(@NotNull TemplateHandle templateHandle) {
+  public void setTemplateHandle(@Nullable TemplateHandle templateHandle) {
     myTemplateHandle = templateHandle;
   }
 
-  @NotNull
+  @Nullable
   public TemplateHandle getTemplateHandle() {
     return myTemplateHandle;
   }
@@ -131,7 +135,7 @@ public final class RenderTemplateModel extends WizardModel {
 
   @Override
   protected void handleFinished() {
-    if (!myProject.get().isPresent()) {
+    if (!myProject.get().isPresent() || myTemplateHandle == null) {
       getLog().error("RenderTemplateModel did not collect expected information and will not complete. Please report this error.");
       return;
     }
@@ -161,10 +165,8 @@ public final class RenderTemplateModel extends WizardModel {
     }.execute().getResultObject();
 
     if (success) {
-      // If this is a new project, we can't selected any file until gradle finishes sync.
-      // Cache the value of project.isOpen() in a flag, as it will return true when called later from invokeLater()
-      final boolean selectEditor = project.isOpen();
-      ApplicationManager.getApplication().invokeLater(() -> TemplateUtils.openEditors(project, filesToOpen, selectEditor));
+      // calling smartInvokeLater will make sure that files are open only when the project is ready
+      DumbService.getInstance(project).smartInvokeLater(() -> TemplateUtils.openEditors(project, filesToOpen, true));
     }
   }
 

@@ -167,6 +167,11 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     return myDisplayName;
   }
 
+  @Nullable
+  public String getLibraryName() {
+    return null;
+  }
+
   @Override
   public void dispose() {
   }
@@ -268,7 +273,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   @NonNull
   public List<VirtualFile> getMatchingFiles(@NonNull VirtualFile file, @NonNull ResourceType type, @NonNull FolderConfiguration config) {
     List<ResourceFile> matches = super.getMatchingFiles(ResourceHelper.getResourceName(file), type, config);
-    List<VirtualFile> matchesFiles = new ArrayList<VirtualFile>(matches.size());
+    List<VirtualFile> matchesFiles = new ArrayList<>(matches.size());
     for (ResourceFile match : matches) {
       if (match != null) {
         if (match instanceof PsiResourceFile) {

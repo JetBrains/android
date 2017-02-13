@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.actions;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
@@ -33,12 +33,12 @@ public class DeleteAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
-    if (screenView == null) {
+    SceneView view = mySurface.getCurrentSceneView();
+    if (view == null) {
       return;
     }
-    SelectionModel selectionModel = screenView.getSelectionModel();
-    NlModel model = screenView.getModel();
+    SelectionModel selectionModel = view.getSelectionModel();
+    NlModel model = view.getModel();
     model.delete(selectionModel.getSelection());
   }
 }

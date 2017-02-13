@@ -245,6 +245,22 @@ public class WhatsNew implements StartupActivity, DumbAware {
     private static String getAccessibleText(Path image) {
       String base = com.google.common.io.Files.getNameWithoutExtension(image.getFileName().toString());
       Path textPath = image.getParent().resolve(base + SdkConstants.DOT_TXT);
+      if (!textPath.getFileSystem().isOpen()) {
+        try (FileSystem fileSystem = FileSystems.newFileSystem(textPath.toUri(), ImmutableMap.of())) {
+          textPath = fileSystem.getPath(textPath.toString());
+          return readText(textPath);
+        }
+        catch (IOException e) {
+          return null;
+        }
+      }
+      else {
+        return readText(textPath);
+      }
+    }
+
+    @Nullable
+    private static String readText(Path textPath) {
       if (Files.exists(textPath)) {
         try {
           return new String(Files.readAllBytes(textPath), Charsets.UTF_8);

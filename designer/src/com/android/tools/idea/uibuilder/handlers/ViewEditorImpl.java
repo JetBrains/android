@@ -26,12 +26,13 @@ import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import com.intellij.openapi.diagnostic.Logger;
@@ -64,51 +65,51 @@ import static com.android.SdkConstants.*;
  * to {@link ViewHandler} instances
  */
 public class ViewEditorImpl extends ViewEditor {
-  private final ScreenView myScreen;
+  private final SceneView mySceneView;
 
-  public ViewEditorImpl(@NotNull ScreenView screen) {
-    myScreen = screen;
+  public ViewEditorImpl(@NotNull SceneView scene) {
+    mySceneView = scene;
   }
 
   @Override
   public int getDpi() {
-    return myScreen.getConfiguration().getDensity().getDpiValue();
+    return mySceneView.getConfiguration().getDensity().getDpiValue();
   }
 
   @Nullable
   @Override
   public AndroidVersion getCompileSdkVersion() {
-    return AndroidModuleInfo.getInstance(myScreen.getModel().getFacet()).getBuildSdkVersion();
+    return AndroidModuleInfo.getInstance(mySceneView.getModel().getFacet()).getBuildSdkVersion();
   }
 
   @NotNull
   @Override
   public AndroidVersion getMinSdkVersion() {
-    return AndroidModuleInfo.getInstance(myScreen.getModel().getFacet()).getMinSdkVersion();
+    return AndroidModuleInfo.getInstance(mySceneView.getModel().getFacet()).getMinSdkVersion();
   }
 
   @NotNull
   @Override
   public AndroidVersion getTargetSdkVersion() {
-    return AndroidModuleInfo.getInstance(myScreen.getModel().getFacet()).getTargetSdkVersion();
+    return AndroidModuleInfo.getInstance(mySceneView.getModel().getFacet()).getTargetSdkVersion();
   }
 
   @NotNull
   @Override
   public Configuration getConfiguration() {
-    return myScreen.getConfiguration();
+    return mySceneView.getConfiguration();
   }
 
   @NotNull
   @Override
   public NlModel getModel() {
-    return myScreen.getModel();
+    return mySceneView.getModel();
   }
 
   @NotNull
   @Override
   public Collection<ViewInfo> getRootViews() {
-    RenderResult result = myScreen.getModel().getRenderResult();
+    RenderResult result = mySceneView.getModel().getRenderResult();
 
     if (result == null) {
       return Collections.emptyList();
@@ -119,12 +120,13 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Override
   public boolean moduleContainsResource(@NotNull ResourceType type, @NotNull String name) {
-    return myScreen.getModel().getFacet().getModuleResources(true).hasResourceItem(type, name);
+    AndroidFacet facet = mySceneView.getModel().getFacet();
+    return ModuleResourceRepository.getOrCreateInstance(facet).hasResourceItem(type, name);
   }
 
   @Override
   public void copyVectorAssetToMainModuleSourceSet(@NotNull String asset) {
-    Project project = myScreen.getModel().getProject();
+    Project project = mySceneView.getModel().getProject();
     String message = "Do you want to copy vector asset " + asset + " to your main module source set?";
 
     if (Messages.showYesNoDialog(project, message, "Copy Vector Asset", Messages.getQuestionIcon()) == Messages.NO) {
@@ -143,7 +145,7 @@ public class ViewEditorImpl extends ViewEditor {
   public void copyLayoutToMainModuleSourceSet(@NotNull String layout, @Language("XML") @NotNull String xml) {
     String message = "Do you want to copy layout " + layout + " to your main module source set?";
 
-    if (Messages.showYesNoDialog(myScreen.getModel().getProject(), message, "Copy Layout", Messages.getQuestionIcon()) == Messages.NO) {
+    if (Messages.showYesNoDialog(mySceneView.getModel().getProject(), message, "Copy Layout", Messages.getQuestionIcon()) == Messages.NO) {
       return;
     }
 
@@ -167,7 +169,7 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Nullable
   private VirtualFile getResourceDirectoryChild(@NotNull String child) throws IOException {
-    VirtualFile resourceDirectory = myScreen.getModel().getFacet().getPrimaryResourceDir();
+    VirtualFile resourceDirectory = mySceneView.getModel().getFacet().getPrimaryResourceDir();
 
     if (resourceDirectory == null) {
       Logger.getInstance(ViewEditorImpl.class).warn("resourceDirectory is null");
@@ -198,7 +200,7 @@ public class ViewEditorImpl extends ViewEditor {
         tagToComponent.put(child.getTag(), child);
       }
 
-      NlModel model = myScreen.getModel();
+      NlModel model = mySceneView.getModel();
       XmlFile xmlFile = model.getFile();
       AndroidFacet facet = model.getFacet();
       RenderService renderService = RenderService.getInstance(facet);
@@ -230,7 +232,7 @@ public class ViewEditorImpl extends ViewEditor {
   @Nullable
   @Override
   public String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types) {
-    NlModel model = myScreen.getModel();
+    NlModel model = mySceneView.getModel();
     ChooseResourceDialog dialog = ChooseResourceDialog.builder()
       .setModule(model.getModule())
       .setTypes(types)
@@ -259,7 +261,7 @@ public class ViewEditorImpl extends ViewEditor {
   public String displayClassInput(@NotNull Set<String> superTypes,
                                   @Nullable final Predicate<String> filter,
                                   @Nullable String currentValue) {
-    Module module = myScreen.getModel().getModule();
+    Module module = mySceneView.getModel().getModule();
     String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
 
     Condition<PsiClass> psiFilter = null;
@@ -277,7 +279,7 @@ public class ViewEditorImpl extends ViewEditor {
   }
 
   @NotNull
-  public ScreenView getScreenView() {
-    return myScreen;
+  public SceneView getSceneView() {
+    return mySceneView;
   }
 }

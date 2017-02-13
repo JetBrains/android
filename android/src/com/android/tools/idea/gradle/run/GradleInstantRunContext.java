@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.run;
 
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.tools.fd.client.InstantRunBuildInfo;
@@ -85,6 +86,13 @@ public class GradleInstantRunContext implements InstantRunContext {
   @Override
   public String getApplicationId() {
     return myApplicationId;
+  }
+
+  @NotNull
+  @Override
+  public GradleVersion getGradlePluginVersion() {
+    GradleVersion version = myModel.getModelVersion();
+    return version == null ? new GradleVersion(0, 0, 0) : version;
   }
 
   @NotNull

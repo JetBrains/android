@@ -16,7 +16,32 @@
 package com.android.tools.profilers;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 
 public interface IdeProfilerServices {
-  boolean navigateToStackTraceLine(@NotNull String line);
+  /**
+   * Executor to run the tasks that should get back to the main thread.
+   */
+  @NotNull
+  Executor getMainExecutor();
+
+  /**
+   * Executor to run the tasks that should run in a thread from the pool.
+   */
+  @NotNull
+  Executor getPoolExecutor();
+
+  /**
+   * Saves a file to the file system and have IDE internal state reflect this file addition.
+   *
+   * @param file                     File to save to.
+   * @param fileOutputStreamConsumer {@link Consumer} to write the file contents into the supplied {@link FileOutputStream}.
+   * @param postRunnable             A callback for when the system finally finishes writing to and synchronizing the file.
+   */
+  void saveFile(@NotNull File file, @NotNull Consumer<FileOutputStream> fileOutputStreamConsumer, @Nullable Runnable postRunnable);
 }

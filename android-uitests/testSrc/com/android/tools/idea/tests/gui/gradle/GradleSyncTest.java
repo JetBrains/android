@@ -59,7 +59,6 @@ import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.net.HttpConfigurable;
-import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -77,7 +76,6 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -87,7 +85,6 @@ import java.util.zip.ZipOutputStream;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
-import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
@@ -103,14 +100,9 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
-import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
-import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.jetbrains.android.AndroidPlugin.getGuiTestSuiteState;
 import static org.junit.Assert.*;
 
@@ -138,17 +130,12 @@ public class GradleSyncTest {
     Module appModule = guiTest.ideFrame().getModule("app");
 
     // Set a dependency on a module that does not exist.
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        runWriteCommandAction(
-          ideFrame.getProject(), () -> {
-            GradleBuildModel buildModel = GradleBuildModel.get(appModule);
-            buildModel.dependencies().addModule(ANDROID_TEST_COMPILE, ":library3");
-            buildModel.applyChanges();
-          });
-      }
-    });
+    GuiTask.execute(() -> runWriteCommandAction(
+      ideFrame.getProject(), () -> {
+        GradleBuildModel buildModel = GradleBuildModel.get(appModule);
+        buildModel.dependencies().addModule(ANDROID_TEST_COMPILE, ":library3");
+        buildModel.applyChanges();
+      }));
 
     ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
@@ -258,60 +245,6 @@ public class GradleSyncTest {
 
     ideFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish();
     assertAbout(file()).that(wrapperDirPath).named("Gradle wrapper").isDirectory();
-  }
-
-  // See https://code.google.com/p/android/issues/detail?id=74259
-  @Test
-  public void withCentralBuildDirectoryInRootModule() throws IOException {
-    // In issue 74259, project sync fails because the "app" build directory is set to "CentralBuildDirectory/central/build", which is
-    // outside the content root of the "app" module.
-    String projectDirName = "CentralBuildDirectory";
-    File projectPath = new File(getProjectCreationDirPath(), projectDirName);
-
-    // The bug appears only when the central build folder does not exist.
-    File centralBuildDirPath = new File(projectPath, join("central", "build"));
-    File centralBuildParentDirPath = centralBuildDirPath.getParentFile();
-    delete(centralBuildParentDirPath);
-
-    guiTest.importProjectAndWaitForProjectSyncToFinish(projectDirName);
-    Module app = guiTest.ideFrame().getModule("app");
-
-    // Now we have to make sure that if project import was successful, the build folder (with custom path) is excluded in the IDE (to
-    // prevent unnecessary file indexing, which decreases performance.)
-    File[] excludeFolderPaths = GuiQuery.getNonNull(
-      () -> {
-        ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(app);
-        ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
-        try {
-          ContentEntry[] contentEntries = rootModel.getContentEntries();
-          ContentEntry parent = findParentContentEntry(centralBuildDirPath, Arrays.stream(contentEntries));
-
-          List<File> paths = Lists.newArrayList();
-
-          for (ExcludeFolder excluded : parent.getExcludeFolders()) {
-            String path = urlToPath(excluded.getUrl());
-            if (isNotEmpty(path)) {
-              paths.add(new File(toSystemDependentName(path)));
-            }
-          }
-          return paths.toArray(new File[paths.size()]);
-        }
-        finally {
-          rootModel.dispose();
-        }
-      });
-
-    assertThat(excludeFolderPaths).isNotEmpty();
-
-    boolean isExcluded = false;
-    for (File path : notNullize(excludeFolderPaths)) {
-      if (isAncestor(centralBuildParentDirPath, path, true)) {
-        isExcluded = true;
-        break;
-      }
-    }
-
-    assertTrue(String.format("Folder '%1$s' should be excluded", centralBuildDirPath.getPath()), isExcluded);
   }
 
   // See https://code.google.com/p/android/issues/detail?id=74341
@@ -471,7 +404,7 @@ public class GradleSyncTest {
     ideFrame.findMessageDialog(GRADLE_SETTINGS_DIALOG_TITLE).clickYes();
 
     // Verify JVM args were removed from IDE's Gradle settings.
-    ideFrame.waitForGradleProjectSyncToFinish();
+    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(20));
     assertNull(GradleSettings.getInstance(project).getGradleVmOptions());
 
     // Verify JVM args were copied to gradle.properties file
@@ -577,31 +510,6 @@ public class GradleSyncTest {
             .enterText("Hello World")
             .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
     // @formatter:on
-  }
-
-  // Verifies that sync does not fail and user is warned when a project contains an Android module without variants.
-  // See https://code.google.com/p/android/issues/detail?id=170722
-  @Test
-  public void withAndroidProjectWithoutVariants() throws IOException {
-    guiTest.importSimpleApplication();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    assertNotNull(AndroidFacet.getInstance(ideFrame.getModule("app")));
-
-    File appBuildFile = new File(ideFrame.getProjectPath(), join("app", FN_BUILD_GRADLE));
-    assertAbout(file()).that(appBuildFile).isFile();
-
-    // Remove all variants.
-    appendToFile(appBuildFile, "android.variantFilter { variant -> variant.ignore = true }");
-
-    ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
-
-    // Verify user was warned.
-    ContentFixture syncMessages = ideFrame.getMessagesToolWindow().getGradleSyncContent();
-    syncMessages.findMessage(ERROR, firstLineStartingWith("The module 'app' is an Android project without build variants"));
-
-    // Verify AndroidFacet was removed.
-    assertNull(AndroidFacet.getInstance(ideFrame.getModule("app")));
   }
 
   @Test
@@ -712,19 +620,14 @@ public class GradleSyncTest {
 
     Module appModule = ideFrame.getModule("app");
 
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        runWriteCommandAction(
-          project, () -> {
-            GradleBuildModel buildModel = GradleBuildModel.get(appModule);
+    GuiTask.execute(() -> runWriteCommandAction(
+      project, () -> {
+        GradleBuildModel buildModel = GradleBuildModel.get(appModule);
 
-            String newDependency = "com.mapbox.mapboxsdk:mapbox-android-sdk:0.7.4@aar";
-            buildModel.dependencies().addArtifact(COMPILE, newDependency);
-            buildModel.applyChanges();
-          });
-      }
-    });
+        String newDependency = "com.mapbox.mapboxsdk:mapbox-android-sdk:0.7.4@aar";
+        buildModel.dependencies().addArtifact(COMPILE, newDependency);
+        buildModel.applyChanges();
+      }));
 
     ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
@@ -747,13 +650,8 @@ public class GradleSyncTest {
     Module appModule = ideFrame.getModule("app");
     GradleBuildFile buildFile = GradleBuildFile.get(appModule);
 
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        runWriteCommandAction(
-          project, () -> buildFile.setValue(BuildFileKey.COMPILE_SDK_VERSION, "Google Inc.:Google APIs:24"));
-      }
-    });
+    GuiTask.execute(() -> runWriteCommandAction(
+      project, () -> buildFile.setValue(BuildFileKey.COMPILE_SDK_VERSION, "Google Inc.:Google APIs:24")));
 
     ideFrame.requestProjectSync().waitForGradleProjectSyncToFinish();
 
@@ -782,9 +680,8 @@ public class GradleSyncTest {
     AtomicBoolean syncSkipped = new AtomicBoolean(false);
 
     // Reopen project and verify that sync was skipped (i.e. model loaded from cache)
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    GuiTask.execute(
+      () -> {
         ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
         Project project = projectManager.convertAndLoadProject(projectPath.getPath());
         GradleSyncState.subscribe(project, new GradleSyncListener.Adapter() {
@@ -794,8 +691,7 @@ public class GradleSyncTest {
           }
         });
         projectManager.openProject(project);
-      }
-    });
+      });
 
     Wait.seconds(5).expecting("sync to be skipped").until(syncSkipped::get);
   }

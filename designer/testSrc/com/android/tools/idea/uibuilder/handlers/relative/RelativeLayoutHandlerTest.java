@@ -39,8 +39,8 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/checkbox\"\n" +
                  "        android:layout_width=\"20dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"100dp\"\n" +
-                 "        android:layout_marginTop=\"100dp\"\n" +
+                 "        android:layout_marginLeft=\"50dp\"\n" +
+                 "        android:layout_marginTop=\"50dp\"\n" +
                  "        android:layout_below=\"@+id/button\"\n" +
                  "        android:layout_toRightOf=\"@+id/button\" />");
   }
@@ -126,8 +126,8 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/checkbox\"\n" +
                  "        android:layout_width=\"20dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"26dp\"\n" +
-                 "        android:layout_marginTop=\"22dp\"\n" +
+                 "        android:layout_marginLeft=\"13dp\"\n" +
+                 "        android:layout_marginTop=\"11dp\"\n" +
                  "        android:layout_below=\"@+id/button\"\n" +
                  "        android:layout_alignLeft=\"@+id/button\" />");
   }
@@ -149,8 +149,8 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:layout_marginTop=\"100dp\"\n" +
                  "        android:layout_alignParentBottom=\"true\"\n" +
                  "        android:layout_alignParentRight=\"true\"\n" +
-                 "        android:layout_marginRight=\"670dp\"\n" +
-                 "        android:layout_marginBottom=\"670dp\" />");
+                 "        android:layout_marginRight=\"335dp\"\n" +
+                 "        android:layout_marginBottom=\"335dp\" />");
   }
 
   public void testResizeBottomRightWithModifierSnapToBottomOfLayout() {
@@ -189,8 +189,8 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:layout_marginTop=\"100dp\"\n" +
                  "        android:layout_alignParentBottom=\"true\"\n" +
                  "        android:layout_alignParentRight=\"true\"\n" +
-                 "        android:layout_marginRight=\"100dp\"\n" +
-                 "        android:layout_marginBottom=\"100dp\" />");
+                 "        android:layout_marginRight=\"50dp\"\n" +
+                 "        android:layout_marginBottom=\"50dp\" />");
   }
 
   public void testMoveToNowhere() {
@@ -204,8 +204,8 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/checkbox\"\n" +
                  "        android:layout_width=\"20dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"100dp\"\n" +
-                 "        android:layout_marginTop=\"100dp\"\n" +
+                 "        android:layout_marginLeft=\"50dp\"\n" +
+                 "        android:layout_marginTop=\"50dp\"\n" +
                  "        android:layout_below=\"@+id/button\"\n" +
                  "        android:layout_toRightOf=\"@+id/button\" />");
   }
@@ -221,7 +221,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/checkbox\"\n" +
                  "        android:layout_width=\"20dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"130dp\"\n" +
+                 "        android:layout_marginLeft=\"65dp\"\n" +
                  "        android:layout_alignTop=\"@+id/button\"\n" +
                  "        android:layout_toRightOf=\"@+id/button\" />");
   }
@@ -237,8 +237,8 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/checkbox\"\n" +
                  "        android:layout_width=\"20dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"130dp\"\n" +
-                 "        android:layout_marginTop=\"22dp\"\n" +
+                 "        android:layout_marginLeft=\"65dp\"\n" +
+                 "        android:layout_marginTop=\"11dp\"\n" +
                  "        android:layout_alignTop=\"@+id/button\"\n" +
                  "        android:layout_toRightOf=\"@+id/button\" />");
   }
@@ -254,7 +254,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/checkbox\"\n" +
                  "        android:layout_width=\"20dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"250dp\"\n" +
+                 "        android:layout_marginLeft=\"125dp\"\n" +
                  "        android:layout_alignBottom=\"@+id/button\"\n" +
                  "        android:layout_toRightOf=\"@+id/button\" />");
   }
@@ -270,10 +270,10 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/checkbox\"\n" +
                  "        android:layout_width=\"20dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"250dp\"\n" +
+                 "        android:layout_marginLeft=\"125dp\"\n" +
                  "        android:layout_alignBottom=\"@+id/button\"\n" +
                  "        android:layout_toRightOf=\"@+id/button\"\n" +
-                 "        android:layout_marginBottom=\"30dp\" />");
+                 "        android:layout_marginBottom=\"15dp\" />");
   }
 
   public void testMoveSnapToMiddleOfLayout() {
@@ -318,7 +318,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/textView\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"100dp\"\n" +
-                 "        android:layout_marginLeft=\"80dp\"\n" +
+                 "        android:layout_marginLeft=\"40dp\"\n" +
                  "        android:layout_alignBaseline=\"@+id/checkbox\"\n" +
                  "        android:layout_alignBottom=\"@+id/checkbox\"\n" +
                  "        android:layout_toRightOf=\"@+id/checkbox\" />");
@@ -352,8 +352,8 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                  "        android:id=\"@id/checkbox\"\n" +
                  "        android:layout_width=\"20dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"110dp\"\n" +
-                 "        android:layout_marginTop=\"110dp\"\n" +
+                 "        android:layout_marginLeft=\"55dp\"\n" +
+                 "        android:layout_marginTop=\"55dp\"\n" +
                  "        android:layout_below=\"@+id/button\"\n" +
                  "        android:layout_toRightOf=\"@+id/button\" />\n" +
                  "\n" +

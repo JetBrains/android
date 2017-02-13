@@ -16,15 +16,14 @@
 
 package com.android.tools.adtui.chart.linechart;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.LegendConfig;
-import com.android.tools.adtui.common.datareducer.DataReducer;
 import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
 import gnu.trove.TDoubleArrayList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -33,6 +32,9 @@ import java.awt.geom.PathIterator;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static java.awt.BasicStroke.CAP_SQUARE;
+import static java.awt.BasicStroke.JOIN_MITER;
 
 public class LineChart extends AnimatedComponent {
 
@@ -54,6 +56,13 @@ public class LineChart extends AnimatedComponent {
   @NotNull
   private final List<LineChartCustomRenderer> myCustomRenderers = new ArrayList<>();
 
+  @NotNull
+  private Color myMaxLineColor = Color.BLACK;
+
+  private int myMaxLineMargin;
+
+  private boolean myShowMaxLine;
+
   /**
    * The color of the next line to be inserted, if not specified, is picked from {@code COLORS}
    * array of {@link LineConfig}. This field holds the color index.
@@ -63,7 +72,7 @@ public class LineChart extends AnimatedComponent {
   private boolean myRedraw;
 
   @NotNull
-  private DataReducer myReducer;
+  private final LineChartReducer myReducer;
 
   // Debug draw counters. TODO: Move to a framework object
   private long myRedraws;
@@ -72,30 +81,19 @@ public class LineChart extends AnimatedComponent {
   private long myLastDraws;
   private long myLastRedraws;
 
-  @TestOnly
-  public LineChart() {
-    this(new LineChartModel());
-  }
-
-  public LineChart(@NotNull LineChartModel model) {
+  @VisibleForTesting
+  public LineChart(@NotNull LineChartModel model, @NotNull LineChartReducer reducer) {
     myLinePaths = new ArrayList<>();
     myLinePathConfigs = new ArrayList<>();
-    // TODO: Replace with myReducer = new LineChartReducer
-    // Having a real reducer will be important for the final release, but we don't want to risk
-    // unintentional side effects to distract us as we prepare to meet an initial milestone.
-    // (For example, reducing points may make it harder to handle dealing with flickering when
-    // endpoints go off screen). Therefore, we just create a passthru reducer for now.
-    myReducer = (path, config) -> path;
+    myReducer = reducer;
     myModel = model;
     myRedraw = true;
     myModel.addDependency(myAspectObserver)
       .onChange(LineChartModel.Aspect.LINE_CHART, this::modelChanged);
   }
 
-  @TestOnly
-  public LineChart(@NotNull DataReducer reducer, @NotNull LineChartModel model) {
-    this(model);
-    myReducer = reducer;
+  public LineChart(@NotNull LineChartModel model) {
+    this(model, new DefaultLineChartReducer());
   }
 
   /**
@@ -167,16 +165,20 @@ public class LineChart extends AnimatedComponent {
     Deque<LineConfig> orderedConfigs = new ArrayDeque<>(myLinesConfig.size());
 
     for (RangedContinuousSeries ranged : myModel.getSeries()) {
+      if (ranged.getXRange().isEmpty() || ranged.getXRange().isPoint()
+          || ranged.getYRange().isEmpty() || ranged.getYRange().isPoint()) {
+        continue;
+      }
+
       final LineConfig config = getLineConfig(ranged);
       // Stores the y coordinates of the current series in case it's used as a stacked series
       final TDoubleArrayList currentSeriesY = new TDoubleArrayList();
 
       Path2D path = new Path2D.Float();
-
       double xMin = ranged.getXRange().getMin();
-      double xMax = ranged.getXRange().getMax();
+      double xLength = ranged.getXRange().getLength();
       double yMin = ranged.getYRange().getMin();
-      double yMax = ranged.getYRange().getMax();
+      double yLength = ranged.getYRange().getLength();
 
       // X coordinate of the first point
       double firstXd = 0f;
@@ -187,8 +189,8 @@ public class LineChart extends AnimatedComponent {
         SeriesData<Long> seriesData = seriesList.get(i);
         long currX = seriesData.x;
         long currY = seriesData.value;
-        double xd = (currX - xMin) / (xMax - xMin);
-        double yd = (currY - yMin) / (yMax - yMin);
+        double xd = (currX - xMin) / xLength;
+        double yd = (currY - yMin) / yLength;
 
         // If the current series is stacked, increment its yd by the yd of the last stacked
         // series if it's not null.
@@ -255,33 +257,36 @@ public class LineChart extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g2d, Dimension dim) {
-      long now = System.nanoTime();
-      if (now - myLastCount > 1000000000) {
-        myLastDraws = myDraws;
-        myLastRedraws = myRedraws;
-        myDraws = 0;
-        myRedraws = 0;
-        myLastCount = now;
-      }
-      myDraws++;
+    long now = System.nanoTime();
+    long drawStartTime = now;
+
+    if (now - myLastCount > 1e9) {
+      myLastDraws = myDraws;
+      myLastRedraws = myRedraws;
+      myDraws = 0;
+      myRedraws = 0;
+      myLastCount = now;
+    }
+    myDraws++;
     if (myRedraw) {
       myRedraw = false;
       redraw();
       myRedraws++;
-    } else {
+    }
+    else {
       addDebugInfo("postAnimate time: 0 ms");
     }
     addDebugInfo("Draws in the last second %d", myLastDraws);
     addDebugInfo("Redraws in the last second %d", myLastRedraws);
 
-    if (myLinePaths.size() != myLinesConfig.size()) {
-      // Early return if the cached paths have not been sync'd with the configs.
-      // e.g. updateData/postAnimate has not been invoked before this draw call.
-      return;
-    }
-
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     AffineTransform scale = AffineTransform.getScaleInstance(dim.getWidth(), dim.getHeight());
+
+    if (myShowMaxLine) {
+      g2d.setColor(myMaxLineColor);
+      g2d.setStroke(new BasicStroke(1, CAP_SQUARE, JOIN_MITER, 10, new float[]{3.0f, 3.0f}, 0.0f));
+      g2d.drawLine(myMaxLineMargin, 0, dim.width, 0);
+    }
 
     // Cache the transformed line paths for reuse below.
     List<Path2D> transformedPaths = new ArrayList<>(myLinePaths.size());
@@ -306,6 +311,8 @@ public class LineChart extends AnimatedComponent {
 
     // 2nd pass - call each custom renderer instances to redraw any regions/lines as needed.
     myCustomRenderers.forEach(renderer -> renderer.renderLines(this, g2d, transformedPaths, myLinePathConfigs));
+
+    addDebugInfo("Draw time: %.2fms", (System.nanoTime() - drawStartTime) / 1e6);
   }
 
   public static void drawLines(Graphics2D g2d, List<Path2D> transformedPaths, List<LineConfig> configs, boolean grayScale) {
@@ -332,6 +339,18 @@ public class LineChart extends AnimatedComponent {
         g2d.draw(path);
       }
     }
+  }
+
+  public void setShowMaxLine(boolean showMaxLine) {
+    myShowMaxLine = showMaxLine;
+  }
+
+  public void setMaxLineColor(@NotNull Color maxLineColor) {
+    myMaxLineColor = maxLineColor;
+  }
+
+  public void setMaxLineMargin(int maxLineMargin) {
+    myMaxLineMargin = maxLineMargin;
   }
 }
 

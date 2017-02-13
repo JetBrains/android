@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -33,8 +34,8 @@ public final class ItemHandler extends MenuHandler {
   @Nullable
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull NlComponent group,
-                                       @NotNull List<NlComponent> items,
+                                       @NotNull SceneComponent group,
+                                       @NotNull List<SceneComponent> items,
                                        @NotNull DragType type) {
     return null;
   }

@@ -26,7 +26,6 @@ import java.util.Collections;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -74,10 +73,6 @@ public final class NlComponentTest extends AndroidTestCase {
     linearLayout.setBounds(0, 0, 1000, 800);
     textView.setBounds(0, 0, 200, 100);
     button.setBounds(10, 110, 400, 100);
-
-    assertSame(linearLayout, linearLayout.findLeafAt(500, 500));
-    assertSame(textView, linearLayout.findLeafAt(20, 20));
-    assertSame(button, linearLayout.findLeafAt(20, 120));
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x800}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[0,0:200x100}\n" +

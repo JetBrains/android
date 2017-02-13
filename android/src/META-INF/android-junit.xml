@@ -22,6 +22,7 @@
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.junit.TestMethodAndroidConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.testartifacts.junit.TestPatternConfigurationProducer"/>
     <configurationType implementation="com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType"/>
+    <project.converterProvider implementation="com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationConverterProvider"/>
   </extensions>
 
   <actions>

@@ -53,7 +53,6 @@ import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.picocontainer.MutablePicoContainer;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,6 +69,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   private List<String> myAllowedRoots = new ArrayList<>();
   private boolean myUseCustomSettings;
+  private ComponentStack myApplicationComponentStack;
+  private ComponentStack myProjectComponentStack;
 
   @Override
   protected void setUp() throws Exception {
@@ -142,11 +143,18 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
     ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
+
+    myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());
+    myProjectComponentStack = new ComponentStack(getProject());
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
+      myApplicationComponentStack.restoreComponents();
+      myApplicationComponentStack = null;
+      myProjectComponentStack.restoreComponents();
+      myProjectComponentStack = null;
       CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
       myModule = null;
       myAdditionalModules = null;
@@ -337,6 +345,18 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     InspectionTestUtil.compareToolResults(globalContext, wrapper, false, getTestDataPath() + globalTestDir);
   }
 
+  public <T> void registerApplicationComponent(@NotNull Class<T> key, @NotNull T instance) {
+    myApplicationComponentStack.registerComponentInstance(key, instance);
+  }
+
+  public <T> void registerProjectComponent(@NotNull Class<T> key, @NotNull T instance) {
+    myProjectComponentStack.registerComponentInstance(key, instance);
+  }
+
+  public <T> void registerProjectComponentImplementation(@NotNull Class<T> key, @NotNull T instance) {
+    myProjectComponentStack.registerComponentImplementation(key, instance);
+  }
+
   protected static class MyAdditionalModuleData {
     final JavaModuleFixtureBuilder myModuleFixtureBuilder;
     final String myDirName;
@@ -350,25 +370,5 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       myProjectType = projectType;
       myIsMainModuleDependency = isMainModuleDependency;
     }
-  }
-
-  @NotNull
-  protected <T> T registerApplicationComponent(@NotNull Class<T> key, @NotNull T instance) throws Exception {
-    MutablePicoContainer picoContainer = (MutablePicoContainer)ApplicationManager.getApplication().getPicoContainer();
-    @SuppressWarnings("unchecked")
-    T old = (T)picoContainer.getComponentInstance(key.getName());
-    picoContainer.unregisterComponent(key.getName());
-    picoContainer.registerComponentInstance(key.getName(), instance);
-    return old;
-  }
-
-  @NotNull
-  protected <T> T registerProjectComponent(@NotNull Class<T> key, @NotNull T instance) {
-    MutablePicoContainer picoContainer = (MutablePicoContainer)getProject().getPicoContainer();
-    @SuppressWarnings("unchecked")
-    T old = (T)picoContainer.getComponentInstance(key.getName());
-    picoContainer.unregisterComponent(key.getName());
-    picoContainer.registerComponentInstance(key.getName(), instance);
-    return old;
   }
 }

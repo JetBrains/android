@@ -15,14 +15,19 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
+import com.android.tools.profilers.memory.adapters.ClassObject.ClassAttribute;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.android.tools.profilers.memory.adapters.HeapObject.ClassAttribute.*;
+import static com.android.tools.profilers.memory.adapters.ClassObject.ClassAttribute.*;
 
 /**
  * A UI representation for a {@link Heap}.
@@ -31,8 +36,26 @@ final class HeapDumpHeapObject implements HeapObject {
   @NotNull
   private final Heap myHeap;
 
+  @Nullable
+  private List<ClassObject> myClassObjects = null;
+
   public HeapDumpHeapObject(@NotNull Heap heap) {
     myHeap = heap;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof HeapDumpHeapObject)) {
+      return false;
+    }
+
+    HeapDumpHeapObject otherHeap = (HeapDumpHeapObject)obj;
+    return myHeap == otherHeap.myHeap;
+  }
+
+  @Override
+  public int hashCode() {
+    return myHeap.hashCode();
   }
 
   @NotNull
@@ -54,12 +77,23 @@ final class HeapDumpHeapObject implements HeapObject {
   @NotNull
   @Override
   public List<ClassObject> getClasses() {
-    return myHeap.getClasses().stream().map(HeapDumpClassObject::new).collect(Collectors.toList());
+    if (myClassObjects == null) {
+      // Find the union of the classObjs this heap has instances of, plus the classObjs themselves that are allocated on this heap.
+      Set<ClassObj> classes = new LinkedHashSet<>(myHeap.getClasses().size() + myHeap.getInstancesCount());
+      classes.addAll(myHeap.getClasses());
+
+      myHeap.forEachInstance(instance -> {
+        classes.add(instance.getClassObj());
+        return true;
+      });
+      myClassObjects = classes.stream().map(klass -> new HeapDumpClassObject(this, klass)).collect(Collectors.toList());
+    }
+    return myClassObjects;
   }
 
   @NotNull
   @Override
   public List<ClassAttribute> getClassAttributes() {
-    return Arrays.asList(LABEL, CHILDREN_COUNT, ELEMENT_SIZE, SHALLOW_SIZE, RETAINED_SIZE);
+    return Arrays.asList(LABEL, TOTAL_COUNT, HEAP_COUNT, INSTANCE_SIZE, SHALLOW_SIZE, RETAINED_SIZE);
   }
 }
