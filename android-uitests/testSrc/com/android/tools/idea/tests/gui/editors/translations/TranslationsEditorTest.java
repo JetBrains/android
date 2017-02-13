@@ -97,7 +97,7 @@ public final class TranslationsEditorTest {
       "Chinese (zh) in China (CN)");
     assertEquals(expected, myTranslationsEditor.locales());
 
-    assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "hello_world"), myTranslationsEditor.keys());
+    assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "hello_world", "some_id"), myTranslationsEditor.keys());
 
     JTableCellFixture cancel = myTranslationsEditor.getTable().cell(TableCell.row(3).column(CHINESE_IN_CHINA_COLUMN)); // Cancel in zh-rCN
     assertEquals("取消", cancel.value());
@@ -115,7 +115,7 @@ public final class TranslationsEditorTest {
     dialog.getResourceFolderComboBox().selectItem(toResourceName("app/src/debug/res"));
     dialog.getOkButton().click();
 
-    Object expected = Arrays.asList("action_settings", "action_settings", "app_name", "app_name", "cancel", "hello_world");
+    Object expected = Arrays.asList("action_settings", "action_settings", "app_name", "app_name", "cancel", "hello_world", "some_id");
     assertEquals(expected, myTranslationsEditor.keys());
   }
 
@@ -153,7 +153,11 @@ public final class TranslationsEditorTest {
   }
 
   @Test
-  public void showKeysNeedingTranslationForEnglish() {
+  public void filterKeys() {
+    myTranslationsEditor.clickFilterKeysComboBoxItem("Show Translatable Keys Only");
+    assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "hello_world"), myTranslationsEditor.keys());
+    myTranslationsEditor.clickFilterKeysComboBoxItem("Show Keys Needing Translations");
+    assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "hello_world"), myTranslationsEditor.keys());
     myTranslationsEditor.clickFilterKeysComboBoxItem("Show Keys Needing a Translation for English (en)");
     assertEquals(Collections.singletonList("cancel"), myTranslationsEditor.keys());
   }
