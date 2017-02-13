@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes.ndk;
 
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.NativeArtifact;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.google.common.collect.*;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -29,37 +30,55 @@ import com.intellij.openapi.ui.Queryable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.navigator.nodes.NativeAndroidLibraryNode.getSourceDirectoryNodes;
 import static com.intellij.openapi.util.text.StringUtil.trimEnd;
 import static com.intellij.openapi.util.text.StringUtil.trimStart;
 
 public class NdkModuleNode extends ProjectViewModuleNode {
-  public NdkModuleNode(@NotNull Project project, @NotNull Module value, ViewSettings viewSettings) {
-    super(project, value, viewSettings);
+  public NdkModuleNode(@NotNull Project project, @NotNull Module value, @NotNull ViewSettings settings) {
+    super(project, value, settings);
+  }
+
+  @Override
+  @NotNull
+  public Collection<AbstractTreeNode> getChildren() {
+    Module module = getValue();
+    if (module == null) {
+      return Collections.emptyList();
+    }
+
+    NdkFacet facet = NdkFacet.getInstance(module);
+    if (facet == null || facet.getNdkModuleModel() == null) {
+      return Collections.emptyList();
+    }
+
+    assert myProject != null;
+    return getNativeSourceNodes(myProject, facet.getNdkModuleModel(), getSettings());
   }
 
   @NotNull
   public static Collection<AbstractTreeNode> getNativeSourceNodes(@NotNull Project project,
-                                                                  @NotNull NdkModuleModel ndkModuleModel,
-                                                                  @NotNull ViewSettings viewSettings) {
-    NativeAndroidProject nativeAndroidProject = ndkModuleModel.getAndroidProject();
+                                                                  @NotNull NdkModuleModel ndkModel,
+                                                                  @NotNull ViewSettings settings) {
+    NativeAndroidProject nativeAndroidProject = ndkModel.getAndroidProject();
     Collection<String> sourceFileExtensions = nativeAndroidProject.getFileExtensions().keySet();
 
-    NdkModuleModel.NdkVariant variant = ndkModuleModel.getSelectedVariant();
+    NdkModuleModel.NdkVariant variant = ndkModel.getSelectedVariant();
     Multimap<String, NativeArtifact> nativeLibraries = HashMultimap.create();
     for (NativeArtifact artifact : variant.getArtifacts()) {
       String artifactOutputFileName = artifact.getOutputFile().getName();
       nativeLibraries.put(artifactOutputFileName, artifact);
     }
 
-    if(nativeLibraries.keySet().size() == 1) {
-      return getSourceDirectoryNodes(project, nativeLibraries.values(), viewSettings, sourceFileExtensions);
+    if (nativeLibraries.keySet().size() == 1) {
+      return NdkLibraryNode.getSourceFolderNodes(project, nativeLibraries.values(), settings, sourceFileExtensions);
     }
 
-    List<AbstractTreeNode> children = Lists.newArrayList();
+    List<AbstractTreeNode> children = new ArrayList<>();
     for (String name : nativeLibraries.keySet()) {
       String nativeLibraryType = "";
       String nativeLibraryName = trimEnd(name, ".so");
@@ -73,34 +92,15 @@ public class NdkModuleNode extends ProjectViewModuleNode {
         }
       }
       nativeLibraryName = trimStart(nativeLibraryName, "lib");
-      children.add(new NativeAndroidLibraryNode(project,
-                                                nativeLibraryName,
-                                                nativeLibraryType,
-                                                nativeLibraries.get(name),
-                                                viewSettings,
-                                                sourceFileExtensions));
+      NdkLibraryNode node = new NdkLibraryNode(project, nativeLibraryName, nativeLibraryType, nativeLibraries.get(name), settings,
+                                               sourceFileExtensions);
+      children.add(node);
     }
     return children;
   }
 
-  @NotNull
   @Override
-  public Collection<AbstractTreeNode> getChildren() {
-    Module module = getValue();
-    if (module == null) {
-      return ImmutableList.of();
-    }
-
-    NdkFacet facet = NdkFacet.getInstance(module);
-    if (facet == null || facet.getNdkModuleModel() == null) {
-      return ImmutableList.of();
-    }
-
-    return getNativeSourceNodes(myProject, facet.getNdkModuleModel(), getSettings());
-  }
-
   @Nullable
-  @Override
   public Comparable getSortKey() {
     Module module = getValue();
     if (module == null) {
@@ -109,8 +109,8 @@ public class NdkModuleNode extends ProjectViewModuleNode {
     return module.getName();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Comparable getTypeSortKey() {
     return getSortKey();
   }

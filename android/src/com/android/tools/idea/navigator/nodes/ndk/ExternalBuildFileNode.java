@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes.ndk;
 
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
@@ -21,36 +21,37 @@ import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.psi.PsiFile;
-import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 public class ExternalBuildFileNode extends PsiFileNode {
   @NotNull private final String myModuleName;
 
-  public ExternalBuildFileNode(@NotNull Project project,
-                               @NotNull PsiFile value,
-                               @NotNull ViewSettings viewSettings,
-                               @NotNull String moduleName) {
-    super(project, value, viewSettings);
+  ExternalBuildFileNode(@NotNull Project project,
+                        @NotNull PsiFile value,
+                        @NotNull ViewSettings settings,
+                        @NotNull String moduleName) {
+    super(project, value, settings);
     myModuleName = moduleName;
   }
 
   @Override
-  public void update(PresentationData data) {
+  public void update(@NotNull PresentationData data) {
     super.update(data);
-    String fileName = getPsiFileName();
-    data.addText(fileName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    String fileName = getFileName();
+    data.addText(fileName, REGULAR_ATTRIBUTES);
     data.setPresentableText(fileName);
-    data.addText(" (" + myModuleName + ", " + getPsiFilePath() + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    data.addText(" (" + myModuleName + ", " + getFilePath() + ")", GRAY_ATTRIBUTES);
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Comparable getSortKey() {
-    return myModuleName + "-" + getPsiFileName() + "-" + getPsiFilePath();
+    return myModuleName + "-" + getFileName() + "-" + getFilePath();
   }
 
   @Override
@@ -58,24 +59,26 @@ public class ExternalBuildFileNode extends PsiFileNode {
     return getSortKey();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    return getPsiFileName() + " (" + myModuleName + ", " + getPsiFilePath() + ")";
+    return getFileName() + " (" + myModuleName + ", " + getFilePath() + ")";
   }
 
   @NotNull
-  private PsiFile getPsiFile() {
+  private String getFileName() {
+    return getFile().getName();
+  }
+
+  @NotNull
+  private String getFilePath() {
+    return getLocationRelativeToUserHome(getFile().getVirtualFile().getPresentableUrl());
+  }
+
+  @NotNull
+  private PsiFile getFile() {
     PsiFile value = getValue();
     assert value != null;
     return value;
-  }
-
-  private String getPsiFileName() {
-    return getPsiFile().getName();
-  }
-
-  private String getPsiFilePath() {
-    return getLocationRelativeToUserHome(getPsiFile().getVirtualFile().getPresentableUrl());
   }
 }

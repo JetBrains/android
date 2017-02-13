@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.navigator.nodes.FileGroupNode;
+import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -28,48 +29,59 @@ import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
-import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.util.PlatformIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/** {@link AndroidResGroupNode} groups together all the configuration specific alternatives of a single resource. */
-public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implements DirectoryGroupNode, FileGroupNode, Comparable {
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import static com.intellij.util.PlatformIcons.PACKAGE_ICON;
+
+/**
+ * {@link AndroidResGroupNode} groups together all the configuration specific alternatives of a single resource.
+ */
+public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implements FolderGroupNode, FileGroupNode, Comparable {
   @NotNull private final String myResName;
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final List<PsiFile> myFiles;
 
-  public AndroidResGroupNode(@NotNull Project project,
-                             @NotNull AndroidFacet facet,
-                             @NotNull List<PsiFile> files,
-                             @NotNull String resName,
-                             @NotNull ViewSettings settings) {
+  AndroidResGroupNode(@NotNull Project project,
+                      @NotNull AndroidFacet androidFacet,
+                      @NotNull List<PsiFile> files,
+                      @NotNull String resName,
+                      @NotNull ViewSettings settings) {
     super(project, files, settings);
     myResName = resName;
-    myFacet = facet;
+    myFacet = androidFacet;
     myFiles = files;
   }
 
-  @NotNull
   @Override
-  public PsiDirectory[] getDirectories() {
-    List<PsiFile> psiFiles = getValue();
-    PsiDirectory[] folders = new PsiDirectory[psiFiles.size()];
-    for (int i = 0; i < psiFiles.size(); i++) {
-      folders[i] = psiFiles.get(i).getParent();
+  @NotNull
+  public PsiDirectory[] getFolders() {
+    List<PsiFile> resFiles = getResFiles();
+    PsiDirectory[] folders = new PsiDirectory[resFiles.size()];
+    for (int i = 0; i < resFiles.size(); i++) {
+      folders[i] = resFiles.get(i).getParent();
     }
     return folders;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public PsiFile[] getFiles() {
-    List<PsiFile> psiFiles = getValue();
-    return psiFiles.toArray(new PsiFile[psiFiles.size()]);
+    return getResFiles().toArray(new PsiFile[getResFiles().size()]);
+  }
+
+  @NotNull
+  private List<PsiFile> getResFiles() {
+    List<PsiFile> files = getValue();
+    assert files != null;
+    return files;
   }
 
   @Override
@@ -79,14 +91,14 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
         return true;
       }
     }
-
     return false;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Collection<? extends AbstractTreeNode> getChildren() {
-    List<PsiFileNode> children = Lists.newArrayListWithExpectedSize(myFiles.size());
+    List<PsiFileNode> children = new ArrayList<>(myFiles.size());
+    assert myProject != null;
     for (PsiFile file : myFiles) {
       children.add(new AndroidResFileNode(myProject, file, getSettings(), myFacet));
     }
@@ -98,14 +110,14 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
     return 20; // same as PsiFileNode so that res group nodes are compared with resources only alphabetically
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Comparable getSortKey() {
     return this;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Comparable getTypeSortKey() {
     return this;
   }
@@ -132,19 +144,18 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
 
   @Override
   public void navigate(boolean requestFocus) {
-    if (myFiles.isEmpty()) {
-      return;
+    if (!myFiles.isEmpty()) {
+      PsiFile fileToOpen = findFileToOpen(myFiles);
+      if (fileToOpen != null) {
+        assert myProject != null;
+        new OpenFileDescriptor(myProject, fileToOpen.getVirtualFile()).navigate(requestFocus);
+      }
     }
-
-    PsiFile fileToOpen = findFileToOpen(myFiles);
-    if (fileToOpen == null) {
-      return;
-    }
-
-    new OpenFileDescriptor(myProject, fileToOpen.getVirtualFile()).navigate(requestFocus);
   }
 
-  /** Returns the best configuration of a particular resource given a set of multiple configurations of the same resource. */
+  /**
+   * Returns the best configuration of a particular resource given a set of multiple configurations of the same resource.
+   */
   @Nullable
   private static PsiFile findFileToOpen(@NotNull List<PsiFile> files) {
     PsiFile bestFile = null;
@@ -167,22 +178,18 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
   }
 
   @Override
-  protected void update(PresentationData presentation) {
+  protected void update(@NotNull PresentationData presentation) {
     presentation.setPresentableText(myResName);
-    presentation.addText(myResName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    presentation.addText(myResName, REGULAR_ATTRIBUTES);
     if (myFiles.size() > 1) {
-      presentation.addText(String.format(" (%1$d)", myFiles.size()), SimpleTextAttributes.GRAY_ATTRIBUTES);
+      presentation.addText(String.format(" (%1$d)", myFiles.size()), GRAY_ATTRIBUTES);
     }
-    presentation.setIcon(PlatformIcons.PACKAGE_ICON);
+    presentation.setIcon(PACKAGE_ICON);
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    StringBuilder sb = new StringBuilder(myResName);
-    sb.append(" (");
-    sb.append(myFiles.size());
-    sb.append(")");
-    return sb.toString();
+    return myResName + " (" + myFiles.size() + ")";
   }
 }

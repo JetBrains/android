@@ -19,6 +19,7 @@ import com.intellij.psi.PsiDirectory;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-public interface DirectoryGroupNode {
-  @NotNull PsiDirectory[] getDirectories();
+public interface FolderGroupNode {
+  @NotNull
+  PsiDirectory[] getFolders();
 }
