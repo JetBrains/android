@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActi
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture.ActivityTextField;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.intellij.openapi.util.text.StringUtil;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -108,7 +109,7 @@ public class NewActivityTest {
     myConfigActivity.selectUseFragment();
     myDialog.clickFinish();
 
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(15));
 
     guiTest.ideFrame().getProjectView().assertFilesExist(
       "app/src/main/java/google/simpleapplication/MainActivity.java",
