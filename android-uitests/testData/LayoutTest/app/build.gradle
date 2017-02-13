@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.android.tools.tests.layout"
-        minSdkVersion 9
+        minSdkVersion 11
         targetSdkVersion 22
         versionCode 1
         versionName "1.0"
@@ -45,4 +45,5 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:+'
+    compile 'com.android.support.constraint:constraint-layout:+'
 }

@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
@@ -158,7 +159,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     JList list = GuiTests.waitUntilShowing(robot(), treeGrid, Matchers.byName(JList.class, group));
     new JListFixture(robot(), list).drag(item);
     NlDesignSurface target = myDesignSurfaceFixture.target();
-    myDragAndDrop.drop(target, new Point(target.getWidth() / 2, target.getHeight() / 2));
+    SceneView sceneView = target.getCurrentSceneView();
+    myDragAndDrop.drop(target, new Point(sceneView.getX() + sceneView.getSize().width / 2, sceneView.getY() + sceneView.getSize().height / 2));
     return this;
   }
 
@@ -213,6 +215,18 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     NlDesignSurface surface = myDesignSurfaceFixture.target();
     if (surface.getScreenMode() != NlDesignSurface.ScreenMode.SCREEN_ONLY) {
       getConfigToolbar().showDesign();
+    }
+    return this;
+  }
+
+  /**
+   * Ensures only the blueprint view is being displayed.
+   * Only applicable if {@code target()} is a {@link NlDesignSurface}.
+   */
+  public NlEditorFixture showOnlyBlueprintView() {
+    NlDesignSurface surface = myDesignSurfaceFixture.target();
+    if (surface.getScreenMode() != NlDesignSurface.ScreenMode.BLUEPRINT_ONLY) {
+      getConfigToolbar().showBlueprint();
     }
     return this;
   }
