@@ -28,14 +28,12 @@ import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectManagerAdapter;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
@@ -253,18 +251,8 @@ public class Template {
     }
 
     if (context.shouldReformat()) {
-      if (project.isInitialized()) {
-        TemplateUtils.reformatAndRearrange(project, context.getTargetFiles());
-      }
-      else {
-        ProjectManager.getInstance().addProjectManagerListener(project, new ProjectManagerAdapter() {
-          @Override
-          public void projectOpened(Project project) {
-            ProjectManager.getInstance().removeProjectManagerListener(project, this);
-            ApplicationManager.getApplication().invokeLater(() -> TemplateUtils.reformatAndRearrange(project, context.getTargetFiles()));
-          }
-        });
-      }
+      StartupManager.getInstance(project)
+        .runWhenProjectIsInitialized(() -> TemplateUtils.reformatAndRearrange(project, context.getTargetFiles()));
     }
 
     return success;
