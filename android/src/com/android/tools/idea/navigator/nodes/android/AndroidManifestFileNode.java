@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes.android;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
@@ -24,25 +24,26 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
-import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidManifestFileNode extends PsiFileNode implements DirectoryGroupNode {
+import static com.android.SdkConstants.FD_MAIN;
+import static com.intellij.psi.PsiDirectory.EMPTY_ARRAY;
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+
+public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupNode {
   @NotNull private final AndroidFacet myFacet;
 
-  public AndroidManifestFileNode(@NotNull Project project,
-                                 @NotNull PsiFile psiFile,
-                                 @NotNull ViewSettings settings,
-                                 @NotNull AndroidFacet facet) {
+  AndroidManifestFileNode(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull ViewSettings settings, @NotNull AndroidFacet facet) {
     super(project, psiFile, settings);
     myFacet = facet;
   }
 
   @Override
-  public void update(PresentationData data) {
+  public void update(@NotNull PresentationData data) {
     super.update(data);
 
     PsiFile file = getValue();
@@ -54,15 +55,15 @@ public class AndroidManifestFileNode extends PsiFileNode implements DirectoryGro
 
     // if it is not part of the main source set, then append the provider name
     IdeaSourceProvider sourceProvider = getSourceProvider(myFacet, file);
-    if (sourceProvider != null && !SdkConstants.FD_MAIN.equals(sourceProvider.getName())) {
-      data.addText(file.getName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
-      data.addText(" (" + sourceProvider.getName() + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    if (sourceProvider != null && !FD_MAIN.equals(sourceProvider.getName())) {
+      data.addText(file.getName(), REGULAR_ATTRIBUTES);
+      data.addText(" (" + sourceProvider.getName() + ")", GRAY_ATTRIBUTES);
       data.setPresentableText(file.getName());
     }
   }
 
   @Nullable
-  public static IdeaSourceProvider getSourceProvider(@NotNull AndroidFacet facet, @NotNull PsiFile file) {
+  static IdeaSourceProvider getSourceProvider(@NotNull AndroidFacet facet, @NotNull PsiFile file) {
     for (IdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(facet)) {
       if (file.getVirtualFile().equals(provider.getManifestFile())) {
         return provider;
@@ -71,8 +72,8 @@ public class AndroidManifestFileNode extends PsiFileNode implements DirectoryGro
     return null;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Comparable getSortKey() {
     PsiFile file = getValue();
     if (file == null) {
@@ -80,37 +81,41 @@ public class AndroidManifestFileNode extends PsiFileNode implements DirectoryGro
     }
 
     IdeaSourceProvider sourceProvider = getSourceProvider(myFacet, file);
-    if (sourceProvider == null || SdkConstants.FD_MAIN.equals(sourceProvider.getName())) {
-      return  "";
-    } else {
+    if (sourceProvider == null || FD_MAIN.equals(sourceProvider.getName())) {
+      return "";
+    }
+    else {
       return sourceProvider.getName();
     }
   }
 
   @Override
+  @Nullable
   public Comparable getTypeSortKey() {
     return getSortKey();
   }
 
-  @NotNull
   @Override
-  public PsiDirectory[] getDirectories() {
-    return PsiDirectory.EMPTY_ARRAY;
+  @NotNull
+  public PsiDirectory[] getFolders() {
+    return EMPTY_ARRAY;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     PsiFile file = getValue();
     if (file == null) {
       return "";
     }
 
-    StringBuilder sb = new StringBuilder();
-    sb.append(file.getName());
-    sb.append(" (");
-    sb.append(getSourceProvider(myFacet, getValue()).getName());
-    sb.append(")");
-    return sb.toString();
+    StringBuilder buffer = new StringBuilder();
+    buffer.append(file.getName());
+    buffer.append(" (");
+    IdeaSourceProvider sourceProvider = getSourceProvider(myFacet, getValue());
+    assert sourceProvider != null;
+    buffer.append(sourceProvider.getName());
+    buffer.append(")");
+    return buffer.toString();
   }
 }

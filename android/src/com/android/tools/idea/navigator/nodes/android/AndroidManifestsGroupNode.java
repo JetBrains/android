@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes.android;
 
-import com.android.SdkConstants;
+import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -29,7 +28,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -37,19 +35,25 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> implements DirectoryGroupNode {
+import static com.android.SdkConstants.FD_MAIN;
+import static com.intellij.psi.PsiDirectory.EMPTY_ARRAY;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+
+public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> implements FolderGroupNode {
   private static final String MANIFESTS_NODE = "manifests";
+
   @NotNull private final Set<VirtualFile> mySources;
 
-  protected AndroidManifestsGroupNode(@NotNull Project project,
-                                      @NotNull AndroidFacet facet,
-                                      @NotNull ViewSettings viewSettings,
-                                      @NotNull Set<VirtualFile> sources) {
-    super(project, facet, viewSettings);
+  AndroidManifestsGroupNode(@NotNull Project project,
+                            @NotNull AndroidFacet androidFacet,
+                            @NotNull ViewSettings settings,
+                            @NotNull Set<VirtualFile> sources) {
+    super(project, androidFacet, settings);
     mySources = sources;
   }
 
@@ -58,12 +62,13 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
     return mySources.contains(file);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Collection<? extends AbstractTreeNode> getChildren() {
-    PsiManager psiManager = PsiManager.getInstance(myProject);
+    Project project = getNotNullProject();
+    PsiManager psiManager = PsiManager.getInstance(project);
 
-    List<AbstractTreeNode> children = Lists.newArrayList();
+    List<AbstractTreeNode> children = new ArrayList<>();
     for (VirtualFile manifest : mySources) {
       if (!manifest.isValid()) {
         continue;
@@ -71,17 +76,16 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
 
       PsiFile psiFile = psiManager.findFile(manifest);
       if (psiFile != null) {
-        AndroidFacet facet = getValue();
-        assert facet != null : "Android Facet for module cannot be null";
-        children.add(new AndroidManifestFileNode(myProject, psiFile, getSettings(), facet));
+        AndroidFacet facet = getAndroidFacet();
+        children.add(new AndroidManifestFileNode(project, psiFile, getSettings(), facet));
       }
     }
     return children;
   }
 
   @Override
-  protected void update(PresentationData presentation) {
-    presentation.addText(MANIFESTS_NODE, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+  protected void update(@NotNull PresentationData presentation) {
+    presentation.addText(MANIFESTS_NODE, REGULAR_ATTRIBUTES);
     Icon icon = AndroidSourceType.MANIFEST.getIcon();
     if (icon != null) {
       presentation.setIcon(icon);
@@ -105,24 +109,24 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
     if (fileToOpen == null) {
       return;
     }
-
-    new OpenFileDescriptor(myProject, fileToOpen).navigate(requestFocus);
+    new OpenFileDescriptor(getNotNullProject(), fileToOpen).navigate(requestFocus);
   }
 
   @Nullable
   private VirtualFile findFileToOpen(@NotNull Set<VirtualFile> files) {
     VirtualFile bestFile = Iterables.getFirst(files, null);
 
-    PsiManager psiManager = PsiManager.getInstance(myProject);
-    for (VirtualFile f : files) {
-      PsiFile psiFile = psiManager.findFile(f);
+    PsiManager psiManager = PsiManager.getInstance(getNotNullProject());
+    for (VirtualFile file : files) {
+      PsiFile psiFile = psiManager.findFile(file);
       if (psiFile == null) {
         continue;
       }
 
-      IdeaSourceProvider sourceProvider = AndroidManifestFileNode.getSourceProvider(getValue(), psiFile);
-      if (sourceProvider != null && SdkConstants.FD_MAIN.equals(sourceProvider.getName())) {
-        bestFile = f;
+      AndroidFacet facet = getAndroidFacet();
+      IdeaSourceProvider sourceProvider = AndroidManifestFileNode.getSourceProvider(facet, psiFile);
+      if (sourceProvider != null && FD_MAIN.equals(sourceProvider.getName())) {
+        bestFile = file;
       }
     }
 
@@ -130,25 +134,38 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
   }
 
   @NotNull
-  @Override
-  public PsiDirectory[] getDirectories() {
-    return PsiDirectory.EMPTY_ARRAY;
+  private AndroidFacet getAndroidFacet() {
+    AndroidFacet facet = getValue();
+    assert facet != null : "Android Facet for module cannot be null";
+    return facet;
   }
 
-  @Nullable
+  @NotNull
+  private Project getNotNullProject() {
+    assert myProject != null;
+    return myProject;
+  }
+
   @Override
+  @NotNull
+  public PsiDirectory[] getFolders() {
+    return EMPTY_ARRAY;
+  }
+
+  @Override
+  @Nullable
   public Comparable getSortKey() {
     return AndroidSourceType.MANIFEST;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Comparable getTypeSortKey() {
     return AndroidSourceType.MANIFEST;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return MANIFESTS_NODE;
   }
