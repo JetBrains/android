@@ -130,7 +130,7 @@ public class AndroidResFileNode extends PsiFileNode implements Comparable {
   }
 
   @Nullable
-  public String getResName() {
+  String getResName() {
     PsiFile f = getValue();
     return (f == null || !f.isValid()) ? null : f.getName();
   }
