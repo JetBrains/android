@@ -19,9 +19,11 @@ import com.android.annotations.NonNull;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.util.text.StringUtil;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerCallHandler;
@@ -54,8 +56,14 @@ public class ProfilerServiceProxy extends PerfdProxyService
     myServiceStub = ProfilerServiceGrpc.newBlockingStub(channel);
     myProfilerDevice = Profiler.Device.newBuilder()
       .setSerial(device.getSerialNumber())
-      .setModel(device.getName())
+      .setModel(DevicePropertyUtil.getModel(device, ""))
+      .setVersion(StringUtil.notNullize(device.getProperty(IDevice.PROP_BUILD_VERSION)))
       .setApi(Integer.toString(device.getVersion().getApiLevel()))
+      .setManufacturer(DevicePropertyUtil.getManufacturer(device, ""))
+      .setIsEmulator(device.isEmulator())
+      // TODO: This is never DISCONNECTED at this point. Handle setting that where relevant,
+      // maybe in ProfilerDevicePoller?
+      .setState(convertState(device.getState()))
       //TODO: Change this to use the device boot_id, using the serial number
       // to keep a consistent ID across plug/unplug sessions.
       .setBootId(Integer.toString(device.getSerialNumber().hashCode()))
@@ -65,6 +73,22 @@ public class ProfilerServiceProxy extends PerfdProxyService
 
     AndroidDebugBridge.addDeviceChangeListener(this);
     AndroidDebugBridge.addClientChangeListener(this);
+  }
+
+  private static Profiler.Device.State convertState(IDevice.DeviceState state) {
+    switch (state) {
+      case OFFLINE:
+        return Profiler.Device.State.OFFLINE;
+
+      case ONLINE:
+        return Profiler.Device.State.ONLINE;
+
+      case DISCONNECTED:
+        return Profiler.Device.State.DISCONNECTED;
+
+      default:
+        return Profiler.Device.State.UNSPECIFIED;
+    }
   }
 
   @Override
