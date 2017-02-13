@@ -155,10 +155,7 @@ public class NlProperties {
     if (components.isEmpty()) {
       return null;
     }
-    NlComponent first = components.get(0);
-    XmlTag firstTag = first.getTag();
-
-    return AndroidFacet.getInstance(firstTag);
+    return components.get(0).getModel().getFacet();
   }
 
   private static void initStarState(@NotNull Table<String, String, NlPropertyItem> properties) {
