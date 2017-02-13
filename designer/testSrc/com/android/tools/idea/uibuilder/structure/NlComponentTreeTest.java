@@ -342,7 +342,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     myModel.getSelectionModel().toggle(myTextView);
     assertThat(myTree.canDeleteElement(context)).isTrue();
     myTree.deleteElement(context);
-    assertThat(CopyPasteManager.getInstance().getContents()).isNull();
+    verifyZeroInteractions(myCopyPasteManager);
     assertThat(toTree()).isEqualTo("<RelativeLayout>  [expanded]\n" +
                                    "    <LinearLayout>  [expanded]\n" +
                                    "        <Button>\n" +
