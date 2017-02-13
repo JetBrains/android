@@ -93,8 +93,8 @@ public class GoogleCrash implements CrashReporter {
   static final String KEY_VERSION = "version";
   static final String KEY_EXCEPTION_INFO = "exception_info";
 
-  // We allow reporting a max of 1 crash per 5 minutes
-  private static final double MAX_CRASHES_PER_SEC = 1.0d / (5 * 60d);
+  // We allow reporting a max of 1 crash per minute
+  private static final double MAX_CRASHES_PER_SEC = 1.0 / 60.0;
 
   private final String myCrashUrl;
   private final UploadRateLimiter myRateLimiter;
