@@ -92,7 +92,8 @@ public class ScreenViewLayer extends Layer {
    * the requests for a high quality scaled image.
    * <p>
    * This method should only be used for tests
-   *</p>
+   * </p>
+   *
    * @param screenView The screenView containing the model to render
    * @param executor   Executor used to debounce the calls to {@link #requestHighQualityScaledImage()}
    */
@@ -155,7 +156,7 @@ public class ScreenViewLayer extends Layer {
     if (myScaledDownImage != null && myCachedScale < 1.0) {
       // Draw the scaled down image in high quality
       g.setRenderingHints(HQ_RENDERING_HITS);
-      g.drawImage(myScaledDownImage, myScreenView.getX(), myScreenView.getY(), null);
+      UIUtil.drawImage(g, myScaledDownImage, myScreenView.getX(), myScreenView.getY(), null);
     }
     else {
       // If the image is being scaled down or the image needs to be only scaled up, we can directly draw
@@ -222,15 +223,48 @@ public class ScreenViewLayer extends Layer {
     }
 
     private void scaleOriginalImage() {
+      myScaledDownImage = null;
       ImagePool.Image image = myImage;
       if (image == null) {
         return;
       }
-      BufferedImage imageCopy = image.getCopy();
-      myScaledDownImage = ImageUtils.scale(imageCopy, myCachedScale);
+      if (UIUtil.isRetina() && ImageUtils.supportsRetina()) {
+        myScaledDownImage = getRetinaScaledImage(image, myCachedScale, false);
+      }
+      if (myScaledDownImage == null) {
+        BufferedImage imageCopy = image.getCopy();
+        myScaledDownImage = ImageUtils.scale(imageCopy, myCachedScale);
+      }
       myIsRescaling = false;
       UIUtil.invokeLaterIfNeeded(
         () -> myScreenView.getSurface().repaint());
     }
+  }
+
+  @Nullable
+  private static BufferedImage getRetinaScaledImage(@NotNull ImagePool.Image pooledImage, double scale, boolean fastScaling) {
+    if (scale > 1.01) {
+      // When scaling up significantly, use normal painting logic; no need to pixel double into a
+      // double res image buffer!
+      return null;
+    }
+
+    BufferedImage original = pooledImage.getCopy();
+    if (original == null) {
+      return null;
+    }
+
+    // No scaling if very close to 1.0 (we check for 0.5 since we're doubling the output)
+    if (Math.abs(scale - 0.5) > 0.001) {
+      double retinaScale = 2 * scale;
+      if (fastScaling) {
+        original = ImageUtils.lowQualityFastScale(original, retinaScale, retinaScale);
+      }
+      else {
+        original = ImageUtils.scale(original, retinaScale, retinaScale);
+      }
+    }
+
+    return ImageUtils.convertToRetina(original);
   }
 }
