@@ -16,6 +16,7 @@
 
 package com.android.tools.adtui.chart.hchart;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.HNode;
@@ -27,13 +28,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
-import java.util.Stack;
+import java.util.*;
+import java.util.List;
 
 public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListener, MouseListener {
 
   private static final String NO_HTREE = "No data available.";
   private static final String NO_RANGE = "X range width is zero: Please use a wider range.";
-  ;
+
   private static final int BORDER_PLUS_PADDING = 2;
   private static final int ZOOM_FACTOR = 20;
   private static final String ACTION_ZOOM_IN = "zoom in";
@@ -42,23 +44,38 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
   private static final String ACTION_MOVE_RIGHT = "move right";
   private static final int ACTION_MOVEMENT_FACTOR = 5;
 
-  private Orientation mOrientation;
+  private final Orientation mOrientation;
+
   @Nullable
   private HRenderer<T> mHRenderer;
+
   @Nullable
   private HNode<T> mRoot;
-  @Nullable
-  private Range mXRange;
-  @NotNull
-  private Range mYRange;
-  @NotNull
 
-  private Rectangle2D.Float mRect;
+  @NotNull
+  private final Range mXRange;
 
-  public HTreeChart(Range xRange, Orientation orientation) {
+  @NotNull
+  private final Range mYRange;
+
+  @NotNull
+  private final List<Rectangle2D.Float> mRectangles;
+
+  @NotNull
+  private final List<HNode<T>> mNodes;
+
+  @NotNull
+  private final HTreeChartReducer<T> mReducer;
+
+  private boolean mRender;
+
+  @VisibleForTesting
+  public HTreeChart(@NotNull Range xRange, Orientation orientation, @NotNull HTreeChartReducer<T> reducer) {
+    mRectangles = new ArrayList<>();
+    mNodes = new ArrayList<>();
     mXRange = xRange;
     mRoot = new HNode<>();
-    mRect = new Rectangle2D.Float();
+    mReducer = reducer;
     mYRange = new Range(0, 0);
     addMouseWheelListener(this);
     mOrientation = orientation;
@@ -66,19 +83,30 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     addMouseListener(this);
     initializeInputMap();
 
-    xRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::rangeChanged);
+    xRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::changed);
+    changed();
   }
 
-  private void rangeChanged() {
-    opaqueRepaint();
+  public HTreeChart(Range xRange, Orientation orientation) {
+    this(xRange, orientation, new DefaultHTreeChartReducer<>());
   }
 
   public HTreeChart(Range xRange) {
-    this(xRange, HTreeChart.Orientation.TOP_DOWN);
+    this(xRange, Orientation.TOP_DOWN);
+  }
+
+  private void changed() {
+    mRender = true;
+    opaqueRepaint();
   }
 
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
+    long startTime = System.nanoTime();
+    if (mRender) {
+      render();
+      mRender = false;
+    }
 
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
@@ -88,62 +116,81 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
       return;
     }
 
-    if (mXRange == null || mXRange.getLength() == 0) {
+    if (mXRange.getLength() == 0) {
       g.drawString(NO_RANGE, dim.width / 2 - mDefaultFontMetrics.stringWidth(NO_RANGE),
                    dim.height / 2);
       return;
     }
 
-    // Render using a LIFO Stack instead of recursion to limit the depth of the Java call
-    // stack.
-    Stack<HNode<T>> stack = new Stack<>();
-    stack.addAll(mRoot.getChildren());
-    while (!stack.isEmpty()) {
-      HNode<T> n = stack.pop();
-      renderHNode(g, n);
-      stack.addAll(n.getChildren());
+    List<HNode<T>> reducedNodes = new ArrayList<>(mNodes);
+    List<Rectangle2D.Float> reducedRectangles = new ArrayList<>(mRectangles.size());
+
+    // Transform
+    for (Rectangle2D.Float rect : mRectangles) {
+      Rectangle2D.Float newRect = new Rectangle2D.Float();
+      newRect.x = rect.x * (float)dim.getWidth();
+      newRect.y = rect.y;
+      newRect.width = rect.width * (float)dim.getWidth() - BORDER_PLUS_PADDING;
+      newRect.height = rect.height;
+
+      if (mOrientation == HTreeChart.Orientation.BOTTOM_UP) {
+        newRect.y = (float)(dim.getHeight() - newRect.y - newRect.getHeight());
+      }
+      reducedRectangles.add(newRect);
     }
+
+    mReducer.reduce(reducedRectangles, reducedNodes);
+    assert reducedNodes.size() != reducedRectangles.size();
+    assert mHRenderer != null;
+    for (int i = 0; i < reducedNodes.size(); ++i) {
+      mHRenderer.render(g, reducedNodes.get(i).getData(), reducedRectangles.get(i));
+    }
+
+    addDebugInfo("Draw time %.2fms", (System.nanoTime() - startTime) / 1e6);
+    addDebugInfo("# of nodes %d", mNodes.size());
+    addDebugInfo("# of reduced nodes %d", reducedNodes.size());
   }
 
-  // This method is not thread-safe: It re-uses mRect.
-  private void renderHNode(Graphics2D g, HNode<T> n) {
-
-    // 1. Cull node to view Range.
-    if (n.getStart() > getXRange().getMax() || n.getEnd() < getXRange().getMin()) {
+  protected void render() {
+    mNodes.clear();
+    mRectangles.clear();
+    if (mRoot == null) {
       return;
     }
 
-    // 2. Clip node.
-    double leftEdge = rangeToPosition(n.getStart());
-    if (leftEdge < 0) {
-      leftEdge = 0;
-    }
-    double rightEdge = rangeToPosition(n.getEnd());
-    if (rightEdge > getWidth()) {
-      rightEdge = getWidth();
-    }
-    double width = rightEdge - leftEdge;
-
-    // 3. Calculate node position and dimension.
-    mRect.x = (float)leftEdge;
-    mRect.y = (float)((mDefaultFontMetrics.getHeight() + BORDER_PLUS_PADDING) * n.getDepth()
-                      - getYRange().getMin());
-    mRect.width = (float)width - BORDER_PLUS_PADDING;
-    mRect.height = mDefaultFontMetrics.getHeight();
-
-    if (mOrientation == HTreeChart.Orientation.BOTTOM_UP) {
-      mRect.y = (float)(getHeight() - mRect.y - mRect.getHeight());
+    if (inRange(mRoot)) {
+      mNodes.add(mRoot);
+      mRectangles.add(createRectangle(mRoot));
     }
 
-    // 4. Render node
-    mHRenderer.render(g, n.getData(), mRect);
+    int head = 0;
+    while (head < mNodes.size()) {
+      HNode<T> curNode = mNodes.get(head++);
+
+      for (HNode<T> child: curNode.getChildren()) {
+        if (inRange(child)) {
+          mNodes.add(child);
+          mRectangles.add(createRectangle(child));
+        }
+      }
+    }
   }
 
-  // This could be done with an Axis. But that seems overkill. A simple method will do for now.
-  private double rangeToPosition(double v) {
-    double translate = -getXRange().getMin();
-    double scale = this.getWidth() / (getXRange().getMax() - getXRange().getMin());
-    return (v + translate) * scale;
+  private boolean inRange(@NotNull HNode<T> node) {
+    return node.getStart() <= mXRange.getMax() && node.getEnd() >= mXRange.getMin();
+  }
+
+  @NotNull
+  private Rectangle2D.Float createRectangle(@NotNull HNode<T> node) {
+    float left = (float)Math.max(0, (node.getStart() - mXRange.getMin()) / mXRange.getLength());
+    float right = (float)Math.min(1, (node.getEnd() - mXRange.getMin()) / mXRange.getLength());
+    Rectangle2D.Float rect = new Rectangle2D.Float();
+    rect.x = left;
+    rect.y = (float)((mDefaultFontMetrics.getHeight() + BORDER_PLUS_PADDING) * node.getDepth()
+                      - getYRange().getMin());
+    rect.width = right - left;
+    rect.height = mDefaultFontMetrics.getHeight();
+    return rect;
   }
 
   private double positionToRange(double x) {
@@ -157,6 +204,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
 
   public void setHTree(@Nullable HNode<T> root) {
     this.mRoot = root;
+    changed();
   }
 
   public Range getXRange() {
@@ -212,16 +260,15 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     }
 
     int maxDepth = -1;
-    // Traverse the tree FIFO instead of recursion to limit the depth of the Java call
-    // stack.
-    Stack<HNode<T>> stack = new Stack<>();
-    stack.addAll(mRoot.getChildren());
-    while (!stack.isEmpty()) {
-      HNode<T> n = stack.pop();
+    Queue<HNode<T>> queue = new LinkedList<>();
+    queue.add(mRoot);
+
+    while (!queue.isEmpty()) {
+      HNode<T> n = queue.poll();
       if (n.getDepth() > maxDepth) {
         maxDepth = n.getDepth();
       }
-      stack.addAll(n.getChildren());
+      queue.addAll(n.getChildren());
     }
     maxDepth += 1;
     return (mDefaultFontMetrics.getHeight() + BORDER_PLUS_PADDING) * maxDepth;
