@@ -433,11 +433,17 @@ public class CpuProfilerStage extends Stage {
   }
 
   public static class TreeChart implements CaptureDetails {
+    @NotNull private final Range myRange;
     @Nullable private HNode<MethodModel> myNode;
 
-    @SuppressWarnings("unused")
     public TreeChart(@NotNull Range range, @Nullable HNode<MethodModel> node) {
+      myRange = range;
       myNode = node;
+    }
+
+    @NotNull
+    public Range getRange() {
+      return myRange;
     }
 
     @Nullable
