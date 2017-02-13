@@ -174,7 +174,7 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Top Down
     myCaptureDetailsCalled = false;
-    myStage.changeCaptureDetails(CpuProfilerStage.TopDown::new);
+    myStage.setCaptureDetails(CpuProfilerStage.CaptureDetails.Type.TOP_DOWN);
     assertTrue(myCaptureDetailsCalled = true);
 
     CpuProfilerStage.CaptureDetails details = myStage.getCaptureDetails();
@@ -183,7 +183,7 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Bottom Up
     myCaptureDetailsCalled = false;
-    myStage.changeCaptureDetails(CpuProfilerStage.BottomUp::new);
+    myStage.setCaptureDetails(CpuProfilerStage.CaptureDetails.Type.BOTTOM_UP);
     assertTrue(myCaptureDetailsCalled);
 
     details = myStage.getCaptureDetails();
@@ -192,7 +192,7 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Chart
     myCaptureDetailsCalled = false;
-    myStage.changeCaptureDetails(CpuProfilerStage.TreeChart::new);
+    myStage.setCaptureDetails(CpuProfilerStage.CaptureDetails.Type.CHART);
     assertTrue(myCaptureDetailsCalled);
 
     details = myStage.getCaptureDetails();
@@ -201,18 +201,25 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // null
     myCaptureDetailsCalled = false;
-    myStage.changeCaptureDetails(null);
+    myStage.setCaptureDetails(null);
     assertTrue(myCaptureDetailsCalled);
     assertNull(myStage.getCaptureDetails());
 
     // HNode is null, as a result the model is null as well
     myStage.setSelectedThread(-1);
     myCaptureDetailsCalled = false;
-    myStage.changeCaptureDetails(CpuProfilerStage.BottomUp::new);
+    myStage.setCaptureDetails(CpuProfilerStage.CaptureDetails.Type.BOTTOM_UP);
     assertTrue(myCaptureDetailsCalled);
     details = myStage.getCaptureDetails();
     assertTrue(details instanceof CpuProfilerStage.BottomUp);
     assertNull(((CpuProfilerStage.BottomUp)details).getModel());
+
+    // Capture has changed, keeps the same type of details
+    captureSuccessfully();
+    CpuProfilerStage.CaptureDetails newDetails = myStage.getCaptureDetails();
+    assertNotEquals(details, newDetails);
+    assertTrue(newDetails instanceof CpuProfilerStage.BottomUp);
+    assertNotNull(((CpuProfilerStage.BottomUp)newDetails).getModel());
   }
 
   private void captureSuccessfully() throws InterruptedException {
@@ -251,7 +258,11 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   private void stopCapturing() {
-    myServices.setPrePoolExecutor(() -> assertEquals(CpuProfilerStage.CaptureState.STOPPING, myStage.getCaptureState()));
+    // The pre executor will pass through STOPPING and then PARSING
+    myServices.setPrePoolExecutor(() -> {
+      assertEquals(CpuProfilerStage.CaptureState.STOPPING, myStage.getCaptureState());
+      myServices.setPrePoolExecutor(() -> assertEquals(CpuProfilerStage.CaptureState.PARSING, myStage.getCaptureState()));
+    });
     myStage.stopCapturing();
   }
 
