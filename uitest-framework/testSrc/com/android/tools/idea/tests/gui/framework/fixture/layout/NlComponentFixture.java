@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
+import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.ComponentDriver;
@@ -39,6 +40,7 @@ public class NlComponentFixture {
   private final Robot myRobot;
   private final NlComponent myComponent;
   private final DesignSurface mySurface;
+  private final ComponentDragAndDrop myDragAndDrop;
 
   public NlComponentFixture(@NotNull Robot robot,
                             @NotNull NlComponent component,
@@ -46,6 +48,7 @@ public class NlComponentFixture {
     myRobot = robot;
     myComponent = component;
     mySurface = surface;
+    myDragAndDrop = new ComponentDragAndDrop(myRobot);
   }
 
   /** Returns the center point in panel coordinates */
@@ -55,6 +58,70 @@ public class NlComponentFixture {
     int midX = Coordinates.getSwingX(sceneView, myComponent.x + myComponent.w / 2);
     int midY = Coordinates.getSwingY(sceneView, myComponent.y + myComponent.h / 2);
     return new Point(midX, midY);
+  }
+
+  /** Returns the bottom center point in panel coordinates */
+  @NotNull
+  private Point getBottomCenterPoint() {
+    SceneView sceneView = mySurface.getCurrentSceneView();
+    int midX = Coordinates.getSwingX(sceneView, myComponent.x + myComponent.w / 2);
+    int bottomY = Coordinates.getSwingY(sceneView, myComponent.y + myComponent.h);
+    return new Point(midX, bottomY);
+  }
+
+  /** Returns the top center point in panel coordinates */
+  @NotNull
+  private Point getTopCenterPoint() {
+    SceneView sceneView = mySurface.getCurrentSceneView();
+    int midX = Coordinates.getSwingX(sceneView, myComponent.x + myComponent.w / 2);
+    int topY = Coordinates.getSwingY(sceneView, myComponent.y);
+    return new Point(midX, topY);
+  }
+
+  /** Returns the left center point in panel coordinates */
+  @NotNull
+  private Point getLeftCenterPoint() {
+    SceneView sceneView = mySurface.getCurrentSceneView();
+    int leftX = Coordinates.getSwingX(sceneView, myComponent.x);
+    int midY = Coordinates.getSwingY(sceneView, myComponent.y + myComponent.h / 2);
+    return new Point(leftX, midY);
+  }
+
+  /** Returns the right center point in panel coordinates */
+  @NotNull
+  private Point getRightCenterPoint() {
+    SceneView sceneView = mySurface.getCurrentSceneView();
+    int rightX = Coordinates.getSwingX(sceneView, myComponent.x + myComponent.w);
+    int midY = Coordinates.getSwingY(sceneView, myComponent.y + myComponent.h / 2);
+    return new Point(rightX, midY);
+  }
+
+  public NlComponentFixture createConstraintFromBottomToTopOf(@NotNull NlComponentFixture destination) {
+    myDragAndDrop.drag(mySurface, getBottomCenterPoint());
+    myDragAndDrop.drop(mySurface, destination.getTopCenterPoint());
+    return this;
+  }
+
+  public NlComponentFixture createConstraintFromTopToTopOfLayout() {
+    Point topCenterPoint = getTopCenterPoint();
+    myDragAndDrop.drag(mySurface, topCenterPoint);
+    myDragAndDrop.drop(mySurface, new Point(topCenterPoint.x, mySurface.getCurrentSceneView().getY()));
+    return this;
+  }
+
+  public NlComponentFixture createConstraintFromLeftToLeftOfLayout() {
+    Point leftCenterPoint = getLeftCenterPoint();
+    myDragAndDrop.drag(mySurface, leftCenterPoint);
+    myDragAndDrop.drop(mySurface, new Point(mySurface.getCurrentSceneView().getX(), leftCenterPoint.y));
+    return this;
+  }
+
+  public NlComponentFixture createConstraintFromRightToRightOfLayout() {
+    Point rightCenterPoint = getRightCenterPoint();
+    myDragAndDrop.drag(mySurface, rightCenterPoint);
+    SceneView sceneView = mySurface.getCurrentSceneView();
+    myDragAndDrop.drop(mySurface, new Point(sceneView.getX() + sceneView.getSize().width, rightCenterPoint.y));
+    return this;
   }
 
   public String getTextAttribute() {
