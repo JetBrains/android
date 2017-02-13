@@ -78,7 +78,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     stage.getAspect().addDependency(this)
       .onChange(CpuProfilerAspect.CAPTURE, this::updateCaptureState)
       .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection)
-      .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureView);
+      .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureDetails);
 
     StudioProfilers profilers = stage.getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
@@ -348,12 +348,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myThreads.setSelectedIndex(i);
       }
     }
-    if (myCaptureView != null) {
-      myCaptureView.updateCaptureDetails();
-    }
   }
 
-  private void updateCaptureView() {
+  private void updateCaptureDetails() {
     if (myCaptureView != null) {
       myCaptureView.updateView();
     }

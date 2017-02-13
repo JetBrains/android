@@ -247,6 +247,7 @@ public class CpuProfilerStage extends Stage {
       setCaptureState(CaptureState.IDLE);
     }
     else {
+      setCaptureState(CaptureState.PARSING);
       CompletableFuture.supplyAsync(() -> new CpuCapture(response.getTrace()), getStudioProfilers().getIdeServices().getPoolExecutor())
         .handleAsync((capture, exception) -> {
         if (capture != null) {
@@ -264,7 +265,6 @@ public class CpuProfilerStage extends Stage {
         }
         return capture;
       }, getStudioProfilers().getIdeServices().getMainExecutor());
-      setCaptureState(CaptureState.PARSING);
     }
   }
 
@@ -274,6 +274,7 @@ public class CpuProfilerStage extends Stage {
       ProfilerTimeline timeline = getStudioProfilers().getTimeline();
       timeline.setStreaming(false);
       timeline.getSelectionRange().set(myCapture.getRange());
+      setCaptureDetails(myCaptureDetails != null ? myCaptureDetails.getType() : CaptureDetails.Type.TOP_DOWN);
       getStudioProfilers().modeChanged();
     }
     myAspect.changed(CpuProfilerAspect.CAPTURE);
@@ -285,6 +286,7 @@ public class CpuProfilerStage extends Stage {
 
   public void setSelectedThread(int id) {
     mySelectedThread = id;
+    setCaptureDetails(myCaptureDetails != null ? myCaptureDetails.getType() : CaptureDetails.Type.TOP_DOWN);
     myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
   }
 
@@ -356,11 +358,11 @@ public class CpuProfilerStage extends Stage {
     return capture;
   }
 
-  public void changeCaptureDetails(@Nullable BiFunction<Range, HNode<MethodModel>, CaptureDetails> builder) {
-    if (builder != null) {
+  public void setCaptureDetails(@Nullable CaptureDetails.Type type) {
+    if (type != null) {
       Range range = getStudioProfilers().getTimeline().getSelectionRange();
       HNode<MethodModel> node = myCapture != null ? myCapture.getCaptureNode(getSelectedThread()) : null;
-      myCaptureDetails = builder.apply(range, node);
+      myCaptureDetails = type.build(range, node);
     } else {
       myCaptureDetails = null;
     }
@@ -374,6 +376,24 @@ public class CpuProfilerStage extends Stage {
   }
 
   public interface CaptureDetails {
+    enum Type {
+      TOP_DOWN(TopDown::new),
+      BOTTOM_UP(BottomUp::new),
+      CHART(TreeChart::new);
+
+      @NotNull
+      private final BiFunction<Range, HNode<MethodModel>, CaptureDetails> myBuilder;
+
+      Type(@NotNull BiFunction<Range, HNode<MethodModel>, CaptureDetails> builder) {
+        myBuilder = builder;
+      }
+
+      public CaptureDetails build(Range range, HNode<MethodModel> node) {
+        return myBuilder.apply(range, node);
+      }
+    }
+
+    Type getType();
   }
 
   public static class TopDown implements CaptureDetails {
@@ -386,6 +406,11 @@ public class CpuProfilerStage extends Stage {
     @Nullable
     public TopDownTreeModel getModel() {
       return myModel;
+    }
+
+    @Override
+    public Type getType() {
+      return Type.TOP_DOWN;
     }
   }
 
@@ -400,6 +425,11 @@ public class CpuProfilerStage extends Stage {
     public BottomUpTreeModel getModel() {
       return myModel;
     }
+
+    @Override
+    public Type getType() {
+      return Type.BOTTOM_UP;
+    }
   }
 
   public static class TreeChart implements CaptureDetails {
@@ -413,6 +443,11 @@ public class CpuProfilerStage extends Stage {
     @Nullable
     public HNode<MethodModel> getNode() {
       return myNode;
+    }
+
+    @Override
+    public Type getType() {
+      return Type.CHART;
     }
   }
 
