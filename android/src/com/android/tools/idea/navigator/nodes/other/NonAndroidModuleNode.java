@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes.other;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
@@ -29,29 +28,30 @@ import com.intellij.openapi.ui.Queryable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class NonAndroidModuleNode extends ProjectViewModuleNode {
-  public NonAndroidModuleNode(Project project, Module value, ViewSettings viewSettings) {
-    super(project, value, viewSettings);
+  public NonAndroidModuleNode(@NotNull Project project, @NotNull Module value, @NotNull ViewSettings settings) {
+    super(project, value, settings);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Collection<AbstractTreeNode> getChildren() {
-    Set<NonAndroidSourceType> sourceTypes = getNonEmptySourceTypes(getValue());
-    List<AbstractTreeNode> nodes = Lists.newArrayListWithExpectedSize(sourceTypes.size());
+    Module module = getModule();
+    Set<NonAndroidSourceType> sourceTypes = getNonEmptySourceTypes(module);
+    List<AbstractTreeNode> nodes = new ArrayList<>(sourceTypes.size());
 
+    assert myProject != null;
     for (NonAndroidSourceType type : sourceTypes) {
-      nodes.add(new NonAndroidSourceTypeNode(myProject, getValue(), getSettings(), type));
+      nodes.add(new NonAndroidSourceTypeNode(myProject, module, getSettings(), type));
     }
 
     return nodes;
   }
 
-  private static Set<NonAndroidSourceType> getNonEmptySourceTypes(Module module) {
+  @NotNull
+  private static Set<NonAndroidSourceType> getNonEmptySourceTypes(@NotNull Module module) {
     ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
     Set<NonAndroidSourceType> sourceTypes = Sets.newHashSetWithExpectedSize(NonAndroidSourceType.values().length);
 
@@ -70,27 +70,37 @@ public class NonAndroidModuleNode extends ProjectViewModuleNode {
     return sourceTypes;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Comparable getSortKey() {
-    return getValue().getName();
+    return getModule().getName();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Comparable getTypeSortKey() {
     return getSortKey();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    return String.format("%1$s (non-Android)", getValue().getName());
+    Module module = getModule();
+    return String.format("%1$s (non-Android)", module.getName());
+  }
+
+  @NotNull
+  private Module getModule() {
+    Module module = getValue();
+    assert module != null;
+    return module;
   }
 
   @Override
   public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) return false;
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     return super.equals(o);
   }
 }

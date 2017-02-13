@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes.other;
 
 import com.intellij.icons.AllIcons;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +23,7 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import javax.swing.*;
 
-public enum NonAndroidSourceType {
+enum NonAndroidSourceType {
   JAVA(JavaSourceRootType.SOURCE, "java", AllIcons.Modules.SourceRoot),
   TESTS(JavaSourceRootType.TEST_SOURCE, "tests", AllIcons.Modules.SourceRoot),
   RESOURCES(JavaResourceRootType.RESOURCE, "resources", AllIcons.Modules.ResourcesRoot),
@@ -33,7 +33,7 @@ public enum NonAndroidSourceType {
   @NotNull public final String presentableName;
   @NotNull public final Icon icon;
 
-  NonAndroidSourceType(JpsModuleSourceRootType rootType, String name, Icon icon) {
+  NonAndroidSourceType(@NotNull JpsModuleSourceRootType rootType, @NotNull String name, @NotNull Icon icon) {
     this.rootType = rootType;
     this.presentableName = name;
     this.icon = icon;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.navigator.nodes.FolderGroupNode;
+import com.android.tools.idea.navigator.nodes.ndk.NdkSourceFolderNode;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -28,66 +29,65 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
-import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static com.android.tools.idea.navigator.nodes.NdkModuleNode.getNativeSourceNodes;
+import static com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode.getNativeSourceNodes;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static org.jetbrains.android.facet.AndroidSourceType.CPP;
 
-public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implements DirectoryGroupNode {
-  protected AndroidJniFolderNode(@NotNull Project project,
-                                 @NotNull NdkModuleModel ndkModuleModel,
-                                 @NotNull ViewSettings viewSettings) {
-    super(project, ndkModuleModel, viewSettings);
+public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implements FolderGroupNode {
+  AndroidJniFolderNode(@NotNull Project project, @NotNull NdkModuleModel ndkModuleModel, @NotNull ViewSettings settings) {
+    super(project, ndkModuleModel, settings);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Collection<? extends AbstractTreeNode> getChildren() {
     assert myProject != null;
-    Collection<AbstractTreeNode> nativeSourceNodes = getNativeSourceNodes(myProject, getModel(), getSettings());
+    Collection<AbstractTreeNode> nativeSourceNodes = getNativeSourceNodes(myProject, getNdkModel(), getSettings());
     if (nativeSourceNodes.size() == 1) {
       AbstractTreeNode sourceNode = Iterables.getOnlyElement(nativeSourceNodes);
-      if (sourceNode instanceof NativeAndroidSourceDirectoryNode) {
-        return ((NativeAndroidSourceDirectoryNode)sourceNode).getChildren();
+      if (sourceNode instanceof NdkSourceFolderNode) {
+        return ((NdkSourceFolderNode)sourceNode).getChildren();
       }
     }
     return nativeSourceNodes;
   }
 
-  @NotNull
   @Override
-  public PsiDirectory[] getDirectories() {
-    Collection<File> sourceFolders = getModel().getSelectedVariant().getSourceFolders();
-    List<PsiDirectory> psiDirectories = Lists.newArrayListWithExpectedSize(sourceFolders.size());
+  @NotNull
+  public PsiDirectory[] getFolders() {
+    Collection<File> sourceFolderPaths = getNdkModel().getSelectedVariant().getSourceFolders();
+    List<PsiDirectory> folders = new ArrayList<>(sourceFolderPaths.size());
 
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
     assert myProject != null;
     PsiManager psiManager = PsiManager.getInstance(myProject);
 
-    for (File folder : sourceFolders) {
-      VirtualFile virtualFile = fileSystem.findFileByIoFile(folder);
-      if (virtualFile != null) {
-        PsiDirectory dir = psiManager.findDirectory(virtualFile);
-        if (dir != null) {
-          psiDirectories.add(dir);
+    for (File sourceFolderPath : sourceFolderPaths) {
+      VirtualFile sourceFolder = fileSystem.findFileByIoFile(sourceFolderPath);
+      if (sourceFolder != null) {
+        PsiDirectory psiSourceFolder = psiManager.findDirectory(sourceFolder);
+        if (psiSourceFolder != null) {
+          folders.add(psiSourceFolder);
         }
       }
     }
 
-    return psiDirectories.toArray(new PsiDirectory[psiDirectories.size()]);
+    return folders.toArray(new PsiDirectory[folders.size()]);
   }
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    Collection<File> sourceFolders = getModel().getSelectedVariant().getSourceFolders();
+    Collection<File> sourceFolders = getNdkModel().getSelectedVariant().getSourceFolders();
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
 
     for (File folder : sourceFolders) {
@@ -102,7 +102,7 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
 
   @Override
   protected void update(PresentationData presentation) {
-    presentation.addText(CPP.getName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    presentation.addText(CPP.getName(), REGULAR_ATTRIBUTES);
 
     Icon icon = CPP.getIcon();
     if (icon != null) {
@@ -111,30 +111,35 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
     presentation.setPresentableText(CPP.getName());
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return CPP.getName();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Comparable getSortKey() {
     return CPP;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Comparable getTypeSortKey() {
     return CPP;
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
-
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
     AndroidJniFolderNode that = (AndroidJniFolderNode)o;
     return getValue() == that.getValue();
   }
@@ -142,12 +147,11 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
   @Override
   public int hashCode() {
     int result = super.hashCode();
-    NdkModuleModel model = getModel();
-    return 31 * result + model.hashCode();
+    return 31 * result + getNdkModel().hashCode();
   }
 
   @NotNull
-  private NdkModuleModel getModel() {
+  private NdkModuleModel getNdkModel() {
     NdkModuleModel value = getValue();
     assert value != null;
     return value;
