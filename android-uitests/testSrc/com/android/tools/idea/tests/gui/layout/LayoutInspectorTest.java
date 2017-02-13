@@ -110,7 +110,7 @@ public class LayoutInspectorTest {
   }
 
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.UNRELIABLE)
   public void launchLayoutInspectorViaChooser() throws Exception {
     guiTest.ideFrame().runApp("app").selectDevice(AVD_NAME).clickOk();
     // wait for background tasks to finish before requesting run tool window. otherwise run tool window won't activate.
