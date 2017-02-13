@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.tools.idea.lang.proguard.ProguardFileType;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -37,20 +35,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.android.tools.idea.gradle.util.Projects.findModuleRootFolderPath;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirectory>> {
-  public AndroidBuildScriptsGroupNode(@NotNull Project project, @NotNull ViewSettings viewSettings) {
+  public AndroidBuildScriptsGroupNode(@NotNull Project project, @NotNull ViewSettings settings) {
     // TODO: Should this class really be parametrized on List<PsiDirectory>?
-    super(project, Collections.emptyList(), viewSettings);
+    super(project, Collections.emptyList(), settings);
   }
 
   @Override
@@ -62,7 +58,7 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
   @NotNull
   public Collection<? extends AbstractTreeNode> getChildren() {
     Map<VirtualFile, String> scripts = getBuildScriptsWithQualifiers();
-    List<PsiFileNode> children = Lists.newArrayListWithExpectedSize(scripts.size());
+    List<PsiFileNode> children = new ArrayList<>(scripts.size());
 
     for (Map.Entry<VirtualFile, String> scriptWithQualifier : scripts.entrySet()) {
       addPsiFile(children, scriptWithQualifier.getKey(), scriptWithQualifier.getValue());
@@ -73,7 +69,7 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
 
   @NotNull
   private Map<VirtualFile, String> getBuildScriptsWithQualifiers() {
-    Map<VirtualFile, String> buildScripts = Maps.newHashMap();
+    Map<VirtualFile, String> buildScripts = new HashMap<>();
 
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       String moduleName = getPrefixForModule(module) + module.getName();
@@ -93,18 +89,18 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
       }
     }
 
-    VirtualFile baseDir = myProject.getBaseDir();
-    if (baseDir != null) {
+    VirtualFile projectRootFolder = myProject.getBaseDir();
+    if (projectRootFolder != null) {
       // Should not happen, but we have reports that there is a NPE in this area.
-      findChildAndAddToMapIfFound(FN_SETTINGS_GRADLE, baseDir, "Project Settings", buildScripts);
-      findChildAndAddToMapIfFound(FN_GRADLE_PROPERTIES, baseDir, "Project Properties", buildScripts);
+      findChildAndAddToMapIfFound(FN_SETTINGS_GRADLE, projectRootFolder, "Project Settings", buildScripts);
+      findChildAndAddToMapIfFound(FN_GRADLE_PROPERTIES, projectRootFolder, "Project Properties", buildScripts);
 
-      VirtualFile child = baseDir.findFileByRelativePath(toSystemIndependentName(GRADLEW_PROPERTIES_PATH));
+      VirtualFile child = projectRootFolder.findFileByRelativePath(toSystemIndependentName(GRADLEW_PROPERTIES_PATH));
       if (child != null) {
         buildScripts.put(child, "Gradle Version");
       }
 
-      findChildAndAddToMapIfFound(FN_LOCAL_PROPERTIES, baseDir, "SDK Location", buildScripts);
+      findChildAndAddToMapIfFound(FN_LOCAL_PROPERTIES, projectRootFolder, "SDK Location", buildScripts);
     }
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -131,20 +127,23 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
     }
   }
 
-  private static String getPrefixForModule(@NotNull Module m) {
-    return isRootModuleWithNoSources(m) ? AndroidBuildScriptNode.PROJECT_PREFIX : AndroidBuildScriptNode.MODULE_PREFIX;
+  @NotNull
+  private static String getPrefixForModule(@NotNull Module module) {
+    return isRootModuleWithNoSources(module) ? AndroidBuildScriptNode.PROJECT_PREFIX : AndroidBuildScriptNode.MODULE_PREFIX;
   }
 
   @NotNull
-  private static List<VirtualFile> findAllGradleScriptsInModule(@NotNull Module m) {
-    File moduleDir = new File(m.getModuleFilePath()).getParentFile();
-    VirtualFile dir = findFileByIoFile(moduleDir, false);
-    if (dir == null || dir.getChildren() == null) {
+  private static List<VirtualFile> findAllGradleScriptsInModule(@NotNull Module module) {
+    File moduleRootFolderPath = findModuleRootFolderPath(module);
+    assert moduleRootFolderPath != null;
+
+    VirtualFile moduleRootFolder = findFileByIoFile(moduleRootFolderPath, false);
+    if (moduleRootFolder == null || moduleRootFolder.getChildren() == null) {
       return Collections.emptyList();
     }
 
-    List<VirtualFile> files = Lists.newArrayList();
-    for (VirtualFile child : dir.getChildren()) {
+    List<VirtualFile> files = new ArrayList<>();
+    for (VirtualFile child : moduleRootFolder.getChildren()) {
       // @formatter:off
       if (!child.isValid() || child.isDirectory() || !child.getName().endsWith(EXT_GRADLE) &&
            // Consider proguard rule files as a type of build script (contains build-time configuration
@@ -167,13 +166,11 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
   }
 
   private void addPsiFile(@NotNull List<PsiFileNode> psiFileNodes, @Nullable VirtualFile file, @Nullable String qualifier) {
-    if (file == null) {
-      return;
-    }
-
-    PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
-    if (psiFile != null) {
-      psiFileNodes.add(new AndroidBuildScriptNode(myProject, psiFile, getSettings(), qualifier));
+    if (file != null) {
+      PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
+      if (psiFile != null) {
+        psiFileNodes.add(new AndroidBuildScriptNode(myProject, psiFile, getSettings(), qualifier));
+      }
     }
   }
 
@@ -188,8 +185,8 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
     presentation.setIcon(GradleIcons.Gradle);
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return "Gradle Scripts";
   }

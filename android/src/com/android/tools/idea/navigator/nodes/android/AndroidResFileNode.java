@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -25,47 +25,43 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
-import com.intellij.ui.SimpleTextAttributes;
-import com.siyeh.ig.internationalization.CharacterComparisonInspection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Comparator;
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 public class AndroidResFileNode extends PsiFileNode implements Comparable {
   private final AndroidFacet myFacet;
 
-  public AndroidResFileNode(@NotNull Project project,
-                            @NotNull PsiFile psiFile,
-                            @NotNull ViewSettings settings,
-                            @NotNull AndroidFacet facet) {
+  AndroidResFileNode(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull ViewSettings settings, @NotNull AndroidFacet facet) {
     super(project, psiFile, settings);
     myFacet = facet;
   }
 
   @Override
-  public void update(PresentationData data) {
+  public void update(@NotNull PresentationData data) {
     super.update(data);
 
     String text = data.getPresentableText();
-    data.addText(text, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    data.addText(text, REGULAR_ATTRIBUTES);
     data.setPresentableText(text);
 
     String qualifier = getQualifier();
     if (qualifier != null) {
-      data.addText(qualifier, SimpleTextAttributes.GRAY_ATTRIBUTES);
+      data.addText(qualifier, GRAY_ATTRIBUTES);
     }
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     PsiFile psiFile = getValue();
+    assert psiFile != null;
     String qualifier = getQualifier();
     return psiFile.getName() + (qualifier == null ? "" : qualifier);
   }
@@ -102,11 +98,7 @@ public class AndroidResFileNode extends PsiFileNode implements Comparable {
       return null;
     }
 
-    StringBuilder sb = new StringBuilder(10);
-    sb.append(" (");
-    sb.append(Joiner.on(", ").skipNulls().join(qualifier, providerName));
-    sb.append(')');
-    return sb.toString();
+    return " (" + Joiner.on(", ").skipNulls().join(qualifier, providerName) + ')';
   }
 
   @Nullable
@@ -120,13 +112,14 @@ public class AndroidResFileNode extends PsiFileNode implements Comparable {
     return folder == null ? null : FolderConfiguration.getConfigForFolder(folder.getName());
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Comparable getSortKey() {
     return this;
   }
 
   @Override
+  @Nullable
   public Comparable getTypeSortKey() {
     return this;
   }
@@ -143,9 +136,9 @@ public class AndroidResFileNode extends PsiFileNode implements Comparable {
   }
 
   @Nullable
-  private IdeaSourceProvider findSourceProviderForResFolder(@NotNull PsiDirectory resDirectory) {
+  private IdeaSourceProvider findSourceProviderForResFolder(@NotNull PsiDirectory resFolder) {
     for (IdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(myFacet)) {
-      if (provider.getResDirectories().contains(resDirectory.getVirtualFile())) {
+      if (provider.getResDirectories().contains(resFolder.getVirtualFile())) {
         return provider;
       }
     }

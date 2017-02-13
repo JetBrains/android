@@ -17,9 +17,8 @@ package com.android.tools.idea.navigator;
 
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
-import com.android.tools.idea.navigator.nodes.DirectoryGroupNode;
+import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
-import com.google.common.collect.Lists;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.SelectInTarget;
 import com.intellij.ide.impl.ProjectViewSelectInTarget;
@@ -159,15 +158,15 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
     }
 
     NodeDescriptor descriptor = getSelectedDescriptor();
-    if (descriptor instanceof DirectoryGroupNode) {
-      return ((DirectoryGroupNode)descriptor).getDirectories();
+    if (descriptor instanceof FolderGroupNode) {
+      return ((FolderGroupNode)descriptor).getFolders();
     }
 
     PsiDirectory[] selectedDirectories = super.getSelectedDirectories();
     // For modules we'll include generated folders too but we don't want
     // to treat these as selectable (for target output directories etc)
     if (selectedElement instanceof Module && selectedDirectories.length > 0) {
-      List<PsiDirectory> dirs = Lists.newArrayListWithExpectedSize(selectedDirectories.length);
+      List<PsiDirectory> dirs = new ArrayList<>(selectedDirectories.length);
       for (PsiDirectory dir : selectedDirectories) {
         VirtualFile file = dir.getVirtualFile();
         if (!GeneratedSourcesFilter.isGeneratedSourceByAnyFilter(file, myProject)) {
@@ -189,7 +188,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   @Override
   protected Object exhumeElementFromNode(DefaultMutableTreeNode node) {
     Object o = super.exhumeElementFromNode(node);
-    if (o instanceof ArrayList && node.getUserObject() instanceof DirectoryGroupNode) {
+    if (o instanceof ArrayList && node.getUserObject() instanceof FolderGroupNode) {
       return ((ArrayList)o).toArray();
     }
 
@@ -247,7 +246,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
       if (selectedDescriptor instanceof FileGroupNode) {
         PsiFile[] files = ((FileGroupNode)selectedDescriptor).getFiles();
         if (files.length > 0) {
-          List<VirtualFile> virtualFiles = Lists.newArrayListWithExpectedSize(files.length);
+          List<VirtualFile> virtualFiles = new ArrayList<>(files.length);
           for (PsiFile file : files) {
             if (file.isValid()) {
               virtualFiles.add(file.getVirtualFile());
@@ -257,10 +256,10 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
         }
       }
 
-      if (selectedDescriptor instanceof DirectoryGroupNode) {
-        PsiDirectory[] directories = ((DirectoryGroupNode)selectedDescriptor).getDirectories();
+      if (selectedDescriptor instanceof FolderGroupNode) {
+        PsiDirectory[] directories = ((FolderGroupNode)selectedDescriptor).getFolders();
         if (directories.length > 0) {
-          List<VirtualFile> virtualFiles = Lists.newArrayListWithExpectedSize(directories.length);
+          List<VirtualFile> virtualFiles = new ArrayList<>(directories.length);
           for (PsiDirectory directory : directories) {
             if (directory.isValid()) {
               virtualFiles.add(directory.getVirtualFile());
@@ -291,8 +290,8 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
         }
       }
 
-      if (selectedDescriptor instanceof DirectoryGroupNode) {
-        PsiDirectory[] directories = ((DirectoryGroupNode)selectedDescriptor).getDirectories();
+      if (selectedDescriptor instanceof FolderGroupNode) {
+        PsiDirectory[] directories = ((FolderGroupNode)selectedDescriptor).getFolders();
         if (directories.length > 0) {
           return directories[0];
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.intellij.ide.util.treeView.NodeDescriptor;
@@ -24,12 +24,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Comparator;
 
 /**
- * A comparator for {@link com.android.tools.idea.navigator.nodes.AndroidResFileNode} and
- * {@link com.android.tools.idea.navigator.nodes.AndroidResGroupNode} objects, used to sort nodes of these two types which could
+ * A comparator for {@link AndroidResFileNode} and {@link AndroidResGroupNode} objects, used to sort nodes of these two types which could
  * be present as siblings in the Android Project Pane.
  */
-public class AndroidResComparator implements Comparator {
-  public static final AndroidResComparator INSTANCE = new AndroidResComparator();
+class AndroidResComparator implements Comparator<Object> {
+  static final AndroidResComparator INSTANCE = new AndroidResComparator();
 
   @Override
   public int compare(Object o1, Object o2) {
@@ -80,12 +79,14 @@ public class AndroidResComparator implements Comparator {
   }
 
   @Nullable
-  private static String getName(Object o1) {
+  private static String getName(@Nullable Object o1) {
     if (o1 instanceof AndroidResGroupNode) {
       return ((AndroidResGroupNode)o1).getResName();
-    } else if (o1 instanceof AndroidResFileNode) {
+    }
+    else if (o1 instanceof AndroidResFileNode) {
       return ((AndroidResFileNode)o1).getResName();
-    } else {
+    }
+    else {
       return null;
     }
   }
