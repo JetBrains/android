@@ -94,10 +94,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         }
       }
 
-      if (myInstantRunBuildAnalyzer != null) {
-        launchTasks.add(new LaunchInstantRunServiceTask(packageName));
-      }
-
       LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
                                                                       myLaunchOptions.isDebug(), launchStatus);
       if (appLaunchTask != null) {
@@ -107,6 +103,11 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     catch (ApkProvisionException e) {
       Logger.getInstance(AndroidLaunchTasksProvider.class).error(e);
       launchStatus.terminateLaunch("Unable to determine application id: " + e);
+      return Collections.emptyList();
+    }
+    catch (IllegalStateException e) {
+      Logger.getInstance(AndroidLaunchTasksProvider.class).error(e);
+      launchStatus.terminateLaunch(e.getMessage());
       return Collections.emptyList();
     }
 

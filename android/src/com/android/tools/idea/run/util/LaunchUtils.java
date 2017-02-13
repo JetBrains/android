@@ -21,7 +21,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
-import com.android.tools.lint.detector.api.LintUtils;
+import com.android.utils.XmlUtils;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.Executor;
 import com.intellij.execution.ui.RunContentDescriptor;
@@ -96,10 +96,10 @@ public class LaunchUtils {
     }
 
     Element service = services.get(0);
-    List<Element> filters = LintUtils.getChildren(service);
-    return filters.size() == 1 &&
-           ActivityLocatorUtils.containsAction(filters.get(0), AndroidUtils.WALLPAPER_SERVICE_ACTION_NAME) &&
-           ActivityLocatorUtils.containsCategory(filters.get(0), AndroidUtils.WATCHFACE_CATEGORY_NAME);
+    Element first = XmlUtils.getFirstSubTag(service);
+    return first != null && XmlUtils.getNextTag(first) == null &&
+           ActivityLocatorUtils.containsAction(first, AndroidUtils.WALLPAPER_SERVICE_ACTION_NAME) &&
+           ActivityLocatorUtils.containsCategory(first, AndroidUtils.WATCHFACE_CATEGORY_NAME);
   }
 
   /** Returns whether the watch hardware feature is required for the given facet. */

@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.driver;
 
 import com.intellij.ui.SearchTextField;
+import com.intellij.ui.components.JBTextField;
 import org.fest.swing.annotation.RunsInEDT;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.JComponentDriver;
@@ -29,7 +30,6 @@ import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 
 public class SearchTextFieldDriver extends JComponentDriver implements TextDisplayDriver<SearchTextField> {
   public SearchTextFieldDriver(@NotNull Robot robot) {
@@ -57,19 +57,15 @@ public class SearchTextFieldDriver extends JComponentDriver implements TextDispl
 
   @RunsInEDT
   public void enterText(@NotNull SearchTextField textBox, @NotNull String text) {
-    focusAndWaitForFocusGain(textBox.getTextEditor());
-    robot.enterText(text);
+    JBTextField textField = textBox.getTextEditor();
+    focusAndWaitForFocusGain(textField);
+    robot.enterText(text, textField);
   }
 
   @RunsInEDT
   public void deleteText(SearchTextField textBox) {
     focusAndWaitForFocusGain(textBox.getTextEditor());
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        textBox.getTextEditor().selectAll();
-      }
-    });
+    GuiTask.execute(() -> textBox.getTextEditor().selectAll());
     robot.pressAndReleaseKey(KeyEvent.VK_DELETE);
   }
 }

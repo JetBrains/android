@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPreviewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.theme.ThemePreviewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
@@ -74,7 +75,6 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static org.fest.reflect.core.Reflection.method;
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
 import static org.junit.Assert.*;
 
@@ -177,7 +177,7 @@ public class EditorFixture {
   public EditorFixture enterText(@NotNull final String text) {
     Component component = getFocusedEditor();
     if (component != null) {
-      robot.enterText(text);
+      robot.enterText(text, component);
     }
 
     return this;
@@ -253,16 +253,14 @@ public class EditorFixture {
    * Closes the current editor
    */
   public EditorFixture close() {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    GuiTask.execute(
+      () -> {
         VirtualFile currentFile = getCurrentFile();
         if (currentFile != null) {
           FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
           manager.closeFile(currentFile);
         }
-      }
-    });
+      });
     return this;
   }
 
@@ -274,33 +272,21 @@ public class EditorFixture {
    */
   public EditorFixture selectEditorTab(@NotNull final Tab tab) {
     String tabName = tab.myTabName;
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    Wait.seconds(5).expecting(String.format("find editor tab '%s'", tabName == null ? "<default>" : tabName)).until(
+      () -> GuiQuery.getNonNull(() -> {
         VirtualFile currentFile = getCurrentFile();
         assertNotNull("Can't switch to tab " + tabName + " when no file is open in the editor", currentFile);
         FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
-        FileEditor[] editors = manager.getAllEditors(currentFile);
-        FileEditor target = null;
-        for (FileEditor editor : editors) {
+        for (FileEditor editor : manager.getAllEditors(currentFile)) {
           if (tabName == null || tabName.equals(editor.getName())) {
-            target = editor;
-            break;
+            // Have to use reflection
+            //FileEditorManagerImpl#setSelectedEditor(final FileEditor editor)
+            method("setSelectedEditor").withParameterTypes(FileEditor.class).in(manager).invoke(editor);
+            return true;
           }
         }
-        if (target != null) {
-          // Have to use reflection
-          //FileEditorManagerImpl#setSelectedEditor(final FileEditor editor)
-          method("setSelectedEditor").withParameterTypes(FileEditor.class).in(manager).invoke(target);
-          return;
-        }
-        List<String> tabNames = Lists.newArrayList();
-        for (FileEditor editor : editors) {
-          tabNames.add(editor.getName());
-        }
-        fail("Could not find editor tab \"" + (tabName != null ? tabName : "<default>") + "\": Available tabs = " + tabNames);
-      }
-    });
+        return false;
+      }));
     return this;
   }
 
@@ -312,9 +298,8 @@ public class EditorFixture {
    * @param tab which tab to open initially, if there are multiple editors
    */
   public EditorFixture open(@NotNull final VirtualFile file, @NotNull final Tab tab) {
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
+    GuiTask.execute(
+      () -> {
         // TODO: Use UI to navigate to the file instead
         Project project = myFrame.getProject();
         FileEditorManager manager = FileEditorManager.getInstance(project);
@@ -324,8 +309,7 @@ public class EditorFixture {
         else {
           manager.openFile(file, true);
         }
-      }
-    });
+      });
 
     selectEditorTab(tab);
 
@@ -342,9 +326,19 @@ public class EditorFixture {
       return true;
     });
 
-    myFrame.requestFocusIfLost();
-    robot.waitForIdle();
-
+    Editor editor = GuiQuery.get(() -> FileEditorManager.getInstance(myFrame.getProject()).getSelectedTextEditor());
+    if (editor == null) {
+      myFrame.requestFocusIfLost();
+    }
+    else {
+      Wait.seconds(5).expecting("the editor to have the focus").until(() -> {
+        // Keep requesting focus until it is obtained. Since there is no guarantee that the request focus will be granted,
+        // keep asking until it is.
+        JComponent target = editor.getContentComponent();
+        robot.focus(target);
+        return target.hasFocus();
+      });
+    }
     return this;
   }
 
@@ -444,7 +438,6 @@ public class EditorFixture {
   public EditorFixture waitUntilErrorAnalysisFinishes() {
     FileFixture file = getCurrentFileFixture();
     file.waitUntilErrorAnalysisFinishes();
-    robot.waitForIdle();
     return this;
   }
 
@@ -478,7 +471,20 @@ public class EditorFixture {
    */
   @NotNull
   public EditorFixture invokeQuickfixAction(@NotNull String labelPrefix) {
-    waitForQuickfix();
+    return invokeQuickfixAction(labelPrefix, true);
+  }
+
+  /**
+   * Waits for the quickfix bulb to appear before invoking the show intentions action,
+   * then waits for the actions to be displayed and finally picks the one with the given label prefix
+   *
+   * @param labelPrefix the prefix of the action description to be shown
+   */
+  @NotNull
+  public EditorFixture invokeQuickfixAction(@NotNull String labelPrefix, boolean waitForBulbIcon) {
+    if (waitForBulbIcon) {
+      waitForQuickfix();
+    }
     invokeAction(EditorAction.SHOW_INTENTION_ACTIONS);
     JBList popup = waitForPopup(robot);
     clickPopupMenuItem(labelPrefix, popup, robot);

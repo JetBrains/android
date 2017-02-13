@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.uipreview;
 
-import com.android.ide.common.rendering.LayoutLibrary;
+import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;

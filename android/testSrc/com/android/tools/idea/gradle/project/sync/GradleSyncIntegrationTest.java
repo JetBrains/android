@@ -23,18 +23,22 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
+import com.android.tools.idea.gradle.project.sync.messages.MessageType;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.pom.java.LanguageLevel;
@@ -47,23 +51,28 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.ORIGINAL;
-import static com.android.tools.idea.gradle.util.FilePaths.getJarFromJarUrl;
-import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
+import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
+import static com.android.tools.idea.gradle.util.FilePaths.*;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
-import static com.intellij.openapi.util.io.FileUtil.delete;
-import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.Mockito.*;
@@ -73,12 +82,17 @@ import static org.mockito.Mockito.*;
  */
 public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   private DataNodeCaches myOriginalDataNodeCaches;
+  private SyncMessages myOriginalSyncMessages;
 
   @Override
   protected void tearDown() throws Exception {
     try {
+      Project project = getProject();
       if (myOriginalDataNodeCaches != null) {
-        IdeComponents.replaceService(getProject(), DataNodeCaches.class, myOriginalDataNodeCaches);
+        IdeComponents.replaceService(project, DataNodeCaches.class, myOriginalDataNodeCaches);
+      }
+      if (myOriginalSyncMessages != null) {
+        IdeComponents.replaceService(project, SyncMessages.class, myOriginalSyncMessages);
       }
     }
     finally {
@@ -94,6 +108,19 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
     GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
+  }
+
+  // https://code.google.com/p/android/issues/detail?id=233038
+  public void /*test*/LoadPlainJavaProject() throws Exception {
+    prepareProjectForImport(PURE_JAVA_PROJECT);
+    Project project = getProject();
+    importProject(project.getName(), getBaseDirPath(project), null);
+
+    Module[] modules = ModuleManager.getInstance(project).getModules();
+    for (Module module : modules) {
+      ContentEntry[] entries = ModuleRootManager.getInstance(module).getContentEntries();
+      assertThat(entries).named(module.getName() + " should have content entries").isNotEmpty();
+    }
   }
 
   // See https://code.google.com/p/android/issues/detail?id=226802
@@ -279,13 +306,8 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   public void testSourceAttachmentsForJavaLibraries() throws Exception {
     loadSimpleApplication();
 
-    Library guava = null;
-    for (Library library : ProjectLibraryTable.getInstance(getProject()).getLibraries()) {
-      String name = library.getName();
-      if (name != null && name.contains("guava")) {
-        guava = library;
-      }
-    }
+    ProjectLibraries libraries = new ProjectLibraries(getProject());
+    Library guava = libraries.findMatchingLibrary("guava-.*");
     assertNotNull(guava);
 
     String[] sources = guava.getUrls(SOURCES);
@@ -301,5 +323,88 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
 
     ModuleSourceAutogenerating autogenerating = ModuleSourceAutogenerating.getInstance(facet);
     assertNull(autogenerating);
+  }
+
+  // Verifies that sync does not fail and user is warned when a project contains an Android module without variants.
+  // See https://code.google.com/p/android/issues/detail?id=170722
+  public void testWithAndroidProjectWithoutVariants() throws Exception {
+    Project project = getProject();
+    myOriginalSyncMessages = SyncMessages.getInstance(project);
+
+    SyncMessagesStub syncMessages = SyncMessagesStub.replaceSyncMessagesService(project);
+
+    loadSimpleApplication();
+    File appBuildFile = getBuildFilePath("app");
+
+    // Remove all variants.
+    appendToFile(appBuildFile, "android.variantFilter { variant -> variant.ignore = true }");
+
+    requestSyncAndWait();
+
+    // Verify user was warned.
+    List<SyncMessage> messages = syncMessages.getReportedMessages();
+    assertThat(messages).hasSize(1);
+
+    SyncMessage message = messages.get(0);
+    // @formatter:off
+    assertAbout(syncMessage()).that(message).hasType(MessageType.ERROR)
+                                            .hasMessageLine("The module 'app' is an Android project without build variants, and cannot be built.", 0);
+    // @formatter:on
+
+    // Verify AndroidFacet was removed.
+    assertNull(AndroidFacet.getInstance(myModules.getAppModule()));
+  }
+
+  // See https://code.google.com/p/android/issues/detail?id=74259
+  public void testWithCentralBuildDirectoryInRootModule() throws Exception {
+    // In issue 74259, project sync fails because the "app" build directory is set to "CentralBuildDirectory/central/build", which is
+    // outside the content root of the "app" module.
+    File projectRootPath = prepareProjectForImport(CENTRAL_BUILD_DIRECTORY);
+
+    // The bug appears only when the central build folder does not exist.
+    File centralBuildDirPath = new File(projectRootPath, join("central", "build"));
+    File centralBuildParentDirPath = centralBuildDirPath.getParentFile();
+    delete(centralBuildParentDirPath);
+
+    Project project = getProject();
+    importProject(project.getName(), getBaseDirPath(project), null);
+    Module app = myModules.getAppModule();
+
+    // Now we have to make sure that if project import was successful, the build folder (with custom path) is excluded in the IDE (to
+    // prevent unnecessary file indexing, which decreases performance.)
+    File[] excludeFolderPaths = ApplicationManager.getApplication().runReadAction(
+      (Computable<File[]>)() -> {
+        ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(app);
+        ModifiableRootModel rootModel = moduleRootManager.getModifiableModel();
+        try {
+          ContentEntry[] contentEntries = rootModel.getContentEntries();
+          ContentEntry parent = findParentContentEntry(centralBuildDirPath, Arrays.stream(contentEntries));
+
+          List<File> paths = Lists.newArrayList();
+
+          for (ExcludeFolder excluded : parent.getExcludeFolders()) {
+            String path = urlToPath(excluded.getUrl());
+            if (isNotEmpty(path)) {
+              paths.add(toSystemDependentPath(path));
+            }
+          }
+          return paths.toArray(new File[paths.size()]);
+        }
+        finally {
+          rootModel.dispose();
+        }
+      });
+
+    assertThat(excludeFolderPaths).isNotEmpty();
+
+    boolean isExcluded = false;
+    for (File path : notNullize(excludeFolderPaths)) {
+      if (isAncestor(centralBuildParentDirPath, path, true)) {
+        isExcluded = true;
+        break;
+      }
+    }
+
+    assertTrue(String.format("Folder '%1$s' should be excluded", centralBuildDirPath.getPath()), isExcluded);
   }
 }

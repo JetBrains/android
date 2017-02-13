@@ -20,7 +20,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
@@ -49,7 +49,7 @@ public class NlPreviewImagePanelTest extends LayoutTestCase {
   private static final int WIDTH = 600;
   private static final int HEIGHT = 200;
 
-  private DesignSurface mySurface;
+  private NlDesignSurface mySurface;
   private NlPreviewImagePanel myPanel;
   private RepaintManager myRepaintManager;
   private VirtualFile myFile;
@@ -60,7 +60,7 @@ public class NlPreviewImagePanelTest extends LayoutTestCase {
     super.setUp();
     myFile = myFixture.copyFileToProject(BASE_PATH + "colors.xml", "res/values/colors.xml");
     myModel = createModel();
-    mySurface = new DesignSurface(getProject(), false);
+    mySurface = new NlDesignSurface(getProject(), false);
     mySurface.setModel(myModel);
     DependencyManager dependencyManager = mock(DependencyManager.class);
     IconPreviewFactory iconPreviewFactory = mock(IconPreviewFactory.class);

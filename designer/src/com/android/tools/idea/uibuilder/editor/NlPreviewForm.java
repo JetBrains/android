@@ -20,11 +20,12 @@ import com.android.tools.adtui.workbench.Side;
 import com.android.tools.adtui.workbench.Split;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.ModelListener;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.*;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.CaretModel;
@@ -50,8 +51,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class NlPreviewForm implements Disposable, CaretListener {
+  private static final boolean ANIMATIONS_PREVIEW_ENABLED = Boolean.getBoolean("enable.animated.preview");
+
   private final NlPreviewManager myManager;
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
   private final WorkBench<DesignSurface> myWorkBench;
   private final MergingUpdateQueue myRenderingQueue =
     new MergingUpdateQueue("android.layout.preview.caret", 250/*ms*/, true, null, this, null, Alarm.ThreadToUse.SWING_THREAD);
@@ -61,6 +64,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
   private XmlFile myFile;
   private boolean isActive = true;
   private final NlActionsToolbar myActionsToolbar;
+  private final AnimationToolbar myAnimationToolbar;
 
   /**
    * When {@link #deactivate()} is called, the file will be saved here and the preview will not be rendered anymore.
@@ -74,15 +78,15 @@ public class NlPreviewForm implements Disposable, CaretListener {
   private Pending myPendingFile;
   private TextEditor myEditor;
   private CaretModel myCaretModel;
-  private DesignSurface.ScreenMode myScreenMode;
+  private NlDesignSurface.ScreenMode myScreenMode;
 
   public NlPreviewForm(NlPreviewManager manager) {
     myManager = manager;
     Project project = myManager.getProject();
-    mySurface = new DesignSurface(project, true);
+    mySurface = new NlDesignSurface(project, true);
     Disposer.register(this, mySurface);
     mySurface.setCentered(true);
-    mySurface.setScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY, false);
+    mySurface.setScreenMode(NlDesignSurface.ScreenMode.SCREEN_ONLY, false);
     mySurface.addListener(new DesignSurfaceListener() {
       @Override
       public void componentSelectionChanged(@NotNull DesignSurface surface, @NotNull List<NlComponent> newSelection) {
@@ -93,7 +97,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
       }
 
       @Override
-      public void screenChanged(@NotNull DesignSurface surface, @Nullable ScreenView screenView) {
+      public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
       }
 
       @Override
@@ -113,6 +117,21 @@ public class NlPreviewForm implements Disposable, CaretListener {
     JPanel contentPanel = new JPanel(new BorderLayout());
     contentPanel.add(myActionsToolbar.getToolbarComponent(), BorderLayout.NORTH);
     contentPanel.add(mySurface, BorderLayout.CENTER);
+
+    if (ANIMATIONS_PREVIEW_ENABLED) {
+      myAnimationToolbar = new AnimationToolbar(this, (timeMs) -> {
+        ScreenView screenView = mySurface.getCurrentSceneView();
+        NlModel model = screenView != null ? screenView.getModel() : null;
+        if (model != null) {
+          model.setElapsedFrameTimeMs(timeMs);
+          mySurface.getCurrentSceneView().getModel().requestRender();
+        }
+      }, 16);
+      contentPanel.add(myAnimationToolbar, BorderLayout.SOUTH);
+    }
+    else {
+      myAnimationToolbar = null;
+    }
 
     myWorkBench = new WorkBench<>(project, "Preview", null);
     myWorkBench.init(contentPanel, mySurface, Collections.singletonList(
@@ -137,7 +156,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
   }
 
   private void selectComponent(@Nullable NlComponent component) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    ScreenView screenView = mySurface.getCurrentSceneView();
     if (screenView == null) {
       return;
     }
@@ -161,7 +180,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
   private void updateCaret() {
     if (myCaretModel != null && !myIgnoreListener && myUseInteractiveSelector) {
-      ScreenView screenView = mySurface.getCurrentScreenView();
+      ScreenView screenView = mySurface.getCurrentSceneView();
       if (screenView != null) {
         int offset = myCaretModel.getOffset();
         if (offset != -1) {
@@ -262,6 +281,10 @@ public class NlPreviewForm implements Disposable, CaretListener {
   }
 
   public boolean setFile(@Nullable PsiFile file) {
+    if (myAnimationToolbar != null) {
+      myAnimationToolbar.stop();
+    }
+
     if (!isActive) {
       // The form is not active so we just save the file to show once activate() is called
       myInactiveFile = (XmlFile)file;
@@ -299,7 +322,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
   public void setActiveModel(@Nullable NlModel model) {
     myPendingFile = null;
-    ScreenView currentScreenView = mySurface.getCurrentScreenView();
+    ScreenView currentScreenView = mySurface.getCurrentSceneView();
     if (currentScreenView != null) {
       currentScreenView.getModel().deactivate();
       Disposer.dispose(currentScreenView.getModel());
@@ -327,10 +350,10 @@ public class NlPreviewForm implements Disposable, CaretListener {
       myActionsToolbar.setModel(model);
       if (!model.getType().isSupportedByDesigner()) {
         myScreenMode = mySurface.getScreenMode();
-        mySurface.setScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY, false);
+        mySurface.setScreenMode(NlDesignSurface.ScreenMode.SCREEN_ONLY, false);
         myWorkBench.setMinimizePanelsVisible(false);
       }
-      else if (myScreenMode != null && mySurface.getScreenMode() == DesignSurface.ScreenMode.SCREEN_ONLY) {
+      else if (myScreenMode != null && mySurface.getScreenMode() == NlDesignSurface.ScreenMode.SCREEN_ONLY) {
         mySurface.setScreenMode(myScreenMode, false);
         myWorkBench.setMinimizePanelsVisible(true);
       }
@@ -347,7 +370,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
   }
 
   @NotNull
-  public DesignSurface getSurface() {
+  public NlDesignSurface getSurface() {
     return mySurface;
   }
 

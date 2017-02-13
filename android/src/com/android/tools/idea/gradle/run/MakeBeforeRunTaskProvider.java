@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.fd.InstantRunBuilder;
 import com.android.tools.idea.fd.InstantRunContext;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -36,7 +37,6 @@ import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.configurations.ModuleRunProfile;
@@ -67,7 +67,6 @@ import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.util.Projects.getModulesToBuildFromSelection;
-import static com.android.tools.idea.gradle.util.Projects.isDirectGradleInvocationEnabled;
 import static com.android.tools.idea.run.editor.ProfilerState.EXPERIMENTAL_PROFILING_FLAG_ENABLED;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -83,15 +82,18 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeRunTask> {
   @NotNull public static final Key<MakeBeforeRunTask> ID = Key.create("Android.Gradle.BeforeRunTask");
 
-  private static final Logger LOG = Logger.getInstance(MakeBeforeRunTask.class);
   public static final String TASK_NAME = "Gradle-aware Make";
 
   @NotNull private final Project myProject;
   @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
+  @NotNull private final GradleProjectInfo myGradleProjectInfo;
 
-  public MakeBeforeRunTaskProvider(@NotNull Project project, @NotNull AndroidProjectInfo androidProjectInfo) {
+  public MakeBeforeRunTaskProvider(@NotNull Project project,
+                                   @NotNull AndroidProjectInfo androidProjectInfo,
+                                   @NotNull GradleProjectInfo gradleProjectInfo) {
     myProject = project;
     myAndroidProjectInfo = androidProjectInfo;
+    myGradleProjectInfo = gradleProjectInfo;
   }
 
   @Override
@@ -178,9 +180,10 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     return true;
   }
 
+  @NotNull
   private List<String> createAvailableTasks() {
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    List<String> gradleTasks = Lists.newArrayList();
+    List<String> gradleTasks = new ArrayList<>();
     for (Module module : moduleManager.getModules()) {
       GradleFacet facet = GradleFacet.getInstance(module);
       if (facet == null) {
@@ -194,7 +197,6 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
       gradleTasks.addAll(gradleModuleModel.getTaskNames());
     }
-
     return gradleTasks;
   }
 
@@ -205,7 +207,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   @Override
   public boolean executeTask(DataContext context, RunConfiguration configuration, ExecutionEnvironment env, MakeBeforeRunTask task) {
-    if (!AndroidProjectInfo.getInstance(myProject).requiresAndroidModel() || !isDirectGradleInvocationEnabled(myProject)) {
+    if (!myAndroidProjectInfo.requiresAndroidModel() || !myGradleProjectInfo.isDirectGradleBuildEnabled()) {
       CompileStepBeforeRun regularMake = new CompileStepBeforeRun(myProject);
       return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
     }
@@ -231,7 +233,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     if (errorMsg != null) {
       // Sync failed. There is no point on continuing, because most likely the model is either not there, or has stale information,
       // including the path of the APK.
-      LOG.info("Unable to launch '" + TASK_NAME + "' task. Project sync failed with message: " + errorMsg);
+      getLog().info("Unable to launch '" + TASK_NAME + "' task. Project sync failed with message: " + errorMsg);
       return false;
     }
 
@@ -256,18 +258,23 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     try {
       boolean success = builder.build(GradleTaskRunner.newRunner(myProject), cmdLineArgs);
-      LOG.info("Gradle invocation complete, success = " + success);
+      getLog().info("Gradle invocation complete, success = " + success);
       return success;
     }
     catch (InvocationTargetException e) {
-      LOG.info("Unexpected error while launching gradle before run tasks", e);
+      getLog().info("Unexpected error while launching gradle before run tasks", e);
       return false;
     }
     catch (InterruptedException e) {
-      LOG.info("Interrupted while launching gradle before run tasks");
+      getLog().info("Interrupted while launching gradle before run tasks");
       Thread.currentThread().interrupt();
       return false;
     }
+  }
+
+  @NotNull
+  private static Logger getLog() {
+    return Logger.getInstance(MakeBeforeRunTask.class);
   }
 
   /**
@@ -275,7 +282,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
    */
   @NotNull
   private static List<String> getCommonArguments(@NotNull RunConfiguration configuration, @NotNull List<AndroidDevice> targetDevices) {
-    List<String> cmdLineArgs = Lists.newArrayList();
+    List<String> cmdLineArgs = new ArrayList<>();
     cmdLineArgs.addAll(getDeviceSpecificArguments(targetDevices));
     cmdLineArgs.addAll(getProfilingOptions(configuration));
     return cmdLineArgs;
@@ -308,10 +315,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       }
 
       // Note: the abis are returned in their preferred order which should be maintained while passing it on to Gradle.
-      List<String> abis = device.getAbis()
-        .stream()
-        .map(Abi::toString)
-        .collect(Collectors.toList());
+      List<String> abis = device.getAbis().stream().map(Abi::toString).collect(Collectors.toList());
       if (!abis.isEmpty()) {
         properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(abis)));
       }

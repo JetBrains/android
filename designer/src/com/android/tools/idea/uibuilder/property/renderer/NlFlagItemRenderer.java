@@ -40,17 +40,15 @@ public class NlFlagItemRenderer extends NlAttributeRenderer {
 
   @Override
   public void customizeRenderContent(@NotNull JTable table, @NotNull NlProperty item, boolean selected, boolean hasFocus, int row, int col) {
+    assert item instanceof NlFlagPropertyItemValue;
+    NlFlagPropertyItemValue flag = (NlFlagPropertyItemValue)item;
+
     myCheckbox.setEnabled(true);
     myLabel.clear();
 
-    String propValue = item.getValue();
-
-    if (propValue != null) {
-      myCheckbox.setEnabled(true);
-      myCheckbox.setSelected(SdkConstants.VALUE_TRUE.equalsIgnoreCase(propValue));
-    } else {
-      myCheckbox.setEnabled(false);
-    }
+    String propValue = flag.getValue();
+    myCheckbox.setSelected(flag.getMaskValue());
+    myCheckbox.setEnabled(SdkConstants.VALUE_TRUE.equalsIgnoreCase(propValue));
   }
 
   @Override

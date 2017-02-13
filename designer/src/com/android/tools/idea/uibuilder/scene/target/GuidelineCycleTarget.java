@@ -43,6 +43,11 @@ public class GuidelineCycleTarget extends ConstraintTarget {
   }
 
   @Override
+  public boolean canChangeSelection() {
+    return false;
+  }
+
+  @Override
   public int getPreferenceLevel() {
     return Target.GUIDELINE_LEVEL;
   }
@@ -66,7 +71,7 @@ public class GuidelineCycleTarget extends ConstraintTarget {
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneTransform) {
     int mode = ConstraintComponentUtilities.getGuidelineMode(myComponent);
-    DrawGuidelineCycle.add(list, sceneTransform, myLeft, myTop, myRight, myBottom, mode);
+    DrawGuidelineCycle.add(list, sceneTransform, myIsHorizontal, myLeft, myTop, myRight, myBottom, mode, myComponent.isSelected());
   }
 
   @Override

@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.npw.deprecated;
 
-import com.android.SdkConstants;
 import com.android.builder.model.SourceProvider;
+import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.npw.*;
-import com.android.tools.idea.npw.instantapp.ConfigureInstantModuleStep;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
@@ -60,7 +59,6 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
  * Module creation for a given form factor
  */
 public class NewFormFactorModulePath extends DynamicWizardPath {
-  private static final String WH_SDK_ENV_VAR = "WH_SDK";
   private static final Logger LOG = Logger.getInstance(NewFormFactorModulePath.class);
   private static final Key<Boolean> CREATE_ACTIVITY_KEY = createKey(ATTR_CREATE_ACTIVITY, PATH, Boolean.class);
 
@@ -131,9 +129,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     myState.put(CREATE_ACTIVITY_KEY, false);
     myState.put(IS_INSTANT_APP_KEY, false);
 
-    String whSdkLocation = System.getenv(WH_SDK_ENV_VAR);
-    myState.put(WH_SDK_KEY, whSdkLocation + "/tools/resources/shared-libs");
-    myState.put(WH_SDK_ENABLED_KEY, isNotEmpty(whSdkLocation));
+    myState.put(AIA_SDK_ENABLED_KEY, isNotEmpty(InstantApps.getAiaSdkLocation()));
 
     addStep(new ConfigureAndroidModuleStepDynamic(myDisposable, myFormFactor));
     addStep(new ConfigureInstantModuleStep(myDisposable, myFormFactor));
@@ -302,7 +298,7 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     boolean isInstantApp = myState.getNotNull(IS_INSTANT_APP_KEY, false);
 
     if (isInstantApp) {
-      myState.put(GRADLE_PLUGIN_VERSION_KEY, SdkConstants.GRADLE_PLUGIN_WH_VERSION);
+      myState.put(GRADLE_PLUGIN_VERSION_KEY, InstantApps.getAiaPluginVersion());
       myState.put(SPLIT_NAME_KEY, moduleName);
     }
 
@@ -328,9 +324,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     }
 
     Map<String, Object> activityTemplateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
-    if (isInstantApp) {
-      activityTemplateState.put(ATTR_APPLICATION_PACKAGE, myState.get(PACKAGE_NAME_KEY) + "." + moduleName);
-    }
     if (!renderActivity(dryRun, activityTemplateState, projectRoot, moduleRoot)) {
       return false;
     }

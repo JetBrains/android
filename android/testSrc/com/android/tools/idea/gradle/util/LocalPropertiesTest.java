@@ -29,6 +29,7 @@ import java.util.Properties;
 
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.SdkConstants.SDK_DIR_PROPERTY;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.easymock.EasyMock.*;
@@ -77,7 +78,7 @@ public class LocalPropertiesTest extends IdeaTestCase {
   }
 
   public void testSetAndroidSdkPathWithFile() throws Exception {
-    File androidSdkPath = new File(toSystemDependentName("/home/sdk2"));
+    File androidSdkPath = toSystemDependentPath("/home/sdk2");
     myLocalProperties.setAndroidSdkPath(androidSdkPath);
     myLocalProperties.save();
 
@@ -155,12 +156,8 @@ public class LocalPropertiesTest extends IdeaTestCase {
 
     // Next write properties using the UTF-8 encoding. Chars will no longer be escaped.
     // Confirm that we read these in properly too.
-    Writer writer = new OutputStreamWriter(new FileOutputStream(localPropertiesFile), Charsets.UTF_8);
-    try {
+    try (Writer writer = new OutputStreamWriter(new FileOutputStream(localPropertiesFile), Charsets.UTF_8)) {
       outProperties.store(writer, null);
-    }
-    finally {
-      writer.close();
     }
 
     // Read back platform default version of string; confirm that it gets converted properly

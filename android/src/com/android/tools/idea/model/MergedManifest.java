@@ -347,10 +347,7 @@ public class MergedManifest {
 
     // TODO remove this time based checking
 
-    // Ensure that two simultaneous sync requests from different threads don't interfere with each other.
-    synchronized (this) {
-      ApplicationManager.getApplication().runReadAction(this::syncWithReadPermission);
-    }
+    ApplicationManager.getApplication().runReadAction(this::syncWithReadPermission);
   }
 
   static String getAttributeValue(@NotNull Element element,
@@ -359,7 +356,10 @@ public class MergedManifest {
     return Strings.emptyToNull(element.getAttributeNS(namespace, localName));
   }
 
-  protected void syncWithReadPermission() {
+  /**
+   * This method is synchronized to ensure that two simultaneous sync requests from different threads don't interfere with each other.
+   */
+  protected synchronized void syncWithReadPermission() {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assert facet != null : "Attempt to obtain manifest info from a non Android module: " + myModule.getName();
 
@@ -602,6 +602,11 @@ public class MergedManifest {
     }
 
     return null;
+  }
+
+  @NotNull
+  public Module getModule() {
+    return myModule;
   }
 
   public static class ActivityAttributes {

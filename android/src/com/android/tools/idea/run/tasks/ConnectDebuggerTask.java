@@ -183,14 +183,7 @@ public abstract class ConnectDebuggerTask implements DebugConnectorTask {
       for (Client client : device.getClients()) {
         String name = client.getClientData().getClientDescription();
         if (isNotEmpty(name) && name.startsWith("com.google.android.instantapps.supervisor.isolated")) {
-          try {
-            client.refreshName();
-            instantApps.add(client);
-          }
-          catch (IOException e) {
-            printer.stderr("Cannot update Instant App process");
-            return null;
-          }
+          instantApps.add(client);
         }
       }
 

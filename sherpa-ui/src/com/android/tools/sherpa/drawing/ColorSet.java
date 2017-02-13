@@ -27,6 +27,9 @@ public class ColorSet {
             sNormalStroke = new BasicStroke(1);
 
     public static Stroke
+            sOutlineStroke = new BasicStroke(2);
+
+    public static Stroke
             sDashedStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
             BasicStroke.JOIN_BEVEL, 0, new float[] { 2 }, 0);
 
@@ -98,6 +101,8 @@ public class ColorSet {
 
     private Paint mBackgroundPaint;
     protected Color myUnconstrainedColor;
+
+    public Stroke getOutlineStroke() { return sOutlineStroke; }
 
     public Paint getBackgroundPaint() {
         return mBackgroundPaint;

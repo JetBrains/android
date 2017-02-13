@@ -36,9 +36,9 @@ public class AndroidLintOldTargetApiInspection extends AndroidLintInspectionBase
 
   private static int getHighestApi(PsiElement element) {
     int max = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
-    AndroidFacet instance = AndroidFacet.getInstance(element);
-    if (instance != null) {
-      AndroidSdkData sdkData = instance.getSdkData();
+    AndroidFacet facet = AndroidFacet.getInstance(element);
+    if (facet != null) {
+      AndroidSdkData sdkData = AndroidSdkData.getSdkData(facet);
       if (sdkData != null) {
         for (IAndroidTarget target : sdkData.getTargets()) {
           if (target.isPlatform()) {

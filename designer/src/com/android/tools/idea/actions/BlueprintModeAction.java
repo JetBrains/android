@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.DesignSurface.ScreenMode;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface.ScreenMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -26,16 +26,16 @@ import icons.AndroidIcons;
  * Mode for toggling blueprint mode
  */
 public class BlueprintModeAction extends AnAction {
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
 
-  public BlueprintModeAction(DesignSurface surface) {
+  public BlueprintModeAction(NlDesignSurface surface) {
     super(null, "Show Blueprint", AndroidIcons.NeleIcons.Blueprint);
     mySurface = surface;
   }
 
   @Override
   public void update(AnActionEvent event) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    ScreenView screenView = mySurface.getCurrentSceneView();
 
     if (screenView != null) {
       event.getPresentation().setEnabled(screenView.getModel().getType().isLayout());

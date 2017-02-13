@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.gradle.project.sync.GradleFiles;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.fileTypes.FileType;
@@ -28,7 +29,6 @@ import com.intellij.ui.EditorNotifications;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.GroovyFileType;
 
 import java.util.Map;
 
@@ -237,15 +237,8 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
     }
   }
 
-  private static boolean isGradleFileEdit(@NotNull PsiFile psiFile) {
-    if (psiFile.getFileType() == GroovyFileType.GROOVY_FILE_TYPE) {
-      VirtualFile virtualFile = psiFile.getVirtualFile();
-      if (virtualFile != null && SdkConstants.EXT_GRADLE.equals(virtualFile.getExtension())) {
-        return true;
-      }
-    }
-
-    return false;
+  private boolean isGradleFileEdit(@NotNull PsiFile psiFile) {
+    return GradleFiles.getInstance(myProject).isGradleFile(psiFile);
   }
 
   private static void notifyGradleEdit(@NotNull PsiFile psiFile) {

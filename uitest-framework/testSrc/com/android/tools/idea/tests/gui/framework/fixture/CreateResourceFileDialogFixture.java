@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
-import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertEquals;
 
 public class CreateResourceFileDialogFixture extends IdeaDialogFixture<CreateResourceFileDialogBase> {
@@ -44,14 +43,9 @@ public class CreateResourceFileDialogFixture extends IdeaDialogFixture<CreateRes
   @NotNull
   public CreateResourceFileDialogFixture setFileName(@NotNull final String newName) {
     final Component field = robot().finder().findByLabel(getDialogWrapper().getContentPane(), "File name:");
-    execute(new GuiTask() {
-      @Override
-      protected void executeInEDT() throws Throwable {
-        field.requestFocus();
-      }
-    });
+    GuiTask.execute(() -> field.requestFocus());
     robot().pressAndReleaseKey(KeyEvent.VK_BACK_SPACE); // to make sure we don't append to existing item on Linux
-    robot().enterText(newName);
+    robot().enterText(newName, target());
     return this;
   }
 }

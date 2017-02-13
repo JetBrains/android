@@ -118,6 +118,7 @@ public final class PreviewIconsPanel extends JPanel {
     densities = densityOrdering.immutableSortedCopy(densities);
     for (Density density : densities) {
       JPanel iconPanel = new JPanel(new VerticalFlowLayout(false, false));
+      iconPanel.setName("IconPanel"); // for UI Tests
       iconPanel.setBackground(myTheme.getMainColor());
       iconPanel.setOpaque(myTheme != Theme.TRANSPARENT);
 

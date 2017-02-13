@@ -134,9 +134,9 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       myFixture.setUp();
       myFixture.setTestDataPath(getTestDataPath());
       ensureSdkManagerAvailable();
-      setUpSdks();
 
       Project project = getProject();
+      setUpSdks(project);
       myModules = new Modules(project);
     }
     else {
@@ -148,20 +148,20 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
   }
 
-  private void setUpSdks() {
+  protected void setUpSdks(@NotNull Project project) {
     // We seem to have two different locations where the SDK needs to be specified.
     // One is whatever is already defined in the JDK Table, and the other is the global one as defined by IdeSdks.
     // Gradle import will fail if the global one isn't set.
     File androidSdkPath = findSdkPath();
 
     IdeSdks ideSdks = IdeSdks.getInstance();
-    runWriteCommandAction(getProject(), () -> {
+    runWriteCommandAction(project, () -> {
       if (IdeInfo.getInstance().isAndroidStudio()) {
         ideSdks.setUseEmbeddedJdk();
         LOG.info("Set JDK to " + ideSdks.getJdkPath());
       }
 
-      ideSdks.setAndroidSdkPath(androidSdkPath, getProject());
+      ideSdks.setAndroidSdkPath(androidSdkPath, project);
       LOG.info("Set IDE Sdk Path to " + androidSdkPath);
     });
 
@@ -291,7 +291,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     refreshProjectFiles();
   }
 
-  protected void prepareProjectForImport(@NotNull String relativePath) throws IOException {
+  @NotNull
+  protected File prepareProjectForImport(@NotNull String relativePath) throws IOException {
     File root = new File(getTestDataPath(), toSystemDependentName(relativePath));
     if (!root.exists()) {
       root = new File(PathManager.getHomePath() + "/../../external", toSystemDependentName(relativePath));
@@ -315,6 +316,8 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
 
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
     updateVersionAndDependencies(projectRoot);
+
+    return projectRoot;
   }
 
   protected void updateVersionAndDependencies(@NotNull File projectRoot) throws IOException {
@@ -333,7 +336,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   @NotNull
-  private static GradleInvocationResult invokeGradle(@NotNull Project project, @NotNull Consumer<GradleBuildInvoker> gradleInvocationTask)
+  protected static GradleInvocationResult invokeGradle(@NotNull Project project, @NotNull Consumer<GradleBuildInvoker> gradleInvocationTask)
     throws InterruptedException {
     Ref<GradleInvocationResult> resultRef = new Ref<>();
     CountDownLatch latch = new CountDownLatch(1);
@@ -511,6 +514,11 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     }
 
     return "";
+  }
+
+  @NotNull
+  protected Module getModule(@NotNull String moduleName) {
+    return myModules.getModule(moduleName);
   }
 
   protected void requestSyncAndWait(@NotNull GradleSyncInvoker.Request request) throws Exception {

@@ -18,6 +18,9 @@ package com.android.tools.adtui.model.formatter;
 import gnu.trove.TIntArrayList;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * This formatter assumes a microsecond input value.
+ */
 public final class TimeAxisFormatter extends BaseAxisFormatter {
 
   private static final int[] MULTIPLIERS = new int[]{1000, 1000, 60, 60, 24};   // 1ms, 1s, 1m, 1h, 1d
@@ -78,6 +81,41 @@ public final class TimeAxisFormatter extends BaseAxisFormatter {
     else {
       return String.format("%.2f%s", value / scale1, unit1);
     }
+  }
+
+  @NotNull
+  public String getFixedPointFormattedString(long fixedPoint, long value) {
+    int baseIndex = getMultiplierIndex(fixedPoint, 1);
+    long baseScale = getMultiplier();
+
+    long factor = value / baseScale;
+    if (factor < 1) {
+      return String.format("0%s", getUnit(baseIndex));
+    }
+
+    long truncatedValue = factor * baseScale;
+    int leadIndex = baseIndex;
+    long leadScale = baseScale;
+    for (int i = leadIndex + 1; i < getNumUnits(); i++) {
+      long cumulativeScale = leadScale * getUnitMultiplier(leadIndex);
+      if (truncatedValue < cumulativeScale) {
+        break;
+      }
+      leadIndex = i;
+      leadScale = cumulativeScale;
+    }
+
+    StringBuilder builder = new StringBuilder();
+    while (leadIndex >= baseIndex && truncatedValue > 0) {
+      long truncatedFactor = truncatedValue / leadScale;
+      if (truncatedFactor != 0) {
+        builder.append(String.format("%d%s", truncatedFactor, getUnit(leadIndex)));
+      }
+      truncatedValue -= truncatedFactor * leadScale;
+      leadScale /= getUnitMultiplier(leadIndex);
+      leadIndex--;
+    }
+    return builder.toString();
   }
 
   @Override

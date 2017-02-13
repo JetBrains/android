@@ -27,28 +27,12 @@ import java.util.List;
 /**
  * A fake keyboard device that can be used for holding down keys in tests.
  *
- * Do not instantiate directly - use {@link FakeInputDevices#keyboard} instead.
+ * Do not instantiate directly - use {@link FakeUi#keyboard} instead.
  */
 public final class FakeKeyboard {
 
   private final List<Key> myPressedKeys = new ArrayList<>();
   @Nullable private Component myFocus;
-
-  /**
-   * Created by {@link FakeInputDevices}.
-   */
-  FakeKeyboard() {
-  }
-
-  /**
-   * Reset this keyboard's state.
-   *
-   * Called by {@link FakeInputDevices} so a user does not have to explicitly call it.
-   */
-  public void reset() {
-    myPressedKeys.clear();
-    myFocus = null;
-  }
 
   /**
    * Set (or clear) the component that will receive the key events. Note that if the focus is

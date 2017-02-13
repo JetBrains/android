@@ -15,48 +15,46 @@
  */
 package com.android.tools.adtui.swing;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
 /**
  * A fake mouse device that can be used for clicking on / scrolling programmatically in tests.
  *
- * Do not instantiate directly - use {@link FakeInputDevices#mouse} instead.
+ * Do not instantiate directly - use {@link FakeUi#mouse} instead.
  */
 public final class FakeMouse {
 
   private final FakeKeyboard myKeyboard;
+  @NotNull
+  private final FakeUi myUi;
   @Nullable Cursor myCursor;
+  @Nullable Component myFocus;
 
   /**
-   * Created by {@link FakeInputDevices}.
+   * Created by {@link FakeUi}.
    */
-  FakeMouse(FakeKeyboard keyboard) {
+  FakeMouse(@NotNull FakeUi ui, FakeKeyboard keyboard) {
+    myUi = ui;
     myKeyboard = keyboard;
-  }
-
-  /**
-   * Reset this mouse's state.
-   *
-   * Called by {@link FakeInputDevices} so a user does not have to explicitly call it.
-   */
-  public void reset() {
-    myCursor = null;
   }
 
   /**
    * Begin holding down a mouse button. Can be dragged with {@link #dragTo(int, int)} and
    * eventually should be released by {@link #release()}
    */
-  public void press(JComponent target, int x, int y, Button button) {
+  public void press(int x, int y, Button button) {
     if (myCursor != null) {
       throw new IllegalStateException("Mouse already pressed. Call release before pressing again.");
     }
-    dispatchMouseEvent(MouseEvent.MOUSE_PRESSED, target, x, y, button);
-    myCursor = new Cursor(target, button, x, y);
+    dispatchMouseEvent(MouseEvent.MOUSE_PRESSED, x, y, button);
+    myCursor = new Cursor(button, x, y);
   }
 
   public void dragTo(int x, int y) {
@@ -64,7 +62,7 @@ public final class FakeMouse {
       throw new IllegalStateException("Mouse not pressed. Call press before dragging.");
     }
 
-    dispatchMouseEvent(MouseEvent.MOUSE_DRAGGED, myCursor.target, x, y, myCursor.button);
+    dispatchMouseEvent(MouseEvent.MOUSE_DRAGGED, x, y, myCursor.button);
     myCursor = new Cursor(myCursor, x, y);
   }
 
@@ -79,24 +77,42 @@ public final class FakeMouse {
     dragTo(myCursor.x + xDelta, myCursor.y + yDelta);
   }
 
+  public void moveTo(int x, int y) {
+    FakeUi.RelativePoint point = myUi.targetMouseEvent(x, y);
+    Component target = point == null ? null : point.component;
+    if (target != myFocus) {
+      if (myFocus != null) {
+        Point converted = myUi.toRelative(myFocus, x, y);
+        dispatchMouseEvent(new FakeUi.RelativePoint(myFocus, converted.x, converted.y), MouseEvent.MOUSE_EXITED, 0, 0);
+      }
+      if (target != null) {
+        dispatchMouseEvent(point, MouseEvent.MOUSE_ENTERED, 0, 0);
+      }
+    }
+    if (target != null) {
+      dispatchMouseEvent(point, MouseEvent.MOUSE_MOVED, 0, 0);
+    }
+    myFocus = target;
+  }
+
   public void release() {
     if (myCursor == null) {
       throw new IllegalStateException("Mouse not pressed. Call press before releasing.");
     }
-    dispatchMouseEvent(MouseEvent.MOUSE_RELEASED, myCursor.target, myCursor.x, myCursor.y, myCursor.button);
+    dispatchMouseEvent(MouseEvent.MOUSE_RELEASED, myCursor.x, myCursor.y, myCursor.button);
     myCursor = null;
   }
 
   /**
-   * Convenience method which calls {@link #press(JComponent, int, int, Button)} and
+   * Convenience method which calls {@link #press(int, int, Button)} and
    * {@link #release()} in turn.
    */
-  public void click(JComponent target, int x, int y, Button button) {
+  public void click(int x, int y, Button button) {
     if (myCursor != null) {
       throw new IllegalStateException("Mouse already pressed. Call release before clicking.");
     }
 
-    press(target, x, y, button);
+    press(x, y, button);
     release();
   }
 
@@ -104,78 +120,85 @@ public final class FakeMouse {
    * Convenience method which calls {@link #press(JComponent, int, int, Button)}, {@link #dragTo(int, int)},
    * and {@link #release()} in turn.
    */
-  public void drag(JComponent target, int xStart, int yStart, int xDelta, int yDelta, Button button) {
+  public void drag(int xStart, int yStart, int xDelta, int yDelta, Button button) {
     if (myCursor != null) {
       throw new IllegalStateException("Mouse already pressed. Call release before dragging.");
     }
 
     int xTo = xStart + xDelta;
     int yTo = yStart + yDelta;
-    press(target, xStart, yStart, button);
+    press(xStart, yStart, button);
     dragTo(xTo, yTo);
     release();
   }
 
-  public void press(JComponent target, int x, int y) {
-    press(target, x, y, Button.LEFT);
+  public void press(int x, int y) {
+    press(x, y, Button.LEFT);
   }
 
-  public void click(JComponent target, int x, int y) {
-    click(target, x, y, Button.LEFT);
+  public void click(int x, int y) {
+    click(x, y, Button.LEFT);
   }
 
-  public void drag(JComponent target, int xStart, int yStart, int xDelta, int yDelta) {
-    drag(target, xStart, yStart, xDelta, yDelta, Button.LEFT);
+  public void drag(int xStart, int yStart, int xDelta, int yDelta) {
+    drag(xStart, yStart, xDelta, yDelta, Button.LEFT);
   }
 
   /**
    * Scroll the mouse unit {@code rotation} clicks. Negative values mean scroll up / away, and
    * positive values mean scroll down / towards.
    */
-  public void wheel(JComponent target, int x, int y, int rotation) {
-    dispatchMouseWheelEvent(target, x, y, rotation);
+  public void wheel(int x, int y, int rotation) {
+    dispatchMouseWheelEvent(x, y, rotation);
   }
 
-  private void dispatchMouseEvent(int eventType, JComponent target, int x, int y, Button button) {
-    //noinspection MagicConstant (modifier code is valid, from FakeKeyboard class)
-    MouseEvent event = new MouseEvent(target, eventType, System.nanoTime(), myKeyboard.toModifiersCode(), x, y, 1, false, button.code);
-    target.dispatchEvent(event);
+  private void dispatchMouseEvent(int eventType, int x, int y, Button button) {
+    FakeUi.RelativePoint point = myUi.targetMouseEvent(x, y);
+    dispatchMouseEvent(point, eventType, button.mask, button.code);
   }
 
-  private void dispatchMouseWheelEvent(JComponent target, int x, int y, int rotation) {
+  private void dispatchMouseEvent(FakeUi.RelativePoint point, int eventType, int modifiers, int button) {
     //noinspection MagicConstant (modifier code is valid, from FakeKeyboard class)
-    MouseWheelEvent event =
-      new MouseWheelEvent(target, MouseEvent.MOUSE_WHEEL, System.nanoTime(), myKeyboard.toModifiersCode(), x, y, 0, false,
-                          MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, rotation);
-    target.dispatchEvent(event);
+    MouseEvent event = new MouseEvent(myUi.getRoot(), eventType, System.nanoTime(),
+                                      myKeyboard.toModifiersCode() | modifiers,
+                                      point.x, point.y, 1, false, button);
+    point.component.dispatchEvent(event);
+  }
+
+  private void dispatchMouseWheelEvent(int x, int y, int rotation) {
+    //noinspection MagicConstant (modifier code is valid, from FakeKeyboard class)
+    FakeUi.RelativePoint point = myUi.targetMouseEvent(x, y);
+    MouseWheelEvent event = new MouseWheelEvent(myUi.getRoot(), MouseEvent.MOUSE_WHEEL, System.nanoTime(),
+                                                myKeyboard.toModifiersCode(), point.x, point.y, 0, false,
+                                                MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, rotation);
+    point.component.dispatchEvent(event);
   }
 
   public enum Button {
-    LEFT(MouseEvent.BUTTON1),
-    RIGHT(MouseEvent.BUTTON3);
+    LEFT(MouseEvent.BUTTON1, InputEvent.BUTTON1_DOWN_MASK),
+    RIGHT(MouseEvent.BUTTON3, InputEvent.BUTTON3_DOWN_MASK);
 
     final int code;
+    final int mask;
 
-    Button(int code) {
+    Button(int code, int mask) {
       this.code = code;
+      this.mask = mask;
     }
   }
 
   private static final class Cursor {
-    final JComponent target;
     final Button button;
     final int x;
     final int y;
 
-    public Cursor(JComponent target, Button button, int x, int y) {
-      this.target = target;
+    public Cursor(Button button, int x, int y) {
       this.button = button;
       this.x = x;
       this.y = y;
     }
 
     public Cursor(Cursor prev, int x, int y) {
-      this.target = prev.target;
       this.button = prev.button;
       this.x = x;
       this.y = y;

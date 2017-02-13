@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.project.build.invoker.messages.GradleBuildT
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.annotations.VisibleForTesting;
@@ -187,8 +188,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     private static final String GRADLE_RUNNING_MSG_TITLE = "Gradle Running";
     private static final String PASSWORD_KEY_SUFFIX = ".password=";
 
-    public static final String ANDROID_ADDITIONAL_PLUGINS = "android.additional.plugins";
-    public static final String COM_ANDROID_TOOLS_PROFILER = "com.android.tools.profiler";
+    public static final String ANDROID_CUSTOM_CLASS_TRANSFORMS = "android.custom.class.transforms";
 
     @NotNull private final Key<Key<?>> myContentId = Key.create("compile_content");
 
@@ -330,7 +330,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
         GradleOutputForwarder output = new GradleOutputForwarder(consoleView);
 
-        BuildException buildError = null;
+        Throwable buildError = null;
         InstantRunBuildProgressListener instantRunProgressListener = null;
         ExternalSystemTaskId id = myRequest.getTaskId();
         CancellationTokenSource cancellationTokenSource = myBuildStopper.createAndRegisterTokenSource(id);
@@ -356,8 +356,8 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           attemptToUseEmbeddedGradle(project);
 
           if (EXPERIMENTAL_PROFILING_FLAG_ENABLED) {
-            initScripts.addProfilerClasspathInitScriptCommandLineArgTo(commandLineArguments);
-            commandLineArguments.add(createProjectProperty(ANDROID_ADDITIONAL_PLUGINS, COM_ANDROID_TOOLS_PROFILER));
+            File file = EmbeddedDistributionPaths.getInstance().findEmbeddedProfilerTransform();
+            commandLineArguments.add(createProjectProperty(ANDROID_CUSTOM_CLASS_TRANSFORMS, file.getAbsolutePath()));
           }
 
           // Don't include passwords in the log
@@ -420,6 +420,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           buildError = e;
         }
         catch (Throwable e) {
+          buildError = e;
           handleTaskExecutionError(e);
         }
         finally {
@@ -460,7 +461,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     private void showGradleOutput(@NotNull String gradleOutput,
                                   @NotNull GradleOutputForwarder output,
                                   @NotNull Stopwatch stopwatch,
-                                  @Nullable BuildException buildError) {
+                                  @Nullable Throwable buildError) {
       Application application = ApplicationManager.getApplication();
 
       List<Message> buildMessages = new ArrayList<>();
@@ -473,10 +474,10 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           }
         }
 
-        if (!hasError && myErrorCount == 0 && buildError != null && !hasCause(buildError, BuildCancelledException.class)) {
+        if (!hasError && myErrorCount == 0 && buildError != null && buildError instanceof BuildException) {
           // Gradle throws BuildCancelledException when we cancel task execution. We don't want to force showing 'Messages' tool
           // window for that situation though.
-          addBuildExceptionAsMessage(buildError, output.getStdErr(), buildMessages);
+          addBuildExceptionAsMessage((BuildException)buildError, output.getStdErr(), buildMessages);
         }
         output.close();
         stopwatch.stop();
@@ -499,8 +500,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           return;
         }
 
-        boolean buildSuccessful = buildError == null;
-        GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildSuccessful);
+        GradleInvocationResult result = new GradleInvocationResult(myRequest.getGradleTasks(), buildMessages, buildError);
         for (AfterGradleInvocationTask task : GradleBuildInvoker.getInstance(getProject()).getAfterInvocationTasks()) {
           task.execute(result);
         }

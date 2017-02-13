@@ -28,7 +28,6 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -73,6 +72,9 @@ public class GradleSyncState {
   private boolean mySyncNotificationsEnabled;
 
   @GuardedBy("myLock")
+  private boolean mySyncSkipped;
+
+  @GuardedBy("myLock")
   private boolean mySyncInProgress;
 
   @NotNull
@@ -97,20 +99,19 @@ public class GradleSyncState {
   public GradleSyncState(@NotNull Project project,
                          @NotNull AndroidProjectInfo androidProjectInfo,
                          @NotNull GradleProjectInfo gradleProjectInfo,
-                         @NotNull MessageBus messageBus,
-                         @NotNull FileDocumentManager documentManager) {
-    this(project, androidProjectInfo, gradleProjectInfo, messageBus, new StateChangeNotification(project), new GradleSyncSummary(project),
-         new GradleFiles(project, documentManager));
+                         @NotNull GradleFiles gradleFiles,
+                         @NotNull MessageBus messageBus) {
+    this(project, androidProjectInfo, gradleProjectInfo, gradleFiles, messageBus, new StateChangeNotification(project),
+         new GradleSyncSummary(project));
   }
 
   @VisibleForTesting
   GradleSyncState(@NotNull Project project,
                   @NotNull AndroidProjectInfo androidProjectInfo,
                   @NotNull GradleProjectInfo gradleProjectInfo,
-                  @NotNull MessageBus messageBus,
+                  @NotNull GradleFiles gradleFiles, @NotNull MessageBus messageBus,
                   @NotNull StateChangeNotification changeNotification,
-                  @NotNull GradleSyncSummary summary,
-                  @NotNull GradleFiles gradleFiles) {
+                  @NotNull GradleSyncSummary summary) {
     myProject = project;
     myAndroidProjectInfo = androidProjectInfo;
     myGradleProjectInfo = gradleProjectInfo;
@@ -127,6 +128,18 @@ public class GradleSyncState {
   }
 
   /**
+   * Notification that a sync has started. It is considered "skipped" because, instead of obtaining the project models from Gradle, "sync"
+   * uses the models cached in disk.
+   *
+   * @param notifyUser indicates whether the user should be notified.
+   * @return {@code true} if there another sync is not already in progress and this sync request can continue; {@code false} if the
+   * current request cannot continue because there is already one in progress.
+   */
+  public boolean skippedSyncStarted(boolean notifyUser) {
+    return syncStarted(true, notifyUser);
+  }
+
+  /**
    * Notification that a sync has started.
    *
    * @param notifyUser indicates whether the user should be notified.
@@ -134,11 +147,16 @@ public class GradleSyncState {
    * current request cannot continue because there is already one in progress.
    */
   public boolean syncStarted(boolean notifyUser) {
+    return syncStarted(false, notifyUser);
+  }
+
+  private boolean syncStarted(boolean syncSkipped, boolean notifyUser) {
     synchronized (myLock) {
       if (mySyncInProgress) {
         LOG.info(String.format("Sync already in progress for project '%1$s'.", myProject.getName()));
         return false;
       }
+      mySyncSkipped = syncSkipped;
       mySyncInProgress = true;
     }
     LOG.info(String.format("Started sync with Gradle for project '%1$s'.", myProject.getName()));
@@ -242,6 +260,7 @@ public class GradleSyncState {
   private void stopSyncInProgress() {
     synchronized (myLock) {
       mySyncInProgress = false;
+      mySyncSkipped = false;
     }
   }
 
@@ -297,6 +316,12 @@ public class GradleSyncState {
     }
   }
 
+  public boolean isSyncSkipped() {
+    synchronized (myLock) {
+      return mySyncSkipped;
+    }
+  }
+
   /**
    * Indicates whether a project sync with Gradle is needed. A Gradle sync is usually needed when a build.gradle or settings.gradle file has
    * been updated <b>after</b> the last project sync was performed.
@@ -314,16 +339,15 @@ public class GradleSyncState {
     return myGradleFiles.areGradleFilesModified(lastSync) ? ThreeState.YES : ThreeState.NO;
   }
 
-  public boolean areExternalBuildFilesModified() {
-    return myGradleFiles.areExternalBuildFilesModified();
-  }
-
   @NotNull
   public GradleSyncSummary getSummary() {
     return mySummary;
   }
 
   public void setupStarted() {
+    addInfoToEventLog("Project setup started");
+    LOG.info(String.format("Started setup of project '%1$s'.", myProject.getName()));
+
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).setupStarted(myProject));
     AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder().setCategory(GRADLE_SYNC).setKind(GRADLE_SYNC_SETUP_STARTED);
     UsageTracker.getInstance().log(event);

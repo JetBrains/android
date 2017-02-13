@@ -147,7 +147,7 @@ public abstract class BaseAxisFormatter {
     int count = getNumUnits();
     for (int i = 0; i < count; i++) {
       long temp = mMultiplier * getUnitMultiplier(i);
-      if (value <= temp * threshold) {
+      if (value < temp * threshold) {
         return i;
       }
       mMultiplier = temp;
@@ -229,5 +229,5 @@ public abstract class BaseAxisFormatter {
 
   protected long getMultiplier() {
     return mMultiplier;
-  };
+  }
 }

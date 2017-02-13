@@ -15,6 +15,7 @@ import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.dom.resources.ResourcesDomFileDescription;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfoImpl;
 import org.jetbrains.android.util.AndroidBundle;
@@ -122,7 +123,7 @@ public class AndroidFindStyleApplicationsAction extends AndroidBaseXmlRefactorin
   }
 
   private static PsiElement resolveStyleRef(StyleRefData styleRef, AndroidFacet facet) {
-    final ResourceManager resourceManager = facet.getResourceManager(styleRef.getStylePackage());
+    final ResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getResourceManager(styleRef.getStylePackage());
     
     if (resourceManager == null) {
       return null;

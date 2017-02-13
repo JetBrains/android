@@ -17,6 +17,9 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.ContentRootsModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
@@ -28,9 +31,8 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.mockito.Mock;
 
-import java.util.Collections;
-
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -46,7 +48,6 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-
     initMocks(this);
 
     AndroidModuleValidator.Factory validatorFactory = mock(AndroidModuleValidator.Factory.class);
@@ -72,21 +73,30 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
 
     myService.importData(Lists.newArrayList(dataNode), mock(ProjectData.class), project, modelsProvider);
 
-    verify(myModuleSetup).setUpModule(appModule, modelsProvider, androidModel, null, null);
+    verify(myModuleSetup).setUpModule(appModule, modelsProvider, androidModel, null, null, false);
     verify(myValidator).validate(appModule, androidModel);
     verify(myValidator).fixAndReportFoundIssues();
   }
 
-  public void testImportDataWithEmptyDataNodes() throws Exception {
-    Project project = getProject();
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);
+  public void testAndroidModuleSetupSteps() {
+    myService = new AndroidModuleModelDataService();
 
-    Module module = createModule("app");
+    int indexOfContentRootsModuleSetupStep = -1;
+    int indexOfDependenciesModuleSetupStep = -1;
+    AndroidModuleSetupStep[] setupSteps = myService.getModuleSetup().getSetupSteps();
+    for (int i = 0; i < setupSteps.length; i++) {
+      AndroidModuleSetupStep setupStep = setupSteps[i];
+      if (setupStep instanceof ContentRootsModuleSetupStep) {
+        indexOfContentRootsModuleSetupStep = i;
+        continue;
+      }
+      if (setupStep instanceof DependenciesAndroidModuleSetupStep) {
+        indexOfDependenciesModuleSetupStep = i;
+      }
+    }
 
-    myService.importData(Collections.emptyList(), mock(ProjectData.class), project, modelsProvider);
-
-    verify(myModuleSetup).setUpModule(module, modelsProvider, null, null, null);
-    verify(myValidator, never()).validate(same(module), any());
-    verify(myValidator, never()).fixAndReportFoundIssues();
+    // ContentRootsModuleSetupStep should go before DependenciesModuleSetupStep, otherwise any excluded jars set up by
+    // DependenciesModuleSetupStep will be ignored.
+    assertThat(indexOfContentRootsModuleSetupStep).isLessThan(indexOfDependenciesModuleSetupStep);
   }
 }

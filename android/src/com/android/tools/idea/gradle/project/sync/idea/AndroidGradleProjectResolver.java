@@ -22,13 +22,13 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.ImportedModule;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
+import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.LocalProperties;
@@ -75,12 +75,12 @@ import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersion
 import static com.android.tools.idea.gradle.project.sync.idea.GradleModelVersionCheck.isSupportedVersion;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
@@ -185,7 +185,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     }
 
     // do not derive module root dir based on *.iml file location
-    File moduleRootDirPath = new File(toSystemDependentName(ideModule.getData().getLinkedExternalProjectPath()));
+    File moduleRootDirPath = toSystemDependentPath(ideModule.getData().getLinkedExternalProjectPath());
 
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
 
@@ -324,7 +324,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @NotNull
   private LocalProperties getLocalProperties() {
-    File projectDir = new File(toSystemDependentName(resolverCtx.getProjectPath()));
+    File projectDir = toSystemDependentPath(resolverCtx.getProjectPath());
     try {
       return new LocalProperties(projectDir);
     }

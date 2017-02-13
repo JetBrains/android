@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.lint;
 
+import com.android.tools.idea.lint.SuppressLintIntentionAction;
 import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel.IssueData;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.utils.HtmlBuilder;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
@@ -53,7 +54,6 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
-import com.android.tools.idea.lint.SuppressLintIntentionAction;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -90,7 +90,7 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
    */
   private static final int DISMISS_MARGIN_PX = JBUI.scale(20);
   private static final Dimension MIN_POPUP_SIZE = new Dimension(600, 300);
-  private final ScreenView myScreenView;
+  private final SceneView mySceneView;
   private JEditorPane myExplanationPane;
   private JBList myIssueList;
   private JPanel myPanel;
@@ -103,10 +103,10 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
   public static final String DIMENSION_KEY = "lint.notification";
   private JBPopup myPopup;
 
-  public LintNotificationPanel(@NotNull ScreenView screenView, @NotNull LintAnnotationsModel model) {
-    myScreenView = screenView;
+  public LintNotificationPanel(@NotNull SceneView sceneView, @NotNull LintAnnotationsModel model) {
+    mySceneView = sceneView;
 
-    List<IssueData> issues = getSortedIssues(screenView, model);
+    List<IssueData> issues = getSortedIssues(sceneView, model);
     if (issues == null) {
       return;
     }
@@ -151,7 +151,7 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
   }
 
   @Nullable
-  private static List<IssueData> getSortedIssues(@NotNull ScreenView screenView, @NotNull LintAnnotationsModel model) {
+  private static List<IssueData> getSortedIssues(@NotNull SceneView screenView, @NotNull LintAnnotationsModel model) {
     List<IssueData> issues = model.getIssues();
     if (issues.isEmpty()) {
       return null;
@@ -210,8 +210,7 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
       }
 
       // Include position too to help disambiguate
-      ViewEditorImpl viewEditor = new ViewEditorImpl(myScreenView);
-      text += " at (" + viewEditor.pxToDp(component.x) + "," + viewEditor.pxToDp(component.y) + ") dp";
+      text += " at (" + Coordinates.pxToDp(mySceneView, component.x) + "," + Coordinates.pxToDp(mySceneView, component.y) + ") dp";
     }
     myTagLabel.setText(text);
   }
@@ -254,7 +253,7 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
       for (final IntentionAction fix : intentions) {
         builder.listItem();
         builder.addLink(fix.getText(), myLinkManager.createRunnableLink(() -> {
-          NlModel model = myScreenView.getModel();
+          NlModel model = mySceneView.getModel();
           Editor editor = PsiEditorUtil.Service.getInstance().findEditorByPsiElement(selected.startElement);
           if (editor != null) {
             editor.getCaretModel().getCurrentCaret().moveToOffset(selected.startElement.getTextOffset());
@@ -271,7 +270,7 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
       builder.addLink(suppress.getText(), myLinkManager.createRunnableLink(() -> {
         myPopup.cancel();
         WriteCommandAction.runWriteCommandAction(selected.startElement.getProject(), () -> {
-          suppress.invoke(selected.startElement.getProject(), null, myScreenView.getModel().getFile());
+          suppress.invoke(selected.startElement.getProject(), null, mySceneView.getModel().getFile());
         });
       }));
 
@@ -349,7 +348,7 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
       //noinspection UndesirableClassUsage
       BufferedImage image = new BufferedImage(iw, ih, BufferedImage.TYPE_INT_ARGB);
 
-      RenderResult renderResult = myScreenView.getModel().getRenderResult();
+      RenderResult renderResult = mySceneView.getModel().getRenderResult();
       if (renderResult != null && renderResult.hasImage()) {
         // Draw the component into the preview image
         Graphics2D g2d = (Graphics2D)image.getGraphics();
@@ -534,7 +533,7 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
       .createPopup();
 
     myPopup = builder;
-    Disposer.register(myScreenView.getSurface(), myPopup);
+    Disposer.register(mySceneView.getSurface(), myPopup);
     onPopupBuilt.accept(builder);
     return builder;
   }
@@ -571,7 +570,7 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
    * Selects a lint issue for the component located at x, y
    */
   public void selectIssueAtPoint(@AndroidCoordinate int x, @AndroidCoordinate int y) {
-    LintAnnotationsModel lintModel = myScreenView.getModel().getLintAnnotationsModel();
+    LintAnnotationsModel lintModel = mySceneView.getModel().getLintAnnotationsModel();
     if (lintModel == null) {
       return;
     }
@@ -596,10 +595,10 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
       }
 
       String url = e.getDescription();
-      NlModel model = myScreenView.getModel();
+      NlModel model = mySceneView.getModel();
       Module module = model.getModule();
       PsiFile file = model.getFile();
-      DataContext dataContext = DataManager.getInstance().getDataContext(myScreenView.getSurface());
+      DataContext dataContext = DataManager.getInstance().getDataContext(mySceneView.getSurface());
       assert dataContext != null;
 
       myLinkManager.handleUrl(url, module, file, dataContext, null);

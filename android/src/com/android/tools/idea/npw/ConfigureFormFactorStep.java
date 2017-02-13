@@ -39,6 +39,7 @@ import java.util.Set;
 
 import static com.android.tools.idea.npw.FormFactorApiComboBox.AndroidTargetComboBoxItem;
 import static com.android.tools.idea.npw.FormFactorUtils.*;
+import static com.android.tools.idea.wizard.WizardConstants.IS_INSTANT_APP_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
@@ -176,6 +177,10 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         if (formFactor.baseFormFactor == null && myState.get(getMinApiKey(formFactor)) == null) {
           // Don't allow the user to continue unless all minAPIs of base form factors are chosen
           setErrorHtml(formFactor + " must have a Minimum SDK level selected.");
+          return false;
+        }
+        if (myState.getNotNull(IS_INSTANT_APP_KEY, false) && new Integer(myState.getNotNull(getMinApiKey(formFactor), "0")) < 16) {
+          setErrorHtml(formFactor + " must have a Minimum SDK >= 16 for Instant App Support.");
           return false;
         }
       }

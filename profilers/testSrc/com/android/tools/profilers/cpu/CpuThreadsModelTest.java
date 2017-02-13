@@ -17,7 +17,8 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.IdeProfilerServicesStub;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import org.junit.Before;
 import org.junit.Rule;
@@ -38,9 +39,9 @@ public class CpuThreadsModelTest {
 
   @Before
   public void setUp() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
     myRange = new Range();
-    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(profilers), 42 /* Any process id */);
+    myThreadsModel = new CpuThreadsModel(myRange, new CpuProfilerStage(profilers), 42 /* Any process id */, ProfilersTestData.SESSION_DATA);
   }
 
   @Test

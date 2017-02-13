@@ -23,8 +23,10 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.*;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.NlConfigurationToolbarFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPreviewFixture;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
@@ -248,18 +250,18 @@ public class NlPreviewTest {
       .getLayoutPreview(true)
       .waitForRenderToFinish()
       .showOnlyBlueprintView()
-      .waitForScreenMode(DesignSurface.ScreenMode.BLUEPRINT_ONLY);
+      .waitForScreenMode(NlDesignSurface.ScreenMode.BLUEPRINT_ONLY);
     guiTest.ideFrame()
       .getEditor()
       .open("app/src/main/res/drawable/vector.xml", EditorFixture.Tab.EDITOR)
       .getLayoutPreview(true)
       .waitForRenderToFinish()
-      .waitForScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY);
+      .waitForScreenMode(NlDesignSurface.ScreenMode.SCREEN_ONLY);
     guiTest.ideFrame()
       .getEditor()
       .switchToTab("activity_my.xml")
       .getLayoutPreview(false)
       .waitForRenderToFinish()
-      .waitForScreenMode(DesignSurface.ScreenMode.BLUEPRINT_ONLY);
+      .waitForScreenMode(NlDesignSurface.ScreenMode.BLUEPRINT_ONLY);
   }
 }

@@ -36,54 +36,36 @@ import java.util.*;
  */
 public final class ModuleResourceRepository extends MultiResourceRepository {
   private final AndroidFacet myFacet;
-  private final ResourceFolderManager.ResourceFolderListener myResourceFolderListener = new ResourceFolderManager.ResourceFolderListener() {
-    @Override
-    public void resourceFoldersChanged(@NotNull AndroidFacet facet,
-      @NotNull List<VirtualFile> folders,
-      @NotNull Collection<VirtualFile> added,
-      @NotNull Collection<VirtualFile> removed) {
-      updateRoots();
-    }
-  };
-
-  private ModuleResourceRepository(@NotNull AndroidFacet facet, @NotNull List<? extends LocalResourceRepository> delegates) {
-    super(facet.getModule().getName(), delegates);
-    myFacet = facet;
-
-    // Subscribe to update the roots when the resource folders change
-    myFacet.getResourceFolderManager().addListener(myResourceFolderListener);
-  }
+  private final ResourceFolderManager.ResourceFolderListener myResourceFolderListener = (facet, folders, added, removed) -> updateRoots();
 
   /**
    * Returns the Android resources specific to this module, not including resources in any
-   * dependent modules or any AAR libraries
+   * dependent modules or any AAR libraries, create the app resources if necessary.
    *
-   * @param module            the module to look up resources for
-   * @param createIfNecessary if true, create the app resources if necessary, otherwise only return if already computed
+   * @param module the module to look up resources for
    * @return the resource repository
    */
   @Nullable
-  public static LocalResourceRepository getModuleResources(@NotNull Module module, boolean createIfNecessary) {
+  public static LocalResourceRepository getOrCreateInstance(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null) {
-      return facet.getModuleResources(createIfNecessary);
-    }
-
-    return null;
+    return facet != null ? getOrCreateInstance(facet) : null;
   }
 
-  /**
-   * Returns the Android resources specific to this module, not including resources in any
-   * dependent modules or any AAR libraries
-   *
-   * @param facet             the module facet to look up resources for
-   * @param createIfNecessary if true, create the app resources if necessary, otherwise only return if already computed
-   * @return the resource repository
-   */
-  @Contract("!null, true -> !null")
+  @NotNull
+  public static LocalResourceRepository getOrCreateInstance(@NotNull AndroidFacet facet) {
+    return findModuleResources(facet, true);
+  }
+
   @Nullable
-  public static LocalResourceRepository getModuleResources(@NotNull AndroidFacet facet, boolean createIfNecessary) {
-    return facet.getModuleResources(createIfNecessary);
+  public static LocalResourceRepository findExistingInstance(@NotNull AndroidFacet facet) {
+    return findModuleResources(facet, false);
+  }
+
+  @Contract("_, true -> !null")
+  @Nullable
+  private static LocalResourceRepository findModuleResources(@NotNull AndroidFacet facet, boolean createIfNecessary) {
+    ResourceRepositories repositories = ResourceRepositories.getOrCreateInstance(facet);
+    return repositories.getModuleResources(createIfNecessary);
   }
 
   /**
@@ -93,7 +75,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
    * @return the resource repository
    */
   @NotNull
-  public static LocalResourceRepository create(@NotNull final AndroidFacet facet) {
+  static LocalResourceRepository create(@NotNull AndroidFacet facet) {
     boolean gradleProject = facet.requiresAndroidModel();
     if (!gradleProject) {
       // Always just a single resource folder: simple
@@ -121,6 +103,14 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
     Disposer.register(repository, dynamicResources);
 
     return repository;
+  }
+
+  private ModuleResourceRepository(@NotNull AndroidFacet facet, @NotNull List<? extends LocalResourceRepository> delegates) {
+    super(facet.getModule().getName(), delegates);
+    myFacet = facet;
+
+    // Subscribe to update the roots when the resource folders change
+    myFacet.getResourceFolderManager().addListener(myResourceFolderListener);
   }
 
   private void updateRoots() {
@@ -195,7 +185,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
   @NotNull
   @VisibleForTesting
   public static ModuleResourceRepository createForTest(@NotNull AndroidFacet facet, @NotNull Collection<VirtualFile> resourceDirectories) {
-    return createForTest(facet, resourceDirectories, Collections.<LocalResourceRepository>emptyList());
+    return createForTest(facet, resourceDirectories, Collections.emptyList());
   }
 
   @NotNull
@@ -204,7 +194,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
                                                        @NotNull Collection<VirtualFile> resourceDirectories,
                                                        @NotNull Collection<LocalResourceRepository> otherDelegates) {
     assert ApplicationManager.getApplication().isUnitTestMode();
-    List<LocalResourceRepository> delegates = new ArrayList<LocalResourceRepository>(resourceDirectories.size() + otherDelegates.size());
+    List<LocalResourceRepository> delegates = new ArrayList<>(resourceDirectories.size() + otherDelegates.size());
 
     for (VirtualFile resourceDirectory : resourceDirectories) {
       delegates.add(ResourceFolderRegistry.get(facet, resourceDirectory));
@@ -216,7 +206,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
 
   private static class EmptyRepository extends MultiResourceRepository {
     public EmptyRepository() {
-      super("", Collections.<LocalResourceRepository>emptyList());
+      super("", Collections.emptyList());
     }
 
     @Override

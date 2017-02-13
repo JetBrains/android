@@ -42,6 +42,8 @@ public class DragTarget extends ConstraintTarget {
   private static final boolean DEBUG_RENDERER = false;
   protected int myOffsetX;
   protected int myOffsetY;
+  protected int myFirstMouseX;
+  protected int myFirstMouseY;
   protected boolean myChangedComponent;
 
   ArrayList<Notch> myHorizontalNotches = new ArrayList<>();
@@ -52,6 +54,11 @@ public class DragTarget extends ConstraintTarget {
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
   /////////////////////////////////////////////////////////////////////////////
+
+  @Override
+  public boolean canChangeSelection() {
+    return true;
+  }
 
   @Override
   public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
@@ -287,6 +294,8 @@ public class DragTarget extends ConstraintTarget {
     if (myComponent.getParent() == null) {
       return;
     }
+    myFirstMouseX = x;
+    myFirstMouseY = y;
     myOffsetX = x - myComponent.getDrawX(System.currentTimeMillis());
     myOffsetY = y - myComponent.getDrawY(System.currentTimeMillis());
     myChangedComponent = false;
@@ -321,6 +330,7 @@ public class DragTarget extends ConstraintTarget {
     if (myComponent.getParent() == null) {
       return;
     }
+    myComponent.setDragging(true);
     NlComponent component = myComponent.getNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
     int dx = x - myOffsetX;
@@ -365,7 +375,12 @@ public class DragTarget extends ConstraintTarget {
 
   @Override
   public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
+    myComponent.setDragging(false);
     if (myComponent.getParent() != null) {
+      boolean commitChanges = true;
+      if (Math.abs(x - myFirstMouseX) <= 1 && Math.abs(y - myFirstMouseY) <= 1) {
+        commitChanges = false;
+      }
       NlComponent component = myComponent.getNlComponent();
       AttributesTransaction attributes = component.startAttributeTransaction();
       int dx = x - myOffsetX;
@@ -388,18 +403,20 @@ public class DragTarget extends ConstraintTarget {
       cleanup(attributes);
       attributes.apply();
 
-      NlModel nlModel = component.getModel();
-      Project project = nlModel.getProject();
-      XmlFile file = nlModel.getFile();
+      if (commitChanges) {
+        NlModel nlModel = component.getModel();
+        Project project = nlModel.getProject();
+        XmlFile file = nlModel.getFile();
 
-      String label = "Component dragged";
-      WriteCommandAction action = new WriteCommandAction(project, label, file) {
-        @Override
-        protected void run(@NotNull Result result) throws Throwable {
-          attributes.commit();
-        }
-      };
-      action.execute();
+        String label = "Component dragged";
+        WriteCommandAction action = new WriteCommandAction(project, label, file) {
+          @Override
+          protected void run(@NotNull Result result) throws Throwable {
+            attributes.commit();
+          }
+        };
+        action.execute();
+      }
     }
     if (myChangedComponent) {
       myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
@@ -408,6 +425,11 @@ public class DragTarget extends ConstraintTarget {
 
   public boolean hasChangedComponent() {
     return myChangedComponent;
+  }
+
+  @Override
+  public Cursor getMouseCursor() {
+    return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
   }
 
   //endregion

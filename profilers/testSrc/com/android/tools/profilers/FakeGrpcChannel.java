@@ -25,7 +25,7 @@ import org.junit.rules.ExternalResource;
  * with fake services which provides it test data. This class handles starting up / shutting down
  * this connection automatically before / after each test.
  */
-public final class FakeGrpcChannel extends ExternalResource {
+public class FakeGrpcChannel extends ExternalResource {
   private final String myName;
   private final BindableService[] myServices;
   private Server myServer;

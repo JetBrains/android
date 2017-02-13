@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.actions;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.psi.xml.XmlTag;
@@ -37,7 +37,7 @@ public class GotoComponentAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    ScreenView screenView = mySurface.getCurrentScreenView();
+    SceneView screenView = mySurface.getCurrentSceneView();
     if (screenView != null) {
       SelectionModel selectionModel = screenView.getSelectionModel();
       NlComponent primary = selectionModel.getPrimary();

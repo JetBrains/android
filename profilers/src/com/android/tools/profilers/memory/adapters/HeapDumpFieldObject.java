@@ -21,63 +21,63 @@ import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * A UI representation of a {@link Field}.
  */
-final class HeapDumpFieldObject implements FieldObject {
-  private static final Map<Type, ValueType> ourValueTypeMap = ImmutableMap.<Type, ValueType>builder()
-    .put(Type.BOOLEAN, ValueType.BOOLEAN)
-    .put(Type.BYTE, ValueType.BYTE)
-    .put(Type.CHAR, ValueType.CHAR)
-    .put(Type.SHORT, ValueType.SHORT)
-    .put(Type.INT, ValueType.INT)
-    .put(Type.LONG, ValueType.LONG)
-    .put(Type.FLOAT, ValueType.FLOAT)
-    .put(Type.DOUBLE, ValueType.DOUBLE)
+final class HeapDumpFieldObject extends HeapDumpInstanceObject implements FieldObject {
+  private static final Map<Type, ClassObject.ValueType> ourPrimitiveValueTypeMap = ImmutableMap.<Type, ClassObject.ValueType>builder()
+    .put(Type.BOOLEAN, ClassObject.ValueType.BOOLEAN)
+    .put(Type.BYTE, ClassObject.ValueType.BYTE)
+    .put(Type.CHAR, ClassObject.ValueType.CHAR)
+    .put(Type.SHORT, ClassObject.ValueType.SHORT)
+    .put(Type.INT, ClassObject.ValueType.INT)
+    .put(Type.LONG, ClassObject.ValueType.LONG)
+    .put(Type.FLOAT, ClassObject.ValueType.FLOAT)
+    .put(Type.DOUBLE, ClassObject.ValueType.DOUBLE)
     .build();
 
   @NotNull private final FieldValue myField;
   private final int myDepth;
   private final int myShallowSize;
   private final long myRetainedSize;
-  private final ValueType myValueType;
 
-  public HeapDumpFieldObject(@NotNull Instance parentInstance, @NotNull FieldValue field) {
+  public HeapDumpFieldObject(@NotNull Instance parentInstance, @NotNull FieldValue field, @Nullable Instance instance) {
+    // TODO - is the ClassObj logic correct here? Should a ClassObj instance not have the "java.lang.Class" as its ClassObj?
+    super(instance == null ? null
+                           : new HeapDumpClassObject(new HeapDumpHeapObject(instance.getHeap()),
+                                                     instance instanceof ClassObj ? (ClassObj)instance : instance.getClassObj()),
+          instance, null);
+
     myField = field;
     Type type = myField.getField().getType();
     if (type == Type.OBJECT) {
-      if (myField.getValue() == null) {
-        myValueType = ValueType.NULL;
+      if (instance == null || myField.getValue() == null) {
+        myValueType = ClassObject.ValueType.NULL;
         myShallowSize = 0;
         myRetainedSize = 0;
-        myDepth = -1;
+        myDepth = Integer.MAX_VALUE;
       }
       else {
-        Class valueClass = myField.getValue().getClass();
-        Instance instance = (Instance)myField.getValue();
-        if (ClassObj.class.isAssignableFrom(valueClass)) {
-          myValueType = ValueType.CLASS;
+        assert myField.getValue() == instance;
+        if (instance instanceof ClassObj) {
+          myValueType = ClassObject.ValueType.CLASS;
         }
-        else if (ClassInstance.class.isAssignableFrom(valueClass) &&
-                 "java.lang.String".equals(((ClassInstance)myField.getValue()).getClassObj().getClassName())) {
-          myValueType = ValueType.STRING;
+        else if (instance instanceof ClassInstance && instance.getClassObj().getClassName().equals(ClassObject.JAVA_LANG_STRING)) {
+          myValueType = ClassObject.ValueType.STRING;
         }
         else {
-          myValueType = ValueType.OBJECT;
+          myValueType = ClassObject.ValueType.OBJECT;
         }
+
         myShallowSize = instance.getSize();
         myRetainedSize = instance.getTotalRetainedSize();
         myDepth = instance.getDistanceToGcRoot();
       }
     }
     else {
-      myValueType = ourValueTypeMap.getOrDefault(type, ValueType.NULL);
+      myValueType = ourPrimitiveValueTypeMap.getOrDefault(type, ClassObject.ValueType.NULL);
       myShallowSize = type.getSize();
       myRetainedSize = type.getSize();
       myDepth = parentInstance.getDistanceToGcRoot();
@@ -86,13 +86,8 @@ final class HeapDumpFieldObject implements FieldObject {
 
   @NotNull
   @Override
-  public String getName() {
-    if (myField.getValue() == null) {
-      return myField.getField().getName() + "= {null}";
-    }
-    else {
-      return myField.getField().getName() + "=" + myField.getValue().toString();
-    }
+  public String getDisplayLabel() {
+    return String.format(FIELD_DISPLAY_FORMAT, myField.getField().getName(), myField.getValue() == null ? "{null}" : myField.getValue());
   }
 
   @Override
@@ -112,37 +107,8 @@ final class HeapDumpFieldObject implements FieldObject {
 
   @NotNull
   @Override
-  public List<FieldObject> getFields() {
-    Type type = myField.getField().getType();
-    Object value = myField.getValue();
-    // The field has children only if it is a non-primitive field.
-    if (type == Type.OBJECT && value != null && value instanceof Instance) {
-      return HeapDumpInstanceObject.extractFields((Instance)value);
-    }
-
-    return Collections.emptyList();
-  }
-
-  @NotNull
-  @Override
   public String getFieldName() {
     return myField.getField().getName();
-  }
-
-  @NotNull
-  @Override
-  public String getValueLabel() {
-    return myField.getValue().toString();
-  }
-
-  @Override
-  public ValueType getValueType() {
-    return myValueType;
-  }
-
-  @Override
-  public boolean getIsArray() {
-    return myField.getValue() instanceof ArrayInstance;
   }
 
   @Override

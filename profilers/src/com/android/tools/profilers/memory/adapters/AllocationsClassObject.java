@@ -28,10 +28,18 @@ import static com.android.tools.profilers.memory.adapters.InstanceObject.Instanc
 final class AllocationsClassObject extends ClassObject {
   @NotNull private final AllocatedClass myAllocatedClass;
   @NotNull private final List<InstanceObject> myInstanceNodes = new ArrayList<>();
+  @NotNull private final AllocationsCaptureObject.AllocationsHeapObject myHeap;
 
-  public AllocationsClassObject(@NotNull AllocatedClass allocatedClass) {
+  public AllocationsClassObject(@NotNull AllocationsCaptureObject.AllocationsHeapObject heap, @NotNull AllocatedClass allocatedClass) {
     super(allocatedClass.getClassName());
     myAllocatedClass = allocatedClass;
+    myHeap = heap;
+  }
+
+  @NotNull
+  @Override
+  public HeapObject getHeapObject() {
+    return myHeap;
   }
 
   public void addInstance(@NotNull AllocationsInstanceObject node) {
@@ -39,7 +47,7 @@ final class AllocationsClassObject extends ClassObject {
   }
 
   @Override
-  public int getChildrenCount() {
+  public int getHeapCount() {
     return myInstanceNodes.size();
   }
 

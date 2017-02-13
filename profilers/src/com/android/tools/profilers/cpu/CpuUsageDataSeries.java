@@ -26,7 +26,6 @@ import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -39,11 +38,13 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
 
   private boolean myOtherProcesses;
   private final int myProcessId;
+  private final Common.Session mySession;
 
-  public CpuUsageDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, boolean otherProcesses, int id) {
+  public CpuUsageDataSeries(@NotNull CpuServiceGrpc.CpuServiceBlockingStub client, boolean otherProcesses, int id, Common.Session session) {
     myClient = client;
     myOtherProcesses = otherProcesses;
     myProcessId = id;
+    mySession = session;
   }
 
   @Override
@@ -53,16 +54,13 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
     // TODO: Change the CPU API to allow specifying this padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     CpuProfiler.CpuDataRequest.Builder dataRequestBuilder = CpuProfiler.CpuDataRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);
     CpuProfiler.CpuDataResponse response = myClient.getData(dataRequestBuilder.build());
     CpuProfiler.CpuProfilerData lastCpuData = null;
     for (CpuProfiler.CpuProfilerData data : response.getDataList()) {
-      if (data.getDataCase() != CpuProfiler.CpuProfilerData.DataCase.CPU_USAGE) {
-        // No data to be handled.
-        continue;
-      }
       long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(data.getBasicInfo().getEndTimestamp());
 
       // If lastCpuData is null, it means the first CPU usage data was read. Assign it to lastCpuData and go to the next iteration.

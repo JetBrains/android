@@ -20,6 +20,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.tools.idea.avdmanager.ModuleAvds;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.npw.FormFactor;
 import com.google.common.collect.Lists;
@@ -208,7 +209,7 @@ public class DeviceMenuAction extends FlatComboAction {
       addDeviceSection(group, current, deviceMap, false, FormFactor.TV);
       group.addSeparator();
 
-      final AvdManager avdManager = facet.getAvdManagerSilently();
+      AvdManager avdManager = ModuleAvds.getInstance(facet).getAvdManagerSilently();
       if (avdManager != null) {
         boolean separatorNeeded = false;
         boolean first = true;

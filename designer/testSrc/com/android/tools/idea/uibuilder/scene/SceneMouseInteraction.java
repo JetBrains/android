@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
-import com.android.tools.idea.uibuilder.scene.target.ResizeTarget;
+import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 
@@ -27,7 +27,7 @@ import java.util.Collections;
 /**
  * Encapsulates basic mouse interaction on a Scene
  */
-class SceneMouseInteraction {
+public class SceneMouseInteraction {
   private final Scene myScene;
   private final ScreenView myScreenView;
   float myLastX;
@@ -39,6 +39,9 @@ class SceneMouseInteraction {
     myScreenView = screenView;
     repaint();
   }
+
+  public float getLastX() { return myLastX; }
+  public float getLastY() { return myLastY; }
 
   /**
    * Simulate a click on a given resize handle of the component with componentId
@@ -70,10 +73,10 @@ class SceneMouseInteraction {
    * @param componentId the id of the component we want to click on
    * @param type        the type of resize handle we want to click on
    */
-  public void mouseDown(String componentId, ResizeTarget.Type type) {
+  public void mouseDown(String componentId, ResizeBaseTarget.Type type) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
-      ResizeTarget target = component.getResizeTarget(type);
+      ResizeBaseTarget target = component.getResizeTarget(type);
       mouseDown(target.getCenterX(), target.getCenterY());
     }
   }

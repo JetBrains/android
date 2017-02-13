@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profilers.common.ThreadId;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,55 +26,49 @@ import java.util.List;
 public interface InstanceObject extends MemoryObject {
   enum InstanceAttribute {
     LABEL,
-    ELEMENT_SIZE,
     DEPTH,
     SHALLOW_SIZE,
     RETAINED_SIZE
   }
 
-  enum ValueType {
-    NULL(false),
-    BOOLEAN(true),
-    BYTE(true),
-    CHAR(true),
-    SHORT(true),
-    INT(true),
-    LONG(true),
-    FLOAT(true),
-    DOUBLE(true),
-    OBJECT(false),
-    CLASS(false),
-    STRING(false); // special case for strings
+  @NotNull
+  String getDisplayLabel();
 
-    private boolean myIsPrimitive;
-
-    ValueType(boolean isPrimitive) {
-      myIsPrimitive = isPrimitive;
-    }
-
-    public boolean getIsPrimitive() {
-      return myIsPrimitive;
-    }
+  @Nullable
+  default String getToStringText() {
+    return null;
   }
 
-  @NotNull
-  String getName();
+  @Nullable
+  ClassObject getClassObject();
+
+  @Nullable
+  String getClassName();
 
   default int getDepth() {
-    return 0;
+    return Integer.MAX_VALUE;
   }
 
   default int getShallowSize() {
-    return 0;
+    return INVALID_VALUE;
   }
 
   default long getRetainedSize() {
+    return INVALID_VALUE;
+  }
+
+  default int getFieldCount() {
     return 0;
   }
 
   @NotNull
   default List<FieldObject> getFields() {
     return Collections.emptyList();
+  }
+
+  @NotNull
+  default ThreadId getAllocationThreadId() {
+    return ThreadId.INVALID_THREAD_ID;
   }
 
   @Nullable
@@ -87,12 +82,8 @@ public interface InstanceObject extends MemoryObject {
   }
 
   @NotNull
-  default String getValueLabel() {
-    return "";
-  }
-
-  default ValueType getValueType() {
-    return ValueType.NULL;
+  default ClassObject.ValueType getValueType() {
+    return ClassObject.ValueType.NULL;
   }
 
   default boolean getIsArray() {
@@ -108,6 +99,6 @@ public interface InstanceObject extends MemoryObject {
   }
 
   default List<InstanceAttribute> getReferenceAttributes() {
-    return Collections.EMPTY_LIST;
+    return Collections.emptyList();
   }
 }

@@ -19,7 +19,6 @@ package com.android.tools.adtui.chart.linechart;
 import com.android.tools.adtui.LegendConfig;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
@@ -81,7 +80,7 @@ public class LineConfig {
   /**
    * Type of the legend icon that represents the line.
    */
-  @Nullable
+  @NotNull
   private LegendConfig.IconType myLegendIconType;
 
   @NotNull
@@ -93,6 +92,7 @@ public class LineConfig {
   public LineConfig(@NotNull Color color) {
     mColor = color;
     myStroke = DEFAULT_LINE_STROKE;
+    myLegendIconType = LegendConfig.IconType.NONE;
   }
 
   @NotNull
@@ -147,12 +147,12 @@ public class LineConfig {
     return myStroke;
   }
 
-  public LineConfig setLegendIconType(@Nullable LegendConfig.IconType legendIconType) {
+  public LineConfig setLegendIconType(@NotNull LegendConfig.IconType legendIconType) {
     myLegendIconType = legendIconType;
     return this;
   }
 
-  @Nullable
+  @NotNull
   public LegendConfig.IconType getLegendIconType() {
     return myLegendIconType;
   }

@@ -21,7 +21,8 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.IdeProfilerServicesStub;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.intellij.util.containers.ImmutableList;
 import org.junit.Before;
@@ -47,8 +48,8 @@ public class ThreadStateDataSeriesTest {
 
   @Before
   public void setUp() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
-    myThreadsModel = new CpuThreadsModel(new Range(), new CpuProfilerStage(profilers), FAKE_PID);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    myThreadsModel = new CpuThreadsModel(new Range(), new CpuProfilerStage(profilers), FAKE_PID, ProfilersTestData.SESSION_DATA);
   }
 
   @Test

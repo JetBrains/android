@@ -17,67 +17,33 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.HardwareConfig;
-import com.android.resources.ScreenRound;
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
-import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.Scene;
-import com.google.common.collect.Lists;
-import com.intellij.openapi.application.ApplicationManager;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.awt.geom.Area;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Rectangle2D;
-import java.util.List;
+
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
 
 /**
  * View of a device/screen/layout.
  * This is actually painted by {@link ScreenViewLayer}.
  */
-public class ScreenView {
-  private final DesignSurface mySurface;
+public class ScreenView extends SceneView {
   private ScreenViewType myType;
-  private final NlModel myModel;
-  private Scene myScene = null;
 
   public enum ScreenViewType { NORMAL, BLUEPRINT }
 
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
 
-  public ScreenView(DesignSurface surface, @NotNull ScreenViewType type, @NotNull NlModel model) {
-    mySurface = surface;
+  public ScreenView(@NotNull NlDesignSurface surface, @NotNull ScreenViewType type, @NotNull NlModel model) {
+    super(surface, model);
     myType = type;
-    myModel = model;
-
-    if (!ConstraintLayoutHandler.USE_SOLVER) {
-      myScene = Scene.createScene(myModel, this);
-    }
-
-    myModel.getSelectionModel().addListener((model1, selection) -> ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        if (mySurface!=null) {
-          mySurface.repaint();
-        }
-      }
-    }));
-  }
-
-  @Nullable
-  public Scene getScene() { return myScene; }
-
-  @Nullable
-  public RenderResult getResult() {
-    return myModel.getRenderResult();
   }
 
   /**
@@ -96,38 +62,11 @@ public class ScreenView {
   }
 
   /**
-   * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
-   * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
-   *                  returned.
-   */
-  @NotNull
-  @SwingCoordinate
-  public Dimension getSize(@Nullable Dimension dimension) {
-    if (dimension == null) {
-      dimension = new Dimension();
-    }
-
-    Dimension preferred = getPreferredSize(dimension);
-    double scale = mySurface.getScale();
-
-    dimension.setSize((int)(scale * preferred.width), (int)(scale * preferred.height));
-    return dimension;
-  }
-
-  /**
-   * Returns the current size of the view. This is the same as {@link #getPreferredSize()} but accounts for the current zoom level.
-   */
-  @NotNull
-  @SwingCoordinate
-  public Dimension getSize() {
-    return getSize(null);
-  }
-
-  /**
    * Returns the current preferred size for the view.
    * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
    *                  returned.
    */
+  @Override
   @NotNull
   public Dimension getPreferredSize(@Nullable Dimension dimension) {
     if (dimension == null) {
@@ -147,110 +86,38 @@ public class ScreenView {
     return dimension;
   }
 
-  @NotNull
-  public Dimension getPreferredSize() {
-    return getPreferredSize(null);
-  }
-
-  public void switchDevice() {
-    List<Device> devices = ConfigurationManager.getOrCreateInstance(myModel.getModule()).getDevices();
-    List<Device> applicable = Lists.newArrayList();
-    for (Device device : devices) {
-      if (HardwareConfigHelper.isNexus(device)) {
-        applicable.add(device);
-      }
-    }
-    Configuration configuration = getConfiguration();
-    Device currentDevice = configuration.getDevice();
-    for (int i = 0, n = applicable.size(); i < n; i++) {
-      if (applicable.get(i) == currentDevice) {
-        Device newDevice = applicable.get((i + 1) % applicable.size());
-        configuration.setDevice(newDevice, true);
-        break;
-      }
-    }
-  }
-
-  public void toggleOrientation() {
-    Configuration configuration = getConfiguration();
-    configuration.getDeviceState();
-
-    State current = configuration.getDeviceState();
-    State flip = configuration.getNextDeviceState(current);
-    if (flip != null) {
-      configuration.setDeviceState(flip);
-    }
-  }
-
-  @NotNull
-  public Configuration getConfiguration() {
-    return myModel.getConfiguration();
-  }
-
-  @NotNull
-  public NlModel getModel() {
-    return myModel;
-  }
-
-  @NotNull
-  public SelectionModel getSelectionModel() {
-    // For now, the selection model is tied to the model itself.
-    // This is deliberate: rather than having each view have its own
-    // independent selection, when a file is shown multiple times on the screen,
-    // selection is "synchronized" between the views by virtue of them all
-    // sharing the same selection model, currently stashed in the model itself.
-    return myModel.getSelectionModel();
-  }
-
-  /** Returns null if the screen is rectangular; if not, it returns a shape (round for AndroidWear etc) */
-  @Nullable
-  public Shape getScreenShape() {
-    Device device = getConfiguration().getDevice();
-    if (device == null) {
-      return null;
-    }
-
-    Screen screen = device.getDefaultHardware().getScreen();
-    if (screen.getScreenRound() != ScreenRound.ROUND) {
-      return null;
-    }
-
-    Dimension size = getSize();
-
-    int chin = screen.getChin();
-    if (chin == 0) {
-      // Plain circle
-      return new Ellipse2D.Double(x, y, size.width, size.height);
-    } else {
-      int height = size.height * chin / screen.getYDimension();
-      Area a1 = new Area(new Ellipse2D.Double(x, y, size.width, size.height + height));
-      Area a2 = new Area(new Rectangle2D.Double(x, y + 2 * (size.height + height) - height, size.width, height));
-      a1.subtract(a2);
-      return a1;
-    }
-  }
-
-  @NotNull
-  public DesignSurface getSurface() {
-    return mySurface;
-  }
-
-  public double getScale() {
-    return mySurface.getScale();
-  }
-
   public void setLocation(@SwingCoordinate int screenX, @SwingCoordinate int screenY) {
     x = screenX;
     y = screenY;
   }
 
+  @Override
   @SwingCoordinate
   public int getX() {
     return x;
   }
 
+  @Override
   @SwingCoordinate
   public int getY() {
     return y;
+  }
+
+  @Nullable
+  public Shape getScreenShape() {
+    return getScreenShape(getX(), getY());
+  }
+
+  @Override
+  public void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
+    if (getScreenViewType() == ScreenViewType.NORMAL) {
+      Rectangle resizeZone =
+        new Rectangle(getX() + getSize().width, getY() + getSize().height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
+      if (resizeZone.contains(x, y)) {
+        mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+        return;
+      }
+    }
+    super.updateCursor(x, y);
   }
 }

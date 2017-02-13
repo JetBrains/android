@@ -23,6 +23,7 @@ import com.intellij.ide.util.newProjectWizard.WizardDelegate;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +39,7 @@ import javax.swing.*;
  * {@link WizardDelegate} class is specific to the IDEA New Project Wizard (see {@link AndroidModuleBuilder} for more details) so the
  * IdeaWizardAdapter does not need to handle the more general case of embedding any wizard (i.e. different cancellation policies etc.).
  */
-final class IdeaWizardAdapter implements ModelWizard.ResultListener, WizardDelegate, Disposable {
+final class IdeaWizardAdapter implements ModelWizard.WizardListener, WizardDelegate, Disposable {
 
   @NotNull private final ListenerManager myListeners = new ListenerManager();
   @NotNull private final ModelWizardDialog.CustomLayout myCustomLayout = new StudioWizardLayout();
@@ -70,8 +71,13 @@ final class IdeaWizardAdapter implements ModelWizard.ResultListener, WizardDeleg
   }
 
   @Override
-  public void onWizardFinished(boolean success) {
-    myHostWizard.close(DialogWrapper.CLOSE_EXIT_CODE, success);
+  public void onWizardFinished(ModelWizard.WizardResult result) {
+    myHostWizard.close(DialogWrapper.CLOSE_EXIT_CODE, result.isFinished());
+  }
+
+  @Override
+  public void onWizardAdvanceError(Exception e) {
+    DialogEarthquakeShaker.shake(myHostWizard.getWindow());
   }
 
   @Override

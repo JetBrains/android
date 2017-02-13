@@ -32,15 +32,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -90,12 +86,8 @@ public class SelectNdkDialog extends DialogWrapper {
     }
 
     if (showRemove) {
-      myRemoveInvalidNdkRadioButton.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent actionEvent) {
-          myNdkTextFieldWithButton.setEnabled(!myRemoveInvalidNdkRadioButton.isSelected());
-        }
-      });
+      myRemoveInvalidNdkRadioButton.addActionListener(
+        actionEvent -> myNdkTextFieldWithButton.setEnabled(!myRemoveInvalidNdkRadioButton.isSelected()));
     }
     else {
       myRemoveInvalidNdkRadioButton.setVisible(false);
@@ -106,17 +98,12 @@ public class SelectNdkDialog extends DialogWrapper {
     }
     else {
       myHeaderText.setText("The project's local.properties file contains an invalid NDK path:");
-      myErrorLabel.setText(SdkPaths.validateAndroidNdk(new File(invalidNdkPath), false).message);
+      myErrorLabel.setText(validateAndroidNdk(new File(invalidNdkPath), false).message);
       myErrorLabel.setVisible(true);
       myErrorLabel.setForeground(JBColor.RED);
     }
 
-    mySelectValidNdkRadioButton.addChangeListener(new ChangeListener() {
-      @Override
-      public void stateChanged(ChangeEvent e) {
-        myNdkTextFieldWithButton.setEnabled(mySelectValidNdkRadioButton.isSelected());
-      }
-    });
+    mySelectValidNdkRadioButton.addChangeListener(e -> myNdkTextFieldWithButton.setEnabled(mySelectValidNdkRadioButton.isSelected()));
   }
 
   private void configureNdkTextField() {
@@ -144,7 +131,7 @@ public class SelectNdkDialog extends DialogWrapper {
     }
     descriptor.setTitle("Choose Android NDK Location");
 
-    myNdkTextFieldWithButton.addActionListener(new ComponentWithBrowseButton.BrowseFolderActionListener<JTextField>(
+    myNdkTextFieldWithButton.addActionListener(new ComponentWithBrowseButton.BrowseFolderActionListener<>(
       "Select Android NDK Home", null, myNdkTextFieldWithButton, null, descriptor, TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT));
   }
 
@@ -180,12 +167,12 @@ public class SelectNdkDialog extends DialogWrapper {
   }
 
   @Nullable
-  private String validateAndroidNdkPath(@Nullable String path) {
+  private static String validateAndroidNdkPath(@Nullable String path) {
     if (isEmpty(path)) {
       return "Android NDK path not specified.";
     }
 
-    ValidationResult validationResult = validateAndroidNdk(new File(toSystemDependentName(path)), false);
+    ValidationResult validationResult = validateAndroidNdk(toSystemDependentPath(path), false);
     if (!validationResult.success) {
       // Show error message in new line. Long lines trigger incorrect layout rendering.
       // See https://code.google.com/p/android/issues/detail?id=78291

@@ -17,10 +17,12 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.AndroidColorSet;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
+import com.intellij.reference.SoftReference;
 
 import java.util.WeakHashMap;
 
@@ -85,24 +87,30 @@ public class SceneContext {
   }
 
   /**
-   * Get a SceneContext for a ScreenView. They are cached and reused using a weekhashmap.
+   * Get a SceneContext for a SceneView. They are cached and reused using a weakhashmap.
    *
-   * @param screenView
+   * @param sceneView
    * @return
    */
-  public static SceneContext get(ScreenView screenView) {
-    if (cache.containsKey(screenView)) {
-      return cache.get(screenView);
-    }
-    ScreenViewTransform screenViewTransform = new ScreenViewTransform(screenView);
-    screenViewTransform.myColorSet =
-      (screenView.getScreenViewType() == ScreenView.ScreenViewType.BLUEPRINT) ? new BlueprintColorSet() : new AndroidColorSet();
+  public static SceneContext get(SceneView sceneView) {
+    if (cache.containsKey(sceneView)) {
+      SoftReference<SceneViewTransform> viewTransformRef =  cache.get(sceneView);
+      SceneViewTransform viewTransform = viewTransformRef != null ? viewTransformRef.get() : null;
 
-    cache.put(screenView, screenViewTransform);
-    return screenViewTransform;
+      if (viewTransform != null) {
+        return viewTransform;
+      }
+    }
+    SceneViewTransform sceneViewTransform = new SceneViewTransform(sceneView);
+    // TODO(jbakermalone): don't require instanceof
+    sceneViewTransform.myColorSet =
+      (sceneView instanceof ScreenView && ((ScreenView)sceneView).getScreenViewType() == ScreenView.ScreenViewType.BLUEPRINT) ? new BlueprintColorSet() : new AndroidColorSet();
+
+    cache.put(sceneView, new SoftReference<>(sceneViewTransform));
+    return sceneViewTransform;
   }
 
-  private static WeakHashMap<ScreenView, ScreenViewTransform> cache = new WeakHashMap<>();
+  private static WeakHashMap<SceneView, SoftReference<SceneViewTransform>> cache = new WeakHashMap<>();
 
   public DesignSurface getSurface() {
     return null;
@@ -111,39 +119,39 @@ public class SceneContext {
   /**
    * The  SceneContext based on a ScreenView
    */
-  private static class ScreenViewTransform extends SceneContext {
-    ScreenView myScreenView;
+  private static class SceneViewTransform extends SceneContext {
+    SceneView mySceneView;
 
-    public ScreenViewTransform(ScreenView screenView) {
-      myScreenView = screenView;
+    public SceneViewTransform(SceneView sceneView) {
+      mySceneView = sceneView;
     }
 
     @Override
     public DesignSurface getSurface() {
-      return myScreenView.getSurface();
+      return mySceneView.getSurface();
     }
 
     @Override
-    public double getScale() { return myScreenView.getScale(); }
+    public double getScale() { return mySceneView.getScale(); }
 
     @Override
     public int getSwingX(float x) {
-      return Coordinates.getSwingX(myScreenView, Coordinates.dpToPx(myScreenView, x));
+      return Coordinates.getSwingX(mySceneView, Coordinates.dpToPx(mySceneView, x));
     }
 
     @Override
     public int getSwingY(float y) {
-      return Coordinates.getSwingY(myScreenView, Coordinates.dpToPx(myScreenView, y));
+      return Coordinates.getSwingY(mySceneView, Coordinates.dpToPx(mySceneView, y));
     }
 
     @Override
     public void repaint() {
-      myScreenView.getSurface().repaint();
+      mySceneView.getSurface().repaint();
     }
 
     @Override
     public int getSwingDimension(float v) {
-      return Coordinates.getSwingDimension(myScreenView, Coordinates.dpToPx(myScreenView, v));
+      return Coordinates.getSwingDimension(mySceneView, Coordinates.dpToPx(mySceneView, v));
     }
   }
 }

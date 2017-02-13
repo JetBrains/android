@@ -15,7 +15,9 @@
  */
 package com.android.tools.adtui.model;
 
+import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.ChangeEvent;
 import java.util.ArrayList;
@@ -42,12 +44,20 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
   @NotNull
   private final List<SelectionListener> myListeners = new ArrayList<>();
 
-  public SelectionModel(@NotNull Range selectionRange, @NotNull Range globalRange) {
-    myRange = globalRange;
-    mySelectionRange = selectionRange;
+  @Nullable
+  private final DurationDataModel<? extends DurationData> myConstraints;
+
+  public SelectionModel(@NotNull Range selection, @NotNull Range range) {
+    this(selection, range, null);
+  }
+
+  public SelectionModel(@NotNull Range selection, @NotNull Range range, @Nullable DurationDataModel<? extends DurationData> constraints) {
+    myRange = range;
+    mySelectionRange = selection;
 
     myRange.addDependency(this).onChange(Range.Aspect.RANGE, this::rangesChanged);
     mySelectionRange.addDependency(this).onChange(Range.Aspect.RANGE, this::rangesChanged);
+    myConstraints = constraints;
   }
 
   private void rangesChanged() {
@@ -64,7 +74,34 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
   }
 
   public void set(double min, double max) {
-    mySelectionRange.set(min, max);
+
+    if (myConstraints == null) {
+      mySelectionRange.set(min, max);
+      return;
+    }
+
+    DataSeries<? extends DurationData> series = myConstraints.getSeries().getDataSeries();
+    ImmutableList<? extends SeriesData<? extends DurationData>> constraints = series.getDataForXRange(new Range(min, max));
+
+    Range candidate = new Range(min, max);
+    Range constraint = null;
+    for (SeriesData<? extends DurationData> data : constraints) {
+      Range r = new Range(data.x, data.x + data.value.getDuration());
+      // Check if this constraint intersects the candidate range.
+      if (!r.getIntersection(candidate).isEmpty()) {
+        constraint = r;
+        // If this constraint already intersects the current range, use it.
+        if (!r.getIntersection(mySelectionRange).isEmpty()) {
+          break;
+        }
+      }
+    }
+    if (constraint == null) {
+      mySelectionRange.clear();
+    }
+    else {
+      mySelectionRange.set(constraint.getIntersection(candidate));
+    }
   }
 
   @NotNull
@@ -75,5 +112,10 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
   @NotNull
   public Range getRange() {
     return myRange;
+  }
+
+  @Nullable
+  public DurationDataModel<? extends DurationData> getConstraints() {
+    return myConstraints;
   }
 }

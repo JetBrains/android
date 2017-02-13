@@ -24,13 +24,16 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.util.Pair;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vfs.VirtualFile;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -41,12 +44,12 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.concurrent.GuardedBy;
 import java.io.File;
 import java.util.*;
 
 import static com.android.SdkConstants.DOT_AAR;
 import static com.android.SdkConstants.FD_RES;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModuleLibraries;
 
 /**
@@ -54,10 +57,7 @@ import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModul
  * transitive dependencies of the given AndroidFacet / module.
  */
 public class AppResourceRepository extends MultiResourceRepository {
-  private static final Object KEY_LOCK = new Object();
-
-  @GuardedBy("KEY_LOCK")
-  private static final Key<AppResourceRepository> KEY = Key.create(AppResourceRepository.class.getName());
+  private static final Logger LOG = Logger.getInstance(AppResourceRepository.class);
 
   private AndroidFacet myFacet;
   private List<FileResourceRepository> myLibraries;
@@ -72,12 +72,12 @@ public class AppResourceRepository extends MultiResourceRepository {
   private final LinkedList<FileResourceRepository> myAarLibraries = Lists.newLinkedList();
   private Set<String> myIds;
 
-  public static void refreshResources(@NotNull AndroidFacet facet) {
-    AppResourceRepository repository = findExistingInstance(facet);
-    if (repository != null) {
-      Disposer.dispose(repository);
-    }
-  }
+  /**
+   * Map from library name to resource dirs.
+   * The key library name may be null.
+   */
+  private final Object RESOURCE_MAP_LOCK = new Object();
+  @Nullable private Multimap<String, VirtualFile> myResourceDirMap;
 
   @Nullable
   public static AppResourceRepository getOrCreateInstance(@NotNull Module module) {
@@ -104,21 +104,12 @@ public class AppResourceRepository extends MultiResourceRepository {
   @Contract("_, true -> !null")
   @Nullable
   private static AppResourceRepository findAppResources(@NotNull AndroidFacet facet, boolean createIfNecessary) {
-    AppResourceRepository repository;
-    synchronized (KEY_LOCK) {
-      repository = facet.getUserData(KEY);
-    }
-    if (repository == null && createIfNecessary) {
-      repository = create(facet);
-      synchronized (KEY_LOCK) {
-        facet.putUserData(KEY, repository);
-      }
-    }
-    return repository;
+    ResourceRepositories repositories = ResourceRepositories.getOrCreateInstance(facet);
+    return repositories.getAppResources(createIfNecessary);
   }
 
   @NotNull
-  private static AppResourceRepository create(@NotNull AndroidFacet facet) {
+  static AppResourceRepository create(@NotNull AndroidFacet facet) {
     AppResourceRepository repository = new AppResourceRepository(facet, computeRepositories(facet, computeLibraries(facet)),
                                                                  computeLibraries(facet));
     ProjectResourceRepositoryRootListener.ensureSubscribed(facet.getModule().getProject());
@@ -126,19 +117,40 @@ public class AppResourceRepository extends MultiResourceRepository {
     return repository;
   }
 
-  private static List<LocalResourceRepository> computeRepositories(@NotNull final AndroidFacet facet,
-                                                                 List<FileResourceRepository> libraries) {
+  public Multimap<String, VirtualFile> getAllResourceDirs() {
+    synchronized (RESOURCE_MAP_LOCK) {
+      if (myResourceDirMap == null) {
+        myResourceDirMap = HashMultimap.create();
+        for (LocalResourceRepository resourceRepository : getChildren()) {
+          myResourceDirMap.putAll(resourceRepository.getLibraryName(), resourceRepository.getResourceDirs());
+        }
+      }
+      return myResourceDirMap;
+    }
+  }
+
+  private static List<LocalResourceRepository> computeRepositories(@NotNull AndroidFacet facet,
+                                                                   List<FileResourceRepository> libraries) {
     List<LocalResourceRepository> repositories = Lists.newArrayListWithExpectedSize(10);
-    LocalResourceRepository resources = ProjectResourceRepository.getProjectResources(facet, true);
+    LocalResourceRepository resources = ProjectResourceRepository.getOrCreateInstance(facet);
     repositories.addAll(libraries);
     repositories.add(resources);
     return repositories;
   }
 
   private static List<FileResourceRepository> computeLibraries(@NotNull final AndroidFacet facet) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("computeLibraries");
+    }
+
     List<AndroidFacet> dependentFacets = AndroidUtils.getAllAndroidDependencies(facet.getModule(), true);
     Map<File, String> aarDirs = findAarLibraries(facet, dependentFacets);
+
     if (aarDirs.isEmpty()) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("  No AARs");
+      }
+
       return Collections.emptyList();
     }
 
@@ -149,6 +161,12 @@ public class AppResourceRepository extends MultiResourceRepository {
     // to gradle project state, the order difference will cause the merged project resource
     // maps to have to be recomputed
     Collections.sort(dirs);
+
+    if (LOG.isDebugEnabled()) {
+      for (File root : dirs) {
+        LOG.debug("  Dependency: " + anonymizeClassName(aarDirs.get(root)));
+      }
+    }
 
     List<FileResourceRepository> resources = Lists.newArrayListWithExpectedSize(aarDirs.size());
     for (File root : dirs) {
@@ -175,6 +193,7 @@ public class AppResourceRepository extends MultiResourceRepository {
       assert modelVersion != null;
       return findAarLibrariesFromGradle(modelVersion, dependentFacets, libraries);
     }
+    assert !GradleProjectInfo.getInstance(facet.getModule().getProject()).isBuildWithGradle();
     return findAarLibrariesFromIntelliJ(facet, dependentFacets);
   }
 
@@ -310,15 +329,13 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   @Override
   public void dispose() {
-    AndroidFacet facet = myFacet;
-    synchronized (KEY_LOCK) {
-      facet.putUserData(KEY, null);
-    }
     myFacet = null;
     super.dispose();
   }
 
-  /** Returns the libraries among the app resources, if any */
+  /**
+   * Returns the libraries among the app resources, if any
+   */
   @NotNull
   public List<FileResourceRepository> getLibraries() {
     return myLibraries;
@@ -370,6 +387,9 @@ public class AppResourceRepository extends MultiResourceRepository {
   void updateRoots(List<LocalResourceRepository> resources, List<FileResourceRepository> libraries) {
     myResourceVisibility = null;
     myResourceVisibilityProvider = null;
+    synchronized (RESOURCE_MAP_LOCK) {
+      myResourceDirMap = null;
+    }
     invalidateResourceDirs();
 
     if (resources.equals(myChildren)) {
@@ -507,12 +527,18 @@ public class AppResourceRepository extends MultiResourceRepository {
   // which should be fine.
   private static final int DYNAMIC_ID_SEED_START = 0x7fff0000;
 
-  /** Map of (name, id) for resources of type {@link ResourceType#ID} coming from R.java */
+  /**
+   * Map of (name, id) for resources of type {@link ResourceType#ID} coming from R.java
+   */
   private Map<ResourceType, TObjectIntHashMap<String>> myResourceValueMap;
-  /** Map of (id, [name, resType]) for all resources coming from R.java */
+  /**
+   * Map of (id, [name, resType]) for all resources coming from R.java
+   */
   @SuppressWarnings("deprecation")  // For Pair
   private TIntObjectHashMap<Pair<ResourceType, String>> myResIdValueToNameMap;
-  /** Map of (int[], name) for styleable resources coming from R.java */
+  /**
+   * Map of (int[], name) for styleable resources coming from R.java
+   */
   private Map<IntArrayWrapper, String> myStyleableValueToNameMap;
 
   private final TObjectIntHashMap<TypedResourceName> myName2DynamicIdMap = new TObjectIntHashMap<>();

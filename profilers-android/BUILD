@@ -15,10 +15,12 @@ iml_module(
         "//tools/adt/idea/adt-ui-model[module]",
         "//tools/adt/idea/perfd-host[module]",
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
-        "//tools/idea:platform-impl_and_others[module]",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/java/java-psi-api[module]",
         "//tools/adt/idea/android[module]",
         "//tools/idea/.idea/libraries:mockito[test]",
+        "//tools/idea/platform/lang-api[module]",
+        "//tools/base/ddmlib:studio.ddmlib[module]",
+        "//tools/idea:platform-impl_and_others[module]",
     ],
 )

@@ -30,10 +30,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.File;
 
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
@@ -169,7 +168,7 @@ public class SelectSdkDialog extends DialogWrapper {
       return "Android SDK path not specified.";
     }
 
-    ValidationResult validationResult = validateAndroidSdk(new File(toSystemDependentName(path)), false);
+    ValidationResult validationResult = validateAndroidSdk(toSystemDependentPath(path), false);
     if (!validationResult.success) {
       // Show error message in new line. Long lines trigger incorrect layout rendering.
       // See https://code.google.com/p/android/issues/detail?id=78291
@@ -216,9 +215,7 @@ public class SelectSdkDialog extends DialogWrapper {
       }
 
       LocalFileSystem fileSystem = LocalFileSystem.getInstance();
-      return myDefaultPath == null
-             ? fileSystem.findFileByPath(toSystemIndependentName(PathManager.getHomePath()))
-             : fileSystem.findFileByPath(toSystemIndependentName(myDefaultPath));
+      return fileSystem.findFileByPath(toSystemIndependentName(myDefaultPath == null ? PathManager.getHomePath() : myDefaultPath));
     }
   }
 }

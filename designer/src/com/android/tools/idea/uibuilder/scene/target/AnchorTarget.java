@@ -76,6 +76,11 @@ public class AnchorTarget extends ConstraintTarget {
   //region Accessors
   /////////////////////////////////////////////////////////////////////////////
 
+  @Override
+  public boolean canChangeSelection() {
+    return false;
+  }
+
   public Type getType() {
     return myType;
   }
@@ -355,6 +360,12 @@ public class AnchorTarget extends ConstraintTarget {
       else if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)) {
         attributes.setAttribute(SdkConstants.TOOLS_URI, key, mPreviousAttributes.get(key));
       }
+      else if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_TOP)) {
+        attributes.setAttribute(SdkConstants.ANDROID_URI, key, mPreviousAttributes.get(key));
+      }
+      else if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM)) {
+        attributes.setAttribute(SdkConstants.ANDROID_URI, key, mPreviousAttributes.get(key));
+      }
       else {
         attributes.setAttribute(SdkConstants.SHERPA_URI, key, mPreviousAttributes.get(key));
       }
@@ -381,9 +392,16 @@ public class AnchorTarget extends ConstraintTarget {
       targetId = SdkConstants.NEW_ID_PREFIX + targetComponent.ensureLiveId();
     }
     attributes.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
-    if (ourReciprocalAttributes.get(attribute) != null) {
+    if (myType == Type.BASELINE) {
+      clearAttributes(SdkConstants.SHERPA_URI, ourTopAttributes, attributes);
+      clearAttributes(SdkConstants.SHERPA_URI, ourBottomAttributes, attributes);
+      attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
+      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, null);
+      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, null);
+    } else if (ourReciprocalAttributes.get(attribute) != null) {
       attributes.setAttribute(SdkConstants.SHERPA_URI, ourReciprocalAttributes.get(attribute), null);
     }
+
     if (ourMapMarginAttributes.get(attribute) != null) {
       Scene scene = myComponent.getScene();
       int marginValue = getDistance(attribute, targetComponent, scene);
@@ -519,6 +537,17 @@ public class AnchorTarget extends ConstraintTarget {
       break;
       case BOTTOM: {
         rememberPreviousAttribute(SdkConstants.SHERPA_URI, ourBottomAttributes);
+      }
+      break;
+      case BASELINE: {
+        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ourTopAttributes);
+        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ourBottomAttributes);
+        mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
+                                component.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP));
+        mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
+                                component.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM));
+        mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS,
+                                component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS));
       }
       break;
     }

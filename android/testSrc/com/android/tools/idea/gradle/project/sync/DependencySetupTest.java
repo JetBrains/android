@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.Modules;
 import com.intellij.openapi.module.Module;
@@ -86,7 +84,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
   }
 
   // Fails in Bazel PSQ because of missing dependencies in the prebuilt Android SDK.
-  public void /*test*/WithUnresolvedDependencies() throws Exception {
+  public void testWithUnresolvedDependencies() throws Exception {
     loadSimpleApplication();
 
     File buildFilePath = getBuildFilePath("app");
@@ -110,15 +108,13 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     runWriteCommandAction(project, buildModel::applyChanges);
     LocalFileSystem.getInstance().refresh(false /* synchronous */);
 
-    SyncMessagesStub syncMessages = SyncMessagesStub.replaceSyncMessagesService(project);
-
-    requestSyncAndWait();
-
-    SyncMessage reportedMessage = syncMessages.getFirstReportedMessage();
-    assertNotNull(reportedMessage);
-    String[] text = reportedMessage.getText();
-    assertThat(text).isNotEmpty();
-    assertEquals("Failed to resolve: com.android.support:appcompat-v7:100.0.0", text[0]);
+    try {
+      requestSyncAndWait();
+      fail("Expecting sync failure");
+    }
+    catch (Throwable expected) {
+      assertThat(expected.getMessage()).contains("Unable to resolve dependency 'com.android.support:appcompat-v7:100.0.0'");
+    }
   }
 
   public void testWithLocalAarsAsModules() throws Exception {
@@ -158,23 +154,23 @@ public class DependencySetupTest extends AndroidGradleTestCase {
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=210172
-  public void /*test*/TransitiveDependenciesFromJavaModule() throws Exception {
+  public void testTransitiveDependenciesFromJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
 
     // 'app' module should have 'guava' as dependency.
     // 'app' -> 'lib' -> 'guava'
-    assertAbout(libraryDependencies()).that(appModule).contains("guava-17.0");
+    assertAbout(libraryDependencies()).that(appModule).containsMatching("guava-.*");
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212338
-  public void /*test*/TransitiveDependenciesFromAndroidModule() throws Exception {
+  public void testTransitiveDependenciesFromAndroidModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
 
-    // 'app' module should have 'javawriter' as dependency.
-    // 'app' -> 'library2' -> 'library1' -> 'javawriter'
-    assertAbout(libraryDependencies()).that(appModule).contains("javawriter-2.5.0");
+    // 'app' module should have 'commons-io' as dependency.
+    // 'app' -> 'library2' -> 'library1' -> 'commons-io'
+    assertAbout(libraryDependencies()).that(appModule).containsMatching("commons-io-.*");
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212557

@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.actions;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -49,9 +48,12 @@ public class SelectSiblingsAction extends AnAction {
       return;
     }
     Map<NlComponent, List<NlComponent>> map = NlModel.groupSiblings(myModel.getSelection());
+
     List<NlComponent> allSiblings = Lists.newArrayList();
     for (NlComponent parent : map.keySet()) {
-      Iterables.addAll(allSiblings, parent.getChildren());
+      if (parent != null) {
+        allSiblings.addAll(parent.getChildren());
+      }
     }
     myModel.setSelection(allSiblings);
   }

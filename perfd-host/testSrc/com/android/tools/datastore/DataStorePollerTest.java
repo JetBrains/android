@@ -15,6 +15,8 @@
  */
 package com.android.tools.datastore;
 
+import com.android.tools.datastore.poller.PollRunner;
+import com.android.tools.profiler.proto.Common;
 import io.grpc.stub.StreamObserver;
 
 import static org.mockito.Matchers.any;
@@ -24,10 +26,42 @@ import static org.mockito.Mockito.verify;
 
 public class DataStorePollerTest {
 
+
+  protected static final Common.Session SESSION = Common.Session.newBuilder()
+    .setBootId("TEST_BOOT_ID")
+    .setDeviceSerial("TEST_DEVICE_SERIAL")
+    .build();
+
+  private PollTicker myPollTicker = new PollTicker();
+
+  protected PollTicker getPollTicker() {
+    return myPollTicker;
+  }
+
   protected <E> void validateResponse(StreamObserver<E> observer, E expected) {
     verify(observer, times(1)).onNext(expected);
     verify(observer, times(1)).onCompleted();
     verify(observer, never()).onError(any(Throwable.class));
   }
 
+  protected static class PollTicker {
+    private Runnable myLastRunner;
+
+    public void run(Runnable runner) {
+      myLastRunner = runner;
+      run();
+    }
+
+    public void run() {
+      if (myLastRunner != null) {
+        if (myLastRunner instanceof PollRunner) {
+          PollRunner poller = ((PollRunner)myLastRunner);
+          poller.poll();
+        }
+        else {
+          myLastRunner.run();
+        }
+      }
+    }
+  }
 }

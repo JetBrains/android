@@ -18,10 +18,10 @@ iml_module(
         "//tools/idea/.idea/libraries:truth",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/adt/idea/adt-ui-model[module]",
-        "//tools/base/ddmlib:studio.ddmlib[module]",
         "//tools/idea/platform/annotations/common:annotations-common[module]",
         "//tools/idea/.idea/libraries:studio-profiler-grpc-1.0-jarjar",
         "//tools/idea/.idea/libraries:jcip",
         "//tools/idea/.idea/libraries:mockito[test]",
+        "//tools/idea/.idea/libraries:sqlite",
     ],
 )

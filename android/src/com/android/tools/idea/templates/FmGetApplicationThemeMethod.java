@@ -67,6 +67,7 @@ public class FmGetApplicationThemeMethod implements TemplateMethodModelEx {
     Map<String, Object> map = Maps.newHashMap();
     map.put("name", themeName);
     map.put("isAppCompat", helper.isAppCompatTheme(themeName));
+    map.put("exists", true);
     Boolean hasActionBar = ThemeHelper.hasActionBar(configuration, themeName);
     addDerivedTheme(map, themeName, "NoActionBar", hasActionBar == Boolean.FALSE, helper, configuration);
     addDerivedTheme(map, themeName, "AppBarOverlay", false, helper, configuration);

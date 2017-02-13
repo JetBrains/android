@@ -17,7 +17,7 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.chart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.*;
 import com.intellij.ui.JBColor;
 import gnu.trove.TIntArrayList;
@@ -189,30 +189,6 @@ public class StateChartVisualTest extends VisualTest {
     };
     updateDataThread.start();
 
-    controls.add(VisualTest.createVariableSlider("ArcWidth", 0, 100, new VisualTests.Value() {
-      @Override
-      public void set(int v) {
-        mNetworkStatusChart.setArcWidth(v / 100f);
-        mRadioStateChart.setArcWidth(v / 100f);
-      }
-
-      @Override
-      public int get() {
-        return -1; // unused
-      }
-    }));
-    controls.add(VisualTest.createVariableSlider("ArcHeight", 0, 100, new VisualTests.Value() {
-      @Override
-      public void set(int v) {
-        mNetworkStatusChart.setArcHeight(v / 100f);
-        mRadioStateChart.setArcHeight(v / 100f);
-      }
-
-      @Override
-      public int get() {
-        return -1; // unused
-      }
-    }));
     controls.add(VisualTest.createVariableSlider("Gap", 0, 100, new VisualTests.Value() {
       @Override
       public void set(int v) {

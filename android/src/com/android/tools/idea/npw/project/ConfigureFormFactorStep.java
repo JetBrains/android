@@ -22,7 +22,6 @@ import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
-import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.templates.TemplateMetadata;
@@ -34,7 +33,6 @@ import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.android.tools.idea.ui.properties.core.StringValueProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedProperty;
-import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -80,8 +78,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
     populateAdditionalFormFactors();
 
     myValidatorPanel = new ValidatorPanel(this, myPanel);
-    myValidatorPanel.registerValidator(myInvalidParameterMessage, message ->
-      (message.isEmpty() ? Validator.Result.OK : new Validator.Result(Validator.Severity.ERROR, message)));
+    myValidatorPanel.registerMessageSource(myInvalidParameterMessage);
 
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel, message("android.wizard.project.select.form"));
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
@@ -108,17 +105,16 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
     for (final FormFactor formFactor : formFactors) {
       FormFactorInfo formFactorInfo = myFormFactors.get(formFactor);
 
-      List<TemplateHandle> templateList = TemplateManager.getInstance().getTemplateList(formFactor);
       AndroidSourceSet dummySourceSet = new AndroidSourceSet("main", new AndroidProjectPaths(new File("")));
 
       NewModuleModel moduleModel = new NewModuleModel(getModel(), formFactorInfo.templateFile);
-      RenderTemplateModel renderModel = new RenderTemplateModel(moduleModel, templateList.get(0), dummySourceSet,
-                                                                message("android.wizard.activity.add"));
+      RenderTemplateModel renderModel = new RenderTemplateModel(moduleModel, null, dummySourceSet,
+                                                                message("android.wizard.activity.add", formFactor.id));
 
       moduleModel.getRenderTemplateValues().setValue(renderModel.getTemplateValues());
       formFactorInfo.newModuleModel = moduleModel;
 
-      formFactorInfo.step = new ChooseActivityTypeStep(moduleModel, renderModel, templateList, Lists.newArrayList());
+      formFactorInfo.step = new ChooseActivityTypeStep(moduleModel, renderModel, formFactor, Lists.newArrayList());
       allSteps.add(formFactorInfo.step);
 
       FormFactorSdkControls controls = formFactorInfo.controls;

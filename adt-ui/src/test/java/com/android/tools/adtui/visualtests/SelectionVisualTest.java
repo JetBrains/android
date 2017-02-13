@@ -16,10 +16,9 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.AnimatedComponent;
-import com.android.tools.adtui.model.SelectionModel;
-import com.android.tools.adtui.model.Updatable;
+import com.android.tools.adtui.chart.linechart.OverlayComponent;
+import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.SelectionComponent;
-import com.android.tools.adtui.model.Range;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -46,7 +45,15 @@ public class SelectionVisualTest extends VisualTest {
     myRange = new Range(0, 1000);
     mySelectionRange = new Range(100, 900);
 
-    SelectionModel selection = new SelectionModel(mySelectionRange, myRange);
+    DefaultDataSeries<DefaultDurationData> series = new DefaultDataSeries<>();
+    RangedSeries<DefaultDurationData> ranged = new RangedSeries<>(myRange, series);
+    DurationDataModel<DefaultDurationData> constraints = new DurationDataModel<>(ranged);
+
+    series.add(100, new DefaultDurationData(100));
+    series.add(300, new DefaultDurationData(150));
+    series.add(700, new DefaultDurationData(150));
+
+    SelectionModel selection = new SelectionModel(mySelectionRange, myRange, constraints);
     mySelection = new SelectionComponent(selection);
 
     // Add the scene components to the list

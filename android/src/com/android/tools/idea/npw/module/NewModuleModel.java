@@ -15,6 +15,8 @@
 package com.android.tools.idea.npw.module;
 
 import com.android.tools.idea.npw.project.NewProjectModel;
+import com.android.tools.idea.npw.template.RenderTemplateModel;
+import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.ui.properties.core.*;
@@ -30,6 +32,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_FLAGS;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_CPP_SUPPORT;
 import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_LIBRARY_MODULE;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -45,6 +49,8 @@ public final class NewModuleModel extends WizardModel {
 
   @NotNull private final StringProperty myApplicationName;
   @NotNull private final StringProperty myPackageName;
+  @NotNull private final BoolProperty myEnableCppSupport;
+  @NotNull private final StringProperty myCppFlags;
   @NotNull private final OptionalProperty<Project> myProject;
 
   { // Default init constructor
@@ -54,6 +60,8 @@ public final class NewModuleModel extends WizardModel {
   public NewModuleModel(@NotNull Project project) {
     myProject = new OptionalValueProperty<>(project);
     myPackageName = new StringValueProperty();
+    myEnableCppSupport = new BoolValueProperty();
+    myCppFlags = new StringValueProperty();
 
     myApplicationName = new StringValueProperty(message("android.wizard.module.config.new.application"));
     myApplicationName.addConstraint(String::trim);
@@ -64,6 +72,8 @@ public final class NewModuleModel extends WizardModel {
   public NewModuleModel(@NotNull NewProjectModel projectModel, @NotNull File templateFile) {
     myProject = projectModel.project();
     myPackageName = projectModel.packageName();
+    myEnableCppSupport = projectModel.enableCppSupport();
+    myCppFlags = projectModel.cppFlags();
     myApplicationName = projectModel.applicationName();
     myTemplateFile.setValue(templateFile);
   }
@@ -94,6 +104,16 @@ public final class NewModuleModel extends WizardModel {
   }
 
   @NotNull
+  public BoolProperty enableCppSupport() {
+    return myEnableCppSupport;
+  }
+
+  @NotNull
+  public StringProperty cppFlags() {
+    return myCppFlags;
+  }
+
+  @NotNull
   public BoolProperty isInstAppEnabled() {
     return myInstAppEnabled;
   }
@@ -113,6 +133,19 @@ public final class NewModuleModel extends WizardModel {
     return myRenderTemplateValues;
   }
 
+  /**
+   * This method should be called if there is no "Activity Render Template" step (For example when creating a Library, or the activity
+   * creation is skipped by the user)
+   */
+  public void setDefaultRenderTemplateValues(@NotNull RenderTemplateModel renderModel) {
+    Map<String, Object> renderTemplateValues = Maps.newHashMap();
+    new TemplateValueInjector(renderTemplateValues)
+      .setBuildVersion(renderModel.androidSdkInfo().getValue())
+      .setModuleRoots(renderModel.getSourceSet().get().getPaths(), packageName().get());
+
+    getRenderTemplateValues().setValue(renderTemplateValues);
+  }
+
   @Override
   protected void handleFinished() {
     if (myTemplateFile.getValueOrNull() == null) {
@@ -129,6 +162,10 @@ public final class NewModuleModel extends WizardModel {
     Map<String, Object> templateValues = new HashMap<>();
 
     if (renderTemplateValues != null) {
+      // Cpp flags are needed both to generate the Module and to generate the Render Template files (cpp activity and layout)
+      renderTemplateValues.put(ATTR_CPP_SUPPORT, myEnableCppSupport.get());
+      renderTemplateValues.put(ATTR_CPP_FLAGS, myCppFlags.get());
+
       templateValues.putAll(renderTemplateValues);
     }
     templateValues.putAll(myTemplateValues);

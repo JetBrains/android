@@ -15,187 +15,225 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.testutils.TestResources;
+import com.android.tools.adtui.TreeWalker;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.*;
-import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.components.labels.LinkLabel;
+import com.android.tools.profilers.common.StackTraceModel;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.*;
 
 import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.util.Collections;
+import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
+import static com.google.common.truth.Truth.assertThat;
 
 public class ConnectionDetailsViewTest {
 
-  @Mock private IdeProfilerComponents myIdeProfilerComponents;
-  @Mock private IdeProfilerServices myIdeServices;
-  @Mock private HttpData myHttpData;
+  private static final HttpData DEFAULT_DATA = new HttpData.Builder(1, 10000, 50000, 100000)
+    .setUrl("dumbUrl").setTrace("dumbTrace").setMethod("GET").build();
+  private static final String RESPONSE_HEADERS = "null =  HTTP/1.1 302 Found \n Content-Type = 111 \n Content-Length = 222 \n";
+  private static final String TEST_HEADERS = "car = value \n border = value \n apple = value \n 123 = value \n";
+
   private ConnectionDetailsView myView;
 
-  private final FakeProfilerService myService = new FakeProfilerService();
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("StudioProfilerTestChannel", myService);
+  private NetworkProfilerStage myStage;
+
+  @Rule public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("StudioProfilerTestChannel", new FakeProfilerService(false),
+                        FakeNetworkService.newBuilder().setHttpDataList(Collections.singletonList(DEFAULT_DATA)).build());
 
   @Before
   public void before() {
-    MockitoAnnotations.initMocks(this);
-    when(myHttpData.getUrl()).thenReturn("dumbUrl");
-    when(myHttpData.getTrace()).thenReturn("dumbTrace");
-
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myIdeServices);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
     NetworkProfilerStage stage = new NetworkProfilerStage(profilers);
-    StudioProfilersView view = new StudioProfilersView(profilers, myIdeProfilerComponents);
+    StudioProfilersView view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     profilers.setStage(stage);
-
     NetworkProfilerStageView networkView = (NetworkProfilerStageView)view.getStageView();
+    myStage = networkView.getStage();
     myView = new ConnectionDetailsView(networkView);
   }
 
   @Test
   public void viewIsVisibleWhenDataIsNotNull() {
     myView.setVisible(false);
-    myView.update(myHttpData);
-    assertTrue(myView.isVisible());
+    myView.update(DEFAULT_DATA);
+    assertThat(myView.isVisible()).isTrue();
   }
 
   @Test
   public void viewIsNotVisibleWhenDataIsNull() {
     myView.setVisible(true);
-    myView.update((HttpData) null);
-    assertFalse(myView.isVisible());
+    myView.update((HttpData)null);
+    assertThat(myView.isVisible()).isFalse();
+  }
+
+  @NotNull
+  private static HttpData.Builder getBuilderFromHttpData(@NotNull HttpData data) {
+    HttpData.Builder builder = new HttpData.Builder(data.getId(), data.getStartTimeUs(), data.getEndTimeUs(), data.getDownloadingTimeUs());
+    builder.setUrl(data.getUrl());
+    builder.setMethod(data.getMethod());
+    builder.setTrace(data.getStackTrace().getTrace());
+    return builder;
   }
 
   @Test
   public void contentsAreEmptyWhenDataIsNull() {
-    when(myIdeProfilerComponents.getFileViewer(any())).thenReturn(new JLabel());
-    myView.update(myHttpData);
-    assertNotNull(myView.getFileViewer());
-    assertNotNull(myView.getFieldComponent(0));
-    assertEquals(1, myView.getCallStackView().getComponentCount());
+    AspectObserver observer = new AspectObserver();
+    final int[] stackFramesChangedCount = {0};
+    myView.getStackTraceView().getModel().addDependency(observer)
+      .onChange(StackTraceModel.Aspect.STACK_FRAMES, () -> stackFramesChangedCount[0]++);
 
-    myView.update((HttpData) null);
-    assertNull(myView.getFileViewer());
-    assertNull(myView.getFieldComponent(0));
-    assertEquals(0, myView.getCallStackView().getComponentCount());
+    File file = TestResources.getFile(this.getClass(), "/icons/garbage-event.png");
+    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).build();
+    data.setResponsePayloadFile(file);
+
+    assertThat(stackFramesChangedCount[0]).isEqualTo(0);
+    myView.update(data);
+    assertThat(stackFramesChangedCount[0]).isEqualTo(1);
+
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    JComponent response = (JComponent)stream.filter(c -> "Response".equals(c.getName())).findFirst().get();
+    assertThat(response.getComponentCount()).isNotEqualTo(0);
+    assertThat(myView.getStackTraceView().getModel().getCodeLocations()).isNotEmpty();
+
+    myView.update((HttpData)null);
+    assertThat(stackFramesChangedCount[0]).isEqualTo(2);
+
+    stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    response = (JComponent)stream.filter(c -> "Response".equals(c.getName())).findFirst().get();
+    assertThat(response.getComponentCount()).isEqualTo(0);
+    assertThat(myView.getStackTraceView().getModel().getCodeLocations()).isEmpty();
   }
 
   @Test
-  public void editorComponentIsAddedWhenComponentsProviderReturnsNonNull() {
-    JLabel fileViewer = new JLabel("fileViewer");
-    when(myIdeProfilerComponents.getFileViewer(any())).thenReturn(fileViewer);
-    myView.update(myHttpData);
-    assertEquals(fileViewer, myView.getFileViewer());
-  }
-
-  @Test
-  public void editorComponentIsAbsentWhenComponentsProviderReturnsNull() {
-    when(myIdeProfilerComponents.getFileViewer(any())).thenReturn(null);
-    myView.update(myHttpData);
-    assertNull(myView.getFileViewer());
-  }
-
-  @Test
-  public void responseFieldHasProperValueFromData() {
-    assertEquals(-1, myView.getFieldComponentIndex("Request"));
-    myView.update(myHttpData);
-    int responseFieldIndex = myView.getFieldComponentIndex("Request");
-    assertNotEquals(-1, responseFieldIndex);
-    JLabel value = (JLabel) myView.getFieldComponent(responseFieldIndex + 1);
-    assertEquals("dumbUrl", value.getText());
+  public void fileViewerExistWhenPayloadFileIsNotNull() {
+    File file = new File("temp");
+    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+    data.setResponsePayloadFile(file);
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertThat(stream.anyMatch(c -> "FileViewer".equals(c.getName()))).isFalse();
+    myView.update(data);
+    stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertThat(stream.anyMatch(c -> "FileViewer".equals(c.getName()))).isTrue();
   }
 
   @Test
   public void contentTypeHasProperValueFromData() {
-    assertEquals(-1, myView.getFieldComponentIndex("Content type"));
-    when(myHttpData.getResponseField(eq(HttpData.FIELD_CONTENT_TYPE))).thenReturn("testContentTypeValue");
-    myView.update(myHttpData);
-    int contentTypeFieldIndex = myView.getFieldComponentIndex("Content type");
-    assertNotEquals(-1, contentTypeFieldIndex);
-    JLabel value = (JLabel) myView.getFieldComponent(contentTypeFieldIndex + 1);
-    assertEquals("testContentTypeValue", value.getText());
+    String valueName = "Content type";
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertThat(stream.anyMatch(c -> valueName.equals(c.getName()))).isFalse();
+    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+    myView.update(data);
+    stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    JLabel value = (JLabel)stream.filter(c -> valueName.equals(c.getName())).findFirst().get();
+    assertThat(value.getText()).isEqualTo("111");
   }
 
   @Test
   public void contentTypeIsAbsentWhenDataHasNoContentTypeValue() {
-    when(myHttpData.getResponseField(eq(HttpData.FIELD_CONTENT_TYPE))).thenReturn(null);
-    myView.update(myHttpData);
-    assertEquals(-1, myView.getFieldComponentIndex("Content type"));
+    myView.update(DEFAULT_DATA);
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertThat(stream.anyMatch(c -> "Content type".equals(c.getName()))).isFalse();
   }
 
   @Test
   public void urlHasProperValueFromData() {
-    assertEquals(-1, myView.getFieldComponentIndex("URL"));
-    myView.update(myHttpData);
-    int urlFieldIndex = myView.getFieldComponentIndex("URL");
-    assertNotEquals(-1, urlFieldIndex);
-    HyperlinkLabel value = (HyperlinkLabel) myView.getFieldComponent(urlFieldIndex + 1);
-    // Testing hack: HyperLink label doesn't expose its text directly, but does for accessibility
-    // readers, so we use that instead.
-    assertTrue(value.getAccessibleContext().getAccessibleName().contains("dumbUrl"));
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertThat(stream.anyMatch(c -> "URL".equals(c.getName()))).isFalse();
+    myView.update(DEFAULT_DATA);
+    stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    JTextArea value = (JTextArea)stream.filter(c -> "URL".equals(c.getName())).findFirst().get();
+    assertThat(value.getText()).isEqualTo("dumbUrl");
   }
 
   @Test
-  public void contentLengthHasProperValueFromData() {
-    assertEquals(-1, myView.getFieldComponentIndex("Content length"));
-    when(myHttpData.getResponseField(eq(HttpData.FIELD_CONTENT_LENGTH))).thenReturn("testContentLengthValue");
-    myView.update(myHttpData);
-    int contentLengthFieldIndex = myView.getFieldComponentIndex("Content length");
-    assertNotEquals(-1, contentLengthFieldIndex);
-    JLabel value = (JLabel) myView.getFieldComponent(contentLengthFieldIndex + 1);
-    assertEquals("testContentLengthValue", value.getText());
+  public void sizeHasProperValueFromData() {
+    String valueName = "Size";
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertThat(stream.anyMatch(c -> valueName.equals(c.getName()))).isFalse();
+    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+    myView.update(data);
+    stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    JLabel value = (JLabel)stream.filter(c -> valueName.equals(c.getName())).findFirst().get();
+    assertThat(value.getText()).isEqualTo("222B");
   }
 
   @Test
   public void contentLengthIsAbsentWhenDataHasNoContentLengthValue() {
-    when(myHttpData.getResponseField(eq(HttpData.FIELD_CONTENT_LENGTH))).thenReturn(null);
-    myView.update(myHttpData);
-    assertEquals(-1, myView.getFieldComponentIndex("Content length"));
+    myView.update(DEFAULT_DATA);
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertThat(stream.anyMatch(c -> "Content length".equals(c.getName()))).isFalse();
   }
 
   @Test
-  public void callstackViewHasProperValueFromData() {
-    assertEquals(0,  myView.getCallStackView().getComponentCount());
-
-    myView.update(myHttpData);
-    assertEquals(1,  myView.getCallStackView().getComponentCount());
-
-    assertEquals("dumbTrace", ((JLabel) myView.getCallStackView().getComponent(0)).getText());
+  public void timingFieldIsPresent() {
+    myView.update(DEFAULT_DATA);
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    assertThat(stream.anyMatch(c -> "Timing".equals(c.getName()))).isTrue();
   }
 
   @Test
-  public void callStackLineClick() {
-    when(myHttpData.getTrace()).thenReturn("line1\nline2\nline3");
+  public void headersIsUpdated() {
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    JPanel headers = (JPanel)stream.filter(c -> "Headers".equals(c.getName())).findFirst().get();
+    assertThat(headers.getComponentCount()).isEqualTo(0);
+    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setResponseFields(RESPONSE_HEADERS).build();
+    myView.update(data);
+    assertThat(headers.getComponentCount()).isNotEqualTo(0);
+  }
 
-    final String[] lastLine = new String[1];
+  @Test
+  public void headerSectionIsSorted() {
+    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setRequestFields(TEST_HEADERS).build();
+    myView.update(data);
+    Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    JPanel headers = (JPanel)stream.filter(c -> "Headers".equals(c.getName())).findFirst().get();
+    stream = new TreeWalker(headers).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
+    JPanel responseHeaders = (JPanel)stream.filter(c -> "Request Headers".equals(c.getName())).findFirst().get();
+    assertThat(responseHeaders.getComponent(1).getName()).isEqualTo("123");
+    assertThat(responseHeaders.getComponent(2).getName()).isEqualTo("apple");
+    assertThat(responseHeaders.getComponent(3).getName()).isEqualTo("border");
+    assertThat(responseHeaders.getComponent(4).getName()).isEqualTo("car");
+  }
 
-    doAnswer(invocation -> {
-      lastLine[0] = (String)invocation.getArguments()[0];
-      return true;
-    }).when(myIdeServices).navigateToStackTraceLine(anyString());
+  @Test
+  public void callStackViewHasProperValueFromData() {
+    AspectObserver observer = new AspectObserver();
+    final int[] stackFramesChangedCount = {0};
+    myView.getStackTraceView().getModel().addDependency(observer)
+      .onChange(StackTraceModel.Aspect.STACK_FRAMES, () -> stackFramesChangedCount[0]++);
 
-    myView.update(myHttpData);
-    assertEquals(3,  myView.getCallStackView().getComponentCount());
+    assertThat(stackFramesChangedCount[0]).isEqualTo(0);
+    assertThat(myView.getStackTraceView().getModel().getCodeLocations().size()).isEqualTo(0);
 
-    LinkLabel link1 = (LinkLabel)myView.getCallStackView().getComponent(0);
-    LinkLabel link2 = (LinkLabel)myView.getCallStackView().getComponent(1);
-    LinkLabel link3 = (LinkLabel)myView.getCallStackView().getComponent(2);
+    myView.update(DEFAULT_DATA);
+    assertThat(stackFramesChangedCount[0]).isEqualTo(1);
+    assertThat(myView.getStackTraceView().getModel().getCodeLocations()).isEqualTo(DEFAULT_DATA.getStackTrace().getCodeLocations());
+  }
 
-    lastLine[0] = null;
-    link1.doClick();
-    assertEquals("line1", lastLine[0]);
+  @Test
+  public void callStackNavigationChangesProfilerMode() {
+    HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setTrace(FakeNetworkService.FAKE_STACK_TRACE).build();
+    myView.update(data);
+    assertThat(data.getStackTrace().getCodeLocations().size()).isEqualTo(2);
 
-    lastLine[0] = null;
-    link2.doClick();
-    assertEquals("line2", lastLine[0]);
+    // Expands Profiler Mode
+    myStage.getStudioProfilers().getTimeline().getSelectionRange().set(0, 10);
 
-    lastLine[0] = null;
-    link3.doClick();
-    assertEquals("line3", lastLine[0]);
+    boolean[] modeChanged = {false};
+    AspectObserver observer = new AspectObserver();
+    myStage.getStudioProfilers().addDependency(observer).onChange(ProfilerAspect.MODE, () -> modeChanged[0] = true);
+
+    assertThat(modeChanged[0]).isFalse();
+    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
+    myView.getStackTraceView().getModel().setSelectedIndex(0);
+    assertThat(modeChanged[0]).isTrue();
+    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
   }
 }

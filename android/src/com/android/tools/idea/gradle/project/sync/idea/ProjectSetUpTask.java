@@ -34,7 +34,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.open;
-import static com.android.tools.idea.gradle.util.Projects.populate;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.invokeLater;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
@@ -113,11 +112,16 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
   private void populateProject(@NotNull DataNode<ProjectData> projectInfo) {
     if (!myProjectIsNew && ApplicationManager.getApplication().isUnitTestMode()) {
-      populate(myProject, projectInfo, mySetupRequest, mySelectModulesToImport);
+      doPopulateProject(projectInfo);
       return;
     }
     StartupManager startupManager = StartupManager.getInstance(myProject);
-    startupManager.runWhenProjectIsInitialized(() -> populate(myProject, projectInfo, mySetupRequest, mySelectModulesToImport));
+    startupManager.runWhenProjectIsInitialized(() -> doPopulateProject(projectInfo));
+  }
+
+  private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo) {
+    IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject, projectInfo);
+    task.populateProject(mySetupRequest, mySelectModulesToImport);
   }
 
   @Override

@@ -15,26 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.splitter.ComponentsSplitter;
 import com.android.tools.adtui.treegrid.TreeGrid;
+import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
+import com.android.tools.adtui.treegrid.TreeGridSpeedSearch;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.google.common.collect.ImmutableMap;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
-import com.intellij.ide.actions.ExternalJavaDocAction;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.SpeedSearchComparator;
@@ -50,11 +43,10 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.*;
-import java.util.Map;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.function.Supplier;
 
-import static com.android.SdkConstants.*;
 import static com.android.tools.adtui.splitter.SplitterUtil.setMinimumWidth;
 import static com.android.tools.idea.uibuilder.palette.TreeCategoryProvider.ALL;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
@@ -63,8 +55,6 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 public class NlPaletteTreeGrid extends JPanel implements Disposable {
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 20;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 40;
-  @VisibleForTesting
-  static final String COMPONENT_HELP = "componentHelp";
 
   private final Project myProject;
   private final DependencyManager myDependencyManager;
@@ -75,31 +65,22 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
   private final IconPreviewFactory myIconPreviewFactory;
   private PaletteMode myMode;
   private SelectionListener myListener;
-  private DesignSurface mySurface;
+  private NlDesignSurface mySurface;
   private Palette myPalette;
 
   public NlPaletteTreeGrid(@NotNull Project project,
                            @NotNull DependencyManager dependencyManager,
                            @NotNull Runnable closeAutoHideCallback,
-                           @Nullable DesignSurface designSurface,
+                           @Nullable NlDesignSurface designSurface,
                            @NotNull IconPreviewFactory iconFactory) {
-    this(project, dependencyManager, closeAutoHideCallback, designSurface, iconFactory, null);
-  }
-
-  @VisibleForTesting
-  NlPaletteTreeGrid(@NotNull Project project,
-                    @NotNull DependencyManager dependencyManager,
-                    @NotNull Runnable closeAutoHideCallback,
-                    @Nullable DesignSurface designSurface,
-                    @NotNull IconPreviewFactory iconFactory,
-                    @Nullable JavaDocViewer javaDocViewer) {
     myProject = project;
     myDependencyManager = dependencyManager;
     myCloseAutoHideCallback = closeAutoHideCallback;
     mySurface = designSurface;
     myMode = PaletteMode.ICON_AND_NAME;
     myIconPreviewFactory = iconFactory;
-    myTree = createItemTreeGrid(project, javaDocViewer);
+    myTree = createItemTreeGrid(project);
+    myTree.addListSelectionListener(event -> fireSelectionChanged(myTree.getSelectedElement()));
 
     //noinspection unchecked
     myCategoryList = new JBList();
@@ -133,11 +114,15 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     setFocusTraversalPolicy(new MyFocusTraversalPolicy(myCategoryList, myTree));
   }
 
-  private static TreeGrid<Palette.Item> createItemTreeGrid(@NotNull Project project, @Nullable JavaDocViewer javaDocViewer) {
+  private static TreeGrid<Palette.Item> createItemTreeGrid(@NotNull Project project) {
     TreeGrid<Palette.Item> grid = new TreeGrid<>();
     grid.setName("itemTreeGrid");
-    grid.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_MASK), COMPONENT_HELP);
-    grid.getActionMap().put(COMPONENT_HELP, new ComponentHelpAction(project, grid, javaDocViewer));
+    ComponentHelpAction help = new ComponentHelpAction(project, () -> {
+      Palette.Item item = grid.getSelectedElement();
+      return item != null ? item.getTagName() : null;
+    });
+    help.registerCustomShortcutSet(KeyEvent.VK_F1, InputEvent.SHIFT_MASK, grid);
+    new TreeGridSpeedSearch<>(grid, Palette.Item::getTitle);
     return grid;
   }
 
@@ -176,10 +161,13 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     myTree.setCellRenderer(new MyCellRenderer(myDependencyManager, mode));
   }
 
-  public void populateUiModel(@NotNull Palette palette, @NotNull DesignSurface designSurface) {
+  public void populateUiModel(@NotNull Palette palette, @NotNull NlDesignSurface designSurface) {
     mySurface = designSurface;
     myPalette = palette;
     myCategoryList.setModel(new TreeCategoryProvider(palette));
+    if (myCategoryList.getSelectedValue() == null) {
+      myCategoryList.setSelectedValue(ALL, true);
+    }
     updateTreeModel();
   }
 
@@ -188,7 +176,6 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
                                      ? new TreeProvider(myProject, myPalette)
                                      : new SingleListTreeProvider(myProject, myPalette);
     myTree.setModel(provider);
-    myTree.addListSelectionListener(event -> fireSelectionChanged(myTree.getSelectedElement()));
     myTree.setVisibleSection(myCategoryList.getSelectedValue());
     myTree.setTransferHandler(new MyItemTransferHandler(mySurface, myDependencyManager, this::getSelectedItem, myIconPreviewFactory));
     setMode(myMode);
@@ -386,70 +373,6 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
         return false;
       }
       return myComparator.matchingFragments(myPattern, item.getTitle()) != null;
-    }
-  }
-
-  private static class ComponentHelpAction extends AbstractAction {
-    private final Project myProject;
-    private final TreeGrid<Palette.Item> myTree;
-    private final JavaDocViewer myJavaDocViewer;
-
-    private ComponentHelpAction(@NotNull Project project, @NotNull TreeGrid<Palette.Item> tree, @Nullable JavaDocViewer javaDocViewer) {
-      myProject = project;
-      myTree = tree;
-      myJavaDocViewer = javaDocViewer != null ? javaDocViewer : new JavaDocViewer(project, tree);
-    }
-
-    @Override
-    public void actionPerformed(@Nullable ActionEvent event) {
-      Palette.Item item = myTree.getSelectedElement();
-      if (item == null) {
-        return;
-      }
-      PsiClass psiClass = findClassOfTagName(item.getTagName());
-      if (psiClass == null) {
-        return;
-      }
-      myJavaDocViewer.showExternalJavaDoc(psiClass);
-    }
-
-    @Nullable
-    private PsiClass findClassOfTagName(@NotNull String tagName) {
-      if (tagName.indexOf('.') != -1) {
-        return findClassByClassName(tagName);
-      }
-      PsiClass psiClass = findClassByClassName(ANDROID_WIDGET_PREFIX + tagName);
-      if (psiClass != null) {
-        return psiClass;
-      }
-      psiClass = findClassByClassName(ANDROID_VIEW_PKG + tagName);
-      if (psiClass != null) {
-        return psiClass;
-      }
-      return findClassByClassName(ANDROID_WEBKIT_PKG + tagName);
-    }
-
-    @Nullable
-    private PsiClass findClassByClassName(@NotNull String fqcn) {
-      JavaPsiFacade javaFacade = JavaPsiFacade.getInstance(myProject);
-      return javaFacade.findClass(fqcn, GlobalSearchScope.allScope(myProject));
-    }
-  }
-
-  static class JavaDocViewer {
-    private final Project myProject;
-    private final Component myTree;
-
-    private JavaDocViewer(@NotNull Project project, @NotNull Component tree) {
-      myProject = project;
-      myTree = tree;
-    }
-
-    void showExternalJavaDoc(@NotNull PsiClass psiClass) {
-      Map<String, Object> data = ImmutableMap.of(CommonDataKeys.PROJECT.getName(), myProject,
-                                                 PlatformDataKeys.CONTEXT_COMPONENT.getName(), myTree);
-      DataContext context = SimpleDataContext.getSimpleContext(data, null);
-      ExternalJavaDocAction.showExternalJavadoc(psiClass, null, null, context);
     }
   }
 }

@@ -15,10 +15,9 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.swing.FakeInputDevices;
+import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -29,21 +28,23 @@ import static org.junit.Assert.*;
 
 public class ProfilerScrollbarTest {
 
-  @Rule
-  public FakeInputDevices myInputDevices = new FakeInputDevices();
-
   private ProfilerTimeline myTimeline;
   private ProfilerScrollbar myScrollbar;
   private JPanel myPanel;
+  private FakeUi myUi;
 
   @Before
   public void setUp() throws Exception {
-    myTimeline = new ProfilerTimeline();
+    myTimeline = new ProfilerTimeline(new RelativeTimeConverter(0));
     myPanel = new JPanel();
     myPanel.setSize(100, 100);
     myScrollbar = new ProfilerScrollbar(myTimeline, myPanel);
     myScrollbar.setSize(100, 10);
-
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.add(myPanel, BorderLayout.CENTER);
+    panel.add(myScrollbar, BorderLayout.SOUTH);
+    panel.setSize(100, 110);
+    myUi = new FakeUi(panel);
     myTimeline.getDataRange().set(0, 10000);
     myTimeline.getViewRange().set(0, 5000);
   }
@@ -70,21 +71,21 @@ public class ProfilerScrollbarTest {
   public void testZoom() {
     // Zoom in
     double delta = myScrollbar.getWheelDelta();
-    myInputDevices.keyboard.press(FakeKeyboard.Key.ALT); // Alt+wheel == zoom
+    myUi.keyboard.press(FakeKeyboard.Key.ALT); // Alt+wheel == zoom
 
-    myInputDevices.mouse.wheel(myPanel, 50, 50, -1);
+    myUi.mouse.wheel(50, 50, -1);
     assertEquals(0 + delta * 0.5, myTimeline.getViewRange().getMin(), 0.001);
     assertEquals(5000 - delta * 0.5, myTimeline.getViewRange().getMax(), 0.001);
 
     // Zoom in twice
     double delta2 = myScrollbar.getWheelDelta() * 2;
-    myInputDevices.mouse.wheel(myPanel, 50, 50, -2);
+    myUi.mouse.wheel(50, 50, -2);
     assertEquals(0 + (delta + delta2) * 0.5, myTimeline.getViewRange().getMin(), 0.001);
     assertEquals(5000 - (delta + delta2) * 0.5, myTimeline.getViewRange().getMax(), 0.001);
 
     // Zoom out
     double delta3 = myScrollbar.getWheelDelta();
-    myInputDevices.mouse.wheel(myPanel, 50, 50, 1);
+    myUi.mouse.wheel(50, 50, 1);
     assertEquals(0 + (delta + delta2 - delta3) * 0.5, myTimeline.getViewRange().getMin(), 0.001);
     assertEquals(5000 - (delta + delta2 - delta3) * 0.5, myTimeline.getViewRange().getMax(), 0.001);
   }
@@ -92,16 +93,15 @@ public class ProfilerScrollbarTest {
   @Test
   public void testPan() {
     double delta = myScrollbar.getWheelDelta();
-
-    myInputDevices.mouse.wheel(myPanel, 50, 50, 1);
+    myUi.mouse.wheel(50, 50, 1);
     assertEquals(0 + delta, myTimeline.getViewRange().getMin(), 0.001);
     assertEquals(5000 + delta, myTimeline.getViewRange().getMax(), 0.001);
 
-    myInputDevices.mouse.wheel(myPanel, 50, 50, 2);
+    myUi.mouse.wheel(50, 50, 2);
     assertEquals(0 + delta * 3, myTimeline.getViewRange().getMin(), 0.001);
     assertEquals(5000 + delta * 3, myTimeline.getViewRange().getMax(), 0.001);
 
-    myInputDevices.mouse.wheel(myPanel, 50, 50, -3);
+    myUi.mouse.wheel(50, 50, -3);
     assertEquals(0, myTimeline.getViewRange().getMin(), 0.001);
     assertEquals(5000, myTimeline.getViewRange().getMax(), 0.001);
   }
@@ -112,28 +112,28 @@ public class ProfilerScrollbarTest {
     assertEquals(0, myTimeline.getViewRange().getMin(), 0.001);
     assertEquals(5000, myTimeline.getViewRange().getMax(), 0.001);
 
-    myInputDevices.mouse.press(myScrollbar, 5, 5);
+    myUi.mouse.press(5, 100);
 
     assertEquals(0, myTimeline.getViewRange().getMin(), 0.001);
     assertEquals(5000, myTimeline.getViewRange().getMax(), 0.001);
 
-    myInputDevices.mouse.dragTo( 10, 5);
+    myUi.mouse.dragTo(10, 100);
 
     assertEquals(1000, myTimeline.getViewRange().getMin(), 0.001);
     assertEquals(6000, myTimeline.getViewRange().getMax(), 0.001);
 
-    myInputDevices.mouse.release();
+    myUi.mouse.release();
 
     assertEquals(1000, myTimeline.getViewRange().getMin(), 0.001);
     assertEquals(6000, myTimeline.getViewRange().getMax(), 0.001);
 
     // Scroll to the end, and check streaming
     assertFalse(myTimeline.isStreaming());
-    myInputDevices.mouse.press(myScrollbar, 10, 5);
+    myUi.mouse.press(10, 100);
     assertFalse(myTimeline.isStreaming());
-    myInputDevices.mouse.dragTo(40, 5);
+    myUi.mouse.dragTo(40, 100);
     assertFalse(myTimeline.isStreaming());
-    myInputDevices.mouse.release();
+    myUi.mouse.release();
 
     assertEquals(4000, myTimeline.getViewRange().getMin(), 0.001);
     assertEquals(9000, myTimeline.getViewRange().getMax(), 0.001);

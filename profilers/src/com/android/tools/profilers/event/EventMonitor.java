@@ -32,10 +32,14 @@ public class EventMonitor extends ProfilerMonitor {
 
   public EventMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
-    SimpleEventDataSeries events = new SimpleEventDataSeries(myProfilers.getClient(), myProfilers.getProcessId());
+    SimpleEventDataSeries events = new SimpleEventDataSeries(myProfilers.getClient(),
+                                                             myProfilers.getProcessId(),
+                                                             myProfilers.getSession());
     mySimpleEvents = new SimpleEventModel<>(new RangedSeries<>(getTimeline().getViewRange(), events));
 
-    ActivityEventDataSeries activities = new ActivityEventDataSeries(myProfilers.getClient(), myProfilers.getProcessId());
+    ActivityEventDataSeries activities = new ActivityEventDataSeries(myProfilers.getClient(),
+                                                                     myProfilers.getProcessId(),
+                                                                     myProfilers.getSession());
     myActivityEvents = new StackedEventModel(new RangedSeries<>(getTimeline().getViewRange(), activities));
   }
 
@@ -59,5 +63,15 @@ public class EventMonitor extends ProfilerMonitor {
   @NotNull
   public StackedEventModel getActivityEvents() {
     return myActivityEvents;
+  }
+
+  @Override
+  public String getName() {
+    return "EVENTS";
+  }
+
+  @Override
+  public boolean canExpand() {
+    return false;
   }
 }

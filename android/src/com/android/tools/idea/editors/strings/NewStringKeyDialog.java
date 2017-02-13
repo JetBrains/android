@@ -17,57 +17,73 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceNameValidator;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.InputValidatorEx;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.ListCellRendererWrapper;
-import org.jdesktop.swingx.combobox.ListComboBoxModel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.File;
+import java.awt.*;
+import java.util.Collection;
 import java.util.Set;
 
 public class NewStringKeyDialog extends DialogWrapper {
   private JPanel myPanel;
 
-  private JComboBox myResFolderCombo;
+  private JComboBox<VirtualFile> myResourceFolderComboBox;
   private EditorTextField myKeyField;
   private EditorTextField myDefaultValueField;
+
+  private final AndroidFacet myFacet;
+  private final InputValidatorEx myResourceNameValidator;
+  private final Collection<StringResourceKey> myKeys;
 
   private String myKey;
   private String myDefaultValue;
   private VirtualFile myResFolder;
 
-  private final ResourceNameValidator myResourceNameValidator;
-
-  public NewStringKeyDialog(@NotNull final AndroidFacet facet, @NotNull Set<String> existing) {
+  NewStringKeyDialog(@NotNull AndroidFacet facet, @NotNull Collection<StringResourceKey> keys) {
     super(facet.getModule().getProject(), false);
 
-    final VirtualFile baseDir = facet.getModule().getProject().getBaseDir();
-
-    myResFolderCombo.setModel(new ListComboBoxModel(facet.getAllResourceDirectories()));
-    myResFolderCombo.setRenderer(new ListCellRendererWrapper<VirtualFile>() {
-      @Override
-      public void customize(JList list, VirtualFile file, int index, boolean selected, boolean hasFocus) {
-        setText(VfsUtilCore.getRelativePath(file, baseDir, File.separatorChar));
-      }
-    });
-    myResFolderCombo.setSelectedIndex(0);
-
-    myResourceNameValidator = ResourceNameValidator.create(false, existing, ResourceType.STRING);
+    myFacet = facet;
+    myResourceNameValidator = ResourceNameValidator.create(false, (Set<String>)null, ResourceType.STRING);
+    myKeys = keys;
 
     init();
+    setTitle("Add Key");
+    setButtonName(getOKAction(), "okButton");
+    setButtonName(getCancelAction(), "cancelButton");
+  }
+
+  private void setButtonName(@NotNull Action action, @NotNull String name) {
+    Component button = getButton(action);
+    assert button != null;
+
+    button.setName(name);
   }
 
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
     return myPanel;
+  }
+
+  private void createUIComponents() {
+    myResourceFolderComboBox = new ComboBox<>(myFacet.getAllResourceDirectories().toArray(VirtualFile.EMPTY_ARRAY));
+    myResourceFolderComboBox.setName("resourceFolderComboBox");
+
+    myResourceFolderComboBox.setRenderer(new ListCellRendererWrapper<VirtualFile>() {
+      @Override
+      public void customize(@NotNull JList list, @NotNull VirtualFile folder, int index, boolean selected, boolean focused) {
+        setText(VirtualFiles.toString(folder, myFacet.getModule().getProject()));
+      }
+    });
   }
 
   @Nullable
@@ -93,6 +109,12 @@ public class NewStringKeyDialog extends DialogWrapper {
       return new ValidationInfo("Default Value cannot be empty", myDefaultValueField);
     }
 
+    VirtualFile folder = (VirtualFile)myResourceFolderComboBox.getSelectedItem();
+
+    if (myKeys.contains(new StringResourceKey(key, folder))) {
+      return new ValidationInfo(key + " already exists in " + VirtualFiles.toString(folder, myFacet.getModule().getProject()));
+    }
+
     return null;
   }
 
@@ -100,7 +122,7 @@ public class NewStringKeyDialog extends DialogWrapper {
   protected void doOKAction() {
     myKey = myKeyField.getText().trim();
     myDefaultValue = myDefaultValueField.getText().trim();
-    myResFolder = (VirtualFile)myResFolderCombo.getSelectedItem();
+    myResFolder = (VirtualFile)myResourceFolderComboBox.getSelectedItem();
 
     super.doOKAction();
   }

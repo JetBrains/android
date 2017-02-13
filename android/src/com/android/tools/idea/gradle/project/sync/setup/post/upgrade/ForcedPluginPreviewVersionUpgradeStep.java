@@ -20,10 +20,10 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgradeStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 public class ForcedPluginPreviewVersionUpgradeStep extends PluginVersionUpgradeStep {
   @Override
@@ -46,7 +47,9 @@ public class ForcedPluginPreviewVersionUpgradeStep extends PluginVersionUpgradeS
     GradleSyncState syncState = GradleSyncState.getInstance(project);
     syncState.syncEnded(); // Update the sync state before starting a new one.
 
-    boolean userAcceptsForcedUpgrade = new ForcedPluginPreviewVersionUpgradeDialog(project, pluginInfo).showAndGet();
+    boolean userAcceptsForcedUpgrade = invokeAndWaitIfNeeded(
+      () -> new ForcedPluginPreviewVersionUpgradeDialog(project, pluginInfo).showAndGet());
+
     if (userAcceptsForcedUpgrade) {
       AndroidPluginVersionUpdater versionUpdater = AndroidPluginVersionUpdater.getInstance(project);
       versionUpdater.updatePluginVersionAndSync(recommended, GradleVersion.parse(GRADLE_LATEST_VERSION), true);

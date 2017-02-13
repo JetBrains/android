@@ -19,6 +19,7 @@ import com.google.common.truth.FailureStrategy;
 import com.google.common.truth.Subject;
 import com.google.common.truth.SubjectFactory;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
@@ -58,7 +59,7 @@ public class LibraryDependenciesSubject extends Subject<LibraryDependenciesSubje
     for (OrderEntry orderEntry : rootManager.getOrderEntries()) {
       if (orderEntry instanceof LibraryOrderEntry) {
         LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)orderEntry;
-        if (libraryOrderEntry.isExported()) {
+        if (libraryOrderEntry.isExported() && libraryOrderEntry.getScope() == DependencyScope.COMPILE) {
           myLibraryDependenciesByName.put(libraryOrderEntry.getLibraryName(), libraryOrderEntry);
         }
       }
@@ -73,6 +74,22 @@ public class LibraryDependenciesSubject extends Subject<LibraryDependenciesSubje
   @NotNull
   public LibraryDependenciesSubject contains(@NotNull String libraryName) {
     assertThat(getLibraryNames()).contains(libraryName);
+    return this;
+  }
+
+  @NotNull
+  public LibraryDependenciesSubject containsMatching(@NotNull String libraryNameRegEx) {
+    boolean found = false;
+    for (String name : getLibraryNames()) {
+      if (name.matches(libraryNameRegEx)) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      fail("Unable to find a library with name matching '" + libraryNameRegEx + "'");
+    }
+
     return this;
   }
 

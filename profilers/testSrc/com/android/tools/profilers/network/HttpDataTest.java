@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.network;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -36,7 +37,7 @@ public class HttpDataTest {
   }
 
   @Test
-  public void testResponseStatusLineWithKey() {
+  public void testResponseStatusLine() {
     HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
     builder.setResponseFields("   \n" +
                               "null  =  HTTP/1.1 302 Found  \n  " +
@@ -57,18 +58,18 @@ public class HttpDataTest {
     assertThat(data.getResponseField("Content-Type"), equalTo("text/html; charset=UTF-8"));
   }
 
-  @Test(expected = AssertionError.class)
+  @Test
   public void emptyResponseFields() {
     HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
     builder.setResponseFields("");
-    builder.build();
+    assertEquals(-1, builder.build().getStatusCode());
   }
 
-  @Test(expected = AssertionError.class)
+  @Test
   public void emptyResponseFields2() {
     HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
     builder.setResponseFields("   \n  \n  \n\n   \n  ");
-    builder.build();
+    assertEquals(-1, builder.build().getStatusCode());
   }
 
   @Test(expected = AssertionError.class)
@@ -76,6 +77,24 @@ public class HttpDataTest {
     HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
     builder.setResponseFields("Invalid response fields");
     builder.build();
+  }
+
+  @Test
+  public void emptyRequestFields() {
+    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    builder.setRequestFields("");
+    assertTrue(builder.build().getRequestHeaders().isEmpty());
+  }
+
+  @Test
+  public void testSetRequestFields() {
+    HttpData.Builder builder = new HttpData.Builder(1, 0, 0, 0);
+    builder.setRequestFields("\nfirst=1 \n  second  = 2\n equation=x+y=10");
+    ImmutableMap<String, String> requestFields = builder.build().getRequestHeaders();
+    assertEquals(3, requestFields.size());
+    assertEquals("1", requestFields.get("first"));
+    assertEquals("2", requestFields.get("second"));
+    assertEquals("x+y=10", requestFields.get("equation"));
   }
 
   @Test
@@ -87,9 +106,9 @@ public class HttpDataTest {
   }
 
   @Test
-  public void urlNameParsedProperly() {
-    String urlString = "www.google.com/l1/l2/test?query=1";
-    assertThat(HttpData.getUrlName(urlString), equalTo("test"));
+  public void urlNameWithQueryParsedProperly() {
+    String urlString = "www.google.com/l1/l2/test?query=1&other_query=2";
+    assertThat(HttpData.getUrlName(urlString), equalTo("test?query=1&other_query=2"));
   }
 
   @Test
@@ -110,12 +129,19 @@ public class HttpDataTest {
     try {
       HttpData.getUrlName(notEncoded);
       fail(String.format("Not-encoded URL %s should be invalid.", notEncoded));
-    } catch (IllegalArgumentException expected) {}
+    } catch (IllegalArgumentException ignored) {}
     String singleEncoded = "https://www.google.com/test%20test";
     assertThat(HttpData.getUrlName(singleEncoded), equalTo("test test"));
     String tripleEncoded = "https://www.google.com/test%252520test";
     assertThat(HttpData.getUrlName(tripleEncoded), equalTo("test test"));
   }
+
+  @Test
+  public void uryQueryDecoded() {
+    String tripleEncoded = "https://www.google.com/test?query1%25253DHello%252520World%252526query2%25253D%252523Goodbye%252523";
+    assertThat(HttpData.getUrlName(tripleEncoded), equalTo("test?query1=Hello World&query2=#Goodbye#"));
+  }
+
 
   @Test
   public void urlReturnedAsIsIfUnableToDecode() {
@@ -144,17 +170,25 @@ public class HttpDataTest {
     assertThat(data.getStatusCode(), equalTo(302));
     assertThat(data.getMethod(), equalTo("method"));
     assertThat(data.getResponsePayloadId(), equalTo("payloadId"));
-    assertThat(data.getTrace(), equalTo("trace"));
+    assertThat(data.getStackTrace().getTrace(), equalTo("trace"));
     assertThat(data.getUrl(), equalTo("url"));
   }
 
   @Test
   public void guessFileExtensionFromContentType() {
-    assertEquals(".html", HttpData.guessFileExtensionFromContentType("text/html"));
-    assertEquals(".jpg", HttpData.guessFileExtensionFromContentType("image/jpeg"));
-    assertEquals(".json", HttpData.guessFileExtensionFromContentType("application/json"));
-    assertEquals(".xml", HttpData.guessFileExtensionFromContentType("application/xml"));
-    assertNull(HttpData.guessFileExtensionFromContentType("application/text"));
-    assertNull(HttpData.guessFileExtensionFromContentType(""));
+    assertEquals(".html", new HttpData.ContentType("text/html").guessFileExtension());
+    assertEquals(".jpg", new HttpData.ContentType("image/jpeg").guessFileExtension());
+    assertEquals(".json", new HttpData.ContentType("application/json").guessFileExtension());
+    assertEquals(".xml", new HttpData.ContentType("application/xml").guessFileExtension());
+    assertNull(new HttpData.ContentType("application/text").guessFileExtension());
+    assertNull(new HttpData.ContentType("").guessFileExtension());
+  }
+
+  @Test
+  public void getMimeTypeFromContentType() {
+    assertEquals("text/html", new HttpData.ContentType("text/html; charset=utf-8").getMimeType());
+    assertEquals("text/html", new HttpData.ContentType("text/html").getMimeType());
+    assertEquals("text/html", new HttpData.ContentType("text/html;").getMimeType());
+    assertEquals("", new HttpData.ContentType("").getMimeType());
   }
 }

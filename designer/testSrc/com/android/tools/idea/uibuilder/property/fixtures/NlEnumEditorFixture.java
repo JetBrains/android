@@ -16,63 +16,60 @@
 package com.android.tools.idea.uibuilder.property.fixtures;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.property.editors.*;
+import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
 import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString;
 import com.google.common.base.Objects;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI;
 import com.intellij.openapi.ui.ComboBox;
-import junit.framework.Assert;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Assert;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicComboPopup;
 import javax.swing.plaf.basic.ComboPopup;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.Arrays;
-import java.util.Optional;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.awt.event.KeyEvent.VK_DOWN;
 import static java.awt.event.KeyEvent.VK_UP;
 import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
-public class NlEnumEditorFixture {
-  private final NlEditingListener myListener;
+public class NlEnumEditorFixture extends NlEditorFixtureBase {
   private final NlEnumEditor myComponentEditor;
   private final ComboBox myCombo;
   private final JTextField myEditor;
-  private final Component mySource;
 
-  private Component myFocusedComponent;
-  private int myStopEditingCallCount;
-  private int myCancelEditingCallCount;
-
-  private NlEnumEditorFixture() {
-    myListener = createListener();
-    myComponentEditor = NlEnumEditor.createForTest(myListener, spy(new NlEnumEditor.CustomComboBox()));
-    myCombo = findSubComponent(myComponentEditor.getComponent(), ComboBox.class);
-    myCombo.setUI(new ComboUI(myCombo));
-    when(myCombo.isShowing()).thenReturn(true);
+  private NlEnumEditorFixture(@NotNull NlEnumEditor editor, @NotNull ComboBox comboBox) {
+    super(editor);
+    myComponentEditor = editor;
+    myCombo = comboBox;
+    myCombo.setUI(new ComboUI(comboBox));
     myEditor = (JTextField)myCombo.getEditor().getEditorComponent();
     myEditor.getCaret().setBlinkRate(0);
-    KeyboardFocusManager focusManager = mock(KeyboardFocusManager.class);
-    doReturn(myFocusedComponent).when(focusManager).getFocusOwner();
-    KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager);
-    mySource = mock(JComponent.class);
+  }
+
+  @Override
+  public void tearDown() {
+    // This line of code will remove the component reference from AppContext.
+    // JTextComponent will add itself to AppContext using a private key when
+    // focus is gained and calling removeNotify() is the only way to clear it.
+    myEditor.removeNotify();
+
+    super.tearDown();
   }
 
   public static NlEnumEditorFixture create() {
-    return new NlEnumEditorFixture();
-  }
+    NlEnumEditor.CustomComboBox comboBox = spy(new NlEnumEditor.CustomComboBox());
+    when(comboBox.isShowing()).thenReturn(true);
 
-  public void tearDown() {
-    KeyboardFocusManager.setCurrentKeyboardFocusManager(null);
+    NlEnumEditor editor = NlEnumEditor.createForTest(createListener(), comboBox);
+    return new NlEnumEditorFixture(editor, comboBox);
   }
 
   public NlEnumEditorFixture setProperty(@NotNull NlProperty property) {
@@ -82,18 +79,11 @@ public class NlEnumEditorFixture {
 
   public NlEnumEditorFixture gainFocus() {
     setFocusedComponent(myEditor);
-
-    for (FocusListener listener : myEditor.getFocusListeners()) {
-      listener.focusGained(new FocusEvent(mySource, FocusEvent.FOCUS_GAINED));
-    }
     return this;
   }
 
   public NlEnumEditorFixture loseFocus() {
-    myFocusedComponent = null;
-    for (FocusListener listener : myEditor.getFocusListeners()) {
-      listener.focusLost(new FocusEvent(mySource, FocusEvent.FOCUS_LOST));
-    }
+    setFocusedComponent(null);
     return this;
   }
 
@@ -103,7 +93,7 @@ public class NlEnumEditorFixture {
     myCombo.showPopup();
     ComboPopup popup = myCombo.getPopup();
     assertThat(popup).isNotNull();
-    setFocusedComponent(popup.getList());
+    setFocusedPopupComponent(popup.getList());
     assertThat(myCombo.isPopupVisible()).isTrue();
     return this;
   }
@@ -125,6 +115,16 @@ public class NlEnumEditorFixture {
     @SuppressWarnings("unchecked")
     ComboBoxModel<ValueWithDisplayString> model = myCombo.getModel();
     model.setSelectedItem(item);
+    return this;
+  }
+
+  public NlEnumEditorFixture verifyStopEditingCalled() {
+    verifyStopEditingCalled(myComponentEditor);
+    return this;
+  }
+
+  public NlEnumEditorFixture verifyCancelEditingCalled() {
+    verifyCancelEditingCalled(myComponentEditor);
     return this;
   }
 
@@ -241,20 +241,6 @@ public class NlEnumEditorFixture {
     return differences;
   }
 
-  public NlEnumEditorFixture verifyStopEditingCalled() {
-    verify(myListener, times(++myStopEditingCallCount)).stopEditing(eq(myComponentEditor), any());
-    return this;
-  }
-
-  public NlEnumEditorFixture verifyCancelEditingCalled() {
-    verify(myListener, times(++myCancelEditingCallCount)).cancelEditing(eq(myComponentEditor));
-    return this;
-  }
-
-  private void setFocusedComponent(@Nullable Component component) {
-    myFocusedComponent = component;
-  }
-
   private static class ComboUI extends DarculaComboBoxUI {
     private boolean myPopupIsVisible;
     private JComboBox myCombo;
@@ -301,28 +287,5 @@ public class NlEnumEditorFixture {
     InputMap map = comboBox.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     map.remove(KeyStroke.getKeyStroke(VK_UP, 0));
     map.remove(KeyStroke.getKeyStroke(VK_DOWN, 0));
-  }
-
-  protected static NlEditingListener createListener() {
-    NlEditingListener listener = mock(NlEditingListener.class);
-    doAnswer(invocation -> {
-      Object[] args = invocation.getArguments();
-      NlComponentEditor editor = (NlComponentEditor)args[0];
-      Object value = args[1];
-      NlProperty property = editor.getProperty();
-      assertThat(property).isNotNull();
-      editor.getProperty().setValue(value);
-      return null;
-    }).when(listener).stopEditing(any(NlComponentEditor.class), any());
-    return listener;
-  }
-
-  @NotNull
-  private static <T> T findSubComponent(JComponent panel, Class<T> componentClass) {
-    Optional<Component> result = Arrays.stream(panel.getComponents())
-      .filter(componentClass::isInstance)
-      .findFirst();
-    //noinspection unchecked
-    return (T)result.orElseThrow(() -> new RuntimeException("No such component found: " + componentClass.getName()));
   }
 }

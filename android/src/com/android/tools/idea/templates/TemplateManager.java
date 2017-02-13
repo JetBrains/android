@@ -19,6 +19,7 @@ import com.android.repository.Revision;
 import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.NewAndroidActivityWizard;
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
@@ -54,7 +55,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 
-import java.awt.event.InputEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -429,7 +429,7 @@ public class TemplateManager {
       NonEmptyActionGroup categoryGroup = new NonEmptyActionGroup() {
         @Override
         public void update(AnActionEvent e) {
-          updateAction(e, category, getChildrenCount() > 0);
+          updateAction(e, category, getChildrenCount() > 0, false);
         }
       };
       categoryGroup.setPopup(true);
@@ -439,7 +439,7 @@ public class TemplateManager {
     }
   }
 
-  private static void updateAction(AnActionEvent event, String text, boolean visible) {
+  private static void updateAction(AnActionEvent event, String text, boolean visible, boolean disableIfNotReady) {
     IdeView view = LangDataKeys.IDE_VIEW.getData(event.getDataContext());
     final Module module = LangDataKeys.MODULE.getData(event.getDataContext());
     final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
@@ -447,6 +447,7 @@ public class TemplateManager {
     boolean isProjectReady = facet != null && facet.getAndroidModel() != null;
     presentation.setText(text + (isProjectReady ? "" : " (Project not ready)"));
     presentation.setVisible(visible && view != null && facet != null && facet.requiresAndroidModel());
+    presentation.setEnabled(disableIfNotReady ? isProjectReady : true);
   }
 
   private void fillCategory(NonEmptyActionGroup categoryGroup, final String category, ActionManager am) {
@@ -455,13 +456,12 @@ public class TemplateManager {
       AnAction galleryAction = new AnAction() {
         @Override
         public void update(AnActionEvent e) {
-          updateAction(e, "Gallery...", true);
+          updateAction(e, "Gallery...", true, true);
         }
 
         @Override
         public void actionPerformed(AnActionEvent e) {
-          // TODO: before submitting this code, change this to only use the new wizard
-          if (Boolean.getBoolean("use.npw.modelwizard") && (e.getModifiers() & InputEvent.SHIFT_MASK) == 0) {
+          if (WizardUtils.isNpwModelWizardEnabled(e)) {
             DataContext dataContext = e.getDataContext();
             Module module = LangDataKeys.MODULE.getData(dataContext);
             assert module != null;
@@ -478,19 +478,18 @@ public class TemplateManager {
             AndroidFacet facet = AndroidFacet.getInstance(module);
             assert facet != null && facet.getAndroidModel() != null;
 
-            List<TemplateHandle> templateList = getTemplateList(FormFactor.MOBILE);
             List<AndroidSourceSet> sourceSets = AndroidSourceSet.getSourceSets(facet, targetDirectory);
             assert (sourceSets.size() > 0);
 
             String initialPackageSuggestion = AndroidPackageUtils.getPackageForPath(facet, sourceSets, targetDirectory);
             Project project = facet.getModule().getProject();
 
-            // TODO: Missing logic to select the default template
-            RenderTemplateModel renderModel = new RenderTemplateModel(
-              project, templateList.get(0), initialPackageSuggestion, sourceSets.get(0), AndroidBundle.message("android.wizard.activity.add"));
+            RenderTemplateModel renderModel = new RenderTemplateModel(project, null, initialPackageSuggestion, sourceSets.get(0),
+              AndroidBundle.message("android.wizard.activity.add", FormFactor.MOBILE.id));
 
             NewModuleModel moduleModel = new NewModuleModel(project);
-            ChooseActivityTypeStep chooseActivityTypeStep = new ChooseActivityTypeStep(moduleModel, renderModel, facet, templateList, targetDirectory);
+            ChooseActivityTypeStep chooseActivityTypeStep =
+              new ChooseActivityTypeStep(moduleModel, renderModel, FormFactor.MOBILE, facet, targetDirectory);
             ModelWizard wizard = new ModelWizard.Builder().addStep(chooseActivityTypeStep).build();
 
             new StudioWizardDialogBuilder(wizard, "New Android Activity").build().show();

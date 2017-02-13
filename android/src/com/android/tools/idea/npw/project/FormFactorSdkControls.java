@@ -144,8 +144,8 @@ final class FormFactorSdkControls {
         }));
     }
 
-    // TODO: Add code for WH (checkbox is already on the UI, needs to be enables/disabled)
-    //if (myFormFactor.equals(MOBILE) && state.getNotNull(WH_SDK_ENABLED_KEY, false)*/) {
+    // TODO: Add code for AIA (checkbox is already on the UI, needs to be enables/disabled)
+    //if (myFormFactor.equals(MOBILE) && state.getNotNull(AIA_SDK_ENABLED_KEY, false)*/) {
     //  myBinder.register(IS_INSTANT_APP_KEY, myInstantAppCheckbox);
     //  myInstantAppCheckbox.setVisible(true);
     //}

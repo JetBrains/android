@@ -16,11 +16,15 @@
 package com.android.tools.idea.fd;
 
 import com.android.ddmlib.IDevice;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.GradleBuildDetails;
 import com.google.wireless.android.sdk.stats.InstantRun;
 import com.google.wireless.android.sdk.stats.InstantRun.InstantRunDeploymentKind;
 import com.google.wireless.android.sdk.stats.InstantRun.InstantRunIdeBuildCause;
@@ -33,7 +37,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 public class InstantRunStatsService {
+  private static final String UNKOWN_VERSION = "0.0.0";
   private final Object LOCK = new Object();
+  private final Project myProject;
 
   /**
    * Current session id: A session starts from installing an APK, continues through multiple hot/cold swaps until the next full apk install
@@ -56,7 +62,8 @@ public class InstantRunStatsService {
     return ServiceManager.getService(project, InstantRunStatsService.class);
   }
 
-  private InstantRunStatsService() {
+  private InstantRunStatsService(@NotNull Project project) {
+    myProject = project;
   }
 
   public void notifyBuildStarted() {
@@ -68,16 +75,33 @@ public class InstantRunStatsService {
   public void notifyDeployStarted() {
   }
 
-  public void notifyDeployType(@NotNull DeployType type, @NotNull BuildCause buildCause, @NotNull String verifierStatus, @NotNull IDevice device) {
-    notifyDeployType(type, buildCauseToProto(buildCause), verifierStatusToProto(verifierStatus), device);
+  public void notifyDeployType(@NotNull DeployType type, @NotNull InstantRunContext context, @NotNull IDevice device) {
+    BuildSelection selection = context.getBuildSelection();
+    BuildCause buildCause = selection == null ? null : selection.why;
+
+    InstantRunBuildInfo buildInfo = context.getInstantRunBuildInfo();
+    String verifierStatus = buildInfo == null ? "unknown" : buildInfo.getVerifierStatus();
+
+    notifyDeployType(type,
+                     buildCauseToProto(buildCause),
+                     verifierStatusToProto(verifierStatus),
+                     context.getGradlePluginVersion().toString(),
+                     device);
   }
 
   public void notifyNonInstantRunDeployType(@NotNull IDevice device) {
-    notifyDeployType(DeployType.LEGACY, InstantRunIdeBuildCause.NO_INSTANT_RUN, InstantRunStatus.VerifierStatus.UNKNOWN_VERIFIER_STATUS, device);
+    notifyDeployType(DeployType.LEGACY,
+                     InstantRunIdeBuildCause.NO_INSTANT_RUN,
+                     InstantRunStatus.VerifierStatus.UNKNOWN_VERIFIER_STATUS,
+                     "0.0.0",
+                     device);
   }
 
-  private void notifyDeployType(@NotNull DeployType type, @NotNull InstantRunIdeBuildCause buildCause,
-                                @NotNull InstantRunStatus.VerifierStatus verifierStatus, @NotNull IDevice device) {
+  private void notifyDeployType(@NotNull DeployType type,
+                                @NotNull InstantRunIdeBuildCause buildCause,
+                                @NotNull InstantRunStatus.VerifierStatus verifierStatus,
+                                @NotNull String androidPluginVersion,
+                                @NotNull IDevice device) {
     long buildAndDeployTime;
     String sessionId;
 
@@ -101,7 +125,10 @@ public class InstantRunStatsService {
                        .setBuildTime(buildAndDeployTime)
                        .setDeploymentKind(deployTypeToDeploymentKind(type))
                        .setIdeBuildCause(buildCause)
-                       .setGradleBuildCause(verifierStatus));
+                       .setGradleBuildCause(verifierStatus))
+      .setGradleBuildDetails(GradleBuildDetails.newBuilder()
+                               .setGradleVersion(getGradleVersion(myProject))
+                               .setAndroidPluginVersion(androidPluginVersion));
 
     if (buildCause == InstantRunIdeBuildCause.API_TOO_LOW_FOR_INSTANT_RUN
         || buildCause == InstantRunIdeBuildCause.FREEZE_SWAP_REQUIRES_API21
@@ -111,6 +138,12 @@ public class InstantRunStatsService {
       studioEvent.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfoApilLevelOnly(device));
     }
     UsageTracker.getInstance().log(studioEvent);
+  }
+
+  @NotNull
+  private static String getGradleVersion(@NotNull Project project) {
+    GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(project);
+    return gradleVersion == null ? UNKOWN_VERSION : gradleVersion.toString();
   }
 
   private static InstantRunIdeBuildCause buildCauseToProto(@Nullable BuildCause buildCause) {

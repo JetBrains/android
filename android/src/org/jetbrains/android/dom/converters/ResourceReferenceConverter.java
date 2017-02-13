@@ -40,6 +40,7 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NonNls;
@@ -227,7 +228,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   private void addVariantsForIdDeclaration(Set<ResourceValue> result, AndroidFacet facet, char prefix, String value) {
-    for (String name : facet.getLocalResourceManager().getIds(false)) {
+    for (String name : ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getIds(false)) {
       final ResourceValue ref = referenceTo(prefix, "+id", null, name, true);
 
       if (!value.startsWith(doToString(ref))) {
@@ -308,7 +309,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                                                  @Nullable String resPackage,
                                                  Collection<ResourceValue> result,
                                                  boolean explicitResourceType) {
-    final ResourceManager manager = facet.getResourceManager(resPackage);
+    final ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(resPackage);
     String typeName = type.getName();
     if (manager != null) {
       for (String name : manager.getResourceNames(type, true)) {

@@ -45,7 +45,7 @@ public class HaxmWizard extends DynamicWizard {
   private static final String SDK_PACKAGE_CLEANUP_FAILED =
     "HAXM installer cleanup failed. The status of the package in the SDK manager may " +
     "be reflected incorrectly. Reinstalling the package may solve the issue" +
-    (SystemInfo.isWindows ? " (is the SDK folder opened in another program?)." : ".");
+    (SystemInfo.isWindows ? " (is the SDK folder opened in another program?)" : ".");
 
   HaxmPath myHaxmPath;
   boolean myInvokedToUninstall;

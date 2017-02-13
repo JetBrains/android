@@ -27,7 +27,7 @@ import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -67,8 +67,8 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
   public void testGetInstance() {
     assertEquals(NlUsageTrackerManager.NOP_TRACKER, NlUsageTrackerManager.getInstanceInner(null));
 
-    DesignSurface surface1 = mock(DesignSurface.class);
-    DesignSurface surface2 = mock(DesignSurface.class);
+    NlDesignSurface surface1 = mock(NlDesignSurface.class);
+    NlDesignSurface surface2 = mock(NlDesignSurface.class);
     NlUsageTracker nlUsageTracker = NlUsageTrackerManager.getInstanceInner(surface1);
     assertNotEquals(NlUsageTrackerManager.NOP_TRACKER, surface1);
     assertEquals(nlUsageTracker, NlUsageTrackerManager.getInstanceInner(surface1));
@@ -83,9 +83,9 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
       return null;
     }).when(usageTracker).log(any());
 
-    DesignSurface surface = mock(DesignSurface.class);
+    NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getLayoutType()).thenReturn(NlLayoutType.LAYOUT);
-    when(surface.getScreenMode()).thenReturn(DesignSurface.ScreenMode.BOTH);
+    when(surface.getScreenMode()).thenReturn(NlDesignSurface.ScreenMode.BOTH);
     when(surface.getScale()).thenReturn(0.50);
     Configuration configuration = getConfigurationMock();
     when(surface.getConfiguration()).thenReturn(configuration);
@@ -122,9 +122,9 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
       return null;
     }).when(usageTracker).log(any());
 
-    DesignSurface surface = mock(DesignSurface.class);
+    NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getLayoutType()).thenReturn(NlLayoutType.LAYOUT);
-    when(surface.getScreenMode()).thenReturn(DesignSurface.ScreenMode.BOTH);
+    when(surface.getScreenMode()).thenReturn(NlDesignSurface.ScreenMode.BOTH);
     when(surface.getScale()).thenReturn(0.50);
     Configuration configuration = getConfigurationMock();
     when(surface.getConfiguration()).thenReturn(configuration);

@@ -35,11 +35,11 @@ public class NetworkUsage extends LineChartModel {
     // We use 4 as a reasonable initial default for number of connections.
     myTrafficRange = new Range(0, 4);
 
-    myRxSeries = new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(),
+    myRxSeries = new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_RECEIVED.getLabel(false),
                                             viewRange,
                                             myTrafficRange,
                                             createSeries(profilers, NetworkTrafficDataSeries.Type.BYTES_RECEIVED));
-    myTxSeries = new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(),
+    myTxSeries = new RangedContinuousSeries(NetworkTrafficDataSeries.Type.BYTES_SENT.getLabel(false),
                                             viewRange,
                                             myTrafficRange,
                                             createSeries(profilers, NetworkTrafficDataSeries.Type.BYTES_SENT));
@@ -51,7 +51,7 @@ public class NetworkUsage extends LineChartModel {
   @NotNull
   public NetworkTrafficDataSeries createSeries(@NotNull StudioProfilers profilers, @NotNull NetworkTrafficDataSeries.Type trafficType) {
     NetworkServiceGrpc.NetworkServiceBlockingStub client = profilers.getClient().getNetworkClient();
-    return new NetworkTrafficDataSeries(client, profilers.getProcessId(), trafficType);
+    return new NetworkTrafficDataSeries(client, profilers.getProcessId(), profilers.getSession(), trafficType);
   }
 
   @NotNull

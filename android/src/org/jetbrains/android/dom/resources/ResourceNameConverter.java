@@ -16,6 +16,7 @@ import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ValueResourceInfoImpl;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -145,8 +146,8 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
   }
 
   public static boolean hasExplicitParent(@NotNull AndroidFacet facet, @NotNull String localStyleName) {
-    final List<ValueResourceInfoImpl> styles = facet.getLocalResourceManager().
-      findValueResourceInfos(ResourceType.STYLE.getName(), localStyleName, true, false);
+    LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
+    List<ValueResourceInfoImpl> styles = resourceManager.findValueResourceInfos(ResourceType.STYLE.getName(), localStyleName, true, false);
 
     if (styles.size() == 0) {
       return false;
@@ -182,7 +183,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
       if (psiFile == null) {
         return LocalQuickFix.EMPTY_ARRAY;
       }
-      return new LocalQuickFix[] {new CreateValueResourceQuickFix(myFacet, ResourceType.STYLE, resourceName, psiFile, false)};
+      return new LocalQuickFix[]{new CreateValueResourceQuickFix(myFacet, ResourceType.STYLE, resourceName, psiFile, false)};
     }
   }
 }

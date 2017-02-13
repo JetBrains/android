@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.CopyProvider;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -57,12 +58,12 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
   private NlLayoutType myLayoutType;
   private Runnable myCloseAutoHideCallback;
 
-  public NlPalettePanel(@NotNull Project project, @Nullable DesignSurface designSurface) {
+  public NlPalettePanel(@NotNull Project project, @Nullable NlDesignSurface designSurface) {
     this(project, designSurface, CopyPasteManager.getInstance());
   }
 
   @VisibleForTesting
-  NlPalettePanel(@NotNull Project project, @Nullable DesignSurface designSurface, @NotNull CopyPasteManager copyPasteManager) {
+  NlPalettePanel(@NotNull Project project, @Nullable NlDesignSurface designSurface, @NotNull CopyPasteManager copyPasteManager) {
     myProject = project;
     myCopyPasteManager = copyPasteManager;
     IconPreviewFactory iconPreviewFactory = new IconPreviewFactory();
@@ -142,13 +143,14 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
 
   @Override
   public void setToolContext(@Nullable DesignSurface designSurface) {
+    assert designSurface == null || designSurface instanceof NlDesignSurface;
     myPreviewPane.setDesignSurface(designSurface);
     Module module = getModule(designSurface);
     if (designSurface != null && module != null && myLayoutType != designSurface.getLayoutType()) {
       myLayoutType = designSurface.getLayoutType();
       NlPaletteModel model = NlPaletteModel.get(myProject);
       Palette palette = model.getPalette(myLayoutType);
-      myPalettePanel.populateUiModel(palette, designSurface);
+      myPalettePanel.populateUiModel(palette, (NlDesignSurface)designSurface);
       myDependencyManager.setPalette(palette, module);
       repaint();
     }

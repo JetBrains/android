@@ -36,6 +36,7 @@ import com.intellij.util.containers.SmartHashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -171,7 +172,7 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
                   return;
                 }
 
-                List<PsiElement> resources = facet.getLocalResourceManager()
+                List<PsiElement> resources = ModuleResourceManagers.getInstance(facet).getLocalResourceManager()
                     .findResourcesByFieldName(ResourceType.STRING.getName(), resource.name);
 
                 for (PsiElement resElement : resources) {

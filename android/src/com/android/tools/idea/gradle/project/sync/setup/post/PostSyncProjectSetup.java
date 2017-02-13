@@ -27,7 +27,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors;
+import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
 import com.android.tools.idea.gradle.project.sync.setup.post.project.DisposedModules;
 import com.android.tools.idea.gradle.project.sync.validation.common.CommonModuleValidator;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
@@ -40,6 +40,7 @@ import com.android.tools.idea.templates.TemplateManager;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationType;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.compiler.options.CompileStepBeforeRun;
+import com.intellij.concurrency.JobLauncher;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.ExecutionBundle;
@@ -57,12 +58,8 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.android.tools.idea.gradle.util.Projects.*;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
@@ -73,7 +70,7 @@ public class PostSyncProjectSetup {
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final GradleSyncInvoker mySyncInvoker;
   @NotNull private final GradleSyncState mySyncState;
-  @NotNull private final DependencySetupErrors myDependencySetupErrors;
+  @NotNull private final DependencySetupIssues myDependencySetupIssues;
   @NotNull private final ProjectSetup myProjectSetup;
   @NotNull private final ModuleSetup myModuleSetup;
   @NotNull private final PluginVersionUpgrade myPluginVersionUpgrade;
@@ -94,10 +91,10 @@ public class PostSyncProjectSetup {
                               @NotNull GradleSyncInvoker syncInvoker,
                               @NotNull GradleSyncState syncState,
                               @NotNull SyncMessages syncMessages,
-                              @NotNull DependencySetupErrors dependencySetupErrors,
+                              @NotNull DependencySetupIssues dependencySetupIssues,
                               @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
                               @NotNull GradleProjectBuilder projectBuilder) {
-    this(project, ideInfo, syncInvoker, syncState, dependencySetupErrors, new ProjectSetup(project), new ModuleSetup(project),
+    this(project, ideInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project), new ModuleSetup(project),
          new PluginVersionUpgrade(project), versionCompatibilityChecker, projectBuilder, new CommonModuleValidator.Factory(),
          RunManagerImpl.getInstanceImpl(project));
   }
@@ -107,7 +104,7 @@ public class PostSyncProjectSetup {
                        @NotNull IdeInfo ideInfo,
                        @NotNull GradleSyncInvoker syncInvoker,
                        @NotNull GradleSyncState syncState,
-                       @NotNull DependencySetupErrors dependencySetupErrors,
+                       @NotNull DependencySetupIssues dependencySetupIssues,
                        @NotNull ProjectSetup projectSetup,
                        @NotNull ModuleSetup moduleSetup,
                        @NotNull PluginVersionUpgrade pluginVersionUpgrade,
@@ -119,7 +116,7 @@ public class PostSyncProjectSetup {
     myIdeInfo = ideInfo;
     mySyncInvoker = syncInvoker;
     mySyncState = syncState;
-    myDependencySetupErrors = dependencySetupErrors;
+    myDependencySetupIssues = dependencySetupIssues;
     myProjectSetup = projectSetup;
     myModuleSetup = moduleSetup;
     myPluginVersionUpgrade = pluginVersionUpgrade;
@@ -132,7 +129,7 @@ public class PostSyncProjectSetup {
   /**
    * Invoked after a project has been synced with Gradle.
    */
-  public void setUpProject(@NotNull Request request, @Nullable ProgressIndicator progressIndicator) {
+  public void setUpProject(@NotNull Request request, @NotNull ProgressIndicator progressIndicator) {
     boolean syncFailed = mySyncState.lastSyncFailedOrHasIssues();
 
     if (syncFailed && request.isUsingCachedGradleModels()) {
@@ -140,14 +137,16 @@ public class PostSyncProjectSetup {
       return;
     }
 
-    myDependencySetupErrors.reportErrors();
+    myDependencySetupIssues.reportIssues();
     myVersionCompatibilityChecker.checkAndReportComponentIncompatibilities(myProject);
 
-    CommonModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
-    for (Module module : moduleManager.getModules()) {
+    List<Module> modules = Arrays.asList(moduleManager.getModules());
+    CommonModuleValidator moduleValidator = myModuleValidatorFactory.create(myProject);
+    JobLauncher.getInstance().invokeConcurrentlyUnderProgress(modules, progressIndicator, true, module -> {
       moduleValidator.validate(module);
-    }
+      return true;
+    });
     moduleValidator.fixAndReportFoundIssues();
 
     if (syncFailed) {
@@ -168,8 +167,6 @@ public class PostSyncProjectSetup {
     new ProjectStructureUsageTracker(myProject).trackProjectStructure();
 
     DisposedModules.getInstance(myProject).deleteImlFilesForDisposedModules();
-    removeAllModuleCompiledArtifacts(myProject);
-
     AndroidGradleProjectComponent.getInstance(myProject).checkForSupportedModules();
 
     findAndShowVariantConflicts();
@@ -395,6 +392,26 @@ public class PostSyncProjectSetup {
     public Request setLastSyncTimestamp(long lastSyncTimestamp) {
       myLastSyncTimestamp = lastSyncTimestamp;
       return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      Request request = (Request)o;
+      return myUsingCachedGradleModels == request.myUsingCachedGradleModels &&
+             myCleanProjectAfterSync == request.myCleanProjectAfterSync &&
+             myGenerateSourcesAfterSync == request.myGenerateSourcesAfterSync &&
+             myLastSyncTimestamp == request.myLastSyncTimestamp;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(myUsingCachedGradleModels, myCleanProjectAfterSync, myGenerateSourcesAfterSync, myLastSyncTimestamp);
     }
   }
 }

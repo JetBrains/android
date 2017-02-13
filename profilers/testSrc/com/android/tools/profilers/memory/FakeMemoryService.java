@@ -19,18 +19,25 @@ import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse.Status;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.google.protobuf3jarjar.ByteString;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   private Status myExplicitAllocationsStatus = null;
   private AllocationsInfo myExplicitAllocationsInfo = null;
   private TriggerHeapDumpResponse.Status myExplicitHeapDumpStatus = null;
   private HeapDumpInfo myExplicitHeapDumpInfo = null;
+  private DumpDataResponse.Status myExplicitDumpDataStatus = null;
+  private byte[] myExplicitSnapshotBuffer = null;
   private long myCurrentTime = 0;
   private MemoryData myMemoryData = null;
   private ListHeapDumpInfosResponse.Builder myHeapDumpInfoBuilder = ListHeapDumpInfosResponse.newBuilder();
+  private AllocationEventsResponse.Builder myAllocationEventsBuilder = AllocationEventsResponse.newBuilder();
+  private AllocationContextsResponse.Builder myAllocationContextBuilder = AllocationContextsResponse.newBuilder();
 
   private int myAppId;
 
@@ -38,7 +45,7 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   public void startMonitoringApp(MemoryProfiler.MemoryStartRequest request,
                                  StreamObserver<MemoryProfiler.MemoryStartResponse> responseObserver) {
 
-    myAppId = request.getAppId();
+    myAppId = request.getProcessId();
     responseObserver.onNext(MemoryProfiler.MemoryStartResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
@@ -46,12 +53,12 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   @Override
   public void stopMonitoringApp(MemoryProfiler.MemoryStopRequest request,
                                 StreamObserver<MemoryProfiler.MemoryStopResponse> responseObserver) {
-    myAppId = request.getAppId();
+    myAppId = request.getProcessId();
     responseObserver.onNext(MemoryProfiler.MemoryStopResponse.newBuilder().build());
     responseObserver.onCompleted();
   }
 
-  public int getAppId() {
+  public int getProcessId() {
     return myAppId;
   }
 
@@ -65,7 +72,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     if (myExplicitAllocationsInfo != null) {
       builder.setInfo(myExplicitAllocationsInfo);
     }
-    builder.setTimestamp(myCurrentTime);
     response.onNext(builder.build());
     response.onCompleted();
   }
@@ -78,10 +84,29 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
   }
 
   @Override
+  public void getHeapDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
+    DumpDataResponse.Builder response = DumpDataResponse.newBuilder();
+    if (myExplicitDumpDataStatus != null) {
+      response.setStatus(myExplicitDumpDataStatus);
+    }
+    if (myExplicitSnapshotBuffer != null) {
+      response.setData(ByteString.copyFrom(myExplicitSnapshotBuffer));
+    }
+    responseObserver.onNext(response.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getAllocationEvents(AllocationEventsRequest request,
+                                  StreamObserver<AllocationEventsResponse> responseObserver) {
+    responseObserver.onNext(myAllocationEventsBuilder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void listAllocationContexts(AllocationContextsRequest request,
                                      StreamObserver<AllocationContextsResponse> responseObserver) {
-    // TODO add test data.
-    responseObserver.onNext(AllocationContextsResponse.getDefaultInstance());
+    responseObserver.onNext(myAllocationContextBuilder.build());
     responseObserver.onCompleted();
   }
 
@@ -90,15 +115,6 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
                                 StreamObserver<MemoryProfiler.ListHeapDumpInfosResponse> response) {
     response.onNext(myHeapDumpInfoBuilder.build());
     response.onCompleted();
-  }
-
-  @Override
-  public void getAllocationsInfoStatus(GetAllocationsInfoStatusRequest request,
-                                       StreamObserver<GetAllocationsInfoStatusResponse> responseObserver) {
-    responseObserver.onNext(
-      GetAllocationsInfoStatusResponse.newBuilder().setInfoId(myExplicitAllocationsInfo.getInfoId())
-        .setStatus(myExplicitAllocationsInfo.getStatus()).build());
-    responseObserver.onCompleted();
   }
 
   @Override
@@ -127,21 +143,22 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
     return this;
   }
 
-  public FakeMemoryService setExplicitAllocationsInfo(int infoId, AllocationsInfo.Status infoStatus,
+  public FakeMemoryService setExplicitAllocationsInfo(AllocationsInfo.Status infoStatus,
                                                       long startTime, long endTime, boolean legacy) {
     myExplicitAllocationsInfo =
-      AllocationsInfo.newBuilder().setInfoId(infoId).setStatus(infoStatus).setStartTime(startTime).setEndTime(endTime)
-        .setLegacyTracking(legacy).build();
+      AllocationsInfo.newBuilder().setStatus(infoStatus).setStartTime(startTime).setEndTime(endTime)
+        .setLegacy(legacy).build();
     return this;
   }
+
 
   public FakeMemoryService setExplicitHeapDumpStatus(@Nullable TriggerHeapDumpResponse.Status status) {
     myExplicitHeapDumpStatus = status;
     return this;
   }
 
-  public FakeMemoryService setExplicitHeapDumpInfo(int dumpId, long startTime, long endTime) {
-    myExplicitHeapDumpInfo = HeapDumpInfo.newBuilder().setDumpId(dumpId).setStartTime(startTime).setEndTime(endTime).build();
+  public FakeMemoryService setExplicitHeapDumpInfo(long startTime, long endTime) {
+    myExplicitHeapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(startTime).setEndTime(endTime).build();
     return this;
   }
 
@@ -152,6 +169,35 @@ public class FakeMemoryService extends MemoryServiceGrpc.MemoryServiceImplBase {
 
   public FakeMemoryService addExplicitHeapDumpInfo(@NotNull HeapDumpInfo info) {
     myHeapDumpInfoBuilder.addInfos(info);
+    return this;
+  }
+
+  public FakeMemoryService setExplicitAllocationEvents(AllocationEventsResponse.Status status,
+                                                       @NotNull List<AllocationEvent> events) {
+    myAllocationEventsBuilder.setStatus(status);
+    myAllocationEventsBuilder.addAllEvents(events);
+    return this;
+  }
+
+  public FakeMemoryService addExplicitAllocationClass(int id, String name) {
+    myAllocationContextBuilder.addAllocatedClasses(AllocatedClass.newBuilder().setClassId(id).setClassName(name).build());
+    return this;
+  }
+
+  public FakeMemoryService addExplicitAllocationStack(String klass, String method, int line, ByteString stackId) {
+    myAllocationContextBuilder.addAllocationStacks(AllocationStack.newBuilder().setStackId(stackId).addStackFrames(
+      AllocationStack.StackFrame.newBuilder().setClassName(klass).setMethodName(method).setLineNumber(line).build()
+    ));
+    return this;
+  }
+
+  public FakeMemoryService setExplicitSnapshotBuffer(@NotNull byte[] bytes) {
+    myExplicitSnapshotBuffer = bytes;
+    return this;
+  }
+
+  public FakeMemoryService setExplicitDumpDataStatus(DumpDataResponse.Status status) {
+    myExplicitDumpDataStatus = status;
     return this;
   }
 }

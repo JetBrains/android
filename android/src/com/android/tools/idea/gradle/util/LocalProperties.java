@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
@@ -104,7 +105,7 @@ public final class LocalProperties {
   }
 
   public void setAndroidSdkPath(@NotNull String androidSdkPath) {
-    setAndroidSdkPath(new File(toSystemDependentName(androidSdkPath)));
+    setAndroidSdkPath(toSystemDependentPath(androidSdkPath));
   }
 
   public void setAndroidSdkPath(@NotNull File androidSdkPath) {
@@ -113,7 +114,7 @@ public final class LocalProperties {
   }
 
   public void setAndroidNdkPath(@NotNull String androidNdkPath) {
-    setAndroidNdkPath(new File(toSystemDependentName(androidNdkPath)));
+    setAndroidNdkPath(toSystemDependentPath(androidNdkPath));
   }
 
   public void setAndroidNdkPath(@Nullable File androidNdkPath) {
@@ -186,7 +187,7 @@ public final class LocalProperties {
           return new File(path);
         }
       }
-      return new File(toSystemDependentName(path));
+      return toSystemDependentPath(path);
     }
     return null;
   }

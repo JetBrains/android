@@ -1,0 +1,15 @@
+buildscript {
+    repositories {
+        // This will be populated by AndroidGradleTestCase
+    }
+    dependencies {
+        // This will be overwritten with the appropriate version in AndroidGradleTestCase
+        classpath 'com.android.tools.build:gradle:2.3.0-dev'
+    }
+}
+
+allprojects {
+    repositories {
+        // This will be populated by AndroidGradleTestCase
+    }
+}

@@ -73,9 +73,9 @@ class AttachedToolWindow<T> implements Disposable {
   private final JPanel myPanel;
   private final List<UpdatableActionButton> myActionButtons;
   private final AbstractButton myMinimizedButton;
-  private final ButtonDragListener<T> myDragListener;
   private final MySearchField mySearchField;
   private final ActionButton mySearchActionButton;
+  private ButtonDragListener<T> myDragListener;
 
   @Nullable
   private ToolContent<T> myContent;
@@ -108,6 +108,8 @@ class AttachedToolWindow<T> implements Disposable {
     if (myContent != null) {
       Disposer.dispose(myContent);
       myContent = null;
+      myDragListener = null;
+      myPanel.removeAll();
     }
   }
 
@@ -428,8 +430,13 @@ class AttachedToolWindow<T> implements Disposable {
       setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
       setFocusable(false);
       setRolloverEnabled(true);
-      setOpaque(true);
       setSelected(!toolWindow.isMinimized());
+
+      // This is needed on Linux otherwise the button shows
+      // the Metal L&F gradient even though opaque is false
+      setOpaque(false);
+      setBackground(null);
+
       MouseInputAdapter listener = new MouseInputAdapter() {
         @Override
         public void mouseDragged(@NotNull MouseEvent event) {

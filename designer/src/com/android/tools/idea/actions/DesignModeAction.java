@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.DesignSurface.ScreenMode;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface.ScreenMode;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import icons.AndroidIcons;
@@ -25,9 +25,9 @@ import icons.AndroidIcons;
  * Mode for toggling design mode
  */
 public class DesignModeAction extends AnAction {
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
 
-  public DesignModeAction(DesignSurface surface) {
+  public DesignModeAction(NlDesignSurface surface) {
     super(null, "Show Design", AndroidIcons.NeleIcons.DesignView);
     mySurface = surface;
   }

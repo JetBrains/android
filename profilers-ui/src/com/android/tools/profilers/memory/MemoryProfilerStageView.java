@@ -22,53 +22,41 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.common.LoadingPanel;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
-import com.intellij.openapi.util.IconLoader;
-import com.intellij.ui.components.JBLoadingPanel;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.PlatformIcons;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
-
-  @NotNull private final Icon myGcIcon =
-    IconLoader
-      .findIcon(UIUtil.isUnderDarcula() ? "/icons/garbage-event_dark.png" : "/icons/garbage-event.png", MemoryProfilerStageView.class);
-
-  @NotNull private final ExecutorService myExecutorService =
-    Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("profiler-memory-profiler-stage-view").build());
-
-  @NotNull private final MemoryCaptureView myCaptureView = new MemoryCaptureView(getStage());
+  @NotNull private final MemoryCaptureView myCaptureView = new MemoryCaptureView(getStage(), getIdeComponents());
   @NotNull private final MemoryHeapView myHeapView = new MemoryHeapView(getStage());
-  @NotNull private final MemoryClassView myClassView = new MemoryClassView(getStage());
+  @NotNull private final MemoryClassView myClassView = new MemoryClassView(getStage(), getIdeComponents());
   @NotNull private final MemoryClassGrouping myClassGrouping = new MemoryClassGrouping(getStage());
-  @NotNull private final MemoryInstanceView myInstanceView = new MemoryInstanceView(getStage());
-  @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage());
+  @NotNull private final MemoryInstanceView myInstanceView = new MemoryInstanceView(getStage(), getIdeComponents());
+  @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage(), getIdeComponents());
 
   @Nullable private CaptureObject myCaptureObject = null;
 
   @NotNull private final Splitter myMainSplitter = new Splitter(false);
   @NotNull private final Splitter myChartCaptureSplitter = new Splitter(true);
   @NotNull private final JPanel myCapturePanel;
-  private JBLoadingPanel myCaptureLoadingPanel;
+  @Nullable private LoadingPanel myCaptureLoadingPanel;
   @NotNull private final Splitter myInstanceDetailsSplitter = new Splitter(true);
 
   @NotNull private JButton myAllocationButton;
@@ -78,6 +66,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
     myCapturePanel = buildCaptureUi();
+    myInstanceDetailsSplitter.setOpaque(true);
     myInstanceDetailsSplitter.setFirstComponent(myInstanceView.getComponent());
     myInstanceDetailsSplitter.setSecondComponent(myInstanceDetailsView.getComponent());
     myMainSplitter.setFirstComponent(myChartCaptureSplitter);
@@ -87,6 +76,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     captureObjectChanged();
 
     myAllocationButton = new JButton("Record");
+    myAllocationButton.setToolTipText("Starts/stops recording of memory allocations");
     myAllocationButton
       .addActionListener(e -> getStage().trackAllocations(!getStage().isTrackingAllocations(), SwingUtilities::invokeLater));
 
@@ -100,7 +90,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   @Override
   public JComponent getToolbar() {
-
     JButton backButton = new JButton();
     backButton.addActionListener(action -> getStage().getStudioProfilers().setMonitoringStage());
     backButton.setIcon(AllIcons.Actions.Back);
@@ -108,11 +97,20 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     JToolBar toolBar = new JToolBar();
     toolBar.setFloatable(false);
     toolBar.add(backButton);
-    toolBar.add(myAllocationButton);
 
-    JButton triggerHeapDumpButton = new JButton("Heap Dump");
+    JButton forceGarbageCollectionButton = new JButton();
+    forceGarbageCollectionButton.setIcon(ProfilerIcons.FORCE_GARBAGE_COLLECTION);
+    forceGarbageCollectionButton.setToolTipText("Triggers a garbage collection event");
+    forceGarbageCollectionButton.addActionListener(e -> getStage().forceGarbageCollection(SwingUtilities::invokeLater));
+    toolBar.add(forceGarbageCollectionButton);
+
+    JButton triggerHeapDumpButton = new JButton();
+    triggerHeapDumpButton.setIcon(ProfilerIcons.HEAP_DUMP);
+    triggerHeapDumpButton.setToolTipText("Takes an Hprof snapshot of the application memory");
     triggerHeapDumpButton.addActionListener(e -> getStage().requestHeapDump(SwingUtilities::invokeLater));
     toolBar.add(triggerHeapDumpButton);
+
+    toolBar.add(myAllocationButton);
 
     return toolBar;
   }
@@ -184,6 +182,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
+    panel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     panel.setBackground(ProfilerColors.MONITOR_BACKGROUND);
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
@@ -210,15 +209,15 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     DetailedMemoryUsage memoryUsage = getStage().getDetailedMemoryUsage();
     final LineChart lineChart = new LineChart(memoryUsage);
-    lineChart.configure(memoryUsage.getJavaSeries(), new LineConfig(ProfilerColors.MEMORY_JAVA).setFilled(true).setStacked(true));
-    lineChart.configure(memoryUsage.getNativeSeries(), new LineConfig(ProfilerColors.MEMORY_NATIVE).setFilled(true).setStacked(true));
-    lineChart.configure(memoryUsage.getGraphicsSeries(), new LineConfig(ProfilerColors.MEMORY_GRAPHCIS).setFilled(true).setStacked(true));
-    lineChart.configure(memoryUsage.getStackSeries(), new LineConfig(ProfilerColors.MEMORY_STACK).setFilled(true).setStacked(true));
-    lineChart.configure(memoryUsage.getCodeSeries(), new LineConfig(ProfilerColors.MEMORY_CODE).setFilled(true).setStacked(true));
-    lineChart.configure(memoryUsage.getOtherSeries(), new LineConfig(ProfilerColors.MEMORY_OTHERS).setFilled(true).setStacked(true));
+    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_JAVA, memoryUsage.getJavaSeries());
+    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_NATIVE, memoryUsage.getNativeSeries());
+    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_GRAPHCIS, memoryUsage.getGraphicsSeries());
+    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_STACK, memoryUsage.getStackSeries());
+    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_CODE, memoryUsage.getCodeSeries());
+    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_OTHERS, memoryUsage.getOtherSeries());
     lineChart.configure(memoryUsage.getTotalMemorySeries(), new LineConfig(ProfilerColors.MEMORY_TOTAL));
-    lineChart
-      .configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS).setStroke(LineConfig.DEFAULT_DASH_STROKE));
+    lineChart.configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS)
+      .setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
 
     // TODO set proper colors / icons
     DurationDataRenderer<CaptureDurationData<HeapDumpCaptureObject>> heapDumpRenderer =
@@ -241,8 +240,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setClickHander(data -> getStage().selectCapture(data.getCaptureObject(), SwingUtilities::invokeLater))
         .build();
     DurationDataRenderer<GcDurationData> gcRenderer = new DurationDataRenderer.Builder<>(getStage().getGcCount(), Color.BLACK)
-      .setIcon(myGcIcon)
-      .setAttachLineSeries(memoryUsage.getObjectsSeries())
+      .setIcon(ProfilerIcons.GARBAGE_EVENT)
       .build();
 
     lineChart.addCustomRenderer(heapDumpRenderer);
@@ -279,7 +277,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     rightAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
     rightAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
 
-
     axisPanel.add(rightAxis, BorderLayout.EAST);
 
     MemoryProfilerStage.MemoryStageLegends legends = getStage().getLegends();
@@ -314,6 +311,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull
   private JPanel buildCaptureUi() {
     JPanel headingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+    headingPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+    headingPanel.add(myCaptureView.getExportButton());
     headingPanel.add(myCaptureView.getComponent());
 
     JToolBar toolBar = new JToolBar();
@@ -337,10 +336,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       return;
     }
 
-    myCaptureLoadingPanel = new JBLoadingPanel(new BorderLayout(), myCaptureObject);
+    myCaptureLoadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel();
     myCaptureLoadingPanel.setLoadingText("Fetching results");
     myCaptureLoadingPanel.startLoading();
-    myChartCaptureSplitter.setSecondComponent(myCaptureLoadingPanel);
+    myChartCaptureSplitter.setSecondComponent(myCaptureLoadingPanel.getComponent());
   }
 
   private void captureObjectFinishedLoading() {
@@ -360,6 +359,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myCaptureLoadingPanel.stopLoading();
     myCaptureLoadingPanel = null;
     myChartCaptureSplitter.setSecondComponent(null);
+  }
+
+  private static void configureStackedFilledLine(LineChart chart, Color color, RangedContinuousSeries series) {
+    chart.configure(series, new LineConfig(color).setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
   }
 
   /**

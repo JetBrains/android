@@ -49,12 +49,13 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
 import com.android.util.PropertiesMap;
 import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.*;
+import com.google.common.util.concurrent.Futures;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -101,6 +102,8 @@ import java.awt.dnd.InvalidDnDOperationException;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -129,7 +132,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final ConfigurationListener myConfigurationListener = new ConfigurationListener() {
     @Override
     public boolean changed(int flags) {
-      if ((flags & (CFG_DEVICE | CFG_DEVICE_STATE)) != 0 && !mySurface.isCanvasResizing()) {
+      if ((flags & (CFG_DEVICE | CFG_DEVICE_STATE)) != 0 && !mySurface.isLayoutDisabled()) {
         mySurface.zoom(ZoomType.FIT_INTO);
       }
 
@@ -160,6 +163,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private String myPreviousTheme;
   // Variable to track what triggered the latest render (if known)
   private ChangeType myModificationTrigger;
+  private long myElapsedFrameTimeMs = -1;
 
   @NotNull
   public static NlModel create(@NotNull DesignSurface surface,
@@ -182,7 +186,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       Disposer.register(parent, this);
     }
     myType = NlLayoutType.typeOf(file);
-    myProjectResourceRepository = ProjectResourceRepository.getProjectResources(myFacet, true);
+    myProjectResourceRepository = ProjectResourceRepository.getOrCreateInstance(myFacet);
 
     updateTrackingConfiguration();
   }
@@ -275,13 +279,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         DumbService.getInstance(myFacet.getModule().getProject()).waitForSmartMode();
         if (!myFacet.isDisposed()) {
           try {
-            if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() == null) {
-              // Try again later - model hasn't been synced yet (and for example we won't
-              // be able to resolve custom views coming from libraries like appcompat,
-              // resulting in a broken render)
-              ApplicationManager.getApplication().invokeLater(() -> requestModelUpdate());
-              return;
-            }
             updateModel();
           }
           catch (Throwable e) {
@@ -544,6 +541,17 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * <b>Do not call this method from the dispatch thread!</b>
    */
   public void render() {
+    try {
+      renderImpl();
+    }
+    catch (Throwable e) {
+      if (!myFacet.isDisposed()) {
+        throw e;
+      }
+    }
+  }
+
+  private void renderImpl() {
     if (myConfigurationModificationCount != myConfiguration.getModificationCount()) {
       // usage tracking (we only pay attention to individual changes where only one item is affected since those are likely to be triggered
       // by the user
@@ -572,7 +580,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
     synchronized (RENDERING_LOCK) {
       if (myRenderTask != null) {
-        RenderResult result = myRenderTask.render();
+        if (myElapsedFrameTimeMs != -1) {
+          myRenderTask.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(myElapsedFrameTimeMs));
+        }
+        RenderResult result = Futures.getUnchecked(myRenderTask.render());
         // When the layout was inflated in this same call, we do not have to update the hierarchy again
         if (!inflated) {
           updateHierarchy(result);
@@ -604,15 +615,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * method will be called.
    */
   public void requestRender() {
-    // This method will be removed once we only do direct rendering (see RenderTask.render(Graphics2D))
     // This update is low priority so the model updates take precedence
     getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
       @Override
       public void run() {
-        if (myFacet.isDisposed()) {
-          return;
-        }
-
         render();
       }
 
@@ -623,33 +629,38 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     });
   }
 
-  /**
-   * Request a layout pass
-   *
-   * @param animate if true, the resuting layout should be animated
-   */
-  public void requestLayout(boolean animate) {
-    if (myRenderTask != null) {
-      synchronized (RENDERING_LOCK) {
-        RenderResult result = myRenderTask.layout();
-        if (result != null) {
-          updateHierarchy(result);
-          notifyListenersModelLayoutComplete(animate);
-        }
-      }
-    }
+  public void setElapsedFrameTimeMs(long ms) {
+    myElapsedFrameTimeMs = ms;
   }
 
   /**
-   * Method that paints the current layout to the given {@link Graphics2D} object.
+   * Request a layout pass
+   *
+   * @param animate if true, the resulting layout should be animated
    */
-  @SuppressWarnings("unused")
-  public void paint(@NotNull Graphics2D graphics) {
-    synchronized (RENDERING_LOCK) {
-      if (myRenderTask != null) {
-        myRenderTask.render(graphics);
+  public void requestLayout(boolean animate) {
+    getRenderingQueue().queue(new Update("model.layout", LOW_PRIORITY) {
+
+      @Override
+      public void run() {
+        if (myRenderTask != null) {
+          synchronized (RENDERING_LOCK) {
+            RenderResult result = null;
+            try {
+              result = myRenderTask.layout().get();
+
+              if (result != null) {
+                updateHierarchy(result);
+                notifyListenersModelLayoutComplete(animate);
+              }
+            }
+            catch (InterruptedException | ExecutionException e) {
+              LOG.warn("Unable to run layout()", e);
+            }
+          }
+        }
       }
-    }
+    });
   }
 
   /**
@@ -1212,36 +1223,29 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       Object cookie = view.getCookie();
       NlComponent component = null;
       if (cookie != null) {
-        if (cookie instanceof MergeCookie) {
-          cookie = ((MergeCookie)cookie).getCookie();
-        }
         if (cookie instanceof TagSnapshot) {
           TagSnapshot snapshot = (TagSnapshot)cookie;
           component = mySnapshotToComponent.get(snapshot);
           if (component == null) {
             component = myTagToComponentMap.get(snapshot.tag);
-            if (component != null) {
-              component.setSnapshot(snapshot);
-              assert snapshot.tag != null;
-              component.setTag(snapshot.tag);
-            }
           }
-          else {
+
+          if (component != null) {
             component.setSnapshot(snapshot);
             assert snapshot.tag != null;
             component.setTag(snapshot.tag);
           }
         }
-      }
 
-      if (component != null) {
-        component.viewInfo = view;
-        int left = parentX + bounds.getLeft();
-        int top = parentY + bounds.getTop();
-        int width = bounds.getRight() - bounds.getLeft();
-        int height = bounds.getBottom() - bounds.getTop();
+        if (component != null) {
+          component.viewInfo = view;
+          int left = parentX + bounds.getLeft();
+          int top = parentY + bounds.getTop();
+          int width = bounds.getRight() - bounds.getLeft();
+          int height = bounds.getBottom() - bounds.getTop();
 
-        component.setBounds(left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE), Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
+          component.setBounds(left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE), Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
+        }
       }
 
       parentX += bounds.getLeft();
@@ -1259,45 +1263,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return (tag != null) ? findViewsByTag(tag) : null;
   }
 
-  /**
-   * Looks up the point at the given pixel coordinates in the Android screen coordinate system, and
-   * finds the leaf component there and returns it, if any. If the point is outside the screen bounds,
-   * it will either return null, or the root view if {@code useRootOutsideBounds} is set and there is
-   * precisely one parent.
-   *
-   * @param x                    the x pixel coordinate
-   * @param y                    the y pixel coordinate
-   * @param useRootOutsideBounds if true, return the root component when pointing outside the screen, otherwise null
-   * @return the leaf component at the coordinate
-   */
-  @Nullable
-  public NlComponent findLeafAt(@AndroidCoordinate int x, @AndroidCoordinate int y, boolean useRootOutsideBounds) {
-    // Search BACKWARDS such that if the children are painted on top of each
-    // other (as is the case in a FrameLayout) I pick the last one which will
-    // be topmost!
-    for (int i = myComponents.size() - 1; i >= 0; i--) {
-      NlComponent component = myComponents.get(i);
-      NlComponent leaf = component.findLeafAt(x, y);
-      if (leaf != null) {
-        return leaf;
-      }
-    }
-
-    if (useRootOutsideBounds) {
-      // If dragging outside of the screen, associate it with the
-      // root widget (if there is one, and at most one (e.g. not a <merge> tag)
-      List<NlComponent> components = myComponents;
-      if (components.size() == 1) {
-        return components.get(0);
-      }
-      else {
-        return null;
-      }
-    }
-
-    return null;
-  }
-
   @Nullable
   private NlComponent findViewByTag(@NotNull XmlTag tag) {
     // TODO: Consider using lookup map
@@ -1309,6 +1274,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
 
     return null;
+  }
+
+  @Nullable
+  public NlComponent find(@NotNull String id) {
+    return flattenComponents().filter(c -> id.equals(c.getId())).findFirst().orElse(null);
   }
 
   @Nullable
@@ -1475,40 +1445,16 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * <p/>
    * Note: This operation can only be called when the caller is already holding a write lock. This will be the
    * case from {@link ViewHandler} callbacks such as {@link ViewHandler#onCreate} and {@link DragHandler#commit}.
+   * <p/>
+   * Note: The caller is responsible for calling {@link #notifyModified(ChangeType)} if the creation completes successfully.
    *
-   * @param screenView The target screen, if known. Used to handle pixel to dp computations in view handlers, etc.
-   * @param fqcn       The fully qualified name of the widget to insert, such as {@code android.widget.LinearLayout}.
-   *                   You can also pass XML tags here (this is typically the same as the fully qualified class name
-   *                   of the custom view, but for Android framework views in the android.view or android.widget packages,
-   *                   you can omit the package.)
-   * @param parent     The optional parent to add this component to
+   * @param sceneView  The target screen, if known. Used to handle pixel to dp computations in view handlers, etc.
+   * @param tag        The XmlTag for the component.
+   * @param parent     The parent to add this component to.
    * @param before     The sibling to insert immediately before, or null to append
    * @param insertType The type of insertion
    */
-  public NlComponent createComponent(@Nullable ScreenView screenView,
-                                     @NotNull String fqcn,
-                                     @Nullable NlComponent parent,
-                                     @Nullable NlComponent before,
-                                     @NotNull InsertType insertType) {
-    String tagName = NlComponent.viewClassToTag(fqcn);
-
-    XmlTag tag;
-    if (parent != null) {
-      // Creating a component intended to be inserted into an existing layout
-      tag = parent.getTag().createChildTag(tagName, null, null, false);
-    }
-    else {
-      // Creating a component not yet inserted into a layout. Typically done when trying to perform
-      // a drag from palette, etc.
-      XmlElementFactory elementFactory = XmlElementFactory.getInstance(getProject());
-      String text = "<" + fqcn + " xmlns:android=\"http://schemas.android.com/apk/res/android\"/>"; // SIZES?
-      tag = elementFactory.createTagFromText(text);
-    }
-
-    return createComponent(screenView, tag, parent, before, insertType);
-  }
-
-  public NlComponent createComponent(@Nullable ScreenView screenView,
+  public NlComponent createComponent(@Nullable SceneView sceneView,
                                      @NotNull XmlTag tag,
                                      @Nullable NlComponent parent,
                                      @Nullable NlComponent before,
@@ -1550,9 +1496,12 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     // Notify view handlers
     ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(getProject());
     ViewHandler childHandler = viewHandlerManager.getHandler(child);
-    if (childHandler != null && screenView != null) {
-      ViewEditor editor = new ViewEditorImpl(screenView);
+    if (childHandler != null && sceneView != null) {
+      ViewEditor editor = new ViewEditorImpl(sceneView);
       boolean ok = childHandler.onCreate(editor, parent, child, insertType);
+      if (parent != null) {
+        ok &= addDependencies(ImmutableList.of(child), InsertType.CREATE);
+      }
       if (!ok) {
         if (parent != null) {
           parent.removeChild(child);
@@ -1824,13 +1773,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @Nullable
-  public List<NlComponent> createComponents(@NotNull ScreenView screenView,
+  public List<NlComponent> createComponents(@NotNull SceneView sceneView,
                                             @NotNull DnDTransferItem item,
                                             @NotNull InsertType insertType) {
     List<NlComponent> components = new ArrayList<>(item.getComponents().size());
     for (DnDTransferComponent dndComponent : item.getComponents()) {
-      XmlTag tag = createTag(screenView.getModel().getProject(), dndComponent.getRepresentation());
-      NlComponent component = createComponent(screenView, tag, null, null, insertType);
+      XmlTag tag = createTag(sceneView.getModel().getProject(), dndComponent.getRepresentation());
+      NlComponent component = createComponent(sceneView, tag, null, null, insertType);
       if (component == null) {
         return null;  // User may have cancelled
       }

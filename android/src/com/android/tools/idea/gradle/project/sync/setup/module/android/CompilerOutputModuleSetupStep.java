@@ -20,7 +20,7 @@ import com.android.builder.model.Variant;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.SyncAction;
+import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.CompilerSettingsSetup;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
@@ -64,6 +64,12 @@ public class CompilerOutputModuleSetupStep extends AndroidModuleSetupStep {
 
   @Override
   public boolean invokeOnBuildVariantChange() {
+    return true;
+  }
+
+  @Override
+  public boolean invokeOnSkippedSync() {
+    // See bug http://b.android.com/233410
     return true;
   }
 }

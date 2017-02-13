@@ -15,46 +15,168 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.tools.idea.actions.EditMultipleSourcesAction;
+import com.android.tools.idea.actions.PsiClassNavigation;
+import com.android.tools.idea.profilers.stacktrace.IntelliJStackTraceView;
 import com.android.tools.profilers.IdeProfilerComponents;
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.fileEditor.FileEditorProvider;
-import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
+import com.android.tools.profilers.common.*;
+import com.intellij.icons.AllIcons;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ArrayUtil;
+import com.intellij.ui.PopupHandler;
+import com.intellij.ui.components.JBLoadingPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class IntellijProfilerComponents implements IdeProfilerComponents {
+  private static final String COMPONENT_CONTEXT_MENU = "ComponentContextMenu";
 
-  @Nullable
+  @NotNull
   private Project myProject;
 
-  public IntellijProfilerComponents(@Nullable Project project) {
+  public IntellijProfilerComponents(@NotNull Project project) {
     myProject = project;
   }
 
-  @Nullable
+  @NotNull
   @Override
-  public JComponent getFileViewer(@Nullable File file) {
-    VirtualFile virtualFile = file != null ? LocalFileSystem.getInstance().findFileByIoFile(file) : null;
-    return getFileViewer(virtualFile, FileEditorProviderManager.getInstance(), myProject);
+  public LoadingPanel createLoadingPanel() {
+    return new LoadingPanel() {
+      private JBLoadingPanel myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myProject);
+
+      @NotNull
+      @Override
+      public JComponent getComponent() {
+        return myLoadingPanel;
+      }
+
+      @Override
+      public void setLoadingText(@NotNull String loadingText) {
+        myLoadingPanel.setLoadingText(loadingText);
+      }
+
+      @Override
+      public void startLoading() {
+        myLoadingPanel.startLoading();
+      }
+
+      @Override
+      public void stopLoading() {
+        myLoadingPanel.stopLoading();
+      }
+    };
   }
 
-  @Nullable
-  @VisibleForTesting
-  static JComponent getFileViewer(@Nullable VirtualFile virtualFile,
-                                  @NotNull FileEditorProviderManager fileEditorProviderManager,
-                                  @Nullable Project project) {
-    if (project != null && virtualFile != null) {
-      // TODO: Investigate providers are empty when file download is not finished.
-      FileEditorProvider editorProvider = ArrayUtil.getFirstElement(fileEditorProviderManager.getProviders(project, virtualFile));
-      return editorProvider != null ? editorProvider.createEditor(project, virtualFile).getComponent() : null;
+  @NotNull
+  @Override
+  public TabsPanel createTabsPanel() {
+    return new IntellijTabsPanel(myProject);
+  }
+
+  @NotNull
+  @Override
+  public StackTraceView createStackView(@NotNull StackTraceModel model) {
+    return new IntelliJStackTraceView(myProject, model);
+  }
+
+  @Override
+  public void installNavigationContextMenu(@NotNull JComponent component,
+                                           @NotNull Supplier<CodeLocation> codeLocationSupplier,
+                                           @Nullable Runnable navigationCallback) {
+    component.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, (DataProvider)dataId -> {
+      if (CommonDataKeys.NAVIGATABLE_ARRAY.is(dataId)) {
+        CodeLocation location = codeLocationSupplier.get();
+        if (location == null) {
+          return null;
+        }
+
+        if (location.getLineNumber() > 0) {
+          return PsiClassNavigation.getNavigationForClass(myProject, location.getClassName(), location.getLineNumber());
+        }
+        else {
+          return PsiClassNavigation.getNavigationForClass(myProject, location.getClassName());
+        }
+      }
+      else if (CommonDataKeys.PROJECT.is(dataId)) {
+        return myProject;
+      }
+      return null;
+    });
+
+    DefaultActionGroup popupGroup = createOrGetActionGroup(component);
+    popupGroup.add(new EditMultipleSourcesAction(navigationCallback));
+  }
+
+  @Override
+  public void installContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem) {
+    DefaultActionGroup popupGroup = createOrGetActionGroup(component);
+    popupGroup.add(new AnAction(null, null, contextMenuItem.getIcon()) {
+      @Override
+      public void update(AnActionEvent e) {
+        super.update(e);
+
+        Presentation presentation = e.getPresentation();
+        presentation.setText(contextMenuItem.getText());
+        presentation.setEnabled(contextMenuItem.isEnabled());
+      }
+
+      @Override
+      public void actionPerformed(AnActionEvent e) {
+        contextMenuItem.run();
+      }
+    });
+  }
+
+  @NotNull
+  @Override
+  public JButton createExportButton(@Nullable String buttonText,
+                                    @Nullable String tooltip,
+                                    @NotNull Supplier<String> dialogTitleSupplier,
+                                    @NotNull Supplier<String> extensionSupplier,
+                                    @NotNull Consumer<File> saveToFile) {
+    JButton button = new JButton(buttonText, AllIcons.Actions.Export);
+    button.setToolTipText(tooltip);
+    button.addActionListener(e -> ApplicationManager.getApplication().invokeLater(() -> {
+      String extension = extensionSupplier.get();
+      if (extension != null) {
+        ExportDialog dialog = new ExportDialog(myProject, dialogTitleSupplier.get(), extension);
+        if (dialog.showAndGet()) {
+          saveToFile.accept(dialog.getFile());
+        }
+      }
+    }));
+    return button;
+  }
+
+  @NotNull
+  private DefaultActionGroup createOrGetActionGroup(@NotNull JComponent component) {
+    DefaultActionGroup actionGroup = (DefaultActionGroup)component.getClientProperty(COMPONENT_CONTEXT_MENU);
+    if (actionGroup == null) {
+      final DefaultActionGroup newActionGroup = new DefaultActionGroup();
+      component.putClientProperty(COMPONENT_CONTEXT_MENU, newActionGroup);
+      component.addMouseListener(new PopupHandler() {
+        @Override
+        public void invokePopup(Component comp, int x, int y) {
+          ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UNKNOWN, newActionGroup).getComponent().show(comp, x, y);
+        }
+      });
+      actionGroup = newActionGroup;
     }
-    return null;
+
+    return actionGroup;
+  }
+
+  @NotNull
+  @Override
+  public FileViewer createFileViewer(@NotNull File file) {
+    return new IntellijFileViewer(file);
   }
 }

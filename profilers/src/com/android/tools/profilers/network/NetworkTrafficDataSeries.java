@@ -18,6 +18,7 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.intellij.util.containers.ContainerUtil;
@@ -36,13 +37,13 @@ import java.util.concurrent.TimeUnit;
  */
 public class NetworkTrafficDataSeries implements DataSeries<Long> {
   public enum Type {
-    BYTES_RECEIVED("Receiving") {
+    BYTES_RECEIVED("Receiving", "Received") {
       @Override
       long getBytes(@NotNull NetworkProfiler.SpeedData data) {
         return data.getReceived();
       }
     },
-    BYTES_SENT("Sending") {
+    BYTES_SENT("Sending", "Sent") {
       @Override
       long getBytes(@NotNull NetworkProfiler.SpeedData data) {
         return data.getSent();
@@ -50,14 +51,16 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
     };
 
     private final String myLabel;
+    private final String myTooltipLabel;
 
-    Type(String label) {
+    Type(String label, String tooltipLabel) {
       myLabel = label;
+      myTooltipLabel = tooltipLabel;
     }
 
     @NotNull
-    public String getLabel() {
-      return myLabel;
+    public String getLabel(boolean tooltip) {
+      return tooltip ? myTooltipLabel : myLabel;
     }
 
     abstract long getBytes(@NotNull NetworkProfiler.SpeedData data);
@@ -66,11 +69,13 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
   @NotNull
   private NetworkServiceGrpc.NetworkServiceBlockingStub myClient;
   private final int myProcessId;
+  private final Common.Session mySession;
   private final Type myType;
 
-  public NetworkTrafficDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int id, Type type) {
+  public NetworkTrafficDataSeries(@NotNull NetworkServiceGrpc.NetworkServiceBlockingStub client, int id, Common.Session session, Type type) {
     myClient = client;
     myProcessId = id;
+    mySession = session;
     myType = type;
   }
 
@@ -81,7 +86,8 @@ public class NetworkTrafficDataSeries implements DataSeries<Long> {
     // TODO: Change the Network API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
-      .setAppId(myProcessId)
+      .setProcessId(myProcessId)
+      .setSession(mySession)
       .setType(NetworkProfiler.NetworkDataRequest.Type.SPEED)
       .setStartTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMin()) - bufferNs)
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()) + bufferNs);

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.startup;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
@@ -29,6 +30,7 @@ import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.lang.injection.MultiHostInjector;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
@@ -55,6 +57,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.EXT_JAR;
 import static com.android.tools.idea.gradle.util.AndroidStudioPreferences.cleanUpPreferences;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.startup.Actions.hideAction;
 import static com.android.tools.idea.startup.Actions.replaceAction;
 import static com.intellij.openapi.actionSystem.IdeActions.*;
@@ -111,6 +114,8 @@ public class AndroidStudioInitializer implements Runnable {
    */
   private static void setupAnalytics() {
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
+    ApplicationInfo application = ApplicationInfo.getInstance();
+    UsageTracker.getInstance().setVersion(application.getStrictVersion());
   }
 
   private static void checkInstallation() {
@@ -119,7 +124,7 @@ public class AndroidStudioInitializer implements Runnable {
       LOG.info("Unable to find Studio home directory");
       return;
     }
-    File studioHomePath = new File(toSystemDependentName(studioHome));
+    File studioHomePath = toSystemDependentPath(studioHome);
     if (!studioHomePath.isDirectory()) {
       LOG.info(String.format("The path '%1$s' does not belong to an existing directory", studioHomePath.getPath()));
       return;

@@ -15,13 +15,19 @@
  */
 package com.android.tools.datastore;
 
-import com.android.tools.datastore.poller.EventDataPoller;
+import com.android.tools.datastore.poller.PollRunner;
+import com.intellij.openapi.application.PathManager;
+import com.intellij.util.Function;
 import io.grpc.BindableService;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import org.junit.rules.ExternalResource;
+
+import java.io.File;
+import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * JUnit rule for creating a test instance of {@link StudioProfilers} connected over a light,
@@ -31,43 +37,55 @@ import org.junit.rules.ExternalResource;
  * Within a test, use {@link #get()} to fetch a valid {@link StudioProfilers} instance.
  */
 public final class TestGrpcService<S extends BindableService> extends ExternalResource {
-  private static final String GRPC_NAME = "Test";
+  public interface BeforeTick { void apply(); }
+  private String myGrpcName;
   private final S myService;
   private final BindableService mySecondaryService;
   private Server myServer;
+  private ServicePassThrough myDataStoreService;
+  private File myTestFile;
+  private DataStoreDatabase myDatabase;
 
-  public TestGrpcService(S service) {
-    this(service, null);
+  public TestGrpcService(ServicePassThrough dataStoreService, S service) {
+    this(dataStoreService, service, null);
   }
 
-  public TestGrpcService(S service, BindableService secondaryService) {
+  public TestGrpcService(ServicePassThrough dataStoreService, S service, BindableService secondaryService) {
     myService = service;
     mySecondaryService = secondaryService;
+    myDataStoreService = dataStoreService;
   }
 
   @Override
   protected void before() throws Throwable {
-    InProcessServerBuilder builder = InProcessServerBuilder.forName(GRPC_NAME);
+    myGrpcName = UUID.randomUUID().toString();
+    InProcessServerBuilder builder = InProcessServerBuilder.forName(myGrpcName);
     builder.addService(myService);
     if (mySecondaryService != null) {
       builder.addService(mySecondaryService);
     }
     myServer = builder.build();
     myServer.start();
+    // TODO: Update to work on windows. PathUtil.getTempPath() fails with bazel
+    myTestFile = new File("/tmp/datastoredb");
+    myDatabase = new DataStoreDatabase(myTestFile.getAbsolutePath());
+    myDatabase.registerTable(myDataStoreService.getDatastoreTable());
   }
 
   @Override
   protected void after() {
     myServer.shutdownNow();
+    myDatabase.disconnect();
+    myTestFile.delete();
+  }
+
+  public void shutdownServer() {
+    myServer.shutdownNow();
   }
 
   public ManagedChannel getChannel() {
-    return InProcessChannelBuilder.forName(GRPC_NAME)
+    return InProcessChannelBuilder.forName(myGrpcName)
       .usePlaintext(true)
       .build();
-  }
-
-  public S getService() {
-    return myService;
   }
 }

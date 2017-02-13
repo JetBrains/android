@@ -76,6 +76,19 @@ public class EmbeddedDistributionPaths {
     return repoPaths;
   }
 
+  @NotNull
+  public File findEmbeddedProfilerTransform() {
+
+    File file = new File(PathManager.getHomePath(), "plugins/android/resources/profilers-transform.jar");
+    if (file.exists()) {
+      return file;
+    }
+
+    // Development build
+    String relativePath = toSystemDependentName("/../../out/studio/transform/libs/profilers-transform.jar");
+    return new File(PathManager.getHomePath() + relativePath);
+  }
+
   @Nullable
   public File findEmbeddedGradleDistributionPath() {
     File distributionPath = getDefaultRootDirPath();

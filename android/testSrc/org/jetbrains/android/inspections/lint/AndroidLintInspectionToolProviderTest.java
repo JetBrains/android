@@ -200,9 +200,10 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
         String detectorName = getDetectorClass(issue).getSimpleName();
         String issueName = getIssueFieldName(issue);
         String messageKey = getMessageKey(issue);
+        int year = Calendar.getInstance().get(Calendar.YEAR);
         //noinspection StringConcatenationInsideStringBufferAppend
         sb.append("/*\n" +
-                  " * Copyright (C) 2016 The Android Open Source Project\n" +
+                  " * Copyright (C) " + year + " The Android Open Source Project\n" +
                   " *\n" +
                   " * Licensed under the Apache License, Version 2.0 (the \"License\");\n" +
                   " * you may not use this file except in compliance with the License.\n" +

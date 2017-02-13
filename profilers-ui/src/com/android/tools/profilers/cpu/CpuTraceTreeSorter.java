@@ -27,14 +27,14 @@ public class CpuTraceTreeSorter implements ColumnTreeBuilder.TreeSorter<DefaultM
 
   @NotNull private JTree myTree;
   private DefaultMutableTreeNode myRoot;
-  private TopDownTreeModel myModel;
+  private CpuTreeModel myModel;
   private Comparator<DefaultMutableTreeNode> myComparator;
 
   public CpuTraceTreeSorter(@NotNull JTree tree) {
     myTree = tree;
   }
 
-  public void setModel(TopDownTreeModel model, Comparator<DefaultMutableTreeNode> sorting) {
+  public void setModel(CpuTreeModel model, Comparator<DefaultMutableTreeNode> sorting) {
     myModel = model;
     if (myModel != null) {
       myRoot = (DefaultMutableTreeNode)model.getRoot();

@@ -20,7 +20,7 @@ import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
 import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.CopyProvider;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
@@ -43,7 +43,7 @@ public class NlPalettePanelTest extends AndroidTestCase {
     super.setUp();
     Configuration configuration = mock(Configuration.class);
     when(configuration.getModule()).thenReturn(myModule);
-    DesignSurface surface = mock(DesignSurface.class);
+    NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getLayoutType()).thenReturn(NlLayoutType.LAYOUT);
     when(surface.getConfiguration()).thenReturn(configuration);
     myCopyPasteManager = mock(CopyPasteManager.class);

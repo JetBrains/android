@@ -16,7 +16,7 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.chart.StateChart;
+import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
 import com.intellij.ui.JBColor;
@@ -57,7 +57,7 @@ public class StateChartReducerVisualTest extends VisualTest {
     myViewRange = new Range(0, 0);
     myData = new DefaultDataSeries<>();
     RangedSeries<ColorState> series = new RangedSeries<>(myViewRange, myData);
-    StateChartModel<ColorState> model = new StateChartModel();
+    StateChartModel<ColorState> model = new StateChartModel<>();
     myColorChart = new StateChart<>(model, COLOR_STATE_COLORS, (rectangles, values) -> {});
     model.addSeries(series);
 
@@ -122,21 +122,6 @@ public class StateChartReducerVisualTest extends VisualTest {
     chartPane.add(new JPanel(), gbc);
 
     final JPanel controls = VisualTest.createControlledPane(panel, chartPane);
-    controls.add(VisualTest.createVariableSlider("ArcWidth", 0, 100, new VisualTests.ValueAdapter() {
-      @Override
-      protected void onSet(int v) {
-        myColorChart.setArcWidth(v / 100f);
-        myOptimizedColorChart.setArcWidth(v / 100f);
-      }
-    }));
-
-    controls.add(VisualTest.createVariableSlider("ArcHeight", 0, 100, new VisualTests.ValueAdapter() {
-      @Override
-      protected void onSet(int v) {
-        myColorChart.setArcHeight(v / 100f);
-        myOptimizedColorChart.setArcHeight(v / 100f);
-      }
-    }));
 
     controls.add(VisualTest.createVariableSlider("Sample Size", 0, 10000, new VisualTests.ValueAdapter() {
       @Override

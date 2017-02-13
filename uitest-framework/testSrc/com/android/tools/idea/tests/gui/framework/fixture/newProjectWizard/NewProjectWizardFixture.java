@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
 import com.android.tools.idea.npw.TemplateEntry;
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.ASGallery;
@@ -54,8 +55,13 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
   public NewProjectWizardFixture chooseActivity(@NotNull String activity) {
     JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
     listFixture.replaceCellReader((jList, index) -> {
-      TemplateEntry templateEntry = ((Optional<TemplateEntry>) jList.getModel().getElementAt(index)).orElse(null);
-      return templateEntry == null ? "none" : templateEntry.getTitle();
+      Object listItem = jList.getModel().getElementAt(index);
+      if (listItem instanceof Optional) {
+        // Old dynamic wizard code
+        TemplateEntry templateEntry = ((Optional<TemplateEntry>)jList.getModel().getElementAt(index)).orElse(null);
+        return templateEntry == null ? "none" : templateEntry.getTitle();
+      }
+      return String.valueOf(listItem);
     });
     listFixture.clickItem(activity);
     return this;
@@ -63,7 +69,7 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
 
   @NotNull
   public ChooseOptionsForNewFileStepFixture getChooseOptionsForNewFileStep() {
-    JRootPane rootPane = findStepWithTitle(Boolean.getBoolean("use.npw.modelwizard") ? "Configure Activity" : "Customize the Activity");
+    JRootPane rootPane = findStepWithTitle(WizardUtils.isNpwModelWizardEnabled() ? "Configure Activity" : "Customize the Activity");
     return new ChooseOptionsForNewFileStepFixture(robot(), rootPane);
   }
 

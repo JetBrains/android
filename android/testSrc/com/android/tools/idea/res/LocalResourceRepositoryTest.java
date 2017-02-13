@@ -31,7 +31,7 @@ public class LocalResourceRepositoryTest extends AndroidTestCase {
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout1.xml");
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout2.xml");
 
-    LocalResourceRepository resources = ModuleResourceRepository.getModuleResources(myModule, true);
+    LocalResourceRepository resources = ModuleResourceRepository.getOrCreateInstance(myModule);
     assertNotNull(resources);
 
     Collection<String> layouts = resources.getItemsOfType(ResourceType.LAYOUT);
@@ -60,12 +60,7 @@ public class LocalResourceRepositoryTest extends AndroidTestCase {
     assertEquals(1, drawables.size());
     assertEquals("foo", drawables.iterator().next());
 
-    WriteCommandAction.runWriteCommandAction(null, new Runnable() {
-      @Override
-      public void run() {
-        psiFile4.delete();
-      }
-    });
+    WriteCommandAction.runWriteCommandAction(null, psiFile4::delete);
     drawables = resources.getItemsOfType(ResourceType.DRAWABLE);
     assertEquals(0, drawables.size());
 

@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.Nullable;
-import com.android.ide.common.rendering.RenderSecurityException;
 import com.android.tools.idea.rendering.webp.WebpNativeLibHelper;
 import com.android.utils.ILogger;
 

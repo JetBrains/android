@@ -17,8 +17,9 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.Legend;
+import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +41,12 @@ public class LegendComponent extends AnimatedComponent {
   }
 
   private static final BasicStroke LINE_STROKE = new BasicStroke(3);
+  private static final BasicStroke DASH_STROKE = new BasicStroke(2.0f,
+                                                                 BasicStroke.CAP_BUTT,
+                                                                 BasicStroke.JOIN_BEVEL,
+                                                                 10.0f,  // Miter limit, Swing's default
+                                                                 new float[]{4.0f, 2.0f},  // Dash pattern in pixel
+                                                                 0.0f);  // Dash phase - just starts at zero.)
   private static final BasicStroke BORDER_STROKE = new BasicStroke(1);
 
   /**
@@ -53,20 +60,21 @@ public class LegendComponent extends AnimatedComponent {
   private static final int ICON_MARGIN_PX = 5;
 
   /**
-   * Vertical space, in pixels, between the legend and the border of the parent component
-   * or the next/previous vertical legend.
+   * Vertical space, in pixels, between the legend and the border.
    */
-  private static final int LEGEND_VERTICAL_PADDING_PX = 5;
+  private static final int DEFAULT_VERTICAL_PADDING_PX = 5;
+
+  /**
+   * Vertical space, in pixels, between legends.
+   */
+  private static final int LEGEND_VERTICAL_GAP = 10;
 
   /**
    * Distance, in pixels, between legends.
    */
-  private int LEGEND_MARGIN_PX = 10;
+  private static int LEGEND_MARGIN_PX = 10;
 
-  /**
-   * Min width of the label so that the legends don't shuffle around as the magnitude of the data changes.
-   */
-  private static final int LABEL_MIN_WIDTH_PX = 100;
+  private final int myVerticalPadding;
 
   private LegendComponentModel myModel;
 
@@ -87,13 +95,19 @@ public class LegendComponent extends AnimatedComponent {
    * @param orientation     Determines if we want the labels to be stacked horizontally or vertically
    * @param frequencyMillis How frequently the labels get updated
    */
-  public LegendComponent(LegendComponentModel model) {
+  public LegendComponent(LegendComponentModel model, int verticalPadding) {
     myModel = model;
     myConfigs = new HashMap<>();
     myOrientation = Orientation.HORIZONTAL;
+    myVerticalPadding = verticalPadding;
     myModel.addDependency(myAspectObserver)
       .onChange(LegendComponentModel.Aspect.LEGEND, this::modelChanged);
+    setFont(AdtUiUtils.DEFAULT_FONT);
     modelChanged();
+  }
+
+  public LegendComponent(LegendComponentModel model) {
+    this(model, DEFAULT_VERTICAL_PADDING_PX);
   }
 
   public void configure(Legend legend, LegendConfig config) {
@@ -104,7 +118,7 @@ public class LegendComponent extends AnimatedComponent {
     int labels = myModel.getValues().size();
     for (int i = myLabelsToDraw.size(); i < labels; i++) {
       JBLabel label = new JBLabel();
-      label.setFont(AdtUiUtils.DEFAULT_FONT);
+      label.setFont(getFont());
       myLabelsToDraw.add(label);
     }
     if (myLabelsToDraw.size() > labels) {
@@ -117,21 +131,24 @@ public class LegendComponent extends AnimatedComponent {
       Legend legend = myModel.getLegends().get(i);
       String text = legend.getName();
       String value = legend.getValue();
+      if (!text.isEmpty() && StringUtil.isNotEmpty(value)) {
+        text += ": ";
+      }
       if (value != null) {
-        text += ": " + value;
+        text += value;
       }
       label.setText(text);
 
       Dimension preferredSize = label.getPreferredSize();
-      if (preferredSize.getWidth() < LABEL_MIN_WIDTH_PX) {
-        preferredSize.width = LABEL_MIN_WIDTH_PX;
-        label.setPreferredSize(preferredSize);
-      }
       label.setBounds(0, 0, preferredSize.width, preferredSize.height);
     }
     if (oldSize != getPreferredSize()) {
       revalidate();
     }
+  }
+
+  public void setOrientation(@NotNull Orientation orientation) {
+    myOrientation = orientation;
   }
 
   @Override
@@ -146,44 +163,50 @@ public class LegendComponent extends AnimatedComponent {
       int xOffset = 0;
 
       // Draw the icon, and apply a translation offset for the label to be drawn.
-      // TODO: Add config for LegendRenderData.IconType.DOTTED_LINE once we support dashed lines.
-      if (config.getIcon() == LegendConfig.IconType.BOX) {
-        // Adjust the box initial Y coordinate to align the box and the label vertically.
-        int boxY = LEGEND_VERTICAL_PADDING_PX + (labelPreferredSize.height - ICON_WIDTH_PX) / 2;
-        Color fillColor = config.getColor();
-        g2d.setColor(fillColor);
-        g2d.fillRect(0, boxY, ICON_WIDTH_PX, ICON_WIDTH_PX);
+      switch (config.getIcon()) {
+        case BOX:
+          // Adjust the box initial Y coordinate to align the box and the label vertically.
+          int boxY = myVerticalPadding + (labelPreferredSize.height - ICON_WIDTH_PX) / 2;
+          Color fillColor = config.getColor();
+          g2d.setColor(fillColor);
+          g2d.fillRect(0, boxY, ICON_WIDTH_PX, ICON_WIDTH_PX);
 
-        int r = (int)(fillColor.getRed() * .8f);
-        int g = (int)(fillColor.getGreen() * .8f);
-        int b = (int)(fillColor.getBlue() * .8f);
+          int r = (int)(fillColor.getRed() * .8f);
+          int g = (int)(fillColor.getGreen() * .8f);
+          int b = (int)(fillColor.getBlue() * .8f);
 
-        Color borderColor = new Color(r,g,b);
-        g2d.setColor(borderColor);
-        g2d.setStroke(BORDER_STROKE);
-        g2d.drawRect(0, boxY, ICON_WIDTH_PX, ICON_WIDTH_PX);
-        g2d.setStroke(defaultStroke);
+          Color borderColor = new Color(r, g, b);
+          g2d.setColor(borderColor);
+          g2d.setStroke(BORDER_STROKE);
+          g2d.drawRect(0, boxY, ICON_WIDTH_PX, ICON_WIDTH_PX);
+          g2d.setStroke(defaultStroke);
 
-        xOffset = ICON_WIDTH_PX + ICON_MARGIN_PX;
+          xOffset = ICON_WIDTH_PX + ICON_MARGIN_PX;
+          break;
+        case LINE:
+        case DASHED_LINE:
+          g2d.setColor(config.getColor());
+          g2d.setStroke(config.getIcon() == LegendConfig.IconType.LINE ? LINE_STROKE : DASH_STROKE);
+          int lineY = myVerticalPadding + labelPreferredSize.height / 2;
+          g2d.drawLine(xOffset, lineY, ICON_WIDTH_PX, lineY);
+          g2d.setStroke(defaultStroke);
+          xOffset = ICON_WIDTH_PX + ICON_MARGIN_PX;
+          break;
+        default:
+          break;
       }
-      else if (config.getIcon() == LegendConfig.IconType.LINE) {
-        g2d.setColor(config.getColor());
-        g2d.setStroke(LINE_STROKE);
-        int lineY = LEGEND_VERTICAL_PADDING_PX + labelPreferredSize.height / 2;
-        g2d.drawLine(xOffset, lineY, ICON_WIDTH_PX, lineY);
-        g2d.setStroke(defaultStroke);
-        xOffset = ICON_WIDTH_PX + ICON_MARGIN_PX;
-      }
-      g2d.translate(xOffset, LEGEND_VERTICAL_PADDING_PX);
+
+      g2d.translate(xOffset, myVerticalPadding);
+      label.setSize(labelPreferredSize);
+      // TODO: use a string instead of a label and call g2d.drawString instead.
       label.paint(g2d);
-
 
       // Translate the draw position for the next set of labels.
       if (myOrientation == Orientation.HORIZONTAL) {
-        g2d.translate(labelPreferredSize.width + LEGEND_MARGIN_PX, -LEGEND_VERTICAL_PADDING_PX);
+        g2d.translate(labelPreferredSize.width + LEGEND_MARGIN_PX, -myVerticalPadding);
       }
       else if (myOrientation == Orientation.VERTICAL) {
-        g2d.translate(-xOffset, labelPreferredSize.height + LEGEND_VERTICAL_PADDING_PX);
+        g2d.translate(-xOffset, -myVerticalPadding + labelPreferredSize.height + LEGEND_VERTICAL_GAP);
       }
     }
   }
@@ -213,18 +236,16 @@ public class LegendComponent extends AnimatedComponent {
         }
       }
       else if (myOrientation == Orientation.VERTICAL) {
-        totalHeight += iconPaddedSize;
+        totalHeight += size.height;
         if (totalWidth < size.width + iconPaddedSize) {
           totalWidth = size.width + iconPaddedSize;
         }
       }
     }
-    int heightPadding = 2 * LEGEND_VERTICAL_PADDING_PX;
-    // In the case of vertical legends, we have vertical padding for all the legends
     if (myOrientation == Orientation.VERTICAL) {
-      heightPadding *= myModel.getLegends().size();
+      totalHeight += (myLabelsToDraw.size() - 1) * LEGEND_VERTICAL_GAP;
     }
-    return new Dimension(totalWidth, totalHeight + heightPadding);
+    return new Dimension(totalWidth, totalHeight + 2 * myVerticalPadding);
   }
 
   @Override

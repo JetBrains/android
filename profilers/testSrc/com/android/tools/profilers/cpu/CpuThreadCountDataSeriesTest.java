@@ -17,7 +17,9 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.ProfilersTestData;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,7 +39,7 @@ public class CpuThreadCountDataSeriesTest {
 
   @Before
   public void setUp() {
-    myDataSeries = new CpuThreadCountDataSeries(myGrpcChannel.getClient().getCpuClient(), 1);
+    myDataSeries = new CpuThreadCountDataSeries(myGrpcChannel.getClient().getCpuClient(), 1, ProfilersTestData.SESSION_DATA);
   }
 
   @Test

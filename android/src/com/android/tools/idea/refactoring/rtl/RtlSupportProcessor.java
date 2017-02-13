@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.refactoring.rtl;
 
-import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.collect.Maps;
@@ -41,6 +40,8 @@ import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.facet.ResourceFolderManager;
+import org.jetbrains.android.resourceManagers.LocalResourceManager;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -239,11 +240,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
   }
 
   private static String quote(String str) {
-    return quoteWith(str, "'");
-  }
-
-  private static String quoteWith(String str, String quote) {
-    return quote + str + quote;
+    return "'" + str + "'";
   }
 
   @Nullable
@@ -273,7 +270,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
   }
 
   private List<UsageInfo> getLayoutRefactoringForOneDir(@NotNull VirtualFile layoutDir, boolean createV17, int minSdk) {
-    List<UsageInfo> result = new ArrayList<UsageInfo>();
+    List<UsageInfo> result = new ArrayList<>();
 
     final VirtualFile[] layoutChildren = layoutDir.getChildren();
     for (final VirtualFile oneLayoutFile : layoutChildren) {
@@ -301,7 +298,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
           final List<VirtualFile> allRes = facet.getAllResourceDirectories();
 
           // Then, need to get all the "layout-XXX" sub directories
-          final List<VirtualFile> allLayoutDir = new ArrayList<VirtualFile>();
+          final List<VirtualFile> allLayoutDir = new ArrayList<>();
 
           for (VirtualFile oneRes : allRes) {
             if (ResourceFolderManager.isLibraryResourceRoot(oneRes)) {
@@ -339,7 +336,8 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
           }
         }
         else {
-          final List<PsiFile> files = facet.getLocalResourceManager().findResourceFiles(ResourceFolderType.LAYOUT.getName());
+          LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
+          List<PsiFile> files = resourceManager.findResourceFiles(ResourceFolderType.LAYOUT);
           for (PsiFile psiFile : files) {
             if (ResourceFolderManager.isLibraryResourceFile(psiFile.getVirtualFile())) {
               continue;
@@ -352,7 +350,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
   }
 
   private List<UsageInfo> getLayoutRefactoringForFile(@NotNull final PsiFile layoutFile, final boolean createV17, final int minSdk) {
-    final List<UsageInfo> result = new ArrayList<UsageInfo>();
+    final List<UsageInfo> result = new ArrayList<>();
 
     if (layoutFile instanceof XmlFile &&
         DomManager.getDomManager(myProject).getDomFileDescription((XmlFile)layoutFile) instanceof LayoutDomFileDescription) {
@@ -380,7 +378,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
       return Collections.emptyList();
     }
 
-    final List<UsageInfo> result = new ArrayList<UsageInfo>();
+    final List<UsageInfo> result = new ArrayList<>();
 
     final XmlAttribute[] attributes = tag.getAttributes();
     for (XmlAttribute attributeToMirror : attributes) {
@@ -425,10 +423,10 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
 
     XmlAttribute supportsRtlAttribute = applicationTag.getAttribute(ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI);
     if (supportsRtlAttribute != null) {
-      supportsRtlAttribute.setValue(SdkConstants.VALUE_TRUE);
+      supportsRtlAttribute.setValue(VALUE_TRUE);
     }
     else {
-      applicationTag.setAttribute(ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI, SdkConstants.VALUE_TRUE);
+      applicationTag.setAttribute(ATTRIBUTE_SUPPORTS_RTL, ANDROID_URI, VALUE_TRUE);
     }
   }
 
@@ -496,7 +494,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
 
       LOG.info("Processing refactoring for attribute: " + attribute.getName() + " into file: " + layoutV17File.getPath());
 
-      if (DomManager.getDomManager(myProject).getDomFileDescription((XmlFile)xmlV17File) instanceof LayoutDomFileDescription) {
+      if (DomManager.getDomManager(myProject).getDomFileDescription(xmlV17File) instanceof LayoutDomFileDescription) {
         xmlV17File.accept(new XmlRecursiveElementVisitor() {
           @Override
           public void visitXmlTag(XmlTag tag) {

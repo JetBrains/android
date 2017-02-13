@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class IdAnalyzerTest extends LayoutTestCase {
@@ -51,6 +52,16 @@ public class IdAnalyzerTest extends LayoutTestCase {
     IdAnalyzer analyzer = new IdAnalyzer(property);
     List<String> ids = analyzer.findIds();
     assertEquals(ImmutableList.of("button4", "button5"), ids);
+  }
+
+  public void testOnRoot() {
+    ModelBuilder modelBuilder = createConstraintLayout();
+    NlModel model = modelBuilder.build();
+    NlComponent constraint = findById(model, "constraint");
+    NlProperty property = createFrom(ATTR_LAYOUT_ALIGN_LEFT, AUTO_URI, constraint);
+    IdAnalyzer analyzer = new IdAnalyzer(property);
+    List<String> ids = analyzer.findIds();
+    assertThat(ids).isEmpty();
   }
 
   public void testRelativeLayout() {
@@ -112,6 +123,7 @@ public class IdAnalyzerTest extends LayoutTestCase {
   private ModelBuilder createConstraintLayout() {
     return model("constraint.xml", component(CONSTRAINT_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
+      .id("@+id/constraint")
       .matchParentWidth()
       .matchParentHeight()
       .children(

@@ -25,7 +25,9 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -35,6 +37,7 @@ import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
+  private final ConnectionsView myConnectionsView;
   private final ConnectionDetailsView myConnectionDetails;
   private final JBScrollPane myConnectionsScroller;
 
@@ -45,8 +48,9 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       .onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, this::updateConnectionDetailsView);
 
     myConnectionDetails = new ConnectionDetailsView(this);
-    ConnectionsView connectionsView = new ConnectionsView(this, stage::setSelectedConnection);
-    myConnectionsScroller = new JBScrollPane(connectionsView.getComponent());
+    myConnectionDetails.setMinimumSize(new Dimension(JBUI.scale(450), (int) myConnectionDetails.getMinimumSize().getHeight()));
+    myConnectionsView = new ConnectionsView(this, stage::setSelectedConnection);
+    myConnectionsScroller = new JBScrollPane(myConnectionsView.getComponent());
     myConnectionsScroller.setVisible(false);
 
     Splitter leftSplitter = new Splitter(true);
@@ -56,10 +60,16 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     Splitter splitter = new Splitter(false, 0.6f);
     splitter.setFirstComponent(leftSplitter);
     splitter.setSecondComponent(myConnectionDetails);
+    splitter.setHonorComponentsMinimumSize(true);
 
     getComponent().add(splitter, BorderLayout.CENTER);
 
     updateConnectionDetailsView();
+  }
+
+  @TestOnly
+  public ConnectionsView getConnectionsView() {
+    return myConnectionsView;
   }
 
   @NotNull
@@ -97,11 +107,12 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     lineChartPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));
     DetailedNetworkUsage usage = getStage().getDetailedNetworkUsage();
     final LineChart lineChart = new LineChart(usage);
-    LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR);
+    LineConfig receivedConfig = new LineConfig(ProfilerColors.NETWORK_RECEIVING_COLOR).setLegendIconType(LegendConfig.IconType.LINE);
     lineChart.configure(usage.getRxSeries(), receivedConfig);
-    LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR);
+    LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR).setLegendIconType(LegendConfig.IconType.LINE);
     lineChart.configure(usage.getTxSeries(), sentConfig);
-    LineConfig connectionConfig = new LineConfig(ProfilerColors.NETWORK_CONNECTIONS_COLOR).setStroke(LineConfig.DEFAULT_DASH_STROKE);
+    LineConfig connectionConfig = new LineConfig(ProfilerColors.NETWORK_CONNECTIONS_COLOR)
+      .setLegendIconType(LegendConfig.IconType.DASHED_LINE).setStroke(LineConfig.DEFAULT_DASH_STROKE);
     lineChart.configure(usage.getConnectionSeries(), connectionConfig);
 
     lineChartPanel.add(lineChart, BorderLayout.CENTER);

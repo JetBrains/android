@@ -35,11 +35,20 @@ public final class SeriesLegend implements Legend {
   @NotNull private final Range myRange;
   @NotNull private final RangedContinuousSeries mySeries;
   @NotNull private final BaseAxisFormatter myFormatter;
+  @NotNull private final String myName;
 
   public SeriesLegend(@NotNull RangedContinuousSeries series, @NotNull BaseAxisFormatter formatter, @NotNull Range range) {
+    this(series, formatter, range, series.getName());
+  }
+
+  public SeriesLegend(@NotNull RangedContinuousSeries series,
+                      @NotNull BaseAxisFormatter formatter,
+                      @NotNull Range range,
+                      @NotNull String name) {
     myRange = range;
     mySeries = series;
     myFormatter = formatter;
+    myName = name;
   }
 
   @Nullable
@@ -51,7 +60,7 @@ public final class SeriesLegend implements Legend {
       return null;
     }
 
-    SeriesData<Long> key = new SeriesData<>(TimeUnit.MICROSECONDS.toNanos((long)time), 0L);
+    SeriesData<Long> key = new SeriesData<>((long)time, 0L);
     int index = Collections.binarySearch(data, key, (left, right) -> {
       long diff = left.x - right.x;
       return (diff == 0) ? 0 : (diff < 0) ? -1 : 1;
@@ -65,6 +74,6 @@ public final class SeriesLegend implements Legend {
   @Override
   @NotNull
   public String getName() {
-    return mySeries.getName();
+    return myName;
   }
 }

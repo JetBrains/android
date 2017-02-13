@@ -33,6 +33,7 @@ public class MemoryMonitor extends ProfilerMonitor {
   private static final BaseAxisFormatter MEMORY_AXIS_FORMATTER = new MemoryAxisFormatter(1, 2, 5);
   private final MemoryUsage myMemoryUsage;
   private final MemoryLegend myMemoryLegend;
+  private MemoryLegend myTooltipLegend;
 
   public MemoryMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
@@ -41,11 +42,13 @@ public class MemoryMonitor extends ProfilerMonitor {
     myMemoryAxis = new AxisComponentModel(myMemoryUsage.getMemoryRange(), MEMORY_AXIS_FORMATTER);
     myMemoryAxis.setClampToMajorTicks(true);
 
-    myMemoryLegend = new MemoryLegend(myMemoryUsage, getTimeline().getDataRange());
+    myMemoryLegend = new MemoryLegend(myMemoryUsage, getTimeline().getDataRange(), LEGEND_UPDATE_FREQUENCY_MS);
+    myTooltipLegend = new MemoryLegend(myMemoryUsage, getTimeline().getTooltipRange(), 0);
   }
 
+  @Override
   public String getName() {
-    return "Memory";
+    return "MEMORY";
   }
 
   @Override
@@ -53,6 +56,7 @@ public class MemoryMonitor extends ProfilerMonitor {
     myProfilers.getUpdater().register(myMemoryUsage);
     myProfilers.getUpdater().register(myMemoryAxis);
     myProfilers.getUpdater().register(myMemoryLegend);
+    myProfilers.getUpdater().register(myTooltipLegend);
   }
 
   @Override
@@ -60,8 +64,10 @@ public class MemoryMonitor extends ProfilerMonitor {
     myProfilers.getUpdater().unregister(myMemoryUsage);
     myProfilers.getUpdater().unregister(myMemoryAxis);
     myProfilers.getUpdater().unregister(myMemoryLegend);
+    myProfilers.getUpdater().unregister(myTooltipLegend);
   }
 
+  @Override
   public void expand() {
     myProfilers.setStage(new MemoryProfilerStage(myProfilers));
   }
@@ -78,12 +84,17 @@ public class MemoryMonitor extends ProfilerMonitor {
     return myMemoryLegend;
   }
 
+  public MemoryLegend getTooltipLegend() {
+    return myTooltipLegend;
+  }
+
   public static class MemoryLegend extends LegendComponentModel {
 
     @NotNull
     private final SeriesLegend myTotalLegend;
 
-    public MemoryLegend(@NotNull MemoryUsage usage, @NotNull Range range) {
+    public MemoryLegend(@NotNull MemoryUsage usage, @NotNull Range range, int updateFrequencyMs) {
+      super(updateFrequencyMs);
       myTotalLegend = new SeriesLegend(usage.getTotalMemorySeries(), MEMORY_AXIS_FORMATTER, range);
       add(myTotalLegend);
     }

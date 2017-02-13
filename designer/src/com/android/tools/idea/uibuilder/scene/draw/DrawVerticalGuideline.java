@@ -33,6 +33,9 @@ public class DrawVerticalGuideline extends DrawRegion {
   private int myOriginX;
   private int myOriginY;
   private int myOriginWidth;
+  private boolean myIsSelected;
+
+  protected Font mFont = new Font("Helvetica", Font.PLAIN, 14);
 
   public DrawVerticalGuideline(String s) {
     super(s);
@@ -41,7 +44,16 @@ public class DrawVerticalGuideline extends DrawRegion {
     myPercent = 0.5f;
   }
 
-  public DrawVerticalGuideline(int x, int y, int height, int originX, int originY, int originWidth, int begin, int end, float percent) {
+  public DrawVerticalGuideline(int x,
+                               int y,
+                               int height,
+                               int originX,
+                               int originY,
+                               int originWidth,
+                               int begin,
+                               int end,
+                               float percent,
+                               boolean selected) {
     super(x, y, x, height);
     myBegin = begin;
     myEnd = end;
@@ -49,36 +61,47 @@ public class DrawVerticalGuideline extends DrawRegion {
     myOriginX = originX;
     myOriginY = originY;
     myOriginWidth = originWidth;
+    myIsSelected = selected;
   }
 
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
     ColorSet colorSet = sceneContext.getColorSet();
-    Color background = colorSet.getFrames();
-    g.setColor(background);
     Stroke stroke = g.getStroke();
+    if (myIsSelected) {
+      g.setColor(colorSet.getSelectedFrames());
+    } else {
+      g.setColor(colorSet.getFrames());
+    }
     g.setStroke(DrawConnectionUtils.sDashedStroke);
     g.drawLine(x, y, x, y + height);
     g.setStroke(stroke);
-    if (myBegin != -1) {
-      DrawConnectionUtils.drawHorizontalMarginIndicator(g, String.valueOf(myBegin), false, myOriginX, x, myOriginY+GAP);
-    } else if (myEnd != -1) {
-      DrawConnectionUtils.drawHorizontalMarginIndicator(g, String.valueOf(myEnd), false, x, myOriginX + myOriginWidth, myOriginY+GAP);
-    } else {
-
+    int gap = 48;
+    if (myIsSelected) {
+      if (myBegin != -1) {
+        DrawConnectionUtils.drawHorizontalMarginIndicator(g, String.valueOf(myBegin), false, myOriginX, x, myOriginY + GAP);
+      }
+      else if (myEnd != -1) {
+        DrawConnectionUtils.drawHorizontalMarginIndicator(g, String.valueOf(myEnd), false, x, myOriginX + myOriginWidth, myOriginY + GAP);
+      }
+      else {
+        String percent = String.valueOf((int) (myPercent * 100)) + " %";
+        g.setColor(colorSet.getFrames());
+        DrawConnectionUtils.drawRoundRectText(g, mFont, colorSet.getText(), percent, x, y + gap);
+      }
     }
   }
 
   public static void add(DisplayList list, SceneContext transform,
                          float left, float top, float bottom,
                          float originX, float originY, float originWidth,
-                         int begin, int end, float percent) {
+                         int begin, int end, float percent, boolean selected) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
     int h = transform.getSwingDimension(bottom - top);
     int ox = transform.getSwingX(originX);
     int oy = transform.getSwingY(originY);
     int ow = transform.getSwingDimension(originWidth);
-    list.add(new DrawVerticalGuideline(l, t, h, ox, oy, ow, begin, end, percent));
+    list.add(new DrawVerticalGuideline(l, t, h, ox, oy, ow, begin, end, percent, selected));
   }
 }

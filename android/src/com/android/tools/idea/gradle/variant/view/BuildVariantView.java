@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
@@ -40,13 +39,11 @@ import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.TableSpeedSearch;
-import com.intellij.ui.TableUtil;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,14 +56,19 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.text.Collator;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
+import static com.intellij.ui.TableUtil.scrollSelectionToVisible;
+import static com.intellij.util.ui.JBUI.scale;
+import static com.intellij.util.ui.UIUtil.getTableFocusCellHighlightBorder;
+import static com.intellij.util.ui.UIUtil.getToolTipBackground;
 
 /**
  * The contents of the "Build Variants" tool window.
@@ -86,8 +88,8 @@ public class BuildVariantView {
   private JBTable myVariantsTable;
   private JPanel myNotificationPanel;
 
-  private final List<BuildVariantSelectionChangeListener> myBuildVariantSelectionChangeListeners = Lists.newArrayList();
-  private final List<Conflict> myConflicts = Lists.newArrayList();
+  private final List<BuildVariantSelectionChangeListener> myBuildVariantSelectionChangeListeners = new ArrayList<>();
+  private final List<Conflict> myConflicts = new ArrayList<>();
 
   @NotNull
   public static BuildVariantView getInstance(@NotNull Project project) {
@@ -126,10 +128,6 @@ public class BuildVariantView {
     myNotificationPanel.setVisible(false);
   }
 
-  public void projectImportStarted() {
-    getVariantsTable().setLoading(true);
-  }
-
   /**
    * Creates the contents of the "Build Variants" tool window.
    *
@@ -143,13 +141,18 @@ public class BuildVariantView {
   }
 
   public void updateContents() {
-    if (GradleSyncState.getInstance(myProject).isSyncInProgress()) {
+    GradleSyncState gradleSyncState = GradleSyncState.getInstance(myProject);
+    // When sync is 'skipped' (i.e. Gradle models are retrieved from the disk cache, instead of Gradle,) the contents of the "Build
+    // Variants" view are already displayed. Invoking 'projectImportStarted' will show the "Loading..." message, and, depending on
+    // timing, the message may never disappear.
+    // See https://code.google.com/p/android/issues/detail?id=232529
+    if (gradleSyncState.isSyncInProgress() && !gradleSyncState.isSyncSkipped()) {
       projectImportStarted();
       return;
     }
 
-    final List<Object[]> rows = Lists.newArrayList();
-    final List<BuildVariantItem[]> variantNamesPerRow = Lists.newArrayList();
+    List<Object[]> rows = new ArrayList<>();
+    List<BuildVariantItem[]> variantNamesPerRow = new ArrayList<>();
 
     for (Module module : getGradleModulesWithAndroidProjects()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
@@ -200,9 +203,13 @@ public class BuildVariantView {
     }
   }
 
+  public void projectImportStarted() {
+    getVariantsTable().setLoading(true);
+  }
+
   @NotNull
   private List<Module> getGradleModulesWithAndroidProjects() {
-    List<Module> gradleModules = Lists.newArrayList();
+    List<Module> gradleModules = new ArrayList<>();
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null && androidFacet.requiresAndroidModel() && androidFacet.getAndroidModel() != null) {
@@ -216,7 +223,7 @@ public class BuildVariantView {
     }
 
     if (!gradleModules.isEmpty()) {
-      Collections.sort(gradleModules, ModuleTypeComparator.INSTANCE);
+      gradleModules.sort(ModuleTypeComparator.INSTANCE);
       return gradleModules;
     }
     return Collections.emptyList();
@@ -280,7 +287,7 @@ public class BuildVariantView {
       if (module.equals(myVariantsTable.getValueAt(row, MODULE_COLUMN_INDEX))) {
         myVariantsTable.getSelectionModel().setSelectionInterval(row, row);
         myVariantsTable.getColumnModel().getSelectionModel().setSelectionInterval(columnIndex, columnIndex);
-        TableUtil.scrollSelectionToVisible(myVariantsTable);
+        scrollSelectionToVisible(myVariantsTable);
         myVariantsTable.requestFocusInWindow();
         break;
       }
@@ -295,13 +302,12 @@ public class BuildVariantView {
      * <ul>
      * <li>after the user selected a build variant from the drop-down</li>
      * <li>project structure has been updated according to selected build variant</li>
-     * <li>the selected test artifact is changed</li>
      * </ul>
      * <p/>
      * This listener will not be invoked if the project structure update fails.
      *
      */
-    void buildVariantsConfigChanged();
+    void selectionChanged();
   }
 
   private class NotificationPanel extends JPanel {
@@ -310,9 +316,9 @@ public class BuildVariantView {
     NotificationPanel() {
       super(new BorderLayout());
       Color color = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.NOTIFICATION_BACKGROUND);
-      setBackground(color == null ? UIUtil.getToolTipBackground() : color);
+      setBackground(color == null ? getToolTipBackground() : color);
       setBorder(BorderFactory.createEmptyBorder(1, 15, 1, 15)); // Same as EditorNotificationPanel
-      setPreferredSize(new Dimension(-1, JBUI.scale(24)));
+      setPreferredSize(new Dimension(-1, scale(24)));
 
       JLabel textLabel = new JLabel("Variant selection conflicts found.");
       textLabel.setOpaque(false);
@@ -397,7 +403,7 @@ public class BuildVariantView {
 
   private class BuildVariantTable extends JBTable {
     private boolean myLoading;
-    private final List<TableCellEditor> myCellEditors = Lists.newArrayList();
+    private final List<TableCellEditor> myCellEditors = new ArrayList<>();
 
     private final ModuleTableCell myModuleCellRenderer = new ModuleTableCell();
     private final ModuleTableCell myModuleCellEditor = new ModuleTableCell();
@@ -476,7 +482,7 @@ public class BuildVariantView {
           }
         }
 
-        ComboBox editor = new ComboBox(items);
+        ComboBox<BuildVariantItem> editor = new ComboBox<>(items);
         if (selected != null) {
           editor.setSelectedItem(selected);
         }
@@ -488,7 +494,7 @@ public class BuildVariantView {
             buildVariantSelected(selected1.myModuleName, selected1.myBuildVariantName);
           }
         });
-        final DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);
+        DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);
 
         editor.addKeyListener(new KeyAdapter() {
           @Override
@@ -528,7 +534,7 @@ public class BuildVariantView {
     Runnable invokeListenersTask = () -> {
       updateContents();
       for (BuildVariantSelectionChangeListener listener : myBuildVariantSelectionChangeListeners) {
-        listener.buildVariantsConfigChanged();
+        listener.selectionChanged();
       }
     };
 
@@ -710,7 +716,7 @@ public class BuildVariantView {
 
       myPanel.setBackground(background);
 
-      Border border = hasFocus ? UIUtil.getTableFocusCellHighlightBorder() : EMPTY_BORDER;
+      Border border = hasFocus ? getTableFocusCellHighlightBorder() : EMPTY_BORDER;
       myPanel.setBorder(border);
     }
 

@@ -39,7 +39,7 @@ import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.android.tools.idea.npw.FormFactorUtils.getMinApiLevelKey;
 import static com.android.tools.idea.npw.FormFactorUtils.getTargetComboBoxKey;
 import static com.android.tools.idea.wizard.WizardConstants.IS_INSTANT_APP_KEY;
-import static com.android.tools.idea.wizard.WizardConstants.WH_SDK_ENABLED_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.AIA_SDK_ENABLED_KEY;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
@@ -98,6 +98,7 @@ final class FormFactorSdkControls {
     }
 
     myMinSdkCombobox.setName(myFormFactor.id + ".minSdk");
+    myInstantAppCheckbox.setName(myFormFactor.id + ".instantApp");
     myStatsLoadFailedLabel.setForeground(JBColor.GRAY);
   }
 
@@ -187,7 +188,7 @@ final class FormFactorSdkControls {
         }));
     }
 
-    if (myFormFactor.equals(MOBILE) && state.getNotNull(WH_SDK_ENABLED_KEY, false)) {
+    if (myFormFactor.equals(MOBILE) && state.getNotNull(AIA_SDK_ENABLED_KEY, false)) {
       myBinder.register(IS_INSTANT_APP_KEY, myInstantAppCheckbox);
       myInstantAppCheckbox.setVisible(true);
     }

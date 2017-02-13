@@ -60,7 +60,7 @@ public class CpuTreeSorterTest {
     root.addHNode(new HNode<>(new MethodModel("B"), 0, 0));
     root.addHNode(new HNode<>(new MethodModel("C"), 0, 0));
 
-    TopDownTreeModel model = createTreeModel(root);
+    CpuTreeModel model = createTreeModel(root);
     myTree.setModel(model);
     myTreeSorter.setModel(model, myComparator);
 
@@ -74,7 +74,7 @@ public class CpuTreeSorterTest {
     root.addHNode(new HNode<>(new MethodModel("C"), 0, 0));
     root.addHNode(new HNode<>(new MethodModel("B"), 0, 0));
 
-    TopDownTreeModel model = createTreeModel(root);
+    CpuTreeModel model = createTreeModel(root);
     myTree.setModel(model);
     myTreeSorter.setModel(model, myComparator);
 
@@ -89,7 +89,7 @@ public class CpuTreeSorterTest {
     root.addHNode(new HNode<>(new MethodModel("B"), 0, 0));
     root.addHNode(new HNode<>(new MethodModel("D"), 0, 0));
 
-    TopDownTreeModel model = createTreeModel(root);
+    CpuTreeModel model = createTreeModel(root);
     myTree.setModel(model);
     myTreeSorter.setModel(model, myComparator);
 
@@ -114,7 +114,7 @@ public class CpuTreeSorterTest {
     root.addHNode(new HNode<>(new MethodModel("B"), 0, 0));
     root.addHNode(new HNode<>(new MethodModel("C"), 0, 0));
 
-    TopDownTreeModel model = createTreeModel(root);
+    CpuTreeModel model = createTreeModel(root);
     myTree.setModel(model);
     myTreeSorter.setModel(model, myComparator);
 
@@ -124,7 +124,7 @@ public class CpuTreeSorterTest {
     compareTreeModel(model, "Z", "B", "C");
   }
 
-  private static TopDownTreeModel createTreeModel(HNode<MethodModel> tree) {
+  private static CpuTreeModel createTreeModel(HNode<MethodModel> tree) {
     Range range = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
     return new TopDownTreeModel(range, new TopDownNode(tree));
   }
@@ -133,7 +133,7 @@ public class CpuTreeSorterTest {
    * Compares the nodes of a model with a list of expected strings.
    * The strings should be given in pre-order traversal order.
    */
-  private static void compareTreeModel(TopDownTreeModel model, String... expected) {
+  private static void compareTreeModel(CpuTreeModel model, String... expected) {
     List<String> nodes = new ArrayList<>();
     preOrderTraversal((TreeNode)model.getRoot(), nodes);
     int i = 0;

@@ -693,8 +693,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
     });
 
-    myValidatorPanel.registerValidator(getModel().getAvdDeviceData().compatibleSkinSize(),
-      Validator.Severity.WARNING, "The selected skin is not large enough to view the entire screen.");
+    myValidatorPanel.registerTest(getModel().getAvdDeviceData().compatibleSkinSize(),
+                                  Validator.Severity.WARNING, "The selected skin is not large enough to view the entire screen.");
   }
 
   @Override

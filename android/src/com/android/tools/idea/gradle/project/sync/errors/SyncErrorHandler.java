@@ -97,7 +97,7 @@ public abstract class SyncErrorHandler {
   }
 
   @Nullable
-  protected Pair<String, Integer> getErrorLocation(@NotNull String msg) {
+  public static Pair<String, Integer> getErrorLocation(@NotNull String msg) {
     Matcher matcher = ERROR_LOCATION_IN_FILE_PATTERN.matcher(msg);
     if (matcher.matches()) {
       String filePath = matcher.group(1);

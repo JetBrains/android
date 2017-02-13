@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.easymock.EasyMock.*;
@@ -73,7 +74,7 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
         removeAllKnownJdks();
         String jdkHome = myJdk.getHomePath();
         assertNotNull(jdkHome);
-        File jdkHomePath = new File(toSystemDependentName(jdkHome));
+        File jdkHomePath = toSystemDependentPath(jdkHome);
         IdeSdks.getInstance().setJdkPath(jdkHomePath);
       }
     });

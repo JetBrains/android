@@ -19,7 +19,6 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.*;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.rendering.LogWrapper;
 import com.android.utils.ILogger;
 import com.google.common.collect.ArrayListMultimap;
@@ -60,18 +59,20 @@ public class FileResourceRepository extends LocalResourceRepository {
    */
   protected Collection<String> myAarDeclaredIds;
   private final File myFile;
+  private final String myLibraryName;
   /** R.txt file associated with the repository. This is only available for aars. */
   @Nullable private File myResourceTextFile;
 
   private final static SoftValueHashMap<File, FileResourceRepository> ourCache = new SoftValueHashMap<>();
 
-  private FileResourceRepository(@NotNull File file) {
+  private FileResourceRepository(@NotNull File file, @Nullable String libraryName) {
     super(file.getName());
     myFile = file;
+    myLibraryName = libraryName;
   }
 
   @NotNull
-  static FileResourceRepository get(@NotNull final File file, @Nullable String libraryName) {
+  static synchronized FileResourceRepository get(@NotNull final File file, @Nullable String libraryName) {
     FileResourceRepository repository = ourCache.get(file);
     if (repository == null) {
       repository = create(file, libraryName);
@@ -83,13 +84,13 @@ public class FileResourceRepository extends LocalResourceRepository {
 
   @Nullable
   @VisibleForTesting
-  static FileResourceRepository getCached(@NotNull final File file) {
+  static synchronized FileResourceRepository getCached(@NotNull final File file) {
     return ourCache.get(file);
   }
 
   @NotNull
   private static FileResourceRepository create(@NotNull final File file, @Nullable String libraryName) {
-    final FileResourceRepository repository = new FileResourceRepository(file);
+    final FileResourceRepository repository = new FileResourceRepository(file, libraryName);
     try {
       ResourceMerger resourceMerger = createResourceMerger(file, libraryName);
       resourceMerger.mergeData(repository.createMergeConsumer(), true);
@@ -115,12 +116,19 @@ public class FileResourceRepository extends LocalResourceRepository {
     return myResourceTextFile;
   }
 
-  public static void reset() {
+  public static synchronized void reset() {
     ourCache.clear();
   }
 
+  @NotNull
   public File getResourceDirectory() {
     return myFile;
+  }
+
+  @Override
+  @Nullable
+  public String getLibraryName() {
+    return myLibraryName;
   }
 
   private static ResourceMerger createResourceMerger(File file, String libraryName) {

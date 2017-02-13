@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.wizard;
 
 import com.intellij.ide.RecentProjectsManager;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.SystemProperties;
@@ -24,6 +25,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.event.InputEvent;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;

@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.npw.cpp.ConfigureCppSupportPath;
+import com.android.tools.idea.npw.deprecated.ConfigureCppSupportPath;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep;
 import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
@@ -219,11 +219,6 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     }
     try {
       GradleSyncListener listener = new PostStartupGradleSyncListener(() -> {
-        Iterable<File> targetFiles = myState.get(TARGET_FILES_KEY);
-        assert targetFiles != null;
-
-        TemplateUtils.reformatAndRearrange(myProject, targetFiles);
-
         Collection<File> filesToOpen = myState.get(FILES_TO_OPEN_KEY);
         assert filesToOpen != null;
 

@@ -124,8 +124,8 @@ public class NewActivityTest {
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
 
     String text = myEditor.open(PROVIDED_MANIFEST).getCurrentFileContents();
-    assertEquals(StringUtil.getOccurrenceCount(text, "android:name=\".MainActivity\""), 1);
-    assertEquals(StringUtil.getOccurrenceCount(text, "android:parentActivityName=\".MyActivity\">"), 1);
+    assertThat(StringUtil.getOccurrenceCount(text, "android:name=\".MainActivity\"")).isEqualTo(1);
+    assertThat(StringUtil.getOccurrenceCount(text, "android:parentActivityName=\".MyActivity\"")).isEqualTo(1);
   }
 
   @Test

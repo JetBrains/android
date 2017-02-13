@@ -16,10 +16,9 @@
 package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profilers.IdeProfilerServicesStub;
-import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.*;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.protobuf3jarjar.ByteString;
 import org.junit.Before;
 import org.junit.Rule;
@@ -28,31 +27,38 @@ import org.junit.Test;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class RpcNetworkConnectionsModelTest {
+  private static final String FAKE_PAYLOAD_ID = "Test Payload";
+  private static final String FAKE_REQUEST_HEADERS = "User-Agent = Customized\n Accept = text/plain";
+
   private static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
-      .add(FakeNetworkService.newHttpData(0, 0, 7, 14))
-      .add(FakeNetworkService.newHttpData(1, 2, 3, 6))
-      .add(FakeNetworkService.newHttpData(2, 4, 0, 0))
-      .add(FakeNetworkService.newHttpData(3, 8, 10, 12))
+      .add(FakeNetworkService.newHttpDataBuilder(0, 0, 7, 14).setRequestFields(FAKE_REQUEST_HEADERS).build())
+      .add(FakeNetworkService.newHttpDataBuilder(1, 2, 3, 6).setRequestFields(FAKE_REQUEST_HEADERS).build())
+      .add(FakeNetworkService.newHttpDataBuilder(2, 4, 0, 0).setRequestFields(FAKE_REQUEST_HEADERS).build())
+      .add(FakeNetworkService.newHttpDataBuilder(3, 8, 10, 12).setRequestFields(FAKE_REQUEST_HEADERS).build())
       .build();
 
-  @Rule public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("RpcNetworkConnectionsModelTest", FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
+  private FakeProfilerService myProfilerService = new FakeProfilerService(false);
+
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("RpcNetworkConnectionsModelTest", myProfilerService,
+                                                                   FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
   private NetworkConnectionsModel myModel;
 
   @Before
   public void setUp() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
-    myModel = new RpcNetworkConnectionsModel(profilers.getClient().getNetworkClient(), 12);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    myModel = new RpcNetworkConnectionsModel(profilers.getClient().getProfilerClient(), profilers.getClient().getNetworkClient(), 12,
+                                             ProfilersTestData.SESSION_DATA);
   }
 
   @Test
   public void requestResponsePayload() {
-    HttpData data = new HttpData.Builder(0, 0, 0, 0).setResponsePayloadId("payloadId").build();
-    assertEquals(FakeNetworkService.FAKE_PAYLOAD, myModel.requestResponsePayload(data).toStringUtf8());
+    myProfilerService.addFile(FAKE_PAYLOAD_ID, ByteString.copyFromUtf8("Dummy Contents"));
+    HttpData data = new HttpData.Builder(0, 0, 0, 0).setResponsePayloadId(FAKE_PAYLOAD_ID).build();
+    assertEquals("Dummy Contents", myModel.requestResponsePayload(data).toStringUtf8());
   }
 
   @Test
@@ -102,9 +108,13 @@ public class RpcNetworkConnectionsModelTest {
       assertEquals(FAKE_DATA.get((int)id).getEndTimeUs(), data.getEndTimeUs());
       assertEquals(FAKE_DATA.get((int)id).getMethod(), data.getMethod());
       assertEquals(FAKE_DATA.get((int)id).getUrl(), data.getUrl());
-      assertEquals(FAKE_DATA.get((int)id).getTrace(), data.getTrace());
+      assertEquals(FAKE_DATA.get((int)id).getStackTrace().getTrace(), data.getStackTrace().getTrace());
       assertEquals(FAKE_DATA.get((int)id).getResponsePayloadId(), data.getResponsePayloadId());
       assertEquals(FAKE_DATA.get((int)id).getResponseField("connId"), data.getResponseField("connId"));
+      ImmutableMap<String, String> requestHeaders = data.getRequestHeaders();
+      assertEquals(2, requestHeaders.size());
+      assertEquals("Customized", requestHeaders.get("User-Agent"));
+      assertEquals("text/plain", requestHeaders.get("Accept"));
     }
   }
 }

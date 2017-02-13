@@ -45,6 +45,7 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.xml.util.XmlStringUtil;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
@@ -93,8 +94,8 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
     final FileType fileType = file.getFileType();
 
     if (fileType == StdFileTypes.XML) {
-      if (facet == null || facet.getLocalResourceManager().getFileResourceFolderType(file) == null &&
-          !ANDROID_MANIFEST_XML.equals(vFile.getName())) {
+      if (facet == null || ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getFileResourceFolderType(file) == null &&
+                           !ANDROID_MANIFEST_XML.equals(vFile.getName())) {
         return null;
       }
     }

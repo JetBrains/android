@@ -15,6 +15,10 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.StackFrameParser;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -23,11 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.net.URI;
 import java.net.URLDecoder;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 /**
  * Data of http url connection. Each {@code HttpData} object matches a http connection with a unique id, and it includes both request data
@@ -46,6 +46,7 @@ public class HttpData {
 
   public static final String FIELD_CONTENT_TYPE = "Content-Type";
   public static final String FIELD_CONTENT_LENGTH = "Content-Length";
+  public static final int NO_STATUS_CODE = -1;
 
   private final long myId;
   private final long myStartTimeUs;
@@ -53,12 +54,13 @@ public class HttpData {
   private final long myDownloadingTimeUs;
   @NotNull private final String myUrl;
   @NotNull private final String myMethod;
-  @NotNull private final String myTrace;
+  @NotNull private StackTrace myTrace;
 
   @Nullable private final String myResponsePayloadId;
 
-  private int myStatusCode = -1;
+  private int myStatusCode = NO_STATUS_CODE;
   private final Map<String, String> myResponseFields = new HashMap<>();
+  private final Map<String, String> myRequestFields = new HashMap<>();
   // TODO: Move it to datastore, for now virtual file creation cannot select file type.
   private File myResponsePayloadFile;
 
@@ -69,11 +71,14 @@ public class HttpData {
     myDownloadingTimeUs = builder.myDownloadingTimeUs;
     myUrl = builder.myUrl;
     myMethod = builder.myMethod;
-    myTrace = builder.myTrace;
+    myTrace = new StackTrace(builder.myTrace);
     myResponsePayloadId = builder.myResponsePayloadId;
 
     if (builder.myResponseFields != null) {
       parseResponseFields(builder.myResponseFields);
+    }
+    if (builder.myRequestFields != null) {
+      parseRequestFields(builder.myRequestFields);
     }
   }
 
@@ -104,7 +109,7 @@ public class HttpData {
   }
 
   @NotNull
-  public String getTrace() { return myTrace; }
+  public StackTrace getStackTrace() { return myTrace; }
 
   @Nullable
   public String getResponsePayloadId() {
@@ -129,36 +134,63 @@ public class HttpData {
     return myResponseFields.get(field);
   }
 
-  private void parseResponseFields(@NotNull String fields) {
-    List<String> lines = Arrays.stream(fields.split("\\n")).filter(line -> !line.trim().isEmpty()).collect(Collectors.toList());
-    assert !lines.isEmpty(): String.format("Unexpected http response fields (%s)", fields);
+  @Nullable
+  public ContentType getContentType() {
+    String type = getResponseField(FIELD_CONTENT_TYPE);
+    return (type == null) ? null : new ContentType(type);
+  }
 
-    String firstLine = lines.remove(0);
-    String[] tokens = firstLine.split("=", 2);
-    String status = tokens[tokens.length - 1].trim();
+  @NotNull
+  public ImmutableMap<String, String> getResponseHeaders() {
+    return ImmutableMap.copyOf(myResponseFields);
+  }
+
+  @NotNull
+  public ImmutableMap<String, String> getRequestHeaders() {
+    return ImmutableMap.copyOf(myRequestFields);
+  }
+
+  private void parseResponseFields(@NotNull String fields) {
     // The status-line - should be formatted as per
     // section 6.1 of RFC 2616.
     // https://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html
     //
     // Status-Line = HTTP-Version SP Status-Code SP Reason-Phrase
-    assert status.startsWith("HTTP/1.") : String.format("Unexpected http response status-line (%s)", status);
-    myStatusCode = Integer.parseInt(status.split(" ")[1]);
-
-    myResponseFields.clear();
-    for (String line: lines) {
-      String[] keyAndValue = line.split("=", 2);
-      assert keyAndValue.length == 2 : String.format("Unexpected http response field (%s)", line);
-      myResponseFields.put(keyAndValue[0].trim(), StringUtil.trimEnd(keyAndValue[1].trim(), ';'));
+    String[] firstLineSplit = fields.trim().split("\\n", 2);
+    String status = firstLineSplit[0].trim();
+    fields = firstLineSplit.length > 1 ? firstLineSplit[1] : "";
+    if (!status.isEmpty()) {
+      String[] tokens = status.split("=", 2);
+      status = tokens[tokens.length - 1].trim();
+      assert status.startsWith("HTTP/1.") : String.format("Unexpected http response status-line (%s)", status);
+      myStatusCode = Integer.parseInt(status.split(" ")[1]);
     }
+
+    parseHeaderFields(fields, myResponseFields);
+  }
+
+  private void parseRequestFields(@NotNull String fields) {
+    parseHeaderFields(fields, myRequestFields);
+  }
+
+  private static void parseHeaderFields(@NotNull String fields, @NotNull Map<String, String> map) {
+    map.clear();
+    Arrays.stream(fields.split("\\n")).filter(line -> !line.trim().isEmpty()).forEach(line -> {
+      String[] keyAndValue = line.split("=", 2);
+      assert keyAndValue.length == 2 : String.format("Unexpected http header field (%s)", line);
+      map.put(keyAndValue[0].trim(), StringUtil.trimEnd(keyAndValue[1].trim(), ';'));
+    });
   }
 
   /**
-   * Return the name of the URL, which is the final complete word in the path portion of the URL. Additionally,
+   * Return the name of the URL, which is the final complete word in the path portion of the URL.
+   * The query is included as it can be useful to disambiguate requests. Additionally,
    * the returned value is URL decoded, so that, say, "Hello%2520World" -> "Hello World".
    *
    * For example,
    * "www.example.com/demo/" -> "demo"
-   * "www.example.com/test.png?res=2" -> "test.png"
+   * "www.example.com/test.png" -> "test.png"
+   * "www.example.com/test.png?res=2" -> "test.png?res=2"
    * "www.example.com" -> "www.example.com"
    */
   @NotNull
@@ -167,34 +199,111 @@ public class HttpData {
     if (uri.getPath().isEmpty()) {
       return uri.getHost();
     }
-    String path = StringUtil.trimTrailing(uri.getPath(), '/');
-    path = path.lastIndexOf('/') != -1 ? path.substring(path.lastIndexOf('/') + 1) : path;
+    String name = StringUtil.trimTrailing(uri.getPath(), '/');
+    name = name.lastIndexOf('/') != -1 ? name.substring(name.lastIndexOf('/') + 1) : name;
+    if (uri.getQuery() != null) {
+      name += "?" + uri.getQuery();
+    }
+
     // URL might be encoded an arbitrarily deep number of times. Keep decoding until we peel away the final layer.
     // Usually this is only expected to loop once or twice.
     // See more: http://stackoverflow.com/questions/3617784/plus-signs-being-replaced-for-252520
     try {
-      String lastPath;
+      String lastName;
       do {
-        lastPath = path;
-        path = URLDecoder.decode(path, "UTF-8");
-      } while (!path.equals(lastPath));
+        lastName = name;
+        name = URLDecoder.decode(name, "UTF-8");
+      } while (!name.equals(lastName));
     } catch (Exception ignored) {
     }
-    return path;
+    return name;
   }
 
-  /**
-   * Returns file extension based on the response Content-Type header field.
-   * If type is absent or not supported, returns null.
-   */
-  @Nullable
-  public static String guessFileExtensionFromContentType(@NotNull String contentType) {
-    for (Map.Entry<String, String> entry : CONTENT_EXTENSIONS_MAP.entrySet()) {
-      if (contentType.contains(entry.getKey())) {
-        return entry.getValue();
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    HttpData data = (HttpData)o;
+    return myId == data.myId;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(myId);
+  }
+
+  public static final class StackTrace {
+    private final ImmutableList<CodeLocation> myLocations;
+    private final String myTrace;
+
+    private StackTrace(@NotNull String trace) {
+      myTrace = trace;
+      ImmutableList.Builder<CodeLocation> builder = new ImmutableList.Builder<>();
+      for (String line: trace.split("\\n")) {
+        if (line.trim().isEmpty()) {
+          continue;
+        }
+        StackFrameParser parser = new StackFrameParser(line);
+        builder.add(new CodeLocation(parser.getClassName(), parser.getFileName(), parser.getMethodName(), parser.getLineNumber() - 1));
       }
+      myLocations = builder.build();
     }
-    return null;
+
+    @NotNull
+    public ImmutableList<CodeLocation> getCodeLocations() {
+      return myLocations;
+    }
+
+    @VisibleForTesting
+    @NotNull
+    public String getTrace() {
+      return myTrace;
+    }
+  }
+
+  public static final class ContentType {
+    @NotNull private final String myContentType;
+
+    public ContentType(@NotNull String contentType) {
+      myContentType = contentType;
+    }
+
+    /**
+     * @return MIME type related information from Content-Type because Content-Type may contain
+     * other information such as charset or boundary.
+     *
+     * Examples:
+     * "text/html; charset=utf-8" => "text/html"
+     * "text/html" => "text/html"
+     */
+    @NotNull
+    public String getMimeType() {
+      return myContentType.split(";")[0];
+    }
+
+    /**
+     * Returns file extension based on the response Content-Type header field.
+     * If type is absent or not supported, returns null.
+     */
+    @Nullable
+    public String guessFileExtension() {
+      for (Map.Entry<String, String> entry : CONTENT_EXTENSIONS_MAP.entrySet()) {
+        if (myContentType.contains(entry.getKey())) {
+          return entry.getValue();
+        }
+      }
+      return null;
+    }
+
+    @NotNull
+    public String getContentType() {
+      return myContentType;
+    }
+
+    @Override
+    public String toString() {
+      return getContentType();
+    }
   }
 
   public static final class Builder {
@@ -207,8 +316,9 @@ public class HttpData {
     private String myMethod;
 
     private String myResponseFields;
+    private String myRequestFields;
     private String myResponsePayloadId;
-    private String myTrace;
+    private String myTrace = "";
 
     public Builder(long id, long startTimeUs, long endTimeUs, long downloadingTimeUS) {
       myId = id;
@@ -244,6 +354,12 @@ public class HttpData {
     @NotNull
     public Builder setResponsePayloadId(@NotNull String payloadId) {
       myResponsePayloadId = payloadId;
+      return this;
+    }
+
+    @NotNull
+    public Builder setRequestFields(@NotNull String requestFields) {
+      myRequestFields = requestFields;
       return this;
     }
 

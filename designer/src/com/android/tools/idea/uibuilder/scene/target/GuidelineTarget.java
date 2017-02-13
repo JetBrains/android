@@ -45,11 +45,11 @@ public class GuidelineTarget extends DragTarget {
   }
 
   @Override
-  public int getMouseCursor() {
+  public Cursor getMouseCursor() {
     if (myIsHorizontal) {
-      return Cursor.N_RESIZE_CURSOR;
+      return Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR);
     }
-    return Cursor.E_RESIZE_CURSOR;
+    return Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR);
   }
 
   @Override
@@ -57,14 +57,14 @@ public class GuidelineTarget extends DragTarget {
     if (myIsHorizontal) {
       int y = (int)(myTop + (myBottom - myTop) / 2);
       SceneComponent parent = myComponent.getParent();
-      DrawHorizontalGuideline.add(list, sceneContext, myLeft, y, myRight, parent.getDrawX(), parent.getDrawY(), parent.getDrawHeight(), myBegin, myEnd, myPercent);
+      DrawHorizontalGuideline.add(list, sceneContext, myLeft, y, myRight, parent.getDrawX(), parent.getDrawY(), parent.getDrawHeight(), myBegin, myEnd, myPercent, myComponent.isSelected());
     }
     else {
       int x = (int)(myLeft + (myRight - myLeft) / 2);
       SceneComponent parent = myComponent.getParent();
       DrawVerticalGuideline
         .add(list, sceneContext, x, myTop, myBottom, parent.getDrawX(), parent.getDrawY(), parent.getDrawWidth(), myBegin, myEnd,
-             myPercent);
+             myPercent, myComponent.isSelected());
     }
   }
 
@@ -103,7 +103,11 @@ public class GuidelineTarget extends DragTarget {
     else if (percent != null) {
       myBegin = -1;
       myEnd = -1;
-      myPercent = Float.valueOf(percent);
+      try {
+        myPercent = Float.valueOf(percent);
+      } catch (NumberFormatException e) {
+        myPercent = 0;
+      }
     }
     return false;
   }
@@ -131,7 +135,13 @@ public class GuidelineTarget extends DragTarget {
     else if (percent != null) {
       String percentStringValue = null;
       float percentValue = value / dimension;
-      percentValue = (int)(percentValue * 1000) / 1000f;
+      if (percentValue > 1) {
+        percentValue = 1;
+      }
+      if (percentValue < 0) {
+        percentValue = 0;
+      }
+      percentValue = Math.round(percentValue * 100) / 100f;
       percentStringValue = String.valueOf(percentValue);
       if (percentStringValue.equalsIgnoreCase("NaN")) {
         percentStringValue = "0.5";

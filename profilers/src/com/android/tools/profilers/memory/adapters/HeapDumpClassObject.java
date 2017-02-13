@@ -16,7 +16,9 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.perflib.heap.ClassObj;
+import com.android.tools.perflib.heap.Instance;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,42 +28,87 @@ import java.util.stream.Collectors;
  * A UI representation of a {@link ClassObj}.
  */
 final class HeapDumpClassObject extends ClassObject {
-  private final ClassObj myClassObj;
+  @NotNull private final ClassObj myClassObj;
+  @NotNull private final HeapDumpHeapObject myHeapObject;
+  private long myRetainedSize;
 
-  public HeapDumpClassObject(@NotNull ClassObj classObj) {
+  @Nullable
+  private List<InstanceObject> myInstanceObjects = null;
+
+  public HeapDumpClassObject(@NotNull HeapDumpHeapObject heapObject, @NotNull ClassObj classObj) {
     super(classObj.getClassName());
+    myHeapObject = heapObject;
     myClassObj = classObj;
+    for (Instance instance : myClassObj.getHeapInstances(myHeapObject.getHeap().getId())) {
+      myRetainedSize += instance.getTotalRetainedSize();
+    }
   }
 
   @Override
-  public int getChildrenCount() {
+  public boolean equals(Object obj) {
+    if (!(obj instanceof HeapDumpClassObject)) {
+      return false;
+    }
+
+    HeapDumpClassObject otherClass = (HeapDumpClassObject)obj;
+    return myClassObj == otherClass.myClassObj;
+  }
+
+  @Override
+  public int hashCode() {
+    return myClassObj.hashCode();
+  }
+
+  @NotNull
+  @Override
+  public HeapObject getHeapObject() {
+    return myHeapObject;
+  }
+
+  @Override
+  public int getTotalCount() {
     return myClassObj.getInstanceCount();
   }
 
   @Override
-  public int getElementSize() {
-    return myClassObj.getSize();
+  public int getHeapCount() {
+    return myClassObj.getHeapInstancesCount(myHeapObject.getHeap().getId());
+  }
+
+  @Override
+  public int getInstanceSize() {
+    return myClassObj.getInstanceSize();
   }
 
   @Override
   public int getShallowSize() {
-    return myClassObj.getShallowSize();
+    return myClassObj.getShallowSize(myHeapObject.getHeap().getId());
   }
 
   @Override
   public long getRetainedSize() {
-    return myClassObj.getTotalRetainedSize();
+    return myRetainedSize;
   }
 
   @NotNull
   @Override
   public List<InstanceObject> getInstances() {
-    return myClassObj.getInstancesList().stream().map(HeapDumpInstanceObject::new).collect(Collectors.toList());
+    // One liner to prevent having to declare a final variable just so the closure can use it.
+    ValueType type = JAVA_LANG_STRING.equals(getName()) ? ValueType.STRING : (JAVA_LANG_CLASS.equals(getName()) ? ValueType.CLASS : null);
+    if (myInstanceObjects == null) {
+      myInstanceObjects =
+        myClassObj.getHeapInstances(myHeapObject.getHeap().getId()).stream()
+          .map(instance -> new HeapDumpInstanceObject(this, instance, type))
+          .collect(Collectors.toList());
+    }
+    return myInstanceObjects;
   }
 
   @NotNull
   @Override
   public List<InstanceObject.InstanceAttribute> getInstanceAttributes() {
-    return Arrays.asList(InstanceObject.InstanceAttribute.LABEL, InstanceObject.InstanceAttribute.DEPTH, InstanceObject.InstanceAttribute.SHALLOW_SIZE, InstanceObject.InstanceAttribute.RETAINED_SIZE);
+    return Arrays
+      .asList(InstanceObject.InstanceAttribute.LABEL, InstanceObject.InstanceAttribute.DEPTH, InstanceObject.InstanceAttribute.SHALLOW_SIZE,
+              InstanceObject.InstanceAttribute.RETAINED_SIZE);
   }
 }

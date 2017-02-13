@@ -40,8 +40,8 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetPresentableName;
@@ -51,7 +51,8 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetPresentableName
  */
 public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType {
   @NonNls public static final String SDK_NAME = "Android SDK";
-  @NonNls public static final String DEFAULT_EXTERNAL_DOCUMENTATION_URL = "http://developer.android.com/reference/";
+  @NonNls public static final String DEFAULT_EXTERNAL_DOCUMENTATION_PATH = "developer.android.com/reference/";
+  @NonNls public static final String DEFAULT_EXTERNAL_DOCUMENTATION_URL = "http://" + DEFAULT_EXTERNAL_DOCUMENTATION_PATH;
 
   public AndroidSdkType() {
     super(SDK_NAME);
@@ -92,7 +93,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     if (isEmpty(path)) {
       return false;
     }
-    File sdkPath = new File(toSystemDependentName(path));
+    File sdkPath = toSystemDependentPath(path);
     return validateAndroidSdk(sdkPath, false).success;
   }
 
@@ -166,7 +167,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     Sdk jdk = sdkModel.findSdk(name);
     IAndroidTarget target = targets[dialog.getSelectedTargetIndex()];
     String sdkName = AndroidSdks.getInstance().chooseNameForNewLibrary(target);
-    AndroidSdks.getInstance().setUpSdk(sdk, target, sdkName, Arrays.asList(sdks), jdk, true);
+    AndroidSdks.getInstance().setUpSdk(sdk, target, sdkName, Arrays.asList(sdks), jdk);
 
     return true;
   }

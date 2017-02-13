@@ -23,7 +23,7 @@
       </vspacer>
       <component id="abf61" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Default Value:"/>
@@ -31,13 +31,14 @@
       </component>
       <component id="4a584" class="com.intellij.ui.components.JBLabel">
         <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Resource Folder:"/>
+          <labelFor value="663a3"/>
+          <text value="Resource &amp;Folder:"/>
         </properties>
       </component>
-      <component id="663a3" class="javax.swing.JComboBox" binding="myResFolderCombo">
+      <component id="663a3" class="javax.swing.JComboBox" binding="myResourceFolderComboBox" custom-create="true">
         <constraints>
           <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <minimum-size width="250" height="-1"/>
@@ -49,13 +50,17 @@
         <constraints>
           <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties/>
+        <properties>
+          <name value="keyTextField"/>
+        </properties>
       </component>
       <component id="4732c" class="com.intellij.ui.EditorTextField" binding="myDefaultValueField">
         <constraints>
           <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties/>
+        <properties>
+          <name value="defaultValueTextField"/>
+        </properties>
       </component>
     </children>
   </grid>

@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetup;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -39,6 +41,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class JavaModuleModelDataServiceTest extends IdeaTestCase {
   @Mock private JavaModuleSetup myModuleSetup;
 
+  private GradleSyncState mySyncState;
   private IdeModifiableModelsProvider myModelsProvider;
   private JavaModuleModelDataService myDataService;
 
@@ -47,6 +50,7 @@ public class JavaModuleModelDataServiceTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
+    mySyncState = IdeComponents.replaceServiceWithMock(getProject(), GradleSyncState.class);
     myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     myDataService = new JavaModuleModelDataService(myModuleSetup);
   }
@@ -67,6 +71,7 @@ public class JavaModuleModelDataServiceTest extends IdeaTestCase {
 
     myDataService.importData(dataNodes, null, getProject(), myModelsProvider);
 
-    verify(myModuleSetup).setUpModule(appModule, myModelsProvider, model, null, null);
+    verify(mySyncState).isSyncSkipped();
+    verify(myModuleSetup).setUpModule(appModule, myModelsProvider, model, null, null, false);
   }
 }

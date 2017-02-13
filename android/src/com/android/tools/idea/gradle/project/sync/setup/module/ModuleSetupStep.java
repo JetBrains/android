@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
-import com.android.tools.idea.gradle.project.sync.SyncAction;
+import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -44,14 +44,14 @@ public abstract class ModuleSetupStep<T> {
                                         @Nullable SyncAction.ModuleModels gradleModels,
                                         @Nullable ProgressIndicator indicator);
 
-  public void displayDescription(@NotNull Module module, @NotNull ProgressIndicator indicator) {
-    indicator.setText2(String.format("Module ''%1$s': %2$s", module.getName(), getDescription()));
-  }
-
   @NotNull
   public abstract String getDescription();
 
   public boolean invokeOnBuildVariantChange() {
+    return false;
+  }
+
+  public boolean invokeOnSkippedSync() {
     return false;
   }
 }

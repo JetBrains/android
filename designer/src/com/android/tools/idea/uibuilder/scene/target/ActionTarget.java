@@ -56,6 +56,11 @@ public class ActionTarget extends ConstraintTarget {
   }
 
   @Override
+  public boolean canChangeSelection() {
+    return false;
+  }
+
+  @Override
   public int getPreferenceLevel() {
     return Target.ACTION_LEVEL;
   }

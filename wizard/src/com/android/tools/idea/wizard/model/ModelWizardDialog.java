@@ -30,6 +30,7 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeBundle;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
@@ -51,7 +52,7 @@ import static com.android.tools.idea.ui.properties.expressions.bool.BooleanExpre
  * Note that the dialog owns responsibility for starting the wizard. If you start it externally
  * first, this dialog will throw an exception on {@link #show()}.
  */
-public final class ModelWizardDialog extends DialogWrapper implements ModelWizard.ResultListener {
+public final class ModelWizardDialog extends DialogWrapper implements ModelWizard.WizardListener {
   public enum CancellationPolicy {
     ALWAYS_CAN_CANCEL,
     CAN_CANCEL_UNTIL_CAN_FINISH
@@ -167,15 +168,20 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
   }
 
   @Override
-  public void onWizardFinished(boolean success) {
+  public void onWizardFinished(ModelWizard.WizardResult result) {
     // Only progress when we know the underlying wizard is done. Call the super methods directly
     // since we stubbed out our local overrides.
-    if (success) {
+    if (result.isFinished()) {
       super.doOKAction();
     }
     else {
       super.doCancelAction();
     }
+  }
+
+  @Override
+  public void onWizardAdvanceError(Exception e) {
+    DialogEarthquakeShaker.shake(getWindow());
   }
 
   @NotNull

@@ -15,32 +15,56 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
-import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.profilers.RelativeTimeConverter;
+import com.android.tools.profilers.memory.adapters.ClassObject.ClassAttribute;
 import com.google.protobuf3jarjar.ByteString;
-import gnu.trove.TIntHashSet;
-import gnu.trove.TIntObjectHashMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public final class AllocationsCaptureObject implements CaptureObject {
   @NotNull private final MemoryServiceBlockingStub myClient;
-  private final int myAppId;
-  private final int myInfoId;
+  private final int myProcessId;
+  @NotNull private final String myLabel;
+  private final Common.Session mySession;
   private long myStartTimeNs;
   private long myEndTimeNs;
-  private volatile List<ClassObject> myClassObjs = null;
+  private volatile List<ClassObject> myClassObjs;
   private volatile boolean myIsLoadingError;
+  // Allocation records do not have heap information, but we create a fake HeapObject container anyway so that we have a consistent MemoryObject model.
+  private final AllocationsHeapObject myFakeHeapObject;
 
-  public AllocationsCaptureObject(@NotNull MemoryServiceBlockingStub client, int appId, @NotNull MemoryProfiler.AllocationsInfo info) {
+  public AllocationsCaptureObject(@NotNull MemoryServiceBlockingStub client,
+                                  int processId,
+                                  Common.Session session,
+                                  @NotNull MemoryProfiler.AllocationsInfo info,
+                                  @NotNull RelativeTimeConverter converter) {
     myClient = client;
-    myAppId = appId;
-    myInfoId = info.getInfoId();
+    myProcessId = processId;
+    mySession = session;
     myStartTimeNs = info.getStartTime();
     myEndTimeNs = info.getEndTime();
+    myFakeHeapObject = new AllocationsHeapObject();
+    myLabel = "Allocations" +
+              (myStartTimeNs != Long.MAX_VALUE ?
+               " from " + TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
+                 TimeUnit.MILLISECONDS.toMicros(1), TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myStartTimeNs))) :
+               "") +
+              (myEndTimeNs != Long.MIN_VALUE ?
+               " to " + TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
+                 TimeUnit.MILLISECONDS.toMicros(1), TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myEndTimeNs))) :
+               "");
   }
 
   @Override
@@ -50,20 +74,32 @@ public final class AllocationsCaptureObject implements CaptureObject {
     }
 
     AllocationsCaptureObject other = (AllocationsCaptureObject)obj;
-
-    return other.myAppId == myAppId && other.myStartTimeNs == myStartTimeNs && other.myEndTimeNs == myEndTimeNs;
-  }
-
-  @Override
-  public void dispose() {
+    return other.myProcessId == myProcessId && other.myStartTimeNs == myStartTimeNs && other.myEndTimeNs == myEndTimeNs;
   }
 
   @NotNull
   @Override
   public String getLabel() {
-    return "Allocations" +
-           (myStartTimeNs != Long.MAX_VALUE ? " from " + TimeUnit.NANOSECONDS.toMillis(myStartTimeNs) + "ms" : "") +
-           (myEndTimeNs != Long.MIN_VALUE ? " to " + TimeUnit.NANOSECONDS.toMillis(myEndTimeNs) + "ms" : "");
+    return myLabel;
+  }
+
+  @Nullable
+  @Override
+  public String getExportableExtension() {
+    // TODO only return this if in legacy mode, otherwise return null
+    return "alloc";
+  }
+
+  @Override
+  public void saveToFile(@NotNull OutputStream outputStream) throws IOException {
+    MemoryProfiler.DumpDataResponse response = myClient.getAllocationDump(
+      MemoryProfiler.DumpDataRequest.newBuilder().setProcessId(myProcessId).setSession(mySession).setDumpTime(myStartTimeNs).build());
+    if (response.getStatus() == MemoryProfiler.DumpDataResponse.Status.SUCCESS) {
+      response.getData().writeTo(outputStream);
+    }
+    else {
+      throw new IOException("Could not retrieve allocation dump.");
+    }
   }
 
   @NotNull
@@ -71,7 +107,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
   public List<HeapObject> getHeaps() {
     //noinspection ConstantConditions
     assert isDoneLoading() && !isError();
-    return Collections.singletonList(new AllocationsHeapObject());
+    return Collections.singletonList(myFakeHeapObject);
   }
 
   @Override
@@ -84,25 +120,19 @@ public final class AllocationsCaptureObject implements CaptureObject {
     return myEndTimeNs;
   }
 
-  @VisibleForTesting
-  public int getInfoId() {
-    return myInfoId;
-  }
-
   @Override
   public boolean load() {
+    MemoryProfiler.AllocationEventsResponse response;
     while (true) {
-      MemoryProfiler.GetAllocationsInfoStatusResponse response = myClient.getAllocationsInfoStatus(
-        MemoryProfiler.GetAllocationsInfoStatusRequest.newBuilder().setAppId(myAppId).setInfoId(myInfoId).build());
-
-      if (response.getStatus() == MemoryProfiler.AllocationsInfo.Status.COMPLETED) {
+      response = myClient.getAllocationEvents(MemoryProfiler.AllocationEventsRequest.newBuilder()
+                                                .setProcessId(myProcessId)
+                                                .setSession(mySession)
+                                                .setStartTime(myStartTimeNs)
+                                                .setEndTime(myEndTimeNs).build());
+      if (response.getStatus() == MemoryProfiler.AllocationEventsResponse.Status.SUCCESS) {
         break;
       }
-      else if (response.getStatus() == MemoryProfiler.AllocationsInfo.Status.FAILURE_UNKNOWN) {
-        myIsLoadingError = false;
-        return false;
-      }
-      else {
+      else if (response.getStatus() == MemoryProfiler.AllocationEventsResponse.Status.NOT_READY) {
         try {
           Thread.sleep(50L);
         }
@@ -111,40 +141,35 @@ public final class AllocationsCaptureObject implements CaptureObject {
           myIsLoadingError = true;
           return false;
         }
+        continue;
       }
+      myIsLoadingError = true;
+      return false;
     }
 
-    // TODO add caching
-    MemoryProfiler.AllocationContextsResponse contextsResponse = myClient.listAllocationContexts(
-      MemoryProfiler.AllocationContextsRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimeNs).setEndTime(myEndTimeNs).build());
+    MemoryProfiler.AllocationContextsRequest contextRequest = MemoryProfiler.AllocationContextsRequest.newBuilder()
+      .setSession(mySession)
+      .addAllStackIds(response.getEventsList().stream().map(AllocationEvent::getAllocationStackId).collect(Collectors.toSet()))
+      .addAllClassIds(response.getEventsList().stream().map(AllocationEvent::getAllocatedClassId).collect(Collectors.toSet()))
+      .build();
+    MemoryProfiler.AllocationContextsResponse contextsResponse = myClient.listAllocationContexts(contextRequest);
 
-    TIntObjectHashMap<AllocationsClassObject> classNodes = new TIntObjectHashMap<>();
+    Map<Integer, AllocationsClassObject> classNodes = new HashMap<>();
     Map<ByteString, MemoryProfiler.AllocationStack> callStacks = new HashMap<>();
-    contextsResponse.getAllocatedClassesList().forEach(className -> {
-      AllocationsClassObject dupe = classNodes.put(className.getClassId(), new AllocationsClassObject(className));
-      assert dupe == null;
-    });
+    contextsResponse.getAllocatedClassesList().forEach(className -> classNodes.put(className.getClassId(),
+                                                                                   new AllocationsClassObject(myFakeHeapObject,
+                                                                                                              className)));
     contextsResponse.getAllocationStacksList().forEach(callStack -> callStacks.putIfAbsent(callStack.getStackId(), callStack));
 
-    MemoryProfiler.MemoryData response = myClient
-      .getData(MemoryProfiler.MemoryRequest.newBuilder().setAppId(myAppId).setStartTime(myStartTimeNs).setEndTime(myEndTimeNs).build());
-    TIntHashSet allocatedClasses = new TIntHashSet();
-
     // TODO make sure class IDs fall into a global pool
-    for (MemoryProfiler.MemoryData.AllocationEvent event : response.getAllocationEventsList()) {
+    for (AllocationEvent event : response.getEventsList()) {
       assert classNodes.containsKey(event.getAllocatedClassId());
       assert callStacks.containsKey(event.getAllocationStackId());
       classNodes.get(event.getAllocatedClassId()).addInstance(
         new AllocationsInstanceObject(event, classNodes.get(event.getAllocatedClassId()), callStacks.get(event.getAllocationStackId())));
-      allocatedClasses.add(event.getAllocatedClassId());
     }
 
-    List<ClassObject> classes = new ArrayList<>(classNodes.size());
-    allocatedClasses.forEach(value -> {
-      classes.add(classNodes.get(value));
-      return true;
-    });
-    myClassObjs = classes;
+    myClassObjs = new ArrayList<>(classNodes.values());
     return true;
   }
 
@@ -178,8 +203,8 @@ public final class AllocationsCaptureObject implements CaptureObject {
 
     @NotNull
     @Override
-    public List<ClassAttribute> getClassAttributes() {
-      return Arrays.asList(ClassAttribute.LABEL, ClassAttribute.CHILDREN_COUNT);
+    public List<ClassObject.ClassAttribute> getClassAttributes() {
+      return Arrays.asList(ClassAttribute.LABEL, ClassAttribute.HEAP_COUNT);
     }
   }
 }

@@ -15,10 +15,13 @@
  */
 package com.android.tools.profilers.network;
 
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profilers.IdeProfilerServicesStub;
-import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
+import com.android.tools.profilers.StudioProfilers;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,6 +34,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.assertThat;
 
 public class ConnectionsViewTest {
@@ -42,20 +46,20 @@ public class ConnectionsViewTest {
       .add(FakeNetworkService.newHttpData(4, 21, 25, 34))
       .build();
 
-  @Rule public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("ConnectionsViewTest", FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("ConnectionsViewTest", new FakeProfilerService(false),
+                                                                   FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
   private NetworkProfilerStage myStage;
 
   @Before
   public void setUp() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new IdeProfilerServicesStub());
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
     myStage = new NetworkProfilerStage(profilers);
   }
 
   @Test
   public void logicToExtractColumnValuesFromDataWorks() throws Exception {
     HttpData data = FAKE_DATA.get(2); // Request: id = 3, time = 8->13
-    assertThat(ConnectionsView.Column.URL.getValueFrom(data), is("http://example.com/3"));
+    assertThat(ConnectionsView.Column.NAME.getValueFrom(data), is("3"));
     assertThat(ConnectionsView.Column.SIZE.getValueFrom(data), is(3));
     assertThat(ConnectionsView.Column.TYPE.getValueFrom(data), is("image/jpeg"));
     assertThat(ConnectionsView.Column.STATUS.getValueFrom(data), is(302));
@@ -150,6 +154,22 @@ public class ConnectionsViewTest {
 
     table.setRowSelectionInterval(1, 1);
     assertThat(table.prepareRenderer(renderer, 1, timelineColumn).getBackground(), is(selectionColor));
+  }
+
+  @Test
+  public void ensureAxisInTheFirstRow() throws Exception {
+    Range dataRange = new Range(0, TimeUnit.SECONDS.toMicros(100));
+    ConnectionsView view = new ConnectionsView(myStage, dataRange, data -> {});
+
+    JTable table = getConnectionsTable(view);
+
+    int timelineColumn = ConnectionsView.Column.TIMELINE.ordinal();
+    TableCellRenderer renderer = table.getCellRenderer(1, timelineColumn);
+
+    Component comp = table.prepareRenderer(renderer, 0, timelineColumn);
+    assertThat(comp, instanceOf(JPanel.class));
+    assertThat(((JPanel)comp).getComponent(0), instanceOf(AxisComponent.class));
+    assertThat(((JPanel)comp).getComponent(1), instanceOf(StateChart.class));
   }
 
   /**

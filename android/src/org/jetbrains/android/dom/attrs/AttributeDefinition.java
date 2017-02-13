@@ -37,13 +37,18 @@ public class AttributeDefinition {
   private HashMap<String, Integer> myValueMappings = null;
   private String myGlobalDocValue;
   private String myAttrGroup;
+  private final String myLibraryName;
 
   public AttributeDefinition(@NotNull String name) {
-    this(name, null, Collections.emptySet());
+    this(name, null, null, Collections.emptySet());
   }
 
-  public AttributeDefinition(@NotNull String name, @Nullable String parentStyleableName, @NotNull Collection<AttributeFormat> formats) {
+  public AttributeDefinition(@NotNull String name,
+                             @Nullable String libraryName,
+                             @Nullable String parentStyleableName,
+                             @NotNull Collection<AttributeFormat> formats) {
     myName = name;
+    myLibraryName = libraryName;
     if (parentStyleableName != null && !myParentStyleables.contains(parentStyleableName)) {
       myParentStyleables.add(parentStyleableName);
     }
@@ -77,6 +82,11 @@ public class AttributeDefinition {
   @NotNull
   public String getName() {
     return myName;
+  }
+
+  @Nullable
+  public String getLibraryName() {
+    return myLibraryName;
   }
 
   @NotNull

@@ -15,14 +15,21 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.intellij.openapi.Disposable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
-public interface CaptureObject extends MemoryObject, Disposable {
+public interface CaptureObject extends MemoryObject {
   @NotNull
   String getLabel();
+
+  @Nullable
+  String getExportableExtension();
+
+  void saveToFile(@NotNull OutputStream outputStream) throws IOException;
 
   @NotNull
   List<HeapObject> getHeaps();

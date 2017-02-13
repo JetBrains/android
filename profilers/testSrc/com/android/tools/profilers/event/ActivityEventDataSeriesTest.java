@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.ProfilersTestData;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,7 +43,7 @@ public class ActivityEventDataSeriesTest {
 
   @Before
   public void setUp() {
-    mySeries = new ActivityEventDataSeries(myGrpcChannel.getClient(), FakeEventService.FAKE_APP_ID);
+    mySeries = new ActivityEventDataSeries(myGrpcChannel.getClient(), FakeEventService.FAKE_APP_ID, ProfilersTestData.SESSION_DATA);
   }
 
   @Test
@@ -133,7 +134,7 @@ public class ActivityEventDataSeriesTest {
 
   private EventProfiler.ActivityData buildActivityEvent(String name, ActivityStateData[] states) {
     EventProfiler.ActivityData.Builder builder = EventProfiler.ActivityData.newBuilder();
-    builder.setAppId(FakeEventService.FAKE_APP_ID)
+    builder.setProcessId(FakeEventService.FAKE_APP_ID)
       .setName(name)
       .setHash(name.hashCode());
     for (ActivityStateData state : states) {

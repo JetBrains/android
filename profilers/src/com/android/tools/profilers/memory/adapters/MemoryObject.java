@@ -16,5 +16,5 @@
 package com.android.tools.profilers.memory.adapters;
 
 public interface MemoryObject {
-
+  int INVALID_VALUE = -1;
 }

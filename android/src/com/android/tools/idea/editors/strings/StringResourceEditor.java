@@ -81,10 +81,6 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
 
   @Override
   public void selectNotify() {
-    // TODO Doesn't refresh if a strings.xml file is deleted while the editor is visible
-    if (!myPanel.dataIsCurrent()) {
-      myPanel.reloadData();
-    }
   }
 
   @Override

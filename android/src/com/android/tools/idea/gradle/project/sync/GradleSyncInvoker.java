@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
 import com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp;
 import com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync;
+import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
 import com.android.tools.idea.project.AndroidProjectInfo;
@@ -183,7 +184,13 @@ public class GradleSyncInvoker {
 
     // We only update UI on sync when re-importing projects. By "updating UI" we mean updating the "Build Variants" tool window and editor
     // notifications.  It is not safe to do this for new projects because the new project has not been opened yet.
-    boolean started = GradleSyncState.getInstance(project).syncStarted(!request.isNewProject());
+    boolean started;
+    if (request.isUseCachedGradleModels()) {
+      started = GradleSyncState.getInstance(project).skippedSyncStarted(!request.isNewProject());
+    }
+    else {
+      started = GradleSyncState.getInstance(project).syncStarted(!request.isNewProject());
+    }
     if (!started) {
       return;
     }

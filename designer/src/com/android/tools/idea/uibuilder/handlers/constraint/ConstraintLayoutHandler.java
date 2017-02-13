@@ -17,15 +17,12 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import android.support.constraint.solver.widgets.ConstraintAnchor;
-import android.support.constraint.solver.widgets.ConstraintWidget;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.*;
 import com.android.tools.idea.uibuilder.scene.draw.ConstraintLayoutComponentNotchProvider;
@@ -41,6 +38,7 @@ import com.android.tools.sherpa.interaction.MouseInteraction;
 import com.android.tools.sherpa.scout.Scout;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.PropertiesComponent;
@@ -58,16 +56,14 @@ import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+import static com.android.SdkConstants.*;
 
 /**
  * Handles interactions for the ConstraintLayout viewgroups
  */
 public class ConstraintLayoutHandler extends ViewGroupHandler {
-
-  public static final boolean USE_SOLVER = false;
-  public static final boolean USE_SCENE_INTERACTION = true;
 
   private static final String PREFERENCE_KEY_PREFIX = "ConstraintLayoutPreference";
   /**
@@ -147,6 +143,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   @NotNull
   public String getGradleCoordinateId(@NotNull String tagName) {
     return CONSTRAINT_LAYOUT_LIB_ARTIFACT;
+  }
+
+  @Override
+  @NotNull
+  public Map<String, Map<String, String>> getEnumPropertyValues(@SuppressWarnings("unused") @NotNull NlComponent component) {
+    Map<String, String> values = ImmutableMap.of("0dp", "match_constraint", VALUE_WRAP_CONTENT, VALUE_WRAP_CONTENT);
+    return ImmutableMap.of(ATTR_LAYOUT_WIDTH, values,
+                           ATTR_LAYOUT_HEIGHT, values);
   }
 
   @Override
@@ -385,10 +389,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   @Override
   public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component) {
-    if (USE_SCENE_INTERACTION) {
-      return new SceneInteraction(screenView);
-    }
-    return new ConstraintInteraction(screenView, component);
+    return new SceneInteraction(screenView);
   }
 
   /**
@@ -411,7 +412,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       component.addTarget(new GuidelineTarget(isHorizontal));
       if (isHorizontal) {
         component.addTarget(new GuidelineAnchorTarget(AnchorTarget.Type.TOP, true));
-      } else {
+      }
+      else {
         component.addTarget(new GuidelineAnchorTarget(AnchorTarget.Type.LEFT, false));
       }
       component.addTarget(new GuidelineCycleTarget(isHorizontal));
@@ -420,12 +422,13 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     if (!isParent) {
       DragTarget dragTarget = new DragTarget();
       component.addTarget(dragTarget);
-      component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_TOP));
-      component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_BOTTOM));
-      component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_TOP));
-      component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_BOTTOM));
+      component.addTarget(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
+      component.addTarget(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM));
+      component.addTarget(new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP));
+      component.addTarget(new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM));
       component.setNotchProvider(new ConstraintLayoutComponentNotchProvider());
-    } else {
+    }
+    else {
       component.addTarget(new LassoTarget());
       component.setNotchProvider(new ConstraintLayoutNotchProvider());
     }
@@ -434,15 +437,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     component.addTarget(new AnchorTarget(AnchorTarget.Type.RIGHT, showAnchors));
     component.addTarget(new AnchorTarget(AnchorTarget.Type.BOTTOM, showAnchors));
     if (!isParent) {
-      ActionTarget previousAction = (ActionTarget) component.addTarget(new ClearConstraintsTarget(null));
+      ActionTarget previousAction = (ActionTarget)component.addTarget(new ClearConstraintsTarget(null));
       int baseline = component.getNlComponent().getBaseline();
       if (baseline <= 0 && component.getNlComponent().viewInfo != null) {
         baseline = component.getNlComponent().viewInfo.getBaseLine();
       }
       if (baseline > 0) {
         component.addTarget(new AnchorTarget(AnchorTarget.Type.BASELINE, showAnchors));
-        ActionTarget baselineActionTarget = new ActionTarget(previousAction, (SceneComponent c) -> {
-          c.setShowBaseline(!c.canShowBaseline()); });
+        ActionTarget baselineActionTarget = new ActionTarget(previousAction, (SceneComponent c) -> c.setShowBaseline(!c.canShowBaseline()));
         baselineActionTarget.setActionType(DrawAction.BASELINE);
         component.addTarget(baselineActionTarget);
         previousAction = baselineActionTarget;
@@ -472,50 +474,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
-                                       @NotNull NlComponent layout,
-                                       @NotNull java.util.List<NlComponent> components,
+                                       @NotNull SceneComponent layout,
+                                       @NotNull List<SceneComponent> components,
                                        @NotNull DragType type) {
-    if (USE_SCENE_INTERACTION) {
-      return new SceneDragHandler(editor, this, layout, components, type);
-    }
-    return new ConstraintDragHandler(editor, this, layout, components, type);
-  }
-
-  /**
-   * Update the mouse cursor if the (x, y) coordinates hit a resize handle or constraint handle
-   *
-   * @param screenView the ScreenView we are working on
-   * @param x          the current x mouse coordinate
-   * @param y          the current y mouse coordinate
-   * @return true if we modified the cursor
-   */
-  @Override
-  public boolean updateCursor(@NotNull ScreenView screenView,
-                              @AndroidCoordinate int x, @AndroidCoordinate int y) {
-    if (USE_SCENE_INTERACTION) {
-      Scene scene = screenView.getScene();
-      int dpX = Coordinates.pxToDp(screenView, x);
-      int dpY = Coordinates.pxToDp(screenView, y);
-      scene.mouseHover(SceneContext.get(screenView), dpX, dpY);
-      int cursor = scene.getMouseCursor();
-
-      // Set the mouse cursor
-      // TODO: we should only update if we are above a component we manage, not simply all component that
-      // is a child of this viewgroup
-      screenView.getSurface().setCursor(Cursor.getPredefinedCursor(cursor));
-      screenView.getSurface().repaint();
-    } else {
-      DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(screenView);
-
-      drawConstraintModel.mouseMoved(x, y);
-      int cursor = drawConstraintModel.getMouseInteraction().getMouseCursor();
-
-      // Set the mouse cursor
-      // TODO: we should only update if we are above a component we manage, not simply all component that
-      // is a child of this viewgroup
-      screenView.getSurface().setCursor(Cursor.getPredefinedCursor(cursor));
-    }
-    return true;
+    return new SceneDragHandler(editor, this, layout, components, type);
   }
 
   /**
@@ -540,16 +502,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView,
                            @NotNull NlComponent component) {
     ConstraintModel constraintModel = ConstraintModel.getConstraintModel(screenView.getModel());
-    DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(screenView);
     updateActions(constraintModel.getSelection());
-    ConstraintWidget widget = constraintModel.getScene().getWidget(component);
-    if (USE_SCENE_INTERACTION) {
-      return false;
-    }
-    return drawConstraintModel.paint(gc, screenView, widget,
-                                     Coordinates.getSwingDimension(screenView, component.w),
-                                     Coordinates.getSwingDimension(screenView, component.h),
-                                     myShowAllConstraints);
+    return false;
   }
 
   private static class ToggleAutoConnectAction extends ToggleViewAction implements Enableable {
@@ -567,10 +521,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                               @NotNull ViewHandler handler,
                               @NotNull NlComponent parent,
                               @NotNull List<NlComponent> selectedChildren) {
-      if (USE_SCENE_INTERACTION) {
-        return PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, false);
-      }
-      return ConstraintModel.isAutoConnect();
+      return PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, false);
     }
 
     @Override
@@ -579,15 +530,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             @NotNull NlComponent parent,
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
-      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(selected
                    ? LayoutEditorEvent.LayoutEditorEventType.TURN_ON_AUTOCONNECT
                    : LayoutEditorEvent.LayoutEditorEventType.TURN_OFF_AUTOCONNECT);
-      if (USE_SCENE_INTERACTION) {
-        PropertiesComponent.getInstance().setValue(AUTO_CONNECT_PREF_KEY, selected, false);
-      } else {
-        ConstraintModel.setAutoConnect(selected);
-      }
+      PropertiesComponent.getInstance().setValue(AUTO_CONNECT_PREF_KEY, selected, false);
     }
 
     @Override
@@ -607,10 +554,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
-      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS);
-      ViewEditorImpl viewEditor = (ViewEditorImpl) editor;
-      Scene scene = viewEditor.getScreenView().getScene();
+      ViewEditorImpl viewEditor = (ViewEditorImpl)editor;
+      Scene scene = viewEditor.getSceneView().getScene();
       scene.clearAttributes();
     }
 
@@ -626,35 +573,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     }
   }
 
-  private static class LockConstraints extends DirectViewAction {
-    @Override
-    public void perform(@NotNull ViewEditor editor,
-                        @NotNull ViewHandler handler,
-                        @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren,
-                        @InputEventMask int modifiers) {
-      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-      if (model == null) {
-        return;
-      }
-      if (model.getSelection().getWidgets().size() == 1) {
-        WidgetsScene scene = model.getScene();
-        scene.toggleLockConstraints((model.getSelection().getWidgets().get(0)));
-      }
-    }
-
-    @Override
-    public void updatePresentation(@NotNull ViewActionPresentation presentation,
-                                   @NotNull ViewEditor editor,
-                                   @NotNull ViewHandler handler,
-                                   @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers) {
-      presentation.setIcon(AndroidIcons.SherpaIcons.LockConstraints);
-      presentation.setLabel("Locks auto inferred constraints");
-    }
-  }
-
   private static class InferAction extends DirectViewAction {
     @Override
     public void perform(@NotNull ViewEditor editor,
@@ -666,7 +584,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
-      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.INFER_CONSTRAINS);
       WidgetsScene scene = model.getScene();
       try {
@@ -713,7 +631,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
       myShowAllConstraints = selected;
-      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(
           selected ? LayoutEditorEvent.LayoutEditorEventType.SHOW_CONSTRAINTS : LayoutEditorEvent.LayoutEditorEventType.HIDE_CONSTRAINTS);
       PropertiesComponent.getInstance().setValue(SHOW_CONSTRAINTS_PREF_KEY, myShowAllConstraints);
@@ -778,7 +696,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         NlComponent guideline = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
         guideline.ensureId();
         guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
-        NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface());
+        NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
         if (myType == HORIZONTAL_GUIDELINE) {
           tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_GUIDELINE);
           guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
@@ -860,7 +778,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
-      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.ALIGN);
       modifiers &= InputEvent.CTRL_MASK;
       Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), modifiers == 0 || ConstraintModel.isAutoConnect());
@@ -930,6 +848,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         };
       }
     }
+
     @Override
     public void perform(@NotNull ViewEditor editor,
                         @NotNull ViewHandler handler,
@@ -940,7 +859,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
-      DesignSurface surface = ((ViewEditorImpl)editor).getScreenView().getSurface();
+      DesignSurface surface = ((ViewEditorImpl)editor).getSceneView().getSurface();
       NlUsageTrackerManager.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEFAULT_MARGINS);
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
       JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())
@@ -964,4 +883,43 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     }
   }
 
+  /**
+   * Called when one or more children are about to be deleted by the user.
+   *
+   * @param parent  the parent of the deleted children (which still contains
+   *                the children since this method is called before the deletion
+   *                is performed)
+   * @param deleted a nonempty list of children about to be deleted
+   * @return true if the children have been fully deleted by this participant; false if normal deletion should resume. Note that even though
+   * an implementation may return false from this method, that does not mean it did not perform any work. For example, a RelativeLayout
+   * handler could remove constraints pointing to now deleted components, but leave the overall deletion of the elements to the core
+   * designer.
+   */
+  @Override
+  public boolean deleteChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> deleted) {
+    final int count = parent.getChildCount();
+    for (int i = 0; i < count; i++) {
+      NlComponent component = parent.getChild(i);
+      if (deleted.contains(component)) {
+        continue;
+      }
+      willDelete(component, deleted);
+    }
+    return false;
+  }
+
+  /**
+   * Update the given component if one of its constraint points to one of the component deleted
+   *
+   * @param component the component we want to check
+   * @param deleted   the list of components that are deleted
+   */
+  private void willDelete(NlComponent component, @NotNull List<NlComponent> deleted) {
+    final int count = deleted.size();
+    for (int i = 0; i < count; i++) {
+      NlComponent deletedComponent = deleted.get(i);
+      String id = deletedComponent.getId();
+      ConstraintComponentUtilities.updateOnDelete(component, id);
+    }
+  }
 }

@@ -171,6 +171,13 @@
       <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="MainToolBarSettings" />
     </group>
 
+    <group id="Android.DeviceExplorer.ActionsToolbar">
+      <action id="Android.DeviceExplorer.GotoSharedPrefsFolder" class="com.android.tools.idea.explorer.actions.GotoSharedPrefsFolderAction" icon="AndroidIcons.DeviceExplorer.SharedPrefs" />
+      <action id="Android.DeviceExplorer.GotoDatabaseFolder" class="com.android.tools.idea.explorer.actions.GotoDatabaseFolderAction" icon="AndroidIcons.DeviceExplorer.DatabaseFolder" />
+      <action id="Android.DeviceExplorer.GotoSdcardFolder" class="com.android.tools.idea.explorer.actions.GotoSdcardFolderAction" icon="AndroidIcons.DeviceExplorer.SdcardFolder" />
+      <action id="Android.DeviceExplorer.Help" class="com.android.tools.idea.explorer.actions.HelpAction" icon="AllIcons.Actions.Help" />
+    </group>
+
     <group id="Internal.Android" text="Android" popup="true" internal="true">
       <action internal="true" id="Android.CleanImportProject" class="com.android.tools.idea.gradle.actions.CleanImportProjectAction" />
       <action internal="true" id="Android.StopGradleDaemons" class="com.android.tools.idea.gradle.actions.StopGradleDaemonsAction" />
@@ -292,6 +299,7 @@
     <applicationService serviceImplementation="com.android.tools.idea.sdk.AndroidSdks"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.Jdks"/>
     <applicationService serviceImplementation="com.android.tools.idea.project.AndroidRunConfigurations"/>
+    <applicationService serviceImplementation="com.android.tools.idea.project.CustomProjectTypeImporter$MainImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.EmbeddedDistributionPaths"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.common.GradleInitScripts"/>
@@ -399,7 +407,7 @@
     <fileTypeFactory implementation="com.android.tools.idea.editors.hprof.HprofFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.allocations.AllocationsFileTypeFactory" />
     <fileTypeFactory implementation="com.android.tools.idea.editors.vmtrace.VmTraceFileTypeFactory" />
-    <fileTypeFactory implementation="com.android.tools.idea.editors.hierarchyview.LayoutInspectorFileTypeFactory" />
+    <fileTypeFactory implementation="com.android.tools.idea.editors.layoutInspector.LayoutInspectorFileTypeFactory" />
     <lang.parserDefinition language="Renderscript"
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
     <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition" />
@@ -428,7 +436,7 @@
     <facetType implementation="com.android.tools.idea.gradle.project.facet.gradle.GradleFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.project.facet.ndk.NdkFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.project.facet.java.JavaFacetType"/>
-    <facetType implementation="com.android.tools.idea.apk.AndroidApkFacetType"/>
+    <facetType implementation="com.android.tools.idea.apk.ApkFacetType"/>
     <framework.detector implementation="org.jetbrains.android.facet.AndroidFrameworkDetector"/>
     <fileTemplateGroup implementation="org.jetbrains.android.AndroidFileTemplateProvider"/>
 
@@ -471,6 +479,11 @@
 
     <intentionAction>
       <className>org.jetbrains.android.intentions.AndroidExtractDimensionAction</className>
+      <category>Android</category>
+    </intentionAction>
+
+    <intentionAction>
+      <className>org.jetbrains.android.intentions.AndroidExtractColorAction</className>
       <category>Android</category>
     </intentionAction>
 
@@ -585,6 +598,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintFloatMath" displayName="Using FloatMath instead of Math" groupKey="android.lint.inspections.group.name.performance" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintFloatMathInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintFullBackupContent" displayName="Valid Full Backup Content File" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintFullBackupContentInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintGetInstance" displayName="Cipher.getInstance with ECB" groupKey="android.lint.inspections.group.name.security" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintGetInstanceInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintGetLocales" displayName="Locale crash" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintGetLocalesInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintGifUsage" displayName="Using .gif format for bitmaps is discouraged" groupKey="android.lint.inspections.group.name.usability.icons" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintGifUsageInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintGoogleAppIndexingApiWarning" displayName="Missing support for Firebase App Indexing Api" groupKey="android.lint.inspections.group.name.usability" bundle="messages.AndroidBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintGoogleAppIndexingApiWarningInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintGoogleAppIndexingUrlError" displayName="URL not supported by app for Firebase App Indexing" groupKey="android.lint.inspections.group.name.usability" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintGoogleAppIndexingUrlErrorInspection"/>
@@ -634,6 +648,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintInvalidId" displayName="Invalid ID declaration" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintInvalidIdInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintInvalidPermission" displayName="Permission attribute declared on invalid element." groupKey="android.lint.inspections.group.name.security" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintInvalidPermissionInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintInvalidResourceFolder" displayName="Invalid Resource Folder" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintInvalidResourceFolderInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintInvalidWearFeatureAttribute" displayName="Invalid attribute for Wear uses-feature" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintInvalidWearFeatureAttributeInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintInvalidUsesTagAttribute" displayName="Invalid name attribute for uses element." groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintInvalidUsesTagAttributeInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintJavascriptInterface" displayName="Missing @JavascriptInterface on methods" groupKey="android.lint.inspections.group.name.security" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintJavascriptInterfaceInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintLabelFor" displayName="Missing labelFor attribute" groupKey="android.lint.inspections.group.name.accessibility" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintLabelForInspection"/>
@@ -684,6 +699,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintObsoleteLayoutParam" displayName="Obsolete layout params" groupKey="android.lint.inspections.group.name.performance" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintObsoleteLayoutParamInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintObsoleteSdkInt" displayName="Obsolete SDK_INT Version Check" groupKey="android.lint.inspections.group.name.performance" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintObsoleteSdkIntInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintOldTargetApi" displayName="Target SDK attribute is not targeting latest version" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintOldTargetApiInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintOnClick" displayName="onClick method does not exist" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintOnClickInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintOrientation" displayName="Missing explicit orientation" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintOrientationInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintOverdraw" displayName="Overdraw: Painting regions more than once" groupKey="android.lint.inspections.group.name.performance" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintOverdrawInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintOverride" displayName="Method conflicts with new inherited method" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintOverrideInspection"/>
@@ -697,6 +713,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintPermissionImpliesUnsupportedHardware" displayName="Permission Implies Unsupported Hardware" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintPermissionImpliesUnsupportedHardwareInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintPinSetExpiry" displayName="Validate &lt;pin-set> expiration attribute" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintPinSetExpiryInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintPluralsCandidate" displayName="Potential Plurals" groupKey="android.lint.inspections.group.name.correctness.messages" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintPluralsCandidateInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintPrivateApi" displayName="Using Private APIs" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintPrivateApiInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintPrivateResource" displayName="Using private resources" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintPrivateResourceInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintProguard" displayName="Using obsolete ProGuard configuration" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintProguardInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintProguardSplit" displayName="Proguard.cfg file contains generic Android rules" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintProguardSplitInspection"/>
@@ -797,7 +814,9 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintViewHolder" displayName="View Holder Candidates" groupKey="android.lint.inspections.group.name.performance" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintViewHolderInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintViewTag" displayName="Tagged object leaks" groupKey="android.lint.inspections.group.name.performance" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintViewTagInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintVisibleForTests" displayName="Visible Only For Tests" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintVisibleForTestsInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintWakelockTimeout" displayName="Using wakeLock without timeout" groupKey="android.lint.inspections.group.name.performance" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintWakelockTimeoutInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWearableBindListener" displayName="Usage of Android Wear BIND_LISTENER is deprecated" groupKey="android.lint.inspections.group.name.performance" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWearableBindListenerInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintWearStandaloneAppFlag" displayName="Invalid or missing wear standalone app flag" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintWearStandaloneAppFlagInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWebpUnsupported" displayName="WebP Unsupported" groupKey="android.lint.inspections.group.name.usability.icons" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWebpUnsupportedInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWebViewLayout" displayName="WebViews in wrap_content parents" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWebViewLayoutInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintWifiManagerLeak" displayName="WifiManager Leak" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintWifiManagerLeakInspection"/>
@@ -833,6 +852,13 @@
                       facetIdList="android"
                       anchor="bottom"
                       icon="AndroidIcons.AndroidToolWindow"
+                      conditionClass="com.android.tools.idea.monitor.AndroidMonitorCondition"
+                      factoryClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"/>
+    <facet.toolWindow id="Logcat"
+                      facetIdList="android"
+                      anchor="bottom"
+                      icon="AndroidIcons.Ddms.Logcat"
+                      conditionClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"
                       factoryClass="com.android.tools.idea.monitor.AndroidToolWindowFactory"/>
     <facet.toolWindow id="Build Variants"
                       facetIdList="android,android-gradle"
@@ -852,12 +878,13 @@
                 conditionClass="com.android.tools.idea.gradle.InternalAndroidModelViewCondition"
                 icon="AndroidIcons.AndroidToolWindow"
                 factoryClass="com.android.tools.idea.gradle.InternalAndroidModelToolWindowFactory"/>
-    <toolWindow id="Android Device Explorer"
-                anchor="right"
-                secondary="true"
-                conditionClass="com.android.tools.idea.explorer.DeviceExplorerViewCondition"
-                icon="AndroidIcons.AndroidToolWindow"
-                factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
+    <facet.toolWindow id="Device Explorer"
+                      facetIdList="android"
+                      anchor="right"
+                      secondary="true"
+                      conditionClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowCondition"
+                      icon="AndroidIcons.AndroidToolWindow"
+                      factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
     <toolWindow id="Gradle Console"
                 anchor="bottom"
                 secondary="true"
@@ -886,8 +913,9 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncState"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.AndroidGradleNotification"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupErrors"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.messages.SyncMessages"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.structure.AndroidProjectStructureConfigurable"/>
     <projectService serviceImplementation="com.android.tools.idea.structure.dialog.ProjectStructureConfigurable"/>
@@ -1063,12 +1091,8 @@
     <extensionPoint qualifiedName="org.jetbrains.android.newModuleDynamicPathFactory" interface="com.android.tools.idea.npw.NewModuleDynamicPathFactory"/>
     <extensionPoint qualifiedName="com.android.moduleDescriptionProvider" interface="com.android.tools.idea.npw.module.ModuleDescriptionProvider"/>
 
-    <extensionPoint qualifiedName="com.android.gradle.sync.androidModuleSetupStep"
-                    interface="com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep"/>
-    <extensionPoint qualifiedName="com.android.gradle.sync.ndkModuleSetupStep"
-                    interface="com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep"/>
-    <extensionPoint qualifiedName="com.android.gradle.sync.javaModuleSetupStep"
-                    interface="com.android.tools.idea.gradle.project.sync.setup.module.JavaModuleSetupStep"/>
+    <extensionPoint qualifiedName="com.android.customProjectTypeImporter" interface="com.android.tools.idea.project.CustomProjectTypeImporter"/>
+
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectSetupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncModuleSetupStep"
@@ -1124,7 +1148,7 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
-    <captureType implementation="com.android.tools.idea.editors.hierarchyview.HierarchyViewCaptureType"/>
+    <captureType implementation="com.android.tools.idea.editors.layoutInspector.LayoutInspectorCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.hprof.HprofCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.allocations.AllocationCaptureType"/>
     <captureType implementation="com.android.tools.idea.editors.systeminfo.SystemInfoCaptureType"/>
@@ -1144,23 +1168,6 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.android.gradle.sync">
-    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidFacetModuleSetupStep"/>
-    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.SdkModuleSetupStep"/>
-    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.JdkModuleSetupStep"/>
-    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.ContentRootsModuleSetupStep"/>
-    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesModuleSetupStep"/>
-    <androidModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.android.CompilerOutputModuleSetupStep"/>
-
-    <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.JavaFacetModuleSetupStep"/>
-    <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.ContentRootsModuleSetupStep"/>
-    <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.DependenciesModuleSetupStep"/>
-    <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.ArtifactsByConfigurationModuleSetupStep"/>
-    <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.CompilerOutputModuleSetupStep"/>
-    <javaModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.java.JavaLanguageLevelModuleSetupStep"/>
-
-    <ndkModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkFacetModuleSetupStep"/>
-    <ndkModuleSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.module.ndk.ContentRootModuleSetupStep"/>
-
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.ProjectJdkSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.MissingPlatformsSetupStep"/>
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.SdkToolsVersionSetupStep"/>

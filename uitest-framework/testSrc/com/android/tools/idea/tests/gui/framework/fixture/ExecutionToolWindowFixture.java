@@ -32,7 +32,6 @@ import com.intellij.xdebugger.impl.ui.tree.XDebuggerTree;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.fixture.JListFixture;
@@ -42,6 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
+import java.awt.IllegalComponentStateException;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
@@ -116,20 +116,29 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
           myRobot.finder().findByType(debuggerComponent, ThreeComponentsSplitter.class, false);
         JComponent innerComponent = threeComponentsSplitter.getInnerComponent();
         return myRobot.finder().findByType(innerComponent, XDebuggerTree.class, false).getRoot();
-      } catch (ComponentLookupException e) {
+      } catch (ComponentLookupException | IllegalComponentStateException e) {
         return null;
       }
     }
 
     @NotNull
-    public JListFixture getFramesList() {
-      JComponent debuggerComponent = getTabComponent("Debugger");
-      myRobot.click(debuggerComponent);
-      ThreeComponentsSplitter splitter =
-        myRobot.finder().findByType(debuggerComponent, ThreeComponentsSplitter.class, false);
-      JComponent component = splitter.getFirstComponent();
-      assert component != null;
-      return new JListFixture(myRobot, myRobot.finder().findByType(component, XDebuggerFramesList.class, false));
+    public JListFixture getFramesListFixture() {
+      Wait.seconds(5).expecting("Frames list present").until(() -> getFramesList() != null);
+      return new JListFixture(myRobot, getFramesList());
+    }
+
+    @Nullable
+    private XDebuggerFramesList getFramesList() {
+      try {
+        JComponent debuggerComponent = getTabComponent("Debugger");
+        myRobot.click(debuggerComponent);
+        ThreeComponentsSplitter splitter =
+          myRobot.finder().findByType(debuggerComponent, ThreeComponentsSplitter.class, false);
+        JComponent component = splitter.getFirstComponent();
+        return myRobot.finder().findByType(component, XDebuggerFramesList.class, false);
+      } catch (ComponentLookupException | IllegalComponentStateException e) {
+        return null;
+      }
     }
 
     public void clickDebuggerTreeRoot() {
@@ -214,18 +223,28 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
           //noinspection ConstantConditions
           boolean enabled = method("isButtonEnabled").withReturnType(boolean.class).in(button).invoke();
           if (enabled) {
-            GuiActionRunner.execute(new GuiTask() {
-              @Override
-              protected void executeInEDT() throws Throwable {
-                button.click();
-              }
-            });
+            GuiTask.execute(() -> button.click());
             return true;
           }
           return false;
         }
       }
       return false;
+    }
+
+    public void waitForStopClick() {
+      Wait.seconds(5).expecting("Stop button clicked").until(() -> {
+        for (ActionButton button : getToolbarButtons()) {
+          if (button.getAction() == null || !button.getAction().getClass().getName().equals("com.intellij.execution.actions.StopAction")) {
+            continue;
+          }
+          if (button.isEnabled() && button.isShowing()) {
+            GuiTask.execute(() -> button.click());
+            return true;
+          }
+        }
+        return false;
+      });
     }
 
     @NotNull

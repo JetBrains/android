@@ -22,12 +22,14 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.scene.target.*;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,15 +39,19 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE;
+import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
+import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIUS;
 
 /**
  * A Scene contains a hierarchy of SceneComponent representing the bounds
  * of the widgets being layed out. Multiple NlModel can be used to populate
  * a Scene.
+ * <p/>
+ * Methods in this class must be called in the dispatch thread.
  */
 public class Scene implements ModelListener, SelectionListener {
 
-  private final ScreenView myScreenView;
+  private final SceneView mySceneView;
   private static final boolean DEBUG = false;
   private NlModel myModel;
   /** The DPI factor can be manually set for testing. Do not auto-update */
@@ -71,8 +77,9 @@ public class Scene implements ModelListener, SelectionListener {
 
   private HitListener myHoverListener = new HitListener();
   private HitListener myHitListener = new HitListener();
+  private HitListener myFindListener = new HitListener();
   private Target myHitTarget = null;
-  private int myMouseCursor;
+  private Cursor myMouseCursor;
   private SceneComponent myHitComponent;
   ArrayList<SceneComponent> myNewSelectedComponents = new ArrayList<>();
   private boolean myIsControlDown;
@@ -91,7 +98,7 @@ public class Scene implements ModelListener, SelectionListener {
    * @param screenView
    * @return a newly initialized Scene instance populated using the given NlModel
    */
-  public static Scene createScene(@NotNull NlModel model, @NotNull ScreenView screenView) {
+  public static Scene createScene(@NotNull NlModel model, @NotNull SceneView screenView) {
     Scene scene = new Scene(screenView, model.getConfiguration().getDensity().getDpiValue());
     scene.add(model);
     return scene;
@@ -100,12 +107,12 @@ public class Scene implements ModelListener, SelectionListener {
   /**
    * Default constructor
    *
-   * @param screenView
+   * @param sceneView
    * @param dpiFactor
    */
-  private Scene(@NotNull ScreenView screenView, float dpiFactor) {
-    myScreenView = screenView;
-    myScreenView.getSelectionModel().addListener(this);
+  private Scene(@NotNull SceneView sceneView, float dpiFactor) {
+    mySceneView = sceneView;
+    mySceneView.getSelectionModel().addListener(this);
     myDpiFactor = dpiFactor / 160f;
   }
 
@@ -119,6 +126,7 @@ public class Scene implements ModelListener, SelectionListener {
    * @param px the pixel amount
    * @return the converted Dp amount
    */
+  @AndroidCoordinate
   public int pxToDp(@AndroidCoordinate int px) {
     return (int)(0.5f + px / myDpiFactor);
   }
@@ -129,6 +137,7 @@ public class Scene implements ModelListener, SelectionListener {
    * @param dp the Dp amount
    * @return the converted Android pixels amount
    */
+  @AndroidCoordinate
   public int dpToPx(@AndroidDpCoordinate int dp) {
     return (int)(0.5f + dp * myDpiFactor);
   }
@@ -209,17 +218,17 @@ public class Scene implements ModelListener, SelectionListener {
     return myRoot;
   }
 
-  public int getMouseCursor() {
+  public Cursor getMouseCursor() {
     return myMouseCursor;
   }
 
-  public void setDnDComponent(NlComponent component) {
-    SceneComponent existingComponent = getSceneComponent(component);
-    if ((component == null) || (existingComponent != myDnDComponent)) {
+  public void setDnDComponent(@Nullable SceneComponent component) {
+    if (component == null || component != myDnDComponent) {
       // We are here to reset the dnd component
       if (myDnDComponent != null) {
         if (myDnDComponent instanceof TemporarySceneComponent) {
           myDnDComponent.removeFromParent();
+          mySceneComponents.remove(myDnDComponent, myDnDComponent.getNlComponent());
         } else {
           int pos = myDnDComponent.findTarget(DragDndTarget.class);
           if (pos != -1) {
@@ -231,16 +240,8 @@ public class Scene implements ModelListener, SelectionListener {
     }
 
     if (component != null) {
-      if (existingComponent == null) {
-        myDnDComponent = new TemporarySceneComponent(this, component);
-        if (myRoot != null) {
-          myRoot.addChild(myDnDComponent);
-        }
-      }
-      else {
-        myDnDComponent = existingComponent;
-        myDnDComponent.addTarget(new DragDndTarget());
-      }
+      myDnDComponent = component;
+      myDnDComponent.addTarget(new DragDndTarget());
     }
   }
 
@@ -328,8 +329,8 @@ public class Scene implements ModelListener, SelectionListener {
     model.addListener(this);
     myModel = model;
     // let's make sure the selection is correct
-    if (myScreenView != null) {
-      selectionChanged(myScreenView.getSelectionModel(), myScreenView.getSelectionModel().getSelection());
+    if (mySceneView != null) {
+      selectionChanged(mySceneView.getSelectionModel(), mySceneView.getSelectionModel().getSelection());
     }
   }
 
@@ -342,12 +343,20 @@ public class Scene implements ModelListener, SelectionListener {
     mySceneComponents.put(component.getNlComponent(), component);
   }
 
+  public void removeComponent(SceneComponent component) {
+    component.removeFromParent();
+    mySceneComponents.remove(component.getNlComponent(), component);
+  }
+
+
   /**
-   * Update the Scene with the components in the given NlModel
+   * Update the Scene with the components in the given NlModel. This method needs to be called in the dispatch thread.
    *
    * @param model the NlModel to udpate from
    */
   public void updateFrom(@NotNull NlModel model) {
+    assert ApplicationManager.getApplication().isDispatchThread();
+
     List<NlComponent> components = model.getComponents();
     if (components.size() == 0) {
       mySceneComponents.clear();
@@ -370,12 +379,12 @@ public class Scene implements ModelListener, SelectionListener {
         it.remove();
       }
     }
-    if (myRoot != null && myScreenView != null && myScreenView.getSelectionModel().isEmpty()) {
+    if (myRoot != null && mySceneView != null && mySceneView.getSelectionModel().isEmpty()) {
       addTargets(myRoot);
     }
     // Makes sure the selection is correct (after DND this might not be true)
-    if (myScreenView != null) {
-      selectionChanged(myScreenView.getSelectionModel().getSelection(), false);
+    if (mySceneView != null) {
+      selectionChanged(mySceneView.getSelectionModel().getSelection(), false);
     }
   }
 
@@ -487,14 +496,16 @@ public class Scene implements ModelListener, SelectionListener {
 
   @Override
   public void modelChanged(@NotNull NlModel model) {
-    ApplicationManager.getApplication().runReadAction(() -> {
+    // updateFrom needs to be called in the dispatch thread
+    UIUtil.invokeLaterIfNeeded(() -> {
       updateFrom(model);
     });
   }
 
   @Override
   public void modelRendered(@NotNull NlModel model) {
-    ApplicationManager.getApplication().runReadAction(() -> {
+    // updateFrom needs to be called in the dispatch thread
+    UIUtil.invokeLaterIfNeeded(() -> {
       updateFrom(model);
     });
   }
@@ -502,9 +513,11 @@ public class Scene implements ModelListener, SelectionListener {
   @Override
   public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
     boolean previous = myAnimate;
-    myAnimate = animate;
-    updateFrom(model);
-    myAnimate = previous;
+    UIUtil.invokeLaterIfNeeded(() -> {
+      myAnimate = animate;
+      updateFrom(model);
+      myAnimate = previous;
+    });
   }
 
   //endregion
@@ -535,7 +548,7 @@ public class Scene implements ModelListener, SelectionListener {
   }
 
   public void repaint() {
-    myScreenView.getSurface().repaint();
+    mySceneView.getSurface().repaint();
   }
 
   /**
@@ -574,10 +587,10 @@ public class Scene implements ModelListener, SelectionListener {
    * @param component
    */
   public void select(List<SceneComponent> components) {
-    if (myScreenView != null) {
+    if (mySceneView != null) {
       ArrayList<NlComponent> nlComponents = new ArrayList<>();
       if (myIsShiftDown) {
-        List<NlComponent> selection = myScreenView.getSelectionModel().getSelection();
+        List<NlComponent> selection = mySceneView.getSelectionModel().getSelection();
         nlComponents.addAll(selection);
       }
       int count = components.size();
@@ -591,7 +604,7 @@ public class Scene implements ModelListener, SelectionListener {
           nlComponents.add(component);
         }
       }
-      myScreenView.getSelectionModel().setSelection(nlComponents);
+      mySceneView.getSelectionModel().setSelection(nlComponents);
     }
   }
 
@@ -620,7 +633,10 @@ public class Scene implements ModelListener, SelectionListener {
       }
       // if the baseline shows, hide all the targets others than ActionTarget, DragTarget and ResizeTarget
       if (component.canShowBaseline()) {
-        return (target instanceof ActionTarget) || (target instanceof DragTarget) || (target instanceof ResizeTarget);
+        return (target instanceof ActionTarget) ||
+               (target instanceof DragTarget) ||
+               (target instanceof DragBaseTarget) ||
+               (target instanceof ResizeBaseTarget);
       }
       return !component.isDragging();
     }
@@ -641,7 +657,7 @@ public class Scene implements ModelListener, SelectionListener {
         return true;
       }
     }
-    if (myFilterTarget == FilterType.RESIZE && target instanceof ResizeTarget) {
+    if (myFilterTarget == FilterType.RESIZE && target instanceof ResizeBaseTarget) {
       return true;
     }
     if (target instanceof DragTarget) {
@@ -734,7 +750,7 @@ public class Scene implements ModelListener, SelectionListener {
       if (count == 1) {
         return myHitTargets.get(0);
       }
-      List<NlComponent> selection = myScreenView.getSelectionModel().getSelection();
+      List<NlComponent> selection = mySceneView.getSelectionModel().getSelection();
       if (selection.isEmpty()) {
         Target candidate = myHitTargets.get(count - 1);
         for (int i = count - 2; i >= 0; i--) {
@@ -779,7 +795,7 @@ public class Scene implements ModelListener, SelectionListener {
           found = true;
           continue;
         }
-        if (target.getClass() == filteredTarget.getClass()){
+        if (filteredTarget.getClass().isAssignableFrom(target.getClass())) {
           hit = target;
         }
       }
@@ -803,7 +819,7 @@ public class Scene implements ModelListener, SelectionListener {
       if (count == 1) {
         return myHitComponents.get(0);
       }
-      List<NlComponent> selection = myScreenView.getSelectionModel().getSelection();
+      List<NlComponent> selection = mySceneView.getSelectionModel().getSelection();
       if (selection.isEmpty()) {
         return myHitComponents.get(count - 1);
       }
@@ -842,7 +858,6 @@ public class Scene implements ModelListener, SelectionListener {
   public void mouseHover(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastMouseX = x;
     myLastMouseY = y;
-    myMouseCursor = Cursor.DEFAULT_CURSOR;
     if (myRoot != null) {
       myHoverListener.find(transform, myRoot, x, y);
     }
@@ -870,8 +885,36 @@ public class Scene implements ModelListener, SelectionListener {
         myCurrentComponent = closestComponent;
       }
     }
+
+    setCursor(transform, x, y);
+  }
+
+  private void setCursor(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    myMouseCursor = Cursor.getDefaultCursor();
+    if (myCurrentComponent != null && myCurrentComponent.isDragging()) {
+      myMouseCursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
+      return;
+    }
     if (myOverTarget != null) {
       myMouseCursor = myOverTarget.getMouseCursor();
+      return;
+    }
+
+    SelectionModel selectionModel = mySceneView.getSelectionModel();
+    int mx = dpToPx(x);
+    int my = dpToPx(y);
+
+    if (!selectionModel.isEmpty()) {
+      int max = Coordinates.getAndroidDimension(mySceneView, PIXEL_RADIUS + PIXEL_MARGIN);
+      SelectionHandle handle = selectionModel.findHandle(mx, my, max);
+      if (handle != null) {
+        myMouseCursor = handle.getCursor();
+        return;
+      }
+    }
+    SceneComponent component = findComponent(transform, x, y);
+    if (component != null && component.getParent() != null) {
+      myMouseCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
     }
   }
 
@@ -994,7 +1037,7 @@ public class Scene implements ModelListener, SelectionListener {
     if (myHitTarget != null) {
       myHitListener.find(transform, myRoot, x, y);
       myHitTarget.mouseDrag(x, y, myHitListener.getClosestTarget());
-      myHitTarget.getComponent().setDragging(true);
+      myHitComponent.setDragging(true);
       if (myHitTarget instanceof DragTarget) {
         delegateMouseDragToSelection(x, y, myHitListener.getClosestTarget(), myHitTarget.getComponent());
       }
@@ -1043,14 +1086,18 @@ public class Scene implements ModelListener, SelectionListener {
       LassoTarget lassoTarget = (LassoTarget)myHitTarget;
       lassoTarget.fillSelectedComponents(myNewSelectedComponents);
     }
-    if (!sameSelection()) {
+    boolean canChangeSelection = true;
+    if (myHitTarget != null) {
+      canChangeSelection = myHitTarget.canChangeSelection();
+    }
+    if (canChangeSelection && !sameSelection()) {
       select(myNewSelectedComponents);
     }
     checkRequestLayoutStatus();
   }
 
   private boolean sameSelection() {
-    List<NlComponent> currentSelection = myScreenView.getSelectionModel().getSelection();
+    List<NlComponent> currentSelection = mySceneView.getSelectionModel().getSelection();
     if (myNewSelectedComponents.size() == currentSelection.size()) {
       int count = currentSelection.size();
       for (int i = 0; i < count; i++) {
@@ -1084,4 +1131,17 @@ public class Scene implements ModelListener, SelectionListener {
   }
   //endregion
   /////////////////////////////////////////////////////////////////////////////
+
+  @Nullable
+  public SceneComponent findComponent(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    if (myRoot == null) {
+      return null;
+    }
+    myFindListener.find(transform, myRoot, x, y);
+    return myFindListener.getClosestComponent();
+  }
+
+  public Collection<SceneComponent> getSceneComponents() {
+    return mySceneComponents.values();
+  }
 }

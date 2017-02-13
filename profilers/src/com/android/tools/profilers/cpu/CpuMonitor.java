@@ -29,7 +29,8 @@ public class CpuMonitor extends ProfilerMonitor {
 
   @NotNull private final CpuUsage myThisProcessCpuUsage;
   @NotNull private final AxisComponentModel myCpuUsageAxis;
-  @NotNull private final CpuMonitorLegends myLegends;
+  @NotNull private final Legends myLegends;
+  @NotNull private final Legends myTooltipLegends;
 
   public CpuMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
@@ -39,9 +40,11 @@ public class CpuMonitor extends ProfilerMonitor {
     myCpuUsageAxis = new AxisComponentModel(myThisProcessCpuUsage.getCpuRange(), CPU_USAGE_FORMATTER);
     myCpuUsageAxis.setClampToMajorTicks(true);
 
-    myLegends = new CpuMonitorLegends(myThisProcessCpuUsage, profilers.getTimeline().getDataRange());
+    myLegends = new Legends(myThisProcessCpuUsage, profilers.getTimeline().getDataRange(), LEGEND_UPDATE_FREQUENCY_MS);
+    myTooltipLegends = new Legends(myThisProcessCpuUsage, profilers.getTimeline().getTooltipRange(), 0);
   }
 
+  @Override
   public String getName() {
     return "CPU";
   }
@@ -51,6 +54,7 @@ public class CpuMonitor extends ProfilerMonitor {
     myProfilers.getUpdater().unregister(myThisProcessCpuUsage);
     myProfilers.getUpdater().unregister(myCpuUsageAxis);
     myProfilers.getUpdater().unregister(myLegends);
+    myProfilers.getUpdater().unregister(myTooltipLegends);
   }
 
   @Override
@@ -58,8 +62,10 @@ public class CpuMonitor extends ProfilerMonitor {
     myProfilers.getUpdater().register(myThisProcessCpuUsage);
     myProfilers.getUpdater().register(myCpuUsageAxis);
     myProfilers.getUpdater().register(myLegends);
+    myProfilers.getUpdater().register(myTooltipLegends);
   }
 
+  @Override
   public void expand() {
     myProfilers.setStage(new CpuProfilerStage(myProfilers));
   }
@@ -70,7 +76,7 @@ public class CpuMonitor extends ProfilerMonitor {
   }
 
   @NotNull
-  public CpuMonitorLegends getLegends() {
+  public Legends getLegends() {
     return myLegends;
   }
 
@@ -79,12 +85,17 @@ public class CpuMonitor extends ProfilerMonitor {
     return myThisProcessCpuUsage;
   }
 
-  public static class CpuMonitorLegends extends LegendComponentModel {
+  public Legends getTooltipLegends() {
+    return myTooltipLegends;
+  }
+
+  public static class Legends extends LegendComponentModel {
 
     @NotNull
     private final SeriesLegend myCpuLegend;
 
-    public CpuMonitorLegends(@NotNull CpuUsage usage, @NotNull Range range) {
+    public Legends(@NotNull CpuUsage usage, @NotNull Range range, int updateFrequencyMs) {
+      super(updateFrequencyMs);
       myCpuLegend = new SeriesLegend(usage.getCpuSeries(), CPU_USAGE_FORMATTER, range);
       add(myCpuLegend);
     }

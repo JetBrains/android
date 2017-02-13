@@ -16,6 +16,8 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.sdklib.IAndroidTarget;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -51,9 +53,13 @@ public class SystemResourceManager extends ResourceManager {
 
   @Override
   @NotNull
-  public VirtualFile[] getAllResourceDirs() {
+  public Multimap<String, VirtualFile> getAllResourceDirs() {
     VirtualFile resDir = getResourceDir();
-    return resDir != null ? new VirtualFile[]{resDir} : VirtualFile.EMPTY_ARRAY;
+    Multimap<String, VirtualFile> result = HashMultimap.create();
+    if (resDir != null) {
+      result.put(null, resDir);
+    }
+    return result;
   }
 
   @Nullable
@@ -74,13 +80,13 @@ public class SystemResourceManager extends ResourceManager {
     String resPath = myPlatform.getTarget().getPath(IAndroidTarget.RESOURCES);
     resPath = FileUtil.toSystemIndependentName(resPath);
     VirtualFile dir = LocalFileSystem.getInstance().findFileByPath(resPath);
-    return dir != null ? Collections.singletonList(dir) : Collections.<VirtualFile>emptyList();
+    return dir != null ? Collections.singletonList(dir) : Collections.emptyList();
   }
 
   @Nullable
   public static SystemResourceManager getInstance(@NotNull ConvertContext context) {
     AndroidFacet facet = AndroidFacet.getInstance(context);
-    return facet != null ? facet.getSystemResourceManager() : null;
+    return facet != null ? ModuleResourceManagers.getInstance(facet).getSystemResourceManager() : null;
   }
 
   @Override

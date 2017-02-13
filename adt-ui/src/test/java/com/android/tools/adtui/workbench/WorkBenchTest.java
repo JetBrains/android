@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.workbench;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.workbench.AttachedToolWindow.DragEvent;
 import com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType;
 import com.google.common.collect.ImmutableList;
@@ -45,6 +46,7 @@ import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
+import static com.android.tools.adtui.workbench.ToolWindowDefinition.DEFAULT_SIDE_WIDTH;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -149,12 +151,16 @@ public class WorkBenchTest {
 
   @Test
   public void testComponentResize() {
-    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.WIDTH", -1)).isEqualTo(200);
-    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.WIDTH", -1)).isEqualTo(200);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(DEFAULT_SIDE_WIDTH));
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(DEFAULT_SIDE_WIDTH));
     mySplitter.setFirstSize(400);
     fireComponentResize(myContent);
-    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.WIDTH", -1)).isEqualTo(400);
-    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.WIDTH", -1)).isEqualTo(200);
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.LEFT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(400));
+    assertThat(myPropertiesComponent.getInt(TOOL_WINDOW_PROPERTY_PREFIX + "BENCH.RIGHT.UNSCALED.WIDTH", -1))
+      .isEqualTo(AdtUiUtils.unscale(DEFAULT_SIDE_WIDTH));
   }
 
   private static void fireComponentResize(@NotNull JComponent component) {
@@ -177,8 +183,8 @@ public class WorkBenchTest {
     myWorkBench.restoreDefaultLayout();
 
     assertThat(myModel.getAllTools()).containsExactly(myToolWindow1, myToolWindow2, myToolWindow3).inOrder();
-    assertThat(mySplitter.getFirstSize()).isEqualTo(200);
-    assertThat(mySplitter.getLastSize()).isEqualTo(200);
+    assertThat(mySplitter.getFirstSize()).isEqualTo(DEFAULT_SIDE_WIDTH);
+    assertThat(mySplitter.getLastSize()).isEqualTo(DEFAULT_SIDE_WIDTH);
     assertThat(myToolWindow1.isAutoHide()).isFalse();
     assertThat(myToolWindow2.isLeft()).isFalse();
     assertThat(myToolWindow2.isMinimized()).isFalse();
@@ -227,7 +233,7 @@ public class WorkBenchTest {
     assertThat(myToolWindow1.isLeft()).isFalse();
     assertThat(myToolWindow2.isLeft()).isTrue();
     assertThat(myToolWindow3.isLeft()).isTrue();
-    assertThat(mySplitter.getFirstSize()).isEqualTo(200);
+    assertThat(mySplitter.getFirstSize()).isEqualTo(DEFAULT_SIDE_WIDTH);
     assertThat(mySplitter.getLastSize()).isEqualTo(400);
     verify(myWorkBenchManager).updateOtherWorkBenches(eq(myWorkBench));
   }
@@ -293,7 +299,7 @@ public class WorkBenchTest {
 
     fireButtonDragged(dragImage, 10, 20, 1052, 40);
     assertThat(dragImage.getParent()).isNotNull();
-    assertThat(dragImage.getX()).isEqualTo(1034);
+    assertThat(dragImage.getX()).isEqualTo(1055 - myToolWindow1.getMinimizedButton().getPreferredSize().width);
     assertThat(dragImage.getY()).isEqualTo(20);
     verify(myRightMinimizePanel).drag(eq(myToolWindow1), eq(20));
 

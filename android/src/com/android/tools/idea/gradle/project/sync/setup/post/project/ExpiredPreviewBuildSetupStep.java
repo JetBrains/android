@@ -60,7 +60,7 @@ public class ExpiredPreviewBuildSetupStep extends ProjectSetupStep {
       if (now.after(expirationDate)) {
         String message = String.format("This preview build (%1$s) is old; please update to a newer preview or a stable version.",
                                        ideVersion);
-        OpenUrlHyperlink hyperlink = new OpenUrlHyperlink("http://tools.android.com/download/studio/", "Show Available Versions");
+        OpenUrlHyperlink hyperlink = new OpenUrlHyperlink("https://developer.android.com/r/studio-ui/download-canary.html", "Get the Latest Version");
         AndroidGradleNotification.getInstance(project).showBalloon("Old Preview Build", message, INFORMATION, hyperlink);
 
         // If we show an expiration message, don't also show a second balloon.

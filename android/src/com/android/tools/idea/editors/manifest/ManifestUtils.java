@@ -74,7 +74,7 @@ public class ManifestUtils {
   }
 
   @NotNull
-  static List<? extends Actions.Record> getRecords(@NotNull MergedManifest manifest, @NotNull Node item) {
+  public static List<? extends Actions.Record> getRecords(@NotNull MergedManifest manifest, @NotNull Node item) {
     Actions actions = manifest.getActions();
     if (actions != null) {
       if (item instanceof Element) {
@@ -128,6 +128,31 @@ public class ManifestUtils {
       }
     }
     return key;
+  }
+
+  @Nullable
+  public static Node getSourceNode(@NotNull Module module, @NotNull Actions.Record record) {
+    SourceFilePosition sourceFilePosition = record.getActionLocation();
+    SourceFile sourceFile = sourceFilePosition.getFile();
+    File file = sourceFile.getSourceFile();
+    SourcePosition sourcePosition = sourceFilePosition.getPosition();
+    if (file != null && !SourcePosition.UNKNOWN.equals(sourcePosition)) {
+      VirtualFile vFile = VfsUtil.findFileByIoFile(file, false);
+      assert vFile != null;
+      Module fileModule = ModuleUtilCore.findModuleForFile(vFile, module.getProject());
+      if (fileModule != null && !fileModule.equals(module)) {
+        MergedManifest manifest = MergedManifest.get(fileModule);
+        Document document = manifest.getDocument();
+        assert document != null;
+        Element root = document.getDocumentElement();
+        assert root != null;
+        int startLine = sourcePosition.getStartLine();
+        int startColumn = sourcePosition.getStartColumn();
+        return PositionXmlParser.findNodeAtLineAndCol(document, startLine, startColumn);
+      }
+    }
+
+    return null;
   }
 
   @NotNull

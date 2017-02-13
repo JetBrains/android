@@ -22,17 +22,21 @@ import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
-import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.profilers.common.StackTraceModel;
 import com.android.tools.profilers.event.EventMonitor;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 public class NetworkProfilerStage extends Stage {
 
@@ -43,26 +47,30 @@ public class NetworkProfilerStage extends Stage {
   @Nullable
   private HttpData mySelectedConnection;
 
+  private AspectObserver myAspectObserver = new AspectObserver();
   private AspectModel<NetworkProfilerAspect> myAspect = new AspectModel<>();
 
   StateChartModel<NetworkRadioDataSeries.RadioState> myRadioState;
 
   private final NetworkConnectionsModel myConnectionsModel =
-    new RpcNetworkConnectionsModel(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
+    new RpcNetworkConnectionsModel(getStudioProfilers().getClient().getProfilerClient(),
+                                   getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId(),
+                                   getStudioProfilers().getSession());
 
-  private final NetworkRadioDataSeries myRadioDataSeries =
-    new NetworkRadioDataSeries(getStudioProfilers().getClient().getNetworkClient(), getStudioProfilers().getProcessId());
   private final DetailedNetworkUsage myDetailedNetworkUsage;
   private final NetworkStageLegends myLegends;
   private final AxisComponentModel myTrafficAxis;
   private final AxisComponentModel myConnectionsAxis;
   private final EventMonitor myEventMonitor;
+  private final StackTraceModel myStackTraceModel = new StackTraceModel();
 
   public NetworkProfilerStage(StudioProfilers profilers) {
     super(profilers);
 
+    NetworkRadioDataSeries radioDataSeries =
+      new NetworkRadioDataSeries(profilers.getClient().getNetworkClient(), profilers.getProcessId(), getStudioProfilers().getSession());
     myRadioState = new StateChartModel<>();
-    myRadioState.addSeries(new RangedSeries<>(getStudioProfilers().getTimeline().getViewRange(), getRadioDataSeries()));
+    myRadioState.addSeries(new RangedSeries<>(getStudioProfilers().getTimeline().getViewRange(), radioDataSeries));
 
     myDetailedNetworkUsage = new DetailedNetworkUsage(profilers);
 
@@ -75,40 +83,16 @@ public class NetworkProfilerStage extends Stage {
     myLegends = new NetworkStageLegends(myDetailedNetworkUsage, profilers.getTimeline().getDataRange());
 
     myEventMonitor = new EventMonitor(profilers);
-  }
 
-
-  public static class NetworkStageLegends extends LegendComponentModel {
-
-    private final SeriesLegend myRxLegend;
-    private final SeriesLegend myTxLegend;
-    private final SeriesLegend myConnectionLegend;
-
-    public NetworkStageLegends(DetailedNetworkUsage usage, Range range) {
-      myRxLegend = new SeriesLegend(usage.getRxSeries(), TRAFFIC_AXIS_FORMATTER, range);
-      myTxLegend = new SeriesLegend(usage.getTxSeries(), TRAFFIC_AXIS_FORMATTER, range);
-      myConnectionLegend = new SeriesLegend(usage.getConnectionSeries(), CONNECTIONS_AXIS_FORMATTER, range);
-
-      add(myRxLegend);
-      add(myTxLegend);
-      add(myConnectionLegend);
-    }
-
-    public SeriesLegend getRxLegend() {
-      return myRxLegend;
-    }
-
-    public SeriesLegend getTxLegend() {
-      return myTxLegend;
-    }
-
-    public SeriesLegend getConnectionLegend() {
-      return myConnectionLegend;
-    }
+    myStackTraceModel.addDependency(myAspectObserver)
+      .onChange(StackTraceModel.Aspect.SELECTED_LOCATION, profilers::modeChanged);
   }
 
   @Override
   public ProfilerMode getProfilerMode() {
+    if (myStackTraceModel.getSelectedType() == StackTraceModel.Type.STACK_FRAME) {
+      return ProfilerMode.NORMAL;
+    }
     boolean noSelection = getStudioProfilers().getTimeline().getSelectionRange().isEmpty();
     return mySelectedConnection == null && noSelection ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
   }
@@ -119,20 +103,25 @@ public class NetworkProfilerStage extends Stage {
   }
 
   @NotNull
-  public NetworkRadioDataSeries getRadioDataSeries() {
-    return myRadioDataSeries;
+  public StackTraceModel getStackTraceModel() {
+    return myStackTraceModel;
   }
 
   /**
    * Sets the active connection, or clears the previously selected active connection if given data is null.
    */
   public void setSelectedConnection(@Nullable HttpData data) {
-    if (data != null && data.getResponsePayloadId() != null && data.getResponsePayloadFile() == null) {
+    if (Objects.equals(mySelectedConnection, data)) {
+      return;
+    }
+
+    if (data != null && StringUtil.isNotEmpty(data.getResponsePayloadId()) && data.getResponsePayloadFile() == null) {
       ByteString payload = getConnectionsModel().requestResponsePayload(data);
       try {
         File file = getConnectionPayload(payload, data);
         data.setResponsePayloadFile(file);
-      } catch (IOException e) {
+      }
+      catch (IOException e) {
         return;
       }
     }
@@ -143,9 +132,8 @@ public class NetworkProfilerStage extends Stage {
 
   @VisibleForTesting
   File getConnectionPayload(@NotNull ByteString payload, @NotNull HttpData data) throws IOException {
-    String contentType = data.getResponseField(HttpData.FIELD_CONTENT_TYPE);
-    String extension = contentType == null ? "" : HttpData.guessFileExtensionFromContentType(contentType);
-    File file = FileUtil.createTempFile(data.getResponsePayloadId(), extension, true);
+    String extension = (data.getContentType() == null) ? null : data.getContentType().guessFileExtension();
+    File file = FileUtil.createTempFile(data.getResponsePayloadId(), StringUtil.notNullize(extension), true);
     FileUtil.writeToFile(file, payload.toByteArray());
     // We don't expect the following call to fail but don't care if it does
     //noinspection ResultOfMethodCallIgnored
@@ -190,27 +178,63 @@ public class NetworkProfilerStage extends Stage {
     getStudioProfilers().getUpdater().unregister(myLegends);
   }
 
+  @NotNull
   public String getName() {
-    return "Network";
+    return "NETWORK";
   }
 
+  @NotNull
   public DetailedNetworkUsage getDetailedNetworkUsage() {
     return myDetailedNetworkUsage;
   }
 
+  @NotNull
   public AxisComponentModel getTrafficAxis() {
     return myTrafficAxis;
   }
 
+  @NotNull
   public AxisComponentModel getConnectionsAxis() {
     return myConnectionsAxis;
   }
 
+  @NotNull
   public NetworkStageLegends getLegends() {
     return myLegends;
   }
 
+  @NotNull
   public EventMonitor getEventMonitor() {
     return myEventMonitor;
+  }
+
+  public static class NetworkStageLegends extends LegendComponentModel {
+
+    private final SeriesLegend myRxLegend;
+    private final SeriesLegend myTxLegend;
+    private final SeriesLegend myConnectionLegend;
+
+    public NetworkStageLegends(DetailedNetworkUsage usage, Range range) {
+      super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
+      myRxLegend = new SeriesLegend(usage.getRxSeries(), TRAFFIC_AXIS_FORMATTER, range);
+      myTxLegend = new SeriesLegend(usage.getTxSeries(), TRAFFIC_AXIS_FORMATTER, range);
+      myConnectionLegend = new SeriesLegend(usage.getConnectionSeries(), CONNECTIONS_AXIS_FORMATTER, range);
+
+      add(myRxLegend);
+      add(myTxLegend);
+      add(myConnectionLegend);
+    }
+
+    public SeriesLegend getRxLegend() {
+      return myRxLegend;
+    }
+
+    public SeriesLegend getTxLegend() {
+      return myTxLegend;
+    }
+
+    public SeriesLegend getConnectionLegend() {
+      return myConnectionLegend;
+    }
   }
 }

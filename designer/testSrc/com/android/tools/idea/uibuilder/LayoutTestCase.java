@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.uibuilder;
 
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.fixtures.SurfaceFixture;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintModel;
+import com.android.tools.idea.uibuilder.model.Coordinates;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -26,6 +30,7 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mockito;
 
 import java.io.File;
 
@@ -82,4 +87,17 @@ public abstract class LayoutTestCase extends AndroidTestCase {
       CodeStyleManager.getInstance(getProject()).reformat(xmlFile);
     });
   }
+
+
+  @NotNull
+  protected ViewEditor editor(ScreenView screenView) {
+    ViewEditor editor = Mockito.mock(ViewEditor.class);
+    NlModel model = screenView.getModel();
+    Mockito.when(editor.getModel()).thenReturn(model);
+    Mockito.when(editor.dpToPx(Mockito.anyInt())).thenAnswer(i -> Coordinates.dpToPx(screenView, (Integer)i.getArguments()[0]));
+    Mockito.when(editor.pxToDp(Mockito.anyInt())).thenAnswer(i -> Coordinates.pxToDp(screenView, (Integer)i.getArguments()[0]));
+
+    return editor;
+  }
+
 }

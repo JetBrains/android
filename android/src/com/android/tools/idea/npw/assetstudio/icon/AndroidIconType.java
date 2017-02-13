@@ -50,14 +50,14 @@ public enum AndroidIconType {
   }
 
   @NotNull
-  public static AndroidIconGenerator createIconGenerator(@NotNull AndroidIconType iconType) {
+  public static AndroidIconGenerator createIconGenerator(@NotNull AndroidIconType iconType, int minSdkVersion) {
     switch (iconType) {
       case LAUNCHER:
-        return new AndroidLauncherIconGenerator();
+        return new AndroidLauncherIconGenerator(minSdkVersion);
       case ACTIONBAR:
-        return new AndroidActionBarIconGenerator();
+        return new AndroidActionBarIconGenerator(minSdkVersion);
       case NOTIFICATION:
-        return new AndroidNotificationIconGenerator();
+        return new AndroidNotificationIconGenerator(minSdkVersion);
     }
 
     throw new IllegalArgumentException("Can't create generator for unexpected icon type: " + iconType);

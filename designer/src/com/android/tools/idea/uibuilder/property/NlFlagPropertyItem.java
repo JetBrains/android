@@ -20,11 +20,13 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.renderer.NlFlagRenderer;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
+import com.android.util.PropertiesMap;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.xml.XmlName;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
@@ -32,9 +34,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   private List<PTableItem> myItems;
@@ -42,6 +43,7 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   private String myLastValue;
   private String myLastFormattedValue;
   private Set<String> myLastValues;
+  private int myMaskValue;
   private boolean myExpanded;
 
   private static final Splitter VALUE_SPLITTER = Splitter.on("|").trimResults();
@@ -70,10 +72,20 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
       assert myDefinition != null;
       myItems = Lists.newArrayListWithCapacity(myDefinition.getValues().length);
       for (String value : myDefinition.getValues()) {
-        myItems.add(new NlFlagPropertyItemValue(value, this));
+        myItems.add(new NlFlagPropertyItemValue(value, lookupMaskValue(value), this));
       }
     }
     return myItems;
+  }
+
+  private int lookupMaskValue(@NotNull String value) {
+    assert myDefinition != null;
+    Integer mappedValue = myDefinition.getValueMapping(value);
+    if (mappedValue != null) {
+      return mappedValue;
+    }
+    int index = ArrayUtil.indexOf(myDefinition.getValues(), value);
+    return index < 0 ? 0 : 1 << index;
   }
 
   @NotNull
@@ -119,9 +131,22 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   }
 
   @Override
-  public void setValue(Object value) {
+  public void setValue(@Nullable Object value) {
     invalidateCachedValues();
-    super.setValue(value);
+    PropertiesMap.Property defaultValue = getDefaultValue();
+    try {
+      // Allow the user to explicitly set the property value the current default value.
+      // NlPropertyItem.setValue will case the property value to be reset to null.
+      setDefaultValue(null);
+      super.setValue(value);
+    }
+    finally {
+      setDefaultValue(defaultValue);
+    }
+  }
+
+  public int getMaskValue() {
+    return myMaskValue;
   }
 
   public String getFormattedValue() {
@@ -151,11 +176,21 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
       values = Sets.newHashSet(valueList);
       formattedValue = "[" + Joiner.on(", ").join(valueList) + "]";
     }
+    String resolvedValue = resolveValue(rawValue);
+    int maskValue = 0;
+    if (resolvedValue != null) {
+      Collection<String> maskValues =
+        resolvedValue.equals(rawValue) ? values : VALUE_SPLITTER.splitToList(StringUtil.notNullize(resolvedValue));
+      for (String value : maskValues) {
+        maskValue |= lookupMaskValue(value);
+      }
+    }
 
     myLastValues = values;
     myLastValue = rawValue;
     myLastFormattedValue = formattedValue;
     myLastRead = getModel().getModificationCount();
+    myMaskValue = maskValue;
   }
 
   public boolean isItemSet(@NotNull NlFlagPropertyItemValue item) {
@@ -164,15 +199,6 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
 
   public boolean isItemSet(@NotNull String itemName) {
     return getValues().contains(itemName);
-  }
-
-  public boolean isAnyItemSet(@NotNull String... itemNames) {
-    for (String itemName : itemNames) {
-      if (getValues().contains(itemName)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   public void setItem(@NotNull NlFlagPropertyItemValue changedItem, boolean on) {

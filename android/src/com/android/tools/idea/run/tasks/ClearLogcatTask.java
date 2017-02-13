@@ -56,7 +56,7 @@ public class ClearLogcatTask implements LaunchTask {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(AndroidToolWindowFactory.TOOL_WINDOW_ID);
+        final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(AndroidToolWindowFactory.getToolWindowId());
         if (toolWindow == null) {
           return;
         }

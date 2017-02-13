@@ -25,23 +25,16 @@ import java.awt.*;
  */
 public class LegendConfig {
 
-  public enum IconType {
-    NONE,
-    LINE,
-    DOTTED_LINE,
-    BOX
-  }
-
   @NotNull
   private final Color mColor;
-
   @NotNull
   private final IconType mIcon;
 
   /**
    * Render data to be used when rendering the legend.
-   * @param icon   The icon type to be displayed
-   * @param color  The color of the icon to be associated with the elements in the chart.
+   *
+   * @param icon  The icon type to be displayed
+   * @param color The color of the icon to be associated with the elements in the chart.
    */
   public LegendConfig(@NotNull IconType icon, @NotNull Color color) {
     mColor = color;
@@ -49,22 +42,23 @@ public class LegendConfig {
   }
 
   public LegendConfig(@NotNull LineConfig config) {
-    mColor = config.getColor();
-    IconType icon = config.getLegendIconType();
-    // Use a default icon type for the line in case there is no icon set in line config.
-    // TODO: use LegendRenderData.IconType.DOTTED_LINE for dashed lines
-    if (icon == null) {
-      mIcon = config.isFilled() ? LegendConfig.IconType.BOX : LegendConfig.IconType.LINE;
-    } else {
-      mIcon = icon;
-    }
+    this (config.getLegendIconType(), config.getColor());
   }
 
+  @NotNull
   public Color getColor() {
     return mColor;
   }
 
+  @NotNull
   public IconType getIcon() {
     return mIcon;
+  }
+
+  public enum IconType {
+    NONE,
+    LINE,
+    DASHED_LINE,
+    BOX
   }
 }

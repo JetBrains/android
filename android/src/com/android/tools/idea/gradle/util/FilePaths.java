@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,7 +26,6 @@ import static com.android.SdkConstants.EXT_ZIP;
 import static com.intellij.openapi.util.io.FileUtil.extensionEquals;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.StandardFileSystems.*;
 import static com.intellij.openapi.vfs.VirtualFileManager.constructUrl;
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
@@ -67,15 +67,15 @@ public final class FilePaths {
     if (index != -1) {
       path = path.substring(0, index);
     }
-    return new File(toSystemDependentName(path));
+    return toSystemDependentPath(path);
   }
 
   /**
-   * Converts a {@link Nullable} {@link String} to a {@link Nullable} {@link File} (with an empty string also mapping to a {@code null}
-   * {@link File}).
+   * Converts the given {@code String} path to a system-dependent path (as {@link File}.)
    */
+  @Contract("!null -> !null")
   @Nullable
-  public static File pathToFile(@Nullable String path) {
-    return isNotEmpty(path) ? new File(toSystemDependentName(path)) : null;
+  public static File toSystemDependentPath(@Nullable String path) {
+    return path != null ? new File(toSystemDependentName(path)) : null;
   }
 }

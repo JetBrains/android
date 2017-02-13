@@ -127,7 +127,7 @@ public class AxisLineChartVisualTest extends VisualTest {
 
     mLineChartModel.addAll(mRangedData);
 
-    mLegendComponentModel = new LegendComponentModel();
+    mLegendComponentModel = new LegendComponentModel(100);
     SeriesLegend legend = new SeriesLegend(mRangedData.get(0), MemoryAxisFormatter.DEFAULT, mTimeGlobalRangeUs);
     mLegendComponentModel.add(legend);
     mLegendComponent = new LegendComponent(mLegendComponentModel);

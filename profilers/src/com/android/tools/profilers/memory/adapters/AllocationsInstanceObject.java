@@ -15,9 +15,13 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profilers.common.ThreadId;
+import com.android.tools.profilers.memory.adapters.ClassObject.ValueType;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
@@ -33,21 +37,21 @@ final class AllocationsInstanceObject implements InstanceObject {
     .put("double", ValueType.DOUBLE)
     .build();
 
-  @NotNull private final MemoryProfiler.MemoryData.AllocationEvent myEvent;
+  @NotNull private final AllocationEvent myEvent;
   @NotNull private final AllocationsClassObject myAllocationsClassObject;
-  @NotNull private final MemoryProfiler.AllocationStack myCallStack;
+  @NotNull private final AllocationStack myCallStack;
   @NotNull private final ValueType myValueType;
 
-  public AllocationsInstanceObject(@NotNull MemoryProfiler.MemoryData.AllocationEvent event,
+  public AllocationsInstanceObject(@NotNull AllocationEvent event,
                                    @NotNull AllocationsClassObject allocationsClassObject,
-                                   @NotNull MemoryProfiler.AllocationStack callStack) {
+                                   @NotNull AllocationStack callStack) {
     myEvent = event;
     myAllocationsClassObject = allocationsClassObject;
     myCallStack = callStack;
 
     String className = myAllocationsClassObject.getName();
     if (className.contains(".")) {
-      if (className.equals("java.lang.String")) {
+      if (className.equals(ClassObject.JAVA_LANG_STRING)) {
         myValueType = ValueType.STRING;
       }
       else {
@@ -65,7 +69,19 @@ final class AllocationsInstanceObject implements InstanceObject {
 
   @NotNull
   @Override
-  public String getName() {
+  public String getDisplayLabel() {
+    return getClassName();
+  }
+
+  @Nullable
+  @Override
+  public ClassObject getClassObject() {
+    return myAllocationsClassObject;
+  }
+
+  @Nullable
+  @Override
+  public String getClassName() {
     return myAllocationsClassObject.getName();
   }
 
@@ -74,9 +90,15 @@ final class AllocationsInstanceObject implements InstanceObject {
     return myEvent.getSize();
   }
 
+  @Override
+  @NotNull
+  public ThreadId getAllocationThreadId() {
+    return new ThreadId(myEvent.getThreadId());
+  }
+
   @NotNull
   @Override
-  public MemoryProfiler.AllocationStack getCallStack() {
+  public AllocationStack getCallStack() {
     return myCallStack;
   }
 

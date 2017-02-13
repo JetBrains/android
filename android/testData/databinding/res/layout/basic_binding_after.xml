@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:bind="http://schemas.android.com/apk/res-auto"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+    >
+  <data>
+    <variable name="dummy" type="p1.DummyClass"/>
+  </data>
+  <LinearLayout
+      android:orientation="horizontal" android:layout_width="wrap_content"
+      android:id="@+id/root"
+      android:focusable="true"
+      android:gravity="center_vertical"
+      android:layout_height="match_parent">
+    <TextView android:id="@+id/view_1" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+  </LinearLayout>
+</layout>

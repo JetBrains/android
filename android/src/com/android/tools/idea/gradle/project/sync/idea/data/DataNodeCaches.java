@@ -42,7 +42,6 @@ import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.ProxyUtil.isValidProxyObject;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
@@ -112,7 +111,7 @@ public class DataNodeCaches {
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       if (androidFacet != null) {
         DataNode<AndroidModuleModel> androidDataNode = find(cache, ANDROID_MODEL);
-        if (androidDataNode == null || !isValidProxyObject(androidDataNode.getData().getAndroidProject())) {
+        if (androidDataNode == null) {
           return true;
         }
       }
@@ -129,7 +128,7 @@ public class DataNodeCaches {
     NdkFacet ndkFacet = NdkFacet.getInstance(module);
     if (ndkFacet != null) {
       DataNode<NdkModuleModel> ndkModuleModelDataNode = find(cache, NDK_MODEL);
-      if (ndkModuleModelDataNode == null || !isValidProxyObject(ndkModuleModelDataNode.getData().getAndroidProject())) {
+      if (ndkModuleModelDataNode == null) {
         return true;
       }
     }

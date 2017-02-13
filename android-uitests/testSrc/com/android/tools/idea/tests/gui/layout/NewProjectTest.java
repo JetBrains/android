@@ -32,6 +32,7 @@ import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -103,6 +104,7 @@ public class NewProjectTest {
     assertThat(androidManifestContents).contains("\".MainActivity\"");
   }
 
+  @Ignore("Requires constraint-layout beta 5 to be added to the prebuilt SDK")
   @Test
   public void testNoWarningsInNewProjects() throws IOException {
     // Creates a new default project, and checks that if we run Analyze > Inspect Code, there are no warnings.
@@ -194,7 +196,7 @@ public class NewProjectTest {
     assertThat(editor.getCurrentFileName()).isEqualTo("activity_a.xml");
 
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
-    layoutEditor.waitForRenderToFinish();
+    layoutEditor.waitForRenderToFinish(Wait.seconds(10));
     guiTest.ideFrame().invokeProjectMake();
     layoutEditor.waitForRenderToFinish();
     assertFalse(layoutEditor.hasRenderErrors());

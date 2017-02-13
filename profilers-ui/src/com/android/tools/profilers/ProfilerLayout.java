@@ -28,16 +28,13 @@ import javax.swing.border.MatteBorder;
 public class ProfilerLayout {
 
   /**
-   * Refresh rate for the values in the LegendComponent
-   */
-  public static final int LEGEND_UPDATE_FREQUENCY_MS = 100;
-
-  /**
    * Common length for spacing between axis tick markers
    */
   public static final int MARKER_LENGTH = JBUI.scale(5);
 
   public static final int TIME_AXIS_HEIGHT = JBUI.scale(20);
+
+  public static final float TOOLTIP_FONT_SIZE = 12.5f;
 
   /**
    * Common space left on top of a vertical axis to make sure label text can fit there

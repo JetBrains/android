@@ -98,7 +98,7 @@ public class DrawConnectionUtils {
     Graphics2D g2 = (Graphics2D)g.create();
     g2.setFont(font);
     FontMetrics fm = g2.getFontMetrics();
-    int padding = 2;
+    int padding = 4;
     Rectangle2D bounds = fm.getStringBounds(text, g2);
     double th = bounds.getHeight() + padding * 2;
     double tw = bounds.getWidth() + padding * 2;
@@ -106,7 +106,7 @@ public class DrawConnectionUtils {
 
     g2.fillRoundRect((int)(x - tw / 2), (int)(y - th / 2), (int)tw, (int)th, radius, radius);
     g2.setColor(textColor);
-    g2.drawString(text, (int)(x - tw / 2 + padding), (int)(y - th / 2 + fm.getAscent()));
+    g2.drawString(text, (int)(x - tw / 2 + padding), (int)(y - th / 2 + fm.getAscent() + padding));
     if (DEBUG) {
       g2.setColor(Color.RED);
       g2.drawLine(x - 50, y, x + 50, y);

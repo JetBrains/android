@@ -33,15 +33,18 @@ public final class ProfilerTimeline implements Updatable {
   @NotNull private final Range myDataRangeUs;
   @NotNull private final Range myViewRangeUs;
   @NotNull private final Range mySelectionRangeUs;
+  @NotNull private final Range myTooltipRangeUs;
+  @NotNull private RelativeTimeConverter myRelativeTimeConverter;
   private boolean myStreaming;
   private boolean myCanStream = true;
-  private long myDeviceStartNs;
   private long myLengthNs;
 
-  public ProfilerTimeline() {
+  public ProfilerTimeline(@NotNull RelativeTimeConverter converter) {
     myDataRangeUs = new Range(0, 0);
     myViewRangeUs = new Range(0, 0);
     mySelectionRangeUs = new Range(); // Empty range
+    myTooltipRangeUs = new Range(); // Empty range
+    myRelativeTimeConverter = converter;
   }
 
   /**
@@ -96,10 +99,14 @@ public final class ProfilerTimeline implements Updatable {
     return mySelectionRangeUs;
   }
 
+  public Range getTooltipRange() {
+    return myTooltipRangeUs;
+  }
+
   @Override
   public void update(long elapsedNs) {
     myLengthNs += elapsedNs;
-    long deviceNowNs = myDeviceStartNs + myLengthNs;
+    long deviceNowNs = myRelativeTimeConverter.convertToAbsoluteTime(myLengthNs);
     long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
     myDataRangeUs.setMax(deviceNowUs);
     if (myStreaming) {
@@ -126,7 +133,9 @@ public final class ProfilerTimeline implements Updatable {
   }
 
   public void pan(double deltaUs) {
-    setStreaming(false);
+    if (deltaUs < 0) {
+      setStreaming(false);
+    }
     if (myViewRangeUs.getMin() + deltaUs < myDataRangeUs.getMin()) {
       deltaUs = myDataRangeUs.getMin() - myViewRangeUs.getMin();
     } else if (myViewRangeUs.getMax() + deltaUs > myDataRangeUs.getMax()) {
@@ -135,10 +144,10 @@ public final class ProfilerTimeline implements Updatable {
     myViewRangeUs.shift(deltaUs);
   }
 
-  public void reset(long ns) {
-    myDeviceStartNs = ns;
+  public void reset(@NotNull RelativeTimeConverter converter) {
+    myRelativeTimeConverter = converter;
     myLengthNs = 0;
-    double us = TimeUnit.NANOSECONDS.toMicros(ns);
+    double us = TimeUnit.NANOSECONDS.toMicros(converter.getDeviceStartTimeNs());
     myDataRangeUs.set(us, us);
     myViewRangeUs.set(us - DEFAULT_VIEW_LENGTH_US, us);
   }

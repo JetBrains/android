@@ -46,23 +46,23 @@ public class AxisFormatterTest {
 
   @Test
   public void testGetMultiplierIndex() throws Exception {
-    // value is equal or less than the threshold to get to the next multiplier
+    // value is less than the threshold to get to the next multiplier
     // so we are still in "mm" scale
-    int index = myFormatter.getMultiplierIndex(50, 5);
+    int index = myFormatter.getMultiplierIndex(49, 5);
     assertThat(index).isEqualTo(0);
     assertThat(myFormatter.getMultiplier()).isEqualTo(1);
     assertThat(myFormatter.getUnit(index)).isEqualTo("mm");
 
-    // value is greater than the first multiplier * threshold
+    // value is greater than or equal to the first multiplier * threshold
     // jumps to "cm"
-    index = myFormatter.getMultiplierIndex(51, 5);
+    index = myFormatter.getMultiplierIndex(50, 5);
     assertThat(index).isEqualTo(1);
     assertThat(myFormatter.getMultiplier()).isEqualTo(10);
     assertThat(myFormatter.getUnit(index)).isEqualTo("cm");
 
     // value is greater than the second multiplier * threshold
     // jumps to "m"
-    index = myFormatter.getMultiplierIndex(5001, 5);
+    index = myFormatter.getMultiplierIndex(5000, 5);
     assertThat(index).isEqualTo(2);
     assertThat(myFormatter.getMultiplier()).isEqualTo(1000);
     assertThat(myFormatter.getUnit(index)).isEqualTo("m");

@@ -18,8 +18,10 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ImmutableList;
@@ -34,10 +36,17 @@ import static com.android.tools.adtui.model.DurationData.UNSPECIFIED_DURATION;
 class HeapDumpSampleDataSeries implements DataSeries<CaptureDurationData<HeapDumpCaptureObject>> {
   @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
   private final int myProcessId;
+  @NotNull private final RelativeTimeConverter myConverter;
+  private final Common.Session mySession;
 
-  public HeapDumpSampleDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client, int processId) {
+  public HeapDumpSampleDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+                                  Common.Session session,
+                                  int processId,
+                                  @NotNull RelativeTimeConverter converter) {
     myClient = client;
     myProcessId = processId;
+    mySession = session;
+    myConverter = converter;
   }
 
   @Override
@@ -45,7 +54,7 @@ class HeapDumpSampleDataSeries implements DataSeries<CaptureDurationData<HeapDum
     long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
     long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
     MemoryProfiler.ListHeapDumpInfosResponse response = myClient.listHeapDumpInfos(
-      MemoryProfiler.ListDumpInfosRequest.newBuilder().setAppId(myProcessId).setStartTime(rangeMin).setEndTime(rangeMax).build());
+      MemoryProfiler.ListDumpInfosRequest.newBuilder().setSession(mySession).setProcessId(myProcessId).setStartTime(rangeMin).setEndTime(rangeMax).build());
 
     List<SeriesData<CaptureDurationData<HeapDumpCaptureObject>>> seriesData = new ArrayList<>();
     for (MemoryProfiler.HeapDumpInfo info : response.getInfosList()) {
@@ -53,7 +62,7 @@ class HeapDumpSampleDataSeries implements DataSeries<CaptureDurationData<HeapDum
       long endTime = TimeUnit.NANOSECONDS.toMicros(info.getEndTime());
       seriesData.add(new SeriesData<>(startTime, new CaptureDurationData<>(
         info.getEndTime() == UNSPECIFIED_DURATION ? UNSPECIFIED_DURATION : endTime - startTime,
-        new HeapDumpCaptureObject(myClient, myProcessId, info, null))));
+        new HeapDumpCaptureObject(myClient, mySession, myProcessId, info, null, myConverter))));
     }
 
     return ContainerUtil.immutableList(seriesData);

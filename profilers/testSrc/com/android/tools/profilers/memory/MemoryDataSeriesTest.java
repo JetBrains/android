@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.ProfilersTestData;
 import com.intellij.util.containers.ImmutableList;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,7 +42,7 @@ public class MemoryDataSeriesTest {
             .setJavaMem(222).setTimestamp(TimeUnit.MICROSECONDS.toNanos(222)).setTotalMem(222))
         .build();
     myService.setMemoryData(memoryData);
-    MemoryDataSeries series = new MemoryDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, data -> 111L);
+    MemoryDataSeries series = new MemoryDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, ProfilersTestData.SESSION_DATA, data -> 111L);
     ImmutableList<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(1, seriesDataList.size());
     assertEquals(222, seriesDataList.get(0).x);
@@ -58,7 +59,7 @@ public class MemoryDataSeriesTest {
         .setNativeMem(444).setTimestamp(TimeUnit.MICROSECONDS.toNanos(444)).setTotalMem(444))
       .build();
     myService.setMemoryData(memoryData);
-    MemoryDataSeries series = new MemoryDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, data -> 111L);
+    MemoryDataSeries series = new MemoryDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, ProfilersTestData.SESSION_DATA, data -> 111L);
     ImmutableList<SeriesData<Long>> seriesDataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, seriesDataList.size());
     assertEquals(333, seriesDataList.get(0).x);
