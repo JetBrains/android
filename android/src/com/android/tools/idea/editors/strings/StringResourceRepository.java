@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -36,7 +36,7 @@ public final class StringResourceRepository {
   private final Map<StringResourceKey, AbstractResourceRepository> myKeyToRepositoryMap;
 
   public StringResourceRepository(@NotNull MultiResourceRepository parent) {
-    myKeyToRepositoryMap = new HashMap<>();
+    myKeyToRepositoryMap = new LinkedHashMap<>(); // Keeps the keys insertion order
 
     for (AbstractResourceRepository child : parent.getChildren()) {
       VirtualFile directory = child instanceof ResourceFolderRepository ? ((ResourceFolderRepository)child).getResourceDir() : null;
@@ -52,7 +52,13 @@ public final class StringResourceRepository {
     Project project = facet.getModule().getProject();
 
     Map<StringResourceKey, StringResource> map = myKeyToRepositoryMap.keySet().stream()
-      .collect(Collectors.toMap(Function.identity(), key -> new StringResource(key, getItems(key), project)));
+      .collect(Collectors.toMap(Function.identity(),
+                                key -> new StringResource(key, getItems(key), project),
+                                (resource1, resource2) -> {
+                                  throw new IllegalStateException("Duplicate key " + resource1);
+                                },
+                                LinkedHashMap::new
+      ));
 
     return new StringResourceData(facet, map);
   }
