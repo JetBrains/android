@@ -18,7 +18,6 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.HNode;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.ViewBinder;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
@@ -40,7 +39,6 @@ import javax.swing.tree.TreePath;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
@@ -243,11 +241,11 @@ class CpuCaptureView {
     }
   }
 
-  private class TreeChartView extends CaptureDetailsView {
+  private static class TreeChartView extends CaptureDetailsView {
     @SuppressWarnings("unused")
     private TreeChartView(@NotNull CpuCaptureView view, @NotNull CpuProfilerStage.TreeChart treeChart) {
       HNode<MethodModel> node = treeChart.getNode();
-      HTreeChart<MethodModel> chart = new HTreeChart<>(myView.getTimeline().getSelectionRange());
+      HTreeChart<MethodModel> chart = new HTreeChart<>(treeChart.getRange());
       chart.setHRenderer(new SampledMethodUsageHRenderer());
       chart.setHTree(node);
       myComponent = chart;
