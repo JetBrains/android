@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.codeInsight.dataflow.SetUtil;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
@@ -35,9 +33,7 @@ import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * {@link com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode} does not classify source types, and just assumes that all source
@@ -49,7 +45,7 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
 
   public AndroidModuleNode(@NotNull Project project,
                            @NotNull Module module,
-                           ViewSettings settings,
+                           @NotNull ViewSettings settings,
                            @NotNull AndroidProjectViewPane projectViewPane) {
     super(project, module, settings);
     myProjectViewPane = projectViewPane;
@@ -62,27 +58,26 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
     return module;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Collection<AbstractTreeNode> getChildren() {
     AndroidFacet facet = AndroidFacet.getInstance(getModule());
     if (facet == null || facet.getAndroidModel() == null) {
       return super.getChildren();
     }
-
     return getChildren(facet, getSettings(), myProjectViewPane, AndroidProjectViewPane.getSourceProviders(facet));
   }
 
   @NotNull
-  public static Collection<AbstractTreeNode> getChildren(@NotNull AndroidFacet facet,
-                                                         @NotNull ViewSettings settings,
-                                                         @NotNull AndroidProjectViewPane pane,
-                                                         @NotNull List<IdeaSourceProvider> providers) {
+  static Collection<AbstractTreeNode> getChildren(@NotNull AndroidFacet facet,
+                                                  @NotNull ViewSettings settings,
+                                                  @NotNull AndroidProjectViewPane projectViewPane,
+                                                  @NotNull List<IdeaSourceProvider> providers) {
     Project project = facet.getModule().getProject();
-    List<AbstractTreeNode> result = Lists.newArrayList();
+    List<AbstractTreeNode> result = new ArrayList<>();
 
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
-    HashMultimap<AndroidSourceType,VirtualFile> sourcesByType = getSourcesBySourceType(providers, androidModuleModel);
+    HashMultimap<AndroidSourceType, VirtualFile> sourcesByType = getSourcesBySourceType(providers, androidModuleModel);
 
     NdkModuleModel ndkModuleModel = NdkModuleModel.get(facet.getModule());
 
@@ -96,7 +91,7 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
         continue;
       }
       if (sourceType == AndroidSourceType.RES) {
-        result.add(new AndroidResFolderNode(project, facet, settings, sourcesByType.get(sourceType), pane));
+        result.add(new AndroidResFolderNode(project, facet, settings, sourcesByType.get(sourceType), projectViewPane));
         continue;
       }
       if (sourceType == AndroidSourceType.SHADERS) {
@@ -104,10 +99,10 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
           continue;
         }
       }
-      result.add(new AndroidSourceTypeNode(project, facet, settings, sourceType, sourcesByType.get(sourceType), pane));
+      result.add(new AndroidSourceTypeNode(project, facet, settings, sourceType, sourcesByType.get(sourceType), projectViewPane));
     }
 
-    if(ndkModuleModel != null) {
+    if (ndkModuleModel != null) {
       result.add(new AndroidJniFolderNode(project, ndkModuleModel, settings));
     }
 
@@ -115,9 +110,9 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
   }
 
   @NotNull
-  private static HashMultimap<AndroidSourceType,VirtualFile> getSourcesBySourceType(@NotNull List<IdeaSourceProvider> providers,
-                                                                                    @Nullable AndroidModuleModel androidModuleModel) {
-    HashMultimap<AndroidSourceType,VirtualFile> sourcesByType = HashMultimap.create();
+  private static HashMultimap<AndroidSourceType, VirtualFile> getSourcesBySourceType(@NotNull List<IdeaSourceProvider> providers,
+                                                                                     @Nullable AndroidModuleModel androidModel) {
+    HashMultimap<AndroidSourceType, VirtualFile> sourcesByType = HashMultimap.create();
 
     // Multiple source types can sometimes be present in the same source folder, e.g.:
     //    sourcesSets.main.java.srcDirs = sourceSets.main.aidl.srcDirs = ['src']
@@ -125,10 +120,10 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
     // obvious there is a perfect solution here, but since this is not a common occurrence, we resort to the easiest solution here:
     // If a set of sources has partially been included as part of another source type's source set, then we simply don't include it
     // as part of this source type.
-    Set<VirtualFile> allSources = Sets.newHashSet();
+    Set<VirtualFile> allSources = new HashSet<>();
 
     for (AndroidSourceType sourceType : AndroidSourceType.values()) {
-      if (sourceType == AndroidSourceType.SHADERS && (androidModuleModel == null || !androidModuleModel.getFeatures().isShadersSupported())) {
+      if (sourceType == AndroidSourceType.SHADERS && (androidModel == null || !androidModel.getFeatures().isShadersSupported())) {
         continue;
       }
       Set<VirtualFile> sources = getSources(sourceType, providers);
@@ -139,7 +134,8 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
       if (SetUtil.intersect(allSources, sources).isEmpty()) {
         // if we haven't seen any of these source folders, then create a new source type folder
         sourcesByType.putAll(sourceType, sources);
-      } else if (!allSources.containsAll(sources)) {
+      }
+      else if (!allSources.containsAll(sources)) {
         // if we have a partial overlap, we put just the non overlapping sources into this source type
         sources.removeAll(allSources);
         sourcesByType.putAll(sourceType, sources);
@@ -152,8 +148,8 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
   }
 
   @NotNull
-  private static Set<VirtualFile> getSources(AndroidSourceType sourceType, Iterable<IdeaSourceProvider> providers) {
-    Set<VirtualFile> sources = Sets.newHashSet();
+  private static Set<VirtualFile> getSources(@NotNull AndroidSourceType sourceType, @NotNull Iterable<IdeaSourceProvider> providers) {
+    Set<VirtualFile> sources = new HashSet<>();
 
     for (IdeaSourceProvider provider : providers) {
       sources.addAll(sourceType.getSources(provider));
@@ -162,27 +158,29 @@ public class AndroidModuleNode extends ProjectViewModuleNode {
     return sources;
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Comparable getSortKey() {
     return getModule().getName();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Comparable getTypeSortKey() {
     return getSortKey();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return String.format("%1$s (Android)", getModule().getName());
   }
 
   @Override
   public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass()) return false;
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     return super.equals(o);
   }
 }

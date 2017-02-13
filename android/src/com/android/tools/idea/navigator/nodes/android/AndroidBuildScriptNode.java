@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,51 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes.android;
 
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.psi.PsiFile;
-import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+
 public class AndroidBuildScriptNode extends PsiFileNode {
-  public static final String MODULE_PREFIX = "Module: ";
-  public static final String PROJECT_PREFIX = "Project: ";
+  static final String MODULE_PREFIX = "Module: ";
+  static final String PROJECT_PREFIX = "Project: ";
 
   @Nullable private final String myQualifier;
 
-  public AndroidBuildScriptNode(Project project,
-                                PsiFile value,
-                                ViewSettings viewSettings,
-                                @Nullable String qualifier) {
-    super(project, value, viewSettings);
+  AndroidBuildScriptNode(@NotNull Project project, @NotNull PsiFile value, @NotNull ViewSettings settings, @Nullable String qualifier) {
+    super(project, value, settings);
     myQualifier = qualifier;
   }
 
   @Override
-  public void update(PresentationData data) {
+  public void update(@NotNull PresentationData data) {
     super.update(data);
 
     PsiFile psiFile = getValue();
-    if (psiFile == null || !psiFile.isValid()) {
-      return;
-    }
-
-    String fileName = psiFile.getName();
-    data.addText(fileName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-    data.setPresentableText(fileName);
-    if (myQualifier != null) {
-      data.addText(" (" + myQualifier + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
+    if (psiFile != null && psiFile.isValid()) {
+      String fileName = psiFile.getName();
+      data.addText(fileName, REGULAR_ATTRIBUTES);
+      data.setPresentableText(fileName);
+      if (myQualifier != null) {
+        data.addText(" (" + myQualifier + ")", GRAY_ATTRIBUTES);
+      }
     }
   }
 
-  @Nullable
   @Override
+  @Nullable
   public Comparable getSortKey() {
     String priority;
 
@@ -83,19 +80,21 @@ public class AndroidBuildScriptNode extends PsiFileNode {
       priority = "4-";
     }
 
-    PsiFile f = getValue();
-    return f == null ? priority : priority + f.getName();
+    PsiFile file = getValue();
+    return file != null ? priority + file.getName() : priority;
   }
 
   @Override
+  @Nullable
   public Comparable getTypeSortKey() {
     return getSortKey();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    String fileName = getValue().getName();
+    PsiFile value = getValue();
+    String fileName = value != null ? value.getName() : "";
     return fileName + (myQualifier == null ? "" : " (" + myQualifier + ")");
   }
 }

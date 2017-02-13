@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes.ndk;
 
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -35,15 +32,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import static com.intellij.icons.AllIcons.General.ExternalToolsSmall;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 public class ExternalBuildFilesGroupNode extends ProjectViewNode<Project> {
-  public ExternalBuildFilesGroupNode(@NotNull Project project, @NotNull ViewSettings viewSettings) {
-    super(project, project, viewSettings);
+  public ExternalBuildFilesGroupNode(@NotNull Project project, @NotNull ViewSettings settings) {
+    super(project, project, settings);
   }
 
   @Override
@@ -51,11 +47,11 @@ public class ExternalBuildFilesGroupNode extends ProjectViewNode<Project> {
     return getBuildFilesWithModuleNames().containsKey(file);
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Collection<? extends AbstractTreeNode> getChildren() {
     Map<VirtualFile, String> buildFiles = getBuildFilesWithModuleNames();
-    List<PsiFileNode> children = Lists.newArrayListWithExpectedSize(buildFiles.size());
+    List<PsiFileNode> children = new ArrayList<>(buildFiles.size());
 
     for (Map.Entry<VirtualFile, String> buildFileWithModuleName : buildFiles.entrySet()) {
       addPsiFile(children, buildFileWithModuleName.getKey(), buildFileWithModuleName.getValue());
@@ -66,8 +62,9 @@ public class ExternalBuildFilesGroupNode extends ProjectViewNode<Project> {
 
   @NotNull
   private Map<VirtualFile, String> getBuildFilesWithModuleNames() {
-    Map<VirtualFile, String> buildFiles = Maps.newHashMap();
+    Map<VirtualFile, String> buildFiles = new HashMap<>();
 
+    assert myProject != null;
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
       if (ndkModuleModel == null) {
@@ -84,6 +81,7 @@ public class ExternalBuildFilesGroupNode extends ProjectViewNode<Project> {
   }
 
   private void addPsiFile(@NotNull List<PsiFileNode> psiFileNodes, @NotNull VirtualFile file, @NotNull String moduleName) {
+    assert myProject != null;
     PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
     if (psiFile != null) {
       psiFileNodes.add(new ExternalBuildFileNode(myProject, psiFile, getSettings(), moduleName));
@@ -98,7 +96,7 @@ public class ExternalBuildFilesGroupNode extends ProjectViewNode<Project> {
   @Override
   protected void update(PresentationData presentation) {
     presentation.setPresentableText("External Build Files");
-    presentation.setIcon(AllIcons.General.ExternalToolsSmall);
+    presentation.setIcon(ExternalToolsSmall);
   }
 
   @Nullable

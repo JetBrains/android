@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes.other;
 
-import com.google.common.collect.Lists;
+import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -31,30 +31,33 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
-import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> implements DirectoryGroupNode {
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+
+public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> implements FolderGroupNode {
   private final NonAndroidSourceType mySourceType;
 
-  public NonAndroidSourceTypeNode(@NotNull Project project,
-                                  @NotNull Module module,
-                                  @NotNull ViewSettings settings,
-                                  @NotNull NonAndroidSourceType type) {
+  NonAndroidSourceTypeNode(@NotNull Project project,
+                           @NotNull Module module,
+                           @NotNull ViewSettings settings,
+                           @NotNull NonAndroidSourceType type) {
     super(project, module, settings);
     mySourceType = type;
   }
 
-  @NotNull
   @Override
+  @NotNull
   public Collection<? extends AbstractTreeNode> getChildren() {
     List<VirtualFile> sourceFolders = getSourceFolders();
-    List<AbstractTreeNode> children = Lists.newArrayListWithExpectedSize(sourceFolders.size());
+    List<AbstractTreeNode> children = new ArrayList<>(sourceFolders.size());
 
+    assert myProject != null;
     PsiManager psiManager = PsiManager.getInstance(myProject);
     ProjectViewDirectoryHelper directoryHelper = ProjectViewDirectoryHelper.getInstance(myProject);
     for (VirtualFile file : sourceFolders) {
@@ -67,9 +70,11 @@ public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> implements
     return children;
   }
 
+  @NotNull
   private List<VirtualFile> getSourceFolders() {
-    ModuleRootManager rootManager = ModuleRootManager.getInstance(getValue());
-    List<VirtualFile> folders = Lists.newArrayList();
+    Module module = getModule();
+    ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
+    List<VirtualFile> folders = new ArrayList<>();
 
     ContentEntry[] contentEntries = rootManager.getContentEntries();
     for (ContentEntry entry : contentEntries) {
@@ -85,10 +90,16 @@ public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> implements
     return folders;
   }
 
+  @NotNull
+  private Module getModule() {
+    Module module = getValue();
+    assert module != null;
+    return module;
+  }
 
   @Override
-  protected void update(PresentationData presentation) {
-    presentation.addText(mySourceType.presentableName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+  protected void update(@NotNull PresentationData presentation) {
+    presentation.addText(mySourceType.presentableName, REGULAR_ATTRIBUTES);
     presentation.setPresentableText(mySourceType.presentableName);
     presentation.setIcon(mySourceType.icon);
   }
@@ -124,13 +135,21 @@ public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> implements
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
 
     NonAndroidSourceTypeNode that = (NonAndroidSourceTypeNode)o;
 
-    if (mySourceType != that.mySourceType) return false;
+    if (mySourceType != that.mySourceType) {
+      return false;
+    }
 
     return true;
   }
@@ -142,20 +161,20 @@ public class NonAndroidSourceTypeNode extends ProjectViewNode<Module> implements
     return result;
   }
 
-  @NotNull
   @Override
-  public PsiDirectory[] getDirectories() {
+  @NotNull
+  public PsiDirectory[] getFolders() {
+    assert myProject != null;
     PsiManager psiManager = PsiManager.getInstance(myProject);
     List<VirtualFile> sourceFolders = getSourceFolders();
-    List<PsiDirectory> psiDirectories = Lists.newArrayListWithExpectedSize(sourceFolders.size());
+    List<PsiDirectory> folders = new ArrayList<>(sourceFolders.size());
 
     for (VirtualFile f : sourceFolders) {
       PsiDirectory dir = psiManager.findDirectory(f);
       if (dir != null) {
-        psiDirectories.add(dir);
+        folders.add(dir);
       }
     }
-
-    return psiDirectories.toArray(new PsiDirectory[psiDirectories.size()]);
+    return folders.toArray(new PsiDirectory[folders.size()]);
   }
 }
