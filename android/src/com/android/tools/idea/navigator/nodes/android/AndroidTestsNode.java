@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
+import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -26,7 +27,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
@@ -35,29 +35,31 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+
 /**
  * AndroidTestsNode groups all the sources for instrumentation tests.
  * Currently this is not instantiated as separating this out as it stands now seems to lead to some
  * issues in the UI when it comes to identifying the tree node from source. In the future, this will
  * be made an optional setting.
  */
-public class AndroidTestsNode extends ProjectViewNode<AndroidFacet> implements DirectoryGroupNode {
+public class AndroidTestsNode extends ProjectViewNode<AndroidFacet> implements FolderGroupNode {
   private static final String ANDROID_TESTS = "androidTests";
   private final AndroidProjectViewPane myProjectViewPane;
 
-  public AndroidTestsNode(@NotNull Project project,
-                          @NotNull AndroidFacet facet,
-                          @NotNull ViewSettings viewSettings,
-                          @NotNull AndroidProjectViewPane projectViewPane) {
-    super(project, facet, viewSettings);
+  AndroidTestsNode(@NotNull Project project,
+                   @NotNull AndroidFacet androidFacet,
+                   @NotNull ViewSettings settings,
+                   @NotNull AndroidProjectViewPane projectViewPane) {
+    super(project, androidFacet, settings);
     myProjectViewPane = projectViewPane;
   }
 
 
-  @NotNull
   @Override
+  @NotNull
   public Collection<AbstractTreeNode> getChildren() {
-    Module module = getValue().getModule();
+    Module module = getModule();
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null || facet.getAndroidModel() == null) {
       return Collections.emptyList();
@@ -68,7 +70,7 @@ public class AndroidTestsNode extends ProjectViewNode<AndroidFacet> implements D
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    Module module = getValue().getModule();
+    Module module = getModule();
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null || facet.getAndroidModel() == null) {
       return false;
@@ -84,14 +86,26 @@ public class AndroidTestsNode extends ProjectViewNode<AndroidFacet> implements D
   }
 
   @Override
-  public void update(PresentationData presentation) {
+  public void update(@NotNull PresentationData presentation) {
     presentation.setPresentableText(ANDROID_TESTS);
-    presentation.addText(ANDROID_TESTS, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-    presentation.setIcon(ModuleType.get(getValue().getModule()).getIcon());
+    presentation.addText(ANDROID_TESTS, REGULAR_ATTRIBUTES);
+    presentation.setIcon(ModuleType.get(getModule()).getIcon());
   }
 
-  @Nullable
+  @NotNull
+  private Module getModule() {
+    return getAndroidFacet().getModule();
+  }
+
+  @NotNull
+  private AndroidFacet getAndroidFacet() {
+    AndroidFacet facet = getValue();
+    assert facet != null;
+    return facet;
+  }
+
   @Override
+  @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return ANDROID_TESTS;
   }
@@ -101,9 +115,9 @@ public class AndroidTestsNode extends ProjectViewNode<AndroidFacet> implements D
     return object instanceof AndroidTestsNode && super.equals(object);
   }
 
-  @NotNull
   @Override
-  public PsiDirectory[] getDirectories() {
+  @NotNull
+  public PsiDirectory[] getFolders() {
     return PsiDirectory.EMPTY_ARRAY;
   }
 }

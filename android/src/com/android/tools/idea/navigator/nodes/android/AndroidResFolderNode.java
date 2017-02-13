@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes;
+package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.AndroidProjectTreeBuilder;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
@@ -29,30 +28,28 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class AndroidResFolderNode extends AndroidSourceTypeNode {
-  public AndroidResFolderNode(@NotNull Project project,
-                              @NotNull AndroidFacet facet,
-                              @NotNull ViewSettings viewSettings,
-                              @NotNull Set<VirtualFile> sourceRoots,
-                              @NotNull AndroidProjectViewPane projectViewPane) {
-    super(project, facet, viewSettings, AndroidSourceType.RES, sourceRoots, projectViewPane);
+  AndroidResFolderNode(@NotNull Project project,
+                       @NotNull AndroidFacet androidFacet,
+                       @NotNull ViewSettings settings,
+                       @NotNull Set<VirtualFile> sourceRoots,
+                       @NotNull AndroidProjectViewPane projectViewPane) {
+    super(project, androidFacet, settings, AndroidSourceType.RES, sourceRoots, projectViewPane);
   }
 
   /**
-   * Returns the children of the res folder. Rather than showing the existing directory hierarchy, this merges together
-   * all the folders by their {@link com.android.resources.ResourceFolderType}.
+   * Returns the children of the res folder. Rather than showing the existing directory hierarchy, this merges together all the folders by
+   * their {@link ResourceFolderType}.
    */
-  @NotNull
   @Override
+  @NotNull
   public Collection<? extends AbstractTreeNode> getChildren() {
     // collect all res folders from all source providers
-    List<PsiDirectory> resFolders = Lists.newArrayList();
-    for (PsiDirectory directory : getSourceDirectories()) {
-      resFolders.addAll(Lists.newArrayList(directory.getSubdirectories()));
+    List<PsiDirectory> resFolders = new ArrayList<>();
+    for (PsiDirectory sourceFolder : getSourceFolders()) {
+      resFolders.addAll(Arrays.asList(sourceFolder.getSubdirectories()));
     }
 
     // group all the res folders by their folder type
@@ -68,19 +65,27 @@ public class AndroidResFolderNode extends AndroidSourceTypeNode {
 
     // create a node for each res folder type that actually has some resources
     AndroidProjectTreeBuilder treeBuilder = (AndroidProjectTreeBuilder)myProjectViewPane.getTreeBuilder();
-    List<AbstractTreeNode> children = Lists.newArrayListWithExpectedSize(foldersByResourceType.size());
+    List<AbstractTreeNode> children = new ArrayList<>(foldersByResourceType.size());
+
     for (ResourceFolderType type : foldersByResourceType.keySet()) {
       Set<PsiDirectory> folders = foldersByResourceType.get(type);
-      final AndroidResFolderTypeNode androidResFolderTypeNode =
-        new AndroidResFolderTypeNode(myProject, getValue(), Lists.newArrayList(folders), getSettings(), type, myProjectViewPane);
-      children.add(androidResFolderTypeNode);
+      assert myProject != null;
+      AndroidResFolderTypeNode node = new AndroidResFolderTypeNode(myProject, getAndroidFacet(), new ArrayList<>(folders), getSettings(),
+                                                                   type);
+      children.add(node);
 
       // Inform the tree builder of the node that this particular virtual file maps to
       for (PsiDirectory folder : folders) {
-        treeBuilder.createMapping(folder.getVirtualFile(), androidResFolderTypeNode);
+        treeBuilder.createMapping(folder.getVirtualFile(), node);
       }
     }
     return children;
+  }
 
+  @NotNull
+  private AndroidFacet getAndroidFacet() {
+    AndroidFacet facet = getValue();
+    assert facet != null;
+    return facet;
   }
 }
