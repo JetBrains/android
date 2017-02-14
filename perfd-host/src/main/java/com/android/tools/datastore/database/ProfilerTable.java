@@ -93,8 +93,8 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
   public Profiler.GetDevicesResponse getDevices(Profiler.GetDevicesRequest request) {
     synchronized (myLock) {
       Profiler.GetDevicesResponse.Builder responseBuilder = Profiler.GetDevicesResponse.newBuilder();
-      ResultSet results = executeQuery(ProfilerStatements.SELECT_DEVICE, Long.MIN_VALUE, Long.MAX_VALUE);
       try {
+        ResultSet results = executeQuery(ProfilerStatements.SELECT_DEVICE, Long.MIN_VALUE, Long.MAX_VALUE);
         while (results.next()) {
           responseBuilder.addDevice(Profiler.Device.parseFrom(results.getBytes(1)));
         }
@@ -109,9 +109,9 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
   public Profiler.GetProcessesResponse getProcesses(Profiler.GetProcessesRequest request) {
     synchronized (myLock) {
       Profiler.GetProcessesResponse.Builder responseBuilder = Profiler.GetProcessesResponse.newBuilder();
-      ResultSet results =
-        executeQuery(ProfilerStatements.SELECT_PROCESSES, request.getSession().toString().hashCode(), Long.MIN_VALUE, Long.MAX_VALUE);
       try {
+        ResultSet results =
+          executeQuery(ProfilerStatements.SELECT_PROCESSES, request.getSession().toString().hashCode(), Long.MIN_VALUE, Long.MAX_VALUE);
         while (results.next()) {
           byte[] data = results.getBytes(1);
           Profiler.Process process = data == null ? Profiler.Process.getDefaultInstance() : Profiler.Process.parseFrom(data);
@@ -159,9 +159,9 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
    */
   public void updateAgentStatus(Common.Session session, Profiler.Process process, Profiler.AgentStatusResponse agentStatus) {
     synchronized (myLock) {
-      ResultSet results =
-        executeQuery(ProfilerStatements.FIND_AGENT_STATUS, session.toString().hashCode(), process.getPid(), 0L);
       try {
+        ResultSet results =
+          executeQuery(ProfilerStatements.FIND_AGENT_STATUS, session.toString().hashCode(), process.getPid(), 0L);
         if (results.next()) {
           Profiler.AgentStatusResponse.Status status = Profiler.AgentStatusResponse.Status.forNumber(results.getInt(1));
           switch (status) {
@@ -188,9 +188,9 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
   public Profiler.AgentStatusResponse getAgentStatus(Profiler.AgentStatusRequest request) {
     synchronized (myLock) {
       Profiler.AgentStatusResponse.Builder responseBuilder = Profiler.AgentStatusResponse.newBuilder();
-      ResultSet results =
-        executeQuery(ProfilerStatements.FIND_AGENT_STATUS, request.getSession().toString().hashCode(), request.getProcessId(), 0L);
       try {
+        ResultSet results =
+          executeQuery(ProfilerStatements.FIND_AGENT_STATUS, request.getSession().toString().hashCode(), request.getProcessId(), 0L);
         if (results.next()) {
           responseBuilder.setStatusValue(results.getInt(1));
           responseBuilder.setLastTimestamp(results.getLong(2));
