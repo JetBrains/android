@@ -154,7 +154,7 @@ public final class TranslationsEditorTest {
 
   @Test
   public void filterKeys() {
-    myTranslationsEditor.clickFilterKeysComboBoxItem("Show Translatable Keys Only");
+    myTranslationsEditor.clickFilterKeysComboBoxItem("Show Translatable Keys");
     assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "hello_world"), myTranslationsEditor.keys());
     myTranslationsEditor.clickFilterKeysComboBoxItem("Show Keys Needing Translations");
     assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "hello_world"), myTranslationsEditor.keys());
