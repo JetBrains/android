@@ -15,25 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.webp;
 
-import com.android.tools.idea.rendering.webp.ConvertToWebpAction;
 import com.android.tools.idea.rendering.webp.WebpNativeLibHelper;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.google.common.collect.Maps;
-import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.fest.swing.edt.GuiTask;
-import org.jetbrains.annotations.NotNull;
+import org.fest.swing.core.MouseButton;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.swing.*;
 import java.io.IOException;
-import java.util.Map;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -49,21 +44,24 @@ public class ConvertToWebpActionTest {
       return;
     }
 
-    guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject");
-    IdeFrameFixture projectFrame = guiTest.ideFrame();
+    Project project = guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject")
+      .getProject();
 
-    Project project = projectFrame.getProject();
-    VirtualFile res = project.getBaseDir().findFileByRelativePath("app/src/main/res");
     VirtualFile webpIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.webp");
     assertThat(webpIcon).isNull();
 
     VirtualFile pngIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.png");
     assertThat(pngIcon.exists()).isTrue();
-    invokeConvertToWebpAction(project, res);
 
-    WebpConversionDialogFixture dialog = WebpConversionDialogFixture.findDialog(guiTest.robot());
-    dialog.selectLossless();
-    dialog.clickOk();
+    guiTest.ideFrame()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test.png");
+    guiTest.ideFrame().invokeMenuPath("Convert to WebP...");
+
+    WebpConversionDialogFixture.findDialog(guiTest.robot())
+      .selectLossless()
+      .clickOk();
 
     // Check that the webp icon now exists
     webpIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.webp");
@@ -81,44 +79,107 @@ public class ConvertToWebpActionTest {
       return;
     }
 
-    guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject");
-    IdeFrameFixture projectFrame = guiTest.ideFrame();
+    Project project = guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject")
+      .getProject();
 
-    Project project = projectFrame.getProject();
-    VirtualFile res = project.getBaseDir().findFileByRelativePath("app/src/main/res");
-
-    VirtualFile pngIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.png");
-    assertThat(pngIcon.exists()).isTrue();
-    invokeConvertToWebpAction(project, res);
+    guiTest.ideFrame()
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test.png");
+    guiTest.ideFrame().invokeMenuPath("Convert to WebP...");
 
     // Settings dialog
-    WebpConversionDialogFixture settingsDialog = WebpConversionDialogFixture.findDialog(guiTest.robot());
-    settingsDialog.selectLossy();
-    settingsDialog.clickOk();
+    WebpConversionDialogFixture.findDialog(guiTest.robot())
+      .selectLossy()
+      .clickOk();
 
-    WebpPreviewDialogFixture previewDialog = WebpPreviewDialogFixture.findDialog(guiTest.robot());
-    previewDialog.clickFinish();
+    WebpPreviewDialogFixture.findDialog(guiTest.robot())
+      .clickFinish();
 
     VirtualFile webpIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.webp");
     assertThat(webpIcon).isNotNull();
-    pngIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.png");
+    VirtualFile pngIcon = project.getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.png");
     assertThat(pngIcon).isNull();
   }
 
-  private static void invokeConvertToWebpAction(@NotNull Project project, @NotNull VirtualFile res) {
-    // Ideally I'd invoke the context menu on the res node, "Convert to WebP Format",
-    // but the pane fixture doesn't support invoking context menu actions yet.
-    // Shortcut:
-    //ProjectViewFixture.PaneFixture pane = projectFrame.getProjectView().selectAndroidPane();
-    //pane.selectByPath("app", "res");
+  /**
+   * Verifies the conversion of images from PNG to WebP.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C14603481
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1.Create Project with Minimum SDK 18 or above.
+   *   2.Place attached webp(or any webp)(attachment in TestRail) image to drawable folder
+   *   3.Right click on sample.webp image and select "Convert to PNG"
+   *   4.Select 'Yes' option button in alert dialog box (Verify 1)
+   *   Verify:
+   *   1.Webp image should convert into png and previous WebP image is deleted.
+   *   </pre>
+   * <p>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void testConvertFromPngToWebp() throws IOException {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject")
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test.png");
+    guiTest.ideFrame().invokeMenuPath("Convert to WebP...");
 
-    Map<String,Object> data = Maps.newHashMap();
-    data.put(CommonDataKeys.VIRTUAL_FILE_ARRAY.getName(), new VirtualFile[] {res});
-    data.put(CommonDataKeys.PROJECT.getName(), project);
-    DataContext context = SimpleDataContext.getSimpleContext(data, null);
-    AnActionEvent actionEvent = new AnActionEvent(null, context, "test", new Presentation(), ActionManager.getInstance(), 0);
-    ConvertToWebpAction action = new ConvertToWebpAction();
-    //noinspection SSBasedInspection
-    GuiTask.execute(() -> SwingUtilities.invokeLater(() -> action.actionPerformed(actionEvent)));
+    WebpConversionDialogFixture.findDialog(guiTest.robot())
+      .clickOk();
+
+    WebpPreviewDialogFixture.findDialog(guiTest.robot())
+      .clickFinish();
+
+    VirtualFile webpIcon = guiTest.ideFrame().getProject().getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.webp");
+    assertThat(webpIcon).isNotNull();
+    VirtualFile pngIcon = guiTest.ideFrame().getProject().getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test.png");
+    assertThat(pngIcon).isNull();
+  }
+
+  /**
+   * Verifies the conversion of images from WebP to PNG.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C14603482
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1.Create Project with Minimum SDK 18 or above.
+   *   2.Place attached png(or any PNG) to drawable folder
+   *   3.Right click on sample.png and select "Convert to WebP..." (Verify 1)
+   *   4.Select 'OK' (Verify 2)
+   *   5.Go to drawable folder (Verify 3)
+   *   Verify:
+   *   1.'Converting Images to WebP' alert dialog is open.(You can edit some options).
+   *   Note:
+   *   1.1 If your Application minSdkVersion 18 or above you have check box option "Skip images with transparency/alpha channel".
+   *   1.2 If your Application minSdkVersion < 18, you have no check box option 'Skip images with transparency/alpha channel'.
+   *   2.'Preview and Adjust Converted Images' Window is open and you can adjust Quality of image and select Finish button.
+   *   3.PNG image should convert into webp image
+   *   </pre>
+   * <p>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void testConvertFromWebPToPng() throws IOException {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("ImportWebpProject")
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test2.webp");
+    guiTest.ideFrame().invokeMenuPath("Convert to PNG...");
+
+    MessagesFixture.findByTitle(guiTest.robot(), "Convert from WebP to PNG")
+      .clickYes();
+
+    VirtualFile webpIcon = guiTest.ideFrame().getProject().getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test2.webp");
+    assertThat(webpIcon).isNull();
+    VirtualFile pngIcon = guiTest.ideFrame().getProject().getBaseDir().findFileByRelativePath("app/src/main/res/mipmap-xhdpi/ic_test2.png");
+    assertThat(pngIcon).isNotNull();
   }
 }
