@@ -740,7 +740,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
     ListMultimap<String, ResourceItem> multimap = myItems.get(type);
     if (multimap == null && create) {
-      multimap = ArrayListMultimap.create();
+      multimap = LinkedListMultimap.create(); // use LinkedListMultimap to preserve ordering for editors that show original order.
       myItems.put(type, multimap);
     }
     return multimap;
