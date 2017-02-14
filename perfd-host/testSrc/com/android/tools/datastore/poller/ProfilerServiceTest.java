@@ -32,9 +32,9 @@ import org.junit.Test;
 
 import java.util.Map;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ProfilerServiceTest extends DataStorePollerTest {
 
@@ -47,7 +47,7 @@ public class ProfilerServiceTest extends DataStorePollerTest {
 
   private static final Profiler.Process INITIAL_PROCESS = Profiler.Process.newBuilder()
     .setPid(1234)
-    .setName("INITAL")
+    .setName("INITIAL")
     .build();
   private static final Profiler.Process FINAL_PROCESS = Profiler.Process.newBuilder()
     .setPid(4321)
@@ -230,6 +230,12 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     @Override
     public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
       responseObserver.onNext(Profiler.GetProcessesResponse.newBuilder().addProcess(myProcessToReturn).build());
+      responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getAgentStatus(Profiler.AgentStatusRequest request, StreamObserver<Profiler.AgentStatusResponse> responseObserver) {
+      responseObserver.onNext(Profiler.AgentStatusResponse.getDefaultInstance());
       responseObserver.onCompleted();
     }
   }
