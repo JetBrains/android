@@ -241,7 +241,7 @@ public class ChooseResourceDialogTest {
                  "app_name                      Simple Application            \n" +
                  "cancel                        取消                            \n" +
                  "hello_world                   Hello world!                  \n" +
-                 "android                                                     \n",
+                 "some_id                       12345678                      \n",
                  tableToString(nameTable, 0, 6, 0, 5, 30));
 
     // Search for "app" and confirm that we only show the header nodes as well as resource names
