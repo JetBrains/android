@@ -114,6 +114,7 @@ public final class TemplateValueInjector {
     addDebugKeyStore(myTemplateValues, null);
 
     myTemplateValues.put(ATTR_IS_NEW_PROJECT, true); // Android Modules are called Gradle Projects
+    myTemplateValues.put(ATTR_THEME_EXISTS, true); // New modules always have a theme (unless its a library, but it will have no activity)
 
     myTemplateValues.put(ATTR_MIN_API_LEVEL, buildVersion.getApiLevel());
     myTemplateValues.put(ATTR_MIN_API, buildVersion.getApiLevelStr());
