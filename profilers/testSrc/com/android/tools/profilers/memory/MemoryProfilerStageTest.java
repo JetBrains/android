@@ -16,9 +16,15 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.DurationData;
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.legend.SeriesLegend;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.memory.adapters.*;
 import org.jetbrains.annotations.NotNull;
@@ -35,9 +41,10 @@ import static org.junit.Assert.*;
 
 public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
+  @NotNull private final FakeProfilerService myProfilerService = new FakeProfilerService();
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryProfilerStageTestChannel", myService);
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryProfilerStageTestChannel", myService, myProfilerService);
 
   @Override
   protected FakeGrpcChannel getGrpcChannel() {
@@ -295,5 +302,35 @@ public class MemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertEquals(null, myStage.getSelectedCapture());
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myAspectObserver.assertAndResetCounts(0, 1, 0, 0, 0, 0, 0);
+  }
+
+  @Test
+  public void testAgentStatusUpdatesObjectSeries() {
+    // Test that agent status change fires after a process is selected.
+    Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess")
+      .build();
+    myProfilerService.addDevice(device);
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    myProfilerService.addProcess(session, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    MemoryProfilerStage.MemoryStageLegends legends = myStage.getLegends();
+    DetailedMemoryUsage usage = myStage.getDetailedMemoryUsage();
+    SeriesLegend objectLegend = legends.getObjectsLegend();
+    RangedContinuousSeries objectSeries = usage.getObjectsSeries();
+    assertTrue(legends.getLegends().stream().noneMatch(legend -> legend == objectLegend));
+    assertTrue(usage.getSeries().stream().noneMatch(series -> series == objectSeries));
+
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertTrue(legends.getLegends().stream().anyMatch(legend -> legend == objectLegend));
+    assertTrue(usage.getSeries().stream().anyMatch(series -> series == objectSeries));
   }
 }
