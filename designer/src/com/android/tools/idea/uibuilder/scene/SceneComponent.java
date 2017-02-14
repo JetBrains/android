@@ -569,11 +569,15 @@ public class SceneComponent {
     return needsRepaint;
   }
 
-  public void fillRect(@NotNull Rectangle rectangle) {
+  public Rectangle fillRect(@Nullable Rectangle rectangle) {
+    if (rectangle == null) {
+      rectangle = new Rectangle();
+    }
     rectangle.x = myCurrentLeft;
     rectangle.y = myCurrentTop;
     rectangle.width = myCurrentRight - myCurrentLeft;
     rectangle.height = myCurrentBottom - myCurrentTop;
+    return rectangle;
   }
 
   public void addHit(@NotNull SceneContext sceneTransform, @NotNull ScenePicker picker) {

@@ -16,7 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.menu;
 
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,41 +26,41 @@ import java.util.ArrayList;
 import java.util.List;
 
 final class ActionBar {
-  private final List<NlComponent> myItems;
-  private final List<NlComponent> myOverflowItems;
+  private final List<SceneComponent> myItems;
+  private final List<SceneComponent> myOverflowItems;
 
   @AndroidCoordinate
   private final Rectangle myItemBounds;
   @AndroidCoordinate
   private final Rectangle myOverflowItemBounds;
 
-  ActionBar(@NotNull NlComponent group) {
+  ActionBar(@NotNull SceneComponent group) {
     myItems = new ArrayList<>();
     myOverflowItems = new ArrayList<>();
 
     addToItemsOrOverflowItems(group);
 
     // noinspection SuspiciousNameCombination
-    myItems.sort((item1, item2) -> Integer.compare(item1.x, item2.x));
+    myItems.sort((item1, item2) -> Integer.compare(item1.getDrawX(), item2.getDrawX()));
 
     // noinspection SuspiciousNameCombination
-    myOverflowItems.sort((item1, item2) -> Integer.compare(item1.y, item2.y));
+    myOverflowItems.sort((item1, item2) -> Integer.compare(item1.getDrawY(), item2.getDrawY()));
 
     myItemBounds = getBounds(myItems);
     myOverflowItemBounds = getBounds(myOverflowItems);
   }
 
-  private void addToItemsOrOverflowItems(@NotNull NlComponent group) {
+  private void addToItemsOrOverflowItems(@NotNull SceneComponent group) {
     group.getChildren().stream()
-      .filter(item -> item.w != -1 && item.h != -1)
+      .filter(item -> item.getDrawWidth() != -1 && item.getDrawHeight() != -1)
       .forEach(item -> {
-        if (item.viewInfo == null) {
+        if (item.getNlComponent().viewInfo == null) {
           // item corresponds to a group element
           addToItemsOrOverflowItems(item);
           return;
         }
 
-        switch (item.viewInfo.getViewType()) {
+        switch (item.getNlComponent().viewInfo.getViewType()) {
           case ACTION_BAR_MENU:
             myItems.add(item);
             break;
@@ -72,43 +73,44 @@ final class ActionBar {
       });
   }
 
-  @AndroidCoordinate
+  @AndroidDpCoordinate
   @Nullable
-  private static Rectangle getBounds(@NotNull List<NlComponent> items) {
+  private static Rectangle getBounds(@NotNull List<SceneComponent> items) {
     if (items.isEmpty()) {
       return null;
     }
 
-    NlComponent firstItem = items.get(0);
-    Rectangle bounds = new Rectangle(firstItem.x, firstItem.y, firstItem.w, firstItem.h);
-    items.subList(1, items.size()).forEach(item -> bounds.add(new Rectangle(item.x, item.y, item.w, item.h)));
+    SceneComponent firstItem = items.get(0);
+    Rectangle bounds = firstItem.fillRect(null);
+    Rectangle temp = new Rectangle();
+    items.subList(1, items.size()).forEach(item -> bounds.add(item.fillRect(temp)));
 
     return bounds;
   }
 
   @NotNull
-  List<NlComponent> getItems() {
+  List<SceneComponent> getItems() {
     return myItems;
   }
 
   @NotNull
-  List<NlComponent> getOverflowItems() {
+  List<SceneComponent> getOverflowItems() {
     return myOverflowItems;
   }
 
-  @AndroidCoordinate
+  @AndroidDpCoordinate
   @Nullable
   Rectangle getItemBounds() {
     return myItemBounds;
   }
 
-  @AndroidCoordinate
+  @AndroidDpCoordinate
   @Nullable
   Rectangle getOverflowItemBounds() {
     return myOverflowItemBounds;
   }
 
-  boolean contains(@AndroidCoordinate int x, @AndroidCoordinate int y) {
+  boolean contains(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     return myItemBounds.contains(x, y) || myOverflowItemBounds.contains(x, y);
   }
 }

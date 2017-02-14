@@ -16,7 +16,9 @@
 package com.android.tools.idea.uibuilder.handlers.menu;
 
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,11 +28,12 @@ import static com.android.SdkConstants.*;
 
 public final class GroupHandler extends MenuHandler {
   @Override
-  public boolean acceptsChild(@NotNull NlComponent parent,
+  public boolean acceptsChild(@NotNull SceneComponent parent,
                               @NotNull NlComponent newChild,
                               @AndroidCoordinate int x,
                               @AndroidCoordinate int y) {
-    return new ActionBar(parent).contains(x, y);
+    return new ActionBar(parent).contains(Coordinates.pxToDp(newChild.getModel(), x),
+                                          Coordinates.pxToDp(newChild.getModel(), y));
   }
 
   @NotNull
