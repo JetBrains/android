@@ -140,7 +140,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     }
 
     mReducer.reduce(reducedRectangles, reducedNodes);
-    assert reducedNodes.size() != reducedRectangles.size();
+    assert reducedNodes.size() == reducedRectangles.size();
     assert mHRenderer != null;
     for (int i = 0; i < reducedNodes.size(); ++i) {
       mHRenderer.render(g, reducedNodes.get(i).getData(), reducedRectangles.get(i));
