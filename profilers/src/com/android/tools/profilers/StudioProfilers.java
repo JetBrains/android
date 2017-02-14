@@ -65,6 +65,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @Nullable
   private Profiler.Process myProcess;
 
+  private boolean myAgentAttached;
+
   @Nullable
   private String myPreferredProcessName;
 
@@ -165,8 +167,26 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         setDevice(myDevice);
         setProcess(null);
 
+        // These need to be fired everytime the process list changes so that the device/process dropdown always reflects the latest.
         changed(ProfilerAspect.DEVICES);
         changed(ProfilerAspect.PROCESSES);
+      }
+
+      // Ping to see if perfa is alive.
+      if (myProcess != null) {
+        Common.Session session = Common.Session.newBuilder()
+          .setDeviceSerial(myDevice.getSerial())
+          .setBootId(myDevice.getBootId())
+          .build();
+        Profiler.AgentStatusRequest statusRequest =
+          Profiler.AgentStatusRequest.newBuilder().setProcessId(myProcess.getPid()).setSession(session).build();
+        Profiler.AgentStatusResponse statusResponse = myClient.getProfilerClient().getAgentStatus(statusRequest);
+
+        boolean agentAttach = statusResponse.getStatus() == Profiler.AgentStatusResponse.Status.ATTACHED;
+        if (myAgentAttached != agentAttach) {
+          myAgentAttached = agentAttach;
+          changed(ProfilerAspect.AGENT);
+        }
       }
     }
     catch (StatusRuntimeException e) {
@@ -202,7 +222,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         myRelativeTimeConverter = new RelativeTimeConverter(times.getTimestampNs() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
         myTimeline.reset(myRelativeTimeConverter);
         myTimeline.setStreaming(true);
-      } else {
+      }
+      else {
         mySessionData = null;
       }
 
@@ -314,6 +335,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   public Profiler.Process getProcess() {
     return myProcess;
+  }
+
+  public boolean isAgentAttached() {
+    return myAgentAttached;
   }
 
   public List<StudioProfiler> getProfilers() {

@@ -19,11 +19,13 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
 public class DetailedMemoryUsage extends MemoryUsage {
 
+  @NotNull private final StudioProfilers myProfilers;
   @NotNull private final Range myObjectsRange;
   @NotNull private final RangedContinuousSeries myJavaSeries;
   @NotNull private final RangedContinuousSeries myNativeSeries;
@@ -36,6 +38,7 @@ public class DetailedMemoryUsage extends MemoryUsage {
   public DetailedMemoryUsage(@NotNull StudioProfilers profilers) {
     super(profilers);
 
+    myProfilers = profilers;
     myObjectsRange = new Range(0, 0);
 
     myJavaSeries = createRangedSeries(profilers, "Java", getMemoryRange(), MemorySample::getJavaMem);
@@ -46,7 +49,8 @@ public class DetailedMemoryUsage extends MemoryUsage {
     myOtherSeries = createRangedSeries(profilers, "Others", getMemoryRange(), MemorySample::getOthersMem);
 
     MemoryServiceGrpc.MemoryServiceBlockingStub client = profilers.getClient().getMemoryClient();
-    VmStatsDataSeries series = new VmStatsDataSeries(client, profilers.getProcessId(), profilers.getSession(), sample -> (long)(sample.getJavaAllocationCount() - sample.getJavaFreeCount()));
+    VmStatsDataSeries series = new VmStatsDataSeries(client, profilers.getProcessId(), profilers.getSession(),
+                                                     sample -> (long)(sample.getJavaAllocationCount() - sample.getJavaFreeCount()));
     myObjectsSeries = new RangedContinuousSeries("Allocated", profilers.getTimeline().getViewRange(), getObjectsRange(), series);
 
     add(myJavaSeries);
@@ -55,7 +59,9 @@ public class DetailedMemoryUsage extends MemoryUsage {
     add(myStackSeries);
     add(myCodeSeries);
     add(myOtherSeries);
-    add(myObjectsSeries);
+
+    myProfilers.addDependency(this).onChange(ProfilerAspect.AGENT, this::agentStatusChanged);
+    agentStatusChanged();
   }
 
   @NotNull
@@ -101,5 +107,14 @@ public class DetailedMemoryUsage extends MemoryUsage {
   @Override
   protected String getTotalSeriesLabel() {
     return "Total";
+  }
+
+  private void agentStatusChanged() {
+    if (myProfilers.isAgentAttached()) {
+      add(myObjectsSeries);
+    }
+    else {
+      remove(myObjectsSeries);
+    }
   }
 }

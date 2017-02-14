@@ -18,8 +18,8 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.profiler.proto.*;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData.MemorySample;
+import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,14 +31,16 @@ public class MemoryUsage extends LineChartModel {
   @NotNull private final RangedContinuousSeries myTotalMemorySeries;
 
   public MemoryUsage(@NotNull StudioProfilers profilers) {
-
     myMemoryRange = new Range(0, 0);
     myTotalMemorySeries = createRangedSeries(profilers, getTotalSeriesLabel(), myMemoryRange, MemorySample::getTotalMem);
 
     add(myTotalMemorySeries);
   }
 
-  protected RangedContinuousSeries createRangedSeries(StudioProfilers profilers, String name, Range range, Function<MemorySample, Long> getter) {
+  protected RangedContinuousSeries createRangedSeries(StudioProfilers profilers,
+                                                      String name,
+                                                      Range range,
+                                                      Function<MemorySample, Long> getter) {
     MemoryServiceGrpc.MemoryServiceBlockingStub client = profilers.getClient().getMemoryClient();
     MemoryDataSeries series = new MemoryDataSeries(client, profilers.getProcessId(), profilers.getSession(), getter);
     return new RangedContinuousSeries(name, profilers.getTimeline().getViewRange(), range, series);
