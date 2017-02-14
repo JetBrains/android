@@ -89,7 +89,7 @@ public class VersionMetadataUpdater extends ApplicationComponent.Adapter {
             @Override
             public Document process(@NotNull HttpRequests.Request request) throws IOException {
               try {
-                return loadDocument(request.getReader());
+                return loadDocument(request.getInputStream());
               }
               catch (JDOMException e) {
                 LOG.info("Failed to parse XML metadata", e);
