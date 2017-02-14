@@ -105,7 +105,8 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
       }
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, "parent");
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, String.format(SdkConstants.VALUE_N_DP, 16));
-      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, String.format(SdkConstants.VALUE_N_DP, 16));
+      // TODO: fix RTL handling
+      // attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, String.format(SdkConstants.VALUE_N_DP, 16));
     }));
     horizontalNotches.add(new Notch.Horizontal(component, x2 - target.getDrawWidth() - 16, x2 - 16, (AttributesTransaction attributes) -> {
       if (hasLeft(attributes) || hasRight(attributes)) {
@@ -113,7 +114,8 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
       }
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, "parent");
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, String.format(SdkConstants.VALUE_N_DP, 16));
-      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, String.format(SdkConstants.VALUE_N_DP, 16));
+      // TODO: fix RTL handling
+      // attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, String.format(SdkConstants.VALUE_N_DP, 16));
     }));
 
     int y1 = component.getDrawY();

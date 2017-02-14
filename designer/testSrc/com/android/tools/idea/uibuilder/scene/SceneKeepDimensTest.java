@@ -61,7 +61,6 @@ public class SceneKeepDimensTest extends SceneTest {
                                        .height("20dp")
                                        .withAttribute("app:layout_constraintLeft_toLeftOf", "parent")
                                        .withAttribute("android:layout_marginLeft", "@dimen/testDimens")
-                                       .withAttribute("android:layout_marginStart", "@dimen/testDimens")
                                        .withAttribute("tools:layout_editor_absoluteX", "20dp")
                                        .withAttribute("tools:layout_editor_absoluteY", "500dp"),
                                      component(TEXT_VIEW)
@@ -118,7 +117,6 @@ public class SceneKeepDimensTest extends SceneTest {
                  "    android:layout_height=\"20dp\"\n" +
                  "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "    android:layout_marginLeft=\"@dimen/testDimens\"\n" +
-                 "    android:layout_marginStart=\"@dimen/testDimens\"\n" +
                  "    tools:layout_editor_absoluteX=\"20dp\"\n" +
                  "    tools:layout_editor_absoluteY=\"500dp\"/>");
 
@@ -131,7 +129,6 @@ public class SceneKeepDimensTest extends SceneTest {
                  "    android:layout_height=\"20dp\"\n" +
                  "    app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "    android:layout_marginLeft=\"220dp\"\n" +
-                 "    android:layout_marginStart=\"220dp\"\n" +
                  "      tools:layout_editor_absoluteY=\"400dp\"/>");
   }
 
@@ -184,8 +181,7 @@ public class SceneKeepDimensTest extends SceneTest {
                  "    android:layout_height=\"20dp\"\n" +
                  "    app:layout_constraintRight_toRightOf=\"parent\"\n" +
                  "    android:layout_marginRight=\"220dp\"\n" +
-                 "      tools:layout_editor_absoluteY=\"700dp\"\n" +
-                 "      android:layout_marginEnd=\"220dp\" />");
+                 "      tools:layout_editor_absoluteY=\"700dp\"/>");
   }
 
   public void testKeepDimensionBottom() {
