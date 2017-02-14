@@ -38,6 +38,9 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   }
 
   public enum MemoryStatements {
+    // TODO: during process switch the initial start request time is reset in the poller, which would lead to duplicated data
+    // being inserted if the user switches back and forth within the same app. For now, we ignore the duplicates but we can
+    // preset the start time based on existing data to avoid dups altogether.
     INSERT_SAMPLE("INSERT OR IGNORE INTO Memory_Samples (Pid, Timestamp, Type, Data) VALUES (?, ?, ?, ?)"),
     QUERY_MEMORY(String.format("SELECT Data FROM Memory_Samples WHERE Pid = ? AND Type = %d AND TimeStamp > ? AND TimeStamp <= ?",
                                MemorySamplesType.MEMORY.ordinal())),

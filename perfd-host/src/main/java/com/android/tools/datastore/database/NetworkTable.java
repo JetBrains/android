@@ -45,7 +45,6 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
   private static final int REQUEST_COLUMN = 3;
   private static final int RESPONSE_COLUMN = 4;
 
-
   static {
     DATACASE_REQUEST_TYPE_MAP
       .put(NetworkProfiler.NetworkProfilerData.DataCase.SPEED_DATA, NetworkProfiler.NetworkDataRequest.Type.SPEED.getNumber());
@@ -66,6 +65,7 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
       createTable("Network_Data", "Id INTEGER NOT NULL", "Type INTEGER NOT NULL", "EndTime INTEGER", "Data BLOB");
       createTable("Network_Connection", "ProcessId INTEGER NOT NULL", "Id INTEGER NOT NULL", "StartTime INTEGER", "EndTime INTEGER",
                   "ConnectionData BLOB", "BodyData BLOB", "RequestData BLOB", "ResponseData BLOB", "PRIMARY KEY(ProcessId, Id)");
+      createIndex("Network_Data", "Id", "Type", "EndTime");
       createIndex("Network_Connection", "ProcessId", "Id");
     }
     catch (SQLException ex) {
@@ -76,7 +76,8 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
   @Override
   public void prepareStatements(Connection connection) {
     try {
-      createStatement(NetworkStatements.INSERT_NETWORK_DATA, "INSERT INTO Network_Data (Id, Type, EndTime, Data) VALUES (?, ?, ?, ?)");
+      createStatement(NetworkStatements.INSERT_NETWORK_DATA,
+                      "INSERT OR IGNORE INTO Network_Data (Id, Type, EndTime, Data) VALUES (?, ?, ?, ?)");
       createStatement(NetworkStatements.QUERY_NETWORK_DATA_BY_TYPE,
                       "SELECT Data FROM Network_Data WHERE (Id = ? OR Id = ?) AND Type = ? AND EndTime > ? AND EndTime <= ?");
       createStatement(NetworkStatements.QUERY_NETWORK_DATA,
@@ -116,8 +117,9 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
     ResultSet results;
     try {
       if (request.getType() == NetworkProfiler.NetworkDataRequest.Type.ALL) {
-        results = executeQuery(NetworkStatements.QUERY_NETWORK_DATA, request.getProcessId(), Common.AppId.ANY_VALUE, request.getStartTimestamp(),
-                               request.getEndTimestamp());
+        results =
+          executeQuery(NetworkStatements.QUERY_NETWORK_DATA, request.getProcessId(), Common.AppId.ANY_VALUE, request.getStartTimestamp(),
+                       request.getEndTimestamp());
       }
       else {
         results = executeQuery(NetworkStatements.QUERY_NETWORK_DATA_BY_TYPE, request.getProcessId(), Common.AppId.ANY_VALUE,
@@ -157,7 +159,6 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
           case RESPONSE_BODY:
             column = BODY_COLUMN;
             break;
-
         }
         if (column != INVALID_COLUMN) {
           byte[] responseBytes = results.getBytes(column);
@@ -174,7 +175,11 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
     return null;
   }
 
-  public void insertOrReplace(int processId, NetworkProfiler.HttpDetailsResponse request, NetworkProfiler.HttpDetailsResponse response, NetworkProfiler.HttpDetailsResponse body, NetworkProfiler.HttpConnectionData data) {
+  public void insertOrReplace(int processId,
+                              NetworkProfiler.HttpDetailsResponse request,
+                              NetworkProfiler.HttpDetailsResponse response,
+                              NetworkProfiler.HttpDetailsResponse body,
+                              NetworkProfiler.HttpConnectionData data) {
     long id = data.getConnId();
     long startTime = data.getStartTimestamp();
     long endTime = data.getEndTimestamp();
