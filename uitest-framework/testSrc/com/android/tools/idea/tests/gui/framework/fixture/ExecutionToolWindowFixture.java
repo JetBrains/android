@@ -45,6 +45,8 @@ import java.awt.IllegalComponentStateException;
 import java.util.List;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilFound;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ui.UIUtil.findComponentOfType;
 import static com.intellij.util.ui.UIUtil.findComponentsOfType;
 import static org.fest.reflect.core.Reflection.method;
@@ -158,7 +160,7 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
 
       TabLabel tabLabel;
       if (parentComponentType == null) {
-        tabLabel = waitUntilFound(myRobot, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
+        tabLabel = waitUntilShowing(myRobot, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
           @Override
           protected boolean isMatching(@NotNull TabLabel component) {
             return component.toString().equals(tabName);
@@ -167,13 +169,14 @@ public class ExecutionToolWindowFixture extends ToolWindowFixture {
       }
       else {
         final JComponent parent = myRobot.finder().findByType(root, parentComponentType, false);
-        tabLabel = waitUntilFound(myRobot, parent, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
+        tabLabel = waitUntilShowing(myRobot, parent, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
           @Override
           protected boolean isMatching(@NotNull TabLabel component) {
             return component.getParent() == parent && component.toString().equals(tabName);
           }
         });
       }
+      assertThat(tabLabel.isShowing()).isTrue();
       myRobot.click(tabLabel);
       return myRobot.finder().findByType(tabContentType);
     }

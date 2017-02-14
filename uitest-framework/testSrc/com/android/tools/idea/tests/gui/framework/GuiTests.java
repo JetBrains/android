@@ -48,10 +48,7 @@ import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
-import org.fest.swing.fixture.ContainerFixture;
-import org.fest.swing.fixture.JButtonFixture;
-import org.fest.swing.fixture.JListFixture;
-import org.fest.swing.fixture.JTableFixture;
+import org.fest.swing.fixture.*;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.Contract;
@@ -451,6 +448,16 @@ public final class GuiTests {
   public static void findAndClickButtonWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
     Robot robot = container.robot();
     new JButtonFixture(robot, GuiTests.waitUntilShowingAndEnabled(robot, container.target(), Matchers.byText(JButton.class, text))).click();
+  }
+
+  public static void findAndClickLabel(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
+    Robot robot = container.robot();
+    new JLabelFixture(robot, GuiTests.waitUntilShowing(robot, container.target(), Matchers.byText(JLabel.class, text))).click();
+  }
+
+  public static void findAndClickLabelWhenEnabled(@NotNull ContainerFixture<? extends Container> container, @NotNull String text) {
+    Robot robot = container.robot();
+    new JLabelFixture(robot, GuiTests.waitUntilShowingAndEnabled(robot, container.target(), Matchers.byText(JLabel.class, text))).click();
   }
 
   /**
