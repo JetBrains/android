@@ -23,6 +23,7 @@ import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SelectionModel;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
@@ -36,6 +37,7 @@ import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.containers.ImmutableList;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,6 +81,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       .onChange(CpuProfilerAspect.CAPTURE, this::updateCaptureState)
       .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection)
       .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureDetails);
+
+    stage.getStudioProfilers().getTimeline().getSelectionRange().addDependency(this)
+      .onChange(Range.Aspect.RANGE, this::selectionChanged);
 
     StudioProfilers profilers = stage.getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
@@ -162,7 +167,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         .setLabelProvider(this::formatCaptureLabel)
         .setStroke(new BasicStroke(1))
         .setLabelColors(new Color(0x70000000, true), Color.BLACK, Color.lightGray, Color.WHITE)
-        .setClickHander(getStage()::setCapture)
+        .setClickHander(getStage()::setAndSelectCapture)
         .build();
 
 
@@ -216,6 +221,19 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
                           stage::getProfilingModes, stage::getProfilingMode, stage::setProfilingMode);
     profilingModes.bind();
     myProfilingModesCombo.setRenderer(new ProfilingModeCellRenderer());
+  }
+
+  private void selectionChanged() {
+    Range range = getStage().getStudioProfilers().getTimeline().getSelectionRange();
+    ImmutableList<SeriesData<CpuCapture>> captures = getStage().getTraceDurations().getSeries().getDataSeries().getDataForXRange(range);
+    for (SeriesData<CpuCapture> capture : captures) {
+      Range c = new Range(capture.x, capture.x + capture.value.getDuration());
+      if (!c.getIntersection(range).isEmpty()) {
+        if (!capture.value.equals(getStage().getCapture())) {
+          getStage().setCapture(capture.value);
+        }
+      }
+    }
   }
 
   // TODO: extract this to a common place as we will probably need it in different profilers.
