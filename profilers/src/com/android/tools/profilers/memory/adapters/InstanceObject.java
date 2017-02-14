@@ -25,10 +25,20 @@ import java.util.List;
 
 public interface InstanceObject extends MemoryObject {
   enum InstanceAttribute {
-    LABEL,
-    DEPTH,
-    SHALLOW_SIZE,
-    RETAINED_SIZE
+    LABEL(1),
+    DEPTH(0),
+    SHALLOW_SIZE(2),
+    RETAINED_SIZE(3);
+
+    private final int myWeight;
+
+    InstanceAttribute(int weight) {
+      myWeight = weight;
+    }
+
+    public int getWeight() {
+      return myWeight;
+    }
   }
 
   @NotNull
