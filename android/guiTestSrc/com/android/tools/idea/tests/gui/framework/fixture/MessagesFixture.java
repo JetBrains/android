@@ -19,12 +19,11 @@ import com.android.tools.idea.tests.gui.framework.Wait;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.messages.SheetController;
+import com.intellij.util.JdomKt;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.fixture.JPanelFixture;
-import org.jdom.Document;
-import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +33,6 @@ import java.awt.*;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.JDOMUtil.loadDocument;
 import static org.fest.reflect.core.Reflection.field;
 import static org.junit.Assert.assertNotNull;
 
@@ -169,9 +167,7 @@ public class MessagesFixture {
   @Nullable
   private static String getHtmlBody(@NotNull String html) {
     try {
-      Document document = loadDocument(html);
-      Element rootElement = document.getRootElement();
-      String sheetTitle = rootElement.getChild("body").getText();
+      String sheetTitle = JdomKt.loadElement(html).getChild("body").getText();
       return sheetTitle.replace("\n", "").trim();
     }
     catch (Throwable e) {
