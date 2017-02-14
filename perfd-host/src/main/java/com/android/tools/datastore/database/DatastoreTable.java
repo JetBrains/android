@@ -31,7 +31,7 @@ import java.util.Map;
  */
 public abstract class DatastoreTable<T extends Enum> {
 
-  private Map<T, PreparedStatement> myStatementMap = new HashMap();
+  private ThreadLocal<Map<T, PreparedStatement>> myStatementMap = new ThreadLocal<>();
   private Connection myConnection;
   private static final Logger LOG = Logger.getInstance(DatastoreTable.class.getCanonicalName());
 
@@ -42,6 +42,14 @@ public abstract class DatastoreTable<T extends Enum> {
    */
   public void initialize(Connection connection) {
     myConnection = connection;
+  }
+
+  private Map<T, PreparedStatement> getStatementMap() {
+    if (myStatementMap.get() == null) {
+      myStatementMap.set(new HashMap());
+      prepareStatements(myConnection);
+    }
+    return myStatementMap.get();
   }
 
   /**
@@ -70,12 +78,12 @@ public abstract class DatastoreTable<T extends Enum> {
   }
 
   protected void createStatement(T statement, String stmt) throws SQLException {
-    myStatementMap.put(statement, myConnection.prepareStatement(stmt));
+    getStatementMap().put(statement, myConnection.prepareStatement(stmt));
   }
 
   protected void execute(T statement, Object... params) {
     try {
-      PreparedStatement stmt = myStatementMap.get(statement);
+      PreparedStatement stmt = getStatementMap().get(statement);
       applyParams(stmt, params);
       stmt.execute();
     }
@@ -84,16 +92,10 @@ public abstract class DatastoreTable<T extends Enum> {
     }
   }
 
-  protected ResultSet executeQuery(T statement, Object... params) {
-    try {
-      PreparedStatement stmt = myStatementMap.get(statement);
-      applyParams(stmt, params);
-      return stmt.executeQuery();
-    }
-    catch (SQLException ex) {
-      LOG.error(ex);
-    }
-    return null;
+  protected ResultSet executeQuery(T statement, Object... params) throws SQLException {
+    PreparedStatement stmt = getStatementMap().get(statement);
+    applyParams(stmt, params);
+    return stmt.executeQuery();
   }
 
   private void applyParams(PreparedStatement statement, Object... params) throws SQLException {

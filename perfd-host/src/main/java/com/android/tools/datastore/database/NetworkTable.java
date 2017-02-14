@@ -96,9 +96,9 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
 
   public List<NetworkProfiler.HttpConnectionData> getNetworkConnectionDataByRequest(NetworkProfiler.HttpRangeRequest request) {
     List<NetworkProfiler.HttpConnectionData> datas = new ArrayList<>();
-    ResultSet results = executeQuery(NetworkStatements.QUERY_COMMON_CONNECTION_DATA, request.getProcessId(), request.getStartTimestamp(),
-                                     request.getEndTimestamp());
     try {
+      ResultSet results = executeQuery(NetworkStatements.QUERY_COMMON_CONNECTION_DATA, request.getProcessId(), request.getStartTimestamp(),
+                                       request.getEndTimestamp());
       while (results.next()) {
         NetworkProfiler.HttpConnectionData.Builder data = NetworkProfiler.HttpConnectionData.newBuilder();
         data.mergeFrom(results.getBytes(1));
@@ -114,16 +114,16 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
   public List<NetworkProfiler.NetworkProfilerData> getNetworkDataByRequest(NetworkProfiler.NetworkDataRequest request) {
     List<NetworkProfiler.NetworkProfilerData> datas = new ArrayList<>();
     ResultSet results;
-    if (request.getType() == NetworkProfiler.NetworkDataRequest.Type.ALL) {
-      results = executeQuery(NetworkStatements.QUERY_NETWORK_DATA, request.getProcessId(), Common.AppId.ANY_VALUE, request.getStartTimestamp(),
-                             request.getEndTimestamp());
-    }
-    else {
-      results = executeQuery(NetworkStatements.QUERY_NETWORK_DATA_BY_TYPE, request.getProcessId(), Common.AppId.ANY_VALUE,
-                             request.getType().getNumber(),
-                             request.getStartTimestamp(), request.getEndTimestamp());
-    }
     try {
+      if (request.getType() == NetworkProfiler.NetworkDataRequest.Type.ALL) {
+        results = executeQuery(NetworkStatements.QUERY_NETWORK_DATA, request.getProcessId(), Common.AppId.ANY_VALUE, request.getStartTimestamp(),
+                               request.getEndTimestamp());
+      }
+      else {
+        results = executeQuery(NetworkStatements.QUERY_NETWORK_DATA_BY_TYPE, request.getProcessId(), Common.AppId.ANY_VALUE,
+                               request.getType().getNumber(),
+                               request.getStartTimestamp(), request.getEndTimestamp());
+      }
       while (results.next()) {
         NetworkProfiler.NetworkProfilerData.Builder data = NetworkProfiler.NetworkProfilerData.newBuilder();
         data.mergeFrom(results.getBytes(1));
@@ -143,8 +143,8 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
 
   public NetworkProfiler.HttpDetailsResponse getHttpDetailsResponseById(long connId, NetworkProfiler.HttpDetailsRequest.Type type) {
     NetworkProfiler.HttpDetailsResponse.Builder responseBuilder = NetworkProfiler.HttpDetailsResponse.newBuilder();
-    ResultSet results = executeQuery(NetworkStatements.FIND_CONNECTION_DATA, connId);
     try {
+      ResultSet results = executeQuery(NetworkStatements.FIND_CONNECTION_DATA, connId);
       if (results.next()) {
         int column = INVALID_COLUMN;
         switch (type) {
