@@ -41,17 +41,21 @@ import static javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT;
 import static org.mockito.Mockito.*;
 
 public class NlEnumEditorFixture extends NlEditorFixtureBase {
+  private static final String COMBO_BOX_UI = "ComboBoxUI";
+
   private final NlEnumEditor myComponentEditor;
   private final ComboBox myCombo;
   private final JTextField myEditor;
+  private final String myOldComboBoxUI;
 
-  private NlEnumEditorFixture(@NotNull NlEnumEditor editor, @NotNull ComboBox comboBox) {
+  private NlEnumEditorFixture(@NotNull NlEnumEditor editor, @NotNull ComboBox comboBox, @NotNull String oldComboBoxUI) {
     super(editor);
     myComponentEditor = editor;
     myCombo = comboBox;
-    myCombo.setUI(new ComboUI(comboBox));
+    myCombo.setUI(new ComboUI(myCombo));
     myEditor = (JTextField)myCombo.getEditor().getEditorComponent();
     myEditor.getCaret().setBlinkRate(0);
+    myOldComboBoxUI = oldComboBoxUI;
   }
 
   @Override
@@ -61,15 +65,21 @@ public class NlEnumEditorFixture extends NlEditorFixtureBase {
     // focus is gained and calling removeNotify() is the only way to clear it.
     myEditor.removeNotify();
 
+    UIManager.put(COMBO_BOX_UI, myOldComboBoxUI);
     super.tearDown();
   }
 
   public static NlEnumEditorFixture create() {
+    // AquaComboBoxUI installs a DocumentListener that is not removed when the UI is replaced.
+    // Override the default ComboBoxUI here to avoid errors from that.
+    String oldComboUI = UIManager.get(COMBO_BOX_UI).toString();
+    UIManager.put(COMBO_BOX_UI, DarculaComboBoxUI.class.getName());
+
     NlEnumEditor.CustomComboBox comboBox = spy(new NlEnumEditor.CustomComboBox());
     when(comboBox.isShowing()).thenReturn(true);
 
     NlEnumEditor editor = NlEnumEditor.createForTest(createListener(), comboBox);
-    return new NlEnumEditorFixture(editor, comboBox);
+    return new NlEnumEditorFixture(editor, comboBox, oldComboUI);
   }
 
   public NlEnumEditorFixture setProperty(@NotNull NlProperty property) {
@@ -144,14 +154,28 @@ public class NlEnumEditorFixture extends NlEditorFixtureBase {
   }
 
   private void fireKeyStroke(@NotNull KeyStroke stroke) {
-    JComponent component = myCombo.isPopupVisible() ? myCombo : myEditor;
-    ActionListener listener = myEditor.getActionForKeyStroke(stroke);
-    if (listener == null && myCombo.isPopupVisible()) {
+    JComponent component;
+    ActionListener listener;
+    if (keyStrokeMeantForComboBox(stroke)) {
+      component = myCombo;
       listener = myCombo.getActionForKeyStroke(stroke);
     }
+    else {
+      component = myEditor;
+      listener = myEditor.getActionForKeyStroke(stroke);
+    }
     assertThat(listener).named("actionListener for key: " + stroke).isNotNull();
-    assert listener != null;
     listener.actionPerformed(new ActionEvent(component, 0, String.valueOf(stroke.getKeyChar()), stroke.getModifiers()));
+  }
+
+  private static boolean keyStrokeMeantForComboBox(@NotNull KeyStroke stroke) {
+    switch (stroke.getKeyCode()) {
+      case VK_UP:
+      case VK_DOWN:
+        return true;
+      default:
+        return false;
+    }
   }
 
   public NlEnumEditorFixture expectValue(@Nullable String expectedValue) {
