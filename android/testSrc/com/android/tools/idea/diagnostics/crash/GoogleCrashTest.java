@@ -306,13 +306,10 @@ public class GoogleCrashTest {
   @NotNull
   private static String getStackTrace(@NotNull Throwable t) {
     final StringWriter stringWriter = new StringWriter();
-    final PrintWriter writer = new PrintWriter(stringWriter);
-    try {
+    try (PrintWriter writer = new PrintWriter(stringWriter)) {
       t.printStackTrace(writer);
-      return stringWriter.toString();
     }
-    finally {
-      writer.close();
-    }
+
+    return stringWriter.toString().replace("\r", "");
   }
 }
