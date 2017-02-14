@@ -49,10 +49,10 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
 
   @NotNull private final Set<VirtualFile> mySources;
 
-  AndroidManifestsGroupNode(@NotNull Project project,
-                            @NotNull AndroidFacet androidFacet,
-                            @NotNull ViewSettings settings,
-                            @NotNull Set<VirtualFile> sources) {
+  public AndroidManifestsGroupNode(@NotNull Project project,
+                                   @NotNull AndroidFacet androidFacet,
+                                   @NotNull ViewSettings settings,
+                                   @NotNull Set<VirtualFile> sources) {
     super(project, androidFacet, settings);
     mySources = sources;
   }
