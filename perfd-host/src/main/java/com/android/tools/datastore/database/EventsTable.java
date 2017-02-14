@@ -74,10 +74,14 @@ public class EventsTable extends DatastoreTable<EventsTable.EventStatements> {
   }
 
   public EventProfiler.ActivityData findActivityDataOrNull(long appId, long id, Common.Session session) {
-    ResultSet results = executeQuery(EventStatements.FIND_ACTIVITY, id, appId, session);
-    List<EventProfiler.ActivityData> datas = getActivityDataFromResultSet(results);
-    if (datas.size() != 0) {
-      return datas.get(0);
+    try {
+      ResultSet results = executeQuery(EventStatements.FIND_ACTIVITY, id, appId, session);
+      List<EventProfiler.ActivityData> datas = getActivityDataFromResultSet(results);
+      if (datas.size() != 0) {
+        return datas.get(0);
+      }
+    } catch (SQLException ex) {
+      getLogger().error(ex);
     }
     return null;
   }
@@ -87,8 +91,13 @@ public class EventsTable extends DatastoreTable<EventsTable.EventStatements> {
   }
 
   public List<EventProfiler.ActivityData> getActivityDataByApp(long appId, Common.Session session) {
-    ResultSet results = executeQuery(EventStatements.QUERY_ACTIVITY, appId, session);
-    return getActivityDataFromResultSet(results);
+    try {
+      ResultSet results = executeQuery(EventStatements.QUERY_ACTIVITY, appId, session);
+      return getActivityDataFromResultSet(results);
+    } catch (SQLException ex) {
+      getLogger().error(ex);
+    }
+    return null;
   }
 
   public void insertOrReplace(long id, Common.Session session, EventProfiler.SystemData activity) {
