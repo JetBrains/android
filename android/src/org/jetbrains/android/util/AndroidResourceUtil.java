@@ -141,7 +141,6 @@ public class AndroidResourceUtil {
     XML_FILE_RESOURCE_TYPES.put(ResourceType.ANIMATOR, ResourceFolderType.ANIMATOR);
     XML_FILE_RESOURCE_TYPES.put(ResourceType.COLOR, ResourceFolderType.COLOR);
     XML_FILE_RESOURCE_TYPES.put(ResourceType.DRAWABLE, ResourceFolderType.DRAWABLE);
-    XML_FILE_RESOURCE_TYPES.put(ResourceType.FONT, ResourceFolderType.FONT);
     XML_FILE_RESOURCE_TYPES.put(ResourceType.INTERPOLATOR, ResourceFolderType.INTERPOLATOR);
     XML_FILE_RESOURCE_TYPES.put(ResourceType.LAYOUT, ResourceFolderType.LAYOUT);
     XML_FILE_RESOURCE_TYPES.put(ResourceType.MENU, ResourceFolderType.MENU);
