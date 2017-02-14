@@ -871,7 +871,6 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       return;
     }
 
-    AndroidLibrary library;
     if (file != null) {
       String source = null;
 
@@ -885,27 +884,19 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
             source = module.getName();
           }
 
-          // AAR Library?
+          // AAR library in the project build directory?
           if (file.getPath().contains(EXPLODED_AAR)) {
-            AndroidModuleModel androidModel = AndroidModuleModel.get(module);
-            if (androidModel != null) {
-              library = GradleUtil.findLibrary(file.getParentFile(), androidModel.getSelectedVariant(), androidModel.getModelVersion());
-              if (library != null) {
-                if (library.getProject() != null) {
-                  libraryModule = GradleUtil.findModuleByGradlePath(facet.getModule().getProject(), library.getProject());
-                  if (libraryModule != null) {
-                    module = libraryModule;
-                    source = module.getName();
-                  } else {
-                    source = library.getProject();
-                    source = StringUtil.trimStart(source, ":");
-                  }
-                }
-                else {
-                  MavenCoordinates coordinates = library.getResolvedCoordinates();
-                  source = /*coordinates.getGroupId() + ":" +*/  coordinates.getArtifactId() + ":" + coordinates.getVersion();
-                }
-              }
+            source = findSourceForFileInExplodedAar(file, facet, module);
+          }
+        }
+        // AAR library in the build cache?
+        // (e.g., ".android/build-cache/0d86e51789317f7eb0747ecb9da6162c7082982e/output/AndroidManifest.xml")
+        // Since the user can change the location or name of the build cache directory, we need to detect it using the following pattern.
+        else if (file.getPath().matches(".*\\w{40}[\\\\/]output.*")) {
+          for (Module singleModule : modules) {
+            source = findSourceForFileInExplodedAar(file, facet, singleModule);
+            if (source != null) {
+              break;
             }
           }
         }
@@ -970,6 +961,32 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         sb.add(Integer.toString(sourcePosition.getStartLine()));
       }
     }
+  }
+
+  @Nullable
+  private static String findSourceForFileInExplodedAar(@NotNull File file, @NotNull AndroidFacet facet, @NotNull Module module) {
+    String source = null;
+    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
+    if (androidModel != null) {
+      AndroidLibrary library =
+        GradleUtil.findLibrary(file.getParentFile(), androidModel.getSelectedVariant(), androidModel.getModelVersion());
+      if (library != null) {
+        if (library.getProject() != null) {
+          Module libraryModule = GradleUtil.findModuleByGradlePath(facet.getModule().getProject(), library.getProject());
+          if (libraryModule != null) {
+            source = module.getName();
+          } else {
+            source = library.getProject();
+            source = StringUtil.trimStart(source, ":");
+          }
+        }
+        else {
+          MavenCoordinates coordinates = library.getResolvedCoordinates();
+          source = /*coordinates.getGroupId() + ":" +*/  coordinates.getArtifactId() + ":" + coordinates.getVersion();
+        }
+      }
+    }
+    return source;
   }
 
   /**
