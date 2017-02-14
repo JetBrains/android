@@ -1,5 +1,6 @@
 package org.jetbrains.android.newProject;
 
+import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.android.tools.idea.npw.NewModuleWizardDynamic;
 import com.android.tools.idea.npw.NewProjectWizardDynamic;
 import com.android.tools.idea.npw.WizardUtils;
@@ -89,6 +90,12 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
       @Override
       public void updateDataModel() {
 
+      }
+
+      @Nullable
+      @Override
+      public String getHelpId() {
+        return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "studio/projects/create-project.html";
       }
     };
   }
