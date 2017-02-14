@@ -121,6 +121,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     state.put(GRADLE_VERSION_KEY, SdkConstants.GRADLE_LATEST_VERSION);
     state.put(IS_GRADLE_PROJECT_KEY, true);
     state.put(IS_NEW_PROJECT_KEY, true);
+    state.put(THEME_EXISTS_KEY, true);
     state.put(TARGET_FILES_KEY, new HashSet<>());
     state.put(FILES_TO_OPEN_KEY, new ArrayList<>());
     state.put(USE_PER_MODULE_REPOS_KEY, false);
