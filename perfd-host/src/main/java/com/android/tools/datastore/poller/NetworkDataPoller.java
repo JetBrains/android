@@ -58,7 +58,8 @@ public class NetworkDataPoller extends PollRunner {
     NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
       .setProcessId(myProcessId)
       .setStartTimestamp(myDataRequestStartTimestampNs)
-      .setEndTimestamp(Long.MAX_VALUE);
+      .setEndTimestamp(Long.MAX_VALUE)
+      .setType(NetworkProfiler.NetworkDataRequest.Type.ALL);
      NetworkProfiler.NetworkDataResponse response = myPollingService.getData(dataRequestBuilder.build());
 
     for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
