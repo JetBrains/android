@@ -21,6 +21,7 @@ import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.util.containers.MultiMap;
 import io.grpc.stub.StreamObserver;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +33,7 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   private final Map<String, ByteString> myCache;
   private long myTimestampNs;
   private boolean myThrowErrorOnGetDevices;
+  private Profiler.AgentStatusResponse.Status myAgentStatus;
 
   public FakeProfilerService() {
     this(true);
@@ -135,6 +137,20 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     }
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
+  }
+
+  @Override
+  public void getAgentStatus(Profiler.AgentStatusRequest request, StreamObserver<Profiler.AgentStatusResponse> responseObserver) {
+    Profiler.AgentStatusResponse.Builder builder = Profiler.AgentStatusResponse.newBuilder();
+    if (myAgentStatus != null) {
+      builder.setStatus(myAgentStatus);
+    }
+    responseObserver.onNext(builder.build());
+    responseObserver.onCompleted();
+  }
+
+  public void setAgentStatus(@NotNull Profiler.AgentStatusResponse.Status status) {
+    myAgentStatus = status;
   }
 
   public void setThrowErrorOnGetDevices(boolean throwErrorOnGetDevices) {

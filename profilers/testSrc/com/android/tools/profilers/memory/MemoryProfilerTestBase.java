@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
@@ -43,10 +44,12 @@ public abstract class MemoryProfilerTestBase {
   protected MemoryProfilerStage myStage;
   protected MockCaptureObjectLoader myMockLoader;
   protected MemoryAspectObserver myAspectObserver;
+  protected FakeTimer myTimer;
 
   @Before
   public void setupBase() {
-    myProfilers = new StudioProfilers(getGrpcChannel().getClient(), new FakeIdeProfilerServices());
+    myTimer = new FakeTimer();
+    myProfilers = new StudioProfilers(getGrpcChannel().getClient(), new FakeIdeProfilerServices(), myTimer);
     onProfilersCreated(myProfilers);
     myMockLoader = new MockCaptureObjectLoader();
     myStage = new MemoryProfilerStage(myProfilers, myMockLoader);
