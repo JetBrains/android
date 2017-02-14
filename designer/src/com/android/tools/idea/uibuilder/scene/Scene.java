@@ -663,6 +663,9 @@ public class Scene implements ModelListener, SelectionListener {
     if (target instanceof DragTarget) {
       return true;
     }
+    if (target instanceof DragBaseTarget) {
+      return true;
+    }
     if (target instanceof LassoTarget) {
       return true;
     }
