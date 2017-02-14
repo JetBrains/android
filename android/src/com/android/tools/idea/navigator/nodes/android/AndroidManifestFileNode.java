@@ -30,16 +30,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.SdkConstants.FD_MAIN;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.psi.PsiDirectory.EMPTY_ARRAY;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupNode {
-  @NotNull private final AndroidFacet myFacet;
+  @NotNull private final AndroidFacet myAndroidFacet;
 
-  AndroidManifestFileNode(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull ViewSettings settings, @NotNull AndroidFacet facet) {
+  AndroidManifestFileNode(@NotNull Project project,
+                          @NotNull PsiFile psiFile,
+                          @NotNull ViewSettings settings,
+                          @NotNull AndroidFacet androidFacet) {
     super(project, psiFile, settings);
-    myFacet = facet;
+    myAndroidFacet = androidFacet;
   }
 
   @Override
@@ -47,18 +51,18 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
     super.update(data);
 
     PsiFile file = getValue();
-
-    // could be null if the file was deleted
-    if (file == null) {
-      return;
-    }
-
-    // if it is not part of the main source set, then append the provider name
-    IdeaSourceProvider sourceProvider = getSourceProvider(myFacet, file);
-    if (sourceProvider != null && !FD_MAIN.equals(sourceProvider.getName())) {
-      data.addText(file.getName(), REGULAR_ATTRIBUTES);
-      data.addText(" (" + sourceProvider.getName() + ")", GRAY_ATTRIBUTES);
-      data.setPresentableText(file.getName());
+    // could be null if the file was deleted.
+    if (file != null) {
+      // if it is not part of the main source set, then append the provider name
+      IdeaSourceProvider sourceProvider = getSourceProvider(myAndroidFacet, file);
+      if (sourceProvider != null && !FD_MAIN.equals(sourceProvider.getName())) {
+        data.addText(file.getName(), REGULAR_ATTRIBUTES);
+        String name = sourceProvider.getName();
+        if (isNotEmpty(name)) {
+          data.addText(" (" + name + ")", GRAY_ATTRIBUTES);
+        }
+        data.setPresentableText(file.getName());
+      }
     }
   }
 
@@ -80,7 +84,7 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
       return "";
     }
 
-    IdeaSourceProvider sourceProvider = getSourceProvider(myFacet, file);
+    IdeaSourceProvider sourceProvider = getSourceProvider(myAndroidFacet, file);
     if (sourceProvider == null || FD_MAIN.equals(sourceProvider.getName())) {
       return "";
     }
@@ -108,14 +112,16 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
     if (file == null) {
       return "";
     }
-
     StringBuilder buffer = new StringBuilder();
     buffer.append(file.getName());
-    buffer.append(" (");
-    IdeaSourceProvider sourceProvider = getSourceProvider(myFacet, getValue());
+    IdeaSourceProvider sourceProvider = getSourceProvider(myAndroidFacet, file);
     assert sourceProvider != null;
-    buffer.append(sourceProvider.getName());
-    buffer.append(")");
+    String name = sourceProvider.getName();
+    if (isNotEmpty(name)) {
+      buffer.append(" (");
+      buffer.append(name);
+      buffer.append(")");
+    }
     return buffer.toString();
   }
 }

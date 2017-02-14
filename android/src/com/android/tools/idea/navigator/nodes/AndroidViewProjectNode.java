@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.navigator.nodes;
 
+import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.android.AndroidBuildScriptsGroupNode;
 import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode;
+import com.android.tools.idea.navigator.nodes.apk.ApkFileNode;
 import com.android.tools.idea.navigator.nodes.ndk.ExternalBuildFilesGroupNode;
 import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
 import com.android.tools.idea.navigator.nodes.other.NonAndroidModuleNode;
@@ -37,18 +39,22 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.isRootModuleWithNoSources;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
 public class AndroidViewProjectNode extends ProjectViewNode<Project> {
@@ -72,7 +78,8 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     List<Module> modules = Arrays.asList(ModuleManager.getInstance(myProject).getModules());
     List<AbstractTreeNode> children = new ArrayList<>(modules.size());
     for (Module module : modules) {
-      if (isRootModuleWithNoSources(module)) {
+      ApkFacet apkFacet = ApkFacet.getInstance(module);
+      if (isRootModuleWithNoSources(module) && apkFacet == null) {
         // exclude the root module if it doesn't have any source roots
         // The most common organization of Gradle projects has an empty root module that is simply a container for other modules.
         // If we detect such a module, then we don't show it..
@@ -83,6 +90,12 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
       NdkFacet ndkFacet = NdkFacet.getInstance(module);
       if (androidFacet != null && androidFacet.getAndroidModel() != null) {
         children.add(new AndroidModuleNode(myProject, module, settings, myProjectViewPane));
+      }
+      else if (androidFacet != null && apkFacet != null) {
+        PsiFile apkFile = findApkPsiFile(apkFacet);
+        if (apkFile != null) {
+          children.add(new ApkFileNode(myProject, apkFile, androidFacet, apkFacet, settings, myProjectViewPane));
+        }
       }
       else if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null) {
         children.add(new NdkModuleNode(myProject, module, settings));
@@ -118,6 +131,19 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     return children;
   }
 
+  @Nullable
+  private PsiFile findApkPsiFile(@NotNull ApkFacet apkFacet) {
+    File apkFilePath = new File(toSystemDependentName(apkFacet.getConfiguration().APK_PATH));
+    if (apkFilePath.isFile()) {
+      VirtualFile apkFile = findFileByIoFile(apkFilePath, true);
+      if (apkFile != null) {
+        assert myProject != null;
+        return PsiManager.getInstance(myProject).findFile(apkFile);
+      }
+    }
+    return null;
+  }
+
   @Override
   @Nullable
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
@@ -137,7 +163,7 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
    * Copy of {@link com.intellij.ide.projectView.impl.nodes.AbstractProjectNode#update(PresentationData)}
    */
   @Override
-  protected void update(PresentationData presentation) {
+  protected void update(@NotNull PresentationData presentation) {
     presentation.setIcon(PlatformIcons.PROJECT_ICON);
     Project project = getProject();
     assert project != null;
