@@ -81,11 +81,11 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
    * @param x the x coordinate of the drag in the Android coordinate system
    * @param y the y coordinate of the drag in the Android coordinate system
    */
-  public boolean acceptsChild(@NotNull NlComponent parent,
+  public boolean acceptsChild(@NotNull SceneComponent parent,
                               @NotNull NlComponent newChild,
                               @AndroidCoordinate int x,
                               @AndroidCoordinate int y) {
-    return acceptsChild(parent, newChild);
+    return acceptsChild(parent.getNlComponent(), newChild);
   }
 
   /**

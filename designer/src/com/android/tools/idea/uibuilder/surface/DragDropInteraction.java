@@ -181,7 +181,7 @@ public class DragDropInteraction extends Interaction {
         ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(project);
         for (SceneComponent sceneComponent : myDraggedComponents) {
           NlComponent component = sceneComponent.getNlComponent();
-          if (!myCurrentHandler.acceptsChild(myDragReceiver.getNlComponent(), component, ax, ay)) {
+          if (!myCurrentHandler.acceptsChild(myDragReceiver, component, ax, ay)) {
             error = String.format(
               "<%1$s> does not accept <%2$s> as a child", myDragReceiver.getNlComponent().getTagName(), component.getTagName());
             break;
@@ -271,7 +271,7 @@ public class DragDropInteraction extends Interaction {
     while (component != null) {
       Object handler = handlerManager.getHandler(component.getNlComponent());
 
-      if (handler instanceof ViewGroupHandler && acceptsDrop(component.getNlComponent(), (ViewGroupHandler)handler, x, y)) {
+      if (handler instanceof ViewGroupHandler && acceptsDrop(component, (ViewGroupHandler)handler, x, y)) {
         myCachedHandler = (ViewGroupHandler)handlerManager.getHandler(component.getNlComponent());
         myDragReceiver = component; // HACK: This method should not side-effect set this; instead the method should compute it!
         return myCachedHandler;
@@ -295,7 +295,7 @@ public class DragDropInteraction extends Interaction {
     return receiver;
   }
 
-  private boolean acceptsDrop(@NotNull NlComponent parent,
+  private boolean acceptsDrop(@NotNull SceneComponent parent,
                               @NotNull ViewGroupHandler parentHandler,
                               @SwingCoordinate int x,
                               @SwingCoordinate int y) {
@@ -309,7 +309,7 @@ public class DragDropInteraction extends Interaction {
 
     Predicate<NlComponent> acceptsParent = child -> {
       ViewHandler childHandler = manager.getHandler(child);
-      return childHandler != null && childHandler.acceptsParent(parent, child);
+      return childHandler != null && childHandler.acceptsParent(parent.getNlComponent(), child);
     };
 
     return myDraggedComponents.stream().map(SceneComponent::getNlComponent).allMatch(acceptsChild.and(acceptsParent));

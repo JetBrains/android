@@ -133,7 +133,11 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
     Mockito.when(editor.getModel()).thenReturn(Mockito.mock(NlModel.class));
 
-    List<SceneComponent> itemAsList = Collections.singletonList(builder.createTemporaryComponent(item));
+    SceneComponent sceneComponent = scene.getSceneComponent(item);
+    if (sceneComponent == null) {
+      sceneComponent = builder.createTemporaryComponent(item);
+    }
+    List<SceneComponent> itemAsList = Collections.singletonList(sceneComponent);
     return new GroupDragHandler(editor, new ViewGroupHandler(), scene.getSceneComponent(menu), itemAsList,
                                 DragType.MOVE);
   }
