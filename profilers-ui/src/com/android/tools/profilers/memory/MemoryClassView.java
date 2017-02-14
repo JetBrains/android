@@ -99,7 +99,8 @@ final class MemoryClassView extends AspectObserver {
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        createTreeNodeComparator(Comparator.comparingInt(NamespaceObject::getTotalCount))));
+        createTreeNodeComparator(Comparator.comparingInt(NamespaceObject::getTotalCount),
+                                 Comparator.comparingInt(NamespaceObject::getTotalCount))));
     myAttributeColumns.put(
       ClassAttribute.HEAP_COUNT,
       new AttributeColumn(
@@ -113,7 +114,8 @@ final class MemoryClassView extends AspectObserver {
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        createTreeNodeComparator(Comparator.comparingInt(NamespaceObject::getHeapCount))));
+        createTreeNodeComparator(Comparator.comparingInt(NamespaceObject::getHeapCount),
+                                 Comparator.comparingInt(NamespaceObject::getHeapCount))));
     myAttributeColumns.put(
       ClassAttribute.INSTANCE_SIZE,
       new AttributeColumn(
@@ -149,7 +151,8 @@ final class MemoryClassView extends AspectObserver {
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        createTreeNodeComparator(Comparator.comparingLong(NamespaceObject::getRetainedSize))));
+        createTreeNodeComparator(Comparator.comparingLong(NamespaceObject::getRetainedSize),
+                                 Comparator.comparingLong(NamespaceObject::getRetainedSize))));
   }
 
   @NotNull
