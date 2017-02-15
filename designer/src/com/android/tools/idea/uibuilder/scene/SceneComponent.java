@@ -353,7 +353,7 @@ public class SceneComponent {
 
   @AndroidDpCoordinate
   public int getBaseline() {
-    return myScene.pxToDp(myNlComponent.getBaseline());
+    return Coordinates.pxToDp(myNlComponent.getModel(), myNlComponent.getBaseline());
   }
 
   public void setSelected(boolean selected) {
@@ -534,16 +534,16 @@ public class SceneComponent {
   public void updateFrom(@NotNull NlComponent component) {
     if (myScene.getAnimate()) {
       long time = System.currentTimeMillis();
-      myAnimatedDrawX.setTarget(myScene.pxToDp(component.x), time);
-      myAnimatedDrawY.setTarget(myScene.pxToDp(component.y), time);
-      myAnimatedDrawWidth.setTarget(myScene.pxToDp(component.w), time);
-      myAnimatedDrawHeight.setTarget(myScene.pxToDp(component.h), time);
+      myAnimatedDrawX.setTarget(Coordinates.pxToDp(component.getModel(), component.x), time);
+      myAnimatedDrawY.setTarget(Coordinates.pxToDp(component.getModel(), component.y), time);
+      myAnimatedDrawWidth.setTarget(Coordinates.pxToDp(component.getModel(), component.w), time);
+      myAnimatedDrawHeight.setTarget(Coordinates.pxToDp(component.getModel(), component.h), time);
     }
     else {
-      myAnimatedDrawX.setValue(myScene.pxToDp(component.x));
-      myAnimatedDrawY.setValue(myScene.pxToDp(component.y));
-      myAnimatedDrawWidth.setValue(myScene.pxToDp(component.w));
-      myAnimatedDrawHeight.setValue(myScene.pxToDp(component.h));
+      myAnimatedDrawX.setValue(Coordinates.pxToDp(component.getModel(), component.x));
+      myAnimatedDrawY.setValue(Coordinates.pxToDp(component.getModel(), component.y));
+      myAnimatedDrawWidth.setValue(Coordinates.pxToDp(component.getModel(), component.w));
+      myAnimatedDrawHeight.setValue(Coordinates.pxToDp(component.getModel(), component.h));
     }
   }
 

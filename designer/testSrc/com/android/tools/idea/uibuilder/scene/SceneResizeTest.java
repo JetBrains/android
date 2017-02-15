@@ -33,14 +33,14 @@ public class SceneResizeTest extends SceneTest {
     ModelBuilder builder = model("constraint.xml",
                                  component(CONSTRAINT_LAYOUT)
                                    .id("@id/root")
-                                   .withBounds(0, 0, 1000, 1000)
+                                   .withBounds(0, 0, 2000, 2000)
                                    .width("1000dp")
                                    .height("1000dp")
                                    .withAttribute("android:padding", "20dp")
                                    .children(
                                      component(TEXT_VIEW)
                                        .id("@id/button")
-                                       .withBounds(500, 500, 100, 20)
+                                       .withBounds(1000, 1000, 200, 40)
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("tools:layout_editor_absoluteX", "500dp")
