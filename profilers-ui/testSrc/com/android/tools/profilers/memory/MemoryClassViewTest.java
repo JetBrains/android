@@ -18,10 +18,7 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.common.CodeLocation;
-import com.android.tools.profilers.memory.adapters.ClassObject;
-import com.android.tools.profilers.memory.adapters.HeapObject;
-import com.android.tools.profilers.memory.adapters.InstanceObject;
-import com.android.tools.profilers.memory.adapters.NamespaceObject;
+import com.android.tools.profilers.memory.adapters.*;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -30,16 +27,13 @@ import org.junit.Test;
 
 import javax.swing.*;
 import javax.swing.tree.TreePath;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
-import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
+import static com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.*;
 import static com.android.tools.profilers.memory.MemoryProfilerTestBase.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.spy;
@@ -81,7 +75,7 @@ public class MemoryClassViewTest {
     ClassObject mockClass5 = mockClassObject("java.lang.Object", 1, 2, 3, Collections.emptyList());
     ClassObject mockClass6 = mockClassObject("long", 1, 2, 3, Collections.emptyList());
     List<ClassObject> fakeClassObjects = Arrays.asList(mockClass1, mockClass2, mockClass3, mockClass4, mockClass5, mockClass6);
-    HeapObject mockHeap = MemoryProfilerTestBase.mockHeapObject("Test", fakeClassObjects);
+    HeapObject mockHeap = mockHeapObject("Test", fakeClassObjects);
     myStage.selectHeap(mockHeap);
 
     assertEquals(myStage.getConfiguration().getClassGrouping(), ARRANGE_BY_CLASS);
@@ -100,7 +94,9 @@ public class MemoryClassViewTest {
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
     //noinspection unchecked
     assertEquals(6, countClassObjects((MemoryObjectTreeNode<NamespaceObject>)root)); // 6 is the number of mockClass*
-    assertTrue(classTree.getSelectionPath().getLastPathComponent() instanceof MemoryObjectTreeNode);
+    TreePath selectionPath = classTree.getSelectionPath();
+    assertNotNull(selectionPath);
+    assertTrue(selectionPath.getLastPathComponent() instanceof MemoryObjectTreeNode);
     //noinspection unchecked
     assertEquals(mockClass4, ((MemoryObjectTreeNode<ClassObject>)classTree.getSelectionPath().getLastPathComponent()).getAdapter());
     assertTrue(((MemoryObjectTreeNode)root).getAdapter() instanceof NamespaceObject);
@@ -174,21 +170,27 @@ public class MemoryClassViewTest {
     assertEquals(myStage.getConfiguration().getClassGrouping(), ARRANGE_BY_CLASS);
     assertNull(myStage.getSelectedClass());
     assertNotNull(classView.getTree());
+
     JTree classTree = classView.getTree();
     Object root = classTree.getModel().getRoot();
     assertTrue(root instanceof MemoryObjectTreeNode);
     assertTrue(((MemoryObjectTreeNode)root).getAdapter() instanceof NamespaceObject);
+
     //noinspection unchecked
     ImmutableList<MemoryObjectTreeNode<NamespaceObject>> children = ((MemoryObjectTreeNode<NamespaceObject>)root).getChildren();
     assertEquals(2, children.size());
     classTree.setSelectionPath(new TreePath(new Object[]{root, children.get(0)}));
+
     MemoryObjectTreeNode<NamespaceObject> selectedClassNode = children.get(0);
-    assertEquals(selectedClassNode.getAdapter(), myStage.getSelectedClass());
+    assertEquals(fake1, selectedClassNode.getAdapter());
+    assertEquals(fake1, myStage.getSelectedClass());
     assertEquals(selectedClassNode, classTree.getSelectionPath().getLastPathComponent());
 
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
     // Check that after changing to ARRANGE_BY_PACKAGE, the originally selected item is reselected.
-    Object reselected = classTree.getSelectionPath().getLastPathComponent();
+    TreePath selectionPath = classTree.getSelectionPath();
+    assertNotNull(selectionPath);
+    Object reselected = selectionPath.getLastPathComponent();
     assertNotNull(reselected);
     assertTrue(reselected instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)reselected).getAdapter() instanceof ClassObject);
     assertEquals(selectedClassNode.getAdapter(), ((MemoryObjectTreeNode)reselected).getAdapter());
@@ -198,6 +200,140 @@ public class MemoryClassViewTest {
     ClassObject selectedClass = myStage.getSelectedClass();
     classTree.setSelectionPath(new TreePath(new Object[]{root, comPackage}));
     assertEquals(selectedClass, myStage.getSelectedClass());
+  }
+
+  @Test
+  public void groupByStackTraceTest() {
+    MemoryClassView classView = new MemoryClassView(myStage, myFakeIdeProfilerComponents);
+
+    CodeLocation codeLocation1 = new CodeLocation("Foo", "", "fooMethod1", 5);
+    CodeLocation codeLocation2 = new CodeLocation("Foo", "", "fooMethod2", 10);
+    CodeLocation codeLocation3 = new CodeLocation("Foo", "", "fooMethod3", 15);
+    CodeLocation codeLocation4 = new CodeLocation("Bar", "", "barMethod1", 20);
+
+    //noinspection ConstantConditions
+    AllocationStack callstack1 = AllocationStack.newBuilder()
+      .addStackFrames(
+        AllocationStack.StackFrame.newBuilder()
+          .setClassName(codeLocation2.getClassName())
+          .setMethodName(codeLocation2.getMethodName())
+          .setLineNumber(codeLocation2.getLineNumber() + 1))
+      .addStackFrames(
+        AllocationStack.StackFrame.newBuilder()
+          .setClassName(codeLocation1.getClassName())
+          .setMethodName(codeLocation1.getMethodName())
+          .setLineNumber(codeLocation1.getLineNumber() + 1))
+      .build();
+    //noinspection ConstantConditions
+    AllocationStack callstack2 = AllocationStack.newBuilder()
+      .addStackFrames(
+        AllocationStack.StackFrame.newBuilder()
+          .setClassName(codeLocation3.getClassName())
+          .setMethodName(codeLocation3.getMethodName())
+          .setLineNumber(codeLocation3.getLineNumber() + 1))
+      .addStackFrames(
+        AllocationStack.StackFrame.newBuilder()
+          .setClassName(codeLocation1.getClassName())
+          .setMethodName(codeLocation1.getMethodName())
+          .setLineNumber(codeLocation1.getLineNumber() + 1))
+      .build();
+    //noinspection ConstantConditions
+    AllocationStack callstack3 = AllocationStack.newBuilder()
+      .addStackFrames(
+        AllocationStack.StackFrame.newBuilder()
+          .setClassName(codeLocation4.getClassName())
+          .setMethodName(codeLocation4.getMethodName())
+          .setLineNumber(codeLocation4.getLineNumber() + 1))
+      .build();
+
+    List<InstanceObject> mockClass1List = new ArrayList<>();
+    List<InstanceObject> mockClass3List = new ArrayList<>();
+
+    ClassObject mockClass1 = mockClassObject("com.android.studio.Foo", 8, 2, 104, mockClass1List);
+    ClassObject mockClass2 = mockClassObject("int", 1, 2, 3, Collections.emptyList());
+    ClassObject mockClass3 = mockClassObject("com.google.Bar", 8, 2, 16, mockClass3List);
+    HeapObject mockHeap = mockHeapObject("app heap", Arrays.asList(mockClass1, mockClass2, mockClass3));
+
+    InstanceObject mockInstance1 =
+      mockInstanceObject("com.android.studio.Foo", "instance1", "toString: instance1", callstack1, mockClass1, 2, 2, 2, 16);
+    InstanceObject mockInstance2 =
+      mockInstanceObject("com.android.studio.Foo", "instance2", "toString: instance2", callstack1, mockClass1, 2, 2, 2, 24);
+    InstanceObject mockInstance3 =
+      mockInstanceObject("com.android.studio.Foo", "instance3", "toString: instance3", callstack1, mockClass1, 2, 2, 2, 16);
+    InstanceObject mockInstance4 =
+      mockInstanceObject("com.android.studio.Foo", "instance4", "toString: instance4", callstack2, mockClass1, 2, 2, 2, 16);
+    InstanceObject mockInstance5 =
+      mockInstanceObject("com.android.studio.Foo", "instance5", "toString: instance5", callstack2, mockClass1, 2, 2, 2, 16);
+    InstanceObject mockInstance6 =
+      mockInstanceObject("com.android.studio.Foo", "instance6", "toString: instance6", callstack3, mockClass1, 2, 2, 2, 16);
+    InstanceObject mockInstance7 =
+      mockInstanceObject("com.google.Bar", "instance7", "toString: instance7", callstack3, mockClass3, 2, 2, 2, 16);
+
+    mockClass1List.addAll(Arrays.asList(mockInstance1, mockInstance2, mockInstance3, mockInstance4, mockInstance5, mockInstance6));
+    mockClass3List.add(mockInstance7);
+
+    myStage.selectHeap(mockHeap);
+
+    assertEquals(myStage.getConfiguration().getClassGrouping(), ARRANGE_BY_CLASS);
+    assertNull(myStage.getSelectedClass());
+    assertNotNull(classView.getTree());
+
+    JTree classTree = classView.getTree();
+    Object rootObject = classTree.getModel().getRoot();
+    assertTrue(rootObject instanceof MemoryObjectTreeNode);
+    assertTrue(((MemoryObjectTreeNode)rootObject).getAdapter() instanceof NamespaceObject);
+    //noinspection unchecked
+    MemoryObjectTreeNode<NamespaceObject> root = (MemoryObjectTreeNode<NamespaceObject>)rootObject;
+    assertEquals(3, root.getChildCount());
+
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CALLSTACK);
+    assertEquals(root, classTree.getModel().getRoot());
+    assertEquals(2, root.getChildCount());
+
+    MemoryObjectTreeNode<NamespaceObject> codeLocation1Node =
+      getSingularInList(root.getChildren(), child -> (child.getAdapter() instanceof MethodObject) &&
+                                                     ((MethodObject)child.getAdapter()).getCodeLocation().equals(codeLocation1));
+    assertEquals(2, codeLocation1Node.getChildCount());
+
+    MemoryObjectTreeNode<NamespaceObject> codeLocation2Node =
+      getSingularInList(codeLocation1Node.getChildren(),
+                        child -> (child.getAdapter() instanceof MethodObject) &&
+                                 ((MethodObject)child.getAdapter()).getCodeLocation().equals(codeLocation2));
+    assertEquals(1, codeLocation2Node.getChildCount());
+    assertTrue(codeLocation2Node.getChildren().get(0).getAdapter() instanceof ProxyClassObject);
+    ProxyClassObject proxyClassObject = (ProxyClassObject)codeLocation2Node.getChildren().get(0).getAdapter();
+    assertTrue(proxyClassObject.getInstances().contains(mockInstance1));
+    assertTrue(proxyClassObject.getInstances().contains(mockInstance2));
+    assertTrue(proxyClassObject.getInstances().contains(mockInstance3));
+
+    MemoryObjectTreeNode<NamespaceObject> codeLocation3Node =
+      getSingularInList(codeLocation1Node.getChildren(),
+                        child -> (child.getAdapter() instanceof MethodObject) &&
+                                 ((MethodObject)child.getAdapter()).getCodeLocation().equals(codeLocation3));
+    assertEquals(1, codeLocation3Node.getChildCount());
+    assertTrue(codeLocation3Node.getChildren().get(0).getAdapter() instanceof ProxyClassObject);
+    proxyClassObject = (ProxyClassObject)codeLocation3Node.getChildren().get(0).getAdapter();
+    assertTrue(proxyClassObject.getInstances().contains(mockInstance4));
+    assertTrue(proxyClassObject.getInstances().contains(mockInstance5));
+
+    MemoryObjectTreeNode<NamespaceObject> codeLocation4Node =
+      getSingularInList(root.getChildren(), child -> (child.getAdapter() instanceof MethodObject) &&
+                                                     ((MethodObject)child.getAdapter()).getCodeLocation().equals(codeLocation4));
+    assertEquals(2, codeLocation4Node.getChildCount());
+
+    MemoryObjectTreeNode<NamespaceObject> barNode =
+      getSingularInList(codeLocation4Node.getChildren(),
+                        child -> (child.getAdapter() instanceof ProxyClassObject) &&
+                                 child.getAdapter().isInNamespace(new ProxyClassObject(mockClass3, mockInstance7)));
+    classTree.setSelectionPath(new TreePath(new Object[]{rootObject, codeLocation4Node, barNode}));
+
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CLASS);
+    assertEquals(3, root.getChildCount());
+    TreePath selectionPath = classTree.getSelectionPath();
+    assertNotNull(selectionPath);
+    Object previouslySelectedObject = selectionPath.getLastPathComponent();
+    assertTrue(previouslySelectedObject instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)previouslySelectedObject).getAdapter() instanceof ClassObject);
+    assertEquals(mockClass3, ((MemoryObjectTreeNode)previouslySelectedObject).getAdapter());
   }
 
   @Test
@@ -220,7 +356,7 @@ public class MemoryClassViewTest {
   @Test
   public void navigationTest() {
     final String testClassName = "com.Foo";
-    InstanceObject mockInstance = mockInstanceObject(testClassName, "instance", null, 0, 0, 0, 0);
+    InstanceObject mockInstance = mockInstanceObject(testClassName, "instance", null, null, null, 0, 0, 0, 0);
     ClassObject mockClass = mockClassObject(testClassName, 1, 2, 3, Collections.singletonList(mockInstance));
     HeapObject mockHeap = mockHeapObject("Test", Collections.singletonList(mockClass));
     myStage.selectHeap(mockHeap);

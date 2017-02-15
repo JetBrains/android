@@ -31,7 +31,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +38,6 @@ import javax.swing.*;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.util.*;
@@ -366,69 +364,34 @@ final class MemoryInstanceView extends AspectObserver {
     }
   }
 
-  static class InstanceTreeNode extends MemoryObjectTreeNode<InstanceObject> {
-    static final int INVALID_FIELD_COUNT = -1;
-
-    int myMemoizedFieldCount = INVALID_FIELD_COUNT;
-
+  static class InstanceTreeNode extends LazyMemoryObjectTreeNode<InstanceObject> {
     public InstanceTreeNode(@NotNull InstanceObject adapter) {
       super(adapter);
-      myMemoizedFieldCount = getAdapter().getFieldCount();
     }
 
     @Override
-    public TreeNode getChildAt(int i) {
-      expandNode();
-      return super.getChildAt(i);
+    public int computeChildrenCount() {
+      return getAdapter().getFieldCount();
     }
 
     @Override
-    public int getChildCount() {
-      return myMemoizedFieldCount;
-    }
-
-    @Override
-    public int getIndex(TreeNode treeNode) {
-      expandNode();
-      return super.getIndex(treeNode);
-    }
-
-    @Override
-    public boolean isLeaf() {
-      return getChildCount() == 0;
-    }
-
-    @Override
-    public Enumeration children() {
-      expandNode();
-      return super.children();
-    }
-
-    @NotNull
-    @Override
-    public ImmutableList<MemoryObjectTreeNode<InstanceObject>> getChildren() {
-      expandNode();
-      return super.getChildren();
-    }
-
-    void expandNode() {
-      if (myMemoizedFieldCount == myChildren.size()) {
+    public void expandNode() {
+      if (myMemoizedChildrenCount == myChildren.size()) {
         return;
       }
+
       InstanceObject adapter = getAdapter();
+      myMemoizedChildrenCount = 0;
       for (InstanceObject subAdapter : adapter.getFields()) {
         MemoryObjectTreeNode child = new MemoryObjectTreeNode<>(subAdapter);
         add(child);
+        myMemoizedChildrenCount++;
       }
-      assert myMemoizedFieldCount == myChildren.size();
+
+      assert myMemoizedChildrenCount == myChildren.size();
       if (myComparator != null) {
         sort(myComparator);
       }
-    }
-
-    @VisibleForTesting
-    ImmutableList<MemoryObjectTreeNode<InstanceObject>> getActualChildren() {
-      return super.getChildren();
     }
   }
 }
