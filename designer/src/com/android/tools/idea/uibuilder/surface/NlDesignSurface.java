@@ -19,14 +19,23 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
+import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.editor.ActionManager;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.utils.HtmlBuilder;
+import com.google.common.collect.ImmutableList;
+import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,6 +92,20 @@ public class NlDesignSurface extends DesignSurface {
   }
 
   @NotNull private static ScreenMode ourDefaultScreenMode = ScreenMode.loadDefault();
+  /**
+   * {@link RenderErrorModel} with one issue that is displayed while the project is still building. This avoids displaying an error
+   * panel full of errors.
+   */
+  private static final RenderErrorModel STILL_BUILDING_ERROR_MODEL = new RenderErrorModel(ImmutableList.of(
+    RenderErrorModel.Issue.builder()
+      .setSeverity(HighlightSeverity.INFORMATION)
+      .setSummary("The project is still building")
+      .setHtmlContent(new HtmlBuilder()
+                        .add("The project is still building and the current preview might be inaccurate.")
+                        .newline()
+                        .add("The preview will automatically refresh once the build finishes."))
+      .build()
+  ));
 
   @NotNull private ScreenMode myScreenMode = ourDefaultScreenMode;
   @Nullable private ScreenView myBlueprintView;
@@ -96,6 +119,7 @@ public class NlDesignSurface extends DesignSurface {
   @Nullable private ScreenView myScreenView;
   private final boolean myInPreview;
   private WeakReference<PanZoomPanel> myPanZoomPanel = new WeakReference<>(null);
+  private boolean myRenderHasProblems;
 
   public NlDesignSurface(@NotNull Project project, boolean inPreview) {
     super(project);
@@ -421,6 +445,10 @@ public class NlDesignSurface extends DesignSurface {
     if (model != null) {
       myScreenView = new ScreenView(this, ScreenView.ScreenViewType.NORMAL, model);
 
+      // If the model has already rendered, there may be errors to display,
+      // so update the error panel to reflect that.
+      updateErrorDisplay(myScreenView.getResult());
+
       getLayeredPane().setPreferredSize(myScreenView.getPreferredSize());
 
       NlLayoutType layoutType = myScreenView.getModel().getType();
@@ -731,5 +759,75 @@ public class NlDesignSurface extends DesignSurface {
     else if (panel != null) {
       panel.closePopup();
     }
+  }
+
+
+  /**
+   * When we have render errors for a given result, kick off a background computation
+   * of the error panel HTML, which when done will update the UI thread
+   */
+  private void updateErrors(@Nullable final RenderResult result) {
+    assert result != null && result.getLogger().hasProblems();
+
+    getErrorQueue().cancelAllUpdates();
+    getErrorQueue().queue(new Update("errors") {
+      @Override
+      public void run() {
+        // Look up *current* result; a newer one could be available
+        final RenderResult result = getCurrentSceneView() != null ? getCurrentSceneView().getResult() : null;
+        if (result == null) {
+          return;
+        }
+
+        RenderErrorModel model =
+          BuildSettings.getInstance(getProject()).getBuildMode() != null && result.getLogger().hasErrors() ?
+          STILL_BUILDING_ERROR_MODEL :
+          RenderErrorModelFactory.createErrorModel(result, DataManager.getInstance().getDataContext(myErrorPanel));
+        myErrorPanel.setModel(model);
+        setShowErrorPanel(model.getSize() != 0);
+      }
+
+      @Override
+      public boolean canEat(Update update) {
+        return true;
+      }
+    });
+  }
+
+
+  /**
+   * Notifies the design surface that the given screen view (which must be showing in this design surface)
+   * has been rendered (possibly with errors)
+   */
+  public void updateErrorDisplay(@Nullable final RenderResult result) {
+    assert ApplicationManager.getApplication().isDispatchThread() ||
+           !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock when calling updateErrorDisplay!";
+
+    getErrorQueue().cancelAllUpdates();
+    myRenderHasProblems = result != null && result.getLogger().hasProblems();
+    if (myRenderHasProblems) {
+      updateErrors(result);
+    }
+    else {
+      setShowErrorPanel(false);
+    }
+  }
+
+  @Override
+  protected boolean hasProblems() {
+    return myRenderHasProblems;
+  }
+
+  @Override
+  protected void modelRendered(@NotNull NlModel model) {
+    if (getCurrentSceneView() != null) {
+      updateErrorDisplay(getCurrentSceneView().getResult());
+    }
+    super.modelRendered(model);
+  }
+
+  @Override
+  protected boolean useSmallProgressIcon() {
+    return getCurrentSceneView() != null && getCurrentSceneView().getResult() != null;
   }
 }
