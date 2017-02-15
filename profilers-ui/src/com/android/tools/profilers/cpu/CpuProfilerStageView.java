@@ -267,7 +267,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     long sec = (micro % (1000000 * 60)) / 1000000;
     long mil = (micro % 1000000) / 1000;
 
-    return String.format("%d:%02d:%03d", min, sec, mil);
+    return String.format("%d:%02d.%03d", min, sec, mil);
   }
 
   @Override
