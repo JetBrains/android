@@ -82,9 +82,9 @@ public abstract class ConstraintTarget extends BaseTarget {
     ourMarginAttributes = new ArrayList<>();
     ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN);
     ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
-    ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_START);
+    // ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_START);
     ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
-    ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_END);
+    // ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_END);
     ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
     ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
   }
@@ -157,12 +157,12 @@ public abstract class ConstraintTarget extends BaseTarget {
 
     if (!hasLeft) {
       transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, null);
-      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, null); // TODO: handles RTL correctly
+      // transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, null); // TODO: handles RTL correctly
       transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
     }
     if (!hasRight) {
       transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, null);
-      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, null); // TODO: handles RTL correctly
+      // transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, null); // TODO: handles RTL correctly
       transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
     }
     if (!hasLeft && !hasRight) {
