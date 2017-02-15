@@ -49,6 +49,8 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     MultiResourceRepository parent = ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(resourceDirectory));
 
     myPanel.getTable().setModel(new StringResourceTableModel(new StringResourceRepository(parent).getData(myFacet)));
+
+    myTable.getRowSorter().setSortKeys(Collections.singletonList(new RowSorter.SortKey(0, SortOrder.ASCENDING)));
   }
 
   @Override
