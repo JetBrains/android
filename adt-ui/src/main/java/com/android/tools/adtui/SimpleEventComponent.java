@@ -16,9 +16,10 @@
 
 package com.android.tools.adtui;
 
-import com.android.tools.adtui.model.EventAction;
+import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.SeriesData;
-import com.android.tools.adtui.model.SimpleEventModel;
+import com.android.tools.adtui.model.event.EventModel;
+import com.android.tools.adtui.model.event.SimpleEventType;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +34,7 @@ import java.util.Map;
 public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
 
   @NotNull
-  private final SimpleEventModel<E> myModel;
+  private final EventModel<SimpleEventType> myModel;
 
   @NotNull
   private final Map<E, SimpleEventRenderer> mRenderers;
@@ -45,12 +46,12 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
   /**
    * Component that renders EventActions as a series of icons.
    */
-  public SimpleEventComponent(@NotNull SimpleEventModel<E> model, @NotNull Map<E, SimpleEventRenderer> renderers) {
+  public SimpleEventComponent(@NotNull EventModel<SimpleEventType> model, @NotNull Map<E, SimpleEventRenderer> renderers) {
     myModel = model;
     mRenderers = renderers;
     mIconsToDraw = new ArrayList<>();
     myRender = true;
-    myModel.addDependency(myAspectObserver).onChange(SimpleEventModel.Aspect.SIMPLE_EVENT, this::modelChanged);
+    myModel.addDependency(myAspectObserver).onChange(EventModel.Aspect.EVENT, this::modelChanged);
   }
 
   private void modelChanged() {
@@ -62,14 +63,14 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
     //TODO Pull logic of combining events out of component and into EventHandler
     double max = myModel.getRangedSeries().getXRange().getMax();
     mIconsToDraw.clear();
-    ImmutableList<SeriesData<EventAction<EventAction.Action, E>>> series = myModel.getRangedSeries().getSeries();
+    ImmutableList<SeriesData<EventAction<SimpleEventType>>> series = myModel.getRangedSeries().getSeries();
     int size = series.size();
 
     for (int i = 0; i < size; i++) {
-      SeriesData<EventAction<EventAction.Action, E>> seriesData = series.get(i);
-      EventAction<EventAction.Action, ? extends Enum> data = seriesData.value;
+      SeriesData<EventAction<SimpleEventType>> seriesData = series.get(i);
+      EventAction data = seriesData.value;
       long endTimeUs = data.getEndUs() == 0L ? (long)max : data.getEndUs();
-      mIconsToDraw.add(new EventRenderData(data.getValueData(), data.getStartUs(), endTimeUs));
+      mIconsToDraw.add(new EventRenderData(data.getStartUs(), endTimeUs, data));
     }
   }
 
@@ -89,18 +90,19 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
       double normalizedPositionEnd = ((data.getEndTimestamp() - min) / (max - min));
       AffineTransform translate = AffineTransform
         .getTranslateInstance(normalizedPositionStart * scaleFactor, 0);
-      mRenderers.get(data.getKey()).draw(this, g2d, translate, (normalizedPositionEnd - normalizedPositionStart)*scaleFactor);
+      EventAction<SimpleEventType> action = data.getAction();
+      mRenderers.get(action.getType())
+        .draw(this, g2d, translate, (normalizedPositionEnd - normalizedPositionStart) * scaleFactor, action);
     }
   }
 
   private static class EventRenderData<E> {
-
-    private final E mKey;
     private final long mStartTimestamp;
     private final long mEndTimestamp;
+    private final EventAction<E> mAction;
 
-    public E getKey() {
-      return mKey;
+    public EventAction<E> getAction() {
+      return mAction;
     }
 
     public long getStartTimestamp() {
@@ -110,10 +112,10 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
       return mEndTimestamp;
     }
 
-    public EventRenderData(E key, long startTimestamp, long endTimestamp) {
-      mKey = key;
+    public EventRenderData(long startTimestamp, long endTimestamp, EventAction<E> action) {
       mStartTimestamp = startTimestamp;
       mEndTimestamp = endTimestamp;
+      mAction = action;
     }
   }
 }
