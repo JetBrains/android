@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers;
+package com.android.tools.idea.uibuilder.handlers.linear;
 
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
@@ -22,9 +22,14 @@ import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
+import com.android.tools.idea.uibuilder.handlers.absolute.AbsoluteResizeTarget;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.SceneInteraction;
+import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
+import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import icons.AndroidDesignerIcons;
@@ -83,7 +88,8 @@ public class LinearLayoutHandler extends ViewGroupHandler {
           int middle = getSwingY(screenView, (prev.y + prev.h + child.y) / 2);
           NlGraphics.drawLine(NlDrawingStyle.GUIDELINE_DASHED, graphics, getSwingX(screenView, component.x), middle,
                               getSwingX(screenView, component.x + component.w), middle);
-        } else {
+        }
+        else {
           int middle = getSwingX(screenView, (prev.x + prev.w + child.x) / 2);
           NlGraphics.drawLine(NlDrawingStyle.GUIDELINE_DASHED, graphics, middle, getSwingY(screenView, component.y), middle,
                               getSwingY(screenView, component.y + component.h));
@@ -96,6 +102,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
   /**
    * Returns true if the given node represents a vertical linear layout.
+   *
    * @param component the node to check layout orientation for
    * @return true if the layout is in vertical mode, otherwise false
    */
@@ -360,7 +367,6 @@ public class LinearLayoutHandler extends ViewGroupHandler {
           if (isVertical) {
             offsetX = layoutX - be.getDrawX();
             offsetY = currY - be.getDrawY() - (isLast ? 0 : (be.getDrawHeight() / 2));
-
           }
           else {
             offsetX = currX - be.getDrawX() - (isLast ? 0 : (be.getDrawWidth() / 2));
@@ -430,11 +436,17 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     }
   }
 
-  /** A possible match position */
+  /**
+   * A possible match position
+   */
   private static class MatchPos {
-    /** The dp distance */
+    /**
+     * The dp distance
+     */
     @AndroidDpCoordinate private final int myDistance;
-    /** The position among siblings */
+    /**
+     * The position among siblings
+     */
     private final int myPosition;
 
     public MatchPos(@AndroidDpCoordinate int distance, int position) {
@@ -470,7 +482,8 @@ public class LinearLayoutHandler extends ViewGroupHandler {
       String fillParent = VALUE_MATCH_PARENT;
       if (fill.fillHorizontally(vertical)) {
         newChild.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, fillParent);
-      } else if (!vertical && fill == FillPolicy.WIDTH_IN_VERTICAL) {
+      }
+      else if (!vertical && fill == FillPolicy.WIDTH_IN_VERTICAL) {
         // In a horizontal layout, make views that would fill horizontally in a
         // vertical layout have a non-zero weight instead. This will make the item
         // fill but only enough to allow other views to be shown as well.
@@ -500,9 +513,11 @@ public class LinearLayoutHandler extends ViewGroupHandler {
       if (weight == null || weight.length() == 0) {
         duplicateWeight = false;
         break;
-      } else if (sameWeight != null && !sameWeight.equals(weight)) {
+      }
+      else if (sameWeight != null && !sameWeight.equals(weight)) {
         duplicateWeight = false;
-      } else {
+      }
+      else {
         sameWeight = weight;
       }
       String size = target.getAttribute(ANDROID_URI, sizeAttribute);
@@ -529,17 +544,29 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   }
 
   private class LinearResizeHandler extends DefaultResizeHandler {
-    /** Whether the node should be assigned a new weight */
+    /**
+     * Whether the node should be assigned a new weight
+     */
     public boolean useWeight;
-    /** Weight sum to be applied to the parent */
+    /**
+     * Weight sum to be applied to the parent
+     */
     private float mNewWeightSum;
-    /** The weight to be set on the node (provided {@link #useWeight} is true) */
+    /**
+     * The weight to be set on the node (provided {@link #useWeight} is true)
+     */
     private float mWeight;
-    /** Map from nodes to preferred bounds of nodes where the weights have been cleared */
+    /**
+     * Map from nodes to preferred bounds of nodes where the weights have been cleared
+     */
     public final Map<NlComponent, Dimension> unweightedSizes;
-    /** Total required size required by the siblings <b>without</b> weights */
+    /**
+     * Total required size required by the siblings <b>without</b> weights
+     */
     public int totalLength;
-    /** List of nodes which should have their weights cleared */
+    /**
+     * List of nodes which should have their weights cleared
+     */
     public List<NlComponent> mClearWeights;
 
     public LinearResizeHandler(@NotNull ViewEditor editor,
@@ -574,25 +601,33 @@ public class LinearLayoutHandler extends ViewGroupHandler {
       }
     }
 
-    /** Resets the computed state */
+    /**
+     * Resets the computed state
+     */
     void reset() {
       mNewWeightSum = -1;
       useWeight = false;
       mClearWeights = null;
     }
 
-    /** Sets a weight to be applied to the node */
+    /**
+     * Sets a weight to be applied to the node
+     */
     void setWeight(float weight) {
       useWeight = true;
       mWeight = weight;
     }
 
-    /** Sets a weight sum to be applied to the parent layout */
+    /**
+     * Sets a weight sum to be applied to the parent layout
+     */
     void setWeightSum(float weightSum) {
       mNewWeightSum = weightSum;
     }
 
-    /** Marks that the given node should be cleared when applying the new size */
+    /**
+     * Marks that the given node should be cleared when applying the new size
+     */
     void clearWeight(NlComponent n) {
       if (mClearWeights == null) {
         mClearWeights = new ArrayList<>();
@@ -600,7 +635,9 @@ public class LinearLayoutHandler extends ViewGroupHandler {
       mClearWeights.add(n);
     }
 
-    /** Applies the state to the nodes */
+    /**
+     * Applies the state to the nodes
+     */
     public void apply() {
       assert useWeight;
 
@@ -692,7 +729,8 @@ public class LinearLayoutHandler extends ViewGroupHandler {
         if (isVertical) {
           if (newBounds.height > nodeBounds.height) {
             missing = newBounds.height - nodeBounds.height;
-          } else if (wrapBounds != null && newBounds.height > wrapBounds.height) {
+          }
+          else if (wrapBounds != null && newBounds.height > wrapBounds.height) {
             // The weights concern how much space to ADD to the view.
             // What if we have resized it to a size *smaller* than its current
             // size without the weight delta? This can happen if you for example
@@ -702,10 +740,12 @@ public class LinearLayoutHandler extends ViewGroupHandler {
             remaining += nodeBounds.height - wrapBounds.height;
             wrapHeight = true;
           }
-        } else {
+        }
+        else {
           if (newBounds.width > nodeBounds.width) {
             missing = newBounds.width - nodeBounds.width;
-          } else if (wrapBounds != null && newBounds.width > wrapBounds.width) {
+          }
+          else if (wrapBounds != null && newBounds.width > wrapBounds.width) {
             missing = newBounds.width - wrapBounds.width;
             remaining += nodeBounds.width - wrapBounds.width;
             wrapWidth = true;
@@ -776,25 +816,29 @@ public class LinearLayoutHandler extends ViewGroupHandler {
         if (isVertical(parent)) {
           width = getWidthAttribute();
           height = dimension;
-        } else {
+        }
+        else {
           width = dimension;
           height = getHeightAttribute();
         }
 
         if (horizontalEdge == null) {
           return width;
-        } else if (verticalEdge == null) {
+        }
+        else if (verticalEdge == null) {
           return height;
-        } else {
+        }
+        else {
           // U+00D7: Unicode for multiplication sign
           return String.format("%s \u00D7 %s", width, height);
         }
-      } else {
+      }
+      else {
         return super.getResizeUpdateMessage(child, parent, newBounds,
                                             horizontalEdge, verticalEdge);
       }
     }
-   }
+  }
 
   /**
    * Returns the layout weight of of the given child of a LinearLayout, or 0.0 if it
@@ -805,7 +849,8 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     if (weight != null && weight.length() > 0) {
       try {
         return Float.parseFloat(weight);
-      } catch (NumberFormatException ignore) {
+      }
+      catch (NumberFormatException ignore) {
       }
     }
 
@@ -826,7 +871,8 @@ public class LinearLayoutHandler extends ViewGroupHandler {
       try {
         sum = Float.parseFloat(weightSum);
         return sum;
-      } catch (NumberFormatException nfe) {
+      }
+      catch (NumberFormatException nfe) {
         // Just keep using the default
       }
     }
@@ -1027,5 +1073,69 @@ public class LinearLayoutHandler extends ViewGroupHandler {
       String value = component.getAttribute(ANDROID_URI, ATTR_BASELINE_ALIGNED);
       return value == null ? true : Boolean.valueOf(value);
     }
+  }
+
+  /*------------- NEW ARCHITECTURE TODO remove this -----------*/
+
+  @Nullable
+  @Override
+  public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent layout) {
+    return new SceneInteraction(screenView);
+  }
+
+  /**
+   * Returns true to handles painting the component
+   *
+   * @return true if the ViewGroupHandler want to be in charge of painting
+   */
+  @Override
+  public boolean handlesPainting() {
+    return true;
+  }
+
+  /**
+   * Paint the component and its children on the given context
+   *
+   * @param gc         graphics context
+   * @param screenView the current screen view
+   * @param component  the component to draw
+   * @return true to indicate that we will need to be repainted
+   */
+  @Override
+  public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView,
+                           @NotNull NlComponent component) {
+    // do nothing here, subclasses need to override this and handlesPainting() to be called
+    return false;
+  }
+
+
+  /**
+   * Give a chance to the ViewGroup to add targets to the {@linkplain SceneComponent}
+   *
+   * @param component the component we'll add targets on
+   * @param isParent  is it the parent viewgroup component
+   */
+  @Override
+  @NotNull
+  public List<Target> createTargets(@NotNull SceneComponent component, boolean isParent) {
+    if(isParent) {
+
+    }
+    return ImmutableList.of(
+      new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
+      new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM),
+      new AbsoluteResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
+      new AbsoluteResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM)
+    );
+  }
+
+  /**
+   * Let the ViewGroupHandler handle clearing attributes on a given component
+   *
+   * @param component
+   */
+  @Override
+  public void clearAttributes(NlComponent component) {
+    // do nothing
   }
 }
