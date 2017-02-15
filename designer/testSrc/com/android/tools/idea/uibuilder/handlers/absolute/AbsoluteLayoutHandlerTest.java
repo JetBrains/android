@@ -25,18 +25,6 @@ import static com.android.SdkConstants.TEXT_VIEW;
 
 public class AbsoluteLayoutHandlerTest extends SceneTest {
 
-  public void testDragNothing() throws Exception {
-    myInteraction.mouseDown("myText");
-    myInteraction.mouseRelease(0, 0);
-    myScreen.get("@id/myText")
-      .expectXml("<TextView\n" +
-                 "    android:id=\"@id/myText\"\n" +
-                 "    android:layout_width=\"100dp\"\n" +
-                 "    android:layout_height=\"100dp\"\n" +
-                 "    android:layout_x=\"100dp\"\n" +
-                 "    android:layout_y=\"100dp\"/>");
-  }
-
   public void testDragBottomRight() throws Exception {
     myInteraction.select("myText", true);
     myInteraction.mouseDown("myText", ResizeBaseTarget.Type.RIGHT_BOTTOM);
@@ -100,6 +88,18 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
                  "    android:layout_height=\"100dp\"\n" +
                  "    android:layout_x=\"10dp\"\n" +
                  "    android:layout_y=\"30dp\"/>");
+  }
+
+  public void testDragWithoutSelecting() throws Exception {
+    myInteraction.mouseDown("myText");
+    myInteraction.mouseRelease(175, 175);
+    myScreen.get("@id/myText")
+      .expectXml("<TextView\n" +
+                 "    android:id=\"@id/myText\"\n" +
+                 "    android:layout_width=\"100dp\"\n" +
+                 "    android:layout_height=\"100dp\"\n" +
+                 "    android:layout_x=\"125dp\"\n" +
+                 "    android:layout_y=\"125dp\"/>");
   }
 
   @Override
