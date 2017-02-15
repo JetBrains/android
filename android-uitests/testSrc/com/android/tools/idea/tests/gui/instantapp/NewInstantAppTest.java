@@ -22,11 +22,11 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.openapi.module.Module;
+import org.fest.swing.edt.GuiTask;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
@@ -98,18 +98,12 @@ public class NewInstantAppTest {
     String projectName = "Warning";
     createAndOpenDefaultAIAProject(projectName);
 
+    // Need to save otherwise you get an error on shutdown
+    // (ProjectManagerImpl.closeProject calls ProjectStoreImpl.doSave -> Triggers a new code analysis timer, running when project is closed)
+    // TODO: find out why this is and handle it properly. (Only seems to happen on Iapp and Cpp projects. Why are the files not in sync?)
+    GuiTask.execute(() -> guiTest.ideFrame().getProject().save());
+
     String inspectionResults = guiTest.ideFrame()
-      // Need to sync twice otherwise you get an error on shutdown
-      // TODO: find out why this is and handle it properly.
-      .getEditor()
-      .open("atom/build.gradle", EditorFixture.Tab.EDITOR)
-      .moveBetween("", "compileSdkVersion")
-      .enterText(" ")
-      .awaitNotification(
-        "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
-      .performAction("Sync Now")
-      .waitForGradleProjectSyncToFinish()
-      // End
       .openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
       .clickOk()
       .getResults();
