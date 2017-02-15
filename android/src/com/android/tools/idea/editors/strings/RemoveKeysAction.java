@@ -45,7 +45,7 @@ final class RemoveKeysAction extends AnAction {
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
     StringResourceTable table = myPanel.getTable();
-    StringResourceTableModel model = (StringResourceTableModel)table.getModel();
+    StringResourceTableModel model = table.getModel();
     StringResourceRepository repository = myPanel.getRepository();
 
     Project project = event.getProject();

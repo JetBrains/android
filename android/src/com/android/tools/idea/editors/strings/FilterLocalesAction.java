@@ -67,7 +67,7 @@ class FilterLocalesAction extends ComboBoxAction {
       }
     });
 
-    StringResourceTableModel model = (StringResourceTableModel)myTable.getModel();
+    StringResourceTableModel model = myTable.getModel();
 
     IntStream.range(StringResourceTableModel.FIXED_COLUMN_COUNT, model.getColumnCount())
       .mapToObj(model::getLocale)
