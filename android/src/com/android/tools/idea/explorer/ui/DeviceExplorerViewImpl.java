@@ -239,6 +239,10 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   private void createTreePopupMenu() {
     assert myPanel != null;
     myTreePopupMenu = new ComponentPopupMenu(myPanel.getTree());
+    ComponentPopupMenu fileMenu = myTreePopupMenu.addPopup("New");
+    fileMenu.addItem(new NewFileMenuItem());
+    fileMenu.addItem(new NewDirectoryMenuItem());
+    myTreePopupMenu.addSeparator();
     myTreePopupMenu.addItem(new OpenMenuItem());
     myTreePopupMenu.addItem(new SaveAsMenuItem());
     myTreePopupMenu.addSeparator();
@@ -267,6 +271,14 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
   private void saveNodeAs(@NotNull DeviceFileEntryNode treeNode) {
     myListeners.forEach(x -> x.saveNodeAsInvoked(treeNode));
+  }
+
+  private void newDirectory(@NotNull DeviceFileEntryNode treeNode) {
+    myListeners.forEach(x -> x.newDirectoryInvoked(treeNode));
+  }
+
+  private void newFile(@NotNull DeviceFileEntryNode treeNode) {
+    myListeners.forEach(x -> x.newFileInvoked(treeNode));
   }
 
   @Override
@@ -494,6 +506,54 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     @Override
     public void run(@NotNull DeviceFileEntryNode node) {
       saveNodeAs(node);
+    }
+  }
+
+  private class NewFileMenuItem extends TreeMenuItem {
+    @NotNull
+    @Override
+    public String getText() {
+      return "File";
+    }
+
+    @Nullable
+    @Override
+    public Icon getIcon() {
+      return AllIcons.FileTypes.Text;
+    }
+
+    @Override
+    public boolean isVisible(@NotNull DeviceFileEntryNode node) {
+      return node.getEntry().isDirectory() || node.isSymbolicLinkToDirectory();
+    }
+
+    @Override
+    public void run(@NotNull DeviceFileEntryNode node) {
+      newFile(node);
+    }
+  }
+
+  private class NewDirectoryMenuItem extends TreeMenuItem {
+    @NotNull
+    @Override
+    public String getText() {
+      return "Directory";
+    }
+
+    @Nullable
+    @Override
+    public Icon getIcon() {
+      return AllIcons.Nodes.Folder;
+    }
+
+    @Override
+    public boolean isVisible(@NotNull DeviceFileEntryNode node) {
+      return node.getEntry().isDirectory() || node.isSymbolicLinkToDirectory();
+    }
+
+    @Override
+    public void run(@NotNull DeviceFileEntryNode node) {
+      newDirectory(node);
     }
   }
 }

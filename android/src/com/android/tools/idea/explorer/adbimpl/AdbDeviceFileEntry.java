@@ -62,6 +62,12 @@ public class AdbDeviceFileEntry implements DeviceFileEntry {
 
   @NotNull
   @Override
+  public String getFullPath() {
+    return myEntry.getFullPath();
+  }
+
+  @NotNull
+  @Override
   public Permissions getPermissions() {
     return new AdbPermissions(myEntry.getPermissions());
   }

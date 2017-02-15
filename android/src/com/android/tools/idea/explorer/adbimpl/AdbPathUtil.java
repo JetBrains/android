@@ -21,9 +21,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
 
-import static com.android.ddmlib.FileListingService.FILE_SEPARATOR;
-
-
 /**
  * Utilities to manipulate paths of Android Device file system entries.
  *
@@ -31,6 +28,8 @@ import static com.android.ddmlib.FileListingService.FILE_SEPARATOR;
  * or {@link java.io.File} class to manipulate them, as these classes are platform dependent.
  */
 public class AdbPathUtil {
+  public static final String FILE_SEPARATOR = com.android.ddmlib.FileListingService.FILE_SEPARATOR;
+
   /**
    * Returns the file name part of a path, i.e. the last segment.
    * Returns the empty string for the root path "/".

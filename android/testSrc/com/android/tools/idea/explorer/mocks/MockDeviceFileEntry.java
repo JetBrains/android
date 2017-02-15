@@ -16,6 +16,8 @@
 package com.android.tools.idea.explorer.mocks;
 
 import com.android.tools.idea.explorer.FutureUtils;
+import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;
+import com.android.tools.idea.explorer.adbimpl.AdbShellCommandException;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -24,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.explorer.mocks.MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS;
@@ -48,20 +51,23 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
   }
 
   @NotNull
-  public MockDeviceFileEntry addFile(@NotNull String name) {
+  public MockDeviceFileEntry addFile(@NotNull String name) throws AdbShellCommandException {
     assert myIsDirectory;
+    throwIfEntryExists(name);
     return new MockDeviceFileEntry(myFileSystem, this, name, false, false, null);
   }
 
   @NotNull
-  public MockDeviceFileEntry addFileLink(@NotNull String name, @NotNull String linkTarget) {
+  public MockDeviceFileEntry addFileLink(@NotNull String name, @NotNull String linkTarget) throws AdbShellCommandException {
     assert myIsDirectory;
+    throwIfEntryExists(name);
     return new MockDeviceFileEntry(myFileSystem, this, name, false, true, linkTarget);
   }
 
   @NotNull
-  public MockDeviceFileEntry addDirectory(@NotNull String name) {
+  public MockDeviceFileEntry addDirectory(@NotNull String name) throws AdbShellCommandException {
     assert myIsDirectory;
+    throwIfEntryExists(name);
     return new MockDeviceFileEntry(myFileSystem, this, name, true, false, null);
   }
 
@@ -80,6 +86,12 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
     myIsDirectory = isDirectory;
     myIsLink = isLink;
     myLinkTarget = linkTarget;
+  }
+
+  private void throwIfEntryExists(@NotNull String name) throws AdbShellCommandException {
+    if (myEntries.stream().anyMatch(x -> Objects.equals(x.getName(), name))) {
+      throw new AdbShellCommandException("File already exists");
+    }
   }
 
   @NotNull
@@ -103,6 +115,15 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
   @Override
   public String getName() {
     return myName;
+  }
+
+  @NotNull
+  @Override
+  public String getFullPath() {
+    if (myParent == null) {
+      return myName;
+    }
+    return AdbPathUtil.resolve(myParent.getFullPath(), myName);
   }
 
   @NotNull
@@ -174,3 +195,4 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
     myIsSymbolicLinkToDirectory = symbolicLinkToDirectory;
   }
 }
+
