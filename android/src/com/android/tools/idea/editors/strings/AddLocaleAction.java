@@ -48,7 +48,7 @@ final class AddLocaleAction extends AnAction {
 
   @Override
   public void update(@NotNull AnActionEvent event) {
-    long count = ((StringResourceTableModel)myTable.getModel()).getKeys().stream()
+    long count = myTable.getModel().getKeys().stream()
       .filter(key -> key.getDirectory() != null)
       .count();
 

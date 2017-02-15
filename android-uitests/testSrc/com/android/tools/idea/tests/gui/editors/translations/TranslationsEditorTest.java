@@ -97,9 +97,9 @@ public final class TranslationsEditorTest {
       "Chinese (zh) in China (CN)");
     assertEquals(expected, myTranslationsEditor.locales());
 
-    assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "hello_world", "some_id"), myTranslationsEditor.keys());
+    assertEquals(Arrays.asList("app_name", "hello_world", "action_settings", "some_id", "cancel", "app_name"), myTranslationsEditor.keys());
 
-    JTableCellFixture cancel = myTranslationsEditor.getTable().cell(TableCell.row(3).column(CHINESE_IN_CHINA_COLUMN)); // Cancel in zh-rCN
+    JTableCellFixture cancel = myTranslationsEditor.getTable().cell(TableCell.row(4).column(CHINESE_IN_CHINA_COLUMN)); // Cancel in zh-rCN
     assertEquals("取消", cancel.value());
     assertEquals(-1, cancel.font().target().canDisplayUpTo("取消")); // requires DroidSansFallbackFull.ttf
   }
@@ -115,7 +115,7 @@ public final class TranslationsEditorTest {
     dialog.getResourceFolderComboBox().selectItem(toResourceName("app/src/debug/res"));
     dialog.getOkButton().click();
 
-    Object expected = Arrays.asList("action_settings", "action_settings", "app_name", "app_name", "cancel", "hello_world", "some_id");
+    Object expected = Arrays.asList("app_name", "hello_world", "action_settings", "some_id", "cancel", "app_name",  "action_settings");
     assertEquals(expected, myTranslationsEditor.keys());
   }
 
@@ -155,9 +155,9 @@ public final class TranslationsEditorTest {
   @Test
   public void filterKeys() {
     myTranslationsEditor.clickFilterKeysComboBoxItem("Show Translatable Keys");
-    assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "hello_world"), myTranslationsEditor.keys());
+    assertEquals(Arrays.asList("app_name", "hello_world", "action_settings", "cancel", "app_name"), myTranslationsEditor.keys());
     myTranslationsEditor.clickFilterKeysComboBoxItem("Show Keys Needing Translations");
-    assertEquals(Arrays.asList("action_settings", "app_name", "app_name", "cancel", "hello_world"), myTranslationsEditor.keys());
+    assertEquals(Arrays.asList("app_name", "hello_world", "action_settings", "cancel", "app_name"), myTranslationsEditor.keys());
     myTranslationsEditor.clickFilterKeysComboBoxItem("Show Keys Needing a Translation for English (en)");
     assertEquals(Collections.singletonList("cancel"), myTranslationsEditor.keys());
   }
@@ -228,7 +228,7 @@ public final class TranslationsEditorTest {
 
   @Test
   public void enteringValueUpdatesDebugStringsXml() {
-    myTranslationsEditor.getTable().enterValue(TableCell.row(1).column(HEBREW_COLUMN), "app_name_debug_iw");
+    myTranslationsEditor.getTable().enterValue(TableCell.row(5).column(HEBREW_COLUMN), "app_name_debug_iw");
 
     Object line = myGuiTest.ideFrame().getEditor()
       .open("app/src/debug/res/values-iw/strings.xml")
@@ -241,7 +241,7 @@ public final class TranslationsEditorTest {
 
   @Test
   public void enteringValueUpdatesMainStringsXml() {
-    myTranslationsEditor.getTable().enterValue(TableCell.row(2).column(HEBREW_COLUMN), "app_name_main_iw");
+    myTranslationsEditor.getTable().enterValue(TableCell.row(0).column(HEBREW_COLUMN), "app_name_main_iw");
 
     Object line = myGuiTest.ideFrame().getEditor()
       .open("app/src/main/res/values-iw/strings.xml")
@@ -257,16 +257,39 @@ public final class TranslationsEditorTest {
     JTableFixture table = myTranslationsEditor.getTable();
 
     assertEquals(toResourceName("app/src/main/res"), table.valueAt(TableCell.row(0).column(RESOURCE_FOLDER_COLUMN)));
-    assertEquals(toResourceName("app/src/debug/res"), table.valueAt(TableCell.row(1).column(RESOURCE_FOLDER_COLUMN)));
+    assertEquals(toResourceName("app/src/main/res"), table.valueAt(TableCell.row(1).column(RESOURCE_FOLDER_COLUMN)));
     assertEquals(toResourceName("app/src/main/res"), table.valueAt(TableCell.row(2).column(RESOURCE_FOLDER_COLUMN)));
     assertEquals(toResourceName("app/src/main/res"), table.valueAt(TableCell.row(3).column(RESOURCE_FOLDER_COLUMN)));
     assertEquals(toResourceName("app/src/main/res"), table.valueAt(TableCell.row(4).column(RESOURCE_FOLDER_COLUMN)));
+    assertEquals(toResourceName("app/src/debug/res"), table.valueAt(TableCell.row(5).column(RESOURCE_FOLDER_COLUMN)));
+  }
+
+  @Test
+  public void keySorting() {
+    JTableFixture table = myTranslationsEditor.getTable();
+    Object expected = Arrays.asList("app_name", "hello_world", "action_settings", "some_id", "cancel", "app_name");
+    assertEquals(expected, myTranslationsEditor.keys());
+
+    // ascending
+    table.tableHeader().clickColumn(0);
+    expected = Arrays.asList("action_settings", "app_name", "app_name", "cancel", "hello_world", "some_id");
+    assertEquals(expected, myTranslationsEditor.keys());
+
+    // descending
+    table.tableHeader().clickColumn(0);
+    expected = Arrays.asList("some_id", "hello_world", "cancel", "app_name", "app_name", "action_settings");
+    assertEquals(expected, myTranslationsEditor.keys());
+
+    // back to natural order
+    table.tableHeader().clickColumn(0);
+    expected = Arrays.asList("app_name", "hello_world", "action_settings", "some_id", "cancel", "app_name");
+    assertEquals(expected, myTranslationsEditor.keys());
   }
 
   @Test
   public void enteringTextInDefaultValueTextFieldUpdatesTableCell() {
     JTableFixture table = myTranslationsEditor.getTable();
-    TableCell actionSettingsDefaultValue = TableCell.row(0).column(DEFAULT_VALUE_COLUMN);
+    TableCell actionSettingsDefaultValue = TableCell.row(2).column(DEFAULT_VALUE_COLUMN);
 
     table.selectCell(actionSettingsDefaultValue);
 
@@ -275,7 +298,7 @@ public final class TranslationsEditorTest {
     field.selectAll();
     field.enterText("action_settings");
 
-    TableCell appNameDefaultValue = TableCell.row(1).column(DEFAULT_VALUE_COLUMN);
+    TableCell appNameDefaultValue = TableCell.row(0).column(DEFAULT_VALUE_COLUMN);
     table.selectCell(appNameDefaultValue);
 
     assertEquals("action_settings", table.valueAt(actionSettingsDefaultValue));

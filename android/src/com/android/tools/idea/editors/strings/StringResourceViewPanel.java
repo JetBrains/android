@@ -387,7 +387,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
       myKeyTextField.setEnabled(true);
       myDefaultValueTextField.setEnabled(true);
       myTranslationTextField.setEnabled(true);
-      StringResourceTableModel model = (StringResourceTableModel)myTable.getModel();
+      StringResourceTableModel model = myTable.getModel();
 
       int row = myTable.getSelectedRowModelIndex();
       int column = myTable.getSelectedColumnModelIndex();
@@ -445,7 +445,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
       int row = myTable.getSelectedRowModelIndex();
       int column = myTable.getSelectedColumnModelIndex();
 
-      StringResourceTableModel model = (StringResourceTableModel)myTable.getModel();
+      StringResourceTableModel model = myTable.getModel();
       String value = (String)model.getValueAt(row, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
 
       Locale locale = model.getLocale(column);

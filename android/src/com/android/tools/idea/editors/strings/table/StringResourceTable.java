@@ -41,6 +41,7 @@ import javax.swing.table.TableRowSorter;
 import java.awt.datatransfer.Transferable;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
@@ -78,38 +79,22 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
     new TableSpeedSearch(this);
   }
 
-  public void refilter() {
-    @SuppressWarnings("unchecked")
-    DefaultRowSorter<StringResourceTableModel, Integer> rowSorter = (DefaultRowSorter<StringResourceTableModel, Integer>)getRowSorter();
-
-    if (rowSorter != null) {
-      rowSorter.sort();
-    }
-  }
-
   @Nullable
   public StringResourceData getData() {
-    return ((StringResourceTableModel)getModel()).getData();
+    return getModel().getData();
+  }
+
+  public void refilter() {
+    getRowSorter().sort();
   }
 
   @Nullable
   public StringResourceTableRowFilter getRowFilter() {
-    @SuppressWarnings("unchecked")
-    DefaultRowSorter<? extends TableModel, Integer> sorter = (DefaultRowSorter<? extends TableModel, Integer>)getRowSorter();
-
-    return sorter == null ? null : (StringResourceTableRowFilter)sorter.getRowFilter();
+    return (StringResourceTableRowFilter)getRowSorter().getRowFilter();
   }
 
   public void setRowFilter(@Nullable StringResourceTableRowFilter filter) {
-    if (filter == null) {
-      setRowSorter(null);
-    }
-    else {
-      DefaultRowSorter<StringResourceTableModel, Integer> sorter = new TableRowSorter<>((StringResourceTableModel)getModel());
-      sorter.setRowFilter(filter);
-
-      setRowSorter(sorter);
-    }
+    getRowSorter().setRowFilter(filter);
   }
 
   @Nullable
@@ -134,7 +119,7 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
       columnModel.removeColumn(col);
     }
 
-    StringResourceTableModel model = (StringResourceTableModel)getModel();
+    StringResourceTableModel model = getModel();
     // Create new columns from the data model info
     for (int i = 0; i < model.getColumnCount(); i++) {
       Locale locale = model.getLocale(i);
@@ -170,8 +155,20 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
   }
 
   @Override
+  public TableRowSorter<StringResourceTableModel> getRowSorter() {
+    //noinspection unchecked
+    return (TableRowSorter<StringResourceTableModel>)super.getRowSorter();
+  }
+
+  @Override
+  public StringResourceTableModel getModel() {
+    return (StringResourceTableModel)super.getModel();
+  }
+
+  @Override
   public void setModel(@NotNull TableModel model) {
     super.setModel(model);
+    setRowSorter(new ThreeStateTableRowSorter<>(getModel()));
     OptionalInt optionalWidth = getKeyColumnPreferredWidth();
 
     if (optionalWidth.isPresent()) {
@@ -203,7 +200,7 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
   }
 
   private void setLocaleColumnHeaderRenderers() {
-    TableCellRenderer renderer = new LocaleRenderer(tableHeader.getDefaultRenderer(), (StringResourceTableModel)getModel());
+    TableCellRenderer renderer = new LocaleRenderer(tableHeader.getDefaultRenderer(), getModel());
 
     IntStream.range(FIXED_COLUMN_COUNT, getColumnCount())
       .mapToObj(columnModel::getColumn)
@@ -256,6 +253,22 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
 
     if (transferable != null) {
       TableUtils.paste(this, transferable);
+    }
+  }
+
+  static class ThreeStateTableRowSorter<M extends TableModel> extends TableRowSorter<M> {
+    public ThreeStateTableRowSorter(M model) {
+      super(model);
+    }
+
+    @Override
+    public void toggleSortOrder(int column) {
+      List<? extends SortKey> sortKeys = getSortKeys();
+      if (!sortKeys.isEmpty() && sortKeys.get(0).getSortOrder() == SortOrder.DESCENDING) {
+        setSortKeys(null);
+        return;
+      }
+      super.toggleSortOrder(column);
     }
   }
 }
