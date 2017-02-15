@@ -121,6 +121,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
       .setProcessId(TEST_APP_ID)
       .setStartTimestamp(0)
       .setEndTimestamp(delayFromBase(10))
+      .setSession(DataStorePollerTest.SESSION)
       .build();
     CpuProfiler.CpuDataResponse expectedResponse = CpuProfiler.CpuDataResponse.newBuilder()
       .addData(CpuProfiler.CpuProfilerData.newBuilder()
@@ -174,6 +175,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
       .setProcessId(TEST_APP_ID)
       .setStartTimestamp(BASE_TIME_NS)
       .setEndTimestamp(delayFromBase(20))
+      .setSession(DataStorePollerTest.SESSION)
       .build();
     CpuProfiler.GetThreadsResponse expectedResponse = CpuProfiler.GetThreadsResponse.newBuilder()
       // Threads are returned ordered by id
@@ -219,6 +221,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
       .setProcessId(TEST_APP_ID)
       .setStartTimestamp(startTimestamp)
       .setEndTimestamp(delayFromBase(40))
+      .setSession(DataStorePollerTest.SESSION)
       .build();
     CpuProfiler.GetThreadsResponse expectedResponse = CpuProfiler.GetThreadsResponse.newBuilder()
       // THREAD_ID is not returned because it died before the requested range start
