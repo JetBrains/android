@@ -164,12 +164,20 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
                   return;
                 }
 
-                // Creates the channel that is used to connect to the device perfd.
+                /**
+                 * Creates the channel that is used to connect to the device perfd.
+                 *
+                 * TODO: investigate why ant build fails to find the ManagedChannel-related classes
+                 * The temporary fix is to stash the currently set context class loader so ManagedChannelProvider can find an appropriate implementation.
+                 */
+                ClassLoader stashedContextClassLoader = Thread.currentThread().getContextClassLoader();
+                Thread.currentThread().setContextClassLoader(NettyChannelBuilder.class.getClassLoader());
                 ManagedChannel perfdChannel = NettyChannelBuilder
                   .forAddress("localhost", myLocalPort)
                   .usePlaintext(true)
                   .maxMessageSize(MAX_MESSAGE_SIZE)
                   .build();
+                Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
 
                 // Creates a proxy server that the datastore connects to.
                 myPerfdProxy = new PerfdProxy(myDevice, perfdChannel, myDevice.getSerialNumber());
