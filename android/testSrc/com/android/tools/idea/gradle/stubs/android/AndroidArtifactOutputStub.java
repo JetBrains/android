@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.annotations.NonNull;
+import com.android.build.FilterData;
 import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifactOutput;
 
@@ -45,6 +46,24 @@ public class AndroidArtifactOutputStub implements AndroidArtifactOutput {
 
   @NonNull
   @Override
+  public String getOutputType() {
+    return getMainOutputFile().getOutputType();
+  }
+
+  @NonNull
+  @Override
+  public Collection<String> getFilterTypes() {
+    return getMainOutputFile().getFilterTypes();
+  }
+
+  @NonNull
+  @Override
+  public Collection<FilterData> getFilters() {
+    return getMainOutputFile().getFilters();
+  }
+
+  @NonNull
+  @Override
   public OutputFile getMainOutputFile() {
     return myOutputs.iterator().next();
   }
@@ -55,14 +74,14 @@ public class AndroidArtifactOutputStub implements AndroidArtifactOutput {
     return myOutputs;
   }
 
-  @NonNull
-  @Override
-  public File getSplitFolder() {
-    throw new UnsupportedOperationException();
-  }
-
   @Override
   public int getVersionCode() {
-    throw new UnsupportedOperationException();
+    return getMainOutputFile().getVersionCode();
+  }
+
+  @NonNull
+  @Override
+  public File getOutputFile() {
+    return getMainOutputFile().getOutputFile();
   }
 }
