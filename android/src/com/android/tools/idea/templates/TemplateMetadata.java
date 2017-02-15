@@ -56,7 +56,6 @@ public class TemplateMetadata {
   public static final String ATTR_PACKAGE_ROOT = "packageRoot";
   public static final String ATTR_RELATIVE_PACKAGE = "relativePackage";
   public static final String ATTR_APP_TITLE = "appTitle";
-  public static final String ATTR_BASE_THEME = "baseTheme";
   public static final String ATTR_IS_NEW_PROJECT = "isNewProject";
   public static final String ATTR_THEME_EXISTS = "themeExists";
   public static final String ATTR_IS_GRADLE = "isGradle";
@@ -80,13 +79,14 @@ public class TemplateMetadata {
   public static final String ATTR_JAVA_VERSION = "javaVersion";
   public static final String ATTR_SDK_DIR = "sdkDir";
   public static final String ATTR_PER_MODULE_REPOS = "perModuleRepositories";
-  public static final String ATTR_ICON_NAME = "iconName";
   public static final String ATTR_APPLICATION_PACKAGE = "applicationPackage";
   public static final String ATTR_SOURCE_PROVIDER_NAME = "sourceProviderName";
   public static final String ATTR_MODULE_NAME = "projectName";
   public static final String ATTR_CREATE_ACTIVITY = "createActivity";
   public static final String ATTR_INCLUDE_FORM_FACTOR = "included";
   public static final String ATTR_IS_LOW_MEMORY = "isLowMemory";
+  public static final String ATTR_ESPRESSO_VERSION = "espressoVersion";
+  public static final String ATTR_NUM_ENABLED_FORM_FACTORS = "NumberOfEnabledFormFactors";
 
   public static final String ATTR_CPP_FLAGS = "cppFlags";
   public static final String ATTR_CPP_SUPPORT = "includeCppSupport";
