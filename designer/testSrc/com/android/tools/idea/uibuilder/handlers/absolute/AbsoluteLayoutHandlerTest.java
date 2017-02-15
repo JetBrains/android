@@ -16,16 +16,16 @@
 package com.android.tools.idea.uibuilder.handlers.absolute;
 
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
+import com.intellij.openapi.command.WriteCommandAction;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
-import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
 
 public class AbsoluteLayoutHandlerTest extends SceneTest {
@@ -157,6 +157,31 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
                  "    android:layout_height=\"100dp\"\n" +
                  "    android:layout_x=\"125dp\"\n" +
                  "    android:layout_y=\"125dp\"/>");
+  }
+
+  // Regression test: This used to give a NPE
+  public void testResizeTargetOutOfLayout() throws Exception {
+    // First move the TextView to the right such that the right half is outside the layout.
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      NlComponent component = myModel.find("myText");
+      assertThat(component).isNotNull();
+      component.setAndroidAttribute(ATTR_LAYOUT_X, "950dp");
+      component.setBounds(1900, 200, 200, 200);
+    });
+    mySceneBuilder.update();
+
+    // Then select the bottom right resize target by specifying a position 1dp below
+    // and 1dp to the right of the bottom right corner of the TextView.
+    myInteraction.select("myText", true);
+    myInteraction.mouseDown("myText", 51, 51);
+    myInteraction.mouseRelease(1100, 250);
+    myScreen.get("@id/myText")
+      .expectXml("<TextView\n" +
+                 "    android:id=\"@id/myText\"\n" +
+                 "    android:layout_width=\"150dp\"\n" +
+                 "    android:layout_height=\"150dp\"\n" +
+                 "    android:layout_x=\"950dp\"\n" +
+                 "    android:layout_y=\"100dp\"/>");
   }
 
   @Override
