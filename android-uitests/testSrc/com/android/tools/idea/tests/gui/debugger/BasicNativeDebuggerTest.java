@@ -36,6 +36,7 @@ import org.junit.runner.RunWith;
 
 import javax.swing.tree.TreeNode;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -174,6 +175,75 @@ public class BasicNativeDebuggerTest {
     stopDebugSession(debugToolWindowFixture);
   }
 
+  /**
+   * Verifies that instant run hot swap works as expected on a C++ support project.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C14603479
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Import BasicJniApp.
+   *   2. Select auto debugger on Edit Configurations dialog.
+   *   3. Set breakpoints both in Java and C++ code.
+   *   4. Debug on a device running M or earlier.
+   *   5. When the C++ breakpoint is hit, verify variables and resume
+   *   6. When the Java breakpoint is hit, verify variables
+   *   7. Stop debugging
+   *   </pre>
+   */
+  @Test
+  public void testCAndJavaBreakAndResume() throws Exception {
+    guiTest.importProjectAndWaitForProjectSyncToFinish("BasicJniApp");
+    createAVD();
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+
+    ideFrameFixture.invokeMenuPath("Run", "Edit Configurations...");
+    EditConfigurationsDialogFixture.find(guiTest.robot())
+      .selectAutoDebugger()
+      .clickOk();
+
+    // Setup C++ and Java breakpoints.
+    // The breakpoints must be put in execution order for verification convenience.
+    String[] breakPoints = {
+      "return (*env)->NewStringUTF(env, message);",
+      "setContentView(tv);",
+    };
+    openAndToggleBreakPoints("app/src/main/jni/multifunction-jni.c", Arrays.copyOfRange(breakPoints, 0, 1));
+    openAndToggleBreakPoints("app/src/main/java/com/example/BasicJniApp.java", Arrays.copyOfRange(breakPoints, 1, 2));
+
+    ideFrameFixture.debugApp(DEBUG_CONFIG_NAME)
+      .selectDevice(AVD_NAME)
+      .clickOk();
+
+    DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrameFixture);
+    waitForSessionStart(debugToolWindowFixture);
+
+    // Setup the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
+    Map<String, String[]> breakpointToExpectedPatterns = new HashMap<>();
+    breakpointToExpectedPatterns.put(
+      breakPoints[0], new String[] {
+        variableToSearchPattern("sum_of_10_ints", "int", "55"),
+        variableToSearchPattern("product_of_10_ints", "int", "3628800"),
+        variableToSearchPattern("quotient", "int", "512")});
+    breakpointToExpectedPatterns.put(
+      breakPoints[1], new String[] {
+        variableToSearchPattern("s", "\"Success. Sum = 55, Product = 3628800, Quotient = 512\"")});
+
+    //Thread.sleep(Long.MAX_VALUE);
+    // Loop through all the breakpoints and match the strings printed in the Variables pane with the expected patterns setup in
+    // breakpointToExpectedPatterns.
+    for (int i = 0; i < breakPoints.length; ++i) {
+      if (i > 0) {
+        resumeProgram();
+      }
+      String[] expectedPatterns = breakpointToExpectedPatterns.get(breakPoints[i]);
+      Wait.seconds(5).expecting("the debugger tree to appear")
+        .until(() -> verifyVariablesAtBreakpoint(expectedPatterns, DEBUG_CONFIG_NAME));
+    }
+  }
+
   private void stopDebugSession(DebugToolWindowFixture debugToolWindowFixture) {
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);
     contentFixture.waitForStopClick();
@@ -249,6 +319,11 @@ public class BasicNativeDebuggerTest {
    * Returns the appropriate pattern to look for a variable named {@code name} with the type {@code type} and value {@code value} appearing
    * in the Variables window in Android Studio.
    */
+  @NotNull
+  private static String variableToSearchPattern(String name, String value) {
+    return String.format("%s = %s", name, value);
+  }
+
   @NotNull
   private static String variableToSearchPattern(String name, String type, String value) {
     return String.format("%s = \\{%s\\} %s", name, type, value);
