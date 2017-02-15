@@ -200,6 +200,10 @@ public class StudioProfilersView extends AspectObserver {
       append(name.substring(index + 1), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
 
       append(String.format(" (%1$d)", process.getPid()), SimpleTextAttributes.GRAY_ATTRIBUTES);
+
+      if (process.getState() != Profiler.Process.State.ALIVE) {
+        append(" [DEAD]", SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES);
+      }
     }
 
     @NotNull

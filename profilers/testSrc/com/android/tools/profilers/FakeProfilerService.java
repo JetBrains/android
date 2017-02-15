@@ -69,6 +69,13 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     myProcesses.putValue(myDevices.get(session), process);
   }
 
+  public void removeProcess(Common.Session session, Profiler.Process process) {
+    if (!myDevices.containsKey(session)) {
+      throw new IllegalArgumentException("Invalid device serial: " + session);
+    }
+    myProcesses.remove(myDevices.get(session), process);
+  }
+
   public void addDevice(Profiler.Device device) {
     Common.Session session = Common.Session.newBuilder()
       .setBootId(device.getBootId())
