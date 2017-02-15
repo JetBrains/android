@@ -53,6 +53,8 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_MODULE_NAME;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -145,6 +147,14 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
 
   @Override
   protected void onProceeding() {
+    Map<String, Object> projectTemplateValues = getModel().getTemplateValues();
+    projectTemplateValues.put("NumberOfEnabledFormFactors", myEnabledFormFactors.get());
+
+    myFormFactors.forEach(((formFactor, formFactorInfo) -> {
+      projectTemplateValues.put(formFactor.id + ATTR_INCLUDE_FORM_FACTOR, formFactorInfo.controls.getInclusionCheckBox().isSelected());
+      projectTemplateValues.put(formFactor.id + ATTR_MODULE_NAME, formFactorInfo.newModuleModel.moduleName().get());
+    }));
+
     Set<NewModuleModel> newModuleModels = getModel().getNewModuleModels();
     newModuleModels.clear();
 

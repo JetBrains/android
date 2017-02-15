@@ -52,7 +52,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_INSTANT_APP;
+import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 
@@ -68,6 +68,7 @@ public class NewProjectModel extends WizardModel {
   private final BoolProperty myEnableCppSupport = new BoolValueProperty();
   private final StringProperty myCppFlags = new StringValueProperty();
   private final OptionalProperty<Project> myProject = new OptionalValueProperty<>();
+  private final Map<String, Object> myTemplateValues = Maps.newHashMap();
   private final Set<NewModuleModel> myNewModels = new HashSet<>();
 
   private static Logger getLogger() {
@@ -112,6 +113,11 @@ public class NewProjectModel extends WizardModel {
 
   public OptionalProperty<Project> project() {
     return myProject;
+  }
+
+  @NotNull
+  public Map<String, Object> getTemplateValues() {
+    return myTemplateValues;
   }
 
   /**
@@ -197,11 +203,20 @@ public class NewProjectModel extends WizardModel {
     Project project = UIUtil.invokeAndWaitIfNeeded(() -> ProjectManager.getInstance().createProject(projectName, projectLocation));
     project().setValue(project);
 
-    Map<String, Object> params = Maps.newHashMap();
+    // Cpp Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
+    myTemplateValues.put(ATTR_CPP_SUPPORT, myEnableCppSupport.get());
+    myTemplateValues.put(ATTR_CPP_FLAGS, myCppFlags.get());
+    myTemplateValues.put(ATTR_TOP_OUT, project.getBasePath());
+
+    Map<String, Object> params = Maps.newHashMap(myTemplateValues);
     boolean hasInstantApp = false;
     for (NewModuleModel newModuleModel : getNewModuleModels()) {
       params.putAll(newModuleModel.getTemplateValues());
       hasInstantApp |= newModuleModel.instantApp().get();
+
+      // Set global parameters
+      newModuleModel.getRenderTemplateValues().getValue().putAll(myTemplateValues);
+      newModuleModel.getTemplateValues().putAll(myTemplateValues);
     }
 
     // TODO: May we should not reuse ATTR_IS_INSTANT_APP. A new ATTR_IS_INSTANT_PROJECT?
