@@ -21,12 +21,27 @@ import org.jetbrains.annotations.NotNull;
  * Interface implemented by listeners on model changes
  */
 public interface ModelListener {
-  /** Something in the model changed */
-  void modelChanged(@NotNull NlModel model);
+  /**
+   * Some of the derived (from layoutlib) data in the model changed.
+   *
+   * TODO: determine whether the implementors of this actually need this or if they can use modelChanged, indicating that there
+   * has been a change to the model itself (e.g. components added or deleted).
+   */
+  default void modelDerivedDataChanged(@NotNull NlModel model) {}
+
+  /**
+   * Something in the model has changed.
+   * Note that dependant data (e.g. derived from layoutlib) may not be updated yet.
+   */
+  default void modelChanged(@NotNull NlModel model) {}
 
   /** The model finished rendering after updates */
   void modelRendered(@NotNull NlModel model);
 
   /** The model changed due to a layout pass */
   void modelChangedOnLayout(@NotNull NlModel model, boolean animate);
+
+  default void modelActivated(@NotNull NlModel model) {}
+
+  default void modelDeactivated(@NotNull NlModel model) {}
 }

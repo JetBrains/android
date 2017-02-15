@@ -816,7 +816,7 @@ public class InteractionManager {
         for (NlComponent draggedNlComponent : draggedNl) {
           SceneComponent component = scene.getSceneComponent(draggedNlComponent);
           if (component == null) {
-            component = sceneView.getSceneBuilder().createTemporaryComponent(draggedNlComponent);
+            component = sceneView.getSceneManager().createTemporaryComponent(draggedNlComponent);
             temporaryComponents.add(component);
           }
           dragged.add(component);
@@ -948,7 +948,7 @@ public class InteractionManager {
         components.get(index).y = dragged.get(index).getNlComponent().y;
       }
       dragged.clear();
-      components.forEach(nl -> dragged.add(sceneView.getSceneBuilder().createTemporaryComponent(nl)));
+      components.forEach(nl -> dragged.add(sceneView.getSceneManager().createTemporaryComponent(nl)));
       return insertType;
     }
 
