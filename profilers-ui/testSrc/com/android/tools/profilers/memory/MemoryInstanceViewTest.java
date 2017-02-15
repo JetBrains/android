@@ -44,9 +44,9 @@ public class MemoryInstanceViewTest {
   private static final String MOCK_CLASS_NAME = "MockClass";
 
   private static final List<InstanceObject> INSTANCE_OBJECT_LIST = Arrays.asList(
-    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance1", "string1", 0, 2, 3, 4),
-    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance2", "string2", 1, 5, 6, 7),
-    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance3", "string3", 5, Integer.MAX_VALUE, 9, 10));
+    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance1", "string1", null, null, 0, 2, 3, 4),
+    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance2", "string2", null, null, 1, 5, 6, 7),
+    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance3", "string3", null, null, 5, Integer.MAX_VALUE, 9, 10));
 
   private static final ClassObject MOCK_CLASS = MemoryProfilerTestBase.mockClassObject(MOCK_CLASS_NAME, 1, 2, 3, INSTANCE_OBJECT_LIST);
 
@@ -123,7 +123,7 @@ public class MemoryInstanceViewTest {
 
   @Test
   public void testGoToInstance() {
-    InstanceObject instance = MemoryProfilerTestBase.mockInstanceObject("instanceClass", "instance", null, 1, 1, 2, 3);
+    InstanceObject instance = MemoryProfilerTestBase.mockInstanceObject("instanceClass", "instance", null, null, null, 1, 1, 2, 3);
     assertEquals(1, instance.getFieldCount());
     assertEquals(1, instance.getFields().size());
 
@@ -166,7 +166,7 @@ public class MemoryInstanceViewTest {
   @Test
   public void navigationTest() {
     final String testClassName = "com.Foo";
-    InstanceObject mockInstance = MemoryProfilerTestBase.mockInstanceObject(testClassName, "TestInstance", null, 0, 1, 2, 3);
+    InstanceObject mockInstance = MemoryProfilerTestBase.mockInstanceObject(testClassName, "TestInstance", null, null, null, 0, 1, 2, 3);
     ClassObject mockClass = MemoryProfilerTestBase.mockClassObject(testClassName, 4, 5, 6, Collections.singletonList(mockInstance));
     List<ClassObject> mockClassObjects = Collections.singletonList(mockClass);
     HeapObject mockHeap = MemoryProfilerTestBase.mockHeapObject("TestHeap", mockClassObjects);
@@ -220,14 +220,14 @@ public class MemoryInstanceViewTest {
     InstanceTreeNode instanceTreeNode0 = new InstanceTreeNode(INSTANCE_OBJECT_LIST.get(0));
     InstanceTreeNode instanceTreeNode1 = new InstanceTreeNode(INSTANCE_OBJECT_LIST.get(1));
     InstanceTreeNode instanceTreeNode2 = new InstanceTreeNode(INSTANCE_OBJECT_LIST.get(2));
-    assertEquals(0, instanceTreeNode0.getActualChildren().size());
-    assertEquals(0, instanceTreeNode1.getActualChildren().size());
-    assertEquals(0, instanceTreeNode2.getActualChildren().size());
+    assertEquals(0, instanceTreeNode0.getBuiltChildren().size());
+    assertEquals(0, instanceTreeNode1.getBuiltChildren().size());
+    assertEquals(0, instanceTreeNode2.getBuiltChildren().size());
     instanceTreeNode0.expandNode();
     instanceTreeNode1.expandNode();
     instanceTreeNode2.expandNode();
-    assertEquals(0, instanceTreeNode0.getActualChildren().size());
-    assertEquals(1, instanceTreeNode1.getActualChildren().size());
-    assertEquals(5, instanceTreeNode2.getActualChildren().size());
+    assertEquals(0, instanceTreeNode0.getBuiltChildren().size());
+    assertEquals(1, instanceTreeNode1.getBuiltChildren().size());
+    assertEquals(5, instanceTreeNode2.getBuiltChildren().size());
   }
 }

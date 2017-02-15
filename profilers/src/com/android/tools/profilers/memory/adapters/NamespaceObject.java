@@ -29,15 +29,52 @@ public class NamespaceObject implements MemoryObject {
     return myName;
   }
 
+  public boolean isInNamespace(@NotNull NamespaceObject target) {
+    return false;
+  }
+
+  /**
+   * @return number of instances across all heaps.
+   */
   public int getTotalCount() {
     return INVALID_VALUE;
   }
 
+  /**
+   * @return number of instances on current heap.
+   */
   public int getHeapCount() {
     return INVALID_VALUE;
   }
 
+  /**
+   * @return number of instances on current heap.
+   */
   public long getRetainedSize() {
     return INVALID_VALUE;
   }
+
+  /**
+   * @return the (approximated?) size of each instance of the class.
+   */
+  public int getInstanceSize() {
+    return INVALID_VALUE;
+  }
+
+  /**
+   * @return size of instances on current heap.
+   */
+  public int getShallowSize() {
+    return INVALID_VALUE;
+  }
+
+  /**
+   * Accumulate the stats of the given {@link InstanceObject} into this {@link NamespaceObject}.
+   */
+  public void accumulateInstanceObject(@NotNull InstanceObject instanceObject) {}
+
+  /**
+   * Accumulate the stats of the given {@link NamespaceObject} into this {@link NamespaceObject}.
+   */
+  public void accumulateNamespaceObject(@NotNull NamespaceObject namespaceObject) {}
 }
