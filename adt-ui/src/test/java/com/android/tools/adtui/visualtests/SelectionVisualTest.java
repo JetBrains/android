@@ -16,13 +16,15 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.AnimatedComponent;
-import com.android.tools.adtui.chart.linechart.OverlayComponent;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.SelectionComponent;
+import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,6 +40,8 @@ public class SelectionVisualTest extends VisualTest {
   private JTextField myRangeMax;
   private JTextField mySelectionMin;
   private JTextField mySelectionMax;
+  private SelectionModel mySelectionModel;
+  private JPanel myComponent;
 
   @Override
   protected List<Updatable> createModelList() {
@@ -45,16 +49,24 @@ public class SelectionVisualTest extends VisualTest {
     myRange = new Range(0, 1000);
     mySelectionRange = new Range(100, 900);
 
-    DefaultDataSeries<DefaultDurationData> series = new DefaultDataSeries<>();
-    RangedSeries<DefaultDurationData> ranged = new RangedSeries<>(myRange, series);
-    DurationDataModel<DefaultDurationData> constraints = new DurationDataModel<>(ranged);
+    DefaultDataSeries<DefaultDurationData> series1 = new DefaultDataSeries<>();
+    RangedSeries<DefaultDurationData> ranged1 = new RangedSeries<>(myRange, series1);
+    DurationDataModel<DefaultDurationData> constraint1 = new DurationDataModel<>(ranged1);
+    series1.add(100, new DefaultDurationData(100));
+    series1.add(300, new DefaultDurationData(150));
+    series1.add(700, new DefaultDurationData(150));
 
-    series.add(100, new DefaultDurationData(100));
-    series.add(300, new DefaultDurationData(150));
-    series.add(700, new DefaultDurationData(150));
+    DefaultDataSeries<DefaultDurationData> series2 = new DefaultDataSeries<>();
+    RangedSeries<DefaultDurationData> ranged2 = new RangedSeries<>(myRange, series2);
+    DurationDataModel<DefaultDurationData> constraint2 = new DurationDataModel<>(ranged2);
+    series2.add(120, new DefaultDurationData(20));
+    series2.add(500, new DefaultDurationData(50));
+    series2.add(750, new DefaultDurationData(50));
 
-    SelectionModel selection = new SelectionModel(mySelectionRange, myRange, constraints);
-    mySelection = new SelectionComponent(selection);
+    mySelectionModel = new SelectionModel(mySelectionRange, myRange);
+    mySelectionModel.addConstraint(constraint1);
+    mySelectionModel.addConstraint(constraint2);
+    mySelection = new SelectionComponent(mySelectionModel);
 
     // Add the scene components to the list
     List<Updatable> componentsList = new ArrayList<>();
@@ -65,6 +77,11 @@ public class SelectionVisualTest extends VisualTest {
       mySelectionMax.setText(String.valueOf(mySelectionRange.getMax()));
     });
 
+    myComponent = new JPanel(new TabularLayout("*", "*"));
+    myComponent.setBackground(Color.WHITE);
+    myComponent.add(mySelection, new TabularLayout.Constraint(0, 0));
+    myComponent.add(new DurationMarkers(constraint2, new Color(198, 198, 198)), new TabularLayout.Constraint(0, 0));
+    myComponent.add(new DurationMarkers(constraint1, new Color(232, 232, 232)), new TabularLayout.Constraint(0, 0));
     return componentsList;
   }
 
@@ -80,16 +97,16 @@ public class SelectionVisualTest extends VisualTest {
 
   @Override
   protected void populateUi(@NotNull JPanel panel) {
-    JPanel background = new JPanel(new BorderLayout());
-    background.setBackground(Color.WHITE);
-    background.add(mySelection, BorderLayout.CENTER);
-
-    JPanel controls = VisualTest.createControlledPane(panel, background);
+    JPanel controls = VisualTest.createControlledPane(panel, myComponent);
 
     myRangeMin = addEntryField("Range Min", controls);
     myRangeMax = addEntryField("Range Max", controls);
     mySelectionMin = addEntryField("Selection Min", controls);
     mySelectionMax = addEntryField("Selection Max", controls);
+    controls.add(VisualTest.createCheckbox("Full constraint", e -> {
+      boolean selected = e.getStateChange() == ItemEvent.SELECTED;
+      mySelectionModel.setSelectFullConstraint(selected);
+    }));
     controls.add(
       new Box.Filler(new Dimension(0, 0), new Dimension(300, Integer.MAX_VALUE),
                      new Dimension(300, Integer.MAX_VALUE)));
@@ -102,5 +119,29 @@ public class SelectionVisualTest extends VisualTest {
     panel.add(field);
     controls.add(panel);
     return field;
+  }
+
+  private static class DurationMarkers extends Component {
+    private final DurationDataModel<DefaultDurationData> myConstraints;
+    private final Color myColor;
+
+    public DurationMarkers(DurationDataModel<DefaultDurationData> constraints, Color color) {
+      myConstraints = constraints;
+      myColor = color;
+    }
+
+    @Override
+    public void paint(Graphics graphics) {
+      Graphics2D g = (Graphics2D)graphics;
+      Range range = myConstraints.getSeries().getXRange();
+      ImmutableList<SeriesData<DefaultDurationData>> series = myConstraints.getSeries().getSeries();
+      g.setColor(myColor);
+      for (SeriesData<DefaultDurationData> data : series) {
+        double x = (data.x - range.getMin()) / range.getLength() * getSize().width;
+        double w = data.value.getDuration() / range.getLength() * getSize().width;
+        g.fillRect((int)x, 0, (int)w, getSize().height);
+      }
+
+    }
   }
 }

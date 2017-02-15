@@ -15,12 +15,13 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.model.AspectObserver;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * One of the stages the profiler tool goes through. It models a "state" in the profiler tool itself.
  */
-public abstract class Stage {
+public abstract class Stage extends AspectObserver {
 
   private final StudioProfilers myProfilers;
 

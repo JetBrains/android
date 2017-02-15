@@ -20,8 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.ChangeEvent;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
 
@@ -44,20 +43,22 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
   @NotNull
   private final List<SelectionListener> myListeners = new ArrayList<>();
 
-  @Nullable
-  private final DurationDataModel<? extends DurationData> myConstraints;
+  @NotNull
+  private final List<DurationDataModel<? extends DurationData>> myConstraints;
+
+  private boolean mySelectFullConstraint;
 
   public SelectionModel(@NotNull Range selection, @NotNull Range range) {
-    this(selection, range, null);
-  }
-
-  public SelectionModel(@NotNull Range selection, @NotNull Range range, @Nullable DurationDataModel<? extends DurationData> constraints) {
     myRange = range;
     mySelectionRange = selection;
 
     myRange.addDependency(this).onChange(Range.Aspect.RANGE, this::rangesChanged);
     mySelectionRange.addDependency(this).onChange(Range.Aspect.RANGE, this::rangesChanged);
-    myConstraints = constraints;
+    myConstraints = new ArrayList<>();
+  }
+
+  public void addConstraint(@Nullable DurationDataModel<? extends DurationData> constraints) {
+    myConstraints.add(constraints);
   }
 
   private void rangesChanged() {
@@ -75,32 +76,45 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
 
   public void set(double min, double max) {
 
-    if (myConstraints == null) {
+    if (myConstraints.isEmpty()) {
       mySelectionRange.set(min, max);
       return;
     }
 
-    DataSeries<? extends DurationData> series = myConstraints.getSeries().getDataSeries();
-    ImmutableList<? extends SeriesData<? extends DurationData>> constraints = series.getDataForXRange(new Range(min, max));
 
     Range candidate = new Range(min, max);
-    Range constraint = null;
-    for (SeriesData<? extends DurationData> data : constraints) {
-      Range r = new Range(data.x, data.x + data.value.getDuration());
-      // Check if this constraint intersects the candidate range.
-      if (!r.getIntersection(candidate).isEmpty()) {
-        constraint = r;
-        // If this constraint already intersects the current range, use it.
-        if (!r.getIntersection(mySelectionRange).isEmpty()) {
-          break;
+    Range result = null;
+    boolean found = false;
+
+    for (DurationDataModel<? extends DurationData> constraint : myConstraints) {
+      DataSeries<? extends DurationData> series = constraint.getSeries().getDataSeries();
+      ImmutableList<? extends SeriesData<? extends DurationData>> constraints = series.getDataForXRange(new Range(min, max));
+      for (SeriesData<? extends DurationData> data : constraints) {
+        Range r = new Range(data.x, data.x + data.value.getDuration());
+        // Check if this constraint intersects the candidate range.
+        if (!r.getIntersection(candidate).isEmpty()) {
+          result = r;
+          // If this constraint already intersects the current range, use it.
+          if (!r.getIntersection(mySelectionRange).isEmpty()) {
+            found = true;
+            break;
+          }
         }
       }
+      if (found) {
+        break;
+      }
     }
-    if (constraint == null) {
+    if (result == null) {
       mySelectionRange.clear();
     }
     else {
-      mySelectionRange.set(constraint.getIntersection(candidate));
+      if (mySelectFullConstraint) {
+        mySelectionRange.set(result);
+      }
+      else {
+        mySelectionRange.set(result.getIntersection(candidate));
+      }
     }
   }
 
@@ -114,8 +128,10 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
     return myRange;
   }
 
-  @Nullable
-  public DurationDataModel<? extends DurationData> getConstraints() {
-    return myConstraints;
+  /**
+   * If set, it will force the selection to cover the full constraint ranges.
+   */
+  public void setSelectFullConstraint(boolean selectFullConstraint) {
+    mySelectFullConstraint = selectFullConstraint;
   }
 }
