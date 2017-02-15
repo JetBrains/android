@@ -26,10 +26,7 @@ import com.intellij.util.Alarm;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 public class FutureUtils {
   private static AtomicNotNullLazyValue<Alarm> myAlarm = new AtomicNotNullLazyValue<Alarm>() {
@@ -43,6 +40,19 @@ public class FutureUtils {
   public static <V> ListenableFuture<V> delayedValue(V value, int delayMillis) {
     SettableFuture<V> result = SettableFuture.create();
     myAlarm.getValue().addRequest(() -> result.set(value), delayMillis);
+    return result;
+  }
+
+  public static <V> ListenableFuture<V> delayedOperation(Callable<V> callable, int delayMillis) {
+    SettableFuture<V> result = SettableFuture.create();
+    myAlarm.getValue().addRequest(() -> {
+      try {
+        result.set(callable.call());
+      }
+      catch (Throwable t) {
+        result.setException(t);
+      }
+    }, delayMillis);
     return result;
   }
 

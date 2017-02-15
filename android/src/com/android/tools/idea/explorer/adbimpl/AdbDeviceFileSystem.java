@@ -42,11 +42,13 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   @NotNull private final AdbDeviceFileSystemService myService;
   @NotNull private final IDevice myDevice;
   @NotNull private final AdbFileListing myFileListing;
+  @NotNull private final AdbFileOperations myFileOperations;
 
   public AdbDeviceFileSystem(@NotNull AdbDeviceFileSystemService service, @NotNull IDevice device) {
     myService = service;
     myDevice = device;
     myFileListing = new AdbFileListing(myDevice, service.getTaskExecutor());
+    myFileOperations = new AdbFileOperations(myDevice, service.getTaskExecutor());
   }
 
   boolean isDevice(@Nullable IDevice device) {
@@ -90,6 +92,7 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
         assert result != null;
         futureResult.set(new AdbDeviceFileEntry(AdbDeviceFileSystem.this, result, null));
       }
+
       @Override
       public void onFailure(@NotNull Throwable t) {
         futureResult.setException(t);
@@ -154,7 +157,8 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
           .findFirst();
         if (!entry.isPresent()) {
           future.setException(new IllegalArgumentException("Path not found"));
-        } else {
+        }
+        else {
           resolvePathSegments(future, entry.get(), segments, segmentIndex + 1);
         }
       }
@@ -179,6 +183,18 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   }
 
   @NotNull
+  @Override
+  public ListenableFuture<Void> createNewFile(@NotNull DeviceFileEntry parentEntry, @NotNull String fileName) {
+    return myFileOperations.createNewFile(parentEntry.getFullPath(), fileName);
+  }
+
+  @NotNull
+  @Override
+  public ListenableFuture<Void> createNewDirectory(@NotNull DeviceFileEntry parentEntry, @NotNull String directoryName) {
+    return myFileOperations.createNewDirectory(parentEntry.getFullPath(), directoryName);
+  }
+
+  @NotNull
   private ListenableFuture<Void> downloadFileWorker(@NotNull AdbDeviceFileEntry entry,
                                                     @NotNull Path localPath,
                                                     @NotNull FileTransferProgress progress) {
@@ -193,14 +209,15 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
         try {
           long size = entry.getSize();
           syncService.pullFile(entry.myEntry.getFullPath(),
-                        localPath.toString(),
-                        new SingleFileSyncProgressMonitor(getEdtExecutor(), progress, size));
+                               localPath.toString(),
+                               new SingleFileSyncProgressMonitor(getEdtExecutor(), progress, size));
           futureResult.set(null);
         }
-        catch(SyncException e) {
+        catch (SyncException e) {
           if (e.wasCanceled()) {
             futureResult.setException(new CancellationException());
-          } else {
+          }
+          else {
             futureResult.setException(e);
           }
         }
@@ -221,7 +238,7 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
     return futureResult;
   }
 
-  @Nullable
+  @NotNull
   private ListenableFuture<SyncService> getSyncService() {
     SettableFuture<SyncService> futureResult = SettableFuture.create();
     getTaskExecutor().execute(() -> {
