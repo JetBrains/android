@@ -61,7 +61,7 @@ final public class StudioProfilersTest {
     CpuProfilerStage stage = new CpuProfilerStage(profilers);
     profilers.setStage(stage);
     assertEquals(ProfilerMode.NORMAL, profilers.getMode());
-    stage.setCapture(new CpuCapture(CpuCaptureTest.readValidTrace()));
+    stage.setAndSelectCapture(new CpuCapture(CpuCaptureTest.readValidTrace()));
     assertEquals(ProfilerMode.EXPANDED, profilers.getMode());
     profilers.setMonitoringStage();
     assertEquals(ProfilerMode.NORMAL, profilers.getMode());
