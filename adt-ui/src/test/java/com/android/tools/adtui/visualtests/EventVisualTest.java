@@ -17,8 +17,9 @@
 package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.event.*;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -43,7 +44,7 @@ public class EventVisualTest extends VisualTest {
     MOCK_RENDERERS = new HashMap();
     MOCK_RENDERERS.put(ActionType.TOUCH, new TouchEventRenderer());
     MOCK_RENDERERS.put(ActionType.ROTATE, new EventIconRenderer("/icons/events/rotate-event.png", "/icons/events/rotate-event_dark.png"));
-    MOCK_RENDERERS.put(ActionType.KEYBOARD, new EventIconRenderer("/icons/events/keyboard-event.png", "/icons/events/keyboard-event_dark.png"));
+    MOCK_RENDERERS.put(ActionType.KEYBOARD, new KeyboardEventRenderer());
   }
 
   private static final int AXIS_SIZE = 100;
@@ -56,9 +57,9 @@ public class EventVisualTest extends VisualTest {
 
   private AxisComponent myTimeAxis;
 
-  private DefaultDataSeries<EventAction<EventAction.Action, ActionType>> myData;
+  private DefaultDataSeries<EventAction<SimpleEventType>> myData;
 
-  private DefaultDataSeries<EventAction<EventAction.ActivityAction, String>> myActivityData;
+  private DefaultDataSeries<EventAction<StackedEventType>> myActivityData;
 
   private AnimatedTimeRange myAnimatedRange;
 
@@ -66,8 +67,8 @@ public class EventVisualTest extends VisualTest {
 
   private AxisComponentModel myTimeAxisModel;
 
-  private SimpleEventModel<ActionType> mySimpleEventModel;
-  private StackedEventModel myStackedEventModel;
+  private EventModel<SimpleEventType> myEventModel;
+  private EventModel<StackedEventType> myStackedEventModel;
 
 
   @Override
@@ -78,9 +79,9 @@ public class EventVisualTest extends VisualTest {
 
     myData = new DefaultDataSeries<>();
     myActivityData = new DefaultDataSeries<>();
-    mySimpleEventModel = new SimpleEventModel<>(new RangedSeries<>(xRange, myData));
-    mySimpleEventComponent = new SimpleEventComponent<>(mySimpleEventModel, MOCK_RENDERERS);
-    myStackedEventModel = new StackedEventModel(new RangedSeries<>(xRange, myActivityData));
+    myEventModel = new EventModel<>(new RangedSeries<>(xRange, myData));
+    mySimpleEventComponent = new SimpleEventComponent<>(myEventModel, MOCK_RENDERERS);
+    myStackedEventModel = new EventModel<>(new RangedSeries<>(xRange, myActivityData));
     myStackedEventComponent = new StackedEventComponent(myStackedEventModel);
     myAnimatedRange = new AnimatedTimeRange(xRange, 0);
     myTimelineRange = new AnimatedTimeRange(xTimelineRange, nowUs);
@@ -94,7 +95,7 @@ public class EventVisualTest extends VisualTest {
     componentsList.add(myAnimatedRange);
     componentsList.add(myTimelineRange);
     componentsList.add(myTimeAxisModel);
-    componentsList.add(mySimpleEventModel);
+    componentsList.add(myEventModel);
     componentsList.add(myStackedEventModel);
     return componentsList;
   }
@@ -111,7 +112,7 @@ public class EventVisualTest extends VisualTest {
 
   private void performTapAction() {
     long now = System.currentTimeMillis();
-    EventAction<EventAction.Action, ActionType> event = new EventAction<>(now, now, EventAction.Action.UP, ActionType.TOUCH);
+    EventAction<SimpleEventType> event = new EventAction<>(now, now, SimpleEventType.TOUCH);
     myData.add(now, event);
   }
 
@@ -161,8 +162,8 @@ public class EventVisualTest extends VisualTest {
       @Override
       public void mouseReleased(MouseEvent e) {
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-        EventAction<EventAction.Action, ActionType> event =
-          new EventAction<>(mDownTime, nowUs, EventAction.Action.UP, ActionType.TOUCH);
+        EventAction<SimpleEventType> event =
+          new EventAction<>(mDownTime, nowUs, SimpleEventType.TOUCH);
         myData.add(nowUs, event);
       }
     });
@@ -242,15 +243,15 @@ public class EventVisualTest extends VisualTest {
 
     private void addSelf() {
       long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-      EventAction<EventAction.ActivityAction, String> event =
-        new EventAction<>(myStartTimeUs, 0, EventAction.ActivityAction.ACTIVITY_STARTED, myName);
+      EventAction<StackedEventType> event =
+        new ActivityAction(myStartTimeUs, 0, StackedEventType.ACTIVITY_STARTED, myName);
       myActivityData.add(nowUs, event);
     }
 
     public void tearDown() {
       long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-      EventAction<EventAction.ActivityAction, String> event =
-        new EventAction<>(myStartTimeUs, nowUs, EventAction.ActivityAction.ACTIVITY_COMPLETED, myName);
+      EventAction<StackedEventType> event =
+        new ActivityAction(myStartTimeUs, nowUs, StackedEventType.ACTIVITY_COMPLETED, myName);
       myActivityData.add(nowUs, event);
     }
   }

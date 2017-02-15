@@ -15,9 +15,11 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.adtui.model.EventAction;
+import com.android.tools.adtui.model.event.ActivityAction;
+import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.event.StackedEventType;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.ProfilersTestData;
@@ -58,12 +60,12 @@ public class ActivityEventDataSeriesTest {
                          }
       ));
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<EventAction.ActivityAction, String>>> dataList = mySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<StackedEventType>>> dataList = mySeries.getDataForXRange(range);
     assertEquals(dataList.size(), 1);
-    SeriesData<EventAction<EventAction.ActivityAction, String>> event = dataList.get(0);
+    SeriesData<EventAction<StackedEventType>> event = dataList.get(0);
     verifyActivity(event, 0);
-    assertEquals(event.value.getValue(), EventAction.ActivityAction.ACTIVITY_STARTED);
-    assertEquals(event.value.getValueData(), ACTIVITY_NAME);
+    assertEquals(event.value.getType(), StackedEventType.ACTIVITY_STARTED);
+    assertEquals(((ActivityAction)event.value).getData(), ACTIVITY_NAME);
   }
 
   @Test
@@ -82,12 +84,12 @@ public class ActivityEventDataSeriesTest {
                          }
       ));
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<EventAction.ActivityAction, String>>> dataList = mySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<StackedEventType>>> dataList = mySeries.getDataForXRange(range);
     assertEquals(dataList.size(), 1);
-    SeriesData<EventAction<EventAction.ActivityAction, String>> event = dataList.get(0);
+    SeriesData<EventAction<StackedEventType>> event = dataList.get(0);
     verifyActivity(event, TEST_END_TIME_NS);
-    assertEquals(event.value.getValue(), EventAction.ActivityAction.ACTIVITY_COMPLETED);
-    assertEquals(event.value.getValueData(), ACTIVITY_NAME);
+    assertEquals(event.value.getType(), StackedEventType.ACTIVITY_COMPLETED);
+    assertEquals(((ActivityAction)event.value).getData(), ACTIVITY_NAME);
   }
 
   @Test
@@ -114,19 +116,19 @@ public class ActivityEventDataSeriesTest {
                          }
       ));
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<EventAction.ActivityAction, String>>> dataList = mySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<StackedEventType>>> dataList = mySeries.getDataForXRange(range);
     assertEquals(dataList.size(), 2);
-    SeriesData<EventAction<EventAction.ActivityAction, String>> event = dataList.get(0);
+    SeriesData<EventAction<StackedEventType>> event = dataList.get(0);
     verifyActivity(event, 0);
-    assertEquals(event.value.getValue(), EventAction.ActivityAction.ACTIVITY_STARTED);
-    assertEquals(event.value.getValueData(), ACTIVITY_NAME);
+    assertEquals(event.value.getType(), StackedEventType.ACTIVITY_STARTED);
+    assertEquals(((ActivityAction)event.value).getData(), ACTIVITY_NAME);
     event = dataList.get(1);
     verifyActivity(event, TEST_END_TIME_NS);
-    assertEquals(event.value.getValue(), EventAction.ActivityAction.ACTIVITY_COMPLETED);
-    assertEquals(event.value.getValueData(), ACTIVITY_NAME_2);
+    assertEquals(event.value.getType(), StackedEventType.ACTIVITY_COMPLETED);
+    assertEquals(((ActivityAction)event.value).getData(), ACTIVITY_NAME_2);
   }
 
-  private void verifyActivity(SeriesData<EventAction<EventAction.ActivityAction, String>> event, long endTime) {
+  private void verifyActivity(SeriesData<EventAction<StackedEventType>> event, long endTime) {
     assertEquals(event.x, TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
     assertEquals(event.value.getStartUs(), TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
     assertEquals(event.value.getEndUs(), TimeUnit.NANOSECONDS.toMicros(endTime));
