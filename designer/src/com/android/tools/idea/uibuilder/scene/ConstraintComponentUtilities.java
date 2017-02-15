@@ -121,9 +121,9 @@ public class ConstraintComponentUtilities {
     ourMarginAttributes = new ArrayList<>();
     ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN);
     ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
-    ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_START);
+    // ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_START);
     ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
-    ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_END);
+    // ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_END);
     ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
     ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
 
@@ -276,11 +276,11 @@ public class ConstraintComponentUtilities {
     }
     if (attributes == ourLeftAttributes) {
       transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, null);
-      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, null);
+      // transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, null);
       transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
     } else if (attributes == ourRightAttributes) {
       transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, null);
-      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, null);
+      // transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, null);
       transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
     } else if (attributes == ourTopAttributes) {
       transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, null);
@@ -374,5 +374,29 @@ public class ConstraintComponentUtilities {
       }
     }
     return false;
+  }
+
+  public static void ensureHorizontalPosition(NlComponent component, AttributesTransaction transaction) {
+    if (hasHorizontalConstraints(component)) {
+      return;
+    }
+    int dx = component.x - (component.getParent() != null ? component.getParent().x : 0);
+    if (dx > 0) {
+      float dipValue = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
+      String position = String.format(SdkConstants.VALUE_N_DP, ((int)(0.5f + dx / dipValue)));
+      transaction.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, position);
+    }
+  }
+
+  public static void ensureVerticalPosition(NlComponent component, AttributesTransaction transaction) {
+    if (hasVerticalConstraints(component)) {
+      return;
+    }
+    int dy = component.y - (component.getParent() != null ? component.getParent().y : 0);
+    if (dy > 0) {
+      float dipValue = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
+      String position = String.format(SdkConstants.VALUE_N_DP, ((int)(0.5f + dy / dipValue)));
+      transaction.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, position);
+    }
   }
 }
