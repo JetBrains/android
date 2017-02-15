@@ -5,6 +5,7 @@ import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.manifmerger.ManifestMerger2;
 import com.android.manifmerger.MergingReport;
+import com.android.manifmerger.XmlDocument;
 import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.android.utils.NullLogger;
 import com.android.utils.Pair;
@@ -104,7 +105,7 @@ public class AndroidManifestMergingBuilder
     }
     final File outputFile = new File(outputDir, SdkConstants.FN_ANDROID_MANIFEST_XML);
 
-    if (!Wrapper.doMergeManifests(context,  manifestFile, libManifests, outputFile)) {
+    if (!doMergeManifests(context,  manifestFile, libManifests, outputFile)) {
       context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.ERROR,
                                                  "[" + module.getName() + "] Cannot perform manifest merging"));
       return false;
@@ -125,67 +126,64 @@ public class AndroidManifestMergingBuilder
     return BUILDER_NAME;
   }
 
-  static class Wrapper {
+  private static boolean doMergeManifests(final CompileContext context,
+                                          File manifestFile,
+                                          List<File> libManifests,
+                                          File outputFile)
+    throws IOException {
+    final AndroidBuildTestingManager testingManager = AndroidBuildTestingManager.getTestingManager();
 
-    static boolean doMergeManifests(final CompileContext context,
-                                            File manifestFile,
-                                            List<File> libManifests,
-                                            File outputFile)
-      throws IOException {
-      final AndroidBuildTestingManager testingManager = AndroidBuildTestingManager.getTestingManager();
+    if (testingManager != null) {
+      final StringBuilder messageBuilder = new StringBuilder("manifest_merging\n");
+      messageBuilder.append(manifestFile.getPath()).append('\n');
+      Collections.sort(libManifests);
 
-      if (testingManager != null) {
-        final StringBuilder messageBuilder = new StringBuilder("manifest_merging\n");
-        messageBuilder.append(manifestFile.getPath()).append('\n');
-        Collections.sort(libManifests);
-
-        for (File libManifest : libManifests) {
-          messageBuilder.append(libManifest.getPath()).append('\n');
-        }
-        messageBuilder.append(outputFile.getPath());
-        testingManager.getCommandExecutor().log(messageBuilder.toString());
+      for (File libManifest : libManifests) {
+        messageBuilder.append(libManifest.getPath()).append('\n');
       }
-
-
-      ImmutableList.Builder<Pair<String, File>> libraryFiles = ImmutableList.builder();
-      for (File f : libManifests) {
-        libraryFiles.add(Pair.of(f.getName(), f));
-      }
-
-      final ManifestMerger2.Invoker manifestMergerInvoker =
-        ManifestMerger2.newMerger(manifestFile, NullLogger.getLogger(), ManifestMerger2.MergeType.APPLICATION).addLibraryManifests(libraryFiles.build());
-
-      MergingReport mergingReport;
-      try {
-        mergingReport = manifestMergerInvoker.merge();
-      }
-      catch (ManifestMerger2.MergeFailureException e) {
-        context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.ERROR, e.getMessage()));
-        return false;
-      }
-
-      MergingReport.Result result = mergingReport.getResult();
-
-      for (MergingReport.Record record : mergingReport.getLoggingRecords()) {
-        SourceFilePosition position = record.getSourceLocation();
-        File sourceFile = position.getFile().getSourceFile();
-        String sourceFilePath = sourceFile != null ? sourceFile.getAbsolutePath() : null;
-        SourcePosition pos = position.getPosition();
-        MergingReport.Record.Severity severity = record.getSeverity();
-
-        if (severity != MergingReport.Record.Severity.INFO) {
-          context.processMessage(
-            new CompilerMessage(BUILDER_NAME, toBuildMessageKind(record.getSeverity()), record.getMessage(), sourceFilePath,
-                                pos.getStartOffset(), pos.getEndOffset(), pos.getEndOffset(), pos.getEndLine(), pos.getEndColumn()));
-        }
-      }
-
-      if (!result.isError()) {
-        String xmlDocument = mergingReport.getMergedDocument(MergingReport.MergedManifestKind.MERGED);
-        Files.write(xmlDocument, outputFile, Charsets.UTF_8);
-      }
-      return result.isSuccess();
+      messageBuilder.append(outputFile.getPath());
+      testingManager.getCommandExecutor().log(messageBuilder.toString());
     }
+
+
+    ImmutableList.Builder<Pair<String, File>> libraryFiles = ImmutableList.builder();
+    for (File f : libManifests) {
+      libraryFiles.add(Pair.of(f.getName(), f));
+    }
+
+    final ManifestMerger2.Invoker manifestMergerInvoker =
+      ManifestMerger2.newMerger(manifestFile, NullLogger.getLogger(), ManifestMerger2.MergeType.APPLICATION).addLibraryManifests(libraryFiles.build());
+
+    MergingReport mergingReport;
+    try {
+      mergingReport = manifestMergerInvoker.merge();
+    }
+    catch (ManifestMerger2.MergeFailureException e) {
+      context.processMessage(new CompilerMessage(BUILDER_NAME, BuildMessage.Kind.ERROR, e.getMessage()));
+      return false;
+    }
+
+    MergingReport.Result result = mergingReport.getResult();
+
+    for (MergingReport.Record record : mergingReport.getLoggingRecords()) {
+      SourceFilePosition position = record.getSourceLocation();
+      File sourceFile = position.getFile().getSourceFile();
+      String sourceFilePath = sourceFile != null ? sourceFile.getAbsolutePath() : null;
+      SourcePosition pos = position.getPosition();
+      MergingReport.Record.Severity severity = record.getSeverity();
+
+      if (severity != MergingReport.Record.Severity.INFO) {
+        context.processMessage(
+          new CompilerMessage(BUILDER_NAME, toBuildMessageKind(record.getSeverity()), record.getMessage(), sourceFilePath,
+                              pos.getStartOffset(), pos.getEndOffset(), pos.getEndOffset(), pos.getEndLine(), pos.getEndColumn()));
+      }
+    }
+
+    if (!result.isError()) {
+      String xmlDocument = mergingReport.getMergedDocument(MergingReport.MergedManifestKind.MERGED);
+      Files.write(xmlDocument, outputFile, Charsets.UTF_8);
+    }
+    return result.isSuccess();
   }
 
   private static BuildMessage.Kind toBuildMessageKind(MergingReport.Record.Severity severity) {
