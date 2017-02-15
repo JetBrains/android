@@ -215,7 +215,7 @@ public class DragDropInteraction extends Interaction {
     }
 
     if (myDragHandler != null && myCurrentHandler != null) {
-      String error = myDragHandler.update(mySceneView.getScene().pxToDp(ax), mySceneView.getScene().pxToDp(ay), modifiers);
+      String error = myDragHandler.update(Coordinates.pxToDp(mySceneView, ax), Coordinates.pxToDp(mySceneView, ay), modifiers);
       final List<SceneComponent> added = Lists.newArrayList();
       if (commit && error == null) {
         added.addAll(myDraggedComponents);
