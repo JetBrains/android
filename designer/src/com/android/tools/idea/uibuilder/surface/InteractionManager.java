@@ -986,7 +986,7 @@ public class InteractionManager {
 
       // On Touchpad handling horizontal scrolling, the horizontal scroll is
       // interpreted as a mouseWheel Event with Shift down.
-      // If some scrolling imprecison happens for other scroll interaction, it might be good
+      // If some scrolling imprecision happens for other scroll interaction, it might be good
       // to do the filtering at a higher level
       if (!e.isShiftDown()
           && (SystemInfo.isMac && e.isMetaDown()

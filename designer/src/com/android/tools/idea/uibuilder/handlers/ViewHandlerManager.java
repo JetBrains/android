@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.handlers.leanback.BrowseFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.leanback.DetailsFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.leanback.PlaybackOverlayFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.leanback.SearchFragmentHandler;
+import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.menu.GroupHandler;
 import com.android.tools.idea.uibuilder.handlers.menu.ItemHandler;
 import com.android.tools.idea.uibuilder.handlers.menu.MenuHandler;

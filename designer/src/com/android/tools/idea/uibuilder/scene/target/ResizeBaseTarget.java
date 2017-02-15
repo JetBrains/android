@@ -35,7 +35,7 @@ import java.awt.*;
 /**
  * Base class for resizing targets.
  */
-public abstract class ResizeBaseTarget extends BaseTarget {
+public abstract class   ResizeBaseTarget extends BaseTarget {
 
   protected final Type myType;
   protected final int mySize = 2;
