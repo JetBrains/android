@@ -51,6 +51,7 @@ import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
 
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_INCLUDE_FORM_FACTOR;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 
@@ -161,8 +162,10 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
 
   @Override
   protected void onProceeding() {
+    NewModuleModel moduleModel = getModel();
+    moduleModel.getTemplateValues().put(myFormFactor.id + ATTR_INCLUDE_FORM_FACTOR, true);
+
     if (myIsLibrary) {
-      NewModuleModel moduleModel = getModel();
       moduleModel.setDefaultRenderTemplateValues(myRenderModel);
 
       new TemplateValueInjector(moduleModel.getTemplateValues())

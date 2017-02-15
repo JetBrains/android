@@ -53,7 +53,6 @@ public final class NewModuleModel extends WizardModel {
   @NotNull private final BoolProperty myInstantApp = new BoolValueProperty();
   @NotNull private final boolean myCreateIAPK;
   @NotNull private final BoolProperty myEnableCppSupport;
-  @NotNull private final StringProperty myCppFlags;
   @NotNull private final OptionalProperty<Project> myProject;
 
   { // Default init constructor
@@ -66,7 +65,6 @@ public final class NewModuleModel extends WizardModel {
     myPackageName = new StringValueProperty();
     myCreateIAPK = false;
     myEnableCppSupport = new BoolValueProperty();
-    myCppFlags = new StringValueProperty();
 
     myApplicationName = new StringValueProperty(message("android.wizard.module.config.new.application"));
     myApplicationName.addConstraint(String::trim);
@@ -79,7 +77,6 @@ public final class NewModuleModel extends WizardModel {
     myPackageName = projectModel.packageName();
     myCreateIAPK = true;
     myEnableCppSupport = projectModel.enableCppSupport();
-    myCppFlags = projectModel.cppFlags();
     myApplicationName = projectModel.applicationName();
     myTemplateFile.setValue(templateFile);
   }
@@ -122,11 +119,6 @@ public final class NewModuleModel extends WizardModel {
   @NotNull
   public BoolProperty enableCppSupport() {
     return myEnableCppSupport;
-  }
-
-  @NotNull
-  public StringProperty cppFlags() {
-    return myCppFlags;
   }
 
   @NotNull
@@ -175,9 +167,7 @@ public final class NewModuleModel extends WizardModel {
     templateValues.put(ATTR_IS_LIBRARY_MODULE, myIsLibrary.get());
 
     if (renderTemplateValues != null) {
-      // Cpp/Instant Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
-      renderTemplateValues.put(ATTR_CPP_SUPPORT, myEnableCppSupport.get());
-      renderTemplateValues.put(ATTR_CPP_FLAGS, myCppFlags.get());
+      // Instant Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
       if (myInstantApp.get()) {
         renderTemplateValues.put(ATTR_IS_INSTANT_APP, myInstantApp.get());
         renderTemplateValues.put(ATTR_SPLIT_NAME, myModuleName.get());
