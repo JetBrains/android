@@ -80,16 +80,16 @@ public class NetworkDataPollerTest extends DataStorePollerTest {
     .build();
   private static final NetworkProfiler.NetworkDataResponse NETWORK_DATA_RESPONSE = NetworkProfiler.NetworkDataResponse.newBuilder()
     .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
+               .setBasicInfo(GLOBAL_APP_INFO)
+               .setConnectivityData(NETWORK_CONNECTIVITY_DATA)
+               .build())
+    .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
                .setBasicInfo(STARTUP_BASIC_INFO)
                .setSpeedData(NETWORK_SPEED_DATA)
                .build())
     .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
                .setBasicInfo(DELAY_BASIC_INFO)
                .setConnectionData(NETWORK_CONNECTION_DATA)
-               .build())
-    .addData(NetworkProfiler.NetworkProfilerData.newBuilder()
-               .setBasicInfo(GLOBAL_APP_INFO)
-               .setConnectivityData(NETWORK_CONNECTIVITY_DATA)
                .build())
     .build();
 
