@@ -17,6 +17,7 @@ package com.android.tools.adtui.imagediff;
 
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.event.*;
 
 import java.awt.*;
 import java.util.HashMap;
@@ -175,9 +176,9 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     private static final int ACTIVITY_GRAPH_HEIGHT = 31;
 
     protected StackedEventComponent myStackedEventComponent;
-    private StackedEventModel myStackedEventModel;
+    private EventModel<StackedEventType> myStackedEventModel;
 
-    private DefaultDataSeries<EventAction<EventAction.ActivityAction, String>> myData;
+    private DefaultDataSeries<EventAction<StackedEventType>> myData;
 
     ActivityEventImageDiffEntry(String baselineFilename) {
       super(baselineFilename);
@@ -186,7 +187,7 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     @Override
     protected void setUp() {
       myData = new DefaultDataSeries<>();
-      myStackedEventModel = new StackedEventModel(new RangedSeries<>(myXRange, myData));
+      myStackedEventModel = new EventModel<>(new RangedSeries<>(myXRange, myData));
       myStackedEventComponent = new StackedEventComponent(myStackedEventModel);
       myContentPane.add(myStackedEventComponent, BorderLayout.CENTER);
       myComponents.add(myStackedEventModel);
@@ -204,12 +205,12 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       String activityName = PACKAGE_PREFIX + MOCK_ACTIVITY_NAMES[0]; // arbitrary activity
 
       // Start event
-      EventAction<EventAction.ActivityAction, String> event =
-        new EventAction<>(startTime, 0, EventAction.ActivityAction.ACTIVITY_STARTED, activityName);
+      EventAction<StackedEventType> event =
+        new ActivityAction(startTime, 0, StackedEventType.ACTIVITY_STARTED, activityName);
       myData.add(startTime, event);
 
       // Completed event
-      event = new EventAction<>(startTime, endTime, EventAction.ActivityAction.ACTIVITY_COMPLETED, activityName);
+      event = new ActivityAction(startTime, endTime, StackedEventType.ACTIVITY_COMPLETED, activityName);
       myData.add(endTime, event);
     }
 
@@ -217,18 +218,18 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
      * Create all the start events and then the completed events. This is what happens in reality when adding overlapping activities.
      */
     protected void addMultipleActivities(long[] startTimeList, long[] endTimeList) {
-      EventAction<EventAction.ActivityAction, String> event;
+      EventAction<StackedEventType> event;
       for (int i = 0; i  < startTimeList.length; i++) {
         String activityName = PACKAGE_PREFIX + MOCK_ACTIVITY_NAMES[i % MOCK_ACTIVITY_NAMES.length];
         // Start event
-        event = new EventAction<>(startTimeList[i], 0, EventAction.ActivityAction.ACTIVITY_STARTED, activityName);
+        event = new ActivityAction(startTimeList[i], 0, StackedEventType.ACTIVITY_STARTED, activityName);
         myData.add(startTimeList[i], event);
       }
 
       for (int i = 0; i  < endTimeList.length; i++) {
         String activityName = PACKAGE_PREFIX + MOCK_ACTIVITY_NAMES[i % MOCK_ACTIVITY_NAMES.length];
         // Completed event
-        event = new EventAction<>(startTimeList[i], endTimeList[i], EventAction.ActivityAction.ACTIVITY_COMPLETED, activityName);
+        event = new ActivityAction(startTimeList[i], endTimeList[i], StackedEventType.ACTIVITY_COMPLETED, activityName);
         myData.add(endTimeList[i], event);
       }
     }
@@ -240,12 +241,12 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     private static final int ICON_HEIGHT = 16;
 
-    private static final Map<ActionType, SimpleEventRenderer> MOCK_RENDERERS;
+    private static final Map<SimpleEventType, SimpleEventRenderer> MOCK_RENDERERS;
     static {
       MOCK_RENDERERS = new HashMap();
-      MOCK_RENDERERS.put(ActionType.TOUCH, new TouchEventRenderer());
-      MOCK_RENDERERS.put(ActionType.ROTATE, new EventIconRenderer("/icons/events/rotate-event.png", "/icons/events/rotate-event_dark.png"));
-      MOCK_RENDERERS.put(ActionType.KEYBOARD, new EventIconRenderer("/icons/events/keyboard-event.png", "/icons/events/keyboard-event_dark.png"));
+      MOCK_RENDERERS.put(SimpleEventType.TOUCH, new TouchEventRenderer());
+      MOCK_RENDERERS.put(SimpleEventType.ROTATION, new EventIconRenderer("/icons/events/rotate-event.png", "/icons/events/rotate-event_dark.png"));
+      MOCK_RENDERERS.put(SimpleEventType.KEYBOARD, new KeyboardEventRenderer());
     }
     /**
      * Enum that defines what Icon to draw for an event action.
@@ -256,11 +257,11 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
       KEYBOARD
     }
 
-    protected SimpleEventComponent<ActionType> mySimpleEventComponent;
+    protected SimpleEventComponent mySimpleEventComponent;
 
-    protected SimpleEventModel<ActionType> mySimpleEventModel;
+    protected EventModel myEventModel;
 
-    private DefaultDataSeries<EventAction<EventAction.Action, ActionType>> myData;
+    private DefaultDataSeries<EventAction<SimpleEventType>> myData;
 
     SimpleTapEventImageDiffEntry(String baselineFilename) {
       super(baselineFilename);
@@ -277,17 +278,17 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
     @Override
     protected void setUp() {
       myData = new DefaultDataSeries<>();
-      mySimpleEventModel = new SimpleEventModel<>(new RangedSeries<>(myXRange, myData));
-      mySimpleEventComponent = new SimpleEventComponent<>(mySimpleEventModel, MOCK_RENDERERS);
+      myEventModel = new EventModel(new RangedSeries<>(myXRange, myData));
+      mySimpleEventComponent = new SimpleEventComponent(myEventModel, MOCK_RENDERERS);
       myContentPane.add(mySimpleEventComponent, BorderLayout.CENTER);
-      myComponents.add(mySimpleEventModel);
+      myComponents.add(myEventModel);
     }
 
     protected void performTap(long eventTime) {
-      EventAction<EventAction.Action, ActionType> event =
-        new EventAction<>(eventTime, 0, EventAction.Action.DOWN, ActionType.TOUCH);
+      EventAction<SimpleEventType> event =
+        new EventAction<>(eventTime, 0, SimpleEventType.TOUCH);
       myData.add(eventTime, event);
-      event = new EventAction<>(eventTime, eventTime, EventAction.Action.UP, ActionType.TOUCH);
+      event = new EventAction<>(eventTime, eventTime, SimpleEventType.TOUCH);
       myData.add(eventTime, event);
     }
   }

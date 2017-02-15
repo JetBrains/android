@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,31 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.model;
+package com.android.tools.adtui.model.event;
 
+import com.android.tools.adtui.model.AspectModel;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.Updatable;
 import org.jetbrains.annotations.NotNull;
 
-public class SimpleEventModel<E extends Enum<E>> extends AspectModel<SimpleEventModel.Aspect> implements Updatable {
+public class EventModel<E> extends AspectModel<EventModel.Aspect> implements Updatable {
 
   @NotNull
-  private final RangedSeries<EventAction<EventAction.Action, E>> myRangedSeries;
+  private final RangedSeries<EventAction<E>> myRangedSeries;
 
-  public SimpleEventModel(@NotNull RangedSeries<EventAction<EventAction.Action, E>> rangedSeries) {
+  public EventModel(@NotNull RangedSeries<EventAction<E>> rangedSeries) {
     myRangedSeries = rangedSeries;
     // TODO add dependency to the rangedseries
   }
 
   @NotNull
-  public RangedSeries<EventAction<EventAction.Action, E>> getRangedSeries() {
+  public RangedSeries<EventAction<E>> getRangedSeries() {
     return myRangedSeries;
   }
 
   public enum Aspect {
-    SIMPLE_EVENT
+    EVENT
   }
 
   @Override
   public void update(long elapsedNs) {
-    changed(Aspect.SIMPLE_EVENT);
+    changed(Aspect.EVENT);
   }
 }
