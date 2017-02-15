@@ -48,7 +48,6 @@ public class SceneDeleteWidgetBaselineTest extends SceneTest {
                        .withAttribute("app:layout_constraintBaseline_toBaselineOf", "@+id/button2")
                        .withAttribute("android:layout_marginRight", "77dp")
                        .withAttribute("app:layout_constraintRight_toRightOf", "@+id/button2")
-                       .withAttribute("android:layout_marginEnd", "77dp")
                        .withAttribute("app:layout_constraintLeft_toLeftOf", "parent")
                        .withAttribute("android:layout_marginLeft", "8dp")
                        .withAttribute("app:layout_constraintHorizontal_bias", "1.0"),
