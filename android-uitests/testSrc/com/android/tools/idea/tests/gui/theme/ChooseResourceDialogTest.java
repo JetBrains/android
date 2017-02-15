@@ -279,7 +279,7 @@ public class ChooseResourceDialogTest {
     editor.open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.DESIGN);
 
     NlEditorFixture layout = editor.getLayoutEditor(false);
-    layout.waitForRenderToFinish();
+    layout.waitForRenderToFinish(Wait.seconds(10));
 
     // Find and click the first text view
     NlComponentFixture imageView = layout.findView("ImageView", 0);
