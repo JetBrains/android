@@ -66,8 +66,8 @@ public class MemoryDataPoller extends PollRunner {
 
     // TODO: A UI request may come in while mid way through the poll, this can cause us to have partial data
     // returned to the UI. This can be solved using transactions in the DB when this class is moved fully over.
-    myMemoryTable.insertMemory(myProcessId, response.getMemSamplesList());
-    myMemoryTable.insertVmStats(myProcessId, response.getVmStatsSamplesList());
+    myMemoryTable.insertMemory(myProcessId, mySession, response.getMemSamplesList());
+    myMemoryTable.insertVmStats(myProcessId, mySession, response.getVmStatsSamplesList());
 
     List<AllocationsInfo> allocDumpsToFetch = new ArrayList<>();
     for (int i = 0; i < response.getAllocationsInfoCount(); i++) {
@@ -81,13 +81,13 @@ public class MemoryDataPoller extends PollRunner {
           break;
         }
 
-        myMemoryTable.insertOrReplaceAllocationsInfo(myProcessId, info);
+        myMemoryTable.insertOrReplaceAllocationsInfo(myProcessId, mySession, info);
         allocDumpsToFetch.add(info);
         myPendingAllocationSample = null;
       }
       else {
         AllocationsInfo info = response.getAllocationsInfo(i);
-        myMemoryTable.insertOrReplaceAllocationsInfo(myProcessId, info);
+        myMemoryTable.insertOrReplaceAllocationsInfo(myProcessId, mySession, info);
         if (info.getEndTime() == DurationData.UNSPECIFIED_DURATION) {
           // Note - there should be at most one unfinished allocation tracking info at a time. e.g. the final info from the response.
           assert i == response.getAllocationsInfoCount() - 1;
@@ -108,13 +108,13 @@ public class MemoryDataPoller extends PollRunner {
         if (info.getEndTime() == DurationData.UNSPECIFIED_DURATION) {
           throw new RuntimeException("Invalid endTime: " + info.getEndTime() + " for Dump: " + info.getStartTime());
         }
-        myMemoryTable.insertOrReplaceHeapInfo(myProcessId, info);
+        myMemoryTable.insertOrReplaceHeapInfo(myProcessId, mySession, info);
         heapDumpsToFetch.add(info);
         myPendingHeapDumpSample = null;
       }
       else {
         HeapDumpInfo info = response.getHeapDumpInfos(i);
-        myMemoryTable.insertOrReplaceHeapInfo(myProcessId, info);
+        myMemoryTable.insertOrReplaceHeapInfo(myProcessId, mySession, info);
         if (info.getEndTime() == DurationData.UNSPECIFIED_DURATION) {
           // Note - there should be at most one unfinished heap dump request at a time. e.g. the final info from the response.
           assert i == response.getHeapDumpInfosCount() - 1;
@@ -157,7 +157,7 @@ public class MemoryDataPoller extends PollRunner {
         // Also save out raw dump
         DumpDataResponse allocDumpResponse = myPollingService.getAllocationDump(
           DumpDataRequest.newBuilder().setProcessId(myProcessId).setDumpTime(sample.getStartTime()).build());
-        myMemoryTable.updateAllocationDump(myProcessId, sample.getStartTime(), allocDumpResponse.getData().toByteArray());
+        myMemoryTable.updateAllocationDump(myProcessId, mySession, sample.getStartTime(), allocDumpResponse.getData().toByteArray());
       }
 
       // Note: the class/stack information are saved first to the table to avoid the events referencing yet-to-exist data
@@ -166,7 +166,7 @@ public class MemoryDataPoller extends PollRunner {
         .addAllClassIds(classesToFetch).addAllStackIds(stacksToFetch).build();
       AllocationContextsResponse contextsResponse = myPollingService.listAllocationContexts(contextRequest);
       myMemoryTable.insertAllocationContext(contextsResponse.getAllocatedClassesList(), contextsResponse.getAllocationStacksList());
-      eventsToSave.forEach((startTime, response) -> myMemoryTable.updateAllocationEvents(myProcessId, startTime, response));
+      eventsToSave.forEach((startTime, response) -> myMemoryTable.updateAllocationEvents(myProcessId, mySession, startTime, response));
     };
     myFetchExecutor.accept(query);
   }
@@ -180,7 +180,7 @@ public class MemoryDataPoller extends PollRunner {
       for (HeapDumpInfo sample : dumpsToFetch) {
         DumpDataResponse dumpDataResponse = myPollingService.getHeapDump(
           DumpDataRequest.newBuilder().setProcessId(myProcessId).setDumpTime(sample.getStartTime()).build());
-        myMemoryTable.insertHeapDumpData(myProcessId, sample.getStartTime(), dumpDataResponse.getStatus(), dumpDataResponse.getData());
+        myMemoryTable.insertHeapDumpData(myProcessId, mySession, sample.getStartTime(), dumpDataResponse.getStatus(), dumpDataResponse.getData());
       }
     };
     myFetchExecutor.accept(query);
