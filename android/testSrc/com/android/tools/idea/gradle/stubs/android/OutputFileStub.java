@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.stubs.android;
 import com.android.annotations.NonNull;
 import com.android.build.FilterData;
 import com.android.build.OutputFile;
+import com.google.common.collect.ImmutableList;
 
 import java.io.File;
 import java.util.Collection;
@@ -46,6 +47,23 @@ public class OutputFileStub implements OutputFile {
   @Override
   public Collection<FilterData> getFilters() {
     throw new UnsupportedOperationException();
+  }
+
+  @NonNull
+  @Override
+  public OutputFile getMainOutputFile() {
+    throw new UnsupportedOperationException();
+  }
+
+  @NonNull
+  @Override
+  public Collection<? extends OutputFile> getOutputs() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public int getVersionCode() {
+    return 0;
   }
 
   @NonNull
