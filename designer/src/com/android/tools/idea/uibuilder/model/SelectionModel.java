@@ -112,10 +112,11 @@ public class SelectionModel {
   }
 
   @Nullable
-  public SelectionHandle findHandle(@AndroidCoordinate int x, @AndroidCoordinate int y, @AndroidCoordinate int maxDistance) {
+  public SelectionHandle findHandle(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @AndroidDpCoordinate int maxDistance) {
     if (myHandles == null) {
       return null;
     }
+
     for (SelectionHandles handles : myHandles.values()) {
       SelectionHandle handle = handles.findHandle(x, y, maxDistance);
       if (handle != null) {

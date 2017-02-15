@@ -107,12 +107,12 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
   public ModelBuilder createModel() {
     return model("absolute.xml",
                  component(ABSOLUTE_LAYOUT)
-                   .withBounds(0, 0, 1000, 1000)
+                   .withBounds(0, 0, 2000, 2000)
                    .matchParentWidth()
                    .matchParentHeight()
                    .children(
                      component(TEXT_VIEW)
-                       .withBounds(100, 100, 100, 100)
+                       .withBounds(200, 200, 200, 200)
                        .id("@id/myText")
                        .width("100dp")
                        .height("100dp")

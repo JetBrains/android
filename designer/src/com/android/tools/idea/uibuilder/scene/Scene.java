@@ -54,9 +54,7 @@ public class Scene implements ModelListener, SelectionListener {
   private final SceneView mySceneView;
   private static final boolean DEBUG = false;
   private NlModel myModel;
-  /** The DPI factor can be manually set for testing. Do not auto-update */
-  private boolean isManualDpiFactor;
-  private float myDpiFactor;
+  private int myDpi;
   private HashMap<NlComponent, SceneComponent> mySceneComponents = new HashMap<>();
   private SceneComponent myRoot;
   private boolean myAnimate = true; // animate layout changes
@@ -110,53 +108,16 @@ public class Scene implements ModelListener, SelectionListener {
    * @param sceneView
    * @param dpiFactor
    */
-  private Scene(@NotNull SceneView sceneView, float dpiFactor) {
+  private Scene(@NotNull SceneView sceneView, int dpi) {
     mySceneView = sceneView;
     mySceneView.getSelectionModel().addListener(this);
-    myDpiFactor = dpiFactor / 160f;
-  }
-
-  /////////////////////////////////////////////////////////////////////////////
-  //region Dp / Pixels conversion utilities
-  /////////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Convert from Android pixels to Dp
-   *
-   * @param px the pixel amount
-   * @return the converted Dp amount
-   */
-  @AndroidCoordinate
-  public int pxToDp(@AndroidCoordinate int px) {
-    return (int)(0.5f + px / myDpiFactor);
-  }
-
-  /**
-   * Convert from Dp to Android pixels
-   *
-   * @param dp the Dp amount
-   * @return the converted Android pixels amount
-   */
-  @AndroidCoordinate
-  public int dpToPx(@AndroidDpCoordinate int dp) {
-    return (int)(0.5f + dp * myDpiFactor);
+    myDpi = dpi;
   }
 
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Accessors
   /////////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Set the current dpi factor
-   *
-   * @param dpiFactor
-   */
-  @VisibleForTesting
-  void setDpiFactorOverride(float dpiFactor) {
-    isManualDpiFactor = true;
-    myDpiFactor = dpiFactor;
-  }
 
   /**
    * Return the current animation status
@@ -306,9 +267,9 @@ public class Scene implements ModelListener, SelectionListener {
    */
   public void add(@NotNull NlModel model) {
     ConfigurationListener listener = (flags) -> {
-      if ((flags & CFG_DEVICE) != 0 && !isManualDpiFactor) {
-        float newDpiFactor = model.getConfiguration().getDensity().getDpiValue() / 160f;
-        if (myDpiFactor != newDpiFactor) {
+      if ((flags & CFG_DEVICE) != 0) {
+        int newDpi = model.getConfiguration().getDensity().getDpiValue();
+        if (myDpi != newDpi) {
           // Update from the model to update the dpi
           updateFrom(model);
         }
@@ -366,9 +327,7 @@ public class Scene implements ModelListener, SelectionListener {
     for (SceneComponent component : mySceneComponents.values()) {
       component.used = false;
     }
-    if (!isManualDpiFactor) {
-      myDpiFactor = model.getConfiguration().getDensity().getDpiValue() / 160f;
-    }
+    myDpi = model.getConfiguration().getDensity().getDpiValue();
     NlComponent rootComponent = components.get(0).getRoot();
     myRoot = updateFromComponent(rootComponent);
     Iterator<SceneComponent> it = mySceneComponents.values().iterator();
@@ -497,17 +456,13 @@ public class Scene implements ModelListener, SelectionListener {
   @Override
   public void modelChanged(@NotNull NlModel model) {
     // updateFrom needs to be called in the dispatch thread
-    UIUtil.invokeLaterIfNeeded(() -> {
-      updateFrom(model);
-    });
+    UIUtil.invokeLaterIfNeeded(() -> updateFrom(model));
   }
 
   @Override
   public void modelRendered(@NotNull NlModel model) {
     // updateFrom needs to be called in the dispatch thread
-    UIUtil.invokeLaterIfNeeded(() -> {
-      updateFrom(model);
-    });
+    UIUtil.invokeLaterIfNeeded(() -> updateFrom(model));
   }
 
   @Override
@@ -904,12 +859,10 @@ public class Scene implements ModelListener, SelectionListener {
     }
 
     SelectionModel selectionModel = mySceneView.getSelectionModel();
-    int mx = dpToPx(x);
-    int my = dpToPx(y);
 
     if (!selectionModel.isEmpty()) {
-      int max = Coordinates.getAndroidDimension(mySceneView, PIXEL_RADIUS + PIXEL_MARGIN);
-      SelectionHandle handle = selectionModel.findHandle(mx, my, max);
+      int max = Coordinates.getAndroidDimensionDip(mySceneView, PIXEL_RADIUS + PIXEL_MARGIN);
+      SelectionHandle handle = selectionModel.findHandle(x, y, max);
       if (handle != null) {
         myMouseCursor = handle.getCursor();
         return;

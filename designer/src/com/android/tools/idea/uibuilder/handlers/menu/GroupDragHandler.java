@@ -201,12 +201,12 @@ final class GroupDragHandler extends DragHandler {
     List<NlComponent> overflowItems = myActionBar.getOverflowItems();
     NlComponent nlComponent;
 
-    if (layout.getScene().dpToPx(lastY) < overflowItems.get(0).y) {
+    if (editor.dpToPx(lastY) < overflowItems.get(0).y) {
       nlComponent = overflowItems.get(0);
     }
     else {
       Optional<NlComponent> activeItem = overflowItems.stream()
-        .filter(item -> item.containsY(layout.getScene().dpToPx(lastY)))
+        .filter(item -> item.containsY(editor.dpToPx(lastY)))
         .findFirst();
 
       nlComponent = activeItem.orElse(overflowItems.get(overflowItems.size() - 1));
@@ -303,14 +303,14 @@ final class GroupDragHandler extends DragHandler {
 
     graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
 
-    if (layout.getScene().dpToPx(lastY) >= overflowItems.get(0).getMidpointY()) {
+    if (editor.dpToPx(lastY) >= overflowItems.get(0).getMidpointY()) {
       graphics.drawTop(overflowItemBounds);
     }
 
     graphics.drawLeft(overflowItemBounds);
     graphics.drawRight(overflowItemBounds);
 
-    if (layout.getScene().dpToPx(lastY) < overflowItems.get(overflowItems.size() - 1).getMidpointY()) {
+    if (editor.dpToPx(lastY) < overflowItems.get(overflowItems.size() - 1).getMidpointY()) {
       graphics.drawBottom(overflowItemBounds);
     }
   }
