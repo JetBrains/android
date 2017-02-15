@@ -63,7 +63,7 @@ public class SceneDragHandler extends DragHandler {
     @AndroidDpCoordinate int dy = y - myComponent.getDrawHeight() / 2;
     for (Target target : targets) {
       if (target instanceof DragDndTarget) {
-        target.mouseDown(scene.pxToDp(dx), scene.pxToDp(dy));
+        target.mouseDown(editor.pxToDp(dx), editor.pxToDp(dy));
         break;
       }
     }
@@ -108,8 +108,8 @@ public class SceneDragHandler extends DragHandler {
       root.ensureNamespace(SdkConstants.SHERPA_PREFIX, SdkConstants.AUTO_URI);
       if (myComponent != null) {
         ArrayList<Target> targets = myComponent.getTargets();
-        @AndroidDpCoordinate int dx = scene.pxToDp(x) - myComponent.getDrawWidth() / 2;
-        @AndroidDpCoordinate int dy = scene.pxToDp(y) - myComponent.getDrawHeight() / 2;
+        @AndroidDpCoordinate int dx = editor.pxToDp(x) - myComponent.getDrawWidth() / 2;
+        @AndroidDpCoordinate int dy = editor.pxToDp(y) - myComponent.getDrawHeight() / 2;
         for (Target target : targets) {
           if (target instanceof DragDndTarget) {
             ((DragDndTarget)target).mouseRelease(dx, dy, components.get(0).getNlComponent());
