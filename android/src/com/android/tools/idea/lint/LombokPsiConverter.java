@@ -26,6 +26,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.JavaElementType;
+import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.tree.IElementType;
 import lombok.ast.*;
 
@@ -235,7 +236,32 @@ public class LombokPsiConverter {
     if (element != null) {
       node.setNativeNode(element);
     }
+    // Add javaDocs if exist
+    if (node instanceof JavadocContainer && element instanceof PsiDocCommentOwner) {
+      PsiDocComment docComment = ((PsiDocCommentOwner)element).getDocComment();
+      if (docComment != null) {
+        Comment astComment = toJavaDoc(docComment);
+        ((JavadocContainer)node).rawJavadoc(astComment);
+      }
+    }
+
     node.setPositionFactory(POSITION_FACTORY);
+  }
+
+  @NonNull
+  private static Comment toJavaDoc(PsiDocComment element) {
+    Comment comment = new Comment();
+    bind(comment, element);
+
+    String sourceText = element.getText();
+
+    // Replace block comment tokens
+    sourceText = sourceText.replaceFirst("^\\w*(/\\*)", "");
+    sourceText = sourceText.replaceFirst("(\\*/)\\w*$", "");
+
+    comment.astContent(sourceText);
+    comment.astBlockComment(true);
+    return comment;
   }
 
   @NonNull
