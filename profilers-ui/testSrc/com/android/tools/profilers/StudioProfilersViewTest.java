@@ -231,9 +231,19 @@ public class StudioProfilersViewTest {
     process = Profiler.Process.newBuilder()
       .setName("MyProcessName")
       .setPid(1234)
+      .setState(Profiler.Process.State.ALIVE)
       .build();
     component = renderer.getListCellRendererComponent(list, process, 0, false, false);
     assertThat(component.toString()).isEqualTo("MyProcessName (1234)");
+
+    // Dead process
+    process = Profiler.Process.newBuilder()
+      .setName("MyDeadProcessName")
+      .setPid(4444)
+      .setState(Profiler.Process.State.DEAD)
+      .build();
+    component = renderer.getListCellRendererComponent(list, process, 0, false, false);
+    assertThat(component.toString()).isEqualTo("MyDeadProcessName (4444) [DEAD]");
   }
 
   @Test

@@ -259,4 +259,57 @@ final public class StudioProfilersTest {
       return myAgentStatusChangedCount;
     }
   }
+
+  @Test
+  public void testProcessRestartedSetsAliveAsActive() throws Exception {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+    int nowInSeconds = 42;
+    myProfilerService.setTimestampNs(TimeUnit.SECONDS.toNanos(nowInSeconds));
+
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess")
+      .setStartTimestampNs(TimeUnit.SECONDS.toNanos(nowInSeconds))
+      .build();
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+
+    profilers.setPreferredProcessName(process.getName());
+    myProfilerService.addDevice(device);
+    myProfilerService.addProcess(session, process);
+
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(20, profilers.getProcess().getPid());
+    assertEquals(profilers.getProcess().getState(), Profiler.Process.State.ALIVE);
+
+    // Change the alive (active) process to DEAD, and create a new ALIVE process simulating a debugger restart.
+    myProfilerService.removeProcess(session, process);
+    process = process.toBuilder()
+      .setState(Profiler.Process.State.DEAD)
+      .build();
+    myProfilerService.addProcess(session, process);
+
+    //Verify the process is in the dead state.
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(20, profilers.getProcess().getPid());
+    assertEquals(profilers.getProcess().getState(), Profiler.Process.State.DEAD);
+
+    process = process.toBuilder()
+      .setPid(21)
+      .setState(Profiler.Process.State.ALIVE)
+      .build();
+    myProfilerService.addProcess(session, process);
+
+    // Expect new process to have proper PID, and state.
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(21, profilers.getProcess().getPid());
+    assertEquals(profilers.getProcess().getState(), Profiler.Process.State.ALIVE);
+  }
 }

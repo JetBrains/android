@@ -52,6 +52,9 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(request.getSession());
     if (client != null) {
       observer.onNext(client.getCurrentTime(request));
+    } else {
+      // Need to return something in the case of no device.
+      observer.onNext(Profiler.TimeResponse.getDefaultInstance());
     }
     observer.onCompleted();
   }
