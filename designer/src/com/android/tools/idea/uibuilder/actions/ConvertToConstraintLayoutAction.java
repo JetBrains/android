@@ -194,7 +194,6 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
             @Override
             public void run() {
               constraintModel.saveToXML(true);
-              constraintModel.setNeedsAnimateConstraints(ConstraintAnchor.SCOUT_CREATOR);
 
               // Finally remove the conversion x/y/width/height attributes
               List<NlComponent> components = model.getComponents();

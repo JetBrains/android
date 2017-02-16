@@ -179,9 +179,6 @@ public class SceneDecorator {
                                   long time,
                                   @NotNull SceneContext sceneContext,
                                   @NotNull SceneComponent component) {
-    ArrayList<Target> targets = component.getTargets();
-    for (Target target : targets) {
-      target.render(list, sceneContext);
-    }
+    component.getTargets().forEach(target -> target.render(list, sceneContext));
   }
 }
