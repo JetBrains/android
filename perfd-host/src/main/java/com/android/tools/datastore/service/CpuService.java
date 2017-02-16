@@ -85,7 +85,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     observer.onNext(myService.getCpuClient(request.getSession()).startMonitoringApp(request));
     observer.onCompleted();
     int processId = request.getProcessId();
-    myRunners.put(processId, new CpuDataPoller(processId, myCpuTable, myService.getCpuClient(request.getSession())));
+    myRunners.put(processId, new CpuDataPoller(processId, request.getSession(), myCpuTable, myService.getCpuClient(request.getSession())));
     myFetchExecutor.accept(myRunners.get(processId));
   }
 
@@ -99,7 +99,8 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     CpuServiceGrpc.CpuServiceBlockingStub service = myService.getCpuClient(request.getSession());
     if (service == null) {
       observer.onNext(CpuProfiler.CpuStopResponse.getDefaultInstance());
-    } else {
+    }
+    else {
       observer.onNext(service.stopMonitoringApp(request));
     }
     observer.onCompleted();
@@ -123,7 +124,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
       .setFromTimestamp(myStartTraceTimestamp)
       .setToTimestamp(getCurrentDeviceTimeNs(request.getSession()))
       .build();
-    myCpuTable.insertTrace(trace, response.getTrace());
+    myCpuTable.insertTrace(trace, request.getSession(), response.getTrace());
     myStartTraceTimestamp = -1;
     observer.onNext(response);
     observer.onCompleted();
@@ -131,8 +132,7 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
 
   @Override
   public void getTrace(CpuProfiler.GetTraceRequest request, StreamObserver<CpuProfiler.GetTraceResponse> observer) {
-
-    ByteString data = myCpuTable.getTraceData(request.getTraceId());
+    ByteString data = myCpuTable.getTraceData(request.getTraceId(), request.getSession());
     CpuProfiler.GetTraceResponse.Builder builder = CpuProfiler.GetTraceResponse.newBuilder();
     if (data == null) {
       builder.setStatus(CpuProfiler.GetTraceResponse.Status.FAILURE);
@@ -146,7 +146,8 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   }
 
   private long getCurrentDeviceTimeNs(Common.Session session) {
-    return myService.getProfilerClient(session).getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(session).build()).getTimestampNs();
+    return myService.getProfilerClient(session).getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(session).build())
+      .getTimestampNs();
   }
 
   @Override
