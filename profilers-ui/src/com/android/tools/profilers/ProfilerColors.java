@@ -28,6 +28,11 @@ public class ProfilerColors {
   // Collections of constant, do not instantiate.
   private ProfilerColors() {}
 
+  public static final Color BUTTON_TEXT = new JBColor(0x222222, 0xCACACA);
+
+  // TODO: check with designer the colors that should be used
+  public static final Color DISABLED_BUTTON_TEXT = new JBColor(0x999999, 0x5A5A5A);
+
   public static final Color CPU_USAGE = new JBColor(0x57D9B2, 0x387358);
 
   public static final Color CPU_OTHER_USAGE = new JBColor(0xDFE6EE, 0x34383D);
