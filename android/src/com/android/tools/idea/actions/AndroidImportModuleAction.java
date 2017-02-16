@@ -37,7 +37,7 @@ public class AndroidImportModuleAction extends AnAction implements DumbAware {
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (project != null) {
-      if (WizardUtils.isNpwModelWizardEnabled(e)) {
+      if (WizardUtils.isNpwModelWizardEnabled(e, WizardUtils.Feature.IMPORT_MODULE)) {
         new StudioWizardDialogBuilder(new SourceToGradleModuleStep(new SourceToGradleModuleModel(project)), "Import module from source").build()
           .show();
       }
