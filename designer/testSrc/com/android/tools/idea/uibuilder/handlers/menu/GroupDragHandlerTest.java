@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneBuilder;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -241,7 +242,7 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
   @NotNull
   private GroupDragHandler getMenuHandler(NlModel model) {
     ScreenFixture screenFixture = surface().screen(model).withScale(1);
-    Scene scene = Scene.createScene(model, screenFixture.getScreen());
+    Scene scene = new LayoutlibSceneBuilder(model, screenFixture.getScreen()).build();
     scene.buildDisplayList(new DisplayList(), 0);
 
     List<SceneComponent> items = Collections.singletonList(mock(SceneComponent.class));

@@ -66,9 +66,7 @@ public class SceneAnimationTest extends SceneTest {
     assertEquals(100, component.getDrawX(currentTime));
     component.getNlComponent().x = 1800;
     myScene.setAnimate(true);
-    myScene.modelChangedOnLayout(myModel, true);
-    myScene.modelChanged(myModel);
-    myScene.modelRendered(myModel);
+    mySceneBuilder.update();
     long time = currentTime + 500;
     try {
       Thread.sleep(100);
