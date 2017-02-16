@@ -38,7 +38,9 @@ import java.util.List;
 import java.util.Locale;
 
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static org.jetbrains.android.util.AndroidBundle.message;
+import static com.android.tools.idea.instantapp.InstantApps.getAiaSdkLocation;
 
 /**
  * Collection of controls for selecting whether a form factor should be selected, what the minimum api version should be, and
@@ -86,6 +88,8 @@ final class FormFactorSdkControls {
     }
 
     myMinSdkCombobox.setName(myFormFactor.id + ".minSdk");
+    myInstantAppCheckbox.setName(myFormFactor.id + ".instantApp");
+    myInstantAppCheckbox.setVisible((myFormFactor.equals(MOBILE) && isNotEmpty(getAiaSdkLocation())));
     myStatsLoadFailedLabel.setForeground(JBColor.GRAY);
   }
 
@@ -143,12 +147,6 @@ final class FormFactorSdkControls {
           myStatsLoadFailedLabel.setVisible(true);
         }));
     }
-
-    // TODO: Add code for AIA (checkbox is already on the UI, needs to be enables/disabled)
-    //if (myFormFactor.equals(MOBILE) && state.getNotNull(AIA_SDK_ENABLED_KEY, false)*/) {
-    //  myBinder.register(IS_INSTANT_APP_KEY, myInstantAppCheckbox);
-    //  myInstantAppCheckbox.setVisible(true);
-    //}
   }
 
   public JComponent getComponent() {

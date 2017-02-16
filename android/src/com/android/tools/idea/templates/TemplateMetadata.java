@@ -101,6 +101,7 @@ public class TemplateMetadata {
   public static final String ATTR_IS_INSTANT_APP = "isInstantApp";
   public static final String ATTR_IS_BASE_ATOM = "isBaseAtom";
   public static final String ATTR_SPLIT_NAME = "splitName";
+  public static final String ATTR_ALSO_CREATE_IAPK = "alsoCreateIapk";
 
   public static final String TAG_CATEGORY = "category";
   public static final String TAG_FORMFACTOR = "formfactor";

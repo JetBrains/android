@@ -54,6 +54,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_ATOM;
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -114,6 +115,9 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
     for (TemplateHandle templateHandle : templateHandles) {
       myTemplateRenderers.add(new TemplateRenderer(templateHandle));
     }
+
+    boolean isInstantAppModule = facet != null && facet.getProjectType() == PROJECT_TYPE_ATOM;
+    getModel().instantApp().set(isInstantAppModule);
 
     myActivityGallery = createGallery(getTitle());
     myValidatorPanel = new ValidatorPanel(this, new JBScrollPane(myActivityGallery));
