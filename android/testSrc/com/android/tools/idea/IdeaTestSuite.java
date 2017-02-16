@@ -38,10 +38,13 @@ import java.nio.file.Paths;
   com.android.tools.idea.templates.TemplateTest.class, // we typically set DISABLE_STUDIO_TEMPLATE_TESTS because it's so slow
   com.android.tools.idea.testing.TestProjectPathsGeneratorTest.class, // This is for a standalone, test-only application
   // The following classes had failures when run in Bazel.
+  com.android.tools.idea.explorer.DeviceExplorerControllerTest.class,
+  com.android.tools.idea.gradle.eclipse.GradleImportTest.class,
   com.android.tools.idea.gradle.project.NonAndroidGradleProjectImportingTestSuite.class,
   com.android.tools.perf.idea.gradle.project.sync.GradleSyncPerfTest.class, // Sync performance test only runs on perf buildbot
   org.jetbrains.android.databinding.DataBindingScopeTest.class,
   org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
+  org.jetbrains.android.dom.AndroidValueResourcesTest.class,
 
   // Require resources with spaces (HTML File template)
   // https://github.com/bazelbuild/bazel/issues/374
