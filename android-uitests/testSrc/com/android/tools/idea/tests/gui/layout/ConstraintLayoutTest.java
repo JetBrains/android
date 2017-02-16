@@ -77,7 +77,7 @@ public class ConstraintLayoutTest {
     assertThat(layoutContents).contains("app:layout_constraintLeft_toLeftOf=\"parent\"");
     assertThat(layoutContents).contains("app:layout_constraintRight_toRightOf=\"parent\"");
 
-    layoutEditor = editor.select("(<Button[\\s\\S]*/>)")
+    layoutEditor = editor.select("(<Button[\\s\\S]*/>\\n)")
       .invokeAction(EditorFixture.EditorAction.BACK_SPACE)
       .getLayoutEditor(true);
 
@@ -95,5 +95,53 @@ public class ConstraintLayoutTest {
     assertThat(layoutContents).contains("app:layout_constraintTop_toTopOf=\"parent\"");
     assertThat(layoutContents).contains("app:layout_constraintLeft_toLeftOf=\"parent\"");
     assertThat(layoutContents).contains("app:layout_constraintRight_toRightOf=\"parent\"");
+  }
+
+  /**
+   * Verifies the UI for adding baseline constraints for a ConstraintLayout in the layout editor.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C14603451
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Open the layout file which uses constraint layout and switch to design view
+   *   2. From the palette window, drag and drop couple of widgets to constraint layout. Say, a button and a text view
+   *   3. Now click on a widget in the design view, you should see a wide and thin rectangle.
+   *   4. Click on the thin rectangle of one widget and create a constraint with similar rectangle in another widget
+   *   5. Repeat steps 3 and 4 by aligning widgets in blue print mode (Verify 1)
+   *   Verify:
+   *   1. Should be able to baseline the widgets in both design view and blueprint mode. Verfiy the same in xml view by checking
+   *      for "layout_constraintBaseline_toBaselineOf"
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void testBaselineConstraintHandling() throws Exception {
+    EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
+      .getEditor()
+      .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN);
+    NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
+
+    layoutEditor
+      .showOnlyDesignView()
+      .dragComponentToSurface("Widgets", "Button")
+      .findView("Button", 0)
+      .createBaselineConstraintWith(layoutEditor.findView("TextView", 0));
+    String layoutContents = editor.selectEditorTab(EditorFixture.Tab.EDITOR).getCurrentFileContents();
+    assertThat(layoutContents).contains("app:layout_constraintBaseline_toBaselineOf=\"@+id/textView\"");
+
+    layoutEditor = editor.select("(<Button[\\s\\S]*/>\\n)")
+      .invokeAction(EditorFixture.EditorAction.BACK_SPACE)
+      .getLayoutEditor(true);
+
+    layoutEditor
+      .showOnlyBlueprintView()
+      .dragComponentToSurface("Widgets", "Button")
+      .findView("Button", 0)
+      .createBaselineConstraintWith(layoutEditor.findView("TextView", 0));
+    layoutContents = editor.selectEditorTab(EditorFixture.Tab.EDITOR).getCurrentFileContents();
+    assertThat(layoutContents).contains("app:layout_constraintBaseline_toBaselineOf=\"@+id/textView\"");
   }
 }

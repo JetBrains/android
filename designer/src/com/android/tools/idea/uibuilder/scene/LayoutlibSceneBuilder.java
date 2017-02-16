@@ -195,7 +195,10 @@ public class LayoutlibSceneBuilder extends SceneBuilder {
     @Override
     public void modelChanged(@NotNull NlModel model) {
       // updateFrom needs to be called in the dispatch thread
-      UIUtil.invokeLaterIfNeeded(LayoutlibSceneBuilder.this::update);
+      UIUtil.invokeLaterIfNeeded(() -> {
+        update();
+        getSceneView().getSelectionModel().updateListeners();
+      });
     }
 
     @Override
