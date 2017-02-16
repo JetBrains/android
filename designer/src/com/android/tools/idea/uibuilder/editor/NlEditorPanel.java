@@ -26,7 +26,6 @@ import com.android.tools.idea.uibuilder.property.NlPropertyPanelDefinition;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -46,27 +45,35 @@ import static com.android.tools.idea.rendering.RenderService.MOCKUP_EDITOR_ENABL
  * Assembles a designer editor from various components
  */
 public class NlEditorPanel extends WorkBench<DesignSurface> {
-  private final AndroidFacet myFacet;
-  private final NlEditor myEditor;
   private final XmlFile myFile;
-  private final JPanel myContentPanel;
   private final DesignSurface mySurface;
-  private boolean myIsActive;
 
   public NlEditorPanel(@NotNull NlEditor editor, @NotNull Project project, @NotNull AndroidFacet facet, @NotNull VirtualFile file) {
     super(project, "NELE_EDITOR", editor);
     setOpaque(true);
 
-    myFacet = facet;
-    myEditor = editor;
     myFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, file);
     assert myFile != null : file;
-    myContentPanel = new JPanel(new BorderLayout());
 
     mySurface = new NlDesignSurface(project, false);
     Disposer.register(editor, mySurface);
+    NlModel model = NlModel.create(mySurface, editor, facet, myFile);
+    mySurface.setModel(model);
 
-    initNeleModel();
+    JPanel contentPanel = new JPanel(new BorderLayout());
+    JComponent toolbarComponent = mySurface.getActionManager().createToolbar(model);
+    contentPanel.add(toolbarComponent, BorderLayout.NORTH);
+    contentPanel.add(mySurface);
+
+    List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
+    tools.add(new NlPaletteDefinition(project, Side.LEFT, Split.TOP, AutoHide.DOCKED));
+    tools.add(new NlComponentTreeDefinition(project, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
+    tools.add(new NlPropertyPanelDefinition(project, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
+    if (MOCKUP_EDITOR_ENABLED) {
+      tools.add(new MockupToolDefinition(Side.RIGHT, Split.TOP, AutoHide.AUTO_HIDE));
+    }
+
+    init(contentPanel, mySurface, tools);
   }
 
   @Nullable
@@ -76,12 +83,10 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
 
   public void activate() {
     mySurface.activate();
-    myIsActive = true;
   }
 
   public void deactivate() {
     mySurface.deactivate();
-    myIsActive = false;
   }
 
   @NotNull
@@ -110,38 +115,6 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     @Override
     public Configuration getConfiguration() {
       return mySurface.getConfiguration();
-    }
-  }
-
-  private void initNeleModel() {
-    if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() == null) {
-      // Try again later - model hasn't been synced yet (and for example we won't
-      // be able to resolve custom views coming from libraries like appcompat,
-      // resulting in a broken render)
-      ApplicationManager.getApplication().invokeLater(this::initNeleModel);
-      return;
-    }
-    if (Disposer.isDisposed(myEditor)) {
-      return;
-    }
-    NlModel model = NlModel.create(mySurface, myEditor, myFacet, myFile);
-    mySurface.setModel(model);
-    JComponent toolbarComponent = mySurface.getActionManager().createToolbar(model);
-    myContentPanel.add(toolbarComponent, BorderLayout.NORTH);
-    myContentPanel.add(mySurface);
-
-    Project project = myFacet.getModule().getProject();
-    List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
-    tools.add(new NlPaletteDefinition(project, Side.LEFT, Split.TOP, AutoHide.DOCKED));
-    tools.add(new NlComponentTreeDefinition(project, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
-    tools.add(new NlPropertyPanelDefinition(project, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
-    if (MOCKUP_EDITOR_ENABLED) {
-      tools.add(new MockupToolDefinition(Side.RIGHT, Split.TOP, AutoHide.AUTO_HIDE));
-    }
-
-    init(myContentPanel, mySurface, tools);
-    if (myIsActive) {
-      model.activate();
     }
   }
 }
