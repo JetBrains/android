@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_IS_INSTANT_APP;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 
@@ -197,9 +198,14 @@ public class NewProjectModel extends WizardModel {
     project().setValue(project);
 
     Map<String, Object> params = Maps.newHashMap();
+    boolean hasInstantApp = false;
     for (NewModuleModel newModuleModel : getNewModuleModels()) {
       params.putAll(newModuleModel.getTemplateValues());
+      hasInstantApp |= newModuleModel.instantApp().get();
     }
+
+    // TODO: May we should not reuse ATTR_IS_INSTANT_APP. A new ATTR_IS_INSTANT_PROJECT?
+    params.put(ATTR_IS_INSTANT_APP, hasInstantApp);
 
     performCreateProject(false, params);
 
