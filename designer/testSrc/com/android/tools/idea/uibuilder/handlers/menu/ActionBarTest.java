@@ -16,22 +16,23 @@
 package com.android.tools.idea.uibuilder.handlers.menu;
 
 import com.android.ide.common.rendering.api.ViewType;
-import com.android.tools.idea.uibuilder.handlers.HandlerTestFactory;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import org.junit.Test;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneBuilder;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 
 import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
+public final class ActionBarTest extends LayoutTestCase {
+  public void testAddToItemsOrOverflowItemsItemWidthAndHeightAreNegativeOne() {
+    NlModel model = model("model.xml", component("menu").unboundedChildren(component("item").viewType(ViewType.ACTION_BAR_MENU))).build();
+    ScreenFixture screen = surface().screen(model);
 
-public final class ActionBarTest {
-  @Test
-  public void addToItemsOrOverflowItemsItemWidthAndHeightAreNegativeOne() {
-    NlComponent item = HandlerTestFactory.newNlComponent("item");
-    item.setBounds(0, 0, -1, -1);
-
-    NlComponent menu = HandlerTestFactory.newNlComponent("menu");
-    menu.addChild(item);
+    SceneComponent menu = new LayoutlibSceneBuilder(model, screen.getScreen()).build().getRoot();
+    SceneComponent item = menu.getChildren().get(0);
+    item.setPosition(0, 0);
+    item.setSize(-1, -1);
 
     ActionBar actionBar = new ActionBar(menu);
 
@@ -39,30 +40,18 @@ public final class ActionBarTest {
     assertEquals(Collections.emptyList(), actionBar.getOverflowItems());
   }
 
-  @Test
-  public void addToItemsOrOverflowItemsItemIsGroup() {
-    NlComponent item = HandlerTestFactory.newNlComponent("item");
-    item.viewInfo = MenuTestFactory.mockViewInfo(ViewType.ACTION_BAR_MENU);
+  public void testAddToItemsOrOverflowItemsItemIsGroup() {
+    NlModel model = model("model.xml",
+                          component("menu").unboundedChildren(
+                            component("group").unboundedChildren(
+                              component("item").viewType(ViewType.ACTION_BAR_MENU)))).build();
 
-    NlComponent group = HandlerTestFactory.newNlComponent("group");
-    group.addChild(item);
+    ScreenFixture screen = surface().screen(model);
 
-    NlComponent menu = HandlerTestFactory.newNlComponent("menu");
-    menu.addChild(group);
-
-    ActionBar actionBar = new ActionBar(menu);
-
-    assertEquals(Collections.singletonList(item), actionBar.getItems());
-    assertEquals(Collections.emptyList(), actionBar.getOverflowItems());
-  }
-
-  @Test
-  public void addToItemsOrOverflowItemsItemViewTypeIsActionBarMenu() {
-    NlComponent item = HandlerTestFactory.newNlComponent("item");
-    item.viewInfo = MenuTestFactory.mockViewInfo(ViewType.ACTION_BAR_MENU);
-
-    NlComponent menu = HandlerTestFactory.newNlComponent("menu");
-    menu.addChild(item);
+    SceneComponent menu = new LayoutlibSceneBuilder(model, screen.getScreen()).build().getRoot();
+    SceneComponent group = menu.getChildren().get(0);
+    group.getNlComponent().viewInfo = null;
+    SceneComponent item = group.getChildren().get(0);
 
     ActionBar actionBar = new ActionBar(menu);
 
@@ -70,13 +59,25 @@ public final class ActionBarTest {
     assertEquals(Collections.emptyList(), actionBar.getOverflowItems());
   }
 
-  @Test
-  public void addToItemsOrOverflowItemsItemViewTypeIsActionBarOverflowMenu() {
-    NlComponent item = HandlerTestFactory.newNlComponent("item");
-    item.viewInfo = MenuTestFactory.mockViewInfo(ViewType.ACTION_BAR_OVERFLOW_MENU);
+  public void testAddToItemsOrOverflowItemsItemViewTypeIsActionBarMenu() {
+    NlModel model = model("model.xml", component("menu").unboundedChildren(component("item").viewType(ViewType.ACTION_BAR_MENU))).build();
+    ScreenFixture screen = surface().screen(model);
 
-    NlComponent menu = HandlerTestFactory.newNlComponent("menu");
-    menu.addChild(item);
+    SceneComponent menu = new LayoutlibSceneBuilder(model, screen.getScreen()).build().getRoot();
+    SceneComponent item = menu.getChildren().get(0);
+
+    ActionBar actionBar = new ActionBar(menu);
+
+    assertEquals(Collections.singletonList(item), actionBar.getItems());
+    assertEquals(Collections.emptyList(), actionBar.getOverflowItems());
+  }
+
+  public void testAddToItemsOrOverflowItemsItemViewTypeIsActionBarOverflowMenu() {
+    NlModel model = model("model.xml", component("menu").unboundedChildren(component("item").viewType(ViewType.ACTION_BAR_OVERFLOW_MENU))).build();
+    ScreenFixture screen = surface().screen(model);
+
+    SceneComponent menu = new LayoutlibSceneBuilder(model, screen.getScreen()).build().getRoot();
+    SceneComponent item = menu.getChildren().get(0);
 
     ActionBar actionBar = new ActionBar(menu);
 

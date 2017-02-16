@@ -22,14 +22,16 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Component used during Drag and Drop
  */
-public class TemporarySceneComponent extends SceneComponent {
+public abstract class TemporarySceneComponent extends SceneComponent {
 
   public TemporarySceneComponent(@NotNull Scene scene, @NotNull NlComponent component) {
     super(scene, component);
     addTarget(new DragDndTarget());
     scene.setAnimate(false);
     scene.getRoot().addChild(this);
-    updateFrom(component);
+    init();
     scene.setAnimate(true);
   }
+
+  abstract void init();
 }

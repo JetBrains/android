@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers;
+package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.intellij.psi.xml.XmlTag;
+import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mockito;
 
-public final class HandlerTestFactory {
-  private HandlerTestFactory() {
-  }
+import java.util.List;
 
+/**
+ * A mechanism for adding {@link Target}s to {@link SceneComponent}s.
+ */
+public interface TargetProvider {
   @NotNull
-  public static NlComponent newNlComponent(@NotNull String tagName) {
-    XmlTag tag = Mockito.mock(XmlTag.class);
-    Mockito.when(tag.getName()).thenReturn(tagName);
-
-    return new NlComponent(Mockito.mock(NlModel.class), tag);
-  }
+  List<Target> createTargets(@NotNull SceneComponent component, boolean parent);
 }
