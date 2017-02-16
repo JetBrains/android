@@ -36,9 +36,12 @@ import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleWithNameAlreadyExists;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.roots.ModifiableRootModel;
+import com.intellij.openapi.roots.ModuleOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
+import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -208,6 +211,22 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertSameElements(newResourceDirs, flavorDirs);
   }
 
+  public void testRootChangeListener() {
+    ProjectResourceRepository resources = ProjectResourceRepository.getOrCreateInstance(myFacet);
+    List<? extends LocalResourceRepository> originalChildren = resources.getChildren();
+    assertNotEmpty(originalChildren);
+    Collection<VirtualFile> originalDirs = resources.getResourceDirs();
+    assertNotEmpty(originalDirs);
+
+    Map<String, Module> rootToModules = rootToModuleMap();
+    // Now remove one of the modules, which should automatically cause the repo to have different roots.
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> removeModuleDependency(myModule, rootToModules.get("plib2").getName()));
+    DumbService.getInstance(getProject()).runWhenSmart(() -> {
+      assertEquals(originalChildren.size() - 1, resources.getChildren().size());
+      assertEquals(originalDirs.size() - 1, resources.getResourceDirs().size());
+    });
+    DumbService.getInstance(getProject()).waitForSmartMode();
+  }
 
   public void testHasResourcesOfType() {
     // Test hasResourcesOfType merging (which may be optimized to be lighter-weight than map merging).
@@ -279,11 +298,16 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     if (testName.equals("parents")) { // for unit test testDependencies
       addModuleWithAndroidFacet(projectBuilder, modules, "plib1", PROJECT_TYPE_LIBRARY);
       addModuleWithAndroidFacet(projectBuilder, modules, "plib2", PROJECT_TYPE_LIBRARY);
-    } else if (testName.equals("dependencies")) { // for unit test testDependencies
+    }
+    else if (testName.equals("dependencies")) { // for unit test testDependencies
       addModuleWithAndroidFacet(projectBuilder, modules, "sharedlib", PROJECT_TYPE_LIBRARY);
       addModuleWithAndroidFacet(projectBuilder, modules, "lib1", PROJECT_TYPE_LIBRARY);
       addModuleWithAndroidFacet(projectBuilder, modules, "lib2", PROJECT_TYPE_LIBRARY);
       addModuleWithAndroidFacet(projectBuilder, modules, "app", PROJECT_TYPE_APP);
+    }
+    else if (testName.equals("rootChangeListener")) {
+      addModuleWithAndroidFacet(projectBuilder, modules, "plib1", PROJECT_TYPE_LIBRARY);
+      addModuleWithAndroidFacet(projectBuilder, modules, "plib2", PROJECT_TYPE_LIBRARY);
     }
   }
 
@@ -291,36 +315,11 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   public void testDependencies() throws Exception {
     myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
 
-    Module lib1 = null;
-    Module lib2 = null;
-    Module sharedLib = null;
-    Module app = null;
-
-    for (Module module : ModuleManager.getInstance(getProject()).getModules()) {
-      if (module != myModule) {
-        VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
-        assertEquals(1, contentRoots.length);
-
-        String name = contentRoots[0].getName();
-        switch (name) {
-          case "lib1":
-            lib1 = module;
-            break;
-          case "lib2":
-            lib2 = module;
-            break;
-          case "sharedlib":
-            sharedLib = module;
-            break;
-          case "app":
-            app = module;
-            break;
-          default:
-            fail(name);
-            break;
-        }
-      }
-    }
+    Map<String, Module> rootToModuleMap = rootToModuleMap();
+    Module lib1 = rootToModuleMap.get("lib1");
+    Module lib2 = rootToModuleMap.get("lib2");
+    Module sharedLib = rootToModuleMap.get("sharedlib");
+    Module app = rootToModuleMap.get("app");
 
     assertNotNull(lib1);
     assertNotNull(lib2);
@@ -423,6 +422,37 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   private static void renameModule(Module from, String name) throws ModuleWithNameAlreadyExists {
     final ModifiableModuleModel model = ModuleManager.getInstance(from.getProject()).getModifiableModel();
     model.renameModule(from, name);
+    ApplicationManager.getApplication().runWriteAction(model::commit);
+  }
+
+  // The modules have names that may be hard to guess, but the roots we know from configureAdditionalModules.
+  // This map helps us find the module by root.
+  private Map<String, Module> rootToModuleMap() {
+    Map<String, Module> map = new HashMap<>();
+    for (Module module : ModuleManager.getInstance(getProject()).getModules()) {
+      if (module != myModule) {
+        VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
+        assertEquals(1, contentRoots.length);
+        map.put(contentRoots[0].getName(), module);
+      }
+    }
+    return map;
+  }
+
+  private static void removeModuleDependency(Module from, String name) {
+    boolean found = false;
+    final ModifiableRootModel model = ModuleRootManager.getInstance(from).getModifiableModel();
+    for (OrderEntry orderEntry : model.getOrderEntries()) {
+      if (orderEntry instanceof ModuleOrderEntry) {
+        final ModuleOrderEntry moduleOrderEntry = (ModuleOrderEntry)orderEntry;
+        if (moduleOrderEntry.getModuleName().equals(name)) {
+          assertFalse(found);
+          model.removeOrderEntry(orderEntry);
+          found = true;
+        }
+      }
+    }
+    assertTrue(found);
     ApplicationManager.getApplication().runWriteAction(model::commit);
   }
 
