@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
 import com.android.tools.idea.uibuilder.model.DnDTransferItem;
@@ -22,32 +23,43 @@ import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.CopyProvider;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
 
+import javax.swing.*;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 
+import static com.android.tools.idea.uibuilder.palette.NlPalettePanel.DEFAULT_PREVIEW_HEIGHT;
+import static com.android.tools.idea.uibuilder.palette.NlPalettePanel.PALETTE_MODE;
+import static com.android.tools.idea.uibuilder.palette.NlPalettePanel.PALETTE_PREVIEW_HEIGHT;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 
 public class NlPalettePanelTest extends AndroidTestCase {
   private CopyPasteManager myCopyPasteManager;
+  private NlDesignSurface mySurface;
   private NlPalettePanel myPanel;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
     Configuration configuration = mock(Configuration.class);
     when(configuration.getModule()).thenReturn(myModule);
-    NlDesignSurface surface = mock(NlDesignSurface.class);
-    when(surface.getLayoutType()).thenReturn(NlLayoutType.LAYOUT);
-    when(surface.getConfiguration()).thenReturn(configuration);
+    mySurface = mock(NlDesignSurface.class);
+    when(mySurface.getLayoutType()).thenReturn(NlLayoutType.LAYOUT);
+    when(mySurface.getConfiguration()).thenReturn(configuration);
     myCopyPasteManager = mock(CopyPasteManager.class);
-    myPanel = new NlPalettePanel(getProject(), surface, myCopyPasteManager);
+    myPanel = new NlPalettePanel(getProject(), mySurface, myCopyPasteManager);
   }
 
   @Override
@@ -98,5 +110,69 @@ public class NlPalettePanelTest extends AndroidTestCase {
     assertThat(myPanel.getTreeGrid().getFilter()).isEmpty();
     myPanel.setFilter("button");
     assertThat(myPanel.getTreeGrid().getFilter()).isEqualTo("button");
+  }
+
+  public void testDefaultInitialPreviewHeight() {
+    assertThat(getPreviewHeight()).isEqualTo(JBUI.scale(DEFAULT_PREVIEW_HEIGHT));
+  }
+
+  public void testInitialPreviewHeightIsReadFromOptions() {
+    PropertiesComponent.getInstance().setValue(PALETTE_PREVIEW_HEIGHT, "2017");
+    Disposer.dispose(myPanel);
+    myPanel = new NlPalettePanel(getProject(), mySurface, myCopyPasteManager);
+    assertThat(getPreviewHeight()).isEqualTo(JBUI.scale(2017));
+  }
+
+  public void testInitialPreviewHeightFromMalformedOptionValueIsIgnored() {
+    PropertiesComponent.getInstance().setValue(PALETTE_PREVIEW_HEIGHT, "malformed");
+    Disposer.dispose(myPanel);
+    myPanel = new NlPalettePanel(getProject(), mySurface, myCopyPasteManager);
+    assertThat(getPreviewHeight()).isEqualTo(JBUI.scale(DEFAULT_PREVIEW_HEIGHT));
+  }
+
+  public void testInitialPreviewHeightIsSavedToOptions() {
+    assertThat(PropertiesComponent.getInstance().getValue(PALETTE_PREVIEW_HEIGHT)).isNull();
+    setPreviewHeight(JBUI.scale(1971));
+    fireComponentResize(myPanel.getTreeGrid());
+    assertThat(PropertiesComponent.getInstance().getValue(PALETTE_PREVIEW_HEIGHT)).isEqualTo("1971");
+  }
+
+  public void testDefaultMode() {
+    assertThat(myPanel.getMode()).isEqualTo(PaletteMode.ICON_AND_NAME);
+  }
+
+  public void testInitialModeIsReadFromOptions() {
+    PropertiesComponent.getInstance().setValue(PALETTE_MODE, PaletteMode.LARGE_ICONS.toString());
+    Disposer.dispose(myPanel);
+    myPanel = new NlPalettePanel(getProject(), mySurface, myCopyPasteManager);
+    assertThat(myPanel.getMode()).isEqualTo(PaletteMode.LARGE_ICONS);
+  }
+
+  public void testInitialModeFromMalformedOptionValueIsIgnored() {
+    PropertiesComponent.getInstance().setValue(PALETTE_MODE, "malformed");
+    Disposer.dispose(myPanel);
+    myPanel = new NlPalettePanel(getProject(), mySurface, myCopyPasteManager);
+    assertThat(myPanel.getMode()).isEqualTo(PaletteMode.ICON_AND_NAME);
+  }
+
+  public void testInitialModeIsSavedToOptions() {
+    assertThat(PropertiesComponent.getInstance().getValue(PALETTE_MODE)).isNull();
+    myPanel.setMode(PaletteMode.SMALL_ICONS);
+    assertThat(PropertiesComponent.getInstance().getValue(PALETTE_MODE)).isEqualTo(PaletteMode.SMALL_ICONS.toString());
+  }
+
+  private static void fireComponentResize(@NotNull JComponent component) {
+    ComponentEvent event = mock(ComponentEvent.class);
+    for (ComponentListener listener : component.getComponentListeners()) {
+      listener.componentResized(event);
+    }
+  }
+
+  private int getPreviewHeight() {
+    return myPanel.getSplitter().getLastSize();
+  }
+
+  private void setPreviewHeight(@SuppressWarnings("SameParameterValue") int height) {
+    myPanel.getSplitter().setLastSize(height);
   }
 }
