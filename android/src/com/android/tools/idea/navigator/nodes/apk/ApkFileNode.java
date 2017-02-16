@@ -17,9 +17,11 @@ package com.android.tools.idea.navigator.nodes.apk;
 
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.ApkFileType;
+import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.tools.idea.navigator.AndroidProjectTreeBuilder;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.android.AndroidManifestsGroupNode;
+import com.android.tools.idea.navigator.nodes.apk.java.DexGroupNode;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -35,14 +37,18 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.FN_APK_CLASSES_DEX;
 import static com.android.tools.idea.gradle.util.Projects.findModuleRootFolder;
 
 public class ApkFileNode extends ProjectViewNode<PsiFile> {
+  @NotNull private final PsiFile myApkFile;
   @NotNull private final AndroidFacet myAndroidFacet;
   @NotNull private final ApkFacet myApkFacet;
   @NotNull private final AndroidProjectViewPane myProjectViewPane;
 
+  @Nullable private final VirtualFile myApkRootFile;
   @Nullable private final VirtualFile myManifestFile;
+  @Nullable private final VirtualFile myDexFile;
 
   public ApkFileNode(@NotNull Project project,
                      @NotNull PsiFile apkFile,
@@ -51,19 +57,35 @@ public class ApkFileNode extends ProjectViewNode<PsiFile> {
                      @NotNull ViewSettings settings,
                      @NotNull AndroidProjectViewPane projectViewPane) {
     super(project, apkFile, settings);
+    myApkFile = apkFile;
     myAndroidFacet = androidFacet;
     myApkFacet = apkFacet;
     myProjectViewPane = projectViewPane;
+    myApkRootFile = getApkRootFile();
+
     VirtualFile rootFolder = findModuleRootFolder(getModule());
     myManifestFile = rootFolder != null ? rootFolder.findChild(FN_ANDROID_MANIFEST_XML) : null;
+
+    myDexFile = myApkRootFile != null ? myApkRootFile.findChild(FN_APK_CLASSES_DEX) : null;
+  }
+
+  @Nullable
+  private VirtualFile getApkRootFile() {
+    VirtualFile file = getVirtualFile();
+    return file != null ? ApkFileSystem.getInstance().getRootByLocal(file) : null;
   }
 
   @Override
   @NotNull
   public Collection<? extends AbstractTreeNode> getChildren() {
     Collection<AbstractTreeNode> children = new ArrayList<>();
-    AndroidManifestsGroupNode manifestsGroupNode = createManifestGroupNode();
-    children.add(manifestsGroupNode);
+
+    // "manifests" folder
+    children.add(createManifestGroupNode());
+
+    // "java" folder
+    children.add(new DexGroupNode(myProject, getSettings(), myDexFile));
+
     return children;
   }
 
@@ -124,19 +146,12 @@ public class ApkFileNode extends ProjectViewNode<PsiFile> {
   @Override
   protected void update(@NotNull PresentationData presentation) {
     presentation.setIcon(ApkFileType.INSTANCE.getIcon());
-    presentation.setPresentableText(getApkFile().getName());
+    presentation.setPresentableText(myApkFile.getName());
   }
 
   @Override
   @Nullable
   public VirtualFile getVirtualFile() {
-    return getApkFile().getVirtualFile();
-  }
-
-  @NotNull
-  private PsiFile getApkFile() {
-    PsiFile file = getValue();
-    assert file != null;
-    return file;
+    return myApkFile.getVirtualFile();
   }
 }

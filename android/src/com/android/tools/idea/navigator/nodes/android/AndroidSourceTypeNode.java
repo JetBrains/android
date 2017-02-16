@@ -27,7 +27,6 @@ import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
@@ -44,6 +43,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 /**
@@ -165,7 +165,7 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
     //TODO: first check if the file is of my source type
 
     for (VirtualFile root : mySourceRoots) {
-      if (VfsUtilCore.isAncestor(root, file, false)) {
+      if (isAncestor(root, file, false)) {
         return true;
       }
     }
