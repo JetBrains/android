@@ -77,6 +77,7 @@ public class NetworkDataPoller extends PollRunner {
       myHttpRangeRequestStartTimeNs = Math.max(myHttpRangeRequestStartTimeNs, data.getStartTimestamp() + 1);
       myHttpRangeRequestStartTimeNs = Math.max(myHttpRangeRequestStartTimeNs, data.getEndTimestamp() + 1);
       NetworkProfiler.HttpDetailsResponse initialData = myNetworkTable.getHttpDetailsResponseById(data.getConnId(),
+                                                                                                  mySession,
                                                                                                   NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
 
       NetworkProfiler.HttpDetailsResponse request = initialData;
@@ -89,7 +90,7 @@ public class NetworkDataPoller extends PollRunner {
         responseData = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.RESPONSE);
         body = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY);
       }
-      myNetworkTable.insertOrReplace(myProcessId, request, responseData, body, data);
+      myNetworkTable.insertOrReplace(myProcessId, mySession, request, responseData, body, data);
     }
   }
 
