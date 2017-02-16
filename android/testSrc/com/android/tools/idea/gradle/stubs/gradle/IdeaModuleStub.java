@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.idea.*;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
@@ -64,6 +65,11 @@ public class IdeaModuleStub implements IdeaModule {
   @Override
   public DomainObjectSet<? extends IdeaContentRoot> getContentRoots() {
     return ImmutableDomainObjectSet.of(myContentRoots);
+  }
+
+  @Override
+  public ProjectIdentifier getProjectIdentifier() {
+    throw new UnsupportedOperationException();
   }
 
   @NotNull
