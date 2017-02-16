@@ -19,17 +19,16 @@ import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneBuilder;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.intellij.openapi.command.WriteCommandAction;
-import org.mockito.Mockito;
 
 import java.util.Collections;
 import java.util.List;
@@ -70,7 +69,7 @@ public final class GridDragHandlerTest extends LayoutTestCase {
     // @formatter:on
 
     ScreenFixture screenFixture = surface().screen(model).withScale(1);
-    Scene scene = Scene.createScene(model, screenFixture.getScreen());
+    Scene scene = new LayoutlibSceneBuilder(model, screenFixture.getScreen()).build();
     scene.buildDisplayList(new DisplayList(), 0);
 
     List<SceneComponent> components = Collections.emptyList();
