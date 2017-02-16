@@ -20,12 +20,17 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.uibuilder.scene.target.ActionTarget;
+import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import org.fest.swing.core.ComponentDragAndDrop;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.driver.ComponentDriver;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JMenuItemFixture;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,6 +46,7 @@ public class NlComponentFixture {
   private final NlComponent myComponent;
   private final DesignSurface mySurface;
   private final ComponentDragAndDrop myDragAndDrop;
+  private final ComponentDriver<DesignSurface> myComponentDriver;
 
   public NlComponentFixture(@NotNull Robot robot,
                             @NotNull NlComponent component,
@@ -49,6 +55,7 @@ public class NlComponentFixture {
     myComponent = component;
     mySurface = surface;
     myDragAndDrop = new ComponentDragAndDrop(myRobot);
+    myComponentDriver = new ComponentDriver<>(myRobot);
   }
 
   /** Returns the center point in panel coordinates */
@@ -124,6 +131,27 @@ public class NlComponentFixture {
     return this;
   }
 
+  public NlComponentFixture createBaselineConstraintWith(@NotNull NlComponentFixture destination) {
+    SceneView sceneView = mySurface.getCurrentSceneView();
+
+    // Find the position of the baseline target icon and click on it
+    SceneComponent sceneComponent = sceneView.getScene().getSceneComponent(myComponent);
+    Target target = GuiQuery.getNonNull(() -> sceneComponent.getTargets().stream()
+      .filter(t -> t.getClass() == ActionTarget.class)
+      .findFirst().get());
+    SceneContext context = SceneContext.get(sceneView);
+    Point p = new Point(context.getSwingX(target.getCenterX()), context.getSwingY(target.getCenterY()));
+    myComponentDriver.click(mySurface, p);
+
+    Point sourceBaseline = getTopCenterPoint();
+    sourceBaseline.translate(0, Coordinates.getSwingDimension(sceneView, myComponent.getBaseline()));
+    myDragAndDrop.drag(mySurface, sourceBaseline);
+    Point destinationBaseline = destination.getTopCenterPoint();
+    destinationBaseline.translate(0, Coordinates.getSwingDimension(sceneView, destination.getComponent().getBaseline()));
+    myDragAndDrop.drop(mySurface, destinationBaseline);
+    return this;
+  }
+
   public String getTextAttribute() {
     return myComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
   }
@@ -141,8 +169,9 @@ public class NlComponentFixture {
   }
 
   /** Click in the middle of the view (typically selects it) */
-  public void click() {
-    new ComponentDriver(myRobot).click(mySurface, getMidPoint());
+  public NlComponentFixture click() {
+    myComponentDriver.click(mySurface, getMidPoint());
+    return this;
   }
 
   /** Right clicks s in the middle of the view */
