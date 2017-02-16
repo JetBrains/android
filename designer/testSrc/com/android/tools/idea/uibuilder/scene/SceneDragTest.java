@@ -80,4 +80,16 @@ public class SceneDragTest extends SceneTest {
                  "    tools:layout_editor_absoluteX=\"195dp\"\n" +
                  "    tools:layout_editor_absoluteY=\"592dp\"/>");
   }
+
+  public void testDragLeft() {
+    myInteraction.mouseDown("button");
+    myInteraction.mouseRelease(-800, -500);
+    myScreen.get("@id/button")
+      .expectXml("<TextView\n" +
+                 "    android:id=\"@id/button\"\n" +
+                 "    android:layout_width=\"100dp\"\n" +
+                 "    android:layout_height=\"20dp\"\n" +
+                 "    tools:layout_editor_absoluteX=\"0dp\"\n" +
+                 "    tools:layout_editor_absoluteY=\"0dp\"/>");
+  }
 }
