@@ -30,7 +30,6 @@ import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.ui.components.JBLayeredPane;
-import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -74,7 +73,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   private final List<ToolWindowDefinition<T>> myToolDefinitions;
   private final SideModel<T> myModel;
   private final ThreeComponentsSplitter mySplitter;
-  private final JBLoadingPanel myLoadingPanel;
   private final JPanel myMainPanel;
   private final MinimizedPanel<T> myLeftMinimizePanel;
   private final MinimizedPanel<T> myRightMinimizePanel;
@@ -103,8 +101,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
   public void init(@NotNull JComponent content,
                    @NotNull T context,
                    @NotNull List<ToolWindowDefinition<T>> definitions) {
-    myLoadingPanel.stopLoading();
-    myMainPanel.setVisible(true);
     content.addComponentListener(createWidthUpdater());
     mySplitter.setInnerComponent(content);
     mySplitter.setFirstSize(getInitialSideWidth(Side.LEFT));
@@ -168,13 +164,9 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myMainPanel.add(myLeftMinimizePanel, BorderLayout.WEST);
     myMainPanel.add(layeredPanel, BorderLayout.CENTER);
     myMainPanel.add(myRightMinimizePanel, BorderLayout.EAST);
-    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project, 1000);
-    myLoadingPanel.add(myMainPanel);
+    add(myMainPanel, JLayeredPane.DEFAULT_LAYER);
     Disposer.register(this, mySplitter);
     Disposer.register(this, layeredPanel);
-    add(myLoadingPanel, JLayeredPane.DEFAULT_LAYER);
-    myMainPanel.setVisible(false);
-    myLoadingPanel.startLoading();
   }
 
   private boolean isCurrentEditor(@NotNull FileEditor fileEditor) {
@@ -417,7 +409,7 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
 
   @Override
   public void doLayout() {
-    myLoadingPanel.setBounds(0, 0, getWidth(), getHeight());
+    myMainPanel.setBounds(0, 0, getWidth(), getHeight());
   }
 
   private class MyButtonDragListener implements ButtonDragListener<T> {
