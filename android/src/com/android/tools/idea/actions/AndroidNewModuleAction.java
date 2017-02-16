@@ -47,7 +47,7 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (project != null) {
-      if (WizardUtils.isNpwModelWizardEnabled(e)) {
+      if (WizardUtils.isNpwModelWizardEnabled(e, WizardUtils.Feature.NEW_MODULE)) {
         ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
         for (ModuleDescriptionProvider provider : ModuleDescriptionProvider.EP_NAME.getExtensions()) {
           moduleDescriptions.addAll(provider.getDescriptions());
