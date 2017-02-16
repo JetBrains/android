@@ -224,6 +224,9 @@ public class SingleWidgetView extends JPanel {
     int count = 0;
     order[count++] = RATIO_UNLOCK;
 
+    if (mCacheHeight == MATCH_CONSTRAINT && mCacheWidth == MATCH_CONSTRAINT) {
+      order[count++] = RATIO_LOCK;
+    }
     if (mCacheHeight == MATCH_CONSTRAINT) {
       order[count++] = RATIO_LOCK_HEIGHT;
     }
@@ -820,18 +823,20 @@ public class SingleWidgetView extends JPanel {
     public final static int LEFT = 4;
     public final static int RIGHT = 8;
     public final static int ALL = TOP | BOTTOM | LEFT | RIGHT;
+    public boolean mDisplay;
 
-    Box(int x, int y, int w, int h, int edges) {
+    Box(int x, int y, int w, int h, int edges, boolean display) {
       mX = x;
       mY = y;
       mHeight = h;
       mWidth = w;
       mEdges = edges;
+      mDisplay = display;
     }
 
     @Override
     public boolean paint(Graphics2D g, ColorSet colorSet) {
-      if (mEdges == 0) {
+      if (mEdges == 0 || ! mDisplay) {
         return false;
       }
       g.setColor(colorSet.getInspectorFillColor());
@@ -872,7 +877,7 @@ public class SingleWidgetView extends JPanel {
     boolean mDisplay;
 
     BaseLineBox(String title, int x, int y, int w, int h, boolean baseline, boolean display) {
-      super(x, y, w, h, display ? ALL : 0);
+      super(x, y, w, h, display ? ALL : 0, true);
       mTitle = title;
       mBaseline = baseline;
       mDisplay = display;
@@ -1104,10 +1109,10 @@ public class SingleWidgetView extends JPanel {
       int boxTop = (height - mBoxSize) / 2;
 
       mWidgetCenter = new BaseLineBox(null, boxLeft, boxTop, mBoxSize, mBoxSize, mBaseline, true);
-      mWidgetBottom = new Box(boxLeft, height - inset, mBoxSize, mBoxSize, Box.TOP);
-      mWidgetRight = new Box(width - inset, boxTop, mBoxSize, mBoxSize, Box.LEFT);
-      mWidgetLeft = new Box(inset - mBoxSize, boxTop, mBoxSize, mBoxSize, Box.RIGHT);
-      mWidgetTop = new Box(boxLeft, inset - mBoxSize, mBoxSize, mBoxSize, Box.BOTTOM);
+      mWidgetBottom = new Box(boxLeft, height - inset, mBoxSize, mBoxSize, Box.TOP, (mMarginBottom >= 0 || mBaseline));
+      mWidgetRight = new Box(width - inset, boxTop, mBoxSize, mBoxSize, Box.LEFT,  (mMarginRight >= 0) );
+      mWidgetLeft = new Box(inset - mBoxSize, boxTop, mBoxSize, mBoxSize, Box.RIGHT,(mMarginLeft >= 0));
+      mWidgetTop = new Box(boxLeft, inset - mBoxSize, mBoxSize, mBoxSize, Box.BOTTOM,  (mMarginTop >= 0));
       mAspectLock = new AspectLock(boxLeft, boxTop, mBoxSize, mBoxSize, mRatioLock, mRatioWidth, mRatioHeight);
       int baseArrowX = boxLeft + mBoxSize / 2;
       mBaselineArrow =
