@@ -167,6 +167,10 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
            : target().getCurrentSceneView().getModel().getSelectionModel().getSelection();
   }
 
+  public double getScale() {
+    return target().getScale();
+  }
+
   // Only applicable to NlDesignSurface
   public boolean isInScreenMode(@NotNull NlDesignSurface.ScreenMode mode) {
     return target().getScreenMode() == mode;
