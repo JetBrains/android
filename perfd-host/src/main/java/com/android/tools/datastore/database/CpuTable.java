@@ -60,6 +60,7 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
       createTable("Cpu_Trace", "TraceId INTEGER NOT NULL", "StartTime INTEGER", "EndTime INTEGER", "Data BLOB");
       createIndex("Cpu_Data", "AppId", "Timestamp");
       createIndex("Cpu_Trace", "TraceId");
+      createIndex("Thread_Activities", "AppId", "ThreadId", "Timestamp");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
