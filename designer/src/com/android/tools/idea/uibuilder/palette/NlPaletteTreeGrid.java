@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.splitter.ComponentsSplitter;
 import com.android.tools.adtui.treegrid.TreeGrid;
-import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.adtui.treegrid.TreeGridSpeedSearch;
+import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
@@ -43,8 +45,7 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.util.function.Supplier;
 
 import static com.android.tools.adtui.splitter.SplitterUtil.setMinimumWidth;
@@ -53,6 +54,8 @@ import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 public class NlPaletteTreeGrid extends JPanel implements Disposable {
+  static final String PALETTE_CATEGORY_WIDTH = "palette.category.width";
+  static final int DEFAULT_CATEGORY_WIDTH = 100;
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 20;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 40;
 
@@ -63,12 +66,14 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
   private final TreeGrid<Palette.Item> myTree;
   private final MyFilter myFilter;
   private final IconPreviewFactory myIconPreviewFactory;
+  private final ComponentsSplitter mySplitter;
   private PaletteMode myMode;
   private SelectionListener myListener;
   private NlDesignSurface mySurface;
   private Palette myPalette;
 
   public NlPaletteTreeGrid(@NotNull Project project,
+                           @NotNull PaletteMode initialMode,
                            @NotNull DependencyManager dependencyManager,
                            @NotNull Runnable closeAutoHideCallback,
                            @Nullable NlDesignSurface designSurface,
@@ -77,7 +82,7 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     myDependencyManager = dependencyManager;
     myCloseAutoHideCallback = closeAutoHideCallback;
     mySurface = designSurface;
-    myMode = PaletteMode.ICON_AND_NAME;
+    myMode = initialMode;
     myIconPreviewFactory = iconFactory;
     myTree = createItemTreeGrid(project);
     myTree.addListSelectionListener(event -> fireSelectionChanged(myTree.getSelectedElement()));
@@ -99,17 +104,18 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     paletteScrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
 
     // Use a ComponentSplitter instead of a Splitter here to avoid a fat splitter size.
-    ComponentsSplitter palette = new ComponentsSplitter(false, true);
-    palette.setFirstComponent(categoryPane);
-    palette.setInnerComponent(paletteScrollPane);
-    palette.setHonorComponentsMinimumSize(true);
-    palette.setFirstSize(JBUI.scale(100));
-    setMinimumWidth(categoryPane, 20);
-    setMinimumWidth(paletteScrollPane, 20);
-    Disposer.register(this, palette);
+    mySplitter = new ComponentsSplitter(false, true);
+    mySplitter.setFirstComponent(categoryPane);
+    mySplitter.setInnerComponent(paletteScrollPane);
+    mySplitter.setHonorComponentsMinimumSize(true);
+    mySplitter.setFirstSize(JBUI.scale(getInitialCategoryWidth()));
+    myCategoryList.addComponentListener(createCategoryWidthUpdater());
+    setMinimumWidth(categoryPane, JBUI.scale(20));
+    setMinimumWidth(paletteScrollPane, JBUI.scale(20));
+    Disposer.register(this, mySplitter);
 
     setLayout(new BorderLayout());
-    add(palette, BorderLayout.CENTER);
+    add(mySplitter, BorderLayout.CENTER);
     setFocusCycleRoot(true);
     setFocusTraversalPolicy(new MyFocusTraversalPolicy(myCategoryList, myTree));
   }
@@ -226,6 +232,26 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     return myTree.getSelectedElement();
   }
 
+  @NotNull
+  private ComponentListener createCategoryWidthUpdater() {
+    return new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent event) {
+        PropertiesComponent.getInstance()
+          .setValue(PALETTE_CATEGORY_WIDTH, String.valueOf(AdtUiUtils.unscale(mySplitter.getFirstSize())));
+      }
+    };
+  }
+
+  private static int getInitialCategoryWidth() {
+    try {
+      return Integer.parseInt(PropertiesComponent.getInstance().getValue(PALETTE_CATEGORY_WIDTH, String.valueOf(DEFAULT_CATEGORY_WIDTH)));
+    }
+    catch (NumberFormatException unused) {
+      return DEFAULT_CATEGORY_WIDTH;
+    }
+  }
+
   @TestOnly
   @NotNull
   public JList<Palette.Group> getCategoryList() {
@@ -236,6 +262,12 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
   @NotNull
   public TreeGrid<Palette.Item> getComponentTree() {
     return myTree;
+  }
+
+  @TestOnly
+  @NotNull
+  public ComponentsSplitter getSplitter() {
+    return mySplitter;
   }
 
   @Override

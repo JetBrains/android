@@ -17,17 +17,20 @@ package com.android.tools.idea.uibuilder.palette;
 
 import com.android.SdkConstants;
 import com.android.tools.adtui.treegrid.TreeGrid;
+import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.util.JavaDocViewer;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,16 +39,16 @@ import org.mockito.ArgumentCaptor;
 import javax.swing.*;
 import javax.xml.ws.Holder;
 import java.awt.*;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.findActionForKey;
+import static com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid.DEFAULT_CATEGORY_WIDTH;
+import static com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid.PALETTE_CATEGORY_WIDTH;
 import static com.android.tools.idea.uibuilder.palette.PaletteTestCase.findItem;
 import static com.google.common.truth.Truth.assertThat;
 import static java.awt.event.InputEvent.BUTTON1_DOWN_MASK;
@@ -56,6 +59,7 @@ import static org.mockito.Mockito.*;
 public class NlPaletteTreeGridTest extends AndroidTestCase {
   private NlDesignSurface mySurface;
   private DependencyManager myDependencyManager;
+  private Runnable myCloseToolWindowCallback;
   private NlPaletteTreeGrid myPanel;
   private IconPreviewFactory myIconPreviewFactory;
   private JavaDocViewer myJavaDocViewer;
@@ -66,13 +70,15 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
     myDependencyManager = mock(DependencyManager.class);
     mySurface = mock(NlDesignSurface.class);
     myJavaDocViewer = mock(JavaDocViewer.class);
-    Runnable closeToolWindowCallback = mock(Runnable.class);
+    registerApplicationComponent(JavaDocViewer.class, myJavaDocViewer);
+    registerApplicationComponent(PropertiesComponent.class, new PropertiesComponentMock());
+    myCloseToolWindowCallback = mock(Runnable.class);
     myIconPreviewFactory = new IconPreviewFactory();
-    myPanel = new NlPaletteTreeGrid(getProject(), myDependencyManager, closeToolWindowCallback, mySurface, myIconPreviewFactory);
+    myPanel = new NlPaletteTreeGrid(
+      getProject(), PaletteMode.ICON_AND_NAME, myDependencyManager, myCloseToolWindowCallback, mySurface, myIconPreviewFactory);
     PsiFile file = myFixture.configureByText("res/layout/mine.xml", "<LinearLayout/>");
     Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.getVirtualFile());
     when(mySurface.getConfiguration()).thenReturn(configuration);
-    registerApplicationComponent(JavaDocViewer.class, myJavaDocViewer);
   }
 
   @Override
@@ -117,8 +123,8 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
     TreeGrid<Palette.Item> grid = myPanel.getComponentTree();
     grid.getLists().forEach(list -> {
       assertThat(list.getLayoutOrientation()).isEqualTo(JList.HORIZONTAL_WRAP);
-      assertThat(list.getFixedCellWidth()).isEqualTo(32);
-      assertThat(list.getFixedCellHeight()).isEqualTo(32);
+      assertThat(list.getFixedCellWidth()).isEqualTo(JBUI.scale(32));
+      assertThat(list.getFixedCellHeight()).isEqualTo(JBUI.scale(32));
     });
     assertThat(myPanel.getMode()).isEqualTo(PaletteMode.LARGE_ICONS);
   }
@@ -130,8 +136,8 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
     TreeGrid<Palette.Item> grid = myPanel.getComponentTree();
     grid.getLists().forEach(list -> {
       assertThat(list.getLayoutOrientation()).isEqualTo(JList.HORIZONTAL_WRAP);
-      assertThat(list.getFixedCellWidth()).isEqualTo(22);
-      assertThat(list.getFixedCellHeight()).isEqualTo(22);
+      assertThat(list.getFixedCellWidth()).isEqualTo(JBUI.scale(22));
+      assertThat(list.getFixedCellHeight()).isEqualTo(JBUI.scale(22));
     });
     assertThat(myPanel.getMode()).isEqualTo(PaletteMode.SMALL_ICONS);
   }
@@ -274,6 +280,33 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
     assertThat(psiClassCaptor.getValue().getQualifiedName()).isEqualTo("android.widget.Button");
   }
 
+  public void testDefaultInitialCategoryWidth() {
+    assertThat(getCategoryWidth()).isEqualTo(JBUI.scale(DEFAULT_CATEGORY_WIDTH));
+  }
+
+  public void testInitialCategoryWidthIsReadFromOptions() {
+    PropertiesComponent.getInstance().setValue(PALETTE_CATEGORY_WIDTH, "2017");
+    Disposer.dispose(myPanel);
+    myPanel = new NlPaletteTreeGrid(
+      getProject(), PaletteMode.ICON_AND_NAME, myDependencyManager, myCloseToolWindowCallback, mySurface, myIconPreviewFactory);
+    assertThat(getCategoryWidth()).isEqualTo(JBUI.scale(2017));
+  }
+
+  public void testInitialCategoryWidthFromMalformedOptionValueIsIgnored() {
+    PropertiesComponent.getInstance().setValue(PALETTE_CATEGORY_WIDTH, "malformed");
+    Disposer.dispose(myPanel);
+    myPanel = new NlPaletteTreeGrid(
+      getProject(), PaletteMode.ICON_AND_NAME, myDependencyManager, myCloseToolWindowCallback, mySurface, myIconPreviewFactory);
+    assertThat(getCategoryWidth()).isEqualTo(JBUI.scale(DEFAULT_CATEGORY_WIDTH));
+  }
+
+  public void testInitialCategoryWidthIsSavedToOptions() {
+    assertThat(PropertiesComponent.getInstance().getValue(PALETTE_CATEGORY_WIDTH)).isNull();
+    setCategoryWidth(JBUI.scale(1971));
+    fireComponentResize(myPanel.getCategoryList());
+    assertThat(PropertiesComponent.getInstance().getValue(PALETTE_CATEGORY_WIDTH)).isEqualTo("1971");
+  }
+
   private List<String> getVisibleTitles() {
     return getVisibleItems().stream().map(Palette.Item::getTitle).collect(Collectors.toList());
   }
@@ -400,5 +433,19 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
       assertThat(item).isSameAs(model.getElementAt(index));
     }
     assertThat(model.getSize()).isEqualTo(items.size());
+  }
+  private static void fireComponentResize(@NotNull JComponent component) {
+    ComponentEvent event = mock(ComponentEvent.class);
+    for (ComponentListener listener : component.getComponentListeners()) {
+      listener.componentResized(event);
+    }
+  }
+
+  private int getCategoryWidth() {
+    return myPanel.getSplitter().getFirstSize();
+  }
+
+  private void setCategoryWidth(@SuppressWarnings("SameParameterValue") int width) {
+    myPanel.getSplitter().setFirstSize(width);
   }
 }
