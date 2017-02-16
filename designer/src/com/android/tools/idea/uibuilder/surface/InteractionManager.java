@@ -29,7 +29,6 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
-import com.intellij.ui.mac.foundation.MacUtil;
 import com.intellij.util.PsiNavigateUtil;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +42,6 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
@@ -549,6 +547,11 @@ public class InteractionManager {
     public void mouseDragged(MouseEvent event) {
       int x = event.getX();
       int y = event.getY();
+
+      if (interceptPanInteraction(event, x, y)) {
+        return;
+      }
+
       if (myCurrentInteraction != null) {
         myLastMouseX = x;
         myLastMouseY = y;
@@ -977,11 +980,17 @@ public class InteractionManager {
         scrollAmount = (e.getWheelRotation() < 0 ? -1 : 1);
       }
 
-      if (((SystemInfo.isMac ? InputEvent.META_MASK : InputEvent.CTRL_MASK) & e.getModifiers()) != 0) {
+      // On Touchpad handling horizontal scrolling, the horizontal scroll is
+      // interpreted as a mouseWheel Event with Shift down.
+      // If some scrolling imprecison happens for other scroll interaction, it might be good
+      // to do the filtering at a higher level
+      if (!e.isShiftDown()
+          && (SystemInfo.isMac && e.isMetaDown()
+              || e.isControlDown())) {
         if (scrollAmount < 0) {
           mySurface.zoom(ZoomType.IN, x, y);
         }
-        else {
+        else if (scrollAmount > 0) {
           mySurface.zoomOut();
         }
         return;
@@ -1035,6 +1044,30 @@ public class InteractionManager {
         myScrollEndTimer.restart();
       }
     }
+  }
+
+  /**
+   * Check if the mouse wheel button is down or the CTRL (or CMD for macs) key and scroll the {@link DesignSurface}
+   * by the same amount as the drag distance.
+   *
+   * @param event {@link MouseEvent} passed by {@link MouseMotionListener#mouseDragged}
+   * @param x     x position of the cursor for the passed event
+   * @param y     y position of the cursor for the passed event
+   * @return true if the event has been intercepted and handled, false otherwise.
+   */
+  private boolean interceptPanInteraction(@NotNull MouseEvent event, int x, int y) {
+    int modifierKeyMask = InputEvent.BUTTON1_DOWN_MASK |
+                          (SystemInfo.isMac ? InputEvent.META_DOWN_MASK
+                                            : InputEvent.CTRL_DOWN_MASK);
+    if ((event.getModifiersEx() & InputEvent.BUTTON2_DOWN_MASK) != 0
+        || (event.getModifiersEx() & modifierKeyMask) == modifierKeyMask) {
+      DesignSurface surface = getSurface();
+      Point position = surface.getScrollPosition();
+      position.translate(myLastMouseX - x, myLastMouseY - y);
+      surface.setScrollPosition(position);
+      return true;
+    }
+    return false;
   }
 
   /**

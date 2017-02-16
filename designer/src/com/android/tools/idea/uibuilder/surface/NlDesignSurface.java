@@ -30,7 +30,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -314,11 +313,10 @@ public class NlDesignSurface extends DesignSurface {
    * For all other types of zoom see {@link DesignSurface#zoom(ZoomType, int, int)}
    * </p>
    *
-   * @see DesignSurface#zoom(ZoomType, int, int)
-   *
    * @param type Type of zoom to execute
    * @param x    Coordinate where the zoom will be centered
    * @param y    Coordinate where the zoom will be centered
+   * @see DesignSurface#zoom(ZoomType, int, int)
    */
   @Override
   public void zoom(@NotNull ZoomType type, int x, int y) {

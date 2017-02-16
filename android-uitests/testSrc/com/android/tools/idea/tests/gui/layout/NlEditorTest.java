@@ -23,9 +23,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
+import org.fest.swing.core.MouseButton;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.awt.*;
+import java.awt.event.InputEvent;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -117,5 +121,38 @@ public class NlEditorTest {
     ideFrame.invokeMenuPath("Edit", "Copy");
     ideFrame.invokeMenuPath("Edit", "Paste");
     assertEquals(5, layout.getAllComponents().size());
+  }
+
+  @Test
+  public void testZoomAndPanWithMouseShortcut() throws Exception {
+    guiTest.importSimpleApplication();
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    EditorFixture editor = ideFrame.getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN);
+
+    NlEditorFixture nele = editor.getLayoutEditor(true);
+    nele.waitForRenderToFinish();
+
+    // Test zoom in with mouse wheel
+    double oldScale = nele.getScale();
+    nele.mouseWheelZoomIn(-10);
+    assertThat(nele.getScale()).isGreaterThan(oldScale);
+
+    // Test Pan with middle mouse button
+    Point oldScrollPosition = nele.getScrollPosition();
+    nele.dragMouseFromCenter(-10, -10, MouseButton.MIDDLE_BUTTON, 0);
+    Point expectedScrollPosition = new Point(oldScrollPosition);
+    expectedScrollPosition.translate(10, 10);
+    assertThat(nele.getScrollPosition()).isEqualTo(expectedScrollPosition);
+
+    // Test Pan with Left mouse button and CTRL
+    nele.dragMouseFromCenter(-10, -10, MouseButton.LEFT_BUTTON, InputEvent.CTRL_MASK);
+    expectedScrollPosition.translate(10, 10);
+    assertThat(nele.getScrollPosition()).isEqualTo(expectedScrollPosition);
+
+    // Test zoom out with mouse wheel
+    oldScale = nele.getScale();
+    nele.mouseWheelZoomIn(3);
+    assertThat(nele.getScale()).isLessThan(oldScale);
   }
 }
