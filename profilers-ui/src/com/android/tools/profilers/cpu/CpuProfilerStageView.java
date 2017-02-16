@@ -28,6 +28,7 @@ import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.common.LoadingPanel;
+import com.android.tools.profilers.common.ProfilerButton;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
@@ -38,13 +39,10 @@ import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.containers.ImmutableList;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.plaf.ButtonUI;
-import javax.swing.plaf.basic.BasicButtonUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -233,45 +231,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
           getStage().setCapture(capture.value);
         }
       }
-    }
-  }
-
-  // TODO: extract this to a common place as we will probably need it in different profilers.
-  private static class ProfilerButton extends JButton {
-
-    private static final Color ON_HOVER_COLOR = new Color(0, 0, 0, (int)(0.1 * 255));
-
-    private static final int RADIUS = 8;
-
-    private static final int PADDING = 5;
-
-    public ProfilerButton() {
-      setOpaque(false);
-      addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseEntered(MouseEvent e) {
-          setBackground(ON_HOVER_COLOR);
-        }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-          setBackground(UIUtil.TRANSPARENT_COLOR);
-        }
-      });
-      setBorder(BorderFactory.createEmptyBorder(PADDING, PADDING, PADDING, PADDING));
-    }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-      // As the background has a transparency level, we need to manually add it.
-      g.setColor(getBackground());
-      g.fillRoundRect(0, 0, getWidth(), getHeight(), RADIUS, RADIUS);
-      super.paintComponent(g);
-    }
-
-    @Override
-    public void updateUI() {
-      setUI((ButtonUI)BasicButtonUI.createUI(this));
     }
   }
 
