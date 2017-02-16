@@ -82,43 +82,59 @@ public class AdbFileListing {
   }
 
   /**
-   * Determine if {@code path} is a link to a directory
+   * Determine if a symlink entry points to a directory. This is a best effort process,
+   * as the target of the symlink might not be accessible, in which case the future value
+   * is {@code false}. The future may still complete with an exception in case of ADB
+   * specific errors, such as device disconnected, etc.
    */
-  private boolean isDirectoryLink(@NotNull String path)
-    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
-    final int[] nLines = {0};
-    MultiLineReceiver receiver = new MultiLineReceiver() {
-      @Override
-      public void processNewLines(String[] lines) {
-        for (String line : lines) {
-          Matcher m = LS_LD_PATTERN.matcher(line);
-          if (m.matches()) {
-            nLines[0]++;
+  @NotNull
+  public ListenableFuture<Boolean> isDirectoryLink(@NotNull AdbFileListingEntry entry) {
+    SettableFuture<Boolean> futureResult = SettableFuture.create();
+
+    myExecutor.execute(() -> {
+      try {
+        final int[] nLines = {0};
+        MultiLineReceiver receiver = new MultiLineReceiver() {
+          @Override
+          public void processNewLines(String[] lines) {
+            for (String line : lines) {
+              Matcher m = LS_LD_PATTERN.matcher(line);
+              if (m.matches()) {
+                nLines[0]++;
+              }
+            }
           }
+
+          @Override
+          public boolean isCancelled() {
+            return false;
+          }
+        };
+
+
+        // We simply need to determine whether the referent is a directory or not.
+        // We do this by running `ls -ld ${link}/`.  If the referent exists and is a
+        // directory, we'll see the normal directory listing.  Otherwise, we'll see an
+        // error of some sort.
+        final String command = String.format("ls -l -d %s%s", getEscapedPath(entry.getFullPath()), FILE_SEPARATOR);
+
+        long startTime = System.nanoTime();
+
+        myDevice.executeShellCommand(command, receiver);
+
+        if (LOGGER.isTraceEnabled()) {
+          long endTime = System.nanoTime();
+          LOGGER.trace(String.format("isDirectoryLink for \"%s\" took %,d ms", entry.getFullPath(), (endTime - startTime) / 1_000_000));
         }
+
+        futureResult.set(nLines[0] > 0);
       }
-
-      @Override
-      public boolean isCancelled() {
-        return false;
+      catch (Throwable t) {
+        futureResult.setException(t);
       }
-    };
+    });
 
-    // We simply need to determine whether the referent is a directory or not.
-    // We do this by running `ls -ld ${link}/`.  If the referent exists and is a
-    // directory, we'll see the normal directory listing.  Otherwise, we'll see an
-    // error of some sort.
-    final String command = String.format("ls -l -d %s%s", getEscapedPath(path), FILE_SEPARATOR);
-
-    long startTime = System.nanoTime();
-    myDevice.executeShellCommand(command, receiver);
-
-    if (LOGGER.isTraceEnabled()) {
-      long endTime = System.nanoTime();
-      LOGGER.trace(String.format("isDirectoryLink for \"%s\" took %,d ms", path, (endTime - startTime) / 1_000_000));
-    }
-
-    return nLines[0] > 0;
+    return futureResult;
   }
 
   @NotNull
@@ -136,7 +152,8 @@ public class AdbFileListing {
   }
 
   @NotNull
-  private List<AdbFileListingEntry> listChildren(@NotNull AdbFileListingEntry entry) throws Exception {
+  private List<AdbFileListingEntry> listChildren(@NotNull AdbFileListingEntry entry)
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
     // create a list that will receive the list of the entries
     List<AdbFileListingEntry> entryList = new ArrayList<>();
 
@@ -153,13 +170,7 @@ public class AdbFileListing {
     LsReceiver receiver = new LsReceiver(entry, entryList);
 
     // call ls.
-    try {
-      myDevice.executeShellCommand(command, receiver);
-    }
-    catch (MyWrappedException e) {
-      // Unwrap and rethrow exception from callback
-      throw e.getInner();
-    }
+    myDevice.executeShellCommand(command, receiver);
 
     // sort the children by name
     entryList.sort((entry1, entry2) -> {
@@ -172,7 +183,7 @@ public class AdbFileListing {
     return entryList;
   }
 
-  private class LsReceiver extends MultiLineReceiver {
+  private static class LsReceiver extends MultiLineReceiver {
     @NotNull private AdbFileListingEntry myParentEntry;
     @NotNull private List<AdbFileListingEntry> myEntryList;
 
@@ -223,7 +234,7 @@ public class AdbFileListing {
             objectType = AdbFileListingEntry.EntryKind.DIRECTORY;
             break;
           case 'l':
-            objectType = AdbFileListingEntry.EntryKind.FILE_LINK;
+            objectType = AdbFileListingEntry.EntryKind.SYMBOLIC_LINK;
             break;
           case 's':
             objectType = AdbFileListingEntry.EntryKind.SOCKET;
@@ -234,7 +245,7 @@ public class AdbFileListing {
         }
 
         // now check what we may be linking to
-        if (objectType == AdbFileListingEntry.EntryKind.FILE_LINK) {
+        if (objectType == AdbFileListingEntry.EntryKind.SYMBOLIC_LINK) {
           String[] segments = name.split("\\s->\\s"); //$NON-NLS-1$
 
           // we should have 2 segments
@@ -251,17 +262,6 @@ public class AdbFileListing {
         }
 
         String path = AdbPathUtil.resolve(myParentEntry.getFullPath(), name);
-        if (objectType == AdbFileListingEntry.EntryKind.FILE_LINK) {
-          try {
-            if (isDirectoryLink(path)) {
-              objectType = AdbFileListingEntry.EntryKind.DIRECTORY_LINK;
-            }
-          }
-          catch (Exception e) {
-            // We need to wrap the exception because we are in a callback
-            throw new MyWrappedException(e);
-          }
-        }
 
         // Create entry and add it to result
         AdbFileListingEntry entry = new AdbFileListingEntry(path,
@@ -280,19 +280,6 @@ public class AdbFileListing {
     @Override
     public boolean isCancelled() {
       return false;
-    }
-  }
-
-  private static class MyWrappedException extends RuntimeException {
-    @NotNull private final Exception myInner;
-
-    private MyWrappedException(@NotNull final Exception inner) {
-      myInner = inner;
-    }
-
-    @NotNull
-    public Exception getInner() {
-      return myInner;
     }
   }
 }

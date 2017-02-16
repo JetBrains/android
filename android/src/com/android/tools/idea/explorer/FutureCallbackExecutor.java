@@ -20,7 +20,9 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
+import java.util.function.BiConsumer;
 
 /**
  * An {@link Executor} implementation that registers {@link ListenableFuture} callbacks
@@ -30,9 +32,9 @@ import java.util.concurrent.Executor;
  * to make the <code>executor</code> parameter explicit.
  */
 public class FutureCallbackExecutor implements Executor {
-  private final Executor myExecutor;
+  @NotNull private final Executor myExecutor;
 
-  public FutureCallbackExecutor(Executor executor) {
+  public FutureCallbackExecutor(@NotNull Executor executor) {
     myExecutor = executor;
   }
 
@@ -42,10 +44,34 @@ public class FutureCallbackExecutor implements Executor {
   }
 
   /**
-   * Add a callback to a {@link ListenableFuture} with ourselves as the executor.
+   * Adds a {@link FutureCallback} to a {@link ListenableFuture} with this instance as the executor.
    */
-  public <V> void addCallback(final ListenableFuture<V> future,
-                              final FutureCallback<? super V> callback) {
+  public <V> void addCallback(@NotNull final ListenableFuture<V> future,
+                              @NotNull final FutureCallback<? super V> callback) {
     Futures.addCallback(future, callback, this);
+  }
+
+  /**
+   * Adds a {@link BiConsumer} callback to a {@link ListenableFuture} with this instance as the executor.
+   * <ul>
+   *   <li>In case of success, the {@link BiConsumer#accept consumer.accept(v, null)} method is invoked,
+   *   where "{@code v}" is the future completion value.</li>
+   *   <li>In case of failure, the {@link BiConsumer#accept consumer.accept(null, t)} method is invoked,
+   *   where "{@code t}" is the future exception.</li>
+   * </ul>
+   */
+  public <V> void addConsumer(@NotNull final ListenableFuture<V> future,
+                              @NotNull final BiConsumer<? super V, Throwable> consumer) {
+    addCallback(future, new FutureCallback<V>() {
+      @Override
+      public void onSuccess(@Nullable V result) {
+        consumer.accept(result, null);
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        consumer.accept(null, t);
+      }
+    });
   }
 }

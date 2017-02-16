@@ -20,6 +20,7 @@ import com.android.utils.FileUtils;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.fileChooser.FileSaverDialog;
@@ -41,6 +42,7 @@ import javax.swing.tree.TreeNode;
 import java.awt.datatransfer.StringSelection;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executor;
@@ -51,6 +53,7 @@ import java.util.stream.Collectors;
  * Implementation of the Device Explorer application logic
  */
 public class DeviceExplorerController {
+  private static final Logger LOGGER = Logger.getInstance(DeviceExplorerController.class);
   private static final Key<DeviceExplorerController> KEY = Key.create(DeviceExplorerController.class.getName());
 
   private int myShowLoadingNodeDelayMillis = 200;
@@ -434,8 +437,8 @@ public class DeviceExplorerController {
       }
       node.setLoaded(true);
 
-      DeviceFileEntry entry = node.getEntry();
-      if (!entry.isDirectory()) {
+      // Leaf nodes are not expandable
+      if (node.isLeaf()) {
         return;
       }
 
@@ -444,11 +447,15 @@ public class DeviceExplorerController {
         return;
       }
 
+      DeviceFileSystem fileSystem = myModel.getActiveDevice();
+      if (!Objects.equals(fileSystem, node.getEntry().getFileSystem())) {
+        return;
+      }
       ShowLoadingNodeRequest showLoadingNode = new ShowLoadingNodeRequest(treeModel, node);
       myLoadingNodesAlarms.addRequest(showLoadingNode, myShowLoadingNodeDelayMillis);
 
       startLoadChildren(node);
-      ListenableFuture<List<DeviceFileEntry>> futureEntries = entry.getEntries();
+      ListenableFuture<List<DeviceFileEntry>> futureEntries = node.getEntry().getEntries();
       myEdtExecutor.addCallback(futureEntries, new FutureCallback<List<DeviceFileEntry>>() {
         @Override
         public void onSuccess(List<DeviceFileEntry> result) {
@@ -458,6 +465,12 @@ public class DeviceExplorerController {
           List<DeviceFileEntryNode> nodes = result.stream().map(DeviceFileEntryNode::new).collect(Collectors.toList());
           node.removeAllChildren();
           nodes.forEach(node::add);
+
+          List<DeviceFileEntryNode> symlinkNodes = nodes
+            .stream()
+            .filter(x -> x.getEntry().isSymbolicLink())
+            .collect(Collectors.toList());
+          querySymbolicLinks(symlinkNodes, treeModel);
           node.setAllowsChildren(nodes.size() > 0);
           treeModel.nodeStructureChanged(node);
         }
@@ -474,6 +487,48 @@ public class DeviceExplorerController {
           node.setAllowsChildren(true);
           treeModel.nodeStructureChanged(node);
         }
+      });
+    }
+
+    /**
+     * Asynchronously update the tree node UI of the {@code symlinkNodes} entries if they target
+     * a directory, i.e. update tree nodes with a "Folder" and "Expandable arrow" icon.
+     */
+    private void querySymbolicLinks(@NotNull List<DeviceFileEntryNode> symlinkNodes, @NotNull DefaultTreeModel treeModel) {
+      querySymbolicLinksWorker(symlinkNodes, 0, treeModel);
+    }
+
+    private void querySymbolicLinksWorker(@NotNull List<DeviceFileEntryNode> symlinkNodes, int nodeIndex, @NotNull DefaultTreeModel treeModel) {
+      if (nodeIndex >= symlinkNodes.size()) {
+        return;
+      }
+
+      // Note: We process (asynchronously) one entry at a time, instead of all of them in parallel,
+      //       to avoid flooding the device with too many requests, which would eventually lead
+      //       to the device to reject additional requests.
+      DeviceFileEntryNode treeNode = symlinkNodes.get(nodeIndex);
+      ListenableFuture<Boolean> future = treeNode.getEntry().isSymbolicLinkToDirectory();
+      myEdtExecutor.addConsumer(future, (@Nullable Boolean result, @Nullable Throwable throwable) -> {
+        // Log error, but keep going as we may have more symlinkNodes to examine
+        if (throwable != null) {
+          LOGGER.info(String.format("Error determining if file entry \"%s\" is a link to a directory",
+                                    treeNode.getEntry().getName()),
+                                    throwable);
+        }
+
+        // Stop all processing if tree model has changed, i.e. UI has been switched to another device
+        if (!Objects.equals(myModel.getTreeModel(), treeModel)) {
+          return;
+        }
+
+        // Update tree node appearance (in case of "null"" result, we assume the entry
+        // does not target a directory).
+        boolean isDirectory = result != null && result;
+        treeNode.setSymbolicLinkToDirectory(isDirectory);
+        treeModel.nodeStructureChanged(treeNode);
+
+        // Asynchronously process the next symlink
+        querySymbolicLinksWorker(symlinkNodes, nodeIndex + 1, treeModel);
       });
     }
 

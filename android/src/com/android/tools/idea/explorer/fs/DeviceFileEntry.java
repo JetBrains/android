@@ -50,6 +50,13 @@ public interface DeviceFileEntry {
   ListenableFuture<List<DeviceFileEntry>> getEntries();
 
   /**
+   * Returns {@code true} if the entry is a symbolic link that points to a directory.
+   * @see com.android.tools.idea.explorer.adbimpl.AdbFileListing#isDirectoryLink
+   */
+  @NotNull
+  ListenableFuture<Boolean> isSymbolicLinkToDirectory();
+
+  /**
    * The permissions associated to this entry, similar to unix permissions.
    */
   @NotNull
