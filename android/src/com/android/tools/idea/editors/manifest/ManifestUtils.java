@@ -24,6 +24,7 @@ import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.PositionXmlParser;
 import com.google.common.base.Joiner;
+import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -42,8 +43,11 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -140,7 +144,7 @@ public class ManifestUtils {
       VirtualFile vFile = VfsUtil.findFileByIoFile(file, false);
       assert vFile != null;
       Module fileModule = ModuleUtilCore.findModuleForFile(vFile, module.getProject());
-      if (fileModule != null && !fileModule.equals(module)) {
+      if (fileModule != null && !fileModule.equals(module)) { // redirect to library merged manifest?
         MergedManifest manifest = MergedManifest.get(fileModule);
         Document document = manifest.getDocument();
         assert document != null;
@@ -149,6 +153,16 @@ public class ManifestUtils {
         int startLine = sourcePosition.getStartLine();
         int startColumn = sourcePosition.getStartColumn();
         return PositionXmlParser.findNodeAtLineAndCol(document, startLine, startColumn);
+      } else {
+        int startLine = sourcePosition.getStartLine();
+        int startColumn = sourcePosition.getStartColumn();
+        try {
+          byte[] bytes = Files.toByteArray(file);
+          Document document = PositionXmlParser.parse(bytes);
+          return PositionXmlParser.findNodeAtLineAndCol(document, startLine, startColumn);
+        }
+        catch (IOException | SAXException | ParserConfigurationException ignore) {
+        }
       }
     }
 
