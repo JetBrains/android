@@ -225,7 +225,7 @@ public class DragTarget extends ConstraintTarget {
       */
     }
     else {
-      int dx = x - myComponent.getParent().getDrawX();
+      int dx = Math.max(0, x - myComponent.getParent().getDrawX());
       String positionX = String.format(SdkConstants.VALUE_N_DP, dx);
       attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, positionX);
     }
@@ -265,13 +265,14 @@ public class DragTarget extends ConstraintTarget {
       applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, dy);
     }
     else {
-      int dy = y - myComponent.getParent().getDrawY();
+      int dy = Math.max(0, y - myComponent.getParent().getDrawY());
       String positionY = String.format(SdkConstants.VALUE_N_DP, dy);
       attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, positionY);
     }
   }
 
   private void applyMargin(AttributesTransaction attributes, String attribute, int currentValue) {
+    currentValue = Math.max(0, currentValue);
     String marginString = myComponent.getNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, attribute);
     int marginValue = -1;
     if (marginString != null) {
