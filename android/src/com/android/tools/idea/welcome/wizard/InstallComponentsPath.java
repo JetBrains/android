@@ -29,6 +29,7 @@ import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.ApplicationUtils;
 import com.android.tools.idea.welcome.SdkLocationUtils;
@@ -101,16 +102,10 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     components.add(new AndroidSdk(stateStore, myInstallUpdates));
 
     DynamicWizard wizard = getWizard();
-    ProgressWindow progressWindow = new ProgressWindow(false, false, null);
-
-    if (wizard != null) {
-      Disposer.register(wizard.getDisposable(), progressWindow);
-    }
-
-    com.android.repository.api.ProgressIndicator progress = new RepoProgressIndicatorAdapter(progressWindow);
     RepoManager sdkManager = myLocalHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
-    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress,
-                                 new StudioDownloader(progressWindow), StudioSettingsController.getInstance());
+    sdkManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
+                    new StudioProgressRunner(true, false, false, "Finding Available SDK Components", false, null),
+                    new StudioDownloader(null), StudioSettingsController.getInstance(), true);
     Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
     ComponentTreeNode platforms = Platform.createSubtree(stateStore, remotePackages, myInstallUpdates);
     if (platforms != null) {
