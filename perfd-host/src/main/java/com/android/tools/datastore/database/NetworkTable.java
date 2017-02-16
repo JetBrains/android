@@ -63,10 +63,11 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
     super.initialize(connection);
     try {
       createTable("Network_Data", "Id INTEGER NOT NULL", "Type INTEGER NOT NULL", "EndTime INTEGER", "Data BLOB");
-      createTable("Network_Connection", "ProcessId INTEGER NOT NULL", "Id INTEGER NOT NULL", "StartTime INTEGER", "EndTime INTEGER",
+      createTable("Network_Connection", "ProcessId INTEGER NOT NULL", "Session STRING NOT NULL", "Id INTEGER NOT NULL", "StartTime INTEGER",
+                  "EndTime INTEGER",
                   "ConnectionData BLOB", "BodyData BLOB", "RequestData BLOB", "ResponseData BLOB", "PRIMARY KEY(ProcessId, Id)");
       createIndex("Network_Data", "Id", "Type", "EndTime");
-      createIndex("Network_Connection", "ProcessId", "Id");
+      createIndex("Network_Connection", "ProcessId", "Session", "Id");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
@@ -84,11 +85,11 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
                       "SELECT Data FROM Network_Data WHERE (Id = ? OR Id = ? ) AND EndTime > ? AND EndTime <= ?");
 
       createStatement(NetworkStatements.QUERY_COMMON_CONNECTION_DATA,
-                      "SELECT ConnectionData FROM Network_Connection WHERE ProcessId = ? AND (EndTime > ? OR EndTime = 0) AND StartTime <= ?");
+                      "SELECT ConnectionData FROM Network_Connection WHERE ProcessId = ? AND Session = ? AND (EndTime > ? OR EndTime = 0) AND StartTime <= ?");
       createStatement(NetworkStatements.FIND_CONNECTION_DATA,
-                      "SELECT ConnectionData, BodyData, RequestData, ResponseData FROM Network_Connection WHERE Id = ?");
+                      "SELECT ConnectionData, BodyData, RequestData, ResponseData FROM Network_Connection WHERE Id = ? AND Session = ?");
       createStatement(NetworkStatements.INSERT_CONNECTION_DATA,
-                      "INSERT OR REPLACE INTO Network_Connection (ProcessId, Id, StartTime, EndTime, ConnectionData, BodyData, RequestData, ResponseData) values (?, ?, ?, ?, ?, ?, ?, ?)");
+                      "INSERT OR REPLACE INTO Network_Connection (ProcessId, Session, Id, StartTime, EndTime, ConnectionData, BodyData, RequestData, ResponseData) values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
@@ -98,7 +99,8 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
   public List<NetworkProfiler.HttpConnectionData> getNetworkConnectionDataByRequest(NetworkProfiler.HttpRangeRequest request) {
     List<NetworkProfiler.HttpConnectionData> datas = new ArrayList<>();
     try {
-      ResultSet results = executeQuery(NetworkStatements.QUERY_COMMON_CONNECTION_DATA, request.getProcessId(), request.getStartTimestamp(),
+      ResultSet results = executeQuery(NetworkStatements.QUERY_COMMON_CONNECTION_DATA, request.getProcessId(), request.getSession(),
+                                       request.getStartTimestamp(),
                                        request.getEndTimestamp());
       while (results.next()) {
         NetworkProfiler.HttpConnectionData.Builder data = NetworkProfiler.HttpConnectionData.newBuilder();
@@ -143,10 +145,12 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
             data.getBasicInfo().getEndTimestamp(), data.toByteArray());
   }
 
-  public NetworkProfiler.HttpDetailsResponse getHttpDetailsResponseById(long connId, NetworkProfiler.HttpDetailsRequest.Type type) {
+  public NetworkProfiler.HttpDetailsResponse getHttpDetailsResponseById(long connId,
+                                                                        Common.Session session,
+                                                                        NetworkProfiler.HttpDetailsRequest.Type type) {
     NetworkProfiler.HttpDetailsResponse.Builder responseBuilder = NetworkProfiler.HttpDetailsResponse.newBuilder();
     try {
-      ResultSet results = executeQuery(NetworkStatements.FIND_CONNECTION_DATA, connId);
+      ResultSet results = executeQuery(NetworkStatements.FIND_CONNECTION_DATA, connId, session);
       if (results.next()) {
         int column = INVALID_COLUMN;
         switch (type) {
@@ -176,6 +180,7 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
   }
 
   public void insertOrReplace(int processId,
+                              Common.Session session,
                               NetworkProfiler.HttpDetailsResponse request,
                               NetworkProfiler.HttpDetailsResponse response,
                               NetworkProfiler.HttpDetailsResponse body,
@@ -187,6 +192,7 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
     byte[] responseData = response == null ? null : response.toByteArray();
     byte[] requestData = request == null ? null : request.toByteArray();
     byte[] bodyData = body == null ? null : body.toByteArray();
-    execute(NetworkStatements.INSERT_CONNECTION_DATA, processId, id, startTime, endTime, commonData, bodyData, requestData, responseData);
+    execute(NetworkStatements.INSERT_CONNECTION_DATA, processId, session, id, startTime, endTime, commonData, bodyData, requestData,
+            responseData);
   }
 }
