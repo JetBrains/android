@@ -35,14 +35,28 @@ public class AdbFileListingEntry {
   @Nullable private final String myExtraInfo;
 
   public enum EntryKind {
+    /** A regular file, corresponds to the "{@code -}" prefix in the list of attributes returned by "{@code ls -l}". */
     FILE,
+
+    /** A directory, corresponds to the "{@code d}" prefix in the list of attributes returned by "{@code ls -l}". */
     DIRECTORY,
-    FILE_LINK,
-    DIRECTORY_LINK,
+
+    /** A symbolic link, corresponds to the "{@code l}" prefix in the list of attributes returned by "{@code ls -l}". */
+    SYMBOLIC_LINK,
+
+    /** A block file, corresponds to the "{@code b}" prefix in the list of attributes returned by "{@code ls -l}". */
     BLOCK,
+
+    /** A character file, corresponds to the "{@code c}" prefix in the list of attributes returned by "{@code ls -l}". */
     CHARACTER,
+
+    /** A socket file, corresponds to the "{@code a}" prefix in the list of attributes returned by "{@code ls -l}". */
     SOCKET,
+
+    /** A FIFO/pipe file, corresponds to the "{@code p}" prefix in the list of attributes returned by "{@code ls -l}". */
     FIFO,
+
+    /** A unknown file type, when the prefix in the list of attributes returned by "{@code ls -l}" is not known. */
     OTHER,
   }
 
@@ -117,14 +131,14 @@ public class AdbFileListingEntry {
   }
 
   public boolean isDirectory() {
-    return myKind == EntryKind.DIRECTORY || myKind == EntryKind.DIRECTORY_LINK;
+    return myKind == EntryKind.DIRECTORY;
   }
 
   public boolean isFile() {
-    return myKind == EntryKind.FILE || myKind == EntryKind.FILE_LINK;
+    return myKind == EntryKind.FILE;
   }
 
   public boolean isSymbolicLink() {
-    return myKind == EntryKind.FILE_LINK || myKind == EntryKind.DIRECTORY_LINK;
+    return myKind == EntryKind.SYMBOLIC_LINK;
   }
 }

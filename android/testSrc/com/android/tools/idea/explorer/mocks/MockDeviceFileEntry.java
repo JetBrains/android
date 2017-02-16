@@ -38,6 +38,7 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
   private final boolean myIsLink;
   private final String myLinkTarget;
   private long mySize;
+  private boolean myIsSymbolicLinkToDirectory;
   private Throwable myGetEntriesError;
   private int myGetEntriesTimeoutMillis = OPERATION_TIMEOUT_MILLIS;
 
@@ -115,6 +116,12 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
 
   @NotNull
   @Override
+  public ListenableFuture<Boolean> isSymbolicLinkToDirectory() {
+    return FutureUtils.delayedValue(myIsSymbolicLinkToDirectory, OPERATION_TIMEOUT_MILLIS);
+  }
+
+  @NotNull
+  @Override
   public Permissions getPermissions() {
     return () -> "rwxrwxrwx";
   }
@@ -161,5 +168,9 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
 
   public void setGetEntriesTimeoutMillis(int timeoutMillis) {
     myGetEntriesTimeoutMillis = timeoutMillis;
+  }
+
+  public void setSymbolicLinkToDirectory(boolean symbolicLinkToDirectory) {
+    myIsSymbolicLinkToDirectory = symbolicLinkToDirectory;
   }
 }
