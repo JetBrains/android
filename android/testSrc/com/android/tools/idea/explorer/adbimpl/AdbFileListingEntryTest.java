@@ -43,21 +43,11 @@ public class AdbFileListingEntryTest {
 
   @Test
   public void testFileLinkFields() {
-    AdbFileListingEntry entry = createTestEntry(AdbFileListingEntry.EntryKind.FILE_LINK);
+    AdbFileListingEntry entry = createTestEntry(AdbFileListingEntry.EntryKind.SYMBOLIC_LINK);
 
-    assertTestEntry(entry, AdbFileListingEntry.EntryKind.FILE_LINK);
-    assertThat(entry.isFile()).isTrue();
-    assertThat(entry.isDirectory()).isFalse();
-    assertThat(entry.isSymbolicLink()).isTrue();
-  }
-
-  @Test
-  public void testDirectoryLinkFields() {
-    AdbFileListingEntry entry = createTestEntry(AdbFileListingEntry.EntryKind.DIRECTORY_LINK);
-
-    assertTestEntry(entry, AdbFileListingEntry.EntryKind.DIRECTORY_LINK);
+    assertTestEntry(entry, AdbFileListingEntry.EntryKind.SYMBOLIC_LINK);
     assertThat(entry.isFile()).isFalse();
-    assertThat(entry.isDirectory()).isTrue();
+    assertThat(entry.isDirectory()).isFalse();
     assertThat(entry.isSymbolicLink()).isTrue();
   }
 
