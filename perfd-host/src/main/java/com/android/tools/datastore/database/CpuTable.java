@@ -15,6 +15,7 @@
  */
 package com.android.tools.datastore.database;
 
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.google.protobuf3jarjar.ByteString;
 import com.google.protobuf3jarjar.InvalidProtocolBufferException;
@@ -53,14 +54,23 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
   public void initialize(Connection connection) {
     super.initialize(connection);
     try {
-      createTable("Cpu_Data", "AppId INTEGER NOT NULL", "Timestamp INTEGER NOT NULL", "Data BLOB");
+      createTable("Cpu_Data",
+                  "AppId INTEGER NOT NULL",
+                  "Timestamp INTEGER NOT NULL",
+                  "Session STRING NOT NULL",
+                  "Data BLOB");
       createTable("Thread_Activities",
-                  "AppId INTEGER NOT NULL", "ThreadId INTEGER NOT NULL", "Timestamp INTEGER", "State TEXT, Name TEXT");
-      // TODO: PerfD needs to either make TraceId globally unique, or we need to add AppId to the Cpu_Trace table.
-      createTable("Cpu_Trace", "TraceId INTEGER NOT NULL", "StartTime INTEGER", "EndTime INTEGER", "Data BLOB");
-      createIndex("Cpu_Data", "AppId", "Timestamp");
-      createIndex("Cpu_Trace", "TraceId");
-      createIndex("Thread_Activities", "AppId", "ThreadId", "Timestamp");
+                  "AppId INTEGER NOT NULL", "Session STRING NOT NULL", "ThreadId INTEGER NOT NULL", "Timestamp INTEGER",
+                  "State TEXT, Name TEXT");
+      createTable("Cpu_Trace",
+                  "TraceId INTEGER NOT NULL",
+                  "Session STRING NOT NULL",
+                  "StartTime INTEGER",
+                  "EndTime INTEGER",
+                  "Data BLOB");
+      createIndex("Cpu_Data", "AppId", "Timestamp", "Session");
+      createIndex("Cpu_Trace", "TraceId", "Session");
+      createIndex("Thread_Activities", "AppId", "Session", "ThreadId", "Timestamp");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
@@ -70,37 +80,46 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
   @Override
   public void prepareStatements(Connection connection) {
     try {
-      createStatement(CpuTable.CpuStatements.INSERT_CPU_DATA, "INSERT OR REPLACE INTO Cpu_Data (AppId, Timestamp, Data) values (?, ?, ?)");
-      createStatement(CpuTable.CpuStatements.QUERY_CPU_DATA, "SELECT Data from Cpu_Data WHERE AppId = ? AND Timestamp > ? AND Timestamp <= ? ");
-      createStatement(CpuTable.CpuStatements.QUERY_TRACE_INFO, "SELECT TraceId, StartTime, EndTime from Cpu_Trace WHERE (StartTime < ? AND ? <= EndTime) OR (StartTime > ? AND EndTime = 0);");
-      createStatement(CpuTable.CpuStatements.FIND_TRACE_DATA, "SELECT Data from Cpu_Trace WHERE TraceId = ?");
-      createStatement(CpuTable.CpuStatements.INSERT_TRACE_DATA, "INSERT INTO Cpu_Trace (TraceId, StartTime, EndTime, Data) values (?, ?, ?, ?)");
+      createStatement(CpuTable.CpuStatements.INSERT_CPU_DATA,
+                      "INSERT OR REPLACE INTO Cpu_Data (AppId, Timestamp, Session, Data) values (?, ?, ?, ?)");
+      createStatement(CpuTable.CpuStatements.QUERY_CPU_DATA,
+                      "SELECT Data from Cpu_Data WHERE AppId = ? AND Session = ? AND Timestamp > ? AND Timestamp <= ? ");
+      createStatement(CpuTable.CpuStatements.QUERY_TRACE_INFO,
+                      "SELECT TraceId, StartTime, EndTime from Cpu_Trace WHERE " +
+                      "Session = ? AND ((StartTime < ? AND ? <= EndTime) OR (StartTime > ? AND EndTime = 0));");
+      createStatement(CpuTable.CpuStatements.FIND_TRACE_DATA, "SELECT Data from Cpu_Trace WHERE TraceId = ? AND Session = ?");
+      createStatement(CpuTable.CpuStatements.INSERT_TRACE_DATA,
+                      "INSERT INTO Cpu_Trace (TraceId, Session, StartTime, EndTime, Data) values (?, ?, ?, ?, ?)");
       createStatement(CpuTable.CpuStatements.INSERT_THREAD_ACTIVITY,
-                      "INSERT OR REPLACE INTO Thread_Activities (AppId, ThreadId, Timestamp, State, Name) VALUES (?, ?, ?, ?, ?)");
+                      "INSERT OR REPLACE INTO Thread_Activities " +
+                      "(AppId, Session, ThreadId, Timestamp, State, Name) VALUES (?, ?, ?, ?, ?, ?)");
       createStatement(CpuTable.CpuStatements.QUERY_THREAD_ACTIVITIES,
                       // First make sure to fetch the states of all threads that were alive at request's start timestamp
                       "SELECT t1.ThreadId, t1.Name, t1.State, ? as ReqStart FROM Thread_Activities AS t1 " +
                       "JOIN (SELECT ThreadId, MAX(Timestamp) AS Timestamp " +
-                      "FROM Thread_Activities WHERE AppId = ? AND Timestamp <= ? GROUP BY ThreadId) AS t2 " +
+                      "FROM Thread_Activities WHERE AppId = ? AND Session = ? AND Timestamp <= ? GROUP BY ThreadId) AS t2 " +
                       "ON t1.ThreadId = t2.ThreadId AND t1.Timestamp = t2.Timestamp AND t1.State <> 'DEAD' " +
                       "UNION ALL " +
                       // Then fetch all the activities that happened in the request interval
                       "SELECT ThreadId, Name, State, Timestamp FROM Thread_Activities " +
-                      "WHERE AppId = ? AND Timestamp > ? AND Timestamp <= ?;");
+                      "WHERE AppId = ? AND Session = ? AND Timestamp > ? AND Timestamp <= ?;");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
     }
   }
 
-  public void insert(CpuProfiler.CpuProfilerData data) {
-    execute(CpuStatements.INSERT_CPU_DATA, data.getBasicInfo().getProcessId(), data.getBasicInfo().getEndTimestamp(), data.toByteArray());
+  public void insert(Common.Session session, CpuProfiler.CpuProfilerData data) {
+    execute(CpuStatements.INSERT_CPU_DATA, data.getBasicInfo().getProcessId(), data.getBasicInfo().getEndTimestamp(), session,
+            data.toByteArray());
   }
 
   public List<CpuProfiler.CpuProfilerData> getCpuDataByRequest(CpuProfiler.CpuDataRequest request) {
     List<CpuProfiler.CpuProfilerData> cpuData = new ArrayList<>();
     try {
-      ResultSet results = executeQuery(CpuStatements.QUERY_CPU_DATA, request.getProcessId(), request.getStartTimestamp(), request.getEndTimestamp());
+      ResultSet results =
+        executeQuery(CpuStatements.QUERY_CPU_DATA, request.getProcessId(), request.getSession(), request.getStartTimestamp(),
+                     request.getEndTimestamp());
       while (results.next()) {
         CpuProfiler.CpuProfilerData.Builder data = CpuProfiler.CpuProfilerData.newBuilder();
         data.mergeFrom(results.getBytes(DATA_COLUMN));
@@ -113,18 +132,25 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
     return cpuData;
   }
 
-  public void insertActivities(int appId, int tid, String name, List<CpuProfiler.GetThreadsResponse.ThreadActivity> activities) {
-      for (CpuProfiler.GetThreadsResponse.ThreadActivity activity : activities) {
-        // TODO: optimize it by adding the states in batches
-        execute(CpuStatements.INSERT_THREAD_ACTIVITY, appId, tid, activity.getTimestamp(), activity.getNewState().toString(), name);
-      }
+  public void insertActivities(int appId,
+                               Common.Session session,
+                               int tid,
+                               String name,
+                               List<CpuProfiler.GetThreadsResponse.ThreadActivity> activities) {
+    for (CpuProfiler.GetThreadsResponse.ThreadActivity activity : activities) {
+      // TODO: optimize it by adding the states in batches
+      execute(CpuStatements.INSERT_THREAD_ACTIVITY, appId, session, tid, activity.getTimestamp(), activity.getNewState().toString(), name);
+    }
   }
 
-  public void insertSnapshot(long appId, long timestamp, List<CpuProfiler.GetThreadsResponse.ThreadSnapshot.Snapshot> snapshots) {
+  public void insertSnapshot(long appId,
+                             Common.Session session,
+                             long timestamp,
+                             List<CpuProfiler.GetThreadsResponse.ThreadSnapshot.Snapshot> snapshots) {
     // For now, insert it as activity. TODO: differentiate the concepts of snapshot and activity
     for (CpuProfiler.GetThreadsResponse.ThreadSnapshot.Snapshot snapshot : snapshots) {
       execute(CpuStatements.INSERT_THREAD_ACTIVITY,
-              appId, snapshot.getTid(), timestamp, snapshot.getState().toString(), snapshot.getName());
+              appId, session, snapshot.getTid(), timestamp, snapshot.getState().toString(), snapshot.getName());
     }
   }
 
@@ -136,9 +162,11 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
                                           // Used as the timestamp of the states that happened before the request
                                           request.getStartTimestamp(),
                                           request.getProcessId(),
+                                          request.getSession(),
                                           // Used to get the the states that happened before the request
                                           request.getStartTimestamp(),
                                           request.getProcessId(),
+                                          request.getSession(),
                                           // The start and end timestamps below are used to get the activities that
                                           // happened in the interval (start, end]
                                           request.getStartTimestamp(),
@@ -174,7 +202,9 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
   public List<CpuProfiler.TraceInfo> getTraceByRequest(CpuProfiler.GetTraceInfoRequest request) {
     List<CpuProfiler.TraceInfo> traceInfo = new ArrayList<>();
     try {
-      ResultSet results = executeQuery(CpuStatements.QUERY_TRACE_INFO, request.getToTimestamp(), request.getFromTimestamp(), request.getFromTimestamp());
+      ResultSet results =
+        executeQuery(CpuStatements.QUERY_TRACE_INFO, request.getSession(), request.getToTimestamp(), request.getFromTimestamp(),
+                     request.getFromTimestamp());
       while (results.next()) {
         CpuProfiler.TraceInfo.Builder data = CpuProfiler.TraceInfo.newBuilder();
         data.setTraceId(results.getInt(TRACE_ID_COLUMN));
@@ -189,9 +219,9 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
     return traceInfo;
   }
 
-  public ByteString getTraceData(int traceId) {
+  public ByteString getTraceData(int traceId, Common.Session session) {
     try {
-      ResultSet results = executeQuery(CpuStatements.FIND_TRACE_DATA, traceId);
+      ResultSet results = executeQuery(CpuStatements.FIND_TRACE_DATA, traceId, session);
       return ByteString.copyFrom(results.getBytes(DATA_COLUMN));
     }
     catch (SQLException ex) {
@@ -200,8 +230,9 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
     return null;
   }
 
-  public void insertTrace(CpuProfiler.TraceInfo trace, ByteString data) {
-    execute(CpuStatements.INSERT_TRACE_DATA, trace.getTraceId(), trace.getFromTimestamp(), trace.getToTimestamp(), data.toByteArray());
+  public void insertTrace(CpuProfiler.TraceInfo trace, Common.Session session, ByteString data) {
+    execute(CpuStatements.INSERT_TRACE_DATA, trace.getTraceId(), session, trace.getFromTimestamp(), trace.getToTimestamp(),
+            data.toByteArray());
   }
 
   private static CpuProfiler.GetThreadsResponse.Thread.Builder createThreadBuilder(int tid, String name) {
