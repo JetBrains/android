@@ -26,7 +26,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdMana
 import com.android.tools.idea.tests.gui.framework.ndk.MiscUtils;
 import com.android.tools.idea.tests.util.NotMatchingPatternMatcher;
 import com.google.common.collect.Lists;
-import com.intellij.util.containers.HashMap;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
@@ -36,9 +35,7 @@ import org.junit.runner.RunWith;
 
 import javax.swing.tree.TreeNode;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 @RunIn(TestGroup.QA)
@@ -75,10 +72,7 @@ public class BasicNativeDebuggerTest {
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
     // Setup breakpoints
-    final String[] breakPoints = {
-      "return (*env)->NewStringUTF(env, message);",
-    };
-    openAndToggleBreakPoints("app/src/main/jni/multifunction-jni.c", breakPoints);
+    openAndToggleBreakPoints("app/src/main/jni/multifunction-jni.c", "return (*env)->NewStringUTF(env, message);");
 
     projectFrame.debugApp(DEBUG_CONFIG_NAME)
       .selectDevice(AVD_NAME)
@@ -106,19 +100,16 @@ public class BasicNativeDebuggerTest {
     createAVD();
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
-    // Setup breakpoints
-    final String[] breakPoints = {
-      "return sum;",
-      "return product;",
-      "return quotient;",
-      "return (*env)->NewStringUTF(env, message);",
-    };
-    openAndToggleBreakPoints("app/src/main/jni/multifunction-jni.c", breakPoints);
+    openAndToggleBreakPoints("app/src/main/jni/multifunction-jni.c",
+                             "return sum;",
+                             "return product;",
+                             "return quotient;",
+                             "return (*env)->NewStringUTF(env, message);"
+    );
 
     // Setup the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
-    final Map<String, String[]> breakpointToExpectedPatterns = new HashMap<>();
-    breakpointToExpectedPatterns.put(
-      breakPoints[0], new String[] {
+    String[][] expectedPatterns = {
+      {
         variableToSearchPattern("x1", "int", "1"),
         variableToSearchPattern("x2", "int", "2"),
         variableToSearchPattern("x3", "int", "3"),
@@ -129,9 +120,9 @@ public class BasicNativeDebuggerTest {
         variableToSearchPattern("x8", "int", "8"),
         variableToSearchPattern("x9", "int", "9"),
         variableToSearchPattern("x10", "int", "10"),
-        variableToSearchPattern("sum", "int", "55")});
-    breakpointToExpectedPatterns.put(
-      breakPoints[1], new String[] {
+        variableToSearchPattern("sum", "int", "55"),
+      },
+      {
         variableToSearchPattern("x1", "int", "1"),
         variableToSearchPattern("x2", "int", "2"),
         variableToSearchPattern("x3", "int", "3"),
@@ -142,17 +133,19 @@ public class BasicNativeDebuggerTest {
         variableToSearchPattern("x8", "int", "8"),
         variableToSearchPattern("x9", "int", "9"),
         variableToSearchPattern("x10", "int", "10"),
-        variableToSearchPattern("product", "int", "3628800")});
-    breakpointToExpectedPatterns.put(
-      breakPoints[2], new String[] {
+        variableToSearchPattern("product", "int", "3628800"),
+      },
+      {
         variableToSearchPattern("x1", "int", "1024"),
         variableToSearchPattern("x2", "int", "2"),
-        variableToSearchPattern("quotient", "int", "512")});
-    breakpointToExpectedPatterns.put(
-      breakPoints[3], new String[] {
+        variableToSearchPattern("quotient", "int", "512"),
+      },
+      {
         variableToSearchPattern("sum_of_10_ints", "int", "55"),
         variableToSearchPattern("product_of_10_ints", "int", "3628800"),
-        variableToSearchPattern("quotient", "int", "512")});
+        variableToSearchPattern("quotient", "int", "512")
+      }
+    };
 
     projectFrame.debugApp(DEBUG_CONFIG_NAME)
       .selectDevice(AVD_NAME)
@@ -161,16 +154,7 @@ public class BasicNativeDebuggerTest {
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(projectFrame);
     waitForSessionStart(debugToolWindowFixture);
 
-    // Loop through all the breakpoints and match the strings printed in the Variables pane with the expected patterns setup in
-    // breakpointToExpectedPatterns.
-    for (int i = 0; i < breakPoints.length; ++i) {
-      if (i > 0) {
-        resumeProgram();
-      }
-      final String[] expectedPatterns = breakpointToExpectedPatterns.get(breakPoints[i]);
-      Wait.seconds(5).expecting("the debugger tree to appear")
-        .until(() -> verifyVariablesAtBreakpoint(expectedPatterns, DEBUG_CONFIG_NAME));
-    }
+    checkBreakPointsAreHit(expectedPatterns);
 
     stopDebugSession(debugToolWindowFixture);
   }
@@ -205,13 +189,20 @@ public class BasicNativeDebuggerTest {
       .clickOk();
 
     // Setup C++ and Java breakpoints.
-    // The breakpoints must be put in execution order for verification convenience.
-    String[] breakPoints = {
-      "return (*env)->NewStringUTF(env, message);",
-      "setContentView(tv);",
+    openAndToggleBreakPoints("app/src/main/jni/multifunction-jni.c", "return (*env)->NewStringUTF(env, message);");
+    openAndToggleBreakPoints("app/src/main/java/com/example/BasicJniApp.java", "setContentView(tv);");
+
+    // Setup the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
+    String[][] expectedPatterns = {
+      {
+        variableToSearchPattern("sum_of_10_ints", "int", "55"),
+        variableToSearchPattern("product_of_10_ints", "int", "3628800"),
+        variableToSearchPattern("quotient", "int", "512"),
+      },
+      {
+        variableToSearchPattern("s", "\"Success. Sum = 55, Product = 3628800, Quotient = 512\""),
+      },
     };
-    openAndToggleBreakPoints("app/src/main/jni/multifunction-jni.c", Arrays.copyOfRange(breakPoints, 0, 1));
-    openAndToggleBreakPoints("app/src/main/java/com/example/BasicJniApp.java", Arrays.copyOfRange(breakPoints, 1, 2));
 
     ideFrameFixture.debugApp(DEBUG_CONFIG_NAME)
       .selectDevice(AVD_NAME)
@@ -220,28 +211,7 @@ public class BasicNativeDebuggerTest {
     DebugToolWindowFixture debugToolWindowFixture = new DebugToolWindowFixture(ideFrameFixture);
     waitForSessionStart(debugToolWindowFixture);
 
-    // Setup the expected patterns to match the variable values displayed in Debug windows's 'Variables' tab.
-    Map<String, String[]> breakpointToExpectedPatterns = new HashMap<>();
-    breakpointToExpectedPatterns.put(
-      breakPoints[0], new String[] {
-        variableToSearchPattern("sum_of_10_ints", "int", "55"),
-        variableToSearchPattern("product_of_10_ints", "int", "3628800"),
-        variableToSearchPattern("quotient", "int", "512")});
-    breakpointToExpectedPatterns.put(
-      breakPoints[1], new String[] {
-        variableToSearchPattern("s", "\"Success. Sum = 55, Product = 3628800, Quotient = 512\"")});
-
-    //Thread.sleep(Long.MAX_VALUE);
-    // Loop through all the breakpoints and match the strings printed in the Variables pane with the expected patterns setup in
-    // breakpointToExpectedPatterns.
-    for (int i = 0; i < breakPoints.length; ++i) {
-      if (i > 0) {
-        resumeProgram();
-      }
-      String[] expectedPatterns = breakpointToExpectedPatterns.get(breakPoints[i]);
-      Wait.seconds(5).expecting("the debugger tree to appear")
-        .until(() -> verifyVariablesAtBreakpoint(expectedPatterns, DEBUG_CONFIG_NAME));
-    }
+    checkBreakPointsAreHit(expectedPatterns);
   }
 
   private void stopDebugSession(DebugToolWindowFixture debugToolWindowFixture) {
@@ -265,14 +235,20 @@ public class BasicNativeDebuggerTest {
   ////     Methods to help control debugging under a test.  ///////
   /////////////////////////////////////////////////////////////////
 
-  private void resumeProgram() {
-    MiscUtils.invokeMenuPathOnRobotIdle(guiTest.ideFrame(), "Run", "Resume Program");
+  private void checkBreakPointsAreHit(String[][] expectedPatterns) {
+    // Loop through all the breakpoints and match the strings printed in the Variables pane with the expected patterns
+    for (String[] patterns : expectedPatterns) {
+      Wait.seconds(5).expecting("the debugger tree to appear")
+        .until(() -> verifyVariablesAtBreakpoint(patterns, DEBUG_CONFIG_NAME));
+
+      MiscUtils.invokeMenuPathOnRobotIdle(guiTest.ideFrame(), "Run", "Resume Program");
+    }
   }
 
   /**
    * Toggles breakpoints at {@code lines} of the source file {@code fileName}.
    */
-  private void openAndToggleBreakPoints(String fileName, String[] lines) {
+  private void openAndToggleBreakPoints(String fileName, String... lines) {
     EditorFixture editor = guiTest.ideFrame().getEditor().open(fileName);
     for (String line : lines) {
       editor.moveBetween("", line);
