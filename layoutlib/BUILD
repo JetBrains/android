@@ -14,5 +14,6 @@ iml_module(
         "//tools/idea/platform/annotations[module]",
         "//tools/adt/idea/common:android-common[module]",
         "//tools/idea/platform/platform-api[module]",
+        "//tools/base/layoutlib-api:studio.layoutlib-api[module]",
     ],
 )

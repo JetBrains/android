@@ -25,5 +25,6 @@ iml_module(
         "//tools/adt/idea/designer[module, test]",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/adt/idea/android-test-framework[module, test]",
+        "//tools/studio/google/cloud/testing/test-recorder[module, test]",
     ],
 )
