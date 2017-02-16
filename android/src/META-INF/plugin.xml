@@ -201,9 +201,6 @@
       <add-to-group group-id="ToolbarRunGroup" anchor="after" relative-to-action="RunnerActions"/>
       <add-to-group group-id="RunMenu"/>
     </action>
-    <reference ref="Stop">
-      <add-to-group group-id="ToolbarRunGroup" anchor="after" relative-to-action="AndroidConnectDebuggerAction" />
-    </reference>
     <action id="AndroidUnusedResourceAction" class="org.jetbrains.android.refactoring.UnusedResourcesAction" text="Remove Unused Resources..."
             description="Removes Unused Resources">
       <add-to-group group-id="RefactoringMenu"/>
