@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.ideahost;
 
+import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.wizard.StudioWizardLayout;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -27,6 +28,7 @@ import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -127,6 +129,12 @@ final class IdeaWizardAdapter implements ModelWizard.WizardListener, WizardDeleg
       @Override
       public void updateDataModel() {
         // Not required as the guest wizard is using its own data model, updated via bindings.
+      }
+
+      @Nullable
+      @Override
+      public String getHelpId() {
+        return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "studio/projects/create-project.html";
       }
     };
   }
