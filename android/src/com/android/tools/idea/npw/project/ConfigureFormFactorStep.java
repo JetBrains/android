@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.project;
 import com.android.SdkConstants;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.npw.FormFactor;
+import com.android.tools.idea.npw.instantapp.ConfigureInstantModuleStep;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
@@ -113,20 +114,25 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
 
       moduleModel.getRenderTemplateValues().setValue(renderModel.getTemplateValues());
       formFactorInfo.newModuleModel = moduleModel;
+      formFactorInfo.newRenderModel = renderModel;
 
+      if (formFactorInfo.controls.getInstantAppCheckbox().isVisible()) {
+        allSteps.add(new ConfigureInstantModuleStep(moduleModel));
+        myListeners.receive(moduleModel.instantApp(), value ->  checkValidity());
+      }
       formFactorInfo.step = new ChooseActivityTypeStep(moduleModel, renderModel, formFactor, Lists.newArrayList());
       allSteps.add(formFactorInfo.step);
 
       FormFactorSdkControls controls = formFactorInfo.controls;
-      myBindings.bindTwoWay(new SelectedProperty(controls.getInstantAppCheckbox()), moduleModel.isInstAppEnabled());
+      myBindings.bindTwoWay(new SelectedProperty(controls.getInstantAppCheckbox()), moduleModel.instantApp());
 
-      SelectedItemProperty<AndroidVersionsInfo.VersionItem> minSdk = new SelectedItemProperty<>(controls.getMinSdkCombobox());
-      myListeners.receiveAndFire(minSdk, value ->  checkValidity());
-      myBindings.bindTwoWay(minSdk, renderModel.androidSdkInfo());
+      myListeners.receive(renderModel.androidSdkInfo(), value ->  checkValidity());
+      myBindings.bindTwoWay(renderModel.androidSdkInfo(), new SelectedItemProperty<>(controls.getMinSdkCombobox()));
 
       // Some changes on the ProjectModel trigger changes on the ModuleModel/RenderModel
-      myListeners.listenAll(getModel().projectLocation(), myEnabledFormFactors).withAndFire(() -> {
-        String moduleName = myEnabledFormFactors.get() <= 1 ? SdkConstants.APP_PREFIX : getModuleName(formFactor);
+      myListeners.listenAll(getModel().projectLocation(), myEnabledFormFactors, moduleModel.instantApp()).withAndFire(() -> {
+        String moduleName = moduleModel.instantApp().get() ? SdkConstants.EXT_ATOM:
+                            myEnabledFormFactors.get() <= 1 ? SdkConstants.APP_PREFIX : getModuleName(formFactor);
         String projectPath = getModel().projectLocation().get();
 
         moduleModel.moduleName().set(moduleName);
@@ -184,6 +190,34 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
     String message = "";
     if (myEnabledFormFactors.get() == 0) {
       message = message("android.wizard.project.no.selected.form");
+    }
+    else {
+      for (FormFactor formFactor : myFormFactors.keySet()) {
+        FormFactorInfo formFactorInfo = myFormFactors.get(formFactor);
+        if (!formFactorInfo.controls.getInclusionCheckBox().isSelected()) {
+          continue;
+        }
+
+        int minTargetSdk = formFactorInfo.getMinTargetSdk();
+        FormFactor baseFormFactor = formFactor.baseFormFactor;
+        if (baseFormFactor != null) {
+          FormFactorInfo baseFormFactorInfo = myFormFactors.get(baseFormFactor);
+          if (baseFormFactorInfo == null || !baseFormFactorInfo.controls.getInclusionCheckBox().isSelected()) {
+            message = message("android.wizard.project.missing.form.factor", formFactor, baseFormFactor);
+            break;
+          }
+          // Check if min target SDK of the base is valid:
+          if (minTargetSdk > baseFormFactorInfo.getMinTargetSdk()) {
+            message = message("android.wizard.project.invalid.base.min.sdk", minTargetSdk, baseFormFactor, formFactor);
+            break;
+          }
+        }
+
+        if (formFactorInfo.newModuleModel.instantApp().get() && minTargetSdk < 16) {
+          message = message("android.wizard.project.invalid.iapp.min.sdk", formFactor);
+          break;
+        }
+      }
     }
 
     myInvalidParameterMessage.set(message);
@@ -265,11 +299,17 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
     int minSdk;
     FormFactorSdkControls controls;
     NewModuleModel newModuleModel;
+    RenderTemplateModel newRenderModel;
     ChooseActivityTypeStep step;
 
     FormFactorInfo(File templateFile, int minSdk) {
       this.templateFile = templateFile;
       this.minSdk = minSdk;
+    }
+
+    int getMinTargetSdk() {
+      AndroidVersionsInfo.VersionItem androidVersion = newRenderModel.androidSdkInfo().getValueOrNull();
+      return androidVersion == null ? 0 : androidVersion.getApiLevel();
     }
   }
 }
