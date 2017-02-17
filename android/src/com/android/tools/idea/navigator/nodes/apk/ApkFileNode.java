@@ -50,6 +50,8 @@ public class ApkFileNode extends ProjectViewNode<PsiFile> {
   @Nullable private final VirtualFile myManifestFile;
   @Nullable private final VirtualFile myDexFile;
 
+  private DexGroupNode myDexGroupNode;
+
   public ApkFileNode(@NotNull Project project,
                      @NotNull PsiFile apkFile,
                      @NotNull AndroidFacet androidFacet,
@@ -84,7 +86,10 @@ public class ApkFileNode extends ProjectViewNode<PsiFile> {
     children.add(createManifestGroupNode());
 
     // "java" folder
-    children.add(new DexGroupNode(myProject, getSettings(), myDexFile));
+    if (myDexGroupNode == null) {
+      myDexGroupNode = new DexGroupNode(myProject, getSettings(), myDexFile);
+    }
+    children.add(myDexGroupNode);
 
     return children;
   }
@@ -122,6 +127,9 @@ public class ApkFileNode extends ProjectViewNode<PsiFile> {
     // This is needed when user selects option "Autoscroll from Source". When user selects manifest in editor, the manifest must be selected
     // automatically in the "Android" view.
     if (Objects.equals(file.getPath(), getManifestPath())) {
+      return true;
+    }
+    if (myDexGroupNode != null && myDexGroupNode.contains(file)) {
       return true;
     }
     return false;
