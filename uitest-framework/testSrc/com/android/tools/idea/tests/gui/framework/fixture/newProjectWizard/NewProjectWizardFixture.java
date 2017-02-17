@@ -54,6 +54,11 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
     return new ConfigureFormFactorStepFixture(robot(), rootPane);
   }
 
+  public ConfigureInstantModuleStepFixture getConfigureInstantModuleStep() {
+    JRootPane rootPane = findStepWithTitle("Configure the feature module");
+    return new ConfigureInstantModuleStepFixture(robot(), rootPane);
+  }
+
   @NotNull
   public ConfigureCppStepFixture getConfigureCppStepFixture() {
     JRootPane rootPane = findStepWithTitle("Customize C++ Support");

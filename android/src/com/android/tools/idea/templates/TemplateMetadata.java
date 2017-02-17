@@ -94,12 +94,17 @@ public class TemplateMetadata {
   public static final String ATTR_GRID_LAYOUT_EXTRA = "usesGridLayout";
   public static final String ATTR_NAVIGATION_DRAWER_EXTRA = "usesNavigationDrawer";
 
-  public static final String ATTR_ATOM_NAME = "atomName";
-  public static final String ATTR_ATOM_ROUTE = "atomRoute";
   public static final String ATTR_IS_INSTANT_APP = "isInstantApp";
-  public static final String ATTR_IS_BASE_ATOM = "isBaseAtom";
   public static final String ATTR_SPLIT_NAME = "splitName";
-  public static final String ATTR_ALSO_CREATE_IAPK = "alsoCreateIapk";
+  public static final String ATTR_BASE_SPLIT_NAME = "baseSplitName";
+  public static final String ATTR_HAS_SPLIT_WRAPPER ="hasSplitWrapper";
+  public static final String ATTR_HAS_INSTANT_APP_WRAPPER ="hasInstantAppWrapper";
+  public static final String ATTR_INSTANT_APP_SDK_DIR ="instantAppSdkDir";
+  public static final String ATTR_BASE_SPLIT_MANIFEST_OUT ="baseSplitManifestOut";
+  public static final String ATTR_MONOLITHIC_APP_PROJECT_NAME ="monolithicAppProjectName";
+  public static final String ATTR_MONOLITHIC_APP_DIR ="monolithicAppDir";
+  public static final String ATTR_INSTANT_APP_PACKAGE_NAME ="instantAppPackageName";
+
 
   public static final String TAG_CATEGORY = "category";
   public static final String TAG_FORMFACTOR = "formfactor";

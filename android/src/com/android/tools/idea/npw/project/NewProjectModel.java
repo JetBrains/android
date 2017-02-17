@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static com.android.tools.idea.instantapp.InstantApps.getInstantAppSdkLocation;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -223,6 +224,9 @@ public class NewProjectModel extends WizardModel {
 
     // TODO: May we should not reuse ATTR_IS_INSTANT_APP. A new ATTR_IS_INSTANT_PROJECT?
     params.put(ATTR_IS_INSTANT_APP, hasInstantApp);
+    if (hasInstantApp) {
+      params.put(ATTR_INSTANT_APP_SDK_DIR, getInstantAppSdkLocation());
+    }
 
     performCreateProject(false, params);
 

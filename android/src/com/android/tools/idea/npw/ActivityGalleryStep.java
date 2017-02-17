@@ -41,6 +41,7 @@ import java.awt.event.ActionEvent;
 import java.util.Optional;
 
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
+import static com.android.tools.idea.wizard.WizardConstants.IS_INSTANT_APP_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.IS_LIBRARY_KEY;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
@@ -129,7 +130,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
 
   @Override
   public boolean isStepVisible() {
-    return !myState.getNotNull(IS_LIBRARY_KEY, false) && super.isStepVisible();
+    return (!myState.getNotNull(IS_LIBRARY_KEY, false) || myState.getNotNull(IS_INSTANT_APP_KEY, false)) && super.isStepVisible();
   }
 
   @Override
