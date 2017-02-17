@@ -52,6 +52,7 @@ public class CpuProfilerStage extends Stage {
   private final CpuStageLegends myLegends;
   private final DurationDataModel<CpuCapture> myTraceDurations;
   private final EventMonitor myEventMonitor;
+  private final SelectionModel mySelectionModel;
 
   /**
    * The thread states combined with the capture states.
@@ -129,6 +130,7 @@ public class CpuProfilerStage extends Stage {
 
     Range viewRange = getStudioProfilers().getTimeline().getViewRange();
     Range dataRange = getStudioProfilers().getTimeline().getDataRange();
+    Range selectionRange = getStudioProfilers().getTimeline().getSelectionRange();
 
     myCpuUsage = new DetailedCpuUsage(profilers);
 
@@ -147,6 +149,14 @@ public class CpuProfilerStage extends Stage {
     myEventMonitor = new EventMonitor(profilers);
     myCaptureState = CaptureState.IDLE;
     myProfilingMode = CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED;
+
+    mySelectionModel = new SelectionModel(selectionRange, viewRange);
+    mySelectionModel.addConstraint(myTraceDurations);
+  }
+
+  @NotNull
+  public SelectionModel getSelectionModel() {
+    return mySelectionModel;
   }
 
   public AxisComponentModel getCpuUsageAxis() {
@@ -260,21 +270,22 @@ public class CpuProfilerStage extends Stage {
       setCaptureState(CaptureState.PARSING);
       CompletableFuture.supplyAsync(() -> new CpuCapture(response.getTrace()), getStudioProfilers().getIdeServices().getPoolExecutor())
         .handleAsync((capture, exception) -> {
-        if (capture != null) {
-          myTraceCaptures.put(response.getTraceId(), capture);
-          // Intentionally not firing the aspect because it will be done by setCapture with the new capture value
-          myCaptureState = CaptureState.IDLE;
-          setAndSelectCapture(capture);
-          setSelectedThread(capture.getMainThreadId());
-        } else {
-          assert exception != null;
-          LOG.warn("Unable to parse capture: " + exception.getMessage());
-          // Intentionally not firing the aspect because it will be done by setCapture with the new capture value
-          myCaptureState = CaptureState.IDLE;
-          setCapture(null);
-        }
-        return capture;
-      }, getStudioProfilers().getIdeServices().getMainExecutor());
+          if (capture != null) {
+            myTraceCaptures.put(response.getTraceId(), capture);
+            // Intentionally not firing the aspect because it will be done by setCapture with the new capture value
+            myCaptureState = CaptureState.IDLE;
+            setAndSelectCapture(capture);
+            setSelectedThread(capture.getMainThreadId());
+          }
+          else {
+            assert exception != null;
+            LOG.warn("Unable to parse capture: " + exception.getMessage());
+            // Intentionally not firing the aspect because it will be done by setCapture with the new capture value
+            myCaptureState = CaptureState.IDLE;
+            setCapture(null);
+          }
+          return capture;
+        }, getStudioProfilers().getIdeServices().getMainExecutor());
     }
   }
 
@@ -363,7 +374,8 @@ public class CpuProfilerStage extends Stage {
         // TODO: move this parsing to a separate thread
         try {
           capture = new CpuCapture(trace.getData());
-        } catch (IllegalStateException e) {
+        }
+        catch (IllegalStateException e) {
           // Don't crash studio if parsing fails.
         }
       }
@@ -378,7 +390,8 @@ public class CpuProfilerStage extends Stage {
       Range range = getStudioProfilers().getTimeline().getSelectionRange();
       HNode<MethodModel> node = myCapture != null ? myCapture.getCaptureNode(getSelectedThread()) : null;
       myCaptureDetails = type.build(range, node);
-    } else {
+    }
+    else {
       myCaptureDetails = null;
     }
 
@@ -488,9 +501,9 @@ public class CpuProfilerStage extends Stage {
       CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
       CpuProfiler.GetTraceInfoResponse response = cpuService.getTraceInfo(
         CpuProfiler.GetTraceInfoRequest.newBuilder().
-        setProcessId(getStudioProfilers().getProcessId()).
-        setSession(getStudioProfilers().getSession()).
-        setFromTimestamp(rangeMin).setToTimestamp(rangeMax).build());
+          setProcessId(getStudioProfilers().getProcessId()).
+          setSession(getStudioProfilers().getSession()).
+          setFromTimestamp(rangeMin).setToTimestamp(rangeMax).build());
 
       List<SeriesData<CpuCapture>> seriesData = new ArrayList<>();
       for (CpuProfiler.TraceInfo traceInfo : response.getTraceInfoList()) {
