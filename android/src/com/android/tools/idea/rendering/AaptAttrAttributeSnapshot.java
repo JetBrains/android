@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.util.XmlUtil;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +35,8 @@ public class AaptAttrAttributeSnapshot extends AttributeSnapshot {
    * Each attribute must keep a dynamic unique ID so it can be referenced by the parent. We simply generate a sequential number.
    * This counter is thread safe in order to be able to use {@link AaptAttrAttributeSnapshot} in parallel streams.
    */
-  private static final AtomicLong ourUniqueId = new AtomicLong(0L);
+  @VisibleForTesting
+  static final AtomicLong ourUniqueId = new AtomicLong(0L);
 
   private final String myId;
   private final TagSnapshot myBundledTag;
