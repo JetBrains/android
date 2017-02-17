@@ -85,7 +85,8 @@ public class TagSnapshotTest extends TestCase {
       )
       .build();
     TagSnapshot root = TagSnapshot.createTagSnapshot(image, null);
-    assertEquals("TagSnapshot{ImageView, attributes=[AttributeSnapshot{layout_width=\"wrap_content\"}, AttributeSnapshot{layout_height=\"wrap_content\"}, AttributeSnapshot{src=\"@aapt:_aapt/0\"}], children=\n" +
+    String expectedId = Long.toString(AaptAttrAttributeSnapshot.ourUniqueId.get() - 1);
+    assertEquals("TagSnapshot{ImageView, attributes=[AttributeSnapshot{layout_width=\"wrap_content\"}, AttributeSnapshot{layout_height=\"wrap_content\"}, AttributeSnapshot{src=\"@aapt:_aapt/" + expectedId + "\"}], children=\n" +
                  "[]\n" +
                  "}",
                  root.toString());
