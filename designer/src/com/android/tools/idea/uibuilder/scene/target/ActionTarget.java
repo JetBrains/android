@@ -111,4 +111,10 @@ public class ActionTarget extends ConstraintTarget {
       myComponent.getScene().needsRebuildList();
     }
   }
+
+  @Override
+  @Nullable
+  public String getToolTipText() {
+    return (myActionType == DrawAction.BASELINE) ? "Edit Baselines" : null;
+  }
 }
