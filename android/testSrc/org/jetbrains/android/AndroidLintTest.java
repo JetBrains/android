@@ -764,8 +764,21 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   public void testCallSuper() throws Exception {
-    myFixture.copyFileToProject(getGlobalTestDir() + "/CallSuperTest.java", "src/p1/p2/CallSuperTest.java");
-    doGlobalInspectionTest(new AndroidLintMissingSuperCallInspection());
+    myFixture.addFileToProject("src/android/support/annotation/CallSuper.java",
+                               "package android.support.annotation;\n" +
+                               "\n" +
+                               "import java.lang.annotation.Retention;\n" +
+                               "import java.lang.annotation.Target;\n" +
+                               "\n" +
+                               "import static java.lang.annotation.ElementType.METHOD;\n" +
+                               "import static java.lang.annotation.RetentionPolicy.SOURCE;\n" +
+                               "\n" +
+                               "@Retention(SOURCE)\n" +
+                               "@Target({METHOD})\n" +
+                               "public @interface CallSuper {\n" +
+                               "}");
+    doTestWithFix(new AndroidLintMissingSuperCallInspection(),
+                  "Add super call","src/p1/p2/CallSuperTest.java", "java");
   }
 
   public void testSuppressingInXml1() throws Exception {
