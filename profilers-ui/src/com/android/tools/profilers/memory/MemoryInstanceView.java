@@ -42,10 +42,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.util.Comparator;
-import java.util.Enumeration;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 final class MemoryInstanceView extends AspectObserver {
   private static final int LABEL_COLUMN_WIDTH = 500;
@@ -243,8 +241,13 @@ final class MemoryInstanceView extends AspectObserver {
     assert myClassObject != null;
     List<InstanceAttribute> attributes = myClassObject.getInstanceAttributes();
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree);
+    InstanceAttribute sortAttribute = Collections.max(attributes, Comparator.comparingInt(InstanceAttribute::getWeight));
     for (InstanceAttribute attribute : attributes) {
-      builder.addColumn(myAttributeColumns.get(attribute).getBuilder());
+      ColumnTreeBuilder.ColumnBuilder columnBuilder = myAttributeColumns.get(attribute).getBuilder();
+      if (sortAttribute == attribute) {
+        columnBuilder.setInitialOrder(SortOrder.DESCENDING);
+      }
+      builder.addColumn(columnBuilder);
     }
     builder.setTreeSorter((Comparator<MemoryObjectTreeNode<InstanceObject>> comparator, SortOrder sortOrder) -> {
       myTreeRoot.sort(comparator);

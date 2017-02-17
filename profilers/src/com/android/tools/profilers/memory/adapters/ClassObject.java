@@ -26,12 +26,22 @@ public abstract class ClassObject extends NamespaceObject {
   public static final String JAVA_LANG_CLASS = "java.lang.Class";
 
   public enum ClassAttribute {
-    LABEL,
-    TOTAL_COUNT,
-    HEAP_COUNT,
-    INSTANCE_SIZE,
-    SHALLOW_SIZE,
-    RETAINED_SIZE
+    LABEL(1),
+    TOTAL_COUNT(2),
+    HEAP_COUNT(3),
+    INSTANCE_SIZE(0),
+    SHALLOW_SIZE(4),
+    RETAINED_SIZE(5);
+
+    private final int myWeight;
+
+    ClassAttribute(int weight) {
+      myWeight = weight;
+    }
+
+    public int getWeight() {
+      return myWeight;
+    }
   }
 
   public enum ValueType {
