@@ -36,6 +36,7 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DE
 public class LayoutlibSceneBuilder extends SceneBuilder {
 
   private int myDpi = 0;
+  private final SelectionChangeListener mySelectionChangeListener = new SelectionChangeListener();
 
   public LayoutlibSceneBuilder(@NotNull NlModel model, @NotNull SceneView sceneView) {
     super(model, sceneView);
@@ -49,7 +50,7 @@ public class LayoutlibSceneBuilder extends SceneBuilder {
   @Override
   public Scene build() {
     Scene scene = super.build();
-    getSceneView().getSelectionModel().addListener(new SelectionChangeListener());
+    getSceneView().getSelectionModel().addListener(mySelectionChangeListener);
     NlModel model = getModel();
     ConfigurationListener listener = (flags) -> {
       if ((flags & CFG_DEVICE) != 0) {
@@ -197,7 +198,7 @@ public class LayoutlibSceneBuilder extends SceneBuilder {
       // updateFrom needs to be called in the dispatch thread
       UIUtil.invokeLaterIfNeeded(() -> {
         update();
-        getSceneView().getSelectionModel().updateListeners();
+        mySelectionChangeListener.selectionChanged(getSceneView().getSelectionModel(), getSceneView().getSelectionModel().getSelection());
       });
     }
 
