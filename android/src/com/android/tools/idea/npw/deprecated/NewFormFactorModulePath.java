@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.deprecated;
 
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.npw.*;
 import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.templates.Template;
@@ -29,9 +28,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.android.tools.idea.instantapp.InstantApps.*;
 import static com.android.tools.idea.npw.AddAndroidActivityPath.KEY_SELECTED_TEMPLATE;
 import static com.android.tools.idea.npw.ConfigureFormFactorStep.NUM_ENABLED_FORM_FACTORS_KEY;
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
@@ -53,7 +57,6 @@ import static com.android.tools.idea.wizard.WizardConstants.*;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.PATH;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
  * Module creation for a given form factor
@@ -128,8 +131,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     myState.put(TEST_DIR_KEY, "src/androidTest");
     myState.put(CREATE_ACTIVITY_KEY, false);
     myState.put(IS_INSTANT_APP_KEY, false);
-
-    myState.put(AIA_SDK_ENABLED_KEY, isNotEmpty(InstantApps.getAiaSdkLocation()));
 
     addStep(new ConfigureAndroidModuleStepDynamic(myDisposable, myFormFactor));
     addStep(new ConfigureInstantModuleStep(myDisposable, myFormFactor));
@@ -295,13 +296,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     String moduleName = myState.get(myModuleNameKey);
     assert moduleName != null;
 
-    boolean isInstantApp = myState.getNotNull(IS_INSTANT_APP_KEY, false);
-
-    if (isInstantApp) {
-      myState.put(GRADLE_PLUGIN_VERSION_KEY, InstantApps.getAiaPluginVersion());
-      myState.put(SPLIT_NAME_KEY, moduleName);
-    }
-
     File projectRoot = new File(projectLocation);
     File moduleRoot = new File(projectRoot, moduleName);
     try {
@@ -312,50 +306,50 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
       return false;
     }
 
-    //TODO - this code is a little messy. Once atom workflow is finalised refactor to avoid template parameter copying and overriding
-    Map<String, Object> moduleTemplateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
-    if (isInstantApp && myState.getNotNull(ALSO_CREATE_IAPK_KEY, false)) {
-      moduleTemplateState.put(ATTR_IS_LIBRARY_MODULE, true);
-      moduleTemplateState.put(ATTR_IS_BASE_ATOM, true);
+    Map<String, Object> templateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
+
+    if (myState.getNotNull(IS_INSTANT_APP_KEY, false)) {
+      templateState.put(ATTR_GRADLE_PLUGIN_VERSION, getInstantAppPluginVersion());
+      templateState.put(ATTR_INSTANT_APP_SDK_DIR, getInstantAppSdkLocation());
+      templateState.put(ATTR_BASE_SPLIT_MANIFEST_OUT, "./base/src/main");
+      templateState.put(ATTR_IS_LIBRARY_MODULE, true);
+      templateState.put(ATTR_HAS_SPLIT_WRAPPER, true);
+      templateState.put(ATTR_SPLIT_NAME, moduleName + "split");
+
+      Project project = getProject();
+      if (project != null) {
+        ApplicationManager.getApplication().runReadAction(() -> {
+          // We are adding a feature module to an existing instant app. Find the appropriate package and base-module path to add things to.
+          if (findInstantAppModule(project) != null) {
+            Module baseSplit = getBaseSplitInInstantApp(project);
+            templateState.put(ATTR_HAS_INSTANT_APP_WRAPPER, false);
+            templateState.put(ATTR_INSTANT_APP_PACKAGE_NAME, getInstantAppPackage(baseSplit));
+            templateState.put(ATTR_BASE_SPLIT_NAME, baseSplit.getName());
+            templateState.put(ATTR_BASE_SPLIT_MANIFEST_OUT, getBaseSplitOutDir(baseSplit) + "/src/main");
+          }
+
+          // TODO: need better name-clash handling (http://b/35712205) but this handles the most common issue.
+          String monolithicApplicationModuleName = "app";
+          int count = 2;
+          while (ModuleManager.getInstance(getProject()).findModuleByName(monolithicApplicationModuleName) != null && count < 100) {
+            monolithicApplicationModuleName = "app" + count;
+            templateState.put(ATTR_MONOLITHIC_APP_PROJECT_NAME, monolithicApplicationModuleName);
+            templateState.put(ATTR_MONOLITHIC_APP_DIR, "./" + monolithicApplicationModuleName);
+            count ++;
+          }
+
+        });
+      }
+      else {
+        templateState.put(ATTR_HAS_INSTANT_APP_WRAPPER, true);
+      }
     }
 
-    if (!renderModule(dryRun, moduleTemplateState, projectRoot, moduleRoot)) {
+    if (!renderModule(dryRun, templateState, projectRoot, moduleRoot)) {
       return false;
     }
 
-    Map<String, Object> activityTemplateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
-    if (!renderActivity(dryRun, activityTemplateState, projectRoot, moduleRoot)) {
-      return false;
-    }
-
-    if (isInstantApp && myState.getNotNull(ALSO_CREATE_IAPK_KEY, false)) {
-      // Note, this naming is provisional until the instant app workflow is better sorted out.
-      String iapkName = "instant-" +
-                        (myState.getNotNull(NUM_ENABLED_FORM_FACTORS_KEY, 0) == 1 ? "app" : getModuleName(myFormFactor));
-
-      Map<String, Object> iapkTemplateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
-      iapkTemplateState.put(ATTR_ATOM_NAME, moduleName);
-      iapkTemplateState.put(ATTR_MODULE_NAME, iapkName);
-      iapkTemplateState.put(ATTR_SPLIT_NAME, iapkName);
-
-      File iapkRoot = new File(projectRoot, iapkName);
-      try {
-        checkedCreateDirectoryIfMissing(iapkRoot);
-      }
-      catch (IOException e) {
-        LOG.error(e);
-        return false;
-      }
-      iapkTemplateState.put(ATTR_PROJECT_OUT, iapkRoot.getPath());
-      String relativeLocation = FileUtil.toSystemDependentName(myState.getNotNull(MANIFEST_DIR_KEY, ""));
-      iapkTemplateState.put(ATTR_MANIFEST_OUT, new File(iapkRoot, relativeLocation).getPath());
-
-      if (!renderModule(dryRun, iapkTemplateState, projectRoot, iapkRoot)) {
-        return false;
-      }
-    }
-
-    return true;
+    return renderActivity(dryRun, templateState, projectRoot, moduleRoot);
   }
 
   private boolean renderModule(boolean dryRun, Map<String, Object> templateState, File projectRoot, File moduleRoot) {

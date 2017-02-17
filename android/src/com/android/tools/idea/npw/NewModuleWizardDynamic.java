@@ -95,9 +95,6 @@ public class NewModuleWizardDynamic extends DynamicWizard {
     if (project != null) {
       state.put(WizardConstants.PROJECT_LOCATION_KEY, project.getBasePath());
     }
-
-    // Todo: check if we need an IAPK in the project
-    state.put(ALSO_CREATE_IAPK_KEY, false);
   }
 
   @NotNull

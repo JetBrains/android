@@ -135,6 +135,7 @@ public class ChooseModuleTypeStep extends ModelWizardStep<NewModuleModel> {
       = (selectedEntry instanceof ModuleTemplateGalleryEntry) ? (ModuleTemplateGalleryEntry) selectedEntry : null;
 
     getModel().isLibrary().set(templateEntry == null ? false : templateEntry.isLibrary());
+    getModel().instantApp().set(templateEntry == null ? false : templateEntry.isInstantApp());
     getModel().templateFile().setNullableValue(templateEntry == null ? null : templateEntry.getTemplateFile());
   }
 

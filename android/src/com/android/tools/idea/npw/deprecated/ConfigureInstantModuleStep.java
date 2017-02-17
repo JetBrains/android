@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.npw.deprecated;
 
+import com.android.tools.adtui.LabelWithEditLink;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.FormFactorUtils;
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.openapi.Disposable;
@@ -24,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+
+import java.util.Set;
 
 import static com.android.tools.idea.wizard.WizardConstants.*;
 
@@ -33,9 +37,10 @@ import static com.android.tools.idea.wizard.WizardConstants.*;
 @Deprecated
 public final class ConfigureInstantModuleStep extends DynamicWizardStepWithDescription {
   @NotNull private final FormFactor myFormFactor;
-  private JTextField myAtomNameField;
-  private JTextField mySupportedRoutesField;
+  private JTextField mySplitNameField;
   private JPanel myPanel;
+  private JTextField myFeatureNameField;
+  private LabelWithEditLink myPackageName;
 
   public ConfigureInstantModuleStep(@Nullable Disposable parentDisposable, @NotNull FormFactor formFactor) {
     super(parentDisposable);
@@ -47,28 +52,47 @@ public final class ConfigureInstantModuleStep extends DynamicWizardStepWithDescr
   public void init() {
     super.init();
     // TODO: put descriptions in AndroidBundle once UI is finalised
-    setControlDescription(mySupportedRoutesField, "Regular expression specifying paths that map to created atom");
-    setControlDescription(myAtomNameField, "Name of the base atom");
+    setControlDescription(myFeatureNameField, "Name of the feature to add to the project");
+    setControlDescription(mySplitNameField, "Name of the feature module which will be added to the project");
+    setControlDescription(myPackageName, "Package which will contain all feature splits in this instant app");
 
     ScopedStateStore.Key<String> moduleNameKey = FormFactorUtils.getModuleNameKey(myFormFactor);
-    register(moduleNameKey, myAtomNameField);
-    myState.put(moduleNameKey, "atom");
+    myState.put(moduleNameKey, null);
 
-    register(ATOM_ROUTE_KEY, mySupportedRoutesField);
-    myState.put(ATOM_ROUTE_KEY, "/.*");
+    register(FEATURE_NAME_KEY, myFeatureNameField);
+    register(moduleNameKey, mySplitNameField);
+    register(SPLIT_NAME_KEY, mySplitNameField);
+    register(INSTANT_APP_PACKAGE_NAME_KEY, myPackageName);
+    myState.put(FEATURE_NAME_KEY, "Feature");
+    myState.put(moduleNameKey, "feature");
 
+    registerValueDeriver(moduleNameKey, new ValueDeriver<String>() {
+      @Nullable
+      @Override
+      public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
+        return makeSetOf(FEATURE_NAME_KEY);
+      }
+
+      @Nullable
+      @Override
+      public String deriveValue(@NotNull ScopedStateStore state, @Nullable ScopedStateStore.Key changedKey, @Nullable String currentValue) {
+        return WizardUtils.computeModuleName(state.getNotNull(FEATURE_NAME_KEY, "Feature"), getProject());
+      }
+    });
+
+    myState.put(INSTANT_APP_PACKAGE_NAME_KEY, myState.get(PACKAGE_NAME_KEY) + ".instantapp");
   }
 
   @NotNull
   @Override
   public String getStepName() {
-    return "Configure Instant Module";
+    return "Customize Instant App Support";
   }
 
   @NotNull
   @Override
   protected String getStepTitle() {
-    return "Configure Instant Module";
+    return "Customize Instant App Support";
   }
 
   @Nullable
@@ -79,11 +103,11 @@ public final class ConfigureInstantModuleStep extends DynamicWizardStepWithDescr
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myAtomNameField;
+    return myFeatureNameField;
   }
 
   @Override
   public boolean isStepVisible() {
-    return myState.getNotNull(IS_INSTANT_APP_KEY, false) && myState.getNotNull(ALSO_CREATE_IAPK_KEY, false);
+    return myState.getNotNull(IS_INSTANT_APP_KEY, false) && getProject() == null;
   }
 }

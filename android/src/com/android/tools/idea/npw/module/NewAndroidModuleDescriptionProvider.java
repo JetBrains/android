@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.instantapp.InstantApps.isInstantAppSdkEnabled;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionProvider {
@@ -55,14 +56,19 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
         // Hidden if not installed
       }
       else if (formFactor.equals(FormFactor.MOBILE)) {
-        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, false, AndroidIcons.ModuleTemplates.Mobile,
+        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, false, false, AndroidIcons.ModuleTemplates.Mobile,
                                                       message("android.wizard.module.new.mobile"), metadata.getTitle()));
 
-        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, true, AndroidIcons.ModuleTemplates.Android,
+        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, true, false, AndroidIcons.ModuleTemplates.Android,
                                                       message("android.wizard.module.new.library"), metadata.getDescription()));
+
+        if (isInstantAppSdkEnabled()) {
+          res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, true, true, AndroidIcons.ModuleTemplates.Android,
+                                                        message("android.wizard.module.new.featuremodule"), metadata.getDescription()));
+        }
       }
       else {
-        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, false, getModuleTypeIcon(formFactor),
+        res.add(new AndroidModuleTemplateGalleryEntry(templateFile, formFactor, minSdk, false, false, getModuleTypeIcon(formFactor),
                                                       metadata.getTitle(), metadata.getDescription()));
       }
     }
@@ -92,16 +98,18 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
     private final FormFactor myFormFactor;
     private final int myMinSdkLevel;
     private final boolean myIsLibrary;
+    private final boolean myIsInstantApp;
     private final Icon myIcon;
     private final String myName;
     private final String myDescription;
 
-    AndroidModuleTemplateGalleryEntry(File templateFile, FormFactor formFactor, int minSdkLevel, boolean isLibrary, Icon icon,
-                                      String name, String description) {
+    AndroidModuleTemplateGalleryEntry(File templateFile, FormFactor formFactor, int minSdkLevel, boolean isLibrary, boolean isInstantApp,
+                                      Icon icon, String name, String description) {
       this.myTemplateFile = templateFile;
       this.myFormFactor = formFactor;
       this.myMinSdkLevel = minSdkLevel;
       this.myIsLibrary = isLibrary;
+      this.myIsInstantApp = isInstantApp;
       this.myIcon = icon;
       this.myName = name;
       this.myDescription = description;
@@ -122,6 +130,11 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
     @Override
     public boolean isLibrary() {
       return myIsLibrary;
+    }
+
+    @Override
+    public boolean isInstantApp() {
+      return myIsInstantApp;
     }
 
     @Nullable
@@ -145,7 +158,7 @@ public class NewAndroidModuleDescriptionProvider implements ModuleDescriptionPro
     @NotNull
     @Override
     public SkippableWizardStep createStep(@NotNull NewModuleModel model) {
-      return new ConfigureAndroidModuleStep(model, myFormFactor, myMinSdkLevel, isLibrary(), myName);
+      return new ConfigureAndroidModuleStep(model, myFormFactor, myMinSdkLevel, isLibrary(), myIsInstantApp, myName);
     }
   }
 }

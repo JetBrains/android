@@ -19,7 +19,7 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mock;
 
-import static com.android.tools.idea.instantapp.InstantApps.setAiaSdkLocation;
+import static com.android.tools.idea.instantapp.InstantApps.setInstantAppSdkLocation;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -35,7 +35,7 @@ public class ProvisionBeforeRunTaskProviderTest extends AndroidTestCase {
   }
 
   public void testTaskNotCreatedIfSdkNotDefined() {
-    setAiaSdkLocation(null);
+    setInstantAppSdkLocation(null);
     assertNull(new ProvisionBeforeRunTaskProvider().createTask(myRunConfiguration));
   }
 }

@@ -35,6 +35,7 @@ import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.SupportLibrary;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
@@ -48,12 +49,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 
-import static com.android.tools.idea.instantapp.InstantApps.getAiaPluginVersion;
-import static com.android.tools.idea.instantapp.InstantApps.getAiaSdkLocation;
+import static com.android.tools.idea.instantapp.InstantApps.*;
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 /**
  * Utility class that sets common Template values used by a project Module.
@@ -100,6 +99,14 @@ public final class TemplateValueInjector {
     myTemplateValues.put(ATTR_MIN_API, minSdkName);
     myTemplateValues.put(ATTR_TARGET_API, moduleInfo.getTargetSdkVersion().getApiLevel());
     myTemplateValues.put(ATTR_MIN_API_LEVEL, minSdkVersion.getFeatureLevel());
+
+    Module splitModule = getContainingSplit(facet.getModule());
+    if (splitModule != null) {
+      Module baseSplit = getBaseSplitInInstantApp(facet.getModule().getProject());
+      myTemplateValues.put(ATTR_IS_INSTANT_APP, true);
+      myTemplateValues.put(ATTR_SPLIT_NAME, splitModule.getName());
+      myTemplateValues.put(ATTR_BASE_SPLIT_MANIFEST_OUT, getBaseSplitOutDir(baseSplit) + "/src/main");
+    }
 
     return this;
   }
@@ -263,8 +270,8 @@ public final class TemplateValueInjector {
    */
   @NotNull
   private static String determineGradlePluginVersion(@Nullable Project project) {
-    if (isNotEmpty(getAiaSdkLocation())) {
-      return getAiaPluginVersion();
+    if (isInstantAppSdkEnabled()) {
+      return getInstantAppPluginVersion();
     }
 
     String defaultGradleVersion = AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion();
