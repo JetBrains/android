@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.openapi.project.Project;
@@ -48,19 +47,9 @@ public class BuildCacheSyncTest extends AndroidGradleTestCase {
     importProject(project.getName(), getBaseDirPath(project), null);
 
     File mainActivityFile = new File("app/src/main/java/com/example/alruiz/transitive_dependencies/MainActivity.java");
-
-    assertNotNull(mainActivityFile);
     Predicate<HighlightInfo> matchByDescription = info -> "Cannot resolve symbol 'AppCompatActivity'".equals(info.getDescription());
     List<HighlightInfo> highlights = getHighlightInfos(project, mainActivityFile, matchByDescription);
-    // It is expected that AppCompatActivity cannot be resolved yet, since AARs have not been exploded yet.
-    assertThat(highlights).isNotEmpty();
-
-    // Generate sources to explode AARs in build cache
-    GradleInvocationResult result = generateSources();
-    assertTrue(result.isBuildSuccessful());
-
-    highlights = getHighlightInfos(project, mainActivityFile, matchByDescription);
-    // AppCompatActivity should be resolved now.
+    // AppCompatActivity should be resolved, since AARs are exploded during sync.
     assertThat(highlights).isEmpty();
   }
 
