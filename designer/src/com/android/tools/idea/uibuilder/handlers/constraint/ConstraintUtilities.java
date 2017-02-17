@@ -1450,7 +1450,14 @@ public class ConstraintUtilities {
 
   @NotNull
   public static String getResolvedText(@NotNull NlComponent component) {
-    String text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
+    String text = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_TEXT);
+    if (text != null) {
+      if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
+        return resolveStringResource(component, text);
+      }
+      return text;
+    }
+    text = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT);
     if (text != null) {
       if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF)) {
         return resolveStringResource(component, text);
