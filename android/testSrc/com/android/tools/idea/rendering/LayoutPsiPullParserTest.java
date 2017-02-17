@@ -256,6 +256,28 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger));
   }
 
+  public void testAaptAttr() throws Exception {
+    VirtualFile virtualFile = myFixture.copyFileToProject("xmlpull/aaptattr.xml", "res/layout/aaptattr.xml");
+    assertNotNull(virtualFile);
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("LinearLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag()); // ImageView
+    assertEquals("ImageView", parser.getName());
+    assertEquals("@aapt:_aapt/0", parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
+    assertEquals(END_TAG, parser.nextTag()); // ImageView (@id/first)
+
+    assertEquals(START_TAG, parser.nextTag()); // ImageView (@id/second)
+    assertEquals("@aapt:_aapt/1", parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
+    assertEquals(END_TAG, parser.nextTag()); // ImageView
+
+    assertEquals("21dp", parser.getAaptDeclaredAttrs().get("0").getAttribute("width", ANDROID_URI));
+    assertEquals("22dp", parser.getAaptDeclaredAttrs().get("1").getAttribute("width", ANDROID_URI));
+  }
+
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }
 
   private void compareParsers(PsiFile file, NextEventType nextEventType) throws Exception {
