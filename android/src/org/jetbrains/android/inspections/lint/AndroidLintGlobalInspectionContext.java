@@ -242,7 +242,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       AndroidModuleModel model = AndroidModuleModel.get(module);
       if (model != null) {
         GradleVersion version = model.getModelVersion();
-        if (version != null && version.isAtLeast(2, 3, 0, null, 0, true)) {
+        if (version != null && version.isAtLeast(2, 3, 0, "beta", 2, true)) {
           LintOptions options = model.getAndroidProject().getLintOptions();
           try {
             File baselineFile = options.getBaselineFile();

@@ -32,14 +32,14 @@ public class SceneDragMarginBottomRightTest extends SceneTest {
     ModelBuilder builder = model("constraint.xml",
                                  component(CONSTRAINT_LAYOUT)
                                    .id("@id/root")
-                                   .withBounds(0, 0, 1000, 1000)
+                                   .withBounds(0, 0, 2000, 2000)
                                    .width("1000dp")
                                    .height("1000dp")
                                    .withAttribute("android:padding", "20dp")
                                    .children(
                                      component(TEXT_VIEW)
                                        .id("@id/button")
-                                       .withBounds(800, 780, 100, 20)
+                                       .withBounds(1600, 1560, 200, 40)
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("app:layout_constraintRight_toRightOf", "parent")
@@ -61,8 +61,7 @@ public class SceneDragMarginBottomRightTest extends SceneTest {
                  "    app:layout_constraintRight_toRightOf=\"parent\"\n" +
                  "    app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "    android:layout_marginRight=\"850dp\"\n" +
-                 "    android:layout_marginBottom=\"200dp\"\n" +
-                 "      android:layout_marginEnd=\"850dp\" />");
+                 "    android:layout_marginBottom=\"200dp\"/>");
   }
 
   public void testDragTop() {
@@ -76,8 +75,7 @@ public class SceneDragMarginBottomRightTest extends SceneTest {
                  "    app:layout_constraintRight_toRightOf=\"parent\"\n" +
                  "    app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "    android:layout_marginRight=\"100dp\"\n" +
-                 "    android:layout_marginBottom=\"490dp\"\n" +
-                 "      android:layout_marginEnd=\"100dp\" />");
+                 "    android:layout_marginBottom=\"490dp\"/>");
   }
 
   public void testDragTopLeft() {
@@ -91,7 +89,6 @@ public class SceneDragMarginBottomRightTest extends SceneTest {
                  "    app:layout_constraintRight_toRightOf=\"parent\"\n" +
                  "    app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "    android:layout_marginRight=\"750dp\"\n" +
-                 "    android:layout_marginBottom=\"790dp\"\n" +
-                 "      android:layout_marginEnd=\"750dp\" />");
+                 "    android:layout_marginBottom=\"790dp\"/>");
   }
 }

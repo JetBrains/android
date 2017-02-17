@@ -31,6 +31,7 @@ public class DeviceFileEntryNode extends DefaultMutableTreeNode {
   private int myDownloadingTick;
   private long myDownloadedBytes;
   private long myTotalDownloadBytes;
+  private boolean myIsSymbolicLinkToDirectory;
 
   @Nullable
   public static DeviceFileEntryNode fromNode(@Nullable Object value) {
@@ -61,7 +62,11 @@ public class DeviceFileEntryNode extends DefaultMutableTreeNode {
 
   @Override
   public boolean isLeaf() {
-    return !(myEntry.isDirectory());
+    return !isExpandable();
+  }
+
+  public boolean isExpandable() {
+    return myEntry.isDirectory() || myIsSymbolicLinkToDirectory;
   }
 
   @NotNull
@@ -78,6 +83,14 @@ public class DeviceFileEntryNode extends DefaultMutableTreeNode {
     myDownloadingTick = 0;
     myDownloadedBytes = 0;
     myTotalDownloadBytes = 0;
+  }
+
+  public boolean isSymbolicLinkToDirectory() {
+    return myIsSymbolicLinkToDirectory;
+  }
+
+  public void setSymbolicLinkToDirectory(boolean value) {
+    myIsSymbolicLinkToDirectory = value;
   }
 
   public int getDownloadingTick() {

@@ -22,6 +22,7 @@ import com.android.tools.idea.explorer.mocks.*;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.ide.ClipboardSynchronizer;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
@@ -116,6 +117,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
         Disposer.dispose(myMockFileManager);
         myMockFileManager = null;
       }
+      ClipboardSynchronizer.getInstance().resetContent();
     }
     finally {
       super.tearDown();

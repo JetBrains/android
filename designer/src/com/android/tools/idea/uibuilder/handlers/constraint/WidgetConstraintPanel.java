@@ -28,7 +28,6 @@ import com.android.tools.sherpa.drawing.ColorSet;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.editor.event.MockDocumentEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.JBColor;
@@ -51,11 +50,9 @@ import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
 public class WidgetConstraintPanel extends JPanel {
   private static final String HORIZONTAL_TOOL_TIP_TEXT = "Horizontal Bias";
   private static final String VERTICAL_TOOL_TIP_TEXT = "Vertical Bias";
-  public static final String SIZE_ANY = "0dp";
   final SingleWidgetView mMain;
   final JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
   final JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
-  private WidgetsScene mScene;
   private boolean mConfiguringUI = false;
   ConstraintModel mConstraintModel;
   NlComponent mComponent;
@@ -370,6 +367,10 @@ public class WidgetConstraintPanel extends JPanel {
     for (int i = 0; i < attribute.length; i++) {
       transaction.setAttribute(namespace[i], attribute[i], null);
     }
+
+    ConstraintComponentUtilities.ensureHorizontalPosition(mComponent, transaction);
+    ConstraintComponentUtilities.ensureVerticalPosition(mComponent, transaction);
+
     transaction.apply();
     WriteCommandAction action = new WriteCommandAction(project, label, file) {
       @Override
@@ -383,89 +384,6 @@ public class WidgetConstraintPanel extends JPanel {
   public static final int UNKNOWN = -1;
   public static final int HORIZONTAL = 0;
   public static final int VERTICAL = 1;
-
-  /**
-   * Set the ratio of the widget from a given string of format [H|V],[float|x:y] or [float|x:y]
-   *
-   * @param ratio
-   */
-  public static float getDimensionRatio(String ratio) {
-    if (ratio == null || ratio.length() == 0) {
-      return Float.NaN;
-    }
-    int dimensionRatioSide = UNKNOWN;
-    float dimensionRatio = 0;
-    int len = ratio.length();
-    int commaIndex = ratio.indexOf(',');
-    if (commaIndex > 0 && commaIndex < len - 1) {
-      String dimension = ratio.substring(0, commaIndex);
-      if (dimension.equalsIgnoreCase("W")) {
-        dimensionRatioSide = HORIZONTAL;
-      }
-      else if (dimension.equalsIgnoreCase("H")) {
-        dimensionRatioSide = VERTICAL;
-      }
-      commaIndex++;
-    }
-    else {
-      commaIndex = 0;
-    }
-    int colonIndex = ratio.indexOf(':');
-
-    if (colonIndex >= 0 && colonIndex < len - 1) {
-      String nominator = ratio.substring(commaIndex, colonIndex);
-      String denominator = ratio.substring(colonIndex + 1);
-      if (nominator.length() > 0 && denominator.length() > 0) {
-        try {
-          float nominatorValue = Float.parseFloat(nominator);
-          float denominatorValue = Float.parseFloat(denominator);
-          if (nominatorValue > 0 && denominatorValue > 0) {
-            if (dimensionRatioSide == VERTICAL) {
-              dimensionRatio = Math.abs(denominatorValue / nominatorValue);
-            }
-            else {
-              dimensionRatio = Math.abs(nominatorValue / denominatorValue);
-            }
-          }
-        }
-        catch (NumberFormatException e) {
-          // Ignore
-        }
-      }
-    }
-    else {
-      String r = ratio.substring(commaIndex);
-      if (r.length() > 0) {
-        try {
-          dimensionRatio = Float.parseFloat(r);
-        }
-        catch (NumberFormatException e) {
-          // Ignore
-        }
-      }
-    }
-
-    if (dimensionRatio > 0) {
-      return dimensionRatio;
-    }
-    return Float.NaN;
-  }
-
-  /**
-   * Set the ratio of the widget from a given string of format [H|V],[float|x:y] or [float|x:y]
-   *
-   * @param ratio
-   */
-  public static int getDimensionRatioSide(String ratio) {
-    if (ratio.toUpperCase().startsWith("W")) {
-      return HORIZONTAL;
-    }
-    if (ratio.toUpperCase().startsWith("H")) {
-      return VERTICAL;
-    }
-
-    return UNKNOWN;
-  }
 
   /**
    * Convert Any to SingleWidgetView flags
@@ -486,62 +404,6 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   /**
-   * This loads the parameters form mWidget the ConstraintWidget
-   */
-  private void configureUI_constraint_widget() {
-    int top = getMargin(ConstraintAnchor.Type.TOP);
-    int left = getMargin(ConstraintAnchor.Type.LEFT);
-    int right = getMargin(ConstraintAnchor.Type.RIGHT);
-    int bottom = getMargin(ConstraintAnchor.Type.BOTTOM);
-
-    String ratioString = getSherpaAttribute(SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO);
-    boolean baseline = hasBaseline();
-
-    boolean showVerticalSlider = bottom != UNCONNECTED && top != UNCONNECTED;
-    boolean showHorizontalSlider = left != UNCONNECTED && right != UNCONNECTED;
-
-    if (showHorizontalSlider) {
-      String biasString = getSherpaAttribute(SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS);
-
-      float bias = .5f;
-      if (biasString != null && biasString.length() != 0) {
-        bias = Float.parseFloat(biasString);
-      }
-      mHorizontalSlider.setValue((int)(bias * 100));
-    }
-
-    if (showVerticalSlider) {
-      String biasString = getSherpaAttribute(SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS);
-      float bias = 0.5f;
-      if (biasString != null && biasString.length() != 0) {
-        bias = Float.parseFloat(biasString);
-      }
-
-      mVerticalSlider.setValue(100 - (int)(bias * 100));
-    }
-
-    mVerticalSlider.setEnabled(showVerticalSlider);
-    mHorizontalSlider.setEnabled(showHorizontalSlider);
-    mHorizontalSlider.invalidate();
-    mVerticalSlider.invalidate();
-    mVerticalSlider.setToolTipText(showVerticalSlider ? VERTICAL_TOOL_TIP_TEXT : null);
-    mHorizontalSlider.setToolTipText(showHorizontalSlider ? HORIZONTAL_TOOL_TIP_TEXT : null);
-
-    getSherpaAttribute(SdkConstants.ATTR_LAYOUT_WIDTH);
-    int widthVal = getLayoutDimensionDpValue(SdkConstants.ATTR_LAYOUT_WIDTH);
-    int heightValue = getLayoutDimensionDpValue(SdkConstants.ATTR_LAYOUT_HEIGHT);
-    mMain.configureUi(bottom, top, left, right, baseline, widthVal, heightValue, ratioString);
-  }
-
-  private int getLayoutDimensionDpValue(String attribute) {
-    String value = getSherpaAttribute(attribute);
-    if (SdkConstants.VALUE_WRAP_CONTENT.equalsIgnoreCase(value)) return -2;
-    if (SdkConstants.VALUE_MATCH_PARENT.equalsIgnoreCase(value)) return -1;
-    return ConstraintUtilities.getDpValue(mComponent, value);
-  }
-
-
-  /**
    * Returns true if mWidget has a baseline
    *
    * @return
@@ -559,7 +421,7 @@ public class WidgetConstraintPanel extends JPanel {
     if (mComponent != null) {
       mComponent.addLiveChangeListener(myChangeLiveListener);
       mConstraintModel = ConstraintModel.getConstraintModel(mComponent.getModel());
-      mScene = mConstraintModel.getScene();
+      WidgetsScene mScene = mConstraintModel.getScene();
       mConstraintModel.getSelection().setContinuousListener(e -> widgetChanged());
       //TODO: improve the tear-down mechanism
       ConstraintWidget widget = mScene.getWidget(mComponent);
@@ -576,27 +438,6 @@ public class WidgetConstraintPanel extends JPanel {
     return parent != null && parent.isOrHasSuperclass(CONSTRAINT_LAYOUT);
   }
 
-  /**
-   * Get the margin from connection return -1 if no connection
-   *
-   * @param type
-   * @return
-   */
-  private int getMargin(ConstraintAnchor.Type type) {
-    switch (type) {
-
-      case LEFT:
-        return getDimension(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
-      case TOP:
-        return getDimension(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
-      case RIGHT:
-        return getDimension(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
-      case BOTTOM:
-        return getDimension(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
-    }
-    return UNCONNECTED;
-  }
-
   /*-----------------------------------------------------------------------*/
   // values from ui to widget & NL component
   /*-----------------------------------------------------------------------*/
@@ -609,31 +450,11 @@ public class WidgetConstraintPanel extends JPanel {
       return;
     }
 
-    mConstraintModel.getDrawConstraintModels().forEach(DrawConstraintModel::repaint);
     saveWidget();
   }
 
   private void saveWidget() {
     mConstraintModel.requestSaveToXML();
-  }
-
-  private void setMargin(ConstraintAnchor.Type type, int margin) {
-    switch (type) {
-      case LEFT:
-        setDimension(mComponent, SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, margin);
-        break;
-      case TOP:
-        setDimension(mComponent, SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, margin);
-        break;
-      case RIGHT:
-        setDimension(mComponent, SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, margin);
-        break;
-      case BOTTOM:
-        setDimension(mComponent, SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, margin);
-        break;
-    }
-
-    widgetModified();
   }
 
   private void killConstraint(ConstraintAnchor.Type type) {
@@ -654,27 +475,16 @@ public class WidgetConstraintPanel extends JPanel {
         removeAttribute(CONNECTION_BASELINE);
         break;
     }
-
-
-    widgetModified();
   }
 
   public void setHorizontalBias() {
     float bias = (mHorizontalSlider.getValue() / 100f);
 
-    NlComponent component = mComponent;
-    if (NlComponentUtils.isHorizontalChain(mComponent)) {
-      component = NlComponentUtils.getLeftMostInChain(mComponent);
-    }
     setSherpaAttribute(SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, Float.toString(bias));
   }
 
   public void setVerticalBias() {
     float bias = 1f - (mVerticalSlider.getValue() / 100f);
-    NlComponent component = mComponent;
-    if (NlComponentUtils.isVerticalChain(mComponent)) {
-      component = NlComponentUtils.getTopMostInChain(mComponent);
-    }
     setSherpaAttribute(SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, Float.toString(bias));
   }
 
@@ -736,7 +546,6 @@ public class WidgetConstraintPanel extends JPanel {
         setAndroidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_WRAP_CONTENT);
         break;
     }
-    widgetModified();
   }
 
   public void setVerticalConstraint(int verticalConstraint) {
@@ -760,7 +569,6 @@ public class WidgetConstraintPanel extends JPanel {
         setAndroidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_WRAP_CONTENT);
         break;
     }
-    widgetModified();
   }
 
   /*-----------------------------------------------------------------------*/

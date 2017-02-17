@@ -65,6 +65,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @Nullable
   private Profiler.Process myProcess;
 
+  private boolean myAgentAttached;
+
   @Nullable
   private String myPreferredProcessName;
 
@@ -153,23 +155,50 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         Profiler.GetProcessesRequest request = Profiler.GetProcessesRequest.newBuilder().setSession(session).build();
         Profiler.GetProcessesResponse processes = myClient.getProfilerClient().getProcesses(request);
 
-        //TODO: Have the UI handle dead processes properly
-        newProcesses.put(device, processes.getProcessList()
+        int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
+        List<Profiler.Process> processList = processes.getProcessList()
           .stream()
-          .filter(process -> process.getState() == Profiler.Process.State.ALIVE)
-          .collect(Collectors.toList()));
+          .filter(process -> process.getState() == Profiler.Process.State.ALIVE ||
+                             process.getPid() == lastProcessId)
+          .collect(Collectors.toList());
+
+        newProcesses.put(device, processList);
       }
+
       if (!newProcesses.equals(myProcesses)) {
         myProcesses = newProcesses;
         // Attempt to choose the currently profiled device and process
         setDevice(myDevice);
         setProcess(null);
 
+        // These need to be fired everytime the process list changes so that the device/process dropdown always reflects the latest.
         changed(ProfilerAspect.DEVICES);
         changed(ProfilerAspect.PROCESSES);
       }
+
+      // Ping to see if perfa is alive.
+      if (myProcess != null) {
+        Common.Session session = Common.Session.newBuilder()
+          .setDeviceSerial(myDevice.getSerial())
+          .setBootId(myDevice.getBootId())
+          .build();
+        Profiler.AgentStatusRequest statusRequest =
+          Profiler.AgentStatusRequest.newBuilder().setProcessId(myProcess.getPid()).setSession(session).build();
+        Profiler.AgentStatusResponse statusResponse = myClient.getProfilerClient().getAgentStatus(statusRequest);
+
+        boolean agentAttach = statusResponse.getStatus() == Profiler.AgentStatusResponse.Status.ATTACHED;
+        if (myAgentAttached != agentAttach) {
+          myAgentAttached = agentAttach;
+          changed(ProfilerAspect.AGENT);
+        }
+      }
     }
     catch (StatusRuntimeException e) {
+      // TODO: Clean up this exception, this has the potential to capture some subtle bugs
+      // As an example the MemoryProfilerStateTest:testAgentStatusUpdatesObjectSeries depends on this exception being thrown
+      // the exception gets thrown due to startMonitor being called on a service the test didn't setup, this seems like an
+      // unintentional side effect of the state of the test that sets this class up properly, if we handle the exception elsewhere
+      // the test will fail as a different service will run and an UNIMPLEMENTED exception will be thrown.
       myConnected = false;
       this.changed(ProfilerAspect.CONNECTION);
       System.err.println("Cannot find profiler service, retrying...");
@@ -202,7 +231,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         myRelativeTimeConverter = new RelativeTimeConverter(times.getTimestampNs() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
         myTimeline.reset(myRelativeTimeConverter);
         myTimeline.setStreaming(true);
-      } else {
+      }
+      else {
         mySessionData = null;
       }
 
@@ -228,14 +258,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       process = getPreferredProcess(processes);
     }
     if (!Objects.equals(process, myProcess)) {
-      if (myDevice != null && myProcess != null) {
+      if (myDevice != null && myProcess != null && myDevice.getState() == Profiler.Device.State.ONLINE) {
         myProfilers.forEach(profiler -> profiler.stopProfiling(getSession(), myProcess));
       }
 
       myProcess = process;
       changed(ProfilerAspect.PROCESSES);
 
-      if (myDevice != null && myProcess != null) {
+      if (myDevice != null && myProcess != null && myDevice.getState() == Profiler.Device.State.ONLINE) {
         myProfilers.forEach(profiler -> profiler.startProfiling(getSession(), myProcess));
       }
       setStage(new StudioMonitorStage(this));
@@ -255,7 +285,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // Prefer the project's app if available.
     if (myPreferredProcessName != null) {
       for (Profiler.Process process : processes) {
-        if (process.getName().equals(myPreferredProcessName)) {
+        if (process.getName().equals(myPreferredProcessName) && process.getState() == Profiler.Process.State.ALIVE) {
           return process;
         }
       }
@@ -314,6 +344,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   public Profiler.Process getProcess() {
     return myProcess;
+  }
+
+  public boolean isAgentAttached() {
+    return myAgentAttached;
   }
 
   public List<StudioProfiler> getProfilers() {

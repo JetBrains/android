@@ -26,6 +26,7 @@ import com.google.common.collect.Maps;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
+
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -33,7 +34,7 @@ import java.util.function.Consumer;
  * This class hosts an EventService that will provide callers access to all cached EventData.
  * The data is populated from polling the service passed into the connectService function.
  */
-public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase implements ServicePassThrough  {
+public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase implements ServicePassThrough {
   private Map<ManagedChannel, ProfilerDevicePoller> myPollers = Maps.newHashMap();
   private Consumer<Runnable> myFetchExecutor;
   private ProfilerTable myTable = new ProfilerTable();
@@ -51,6 +52,9 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(request.getSession());
     if (client != null) {
       observer.onNext(client.getCurrentTime(request));
+    } else {
+      // Need to return something in the case of no device.
+      observer.onNext(Profiler.TimeResponse.getDefaultInstance());
     }
     observer.onCompleted();
   }
@@ -75,6 +79,12 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
   public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> observer) {
     Profiler.GetProcessesResponse response = myTable.getProcesses(request);
     observer.onNext(response);
+    observer.onCompleted();
+  }
+
+  @Override
+  public void getAgentStatus(Profiler.AgentStatusRequest request, StreamObserver<Profiler.AgentStatusResponse> observer) {
+    observer.onNext(myTable.getAgentStatus(request));
     observer.onCompleted();
   }
 

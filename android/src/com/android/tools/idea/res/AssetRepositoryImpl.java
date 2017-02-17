@@ -18,7 +18,10 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.AssetRepository;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.psi.impl.file.impl.FileManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +57,7 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
    */
   @Nullable
   @Override
-  public InputStream openAsset(String path, int mode) throws IOException {
+  public InputStream openAsset(@NotNull String path, int mode) throws IOException {
     assert myFacet != null;
 
     // mode is currently ignored. It can help in optimizing read performance, but it shouldn't matter here.
@@ -65,6 +68,35 @@ public class AssetRepositoryImpl extends AssetRepository implements Disposable {
         if (asset != null) {
           // TODO: ensure that this asset is within the asset directory. Files outside the asset directory shouldn't be accessible.
           return asset.getInputStream();
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * It takes an absolute path that does not point to an asset and opens the file. Currently the access is restricted to files under
+   * the resources directories.
+   * @param mode one of ACCESS_UNKNOWN, ACCESS_STREAMING, ACCESS_RANDOM or ACCESS_BUFFER (int values 0-3).
+   */
+  @Nullable
+  @Override
+  public InputStream openNonAsset(int cookie, @NotNull String path, int mode) throws IOException {
+    assert myFacet != null;
+
+    VirtualFile file = VirtualFileManager.getInstance().findFileByUrl("file://" + path);
+    if (file == null) {
+      return null;
+    }
+
+    // mode is currently ignored. It can help in optimizing read performance, but it shouldn't matter here.
+    List<IdeaSourceProvider> sourceProviders = IdeaSourceProvider.getAllIdeaSourceProviders(myFacet);
+    for (int i = sourceProviders.size() - 1; i >= 0; i--) {
+      // Verify that the file at least contained in one of the resource directories
+      for (VirtualFile resDir : sourceProviders.get(i).getResDirectories()) {
+        if (VfsUtilCore.isAncestor(resDir, file, true)) {
+          return file.getInputStream();
         }
       }
     }

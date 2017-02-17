@@ -49,6 +49,8 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     MultiResourceRepository parent = ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(resourceDirectory));
 
     myPanel.getTable().setModel(new StringResourceTableModel(new StringResourceRepository(parent).getData(myFacet)));
+
+    myTable.getRowSorter().setSortKeys(Collections.singletonList(new RowSorter.SortKey(0, SortOrder.ASCENDING)));
   }
 
   @Override
@@ -76,7 +78,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     assertEquals("key8", myTable.getValueAt(8, 0));
     assertEquals("key9", myTable.getValueAt(9, 0));
 
-    myTable.setRowFilter(new NeedsTranslationsRowFilter());
+    myTable.setRowFilter(new NeedsTranslationsRowFilter(false));
 
     assertEquals(7, myTable.getRowCount());
     assertEquals("key1", myTable.getValueAt(0, 0));
@@ -89,7 +91,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   }
 
   public void testRefilteringAfterEditingUntranslatableCell() {
-    myTable.setRowFilter(new NeedsTranslationsRowFilter());
+    myTable.setRowFilter(new NeedsTranslationsRowFilter(false));
     editCellAt(true, 0, StringResourceTableModel.UNTRANSLATABLE_COLUMN);
 
     assertEquals(6, myTable.getRowCount());
@@ -102,7 +104,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   }
 
   public void testRefilteringAfterEditingTranslationCells() {
-    myTable.setRowFilter(new NeedsTranslationsRowFilter());
+    myTable.setRowFilter(new NeedsTranslationsRowFilter(false));
     editCellAt("Key 3 en-rGB", 2, 5);
 
     assertEquals(6, myTable.getRowCount());
@@ -115,7 +117,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   }
 
   public void testSelectingCell() {
-    myTable.setRowFilter(new NeedsTranslationsRowFilter());
+    myTable.setRowFilter(new NeedsTranslationsRowFilter(false));
     TableUtils.selectCellAt(myTable, 2, 1);
 
     assertEquals("Key 3 default", myPanel.myDefaultValueTextField.getTextField().getText());

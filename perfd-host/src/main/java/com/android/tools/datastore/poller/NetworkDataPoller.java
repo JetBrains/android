@@ -15,19 +15,10 @@
  */
 package com.android.tools.datastore.poller;
 
-import com.android.tools.datastore.DataStoreService;
-import com.android.tools.datastore.ServicePassThrough;
-import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.datastore.database.NetworkTable;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import io.grpc.ManagedChannel;
-import io.grpc.ServerServiceDefinition;
-import io.grpc.stub.StreamObserver;
-
-import java.util.List;
-import java.util.concurrent.RunnableFuture;
 
 // TODO: Implement a storage container that can read/write data to disk
 public class NetworkDataPoller extends PollRunner {
@@ -42,7 +33,10 @@ public class NetworkDataPoller extends PollRunner {
   private NetworkTable myNetworkTable;
   NetworkServiceGrpc.NetworkServiceBlockingStub myPollingService;
 
-  public NetworkDataPoller(int processId, Common.Session session, NetworkTable table, NetworkServiceGrpc.NetworkServiceBlockingStub pollingService) {
+  public NetworkDataPoller(int processId,
+                           Common.Session session,
+                           NetworkTable table,
+                           NetworkServiceGrpc.NetworkServiceBlockingStub pollingService) {
     super(POLLING_DELAY_NS);
     myProcessId = processId;
     myNetworkTable = table;
@@ -58,11 +52,15 @@ public class NetworkDataPoller extends PollRunner {
     NetworkProfiler.NetworkDataRequest.Builder dataRequestBuilder = NetworkProfiler.NetworkDataRequest.newBuilder()
       .setProcessId(myProcessId)
       .setStartTimestamp(myDataRequestStartTimestampNs)
-      .setEndTimestamp(Long.MAX_VALUE);
-     NetworkProfiler.NetworkDataResponse response = myPollingService.getData(dataRequestBuilder.build());
+      .setEndTimestamp(Long.MAX_VALUE)
+      .setType(NetworkProfiler.NetworkDataRequest.Type.ALL);
+    // TODO currently the buffer used in the Network data collector returns start time inclusive, end time exclusive data
+    // This would cause this request to return a sample that is duplicated from the last request. Consider changing
+    // the buffer to be start time exclusive and end time inclusive.
+    NetworkProfiler.NetworkDataResponse response = myPollingService.getData(dataRequestBuilder.build());
 
     for (NetworkProfiler.NetworkProfilerData data : response.getDataList()) {
-      myDataRequestStartTimestampNs = data.getBasicInfo().getEndTimestamp();
+      myDataRequestStartTimestampNs = Math.max(myDataRequestStartTimestampNs, data.getBasicInfo().getEndTimestamp());
       myNetworkTable.insert(data.getBasicInfo().getProcessId(), data);
       pollHttpRange(dataRequestBuilder.getSession());
     }
@@ -79,6 +77,7 @@ public class NetworkDataPoller extends PollRunner {
       myHttpRangeRequestStartTimeNs = Math.max(myHttpRangeRequestStartTimeNs, data.getStartTimestamp() + 1);
       myHttpRangeRequestStartTimeNs = Math.max(myHttpRangeRequestStartTimeNs, data.getEndTimestamp() + 1);
       NetworkProfiler.HttpDetailsResponse initialData = myNetworkTable.getHttpDetailsResponseById(data.getConnId(),
+                                                                                                  mySession,
                                                                                                   NetworkProfiler.HttpDetailsRequest.Type.REQUEST);
 
       NetworkProfiler.HttpDetailsResponse request = initialData;
@@ -91,9 +90,10 @@ public class NetworkDataPoller extends PollRunner {
         responseData = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.RESPONSE);
         body = pollHttpDetails(data.getConnId(), NetworkProfiler.HttpDetailsRequest.Type.RESPONSE_BODY);
       }
-      myNetworkTable.insertOrReplace(myProcessId, request, responseData, body, data);
+      myNetworkTable.insertOrReplace(myProcessId, mySession, request, responseData, body, data);
     }
   }
+
   private NetworkProfiler.HttpDetailsResponse pollHttpDetails(long id, NetworkProfiler.HttpDetailsRequest.Type type) {
     NetworkProfiler.HttpDetailsRequest request = NetworkProfiler.HttpDetailsRequest.newBuilder()
       .setConnId(id)

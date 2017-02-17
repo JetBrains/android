@@ -62,6 +62,19 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertSame(AppResourceRepository.getOrCreateInstance(myFacet), AppResourceRepository.getOrCreateInstance(myModule));
   }
 
+  public void testStringOrder() {
+    VirtualFile res1 = myFixture.copyFileToProject(VALUES, "res/values/values.xml").getParent().getParent();
+
+    final ModuleResourceRepository moduleRepository = ModuleResourceRepository.createForTest(
+      myFacet, Collections.singletonList(res1));
+    final ProjectResourceRepository projectResources = ProjectResourceRepository.createForTest(
+      myFacet, Collections.singletonList(moduleRepository));
+    final AppResourceRepository appResources = AppResourceRepository.createForTest(
+      myFacet, Collections.singletonList(projectResources), Collections.emptyList());
+
+    assertOrderedEquals(appResources.getItemsOfType(ResourceType.STRING), Arrays.asList("app_name", "title_crossfade", "title_card_flip", "title_screen_slide", "title_zoom", "title_layout_changes", "title_template_step", "ellipsis"));
+  }
+
   public void testMerging() {
     // Like testOverlayUpdates1, but rather than testing changes to layout resources (file-based resource)
     // perform document edits in value-documents

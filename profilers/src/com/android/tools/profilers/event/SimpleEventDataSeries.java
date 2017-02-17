@@ -15,7 +15,13 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.DataSeries;
+import com.android.tools.adtui.model.event.EventAction;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.event.KeyboardAction;
+import com.android.tools.adtui.model.event.KeyboardData;
+import com.android.tools.adtui.model.event.SimpleEventType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
@@ -31,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * This class is responsible for making an RPC call to perfd/datastore and converting the resulting proto into UI data.
  */
-public class SimpleEventDataSeries implements DataSeries<EventAction<EventAction.Action, EventActionType>> {
+public class SimpleEventDataSeries implements DataSeries<EventAction<SimpleEventType>> {
 
   @NotNull
   private ProfilerClient myClient;
@@ -45,8 +51,8 @@ public class SimpleEventDataSeries implements DataSeries<EventAction<EventAction
   }
 
   @Override
-  public ImmutableList<SeriesData<EventAction<EventAction.Action, EventActionType>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
-    List<SeriesData<EventAction<EventAction.Action, EventActionType>>> seriesData = new ArrayList<>();
+  public ImmutableList<SeriesData<EventAction<SimpleEventType>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+    List<SeriesData<EventAction<SimpleEventType>>> seriesData = new ArrayList<>();
     EventServiceGrpc.EventServiceBlockingStub eventService = myClient.getEventClient();
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
       .setProcessId(myProcessId)
@@ -55,14 +61,20 @@ public class SimpleEventDataSeries implements DataSeries<EventAction<EventAction
       .setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)timeCurrentRangeUs.getMax()));
     EventProfiler.SystemDataResponse response = eventService.getSystemData(dataRequestBuilder.build());
     for (EventProfiler.SystemData data : response.getDataList()) {
-      EventAction.Action action = EventAction.Action.NONE;
       long actionStart = TimeUnit.NANOSECONDS.toMicros(data.getStartTimestamp());
       long actionEnd = TimeUnit.NANOSECONDS.toMicros(data.getEndTimestamp());
-      if (data.getType() == EventProfiler.SystemData.SystemEventType.ROTATION) {
-        seriesData.add(new SeriesData<>(actionStart, new EventAction<>(actionStart, actionEnd, action, EventActionType.ROTATION)));
-      }
-      else {
-        seriesData.add(new SeriesData<>(actionStart, new EventAction<>(actionStart, actionEnd, action, EventActionType.TOUCH)));
+      switch (data.getType()) {
+        case ROTATION:
+          seriesData.add(new SeriesData<>(actionStart, new EventAction(actionStart, actionEnd, SimpleEventType.ROTATION) {
+          }));
+          break;
+        case TOUCH:
+          seriesData.add(new SeriesData<>(actionStart, new EventAction(actionStart, actionEnd, SimpleEventType.TOUCH)));
+          break;
+        case KEY:
+          seriesData.add(
+            new SeriesData<>(actionStart, new KeyboardAction(actionStart, actionEnd, new KeyboardData(data.getEventData()))));
+          break;
       }
     }
     return ContainerUtil.immutableList(seriesData);

@@ -198,6 +198,46 @@ public class AnchorTarget extends ConstraintTarget {
   //region Display
   /////////////////////////////////////////////////////////////////////////////
 
+  private boolean isConnected(AnchorTarget target) {
+    if (target == null) {
+      return false;
+    }
+    if (!isConnected()) {
+      return false;
+    }
+    String attribute = null;
+    switch (myType) {
+      case LEFT: {
+        attribute = getConnectionId(myComponent.getNlComponent(), SdkConstants.SHERPA_URI, ourLeftAttributes);
+        break;
+      }
+      case RIGHT: {
+        attribute = getConnectionId(myComponent.getNlComponent(), SdkConstants.SHERPA_URI, ourRightAttributes);
+        break;
+      }
+      case TOP: {
+        attribute = getConnectionId(myComponent.getNlComponent(), SdkConstants.SHERPA_URI, ourTopAttributes);
+        break;
+      }
+      case BOTTOM: {
+        attribute = getConnectionId(myComponent.getNlComponent(), SdkConstants.SHERPA_URI, ourBottomAttributes);
+        break;
+      }
+      case BASELINE: {
+        attribute = myComponent.getNlComponent().getLiveAttribute(SdkConstants.SHERPA_URI,
+                                                                  SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
+        if (attribute != null) {
+          attribute = NlComponent.extractId(attribute);
+        }
+        break;
+      }
+    }
+    if (attribute == null) {
+      return false;
+    }
+    return attribute.equalsIgnoreCase((String) target.getComponent().getId());
+  }
+
   private boolean isConnected() {
     NlComponent component = myComponent.getNlComponent();
     switch (myType) {
@@ -570,7 +610,7 @@ public class AnchorTarget extends ConstraintTarget {
       String attribute = getAttribute(closestTarget);
       if (attribute != null) {
         AnchorTarget targetAnchor = (AnchorTarget)closestTarget;
-        if (targetAnchor.myComponent != myComponent) {
+        if (targetAnchor.myComponent != myComponent && !targetAnchor.isConnected(this)) {
           NlComponent targetComponent = targetAnchor.myComponent.getNlComponent();
           connectMe(component, attribute, targetComponent);
           return;
@@ -596,7 +636,7 @@ public class AnchorTarget extends ConstraintTarget {
     if (myComponent.getParent() != null) {
       myComponent.getParent().setExpandTargetArea(false);
     }
-    if (closestTarget != null && closestTarget instanceof AnchorTarget) {
+    if (closestTarget != null && closestTarget instanceof AnchorTarget && !(((AnchorTarget) closestTarget).isConnected(this))) {
       NlComponent component = myComponent.getNlComponent();
       if (closestTarget == this) {
         disconnectMe(component);
@@ -626,6 +666,10 @@ public class AnchorTarget extends ConstraintTarget {
     }
   }
 
+  @Override
+  public String getToolTipText() {
+    return (isConnected()) ? "Delete Connection" : "Create Connection";
+  }
   //endregion
   /////////////////////////////////////////////////////////////////////////////
 }

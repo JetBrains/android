@@ -199,6 +199,7 @@ public class DragTarget extends ConstraintTarget {
     else if (targetLeftComponent != null) {
       int dx = x - getLeftTargetOrigin(targetLeftComponent);
       applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, dx);
+      /*
       // TODO: handles RTL correctly
       if (myComponent.getNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START) == null) {
         // if start isn't defined, create it based on the margin left
@@ -207,10 +208,12 @@ public class DragTarget extends ConstraintTarget {
       } else {
         applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_START, dx);
       }
+      */
     }
     else if (targetRightComponent != null) {
       int dx = getRightTargetOrigin(targetRightComponent) - (x + myComponent.getDrawWidth());
       applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, dx);
+      /*
       // TODO: handles RTL correctly
       if (myComponent.getNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END) == null) {
         // if end isn't defined, create it based on the margin right
@@ -219,9 +222,10 @@ public class DragTarget extends ConstraintTarget {
       } else {
         applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_END, dx);
       }
+      */
     }
     else {
-      int dx = x - myComponent.getParent().getDrawX();
+      int dx = Math.max(0, x - myComponent.getParent().getDrawX());
       String positionX = String.format(SdkConstants.VALUE_N_DP, dx);
       attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, positionX);
     }
@@ -261,13 +265,14 @@ public class DragTarget extends ConstraintTarget {
       applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, dy);
     }
     else {
-      int dy = y - myComponent.getParent().getDrawY();
+      int dy = Math.max(0, y - myComponent.getParent().getDrawY());
       String positionY = String.format(SdkConstants.VALUE_N_DP, dy);
       attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, positionY);
     }
   }
 
   private void applyMargin(AttributesTransaction attributes, String attribute, int currentValue) {
+    currentValue = Math.max(0, currentValue);
     String marginString = myComponent.getNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, attribute);
     int marginValue = -1;
     if (marginString != null) {

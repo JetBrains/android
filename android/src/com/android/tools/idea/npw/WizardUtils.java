@@ -46,16 +46,21 @@ public class WizardUtils {
   private static final CharMatcher ILLEGAL_CHARACTER_MATCHER = CharMatcher.anyOf(WizardConstants.INVALID_FILENAME_CHARS);
   private static final int WINDOWS_PATH_LENGTH_LIMIT = 100;
 
-  // TODO: This a temporary method, until all the new wizard code can be enabled and the old code deleted.
   @Deprecated
-  public static boolean isNpwModelWizardEnabled() {
-    return Boolean.getBoolean("use.npw.modelwizard");
+  public enum Feature {
+    GALLERY, IMPORT_MODULE, NEW_MODULE, NEW_PROJECT
   }
 
   // TODO: This a temporary method, until all the new wizard code can be enabled and the old code deleted.
   @Deprecated
-  public static boolean isNpwModelWizardEnabled(AnActionEvent e) {
-    return isNpwModelWizardEnabled() && (e.getInputEvent().getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == 0;
+  public static boolean isNpwModelWizardEnabled(@NotNull Feature feature) {
+    return feature == Feature.GALLERY || feature == Feature.IMPORT_MODULE;
+  }
+
+  // TODO: This a temporary method, until all the new wizard code can be enabled and the old code deleted.
+  @Deprecated
+  public static boolean isNpwModelWizardEnabled(AnActionEvent e, @NotNull Feature feature) {
+    return isNpwModelWizardEnabled(feature) && (e.getInputEvent().getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == 0;
   }
 
   /**

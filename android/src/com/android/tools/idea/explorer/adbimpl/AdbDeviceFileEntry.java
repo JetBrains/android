@@ -148,6 +148,12 @@ public class AdbDeviceFileEntry implements DeviceFileEntry {
     return futureResult;
  }
 
+  @NotNull
+  @Override
+  public ListenableFuture<Boolean> isSymbolicLinkToDirectory() {
+    return myDevice.getAdbFileListing().isDirectoryLink(myEntry);
+  }
+
   public static class AdbPermissions implements Permissions {
     private final String myValue;
 

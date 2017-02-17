@@ -88,7 +88,6 @@ public abstract class LayoutTestCase extends AndroidTestCase {
     });
   }
 
-
   @NotNull
   protected ViewEditor editor(ScreenView screenView) {
     ViewEditor editor = Mockito.mock(ViewEditor.class);

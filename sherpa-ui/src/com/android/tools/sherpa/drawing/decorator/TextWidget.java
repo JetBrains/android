@@ -16,18 +16,14 @@
 
 package com.android.tools.sherpa.drawing.decorator;
 
-import com.android.tools.sherpa.drawing.ViewTransform;
 import android.support.constraint.solver.widgets.ConstraintWidget;
+import com.android.tools.sherpa.drawing.ViewTransform;
 
 import javax.swing.*;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import java.awt.*;
-import java.awt.font.FontRenderContext;
-import java.awt.font.LineBreakMeasurer;
-import java.text.AttributedCharacterIterator;
-import java.text.AttributedString;
 
 /**
  * Decorator for text widgets
@@ -50,16 +46,6 @@ public class TextWidget extends WidgetDecorator {
     private boolean mDisplayText = true;
     private boolean mSingleLine = false;
     JTextPane mTextPane = new JTextPane();
-
-    /**
-     * Set the behavior to do a text wrap content or not
-     * In Android Studio, this should not be active
-     *
-     * @param doWrap
-     */
-    public static void setDoWrap(boolean doWrap) {
-        DO_WRAP = doWrap;
-    }
 
     /**
      * Base constructor
@@ -127,14 +113,6 @@ public class TextWidget extends WidgetDecorator {
      */
     public void setText(String text) {
         mText = text;
-        wrapContent();
-    }
-
-    /**
-     * Apply the size behaviour
-     */
-    @Override
-    public void applyDimensionBehaviour() {
         wrapContent();
     }
 
@@ -302,10 +280,4 @@ public class TextWidget extends WidgetDecorator {
             g.setClip(clip);
         }
     }
-
-    public void setDisplayText(boolean displayText) {
-        mDisplayText = displayText;
-    }
-
-
 }

@@ -58,6 +58,7 @@ public class TemplateMetadata {
   public static final String ATTR_APP_TITLE = "appTitle";
   public static final String ATTR_BASE_THEME = "baseTheme";
   public static final String ATTR_IS_NEW_PROJECT = "isNewProject";
+  public static final String ATTR_THEME_EXISTS = "themeExists";
   public static final String ATTR_IS_GRADLE = "isGradle";
   public static final String ATTR_TOP_OUT = "topOut";
   public static final String ATTR_PROJECT_OUT = "projectOut";
@@ -100,6 +101,7 @@ public class TemplateMetadata {
   public static final String ATTR_IS_INSTANT_APP = "isInstantApp";
   public static final String ATTR_IS_BASE_ATOM = "isBaseAtom";
   public static final String ATTR_SPLIT_NAME = "splitName";
+  public static final String ATTR_ALSO_CREATE_IAPK = "alsoCreateIapk";
 
   public static final String TAG_CATEGORY = "category";
   public static final String TAG_FORMFACTOR = "formfactor";

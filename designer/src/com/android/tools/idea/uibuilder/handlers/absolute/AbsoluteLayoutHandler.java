@@ -21,11 +21,13 @@ import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneDragHandler;
 import com.android.tools.idea.uibuilder.scene.SceneInteraction;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
+import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -47,17 +49,20 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
   }
 
   @Override
-  public void addTargets(@NotNull SceneComponent component, boolean isParent) {
+  @NotNull
+  public List<Target> createTargets(@NotNull SceneComponent component, boolean isParent) {
+    List<Target> result = new ArrayList<>();
     if (!isParent) {
-      component.addTarget(new AbsoluteDragTarget());
-      component.addTarget(new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT));
-      component.addTarget(new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
-      component.addTarget(new AbsoluteResizeTarget(ResizeBaseTarget.Type.TOP));
-      component.addTarget(new AbsoluteResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP));
-      component.addTarget(new AbsoluteResizeTarget(ResizeBaseTarget.Type.RIGHT));
-      component.addTarget(new AbsoluteResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM));
-      component.addTarget(new AbsoluteResizeTarget(ResizeBaseTarget.Type.BOTTOM));
-      component.addTarget(new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM));
+      result.add(new AbsoluteDragTarget());
+      result.add(new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT));
+      result.add(new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
+      result.add(new AbsoluteResizeTarget(ResizeBaseTarget.Type.TOP));
+      result.add(new AbsoluteResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP));
+      result.add(new AbsoluteResizeTarget(ResizeBaseTarget.Type.RIGHT));
+      result.add(new AbsoluteResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM));
+      result.add(new AbsoluteResizeTarget(ResizeBaseTarget.Type.BOTTOM));
+      result.add(new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM));
     }
+    return result;
   }
 }

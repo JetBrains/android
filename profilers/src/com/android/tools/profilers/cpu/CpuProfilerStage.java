@@ -254,7 +254,7 @@ public class CpuProfilerStage extends Stage {
           myTraceCaptures.put(response.getTraceId(), capture);
           // Intentionally not firing the aspect because it will be done by setCapture with the new capture value
           myCaptureState = CaptureState.IDLE;
-          setCapture(capture);
+          setAndSelectCapture(capture);
           setSelectedThread(capture.getMainThreadId());
         } else {
           assert exception != null;
@@ -271,13 +271,18 @@ public class CpuProfilerStage extends Stage {
   public void setCapture(@Nullable CpuCapture capture) {
     myCapture = capture;
     if (capture != null) {
-      ProfilerTimeline timeline = getStudioProfilers().getTimeline();
-      timeline.setStreaming(false);
-      timeline.getSelectionRange().set(myCapture.getRange());
       setCaptureDetails(myCaptureDetails != null ? myCaptureDetails.getType() : CaptureDetails.Type.TOP_DOWN);
       getStudioProfilers().modeChanged();
     }
     myAspect.changed(CpuProfilerAspect.CAPTURE);
+  }
+
+  public void setAndSelectCapture(@Nullable CpuCapture capture) {
+    if (capture != null) {
+      ProfilerTimeline timeline = getStudioProfilers().getTimeline();
+      timeline.getSelectionRange().set(capture.getRange());
+    }
+    setCapture(capture);
   }
 
   public int getSelectedThread() {
@@ -433,11 +438,17 @@ public class CpuProfilerStage extends Stage {
   }
 
   public static class TreeChart implements CaptureDetails {
+    @NotNull private final Range myRange;
     @Nullable private HNode<MethodModel> myNode;
 
-    @SuppressWarnings("unused")
     public TreeChart(@NotNull Range range, @Nullable HNode<MethodModel> node) {
+      myRange = range;
       myNode = node;
+    }
+
+    @NotNull
+    public Range getRange() {
+      return myRange;
     }
 
     @Nullable

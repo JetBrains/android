@@ -17,19 +17,14 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.configurations.ConfigurationListener;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +33,6 @@ import java.awt.event.InputEvent;
 import java.util.*;
 import java.util.List;
 
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIUS;
 
@@ -49,14 +43,10 @@ import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIU
  * <p/>
  * Methods in this class must be called in the dispatch thread.
  */
-public class Scene implements ModelListener, SelectionListener {
+public class Scene implements SelectionListener {
 
   private final SceneView mySceneView;
   private static final boolean DEBUG = false;
-  private NlModel myModel;
-  /** The DPI factor can be manually set for testing. Do not auto-update */
-  private boolean isManualDpiFactor;
-  private float myDpiFactor;
   private HashMap<NlComponent, SceneComponent> mySceneComponents = new HashMap<>();
   private SceneComponent myRoot;
   private boolean myAnimate = true; // animate layout changes
@@ -92,71 +82,20 @@ public class Scene implements ModelListener, SelectionListener {
   private FilterType myFilterTarget = FilterType.NONE;
 
   /**
-   * Helper static function to create a Scene instance given a NlModel
-   *
-   * @param model      the NlModel instance used to populate the Scene
-   * @param screenView
-   * @return a newly initialized Scene instance populated using the given NlModel
-   */
-  public static Scene createScene(@NotNull NlModel model, @NotNull SceneView screenView) {
-    Scene scene = new Scene(screenView, model.getConfiguration().getDensity().getDpiValue());
-    scene.add(model);
-    return scene;
-  }
-
-  /**
    * Default constructor
    *
    * @param sceneView
    * @param dpiFactor
    */
-  private Scene(@NotNull SceneView sceneView, float dpiFactor) {
+  public Scene(@NotNull SceneView sceneView) {
     mySceneView = sceneView;
     mySceneView.getSelectionModel().addListener(this);
-    myDpiFactor = dpiFactor / 160f;
-  }
-
-  /////////////////////////////////////////////////////////////////////////////
-  //region Dp / Pixels conversion utilities
-  /////////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Convert from Android pixels to Dp
-   *
-   * @param px the pixel amount
-   * @return the converted Dp amount
-   */
-  @AndroidCoordinate
-  public int pxToDp(@AndroidCoordinate int px) {
-    return (int)(0.5f + px / myDpiFactor);
-  }
-
-  /**
-   * Convert from Dp to Android pixels
-   *
-   * @param dp the Dp amount
-   * @return the converted Android pixels amount
-   */
-  @AndroidCoordinate
-  public int dpToPx(@AndroidDpCoordinate int dp) {
-    return (int)(0.5f + dp * myDpiFactor);
   }
 
   //endregion
   /////////////////////////////////////////////////////////////////////////////
   //region Accessors
   /////////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Set the current dpi factor
-   *
-   * @param dpiFactor
-   */
-  @VisibleForTesting
-  void setDpiFactorOverride(float dpiFactor) {
-    isManualDpiFactor = true;
-    myDpiFactor = dpiFactor;
-  }
 
   /**
    * Return the current animation status
@@ -205,7 +144,7 @@ public class Scene implements ModelListener, SelectionListener {
   }
 
   public List<NlComponent> getSelection() {
-    return myModel.getSelectionModel().getSelection();
+    return mySceneView.getSelectionModel().getSelection();
   }
 
   /**
@@ -241,7 +180,7 @@ public class Scene implements ModelListener, SelectionListener {
 
     if (component != null) {
       myDnDComponent = component;
-      myDnDComponent.addTarget(new DragDndTarget());
+      myDnDComponent.setTargetProvider((c, p) -> ImmutableList.of(new DragDndTarget()), false);
     }
   }
 
@@ -300,41 +239,6 @@ public class Scene implements ModelListener, SelectionListener {
   }
 
   /**
-   * Add the NlComponents contained in the given NlModel to the Scene
-   *
-   * @param model the NlModel to use
-   */
-  public void add(@NotNull NlModel model) {
-    ConfigurationListener listener = (flags) -> {
-      if ((flags & CFG_DEVICE) != 0 && !isManualDpiFactor) {
-        float newDpiFactor = model.getConfiguration().getDensity().getDpiValue() / 160f;
-        if (myDpiFactor != newDpiFactor) {
-          // Update from the model to update the dpi
-          updateFrom(model);
-        }
-      }
-      return true;
-    };
-    model.getConfiguration().addListener(listener);
-    Disposer.register(model, () -> model.getConfiguration().removeListener(listener));
-
-    List<NlComponent> components = model.getComponents();
-    if (components.size() != 0) {
-      NlComponent rootComponent = components.get(0).getRoot();
-      myAnimate = false;
-      myRoot = updateFromComponent(rootComponent);
-      myAnimate = true;
-      addTargets(myRoot);
-    }
-    model.addListener(this);
-    myModel = model;
-    // let's make sure the selection is correct
-    if (mySceneView != null) {
-      selectionChanged(mySceneView.getSelectionModel(), mySceneView.getSelectionModel().getSelection());
-    }
-  }
-
-  /**
    * Add the given SceneComponent to the Scene
    *
    * @param component
@@ -343,116 +247,9 @@ public class Scene implements ModelListener, SelectionListener {
     mySceneComponents.put(component.getNlComponent(), component);
   }
 
-  public void removeComponent(SceneComponent component) {
+  void removeComponent(SceneComponent component) {
     component.removeFromParent();
     mySceneComponents.remove(component.getNlComponent(), component);
-  }
-
-
-  /**
-   * Update the Scene with the components in the given NlModel. This method needs to be called in the dispatch thread.
-   *
-   * @param model the NlModel to udpate from
-   */
-  public void updateFrom(@NotNull NlModel model) {
-    assert ApplicationManager.getApplication().isDispatchThread();
-
-    List<NlComponent> components = model.getComponents();
-    if (components.size() == 0) {
-      mySceneComponents.clear();
-      myRoot = null;
-      return;
-    }
-    for (SceneComponent component : mySceneComponents.values()) {
-      component.used = false;
-    }
-    if (!isManualDpiFactor) {
-      myDpiFactor = model.getConfiguration().getDensity().getDpiValue() / 160f;
-    }
-    NlComponent rootComponent = components.get(0).getRoot();
-    myRoot = updateFromComponent(rootComponent);
-    Iterator<SceneComponent> it = mySceneComponents.values().iterator();
-    while (it.hasNext()) {
-      SceneComponent component = it.next();
-      if (!component.used) {
-        component.removeFromParent();
-        it.remove();
-      }
-    }
-    if (myRoot != null && mySceneView != null && mySceneView.getSelectionModel().isEmpty()) {
-      addTargets(myRoot);
-    }
-    // Makes sure the selection is correct (after DND this might not be true)
-    if (mySceneView != null) {
-      selectionChanged(mySceneView.getSelectionModel().getSelection(), false);
-    }
-  }
-
-  /**
-   * Update (and if necessary, create) the SceneComponent paired to the given NlComponent
-   *
-   * @param component a given NlComponent
-   * @return the SceneComponent paired with the given NlComponent
-   */
-  private SceneComponent updateFromComponent(@NotNull NlComponent component) {
-    SceneComponent sceneComponent = mySceneComponents.get(component);
-    if (sceneComponent != null) {
-      sceneComponent.used = true;
-      sceneComponent.updateFrom(component);
-      myNeedsDisplayListRebuilt = true;
-    }
-    else {
-      sceneComponent = new SceneComponent(this, component);
-    }
-    int numChildren = component.getChildCount();
-    for (int i = 0; i < numChildren; i++) {
-      SceneComponent child = updateFromComponent(component.getChild(i));
-      if (child.getParent() != sceneComponent) {
-        sceneComponent.addChild(child);
-      }
-    }
-    return sceneComponent;
-  }
-
-  /**
-   * Add targets to the given component (by asking the associated
-   * {@linkplain ViewGroupHandler} to do it)
-   *
-   * @param component
-   */
-  void addTargets(@NotNull SceneComponent component) {
-    SceneComponent parent = component.getParent();
-    if (parent != null) {
-      component = parent;
-    }
-    else {
-      component = myRoot;
-    }
-    ViewHandler handler = component.getNlComponent().getViewHandler();
-    if (handler instanceof ViewGroupHandler) {
-      ViewGroupHandler viewGroupHandler = (ViewGroupHandler)handler;
-      if (component.getViewGroupHandler() != viewGroupHandler) {
-        component.setViewGroupHandler(viewGroupHandler, true);
-      }
-      int childCount = component.getChildCount();
-      for (int i = 0; i < childCount; i++) {
-        SceneComponent child = component.getChild(i);
-        if (child.getViewGroupHandler() != viewGroupHandler) {
-          child.setViewGroupHandler(viewGroupHandler, false);
-        }
-      }
-    }
-    needsRebuildList();
-  }
-
-  void clearChildTargets(SceneComponent component) {
-    int count = component.getChildCount();
-    component.setViewGroupHandler(null, false);
-    for (int i = 0; i < count; i++) {
-      SceneComponent child = component.getChild(i);
-      child.setViewGroupHandler(null, false);
-      clearChildTargets(child);
-    }
   }
 
   //endregion
@@ -462,63 +259,11 @@ public class Scene implements ModelListener, SelectionListener {
 
   @Override
   public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-    selectionChanged(selection, true);
-  }
-
-  public void selectionChanged(@NotNull List<NlComponent> selection, boolean updateTargets) {
     if (myRoot != null) {
-      if (updateTargets) {
-        clearChildTargets(myRoot);
-      }
       myRoot.markSelection(selection);
-
-      // After a new selection, we need to figure out the context
-      if (!selection.isEmpty()) {
-        NlComponent primary = selection.get(0);
-        SceneComponent component = getSceneComponent(primary);
-        if (component != null) {
-          addTargets(component);
-        }
-        else {
-          addTargets(myRoot);
-        }
-      }
-      else {
-        addTargets(myRoot);
-      }
     }
   }
 
-  //endregion
-  /////////////////////////////////////////////////////////////////////////////
-  //region NlModel listeners callbacks
-  /////////////////////////////////////////////////////////////////////////////
-
-  @Override
-  public void modelChanged(@NotNull NlModel model) {
-    // updateFrom needs to be called in the dispatch thread
-    UIUtil.invokeLaterIfNeeded(() -> {
-      updateFrom(model);
-    });
-  }
-
-  @Override
-  public void modelRendered(@NotNull NlModel model) {
-    // updateFrom needs to be called in the dispatch thread
-    UIUtil.invokeLaterIfNeeded(() -> {
-      updateFrom(model);
-    });
-  }
-
-  @Override
-  public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
-    boolean previous = myAnimate;
-    UIUtil.invokeLaterIfNeeded(() -> {
-      myAnimate = animate;
-      updateFrom(model);
-      myAnimate = previous;
-    });
-  }
 
   //endregion
   /////////////////////////////////////////////////////////////////////////////
@@ -562,11 +307,9 @@ public class Scene implements ModelListener, SelectionListener {
     boolean needsRepaint = false;
     if (myRoot != null) {
       needsRepaint = myRoot.layout(sceneContext, time);
-      if (sceneContext != null) {
-        myRoot.buildDisplayList(time, displayList, sceneContext);
-        if (DEBUG) {
-          System.out.println("========= DISPLAY LIST ======== \n" + displayList.serialize());
-        }
+      myRoot.buildDisplayList(time, displayList, sceneContext);
+      if (DEBUG) {
+        System.out.println("========= DISPLAY LIST ======== \n" + displayList.serialize());
       }
     }
     else {
@@ -593,15 +336,14 @@ public class Scene implements ModelListener, SelectionListener {
         List<NlComponent> selection = mySceneView.getSelectionModel().getSelection();
         nlComponents.addAll(selection);
       }
-      int count = components.size();
-      for (int i = 0; i < count; i++) {
-        NlComponent component = components.get(i).getNlComponent();
-        if (myIsShiftDown && nlComponents.contains(component)) {
+      for (SceneComponent sceneComponent : components) {
+        NlComponent nlComponent = sceneComponent.getNlComponent();
+        if (myIsShiftDown && nlComponents.contains(nlComponent)) {
           // if shift is pressed and the component is already selected, remove it from the selection
-          nlComponents.remove(component);
+          nlComponents.remove(nlComponent);
         }
         else {
-          nlComponents.add(component);
+          nlComponents.add(nlComponent);
         }
       }
       mySceneView.getSelectionModel().setSelection(nlComponents);
@@ -661,6 +403,9 @@ public class Scene implements ModelListener, SelectionListener {
       return true;
     }
     if (target instanceof DragTarget) {
+      return true;
+    }
+    if (target instanceof DragBaseTarget) {
       return true;
     }
     if (target instanceof LassoTarget) {
@@ -789,8 +534,7 @@ public class Scene implements ModelListener, SelectionListener {
       int count = myHitTargets.size();
       Target hit = null;
       boolean found = false;
-      for (int i = 0; i < count; i++) {
-        Target target = myHitTargets.get(i);
+      for (Target target : myHitTargets) {
         if (target == filteredTarget) {
           found = true;
           continue;
@@ -870,6 +614,7 @@ public class Scene implements ModelListener, SelectionListener {
       }
       if (closestTarget != null) {
         closestTarget.setOver(true);
+        transform.setToolTip(closestTarget.getToolTipText());
         myOverTarget = closestTarget;
         needsRebuildList();
       }
@@ -901,12 +646,10 @@ public class Scene implements ModelListener, SelectionListener {
     }
 
     SelectionModel selectionModel = mySceneView.getSelectionModel();
-    int mx = dpToPx(x);
-    int my = dpToPx(y);
 
     if (!selectionModel.isEmpty()) {
-      int max = Coordinates.getAndroidDimension(mySceneView, PIXEL_RADIUS + PIXEL_MARGIN);
-      SelectionHandle handle = selectionModel.findHandle(mx, my, max);
+      int max = Coordinates.getAndroidDimensionDip(mySceneView, PIXEL_RADIUS + PIXEL_MARGIN);
+      SelectionHandle handle = selectionModel.findHandle(x, y, max);
       if (handle != null) {
         myMouseCursor = handle.getCursor();
         return;
@@ -923,19 +666,15 @@ public class Scene implements ModelListener, SelectionListener {
     java.util.List<NlComponent> selection = getSelection();
     if (selection.size() > 1) {
       int count = selection.size();
-      for (int i = 0; i < count; i++) {
-        NlComponent nlComponent = selection.get(i);
+      for (NlComponent nlComponent : selection) {
         if (nlComponent == currentComponent.getNlComponent()) {
           continue;
         }
         SceneComponent c = currentComponent.getScene().getSceneComponent(nlComponent);
         if (c != null && c != currentComponent) {
-          ArrayList<Target> targets = c.getTargets();
-          int numTargets = targets.size();
-          for (int j = 0; j < numTargets; j++) {
-            Target target = targets.get(j);
+          for (Target target : c.getTargets()) {
             if (target instanceof DragTarget) {
-              DragTarget dragTarget = (DragTarget) target;
+              DragTarget dragTarget = (DragTarget)target;
               dragTarget.mouseDown(x, y);
             }
           }
@@ -949,17 +688,13 @@ public class Scene implements ModelListener, SelectionListener {
     java.util.List<NlComponent> selection = getSelection();
     if (selection.size() > 1) {
       int count = selection.size();
-      for (int i = 0; i < count; i++) {
-        NlComponent nlComponent = selection.get(i);
+      for (NlComponent nlComponent : selection) {
         if (nlComponent == currentComponent.getNlComponent()) {
           continue;
         }
         SceneComponent c = currentComponent.getScene().getSceneComponent(nlComponent);
         if (c != null && c != currentComponent) {
-          ArrayList<Target> targets = c.getTargets();
-          int numTargets = targets.size();
-          for (int j = 0; j < numTargets; j++) {
-            Target target = targets.get(j);
+          for (Target target : c.getTargets()) {
             if (target instanceof DragTarget) {
               DragTarget dragTarget = (DragTarget)target;
               dragTarget.mouseDrag(x, y, closestTarget);
@@ -982,10 +717,7 @@ public class Scene implements ModelListener, SelectionListener {
         }
         SceneComponent c = currentComponent.getScene().getSceneComponent(nlComponent);
         if (c != null) {
-          ArrayList<Target> targets = c.getTargets();
-          int numTargets = targets.size();
-          for (int j = 0; j < numTargets; j++) {
-            Target target = targets.get(j);
+          for (Target target : c.getTargets()) {
             if (target instanceof DragTarget) {
               DragTarget dragTarget = (DragTarget)target;
               dragTarget.mouseRelease(x, y, closestTarget);
@@ -1048,7 +780,7 @@ public class Scene implements ModelListener, SelectionListener {
 
   void checkRequestLayoutStatus() {
     if (mNeedsLayout != NO_LAYOUT) {
-      myModel.requestLayout(mNeedsLayout == ANIMATED_LAYOUT ? true : false);
+      mySceneView.getModel().requestLayout(mNeedsLayout == ANIMATED_LAYOUT ? true : false);
     }
   }
 
@@ -1122,10 +854,11 @@ public class Scene implements ModelListener, SelectionListener {
     return myNeedsDisplayListRebuilt;
   }
 
-  public void clearNeedsRebuildList() {
+  void clearNeedsRebuildList() {
     myNeedsDisplayListRebuilt = false;
   }
 
+  // TODO: reduce visibility?
   public void needsRebuildList() {
     myNeedsDisplayListRebuilt = true;
   }
@@ -1143,5 +876,9 @@ public class Scene implements ModelListener, SelectionListener {
 
   public Collection<SceneComponent> getSceneComponents() {
     return mySceneComponents.values();
+  }
+
+  void setRoot(SceneComponent root) {
+    myRoot = root;
   }
 }

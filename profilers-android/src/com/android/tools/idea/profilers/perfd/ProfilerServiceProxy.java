@@ -19,9 +19,11 @@ import com.android.annotations.NonNull;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.util.text.StringUtil;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerCallHandler;
@@ -54,8 +56,12 @@ public class ProfilerServiceProxy extends PerfdProxyService
     myServiceStub = ProfilerServiceGrpc.newBlockingStub(channel);
     myProfilerDevice = Profiler.Device.newBuilder()
       .setSerial(device.getSerialNumber())
-      .setModel(device.getName())
+      .setModel(DevicePropertyUtil.getModel(device, ""))
+      .setVersion(StringUtil.notNullize(device.getProperty(IDevice.PROP_BUILD_VERSION)))
       .setApi(Integer.toString(device.getVersion().getApiLevel()))
+      .setManufacturer(DevicePropertyUtil.getManufacturer(device, ""))
+      .setIsEmulator(device.isEmulator())
+      .setState(convertState(device.getState()))
       //TODO: Change this to use the device boot_id, using the serial number
       // to keep a consistent ID across plug/unplug sessions.
       .setBootId(Integer.toString(device.getSerialNumber().hashCode()))
@@ -65,6 +71,22 @@ public class ProfilerServiceProxy extends PerfdProxyService
 
     AndroidDebugBridge.addDeviceChangeListener(this);
     AndroidDebugBridge.addClientChangeListener(this);
+  }
+
+  private static Profiler.Device.State convertState(IDevice.DeviceState state) {
+    switch (state) {
+      case OFFLINE:
+        return Profiler.Device.State.OFFLINE;
+
+      case ONLINE:
+        return Profiler.Device.State.ONLINE;
+
+      case DISCONNECTED:
+        return Profiler.Device.State.DISCONNECTED;
+
+      default:
+        return Profiler.Device.State.UNSPECIFIED;
+    }
   }
 
   @Override
@@ -97,7 +119,9 @@ public class ProfilerServiceProxy extends PerfdProxyService
 
   @Override
   public void deviceChanged(@NonNull IDevice device, int changeMask) {
-    if ((changeMask & IDevice.CHANGE_CLIENT_LIST) != 0) {
+    // This event can be triggered when a device goes offline. However, updateProcesses expects
+    // an online device, so just ignore the event in that case.
+    if (device.isOnline() && (changeMask & IDevice.CHANGE_CLIENT_LIST) != 0) {
       updateProcesses();
     }
   }
@@ -121,8 +145,11 @@ public class ProfilerServiceProxy extends PerfdProxyService
       // TODO: getTimes should take the device
       for (Client client : myDevice.getClients()) {
         String description = client.getClientData().getClientDescription();
+        if (description == null) {
+          continue; // Process is still starting up and not ready yet
+        }
         deviceProcesses.addProcess(Profiler.Process.newBuilder()
-                                     .setName(description == null ? "[UNKNOWN]" : description)
+                                     .setName(description)
                                      .setPid(client.getClientData().getPid())
                                      .setState(Profiler.Process.State.ALIVE)
                                      // TODO: Set this to the applications actual start time.

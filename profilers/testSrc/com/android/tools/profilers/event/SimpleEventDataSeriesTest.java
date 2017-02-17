@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 package com.android.tools.profilers.event;
-  import com.android.tools.adtui.model.EventAction;
-  import com.android.tools.adtui.model.Range;
-  import com.android.tools.adtui.model.SeriesData;
-  import com.android.tools.profiler.proto.EventProfiler;
-  import com.android.tools.profilers.FakeGrpcChannel;
-  import com.android.tools.profilers.ProfilersTestData;
-  import org.junit.Before;
-  import org.junit.Rule;
-  import org.junit.Test;
 
-  import java.util.List;
-  import java.util.concurrent.TimeUnit;
+import com.android.tools.adtui.model.event.EventAction;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.event.KeyboardAction;
+import com.android.tools.adtui.model.event.SimpleEventType;
+import com.android.tools.profiler.proto.EventProfiler;
+import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.ProfilersTestData;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
-  import static org.junit.Assert.*;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
 
 public class SimpleEventDataSeriesTest {
 
@@ -47,13 +50,13 @@ public class SimpleEventDataSeriesTest {
   public void testRotationEvent() {
     myEventService.addSystemEvent(buildRotationEvent(1));
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<EventAction.Action, EventActionType>>> dataList = mySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<SimpleEventType>>> dataList = mySeries.getDataForXRange(range);
     assertEquals(dataList.size(), 1);
-    for (SeriesData<EventAction<EventAction.Action, EventActionType>> data : dataList) {
+    for (SeriesData<EventAction<SimpleEventType>> data : dataList) {
       assertEquals(data.x, TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
       assertEquals(data.value.getStartUs(), TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
       assertEquals(data.value.getEndUs(), TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
-      assertEquals(data.value.getValueData(), EventActionType.ROTATION);
+      assertEquals(data.value.getType(), SimpleEventType.ROTATION);
     }
 
   }
@@ -62,13 +65,28 @@ public class SimpleEventDataSeriesTest {
   public void testTouchEvent() {
     myEventService.addSystemEvent(buildTouchEvent(1));
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<EventAction.Action, EventActionType>>> dataList = mySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<SimpleEventType>>> dataList = mySeries.getDataForXRange(range);
     assertEquals(dataList.size(), 1);
-    for (SeriesData<EventAction<EventAction.Action, EventActionType>> event : dataList) {
+    for (SeriesData<EventAction<SimpleEventType>> event : dataList) {
       assertEquals(event.x, TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
       assertEquals(event.value.getStartUs(), TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
       assertEquals(event.value.getEndUs(), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-      assertEquals(event.value.getValueData(), EventActionType.TOUCH);
+      assertEquals(event.value.getType(), SimpleEventType.TOUCH);
+    }
+  }
+
+  @Test
+  public void testKeyEvent() {
+    myEventService.addSystemEvent(buildKeyEvent(1));
+    Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
+    List<SeriesData<EventAction<SimpleEventType>>> dataList = mySeries.getDataForXRange(range);
+    assertEquals(dataList.size(), 1);
+    for (SeriesData<EventAction<SimpleEventType>> event : dataList) {
+      assertEquals(event.x, TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
+      assertEquals(event.value.getStartUs(), TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
+      assertEquals(event.value.getEndUs(), TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
+      assertEquals(event.value.getType(), SimpleEventType.KEYBOARD);
+      assertEquals(((KeyboardAction)event.value).getData().toString(), "Hello");
     }
   }
 
@@ -77,18 +95,18 @@ public class SimpleEventDataSeriesTest {
     myEventService.addSystemEvent(buildTouchEvent(1));
     myEventService.addSystemEvent(buildRotationEvent(2));
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<EventAction.Action, EventActionType>>> dataList = mySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<SimpleEventType>>> dataList = mySeries.getDataForXRange(range);
     assertEquals(dataList.size(), 2);
-    SeriesData<EventAction<EventAction.Action, EventActionType>> event = dataList.get(0);
+    SeriesData<EventAction<SimpleEventType>> event = dataList.get(0);
     assertEquals(event.x, TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
     assertEquals(event.value.getStartUs(), TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
     assertEquals(event.value.getEndUs(), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    assertEquals(event.value.getValueData(), EventActionType.TOUCH);
+    assertEquals(event.value.getType(), SimpleEventType.TOUCH);
     event = dataList.get(1);
     assertEquals(event.x, TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
     assertEquals(event.value.getStartUs(), TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
     assertEquals(event.value.getEndUs(), TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
-    assertEquals(event.value.getValueData(), EventActionType.ROTATION);
+    assertEquals(event.value.getType(), SimpleEventType.ROTATION);
   }
 
   private EventProfiler.SystemData buildTouchEvent(int eventId) {
@@ -100,6 +118,7 @@ public class SimpleEventDataSeriesTest {
      .setType(EventProfiler.SystemData.SystemEventType.TOUCH)
      .build();
   }
+
   private EventProfiler.SystemData buildRotationEvent(int eventId) {
     return EventProfiler.SystemData.newBuilder()
       .setEventId(eventId)
@@ -107,6 +126,17 @@ public class SimpleEventDataSeriesTest {
       .setStartTimestamp(TEST_START_TIME_NS)
       .setEndTimestamp(TEST_START_TIME_NS)
       .setType(EventProfiler.SystemData.SystemEventType.ROTATION)
+      .build();
+  }
+
+  private EventProfiler.SystemData buildKeyEvent(int eventId) {
+    return EventProfiler.SystemData.newBuilder()
+      .setEventId(eventId)
+      .setProcessId(FakeEventService.FAKE_APP_ID)
+      .setStartTimestamp(TEST_START_TIME_NS)
+      .setEndTimestamp(TEST_START_TIME_NS)
+      .setType(EventProfiler.SystemData.SystemEventType.KEY)
+      .setEventData("Hello")
       .build();
   }
 }

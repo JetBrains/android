@@ -58,12 +58,11 @@ public class SceneDragHandler extends DragHandler {
     }
     Scene scene = ((ViewEditorImpl) editor).getSceneView().getScene();
     scene.needsRebuildList();
-    ArrayList<Target> targets = myComponent.getTargets();
     @AndroidDpCoordinate int dx = x - myComponent.getDrawWidth() / 2;
     @AndroidDpCoordinate int dy = y - myComponent.getDrawHeight() / 2;
-    for (Target target : targets) {
+    for (Target target : myComponent.getTargets()) {
       if (target instanceof DragDndTarget) {
-        target.mouseDown(scene.pxToDp(dx), scene.pxToDp(dy));
+        target.mouseDown(editor.pxToDp(dx), editor.pxToDp(dy));
         break;
       }
     }
@@ -81,7 +80,7 @@ public class SceneDragHandler extends DragHandler {
     @AndroidDpCoordinate int dy = y - myComponent.getDrawHeight() / 2;
     myComponent.setPosition(dx, dy);
     if (myComponent != null) {
-      ArrayList<Target> targets = myComponent.getTargets();
+      List<Target> targets = myComponent.getTargets();
       for (int i = 0; i < targets.size(); i++) {
         if (targets.get(i) instanceof DragDndTarget) {
           DragDndTarget target = (DragDndTarget) targets.get(i);
@@ -107,10 +106,9 @@ public class SceneDragHandler extends DragHandler {
       NlComponent root = myComponent.getNlComponent().getRoot();
       root.ensureNamespace(SdkConstants.SHERPA_PREFIX, SdkConstants.AUTO_URI);
       if (myComponent != null) {
-        ArrayList<Target> targets = myComponent.getTargets();
-        @AndroidDpCoordinate int dx = scene.pxToDp(x) - myComponent.getDrawWidth() / 2;
-        @AndroidDpCoordinate int dy = scene.pxToDp(y) - myComponent.getDrawHeight() / 2;
-        for (Target target : targets) {
+        @AndroidDpCoordinate int dx = editor.pxToDp(x) - myComponent.getDrawWidth() / 2;
+        @AndroidDpCoordinate int dy = editor.pxToDp(y) - myComponent.getDrawHeight() / 2;
+        for (Target target : myComponent.getTargets()) {
           if (target instanceof DragDndTarget) {
             ((DragDndTarget)target).mouseRelease(dx, dy, components.get(0).getNlComponent());
             break;

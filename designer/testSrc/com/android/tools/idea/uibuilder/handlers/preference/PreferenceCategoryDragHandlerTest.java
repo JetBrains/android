@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneBuilder;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -105,7 +106,7 @@ public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTes
   @NotNull
   private PreferenceGroupDragHandler newPreferenceCategoryDragHandler(@NotNull NlComponent category) {
     ScreenFixture screenFixture = surface().screen(category.getModel()).withScale(1);
-    Scene scene = Scene.createScene(category.getModel(), screenFixture.getScreen());
+    Scene scene = new LayoutlibSceneBuilder(category.getModel(), screenFixture.getScreen()).build();
     scene.buildDisplayList(new DisplayList(), 0);
 
     SceneComponent component = scene.getSceneComponent(category);

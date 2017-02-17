@@ -23,11 +23,10 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneBuilder;
 import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneBuilder;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -47,18 +46,24 @@ public abstract class SceneView {
   protected final DesignSurface mySurface;
   protected final NlModel myModel;
   protected final Scene myScene;
+  private final SceneBuilder mySceneBuilder;
 
   public SceneView(@NotNull DesignSurface surface, @NotNull NlModel model) {
     mySurface = surface;
     myModel = model;
-    myScene = Scene.createScene(myModel, this);
-
-    myModel.getSelectionModel().addListener((model1, selection) -> ApplicationManager.getApplication().invokeLater(new Runnable() {
+    mySceneBuilder = new LayoutlibSceneBuilder(model, this);
+    myScene = mySceneBuilder.build();
+    myModel.getSelectionModel().addListener(new SelectionListener() {
       @Override
-      public void run() {
-        mySurface.repaint();
+      public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            mySurface.repaint();
+          }
+        });
       }
-    }));
+    });
   }
 
   @NotNull
@@ -207,5 +212,17 @@ public abstract class SceneView {
   public void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
     myScene.mouseHover(SceneContext.get(this), Coordinates.getAndroidXDip(this, x), Coordinates.getAndroidYDip(this, y));
     mySurface.setCursor(myScene.getMouseCursor());
+  }
+
+  public SceneBuilder getSceneBuilder() {
+    return mySceneBuilder;
+  }
+
+  /**
+   * Sets the tool tip to be shown
+   * @param toolTip
+   */
+  public void setToolTip(String toolTip) {
+     mySurface.setDesignToolTip(toolTip);
   }
 }

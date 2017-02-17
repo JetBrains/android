@@ -75,7 +75,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
+import static com.android.tools.idea.uibuilder.graphics.NlConstants.DESIGN_SURFACE_BG;
 
 /**
  * A generic design surface for use in a graphical editor.
@@ -215,6 +215,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   protected abstract ActionManager createActionManager();
+
   protected abstract void layoutContent();
 
   private void updateErrorPanelSplitterUi(boolean isMinimized) {
@@ -449,7 +450,30 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myErrorPanel.setVisible(false);
   }
 
+  /**
+   * Execute a zoom on the content. See {@link ZoomType} for the different type of zoom available.
+   *
+   * @see #zoom(ZoomType, int, int)
+   */
   public void zoom(@NotNull ZoomType type) {
+    zoom(type, -1, -1);
+  }
+
+  /**
+   * <p>
+   * Execute a zoom on the content. See {@link ZoomType} for the different types of zoom available.
+   * </p><p>
+   * If type is {@link ZoomType#IN}, zoom toward the given
+   * coordinates (relative to {@link #getLayeredPane()})
+   *
+   * If x or y are negative, zoom toward the center of the viewport.
+   * </p>
+   *
+   * @param type Type of zoom to execute
+   * @param x    Coordinate where the zoom will be centered
+   * @param y    Coordinate where the zoom will be centered
+   */
+  public void zoom(@NotNull ZoomType type, int x, int y) {
     myZoomFitted = false;
     switch (type) {
       case IN: {
@@ -462,7 +486,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         if (SystemInfo.isMac && UIUtil.isRetina()) {
           scale /= 2;
         }
-        setScale(scale);
+        setScale(scale, x, y);
         repaint();
         break;
       }
@@ -571,12 +595,32 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myScrollPane.getViewport().getViewPosition();
   }
 
+  /**
+   * Set the scale factor used to multiply the content size.
+   *
+   * @param scale The scale factor. Can be any value but it will be capped between -1 and 10
+   *              (value below 0 means zoom to fit)
+   */
   private void setScale(double scale) {
-    final Point viewPosition = myScrollPane.getViewport().getViewPosition();
-    final Dimension oldSize = myScrollPane.getViewport().getViewSize();
+    setScale(scale, -1, -1);
+  }
 
-    final double normalizedX = (viewPosition.x + myScrollPane.getWidth() / 2.0) / oldSize.getWidth();
-    final double normalizedY = (viewPosition.y + myScrollPane.getHeight() / 2.0) / oldSize.getHeight();
+  /**
+   * <p>
+   * Set the scale factor used to multiply the content size and try to
+   * position the viewport such that its center is the closest possible
+   * to the provided x and y coordinate in the Viewport's view coordinate system
+   * ({@link JViewport#getView()}).
+   * </p><p>
+   * If x OR y are negative, the scale will be centered toward the center the viewport.
+   * </p>
+   *
+   * @param scale The scale factor. Can be any value but it will be capped between -1 and 10
+   *              (value below 0 means zoom to fit)
+   * @param x     The X coordinate to center the scale to (in the Viewport's view coordinate system)
+   * @param y     The Y coordinate to center the scale to (in the Viewport's view coordinate system)
+   */
+  private void setScale(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
 
     if (scale < 0) {
       // We wait for component resized to be fired
@@ -592,18 +636,35 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     else if (scale > 10) {
       scale = 10;
     }
-
     myScale = scale;
+
+    Dimension oldSize = myScrollPane.getViewport().getViewSize();
+    Point viewPortTargetCoordinates;
+    if (x < 0 || y < 0) {
+      // Get the coordinates of the point of the view showing at the center of the viewport
+      Point viewPortPosition = myScrollPane.getViewport().getViewPosition();
+      x = viewPortPosition.x + myScrollPane.getWidth() / 2;
+      y = viewPortPosition.y + myScrollPane.getHeight() / 2;
+
+      // Set the center of the viewPort as the target for centering the scale
+      viewPortTargetCoordinates = new Point(myScrollPane.getWidth() / 2, myScrollPane.getHeight() / 2);
+    }
+    else {
+      viewPortTargetCoordinates = SwingUtilities.convertPoint(myLayeredPane, x, y, myScrollPane.getViewport());
+    }
+
+    // Normalized value (between 0.0 and 1.0) of the target position
+    double nx = x / (double)oldSize.width;
+    double ny = y / (double)oldSize.height;
+
     layoutContent();
     final Dimension newSize = updateScrolledAreaSize();
-
     if (newSize != null) {
-      // Replace the Viewport at the same position it was before the scaling
-      viewPosition.setLocation(normalizedX * newSize.getWidth() - myScrollPane.getWidth() / 2.0,
-                               normalizedY * newSize.getHeight() - myScrollPane.getHeight() / 2.0);
-      myScrollPane.getViewport().setViewPosition(viewPosition);
+      viewPortTargetCoordinates.setLocation(nx * newSize.getWidth() - viewPortTargetCoordinates.x,
+                                            ny * newSize.getHeight() - viewPortTargetCoordinates.y);
+      myScrollPane.getViewport().setViewPosition(viewPortTargetCoordinates);
+      notifyScaleChanged();
     }
-    notifyScaleChanged();
   }
 
   private void notifyScaleChanged() {
@@ -612,7 +673,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
         myZoomListener.zoomChanged(this);
       }
     }
-
   }
 
   private void notifyPanningChanged(AdjustmentEvent adjustmentEvent) {
@@ -1185,6 +1245,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   public JScrollPane getScrollPane() {
     return myScrollPane;
+  }
+
+  /**
+   * Sets the tooltip for the design surface
+   *
+   * @param text
+   */
+  public void setDesignToolTip(@Nullable String text) {
+    myLayeredPane.setToolTipText(text);
   }
 
   /**

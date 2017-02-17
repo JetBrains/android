@@ -15,9 +15,11 @@
  */
 package com.android.tools.adtui;
 
+import com.android.tools.adtui.model.event.EventAction;
+import com.android.tools.adtui.model.event.SimpleEventType;
+
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.RoundRectangle2D;
 
 public class TouchEventRenderer implements SimpleEventRenderer {
 
@@ -29,7 +31,7 @@ public class TouchEventRenderer implements SimpleEventRenderer {
   private int myLineWidth = 12;
 
   @Override
-  public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length) {
+  public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length, EventAction<SimpleEventType> notUsedData) {
 
     Color currentColor = g2d.getColor();
     Stroke currentStroke = g2d.getStroke();

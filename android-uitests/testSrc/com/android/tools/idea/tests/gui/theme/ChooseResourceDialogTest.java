@@ -241,7 +241,7 @@ public class ChooseResourceDialogTest {
                  "app_name                      Simple Application            \n" +
                  "cancel                        取消                            \n" +
                  "hello_world                   Hello world!                  \n" +
-                 "android                                                     \n",
+                 "some_id                       12345678                      \n",
                  tableToString(nameTable, 0, 6, 0, 5, 30));
 
     // Search for "app" and confirm that we only show the header nodes as well as resource names
@@ -279,7 +279,7 @@ public class ChooseResourceDialogTest {
     editor.open("app/src/main/res/layout/frames.xml", EditorFixture.Tab.DESIGN);
 
     NlEditorFixture layout = editor.getLayoutEditor(false);
-    layout.waitForRenderToFinish();
+    layout.waitForRenderToFinish(Wait.seconds(10));
 
     // Find and click the first text view
     NlComponentFixture imageView = layout.findView("ImageView", 0);

@@ -162,7 +162,6 @@ public class DataStoreService {
     @NotNull private final CpuServiceGrpc.CpuServiceBlockingStub myCpuClient;
     @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkClient;
     @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventClient;
-    @NotNull private final EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyClient;
 
     public DataStoreClient(@NotNull ManagedChannel channel) {
       myChannel = channel;
@@ -171,7 +170,6 @@ public class DataStoreService {
       myCpuClient = CpuServiceGrpc.newBlockingStub(channel);
       myNetworkClient = NetworkServiceGrpc.newBlockingStub(channel);
       myEventClient = EventServiceGrpc.newBlockingStub(channel);
-      myEnergyClient = EnergyServiceGrpc.newBlockingStub(channel);
     }
     public ManagedChannel getChannel() {
       return myChannel;

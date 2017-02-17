@@ -22,12 +22,8 @@ import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.editor.ActionManager;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
-import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.NlLayoutType;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
@@ -97,7 +93,7 @@ public class NlDesignSurface extends DesignSurface {
   private boolean myMockupVisible;
   private MockupEditor myMockupEditor;
   private boolean myCentered;
-  private ScreenView myScreenView;
+  @Nullable private ScreenView myScreenView;
   private final boolean myInPreview;
   private WeakReference<PanZoomPanel> myPanZoomPanel = new WeakReference<>(null);
 
@@ -304,6 +300,35 @@ public class NlDesignSurface extends DesignSurface {
   @Override
   protected ActionManager createActionManager() {
     return new NlActionManager(this);
+  }
+
+  /**
+   * <p>
+   * If type is {@link ZoomType#IN}, zoom toward the given x and y coordinates
+   * (relative to {@link #getLayeredPane()})
+   * </p><p>
+   * If x or y are negative, zoom toward the selected component if there is one otherwise
+   * zoom toward the center of the viewport.
+   * </p><p>
+   * For all other types of zoom see {@link DesignSurface#zoom(ZoomType, int, int)}
+   * </p>
+   *
+   * @param type Type of zoom to execute
+   * @param x    Coordinate where the zoom will be centered
+   * @param y    Coordinate where the zoom will be centered
+   * @see DesignSurface#zoom(ZoomType, int, int)
+   */
+  @Override
+  public void zoom(@NotNull ZoomType type, int x, int y) {
+    if (type == ZoomType.IN && (x < 0 || y < 0)
+        && myScreenView != null && !myScreenView.getSelectionModel().isEmpty()) {
+      NlComponent component = myScreenView.getSelectionModel().getPrimary();
+      if (component != null) {
+        x = Coordinates.getSwingX(myScreenView, component.getMidpointX());
+        y = Coordinates.getSwingY(myScreenView, component.getMidpointY());
+      }
+    }
+    super.zoom(type, x, y);
   }
 
   @Override

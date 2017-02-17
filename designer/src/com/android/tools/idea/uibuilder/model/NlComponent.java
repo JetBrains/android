@@ -851,4 +851,14 @@ public class NlComponent implements NlAttributesHolder {
   public void fireLiveChangeEvent() {
     myListeners.forEach(listener -> listener.stateChanged(myChangeEvent));
   }
+
+  public void clearAttributes() {
+    ViewGroupHandler viewGroupHandler = getViewGroupHandler();
+    if (viewGroupHandler != null) {
+      viewGroupHandler.clearAttributes(this);
+    }
+    for (NlComponent child : getChildren()) {
+      child.clearAttributes();
+    }
+  }
 }
