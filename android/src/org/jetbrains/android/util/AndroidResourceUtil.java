@@ -76,6 +76,7 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceType.ATTR;
+import static com.android.resources.ResourceType.PUBLIC;
 import static com.android.resources.ResourceType.STYLEABLE;
 
 /**
@@ -132,6 +133,8 @@ public class AndroidResourceUtil {
     REFERRABLE_RESOURCE_TYPES.addAll(Arrays.asList(ResourceType.values()));
     REFERRABLE_RESOURCE_TYPES.remove(ATTR);
     REFERRABLE_RESOURCE_TYPES.remove(STYLEABLE);
+    REFERRABLE_RESOURCE_TYPES.remove(PUBLIC);
+    REFERRABLE_RESOURCE_TYPES.remove(ATTR);
 
     ALL_VALUE_RESOURCE_TYPES.addAll(VALUE_RESOURCE_TYPES);
     ALL_VALUE_RESOURCE_TYPES.add(ATTR);
