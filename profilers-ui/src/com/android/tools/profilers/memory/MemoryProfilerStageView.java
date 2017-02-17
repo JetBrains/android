@@ -194,7 +194,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     panel.add(timeAxis, new TabularLayout.Constraint(2, 0));
 
     EventMonitorView eventsView = new EventMonitorView(getProfilersView(), getStage().getEventMonitor());
-    panel.add(eventsView.initialize(), new TabularLayout.Constraint(0, 0));
+    panel.add(eventsView.getComponent(), new TabularLayout.Constraint(0, 0));
 
     JPanel monitorPanel = new JBPanel(new TabularLayout("*", "*"));
     monitorPanel.setOpaque(false);
@@ -245,12 +245,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChart.addCustomRenderer(allocationRenderer);
     lineChart.addCustomRenderer(gcRenderer);
 
-    SelectionModel selectionModel = new SelectionModel(timeline.getSelectionRange(), timeline.getViewRange());
-    selectionModel.setSelectFullConstraint(true);
-    selectionModel.addConstraint(getStage().getAllocationInfosDurations());
-    selectionModel.addConstraint(getStage().getHeapDumpSampleDurations());
-
-    SelectionComponent selection = new SelectionComponent(selectionModel);
+    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel());
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
     overlayPanel.setOpaque(false);
     overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));

@@ -22,7 +22,6 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profiler.proto.CpuProfiler;
@@ -91,7 +90,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     details.setBackground(ProfilerColors.MONITOR_BACKGROUND);
 
     EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
-    JComponent eventsComponent = eventsView.initialize();
+    JComponent eventsComponent = eventsView.getComponent();
 
     JPanel monitorPanel = new JBPanel(new TabularLayout("*", "*"));
     monitorPanel.setOpaque(false);
@@ -116,9 +115,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     axisPanel.add(rightAxis, BorderLayout.EAST);
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
 
-    SelectionModel selectionModel = new SelectionModel(timeline.getSelectionRange(), timeline.getViewRange());
-    selectionModel.addConstraint(getStage().getTraceDurations());
-    SelectionComponent selection = new SelectionComponent(selectionModel);
+    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel());
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
     overlayPanel.setOpaque(false);
     overlayPanel.setBorder(BorderFactory.createEmptyBorder(Y_AXIS_TOP_MARGIN, 0, 0, 0));

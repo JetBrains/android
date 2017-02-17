@@ -15,7 +15,10 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.LegendComponent;
+import com.android.tools.adtui.LegendConfig;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.profilers.ProfilerColors;

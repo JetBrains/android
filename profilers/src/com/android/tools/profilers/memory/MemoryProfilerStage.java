@@ -74,6 +74,7 @@ public class MemoryProfilerStage extends Stage {
   private final MemoryProfilerSelection mySelection;
   private final MemoryProfilerConfiguration myConfiguration;
   private final EventMonitor myEventMonitor;
+  private final SelectionModel mySelectionModel;
   private boolean myTrackingAllocations;
   private boolean myUpdateCaptureOnSelection = true;
 
@@ -118,6 +119,11 @@ public class MemoryProfilerStage extends Stage {
     myGcCount.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries());
 
     myEventMonitor = new EventMonitor(profilers);
+
+    mySelectionModel = new SelectionModel(profilers.getTimeline().getSelectionRange(), profilers.getTimeline().getViewRange());
+    mySelectionModel.setSelectFullConstraint(true);
+    mySelectionModel.addConstraint(myAllocationDurations);
+    mySelectionModel.addConstraint(myHeapDumpDurations);
   }
 
   public DetailedMemoryUsage getDetailedMemoryUsage() {
@@ -156,6 +162,10 @@ public class MemoryProfilerStage extends Stage {
     myLoader.stop();
   }
 
+  @NotNull
+  public SelectionModel getSelectionModel() {
+    return mySelectionModel;
+  }
 
   private void selectionChanged() {
     if (!myUpdateCaptureOnSelection) {
