@@ -116,6 +116,7 @@ iml_module(
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/templates",
         "//tools/idea/java/jdkAnnotations",
+        "//tools/idea/java:mock_jdk7",
     ],
     test_runtime_deps = [
         "//tools/adt/idea/adt-branding",
