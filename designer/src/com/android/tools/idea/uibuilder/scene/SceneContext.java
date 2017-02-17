@@ -23,6 +23,7 @@ import com.android.tools.sherpa.drawing.AndroidColorSet;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.intellij.reference.SoftReference;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.WeakHashMap;
 
@@ -117,6 +118,13 @@ public class SceneContext {
   }
 
   /**
+   * Set the tool tip text to be displayed if no one moves.
+   * @param toolTip
+   */
+  public void setToolTip(@Nullable String toolTip) {
+  }
+
+  /**
    * The  SceneContext based on a ScreenView
    */
   private static class SceneViewTransform extends SceneContext {
@@ -126,6 +134,10 @@ public class SceneContext {
       mySceneView = sceneView;
     }
 
+    @Override
+    public void setToolTip(@Nullable String toolTip) {
+      mySceneView.setToolTip(toolTip);
+    }
     @Override
     public DesignSurface getSurface() {
       return mySceneView.getSurface();

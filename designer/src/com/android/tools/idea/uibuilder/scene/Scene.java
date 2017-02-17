@@ -614,6 +614,7 @@ public class Scene implements SelectionListener {
       }
       if (closestTarget != null) {
         closestTarget.setOver(true);
+        transform.setToolTip(closestTarget.getToolTipText());
         myOverTarget = closestTarget;
         needsRebuildList();
       }
