@@ -27,7 +27,7 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
   private final boolean myIsRoot;
   private boolean myChildrenBuilt;
 
-  public BottomUpNode(String id) {
+  private BottomUpNode(String id) {
     super(id);
     myIsRoot = false;
     myChildrenBuilt = false;
@@ -39,20 +39,18 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     myChildrenBuilt = true;
 
     List<HNode<MethodModel>> allNodes = new ArrayList<>();
-    allNodes.add(node);
-    int head = 0;
-    while (head < allNodes.size()) {
-      HNode<MethodModel> curNode = allNodes.get(head++);
-      allNodes.addAll(curNode.getChildren());
-    }
-
-    allNodes.sort((o1, o2) -> {
-      int cmp = Long.compare(o1.getStart(), o2.getStart());
-      if (cmp != 0) {
-        return cmp;
+    // Pre-order traversal with Stack.
+    // The traversal will sort nodes by HNode#getStart(), if they'll be equal then ancestor will come first.
+    Stack<HNode<MethodModel>> stack = new Stack<>();
+    stack.add(node);
+    while (!stack.isEmpty()) {
+      HNode<MethodModel> curNode = stack.pop();
+      allNodes.add(curNode);
+      // Adding in reverse order so that the first child is processed first
+      for (int i = curNode.getChildren().size() - 1; i >= 0; --i) {
+        stack.add(curNode.getChildren().get(i));
       }
-      return -Long.compare(o1.getEnd(), o2.getEnd());
-    });
+    }
 
     Map<String, BottomUpNode> children = new HashMap<>();
     for (HNode<MethodModel> curNode : allNodes) {
@@ -121,7 +119,7 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     HNode<MethodModel> outerSoFar = null;
 
     // myNodes is sorted by HNode#getStart() in increasing order,
-    // if they are equal then by HNode#getEnd() in decreasing order
+    // if they are equal then ancestor comes first
     for (HNode<MethodModel> node: myNodes) {
       if (outerSoFar == null || node.getEnd() > outerSoFar.getEnd()) {
         if (outerSoFar != null) {
