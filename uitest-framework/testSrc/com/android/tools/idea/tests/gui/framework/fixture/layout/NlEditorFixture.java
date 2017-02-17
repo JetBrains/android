@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.palette.NlPaletteTreeGrid;
 import com.android.tools.idea.uibuilder.palette.Palette;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
@@ -41,6 +42,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.util.List;
 
 /**
@@ -73,6 +75,10 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
   public List<NlComponent> getSelection() {
     return myDesignSurfaceFixture.getSelection();
+  }
+
+  public double getScale() {
+    return myDesignSurfaceFixture.getScale();
   }
 
   public boolean hasRenderErrors() {
@@ -158,7 +164,9 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     JList list = GuiTests.waitUntilShowing(robot(), treeGrid, Matchers.byName(JList.class, group));
     new JListFixture(robot(), list).drag(item);
     NlDesignSurface target = myDesignSurfaceFixture.target();
-    myDragAndDrop.drop(target, new Point(target.getWidth() / 2, target.getHeight() / 2));
+    SceneView sceneView = target.getCurrentSceneView();
+    myDragAndDrop
+      .drop(target, new Point(sceneView.getX() + sceneView.getSize().width / 2, sceneView.getY() + sceneView.getSize().height / 2));
     return this;
   }
 
@@ -217,8 +225,43 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return this;
   }
 
+  /**
+   * Ensures only the blueprint view is being displayed.
+   * Only applicable if {@code target()} is a {@link NlDesignSurface}.
+   */
+  public NlEditorFixture showOnlyBlueprintView() {
+    NlDesignSurface surface = myDesignSurfaceFixture.target();
+    if (surface.getScreenMode() != NlDesignSurface.ScreenMode.BLUEPRINT_ONLY) {
+      getConfigToolbar().showBlueprint();
+    }
+    return this;
+  }
+
+  public NlEditorFixture mouseWheelZoomIn(int amount) {
+    robot().click(myDesignSurfaceFixture.target());
+    robot().pressModifiers(InputEvent.CTRL_MASK);
+    robot().rotateMouseWheel(myDesignSurfaceFixture.target(), amount);
+    robot().releaseModifiers(InputEvent.CTRL_MASK);
+    return this;
+  }
+
+  public NlEditorFixture dragMouseFromCenter(int dx, int dy, MouseButton mouseButton, int modifiers) {
+    NlDesignSurface surface = myDesignSurfaceFixture.target();
+    robot().moveMouse(surface);
+    robot().pressModifiers(modifiers);
+    robot().pressMouse(mouseButton);
+    robot().moveMouse(surface, surface.getWidth() / 2 + dx, surface.getHeight() / 2 + dy);
+    robot().releaseMouseButtons();
+    robot().releaseModifiers(modifiers);
+    return this;
+  }
+
   @NotNull
   public List<NlComponentFixture> getAllComponents() {
     return myDesignSurfaceFixture.getAllComponents();
+  }
+
+  public Point getScrollPosition() {
+    return myDesignSurfaceFixture.target().getScrollPosition();
   }
 }

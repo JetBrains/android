@@ -19,6 +19,8 @@ package com.android.tools.adtui;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.containers.HashMap;
@@ -115,7 +117,7 @@ public class LegendComponent extends AnimatedComponent {
   }
 
   private void modelChanged() {
-    int labels = myModel.getValues().size();
+    int labels = myModel.getLegends().size();
     for (int i = myLabelsToDraw.size(); i < labels; i++) {
       JBLabel label = new JBLabel();
       label.setFont(getFont());
@@ -126,7 +128,7 @@ public class LegendComponent extends AnimatedComponent {
     }
 
     Dimension oldSize = getPreferredSize();
-    for (int i = 0; i < myModel.getValues().size(); i++) {
+    for (int i = 0; i < myModel.getLegends().size(); i++) {
       JLabel label = myLabelsToDraw.get(i);
       Legend legend = myModel.getLegends().get(i);
       String text = legend.getName();
@@ -251,5 +253,10 @@ public class LegendComponent extends AnimatedComponent {
   @Override
   public Dimension getMinimumSize() {
     return this.getPreferredSize();
+  }
+
+  @VisibleForTesting
+  ImmutableList<JLabel> getLabelsToDraw() {
+    return ImmutableList.copyOf(myLabelsToDraw);
   }
 }

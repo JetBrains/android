@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 import com.android.tools.adtui.LabelWithEditLink;
 import com.intellij.ui.HyperlinkLabel;
 import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.JCheckBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -42,6 +43,17 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
   public ConfigureAndroidProjectStepFixture enterCompanyDomain(@NotNull String text) {
     JTextComponent textField = findTextFieldWithLabel("Company domain:");
     replaceText(textField, text);
+    return this;
+  }
+
+  @NotNull
+  public ConfigureAndroidProjectStepFixture setCppSupport(boolean select) {
+    JCheckBoxFixture checkBox = findCheckBoxWithText("Include C++ support");
+    if (select) {
+      checkBox.select();
+    } else {
+      checkBox.deselect();
+    }
     return this;
   }
 

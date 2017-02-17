@@ -16,9 +16,11 @@
 package com.android.tools.profilers.event;
 
 import com.android.tools.adtui.model.DataSeries;
-import com.android.tools.adtui.model.EventAction;
+import com.android.tools.adtui.model.event.ActivityAction;
+import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.event.StackedEventType;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
@@ -31,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class ActivityEventDataSeries implements DataSeries<EventAction<EventAction.ActivityAction, String>> {
+public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEventType>> {
 
   @NotNull
   private ProfilerClient myClient;
@@ -45,8 +47,8 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<EventActi
   }
 
   @Override
-  public ImmutableList<SeriesData<EventAction<EventAction.ActivityAction, String>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
-    List<SeriesData<EventAction<EventAction.ActivityAction, String>>> seriesData = new ArrayList<>();
+  public ImmutableList<SeriesData<EventAction<StackedEventType>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+    List<SeriesData<EventAction<StackedEventType>>> seriesData = new ArrayList<>();
     EventServiceGrpc.EventServiceBlockingStub eventService = myClient.getEventClient();
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
       .setProcessId(myProcessId)
@@ -60,16 +62,15 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<EventActi
       long actionEnd = 0;
       for (int i = 0; i < data.getStateChangesCount(); i++) {
         EventProfiler.ActivityStateData state = data.getStateChanges(i);
-        EventAction.ActivityAction action = EventAction.ActivityAction.NONE;
-
+        StackedEventType action = StackedEventType.NONE;
         // Match start states with end states.
         switch (state.getState()) {
           case RESUMED:
-            action = EventAction.ActivityAction.ACTIVITY_STARTED;
+            action = StackedEventType.ACTIVITY_STARTED;
             actionStart = TimeUnit.NANOSECONDS.toMicros(state.getTimestamp());
             break;
           case PAUSED:
-            action = EventAction.ActivityAction.ACTIVITY_COMPLETED;
+            action = StackedEventType.ACTIVITY_COMPLETED;
             actionEnd = TimeUnit.NANOSECONDS.toMicros(state.getTimestamp());
           default:
             break;
@@ -77,7 +78,7 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<EventActi
 
         // Create a UI event if we have an end time, or if we got to the end of our list.
         if (actionEnd != 0 || (i == data.getStateChangesCount()-1 && actionStart != 0)) {
-          seriesData.add(new SeriesData<>(actionStart, new EventAction(actionStart, actionEnd, action, data.getName())));
+          seriesData.add(new SeriesData<>(actionStart, new ActivityAction(actionStart, actionEnd, action, data.getName())));
           actionEnd = 0;
           actionStart = 0;
         }

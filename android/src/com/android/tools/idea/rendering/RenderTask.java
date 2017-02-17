@@ -460,14 +460,16 @@ public class RenderTask implements IImageFactory {
       return null;
     }
 
+    myLayoutlibCallback.reset();
+
     if (modelParser instanceof LayoutPsiPullParser) {
       // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour
       AndroidModuleModel androidModel = AndroidModuleModel.get(myRenderService.getFacet());
       boolean useSrcCompat = androidModel != null && GradleUtil.dependsOn(androidModel, APPCOMPAT_LIB_ARTIFACT);
       ((LayoutPsiPullParser)modelParser).setUseSrcCompat(useSrcCompat);
+      myLayoutlibCallback.setAaptDeclaredResources(((LayoutPsiPullParser)modelParser).getAaptDeclaredAttrs());
     }
 
-    myLayoutlibCallback.reset();
 
     ILayoutPullParser includingParser = getIncludingLayoutParser(resolver, modelParser);
     if (includingParser != null) {

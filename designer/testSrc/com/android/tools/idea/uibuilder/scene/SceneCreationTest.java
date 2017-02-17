@@ -48,26 +48,23 @@ public class SceneCreationTest extends SceneTest {
     assertEquals(component.getScene(), myScene);
     NlComponent nlComponent = component.getNlComponent();
     assertEquals(component, myScene.getSceneComponent(nlComponent));
-    assertEquals(myScene.pxToDp(myScene.dpToPx(100)), 100);
-    myScene.setDpiFactorOverride(3.5f);
-    assertEquals(myScene.pxToDp(myScene.dpToPx(100)), 100);
   }
 
   public void testSceneCreation() {
     ModelBuilder builder = createModel();
     NlModel model = builder.build();
-    Scene scene = Scene.createScene(model, myScreen.getScreen());
-    scene.setDpiFactorOverride(1);
+    LayoutlibSceneBuilder sceneBuilder = new LayoutlibSceneBuilder(model, myScreen.getScreen());
+    Scene scene = sceneBuilder.build();
     scene.setAnimate(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
     ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT);
     ComponentDescriptor textView = builder.findByPath(CONSTRAINT_LAYOUT, TEXT_VIEW);
     ComponentDescriptor editText = parent.addChild(component(EDIT_TEXT)
-                                                     .withBounds(110, 220, 200, 30)
+                                                     .withBounds(220, 440, 400, 60)
                                                      .width("200dp")
                                                      .height("30dp"), textView);
     builder.updateModel(model, false);
-    scene.updateFrom(model);
+    sceneBuilder.update();
     assertEquals(2, scene.getRoot().getChildren().size());
     List<SceneComponent> children = scene.getRoot().getChildren();
     SceneComponent sceneTextView = children.get(0);
@@ -82,7 +79,7 @@ public class SceneCreationTest extends SceneTest {
     assertEquals(30, sceneEditText.getDrawHeight());
     parent.removeChild(textView);
     builder.updateModel(model, false);
-    scene.updateFrom(model);
+    sceneBuilder.update();
     assertEquals(1, scene.getRoot().getChildren().size());
     sceneTextView = scene.getRoot().getChildren().get(0);
     assertEquals(110, sceneTextView.getDrawX());
@@ -94,8 +91,8 @@ public class SceneCreationTest extends SceneTest {
   public void testSceneReparenting() {
     ModelBuilder builder = createModel();
     NlModel model = builder.build();
-    Scene scene = Scene.createScene(model, myScreen.getScreen());
-    scene.setDpiFactorOverride(1);
+    LayoutlibSceneBuilder sceneBuilder = new LayoutlibSceneBuilder(model, myScreen.getScreen());
+    Scene scene = sceneBuilder.build();
     scene.setAnimate(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
     ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT);
@@ -105,14 +102,14 @@ public class SceneCreationTest extends SceneTest {
                       .width("200dp")
                       .height("200dp"), null);
     builder.updateModel(model, false);
-    scene.updateFrom(model);
+    sceneBuilder.update();
     assertEquals(2, scene.getRoot().getChildren().size());
 
     NlComponent textView = scene.getRoot().getChild(0).getNlComponent();
     NlComponent container = scene.getRoot().getChild(1).getNlComponent();
     scene.getRoot().getNlComponent().removeChild(textView);
     container.addChild(textView);
-    scene.updateFrom(model);
+    sceneBuilder.update();
     assertEquals(1, scene.getRoot().getChildCount());
     SceneComponent layout = scene.getSceneComponent("layout");
     assertEquals(1, layout.getChildCount());
@@ -128,7 +125,7 @@ public class SceneCreationTest extends SceneTest {
     Configuration config = model.getConfiguration();
     config.setDevice(config.getConfigurationManager().getDeviceById("Nexus 6P"), false);
 
-    Scene scene = Scene.createScene(model, myScreen.getScreen());
+    Scene scene = new LayoutlibSceneBuilder(model, myScreen.getScreen()).build();
     scene.setAnimate(false);
 
     ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT);
@@ -136,18 +133,19 @@ public class SceneCreationTest extends SceneTest {
     SceneComponent sceneTextView = scene.getRoot().getChildren().get(0);
 
     float dpiFactor =  560 / 160f;
-    assertEquals(pxToDp(100, dpiFactor), sceneTextView.getDrawX());
-    assertEquals(pxToDp(200, dpiFactor), sceneTextView.getDrawY());
-    assertEquals(pxToDp(100, dpiFactor), sceneTextView.getDrawWidth());
-    assertEquals(pxToDp(20, dpiFactor), sceneTextView.getDrawHeight());
+    assertEquals(pxToDp(200, dpiFactor), sceneTextView.getDrawX());
+    assertEquals(pxToDp(400, dpiFactor), sceneTextView.getDrawY());
+    assertEquals(pxToDp(200, dpiFactor), sceneTextView.getDrawWidth());
+    assertEquals(pxToDp(40, dpiFactor), sceneTextView.getDrawHeight());
 
     config.setDevice(config.getConfigurationManager().getDeviceById("Nexus S"), false);
     dpiFactor = 240 / 160f;
 
-    assertEquals(pxToDp(100, dpiFactor), sceneTextView.getDrawX());
-    assertEquals(pxToDp(200, dpiFactor), sceneTextView.getDrawY());
-    assertEquals(pxToDp(100, dpiFactor), sceneTextView.getDrawWidth());
-    assertEquals(pxToDp(20, dpiFactor), sceneTextView.getDrawHeight());
+    // Allow 1dp difference for rounding
+    assertEquals(pxToDp(200, dpiFactor), sceneTextView.getDrawX(), 1);
+    assertEquals(pxToDp(400, dpiFactor), sceneTextView.getDrawY(), 1);
+    assertEquals(pxToDp(200, dpiFactor), sceneTextView.getDrawWidth(), 1);
+    assertEquals(pxToDp(40, dpiFactor), sceneTextView.getDrawHeight(), 1);
   }
 
 
@@ -157,14 +155,14 @@ public class SceneCreationTest extends SceneTest {
     ModelBuilder builder = model("constraint.xml",
                                  component(CONSTRAINT_LAYOUT)
                                    .id("@id/root")
-                                   .withBounds(0, 0, 1000, 1000)
+                                   .withBounds(0, 0, 2000, 2000)
                                    .width("1000dp")
                                    .height("1000dp")
                                    .withAttribute("android:padding", "20dp")
                                    .children(
                                      component(TEXT_VIEW)
                                        .id("@id/button")
-                                       .withBounds(100, 200, 100, 20)
+                                       .withBounds(200, 400, 200, 40)
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("tools:layout_editor_absoluteX", "100dp")

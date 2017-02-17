@@ -84,6 +84,7 @@ public class WizardConstants {
     createKey("packagesToInstall", WIZARD, (Class<List<String>>)(Class)List.class);
   public static final Key<Boolean> IS_GRADLE_PROJECT_KEY = createKey(ATTR_IS_GRADLE, WIZARD, Boolean.class);
   public static final Key<Boolean> IS_NEW_PROJECT_KEY = createKey(ATTR_IS_NEW_PROJECT, WIZARD, Boolean.class);
+  public static final Key<Boolean> THEME_EXISTS_KEY = createKey(ATTR_THEME_EXISTS, WIZARD, Boolean.class);
   public static final Key<String> KEY_SDK_INSTALL_LOCATION = createKey("download.sdk.location", WIZARD, String.class);
   public static final Key<String> MAVEN_URL_KEY = createKey(ATTR_MAVEN_URL, WIZARD, String.class);
   public static final Key<String> PACKAGE_NAME_KEY = createKey(ATTR_PACKAGE_NAME, WIZARD, String.class);
@@ -104,7 +105,7 @@ public class WizardConstants {
   public static final Key<String> SPLIT_NAME_KEY = createKey(ATTR_SPLIT_NAME, WIZARD, String.class);
   public static final Key<Boolean> IS_INSTANT_APP_KEY = createKey(ATTR_IS_INSTANT_APP, WIZARD, Boolean.class);
   public static final Key<Boolean> IS_BASE_ATOM_KEY = createKey(ATTR_IS_BASE_ATOM, WIZARD, Boolean.class);
-  public static final Key<Boolean> ALSO_CREATE_IAPK_KEY = createKey("alsoCreateIapk", WIZARD, Boolean.class);
+  public static final Key<Boolean> ALSO_CREATE_IAPK_KEY = createKey(ATTR_ALSO_CREATE_IAPK, WIZARD, Boolean.class);
   public static final Key<Boolean> AIA_SDK_ENABLED_KEY = createKey("aiaSdkEnabled", WIZARD, Boolean.class);
 
   // Native support configuration in new project wizard, see ConfigureCppSupportStep for usages

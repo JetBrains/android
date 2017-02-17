@@ -141,4 +141,8 @@ public class GuidelineCycleTarget extends ConstraintTarget {
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, null);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, position);
   }
+  @Override
+  public String getToolTipText(){
+    return "Cycle Guideline";
+  }
 }

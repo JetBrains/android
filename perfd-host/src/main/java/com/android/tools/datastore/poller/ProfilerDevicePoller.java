@@ -21,7 +21,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.Profiler.Device;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
-import com.google.common.collect.Maps;
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 
@@ -32,10 +31,18 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class ProfilerDevicePoller extends PollRunner {
+  private static final class DeviceData {
+    public final Profiler.Device device;
+    public final Set<Profiler.Process> processes = new HashSet<>();
+    public DeviceData(Device device) {
+      this.device = device;
+    }
+  }
+
   private ProfilerTable myTable;
   private DataStoreService myService;
   private ProfilerServiceGrpc.ProfilerServiceBlockingStub myPollingService;
-  private Map<Common.Session, Set<Profiler.Process>> myActiveProcesses = new HashMap<>();
+  private Map<Common.Session, DeviceData> myDevices = new HashMap<>();
 
   public ProfilerDevicePoller(DataStoreService service,
                               ProfilerTable table,
@@ -58,35 +65,56 @@ public class ProfilerDevicePoller extends PollRunner {
           .setBootId(device.getBootId())
           .setDeviceSerial(device.getSerial())
           .build();
+        DeviceData deviceData = myDevices.computeIfAbsent(session, s -> new DeviceData(device));
+
         myService.setConnectedClients(session, (ManagedChannel)myPollingService.getChannel());
         Profiler.GetProcessesRequest processesRequest =
           Profiler.GetProcessesRequest.newBuilder().setSession(session).build();
         Profiler.GetProcessesResponse processesResponse = myPollingService.getProcesses(processesRequest);
+
         // Gather the list of last known active processes.
-        Set<Profiler.Process> deadProcesses = myActiveProcesses.containsKey(session) ? myActiveProcesses.get(session) : new HashSet<>();
-        Set<Profiler.Process> newProcesses  = new HashSet<>();
+        Set<Profiler.Process> liveProcesses = new HashSet<>();
+
         for (Profiler.Process process : processesResponse.getProcessList()) {
           myTable.insertOrUpdateProcess(session, process);
-          newProcesses.add(process);
+          liveProcesses.add(process);
+
           // Remove any new processes from the list of last known processes.
           // Any processes that remain in the list is our list of dead processes.
-          deadProcesses.remove(process);
+          deviceData.processes.remove(process);
+
+          Profiler.AgentStatusRequest agentStatusRequest =
+            Profiler.AgentStatusRequest.newBuilder().setProcessId(process.getPid()).setSession(session).build();
+          Profiler.AgentStatusResponse agentStatusResponse = myPollingService.getAgentStatus(agentStatusRequest);
+          myTable.updateAgentStatus(session, process, agentStatusResponse);
         }
 
         //TODO: think about moving this to the device proxy.
-        myActiveProcesses.put(session, newProcesses);
-        killProcesses(session, deadProcesses);
+        // At this point, deviceData.processes only processes that don't match active processes,
+        // meaning they were just killed
+        killProcesses(session, deviceData.processes);
+        deviceData.processes.clear();
+        deviceData.processes.addAll(liveProcesses);
       }
     }
     catch (StatusRuntimeException ex) {
       // We expect this to get called when connection to the device is lost.
       // To properly clean up the state we first set all ALIVE processes to DEAD
       // then we disconnect the channel.
-      for(Common.Session session : myActiveProcesses.keySet()) {
-        killProcesses(session, myActiveProcesses.get(session));
+      for (Map.Entry<Common.Session, DeviceData> entry : myDevices.entrySet()) {
+        Common.Session session = entry.getKey();
+        DeviceData activeDevice = entry.getValue();
+        disconnectDevice(activeDevice.device);
+        killProcesses(session, activeDevice.processes);
         myService.disconnect(session);
       }
+      myDevices.clear();
     }
+  }
+
+  private void disconnectDevice(Device device) {
+    Device disconnectedDevice = device.toBuilder().setState(Device.State.DISCONNECTED).build();
+    myTable.insertOrUpdateDevice(disconnectedDevice);
   }
 
   private void killProcesses(Common.Session session, Set<Profiler.Process> processes) {

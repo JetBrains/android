@@ -1,16 +1,19 @@
 package org.jetbrains.android.newProject;
 
+import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.android.tools.idea.npw.NewModuleWizardDynamic;
 import com.android.tools.idea.npw.NewProjectWizardDynamic;
 import com.android.tools.idea.npw.WizardUtils;
-import com.android.tools.idea.wizard.dynamic.*;
+import com.android.tools.idea.wizard.dynamic.AndroidStudioWizardPath;
+import com.android.tools.idea.wizard.dynamic.DynamicWizard;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
+import com.android.tools.idea.wizard.dynamic.DynamicWizardPath;
 import com.intellij.ide.util.newProjectWizard.WizardDelegate;
 import com.intellij.ide.util.projectWizard.ModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.SettingsStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.ide.wizard.AbstractWizard;
-import com.intellij.ide.wizard.Step;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.JavaModuleType;
@@ -51,8 +54,7 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
 
   @Override
   public String getPresentableName() {
-    if (WizardUtils.isNpwModelWizardEnabled())
-    {
+    if (WizardUtils.isNpwModelWizardEnabled(WizardUtils.Feature.NEW_MODULE)) {
       return "Android (Legacy)";
     }
     return "Android";
@@ -91,24 +93,7 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
 
       @Override
       public String getHelpId() {
-        if (myWizard == null || myWizard.getCurrentPath() == null) return null;
-        Step step = myWizard.getCurrentPath().getCurrentStep();
-        if (step instanceof DynamicWizardStep) {
-          String name = ((DynamicWizardStep)step).getStepName();
-          if ("Create Android Project".equals(name)) {
-            return "New_Project_Dialog";
-          }
-          if ("Configure Form Factors".equals(name)) {
-            return "Target_Android_Devices";
-          }
-          if ("Activity Gallery".equals(name)) {
-            return "Add_an_Activity_Dialog";
-          }
-          if ("Template parameters".equals(name)) {
-            return "Customize_the_Activity";
-          }
-        }
-        return null;
+        return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "studio/projects/create-project.html";
       }
     };
   }

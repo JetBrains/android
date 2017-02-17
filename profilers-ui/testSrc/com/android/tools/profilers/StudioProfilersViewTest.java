@@ -157,6 +157,7 @@ public class StudioProfilersViewTest {
     device = Profiler.Device.newBuilder()
       .setModel("Model")
       .setSerial("1234")
+      .setState(Profiler.Device.State.ONLINE)
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo("Model (1234)");
@@ -165,6 +166,7 @@ public class StudioProfilersViewTest {
     device = Profiler.Device.newBuilder()
       .setModel("Model-9999")
       .setSerial("1234")
+      .setState(Profiler.Device.State.ONLINE)
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo("Model-9999 (1234)");
@@ -173,6 +175,44 @@ public class StudioProfilersViewTest {
     device = Profiler.Device.newBuilder()
       .setModel("Model-1234")
       .setSerial("1234")
+      .setState(Profiler.Device.State.ONLINE)
+      .build();
+    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
+    assertThat(component.toString()).isEqualTo("Model (1234)");
+
+    // With manufacturer
+    device = Profiler.Device.newBuilder()
+      .setManufacturer("Manufacturer")
+      .setModel("Model")
+      .setSerial("1234")
+      .setState(Profiler.Device.State.ONLINE)
+      .build();
+    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
+    assertThat(component.toString()).isEqualTo("Manufacturer Model (1234)");
+
+    // Disconnected
+    device = Profiler.Device.newBuilder()
+      .setModel("Model")
+      .setSerial("1234")
+      .setState(Profiler.Device.State.DISCONNECTED)
+      .build();
+    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
+    assertThat(component.toString()).isEqualTo("Model (1234) [DISCONNECTED]");
+
+    // Offline
+    device = Profiler.Device.newBuilder()
+      .setModel("Model")
+      .setSerial("1234")
+      .setState(Profiler.Device.State.OFFLINE)
+      .build();
+    component = renderer.getListCellRendererComponent(list, device, 0, false, false);
+    assertThat(component.toString()).isEqualTo("Model (1234) [OFFLINE]");
+
+    // Unspecifed
+    device = Profiler.Device.newBuilder()
+      .setModel("Model")
+      .setSerial("1234")
+      .setState(Profiler.Device.State.UNSPECIFIED)
       .build();
     component = renderer.getListCellRendererComponent(list, device, 0, false, false);
     assertThat(component.toString()).isEqualTo("Model (1234)");
@@ -191,9 +231,19 @@ public class StudioProfilersViewTest {
     process = Profiler.Process.newBuilder()
       .setName("MyProcessName")
       .setPid(1234)
+      .setState(Profiler.Process.State.ALIVE)
       .build();
     component = renderer.getListCellRendererComponent(list, process, 0, false, false);
     assertThat(component.toString()).isEqualTo("MyProcessName (1234)");
+
+    // Dead process
+    process = Profiler.Process.newBuilder()
+      .setName("MyDeadProcessName")
+      .setPid(4444)
+      .setState(Profiler.Process.State.DEAD)
+      .build();
+    component = renderer.getListCellRendererComponent(list, process, 0, false, false);
+    assertThat(component.toString()).isEqualTo("MyDeadProcessName (4444) [DEAD]");
   }
 
   @Test

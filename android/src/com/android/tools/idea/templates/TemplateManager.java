@@ -461,7 +461,7 @@ public class TemplateManager {
 
         @Override
         public void actionPerformed(AnActionEvent e) {
-          if (WizardUtils.isNpwModelWizardEnabled(e)) {
+          if (WizardUtils.isNpwModelWizardEnabled(e, WizardUtils.Feature.GALLERY)) {
             DataContext dataContext = e.getDataContext();
             Module module = LangDataKeys.MODULE.getData(dataContext);
             assert module != null;

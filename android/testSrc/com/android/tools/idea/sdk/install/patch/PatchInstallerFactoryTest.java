@@ -58,6 +58,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void cantHandleLinuxUninstallWithPatcher() {
+    myFileOp.setIsWindows(false);
     LocalPackage p = new FakeLocalPackage("foo");
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(p, PATCHER_4));
     assertFalse(myInstallerFactory.canHandlePackage(p, myRepoManager, myFileOp));
@@ -88,6 +89,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void cantHandleNoPatchOnLinux() {
+    myFileOp.setIsWindows(false);
     FakeRemotePackage p = new FakeRemotePackage("foo");
     myRepositoryPackages.setLocalPkgInfos(ImmutableList.of(PATCHER_4));
     myRepositoryPackages.setRemotePkgInfos(ImmutableList.of(p));
@@ -96,6 +98,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void canHandleOnLinux() {
+    myFileOp.setIsWindows(false);
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
     remote.setPatchInfo("foo", new Revision(1));
@@ -108,6 +111,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void cantHandleWrongPatch() {
+    myFileOp.setIsWindows(false);
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
     remote.setPatchInfo("foo", new Revision(1));
@@ -187,12 +191,14 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void createFallbackUninstaller() {
+    myFileOp.setIsWindows(false);
     FakeLocalPackage p = new FakeLocalPackage("foo");
     assertFalse(myInstallerFactory.createUninstaller(p, myRepoManager, myFileOp) instanceof PatchUninstaller);
   }
 
   @Test
   public void createInstallerWithPatch() {
+    myFileOp.setIsWindows(false);
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
     remote.setPatchInfo("foo", new Revision(1));
@@ -219,6 +225,7 @@ public class PatchInstallerFactoryTest {
 
   @Test
   public void createFallbackInstaller() {
+    myFileOp.setIsWindows(false);
     FakeRemotePackage remote = new FakeRemotePackage("foo");
     remote.setRevision(new Revision(2));
     FakeLocalPackage local = new FakeLocalPackage("foo");

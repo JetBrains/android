@@ -32,21 +32,21 @@ public class SceneDragMarginFromWidgetTest extends SceneTest {
     ModelBuilder builder = model("constraint.xml",
                                  component(CONSTRAINT_LAYOUT)
                                    .id("@id/root")
-                                   .withBounds(0, 0, 1000, 1000)
+                                   .withBounds(0, 0, 2000, 2000)
                                    .width("1000dp")
                                    .height("1000dp")
                                    .withAttribute("android:padding", "20dp")
                                    .children(
                                      component(TEXT_VIEW)
                                        .id("@id/button1")
-                                       .withBounds(100, 200, 100, 20)
+                                       .withBounds(200, 400, 200, 40)
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("tools:layout_editor_absoluteX", "100dp")
                                        .withAttribute("tools:layout_editor_absoluteY", "200dp"),
                                      component(TEXT_VIEW)
                                        .id("@id/button2")
-                                       .withBounds(200, 200, 100, 20)
+                                       .withBounds(400, 400, 200, 40)
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("app:layout_constraintLeft_toRightOf", "@+id/button1")
@@ -65,8 +65,7 @@ public class SceneDragMarginFromWidgetTest extends SceneTest {
                  "    android:layout_height=\"20dp\"\n" +
                  "    app:layout_constraintLeft_toRightOf=\"@+id/button1\"\n" +
                  "    tools:layout_editor_absoluteY=\"200dp\"\n" +
-                 "      android:layout_marginLeft=\"550dp\"\n" +
-                 "      android:layout_marginStart=\"550dp\" />");
+                 "      android:layout_marginLeft=\"550dp\" />");
   }
 
 }

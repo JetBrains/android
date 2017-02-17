@@ -56,8 +56,8 @@ public class SceneBasicConnectionsTest extends SceneTest {
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"20dp\"\n" +
                  "    tools:layout_editor_absoluteX=\"100dp\"\n" +
-                 "      android:layout_marginTop=\"8dp\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\" />");
+                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
+                 "      android:layout_marginTop=\"8dp\" />");
     assertEquals(button, myScreen.getScreen().getSelectionModel().getPrimary());
     assertEquals(1, myScreen.getScreen().getSelectionModel().getSelection().size());
   }
@@ -86,8 +86,8 @@ public class SceneBasicConnectionsTest extends SceneTest {
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"20dp\"\n" +
                  "    tools:layout_editor_absoluteX=\"100dp\"\n" +
-                 "      android:layout_marginBottom=\"8dp\"\n" +
-                 "      app:layout_constraintBottom_toBottomOf=\"parent\" />");
+                 "      app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
+                 "      android:layout_marginBottom=\"8dp\" />");
   }
 
   public void testConnectBaseline() {

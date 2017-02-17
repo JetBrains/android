@@ -31,8 +31,8 @@ public class Coordinates {
   public static final float DEFAULT_DENSITY = Density.DEFAULT_DENSITY;
 
   /**
-   * Returns the Swing x coordinate (in the {@link NlDesignSurface} coordinate
-   * system) of the given x coordinate in the Android screen coordinate system
+   * Returns the Swing x coordinate relative to {@link NlDesignSurface#getLayeredPane()}
+   * of the given x coordinate in the Android screen coordinate system
    */
   @SwingCoordinate
   public static int getSwingX(@NotNull SceneView view, @AndroidCoordinate int androidX) {
@@ -40,8 +40,8 @@ public class Coordinates {
   }
 
   /**
-   * Returns the Swing x coordinate (in the {@link NlDesignSurface} coordinate
-   * system) of the given x coordinate in the Android screen coordinate system
+   * Returns the Swing x coordinate relative to  {@link NlDesignSurface#getLayeredPane()}
+   * of the given x coordinate in the Android screen coordinate system
    */
   @SwingCoordinate
   public static int getSwingY(@NotNull SceneView view, @AndroidCoordinate int androidY) {

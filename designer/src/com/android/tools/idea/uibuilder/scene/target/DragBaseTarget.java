@@ -164,6 +164,10 @@ public abstract class DragBaseTarget extends BaseTarget {
     return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
   }
 
+  @Override
+  public String getToolTipText(){
+    return "View";
+  }
   //endregion
   /////////////////////////////////////////////////////////////////////////////
 }

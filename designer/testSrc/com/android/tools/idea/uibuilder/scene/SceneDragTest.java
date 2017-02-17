@@ -32,21 +32,21 @@ public class SceneDragTest extends SceneTest {
     ModelBuilder builder = model("constraint.xml",
                                  component(CONSTRAINT_LAYOUT)
                                    .id("@id/root")
-                                   .withBounds(0, 0, 1000, 1000)
+                                   .withBounds(0, 0, 2000, 2000)
                                    .width("1000dp")
                                    .height("1000dp")
                                    .withAttribute("android:padding", "20dp")
                                    .children(
                                      component(TEXT_VIEW)
                                        .id("@id/button")
-                                       .withBounds(100, 200, 100, 20)
+                                       .withBounds(200, 400, 200, 40)
                                        .width("100dp")
                                        .height("20dp")
                                        .withAttribute("tools:layout_editor_absoluteX", "100dp")
                                        .withAttribute("tools:layout_editor_absoluteY", "200dp"),
                                      component(TEXT_VIEW)
                                        .id("@id/button2")
-                                       .withBounds(100, 500, 5, 5)
+                                       .withBounds(200, 1000, 10, 10)
                                        .width("5dp")
                                        .height("5dp")
                                        .withAttribute("tools:layout_editor_absoluteX", "100dp")
@@ -79,5 +79,17 @@ public class SceneDragTest extends SceneTest {
                  "    android:layout_height=\"5dp\"\n" +
                  "    tools:layout_editor_absoluteX=\"195dp\"\n" +
                  "    tools:layout_editor_absoluteY=\"592dp\"/>");
+  }
+
+  public void testDragLeft() {
+    myInteraction.mouseDown("button");
+    myInteraction.mouseRelease(-800, -500);
+    myScreen.get("@id/button")
+      .expectXml("<TextView\n" +
+                 "    android:id=\"@id/button\"\n" +
+                 "    android:layout_width=\"100dp\"\n" +
+                 "    android:layout_height=\"20dp\"\n" +
+                 "    tools:layout_editor_absoluteX=\"0dp\"\n" +
+                 "    tools:layout_editor_absoluteY=\"0dp\"/>");
   }
 }

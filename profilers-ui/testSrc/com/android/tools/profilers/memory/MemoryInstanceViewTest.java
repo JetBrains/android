@@ -50,7 +50,7 @@ public class MemoryInstanceViewTest {
 
   private static final ClassObject MOCK_CLASS = MemoryProfilerTestBase.mockClassObject(MOCK_CLASS_NAME, 1, 2, 3, INSTANCE_OBJECT_LIST);
 
-  @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryInstanceViewTestGrpc");
+  @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryInstanceViewTestGrpc", new FakeMemoryService());
 
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
   private MemoryProfilerStage myStage;
@@ -79,9 +79,10 @@ public class MemoryInstanceViewTest {
     assertEquals(3, root.getChildCount());
     //noinspection unchecked
     ImmutableList<MemoryObjectTreeNode<InstanceObject>> children = root.getChildren();
-    assertEquals(INSTANCE_OBJECT_LIST.get(0), children.get(0).getAdapter());
+    // Verify the ordering is based on retain size.
+    assertEquals(INSTANCE_OBJECT_LIST.get(2), children.get(0).getAdapter());
     assertEquals(INSTANCE_OBJECT_LIST.get(1), children.get(1).getAdapter());
-    assertEquals(INSTANCE_OBJECT_LIST.get(2), children.get(2).getAdapter());
+    assertEquals(INSTANCE_OBJECT_LIST.get(0), children.get(2).getAdapter());
   }
 
   @Test
@@ -103,7 +104,8 @@ public class MemoryInstanceViewTest {
     // Selects the first instance object.
     JTree tree = view.getTree();
     MemoryObjectTreeNode firstNode = (MemoryObjectTreeNode)((MemoryObjectTreeNode)tree.getModel().getRoot()).getChildAt(0);
-    assertEquals(INSTANCE_OBJECT_LIST.get(0), firstNode.getAdapter());
+    // Verify the ordering is based on retain size.
+    assertEquals(INSTANCE_OBJECT_LIST.get(2), firstNode.getAdapter());
     tree.setSelectionPath(new TreePath(firstNode));
     observer.assertAndResetCounts(0, 0, 0, 0, 0, 0, 1);
     assertEquals(firstNode, tree.getSelectionPath().getLastPathComponent());
@@ -203,7 +205,7 @@ public class MemoryInstanceViewTest {
     MemoryObjectTreeNode root = (MemoryObjectTreeNode)tree.getModel().getRoot();
     assertEquals(INSTANCE_OBJECT_LIST.size(), root.getChildCount());
     for (int i = 0; i < root.getChildCount(); i++) {
-      InstanceObject instance = INSTANCE_OBJECT_LIST.get(i);
+      InstanceObject instance = INSTANCE_OBJECT_LIST.get(2 - i);
       treeInfo.verifyRendererValues(root.getChildAt(i),
                                     new String[]{instance.getDisplayLabel(), instance.getToStringText()},
                                     new String[]{(instance.getDepth() >= 0 && instance.getDepth() < Integer.MAX_VALUE) ?

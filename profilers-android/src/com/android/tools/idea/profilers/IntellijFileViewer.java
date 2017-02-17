@@ -45,7 +45,7 @@ public class IntellijFileViewer implements FileViewer {
     .put(".xml", StdFileTypes.XML)
     .put(".json", FileTypeManager.getInstance().getStdFileType("JSON"))
     .build();
-  private static final ImmutableSet<String> IMAGE_EXTENSIONS = ImmutableSet.of(".jpeg", ".png", ".jpg");
+  private static final ImmutableSet<String> IMAGE_EXTENSIONS = ImmutableSet.of(".bmp", ".gif", ".jpeg", ".jpg", ".png");
 
   @NotNull
   private final JComponent myComponent;

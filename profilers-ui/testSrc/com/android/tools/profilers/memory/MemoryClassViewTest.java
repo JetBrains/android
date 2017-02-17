@@ -93,8 +93,8 @@ public class MemoryClassViewTest {
     //noinspection unchecked
     classTree.setSelectionPath(new TreePath(new Object[]{root,
       ((MemoryObjectTreeNode<NamespaceObject>)classTree.getModel().getRoot()).getChildren().get(0)}));
-    // Note - com.google.Bar would be sorted to the top since sorting is done ignoring namespaces.
-    assertEquals(mockClass3, ((MemoryObjectTreeNode<ClassObject>)classTree.getSelectionPath().getLastPathComponent()).getAdapter());
+    // Note - com.android.studio.Foo2 would be sorted to the top since sorting is done based on retained size.
+    assertEquals(mockClass4, ((MemoryObjectTreeNode<ClassObject>)classTree.getSelectionPath().getLastPathComponent()).getAdapter());
 
     // Check if group by package is grouping as expected.
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
@@ -102,7 +102,7 @@ public class MemoryClassViewTest {
     assertEquals(6, countClassObjects((MemoryObjectTreeNode<NamespaceObject>)root)); // 6 is the number of mockClass*
     assertTrue(classTree.getSelectionPath().getLastPathComponent() instanceof MemoryObjectTreeNode);
     //noinspection unchecked
-    assertEquals(mockClass3, ((MemoryObjectTreeNode<ClassObject>)classTree.getSelectionPath().getLastPathComponent()).getAdapter());
+    assertEquals(mockClass4, ((MemoryObjectTreeNode<ClassObject>)classTree.getSelectionPath().getLastPathComponent()).getAdapter());
     assertTrue(((MemoryObjectTreeNode)root).getAdapter() instanceof NamespaceObject);
     //noinspection unchecked
     ImmutableList<MemoryObjectTreeNode<NamespaceObject>> children = ((MemoryObjectTreeNode<NamespaceObject>)root).getChildren();
@@ -138,8 +138,8 @@ public class MemoryClassViewTest {
     assertEquals(7, androidPackage.getAdapter().getHeapCount());
     assertEquals(15, androidPackage.getAdapter().getRetainedSize());
     assertEquals(2, androidPackage.getChildCount());
-    assertEquals(mockClass1, androidPackage.getChildren().get(0).getAdapter());
-    assertEquals(mockClass4, androidPackage.getChildren().get(1).getAdapter());
+    assertEquals(mockClass4, androidPackage.getChildren().get(0).getAdapter());
+    assertEquals(mockClass1, androidPackage.getChildren().get(1).getAdapter());
 
     // Check if flat list is correct.
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CLASS);
@@ -245,9 +245,9 @@ public class MemoryClassViewTest {
 
   @Test
   public void testCorrectColumnsAndRendererContents() {
-    ClassObject mockClass1 = mockClassObject("foo.abc", 1, 2, 3, Collections.emptyList());
-    ClassObject mockClass2 = mockClassObject("bar.def", 4, 5, 6, Collections.emptyList());
-    ClassObject mockClass3 = mockClassObject("ghi", 7, 8, 9, Collections.emptyList());
+    ClassObject mockClass1 = mockClassObject("bar.def", 7, 8, 9, Collections.emptyList());
+    ClassObject mockClass2 = mockClassObject("foo.abc", 4, 5, 6, Collections.emptyList());
+    ClassObject mockClass3 = mockClassObject("ghi", 1, 2, 3, Collections.emptyList());
     List<ClassObject> fakeClassObjects = Arrays.asList(mockClass1, mockClass2, mockClass3);
     HeapObject mockHeap = mockHeapObject("Test", fakeClassObjects);
 

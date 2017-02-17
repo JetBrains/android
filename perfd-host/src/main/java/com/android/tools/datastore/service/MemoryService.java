@@ -86,7 +86,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     // and results in a NOT_FOUND status when the profiler tries to pull the dump's data in quick successions.
     if (response.getStatus() == TriggerHeapDumpResponse.Status.SUCCESS) {
       assert response.getInfo() != null;
-      myMemoryTable.insertOrReplaceHeapInfo(request.getProcessId(), response.getInfo());
+      myMemoryTable.insertOrReplaceHeapInfo(request.getProcessId(), request.getSession(), response.getInfo());
     }
 
     responseObserver.onNext(response);
@@ -97,10 +97,10 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void getHeapDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
     DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
 
-    DumpDataResponse.Status status = myMemoryTable.getHeapDumpStatus(request.getProcessId(), request.getDumpTime());
+    DumpDataResponse.Status status = myMemoryTable.getHeapDumpStatus(request.getProcessId(), request.getSession(), request.getDumpTime());
     switch (status) {
       case SUCCESS:
-        byte[] data = myMemoryTable.getHeapDumpData(request.getProcessId(), request.getDumpTime());
+        byte[] data = myMemoryTable.getHeapDumpData(request.getProcessId(), request.getSession(), request.getDumpTime());
         responseBuilder.setData(ByteString.copyFrom(data));
       case NOT_READY:
       case FAILURE_UNKNOWN:
@@ -120,7 +120,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void listHeapDumpInfos(ListDumpInfosRequest request,
                                 StreamObserver<ListHeapDumpInfosResponse> responseObserver) {
     ListHeapDumpInfosResponse.Builder responseBuilder = ListHeapDumpInfosResponse.newBuilder();
-    List<HeapDumpInfo> dump = myMemoryTable.getHeapDumpInfoByRequest(request.getProcessId(), request);
+    List<HeapDumpInfo> dump = myMemoryTable.getHeapDumpInfoByRequest(request.getProcessId(), request.getSession(), request);
     responseBuilder.addAllInfos(dump);
     responseObserver.onNext(responseBuilder.build());
     responseObserver.onCompleted();
@@ -134,7 +134,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
     // and results in a NOT_FOUND status when the profiler tries to pull the info's data in quick successions.
     if (request.getEnabled() && response.getStatus() == TrackAllocationsResponse.Status.SUCCESS) {
       assert response.getInfo() != null;
-      myMemoryTable.insertOrReplaceAllocationsInfo(request.getProcessId(), response.getInfo());
+      myMemoryTable.insertOrReplaceAllocationsInfo(request.getProcessId(), request.getSession(), response.getInfo());
     }
 
     responseObserver.onNext(response);
@@ -152,7 +152,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void getAllocationDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
     DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
 
-    AllocationsInfo response = myMemoryTable.getAllocationsInfo(request.getProcessId(), request.getDumpTime());
+    AllocationsInfo response = myMemoryTable.getAllocationsInfo(request.getProcessId(), request.getSession(), request.getDumpTime());
     if (response == null) {
       responseBuilder.setStatus(DumpDataResponse.Status.NOT_FOUND);
     }
@@ -160,7 +160,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
     }
     else {
-      byte[] data = myMemoryTable.getAllocationDumpData(request.getProcessId(), request.getDumpTime());
+      byte[] data = myMemoryTable.getAllocationDumpData(request.getProcessId(), request.getSession(), request.getDumpTime());
       if (data == null) {
         responseBuilder.setStatus(DumpDataResponse.Status.NOT_READY);
       }
@@ -178,7 +178,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
                                   StreamObserver<AllocationEventsResponse> responseObserver) {
     AllocationEventsResponse.Builder builder = AllocationEventsResponse.newBuilder();
 
-    AllocationsInfo response = myMemoryTable.getAllocationsInfo(request.getProcessId(), request.getStartTime());
+    AllocationsInfo response = myMemoryTable.getAllocationsInfo(request.getProcessId(), request.getSession(), request.getStartTime());
     if (response == null) {
       builder.setStatus(AllocationEventsResponse.Status.NOT_FOUND);
     }
@@ -186,7 +186,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       builder.setStatus(AllocationEventsResponse.Status.FAILURE_UNKNOWN);
     }
     else {
-      AllocationEventsResponse events = myMemoryTable.getAllocationData(request.getProcessId(), request.getStartTime());
+      AllocationEventsResponse events = myMemoryTable.getAllocationData(request.getProcessId(), request.getSession(), request.getStartTime());
       if (events == null) {
         builder.setStatus(AllocationEventsResponse.Status.NOT_READY);
       }

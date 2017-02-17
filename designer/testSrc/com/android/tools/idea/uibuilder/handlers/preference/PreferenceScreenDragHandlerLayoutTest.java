@@ -15,31 +15,28 @@
  */
 package com.android.tools.idea.uibuilder.handlers.preference;
 
-import android.widget.ListView;
 import com.android.SdkConstants.PreferenceTags;
-import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneBuilder;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mockito;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.SdkConstants.FQCN_LIST_VIEW;
-
 public final class PreferenceScreenDragHandlerLayoutTest extends PreferenceScreenTestCase {
   public void testCommit() {
     NlModel model = buildModel();
     ScreenFixture screenFixture = surface().screen(model).withScale(1);
-    Scene scene = Scene.createScene(model, screenFixture.getScreen());
+    LayoutlibSceneBuilder builder = new LayoutlibSceneBuilder(model, screenFixture.getScreen());
+    Scene scene = builder.build();
     scene.buildDisplayList(new DisplayList(), 0);
 
     NlComponent screen = model.getComponents().get(0);
@@ -54,7 +51,7 @@ public final class PreferenceScreenDragHandlerLayoutTest extends PreferenceScree
 
     DragHandler handler =
       new PreferenceScreenDragHandler(editor(screenFixture.getScreen()), new ViewGroupHandler(), scene.getSceneComponent(screen),
-                                      Collections.singletonList(new TemporarySceneComponent(scene, preference)), DragType.MOVE);
+                                      Collections.singletonList(builder.createTemporaryComponent(preference)), DragType.MOVE);
 
     handler.update(180, 251, 0);
     handler.commit(360, 502, 0, InsertType.CREATE);

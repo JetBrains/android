@@ -17,8 +17,13 @@ package com.android.tools.idea.uibuilder.api;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.XmlBuilder;
-import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.FillPolicy;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.SegmentType;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.TargetProvider;
+import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.intellij.lang.annotations.Language;
@@ -26,13 +31,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Handler for views that are layout managers.
  */
 @SuppressWarnings("UnusedParameters")
-public class ViewGroupHandler extends ViewHandler {
+public class ViewGroupHandler extends ViewHandler implements TargetProvider {
 
   @Override
   @NotNull
@@ -75,11 +81,11 @@ public class ViewGroupHandler extends ViewHandler {
    * @param x the x coordinate of the drag in the Android coordinate system
    * @param y the y coordinate of the drag in the Android coordinate system
    */
-  public boolean acceptsChild(@NotNull NlComponent parent,
+  public boolean acceptsChild(@NotNull SceneComponent parent,
                               @NotNull NlComponent newChild,
                               @AndroidCoordinate int x,
                               @AndroidCoordinate int y) {
-    return acceptsChild(parent, newChild);
+    return acceptsChild(parent.getNlComponent(), newChild);
   }
 
   /**
@@ -203,8 +209,10 @@ public class ViewGroupHandler extends ViewHandler {
    * @param component the component we'll add targets on
    * @param isParent  is it the parent viewgroup component
    */
-  public void addTargets(@NotNull SceneComponent component, boolean isParent) {
-    // do nothing
+  @Override
+  @NotNull
+  public List<Target> createTargets(@NotNull SceneComponent component, boolean isParent) {
+    return new ArrayList<>();
   }
 
   /**
@@ -212,7 +220,7 @@ public class ViewGroupHandler extends ViewHandler {
    *
    * @param component
    */
-  public void clearAttributes(SceneComponent component) {
+  public void clearAttributes(NlComponent component) {
     // do nothing
   }
 }

@@ -21,11 +21,8 @@ import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.common.CodeLocation;
-import com.android.tools.profilers.memory.adapters.ClassObject;
+import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.memory.adapters.ClassObject.ClassAttribute;
-import com.android.tools.profilers.memory.adapters.HeapObject;
-import com.android.tools.profilers.memory.adapters.NamespaceObject;
-import com.android.tools.profilers.memory.adapters.PackageObject;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
@@ -39,10 +36,8 @@ import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
@@ -99,7 +94,8 @@ final class MemoryClassView extends AspectObserver {
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        createTreeNodeComparator(Comparator.comparingInt(NamespaceObject::getTotalCount))));
+        createTreeNodeComparator(Comparator.comparingInt(NamespaceObject::getTotalCount),
+                                 Comparator.comparingInt(NamespaceObject::getTotalCount))));
     myAttributeColumns.put(
       ClassAttribute.HEAP_COUNT,
       new AttributeColumn(
@@ -113,7 +109,8 @@ final class MemoryClassView extends AspectObserver {
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        createTreeNodeComparator(Comparator.comparingInt(NamespaceObject::getHeapCount))));
+        createTreeNodeComparator(Comparator.comparingInt(NamespaceObject::getHeapCount),
+                                 Comparator.comparingInt(NamespaceObject::getHeapCount))));
     myAttributeColumns.put(
       ClassAttribute.INSTANCE_SIZE,
       new AttributeColumn(
@@ -149,7 +146,8 @@ final class MemoryClassView extends AspectObserver {
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
-        createTreeNodeComparator(Comparator.comparingLong(NamespaceObject::getRetainedSize))));
+        createTreeNodeComparator(Comparator.comparingLong(NamespaceObject::getRetainedSize),
+                                 Comparator.comparingLong(NamespaceObject::getRetainedSize))));
   }
 
   @NotNull
@@ -220,8 +218,13 @@ final class MemoryClassView extends AspectObserver {
     assert myHeapObject != null;
     List<ClassAttribute> attributes = myHeapObject.getClassAttributes();
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree);
+    ClassAttribute sortAttribute = Collections.max(attributes, Comparator.comparingInt(ClassAttribute::getWeight));
     for (ClassAttribute attribute : attributes) {
-      builder.addColumn(myAttributeColumns.get(attribute).getBuilder());
+      ColumnTreeBuilder.ColumnBuilder columnBuilder = myAttributeColumns.get(attribute).getBuilder();
+      if (sortAttribute == attribute) {
+        columnBuilder.setInitialOrder(SortOrder.DESCENDING);
+      }
+      builder.addColumn(columnBuilder);
     }
     builder.setTreeSorter((Comparator<MemoryObjectTreeNode<NamespaceObject>> comparator, SortOrder sortOrder) -> {
       myTreeRoot.sort(comparator);

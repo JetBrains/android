@@ -23,10 +23,12 @@ import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SelectionModel;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.common.LoadingPanel;
+import com.android.tools.profilers.common.ProfilerButton;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComboBox;
@@ -36,13 +38,11 @@ import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.plaf.ButtonUI;
-import javax.swing.plaf.basic.BasicButtonUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -79,6 +79,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       .onChange(CpuProfilerAspect.CAPTURE, this::updateCaptureState)
       .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection)
       .onChange(CpuProfilerAspect.CAPTURE_DETAILS, this::updateCaptureDetails);
+
+    stage.getStudioProfilers().getTimeline().getSelectionRange().addDependency(this)
+      .onChange(Range.Aspect.RANGE, this::selectionChanged);
 
     StudioProfilers profilers = stage.getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
@@ -162,7 +165,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         .setLabelProvider(this::formatCaptureLabel)
         .setStroke(new BasicStroke(1))
         .setLabelColors(new Color(0x70000000, true), Color.BLACK, Color.lightGray, Color.WHITE)
-        .setClickHander(getStage()::setCapture)
+        .setClickHander(getStage()::setAndSelectCapture)
         .build();
 
 
@@ -218,42 +221,16 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     myProfilingModesCombo.setRenderer(new ProfilingModeCellRenderer());
   }
 
-  // TODO: extract this to a common place as we will probably need it in different profilers.
-  private static class ProfilerButton extends JButton {
-
-    private static final Color ON_HOVER_COLOR = new Color(0, 0, 0, (int)(0.1 * 255));
-
-    private static final int RADIUS = 8;
-
-    private static final int PADDING = 5;
-
-    public ProfilerButton() {
-      setOpaque(false);
-      addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseEntered(MouseEvent e) {
-          setBackground(ON_HOVER_COLOR);
+  private void selectionChanged() {
+    Range range = getStage().getStudioProfilers().getTimeline().getSelectionRange();
+    ImmutableList<SeriesData<CpuCapture>> captures = getStage().getTraceDurations().getSeries().getDataSeries().getDataForXRange(range);
+    for (SeriesData<CpuCapture> capture : captures) {
+      Range c = new Range(capture.x, capture.x + capture.value.getDuration());
+      if (!c.getIntersection(range).isEmpty()) {
+        if (!capture.value.equals(getStage().getCapture())) {
+          getStage().setCapture(capture.value);
         }
-
-        @Override
-        public void mouseExited(MouseEvent e) {
-          setBackground(UIUtil.TRANSPARENT_COLOR);
-        }
-      });
-      setBorder(BorderFactory.createEmptyBorder(PADDING, PADDING, PADDING, PADDING));
-    }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-      // As the background has a transparency level, we need to manually add it.
-      g.setColor(getBackground());
-      g.fillRoundRect(0, 0, getWidth(), getHeight(), RADIUS, RADIUS);
-      super.paintComponent(g);
-    }
-
-    @Override
-    public void updateUI() {
-      setUI((ButtonUI)BasicButtonUI.createUI(this));
+      }
     }
   }
 
@@ -267,7 +244,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     long sec = (micro % (1000000 * 60)) / 1000000;
     long mil = (micro % 1000000) / 1000;
 
-    return String.format("%d:%02d:%03d", min, sec, mil);
+    return String.format("%d:%02d.%03d", min, sec, mil);
   }
 
   @Override

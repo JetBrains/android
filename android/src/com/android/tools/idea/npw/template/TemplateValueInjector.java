@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.npw.ThemeHelper;
 import com.android.tools.idea.npw.module.ConfigureAndroidModuleStep;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
@@ -54,13 +53,14 @@ import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.android.tools.idea.instantapp.InstantApps.getAiaPluginVersion;
+import static com.android.tools.idea.instantapp.InstantApps.getAiaSdkLocation;
 
 /**
  * Utility class that sets common Template values used by a project Module.
  */
 public final class TemplateValueInjector {
   private static final String PROJECT_LOCATION_ID = "projectLocation";
-  private static final String AIA_SDK_ENV_VAR = "WH_SDK";
 
   private final Map<String, Object> myTemplateValues;
 
@@ -114,6 +114,7 @@ public final class TemplateValueInjector {
     addDebugKeyStore(myTemplateValues, null);
 
     myTemplateValues.put(ATTR_IS_NEW_PROJECT, true); // Android Modules are called Gradle Projects
+    myTemplateValues.put(ATTR_THEME_EXISTS, true); // New modules always have a theme (unless its a library, but it will have no activity)
 
     myTemplateValues.put(ATTR_MIN_API_LEVEL, buildVersion.getApiLevel());
     myTemplateValues.put(ATTR_MIN_API, buildVersion.getApiLevelStr());
@@ -207,11 +208,6 @@ public final class TemplateValueInjector {
     myTemplateValues.put("target.files", new HashSet<>());
     myTemplateValues.put("files.to.open", new ArrayList<>());
 
-    // TODO: Implement Instant App code
-    myTemplateValues.put("aiaSdkEnabled", isNotEmpty(System.getenv(AIA_SDK_ENV_VAR)));
-    myTemplateValues.put("alsoCreateIapk", false);
-    myTemplateValues.put("isInstantApp", false);
-
     // TODO: Check this one with Joe. It seems to be used by the old code on Import module, but can't find it on new code
     myTemplateValues.put(ATTR_CREATE_ACTIVITY, false);
     myTemplateValues.put(ATTR_PER_MODULE_REPOS, false);
@@ -280,6 +276,10 @@ public final class TemplateValueInjector {
    */
   @NotNull
   private static String determineGradlePluginVersion(@Nullable Project project) {
+    if (isNotEmpty(getAiaSdkLocation())) {
+      return getAiaPluginVersion();
+    }
+
     String defaultGradleVersion = AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion();
     if (project == null) {
       return defaultGradleVersion;

@@ -32,6 +32,7 @@ public abstract class SceneTest extends LayoutTestCase {
 
   protected NlModel myModel;
   protected Scene myScene;
+  protected SceneBuilder mySceneBuilder;
   protected ScreenFixture myScreen;
   protected SceneMouseInteraction myInteraction;
 
@@ -41,12 +42,12 @@ public abstract class SceneTest extends LayoutTestCase {
     myModel = createModel().build();
     myScreen = surface().screen(myModel);
     myScreen.withScale(1);
-    myScene = Scene.createScene(myModel, myScreen.getScreen());
+    mySceneBuilder = new LayoutlibSceneBuilder(myModel, myScreen.getScreen());
+    myScene = mySceneBuilder.build();
     myScene.setShowAllConstraints(true);
-    myScene.setDpiFactorOverride(1);
     myScene.setAnimate(false);
-    myScene.updateFrom(myModel);
-    myInteraction = new SceneMouseInteraction(myScene, myScreen.getScreen());
+    mySceneBuilder.update();
+    myInteraction = new SceneMouseInteraction(myScene);
   }
 
   @Override

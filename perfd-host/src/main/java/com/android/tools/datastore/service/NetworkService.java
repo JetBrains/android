@@ -92,7 +92,7 @@ public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase im
   @Override
   public void getHttpDetails(NetworkProfiler.HttpDetailsRequest request,
                              StreamObserver<NetworkProfiler.HttpDetailsResponse> responseObserver) {
-    NetworkProfiler.HttpDetailsResponse storedResponse = myNetworkTable.getHttpDetailsResponseById(request.getConnId(), request.getType());
+    NetworkProfiler.HttpDetailsResponse storedResponse = myNetworkTable.getHttpDetailsResponseById(request.getConnId(), request.getSession(), request.getType());
     NetworkProfiler.HttpDetailsResponse.Builder response = NetworkProfiler.HttpDetailsResponse.newBuilder();
     switch (request.getType()) {
       case REQUEST:

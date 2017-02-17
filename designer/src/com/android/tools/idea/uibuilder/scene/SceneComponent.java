@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -33,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -50,6 +50,7 @@ public class SceneComponent {
   public HashMap<String, Object> myCache = new HashMap<>();
   public SceneDecorator myDecorator;
   private boolean myAllowsAutoconnect = true;
+  private TargetProvider myTargetProvider;
 
   public enum DrawState {SUBDUED, NORMAL, HOVER, SELECTED}
 
@@ -69,8 +70,6 @@ public class SceneComponent {
 
   private ArrayList<Target> myTargets = new ArrayList<>();
 
-  private ViewGroupHandler myViewGroupHandler;
-
   private int myCurrentLeft = 0;
   private int myCurrentTop = 0;
   private int myCurrentRight = 0;
@@ -78,8 +77,6 @@ public class SceneComponent {
 
   private boolean myShowBaseline = false;
   private final boolean myAllowsFixedPosition;
-
-  boolean used = true;
 
   private Notch.Provider myNotchProvider;
 
@@ -97,10 +94,10 @@ public class SceneComponent {
   //region Constructor & toString
   /////////////////////////////////////////////////////////////////////////////
 
-  public SceneComponent(@NotNull Scene scene, @NotNull NlComponent component) {
+  protected SceneComponent(@NotNull Scene scene,
+                         @NotNull NlComponent component) {
     myScene = scene;
     myNlComponent = component;
-    updateFrom(component);
     myScene.addComponent(this);
     myDecorator = SceneDecorator.get(component);
     myAllowsAutoconnect = !myNlComponent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE);
@@ -318,8 +315,29 @@ public class SceneComponent {
   public void setPosition(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy) {
     myAnimatedDrawX.setValue(dx);
     myAnimatedDrawY.setValue(dy);
-    getNlComponent().x = Coordinates.dpToPx(getNlComponent().getModel(), dx);
-    getNlComponent().y = Coordinates.dpToPx(getNlComponent().getModel(), dy);
+    myNlComponent.x = Coordinates.dpToPx(myNlComponent.getModel(), dx);
+    myNlComponent.y = Coordinates.dpToPx(myNlComponent.getModel(), dy);
+  }
+
+  public void setPositionTarget(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy, long time) {
+    myAnimatedDrawX.setTarget(dx, time);
+    myAnimatedDrawY.setTarget(dy, time);
+    myNlComponent.x = Coordinates.dpToPx(myNlComponent.getModel(), dx);
+    myNlComponent.y = Coordinates.dpToPx(myNlComponent.getModel(), dy);
+  }
+
+  public void setSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height) {
+    myAnimatedDrawWidth.setValue(width);
+    myAnimatedDrawHeight.setValue(height);
+    myNlComponent.w = Coordinates.dpToPx(myNlComponent.getModel(), width);
+    myNlComponent.h = Coordinates.dpToPx(myNlComponent.getModel(), height);
+  }
+
+  public void setSizeTarget(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height, long time) {
+    myAnimatedDrawWidth.setTarget(width, time);
+    myAnimatedDrawHeight.setTarget(height, time);
+    myNlComponent.w = Coordinates.dpToPx(myNlComponent.getModel(), width);
+    myNlComponent.h = Coordinates.dpToPx(myNlComponent.getModel(), height);
   }
 
   @NotNull
@@ -353,7 +371,7 @@ public class SceneComponent {
 
   @AndroidDpCoordinate
   public int getBaseline() {
-    return myScene.pxToDp(myNlComponent.getBaseline());
+    return Coordinates.pxToDp(myNlComponent.getModel(), myNlComponent.getBaseline());
   }
 
   public void setSelected(boolean selected) {
@@ -380,11 +398,11 @@ public class SceneComponent {
     return myDrawState;
   }
 
-  public ArrayList<Target> getTargets() {
+  public List<Target> getTargets() {
     // myTargets is only modified in the dispatch thread so make sure we do not call this method from other threads.
     assert ApplicationManager.getApplication().isDispatchThread();
 
-    return myTargets;
+    return Collections.unmodifiableList(myTargets);
   }
 
   public SceneDecorator getDecorator() {
@@ -455,22 +473,6 @@ public class SceneComponent {
     return null;
   }
 
-  public ViewGroupHandler getViewGroupHandler() {
-    return myViewGroupHandler;
-  }
-
-  public void setViewGroupHandler(@Nullable ViewGroupHandler viewGroupHandler, boolean isParent) {
-    if (viewGroupHandler == myViewGroupHandler) {
-      return;
-    }
-    myTargets.clear();
-    myNotchProvider = null;
-    myViewGroupHandler = viewGroupHandler;
-    if (myViewGroupHandler != null) {
-      myViewGroupHandler.addTargets(this, isParent);
-    }
-  }
-
   /**
    * Returns true if the component intersects with the given rect
    *
@@ -492,21 +494,12 @@ public class SceneComponent {
    * Clear our attributes (delegating the action to our view handler)
    */
   public void clearAttributes() {
-    if (myViewGroupHandler != null) {
-      myViewGroupHandler.clearAttributes(this);
-    }
-    int count = myChildren.size();
-    for (int i = 0; i < count; i++) {
-      SceneComponent child = myChildren.get(i);
-      child.clearAttributes();
-    }
+    getNlComponent().clearAttributes();
   }
 
-  @NotNull
-  public Target addTarget(@NotNull Target target) {
+  protected void addTarget(@NotNull Target target) {
     target.setComponent(this);
     myTargets.add(target);
-    return target;
   }
 
   public void addChild(@NotNull SceneComponent child) {
@@ -523,28 +516,6 @@ public class SceneComponent {
 
   private void remove(@NotNull SceneComponent component) {
     myChildren.remove(component);
-  }
-
-  /**
-   * Update the current bounds given the NlComponent bounds. If the Scene
-   * is set to animate, the new bounds will be animated to from the current bounds.
-   *
-   * @param component the NlComponent to update from
-   */
-  public void updateFrom(@NotNull NlComponent component) {
-    if (myScene.getAnimate()) {
-      long time = System.currentTimeMillis();
-      myAnimatedDrawX.setTarget(myScene.pxToDp(component.x), time);
-      myAnimatedDrawY.setTarget(myScene.pxToDp(component.y), time);
-      myAnimatedDrawWidth.setTarget(myScene.pxToDp(component.w), time);
-      myAnimatedDrawHeight.setTarget(myScene.pxToDp(component.h), time);
-    }
-    else {
-      myAnimatedDrawX.setValue(myScene.pxToDp(component.x));
-      myAnimatedDrawY.setValue(myScene.pxToDp(component.y));
-      myAnimatedDrawWidth.setValue(myScene.pxToDp(component.w));
-      myAnimatedDrawHeight.setValue(myScene.pxToDp(component.h));
-    }
   }
 
   /**
@@ -598,11 +569,15 @@ public class SceneComponent {
     return needsRepaint;
   }
 
-  public void fillRect(@NotNull Rectangle rectangle) {
+  public Rectangle fillRect(@Nullable Rectangle rectangle) {
+    if (rectangle == null) {
+      rectangle = new Rectangle();
+    }
     rectangle.x = myCurrentLeft;
     rectangle.y = myCurrentTop;
     rectangle.width = myCurrentRight - myCurrentLeft;
     rectangle.height = myCurrentBottom - myCurrentTop;
+    return rectangle;
   }
 
   public void addHit(@NotNull SceneContext sceneTransform, @NotNull ScenePicker picker) {
@@ -656,5 +631,20 @@ public class SceneComponent {
 
   public boolean containsY(@AndroidDpCoordinate int yDp) {
     return getDrawY() <= yDp && yDp <= getDrawY() + getDrawHeight();
+  }
+
+  public void setTargetProvider(TargetProvider targetProvider, boolean isParent) {
+    if (myTargetProvider == targetProvider) {
+      return;
+    }
+    myTargetProvider = targetProvider;
+    updateTargets(isParent);
+  }
+
+  public void updateTargets(boolean isParent) {
+    myTargets.clear();
+    if (myTargetProvider != null) {
+      myTargetProvider.createTargets(this, isParent).forEach(this::addTarget);
+    }
   }
 }

@@ -53,10 +53,13 @@ public class SelectionHandles implements Iterable<SelectionHandle> {
    * @param distance the maximum distance from the handle center to accept
    * @return a {@link SelectionHandle} under the point, or null if not found
    */
-  public SelectionHandle findHandle(@AndroidCoordinate int x, @AndroidCoordinate int y,
-                                    @AndroidCoordinate int distance) {
+  public SelectionHandle findHandle(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y,
+                                    @AndroidDpCoordinate int distance) {
+    @AndroidCoordinate int ax = Coordinates.dpToPx(myComponent.getModel(), x);
+    @AndroidCoordinate int ay = Coordinates.dpToPx(myComponent.getModel(), y);
+    @AndroidCoordinate int aDistance = Coordinates.dpToPx(myComponent.getModel(), distance);
     for (SelectionHandle handle : myHandles) {
-      if (handle.contains(x, y, distance)) {
+      if (handle.contains(ax, ay, aDistance)) {
         return handle;
       }
     }
