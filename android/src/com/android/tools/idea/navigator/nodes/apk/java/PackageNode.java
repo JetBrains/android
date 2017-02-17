@@ -30,12 +30,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 class PackageNode extends ProjectViewNode<ApkPackage> {
-  @NotNull private final ApkPackage myApkPackage;
+  @NotNull private final ApkPackage myPackage;
+  @NotNull private final ClassFinder myClassFinder;
 
-  PackageNode(@NotNull Project project, @NotNull ApkPackage apkPackage, @NotNull ViewSettings settings) {
+  PackageNode(@NotNull Project project, @NotNull ApkPackage apkPackage, @NotNull ViewSettings settings, @NotNull ClassFinder classFinder) {
     super(project, apkPackage, settings);
     // TODO show members (methods/fields) if ViewSettings are configured to show those.
-    myApkPackage = apkPackage;
+    myPackage = apkPackage;
+    myClassFinder = classFinder;
   }
 
   @Override
@@ -46,38 +48,42 @@ class PackageNode extends ProjectViewNode<ApkPackage> {
     Collection<AbstractTreeNode> children = new ArrayList<>();
     ViewSettings settings = getSettings();
     if (!settings.isFlattenPackages()) {
-      addSubpackagesAsTree(myApkPackage.getSubpackages(), children, myProject, settings);
+      addSubpackagesAsTree(myPackage.getSubpackages(), children);
     }
-    for (ApkClass apkClass : myApkPackage.getClasses()) {
-      children.add(new ClassNode(myProject, apkClass, settings));
+    for (ApkClass apkClass : myPackage.getClasses()) {
+      children.add(new ClassNode(myProject, apkClass, settings, myClassFinder));
     }
     return children;
   }
 
-  private static void addSubpackagesAsTree(@NotNull Collection<ApkPackage> subpackages,
-                                           @NotNull Collection<AbstractTreeNode> children,
-                                           @NotNull Project project,
-                                           @NotNull ViewSettings settings) {
-    if (settings.isHideEmptyMiddlePackages()) {
+  private void addSubpackagesAsTree(@NotNull Collection<ApkPackage> subpackages, @NotNull Collection<AbstractTreeNode> children) {
+    if (getSettings().isHideEmptyMiddlePackages()) {
       for (ApkPackage subpackage : subpackages) {
         if (!subpackage.getClasses().isEmpty() || subpackage.doSubpackagesHaveClasses()) {
-          children.add(new PackageNode(project, subpackage, settings));
+          children.add(createChildNode(subpackage));
         }
         else {
-          addSubpackagesAsTree(subpackage.getSubpackages(), children, project, settings);
+          addSubpackagesAsTree(subpackage.getSubpackages(), children);
         }
       }
     }
     else {
       for (ApkPackage subpackage : subpackages) {
-        children.add(new PackageNode(project, subpackage, settings));
+        children.add(createChildNode(subpackage));
       }
     }
   }
 
+  @NotNull
+  private PackageNode createChildNode(@NotNull ApkPackage subpackage) {
+    assert myProject != null;
+    return new PackageNode(myProject, subpackage, getSettings(), myClassFinder);
+  }
+
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    return false;
+    String foundPackage = myClassFinder.findPackage(file);
+    return foundPackage != null && foundPackage.contains(myPackage.getFqn());
   }
 
   @Override
@@ -97,16 +103,16 @@ class PackageNode extends ProjectViewNode<ApkPackage> {
     ViewSettings settings = getSettings();
     String text;
     if (settings.isFlattenPackages()) {
-      text = myApkPackage.getFqn();
+      text = myPackage.getFqn();
     }
     else if (settings.isHideEmptyMiddlePackages()) {
-      ApkPackage parentPackage = myApkPackage.getParent();
+      ApkPackage parentPackage = myPackage.getParent();
       AbstractTreeNode parentNode = getParent();
       ApkPackage parentNodePackage = parentNode instanceof PackageNode ? ((PackageNode)parentNode).getValue() : null;
-      text = parentPackage != parentNodePackage ? myApkPackage.getFqn() : myApkPackage.getName();
+      text = parentPackage != parentNodePackage ? myPackage.getFqn() : myPackage.getName();
     }
     else {
-      text = myApkPackage.getName();
+      text = myPackage.getName();
     }
     return text;
   }
