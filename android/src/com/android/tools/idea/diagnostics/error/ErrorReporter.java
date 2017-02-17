@@ -43,6 +43,8 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.Consumer;
 import org.jetbrains.android.diagnostics.error.IdeaITNProxy;
 import org.jetbrains.android.util.AndroidBundle;
@@ -64,10 +66,20 @@ public class ErrorReporter extends ErrorReportSubmitter {
   @Override
   public boolean submit(@NotNull IdeaLoggingEvent[] events,
                         @Nullable String description,
-                        @NotNull Component parentComponent,
+                        @Nullable Component parentComponent,
                         @NotNull Consumer<SubmittedReportInfo> callback) {
     IdeaLoggingEvent event = events[0];
     ErrorBean bean = new ErrorBean(event.getThrowable(), IdeaLogger.ourLastActionId);
+    if (parentComponent == null) {
+      parentComponent = IdeFocusManager.findInstance().getFocusOwner();
+      if (parentComponent == null) {
+        parentComponent = IdeFrameImpl.getActiveFrame();
+      }
+      if (parentComponent == null) {
+        return false;
+      }
+    }
+
     final DataContext dataContext = DataManager.getInstance().getDataContext(parentComponent);
 
     bean.setDescription(description);
