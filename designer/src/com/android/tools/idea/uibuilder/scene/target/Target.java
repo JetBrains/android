@@ -42,6 +42,7 @@ public interface Target {
   void setComponent(@NotNull SceneComponent component);
   void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext);
   void setOver(boolean over);
+  String getToolTipText();
 
   void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y);
   void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget);

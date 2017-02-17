@@ -666,6 +666,10 @@ public class AnchorTarget extends ConstraintTarget {
     }
   }
 
+  @Override
+  public String getToolTipText() {
+    return (isConnected()) ? "Delete Connection" : "Create Connection";
+  }
   //endregion
   /////////////////////////////////////////////////////////////////////////////
 }

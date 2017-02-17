@@ -31,4 +31,9 @@ public class ClearConstraintsTarget extends ActionTarget implements ActionTarget
   public void apply(SceneComponent component) {
     ConstraintComponentUtilities.clearAttributes(component.getNlComponent());
   }
+
+  @Override
+  public String getToolTipText() {
+    return "Delete Constraints";
+  }
 }

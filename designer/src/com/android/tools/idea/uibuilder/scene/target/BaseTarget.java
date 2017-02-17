@@ -88,5 +88,10 @@ public abstract class BaseTarget implements Target {
                    transform.getSwingX(myRight), transform.getSwingY(myBottom));
   }
 
+  @Override
+  public String getToolTipText() {
+    return null;
+  }
+
   //endregion
 }
