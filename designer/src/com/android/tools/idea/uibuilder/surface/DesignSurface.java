@@ -1248,6 +1248,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
+   * Sets the tooltip for the design surface
+   *
+   * @param text
+   */
+  public void setDesignToolTip(@Nullable String text) {
+    myLayeredPane.setToolTipText(text);
+  }
+
+  /**
    * Invalidates the current model and request a render of the layout. This will re-inflate the layout and render it.
    */
   @Override

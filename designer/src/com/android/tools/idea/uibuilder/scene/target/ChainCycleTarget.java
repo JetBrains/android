@@ -60,4 +60,9 @@ public class ChainCycleTarget extends ActionTarget {
       }
     }
   }
+
+  @Override
+  public String getToolTipText() {
+     return "Cycle Chain mode";
+  }
 }

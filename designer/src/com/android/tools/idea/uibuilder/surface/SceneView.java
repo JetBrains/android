@@ -53,7 +53,6 @@ public abstract class SceneView {
     myModel = model;
     mySceneBuilder = new LayoutlibSceneBuilder(model, this);
     myScene = mySceneBuilder.build();
-
     myModel.getSelectionModel().addListener(new SelectionListener() {
       @Override
       public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
@@ -217,5 +216,13 @@ public abstract class SceneView {
 
   public SceneBuilder getSceneBuilder() {
     return mySceneBuilder;
+  }
+
+  /**
+   * Sets the tool tip to be shown
+   * @param toolTip
+   */
+  public void setToolTip(String toolTip) {
+     mySurface.setDesignToolTip(toolTip);
   }
 }
