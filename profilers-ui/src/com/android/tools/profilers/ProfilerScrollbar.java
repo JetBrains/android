@@ -60,6 +60,7 @@ public final class ProfilerScrollbar extends JBScrollBar {
     myAspectObserver = new AspectObserver();
     myTimeline = timeline;
     myTimeline.getViewRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::modelChanged);
+    myTimeline.getDataRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::modelChanged);
 
     setUI(new ButtonlessScrollBarUI() {
       /**
@@ -113,6 +114,7 @@ public final class ProfilerScrollbar extends JBScrollBar {
     int viewRelativeMinMs = Math.max(0, (int)((viewRangeUs.getMin() - dataRangeUs.getMin()) / MS_TO_US));
 
     setValues(viewRelativeMinMs, viewExtentMs, 0, dataExtentMs);
+    setBlockIncrement(viewExtentMs);
     myUpdating = false;
   }
 
