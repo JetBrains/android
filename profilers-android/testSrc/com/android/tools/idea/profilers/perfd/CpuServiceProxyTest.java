@@ -18,6 +18,8 @@ package com.android.tools.idea.profilers.perfd;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.profilers.LegacyCpuTraceProfiler;
+import com.android.tools.profiler.proto.CpuProfiler.*;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
@@ -43,7 +45,7 @@ public class CpuServiceProxyTest {
     when(mockDevice.isOnline()).thenReturn(true);
     when(mockDevice.getClients()).thenReturn(new Client[0]);
     ManagedChannel channel = InProcessChannelBuilder.forName("CpuServiceProxyTest").build();
-    CpuServiceProxy proxy = new CpuServiceProxy(mockDevice, channel);
+    CpuServiceProxy proxy = new CpuServiceProxy(mockDevice, channel, new FakeLegacyCpuTraceProfiler());
 
     ServerServiceDefinition serverDefinition = proxy.getServiceDefinition();
     Collection<MethodDescriptor<?, ?>> allMethods = CpuServiceGrpc.getServiceDescriptor().getMethods();
@@ -51,5 +53,22 @@ public class CpuServiceProxyTest {
       serverDefinition.getMethods().stream().map(method -> method.getMethodDescriptor()).collect(Collectors.toSet());
     assertEquals(allMethods.size(), definedMethods.size());
     definedMethods.containsAll(allMethods);
+  }
+
+  private static class FakeLegacyCpuTraceProfiler implements LegacyCpuTraceProfiler {
+    @Override
+    public CpuProfilingAppStartResponse startProfilingApp(CpuProfilingAppStartRequest request) {
+      return CpuProfilingAppStartResponse.newBuilder().build();
+    }
+
+    @Override
+    public CpuProfilingAppStopResponse stopProfilingApp(CpuProfilingAppStopRequest request) {
+      return CpuProfilingAppStopResponse.newBuilder().build();
+    }
+
+    @Override
+    public ProfilingStateResponse checkAppProfilingState(ProfilingStateRequest request) {
+      return ProfilingStateResponse.newBuilder().build();
+    }
   }
 }
