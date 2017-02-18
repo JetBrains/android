@@ -53,6 +53,7 @@ iml_module(
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/templates",
         "//tools/idea/java/jdkAnnotations",
+        "//tools/idea/java/mockJDK-1.7",
     ],
     test_resources = ["testData"],
     test_runtime_deps = ["//tools/adt/idea/adt-branding"],

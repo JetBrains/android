@@ -28,7 +28,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.NullableLazyValue;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import org.jetbrains.annotations.NotNull;
@@ -57,14 +59,19 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   public boolean myIgnoreActionEvents;
   @NotNull private JComboBox myDeviceCombo;
   @NotNull private JComboBox myClientCombo;
-  @Nullable private String myCandidateClientName;
+  private final NullableLazyValue<String> myCandidateClientName = new NullableLazyValue<String>() {
+    @Nullable
+    @Override
+    protected String compute() {
+      return getApplicationName();
+    }
+  };
   @NotNull private DeviceRenderer.DeviceComboBoxRenderer myDeviceRenderer;
 
   public DevicePanel(@NotNull Project project, @NotNull DeviceContext context) {
     myProject = project;
     myDeviceContext = context;
     myPreferredClients = Maps.newHashMap();
-    myCandidateClientName = getApplicationName();
     Disposer.register(myProject, this);
 
     initializeDeviceCombo();
@@ -161,10 +168,10 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
 
   @Override
   public void bridgeChanged(final AndroidDebugBridge bridge) {
-    UIUtil.invokeLaterIfNeeded(() -> {
-      myBridge = bridge;
-      updateDeviceCombo();
-    });
+    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() -> UIUtil.invokeLaterIfNeeded(() -> {
+        myBridge = bridge;
+        updateDeviceCombo();
+      }));
   }
 
   @Override
@@ -289,6 +296,6 @@ public class DevicePanel implements AndroidDebugBridge.IDeviceChangeListener, An
   @Nullable
   private String getPreferredClientForDevice(String deviceName) {
     String client = myPreferredClients.get(deviceName);
-    return client == null ? myCandidateClientName : client;
+    return client == null ? myCandidateClientName.getValue() : client;
   }
 }

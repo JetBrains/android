@@ -18,10 +18,10 @@ package com.android.tools.idea.gradle.structure;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.AndroidNewModuleAction;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.structure.editors.AndroidModuleConfigurable;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectConfigurable;
@@ -483,12 +483,6 @@ public class AndroidProjectStructureConfigurable extends BaseConfigurable implem
   @NotNull
   public String getId() {
     return "android.project.structure";
-  }
-
-  @Override
-  @Nullable
-  public Runnable enableSearch(String option) {
-    return null;
   }
 
   @Override

@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<idea-plugin version="2">
+<idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <fileEditorProvider implementation="com.android.tools.idea.uibuilder.layeredimage.LayeredImageEditorProvider" />
   </extensions>

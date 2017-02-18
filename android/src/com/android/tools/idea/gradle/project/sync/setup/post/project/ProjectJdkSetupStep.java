@@ -25,6 +25,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -87,7 +88,9 @@ public class ProjectJdkSetupStep extends ProjectSetupStep {
 
     String homePath = ideJdk.getHomePath();
     if (homePath != null) {
-      myJdks.setJdk(project, ideJdk);
+      Sdk jdk = ideJdk;
+      TransactionGuard.getInstance().submitTransactionLater(project, () ->
+        ApplicationManager.getApplication().runWriteAction(() -> myJdks.setJdk(project, jdk)));
       PostProjectBuildTasksExecutor.getInstance(project).updateJavaLangLevelAfterBuild();
     }
   }

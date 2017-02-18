@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.variant.view;
 
 import org.jetbrains.android.AndroidTestCase;
 
-import static org.easymock.classextension.EasyMock.*;
+import static org.easymock.EasyMock.*;
 
 /**
  * Tests for {@link BuildVariantView}.

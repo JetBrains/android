@@ -60,7 +60,6 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.Consumer;
-import com.intellij.util.SmartList;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +68,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.RegEx;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -88,7 +86,6 @@ import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
-import static com.intellij.util.lang.CompoundRuntimeException.throwIfNotEmpty;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 /**
@@ -209,13 +206,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
       ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
       Project[] openProjects = projectManager.getOpenProjects();
       if (openProjects.length > 0) {
-        List<Throwable> exceptions = new SmartList<>();
-        try {
-          PlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0], exceptions);
-        }
-        finally {
-          throwIfNotEmpty(exceptions);
-        }
+        PlatformTestCase.closeAndDisposeProjectAndCheckThatNoOpenProjects(openProjects[0]);
       }
     }
     finally {

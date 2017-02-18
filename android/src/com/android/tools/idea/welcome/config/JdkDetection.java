@@ -139,8 +139,8 @@ public class JdkDetection {
     }
 
     @Override
-    public void onError(@NotNull Exception error) {
-      super.onError(error);
+    public void onThrowable(@NotNull Throwable error) {
+      super.onThrowable(error);
       myResult.onCancel();
     }
 

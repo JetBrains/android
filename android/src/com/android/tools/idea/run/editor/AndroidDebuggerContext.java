@@ -55,6 +55,11 @@ public class AndroidDebuggerContext implements JDOMExternalizable {
         entry.getValue().readExternal(optionElement);
       }
     }
+
+    // check DEBUGGER_TYPE consistency
+    if (getAndroidDebugger() == null) {
+      DEBUGGER_TYPE = getDefaultAndroidDebuggerType();
+    }
   }
 
   @Override

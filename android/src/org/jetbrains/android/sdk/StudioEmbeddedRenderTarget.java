@@ -50,7 +50,11 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
     // Bundled path
     "/plugins/android/lib/layoutlib/",
     // Development path
-    "/../../prebuilts/studio/layoutlib/"
+    "/../../prebuilts/studio/layoutlib/",
+    // IDEA path
+    "/community/android/tools-base/layoutlib/",
+    // IDEA community path
+    "/android/tools-base/layoutlib/"
   };
   private final String myBasePath;
 

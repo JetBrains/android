@@ -137,8 +137,7 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
   protected JBPopup createPopup(Runnable onDispose, DataContext context) {
     DefaultActionGroup group = createPopupActionGroup();
     JBPopupFactory factory = JBPopupFactory.getInstance();
-    ListPopup popup = factory.createActionGroupPopup(null, group, context, JBPopupFactory.ActionSelectionAid.SPEEDSEARCH, true, onDispose,
-                                                     getMaxRows());
+    ListPopup popup = factory.createActionGroupPopup(null, group, context, true, onDispose, getMaxRows());
     popup.setMinimumSize(new Dimension(getMinWidth(), getMinHeight()));
     return popup;
   }

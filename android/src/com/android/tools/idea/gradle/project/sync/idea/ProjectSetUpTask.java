@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -35,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.Projects.open;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.invokeLater;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 class ProjectSetUpTask implements ExternalProjectRefreshCallback {
@@ -106,7 +106,7 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       runnable.run();
     }
     else {
-      invokeLater(myProject, runnable);
+      TransactionGuard.getInstance().submitTransactionLater(myProject, runnable);
     }
   }
 

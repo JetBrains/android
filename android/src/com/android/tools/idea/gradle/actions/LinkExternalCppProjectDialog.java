@@ -106,7 +106,7 @@ public class LinkExternalCppProjectDialog extends DialogWrapper {
 
     descriptor.setTitle("Choose C++ Project Location");
 
-    myProjectPathTextField.addBrowseFolderListener(null, new ComponentWithBrowseButton.BrowseFolderActionListener<>(
+    myProjectPathTextField.addActionListener(new ComponentWithBrowseButton.BrowseFolderActionListener<>(
       "Select C++ Project Location", null, myProjectPathTextField, null, descriptor, TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT));
 
     myProjectPathResultLabel.setVisible(false);
