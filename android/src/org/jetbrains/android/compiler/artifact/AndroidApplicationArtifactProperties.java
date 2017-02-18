@@ -3,13 +3,11 @@ package org.jetbrains.android.compiler.artifact;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.CharsetToolkit;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactProperties;
 import com.intellij.packaging.ui.ArtifactEditorContext;
 import com.intellij.packaging.ui.ArtifactPropertiesEditor;
-import com.intellij.util.Base64;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.intellij.util.xmlb.annotations.Transient;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
@@ -21,8 +19,10 @@ import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +38,7 @@ public class AndroidApplicationArtifactProperties extends ArtifactProperties<And
   private String myKeyPassword = "";
 
   private boolean myRunProGuard;
-  private List<String> myProGuardCfgFiles = new ArrayList<String>();
+  private List<String> myProGuardCfgFiles = new ArrayList<>();
 
   @Override
   public void onBuildFinished(@NotNull Artifact artifact, @NotNull CompileContext context) {
@@ -146,23 +146,23 @@ public class AndroidApplicationArtifactProperties extends ArtifactProperties<And
   @Transient
   @NotNull
   public String getPlainKeystorePassword() {
-    return new String(Base64.decode(myKeyStorePassword));
+    return new String(Base64.getDecoder().decode((myKeyStorePassword)), StandardCharsets.UTF_8);
   }
 
   @Transient
   public void setPlainKeystorePassword(@NotNull String password) {
-    myKeyStorePassword = Base64.encode(password.getBytes(CharsetToolkit.UTF8_CHARSET));
+    myKeyStorePassword = Base64.getEncoder().encodeToString(password.getBytes(StandardCharsets.UTF_8));
   }
 
   @Transient
   @NotNull
   public String getPlainKeyPassword() {
-    return new String(Base64.decode(myKeyPassword), CharsetToolkit.UTF8_CHARSET);
+    return new String(Base64.getDecoder().decode(myKeyPassword), StandardCharsets.UTF_8);
   }
 
   @Transient
   public void setPlainKeyPassword(@NotNull String password) {
-    myKeyPassword = Base64.encode(password.getBytes(CharsetToolkit.UTF8_CHARSET));
+    myKeyPassword = Base64.getEncoder().encodeToString(password.getBytes(StandardCharsets.UTF_8));
   }
 
   public boolean isRunProGuard() {

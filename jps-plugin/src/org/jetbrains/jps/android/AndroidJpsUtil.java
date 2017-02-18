@@ -19,11 +19,9 @@ import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.ModuleChunk;
 import org.jetbrains.jps.android.builder.AndroidAarDepsBuildTarget;
 import org.jetbrains.jps.android.model.*;
 import org.jetbrains.jps.android.model.impl.JpsAndroidFinalPackageElement;
-import org.jetbrains.jps.android.model.impl.JpsAndroidModuleExtensionImpl;
 import org.jetbrains.jps.builders.java.JavaModuleBuildTargetType;
 import org.jetbrains.jps.builders.storage.BuildDataPaths;
 import org.jetbrains.jps.incremental.*;
@@ -34,7 +32,6 @@ import org.jetbrains.jps.incremental.messages.BuildMessage;
 import org.jetbrains.jps.incremental.messages.CompilerMessage;
 import org.jetbrains.jps.incremental.storage.BuildDataManager;
 import org.jetbrains.jps.model.JpsElement;
-import org.jetbrains.jps.model.JpsProject;
 import org.jetbrains.jps.model.JpsSimpleElement;
 import org.jetbrains.jps.model.artifact.JpsArtifact;
 import org.jetbrains.jps.model.artifact.JpsArtifactService;
@@ -62,18 +59,14 @@ public class AndroidJpsUtil {
   @NonNls public static final String ANDROID_FACET_TYPE_ID = "android";
   @NonNls public static final String ANDROID_FACET_NAME = "Android";
 
-  @NonNls public static final String ANDROID_STORAGE_DIR = "android";
   @NonNls private static final String RESOURCE_CACHE_STORAGE = "res_cache";
   @NonNls private static final String INTERMEDIATE_ARTIFACTS_STORAGE = "intermediate_artifacts";
 
-  @NonNls public static final String GENERATED_RESOURCES_DIR_NAME = "generated_resources";
   @NonNls public static final String AAPT_GENERATED_SOURCE_ROOT_NAME = "aapt";
   @NonNls public static final String AIDL_GENERATED_SOURCE_ROOT_NAME = "aidl";
   @NonNls public static final String RENDERSCRIPT_GENERATED_SOURCE_ROOT_NAME = "rs";
   @NonNls public static final String BUILD_CONFIG_GENERATED_SOURCE_ROOT_NAME = "build_config";
-  @NonNls private static final String GENERATED_SOURCES_FOLDER_NAME = "generated_sources";
   @NonNls private static final String PREPROCESSED_MANIFEST_FOLDER_NAME = "preprocessed_manifest";
-  @NonNls private static final String COPIED_SOURCES_FOLDER_NAME = "copied_sources";
   @NonNls private static final String MANIFEST_TAG = "manifest";
 
   private AndroidJpsUtil() {
@@ -137,7 +130,7 @@ public class AndroidJpsUtil {
 
   @Nullable
   public static JpsAndroidModuleExtension getExtension(@NotNull JpsModule module) {
-    return module.getContainer().getChild(JpsAndroidModuleExtensionImpl.KIND);
+    return AndroidJpsProjectUtil.getExtension(module);
   }
 
   @NotNull
@@ -177,7 +170,7 @@ public class AndroidJpsUtil {
 
   @NotNull
   public static File getDirectoryForIntermediateArtifacts(@NotNull BuildDataPaths dataPaths) {
-    final File androidStorage = new File(dataPaths.getDataStorageRoot(), ANDROID_STORAGE_DIR);
+    final File androidStorage = new File(dataPaths.getDataStorageRoot(), AndroidJpsProjectUtil.ANDROID_STORAGE_DIR);
     return new File(androidStorage, INTERMEDIATE_ARTIFACTS_STORAGE);
   }
 
@@ -532,7 +525,7 @@ public class AndroidJpsUtil {
     if (resDir != null && (!checkExistence || resDir.exists())) {
       result.add(resDir.getPath());
     }
-    final File generatedResourcesStorage = getGeneratedResourcesStorage(extension.getModule(), dataPaths);
+    final File generatedResourcesStorage = AndroidJpsProjectUtil.getGeneratedResourcesStorage(extension.getModule(), dataPaths);
     if (!checkExistence || generatedResourcesStorage.exists()) {
       result.add(generatedResourcesStorage.getPath());
     }
@@ -596,7 +589,7 @@ public class AndroidJpsUtil {
 
   @NotNull
   public static File getResourcesCacheDir(@NotNull JpsModule module, @NotNull BuildDataPaths dataPaths) {
-    final File androidStorage = new File(dataPaths.getDataStorageRoot(), ANDROID_STORAGE_DIR);
+    final File androidStorage = new File(dataPaths.getDataStorageRoot(), AndroidJpsProjectUtil.ANDROID_STORAGE_DIR);
     return new File(new File(androidStorage, RESOURCE_CACHE_STORAGE), module.getName());
   }
 
@@ -674,19 +667,12 @@ public class AndroidJpsUtil {
 
   @NotNull
   public static File getGeneratedSourcesStorage(@NotNull JpsModule module, BuildDataManager dataManager) {
-    return getGeneratedSourcesStorage(module, dataManager.getDataPaths());
-  }
-
-  @NotNull
-  public static File getGeneratedSourcesStorage(@NotNull JpsModule module, final BuildDataPaths dataPaths) {
-    final File targetDataRoot = dataPaths.getTargetDataRoot(
-      new ModuleBuildTarget(module, JavaModuleBuildTargetType.PRODUCTION));
-    return getStorageDir(targetDataRoot, GENERATED_SOURCES_FOLDER_NAME);
+    return AndroidJpsProjectUtil.getGeneratedSourcesStorage(module, dataManager.getDataPaths());
   }
 
   @NotNull
   public static File getPreprocessedManifestDirectory(@NotNull JpsModule module, @NotNull BuildDataPaths dataPaths) {
-    final File androidStorage = new File(dataPaths.getDataStorageRoot(), ANDROID_STORAGE_DIR);
+    final File androidStorage = new File(dataPaths.getDataStorageRoot(), AndroidJpsProjectUtil.ANDROID_STORAGE_DIR);
     return new File(new File(androidStorage, PREPROCESSED_MANIFEST_FOLDER_NAME), module.getName());
   }
 
@@ -697,35 +683,6 @@ public class AndroidJpsUtil {
     }
     final File dir = getPreprocessedManifestDirectory(extension.getModule(), dataPaths);
     return new File(dir, SdkConstants.FN_ANDROID_MANIFEST_XML);
-  }
-
-  @NotNull
-  public static File getCopiedSourcesStorage(@NotNull JpsModule module, @NotNull BuildDataPaths dataPaths) {
-    final File targetDataRoot = dataPaths.getTargetDataRoot(
-      new ModuleBuildTarget(module, JavaModuleBuildTargetType.PRODUCTION));
-    return getStorageDir(targetDataRoot, COPIED_SOURCES_FOLDER_NAME);
-  }
-
-  @NotNull
-  public static File getGeneratedResourcesStorage(@NotNull JpsModule module, BuildDataManager dataManager) {
-    return getGeneratedResourcesStorage(module, dataManager.getDataPaths());
-  }
-
-  @NotNull
-  private static File getGeneratedResourcesStorage(@NotNull JpsModule module, @NotNull BuildDataPaths dataPaths) {
-    final File targetDataRoot = dataPaths.getTargetDataRoot(
-      new ModuleBuildTarget(module, JavaModuleBuildTargetType.PRODUCTION));
-    return getStorageDir(targetDataRoot, GENERATED_RESOURCES_DIR_NAME);
-  }
-
-  @NotNull
-  public static File getStorageFile(@NotNull File dataStorageRoot, @NotNull String storageName) {
-    return new File(getStorageDir(dataStorageRoot, storageName), storageName);
-  }
-
-  @NotNull
-  public static File getStorageDir(@NotNull File dataStorageRoot, @NotNull String storageName) {
-    return new File(new File(dataStorageRoot, ANDROID_STORAGE_DIR), storageName);
   }
 
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
@@ -873,40 +830,6 @@ public class AndroidJpsUtil {
       result.add(JpsPathUtil.urlToFile(path));
     }
     return result;
-  }
-
-  /**
-   * Indicates whether the given project is a non-Gradle Android project.
-   *
-   * @param project the given project.
-   * @return {@code true} if the the given project is a non-Gradle Android project, {@code false} otherwise.
-   */
-  public static boolean isAndroidProjectWithoutGradleFacet(@NotNull JpsProject project) {
-    return isAndroidProjectWithoutGradleFacet(project.getModules());
-  }
-
-  /**
-   * Indicates whether the given modules belong to a non-Gradle Android project.
-   *
-   * @param chunk the given modules.
-   * @return {@code true} if the the given modules belong to a non-Gradle Android project, {@code false} otherwise.
-   */
-  public static boolean isAndroidProjectWithoutGradleFacet(@NotNull ModuleChunk chunk) {
-    return isAndroidProjectWithoutGradleFacet(chunk.getModules());
-  }
-
-  private static boolean isAndroidProjectWithoutGradleFacet(@NotNull Collection<JpsModule> modules) {
-    boolean hasAndroidFacet = false;
-    for (JpsModule module : modules) {
-      JpsAndroidModuleExtension androidFacet = getExtension(module);
-      if (androidFacet != null) {
-        hasAndroidFacet = true;
-        if (androidFacet.isGradleProject()) {
-          return false;
-        }
-      }
-    }
-    return hasAndroidFacet;
   }
 
   public static void collectRTextFilesFromAarDeps(@NotNull JpsModule module, @NotNull Collection<Pair<String, String>> result) {

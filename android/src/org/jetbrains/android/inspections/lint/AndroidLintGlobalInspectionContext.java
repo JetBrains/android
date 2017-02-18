@@ -17,11 +17,11 @@ import com.intellij.codeInspection.GlobalInspectionContext;
 import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.codeInspection.ex.Tools;
 import com.intellij.codeInspection.lang.GlobalInspectionContextExtension;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -73,7 +73,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       }
     }
 
-    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+    if (!AndroidFacet.hasAndroid(project)) {
       return;
     }
 
@@ -130,7 +130,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
     int scopeType = scope.getScopeType();
     switch (scopeType) {
       case AnalysisScope.MODULE: {
-        SearchScope searchScope = scope.toSearchScope();
+        SearchScope searchScope = ReadAction.compute(scope::toSearchScope);
         if (searchScope instanceof ModuleWithDependenciesScope) {
           ModuleWithDependenciesScope s = (ModuleWithDependenciesScope)searchScope;
           if (!s.isSearchInLibraries()) {
@@ -143,7 +143,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       case AnalysisScope.VIRTUAL_FILES:
       case AnalysisScope.UNCOMMITTED_FILES: {
         files = Lists.newArrayList();
-        SearchScope searchScope = scope.toSearchScope();
+        SearchScope searchScope = ReadAction.compute(scope::toSearchScope);
         if (searchScope instanceof LocalSearchScope) {
           final LocalSearchScope localSearchScope = (LocalSearchScope)searchScope;
           final PsiElement[] elements = localSearchScope.getScope();

@@ -21,12 +21,10 @@ import com.android.tools.idea.diagnostics.crash.CrashReport;
 import com.android.tools.idea.diagnostics.crash.CrashReporter;
 import com.google.common.collect.Maps;
 import com.intellij.diagnostic.AbstractMessage;
-import com.intellij.diagnostic.IdeErrorsDialog;
+import com.intellij.diagnostic.ITNReporterKt;
 import com.intellij.diagnostic.ReportMessages;
 import com.intellij.errorreport.bean.ErrorBean;
 import com.intellij.ide.DataManager;
-import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
 import com.intellij.idea.IdeaLogger;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -39,13 +37,14 @@ import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
 import com.intellij.openapi.diagnostic.SubmittedReportInfo;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.Consumer;
 import org.jetbrains.android.diagnostics.error.IdeaITNProxy;
 import org.jetbrains.android.util.AndroidBundle;
@@ -58,6 +57,7 @@ import java.util.Map;
 public class ErrorReporter extends ErrorReportSubmitter {
   private static final String FEEDBACK_TASK_TITLE = "Submitting error report";
 
+  @NotNull
   @Override
   public String getReportActionText() {
     return AndroidBundle.message("error.report.to.google.action");
@@ -70,27 +70,27 @@ public class ErrorReporter extends ErrorReportSubmitter {
                         @NotNull Consumer<SubmittedReportInfo> callback) {
     IdeaLoggingEvent event = events[0];
     ErrorBean bean = new ErrorBean(event.getThrowable(), IdeaLogger.ourLastActionId);
+    if (parentComponent == null) {
+      parentComponent = IdeFocusManager.findInstance().getFocusOwner();
+      if (parentComponent == null) {
+        parentComponent = IdeFrameImpl.getActiveFrame();
+      }
+      if (parentComponent == null) {
+        return false;
+      }
+    }
+
     final DataContext dataContext = DataManager.getInstance().getDataContext(parentComponent);
 
     bean.setDescription(description);
     bean.setMessage(event.getMessage());
 
-    Throwable t = event.getThrowable();
-    if (t != null) {
-      final PluginId pluginId = IdeErrorsDialog.findPluginId(t);
-      if (pluginId != null) {
-        final IdeaPluginDescriptor ideaPluginDescriptor = PluginManager.getPlugin(pluginId);
-        if (ideaPluginDescriptor != null && (!ideaPluginDescriptor.isBundled() || ideaPluginDescriptor.allowBundledUpdate())) {
-          bean.setPluginName(ideaPluginDescriptor.getName());
-          bean.setPluginVersion(ideaPluginDescriptor.getVersion());
-        }
-      }
-    }
+    ITNReporterKt.setPluginInfo(event, bean);
 
     Object data = event.getData();
 
     // Early escape (and no UI impact) if these are analytics events being pushed from the platform
-    if (handleAnalyticsReports(t, data)) {
+    if (handleAnalyticsReports(event.getThrowable(), data)) {
       return true;
     }
 
@@ -129,7 +129,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
         .getKeyValuePairs(null, null, bean, IdeaLogger.getOurCompilationTimestamp(), ApplicationManager.getApplication(),
                           (ApplicationInfoEx)ApplicationInfo.getInstance(), ApplicationNamesInfo.getInstance(),
                           UpdateSettings.getInstance());
-      feedbackTask = new SubmitCrashReportTask(project, FEEDBACK_TASK_TITLE, true, t, pair2map(kv), successCallback, errorCallback);
+      feedbackTask = new SubmitCrashReportTask(project, FEEDBACK_TASK_TITLE, true, event.getThrowable(), pair2map(kv), successCallback, errorCallback);
     }
 
     if (project == null) {

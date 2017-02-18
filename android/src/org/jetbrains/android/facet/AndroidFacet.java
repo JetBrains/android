@@ -33,13 +33,14 @@ import com.intellij.ProjectTopics;
 import com.intellij.facet.*;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
+import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.startup.StartupManager;
@@ -178,6 +179,10 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     getProperties().PROJECT_TYPE = type;
   }
 
+  public static boolean hasAndroid(@NotNull Project project) {
+    return ReadAction.compute(() -> !project.isDisposed() && ProjectFacetManager.getInstance(project).hasFacets(ID));
+  }
+
   /**
    * Returns the main source provider for the project. For projects that are not backed by an {@link AndroidProject}, this method returns a
    * {@link SourceProvider} wrapper which provides information about the old project.
@@ -277,7 +282,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
       ModuleSourceAutogenerating.initialize(this);
     });
 
-    getModule().getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
+    getModule().getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
       private Sdk myPrevSdk;
 
       @Override

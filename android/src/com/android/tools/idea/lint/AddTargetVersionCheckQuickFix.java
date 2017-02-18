@@ -16,7 +16,6 @@
 package com.android.tools.idea.lint;
 
 import com.android.sdklib.SdkVersionInfo;
-import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.generation.surroundWith.JavaWithIfSurrounder;
 import com.intellij.codeInspection.JavaSuppressionUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -95,9 +94,6 @@ public class AddTargetVersionCheckQuickFix implements AndroidLintQuickFix {
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
     Document document = documentManager.getDocument(file);
     if (document == null) {
-      return;
-    }
-    if (!FileModificationService.getInstance().prepareFileForWrite(file)) {
       return;
     }
     PsiElement[] elements = {anchorStatement};

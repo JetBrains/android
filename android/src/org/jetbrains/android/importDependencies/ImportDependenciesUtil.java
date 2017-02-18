@@ -10,7 +10,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtil;
-import com.intellij.openapi.project.ModuleAdapter;
+import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -67,7 +67,7 @@ public class ImportDependenciesUtil {
             }
             else {
               final MessageBusConnection connection = module.getMessageBus().connect();
-              connection.subscribe(ProjectTopics.MODULES, new ModuleAdapter() {
+              connection.subscribe(ProjectTopics.MODULES, new ModuleListener() {
                 @Override
                 public void moduleAdded(@NotNull final Project project, @NotNull final Module addedModule) {
                   if (module.equals(addedModule)) {

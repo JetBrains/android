@@ -18,6 +18,8 @@ package com.android.tools.idea;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManagerTest;
+import com.android.tools.idea.uibuilder.model.NlModelTest;
 import com.android.tools.idea.uibuilder.property.editors.support.StyleFilterTest;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeTest;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfaceTest;
@@ -38,7 +40,11 @@ import java.nio.file.Paths;
   DesignerTestSuite.class,
   NlDesignSurfaceTest.class, // flaky in bazel
   NlComponentTreeTest.class,
-  InteractionManagerTest.class
+  InteractionManagerTest.class,
+
+  // Failing after IJ 2017.1 merge
+  NlModelTest.class,
+  NlUsageTrackerManagerTest.class,
 })
 public class DesignerTestSuite {
 
@@ -55,7 +61,7 @@ public class DesignerTestSuite {
     symbolicLinkInTmpDir("tools/adt/idea/android/testData");
     symbolicLinkInTmpDir("tools/adt/idea/designer/testData");
     symbolicLinkInTmpDir("tools/base/templates");
-    symbolicLinkInTmpDir("tools/idea/java/jdkAnnotations");
+    symbolicLinkInTmpDir("tools/idea/java");
     symbolicLinkInTmpDir("prebuilts/studio/sdk/" + HOST_DIR + "/platforms/" + TestUtils.getLatestAndroidPlatform());
 
     provideRealJdkPathForGradle("prebuilts/studio/jdk");

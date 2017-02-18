@@ -1,6 +1,5 @@
 package org.jetbrains.android.inspections;
 
-import com.intellij.ToolExtensionPoints;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.InspectionEP;
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection;
@@ -8,8 +7,6 @@ import com.intellij.codeInspection.deadCode.UnusedDeclarationInspectionBase;
 import com.intellij.codeInspection.deadCode.UnusedDeclarationPresentation;
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
 import com.intellij.codeInspection.reference.EntryPoint;
-import com.intellij.openapi.extensions.ExtensionPoint;
-import com.intellij.openapi.extensions.Extensions;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -90,12 +87,10 @@ public class AndroidInspectionsTest extends AndroidTestCase {
   }
 
   @NotNull
-  private static AndroidComponentEntryPoint getAndroidEntryPoint() {
+  private AndroidComponentEntryPoint getAndroidEntryPoint() {
     AndroidComponentEntryPoint result = null;
 
-    ExtensionPoint<EntryPoint> point = Extensions.getRootArea().getExtensionPoint(ToolExtensionPoints.DEAD_CODE_TOOL);
-    EntryPoint[] extensions = point.getExtensions();
-    for (EntryPoint entryPoint : extensions) {
+    for (EntryPoint entryPoint : ((UnusedDeclarationInspection)myUnusedDeclarationToolWrapper.getTool()).getExtensions()) {
       if (entryPoint instanceof AndroidComponentEntryPoint) {
         try {
           result = (AndroidComponentEntryPoint)entryPoint;

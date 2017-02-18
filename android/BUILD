@@ -11,10 +11,7 @@ iml_module(
     tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    exports = [
-        "//tools/idea/.idea/libraries:asm",
-        "//tools/adt/idea/common:android-common",
-    ],
+    exports = ["//tools/adt/idea/common:android-common"],
     # do not sort: must match IML order
     deps = [
         "//tools/idea/java/openapi[module]",
@@ -28,7 +25,6 @@ iml_module(
         "//tools/idea/plugins/properties[module]",
         "//tools/idea/.idea/libraries:xpp3-1.1.4-min",
         "//tools/idea/plugins/testng[module]",
-        "//tools/idea/.idea/libraries:asm",
         "//tools/adt/idea/common:android-common[module]",
         "//tools/adt/idea/rt:android-rt[module]",
         "//tools/idea/java/java-indexing-api[module]",
@@ -60,16 +56,7 @@ iml_module(
         "//tools/data-binding:studio.compiler[module]",
         "//tools/adt/idea/android/lib:libwebp",
         "//tools/idea/platform/lang-api[module]",
-        "//tools/idea/plugins/gradle/lib:gradle-base-services-3.2",
-        "//tools/idea/plugins/gradle/lib:gradle-base-services-groovy-3.2",
-        "//tools/idea/plugins/gradle/lib:gradle-core-3.2",
-        "//tools/idea/plugins/gradle/lib:gradle-messaging-3.2",
-        "//tools/idea/plugins/gradle/lib:gradle-model-core-3.2",
-        "//tools/idea/plugins/gradle/lib:gradle-model-groovy-3.2",
-        "//tools/idea/plugins/gradle/lib:gradle-resources-3.2",
-        "//tools/idea/plugins/gradle/lib:gradle-native-3.2",
-        "//tools/idea/plugins/gradle/lib:gradle-tooling-api-3.2",
-        "//tools/idea/plugins/gradle/lib:gradle-wrapper-3.2",
+        "//tools/idea/.idea/libraries:Gradle",
         "//tools/idea/plugins/gradle[module]",
         "//tools/adt/idea/layoutlib[module]",
         "//tools/sherpa:sherpa-solver[module]",
@@ -85,6 +72,7 @@ iml_module(
         "//tools/adt/idea/observable[module]",
         "//tools/idea/plugins/gradle/tooling-extension-impl:gradle-tooling-extension-impl[module]",
         "//tools/adt/idea/wizard[module]",
+        "//tools/idea/.idea/libraries:commons-io-2.4",
     ],
 )
 
@@ -128,6 +116,7 @@ iml_module(
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/templates",
         "//tools/idea/java/jdkAnnotations",
+        "//tools/idea/java/mockJDK-1.7",
     ],
     test_runtime_deps = [
         "//tools/adt/idea/adt-branding",
@@ -175,7 +164,6 @@ iml_module(
         "//tools/idea/plugins/properties/properties-psi-api[module, test]",
         "//tools/base/asset-studio:studio.assetstudio[module, test]",
         "//tools/base/instant-run:studio.instant-run-client[module, test]",
-        "//tools/base/profiler:studio-profiler-grpc-1.0-jarjar[test]",
         "//tools/adt/idea/android/lib:dexlib2-2.0.8-dev[test]",
         "//tools/adt/idea/android/lib:dexlib2-util-2.0.8-dev[test]",
         "//tools/idea/plugins/properties/properties-psi-impl[module, test]",

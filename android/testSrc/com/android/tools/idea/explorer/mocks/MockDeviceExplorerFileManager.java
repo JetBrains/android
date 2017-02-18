@@ -29,7 +29,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.PathKt;
+import com.intellij.util.io.PathKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -111,7 +111,7 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
     myDevices.forEach(fileSystem -> {
       Path path = myFileManagerImpl.getDefaultLocalPathForDevice(fileSystem);
       try {
-        PathKt.deleteRecursively(path);
+        PathKt.delete(path);
       }
       catch (Throwable t) {
         LOGGER.warn(String.format("Error deleting local path \"%s\"", path), t);

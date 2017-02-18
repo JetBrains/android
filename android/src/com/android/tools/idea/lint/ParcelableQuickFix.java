@@ -508,7 +508,7 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
     }
 
     private static void delete(@Nullable PsiElement element) {
-      if (element != null && FileModificationService.getInstance().preparePsiElementForWrite(element)) {
+      if (element != null) {
         element.delete();
       }
     }

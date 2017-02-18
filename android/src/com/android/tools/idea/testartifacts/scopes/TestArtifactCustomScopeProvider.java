@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.FileIndexFacade;
-import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.roots.TestSourcesFilter;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.scope.packageSet.AbstractPackageSet;
 import com.intellij.psi.search.scope.packageSet.CustomScopesProviderEx;
@@ -101,7 +101,7 @@ public class TestArtifactCustomScopeProvider extends CustomScopesProviderEx {
             return scopes.isUnitTestSource(file);
           } else {
             // Otherwise (java module) show all tests.
-            return file != null && ProjectRootManager.getInstance(project).getFileIndex().isInTestSourceContent(file);
+            return file != null && TestSourcesFilter.isTestSources(file, project);
           }
         }
       });

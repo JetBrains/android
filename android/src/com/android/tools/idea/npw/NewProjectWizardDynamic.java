@@ -47,7 +47,6 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -299,7 +298,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     final String name = myState.get(APPLICATION_NAME_KEY);
     assert projectLocation != null && name != null;
 
-    myProject = UIUtil.invokeAndWaitIfNeeded(() -> ProjectManager.getInstance().createProject(name, projectLocation));
+    ApplicationManager.getApplication().invokeAndWait(() -> myProject = ProjectManager.getInstance().createProject(name, projectLocation));
     super.doFinish();
   }
 

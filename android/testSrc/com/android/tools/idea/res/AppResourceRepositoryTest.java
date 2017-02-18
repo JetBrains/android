@@ -29,6 +29,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.util.ui.UIUtil;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TObjectIntHashMap;
 import org.jetbrains.android.AndroidTestCase;
@@ -149,6 +150,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
       // However, should be a different item
       assertNotSame(item, newItem);
     });
+    UIUtil.dispatchAllInvocationEvents();
   }
 
   public void testGetDeclaredArrayValues() throws IOException {

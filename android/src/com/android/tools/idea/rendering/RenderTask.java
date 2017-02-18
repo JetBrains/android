@@ -681,7 +681,7 @@ public class RenderTask implements IImageFactory {
   @NotNull
   <V> ListenableFuture<V> runAsyncRenderAction(@NotNull Callable<V> callable) {
     if (isDisposed) {
-      Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
+      return Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
 
     synchronized (myRunningFutures) {
