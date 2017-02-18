@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.DefaultTreeSelectionModel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -32,8 +33,9 @@ import java.util.Objects;
 public class DeviceExplorerModel {
   @NotNull private final List<DeviceExplorerModelListener> myListeners = new ArrayList<>();
   @NotNull private final List<DeviceFileSystem> myDevices = new ArrayList<>();
-  @Nullable private DefaultTreeModel myTreeModel;
   @Nullable private DeviceFileSystem myActiveDevice;
+  @Nullable private DefaultTreeModel myTreeModel;
+  @Nullable private DefaultTreeSelectionModel myTreeSelectionModel;
 
   @NotNull
   public List<DeviceFileSystem> getDevices() {
@@ -41,8 +43,18 @@ public class DeviceExplorerModel {
   }
 
   @Nullable
+  public DeviceFileSystem getActiveDevice() {
+    return myActiveDevice;
+  }
+
+  @Nullable
   public DefaultTreeModel getTreeModel() {
     return myTreeModel;
+  }
+
+  @Nullable
+  public DefaultTreeSelectionModel getTreeSelectionModel() {
+    return myTreeSelectionModel;
   }
 
   public void addListener(@NotNull DeviceExplorerModelListener listener) {
@@ -53,18 +65,15 @@ public class DeviceExplorerModel {
     myListeners.remove(listener);
   }
 
-  @Nullable
-  public DeviceFileSystem getActiveDevice() {
-    return myActiveDevice;
-  }
-
   public void setActiveDevice(@Nullable DeviceFileSystem activeDevice) {
     myActiveDevice = activeDevice;
     myListeners.forEach(x -> x.activeDeviceChanged(myActiveDevice));
-    setActiveDeviceTreeModel(activeDevice, null);
+    setActiveDeviceTreeModel(activeDevice, null, null);
   }
 
-  public void setActiveDeviceTreeModel(@Nullable DeviceFileSystem device, @Nullable DefaultTreeModel treeModel) {
+  public void setActiveDeviceTreeModel(@Nullable DeviceFileSystem device,
+                                       @Nullable DefaultTreeModel treeModel,
+                                       @Nullable DefaultTreeSelectionModel treeSelectionModel) {
     // Ignore if active device has changed
     if (!Objects.equals(myActiveDevice, device)) {
       return;
@@ -76,7 +85,8 @@ public class DeviceExplorerModel {
     }
 
     myTreeModel = treeModel;
-    myListeners.forEach(x -> x.treeModelChanged(treeModel));
+    myTreeSelectionModel = treeSelectionModel;
+    myListeners.forEach(x -> x.treeModelChanged(treeModel, treeSelectionModel));
   }
 
   public void addDevice(@NotNull DeviceFileSystem device) {

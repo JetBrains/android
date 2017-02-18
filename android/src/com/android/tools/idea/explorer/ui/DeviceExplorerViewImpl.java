@@ -42,6 +42,7 @@ import javax.swing.*;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.DefaultTreeSelectionModel;
 import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
 import java.awt.*;
@@ -49,9 +50,10 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
 import java.util.concurrent.CancellationException;
+import java.util.stream.Collectors;
 
 public class DeviceExplorerViewImpl implements DeviceExplorerView {
   @NotNull private final List<DeviceExplorerViewListener> myListeners = new ArrayList<>();
@@ -216,8 +218,8 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
         if (e.getClickCount() == 2) {
           int selRow = tree.getRowForLocation(e.getX(), e.getY());
           TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
-          if (selRow != -1) {
-            openSelectedNode(selPath);
+          if (selRow != -1 && selPath != null) {
+            openSelectedNodes(Collections.singletonList(selPath));
           }
         }
       }
@@ -226,7 +228,10 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
       @Override
       public void keyPressed(KeyEvent e) {
         if (KeyEvent.VK_ENTER == e.getKeyCode()) {
-          openSelectedNode(tree.getSelectionPath());
+          TreePath[] paths = tree.getSelectionPaths();
+          if (paths != null) {
+            openSelectedNodes(Arrays.asList(paths));
+          }
         }
       }
     });
@@ -245,28 +250,27 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     myTreePopupMenu.addSeparator();
     myTreePopupMenu.addItem(new OpenMenuItem());
     myTreePopupMenu.addItem(new SaveAsMenuItem());
+    myTreePopupMenu.addItem(new DeleteNodesMenuItem());
     myTreePopupMenu.addSeparator();
     myTreePopupMenu.addItem(new CopyPathMenuItem());
     myTreePopupMenu.install();
   }
 
-  private void openSelectedNode(@Nullable TreePath selPath) {
-    if (selPath == null) {
-      return;
-    }
-    DeviceFileEntryNode node = DeviceFileEntryNode.fromNode(selPath.getLastPathComponent());
-    if (node == null) {
-      return;
-    }
-    openNode(node);
+  private void openSelectedNodes(@NotNull List<TreePath> paths) {
+    List<DeviceFileEntryNode> nodes =
+      paths.stream()
+        .map(x -> DeviceFileEntryNode.fromNode(x.getLastPathComponent()))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+    openNodes(nodes);
   }
 
-  private void copyNodePath(@NotNull DeviceFileEntryNode treeNode) {
-    myListeners.forEach(x -> x.copyNodePathInvoked(treeNode));
+  private void copyNodePaths(@NotNull List<DeviceFileEntryNode> treeNodes) {
+    myListeners.forEach(x -> x.copyNodePathsInvoked(treeNodes));
   }
 
-  private void openNode(@NotNull DeviceFileEntryNode treeNode) {
-    myListeners.forEach(x -> x.openNodeInEditorInvoked(treeNode));
+  private void openNodes(@NotNull List<DeviceFileEntryNode> treeNodes) {
+    myListeners.forEach(x -> x.openNodesInEditorInvoked(treeNodes));
   }
 
   private void saveNodeAs(@NotNull DeviceFileEntryNode treeNode) {
@@ -281,6 +285,10 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     myListeners.forEach(x -> x.newFileInvoked(treeNode));
   }
 
+  private void deleteNodes(@NotNull List<DeviceFileEntryNode> treeNodes) {
+    myListeners.forEach(x -> x.deleteNodesInvoked(treeNodes));
+  }
+
   @Override
   public void serviceSetupSuccess() {
     assert myLoadingPanel != null;
@@ -288,11 +296,12 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     myLoadingPanel.stopLoading();
   }
 
-  public void setRootFolder(@Nullable DefaultTreeModel model) {
+  public void setRootFolder(@Nullable DefaultTreeModel model, DefaultTreeSelectionModel treeSelectionModel) {
     assert myPanel != null;
 
     Tree tree = myPanel.getTree();
     tree.setModel(model);
+    tree.setSelectionModel(treeSelectionModel);
 
     if (model != null) {
       DeviceFileEntryNode rootNode = DeviceFileEntryNode.fromNode(model.getRoot());
@@ -371,11 +380,14 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     }
 
     @Override
-    public void treeModelChanged(@Nullable DefaultTreeModel newTreeModel) {
-      setRootFolder(newTreeModel);
+    public void treeModelChanged(@Nullable DefaultTreeModel newTreeModel, @Nullable DefaultTreeSelectionModel newTreeSelectionModel) {
+      setRootFolder(newTreeModel, newTreeSelectionModel);
     }
   }
 
+  /**
+   * A popup menu item that works for both single and multi-element selections.
+   */
   private abstract class TreeMenuItem implements PopupMenuItem {
     @NotNull
     @Override
@@ -387,38 +399,57 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
     @Override
     public final boolean isEnabled() {
-      DeviceFileEntryNode node = getSelectedNode();
-      if (node == null) {
+      List<DeviceFileEntryNode> nodes = getSelectedNodes();
+      if (nodes == null) {
         return false;
       }
-      return isEnabled(node);
+      return isEnabled(nodes);
+    }
+
+    public boolean isEnabled(@NotNull List<DeviceFileEntryNode> nodes) {
+      return nodes.stream().anyMatch(this::isEnabled);
     }
 
     @Override
     public final boolean isVisible() {
-      DeviceFileEntryNode node = getSelectedNode();
-      if (node == null) {
+      List<DeviceFileEntryNode> nodes = getSelectedNodes();
+      if (nodes == null) {
         return false;
       }
-      return isVisible(node);
+      return isVisible(nodes);
+    }
+
+    public boolean isVisible(@NotNull List<DeviceFileEntryNode> nodes) {
+      return nodes.stream().anyMatch(this::isVisible);
     }
 
     @Override
     public final void run() {
-      DeviceFileEntryNode node = getSelectedNode();
-      if (node == null) {
+      List<DeviceFileEntryNode> nodes = getSelectedNodes();
+      if (nodes == null) {
         return;
       }
-      run(node);
+      nodes = nodes.stream().filter(this::isEnabled).collect(Collectors.toList());
+      if (!nodes.isEmpty()) {
+        run(nodes);
+      }
     }
 
-    public final DeviceFileEntryNode getSelectedNode() {
+    @Nullable
+    private List<DeviceFileEntryNode> getSelectedNodes() {
       assert myPanel != null;
-      TreePath path = myPanel.getTree().getSelectionPath();
-      if (path == null) {
+      TreePath[] paths = myPanel.getTree().getSelectionPaths();
+      if (paths == null) {
         return null;
       }
-      return DeviceFileEntryNode.fromNode(path.getLastPathComponent());
+      List<DeviceFileEntryNode> nodes = Arrays.stream(paths)
+        .map(path -> DeviceFileEntryNode.fromNode(path.getLastPathComponent()))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+      if (nodes.isEmpty()) {
+        return null;
+      }
+      return nodes;
     }
 
     public boolean isVisible(@NotNull DeviceFileEntryNode node) {
@@ -427,6 +458,30 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
     public boolean isEnabled(@NotNull DeviceFileEntryNode node) {
       return isVisible(node);
+    }
+
+    public abstract void run(@NotNull List<DeviceFileEntryNode> nodes);
+  }
+
+  /**
+   * A {@link TreeMenuItem} that is active only for single element selections
+   */
+  private abstract class SingleSelectionTreeMenuItem extends TreeMenuItem {
+    @Override
+    public boolean isEnabled(@NotNull List<DeviceFileEntryNode> nodes) {
+      return super.isEnabled(nodes) && nodes.size() == 1;
+    }
+
+    @Override
+    public boolean isVisible(@NotNull List<DeviceFileEntryNode> nodes) {
+      return super.isVisible(nodes) && nodes.size() == 1;
+    }
+
+    @Override
+    public void run(@NotNull List<DeviceFileEntryNode> nodes) {
+      if (nodes.size() == 1) {
+        run(nodes.get(0));
+      }
     }
 
     public abstract void run(@NotNull DeviceFileEntryNode node);
@@ -456,8 +511,8 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     }
 
     @Override
-    public void run(@NotNull DeviceFileEntryNode node) {
-      copyNodePath(node);
+    public void run(@NotNull List<DeviceFileEntryNode> nodes) {
+      copyNodePaths(nodes);
     }
   }
 
@@ -480,12 +535,12 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     }
 
     @Override
-    public void run(@NotNull DeviceFileEntryNode node) {
-      openNode(node);
+    public void run(@NotNull List<DeviceFileEntryNode> nodes) {
+      openNodes(nodes);
     }
   }
 
-  private class SaveAsMenuItem extends TreeMenuItem {
+  private class SaveAsMenuItem extends SingleSelectionTreeMenuItem {
     @NotNull
     @Override
     public String getText() {
@@ -509,7 +564,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     }
   }
 
-  private class NewFileMenuItem extends TreeMenuItem {
+  private class NewFileMenuItem extends SingleSelectionTreeMenuItem {
     @NotNull
     @Override
     public String getText() {
@@ -533,7 +588,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     }
   }
 
-  private class NewDirectoryMenuItem extends TreeMenuItem {
+  private class NewDirectoryMenuItem extends SingleSelectionTreeMenuItem {
     @NotNull
     @Override
     public String getText() {
@@ -554,6 +609,36 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     @Override
     public void run(@NotNull DeviceFileEntryNode node) {
       newDirectory(node);
+    }
+  }
+
+  private class DeleteNodesMenuItem extends TreeMenuItem {
+    @NotNull
+    @Override
+    public String getText() {
+      return "Delete...";
+    }
+
+    @Nullable
+    @Override
+    public Icon getIcon() {
+      return AllIcons.Actions.Delete;
+    }
+
+    @Override
+    public boolean isVisible(@NotNull DeviceFileEntryNode node) {
+      return true;
+    }
+
+    @Nullable
+    @Override
+    public String getShortcutId() {
+      return "$Delete"; // Re-use existing shortcut
+    }
+
+    @Override
+    public void run(@NotNull List<DeviceFileEntryNode> nodes) {
+      deleteNodes(nodes);
     }
   }
 }
