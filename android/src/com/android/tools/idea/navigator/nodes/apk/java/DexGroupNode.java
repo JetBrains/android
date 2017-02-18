@@ -27,17 +27,23 @@ import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.SdkConstants.EXT_JAVA;
+import static com.android.tools.idea.navigator.nodes.apk.java.SmaliFinder.EXT_SMALI;
 import static com.intellij.icons.AllIcons.Modules.SourceRoot;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 public class DexGroupNode extends ProjectViewNode<VirtualFile> {
   @NotNull private final ClassFinder myClassFinder;
+  @NotNull private final SmaliFinder mySmaliFinder;
 
   @Nullable private final DexFileContents myDexFileContents;
 
@@ -46,6 +52,7 @@ public class DexGroupNode extends ProjectViewNode<VirtualFile> {
   public DexGroupNode(@NotNull Project project, @NotNull ViewSettings settings, @Nullable VirtualFile dexFile) {
     super(project, dexFile, settings);
     myClassFinder = new ClassFinder(project);
+    mySmaliFinder = new SmaliFinder(project);
     if (dexFile != null) {
       myDexFileContents = new DexFileContents(dexFile);
     }
@@ -117,16 +124,28 @@ public class DexGroupNode extends ProjectViewNode<VirtualFile> {
   @NotNull
   private PackageNode createNode(ApkPackage apkPackage) {
     assert myProject != null;
-    return new PackageNode(myProject, apkPackage, getSettings(), myClassFinder);
+    return new PackageNode(myProject, apkPackage, getSettings(), myClassFinder, mySmaliFinder);
   }
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
     if (myDexFileContents != null) {
-      String foundPackage = myClassFinder.findPackage(file);
-      for (ApkPackage apkPackage : myPackages) {
-        if (foundPackage != null && foundPackage.contains(apkPackage.getFqn())) {
-          return true;
+      String extension = file.getExtension();
+      if (EXT_JAVA.equals(extension)) {
+        String foundPackage = myClassFinder.findPackage(file);
+        for (ApkPackage apkPackage : myPackages) {
+          if (foundPackage != null && foundPackage.contains(apkPackage.getFqn())) {
+            return true;
+          }
+        }
+      }
+      else if (EXT_SMALI.equals(extension)) {
+        File filePath = virtualToIoFile(file);
+        for (ApkPackage apkPackage : myPackages) {
+          File packageFilePath = mySmaliFinder.findPackageFilePath(apkPackage.getFqn());
+          if (isAncestor(packageFilePath, filePath, false)) {
+            return true;
+          }
         }
       }
     }

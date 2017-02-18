@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static com.android.tools.idea.apk.dex.DexFiles.getDexFile;
 import static org.junit.Assert.assertEquals;
 
 public class DexParserTest {
@@ -56,7 +57,7 @@ public class DexParserTest {
   @NotNull
   private static DexBackedDexFile getTestDexFile() throws IOException {
     Path dexPath = Paths.get(AndroidTestBase.getTestDataPath(), "apk/Test.dex");
-    return DexParser.getDexFile(Files.readAllBytes(dexPath));
+    return getDexFile(Files.readAllBytes(dexPath));
   }
 
   private static void dumpTree(StringBuffer sb, @NotNull PackageTreeNode node, int depth) {

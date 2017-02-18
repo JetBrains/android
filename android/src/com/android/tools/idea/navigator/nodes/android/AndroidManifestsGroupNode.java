@@ -169,4 +169,9 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     return MANIFESTS_NODE;
   }
+
+  @Override
+  public boolean isAlwaysShowPlus() {
+    return true;
+  }
 }
