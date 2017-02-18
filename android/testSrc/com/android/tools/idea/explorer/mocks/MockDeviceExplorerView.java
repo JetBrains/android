@@ -30,6 +30,7 @@ import javax.swing.*;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.DefaultTreeSelectionModel;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,9 +42,10 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull private final FutureValuesTracker<Void> myServiceSetupSuccessTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceSelectedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myTreeNodeExpandingTracker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myOpenNodeInEditorInvokedTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> myOpenNodesInEditorInvokedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> mySaveNodeAsTracker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myCopyNodePathTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> myCopyNodePathsTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> myDeleteNodesTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myNewDirectoryTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myNewFileTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceAddedTracker = new FutureValuesTracker<>();
@@ -182,8 +184,8 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   }
 
   @NotNull
-  public FutureValuesTracker<DeviceFileEntryNode> getOpenNodeInEditorInvokedTracker() {
-    return myOpenNodeInEditorInvokedTracker;
+  public FutureValuesTracker<List<DeviceFileEntryNode>> getOpenNodesInEditorInvokedTracker() {
+    return myOpenNodesInEditorInvokedTracker;
   }
 
   @NotNull
@@ -252,8 +254,13 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   }
 
   @NotNull
-  public FutureValuesTracker<DeviceFileEntryNode> getCopyNodePathTracker() {
-    return myCopyNodePathTracker;
+  public FutureValuesTracker<List<DeviceFileEntryNode>> getCopyNodePathsTracker() {
+    return myCopyNodePathsTracker;
+  }
+
+  @NotNull
+  public FutureValuesTracker<List<DeviceFileEntryNode>> getDeleteNodesTracker() {
+    return myDeleteNodesTracker;
   }
 
   private class MyDeviceExplorerViewListener implements DeviceExplorerViewListener {
@@ -264,9 +271,9 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     }
 
     @Override
-    public void openNodeInEditorInvoked(@NotNull DeviceFileEntryNode treeNode) {
-      myOpenNodeInEditorInvokedTracker.produce(treeNode);
-      myListeners.forEach(l -> l.openNodeInEditorInvoked(treeNode));
+    public void openNodesInEditorInvoked(@NotNull List<DeviceFileEntryNode> treeNodes) {
+      myOpenNodesInEditorInvokedTracker.produce(treeNodes);
+      myListeners.forEach(l -> l.openNodesInEditorInvoked(treeNodes));
     }
 
     @Override
@@ -282,9 +289,9 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     }
 
     @Override
-    public void copyNodePathInvoked(@NotNull DeviceFileEntryNode treeNode) {
-      myCopyNodePathTracker.produce(treeNode);
-      myListeners.forEach(l -> l.copyNodePathInvoked(treeNode));
+    public void copyNodePathsInvoked(@NotNull List<DeviceFileEntryNode> treeNodes) {
+      myCopyNodePathsTracker.produce(treeNodes);
+      myListeners.forEach(l -> l.copyNodePathsInvoked(treeNodes));
     }
 
     @Override
@@ -297,6 +304,12 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     public void newFileInvoked(@NotNull DeviceFileEntryNode parentTreeNode) {
       myNewFileTracker.produce(parentTreeNode);
       myListeners.forEach(l -> l.newFileInvoked(parentTreeNode));
+    }
+
+    @Override
+    public void deleteNodesInvoked(@NotNull List<DeviceFileEntryNode> treeNodes) {
+      myDeleteNodesTracker.produce(treeNodes);
+      myListeners.forEach(l -> l.deleteNodesInvoked(treeNodes));
     }
   }
 
@@ -326,7 +339,7 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     }
 
     @Override
-    public void treeModelChanged(@Nullable DefaultTreeModel newTreeModel) {
+    public void treeModelChanged(@Nullable DefaultTreeModel newTreeModel, @Nullable DefaultTreeSelectionModel newTreeSelectionModel) {
       myTreeModelChangedTracker.produce(newTreeModel);
       if (newTreeModel != null) {
         newTreeModel.addTreeModelListener(new MyTreeModelListener());

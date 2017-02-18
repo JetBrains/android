@@ -203,6 +203,83 @@ public class AdbFileOperationsTest {
     waitForFuture(fileOperations.createNewDirectory("/", "data"));
   }
 
+  @Test
+  public void testDeleteExistingFileSuccess() throws Exception {
+    // Prepare
+    TestShellCommands commands = new TestShellCommands();
+    addNexus7Commands(commands);
+    IDevice device = commands.createMockDevice();
+    Executor taskExecutor = PooledThreadExecutor.INSTANCE;
+    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+
+    // Act
+    Void result = waitForFuture(fileOperations.deleteFile("/sdcard/foo.txt"));
+
+    // Assert
+    assertThat(result).isNull();
+  }
+
+  @Test
+  public void testDeleteExistingDirectoryAsFileError() throws Exception {
+    // Prepare
+    TestShellCommands commands = new TestShellCommands();
+    addNexus7Commands(commands);
+    IDevice device = commands.createMockDevice();
+    Executor taskExecutor = PooledThreadExecutor.INSTANCE;
+    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+
+    // Act/Assert
+    thrown.expect(ExecutionException.class);
+    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
+    waitForFuture(fileOperations.deleteFile("/sdcard/foo-dir"));
+  }
+
+  @Test
+  public void testDeleteExistingReadOnlyFileError() throws Exception {
+    // Prepare
+    TestShellCommands commands = new TestShellCommands();
+    addNexus7Commands(commands);
+    IDevice device = commands.createMockDevice();
+    Executor taskExecutor = PooledThreadExecutor.INSTANCE;
+    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+
+    // Act/Assert
+    thrown.expect(ExecutionException.class);
+    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
+    waitForFuture(fileOperations.deleteFile("/system/app/Street/Street.apk"));
+  }
+
+  @Test
+  public void testDeleteExistingDirectorySucceeds() throws Exception {
+    // Prepare
+    TestShellCommands commands = new TestShellCommands();
+    addNexus7Commands(commands);
+    IDevice device = commands.createMockDevice();
+    Executor taskExecutor = PooledThreadExecutor.INSTANCE;
+    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+
+    // Act
+    Void result = waitForFuture(fileOperations.deleteRecursive("/sdcard/foo-dir"));
+
+    // Assert
+    assertThat(result).isNull();
+  }
+
+  @Test
+  public void testDeleteExistingDirectoryPermissionError() throws Exception {
+    // Prepare
+    TestShellCommands commands = new TestShellCommands();
+    addNexus7Commands(commands);
+    IDevice device = commands.createMockDevice();
+    Executor taskExecutor = PooledThreadExecutor.INSTANCE;
+    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+
+    // Act/Assert
+    thrown.expect(ExecutionException.class);
+    thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
+    waitForFuture(fileOperations.deleteRecursive("/config"));
+  }
+
   private static void addNexus7Commands(@NotNull TestShellCommands commands) {
     // These are command + result as run on a Nexus 7, Android 6.0.1, API 23
     addFailedCommand(commands, "test -e '/foo.txt'");
@@ -220,6 +297,13 @@ public class AdbFileOperationsTest {
     addFailedCommand(commands, "mkdir '/foo-dir'", "mkdir: '/foo-dir': Read-only file system\n");
     addFailedCommand(commands, "mkdir '/data/foo-dir'", "mkdir: '/data/foo-dir': Permission denied\n");
     addFailedCommand(commands, "mkdir '/data'", "mkdir: '/data': File exists\n");
+
+    addCommand(commands, "rm -f /sdcard/foo.txt", "");
+    addFailedCommand(commands, "rm -f /sdcard/foo-dir", "rm: sdcard/foo-dir: is a directory\n");
+    addFailedCommand(commands, "rm -f /system/app/Street/Street.apk", "rm: /system/app/Street/Street.apk: Read-only file system\n");
+
+    addCommand(commands, "rm -r -f /sdcard/foo-dir", "");
+    addFailedCommand(commands, "rm -r -f /config", "rm: /config: Permission denied\n");
   }
 
   private static void addFailedCommand(@NotNull TestShellCommands commands, @NotNull String command) {

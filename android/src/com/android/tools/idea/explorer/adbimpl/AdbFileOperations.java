@@ -101,4 +101,47 @@ public class AdbFileOperations {
 
     return futureResult;
   }
+
+  @NotNull
+  public ListenableFuture<Void> deleteFile(@NotNull String path) {
+    SettableFuture<Void> futureResult = SettableFuture.create();
+
+    myExecutor.execute(() -> {
+      try {
+        String command = String.format("rm -f %s", AdbFileListing.getEscapedPath(path));
+        AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+        commandResult.ThrowIfError();
+
+        // All done
+        futureResult.set(null);
+      }
+      catch (Throwable t) {
+        futureResult.setException(t);
+      }
+    });
+
+    return futureResult;
+  }
+
+
+  @NotNull
+  public ListenableFuture<Void> deleteRecursive(@NotNull String path) {
+    SettableFuture<Void> futureResult = SettableFuture.create();
+
+    myExecutor.execute(() -> {
+      try {
+        String command = String.format("rm -r -f %s", AdbFileListing.getEscapedPath(path));
+        AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+        commandResult.ThrowIfError();
+
+        // All done
+        futureResult.set(null);
+      }
+      catch (Throwable t) {
+        futureResult.setException(t);
+      }
+    });
+
+    return futureResult;
+  }
 }
