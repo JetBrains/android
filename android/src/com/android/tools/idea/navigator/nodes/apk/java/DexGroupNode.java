@@ -30,16 +30,22 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import static com.intellij.icons.AllIcons.Modules.SourceRoot;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 public class DexGroupNode extends ProjectViewNode<VirtualFile> {
+  @NotNull private final ClassFinder myClassFinder;
+
   @Nullable private final DexFileContents myDexFileContents;
+
+  private Collection<ApkPackage> myPackages = Collections.emptyList();
 
   public DexGroupNode(@NotNull Project project, @NotNull ViewSettings settings, @Nullable VirtualFile dexFile) {
     super(project, dexFile, settings);
+    myClassFinder = new ClassFinder(project);
     if (dexFile != null) {
       myDexFileContents = new DexFileContents(dexFile);
     }
@@ -53,7 +59,8 @@ public class DexGroupNode extends ProjectViewNode<VirtualFile> {
   public Collection<? extends AbstractTreeNode> getChildren() {
     if (myDexFileContents != null) {
       try {
-        return getChildren(myDexFileContents.getPackages());
+        myPackages = myDexFileContents.getPackages();
+        return getChildren(myPackages);
       }
       catch (Throwable e) {
         Logger.getInstance(getClass()).warn("Failed to parse dex file", e);
@@ -66,55 +73,63 @@ public class DexGroupNode extends ProjectViewNode<VirtualFile> {
   @NotNull
   private Collection<? extends AbstractTreeNode> getChildren(@NotNull Collection<ApkPackage> packages) {
     assert myProject != null;
-    Collection<AbstractTreeNode> children = new ArrayList<>();
+    List<AbstractTreeNode> children = new ArrayList<>();
     ViewSettings settings = getSettings();
     if (settings.isFlattenPackages()) {
       // "Flat" package view.
-      addPackagesAsFlatList(myProject, packages, children, settings);
+      addPackagesAsFlatList(packages, children);
     }
     else {
       // "Hierarchical" package view.
-      addPackagesAsTree(packages, children, myProject, settings);
+      addPackagesAsTree(packages, children);
     }
     return children;
   }
 
-  private static void addPackagesAsFlatList(@NotNull Project project,
-                                            @NotNull Collection<ApkPackage> packages,
-                                            @NotNull Collection<AbstractTreeNode> children,
-                                            @NotNull ViewSettings settings) {
+  private void addPackagesAsFlatList(@NotNull Collection<ApkPackage> packages, @NotNull List<AbstractTreeNode> children) {
     for (ApkPackage apkPackage : packages) {
-      boolean hideEmptyMiddlePackages = settings.isHideEmptyMiddlePackages();
+      boolean hideEmptyMiddlePackages = getSettings().isHideEmptyMiddlePackages();
       if (!hideEmptyMiddlePackages || !apkPackage.getClasses().isEmpty()) {
-        children.add(new PackageNode(project, apkPackage, settings));
+        children.add(createNode(apkPackage));
       }
-      addPackagesAsFlatList(project, apkPackage.getSubpackages(), children, settings);
+      addPackagesAsFlatList(apkPackage.getSubpackages(), children);
     }
   }
 
-  private static void addPackagesAsTree(@NotNull Collection<ApkPackage> packages,
-                                        @NotNull Collection<AbstractTreeNode> children,
-                                        @NotNull Project project,
-                                        @NotNull ViewSettings settings) {
-    if (settings.isHideEmptyMiddlePackages()) {
+  private void addPackagesAsTree(@NotNull Collection<ApkPackage> packages, @NotNull List<AbstractTreeNode> children) {
+    if (getSettings().isHideEmptyMiddlePackages()) {
       for (ApkPackage apkPackage : packages) {
         if (!apkPackage.getClasses().isEmpty() || apkPackage.doSubpackagesHaveClasses()) {
-          children.add(new PackageNode(project, apkPackage, settings));
+          children.add(createNode(apkPackage));
         }
         else {
-          addPackagesAsTree(apkPackage.getSubpackages(), children, project, settings);
+          addPackagesAsTree(apkPackage.getSubpackages(), children);
         }
       }
     }
     else {
       for (ApkPackage apkPackage : packages) {
-        children.add(new PackageNode(project, apkPackage, settings));
+        children.add(createNode(apkPackage));
       }
     }
   }
 
+  @NotNull
+  private PackageNode createNode(ApkPackage apkPackage) {
+    assert myProject != null;
+    return new PackageNode(myProject, apkPackage, getSettings(), myClassFinder);
+  }
+
   @Override
   public boolean contains(@NotNull VirtualFile file) {
+    if (myDexFileContents != null) {
+      String foundPackage = myClassFinder.findPackage(file);
+      for (ApkPackage apkPackage : myPackages) {
+        if (foundPackage != null && foundPackage.contains(apkPackage.getFqn())) {
+          return true;
+        }
+      }
+    }
     return false;
   }
 
