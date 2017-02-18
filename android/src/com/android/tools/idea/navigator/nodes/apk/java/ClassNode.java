@@ -30,23 +30,32 @@ import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.SdkConstants.EXT_JAVA;
+import static com.android.tools.idea.navigator.nodes.apk.java.SmaliFinder.EXT_SMALI;
 import static com.intellij.codeInsight.navigation.NavigationUtil.openFileWithPsiElement;
+import static com.intellij.ide.actions.OpenFileAction.openFile;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 class ClassNode extends ProjectViewNode<ApkClass> {
   @NotNull private final ApkClass myClass;
   @NotNull private final ClassFinder myClassFinder;
+  @NotNull private final SmaliFinder mySmaliFinder;
 
   ClassNode(@NotNull Project project,
             @NotNull ApkClass apkClass,
             @NotNull ViewSettings viewSettings,
-            @NotNull ClassFinder classFinder) {
+            @NotNull ClassFinder classFinder,
+            @NotNull SmaliFinder smaliFinder) {
     super(project, apkClass, viewSettings);
     myClass = apkClass;
     myClassFinder = classFinder;
+    mySmaliFinder = smaliFinder;
   }
 
   @Override
@@ -78,7 +87,16 @@ class ClassNode extends ProjectViewNode<ApkClass> {
     if (canNavigate()) {
       PsiClass found = myClassFinder.findClass(myClass);
       if (found != null) {
+        // Found .java file
         openFileWithPsiElement(found, requestFocus, requestFocus);
+        return;
+      }
+
+      VirtualFile smaliFile = mySmaliFinder.findSmaliFile(myClass.getFqn());
+      if (smaliFile != null) {
+        assert myProject != null;
+        // Found .smali file
+        openFile(smaliFile, myProject);
       }
     }
   }
@@ -126,7 +144,18 @@ class ClassNode extends ProjectViewNode<ApkClass> {
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    List<String> classes = myClassFinder.findClasses(file);
-    return classes.contains(myClass.getFqn());
+    String extension = file.getExtension();
+    String fqn = myClass.getFqn();
+    if (EXT_JAVA.equals(extension)) {
+      List<String> classes = myClassFinder.findClasses(file);
+      if (classes.contains(fqn)) {
+        return true;
+      }
+    }
+    else if (EXT_SMALI.equals(extension)) {
+      File filePath = mySmaliFinder.findSmaliFilePath(fqn);
+      return filesEqual(filePath, virtualToIoFile(file));
+    }
+    return false;
   }
 }
