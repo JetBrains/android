@@ -109,6 +109,10 @@ public class CpuProfilerStage extends Stage {
   @NotNull
   private CpuProfiler.CpuProfilingAppStartRequest.Mode myProfilingMode;
 
+  private int myProfilingBufferSizeInMb = 8;  // TODO: Make it configurable.
+
+  private int myProfilingSamplingIntervalUs = 1000;  // TODO: Make it configurable.
+
   /**
    * A cache of already parsed captures, indexed by trace_id.
    */
@@ -206,9 +210,11 @@ public class CpuProfilerStage extends Stage {
     CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
     CpuProfiler.CpuProfilingAppStartRequest request = CpuProfiler.CpuProfilingAppStartRequest.newBuilder()
       .setAppPkgName(getStudioProfilers().getProcess().getName()) // TODO: Investigate if this is the right way of choosing the app
-      .setProfiler(CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART) // TODO: support simpleperf
-      .setMode(myProfilingMode)
       .setSession(getStudioProfilers().getSession())
+      .setMode(myProfilingMode)
+      .setProfiler(CpuProfiler.CpuProfilingAppStartRequest.Profiler.ART) // TODO: support simpleperf
+      .setBufferSizeInMb(myProfilingBufferSizeInMb)
+      .setSamplingIntervalUs(myProfilingSamplingIntervalUs)
       .build();
 
     setCaptureState(CaptureState.STARTING);
