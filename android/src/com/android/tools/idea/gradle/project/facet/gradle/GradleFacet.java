@@ -20,8 +20,8 @@ import com.intellij.facet.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.ModuleRootAdapter;
 import com.intellij.openapi.roots.ModuleRootEvent;
+import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.util.messages.MessageBusConnection;
@@ -77,7 +77,7 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
   @Override
   public void initFacet() {
     MessageBusConnection connection = getModule().getMessageBus().connect(this);
-    connection.subscribe(PROJECT_ROOTS, new ModuleRootAdapter() {
+    connection.subscribe(PROJECT_ROOTS, new ModuleRootListener() {
       @Override
       public void rootsChanged(ModuleRootEvent event) {
         ApplicationManager.getApplication().invokeLater(() -> {

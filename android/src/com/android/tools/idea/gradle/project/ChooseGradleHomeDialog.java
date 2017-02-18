@@ -21,10 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.settings.LocationSettingType;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.TextComponentAccessor;
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.ui.*;
 import com.intellij.ui.components.JBLabel;
 import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
@@ -78,7 +75,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
 
     FileChooserDescriptor fileChooserDescriptor = getGradleHomeFileChooserDescriptor();
     myGradleHomePathField.addBrowseFolderListener("", GradleBundle.message("gradle.settings.text.home.path"), null, fileChooserDescriptor,
-                                                  TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT, false);
+                                                  TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT);
 
     myGradleHomeLabel.setLabelFor(myGradleHomePathField.getTextField());
     // This prevents the weird sizing in Linux.

@@ -253,8 +253,7 @@ public class AndroidImportProjectAction extends AnAction {
       ensureExists(projectDirPath);
 
       if (StorageScheme.DIRECTORY_BASED == wizard.getStorageScheme()) {
-        File ideaDirPath = new File(projectDirPath, DIRECTORY_STORE_FOLDER);
-        ensureExists(ideaDirPath);
+        ensureExists(new File(projectDirPath, DIRECTORY_STORE_FOLDER));
       }
 
       boolean unitTestMode = ApplicationManager.getApplication().isUnitTestMode();

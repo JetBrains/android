@@ -56,6 +56,8 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
+      myTable = null;
+      myPanel = null;
       Disposer.dispose(myParentDisposable);
     }
     finally {

@@ -27,10 +27,7 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
@@ -53,6 +50,7 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(JUnit4.class)
+@Ignore
 public class WorkBenchTest {
   @Rule
   public FrameworkRule myFrameworkRule = new FrameworkRule();

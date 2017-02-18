@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.compiler;
 
+import com.intellij.compiler.server.BuildManager;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
@@ -33,6 +34,7 @@ import javax.swing.*;
 */
 public class AndroidDexCompilerSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
   private final AndroidDexCompilerConfiguration myConfig;
+  private final Project myProject;
   private JPanel myContentPanel;
   private JSpinner myHeapSizeSpinner;
   private JLabel myVmOptionsLabel;
@@ -44,6 +46,7 @@ public class AndroidDexCompilerSettingsConfigurable implements SearchableConfigu
 
   public AndroidDexCompilerSettingsConfigurable(Project project) {
     myConfig = AndroidDexCompilerConfiguration.getInstance(project);
+    myProject = project;
     myVmOptionsLabel.setLabelFor(myVmOptionsEditor);
     myVmOptionsEditor.setDialogCaption(AndroidBundle.message("android.dex.compiler.vm.options.title"));
     myProguardVmOptionsEditor.setDialogCaption(AndroidBundle.message("android.proguard.vm.options.title"));
@@ -78,12 +81,17 @@ public class AndroidDexCompilerSettingsConfigurable implements SearchableConfigu
 
   @Override
   public void apply() throws ConfigurationException {
-    myConfig.MAX_HEAP_SIZE = ((Integer)myHeapSizeSpinner.getValue()).intValue();
-    myConfig.VM_OPTIONS = myVmOptionsEditor.getText();
-    myConfig.OPTIMIZE = myOptimizeCheckBox.isSelected();
-    myConfig.FORCE_JUMBO = myJumboModeCheckBox.isSelected();
-    myConfig.CORE_LIBRARY = myCoreLibraryCheckBox.isSelected();
-    myConfig.PROGUARD_VM_OPTIONS = myProguardVmOptionsEditor.getText();
+    try {
+      myConfig.MAX_HEAP_SIZE = ((Integer)myHeapSizeSpinner.getValue()).intValue();
+      myConfig.VM_OPTIONS = myVmOptionsEditor.getText();
+      myConfig.OPTIMIZE = myOptimizeCheckBox.isSelected();
+      myConfig.FORCE_JUMBO = myJumboModeCheckBox.isSelected();
+      myConfig.CORE_LIBRARY = myCoreLibraryCheckBox.isSelected();
+      myConfig.PROGUARD_VM_OPTIONS = myProguardVmOptionsEditor.getText();
+    }
+    finally {
+      BuildManager.getInstance().clearState(myProject);
+    }
   }
 
   @Override
@@ -104,10 +112,5 @@ public class AndroidDexCompilerSettingsConfigurable implements SearchableConfigu
   @Override
   public String getId() {
     return "android.dex.compiler";
-  }
-
-  @Override
-  public Runnable enableSearch(String option) {
-    return null;
   }
 }

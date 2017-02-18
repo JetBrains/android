@@ -91,7 +91,6 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
 
       }
 
-      @Nullable
       @Override
       public String getHelpId() {
         return StudioHelpManagerImpl.STUDIO_HELP_PREFIX + "studio/projects/create-project.html";

@@ -261,7 +261,7 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
         }
 
         holder.registerProblem(methodName, description, ProblemHighlightType.LIKE_DEPRECATED, null,
-                               fixes.toArray(new LocalQuickFix[fixes.size()]));
+                               fixes.toArray(LocalQuickFix.EMPTY_ARRAY));
       }
     }
   }
@@ -314,7 +314,7 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
     }
 
     holder.registerProblem(elementToHighlight, description, ProblemHighlightType.LIKE_DEPRECATED, rangeInElement,
-                           fixes.toArray(new LocalQuickFix[fixes.size()]));
+                           fixes.toArray(LocalQuickFix.EMPTY_ARRAY));
   }
 
   // Android Studio: TEMPORARY local version of part of our deprecation filter implementation,

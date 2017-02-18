@@ -104,6 +104,6 @@ public final class AdtUiUtils {
    * Does the reverse of {@link JBUI#scale(int) }
    */
   public static int unscale(int i) {
-    return JBUI.scaleEx(1.0f / JBUI.scale(1.0f), i);
+    return Math.round(i / JBUI.scale(1.0f));
   }
 }

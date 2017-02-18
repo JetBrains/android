@@ -16,6 +16,7 @@
 package org.jetbrains.android;
 
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.IndexNotReadyException;
@@ -48,13 +49,9 @@ import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClas
 public class ClassMaps extends AndroidFacetScopedService {
   private static final Key<ClassMaps> KEY = Key.create(ClassMaps.class.getName());
 
-  private final Object myClassMapLock = new Object();
-
-  @GuardedBy("myClassMapLock")
   private final Map<String, Map<String, SmartPsiElementPointer<PsiClass>>> myInitialClassMaps = new HashMap<>();
 
-  @GuardedBy("myClassMapLock")
-  private final Map<String, CachedValue<Map<String, PsiClass>>> myClassMaps = new HashMap<>();
+  private final Map<String, CachedValue<Map<String, PsiClass>>> myClassMaps = Maps.newConcurrentMap();
 
   @NotNull
   public static ClassMaps getInstance(@NotNull AndroidFacet facet) {
@@ -73,19 +70,14 @@ public class ClassMaps extends AndroidFacetScopedService {
   // TODO: correctly support classes from external non-platform jars
   @NotNull
   public Map<String, PsiClass> getClassMap(@NotNull String className) {
-    CachedValue<Map<String, PsiClass>> value;
-    synchronized (myClassMapLock) {
-      value = myClassMaps.get(className);
-    }
+    CachedValue<Map<String, PsiClass>> value = myClassMaps.get(className);
 
     if (value == null) {
       value = CachedValuesManager.getManager(getProject()).createCachedValue(() -> {
         Map<String, PsiClass> map = computeClassMap(className);
         return CachedValueProvider.Result.create(map, PsiModificationTracker.JAVA_STRUCTURE_MODIFICATION_COUNT);
       }, false);
-      synchronized (myClassMapLock) {
-        myClassMaps.put(className, value);
-      }
+      myClassMaps.put(className, value);
     }
 
     return value.getValue();
@@ -140,9 +132,7 @@ public class ClassMaps extends AndroidFacetScopedService {
   @NotNull
   private Map<String, SmartPsiElementPointer<PsiClass>> getInitialClassMap(@NotNull String className, boolean forceRebuild) {
     Map<String, SmartPsiElementPointer<PsiClass>> viewClassMap;
-    synchronized (myClassMapLock) {
-      viewClassMap = myInitialClassMaps.get(className);
-    }
+    viewClassMap = myInitialClassMaps.get(className);
     if (viewClassMap != null && !forceRebuild) {
       return viewClassMap;
     }
@@ -155,9 +145,7 @@ public class ClassMaps extends AndroidFacetScopedService {
       for (Map.Entry<String, PsiClass> entry : map.entrySet()) {
         viewClassMap.put(entry.getKey(), manager.createSmartPsiElementPointer(entry.getValue()));
       }
-      synchronized (myClassMapLock) {
-        myInitialClassMaps.put(className, viewClassMap);
-      }
+      myInitialClassMaps.put(className, viewClassMap);
     }
     return viewClassMap != null ? viewClassMap : Collections.emptyMap();
   }
@@ -210,9 +198,7 @@ public class ClassMaps extends AndroidFacetScopedService {
   }
 
   public void clear() {
-    synchronized (myClassMapLock) {
-      myInitialClassMaps.clear();
-    }
+    myInitialClassMaps.clear();
   }
 
   @Override

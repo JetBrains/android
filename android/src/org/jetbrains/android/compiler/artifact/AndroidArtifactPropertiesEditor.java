@@ -157,10 +157,6 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
     UIUtil.setEnabled(myProGuardConfigPanel, myProperties.isRunProGuard(), true);
   }
 
-  @Override
-  public void disposeUIResources() {
-  }
-
   @NotNull
   private AndroidArtifactSigningMode getSigningMode() {
     return (AndroidArtifactSigningMode)myTypeCombo.getSelectedItem();

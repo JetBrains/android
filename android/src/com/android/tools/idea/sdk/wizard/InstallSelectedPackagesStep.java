@@ -35,12 +35,14 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.ui.GuiUtils;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -161,7 +163,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
     }
 
     Function<List<RepoPackage>, Void> completeCallback = failures -> {
-      UIUtil.invokeLaterIfNeeded(() -> {
+      GuiUtils.invokeLaterIfNeeded(() -> {
         myProgressBar.setValue(100);
         myProgressOverallLabel.setText("");
 
@@ -174,7 +176,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
           checkForUpgrades(myInstallRequests);
         }
         myInstallationFinished.set(true);
-      });
+      }, ModalityState.defaultModalityState());
       return null;
     };
 

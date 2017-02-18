@@ -100,7 +100,8 @@ public class PatchInstallingRestarter {
         File oldPackageXml = new File(patchDir, OLD_PACKAGE_XML_FN);
         if (patch.exists() && existingPackageXml.renameTo(oldPackageXml)) {
           // This will exit the app.
-          Main.installPatch("sdk", PatchInstallerUtil.PATCH_JAR_FN, FileUtil.getTempDirectory(), patch, installDir.getAbsolutePath(), Main.PATCHER_MAIN);
+          //Main.installPatch("sdk", PatchInstallerUtil.PATCH_JAR_FN, FileUtil.getTempDirectory(), patch, installDir.getAbsolutePath(), Main.PATCHER_MAIN);
+          throw new UnsupportedOperationException("TODO: Merge");
         }
         else {
           // The patch is already installed, or was cancelled.

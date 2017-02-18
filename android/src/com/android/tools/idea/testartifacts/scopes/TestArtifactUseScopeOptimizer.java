@@ -19,14 +19,14 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.UseScopeOptimizer;
+import com.intellij.psi.search.ScopeOptimizer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Controls the search scope for finding usages of a PSI element.
  */
-public class TestArtifactUseScopeOptimizer extends UseScopeOptimizer {
+public class TestArtifactUseScopeOptimizer implements ScopeOptimizer {
   @Nullable
   @Override
   public GlobalSearchScope getScopeToExclude(@NotNull PsiElement element) {

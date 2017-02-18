@@ -268,19 +268,13 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
 
     @NotNull
     @Override
-    public String getName() {
+    public String getFamilyName() {
       return "Create '" + myMethodName + "(" + myConverter.getShortParameterName() + ")' in '" + myClass.getName() + "'";
     }
 
     @NotNull
     @Override
     public String getText() {
-      return getName();
-    }
-
-    @NotNull
-    @Override
-    public String getFamilyName() {
       return getName();
     }
 

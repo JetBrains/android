@@ -52,6 +52,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.concurrency.AsyncPromise;
 import org.jetbrains.concurrency.Promise;
+import org.jetbrains.concurrency.Promises;
 
 import java.io.File;
 import java.util.Collection;
@@ -101,7 +102,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
 
     if ((buildModel == null) ^ (gradlePath == null)) {
       // If one of them is gradle module and one of them are not, reject since this is invalid dependency
-      return Promise.REJECTED;
+      return Promises.rejectedPromise();
     }
     return null;
   }
@@ -124,7 +125,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
     }
     ArtifactDependencySpec dependencySpec = findNewExternalDependency(from.getProject(), library);
     if (dependencySpec == null) {
-      return Promise.REJECTED;
+      return Promises.rejectedPromise();
     }
     return addExternalLibraryDependency(ImmutableList.of(from), dependencySpec, scope);
   }
