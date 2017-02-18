@@ -32,15 +32,12 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.execution.actions.RunConfigurationProducer;
-import com.intellij.ide.SaveAndSyncHandler;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.AbstractProjectComponent;
 import com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -49,7 +46,6 @@ import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
@@ -106,15 +102,6 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(result);
       GradleBuildContext newContext = new GradleBuildContext(result);
       AndroidProjectBuildNotifications.getInstance(myProject).notifyBuildComplete(newContext);
-
-      // Force a refresh.
-      // https://code.google.com/p/android/issues/detail?id=229633
-      ApplicationManager.getApplication().invokeLater(() -> {
-        FileDocumentManager.getInstance().saveAllDocuments();
-        SaveAndSyncHandler.getInstance().refreshOpenFiles();
-        boolean asyncRefresh = !ApplicationManager.getApplication().isUnitTestMode();
-        VirtualFileManager.getInstance().refreshWithoutFileWatcher(asyncRefresh);
-      });
     });
   }
 
