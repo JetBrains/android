@@ -18,7 +18,6 @@ package com.android.tools.idea.lint;
 import com.android.tools.lint.checks.ObjectAnimatorDetector;
 import com.android.tools.lint.detector.api.TextFormat;
 import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiAnnotation;
@@ -56,9 +55,6 @@ public class AndroidLintAnimatorKeepInspection extends AndroidLintInspectionBase
             return;
           }
 
-          if (!FileModificationService.getInstance().preparePsiElementForWrite(container)) {
-            return;
-          }
           final PsiModifierList modifierList = container.getModifierList();
           if (modifierList != null) {
             PsiAnnotation annotation = AnnotationUtil.findAnnotation(container, KEEP_ANNOTATION);

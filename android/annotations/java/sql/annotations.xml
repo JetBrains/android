@@ -115,7 +115,7 @@
       <val name="value" val="{java.sql.Statement.CLOSE_CURRENT_RESULT, java.sql.Statement.KEEP_CURRENT_RESULT, java.sql.Statement.CLOSE_ALL_RESULTS}" />
     </annotation>
   </item>
-  <item name="java.sql.Statement int execute(java.lang.String, int) 1">
+  <item name="java.sql.Statement boolean execute(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{java.sql.Statement.RETURN_GENERATED_KEYS, java.sql.Statement.NO_GENERATED_KEYS}" />
     </annotation>

@@ -344,6 +344,11 @@
       <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
     </annotation>
   </item>
+  <item name="java.util.Calendar int get(int)">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{java.util.Calendar.SUNDAY, java.util.Calendar.MONDAY, java.util.Calendar.TUESDAY, java.util.Calendar.WEDNESDAY, java.util.Calendar.THURSDAY, java.util.Calendar.FRIDAY, java.util.Calendar.SATURDAY}" />
+    </annotation>
+  </item>
   <item name="java.util.Calendar int get(int) 0">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{java.util.Calendar.ERA, java.util.Calendar.YEAR, java.util.Calendar.MONTH, java.util.Calendar.WEEK_OF_YEAR, java.util.Calendar.WEEK_OF_MONTH, java.util.Calendar.DATE, java.util.Calendar.DAY_OF_MONTH, java.util.Calendar.DAY_OF_YEAR, java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.DAY_OF_WEEK_IN_MONTH, java.util.Calendar.AM_PM, java.util.Calendar.HOUR, java.util.Calendar.HOUR_OF_DAY, java.util.Calendar.MINUTE, java.util.Calendar.SECOND, java.util.Calendar.MILLISECOND, java.util.Calendar.ZONE_OFFSET, java.util.Calendar.DST_OFFSET}" />
@@ -736,7 +741,7 @@
   <item name="java.util.LinkedList LinkedList(java.util.Collection&lt;? extends E&gt;) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="java.util.List ListIterator&lt;E&gt; listIterator()">
+  <item name="java.util.List java.util.ListIterator&lt;E&gt; listIterator()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="java.util.List T[] toArray(T[])">

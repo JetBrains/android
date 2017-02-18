@@ -36,7 +36,7 @@ import java.util.List;
 public interface Application extends ManifestElement {
   List<Activity> getActivities();
 
-  List<ActivityAlias> getActivityAliass();
+  List<ActivityAlias> getActivityAliases();
 
   Activity addActivity();
 

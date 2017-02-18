@@ -34,7 +34,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.EventDispatcher;
 import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.EventListener;
@@ -101,12 +100,6 @@ public class AndroidTreeStructureProvider implements TreeStructureProvider {
       return file != null && "rt.jar".equals(file.getName());
     }
     return false;
-  }
-
-  @Override
-  @Nullable
-  public Object getData(Collection<AbstractTreeNode> selected, String dataName) {
-    return null;
   }
 
   @VisibleForTesting

@@ -68,12 +68,6 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     return "AndroidSdkUpdater";
   }
 
-  @Nullable
-  @Override
-  public Runnable enableSearch(String option) {
-    return null;
-  }
-
   @Nls
   @Override
   public String getDisplayName() {

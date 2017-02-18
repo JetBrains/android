@@ -134,7 +134,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     ArrayList<String> allowedRoots = new ArrayList<>();
     collectAllowedRoots(allowedRoots);
-    registerAllowedRoots(allowedRoots, myTestRootDisposable);
+    registerAllowedRoots(allowedRoots, getTestRootDisposable());
     mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
     AndroidCodeStyleSettingsModifier.modify(mySettings);
     CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(mySettings);

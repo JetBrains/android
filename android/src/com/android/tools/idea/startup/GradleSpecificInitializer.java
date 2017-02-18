@@ -141,7 +141,7 @@ public class GradleSpecificInitializer implements Runnable {
     if (PathManager.getHomePath().contains("!")) {
       final Application app = ApplicationManager.getApplication();
 
-      app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
+      app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
         @Override
         public void appStarting(Project project) {
           app.invokeLater(() -> {
@@ -250,7 +250,7 @@ public class GradleSpecificInitializer implements Runnable {
   private static void addStartupWarning(@NotNull final String message, @Nullable final NotificationListener listener) {
     final Application app = ApplicationManager.getApplication();
 
-    app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
+    app.getMessageBus().connect(app).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
       @Override
       public void appStarting(Project project) {
         app.invokeLater(() -> {
@@ -431,7 +431,7 @@ public class GradleSpecificInitializer implements Runnable {
   private static void registerAppClosing() {
     Application app = ApplicationManager.getApplication();
     MessageBusConnection connection = app.getMessageBus().connect(app);
-    connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener.Adapter() {
+    connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
       @Override
       public void appClosing() {
         try {

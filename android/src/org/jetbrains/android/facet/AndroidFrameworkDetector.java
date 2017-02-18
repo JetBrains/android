@@ -168,6 +168,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
     return notification;
   }
 
+  @NotNull
   @Override
   public FacetType<AndroidFacet, AndroidFacetConfiguration> getFacetType() {
     return AndroidFacet.getFacetType();

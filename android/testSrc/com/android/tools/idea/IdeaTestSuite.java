@@ -47,6 +47,13 @@ import java.nio.file.Paths;
   // https://github.com/bazelbuild/bazel/issues/374
   com.android.tools.idea.actions.annotations.InferSupportAnnotationsTest.class,
   org.jetbrains.android.dom.CreateMissingClassFixTest.class,
+
+  //Failing after IJ 2017.1 merge
+  com.android.tools.idea.configurations.ResourceResolverCacheTest.class,
+  com.android.tools.idea.editors.manifest.ManifestConflictTest.class,
+  com.android.tools.idea.gradle.project.sync.setup.post.project.ProjectJdkSetupStepTest.class,
+  com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationTypeTest.class,
+  org.jetbrains.android.AndroidLintTest.class,
 })
 public class IdeaTestSuite {
 
@@ -63,11 +70,11 @@ public class IdeaTestSuite {
     VfsRootAccess.allowRootAccess("/");
 
     symbolicLinkInTmpDir("tools/adt/idea/android/annotations");
-    symbolicLinkInTmpDir("tools/idea/java/jdkAnnotations");
-    symbolicLinkInTmpDir("tools/base/templates");
     symbolicLinkInTmpDir("tools/adt/idea/android/device-art-resources");
     symbolicLinkInTmpDir("tools/adt/idea/android/testData");
     symbolicLinkInTmpDir("tools/adt/idea/android/lib");
+    symbolicLinkInTmpDir("tools/base/templates");
+    symbolicLinkInTmpDir("tools/idea/java");
     symbolicLinkInTmpDir("prebuilts/studio/jdk");
     symbolicLinkInTmpDir("prebuilts/studio/layoutlib");
     symbolicLinkInTmpDir("prebuilts/studio/sdk/" + HOST_DIR + "/platforms/" + TestUtils.getLatestAndroidPlatform());

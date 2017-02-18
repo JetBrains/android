@@ -96,7 +96,7 @@ public class DefaultActivityLocator extends ActivityLocator {
       return null;
     }
 
-    return computeDefaultActivity(merge(application.getActivities(), application.getActivityAliass()), null);
+    return computeDefaultActivity(merge(application.getActivities(), application.getActivityAliases()), null);
   }
 
   @Nullable

@@ -129,7 +129,7 @@ public class AndroidActivityAliasCompletionContributor extends CompletionContrib
     if (application == null) {
       return;
     }
-    for (ActivityAlias activityAlias : application.getActivityAliass()) {
+    for (ActivityAlias activityAlias : application.getActivityAliases()) {
       String alias = activityAlias.getName().getStringValue();
 
       if (alias != null && alias.length() > 0) {

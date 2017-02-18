@@ -17,9 +17,7 @@
 package org.jetbrains.android.exportSignedPackage;
 
 import com.intellij.ide.passwordSafe.PasswordSafe;
-import com.intellij.ide.passwordSafe.PasswordSafeException;
 import com.intellij.ide.wizard.CommitStepException;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.components.JBCheckBox;
@@ -44,8 +42,6 @@ import java.util.Arrays;
  * @author Eugene.Kudelevsky
  */
 class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSettingsForm {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.exportSignedPackage.KeystoreStep");
-
   private static final String KEY_STORE_PASSWORD_KEY = "KEY_STORE_PASSWORD";
   private static final String KEY_PASSWORD_KEY = "KEY_PASSWORD";
 
@@ -73,22 +69,15 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
     if (settings.REMEMBER_PASSWORDS) {
       final PasswordSafe passwordSafe = PasswordSafe.getInstance();
-      try {
-        String password = passwordSafe.getPassword(project, KeystoreStep.class, makePasswordKey(
-          KEY_STORE_PASSWORD_KEY, settings.KEY_STORE_PATH, null));
-        if (password != null) {
-          myKeyStorePasswordField.setText(password);
-        }
-        password = passwordSafe.getPassword(project, KeystoreStep.class, makePasswordKey(
-          KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS));
-        if (password != null) {
-          myKeyPasswordField.setText(password);
-        }
+      String password = passwordSafe.getPassword(KeystoreStep.class, makePasswordKey(
+        KEY_STORE_PASSWORD_KEY, settings.KEY_STORE_PATH, null));
+      if (password != null) {
+        myKeyStorePasswordField.setText(password);
       }
-      catch (PasswordSafeException e) {
-        LOG.debug(e);
-        myKeyStorePasswordField.setText("");
-        myKeyPasswordField.setText("");
+      password = passwordSafe.getPassword(KeystoreStep.class, makePasswordKey(
+        KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS));
+      if (password != null) {
+        myKeyPasswordField.setText(password);
       }
     }
     AndroidUiUtil.initSigningSettingsForm(project, this);
@@ -170,20 +159,8 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     final String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, keyStoreLocation, null);
     final String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, keyStoreLocation, keyAlias);
 
-    try {
-      if (rememberPasswords) {
-        passwordSafe.storePassword(project, KeystoreStep.class, keyStorePasswordKey, new String(keyStorePassword));
-        passwordSafe.storePassword(project, KeystoreStep.class, keyPasswordKey, new String(keyPassword));
-      }
-      else {
-        passwordSafe.removePassword(project, KeystoreStep.class, keyStorePasswordKey);
-        passwordSafe.removePassword(project, KeystoreStep.class, keyPasswordKey);
-      }
-    }
-    catch (PasswordSafeException e) {
-      LOG.debug(e);
-      throw new CommitStepException("Cannot store passwords: " + e.getMessage());
-    }
+    passwordSafe.setPassword(KeystoreStep.class, keyStorePasswordKey, rememberPasswords ? new String(keyStorePassword) : null);
+    passwordSafe.setPassword(KeystoreStep.class, keyPasswordKey, rememberPasswords ? new String(keyPassword) : null);
   }
 
   private KeyStore loadKeyStore(File keystoreFile) throws CommitStepException {

@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.android.SdkConstants;
 import com.android.builder.model.BaseArtifact;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
-import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -30,6 +30,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -51,9 +52,7 @@ import static com.android.builder.model.AndroidProject.PROPERTY_GENERATE_SOURCES
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.getIdeSetupTasks;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.BuildMode.*;
-import static com.android.tools.idea.gradle.util.GradleBuilds.ASSEMBLE_TRANSLATE_TASK_NAME;
-import static com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME;
-import static com.android.tools.idea.gradle.util.GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME;
+import static com.android.tools.idea.gradle.util.GradleBuilds.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -300,7 +299,7 @@ public class GradleBuildInvoker {
    * Saves all edited documents. This method can be called from any thread.
    */
   public static void saveAllFilesSafely() {
-    invokeAndWaitIfNeeded((Runnable)() -> FileDocumentManager.getInstance().saveAllDocuments());
+    TransactionGuard.getInstance().submitTransactionAndWait(() -> FileDocumentManager.getInstance().saveAllDocuments());
   }
 
   private static void findAndAddGradleBuildTasks(@NotNull Module module,
