@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.android.AndroidBuildScriptsGroupNode;
 import com.android.tools.idea.navigator.nodes.android.AndroidModuleNode;
-import com.android.tools.idea.navigator.nodes.apk.ApkFileNode;
+import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode;
 import com.android.tools.idea.navigator.nodes.ndk.ExternalBuildFilesGroupNode;
 import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
 import com.android.tools.idea.navigator.nodes.other.NonAndroidModuleNode;
@@ -39,22 +39,18 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.isRootModuleWithNoSources;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
 public class AndroidViewProjectNode extends ProjectViewNode<Project> {
@@ -92,10 +88,7 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
         children.add(new AndroidModuleNode(myProject, module, settings, myProjectViewPane));
       }
       else if (androidFacet != null && apkFacet != null) {
-        PsiFile apkFile = findApkPsiFile(apkFacet);
-        if (apkFile != null) {
-          children.add(new ApkFileNode(myProject, apkFile, androidFacet, apkFacet, settings, myProjectViewPane));
-        }
+        children.add(new ApkModuleNode(myProject, module, androidFacet, apkFacet, settings));
       }
       else if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null) {
         children.add(new NdkModuleNode(myProject, module, settings));
@@ -129,19 +122,6 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
     // TODO: Do we want to show the External Libraries Node or a Dependencies node
 
     return children;
-  }
-
-  @Nullable
-  private PsiFile findApkPsiFile(@NotNull ApkFacet apkFacet) {
-    File apkFilePath = new File(toSystemDependentName(apkFacet.getConfiguration().APK_PATH));
-    if (apkFilePath.isFile()) {
-      VirtualFile apkFile = findFileByIoFile(apkFilePath, true);
-      if (apkFile != null) {
-        assert myProject != null;
-        return PsiManager.getInstance(myProject).findFile(apkFile);
-      }
-    }
-    return null;
   }
 
   @Override
