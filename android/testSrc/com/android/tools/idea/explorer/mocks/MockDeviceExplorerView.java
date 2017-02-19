@@ -46,6 +46,7 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> mySaveNodeAsTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> myCopyNodePathsTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> myDeleteNodesTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myUploadFilesTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myNewDirectoryTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myNewFileTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceAddedTracker = new FutureValuesTracker<>();
@@ -62,6 +63,7 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull private final FutureValuesTracker<String> myReportErrorRelatedToNodeTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<Void> myStartTreeBusyIndicatorTacker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<Void> myStopTreeBusyIndicatorTacker = new FutureValuesTracker<>();
+  private int myBusyIndicatorCount;
 
   public MockDeviceExplorerView(@NotNull Project project,
                                 @NotNull ToolWindow toolWindow,
@@ -151,14 +153,26 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
 
   @Override
   public void startTreeBusyIndicator() {
-    myStartTreeBusyIndicatorTacker.produce(null);
+    if (myBusyIndicatorCount == 0) {
+      myStartTreeBusyIndicatorTacker.produce(null);
+    }
+    myBusyIndicatorCount++;
+
     myViewImpl.startTreeBusyIndicator();
   }
 
   @Override
   public void stopTreeBusyIndicator() {
-    myStopTreeBusyIndicatorTacker.produce(null);
+    myBusyIndicatorCount--;
+    if (myBusyIndicatorCount == 0) {
+      myStopTreeBusyIndicatorTacker.produce(null);
+    }
     myViewImpl.stopTreeBusyIndicator();
+  }
+
+  @Override
+  public void expandNode(@NotNull DeviceFileEntryNode treeNode) {
+    myViewImpl.expandNode(treeNode);
   }
 
   public FutureValuesTracker<DeviceFileSystem> getDeviceAddedTracker() {
@@ -263,6 +277,19 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     return myDeleteNodesTracker;
   }
 
+  @NotNull
+  public FutureValuesTracker<DeviceFileEntryNode> getUploadFilesTracker() {
+    return myUploadFilesTracker;
+  }
+
+  public void deviceTreeModelUpdated(@Nullable DeviceFileSystem device,
+                                     @Nullable DefaultTreeModel model,
+                                     @Nullable DefaultTreeSelectionModel selectionModel) {
+    if (model != null) {
+      model.addTreeModelListener(new MyTreeModelListener());
+    }
+  }
+
   private class MyDeviceExplorerViewListener implements DeviceExplorerViewListener {
     @Override
     public void deviceSelected(@Nullable DeviceFileSystem device) {
@@ -311,6 +338,12 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
       myDeleteNodesTracker.produce(treeNodes);
       myListeners.forEach(l -> l.deleteNodesInvoked(treeNodes));
     }
+
+    @Override
+    public void uploadFilesInvoked(@NotNull DeviceFileEntryNode treeNode) {
+      myUploadFilesTracker.produce(treeNode);
+      myListeners.forEach(l -> l.uploadFilesInvoked(treeNode));
+    }
   }
 
   private class MyDeviceExplorerModelListener implements DeviceExplorerModelListener {
@@ -341,9 +374,6 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     @Override
     public void treeModelChanged(@Nullable DefaultTreeModel newTreeModel, @Nullable DefaultTreeSelectionModel newTreeSelectionModel) {
       myTreeModelChangedTracker.produce(newTreeModel);
-      if (newTreeModel != null) {
-        newTreeModel.addTreeModelListener(new MyTreeModelListener());
-      }
     }
   }
 

@@ -35,4 +35,6 @@ public interface DeviceExplorerView {
 
   void startTreeBusyIndicator();
   void stopTreeBusyIndicator();
+
+  void expandNode(@NotNull DeviceFileEntryNode treeNode);
 }

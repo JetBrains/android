@@ -46,11 +46,20 @@ public interface DeviceFileSystem {
   ListenableFuture<DeviceFileEntry> getEntry(@NotNull String path);
 
   /**
-   * Downloads the contents of the {@link DeviceFileEntry} to a local
-   * file.
+   * Downloads the contents of the {@link DeviceFileEntry} to a local file.
    */
   @NotNull
-  ListenableFuture<Void> downloadFile(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull FileTransferProgress progress);
+  ListenableFuture<Void> downloadFile(@NotNull DeviceFileEntry entry,
+                                      @NotNull Path localPath,
+                                      @NotNull FileTransferProgress progress);
+
+  /**
+   * Uploads the contents of a local file to a remote {@link DeviceFileEntry} directory.
+   */
+  @NotNull
+  ListenableFuture<Void> uploadFile(@NotNull Path localFilePath,
+                                    @NotNull DeviceFileEntry remoteDirectory,
+                                    @NotNull FileTransferProgress progress);
 
   /**
    * Creates a new file "{@code fileName}" in the given {@code parentEntry}, and returns a future that
