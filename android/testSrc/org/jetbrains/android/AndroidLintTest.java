@@ -32,7 +32,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Ignore;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +43,6 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
 import static com.google.common.truth.Truth.assertThat;
 
-@Ignore // Broken after 2017.1 merge
 public class AndroidLintTest extends AndroidTestCase {
   @NonNls private static final String BASE_PATH = "/lint/";
   @NonNls private static final String BASE_PATH_GLOBAL = BASE_PATH + "global/";
