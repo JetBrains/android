@@ -32,9 +32,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -73,6 +75,7 @@ public class MemoryProfilerStage extends Stage {
   private final MemoryProfilerConfiguration myConfiguration;
   private final EventMonitor myEventMonitor;
   private boolean myTrackingAllocations;
+  private boolean myUpdateCaptureOnSelection = true;
 
   public MemoryProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, new CaptureObjectLoader());
@@ -132,10 +135,15 @@ public class MemoryProfilerStage extends Stage {
     getStudioProfilers().getUpdater().register(myObjectsAxis);
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myGcCount);
+
+    getStudioProfilers().getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, this::selectionChanged);
   }
 
   @Override
   public void exit() {
+
+    getStudioProfilers().getTimeline().getSelectionRange().removeDependencies(this);
+
     myEventMonitor.exit();
     getStudioProfilers().getUpdater().unregister(myDetailedMemoryUsage);
     getStudioProfilers().getUpdater().unregister(myHeapDumpDurations);
@@ -146,6 +154,42 @@ public class MemoryProfilerStage extends Stage {
     getStudioProfilers().getUpdater().unregister(myGcCount);
     selectCapture(null, null);
     myLoader.stop();
+  }
+
+
+  private void selectionChanged() {
+    if (!myUpdateCaptureOnSelection) {
+      return;
+    }
+
+    Range range = getStudioProfilers().getTimeline().getSelectionRange();
+    CaptureObject captureObject = null;
+
+    double overlap = 0.0f;
+    ImmutableList<SeriesData<CaptureDurationData<HeapDumpCaptureObject>>>
+      heaps = getHeapDumpSampleDurations().getSeries().getDataSeries().getDataForXRange(range);
+    for (SeriesData<CaptureDurationData<HeapDumpCaptureObject>> data : heaps) {
+      Range c = new Range(data.x, data.x + data.value.getDuration());
+      Range intersection = c.getIntersection(range);
+      if (!intersection.isEmpty() && intersection.getLength() > overlap) {
+        captureObject = data.value.getCaptureObject();
+        overlap = intersection.getLength();
+      }
+    }
+
+
+    ImmutableList<SeriesData<CaptureDurationData<AllocationsCaptureObject>>>
+      allocs = getAllocationInfosDurations().getSeries().getDataSeries().getDataForXRange(range);
+    for (SeriesData<CaptureDurationData<AllocationsCaptureObject>> data : allocs) {
+      Range c = new Range(data.x, data.x + data.value.getDuration());
+      Range intersection = c.getIntersection(range);
+      if (!intersection.isEmpty() && intersection.getLength() > overlap) {
+        captureObject = data.value.getCaptureObject();
+        overlap = intersection.getLength();
+      }
+    }
+
+    selectCapture(captureObject, SwingUtilities::invokeLater);
   }
 
   @NotNull
@@ -278,8 +322,10 @@ public class MemoryProfilerStage extends Stage {
 
     ProfilerTimeline timeline = getStudioProfilers().getTimeline();
     if (captureObject != null) {
+      myUpdateCaptureOnSelection = false;
       timeline.getSelectionRange().set(TimeUnit.NANOSECONDS.toMicros(captureObject.getStartTimeNs()),
                                        TimeUnit.NANOSECONDS.toMicros(captureObject.getEndTimeNs()));
+      myUpdateCaptureOnSelection = true;
       ListenableFuture<CaptureObject> future = myLoader.loadCapture(captureObject);
       future.addListener(() -> {
                            try {
