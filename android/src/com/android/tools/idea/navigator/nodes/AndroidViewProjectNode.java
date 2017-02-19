@@ -29,6 +29,7 @@ import com.android.tools.idea.navigator.nodes.other.NonAndroidModuleNode;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
+import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
@@ -89,6 +90,7 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
       }
       else if (androidFacet != null && apkFacet != null) {
         children.add(new ApkModuleNode(myProject, module, androidFacet, apkFacet, settings));
+        children.add(new ExternalLibrariesNode(myProject, settings));
       }
       else if (ndkFacet != null && ndkFacet.getNdkModuleModel() != null) {
         children.add(new NdkModuleNode(myProject, module, settings));
