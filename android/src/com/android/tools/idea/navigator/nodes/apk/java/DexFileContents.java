@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.java;
 
+import com.android.tools.idea.apk.debugging.ApkPackage;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.util.concurrent.ListeningExecutorService;
