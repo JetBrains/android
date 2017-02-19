@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes.apk.java;
+package com.android.tools.idea.apk.debugging;
 
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -28,30 +28,25 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class ClassFinder {
-  @NotNull private final Project myProject;
+import static com.android.SdkConstants.EXT_JAVA;
 
-  ClassFinder(@NotNull Project project) {
-    myProject = project;
+public class JavaFiles {
+  public static boolean isJavaFile(@NotNull VirtualFile file) {
+    return !file.isDirectory() && EXT_JAVA.equals(file.getExtension());
   }
 
   @Nullable
-  PsiClass findClass(@NotNull ApkClass apkClass) {
-    return findClass(apkClass.getFqn());
-  }
-
-  @Nullable
-  PsiClass findClass(@NotNull String classFqn) {
-    if (DumbService.getInstance(myProject).isDumb()) {
+  public PsiClass findClass(@NotNull String classFqn, @NotNull Project project) {
+    if (DumbService.getInstance(project).isDumb()) {
       // Index not ready.
       return null;
     }
-    return JavaPsiFacade.getInstance(myProject).findClass(classFqn, GlobalSearchScope.allScope(myProject));
+    return JavaPsiFacade.getInstance(project).findClass(classFqn, GlobalSearchScope.allScope(project));
   }
 
   @NotNull
-  List<String> findClasses(@NotNull VirtualFile file) {
-    PsiJavaFile psiFile = findPsiFileFor(file);
+  public List<String> findClasses(@NotNull VirtualFile file, @NotNull Project project) {
+    PsiJavaFile psiFile = findPsiFileFor(file, project);
     if (psiFile != null) {
       PsiClass[] classes = psiFile.getClasses();
       if (classes.length > 0) {
@@ -62,14 +57,14 @@ class ClassFinder {
   }
 
   @Nullable
-  String findPackage(@NotNull VirtualFile file) {
-    PsiJavaFile psiFile = findPsiFileFor(file);
+  public String findPackage(@NotNull VirtualFile file, @NotNull Project project) {
+    PsiJavaFile psiFile = findPsiFileFor(file, project);
     return psiFile != null ? psiFile.getPackageName() : null;
   }
 
   @Nullable
-  private PsiJavaFile findPsiFileFor(@NotNull VirtualFile file) {
-    PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
+  private static PsiJavaFile findPsiFileFor(@NotNull VirtualFile file, @NotNull Project project) {
+    PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
     return psiFile instanceof PsiJavaFile ? (PsiJavaFile)psiFile : null;
   }
 }

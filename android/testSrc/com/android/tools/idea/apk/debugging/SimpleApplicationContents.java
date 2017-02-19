@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes.apk.java;
+package com.android.tools.idea.apk.debugging;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -26,7 +26,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.junit.Assert.assertNotNull;
 
-final class SimpleApplicationContents {
+public final class SimpleApplicationContents {
   @NotNull private static final ApkPackage GOOGLE_PACKAGE = new ApkPackage("google", null);
   @NotNull private static final ApkPackage SIMPLEAPPLICATION_PACKAGE = new ApkPackage("simpleapplication", GOOGLE_PACKAGE);
   @NotNull private static final ApkClass MY_ACTIVITY_CLASS = new ApkClass("MyActivity", SIMPLEAPPLICATION_PACKAGE);
@@ -36,25 +36,24 @@ final class SimpleApplicationContents {
   }
 
   @NotNull
-  static ApkClass getMyActivityApkClass() {
+  public static ApkClass getMyActivityApkClass() {
     return MY_ACTIVITY_CLASS;
   }
 
   @NotNull
-  static ApkClass getUnitTestClass() {
+  public static ApkClass getUnitTestClass() {
     return UNIT_TEST_CLASS;
   }
 
   @NotNull
-  static VirtualFile getMyActivityFile(@NotNull Module appModule) {
+  public static VirtualFile getMyActivityFile(@NotNull Module appModule) {
     String relativePath = join("src", "main", "java", GOOGLE_PACKAGE.getName(), SIMPLEAPPLICATION_PACKAGE.getName(),
                                MY_ACTIVITY_CLASS.getName() + ".java");
     return getModuleFile(appModule, relativePath);
   }
 
-
   @NotNull
-  static VirtualFile getUnitTestFile(@NotNull Module appModule) {
+  public static VirtualFile getUnitTestFile(@NotNull Module appModule) {
     String relativePath = join("src", "test", "java", GOOGLE_PACKAGE.getName(), SIMPLEAPPLICATION_PACKAGE.getName(),
                                UNIT_TEST_CLASS.getName() + ".java");
     return getModuleFile(appModule, relativePath);
