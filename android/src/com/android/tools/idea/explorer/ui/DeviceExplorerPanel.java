@@ -91,7 +91,14 @@ public class DeviceExplorerPanel {
 
   private void createTree() {
     DefaultTreeModel treeModel = new DefaultTreeModel(new LoadingNode());
-    myTree = new Tree(treeModel);
+    myTree = new Tree(treeModel) {
+      @Override
+      protected boolean shouldShowBusyIconIfNeeded() {
+        // By default, setPaintBusy(true) is skipped if the tree component does not have the focus.
+        // By overriding this method, we ensure setPaintBusy(true) is never skipped.
+        return true;
+      }
+    };
     myTree.setShowsRootHandles(true);
     myTree.setRootVisible(true);
 
@@ -166,19 +173,19 @@ public class DeviceExplorerPanel {
         SimpleTextAttributes attr = SimpleTextAttributes.REGULAR_ATTRIBUTES;
         SearchUtil.appendFragments(mySpeedSearch.getEnteredPrefix(), node.getEntry().getName(), attr.getStyle(), attr.getFgColor(),
                                    attr.getBgColor(), this);
-        if (node.isDownloading()) {
-          // Download progress
-          if (node.getTotalDownloadBytes() > 0) {
+        if (node.isTransferring()) {
+          // Transfer progress
+          if (node.getTotalTransferredBytes() > 0) {
             append(String.format(" (%s / %s) ",
-                                 ApkViewPanel.getHumanizedSize(node.getDownloadedBytes()),
-                                 ApkViewPanel.getHumanizedSize(node.getTotalDownloadBytes())),
+                                 ApkViewPanel.getHumanizedSize(node.getCurrentTransferredBytes()),
+                                 ApkViewPanel.getHumanizedSize(node.getTotalTransferredBytes())),
                    SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES);
-          } else if (node.getDownloadedBytes() > 0) {
+          } else if (node.getCurrentTransferredBytes() > 0) {
             append(String.format(" (%s) ",
-                                 ApkViewPanel.getHumanizedSize(node.getDownloadedBytes())),
+                                 ApkViewPanel.getHumanizedSize(node.getCurrentTransferredBytes())),
                    SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES);
           } else {
-            appendProgress(node.getDownloadingTick());
+            appendProgress(node.getTransferringTick());
           }
         }
         String linkTarget = node.getEntry().getSymbolicLinkTarget();
@@ -191,7 +198,7 @@ public class DeviceExplorerPanel {
       } else if (value instanceof MyLoadingNode) {
         MyLoadingNode loadingNode = (MyLoadingNode)value;
         append("loading", SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES);
-        appendProgress(loadingNode.getDownloadingTick());
+        appendProgress(loadingNode.getTick());
       }
     }
 
@@ -278,7 +285,8 @@ public class DeviceExplorerPanel {
                                       boolean hasFocus) {
       DeviceFileEntryNode node = DeviceFileEntryNode.fromNode(value);
       if (node != null) {
-        long size = node.getEntry().getSize();
+        // If node is uploading, show the number of bytes uploaded instead of the last known size
+        long size = node.isUploading() ? node.getCurrentTransferredBytes() : node.getEntry().getSize();
         if (size >= 0) {
           setTextAlign(SwingConstants.RIGHT);
           append(ApkViewPanel.getHumanizedSize(size));

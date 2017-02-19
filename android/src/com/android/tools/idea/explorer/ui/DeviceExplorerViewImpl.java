@@ -250,6 +250,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     myTreePopupMenu.addSeparator();
     myTreePopupMenu.addItem(new OpenMenuItem());
     myTreePopupMenu.addItem(new SaveAsMenuItem());
+    myTreePopupMenu.addItem(new UploadFilesMenuItem());
     myTreePopupMenu.addItem(new DeleteNodesMenuItem());
     myTreePopupMenu.addSeparator();
     myTreePopupMenu.addItem(new CopyPathMenuItem());
@@ -289,6 +290,10 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     myListeners.forEach(x -> x.deleteNodesInvoked(treeNodes));
   }
 
+  private void uploadFiles(@NotNull DeviceFileEntryNode treeNode) {
+    myListeners.forEach(x -> x.uploadFilesInvoked(treeNode));
+  }
+
   @Override
   public void serviceSetupSuccess() {
     assert myLoadingPanel != null;
@@ -320,6 +325,13 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   @Override
   public void stopTreeBusyIndicator() {
     decrementTreeLoading();
+  }
+
+  @Override
+  public void expandNode(@NotNull DeviceFileEntryNode treeNode) {
+    if (myPanel != null) {
+      myPanel.getTree().expandPath(new TreePath(treeNode.getPath()));
+    }
   }
 
   private void expandTreeNode(@NotNull DeviceFileEntryNode node) {
@@ -395,7 +407,9 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
     @Nullable
     @Override
-    public abstract Icon getIcon();
+    public Icon getIcon() {
+      return null;
+    }
 
     @Override
     public final boolean isEnabled() {
@@ -639,6 +653,24 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     @Override
     public void run(@NotNull List<DeviceFileEntryNode> nodes) {
       deleteNodes(nodes);
+    }
+  }
+
+  private class UploadFilesMenuItem extends SingleSelectionTreeMenuItem {
+    @NotNull
+    @Override
+    public String getText() {
+      return "Upload...";
+    }
+
+    @Override
+    public boolean isVisible(@NotNull DeviceFileEntryNode node) {
+      return node.getEntry().isDirectory() || node.isSymbolicLinkToDirectory();
+    }
+
+    @Override
+    public void run(@NotNull DeviceFileEntryNode node) {
+      uploadFiles(node);
     }
   }
 }

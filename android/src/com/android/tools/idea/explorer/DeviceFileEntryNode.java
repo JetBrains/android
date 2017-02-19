@@ -20,18 +20,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
+import java.util.Objects;
 
 /**
  * A {@link DefaultMutableTreeNode} model for a {@link DeviceFileEntry}
  */
 public class DeviceFileEntryNode extends DefaultMutableTreeNode {
   private @NotNull DeviceFileEntry myEntry;
+  private boolean myIsSymbolicLinkToDirectory;
   private boolean myLoaded;
   private boolean myDownloading;
-  private int myDownloadingTick;
-  private long myDownloadedBytes;
-  private long myTotalDownloadBytes;
-  private boolean myIsSymbolicLinkToDirectory;
+  private boolean myUploading;
+  private int myTransferringTick;
+  private long myCurrentTransferredBytes;
+  private long myTotalTransferredBytes;
 
   @Nullable
   public static DeviceFileEntryNode fromNode(@Nullable Object value) {
@@ -40,6 +42,12 @@ public class DeviceFileEntryNode extends DefaultMutableTreeNode {
     }
 
     return (DeviceFileEntryNode)value;
+  }
+
+  @Override
+  @NotNull
+  public String toString() {
+    return myEntry.getName();
   }
 
   public DeviceFileEntryNode(@NotNull DeviceFileEntry entry) {
@@ -54,10 +62,12 @@ public class DeviceFileEntryNode extends DefaultMutableTreeNode {
     myLoaded = loaded;
   }
 
-  @Override
-  @NotNull
-  public String toString() {
-    return myEntry.getName();
+  public boolean isSymbolicLinkToDirectory() {
+    return myIsSymbolicLinkToDirectory;
+  }
+
+  public void setSymbolicLinkToDirectory(boolean value) {
+    myIsSymbolicLinkToDirectory = value;
   }
 
   @Override
@@ -74,7 +84,6 @@ public class DeviceFileEntryNode extends DefaultMutableTreeNode {
     return myEntry;
   }
 
-  @NotNull
   public void setEntry(@NotNull DeviceFileEntry entry) {
     myEntry = entry;
   }
@@ -83,39 +92,62 @@ public class DeviceFileEntryNode extends DefaultMutableTreeNode {
     return myDownloading;
   }
 
+  public boolean isUploading() {
+    return myUploading;
+  }
+
+  public boolean isTransferring() {
+    return isDownloading() || isUploading();
+  }
+
+  private void clearTransferInfo() {
+    myUploading = false;
+    myDownloading = false;
+    myTransferringTick = 0;
+    myCurrentTransferredBytes = 0;
+    myTotalTransferredBytes = 0;
+  }
+
   public void setDownloading(boolean downloading) {
+    clearTransferInfo();
     myDownloading = downloading;
-    myDownloadingTick = 0;
-    myDownloadedBytes = 0;
-    myTotalDownloadBytes = 0;
   }
 
-  public boolean isSymbolicLinkToDirectory() {
-    return myIsSymbolicLinkToDirectory;
+  public void setUploading(boolean uploading) {
+    clearTransferInfo();
+    myUploading = uploading;
   }
 
-  public void setSymbolicLinkToDirectory(boolean value) {
-    myIsSymbolicLinkToDirectory = value;
+  public int getTransferringTick() {
+    return myTransferringTick;
   }
 
-  public int getDownloadingTick() {
-    return myDownloadingTick;
+  public void incTransferringTick() {
+    myTransferringTick++;
   }
 
-  public void incDownloadingTick() {
-    myDownloadingTick++;
+  public void setTransferProgress(long currentBytes, long totalBytes) {
+    myCurrentTransferredBytes = currentBytes;
+    myTotalTransferredBytes = totalBytes;
   }
 
-  public void setDownloadProgress(long downloadedBytes, long totalDownloadBytes) {
-    myDownloadedBytes = downloadedBytes;
-    myTotalDownloadBytes = totalDownloadBytes;
+  public long getCurrentTransferredBytes() {
+    return myCurrentTransferredBytes;
   }
 
-  public long getDownloadedBytes() {
-    return myDownloadedBytes;
+  public long getTotalTransferredBytes() {
+    return myTotalTransferredBytes;
   }
 
-  public long getTotalDownloadBytes() {
-    return myTotalDownloadBytes;
+  public DeviceFileEntryNode findChildEntry(@NotNull String name) {
+    for (int i = 0; i < getChildCount(); i++) {
+      if (getChildAt(i) instanceof DeviceFileEntryNode) {
+        DeviceFileEntryNode childEntry = ((DeviceFileEntryNode)getChildAt(i));
+        if (Objects.equals(childEntry.getEntry().getName(), name)) {
+          return childEntry;
+        }
+      }
+    }
+    return null;
   }
 }
