@@ -228,7 +228,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setLabelProvider(
           data -> String.format("Dump (%s)", data.getDuration() == DurationData.UNSPECIFIED_DURATION ? "in progress" :
                                              TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
-        .setClickHander(data -> getStage().selectCapture(data.getCaptureObject(), SwingUtilities::invokeLater))
         .build();
     DurationDataRenderer<CaptureDurationData<AllocationsCaptureObject>> allocationRenderer =
       new DurationDataRenderer.Builder<>(getStage().getAllocationInfosDurations(), Color.LIGHT_GRAY)
@@ -237,7 +236,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         .setLabelProvider(data -> String
           .format("Allocation Record (%s)", data.getDuration() == DurationData.UNSPECIFIED_DURATION ? "in progress" :
                                             TimeAxisFormatter.DEFAULT.getFormattedString(viewRange.getLength(), data.getDuration(), true)))
-        .setClickHander(data -> getStage().selectCapture(data.getCaptureObject(), SwingUtilities::invokeLater))
         .build();
     DurationDataRenderer<GcDurationData> gcRenderer = new DurationDataRenderer.Builder<>(getStage().getGcCount(), Color.BLACK)
       .setIcon(ProfilerIcons.GARBAGE_EVENT)
@@ -248,6 +246,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     lineChart.addCustomRenderer(gcRenderer);
 
     SelectionModel selectionModel = new SelectionModel(timeline.getSelectionRange(), timeline.getViewRange());
+    selectionModel.setSelectFullConstraint(true);
+    selectionModel.addConstraint(getStage().getAllocationInfosDurations());
+    selectionModel.addConstraint(getStage().getHeapDumpSampleDurations());
+
     SelectionComponent selection = new SelectionComponent(selectionModel);
     final JPanel overlayPanel = new JBPanel(new BorderLayout());
     overlayPanel.setOpaque(false);
