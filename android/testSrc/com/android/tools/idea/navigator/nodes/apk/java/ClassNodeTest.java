@@ -18,14 +18,22 @@ package com.android.tools.idea.navigator.nodes.apk.java;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
+import java.io.File;
+import java.io.IOException;
+
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.navigator.nodes.apk.java.SimpleApplicationContents.*;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -33,6 +41,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class ClassNodeTest extends AndroidGradleTestCase {
   @Mock private ViewSettings mySettings;
+  @Mock private SmaliFinder mySmaliFinder;
 
   private ApkClass myActivityApkClass;
   private ApkClass myUnitTestClass;
@@ -52,7 +61,7 @@ public class ClassNodeTest extends AndroidGradleTestCase {
 
     myClassFinder = new ClassFinder(project);
 
-    myNode = new ClassNode(project, myActivityApkClass, mySettings, myClassFinder);
+    myNode = new ClassNode(project, myActivityApkClass, mySettings, myClassFinder, mySmaliFinder);
   }
 
   public void testUpdate() {
@@ -61,7 +70,7 @@ public class ClassNodeTest extends AndroidGradleTestCase {
     assertEquals(myActivityApkClass.getName(), presentation.getPresentableText());
   }
 
-  public void testContains() throws Exception {
+  public void testContainsJavaFile() throws Exception {
     loadSimpleApplication();
     Module module = myModules.getAppModule();
 
@@ -70,6 +79,19 @@ public class ClassNodeTest extends AndroidGradleTestCase {
 
     VirtualFile testFile = getUnitTestFile(module);
     assertFalse(myNode.contains(testFile));
+  }
+
+  public void testContainsSmaliFile() throws Throwable {
+    Project project = getProject();
+    VirtualFile smaliFile = ApplicationManager.getApplication().runWriteAction((ThrowableComputable<VirtualFile, IOException>)() ->
+      project.getBaseDir().createChildData(this, "Test.smali"));
+    File smaliFilePath = virtualToIoFile(smaliFile);
+
+    when(mySmaliFinder.findSmaliFilePath(myActivityApkClass.getFqn())).thenReturn(smaliFilePath);
+    assertTrue(myNode.contains(smaliFile));
+
+    when(mySmaliFinder.findSmaliFilePath(myActivityApkClass.getFqn())).thenReturn(getBaseDirPath(project));
+    assertFalse(myNode.contains(smaliFile));
   }
 
   public void testCanRepresentVirtualFile() throws Exception {
