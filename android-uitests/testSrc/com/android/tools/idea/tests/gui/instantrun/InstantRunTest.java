@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.instantrun;
 
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.emulator.TestWithEmulator;
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import com.google.common.base.Strings;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
-import org.junit.*;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.regex.Matcher;
@@ -36,30 +37,17 @@ import java.util.regex.Pattern;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
-public class InstantRunTest {
+public class InstantRunTest extends TestWithEmulator {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   private static final String APP_NAME = "app";
-  private static final String AVD_NAME = "device under test";
   private static final Pattern RUN_OUTPUT =
     Pattern.compile(".*adb shell am start .*google\\.simpleapplication.*Connected to process (\\d+) .*", Pattern.DOTALL);
   private static final Pattern CMAKE_RUN_OUTPUT =
     Pattern.compile(".*adb shell am start .*google\\.basiccmake.*Connected to process (\\d+) .*", Pattern.DOTALL);
   private static final Pattern HOT_SWAP_OUTPUT =
     Pattern.compile(".*Hot swapped changes, activity restarted.*", Pattern.DOTALL);
-
-  @Before
-  public void setUp() throws Exception {
-    MockAvdManagerConnection.inject();
-    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    getEmulatorConnection().stopRunningAvd();
-    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
-  }
 
   /**
    * Verifies that instant run hot swap works as expected.
@@ -87,7 +75,7 @@ public class InstantRunTest {
   @Test
   public void hotSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    createAVD();
+    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
       .runApp(APP_NAME)
@@ -140,7 +128,7 @@ public class InstantRunTest {
   @Test
   public void coldSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    createAVD();
+    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
       .runApp(APP_NAME)
@@ -198,7 +186,7 @@ public class InstantRunTest {
   @Test
   public void changeManifest() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-    createAVD();
+    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
       .runApp(APP_NAME)
@@ -255,7 +243,7 @@ public class InstantRunTest {
   @Test
   public void cmakeHotSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("BasicCmake");
-    createAVD();
+    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
       .runApp(APP_NAME)
@@ -280,31 +268,6 @@ public class InstantRunTest {
     String newPid = extractPidFromOutput(contentFixture.getOutput(), CMAKE_RUN_OUTPUT);
     // (Hot swap) Verify the equality of PIDs before and after IR.
     assertThat(pid).isEqualTo(newPid);
-  }
-
-  private void createAVD() {
-    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
-    AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
-
-    avdEditWizard.selectHardware()
-      .selectHardwareProfile("Nexus 5");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getChooseSystemImageStep()
-      .selectTab("x86 Images")
-      .selectSystemImage("Nougat", "24", "x86", "Android 7.0");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getConfigureAvdOptionsStep()
-      .setAvdName(AVD_NAME)
-      .selectGraphicsSoftware();
-    avdEditWizard.clickFinish();
-    avdManagerDialog.close();
-  }
-
-  @NotNull
-  private static MockAvdManagerConnection getEmulatorConnection() {
-    return (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
   }
 
   @NotNull

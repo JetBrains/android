@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.emulator;
 
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -24,14 +23,9 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.BrowseSamplesWizardFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import org.fest.swing.util.PatternTextMatcher;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,7 +38,7 @@ import java.util.regex.Pattern;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
-public class LaunchAndroidApplicationTest {
+public class LaunchAndroidApplicationTest extends TestWithEmulator {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
@@ -54,28 +48,13 @@ public class LaunchAndroidApplicationTest {
     ".*adb shell am start .*google\\.simpleapplication.*", Pattern.DOTALL);
   private static final Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
   private static final Pattern DEBUG_OUTPUT = Pattern.compile(".*Debugger has connected.*debugger has settled.*", Pattern.DOTALL);
-  private static final String AVD_NAME = "device under test";
-
-  @Before
-  public void setUp() throws Exception {
-    MockAvdManagerConnection.inject();
-    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    // Close a no-window emulator by calling 'adb emu kill'
-    // because default stopAVD implementation (i.e., 'kill pid') cannot close a no-window emulator.
-    getEmulatorConnection().stopRunningAvd();
-    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
-  }
 
   @RunIn(TestGroup.QA)
   @Test
   public void testRunOnEmulator() throws IOException, ClassNotFoundException {
     InstantRunSettings.setShowStatusNotifications(false);
     guiTest.importSimpleApplication();
-    createAVD();
+    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
@@ -95,7 +74,7 @@ public class LaunchAndroidApplicationTest {
   @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
     guiTest.importSimpleApplication();
-    createAVD();
+    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
@@ -166,7 +145,7 @@ public class LaunchAndroidApplicationTest {
       assertThat(guiTest.ideFrame().getEditor().getCurrentLine())
       .contains("int32_t Engine::HandleInput(");
 
-    createAVD();
+    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     ideFrameFixture
       .debugApp(APP_NAME)
@@ -181,30 +160,6 @@ public class LaunchAndroidApplicationTest {
 
     // Wait for the Cpp HandleInput() break point to get hit.
     expectBreakPoint("Engine* eng = (Engine*)app->userData;");
-  }
-
-  private void createAVD() {
-    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
-    AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
-
-    avdEditWizard.selectHardware()
-      .selectHardwareProfile("Nexus 5");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getChooseSystemImageStep()
-      .selectTab("x86 Images")
-      .selectSystemImage("Nougat", "24", "x86", "Android 7.0");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getConfigureAvdOptionsStep()
-      .setAvdName(AVD_NAME)
-      .selectGraphicsSoftware();
-    avdEditWizard.clickFinish();
-    avdManagerDialog.close();
-  }
-
-  private static MockAvdManagerConnection getEmulatorConnection() {
-    return (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
   }
 
   private void expectBreakPoint(String lineText) {

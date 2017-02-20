@@ -15,18 +15,14 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.tests.gui.emulator.TestWithEmulator;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProcessChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.LayoutInspectorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import org.fest.swing.util.PatternTextMatcher;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,42 +34,17 @@ import java.util.regex.Pattern;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
-public class LayoutInspectorTest {
+public class LayoutInspectorTest extends TestWithEmulator {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  private static final String AVD_NAME = "device under test";
   private static final String PROCESS_NAME = "google.simpleapplication";
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(".*adb shell am start .*google\\.simpleapplication.*", Pattern.DOTALL);
 
   @Before
   public void setUp() throws Exception {
-    MockAvdManagerConnection.inject();
-    MockAvdManagerConnection mockAvdManagerConnection = (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
-    mockAvdManagerConnection.deleteAvdByDisplayName(AVD_NAME);
-    mockAvdManagerConnection.stopRunningAvd(); // make sure the emulator is not under connected devices from a previous run
-
-    AvdManagerDialogFixture avdManagerDialog = guiTest.importSimpleApplication().invokeAvdManager();
-    AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
-
-    avdEditWizard.selectHardware().selectHardwareProfile("Nexus 5");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getChooseSystemImageStep().selectTab("x86 Images").selectSystemImage("Nougat", "24", "x86", "Android 7.0");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getConfigureAvdOptionsStep().setAvdName(AVD_NAME).selectGraphicsSoftware();
-    avdEditWizard.clickFinish();
-    avdManagerDialog.close();
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    // Close a no-window emulator by calling 'adb emu kill'
-    // because default stopAVD implementation (i.e., 'kill pid') cannot close a no-window emulator.
-    MockAvdManagerConnection mockAvdManagerConnection = (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
-    mockAvdManagerConnection.stopRunningAvd();
-    mockAvdManagerConnection.deleteAvdByDisplayName(AVD_NAME);
+    guiTest.importSimpleApplication();
+    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
   }
 
   /**
