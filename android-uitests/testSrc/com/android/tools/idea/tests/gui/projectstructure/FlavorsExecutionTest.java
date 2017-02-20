@@ -15,17 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.fd.InstantRunSettings;
+import com.android.tools.idea.tests.gui.emulator.TestWithEmulator;
 import com.android.tools.idea.tests.gui.framework.*;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import org.fest.swing.util.PatternTextMatcher;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,52 +30,21 @@ import org.junit.runner.RunWith;
 import java.util.regex.Pattern;
 
 @RunWith(GuiTestRunner.class)
-public class FlavorsExecutionTest {
+public class FlavorsExecutionTest extends TestWithEmulator {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   @Rule public final ScreenshotsDuringTest screenshots = new ScreenshotsDuringTest();
 
-  private static final String AVD_NAME = "device under test";
   private static final String PROCESS_NAME = "google.simpleapplication";
   private static final String ACTIVITY_OUTPUT_PATTERN =
     ".*adb shell am start .*google\\.simpleapplication\\.Main_Activity.*Connected to process.*";
   private static final String FIRST_ACTIVITY_NAME = "F1_Main_Activity";
   private static final String SECOND_ACTIVITY_NAME = "F2_Main_Activity";
 
-  private static MockAvdManagerConnection getEmulatorConnection() {
-    return (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
-  }
-
   @Before
   public void setUp() throws Exception {
-    MockAvdManagerConnection.inject();
-    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
-    getEmulatorConnection().stopRunningAvd();
-
     guiTest.importSimpleApplication();
-    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
-    AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
-
-    avdEditWizard.selectHardware()
-      .selectHardwareProfile("Nexus 5");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getChooseSystemImageStep()
-      .selectTab("x86 Images")
-      .selectSystemImage("Nougat", "24", "x86", "Android 7.0");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getConfigureAvdOptionsStep()
-      .setAvdName(AVD_NAME)
-      .selectGraphicsSoftware();
-    avdEditWizard.clickFinish();
-    avdManagerDialog.close();
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    getEmulatorConnection().stopRunningAvd();
-    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
+    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
   }
 
   /***
