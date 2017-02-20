@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -36,41 +37,41 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessage.DEFAULT_GROUP;
+import static com.intellij.openapi.application.TransactionGuard.submitTransaction;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 
 public class ProjectJdkSetupStep extends ProjectSetupStep {
   @NotNull private final IdeSdks myIdeSdks;
   @NotNull private final Jdks myJdks;
+  @NotNull private final IdeInfo myIdeInfo;
 
   @SuppressWarnings("unused") // Invoked by IDEA.
   public ProjectJdkSetupStep() {
-    this(IdeSdks.getInstance(), Jdks.getInstance());
+    this(IdeSdks.getInstance(), Jdks.getInstance(), IdeInfo.getInstance());
   }
 
   @VisibleForTesting
-  ProjectJdkSetupStep(@NotNull IdeSdks ideSdks, @NotNull Jdks jdks) {
+  ProjectJdkSetupStep(@NotNull IdeSdks ideSdks, @NotNull Jdks jdks, @NotNull IdeInfo ideInfo) {
     myIdeSdks = ideSdks;
     myJdks = jdks;
+    myIdeInfo = ideInfo;
   }
 
   @Override
   public void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator) {
-    doSetUpProject(project, IdeInfo.getInstance().isAndroidStudio());
-  }
-
-  @VisibleForTesting
-  void doSetUpProject(@NotNull Project project, boolean androidStudio) {
     LanguageLevel javaLangVersion = JDK_1_8;
     Sdk projectJdk = ProjectRootManager.getInstance(project).getProjectSdk();
     Sdk ideJdk = null;
 
+    Application application = ApplicationManager.getApplication();
+    boolean androidStudio = myIdeInfo.isAndroidStudio();
     if (androidStudio) {
       ideJdk = myIdeSdks.getJdk();
     }
     else if (projectJdk == null || !myJdks.isApplicableJdk(projectJdk, javaLangVersion)) {
       ideJdk = myJdks.chooseOrCreateJavaSdk(javaLangVersion);
     }
-    else if (ApplicationManager.getApplication().isUnitTestMode()) {
+    else if (application.isUnitTestMode()) {
       // Let tests have a JDK when being executed inside the IDE, or when tests are executed as IDEA.
       ideJdk = projectJdk;
     }
@@ -89,8 +90,11 @@ public class ProjectJdkSetupStep extends ProjectSetupStep {
     String homePath = ideJdk.getHomePath();
     if (homePath != null) {
       Sdk jdk = ideJdk;
-      TransactionGuard.getInstance().submitTransactionLater(project, () ->
-        ApplicationManager.getApplication().runWriteAction(() -> myJdks.setJdk(project, jdk)));
+      Runnable task = () -> application.runWriteAction(() -> myJdks.setJdk(project, jdk));
+      if (application.isUnitTestMode()) {
+        submitTransaction(project, task);
+      }
+      TransactionGuard.getInstance().submitTransactionLater(project, task);
       PostProjectBuildTasksExecutor.getInstance(project).updateJavaLangLevelAfterBuild();
     }
   }

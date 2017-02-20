@@ -51,7 +51,6 @@ import java.nio.file.Paths;
   //Failing after IJ 2017.1 merge
   com.android.tools.idea.configurations.ResourceResolverCacheTest.class,
   com.android.tools.idea.editors.manifest.ManifestConflictTest.class,
-  com.android.tools.idea.gradle.project.sync.setup.post.project.ProjectJdkSetupStepTest.class,
   com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationTypeTest.class,
   org.jetbrains.android.AndroidLintTest.class,
 })
