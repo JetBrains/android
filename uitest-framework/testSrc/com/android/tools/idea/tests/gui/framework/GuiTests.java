@@ -168,7 +168,7 @@ public final class GuiTests {
   }
 
   public static void refreshFiles() {
-    GuiTask.execute(() -> ApplicationManager.getApplication().runWriteAction(() -> LocalFileSystem.getInstance().refresh(false)));
+    ApplicationManager.getApplication().invokeAndWait(() -> LocalFileSystem.getInstance().refresh(false));
   }
 
   /**
