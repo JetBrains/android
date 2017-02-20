@@ -23,9 +23,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.mockito.Mock;
 
-import static com.android.tools.idea.navigator.nodes.apk.java.SimpleApplicationContents.getMyActivityApkClass;
-import static com.android.tools.idea.navigator.nodes.apk.java.SimpleApplicationContents.getMyActivityFile;
-import static com.android.tools.idea.navigator.nodes.apk.java.SimpleApplicationContents.getUnitTestFile;
+import java.io.File;
+
+import static com.android.tools.idea.navigator.nodes.apk.java.SimpleApplicationContents.*;
+import static com.android.tools.idea.navigator.nodes.apk.java.SmaliFinder.getDefaultSmaliOutputFolderPath;
+import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static java.io.File.separatorChar;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -48,7 +52,7 @@ public class PackageNodeTest extends AndroidGradleTestCase {
     ApkClass activityApkClass = getMyActivityApkClass();
     myPackage = activityApkClass.getParent();
 
-    myNode = new PackageNode(project, myPackage, mySettings, new ClassFinder(project));
+    myNode = new PackageNode(project, myPackage, mySettings, new ClassFinder(project), new SmaliFinder(project));
   }
 
   public void testUpdate() {
@@ -67,7 +71,7 @@ public class PackageNodeTest extends AndroidGradleTestCase {
     assertEquals(myPackage.getFqn(), presentation.getPresentableText());
   }
 
-  public void testContains() throws Exception {
+  public void testContainsJavaFile() throws Exception {
     loadSimpleApplication();
     Module module = myModules.getAppModule();
 
@@ -76,5 +80,16 @@ public class PackageNodeTest extends AndroidGradleTestCase {
 
     VirtualFile testFile = getUnitTestFile(module);
     assertTrue(myNode.contains(testFile));
+  }
+
+  public void testContainsSmaliFile() throws Exception {
+    File packageFolderPath = new File(getDefaultSmaliOutputFolderPath(getProject()), myPackage.getFqn().replace('.', separatorChar));
+    File smaliFilePath = new File(packageFolderPath, "Test.smali");
+    createIfNotExists(smaliFilePath);
+
+    VirtualFile smaliFile = findFileByIoFile(smaliFilePath, true);
+    assertNotNull(smaliFile);
+
+    assertTrue(myNode.contains(smaliFile));
   }
 }

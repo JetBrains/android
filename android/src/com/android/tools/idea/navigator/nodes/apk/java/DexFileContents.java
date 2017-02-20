@@ -23,18 +23,17 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
-import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.DexBackedClassDef;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.reference.DexBackedMethodReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import static com.android.tools.idea.apk.dex.DexFiles.getDexFile;
 import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
 import static com.intellij.debugger.impl.DebuggerUtilsEx.signatureToName;
 
@@ -47,12 +46,6 @@ class DexFileContents {
   DexFileContents(@NotNull VirtualFile dexFile) {
     ListeningExecutorService executor = listeningDecorator(PooledThreadExecutor.INSTANCE);
     myDexFileFuture = executor.submit(() -> getDexFile(dexFile));
-  }
-
-  @NotNull
-  private static DexBackedDexFile getDexFile(@NotNull VirtualFile file) throws IOException {
-    byte[] contents = file.contentsToByteArray();
-    return new DexBackedDexFile(new Opcodes(15), contents);
   }
 
   @NotNull
@@ -76,16 +69,9 @@ class DexFileContents {
       String className = signatureToName(methodRef.getDefiningClass());
       String definition = "L" + className.replace('.', '/') + ";"; // This is how definitions are set in DexBackedDexFile
       if (definitions.contains(definition)) {
-        className = removeInnerClassDefinition(className);
         myPackages.add(className);
       }
     }
-  }
-
-  @NotNull
-  private static String removeInnerClassDefinition(@NotNull String className) {
-    int innerClassIndex = className.indexOf('$');
-    return (innerClassIndex >= 0) ? className.substring(0, innerClassIndex) : className;
   }
 
   @VisibleForTesting
