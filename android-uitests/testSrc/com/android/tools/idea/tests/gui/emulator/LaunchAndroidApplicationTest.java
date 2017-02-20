@@ -47,11 +47,11 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
     ".*adb shell am start .*google\\.simpleapplication.*", Pattern.DOTALL);
   private static final Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
-  private static final Pattern DEBUG_OUTPUT = Pattern.compile(".*Debugger has connected.*debugger has settled.*", Pattern.DOTALL);
+  private static final Pattern DEBUG_OUTPUT = Pattern.compile(".*Connected to the target VM.*", Pattern.DOTALL);
 
   @RunIn(TestGroup.QA)
   @Test
-  public void testRunOnEmulator() throws IOException, ClassNotFoundException {
+  public void testRunOnEmulator() throws Exception, ClassNotFoundException {
     InstantRunSettings.setShowStatusNotifications(false);
     guiTest.importSimpleApplication();
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
@@ -70,7 +70,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
     ideFrameFixture.getAndroidToolWindow().selectDevicesTab().selectProcess(PROCESS_NAME).clickTerminateApplication();
   }
 
-  @Ignore("http://b/30795134")
+  @RunIn(TestGroup.QA)
   @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
     guiTest.importSimpleApplication();
