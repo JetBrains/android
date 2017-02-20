@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.tests.gui.emulator.TestWithEmulator;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -24,17 +24,13 @@ import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import com.intellij.openapi.fileEditor.impl.EditorsSplitters;
 import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.driver.JListSelectedIndexQuery_selectedIndexOf_Test;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
-import org.jetbrains.annotations.NotNull;
-import org.junit.*;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.swing.*;
@@ -43,12 +39,11 @@ import java.util.regex.Pattern;
 
 @RunIn(TestGroup.QA)
 @RunWith(GuiTestRunner.class)
-public class NativeOptimizedWarningTest {
+public class NativeOptimizedWarningTest extends TestWithEmulator {
 
   @Rule public final NativeDebuggerGuiTestRule guiTest = new NativeDebuggerGuiTestRule();
 
   private static final String DEBUG_CONFIG_NAME = "app";
-  private static final String AVD_NAME = "debugger_test_avd";
 
   private final GenericTypeMatcher<JLabel> myWarningMatcher = new GenericTypeMatcher<JLabel>(JLabel.class) {
     @Override
@@ -60,27 +55,10 @@ public class NativeOptimizedWarningTest {
     }
   };
 
-  @Before
-  public void setUp() throws Exception {
-    MockAvdManagerConnection.inject();
-    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    getEmulatorConnection().stopRunningAvd();
-    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
-  }
-
-  @NotNull
-  private static MockAvdManagerConnection getEmulatorConnection() {
-    return (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
-  }
-
   @Test
   public void test() throws IOException, ClassNotFoundException, InterruptedException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("NativeOptimizedWarning");
-    createAVD();
+    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
     final IdeFrameFixture projectFrame = guiTest.ideFrame();
 
     // Setup breakpoints
@@ -129,26 +107,5 @@ public class NativeOptimizedWarningTest {
       editor.moveBetween("", line);
       editor.invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT);
     }
-  }
-
-  private void createAVD() {
-    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
-    AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
-
-    avdEditWizard.selectHardware()
-      .selectHardwareProfile("Nexus 5X");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getChooseSystemImageStep()
-      .selectTab("x86 Images")
-      .selectSystemImage("Nougat", "24", "x86", "Android 7.0");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getConfigureAvdOptionsStep()
-      .setAvdName(AVD_NAME)
-      .showAdvancedSettings()
-      .selectGraphicsSoftware();
-    avdEditWizard.clickFinish();
-    avdManagerDialog.close();
   }
 }
