@@ -70,6 +70,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
 import static com.android.annotations.VisibleForTesting.Visibility.PRIVATE;
@@ -149,7 +150,7 @@ public class RenderTask implements IImageFactory {
   private CrashReporter myCrashReporter;
 
   private final List<ListenableFuture<?>> myRunningFutures = new LinkedList<>();
-  private boolean isDisposed = false;
+  private AtomicBoolean isDisposed = new AtomicBoolean(false);
 
   /**
    * Don't create this task directly; obtain via {@link RenderService}
@@ -256,11 +257,11 @@ public class RenderTask implements IImageFactory {
    * The returned {@link Future} can be used to wait for the dispose operation to complete.
    */
   public Future<?> dispose() {
-    if (isDisposed) {
-      throw new IllegalStateException("Already disposed");
+    if (isDisposed.getAndSet(true)) {
+      assert false : "RenderTask was already dispose";
+      return Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
 
-    isDisposed = true;
     return ForkJoinPool.commonPool().submit(() -> {
       try {
         synchronized (myRunningFutures) {
@@ -680,7 +681,7 @@ public class RenderTask implements IImageFactory {
   @VisibleForTesting(visibility = PRIVATE)
   @NotNull
   <V> ListenableFuture<V> runAsyncRenderAction(@NotNull Callable<V> callable) {
-    if (isDisposed) {
+    if (isDisposed.get()) {
       return Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
 
