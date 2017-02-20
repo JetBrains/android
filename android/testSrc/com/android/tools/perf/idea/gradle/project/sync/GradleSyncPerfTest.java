@@ -20,6 +20,7 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.JournalingUsageTracker;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
@@ -106,31 +107,32 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
     else if (file.getPath().endsWith(DOT_GRADLE) && file.isFile()) {
       String contentsOrig = Files.toString(file, Charsets.UTF_8);
       String contents = contentsOrig;
-      String localRepositories = getLocalRepositories();
+      String localRepositories = AndroidGradleTests.getLocalRepositories();
 
       BuildEnvironment buildEnvironment = BuildEnvironment.getInstance();
 
-      contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
-                                   buildEnvironment.getGradlePluginVersion());
-      contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle-experimental:(.+)['\"]",
-                                   buildEnvironment.getExperimentalPluginVersion());
+      contents = AndroidGradleTests.replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
+                                                      buildEnvironment.getGradlePluginVersion());
+      contents = AndroidGradleTests.replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle-experimental:(.+)['\"]",
+                                                      buildEnvironment.getExperimentalPluginVersion());
       contents = contents.replaceAll("repositories[ ]+\\{", "repositories {\n" + localRepositories);
 
       if (file.getPath().endsWith("dependencies.gradle")) {
-        contents = replaceRegexGroup(contents, "buildToolsVersion: ['\"](.+)['\"]", buildEnvironment.getBuildToolsVersion());
-        contents = replaceRegexGroup(contents, "minSdkVersion *: ([0-9]+)", "18");
-        contents = replaceRegexGroup(contents, "compileSdkVersion *: ([0-9]+)", buildEnvironment.getCompileSdkVersion());
-        contents = replaceRegexGroup(contents, "targetSdkVersion *: ([0-9]+)", buildEnvironment.getTargetSdkVersion());
-        contents = replaceRegexGroup(contents, "com.squareup.okio:okio:(1.6.0)", "1.8.0");
+        contents = AndroidGradleTests.replaceRegexGroup(contents, "buildToolsVersion: ['\"](.+)['\"]", buildEnvironment.getBuildToolsVersion());
+        contents = AndroidGradleTests.replaceRegexGroup(contents, "minSdkVersion *: ([0-9]+)", "18");
+        contents = AndroidGradleTests.replaceRegexGroup(contents, "compileSdkVersion *: ([0-9]+)", buildEnvironment.getCompileSdkVersion());
+        contents = AndroidGradleTests.replaceRegexGroup(contents, "targetSdkVersion *: ([0-9]+)", buildEnvironment.getTargetSdkVersion());
+        contents = AndroidGradleTests.replaceRegexGroup(contents, "com.squareup.okio:okio:(1.6.0)", "1.8.0");
       }
 
       if (file.getPath().endsWith("outissue/cyclus/build.gradle")) {
         contents =
-          replaceRegexGroup(contents, "dependencies \\{(\n)", "\ncompile deps.support.appCompat\n" + "compile deps.external.rxjava\n");
+          AndroidGradleTests
+            .replaceRegexGroup(contents, "dependencies \\{(\n)", "\ncompile deps.support.appCompat\n" + "compile deps.external.rxjava\n");
       }
 
       if (file.getPath().endsWith("outissue/embrace/build.gradle")) {
-        contents = replaceRegexGroup(contents, "dependencies \\{(\n)", "\ncompile deps.external.rxjava\n");
+        contents = AndroidGradleTests.replaceRegexGroup(contents, "dependencies \\{(\n)", "\ncompile deps.external.rxjava\n");
       }
 
       if (!contents.equals(contentsOrig)) {
