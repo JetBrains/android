@@ -39,6 +39,7 @@ import java.util.Set;
 
 import static com.android.tools.idea.npw.FormFactorApiComboBox.AndroidTargetComboBoxItem;
 import static com.android.tools.idea.npw.FormFactorUtils.*;
+import static com.android.tools.idea.templates.TemplateMetadata.ATTR_NUM_ENABLED_FORM_FACTORS;
 import static com.android.tools.idea.wizard.WizardConstants.IS_INSTANT_APP_KEY;
 import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_KEY;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
@@ -50,7 +51,7 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
  * parameters.
  */
 public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescription {
-  public static final Key<Integer> NUM_ENABLED_FORM_FACTORS_KEY = createKey("NumberOfEnabledFormFactors", WIZARD, Integer.class);
+  public static final Key<Integer> NUM_ENABLED_FORM_FACTORS_KEY = createKey(ATTR_NUM_ENABLED_FORM_FACTORS, WIZARD, Integer.class);
 
   private JPanel myPanel;
   private JPanel myFormFactorPanel;

@@ -236,11 +236,8 @@ public final class TemplateValueInjector {
       String espressoVersion = RepositoryUrlManager.get().getLibraryRevision(SupportLibrary.ESPRESSO_CORE.getGroupId(),
                                                                              SupportLibrary.ESPRESSO_CORE.getArtifactId(),
                                                                              null, false, sdkLocation, FileOpUtils.create());
-
       if (espressoVersion != null) {
-        // TODO: Is this something that should be on the template (TemplateMetadata.ATTR_)?
-        // Check with Jens, or at least send an email to verify template variables. We may also need to port some old dynamic step.
-        myTemplateValues.put("espressoVersion", espressoVersion);
+        myTemplateValues.put(ATTR_ESPRESSO_VERSION, espressoVersion);
       }
     }
 
