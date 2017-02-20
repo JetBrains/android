@@ -23,17 +23,17 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.intellij.debugger.impl.DebuggerUtilsEx;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
-import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.DexBackedClassDef;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.reference.DexBackedMethodReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+
+import static com.android.tools.idea.apk.dex.DexFiles.getDexFile;
 
 public class DexParser {
   private final ListeningExecutorService myExecutor;
@@ -114,17 +114,6 @@ public class DexParser {
     }
 
     return new DexFileStats(classes.size(), definedMethodCount, dexFile.getMethodCount());
-  }
-
-  @NotNull
-  private static DexBackedDexFile getDexFile(@NotNull VirtualFile file) throws IOException {
-    byte[] contents = file.contentsToByteArray();
-    return getDexFile(contents);
-  }
-
-  @NotNull
-  static DexBackedDexFile getDexFile(@NotNull byte[] contents) {
-    return new DexBackedDexFile(new Opcodes(15), contents);
   }
 
   public static class DexFileStats {

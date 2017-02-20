@@ -26,18 +26,30 @@ import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+
+import static com.android.SdkConstants.EXT_JAVA;
+import static com.android.tools.idea.navigator.nodes.apk.java.SmaliFinder.EXT_SMALI;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 class PackageNode extends ProjectViewNode<ApkPackage> {
   @NotNull private final ApkPackage myPackage;
   @NotNull private final ClassFinder myClassFinder;
+  @NotNull private final SmaliFinder mySmaliFinder;
 
-  PackageNode(@NotNull Project project, @NotNull ApkPackage apkPackage, @NotNull ViewSettings settings, @NotNull ClassFinder classFinder) {
+  PackageNode(@NotNull Project project,
+              @NotNull ApkPackage apkPackage,
+              @NotNull ViewSettings settings,
+              @NotNull ClassFinder classFinder,
+              @NotNull SmaliFinder smaliFinder) {
     super(project, apkPackage, settings);
     // TODO show members (methods/fields) if ViewSettings are configured to show those.
     myPackage = apkPackage;
     myClassFinder = classFinder;
+    mySmaliFinder = smaliFinder;
   }
 
   @Override
@@ -51,7 +63,7 @@ class PackageNode extends ProjectViewNode<ApkPackage> {
       addSubpackagesAsTree(myPackage.getSubpackages(), children);
     }
     for (ApkClass apkClass : myPackage.getClasses()) {
-      children.add(new ClassNode(myProject, apkClass, settings, myClassFinder));
+      children.add(new ClassNode(myProject, apkClass, settings, myClassFinder, mySmaliFinder));
     }
     return children;
   }
@@ -77,13 +89,25 @@ class PackageNode extends ProjectViewNode<ApkPackage> {
   @NotNull
   private PackageNode createChildNode(@NotNull ApkPackage subpackage) {
     assert myProject != null;
-    return new PackageNode(myProject, subpackage, getSettings(), myClassFinder);
+    return new PackageNode(myProject, subpackage, getSettings(), myClassFinder, mySmaliFinder);
   }
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    String foundPackage = myClassFinder.findPackage(file);
-    return foundPackage != null && foundPackage.contains(myPackage.getFqn());
+    String fqn = myPackage.getFqn();
+    String extension = file.getExtension();
+    if (EXT_JAVA.equals(extension)) {
+      String foundPackage = myClassFinder.findPackage(file);
+      if (foundPackage != null && foundPackage.contains(fqn)) {
+        return true;
+      }
+    }
+    else if (EXT_SMALI.equals(extension)) {
+      File filePath = virtualToIoFile(file);
+      File packageFilePath = mySmaliFinder.findPackageFilePath(fqn);
+      return isAncestor(packageFilePath, filePath, false);
+    }
+    return false;
   }
 
   @Override
