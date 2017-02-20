@@ -73,10 +73,6 @@ public class StringsCellEditor extends AbstractTableCellEditor {
     int row = source.convertRowIndexToModel(source.getSelectedRow());
     int column = source.convertColumnIndexToModel(source.getSelectedColumn());
 
-    if (column == StringResourceTableModel.KEY_COLUMN) {
-      return false; // TODO: keys are not editable, we want them to be refactor operations
-    }
-
     StringResourceTableModel model = (StringResourceTableModel)source.getModel();
     String value = (String)model.getValueAt(row, column);
 
