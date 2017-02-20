@@ -15,17 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.espresso;
 
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.tests.gui.emulator.TestWithEmulator;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdEditWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.MockAvdManagerConnection;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.util.PatternTextMatcher;
-import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +27,7 @@ import org.junit.runner.RunWith;
 import java.util.regex.Pattern;
 
 @RunWith(GuiTestRunner.class)
-public class EspressoRecorderTest {
+public class EspressoRecorderTest extends TestWithEmulator {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
@@ -43,21 +37,6 @@ public class EspressoRecorderTest {
     Pattern.compile(".*google\\.simpleapplication\\.test.*Connecting to google\\.simpleapplication.*", Pattern.DOTALL);
   private static final Pattern RUN_OUTPUT =
     Pattern.compile(".*adb shell am instrument.*google\\.simpleapplication\\.MyActivityTest.*Tests ran to completion.*", Pattern.DOTALL);
-  private static final String AVD_NAME = "device under test";
-
-  @Before
-  public void setUp() throws Exception {
-    MockAvdManagerConnection.inject();
-    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    // Close a no-window emulator by calling 'adb emu kill'
-    // because default stopAVD implementation (i.e., 'kill pid') cannot close a no-window emulator.
-    getEmulatorConnection().stopRunningAvd();
-    getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
-  }
 
   /**
    * To verify espresso adds dependencies after recording in new project
@@ -81,7 +60,7 @@ public class EspressoRecorderTest {
   @Test
   public void addDependencyOnFly() throws Exception {
     guiTest.importSimpleApplication();
-    createAVD();
+    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
@@ -108,30 +87,4 @@ public class EspressoRecorderTest {
     // Wait until tests run completion.
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
   }
-
-  private void createAVD() {
-    AvdManagerDialogFixture avdManagerDialog = guiTest.ideFrame().invokeAvdManager();
-    AvdEditWizardFixture avdEditWizard = avdManagerDialog.createNew();
-
-    avdEditWizard.selectHardware()
-      .selectHardwareProfile("Nexus 5");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getChooseSystemImageStep()
-      .selectTab("x86 Images")
-      .selectSystemImage("Nougat", "24", "x86", "Android 7.0");
-    avdEditWizard.clickNext();
-
-    avdEditWizard.getConfigureAvdOptionsStep()
-      .setAvdName(AVD_NAME)
-      .selectGraphicsSoftware();
-    avdEditWizard.clickFinish();
-    avdManagerDialog.close();
-  }
-
-  @NotNull
-  private static MockAvdManagerConnection getEmulatorConnection() {
-    return (MockAvdManagerConnection)AvdManagerConnection.getDefaultAvdManagerConnection();
-  }
-
 }
