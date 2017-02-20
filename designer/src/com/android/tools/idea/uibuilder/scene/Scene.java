@@ -47,7 +47,7 @@ public class Scene implements SelectionListener {
 
   private final SceneView mySceneView;
   private static final boolean DEBUG = false;
-  private HashMap<NlComponent, SceneComponent> mySceneComponents = new HashMap<>();
+  private final HashMap<NlComponent, SceneComponent> mySceneComponents = new HashMap<>();
   private SceneComponent myRoot;
   private boolean myAnimate = true; // animate layout changes
 
@@ -250,6 +250,14 @@ public class Scene implements SelectionListener {
   void removeComponent(SceneComponent component) {
     component.removeFromParent();
     mySceneComponents.remove(component.getNlComponent(), component);
+  }
+
+  void removeAllComponents() {
+    for (Iterator<Map.Entry<NlComponent, SceneComponent>> it = mySceneComponents.entrySet().iterator(); it.hasNext();) {
+      Map.Entry<NlComponent, SceneComponent> entry = it.next();
+      entry.getValue().removeFromParent();
+      it.remove();
+    }
   }
 
   //endregion
