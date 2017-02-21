@@ -332,6 +332,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   private static class MyScrollPane extends JBScrollPane {
+
+    private MyScrollPane() {
+      super();
+      getVerticalScrollBar().setOpaque(false);
+    }
+
     @Override
     protected JViewport createViewport() {
       if (SystemInfo.isMac) {
