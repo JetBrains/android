@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 
 public class Coordinates {
 
@@ -191,5 +192,22 @@ public class Coordinates {
     SceneComponent sceneComponent =
       view.getScene().findComponent(SceneContext.get(view), getAndroidXDip(view, swingX), getAndroidYDip(view, swingY));
     return sceneComponent != null ? sceneComponent.getNlComponent() : null;
+  }
+
+  /**
+   * Translate and scale the provided graphics context so the Android Coordinates can
+   * be directly used with the {@link Graphics2D}'s api.
+   *
+   * It is advised to save the original transform before the call to this method and
+   * restore it after.
+   *
+   * @param view The screen view where the Android component will be painted
+   * @param gc   The graphic context to transform
+   * @see Graphics2D#getTransform()
+   * @see Graphics2D#setTransform(AffineTransform)
+   */
+  public static void transformGraphics(@NotNull SceneView view, @NotNull Graphics2D gc) {
+    gc.translate(view.getX(), view.getY());
+    gc.scale(view.getScale(), view.getScale());
   }
 }
