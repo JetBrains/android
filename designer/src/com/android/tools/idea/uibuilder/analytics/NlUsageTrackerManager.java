@@ -272,7 +272,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
         int errorCount = 0;
         int fidelityWarningCount = 0;
         for (RenderErrorModel.Issue issue : errorModel.getIssues()) {
-          if (HighlightSeverity.ERROR.equals(issue.getSeverity())) {
+          if (HighlightSeverity.ERROR.getName().equals(issue.getSeverity().getName())) {
             errorCount++;
           }
           else if (issue.getSummary().startsWith("Layout fid")) {
