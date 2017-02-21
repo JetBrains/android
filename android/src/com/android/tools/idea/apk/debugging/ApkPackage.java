@@ -13,71 +13,71 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes.apk.java;
+package com.android.tools.idea.apk.debugging;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-class ApkPackage {
+public class ApkPackage {
   @NotNull private final String myName;
   @Nullable private final ApkPackage myParent;
 
   @NotNull private final Map<String, ApkPackage> mySubpackagesByName = new HashMap<>();
   @NotNull private final Map<String, ApkClass> myClassesByName = new HashMap<>();
 
-  ApkPackage(@NotNull String name, @Nullable ApkPackage parent) {
+  public ApkPackage(@NotNull String name, @Nullable ApkPackage parent) {
     myName = name;
     myParent = parent;
   }
 
   @NotNull
-  Collection<ApkPackage> getSubpackages() {
+  public Collection<ApkPackage> getSubpackages() {
     return mySubpackagesByName.values();
   }
 
   @Nullable
-  ApkPackage findSubpackage(@NotNull String name) {
+  public ApkPackage findSubpackage(@NotNull String name) {
     return mySubpackagesByName.get(name);
   }
 
   @NotNull
-  Collection<ApkClass> getClasses() {
+  public Collection<ApkClass> getClasses() {
     return myClassesByName.values();
   }
 
   @Nullable
-  ApkClass findClass(@NotNull String name) {
+  public ApkClass findClass(@NotNull String name) {
     return myClassesByName.get(name);
   }
 
   @Nullable
-  ApkPackage getParent() {
+  public ApkPackage getParent() {
     return myParent;
   }
 
   @NotNull
-  ApkPackage addSubpackage(@NotNull String name) {
+  public ApkPackage addSubpackage(@NotNull String name) {
     return mySubpackagesByName.computeIfAbsent(name, k -> new ApkPackage(name, this));
   }
 
   @NotNull
-  ApkClass addClass(@NotNull String name) {
+  public ApkClass addClass(@NotNull String name) {
     return myClassesByName.computeIfAbsent(name, s -> new ApkClass(name, this));
   }
 
   @NotNull
-  String getName() {
+  public String getName() {
     return myName;
   }
 
   @NotNull
-  String getFqn() {
+  public String getFqn() {
     return myParent != null ? (myParent.getFqn() + "." + myName) : myName;
   }
 
-  boolean doSubpackagesHaveClasses() {
+  public boolean doSubpackagesHaveClasses() {
     for (ApkPackage subpackage : getSubpackages()) {
       if (!subpackage.getClasses().isEmpty()) {
         return true;

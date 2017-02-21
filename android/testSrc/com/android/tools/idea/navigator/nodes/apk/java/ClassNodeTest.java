@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.java;
 
+import com.android.tools.idea.apk.debugging.ApkClass;
+import com.android.tools.idea.apk.debugging.JavaFiles;
+import com.android.tools.idea.apk.debugging.SmaliFiles;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
@@ -31,7 +34,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.navigator.nodes.apk.java.SimpleApplicationContents.*;
+import static com.android.tools.idea.apk.debugging.SimpleApplicationContents.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -41,11 +44,11 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class ClassNodeTest extends AndroidGradleTestCase {
   @Mock private ViewSettings mySettings;
-  @Mock private SmaliFinder mySmaliFinder;
+  @Mock private SmaliFiles mySmaliFiles;
 
   private ApkClass myActivityApkClass;
   private ApkClass myUnitTestClass;
-  private ClassFinder myClassFinder;
+  private JavaFiles myJavaFiles;
 
   private ClassNode myNode;
 
@@ -59,9 +62,9 @@ public class ClassNodeTest extends AndroidGradleTestCase {
     myActivityApkClass = getMyActivityApkClass();
     myUnitTestClass = getUnitTestClass();
 
-    myClassFinder = new ClassFinder(project);
+    myJavaFiles = new JavaFiles();
 
-    myNode = new ClassNode(project, myActivityApkClass, mySettings, myClassFinder, mySmaliFinder);
+    myNode = new ClassNode(project, myActivityApkClass, mySettings, myJavaFiles, mySmaliFiles);
   }
 
   public void testUpdate() {
@@ -87,10 +90,10 @@ public class ClassNodeTest extends AndroidGradleTestCase {
       project.getBaseDir().createChildData(this, "Test.smali"));
     File smaliFilePath = virtualToIoFile(smaliFile);
 
-    when(mySmaliFinder.findSmaliFilePath(myActivityApkClass.getFqn())).thenReturn(smaliFilePath);
+    when(mySmaliFiles.findSmaliFilePath(myActivityApkClass.getFqn())).thenReturn(smaliFilePath);
     assertTrue(myNode.contains(smaliFile));
 
-    when(mySmaliFinder.findSmaliFilePath(myActivityApkClass.getFqn())).thenReturn(getBaseDirPath(project));
+    when(mySmaliFiles.findSmaliFilePath(myActivityApkClass.getFqn())).thenReturn(getBaseDirPath(project));
     assertFalse(myNode.contains(smaliFile));
   }
 
@@ -127,7 +130,7 @@ public class ClassNodeTest extends AndroidGradleTestCase {
 
   @NotNull
   private PsiClass getPsiClass(@NotNull ApkClass apkClass) {
-    PsiClass psiClass = myClassFinder.findClass(apkClass);
+    PsiClass psiClass = myJavaFiles.findClass(apkClass.getFqn(), getProject());
     assertNotNull(psiClass);
     return psiClass;
   }

@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes.apk.java;
+package com.android.tools.idea.apk.debugging;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,17 +27,26 @@ import java.io.File;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.util.io.FileUtil.join;
 
-public class SmaliFinder {
-  static final String EXT_SMALI = "smali";
+public class SmaliFiles {
+  @NonNls private static final String EXT_SMALI = "smali";
 
-  @NotNull private final Project myProject;
+  @NotNull private final File myOutputFolderPath;
 
-  SmaliFinder(@NotNull Project project) {
-    myProject = project;
+  public SmaliFiles(@NotNull Project project) {
+    myOutputFolderPath = getDefaultSmaliOutputFolderPath(project);
+  }
+
+  public static boolean isSmaliFile(@NotNull VirtualFile file) {
+    return !file.isDirectory() && EXT_SMALI.equals(file.getExtension());
+  }
+
+  @NotNull
+  public static File getDefaultSmaliOutputFolderPath(@NotNull Project project) {
+    return new File(getBaseDirPath(project), join("smali", "out"));
   }
 
   @Nullable
-  VirtualFile findSmaliFile(@NotNull String classFqn) {
+  public VirtualFile findSmaliFile(@NotNull String classFqn) {
     File filePath = findSmaliFilePath(classFqn);
     if (filePath.isFile()) {
       return LocalFileSystem.getInstance().findFileByPath(filePath.getPath());
@@ -45,18 +55,12 @@ public class SmaliFinder {
   }
 
   @NotNull
-  File findSmaliFilePath(@NotNull String classFqn) {
-    return new File(getDefaultSmaliOutputFolderPath(myProject), classFqn.replace('.', File.separatorChar) + ".smali");
+  public File findSmaliFilePath(@NotNull String classFqn) {
+    return new File(myOutputFolderPath, classFqn.replace('.', File.separatorChar) + ".smali");
   }
 
   @NotNull
-  File findPackageFilePath(@NotNull String packageFqn) {
-    File path = getDefaultSmaliOutputFolderPath(myProject);
-    return new File(path, packageFqn.replace('.', File.separatorChar));
-  }
-
-  @NotNull
-  public static File getDefaultSmaliOutputFolderPath(@NotNull Project project) {
-    return new File(getBaseDirPath(project), join("smali", "out"));
+  public File findPackageFilePath(@NotNull String packageFqn) {
+    return new File(myOutputFolderPath, packageFqn.replace('.', File.separatorChar));
   }
 }

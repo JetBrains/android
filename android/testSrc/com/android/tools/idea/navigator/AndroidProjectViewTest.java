@@ -37,6 +37,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
+import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATOR_PACKAGEVIEW_COMMONROOTS;
+import static com.android.tools.idea.testing.TestProjectPaths.NAVIGATOR_PACKAGEVIEW_SIMPLE;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.testFramework.PlatformTestUtil.createComparator;
 import static com.intellij.testFramework.ProjectViewTestUtil.assertStructureEqual;
@@ -46,7 +48,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   private AndroidProjectViewPane myPane;
 
   public void testProjectView() throws Exception {
-    loadProject("projects/navigator/packageview/simple");
+    loadProject(NAVIGATOR_PACKAGEVIEW_SIMPLE);
 
     myPane = createPane();
     TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
@@ -142,7 +144,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
 
   // Test that selecting a res group node causes the correct PSI Elements to be selected
   public void testSelection() throws Exception {
-    loadProject("projects/navigator/packageview/simple");
+    loadProject(NAVIGATOR_PACKAGEVIEW_SIMPLE);
 
     myPane = createPane();
     TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
@@ -162,7 +164,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
 
   // Test that the virtualFileArray for resource nodes actually contains the files for this node.
   public void testVirtualFileArrayForResNode() throws Exception {
-    loadProject("projects/navigator/packageview/simple");
+    loadProject(NAVIGATOR_PACKAGEVIEW_SIMPLE);
 
     myPane = createPane();
     TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
@@ -202,7 +204,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   public void testCommonRoots() throws Exception {
-    loadProject("projects/navigator/packageview/commonroots");
+    loadProject(NAVIGATOR_PACKAGEVIEW_COMMONROOTS);
 
     myPane = createPane();
     TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
