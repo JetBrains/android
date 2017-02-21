@@ -49,7 +49,6 @@ import java.nio.file.Paths;
   org.jetbrains.android.dom.CreateMissingClassFixTest.class,
 
   //Failing after IJ 2017.1 merge
-  com.android.tools.idea.configurations.ResourceResolverCacheTest.class,
   com.android.tools.idea.editors.manifest.ManifestConflictTest.class,
   com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationTypeTest.class,
 })
