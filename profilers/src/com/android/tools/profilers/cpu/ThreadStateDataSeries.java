@@ -129,6 +129,8 @@ public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.
         return captured ? CpuProfilerStage.ThreadState.SLEEPING_CAPTURED : CpuProfilerStage.ThreadState.SLEEPING;
       case WAITING:
         return captured ? CpuProfilerStage.ThreadState.WAITING_CAPTURED : CpuProfilerStage.ThreadState.WAITING;
+      case ZOMBIE:
+        return captured ? CpuProfilerStage.ThreadState.ZOMBIE_CAPTURED : CpuProfilerStage.ThreadState.ZOMBIE;
       default:
         getLog().warn("Unexpected thread state found: " + state);
         return CpuProfilerStage.ThreadState.UNKNOWN;

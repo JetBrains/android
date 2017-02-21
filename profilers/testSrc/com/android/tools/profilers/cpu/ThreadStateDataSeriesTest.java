@@ -80,14 +80,16 @@ public class ThreadStateDataSeriesTest {
     myService.setValidTrace(false);
     ImmutableList<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(range);
     assertNotNull(dataSeries);
-    assertEquals(5, dataSeries.size()); // thread2 state changes are RUNNING, STOPPED, SLEEPING and DEAD
+    // thread2 state changes are RUNNING, STOPPED, SLEEPING, WAITING, ZOMBIE and DEAD
+    assertEquals(6, dataSeries.size());
 
     assertEquals(CpuProfilerStage.ThreadState.RUNNING, dataSeries.get(0).value);
-    // Any state different than RUNNING, SLEEPING, WAITING or DEAD (expected states) is mapped to UNKNOWN
+    // Any state different than RUNNING, SLEEPING, WAITING, ZOMBIE or DEAD (expected states) is mapped to UNKNOWN
     assertEquals(CpuProfilerStage.ThreadState.UNKNOWN, dataSeries.get(1).value);
     assertEquals(CpuProfilerStage.ThreadState.SLEEPING, dataSeries.get(2).value);
     assertEquals(CpuProfilerStage.ThreadState.WAITING, dataSeries.get(3).value);
-    assertEquals(CpuProfilerStage.ThreadState.DEAD, dataSeries.get(4).value);
+    assertEquals(CpuProfilerStage.ThreadState.ZOMBIE, dataSeries.get(4).value);
+    assertEquals(CpuProfilerStage.ThreadState.DEAD, dataSeries.get(5).value);
   }
 
   @Test
