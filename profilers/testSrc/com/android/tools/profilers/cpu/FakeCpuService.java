@@ -250,6 +250,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
       activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(8), CpuProfiler.GetThreadsResponse.State.STOPPED));
       activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(10), CpuProfiler.GetThreadsResponse.State.SLEEPING));
       activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(12), CpuProfiler.GetThreadsResponse.State.WAITING));
+      activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(14), CpuProfiler.GetThreadsResponse.State.ZOMBIE));
       activitiesThread2.add(newActivity(TimeUnit.SECONDS.toNanos(15), CpuProfiler.GetThreadsResponse.State.DEAD));
       threads.add(newThread(2, "Thread 2", activitiesThread2));
     }
