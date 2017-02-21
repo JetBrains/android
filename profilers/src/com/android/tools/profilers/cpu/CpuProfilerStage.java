@@ -62,6 +62,8 @@ public class CpuProfilerStage extends Stage {
     SLEEPING_CAPTURED,
     DEAD,
     DEAD_CAPTURED,
+    ZOMBIE,
+    ZOMBIE_CAPTURED,
     WAITING,
     WAITING_CAPTURED,
     UNKNOWN
