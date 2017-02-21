@@ -65,7 +65,6 @@ public class TemplateMetadata {
   public static final String ATTR_RES_OUT = "resOut";
   public static final String ATTR_MANIFEST_OUT = "manifestOut";
   public static final String ATTR_TEST_OUT = "testOut";
-  public static final String ATTR_MAVEN_URL = "mavenUrl";
   public static final String ATTR_SRC_DIR = "srcDir";
   public static final String ATTR_RES_DIR = "resDir";
   public static final String ATTR_MANIFEST_DIR = "manifestDir";
@@ -78,7 +77,6 @@ public class TemplateMetadata {
   public static final String ATTR_GRADLE_VERSION = "gradleVersion";
   public static final String ATTR_JAVA_VERSION = "javaVersion";
   public static final String ATTR_SDK_DIR = "sdkDir";
-  public static final String ATTR_PER_MODULE_REPOS = "perModuleRepositories";
   public static final String ATTR_APPLICATION_PACKAGE = "applicationPackage";
   public static final String ATTR_SOURCE_PROVIDER_NAME = "sourceProviderName";
   public static final String ATTR_MODULE_NAME = "projectName";
