@@ -48,12 +48,7 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
 
   @NotNull
   public ConfigureAndroidProjectStepFixture setCppSupport(boolean select) {
-    JCheckBoxFixture checkBox = findCheckBoxWithText("Include C++ support");
-    if (select) {
-      checkBox.select();
-    } else {
-      checkBox.deselect();
-    }
+    selectCheckBoxWithText("Include C++ support", select);
     return this;
   }
 
