@@ -22,9 +22,9 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.npw.deprecated.ConfigureCppSupportPath;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep;
+import com.android.tools.idea.npw.deprecated.ConfigureCppSupportPath;
 import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -123,7 +123,6 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     state.put(THEME_EXISTS_KEY, true);
     state.put(TARGET_FILES_KEY, new HashSet<>());
     state.put(FILES_TO_OPEN_KEY, new ArrayList<>());
-    state.put(USE_PER_MODULE_REPOS_KEY, false);
     state.put(ALSO_CREATE_IAPK_KEY, true);
 
     // For now, our definition of low memory is running in a 32-bit JVM. In this case, we have to be careful about the amount of memory we
@@ -136,12 +135,6 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     catch (Exception exception) {
       LOG.warn("Could not create debug keystore", exception);
       state.put(DEBUG_KEYSTORE_SHA_1_KEY, "");
-    }
-
-    String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
-
-    if (mavenUrl != null) {
-      state.put(MAVEN_URL_KEY, mavenUrl);
     }
 
     AndroidSdkData data = AndroidSdks.getInstance().tryToChooseAndroidSdk();
