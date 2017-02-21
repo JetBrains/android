@@ -20,8 +20,8 @@ import com.android.builder.model.ApiVersion;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.templates.SupportLibrary;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -35,6 +35,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ConcurrencyUtil;
@@ -100,98 +101,15 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     .put("svg", "svg-android")
     .put("commons", "org.apache.commons")
     .build();
-
+  private final List<Artifact> myShownItems = Lists.newArrayList();
+  private final ExecutorService mySearchWorker = ConcurrencyUtil.newSingleThreadExecutor("Maven dependency lookup");
+  private final boolean myAndroidModule;
+  private final List<String> myAndroidSdkLibraries = Lists.newArrayList();
   private AsyncProcessIcon myProgressIcon;
   private TextFieldWithBrowseButton mySearchField;
   private JTextField mySearchTextField;
   private JPanel myPanel;
   private JBList myResultList;
-  private final List<Artifact> myShownItems = Lists.newArrayList();
-  private final ExecutorService mySearchWorker = ConcurrencyUtil.newSingleThreadExecutor("Maven dependency lookup");
-  private final boolean myAndroidModule;
-
-  private final List<String> myAndroidSdkLibraries = Lists.newArrayList();
-
-  private static class Artifact {
-    @NotNull private final String myGroupId;
-    @NotNull private final String myArtifactId;
-    @NotNull private final String myVersion;
-
-    @Nullable private final String myDescription;
-
-    public Artifact(@NotNull String groupId, @NotNull String artifactId, @NotNull String version, @Nullable String description) {
-      myGroupId = groupId;
-      myArtifactId = artifactId;
-      myVersion = version;
-      myDescription = description;
-    }
-
-    @Nullable
-    public static Artifact fromCoordinate(@NotNull String libraryCoordinate) {
-      GradleCoordinate gradleCoordinate = GradleCoordinate.parseCoordinateString(libraryCoordinate);
-      if (gradleCoordinate == null) {
-        return null;
-      }
-      String groupId = gradleCoordinate.getGroupId();
-      String artifactId = gradleCoordinate.getArtifactId();
-      if (groupId == null || artifactId == null) {
-        return null;
-      }
-      return new Artifact(groupId, artifactId, gradleCoordinate.getRevision(), groupId + ":" + artifactId);
-    }
-
-    @NotNull
-    public String toString() {
-      if (myDescription != null) {
-        return myDescription + " (" + getCoordinates() + ")";
-      }
-      else {
-        return getCoordinates();
-      }
-    }
-
-    @NotNull
-    public String getCoordinates() {
-      String version = REVISION_ANY.equals(myVersion) ? "" : ':' + myVersion;
-      return myGroupId + ":" + myArtifactId + version;
-    }
-  }
-
-  /**
-   * Comparator for Maven artifacts that does smart ordering for search results based on a given search string
-   */
-  private static class ArtifactComparator implements Comparator<Artifact> {
-    @NotNull private final String mySearchText;
-
-    private ArtifactComparator(@NotNull String searchText) {
-      mySearchText = searchText;
-    }
-
-    @Override
-    public int compare(@NotNull Artifact artifact1, @NotNull Artifact artifact2) {
-      int score = calculateScore(mySearchText, artifact2) - calculateScore(mySearchText, artifact1);
-      if (score != 0) {
-        return score;
-      }
-      else {
-        return artifact2.myVersion.compareTo(artifact1.myVersion);
-      }
-    }
-
-    private static int calculateScore(@NotNull String searchText, @NotNull Artifact artifact) {
-      int score = 0;
-      if (artifact.myArtifactId.equals(searchText)) {
-        score++;
-      }
-      if (artifact.myArtifactId.contains(searchText)) {
-        score++;
-      }
-      if (artifact.myGroupId.contains(searchText)) {
-        score++;
-      }
-      return score;
-    }
-  }
 
   public MavenDependencyLookupDialog(@NotNull Project project, @Nullable Module module) {
     super(project, true);
@@ -280,42 +198,6 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       }
     };
     init();
-  }
-
-  private static boolean isKnownLocalLibrary(@NotNull String text) {
-    String group = getGroup(text);
-    String artifact = getArtifact(text);
-
-    if (group == null || artifact == null) {
-      return false;
-    }
-
-    SupportLibrary library = SupportLibrary.find(group, artifact);
-    return library != null;
-  }
-
-  @Nullable
-  private static String getArtifact(@NotNull String coordinate) {
-    int i = coordinate.indexOf(':');
-    if (i >= 0 && i + 1 < coordinate.length()) {
-      // There's at least one char after the first ':'
-      coordinate = coordinate.substring(i + 1);
-      i = coordinate.indexOf(':');
-      if (i < 0) {
-        i = coordinate.length();
-      }
-      return coordinate.substring(0, i);
-    }
-    return null;
-  }
-
-  @Nullable
-  private static String getGroup(@NotNull String coordinate) {
-    int i = coordinate.indexOf(':');
-    if (i > 0) {
-      return coordinate.substring(0, i);
-    }
-    return null;
   }
 
   @NotNull
@@ -408,7 +290,9 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
               myResultList.setSelectedIndex(0);
             }
             if (!myShownItems.isEmpty()) {
-              myResultList.requestFocus();
+              IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+                IdeFocusManager.getGlobalInstance().requestFocus(myResultList, true);
+              });
             }
           }
         }
@@ -430,38 +314,6 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
       }
     }
     return results;
-  }
-
-  @NotNull
-  private static List<String> searchMavenCentral(@NotNull String text) {
-    return HttpRequests.request(String.format(MAVEN_CENTRAL_SEARCH_URL, RESULT_LIMIT, text))
-      .accept("application/xml")
-      .connect(new HttpRequests.RequestProcessor<List<String>>() {
-        @Override
-        public List<String> process(@NotNull HttpRequests.Request request) throws IOException {
-          try {
-            XPath idPath = XPath.newInstance("str[@name='id']");
-            XPath versionPath = XPath.newInstance("str[@name='latestVersion']");
-            //noinspection unchecked
-            List<Element> artifacts = (List<Element>)XPath.newInstance("/response/result/doc").selectNodes(new SAXBuilder().build(request.getReader()));
-            List<String> results = Lists.newArrayListWithExpectedSize(artifacts.size());
-            for (Element element : artifacts) {
-              try {
-                String id = ((Element)idPath.selectSingleNode(element)).getValue();
-                results.add(id + ":" + ((Element)versionPath.selectSingleNode(element)).getValue());
-              }
-              catch (NullPointerException ignored) {
-                // A result is missing an ID or version. Just skip it.
-              }
-            }
-            return results;
-          }
-          catch (JDOMException e) {
-            LOG.error(e);
-          }
-          return Collections.emptyList();
-        }
-      }, Collections.<String>emptyList(), LOG);
   }
 
   @Override
@@ -506,7 +358,157 @@ public class MavenDependencyLookupDialog extends DialogWrapper {
     myProgressIcon = new AsyncProcessIcon("Progress");
   }
 
+  private static boolean isKnownLocalLibrary(@NotNull String text) {
+    String group = getGroup(text);
+    String artifact = getArtifact(text);
+
+    if (group == null || artifact == null) {
+      return false;
+    }
+
+    SupportLibrary library = SupportLibrary.find(group, artifact);
+    return library != null;
+  }
+
+  @Nullable
+  private static String getArtifact(@NotNull String coordinate) {
+    int i = coordinate.indexOf(':');
+    if (i >= 0 && i + 1 < coordinate.length()) {
+      // There's at least one char after the first ':'
+      coordinate = coordinate.substring(i + 1);
+      i = coordinate.indexOf(':');
+      if (i < 0) {
+        i = coordinate.length();
+      }
+      return coordinate.substring(0, i);
+    }
+    return null;
+  }
+
+  @Nullable
+  private static String getGroup(@NotNull String coordinate) {
+    int i = coordinate.indexOf(':');
+    if (i > 0) {
+      return coordinate.substring(0, i);
+    }
+    return null;
+  }
+
+  @NotNull
+  private static List<String> searchMavenCentral(@NotNull String text) {
+    return HttpRequests.request(String.format(MAVEN_CENTRAL_SEARCH_URL, RESULT_LIMIT, text))
+      .accept("application/xml")
+      .connect(new HttpRequests.RequestProcessor<List<String>>() {
+        @Override
+        public List<String> process(@NotNull HttpRequests.Request request) throws IOException {
+          try {
+            XPath idPath = XPath.newInstance("str[@name='id']");
+            XPath versionPath = XPath.newInstance("str[@name='latestVersion']");
+            //noinspection unchecked
+            List<Element> artifacts =
+              (List<Element>)XPath.newInstance("/response/result/doc").selectNodes(new SAXBuilder().build(request.getReader()));
+            List<String> results = Lists.newArrayListWithExpectedSize(artifacts.size());
+            for (Element element : artifacts) {
+              try {
+                String id = ((Element)idPath.selectSingleNode(element)).getValue();
+                results.add(id + ":" + ((Element)versionPath.selectSingleNode(element)).getValue());
+              }
+              catch (NullPointerException ignored) {
+                // A result is missing an ID or version. Just skip it.
+              }
+            }
+            return results;
+          }
+          catch (JDOMException e) {
+            LOG.error(e);
+          }
+          return Collections.emptyList();
+        }
+      }, Collections.<String>emptyList(), LOG);
+  }
+
   public static boolean hasVersion(String coordinateText) {
     return StringUtil.countChars(coordinateText, ':') > 1;
+  }
+
+  private static class Artifact {
+    @NotNull private final String myGroupId;
+    @NotNull private final String myArtifactId;
+    @NotNull private final String myVersion;
+
+    @Nullable private final String myDescription;
+
+    public Artifact(@NotNull String groupId, @NotNull String artifactId, @NotNull String version, @Nullable String description) {
+      myGroupId = groupId;
+      myArtifactId = artifactId;
+      myVersion = version;
+      myDescription = description;
+    }
+
+    @NotNull
+    public String toString() {
+      if (myDescription != null) {
+        return myDescription + " (" + getCoordinates() + ")";
+      }
+      else {
+        return getCoordinates();
+      }
+    }
+
+    @NotNull
+    public String getCoordinates() {
+      String version = REVISION_ANY.equals(myVersion) ? "" : ':' + myVersion;
+      return myGroupId + ":" + myArtifactId + version;
+    }
+
+    @Nullable
+    public static Artifact fromCoordinate(@NotNull String libraryCoordinate) {
+      GradleCoordinate gradleCoordinate = GradleCoordinate.parseCoordinateString(libraryCoordinate);
+      if (gradleCoordinate == null) {
+        return null;
+      }
+      String groupId = gradleCoordinate.getGroupId();
+      String artifactId = gradleCoordinate.getArtifactId();
+      if (groupId == null || artifactId == null) {
+        return null;
+      }
+      return new Artifact(groupId, artifactId, gradleCoordinate.getRevision(), groupId + ":" + artifactId);
+    }
+  }
+
+  /**
+   * Comparator for Maven artifacts that does smart ordering for search results based on a given search string
+   */
+  private static class ArtifactComparator implements Comparator<Artifact> {
+    @NotNull private final String mySearchText;
+
+    private ArtifactComparator(@NotNull String searchText) {
+      mySearchText = searchText;
+    }
+
+    @Override
+    public int compare(@NotNull Artifact artifact1, @NotNull Artifact artifact2) {
+      int score = calculateScore(mySearchText, artifact2) - calculateScore(mySearchText, artifact1);
+      if (score != 0) {
+        return score;
+      }
+      else {
+        return artifact2.myVersion.compareTo(artifact1.myVersion);
+      }
+    }
+
+    private static int calculateScore(@NotNull String searchText, @NotNull Artifact artifact) {
+      int score = 0;
+      if (artifact.myArtifactId.equals(searchText)) {
+        score++;
+      }
+      if (artifact.myArtifactId.contains(searchText)) {
+        score++;
+      }
+      if (artifact.myGroupId.contains(searchText)) {
+        score++;
+      }
+      return score;
+    }
   }
 }

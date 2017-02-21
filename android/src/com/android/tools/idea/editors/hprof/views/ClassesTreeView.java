@@ -31,6 +31,7 @@ import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.treeStructure.Tree;
@@ -413,7 +414,9 @@ public final class ClassesTreeView implements DataProvider, Disposable {
   }
 
   public void requestFocus() {
-    myTree.requestFocus();
+    IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+      IdeFocusManager.getGlobalInstance().requestFocus(myTree, true);
+    });
   }
 
   private void installTreeSpeedSearch() {
@@ -447,15 +450,6 @@ public final class ClassesTreeView implements DataProvider, Disposable {
         sortTree((HeapPackageNode)child);
       }
     }
-  }
-
-  private static int compareNames(@NotNull HeapNode a, @NotNull HeapNode b) {
-    int comparisonResult = a.getSimpleName()
-      .compareToIgnoreCase(b.getSimpleName());
-    if (comparisonResult == 0) {
-      return a.getFullName().compareToIgnoreCase(b.getFullName());
-    }
-    return comparisonResult;
   }
 
   private void restoreViewState(@NotNull final SelectionModel selectionModel) {
@@ -576,6 +570,32 @@ public final class ClassesTreeView implements DataProvider, Disposable {
     myTreeIndex.clear();
   }
 
+  private static int compareNames(@NotNull HeapNode a, @NotNull HeapNode b) {
+    int comparisonResult = a.getSimpleName()
+      .compareToIgnoreCase(b.getSimpleName());
+    if (comparisonResult == 0) {
+      return a.getFullName().compareToIgnoreCase(b.getFullName());
+    }
+    return comparisonResult;
+  }
+
+  private enum DisplayMode {
+    LIST("Class List View"),
+    TREE("Package Tree View");
+
+    @NotNull
+    private String myName;
+
+    DisplayMode(@NotNull String name) {
+      myName = name;
+    }
+
+    @Override
+    public String toString() {
+      return myName;
+    }
+  }
+
   private static class ListIndex implements SelectionModel.SelectionListener {
     ArrayList<HeapClassObjNode> myClasses = new ArrayList<HeapClassObjNode>();
     private int myHeapId = -1;
@@ -667,23 +687,6 @@ public final class ClassesTreeView implements DataProvider, Disposable {
 
     private void clear() {
       myRoot.clear();
-    }
-  }
-
-  private enum DisplayMode {
-    LIST("Class List View"),
-    TREE("Package Tree View");
-
-    @NotNull
-    private String myName;
-
-    DisplayMode(@NotNull String name) {
-      myName = name;
-    }
-
-    @Override
-    public String toString() {
-      return myName;
     }
   }
 }

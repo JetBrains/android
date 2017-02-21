@@ -62,6 +62,7 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -110,23 +111,22 @@ import static com.android.SdkConstants.*;
  * TODO: Perform validation (such as cyclic layout resource detection for layout selection)
  */
 public class ChooseResourceDialog extends DialogWrapper {
+  public static final String APP_NAMESPACE_LABEL = "Project";
+  public static final JBDimension PANEL_PREFERRED_SIZE = JBUI.size(850, 620);
+  static final int TABLE_CELL_HEIGHT = JBUI.scale(30);
+  static final SimpleTextAttributes SEARCH_MATCH_ATTRIBUTES = new SimpleTextAttributes(null, null, null,
+                                                                                       SimpleTextAttributes.STYLE_SEARCH_MATCH);
   private static final String TYPE_KEY = "ResourceType";
   private static final String FOLDER_TYPE_KEY = "ResourceFolderType";
   private static final String GRID_MODE_KEY = "ResourceChooserGridMode";
-  public static final String APP_NAMESPACE_LABEL = "Project";
   private static final int GRID_ICON_SIZE = JBUI.scale(50);
   private static final int GRID_CHECK_SIZE = JBUI.scale(8);
   private static final int GRID_CELL_SIZE = JBUI.scale(120);
   private static final int LIST_ICON_SIZE = JBUI.scale(28);
   private static final int LIST_CHECK_SIZE = JBUI.scale(5);
   private static final int LIST_CELL_HEIGHT = JBUI.scale(40);
-  static final int TABLE_CELL_HEIGHT = JBUI.scale(30);
   private static final JBColor LIST_DIVIDER_COLOR = new JBColor(Gray._245, Gray._80);
   private static final JBInsets LIST_PADDING = JBUI.insets(7, 6);
-  public static final JBDimension PANEL_PREFERRED_SIZE = JBUI.size(850, 620);
-  static final SimpleTextAttributes SEARCH_MATCH_ATTRIBUTES = new SimpleTextAttributes(null, null, null,
-                                                                                       SimpleTextAttributes.STYLE_SEARCH_MATCH);
-
   @NotNull private final Module myModule;
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final Configuration myConfiguration;
@@ -141,12 +141,13 @@ public class ChooseResourceDialog extends DialogWrapper {
   private final String myInitialValue;
   private final boolean myInitialValueIsFramework;
   private final ResourceNameVisibility myResourceNameVisibility;
+  private final SearchField mySearchField;
+  private final boolean myHideLeftSideActions;
+  private final MultiMap<ResourceType, String> myThemAttributes;
   private boolean myGridMode = PropertiesComponent.getInstance().getBoolean(GRID_MODE_KEY, false);
-
   // if we are picking a resource that can't be a color, then all these are null
   @Nullable private ResourceEditorTab myColorPickerPanel;
   @Nullable private ColorPicker myColorPicker;
-
   // we can ONLY ever have the state-list picker in {@link ResourceType#COLOR} or {@link ResourceType#DRAWABLE} mode.
   // We only ever need one stateList picker because Android can never allow picking both types for any attribute.
   @Nullable private ResourceEditorTab myStateListPickerPanel;
@@ -154,120 +155,11 @@ public class ChooseResourceDialog extends DialogWrapper {
   @Nullable private ResourcePickerListener myResourcePickerListener;
   @NotNull private ImmutableMap<String, Color> myContrastColorsWithDescription = ImmutableMap.of();
   private boolean myIsBackgroundColor;
-  private final SearchField mySearchField;
-  private final boolean myHideLeftSideActions;
   private boolean myAllowCreateResource = true;
   private String myResultResourceName;
   private boolean myUseGlobalUndo;
   private RenderTask myRenderTask;
-  private final MultiMap<ResourceType, String> myThemAttributes;
-
-  /** Creates a builder for a new resource chooser dialog */
-  @NotNull
-  public static Builder builder() {
-    return new Builder();
-  }
-
-  /** Builder class for constructing a resource chooser */
-  public static class Builder {
-    private Module myModule;
-    private Configuration myConfiguration;
-    private XmlTag myTag;
-    private XmlFile myFile;
-    private boolean myIsFrameworkValue;
-    private String myCurrentValue;
-    private EnumSet<ResourceType> myTypes;
-    private ResourceNameVisibility myResourceNameVisibility = ResourceNameVisibility.SHOW;
-    private String myResourceNameSuggestion;
-    private boolean myHideLeftSideActions;
-
-    public Builder() {
-    }
-
-    public Builder setModule(@NotNull Module module) {
-      myModule = module;
-      return this;
-    }
-
-    public Builder setTag(@Nullable XmlTag tag) {
-      myTag = tag;
-      if (myTag != null && myFile == null) {
-        myFile = (XmlFile)myTag.getContainingFile();
-      }
-      return this;
-    }
-
-    public Builder setFile(@Nullable XmlFile file) {
-      myFile = file;
-      return this;
-    }
-
-    public Builder setIsFrameworkValue(boolean frameworkValue) {
-      myIsFrameworkValue = frameworkValue;
-      return this;
-    }
-
-    public Builder setCurrentValue(@Nullable String currentValue) {
-      myCurrentValue = currentValue;
-      return this;
-    }
-
-    public Builder setTypes(@NotNull EnumSet<ResourceType> types) {
-      myTypes = types;
-      return this;
-    }
-
-    public Builder setResourceNameVisibility(@NotNull ResourceNameVisibility resourceNameVisibility) {
-      myResourceNameVisibility = resourceNameVisibility;
-      return this;
-    }
-
-    public Builder setResourceNameSuggestion(@Nullable String resourceNameSuggestion) {
-      if (resourceNameSuggestion != null &&
-          (resourceNameSuggestion.startsWith(PREFIX_RESOURCE_REF) ||
-           resourceNameSuggestion.startsWith(PREFIX_THEME_REF) ||
-           resourceNameSuggestion.startsWith("#"))) {
-        throw new IllegalArgumentException("invalid name suggestion " + resourceNameSuggestion);
-      }
-
-      myResourceNameSuggestion = resourceNameSuggestion;
-      return this;
-    }
-
-    public Builder setHideLeftSideActions(boolean hideLeftSideActions) {
-      myHideLeftSideActions = hideLeftSideActions;
-      return this;
-    }
-
-    public Builder setConfiguration(@Nullable Configuration configuration) {
-      myConfiguration = configuration;
-      return this;
-    }
-
-    public ChooseResourceDialog build() {
-      Configuration configuration = myConfiguration;
-      AndroidFacet facet = AndroidFacet.getInstance(myModule);
-      assert facet != null;
-
-      if (configuration == null) {
-        if (myFile != null && myFile.getVirtualFile() != null) {
-          ConfigurationManager configurationManager = facet.getConfigurationManager();
-          configuration = configurationManager.getConfiguration(myFile.getVirtualFile());
-        }
-
-        if (configuration == null) {
-          configuration = ThemeEditorUtils.getConfigurationForModule(myModule);
-        }
-      }
-
-      return new ChooseResourceDialog(facet, configuration, myTag, myTypes, myCurrentValue, myIsFrameworkValue,
-                                      myResourceNameVisibility, myResourceNameSuggestion, myHideLeftSideActions);
-    }
-  }
-
-  public interface ResourcePickerListener {
-    void resourceChanged(@Nullable String resource);
-  }
+  private Map<ResourceType, ResourcePanel> myTypeToPanels = Maps.newEnumMap(ResourceType.class);
 
   private ChooseResourceDialog(@NotNull AndroidFacet facet,
                                @NotNull Configuration configuration,
@@ -382,21 +274,6 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
   }
 
-  private static MultiMap<ResourceType, String> initializeThemeAttributes(@NotNull Configuration configuration,
-                                                                          @NotNull ResourceResolver resolver) {
-    MultiMap<ResourceType, String> attrs = new MultiMap<>();
-    String themeName = configuration.getTheme();
-    assert themeName != null;
-    for (ItemResourceValue item : ResolutionUtils.getThemeAttributes(resolver, themeName)) {
-      ResourceType type = ResolutionUtils.getAttrType(item, configuration);
-      if (type != null) {
-        attrs.putValue(type, ResolutionUtils.getQualifiedItemName(item));
-      }
-    }
-
-    return attrs;
-  }
-
   private boolean allowColors() {
     return myTypes.contains(ResourceType.COLOR);
   }
@@ -466,17 +343,6 @@ public class ChooseResourceDialog extends DialogWrapper {
     return pane;
   }
 
-  private static int typeRank(ResourceType type) {
-    switch (type) {
-      case DRAWABLE:
-        return 0;
-      case COLOR:
-        return 1;
-      default:
-        return type.ordinal() + 2;
-    }
-  }
-
   private void handleTabChange() {
     ResourcePanel panel = getSelectedPanel();
     panel.configureList(myGridMode);
@@ -495,8 +361,6 @@ public class ChooseResourceDialog extends DialogWrapper {
       return getPanel(null, myTypes.iterator().next());
     }
   }
-
-  private Map<ResourceType,ResourcePanel> myTypeToPanels = Maps.newEnumMap(ResourceType.class);
 
   private ResourcePanel getPanel(@Nullable JTabbedPane tabbedPane, @NotNull ResourceType type) {
     // All ResourceType requests for MIPMAP should be converted into a drawable instead
@@ -857,18 +721,6 @@ public class ChooseResourceDialog extends DialogWrapper {
     return false;
   }
 
-  public enum ResourceNameVisibility {
-    /**
-     * Show field, but do not force name to be used.
-     */
-    SHOW,
-
-    /**
-     * Force creation of named color.
-     */
-    FORCE
-  }
-
   @Override
   @Nullable
   protected ValidationInfo doValidate() {
@@ -1030,13 +882,13 @@ public class ChooseResourceDialog extends DialogWrapper {
     return myAllowCreateResource && !myHideLeftSideActions ? new Action[]{createNewResourceAction()} : new Action[0];
   }
 
+  public boolean getAllowCreateResource() {
+    return myAllowCreateResource;
+  }
+
   public ChooseResourceDialog setAllowCreateResource(boolean allowCreateResource) {
     myAllowCreateResource = allowCreateResource;
     return this;
-  }
-
-  public boolean getAllowCreateResource() {
-    return myAllowCreateResource;
   }
 
   /**
@@ -1214,6 +1066,40 @@ public class ChooseResourceDialog extends DialogWrapper {
     return PREFIX_RESOURCE_REF + type + "/" + name;
   }
 
+  /**
+   * Creates a builder for a new resource chooser dialog
+   */
+  @NotNull
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  private static MultiMap<ResourceType, String> initializeThemeAttributes(@NotNull Configuration configuration,
+                                                                          @NotNull ResourceResolver resolver) {
+    MultiMap<ResourceType, String> attrs = new MultiMap<>();
+    String themeName = configuration.getTheme();
+    assert themeName != null;
+    for (ItemResourceValue item : ResolutionUtils.getThemeAttributes(resolver, themeName)) {
+      ResourceType type = ResolutionUtils.getAttrType(item, configuration);
+      if (type != null) {
+        attrs.putValue(type, ResolutionUtils.getQualifiedItemName(item));
+      }
+    }
+
+    return attrs;
+  }
+
+  private static int typeRank(ResourceType type) {
+    switch (type) {
+      case DRAWABLE:
+        return 0;
+      case COLOR:
+        return 1;
+      default:
+        return type.ordinal() + 2;
+    }
+  }
+
   @NotNull
   private static EnumSet<ResourceType> getAllowedTypes(@NotNull ResourceType type) {
     switch(type) {
@@ -1226,6 +1112,121 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
   }
 
+  public enum ResourceNameVisibility {
+    /**
+     * Show field, but do not force name to be used.
+     */
+    SHOW,
+
+    /**
+     * Force creation of named color.
+     */
+    FORCE
+  }
+
+  public interface ResourcePickerListener {
+    void resourceChanged(@Nullable String resource);
+  }
+
+  /**
+   * Builder class for constructing a resource chooser
+   */
+  public static class Builder {
+    private Module myModule;
+    private Configuration myConfiguration;
+    private XmlTag myTag;
+    private XmlFile myFile;
+    private boolean myIsFrameworkValue;
+    private String myCurrentValue;
+    private EnumSet<ResourceType> myTypes;
+    private ResourceNameVisibility myResourceNameVisibility = ResourceNameVisibility.SHOW;
+    private String myResourceNameSuggestion;
+    private boolean myHideLeftSideActions;
+
+    public Builder() {
+    }
+
+    public Builder setModule(@NotNull Module module) {
+      myModule = module;
+      return this;
+    }
+
+    public Builder setTag(@Nullable XmlTag tag) {
+      myTag = tag;
+      if (myTag != null && myFile == null) {
+        myFile = (XmlFile)myTag.getContainingFile();
+      }
+      return this;
+    }
+
+    public Builder setFile(@Nullable XmlFile file) {
+      myFile = file;
+      return this;
+    }
+
+    public Builder setIsFrameworkValue(boolean frameworkValue) {
+      myIsFrameworkValue = frameworkValue;
+      return this;
+    }
+
+    public Builder setCurrentValue(@Nullable String currentValue) {
+      myCurrentValue = currentValue;
+      return this;
+    }
+
+    public Builder setTypes(@NotNull EnumSet<ResourceType> types) {
+      myTypes = types;
+      return this;
+    }
+
+    public Builder setResourceNameVisibility(@NotNull ResourceNameVisibility resourceNameVisibility) {
+      myResourceNameVisibility = resourceNameVisibility;
+      return this;
+    }
+
+    public Builder setResourceNameSuggestion(@Nullable String resourceNameSuggestion) {
+      if (resourceNameSuggestion != null &&
+          (resourceNameSuggestion.startsWith(PREFIX_RESOURCE_REF) ||
+           resourceNameSuggestion.startsWith(PREFIX_THEME_REF) ||
+           resourceNameSuggestion.startsWith("#"))) {
+        throw new IllegalArgumentException("invalid name suggestion " + resourceNameSuggestion);
+      }
+
+      myResourceNameSuggestion = resourceNameSuggestion;
+      return this;
+    }
+
+    public Builder setHideLeftSideActions(boolean hideLeftSideActions) {
+      myHideLeftSideActions = hideLeftSideActions;
+      return this;
+    }
+
+    public Builder setConfiguration(@Nullable Configuration configuration) {
+      myConfiguration = configuration;
+      return this;
+    }
+
+    public ChooseResourceDialog build() {
+      Configuration configuration = myConfiguration;
+      AndroidFacet facet = AndroidFacet.getInstance(myModule);
+      assert facet != null;
+
+      if (configuration == null) {
+        if (myFile != null && myFile.getVirtualFile() != null) {
+          ConfigurationManager configurationManager = facet.getConfigurationManager();
+          configuration = configurationManager.getConfiguration(myFile.getVirtualFile());
+        }
+
+        if (configuration == null) {
+          configuration = ThemeEditorUtils.getConfigurationForModule(myModule);
+        }
+      }
+
+      return new ChooseResourceDialog(facet, configuration, myTag, myTypes, myCurrentValue, myIsFrameworkValue,
+                                      myResourceNameVisibility, myResourceNameSuggestion, myHideLeftSideActions);
+    }
+  }
+
   private class ResourcePanel {
 
     private static final String NONE = "None";
@@ -1235,21 +1236,18 @@ public class ChooseResourceDialog extends DialogWrapper {
     private static final String TABLE = "Table";
 
     @NotNull public final JBSplitter myComponent;
+    @NotNull private final JPanel myPreviewPanel;
+    @NotNull private final ResourceChooserGroup[] myGroups;
+    @NotNull private final ResourceType myType;
     @Nullable private TreeGrid<ResourceChooserItem> myList;
     @Nullable private JBTable myTable;
-    @NotNull private final JPanel myPreviewPanel;
-
     private JLabel myNoPreviewComponent;
     private JTextPane myHtmlTextArea;
     private EditResourcePanel myEditorPanel;
     @Nullable private ResourceDrawablePanel myDrawablePanel;
     @Nullable private ResourceTablePanel myTablePanel;
-
     private ResourceComponent myReferenceComponent;
     private ResourceEditorTab myReferencePanel;
-
-    @NotNull private final ResourceChooserGroup[] myGroups;
-    @NotNull private final ResourceType myType;
 
     public ResourcePanel(@NotNull ResourceType type, boolean includeFileResources,
                          @NotNull Collection<String> attrs) {
@@ -1480,7 +1478,9 @@ public class ChooseResourceDialog extends DialogWrapper {
         List<ResourceChooserItem> first = myGroups[0].getItems();
         if (first.size() > 0) {
           setSelectedItem(first.get(0));
-          myTable.requestFocus();
+          IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+            IdeFocusManager.getGlobalInstance().requestFocus(myTable, true);
+          });
         }
       }
     }
@@ -1939,14 +1939,14 @@ public class ChooseResourceDialog extends DialogWrapper {
         // Using a DefaultListCellRenderer instead of a SimpleColoredComponent here because we want
         // to use HTML labels in order to handle line breaking with <nobr> and <br> tags
         ListCellRenderer gridRenderer = new DefaultListCellRenderer() {
+          private final int CHAR_WIDTH = getFontMetrics(getFont()).charWidth('x'); // it's a monospace font;
+          private final int CHARS_PER_CELL = GRID_CELL_SIZE / CHAR_WIDTH;
+
           {
             setHorizontalTextPosition(SwingConstants.CENTER);
             setVerticalTextPosition(SwingConstants.BOTTOM);
             setHorizontalAlignment(SwingConstants.CENTER);
           }
-
-          private final int CHAR_WIDTH = getFontMetrics(getFont()).charWidth('x'); // it's a monospace font;
-          private final int CHARS_PER_CELL = GRID_CELL_SIZE / CHAR_WIDTH;
 
           @Override
           public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {

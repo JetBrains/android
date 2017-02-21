@@ -32,6 +32,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
@@ -56,47 +57,39 @@ import java.util.Set;
  * A dialog which is shown to the user when they request to modify or add a new log filter.
  */
 final class EditLogFilterDialog extends DialogWrapper {
+  static final int FILTER_HISTORY_SIZE = 5;
   private static final String NEW_FILTER_NAME_PREFIX = "Unnamed-";
   @NonNls private static final String EDIT_FILTER_DIALOG_DIMENSIONS_KEY =
     "edit.logcat.filter.dialog.dimensions";
-  static final int FILTER_HISTORY_SIZE = 5;
   @NonNls private static final String LOG_FILTER_MESSAGE_HISTORY = "LOG_FILTER_MESSAGE_HISTORY";
   @NonNls private static final String LOG_FILTER_TAG_HISTORY = "LOG_FILTER_TAG_HISTORY";
   @NonNls private static final String LOG_FILTER_PACKAGE_NAME_HISTORY = "LOG_FILTER_PACKAGE_NAME_HISTORY";
 
   private final Splitter mySplitter;
+  private final List<FilterData> myFilters;
+  private final AndroidLogcatView myView;
+  private final Project myProject;
   private JPanel myContentPanel;
   private JPanel myLeftPanel;
-
   private EditorTextField myFilterNameField;
   private RegexFilterComponent myLogMessageField;
   private RegexFilterComponent myTagField;
   private TextFieldWithAutoCompletion myPidField;
   private RegexFilterComponent myPackageNameField;
   private JComboBox myLogLevelCombo;
-
   private JPanel myLogMessageFieldWrapper;
   private JPanel myTagFieldWrapper;
   private JPanel myPidFieldWrapper;
   private JPanel myPackageNameFieldWrapper;
-
   private JBLabel myNameFieldLabel;
   private JBLabel myLogTagLabel;
   private JBLabel myLogMessageLabel;
   private JBLabel myPidLabel;
   private JBLabel myPackageNameLabel;
-
   private JBList myFiltersList;
   private CollectionListModel<String> myFiltersListModel;
-
   @Nullable private FilterData myActiveFilter;
-  private final List<FilterData> myFilters;
-
   private JPanel myFiltersToolbarPanel;
-
-  private final AndroidLogcatView myView;
-  private final Project myProject;
-
   private boolean myExistingMessagesParsed = false;
 
   private List<String> myUsedPids;
@@ -440,6 +433,10 @@ final class EditLogFilterDialog extends DialogWrapper {
     }
   }
 
+  private String getSelectedFilterName() {
+    return (String)myFiltersList.getSelectedValue();
+  }
+
   private final class MyAddFilterAction extends AnAction {
     private MyAddFilterAction() {
       super(CommonBundle.message("button.add"),
@@ -455,7 +452,9 @@ final class EditLogFilterDialog extends DialogWrapper {
       myFiltersListModel.add(myActiveFilter.getName());
       updateFilters();
 
-      myFilterNameField.requestFocus();
+      IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+        IdeFocusManager.getGlobalInstance().requestFocus(myFilterNameField, true);
+      });
     }
   }
 
@@ -493,9 +492,5 @@ final class EditLogFilterDialog extends DialogWrapper {
 
       updateFilters();
     }
-  }
-
-  private String getSelectedFilterName() {
-    return (String)myFiltersList.getSelectedValue();
   }
 }

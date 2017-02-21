@@ -34,6 +34,7 @@ import com.intellij.openapi.editor.ex.util.EmptyEditorHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.TextFieldWithAutoCompletionListProvider;
 import com.intellij.ui.components.JBLabel;
@@ -69,20 +70,6 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
   private Object myLastWriteValue;
   private boolean myUpdatingProperty;
   private boolean myCompletionsUpdated;
-
-  public static NlTableCellEditor createForTable(@NotNull Project project) {
-    NlTableCellEditor cellEditor = new NlTableCellEditor();
-    cellEditor.init(new NlReferenceEditor(project, cellEditor, cellEditor, false, true));
-    return cellEditor;
-  }
-
-  public static NlReferenceEditor createForInspector(@NotNull Project project, @NotNull NlEditingListener listener) {
-    return new NlReferenceEditor(project, listener, null, true, false);
-  }
-
-  public static NlReferenceEditor createForInspectorWithBrowseButton(@NotNull Project project, @NotNull NlEditingListener listener) {
-    return new NlReferenceEditor(project, listener, null, true, true);
-  }
 
   private NlReferenceEditor(@NotNull Project project,
                             @NotNull NlEditingListener listener,
@@ -303,7 +290,9 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
 
   @Override
   public void requestFocus() {
-    myTextFieldWithAutoCompletion.requestFocus();
+    IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+      IdeFocusManager.getGlobalInstance().requestFocus(myTextFieldWithAutoCompletion, true);
+    });
     myTextFieldWithAutoCompletion.selectAll();
     myTextFieldWithAutoCompletion.scrollRectToVisible(myTextFieldWithAutoCompletion.getBounds());
   }
@@ -342,6 +331,20 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     }
     Editor editor = myTextFieldWithAutoCompletion.getEditor();
     return editor != null && editor.getContentComponent().hasFocus();
+  }
+
+  public static NlTableCellEditor createForTable(@NotNull Project project) {
+    NlTableCellEditor cellEditor = new NlTableCellEditor();
+    cellEditor.init(new NlReferenceEditor(project, cellEditor, cellEditor, false, true));
+    return cellEditor;
+  }
+
+  public static NlReferenceEditor createForInspector(@NotNull Project project, @NotNull NlEditingListener listener) {
+    return new NlReferenceEditor(project, listener, null, true, false);
+  }
+
+  public static NlReferenceEditor createForInspectorWithBrowseButton(@NotNull Project project, @NotNull NlEditingListener listener) {
+    return new NlReferenceEditor(project, listener, null, true, true);
   }
 
   private static class TextEditor extends TextFieldWithAutoCompletion<String> {

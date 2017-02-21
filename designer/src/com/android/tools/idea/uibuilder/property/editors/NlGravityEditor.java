@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.NotNull;
 
@@ -52,10 +53,6 @@ public class NlGravityEditor extends NlBaseComponentEditor implements NlComponen
   private NlFlagPropertyItem myProperty;
   private JLabel myLabel;
   private boolean myUpdatingProperty;
-
-  public interface Listener {
-    void valueChanged(@NotNull NlGravityEditor editor);
-  }
 
   public NlGravityEditor() {
     super(DEFAULT_LISTENER);
@@ -107,7 +104,6 @@ public class NlGravityEditor extends NlBaseComponentEditor implements NlComponen
     myProperty.updateItems(itemsToAdd, itemsToRemove);
   }
 
-
   @NotNull
   @Override
   public JComponent getComponent() {
@@ -131,6 +127,25 @@ public class NlGravityEditor extends NlBaseComponentEditor implements NlComponen
   }
 
   @Override
+  public void refresh() {
+    if (myProperty != null) {
+      setProperty(myProperty);
+    }
+  }
+
+  @Override
+  public void requestFocus() {
+    IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+      IdeFocusManager.getGlobalInstance().requestFocus(myHorizontalGravity, true);
+    });
+  }
+
+  @Override
+  public NlFlagPropertyItem getProperty() {
+    return myProperty;
+  }
+
+  @Override
   public void setProperty(@NotNull NlProperty property) {
     myUpdatingProperty = true;
     try {
@@ -146,30 +161,13 @@ public class NlGravityEditor extends NlBaseComponentEditor implements NlComponen
   }
 
   @Override
-  public void refresh() {
-    if (myProperty != null) {
-      setProperty(myProperty);
-    }
-  }
-
-  @Override
-  public void requestFocus() {
-    myHorizontalGravity.requestFocus();
-  }
-
-  @Override
-  public NlFlagPropertyItem getProperty() {
-    return myProperty;
+  public JLabel getLabel() {
+    return myLabel;
   }
 
   @Override
   public void setLabel(@NotNull JLabel label) {
     myLabel = label;
-  }
-
-  @Override
-  public JLabel getLabel() {
-    return myLabel;
   }
 
   private ValueWithDisplayString getSelectedHorizontalValue() {
@@ -222,5 +220,9 @@ public class NlGravityEditor extends NlBaseComponentEditor implements NlComponen
       new ValueWithDisplayString("center", GRAVITY_VALUE_CENTER_VERTICAL),
       new ValueWithDisplayString("fill", GRAVITY_VALUE_FILL_VERTICAL),
     });
+  }
+
+  public interface Listener {
+    void valueChanged(@NotNull NlGravityEditor editor);
   }
 }

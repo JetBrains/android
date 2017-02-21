@@ -39,6 +39,7 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.DimensionService;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiEditorUtil;
 import com.intellij.ui.*;
@@ -81,6 +82,7 @@ import static java.awt.RenderingHints.*;
  * Pane which lets you see the current lint warnings and apply fix/suppress
  */
 public class LintNotificationPanel implements HyperlinkListener, ActionListener {
+  public static final String DIMENSION_KEY = "lint.notification";
   private final ScreenView myScreenView;
   private JEditorPane myExplanationPane;
   private JBList myIssueList;
@@ -88,10 +90,7 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
   private JBLabel myPreviewLabel;
   private JBLabel myTagLabel;
   private JBCheckBox myShowIcons;
-
   private HtmlLinkManager myLinkManager = new HtmlLinkManager();
-
-  public static final String DIMENSION_KEY = "lint.notification";
   private JBPopup myPopup;
 
   public LintNotificationPanel(@NotNull ScreenView screenView, @NotNull LintAnnotationsModel model) {
@@ -124,7 +123,9 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
     myPanel.setFocusable(false);
     myShowIcons.setSelected(AndroidEditorSettings.getInstance().getGlobalState().isShowLint());
     myShowIcons.addActionListener(this);
-    ApplicationManager.getApplication().invokeLater(() -> myIssueList.requestFocus());
+    ApplicationManager.getApplication().invokeLater(() -> IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+      IdeFocusManager.getGlobalInstance().requestFocus(myIssueList, true);
+    }));
   }
 
   private void configureCellRenderer() {
@@ -139,45 +140,6 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
         append(value.message);
       }
     });
-  }
-
-  @Nullable
-  private static List<IssueData> getSortedIssues(@NotNull ScreenView screenView, @NotNull LintAnnotationsModel model) {
-    List<IssueData> issues = model.getIssues();
-    if (issues.isEmpty()) {
-      return null;
-    }
-
-    // Sort -- and prefer the selected components first
-    List<NlComponent> selection = screenView.getSelectionModel().getSelection();
-    Collections.sort(issues, (o1, o2) -> {
-      boolean selected1 = selection.contains(o1.component);
-      boolean selected2 = selection.contains(o2.component);
-      if (selected1 != selected2) {
-        return selected1 ? -1 : 1;
-      }
-
-      int compare = -o1.level.getSeverity().compareTo(o2.level.getSeverity());
-      if (compare != 0) {
-        return compare;
-      }
-      compare = o2.issue.getPriority() - o1.issue.getPriority();
-      if (compare != 0) {
-        return compare;
-      }
-      compare = o1.issue.compareTo(o2.issue);
-      if (compare != 0) {
-        return compare;
-      }
-
-      compare = o1.message.compareTo(o2.message);
-      if (compare != 0) {
-        return compare;
-      }
-
-      return o1.startElement.getTextOffset() - o2.startElement.getTextOffset();
-    });
-    return issues;
   }
 
   private void selectIssue(@Nullable IssueData selected) {
@@ -495,8 +457,6 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
     myPopup = builder;
   }
 
-  // ---- Implements HyperlinkListener ----
-
   @Override
   public void hyperlinkUpdate(HyperlinkEvent e) {
     if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -519,12 +479,53 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
     }
   }
 
-  // ---- Implements ActionListener ----
+  // ---- Implements HyperlinkListener ----
 
   @Override
   public void actionPerformed(ActionEvent e) {
     if (e.getSource() == myShowIcons) {
       AndroidEditorSettings.getInstance().getGlobalState().setShowLint(myShowIcons.isSelected());
     }
+  }
+
+  // ---- Implements ActionListener ----
+
+  @Nullable
+  private static List<IssueData> getSortedIssues(@NotNull ScreenView screenView, @NotNull LintAnnotationsModel model) {
+    List<IssueData> issues = model.getIssues();
+    if (issues.isEmpty()) {
+      return null;
+    }
+
+    // Sort -- and prefer the selected components first
+    List<NlComponent> selection = screenView.getSelectionModel().getSelection();
+    Collections.sort(issues, (o1, o2) -> {
+      boolean selected1 = selection.contains(o1.component);
+      boolean selected2 = selection.contains(o2.component);
+      if (selected1 != selected2) {
+        return selected1 ? -1 : 1;
+      }
+
+      int compare = -o1.level.getSeverity().compareTo(o2.level.getSeverity());
+      if (compare != 0) {
+        return compare;
+      }
+      compare = o2.issue.getPriority() - o1.issue.getPriority();
+      if (compare != 0) {
+        return compare;
+      }
+      compare = o1.issue.compareTo(o2.issue);
+      if (compare != 0) {
+        return compare;
+      }
+
+      compare = o1.message.compareTo(o2.message);
+      if (compare != 0) {
+        return compare;
+      }
+
+      return o1.startElement.getTextOffset() - o2.startElement.getTextOffset();
+    });
+    return issues;
   }
 }
