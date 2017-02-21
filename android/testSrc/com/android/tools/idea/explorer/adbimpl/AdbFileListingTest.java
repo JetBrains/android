@@ -19,24 +19,18 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.containers.HashMap;
 import org.hamcrest.core.IsInstanceOf;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.awt.*;
-import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -50,51 +44,12 @@ import static org.mockito.Mockito.mock;
 public class AdbFileListingTest {
   private static final Logger LOGGER = Logger.getInstance(AdbFileListingTest.class);
   private static final long TIMEOUT_MILLISECONDS = 30_000;
-  private static Logger.Factory myOriginalFactory;
 
   @Rule
   public ExpectedException thrown= ExpectedException.none();
 
-  private static class MyDefaultLoggerFactory implements Logger.Factory {
-    @Override
-    public Logger getLoggerInstance(String category) {
-      return new DefaultLogger(category) {
-        @Override
-        public boolean isDebugEnabled() {
-          return true;
-        }
-
-        @Override
-        public void debug(String message) {
-          System.out.println(message);
-        }
-      };
-    }
-  }
-
-  @BeforeClass
-  public static void beforeClass() {
-    // Force AdbFileListing tracing code to be covered. Loggers created by the default
-    // logger factory do not log debug/trace messages, even when calling "setLevel", so
-    // we register our custom logger factory.
-    try {
-      Field factoryField = Logger.class.getDeclaredField("ourFactory");
-      factoryField.setAccessible(true);
-      myOriginalFactory = (Logger.Factory)factoryField.get(null);
-      factoryField.setAccessible(false);
-    }
-    catch (IllegalAccessException | NoSuchFieldException ignore) {
-      LOGGER.warn("Error injecting custom logger factory", ignore);
-    }
-    Logger.setFactory(MyDefaultLoggerFactory.class);
-  }
-
-  @AfterClass
-  public static void afterClass() {
-    if (myOriginalFactory != null) {
-      Logger.setFactory(myOriginalFactory.getClass());
-    }
-  }
+  @ClassRule
+  public static DebugLoggerFactoryRule ourLoggerFactoryRule = new DebugLoggerFactoryRule();
 
   @Test
   public void testGetRoot() throws Exception {
@@ -187,9 +142,9 @@ public class AdbFileListingTest {
   @Test
   public void testGetRootChildrenError() throws Exception {
     // Prepare
-    ShellCommands commands = new ShellCommands();
-    commands.putError("ls -l /", new ShellCommandUnresponsiveException());
-    IDevice device = createMockDevice(commands);
+    TestShellCommands commands = new TestShellCommands();
+    commands.addError("ls -l /", new ShellCommandUnresponsiveException());
+    IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileListing fileListing = new AdbFileListing(device, taskExecutor);
 
@@ -241,14 +196,14 @@ public class AdbFileListingTest {
   }
 
   private static IDevice createMockNexus7Device() throws Exception {
-    ShellCommands shellCommands = new ShellCommands();
+    TestShellCommands shellCommands = new TestShellCommands();
     addNexus7Commands(shellCommands);
-    return createMockDevice(shellCommands);
+    return shellCommands.createMockDevice();
   }
 
-  private static void addNexus7Commands(@NotNull ShellCommands shellCommands) {
+  private static void addNexus7Commands(@NotNull TestShellCommands shellCommands) {
     // These are results from a Nexus 7, Android 6.0.1, API 23
-    shellCommands.put("ls -l /", "drwxr-xr-x root     root              2016-11-21 12:09 acct\r\n" +
+    shellCommands.add("ls -l /", "drwxr-xr-x root     root              2016-11-21 12:09 acct\r\n" +
                                  "drwxrwx--- system   cache             2016-08-26 12:12 cache\r\n" +
                                  "lrwxrwxrwx root     root              1969-12-31 16:00 charger -> /sbin/healthd\r\n" +
                                  "dr-x------ root     root              2016-11-21 12:09 config\r\n" +
@@ -291,15 +246,15 @@ public class AdbFileListingTest {
                                  "-rw-r--r-- root     root         4587 1969-12-31 16:00 ueventd.rc\r\n" +
                                  "lrwxrwxrwx root     root              2016-11-21 12:09 vendor -> /system/vendor\r\n");
 
-    shellCommands.put("ls -l -d /charger/", "/charger/: Permission denied\r\n");
-    shellCommands.put("ls -l -d /d/", "drwxr-xr-x root     root              1969-12-31 16:00\r\n");
-    shellCommands.put("ls -l -d /etc/", "drwxr-xr-x root     root              2016-08-26 12:00\r\n");
-    shellCommands.put("ls -l -d /sdcard/", "drwxrwx--x root     sdcard_rw          2014-02-10 17:16\r\n");
-    shellCommands.put("ls -l -d /tombstones/", "/tombstones/: Permission denied\r\n");
-    shellCommands.put("ls -l -d /vendor/", "drwxr-xr-x root     shell             2013-06-15 12:54\r\n");
+    shellCommands.add("ls -l -d /charger/", "/charger/: Permission denied\r\n");
+    shellCommands.add("ls -l -d /d/", "drwxr-xr-x root     root              1969-12-31 16:00\r\n");
+    shellCommands.add("ls -l -d /etc/", "drwxr-xr-x root     root              2016-08-26 12:00\r\n");
+    shellCommands.add("ls -l -d /sdcard/", "drwxrwx--x root     sdcard_rw          2014-02-10 17:16\r\n");
+    shellCommands.add("ls -l -d /tombstones/", "/tombstones/: Permission denied\r\n");
+    shellCommands.add("ls -l -d /vendor/", "drwxr-xr-x root     shell             2013-06-15 12:54\r\n");
   }
 
-  private static IDevice createMockDevice(ShellCommands shellCommands) throws Exception {
+  private static IDevice createMockDevice(TestShellCommands shellCommands) throws Exception {
     IDevice device = mock(IDevice.class);
 
     // Implement the executeShellCommand method
@@ -307,7 +262,7 @@ public class AdbFileListingTest {
       String command = invocation.getArgument(0);
       IShellOutputReceiver receiver = invocation.getArgument(1);
 
-      CommandResult commandResult = shellCommands.get(command);
+      TestShellCommandResult commandResult = shellCommands.get(command);
       if (commandResult == null) {
         UnsupportedOperationException error = new UnsupportedOperationException(
           String.format("Command \"%s\" not found in mock device. Test case is not setup correctly", command));
@@ -315,18 +270,18 @@ public class AdbFileListingTest {
         throw error;
       }
 
-      if (commandResult.error != null) {
-        throw commandResult.error;
+      if (commandResult.getError() != null) {
+        throw commandResult.getError();
       }
 
-      if (commandResult.lines == null) {
+      if (commandResult.getOutput() == null) {
         UnsupportedOperationException error = new UnsupportedOperationException(
           String.format("Command \"%s\" has no result. Test case is not setup correctly", command));
         LOGGER.error(error);
         throw error;
       }
 
-      byte[] bytes = commandResult.lines.getBytes(Charset.forName("UTF-8"));
+      byte[] bytes = commandResult.getOutput().getBytes(Charset.forName("UTF-8"));
       int chunkSize = 100;
       for (int i = 0; i < bytes.length; i += chunkSize) {
         int count = Math.min(chunkSize, bytes.length - i);
@@ -337,34 +292,6 @@ public class AdbFileListingTest {
     }).when(device).executeShellCommand(any(), any());
 
     return device;
-  }
-
-  private static class ShellCommands {
-    @NotNull private final Map<String, CommandResult> myCommands = new HashMap<>();
-
-    public void put(@NotNull String command, @NotNull String lines) {
-      myCommands.put(command, new CommandResult(lines));
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    public void putError(@NotNull String command, @NotNull Throwable t) {
-      myCommands.put(command, new CommandResult(t));
-    }
-
-    public CommandResult get(@NotNull String command) {
-      return myCommands.get(command);
-    }
-  }
-
-  private static class CommandResult {
-    @Nullable public String lines;
-    @Nullable public Throwable error;
-    public CommandResult(@NotNull String lines) {
-      this.lines = lines;
-    }
-    public CommandResult(@NotNull Throwable error) {
-      this.error = error;
-    }
   }
 
   private static <V> V waitForFuture(@NotNull ListenableFuture<V> future) throws Exception {

@@ -44,6 +44,8 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myOpenNodeInEditorInvokedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> mySaveNodeAsTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myCopyNodePathTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myNewDirectoryTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myNewFileTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceAddedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceRemovedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceUpdatedTracker = new FutureValuesTracker<>();
@@ -283,6 +285,18 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     public void copyNodePathInvoked(@NotNull DeviceFileEntryNode treeNode) {
       myCopyNodePathTracker.produce(treeNode);
       myListeners.forEach(l -> l.copyNodePathInvoked(treeNode));
+    }
+
+    @Override
+    public void newDirectoryInvoked(@NotNull DeviceFileEntryNode parentTreeNode) {
+      myNewDirectoryTracker.produce(parentTreeNode);
+      myListeners.forEach(l -> l.newDirectoryInvoked(parentTreeNode));
+    }
+
+    @Override
+    public void newFileInvoked(@NotNull DeviceFileEntryNode parentTreeNode) {
+      myNewFileTracker.produce(parentTreeNode);
+      myListeners.forEach(l -> l.newFileInvoked(parentTreeNode));
     }
   }
 
