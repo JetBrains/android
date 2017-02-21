@@ -363,6 +363,10 @@ public class InteractionManager {
         return;
       }
 
+      if(interceptPanInteraction(event, myLastMouseX, myLastMouseY)) {
+        return;
+      }
+
       // Deal with the canvas resizing interaction at the bottom right of the screen view.
       // If both screen views are present, only enable it next to the normal one.
       SceneView sceneView = mySurface.getCurrentSceneView(); // Gets the preview screen view if both are present
