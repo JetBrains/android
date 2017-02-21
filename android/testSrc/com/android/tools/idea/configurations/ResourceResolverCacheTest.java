@@ -32,10 +32,9 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.FrameworkResourceLoader;
 import org.junit.Ignore;
 
-@Ignore // Broken after 2017.1 merge
 public class ResourceResolverCacheTest extends AndroidTestCase {
 
-  public void ignore_test() throws Exception {
+  public void test() throws Exception {
     VirtualFile file1 = myFixture.copyFileToProject("render/layout1.xml", "res/layout/layout1.xml");
     VirtualFile file2 = myFixture.copyFileToProject("render/layout2.xml", "res/layout/layout2.xml");
     VirtualFile file3 = myFixture.copyFileToProject("javadoc/strings/strings.xml", "res/values/strings.xml");
