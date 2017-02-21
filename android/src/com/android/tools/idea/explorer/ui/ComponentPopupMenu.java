@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.explorer.ui;
 
+import com.intellij.ide.actions.NonEmptyActionGroup;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
@@ -36,6 +37,11 @@ public class ComponentPopupMenu {
     myGroup = new DefaultActionGroup();
   }
 
+  ComponentPopupMenu(@NotNull JComponent component, @NotNull DefaultActionGroup group) {
+    myComponent = component;
+    myGroup = group;
+  }
+
   @NotNull
   public ActionGroup getActionGroup() {
     return myGroup;
@@ -47,6 +53,15 @@ public class ComponentPopupMenu {
 
   public void addSeparator() {
     myGroup.addSeparator();
+  }
+
+  public ComponentPopupMenu addPopup(@SuppressWarnings("SameParameterValue") @NotNull String name) {
+    ComponentPopupMenu newMenu = new ComponentPopupMenu(myComponent, new NonEmptyActionGroup());
+    ActionGroup subGroup = newMenu.getActionGroup();
+    subGroup.setPopup(true);
+    subGroup.getTemplatePresentation().setText(name);
+    myGroup.add(subGroup);
+    return newMenu;
   }
 
   public void addItem(@NotNull PopupMenuItem popupMenuItem) {

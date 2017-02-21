@@ -44,6 +44,12 @@ public interface DeviceFileEntry {
   String getName();
 
   /**
+   * The full path of the entry in the device file system.
+   */
+  @NotNull
+  String getFullPath();
+
+  /**
    * The list of entries contained in this directory.
    */
   @NotNull
