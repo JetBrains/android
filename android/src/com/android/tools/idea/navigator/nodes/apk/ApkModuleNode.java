@@ -16,72 +16,87 @@
 package com.android.tools.idea.navigator.nodes.apk;
 
 import com.android.tools.idea.apk.ApkFacet;
-import com.android.tools.idea.apk.ApkFileType;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
-import com.android.tools.idea.navigator.AndroidProjectTreeBuilder;
-import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.android.AndroidManifestsGroupNode;
 import com.android.tools.idea.navigator.nodes.apk.java.DexGroupNode;
-import com.intellij.ide.projectView.PresentationData;
-import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
+import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
+import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.*;
 
 import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
 import static com.android.SdkConstants.FN_APK_CLASSES_DEX;
-import static com.android.tools.idea.gradle.util.Projects.findModuleRootFolder;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
-public class ApkFileNode extends ProjectViewNode<PsiFile> {
-  @NotNull private final PsiFile myApkFile;
+public class ApkModuleNode extends ProjectViewModuleNode {
   @NotNull private final AndroidFacet myAndroidFacet;
-  @NotNull private final ApkFacet myApkFacet;
-  @NotNull private final AndroidProjectViewPane myProjectViewPane;
 
-  @Nullable private final VirtualFile myApkRootFile;
+  @Nullable private final PsiFile myApkPsiFile;
   @Nullable private final VirtualFile myManifestFile;
+
   @Nullable private final VirtualFile myDexFile;
-
   private DexGroupNode myDexGroupNode;
+  private final VirtualFile myApkFile;
 
-  public ApkFileNode(@NotNull Project project,
-                     @NotNull PsiFile apkFile,
-                     @NotNull AndroidFacet androidFacet,
-                     @NotNull ApkFacet apkFacet,
-                     @NotNull ViewSettings settings,
-                     @NotNull AndroidProjectViewPane projectViewPane) {
-    super(project, apkFile, settings);
-    myApkFile = apkFile;
+  public ApkModuleNode(@NotNull Project project,
+                       @NotNull Module module,
+                       @NotNull AndroidFacet androidFacet,
+                       @NotNull ApkFacet apkFacet,
+                       @NotNull ViewSettings settings) {
+    super(project, module, settings);
     myAndroidFacet = androidFacet;
-    myApkFacet = apkFacet;
-    myProjectViewPane = projectViewPane;
-    myApkRootFile = getApkRootFile();
 
-    VirtualFile rootFolder = findModuleRootFolder(getModule());
+    myApkPsiFile = findApkPsiFile(apkFacet);
+    myApkFile = myApkPsiFile != null ? myApkPsiFile.getVirtualFile() : null;
+    VirtualFile apkRootFile = myApkFile != null ? ApkFileSystem.getInstance().getRootByLocal(myApkFile) : null;
+
+    VirtualFile rootFolder = findModuleRootFolder();
     myManifestFile = rootFolder != null ? rootFolder.findChild(FN_ANDROID_MANIFEST_XML) : null;
-
-    myDexFile = myApkRootFile != null ? myApkRootFile.findChild(FN_APK_CLASSES_DEX) : null;
+    myDexFile = apkRootFile != null ? apkRootFile.findChild(FN_APK_CLASSES_DEX) : null;
   }
 
   @Nullable
-  private VirtualFile getApkRootFile() {
-    VirtualFile file = getVirtualFile();
-    return file != null ? ApkFileSystem.getInstance().getRootByLocal(file) : null;
+  private VirtualFile findModuleRootFolder() {
+    File moduleFilePath = new File(toSystemDependentName(getModule().getModuleFilePath()));
+    File modulePath = moduleFilePath.getParentFile();
+    return findFileByIoFile(modulePath, false /* do not refresh file system */);
+  }
+
+  @Nullable
+  private PsiFile findApkPsiFile(@NotNull ApkFacet apkFacet) {
+    File apkFilePath = new File(toSystemDependentName(apkFacet.getConfiguration().APK_PATH));
+    if (apkFilePath.isFile()) {
+      VirtualFile apkFile = findFileByIoFile(apkFilePath, true);
+      if (apkFile != null) {
+        assert myProject != null;
+        return PsiManager.getInstance(myProject).findFile(apkFile);
+      }
+    }
+    return null;
   }
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
-    Collection<AbstractTreeNode> children = new ArrayList<>();
+  public Collection<AbstractTreeNode> getChildren() {
+    assert myProject != null;
 
+    List<AbstractTreeNode> children = new ArrayList<>();
+    if (myApkPsiFile != null) {
+      children.add(new PsiFileNode(myProject, myApkPsiFile, getSettings()));
+    }
     // "manifests" folder
     children.add(createManifestGroupNode());
 
@@ -90,7 +105,6 @@ public class ApkFileNode extends ProjectViewNode<PsiFile> {
       myDexGroupNode = new DexGroupNode(myProject, getSettings(), myDexFile);
     }
     children.add(myDexGroupNode);
-
     return children;
   }
 
@@ -101,32 +115,40 @@ public class ApkFileNode extends ProjectViewNode<PsiFile> {
     return new AndroidManifestsGroupNode(myProject, myAndroidFacet, getSettings(), manifestFiles);
   }
 
-  @NotNull
-  private AndroidProjectTreeBuilder getTreeBuilder() {
-    return (AndroidProjectTreeBuilder)myProjectViewPane.getTreeBuilder();
-  }
-
   @Override
-  public boolean isAlwaysExpand() {
-    return true;
-  }
-
-  @Override
-  public boolean isAlwaysShowPlus() {
-    return true;
+  @Nullable
+  public Comparable getSortKey() {
+    return getModule().getName();
   }
 
   @Override
   @Nullable
-  public Comparable getSortKey() {
-    return getTypeSortKey();
+  public Comparable getTypeSortKey() {
+    return getSortKey();
+  }
+
+  @Nullable
+  @Override
+  public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
+    return "APK Module";
+  }
+
+  @NotNull
+  private Module getModule() {
+    Module module = getValue();
+    assert module != null;
+    return module;
   }
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
     // This is needed when user selects option "Autoscroll from Source". When user selects manifest in editor, the manifest must be selected
     // automatically in the "Android" view.
-    if (Objects.equals(file.getPath(), getManifestPath())) {
+    String path = file.getPath();
+    if (myApkFile != null && Objects.equals(path, myApkFile.getPath())) {
+      return true;
+    }
+    if (Objects.equals(path, getManifestPath())) {
       return true;
     }
     if (myDexGroupNode != null && myDexGroupNode.contains(file)) {
@@ -141,25 +163,10 @@ public class ApkFileNode extends ProjectViewNode<PsiFile> {
   }
 
   @Override
-  @Nullable
-  public Comparable getTypeSortKey() {
-    return getModule().getName();
-  }
-
-  @NotNull
-  private Module getModule() {
-    return myApkFacet.getModule();
-  }
-
-  @Override
-  protected void update(@NotNull PresentationData presentation) {
-    presentation.setIcon(ApkFileType.INSTANCE.getIcon());
-    presentation.setPresentableText(myApkFile.getName());
-  }
-
-  @Override
-  @Nullable
-  public VirtualFile getVirtualFile() {
-    return myApkFile.getVirtualFile();
+  public boolean equals(Object o) {
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    return super.equals(o);
   }
 }

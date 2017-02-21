@@ -55,7 +55,6 @@ import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
 import static com.intellij.openapi.util.io.FileUtil.*;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.wm.impl.IdeFrameImpl.SHOULD_OPEN_IN_FULL_SCREEN;
 import static java.lang.Boolean.TRUE;
 
@@ -173,20 +172,6 @@ public final class Projects {
   public static File findModuleRootFolderPath(@NotNull Module module) {
     File moduleFilePath = toSystemDependentPath(module.getModuleFilePath());
     return moduleFilePath.getParentFile();
-  }
-
-  @Nullable
-  public static VirtualFile findModuleRootFolder(@NotNull Module module) {
-    VirtualFile moduleFile = module.getModuleFile();
-    if (moduleFile != null) {
-      return moduleFile.getParent();
-    }
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      File moduleFilePath = new File(module.getModuleFilePath());
-      File modulePath = moduleFilePath.getParentFile();
-      return findFileByIoFile(modulePath, true);
-    }
-    return null;
   }
 
   /**
