@@ -86,7 +86,7 @@ public class LintIdeUtils {
     TextRange textRange = element.getTextRange();
     Position start = new DefaultPosition(-1, -1, textRange.getStartOffset());
     Position end = new DefaultPosition(-1, -1, textRange.getEndOffset());
-    return Location.create(file, start, end);
+    return Location.create(file, start, end).setSource(element);
   }
 
   /**
