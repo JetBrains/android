@@ -23,6 +23,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -52,7 +53,9 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
       ProfilerClient client = service.getProfilerClient(project);
       myProfilers = new StudioProfilers(client, new IntellijProfilerServices());
 
-      myProfilers.setPreferredProcessName(getPreferredProcessName(project));
+      StartupManager.getInstance(project)
+        .runWhenProjectIsInitialized(() -> myProfilers.setPreferredProcessName(getPreferredProcessName(myProject)));
+
       myView = new StudioProfilersView(myProfilers, new IntellijProfilerComponents(myProject));
 
       myProfilers.addDependency(this)
