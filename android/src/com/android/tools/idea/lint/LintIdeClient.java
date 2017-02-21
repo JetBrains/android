@@ -39,6 +39,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
+import com.android.utils.Pair;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -551,13 +552,11 @@ public class LintIdeClient extends LintClient implements Disposable {
 
   @Override
   @Nullable
-  public Node findManifestSourceNode(@NonNull Node mergedNode) {
+  public Pair<File, Node> findManifestSourceNode(@NonNull Node mergedNode) {
     if (sourceNodeCache != null) {
-      Node source = sourceNodeCache.get(mergedNode);
+      Pair<File,Node> source = sourceNodeCache.get(mergedNode);
       if (source != null) {
-        // document node is a place holder meaning "searched, not found". See
-        // code at the end of this method which populates cache.
-        if (source.getNodeType() == Node.DOCUMENT_NODE) {
+        if (source == NOT_FOUND) {
           return null;
         }
         return source;
@@ -573,27 +572,27 @@ public class LintIdeClient extends LintClient implements Disposable {
       return null;
     }
 
-    Node source = null;
+    Pair<File,Node> source = NOT_FOUND;
     List<? extends Actions.Record> records = ManifestUtils.getRecords(mergedManifest, mergedNode);
     for (Actions.Record record : records) {
       if (record.getActionType() == Actions.ActionType.ADDED ||
           record.getActionType() == Actions.ActionType.MERGED) {
-        source = ManifestUtils.getSourceNode(mergedManifest.getModule(), record);
-        if (source != null) {
+        Node sourceNode = ManifestUtils.getSourceNode(mergedManifest.getModule(), record);
+        if (sourceNode != null) {
+          // Cache for next time
+          File file = record.getActionLocation().getFile().getSourceFile();
+          source = Pair.of(file, sourceNode);
           break;
         }
       }
     }
 
-    // Cache for next time
-    // If not found, put doc node as place holder meaning "already searched, not found"
-    Node cacheValue = source != null ? source : doc;
     if (sourceNodeCache == null) {
       sourceNodeCache = Maps.newIdentityHashMap();
     }
-    sourceNodeCache.put(mergedNode, cacheValue);
+    sourceNodeCache.put(mergedNode, source);
 
-    return source;
+    return source != NOT_FOUND ? source : null;
   }
 
   /**
