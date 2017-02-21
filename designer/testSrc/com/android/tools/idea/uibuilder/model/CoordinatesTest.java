@@ -15,8 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import junit.framework.TestCase;
+
+import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -49,5 +55,21 @@ public class CoordinatesTest extends TestCase {
     assertEquals(1000, Coordinates.getAndroidX(screenView, 100 + 500));
     assertEquals(1000, Coordinates.getAndroidY(screenView, 110 + 500));
     assertEquals(1000, Coordinates.getAndroidDimension(screenView, 500));
+  }
+
+  public void testGraphicsTransform() throws IOException {
+    ScreenView screenView = createScreenView(0.5, 10, 10);
+    BufferedImage image = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D graphics = ((Graphics2D)image.getGraphics());
+    Coordinates.transformGraphics(screenView, graphics);
+    graphics.fillRect(0, 0, 50, 50);
+    graphics.dispose();
+
+    BufferedImage golden = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
+    Graphics goldenGraphics = golden.getGraphics();
+    goldenGraphics.fillRect(10, 10, 25, 25);
+    goldenGraphics.dispose();
+
+    ImageDiffUtil.assertImageSimilar("TransformedGraphics", golden, image, 0.0);
   }
 }
