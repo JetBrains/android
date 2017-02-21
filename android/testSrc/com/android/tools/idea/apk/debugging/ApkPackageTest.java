@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes.apk.java;
+package com.android.tools.idea.apk.debugging;
 
+import com.android.tools.idea.apk.debugging.ApkClass;
+import com.android.tools.idea.apk.debugging.ApkPackage;
 import org.junit.Test;
 
 import static com.google.common.truth.Truth.assertThat;

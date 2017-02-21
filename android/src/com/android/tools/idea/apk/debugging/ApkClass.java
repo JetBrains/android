@@ -13,32 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes.apk.java;
+package com.android.tools.idea.apk.debugging;
 
 import org.jetbrains.annotations.NotNull;
 
-class ApkClass {
+public class ApkClass {
   @NotNull private final String myName;
   @NotNull private final ApkPackage myParent;
 
-  ApkClass(@NotNull String name, @NotNull ApkPackage parent) {
+  public ApkClass(@NotNull String name, @NotNull ApkPackage parent) {
     myName = name;
     myParent = parent;
   }
 
   @NotNull
-  String getName() {
+  public String getName() {
     return myName;
   }
 
   @NotNull
-  String getFqn() {
+  public String getFqn() {
     String parentFqn = myParent.getFqn();
     return parentFqn.isEmpty() ? myName : (parentFqn + "." + myName);
   }
 
   @NotNull
-  ApkPackage getParent() {
+  public ApkPackage getParent() {
     return myParent;
   }
 
