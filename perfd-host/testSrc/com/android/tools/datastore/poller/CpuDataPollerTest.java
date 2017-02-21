@@ -30,9 +30,10 @@ import org.junit.Test;
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class CpuDataPollerTest extends DataStorePollerTest {
 
@@ -135,6 +136,63 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
+  public void testGetDataCachedResponse() {
+    StreamObserver<CpuProfiler.CpuDataResponse> observer = mock(StreamObserver.class);
+
+    CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .setStartTimestamp(BASE_TIME_NS)
+      .setEndTimestamp(delayFromBase(20))
+      .setSession(DataStorePollerTest.SESSION)
+      .build();
+    // Workaround to modify the expected response inside doAnswer.
+    CpuProfiler.CpuDataResponse[] expectedResponse = new CpuProfiler.CpuDataResponse[1];
+    doAnswer(invocation -> {
+      // invocation.getArguments() should have just a CpuProfiler.CpuDataResponse in its arguments.
+      assertTrue(invocation.getArguments().length == 1);
+      assertTrue(invocation.getArguments()[0] instanceof CpuProfiler.CpuDataResponse);
+      // Store the response.
+      expectedResponse[0] = (CpuProfiler.CpuDataResponse)invocation.getArguments()[0];
+      return null;
+    }).when(observer).onNext(any(CpuProfiler.CpuDataResponse.class));
+    myCpuService.getData(request, observer);
+
+    // Create a different request with the same arguments of the previous one.
+    CpuProfiler.CpuDataRequest request2 = CpuProfiler.CpuDataRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .setStartTimestamp(BASE_TIME_NS)
+      .setEndTimestamp(delayFromBase(20))
+      .setSession(DataStorePollerTest.SESSION)
+      .build();
+    doAnswer(invocation -> {
+      // invocation.getArguments() should have just a CpuProfiler.CpuDataResponse in its arguments.
+      assertTrue(invocation.getArguments().length == 1);
+      assertTrue(invocation.getArguments()[0] instanceof CpuProfiler.CpuDataResponse);
+      // Make sure that getData respond with the same object, as it should have been cached.
+      assertTrue(expectedResponse[0] == invocation.getArguments()[0]);
+      return null;
+    }).when(observer).onNext(any(CpuProfiler.CpuDataResponse.class));
+    myCpuService.getData(request2, observer);
+
+    // Create yet another request with some different arguments than the previous ones.
+    CpuProfiler.CpuDataRequest request3 = CpuProfiler.CpuDataRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .setStartTimestamp(BASE_TIME_NS)
+      .setEndTimestamp(delayFromBase(21))
+      .setSession(DataStorePollerTest.SESSION)
+      .build();
+    doAnswer(invocation -> {
+      // invocation.getArguments() should have just a CpuProfiler.CpuDataResponse in its arguments.
+      assertTrue(invocation.getArguments().length == 1);
+      assertTrue(invocation.getArguments()[0] instanceof CpuProfiler.CpuDataResponse);
+      // Make sure that getData respond with a different object, as the cached object had a different end timestamp.
+      assertFalse(expectedResponse[0] == invocation.getArguments()[0]);
+      return null;
+    }).when(observer).onNext(any(CpuProfiler.CpuDataResponse.class));
+    myCpuService.getData(request3, observer);
+  }
+
+  @Test
   public void testGetDataExcludeStart() {
     CpuProfiler.CpuDataRequest request = CpuProfiler.CpuDataRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
@@ -215,6 +273,63 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
+  public void testGetThreadsCachedResponse() {
+    StreamObserver<CpuProfiler.GetThreadsResponse> observer = mock(StreamObserver.class);
+
+    CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .setStartTimestamp(BASE_TIME_NS)
+      .setEndTimestamp(delayFromBase(20))
+      .setSession(DataStorePollerTest.SESSION)
+      .build();
+    // Workaround to modify the expected response inside doAnswer.
+    CpuProfiler.GetThreadsResponse[] expectedResponse = new CpuProfiler.GetThreadsResponse[1];
+    doAnswer(invocation -> {
+      // invocation.getArguments() should have just a CpuProfiler.GetThreadsResponse in its arguments.
+      assertTrue(invocation.getArguments().length == 1);
+      assertTrue(invocation.getArguments()[0] instanceof CpuProfiler.GetThreadsResponse);
+      // Store the response.
+      expectedResponse[0] = (CpuProfiler.GetThreadsResponse)invocation.getArguments()[0];
+      return null;
+    }).when(observer).onNext(any(CpuProfiler.GetThreadsResponse.class));
+    myCpuService.getThreads(request, observer);
+
+    // Create a different request with the same arguments of the previous one.
+    CpuProfiler.GetThreadsRequest request2 = CpuProfiler.GetThreadsRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .setStartTimestamp(BASE_TIME_NS)
+      .setEndTimestamp(delayFromBase(20))
+      .setSession(DataStorePollerTest.SESSION)
+      .build();
+    doAnswer(invocation -> {
+      // invocation.getArguments() should have just a CpuProfiler.GetThreadsResponse in its arguments.
+      assertTrue(invocation.getArguments().length == 1);
+      assertTrue(invocation.getArguments()[0] instanceof CpuProfiler.GetThreadsResponse);
+      // Make sure that getThreads respond with the same object, as it should have been cached.
+      assertTrue(expectedResponse[0] == invocation.getArguments()[0]);
+      return null;
+    }).when(observer).onNext(any(CpuProfiler.GetThreadsResponse.class));
+    myCpuService.getThreads(request2, observer);
+
+    // Create yet another request with some different arguments than the previous ones.
+    CpuProfiler.GetThreadsRequest request3 = CpuProfiler.GetThreadsRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .setStartTimestamp(BASE_TIME_NS)
+      .setEndTimestamp(delayFromBase(21))
+      .setSession(DataStorePollerTest.SESSION)
+      .build();
+    doAnswer(invocation -> {
+      // invocation.getArguments() should have just a CpuProfiler.GetThreadsResponse in its arguments.
+      assertTrue(invocation.getArguments().length == 1);
+      assertTrue(invocation.getArguments()[0] instanceof CpuProfiler.GetThreadsResponse);
+      // Make sure that getThreads respond with a different object, as the cached object had a different end timestamp.
+      assertFalse(expectedResponse[0] == invocation.getArguments()[0]);
+      return null;
+    }).when(observer).onNext(any(CpuProfiler.GetThreadsResponse.class));
+    myCpuService.getThreads(request3, observer);
+  }
+
+  @Test
   public void getDeadThreadBeforeRange() {
     long startTimestamp = delayFromBase(20);
     CpuProfiler.GetThreadsRequest request = CpuProfiler.GetThreadsRequest.newBuilder()
@@ -264,6 +379,63 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     StreamObserver<CpuProfiler.GetTraceInfoResponse> observer = mock(StreamObserver.class);
     myCpuService.getTraceInfo(request, observer);
     validateResponse(observer, expectedResponse);
+  }
+
+  @Test
+  public void testGetTraceInfoCachedResponse() {
+    StreamObserver<CpuProfiler.GetTraceInfoResponse> observer = mock(StreamObserver.class);
+
+    CpuProfiler.GetTraceInfoRequest request = CpuProfiler.GetTraceInfoRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .setFromTimestamp(BASE_TIME_NS)
+      .setToTimestamp(delayFromBase(20))
+      .setSession(DataStorePollerTest.SESSION)
+      .build();
+    // Workaround to modify the expected response inside doAnswer.
+    CpuProfiler.GetTraceInfoResponse[] expectedResponse = new CpuProfiler.GetTraceInfoResponse[1];
+    doAnswer(invocation -> {
+      // invocation.getArguments() should have just a CpuProfiler.GetTraceInfoResponse in its arguments.
+      assertTrue(invocation.getArguments().length == 1);
+      assertTrue(invocation.getArguments()[0] instanceof CpuProfiler.GetTraceInfoResponse);
+      // Store the response.
+      expectedResponse[0] = (CpuProfiler.GetTraceInfoResponse)invocation.getArguments()[0];
+      return null;
+    }).when(observer).onNext(any(CpuProfiler.GetTraceInfoResponse.class));
+    myCpuService.getTraceInfo(request, observer);
+
+    // Create a different request with the same arguments of the previous one.
+    CpuProfiler.GetTraceInfoRequest request2 = CpuProfiler.GetTraceInfoRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .setFromTimestamp(BASE_TIME_NS)
+      .setToTimestamp(delayFromBase(20))
+      .setSession(DataStorePollerTest.SESSION)
+      .build();
+    doAnswer(invocation -> {
+      // invocation.getArguments() should have just a CpuProfiler.GetTraceInfoResponse in its arguments.
+      assertTrue(invocation.getArguments().length == 1);
+      assertTrue(invocation.getArguments()[0] instanceof CpuProfiler.GetTraceInfoResponse);
+      // Make sure that getTraceInfo respond with the same object, as it should have been cached.
+      assertTrue(expectedResponse[0] == invocation.getArguments()[0]);
+      return null;
+    }).when(observer).onNext(any(CpuProfiler.GetTraceInfoResponse.class));
+    myCpuService.getTraceInfo(request2, observer);
+
+    // Create yet another request with some different arguments than the previous ones.
+    CpuProfiler.GetTraceInfoRequest request3 = CpuProfiler.GetTraceInfoRequest.newBuilder()
+      .setProcessId(TEST_APP_ID)
+      .setFromTimestamp(BASE_TIME_NS)
+      .setToTimestamp(delayFromBase(21))
+      .setSession(DataStorePollerTest.SESSION)
+      .build();
+    doAnswer(invocation -> {
+      // invocation.getArguments() should have just a CpuProfiler.GetTraceInfoResponse in its arguments.
+      assertTrue(invocation.getArguments().length == 1);
+      assertTrue(invocation.getArguments()[0] instanceof CpuProfiler.GetTraceInfoResponse);
+      // Make sure that getThreads respond with a different object, as the cached object had a different end timestamp.
+      assertFalse(expectedResponse[0] == invocation.getArguments()[0]);
+      return null;
+    }).when(observer).onNext(any(CpuProfiler.GetTraceInfoResponse.class));
+    myCpuService.getTraceInfo(request3, observer);
   }
 
   private static long delayFromBase(int seconds) {
