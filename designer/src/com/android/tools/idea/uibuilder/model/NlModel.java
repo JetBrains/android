@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
@@ -36,7 +35,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
@@ -126,7 +124,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @NotNull private final DesignSurface mySurface;
   @NotNull private final AndroidFacet myFacet;
-  @NotNull private final ProjectResourceRepository myProjectResourceRepository;
   private final XmlFile myFile;
   private final ReentrantReadWriteLock myRenderResultLock = new ReentrantReadWriteLock();
   private final ConfigurationListener myConfigurationListener = new ConfigurationListener() {
@@ -186,7 +183,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       Disposer.register(parent, this);
     }
     myType = NlLayoutType.typeOf(file);
-    myProjectResourceRepository = ProjectResourceRepository.getOrCreateInstance(myFacet);
 
     updateTrackingConfiguration();
   }
@@ -313,7 +309,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     synchronized (myRenderingQueueLock) {
       if (myRenderingQueue == null) {
         myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", RENDER_DELAY_MS, true, null, this, null,
-                                                  Alarm.ThreadToUse.OWN_THREAD);
+                                                  Alarm.ThreadToUse.POOLED_THREAD);
         myRenderingQueue.setRestartTimerOnAdd(true);
       }
       return myRenderingQueue;
@@ -652,7 +648,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       public void run() {
         if (myRenderTask != null) {
           synchronized (RENDERING_LOCK) {
-            RenderResult result = null;
+            RenderResult result;
             try {
               result = myRenderTask.layout().get();
 
