@@ -21,9 +21,11 @@ import com.android.tools.datastore.database.CpuTable;
 import com.android.tools.datastore.database.DatastoreTable;
 import com.android.tools.datastore.poller.CpuDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
-import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.profiler.proto.Profiler;
 import com.google.protobuf3jarjar.ByteString;
-import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,9 +42,19 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
 
   private Map<Integer, PollRunner> myRunners = new HashMap<>();
   private Consumer<Runnable> myFetchExecutor;
-  private CpuTable myCpuTable = new CpuTable();
   private long myStartTraceTimestamp = -1;
-  private DataStoreService myService;
+
+  @NotNull
+  private final CpuTable myCpuTable = new CpuTable();
+  @NotNull
+  private final DataStoreService myService;
+
+  @SuppressWarnings("unchecked")
+  private ResponseData<CpuProfiler.CpuDataResponse> myLastCpuResponse = ResponseData.createEmpty();
+  @SuppressWarnings("unchecked")
+  private ResponseData<CpuProfiler.GetThreadsResponse> myLastThreadsResponse = ResponseData.createEmpty();
+  @SuppressWarnings("unchecked")
+  private ResponseData<CpuProfiler.GetTraceInfoResponse> myLastTraceInfoResponse = ResponseData.createEmpty();
 
   public CpuService(@NotNull DataStoreService dataStoreService, Consumer<Runnable> fetchExecutor) {
     myFetchExecutor = fetchExecutor;
@@ -51,30 +63,55 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
 
   @Override
   public void getData(CpuProfiler.CpuDataRequest request, StreamObserver<CpuProfiler.CpuDataResponse> observer) {
-    CpuProfiler.CpuDataResponse.Builder response = CpuProfiler.CpuDataResponse.newBuilder();
-    List<CpuProfiler.CpuProfilerData> cpuData = myCpuTable.getCpuDataByRequest(request);
-    for (CpuProfiler.CpuProfilerData data : cpuData) {
-      response.addData(data);
+    if (!myLastCpuResponse.matches(request.getProcessId(), request.getSession(), request.getStartTimestamp(), request.getEndTimestamp())) {
+      CpuProfiler.CpuDataResponse.Builder response = CpuProfiler.CpuDataResponse.newBuilder();
+      List<CpuProfiler.CpuProfilerData> cpuData = myCpuTable.getCpuDataByRequest(request);
+      for (CpuProfiler.CpuProfilerData data : cpuData) {
+        response.addData(data);
+      }
+      myLastCpuResponse = new ResponseData<>(request.getProcessId(),
+                                             request.getSession(),
+                                             request.getStartTimestamp(),
+                                             request.getEndTimestamp(),
+                                             response.build());
     }
-    observer.onNext(response.build());
+    observer.onNext(myLastCpuResponse.getResponse());
     observer.onCompleted();
   }
 
   @Override
   public void getThreads(CpuProfiler.GetThreadsRequest request, StreamObserver<CpuProfiler.GetThreadsResponse> observer) {
-    CpuProfiler.GetThreadsResponse.Builder response = CpuProfiler.GetThreadsResponse.newBuilder();
-    // TODO: make it consistent with perfd and return the activities and the snapshot separately
-    response.addAllThreads(myCpuTable.getThreadsDataByRequest(request));
-    observer.onNext(response.build());
+    if (!myLastThreadsResponse.matches(
+      request.getProcessId(), request.getSession(), request.getStartTimestamp(), request.getEndTimestamp())) {
+      CpuProfiler.GetThreadsResponse.Builder response = CpuProfiler.GetThreadsResponse.newBuilder();
+      // TODO: make it consistent with perfd and return the activities and the snapshot separately
+      response.addAllThreads(myCpuTable.getThreadsDataByRequest(request));
+      myLastThreadsResponse = new ResponseData<>(request.getProcessId(),
+                                                 request.getSession(),
+                                                 request.getStartTimestamp(),
+                                                 request.getEndTimestamp(),
+                                                 response.build());
+    }
+
+    observer.onNext(myLastThreadsResponse.getResponse());
     observer.onCompleted();
   }
 
   @Override
   public void getTraceInfo(CpuProfiler.GetTraceInfoRequest request, StreamObserver<CpuProfiler.GetTraceInfoResponse> responseObserver) {
-    CpuProfiler.GetTraceInfoResponse.Builder response = CpuProfiler.GetTraceInfoResponse.newBuilder();
-    List<CpuProfiler.TraceInfo> responses = myCpuTable.getTraceByRequest(request);
-    response.addAllTraceInfo(responses);
-    responseObserver.onNext(response.build());
+    if (!myLastTraceInfoResponse.matches(
+      request.getProcessId(), request.getSession(), request.getFromTimestamp(), request.getToTimestamp())) {
+      CpuProfiler.GetTraceInfoResponse.Builder response = CpuProfiler.GetTraceInfoResponse.newBuilder();
+      List<CpuProfiler.TraceInfo> responses = myCpuTable.getTraceByRequest(request);
+      response.addAllTraceInfo(responses);
+      myLastTraceInfoResponse = new ResponseData<>(request.getProcessId(),
+                                                   request.getSession(),
+                                                   request.getFromTimestamp(),
+                                                   request.getToTimestamp(),
+                                                   response.build());
+    }
+
+    responseObserver.onNext(myLastTraceInfoResponse.getResponse());
     responseObserver.onCompleted();
   }
 
@@ -153,5 +190,45 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   @Override
   public DatastoreTable getDatastoreTable() {
     return myCpuTable;
+  }
+
+  /**
+   * Stores a response of a determined type to avoid making unnecessary queries to the database.
+   *
+   * Often, there is no need for querying the database to get the response corresponding to the request made.
+   * For example, in the threads monitor each thread has a ThreadStateDataSeries that will call
+   * {@link #getThreads(CpuProfiler.GetThreadsRequest, StreamObserver)} passing a request with the same arguments (start/end timestamp,
+   * pid, and session). In these cases, we can query the database once and return a cached result for the subsequent calls.
+   *
+   * @param <T> type of the response stored
+   */
+  private static class ResponseData<T> {
+    private int myProcessId;
+    private Common.Session mySession;
+    private long myStart;
+    private long myEnd;
+    private T myResponse;
+
+    private ResponseData(int processId, Common.Session session, long startTimestamp, long endTimestamp, T response) {
+      myProcessId = processId;
+      mySession = session;
+      myStart = startTimestamp;
+      myEnd = endTimestamp;
+      myResponse = response;
+    }
+
+    public boolean matches(int processId, Common.Session session, long startTimestamp, long endTimestamp) {
+      boolean isSessionEquals = (mySession == null && session == null) || (mySession != null && mySession.equals(session));
+      return isSessionEquals && myProcessId == processId && myStart == startTimestamp && myEnd == endTimestamp;
+    }
+
+    public T getResponse() {
+      return myResponse;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static ResponseData createEmpty() {
+      return new ResponseData(0, null, 0, 0, null);
+    }
   }
 }
