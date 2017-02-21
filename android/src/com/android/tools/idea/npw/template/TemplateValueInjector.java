@@ -210,16 +210,10 @@ public final class TemplateValueInjector {
 
     // TODO: Check this one with Joe. It seems to be used by the old code on Import module, but can't find it on new code
     myTemplateValues.put(ATTR_CREATE_ACTIVITY, false);
-    myTemplateValues.put(ATTR_PER_MODULE_REPOS, false);
 
     // TODO: This seems project stuff
     if (project != null) {
       myTemplateValues.put(ATTR_TOP_OUT, project.getBasePath());
-    }
-
-    String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
-    if (mavenUrl != null) {
-      myTemplateValues.put(ATTR_MAVEN_URL, mavenUrl);
     }
 
     final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();

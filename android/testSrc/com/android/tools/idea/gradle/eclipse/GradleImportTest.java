@@ -800,12 +800,6 @@ public class GradleImportTest extends AndroidTestCase {
     // Let's peek at some of the key files to make sure we codegen'ed the right thing
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
-                    + "    }\n"
-                    + "}\n" : "")
                  + "apply plugin: 'java'\n",
                  Files.toString(new File(imported, "javaLib" + separator + "build.gradle"), UTF_8)
                    .replace(NL, "\n"));
@@ -814,41 +808,26 @@ public class GradleImportTest extends AndroidTestCase {
     //noinspection ConstantConditions
     assertEquals(""
                  + "// Top-level build file where you can add configuration options common to all sub-projects/modules.\n"
-                 + (DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
-                    + "    }\n"
-                    + "    dependencies {\n"
-                    + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
-                    + "    }\n"
-                    + "}\n"
-                    + "\n"
-                    + "allprojects {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
-                    + "    }\n"
-                    + "}\n" : ""),
+                 + "buildscript {\n"
+                 + "    repositories {\n"
+                 + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
+                 + "    }\n"
+                 + "    dependencies {\n"
+                 + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
+                 + "    }\n"
+                 + "}\n"
+                 + "\n"
+                 + "allprojects {\n"
+                 + "    repositories {\n"
+                 + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
+                 + "    }\n"
+                 + "}\n",
                  Files.toString(new File(imported, "build.gradle"), UTF_8)
                    .replace(NL, "\n"));
 
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
-                    + "    }\n"
-                    + "    dependencies {\n"
-                    + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
-                    + "    }\n"
-                    + "}\n" : "")
                  + "apply plugin: 'com.android.application'\n"
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "\n"
-                    + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
-                    + "}\n" : "")
                  + "\n"
                  + "android {\n"
                  + "    compileSdkVersion 22\n"
@@ -877,21 +856,7 @@ public class GradleImportTest extends AndroidTestCase {
                    .replace(NL, "\n"));
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
-                    + "    }\n"
-                    + "    dependencies {\n"
-                    + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
-                    + "    }\n"
-                    + "}\n" : "")
                  + "apply plugin: 'com.android.library'\n"
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "\n"
-                    + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
-                    + "}\n" : "")
                  + "\n"
                  + "android {\n"
                  + "    compileSdkVersion 18\n"
@@ -1066,21 +1031,7 @@ public class GradleImportTest extends AndroidTestCase {
 
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
-                    + "    }\n"
-                    + "    dependencies {\n"
-                    + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
-                    + "    }\n"
-                    + "}\n" : "")
                  + "apply plugin: 'com.android.application'\n"
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "\n"
-                    + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY + "\n"
-                    + "}\n" : "")
                  + "\n"
                  + "android {\n"
                  + "    compileSdkVersion 22\n"
@@ -1168,21 +1119,7 @@ public class GradleImportTest extends AndroidTestCase {
 
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
-                    + "    }\n"
-                    + "    dependencies {\n"
-                    + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
-                    + "    }\n"
-                    + "}\n" : "")
                  + "apply plugin: 'com.android.application'\n"
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "\n"
-                    + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY + "\n"
-                    + "}\n" : "")
                  + "\n"
                  + "android {\n"
                  + "    compileSdkVersion 22\n"
@@ -1272,7 +1209,6 @@ public class GradleImportTest extends AndroidTestCase {
                                  false /* checkBuild */,
                                  importer -> {
                                    assertFalse(importer.isImportIntoExisting());
-                                   assertFalse(importer.isPerModuleRepositories());
 
                                    importer.setGradleNameStyle(false);
                                    importer.setSdkLocation(null);
@@ -1314,21 +1250,7 @@ public class GradleImportTest extends AndroidTestCase {
 
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
-                    + "    }\n"
-                    + "    dependencies {\n"
-                    + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
-                    + "    }\n"
-                    + "}\n" : "")
                  + "apply plugin: 'com.android.application'\n"
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "\n"
-                    + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY + "\n"
-                    + "}\n" : "")
                  + "\n"
                  + "android {\n"
                  + "    compileSdkVersion 22\n"
@@ -1519,21 +1441,7 @@ public class GradleImportTest extends AndroidTestCase {
 
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
-                    + "    }\n"
-                    + "    dependencies {\n"
-                    + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
-                    + "    }\n"
-                    + "}\n" : "")
                  + "apply plugin: 'com.android.application'\n"
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "\n"
-                    + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY + "\n"
-                    + "}\n" : "")
                  + "\n"
                  + "android {\n"
                  + "    compileSdkVersion 22\n"
@@ -1716,21 +1624,7 @@ public class GradleImportTest extends AndroidTestCase {
 
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
-                    + "    }\n"
-                    + "    dependencies {\n"
-                    + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
-                    + "    }\n"
-                    + "}\n" : "")
                  + "apply plugin: 'com.android.application'\n"
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "\n"
-                    + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY + "\n"
-                    + "}\n" : "")
                  + "\n"
                  + "android {\n"
                  + "    compileSdkVersion 22\n"
@@ -2186,12 +2080,6 @@ public class GradleImportTest extends AndroidTestCase {
     // Let's peek at some of the key files to make sure we codegen'ed the right thing
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
-                    + "    }\n"
-                    + "}\n" : "")
                  + "apply plugin: 'java'\n"
                  + "\n"
                  + "dependencies {\n"
@@ -2201,21 +2089,7 @@ public class GradleImportTest extends AndroidTestCase {
                    .replace(NL, "\n"));
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
-                    + "    }\n"
-                    + "    dependencies {\n"
-                    + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
-                    + "    }\n"
-                    + "}\n" : "")
                  + "apply plugin: 'com.android.application'\n"
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "\n"
-                    + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
-                    + "}\n" : "")
                  + "\n"
                  + "android {\n"
                  + "    compileSdkVersion 22\n"
@@ -2243,21 +2117,7 @@ public class GradleImportTest extends AndroidTestCase {
 
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
-                    + "    }\n"
-                    + "    dependencies {\n"
-                    + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
-                    + "    }\n"
-                    + "}\n" : "")
                  + "apply plugin: 'com.android.library'\n"
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "\n"
-                    + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
-                    + "}\n" : "")
                  + "\n"
                  + "android {\n"
                  + "    compileSdkVersion 18\n"
@@ -2285,12 +2145,6 @@ public class GradleImportTest extends AndroidTestCase {
 
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
-                    + "    }\n"
-                    + "}\n" : "")
                  + "apply plugin: 'java'\n"
                  + "\n"
                  + "dependencies {\n"
@@ -2300,12 +2154,6 @@ public class GradleImportTest extends AndroidTestCase {
                    .replace(NL, "\n"));
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
-                    + "    }\n"
-                    + "}\n" : "")
                  + "apply plugin: 'java'\n"
                  + "\n"
                  + "sourceCompatibility = \"1.7\"\n"
@@ -2329,21 +2177,20 @@ public class GradleImportTest extends AndroidTestCase {
     //noinspection ConstantConditions
     assertEquals(""
                  + "// Top-level build file where you can add configuration options common to all sub-projects/modules.\n"
-                 + (DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
-                    + "    }\n"
-                    + "    dependencies {\n"
-                    + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
-                    + "    }\n"
-                    + "}\n"
-                    + "\n"
-                    + "allprojects {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
-                    + "    }\n"
-                    + "}\n" : ""),
+                 + "buildscript {\n"
+                 + "    repositories {\n"
+                 + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
+                 + "    }\n"
+                 + "    dependencies {\n"
+                 + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
+                 + "    }\n"
+                 + "}\n"
+                 + "\n"
+                 + "allprojects {\n"
+                 + "    repositories {\n"
+                 + "        " + MAVEN_REPOSITORY.replace(NL, "\n") + "\n"
+                 + "    }\n"
+                 + "}\n" ,
                  Files.toString(new File(imported, "build.gradle"), UTF_8)
                    .replace(NL, "\n"));
 
@@ -2883,21 +2730,7 @@ public class GradleImportTest extends AndroidTestCase {
 
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
-                    + "    }\n"
-                    + "    dependencies {\n"
-                    + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
-                    + "    }\n"
-                    + "}\n" : "")
                  + "apply plugin: 'com.android.application'\n"
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "\n"
-                    + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY + "\n"
-                    + "}\n" : "")
                  + "\n"
                  + "android {\n"
                  + "    compileSdkVersion 16\n"
@@ -2968,21 +2801,7 @@ public class GradleImportTest extends AndroidTestCase {
 
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
-                    + "    }\n"
-                    + "    dependencies {\n"
-                    + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
-                    + "    }\n"
-                    + "}\n" : "")
                  + "apply plugin: 'com.android.application'\n"
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "\n"
-                    + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY + "\n"
-                    + "}\n" : "")
                  + "\n"
                  + "android {\n"
                  + "    compileSdkVersion 'android-L'\n"
@@ -3034,21 +2853,7 @@ public class GradleImportTest extends AndroidTestCase {
 
     //noinspection PointlessBooleanExpression,ConstantConditions
     assertEquals(""
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "buildscript {\n"
-                    + "    repositories {\n"
-                    + "        " + MAVEN_REPOSITORY + "\n"
-                    + "    }\n"
-                    + "    dependencies {\n"
-                    + "        classpath '" + ANDROID_GRADLE_PLUGIN + "'\n"
-                    + "    }\n"
-                    + "}\n" : "")
                  + "apply plugin: 'com.android.application'\n"
-                 + (!DECLARE_GLOBAL_REPOSITORIES ?
-                    "\n"
-                    + "repositories {\n"
-                    + "    " + MAVEN_REPOSITORY + "\n"
-                    + "}\n" : "")
                  + "\n"
                  + "android {\n"
                  + "    compileSdkVersion 'Google Inc.:Google APIs:18'\n"
