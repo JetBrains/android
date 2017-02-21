@@ -90,6 +90,7 @@ public class SyncNlModel extends NlModel {
     myConfiguration =  configuration;
   }
 
+  @NotNull
   @Override
   public Configuration getConfiguration() {
     if (myConfiguration != null) {
