@@ -48,6 +48,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
@@ -151,6 +152,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   @Override
   protected void tearDown() throws Exception {
     try {
+      // Finish dispatching any remaining events before shutting down everything
+      UIUtil.dispatchAllInvocationEvents();
+
       myApplicationComponentStack.restoreComponents();
       myApplicationComponentStack = null;
       myProjectComponentStack.restoreComponents();
