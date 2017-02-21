@@ -158,7 +158,7 @@ public class LintIdeJavaParser extends JavaParser {
   public Location getLocation(@NonNull JavaContext context, @NonNull PsiElement element) {
     // We don't need line numbers, so override super to avoid computing source file contents
     TextRange range = element.getTextRange();
-    return createLocation(context, element.getContainingFile(), range.getStartOffset(), range.getEndOffset());
+    return createLocation(context, element.getContainingFile(), range.getStartOffset(), range.getEndOffset()).setSource(element);
   }
 
   @Nullable
@@ -236,7 +236,7 @@ public class LintIdeJavaParser extends JavaParser {
     // We don't need source contents for locations in the IDE
     int start = Math.max(0, from.getTextRange().getStartOffset() + fromDelta);
     int end = to.getTextRange().getEndOffset() + toDelta;
-    return createLocation(context, from.getContainingFile(), start, end);
+    return createLocation(context, from.getContainingFile(), start, end).setSource(from);
   }
 
   @Nullable
@@ -732,7 +732,7 @@ public class LintIdeJavaParser extends JavaParser {
         myClient.log(Severity.WARNING, null, "No position data found for node %1$s", myNode);
         return Location.create(myFile);
       }
-      return Location.create(myFile, null /*contents*/, pos.getStart(), pos.getEnd());
+      return Location.create(myFile, null /*contents*/, pos.getStart(), pos.getEnd()).setSource(myNode);
     }
 
     @Override
