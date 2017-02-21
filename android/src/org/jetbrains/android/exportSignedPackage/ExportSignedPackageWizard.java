@@ -49,6 +49,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.GuiUtils;
 import org.jetbrains.android.AndroidCommonBundle;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
@@ -200,48 +201,6 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     });
   }
 
-  @VisibleForTesting
-  public static List<String> getAssembleTasks(String gradleProjectPath,
-                                               AndroidProject androidProject,
-                                               String buildType,
-                                               List<String> flavors) {
-    Map<String,Variant> variantsByFlavor = Maps.newHashMapWithExpectedSize(flavors.size());
-    for (Variant v : androidProject.getVariants()) {
-      if (!v.getBuildType().equals(buildType)) {
-        continue;
-      }
-
-      variantsByFlavor.put(getMergedFlavorName(v), v);
-    }
-
-    if (flavors.isEmpty()) {
-      // if there are no flavors defined, then the default merged flavor name is empty..
-      Variant v = variantsByFlavor.get("");
-      if (v != null) {
-        String taskName = v.getMainArtifact().getAssembleTaskName();
-        return Collections.singletonList(GradleInvoker.createBuildTask(gradleProjectPath, taskName));
-      } else {
-        LOG.error("Unable to find default variant");
-        return Collections.emptyList();
-      }
-    }
-
-    List<String> assembleTasks = Lists.newArrayListWithExpectedSize(flavors.size());
-    for (String flavor : flavors) {
-      Variant v = variantsByFlavor.get(flavor);
-      if (v != null) {
-        String taskName = v.getMainArtifact().getAssembleTaskName();
-        assembleTasks.add(GradleInvoker.createBuildTask(gradleProjectPath, taskName));
-      }
-    }
-
-    return assembleTasks;
-  }
-
-  public static String getMergedFlavorName(Variant variant) {
-    return Joiner.on('-').join(variant.getProductFlavors());
-  }
-
   @Override
   protected void doNextAction() {
     if (!commitCurrentStep()) return;
@@ -290,7 +249,9 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         getRootPane().setDefaultButton(getNextButton());
         JComponent component = currentStep.getPreferredFocusedComponent();
         if (component != null) {
-          component.requestFocus();
+          IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+            IdeFocusManager.getGlobalInstance().requestFocus(component, true);
+          });
         }
       }
     });
@@ -310,28 +271,28 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     return myProject;
   }
 
-  public void setFacet(@NotNull AndroidFacet facet) {
-    myFacet = facet;
-  }
-
   public AndroidFacet getFacet() {
     return myFacet;
   }
 
-  public void setPrivateKey(@NotNull PrivateKey privateKey) {
-    myPrivateKey = privateKey;
-  }
-
-  public void setCertificate(@NotNull X509Certificate certificate) {
-    myCertificate = certificate;
+  public void setFacet(@NotNull AndroidFacet facet) {
+    myFacet = facet;
   }
 
   public PrivateKey getPrivateKey() {
     return myPrivateKey;
   }
 
+  public void setPrivateKey(@NotNull PrivateKey privateKey) {
+    myPrivateKey = privateKey;
+  }
+
   public X509Certificate getCertificate() {
     return myCertificate;
+  }
+
+  public void setCertificate(@NotNull X509Certificate certificate) {
+    myCertificate = certificate;
   }
 
   public void setCompileScope(@NotNull CompileScope compileScope) {
@@ -438,5 +399,48 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
   public void setGradleSigningInfo(GradleSigningInfo gradleSigningInfo) {
     myGradleSigningInfo = gradleSigningInfo;
+  }
+
+  @VisibleForTesting
+  public static List<String> getAssembleTasks(String gradleProjectPath,
+                                              AndroidProject androidProject,
+                                              String buildType,
+                                              List<String> flavors) {
+    Map<String, Variant> variantsByFlavor = Maps.newHashMapWithExpectedSize(flavors.size());
+    for (Variant v : androidProject.getVariants()) {
+      if (!v.getBuildType().equals(buildType)) {
+        continue;
+      }
+
+      variantsByFlavor.put(getMergedFlavorName(v), v);
+    }
+
+    if (flavors.isEmpty()) {
+      // if there are no flavors defined, then the default merged flavor name is empty..
+      Variant v = variantsByFlavor.get("");
+      if (v != null) {
+        String taskName = v.getMainArtifact().getAssembleTaskName();
+        return Collections.singletonList(GradleInvoker.createBuildTask(gradleProjectPath, taskName));
+      }
+      else {
+        LOG.error("Unable to find default variant");
+        return Collections.emptyList();
+      }
+    }
+
+    List<String> assembleTasks = Lists.newArrayListWithExpectedSize(flavors.size());
+    for (String flavor : flavors) {
+      Variant v = variantsByFlavor.get(flavor);
+      if (v != null) {
+        String taskName = v.getMainArtifact().getAssembleTaskName();
+        assembleTasks.add(GradleInvoker.createBuildTask(gradleProjectPath, taskName));
+      }
+    }
+
+    return assembleTasks;
+  }
+
+  public static String getMergedFlavorName(Variant variant) {
+    return Joiner.on('-').join(variant.getProductFlavors());
   }
 }

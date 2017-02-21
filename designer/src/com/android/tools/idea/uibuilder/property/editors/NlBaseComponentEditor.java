@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property.editors;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -94,7 +95,9 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor, Browse
 
   @Override
   public void requestFocus() {
-    getComponent().requestFocus();
+    IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+      IdeFocusManager.getGlobalInstance().requestFocus(getComponent(), true);
+    });
   }
 
   @Override

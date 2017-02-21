@@ -20,6 +20,7 @@ import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.HideableDecorator;
 import com.intellij.ui.ListSpeedSearch;
 import com.intellij.ui.speedSearch.FilteringListModel;
@@ -123,7 +124,9 @@ public class TreeGrid<T> extends Box {
                       list.clearSelection();
                       nextList.setSelectedIndex(0);
                       ensureIndexVisible(nextList, 0);
-                      nextList.requestFocus();
+                      IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+                        IdeFocusManager.getGlobalInstance().requestFocus(nextList, true);
+                      });
                       e.consume();
                       break;
                     }
@@ -143,7 +146,9 @@ public class TreeGrid<T> extends Box {
                       list.clearSelection();
                       prevList.setSelectedIndex(count - 1);
                       ensureIndexVisible(prevList, count -1);
-                      prevList.requestFocus();
+                      IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+                        IdeFocusManager.getGlobalInstance().requestFocus(prevList, true);
+                      });
                       e.consume();
                       break;
                     }
@@ -308,7 +313,9 @@ public class TreeGrid<T> extends Box {
       if (size > 0) {
         T item = model.getElementAt(0);
         setSelectedElement(item);
-        list.requestFocus();
+        IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+          IdeFocusManager.getGlobalInstance().requestFocus(list, true);
+        });
         ensureIndexVisible(list, 0);
         return;
       }

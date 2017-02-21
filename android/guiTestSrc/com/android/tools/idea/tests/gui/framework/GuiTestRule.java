@@ -29,6 +29,7 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.IdeFocusManager;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiActionRunner;
 import org.fest.swing.edt.GuiTask;
@@ -68,10 +69,6 @@ public class GuiTestRule implements TestRule {
 
   /** Hack to solve focus issue when running with no window manager */
   private static final boolean HAS_EXTERNAL_WINDOW_MANAGER = Toolkit.getDefaultToolkit().isFrameStateSupported(Frame.MAXIMIZED_BOTH);
-
-  private File myProjectPath;
-  private IdeFrameFixture myIdeFrameFixture;
-
   private final RobotTestRule myRobotTestRule = new RobotTestRule();
   private final LeakCheck myLeakCheck = new LeakCheck();
   private final RuleChain myRuleChain = RuleChain.emptyRuleChain()
@@ -82,7 +79,6 @@ public class GuiTestRule implements TestRule {
     .around(new TestPerformance())
     .around(new ScreenshotOnFailure())
     .around(new Timeout(5, TimeUnit.MINUTES));
-
   private final PropertyChangeListener myGlobalFocusListener = e -> {
     Object oldValue = e.getOldValue();
     if ("permanentFocusOwner".equals(e.getPropertyName()) && oldValue instanceof Component && e.getNewValue() == null) {
@@ -91,11 +87,15 @@ public class GuiTestRule implements TestRule {
         Container parent = parentWindow.getParent();
         if (parent != null && parent.isVisible()) {
           System.out.println("Focus Listener: Request focus!");
-          parent.requestFocus();
+          IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+            IdeFocusManager.getGlobalInstance().requestFocus(parent, true);
+          });
         }
       }
     }
   };
+  private File myProjectPath;
+  private IdeFrameFixture myIdeFrameFixture;
 
   public GuiTestRule withLeakCheck() {
     myLeakCheck.setEnabled(true);
@@ -106,33 +106,6 @@ public class GuiTestRule implements TestRule {
   @Override
   public Statement apply(final Statement base, final Description description) {
     return myRuleChain.apply(base, description);
-  }
-
-  private class IdeHandling implements TestRule {
-    @NotNull
-    @Override
-    public Statement apply(final Statement base, final Description description) {
-      return new Statement() {
-        @Override
-        public void evaluate() throws Throwable {
-          System.out.println("Starting " + description.getDisplayName());
-          assume().that(GuiTests.fatalErrorsFromIde()).named("IDE errors").isEmpty();
-          assumeOnlyWelcomeFrameShowing();
-          setUp();
-          List<Throwable> errors = new ArrayList<>();
-          try {
-            base.evaluate();
-          } catch (MultipleFailureException e) {
-            errors.addAll(e.getFailures());
-          } catch (Throwable e) {
-            errors.add(e);
-          } finally {
-            tearDown(errors);
-          }
-          MultipleFailureException.assertEmpty(errors);
-        }
-      };
-    }
   }
 
   private void assumeOnlyWelcomeFrameShowing() {
@@ -187,18 +160,6 @@ public class GuiTestRule implements TestRule {
         String.format("Modal dialog showing: %s with title '%s'", modalDialog.getClass().getName(), modalDialog.getTitle())));
     }
     return errors;
-  }
-
-  // Note: this works with a cooperating window manager that returns focus properly. It does not work on bare Xvfb.
-  private static Dialog getActiveModalDialog() {
-    Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-    if (activeWindow instanceof Dialog) {
-      Dialog dialog = (Dialog)activeWindow;
-      if (dialog.getModalityType() == Dialog.ModalityType.APPLICATION_MODAL) {
-        return dialog;
-      }
-    }
-    return null;
   }
 
   private void fixMemLeaks() {
@@ -370,15 +331,15 @@ public class GuiTestRule implements TestRule {
     return myRobotTestRule.getRobot();
   }
 
-  public void setProjectPath(@NotNull File projectPath) {
-    myProjectPath = projectPath;
-    myIdeFrameFixture = null;
-  }
-
   @NotNull
   public File getProjectPath() {
     checkState(myProjectPath != null, "No project path set. Was a project imported?");
     return myProjectPath;
+  }
+
+  public void setProjectPath(@NotNull File projectPath) {
+    myProjectPath = projectPath;
+    myIdeFrameFixture = null;
   }
 
   @NotNull
@@ -391,5 +352,47 @@ public class GuiTestRule implements TestRule {
       myIdeFrameFixture.requestFocusIfLost();
     }
     return myIdeFrameFixture;
+  }
+
+  // Note: this works with a cooperating window manager that returns focus properly. It does not work on bare Xvfb.
+  private static Dialog getActiveModalDialog() {
+    Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+    if (activeWindow instanceof Dialog) {
+      Dialog dialog = (Dialog)activeWindow;
+      if (dialog.getModalityType() == Dialog.ModalityType.APPLICATION_MODAL) {
+        return dialog;
+      }
+    }
+    return null;
+  }
+
+  private class IdeHandling implements TestRule {
+    @NotNull
+    @Override
+    public Statement apply(final Statement base, final Description description) {
+      return new Statement() {
+        @Override
+        public void evaluate() throws Throwable {
+          System.out.println("Starting " + description.getDisplayName());
+          assume().that(GuiTests.fatalErrorsFromIde()).named("IDE errors").isEmpty();
+          assumeOnlyWelcomeFrameShowing();
+          setUp();
+          List<Throwable> errors = new ArrayList<>();
+          try {
+            base.evaluate();
+          }
+          catch (MultipleFailureException e) {
+            errors.addAll(e.getFailures());
+          }
+          catch (Throwable e) {
+            errors.add(e);
+          }
+          finally {
+            tearDown(errors);
+          }
+          MultipleFailureException.assertEmpty(errors);
+        }
+      };
+    }
   }
 }

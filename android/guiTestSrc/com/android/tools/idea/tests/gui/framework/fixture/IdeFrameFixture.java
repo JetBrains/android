@@ -56,6 +56,7 @@ import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.PathUtil;
 import com.intellij.util.ThreeState;
@@ -95,9 +96,11 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
 import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.fest.util.Strings.quote;
-import static org.jetbrains.android.AndroidPlugin.*;
+import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY;
+import static org.jetbrains.android.AndroidPlugin.EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameImpl> {
   @NotNull private final File myProjectPath;
@@ -105,26 +108,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   private EditorFixture myEditor;
   private boolean myIsClosed;
-
-  @NotNull
-  public static IdeFrameFixture find(@NotNull final Robot robot, @NotNull final File projectPath, @Nullable final String projectName) {
-    final GenericTypeMatcher<IdeFrameImpl> matcher = new GenericTypeMatcher<IdeFrameImpl>(IdeFrameImpl.class) {
-      @Override
-      protected boolean isMatching(@NotNull IdeFrameImpl frame) {
-        Project project = frame.getProject();
-        if (project != null && toSystemIndependentName(projectPath.getPath()).equals(project.getBasePath())) {
-          return projectName == null || projectName.equals(project.getName());
-        }
-        return false;
-      }
-    };
-
-    Wait.minutes(2).expecting("IdeFrame " + quote(projectPath.getPath()) + " to show up")
-      .until(() -> !robot.finder().findAll(matcher).isEmpty());
-
-    IdeFrameImpl ideFrame = robot.finder().find(matcher);
-    return new IdeFrameFixture(robot, ideFrame, projectPath);
-  }
 
   public IdeFrameFixture(@NotNull Robot robot, @NotNull IdeFrameImpl target, @NotNull File projectPath) {
     super(IdeFrameFixture.class, robot, target);
@@ -226,7 +209,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     }
     return null;
   }
-
 
   @NotNull
   private ModuleManager getModuleManager() {
@@ -603,17 +585,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return this;
   }
 
-  public static void deleteWrapper(@NotNull File projectDirPath) {
-    File wrapperDirPath = getGradleWrapperDirPath(projectDirPath);
-    delete(wrapperDirPath);
-    assertAbout(file()).that(wrapperDirPath).named("Gradle wrapper").doesNotExist();
-  }
-
-  @NotNull
-  private static File getGradleWrapperDirPath(@NotNull File projectDirPath) {
-    return new File(projectDirPath, FD_GRADLE);
-  }
-
   @NotNull
   public IdeFrameFixture useLocalGradleDistribution(@NotNull File gradleHomePath) {
     return useLocalGradleDistribution(gradleHomePath.getPath());
@@ -724,12 +695,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return new GradleBuildModelFixture(buildModel);
   }
 
-  private static class NoOpDisposable implements Disposable {
-    @Override
-    public void dispose() {
-    }
-  }
-
   public void selectApp(@NotNull String appName) {
     final ActionButtonFixture runButton = findRunApplicationButton();
     Container actionToolbarContainer = execute(new GuiQuery<Container>() {
@@ -755,10 +720,49 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       @Override
       protected void executeInEDT() throws Throwable {
         if (keyboardFocusManager.getFocusOwner() == null) {
-          target().requestFocus();
+          IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+            IdeFocusManager.getGlobalInstance().requestFocus(target(), true);
+          });
         }
       }
     });
     Wait.seconds(30).expecting("a component to have the focus").until(() -> keyboardFocusManager.getFocusOwner() != null);
+  }
+
+  @NotNull
+  public static IdeFrameFixture find(@NotNull final Robot robot, @NotNull final File projectPath, @Nullable final String projectName) {
+    final GenericTypeMatcher<IdeFrameImpl> matcher = new GenericTypeMatcher<IdeFrameImpl>(IdeFrameImpl.class) {
+      @Override
+      protected boolean isMatching(@NotNull IdeFrameImpl frame) {
+        Project project = frame.getProject();
+        if (project != null && toSystemIndependentName(projectPath.getPath()).equals(project.getBasePath())) {
+          return projectName == null || projectName.equals(project.getName());
+        }
+        return false;
+      }
+    };
+
+    Wait.minutes(2).expecting("IdeFrame " + quote(projectPath.getPath()) + " to show up")
+      .until(() -> !robot.finder().findAll(matcher).isEmpty());
+
+    IdeFrameImpl ideFrame = robot.finder().find(matcher);
+    return new IdeFrameFixture(robot, ideFrame, projectPath);
+  }
+
+  public static void deleteWrapper(@NotNull File projectDirPath) {
+    File wrapperDirPath = getGradleWrapperDirPath(projectDirPath);
+    delete(wrapperDirPath);
+    assertAbout(file()).that(wrapperDirPath).named("Gradle wrapper").doesNotExist();
+  }
+
+  @NotNull
+  private static File getGradleWrapperDirPath(@NotNull File projectDirPath) {
+    return new File(projectDirPath, FD_GRADLE);
+  }
+
+  private static class NoOpDisposable implements Disposable {
+    @Override
+    public void dispose() {
+    }
   }
 }

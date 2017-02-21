@@ -27,6 +27,7 @@ import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
@@ -70,57 +71,6 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   private String myApiVersion;
   private boolean myUpdatingProperty;
   private int myAddedValueIndex;
-
-  public static NlTableCellEditor createForTable() {
-    NlTableCellEditor cellEditor = new NlTableCellEditor();
-    cellEditor.init(new NlEnumEditor(cellEditor, cellEditor, false, true));
-    return cellEditor;
-  }
-
-  public static NlEnumEditor createForInspector(@NotNull NlEditingListener listener) {
-    return new NlEnumEditor(listener, null, true, false);
-  }
-
-  public static NlEnumEditor createForInspectorWithBrowseButton(@NotNull NlEditingListener listener) {
-    return new NlEnumEditor(listener, null, true, true);
-  }
-
-  /**
-   * Return <code>true</code> if the property can be edited with an {@link NlEnumEditor}.
-   */
-  public static boolean supportsProperty(@NotNull NlProperty property) {
-    // The attributes supported should list the properties that do not specify Enum in the formats.
-    // This is generally the same list we have special code for in {@link #setModel}.
-    // When updating list please make the corresponding change in {@link #setModel}.
-    switch (property.getName()) {
-      case ATTR_FONT_FAMILY:
-      case ATTR_TYPEFACE:
-      case ATTR_TEXT_SIZE:
-      case ATTR_LINE_SPACING_EXTRA:
-      case ATTR_TEXT_APPEARANCE:
-      case ATTR_LAYOUT_HEIGHT:
-      case ATTR_LAYOUT_WIDTH:
-      case ATTR_DROPDOWN_HEIGHT:
-      case ATTR_DROPDOWN_WIDTH:
-      case ATTR_ON_CLICK:
-        return true;
-      case ATTR_ID:
-        return false;
-      case ATTR_STYLE:
-        String tagName = property.getTagName();
-        return tagName != null && StyleFilter.hasWidgetStyles(property.getModel().getProject(), property.getResolver(), tagName);
-      default:
-        if (property.getName().endsWith(ValueWithDisplayString.TEXT_APPEARANCE_SUFFIX)) {
-          return true;
-        }
-        if (AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(property.getName()) == ResourceType.ID) {
-          return true;
-        }
-        AttributeDefinition definition = property.getDefinition();
-        Set<AttributeFormat> formats = definition != null ? definition.getFormats() : Collections.emptySet();
-        return formats.contains(AttributeFormat.Enum);
-    }
-  }
 
   private NlEnumEditor(@NotNull NlEditingListener listener,
                        @Nullable BrowsePanel.Context context,
@@ -171,22 +121,10 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
   }
 
   @Override
-  public void setProperty(@NotNull NlProperty property) {
-    if (property != myProperty || !getApiVersion(property).equals(myApiVersion)) {
-      setModel(property);
-    }
-    try {
-      myUpdatingProperty = true;
-      selectItem(ValueWithDisplayString.create(property.getValue(), property));
-    }
-    finally {
-      myUpdatingProperty = false;
-    }
-  }
-
-  @Override
   public void requestFocus() {
-    myCombo.requestFocus();
+    IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+      IdeFocusManager.getGlobalInstance().requestFocus(myCombo, true);
+    });
   }
 
   private void setModel(@NotNull NlProperty property) {
@@ -260,10 +198,18 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     return myProperty;
   }
 
-  @NotNull
-  private static String getApiVersion(@NotNull NlProperty property) {
-    IAndroidTarget target = property.getModel().getConfiguration().getTarget();
-    return target == null ? SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "U" : target.getVersion().getApiString();
+  @Override
+  public void setProperty(@NotNull NlProperty property) {
+    if (property != myProperty || !getApiVersion(property).equals(myApiVersion)) {
+      setModel(property);
+    }
+    try {
+      myUpdatingProperty = true;
+      selectItem(ValueWithDisplayString.create(property.getValue(), property));
+    }
+    finally {
+      myUpdatingProperty = false;
+    }
   }
 
   private void selectItem(@NotNull ValueWithDisplayString value) {
@@ -462,6 +408,63 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
       }
     }
     return value;
+  }
+
+  public static NlTableCellEditor createForTable() {
+    NlTableCellEditor cellEditor = new NlTableCellEditor();
+    cellEditor.init(new NlEnumEditor(cellEditor, cellEditor, false, true));
+    return cellEditor;
+  }
+
+  public static NlEnumEditor createForInspector(@NotNull NlEditingListener listener) {
+    return new NlEnumEditor(listener, null, true, false);
+  }
+
+  public static NlEnumEditor createForInspectorWithBrowseButton(@NotNull NlEditingListener listener) {
+    return new NlEnumEditor(listener, null, true, true);
+  }
+
+  /**
+   * Return <code>true</code> if the property can be edited with an {@link NlEnumEditor}.
+   */
+  public static boolean supportsProperty(@NotNull NlProperty property) {
+    // The attributes supported should list the properties that do not specify Enum in the formats.
+    // This is generally the same list we have special code for in {@link #setModel}.
+    // When updating list please make the corresponding change in {@link #setModel}.
+    switch (property.getName()) {
+      case ATTR_FONT_FAMILY:
+      case ATTR_TYPEFACE:
+      case ATTR_TEXT_SIZE:
+      case ATTR_LINE_SPACING_EXTRA:
+      case ATTR_TEXT_APPEARANCE:
+      case ATTR_LAYOUT_HEIGHT:
+      case ATTR_LAYOUT_WIDTH:
+      case ATTR_DROPDOWN_HEIGHT:
+      case ATTR_DROPDOWN_WIDTH:
+      case ATTR_ON_CLICK:
+        return true;
+      case ATTR_ID:
+        return false;
+      case ATTR_STYLE:
+        String tagName = property.getTagName();
+        return tagName != null && StyleFilter.hasWidgetStyles(property.getModel().getProject(), property.getResolver(), tagName);
+      default:
+        if (property.getName().endsWith(ValueWithDisplayString.TEXT_APPEARANCE_SUFFIX)) {
+          return true;
+        }
+        if (AndroidDomUtil.SPECIAL_RESOURCE_TYPES.get(property.getName()) == ResourceType.ID) {
+          return true;
+        }
+        AttributeDefinition definition = property.getDefinition();
+        Set<AttributeFormat> formats = definition != null ? definition.getFormats() : Collections.emptySet();
+        return formats.contains(AttributeFormat.Enum);
+    }
+  }
+
+  @NotNull
+  private static String getApiVersion(@NotNull NlProperty property) {
+    IAndroidTarget target = property.getModel().getConfiguration().getTarget();
+    return target == null ? SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "U" : target.getVersion().getApiString();
   }
 
   private static ValueWithDisplayString[] createTextAttributeArray(@NotNull NlProperty property) {

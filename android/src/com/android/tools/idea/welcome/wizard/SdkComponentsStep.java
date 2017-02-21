@@ -34,6 +34,7 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -127,70 +128,6 @@ public class SdkComponentsStep extends FirstRunWizardStep {
     column.setCellRenderer(new SdkComponentRenderer());
     column.setCellEditor(new SdkComponentRenderer());
     setComponent(myContents);
-  }
-
-  @Nullable
-  private static File getExistingParentFile(@Nullable String path) {
-    if (StringUtil.isEmpty(path)) {
-      return null;
-    }
-    File file = new File(path).getAbsoluteFile();
-    while (file != null && !file.exists()) {
-      file = file.getParentFile();
-    }
-    return file;
-  }
-
-  private static String getDiskSpace(@Nullable String path) {
-    File file = getTargetFilesystem(path);
-    if (file == null) {
-      return "";
-    }
-    String available = WelcomeUIUtils.getSizeLabel(file.getFreeSpace());
-    if (SystemInfo.isWindows) {
-      while (file.getParentFile() != null) {
-        file = file.getParentFile();
-      }
-      return String.format("Disk space available on drive %s: %s", file.getName(), available);
-    }
-    else {
-      return String.format("Available disk space: %s", available);
-    }
-  }
-
-  @Nullable
-  private static File getTargetFilesystem(@Nullable String path) {
-    File file = getExistingParentFile(path);
-    if (file == null) {
-      File[] files = File.listRoots();
-      if (files.length != 0) {
-        file = files[0];
-      }
-    }
-    return file;
-  }
-
-  @Contract("null->false")
-  private static boolean isExistingSdk(@Nullable String path) {
-    if (!StringUtil.isEmptyOrSpaces(path)) {
-      File file = new File(path);
-      return file.isDirectory() && IdeSdks.isValidAndroidSdkPath(file);
-    }
-    else {
-      return false;
-    }
-  }
-
-  private static boolean isNonEmptyNonSdk(@Nullable String path) {
-    if (path == null) {
-      return false;
-    }
-    File file = new File(path);
-
-    if (file.exists() && FileOpUtils.create().listFiles(file).length != 0) {
-      return AndroidSdkData.getSdkData(file) == null;
-    }
-    return false;
   }
 
   @Override
@@ -316,6 +253,129 @@ public class SdkComponentsStep extends FirstRunWizardStep {
                                                                      WizardConstants.STUDIO_WIZARD_INSET_SIZE,
                                                                      WizardConstants.STUDIO_WIZARD_INSET_SIZE,
                                                                      WizardConstants.STUDIO_WIZARD_INSET_SIZE));
+  }
+
+  @Nullable
+  private static File getExistingParentFile(@Nullable String path) {
+    if (StringUtil.isEmpty(path)) {
+      return null;
+    }
+    File file = new File(path).getAbsoluteFile();
+    while (file != null && !file.exists()) {
+      file = file.getParentFile();
+    }
+    return file;
+  }
+
+  private static String getDiskSpace(@Nullable String path) {
+    File file = getTargetFilesystem(path);
+    if (file == null) {
+      return "";
+    }
+    String available = WelcomeUIUtils.getSizeLabel(file.getFreeSpace());
+    if (SystemInfo.isWindows) {
+      while (file.getParentFile() != null) {
+        file = file.getParentFile();
+      }
+      return String.format("Disk space available on drive %s: %s", file.getName(), available);
+    }
+    else {
+      return String.format("Available disk space: %s", available);
+    }
+  }
+
+  @Nullable
+  private static File getTargetFilesystem(@Nullable String path) {
+    File file = getExistingParentFile(path);
+    if (file == null) {
+      File[] files = File.listRoots();
+      if (files.length != 0) {
+        file = files[0];
+      }
+    }
+    return file;
+  }
+
+  @Contract("null->false")
+  private static boolean isExistingSdk(@Nullable String path) {
+    if (!StringUtil.isEmptyOrSpaces(path)) {
+      File file = new File(path);
+      return file.isDirectory() && IdeSdks.isValidAndroidSdkPath(file);
+    }
+    else {
+      return false;
+    }
+  }
+
+  private static boolean isNonEmptyNonSdk(@Nullable String path) {
+    if (path == null) {
+      return false;
+    }
+    File file = new File(path);
+
+    if (file.exists() && FileOpUtils.create().listFiles(file).length != 0) {
+      return AndroidSdkData.getSdkData(file) == null;
+    }
+    return false;
+  }
+
+  private static final class ComponentsTableModel extends AbstractTableModel {
+    private final List<Pair<ComponentTreeNode, Integer>> myComponents;
+
+    public ComponentsTableModel(final ComponentTreeNode component) {
+      ImmutableList.Builder<Pair<ComponentTreeNode, Integer>> components = ImmutableList.builder();
+      // Note that root component is not present in the table model so the tree appears to have multiple roots
+      traverse(component.getImmediateChildren(), 0, components);
+      myComponents = components.build();
+    }
+
+    @Override
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+      return columnIndex == 0 && getInstallableComponent(rowIndex).isOptional();
+    }
+
+    @Override
+    public int getRowCount() {
+      return myComponents.size();
+    }
+
+    @Override
+    public int getColumnCount() {
+      return 1;
+    }
+
+    @Override
+    public Object getValueAt(int rowIndex, int columnIndex) {
+      return myComponents.get(rowIndex);
+    }
+
+    @NotNull
+    private ComponentTreeNode getInstallableComponent(int rowIndex) {
+      return myComponents.get(rowIndex).getFirst();
+    }
+
+    @Override
+    public void setValueAt(Object aValue, int row, int column) {
+      ComponentTreeNode node = getInstallableComponent(row);
+      node.toggle(((Boolean)aValue));
+      // We need to repaint as a change in a single row may affect the state of
+      // our parent and/or children in other rows.
+      // Note: Don't use fireTableDataChanged to avoid clearing the selection.
+      fireTableRowsUpdated(0, getRowCount());
+    }
+
+    public String getComponentDescription(int index) {
+      return getInstallableComponent(index).getDescription();
+    }
+
+    private static void traverse(Collection<ComponentTreeNode> children,
+                                 int indent,
+                                 ImmutableList.Builder<Pair<ComponentTreeNode, Integer>> components) {
+      for (ComponentTreeNode child : children) {
+        components.add(Pair.create(child, indent));
+        traverse(child.getImmediateChildren(), indent + 1, components);
+      }
+    }
   }
 
   private final class SdkComponentRenderer extends AbstractCellEditor implements TableCellRenderer, TableCellEditor {
@@ -508,67 +568,10 @@ public class SdkComponentsStep extends FirstRunWizardStep {
           return;
         }
 
-        super.requestFocus();
+        IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+          super.requestFocus();
+        });
       }
-    }
-  }
-
-  private static final class ComponentsTableModel extends AbstractTableModel {
-    private final List<Pair<ComponentTreeNode, Integer>> myComponents;
-
-    public ComponentsTableModel(final ComponentTreeNode component) {
-      ImmutableList.Builder<Pair<ComponentTreeNode, Integer>> components = ImmutableList.builder();
-      // Note that root component is not present in the table model so the tree appears to have multiple roots
-      traverse(component.getImmediateChildren(), 0, components);
-      myComponents = components.build();
-    }
-
-    private static void traverse(Collection<ComponentTreeNode> children,
-                                 int indent,
-                                 ImmutableList.Builder<Pair<ComponentTreeNode, Integer>> components) {
-      for (ComponentTreeNode child : children) {
-        components.add(Pair.create(child, indent));
-        traverse(child.getImmediateChildren(), indent + 1, components);
-      }
-    }
-
-    @Override
-    public boolean isCellEditable(int rowIndex, int columnIndex) {
-      return columnIndex == 0 && getInstallableComponent(rowIndex).isOptional();
-    }
-
-    @Override
-    public int getRowCount() {
-      return myComponents.size();
-    }
-
-    @Override
-    public int getColumnCount() {
-      return 1;
-    }
-
-    @Override
-    public Object getValueAt(int rowIndex, int columnIndex) {
-      return myComponents.get(rowIndex);
-    }
-
-    @NotNull
-    private ComponentTreeNode getInstallableComponent(int rowIndex) {
-      return myComponents.get(rowIndex).getFirst();
-    }
-
-    @Override
-    public void setValueAt(Object aValue, int row, int column) {
-      ComponentTreeNode node = getInstallableComponent(row);
-      node.toggle(((Boolean)aValue));
-      // We need to repaint as a change in a single row may affect the state of
-      // our parent and/or children in other rows.
-      // Note: Don't use fireTableDataChanged to avoid clearing the selection.
-      fireTableRowsUpdated(0, getRowCount());
-    }
-
-    public String getComponentDescription(int index) {
-      return getInstallableComponent(index).getDescription();
     }
   }
 }

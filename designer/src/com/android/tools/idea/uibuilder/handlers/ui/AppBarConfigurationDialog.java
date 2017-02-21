@@ -28,6 +28,7 @@ import com.intellij.openapi.application.RuntimeInterruptedException;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.XmlElementFactory;
@@ -280,7 +281,9 @@ public class AppBarConfigurationDialog extends JDialog {
     Rectangle screen = getGraphicsConfiguration().getBounds();
     setLocation(screen.x + (screen.width - size.width) / 2, screen.y + (screen.height - size.height) / 2);
     updateControls();
-    myButtonOK.requestFocus();
+    IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+      IdeFocusManager.getGlobalInstance().requestFocus(myButtonOK, true);
+    });
     generatePreviews();
 
     setVisible(true);
@@ -326,14 +329,6 @@ public class AppBarConfigurationDialog extends JDialog {
     Application application = ApplicationManager.getApplication();
     myExpandedPreviewFuture = application.executeOnPooledThread(() -> updateExpandedImage(expandedFile));
     myCollapsedPreviewFuture = application.executeOnPooledThread(() -> updateCollapsedImage(collapsedFile));
-  }
-
-  @Nullable
-  private static Future<?> cancel(@Nullable Future<?> future) {
-    if (future != null) {
-      future.cancel(true);
-    }
-    return null;
   }
 
   private PsiFile generateXml(boolean collapsed) {
@@ -474,15 +469,6 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   @NotNull
-  private static String getScrollPos(boolean collapsed, @NotNull Map<String, String> namespaces) {
-    if (!collapsed) {
-      return "";
-    }
-    return String.format("        %1$s:scrollY=\"830px\"\n",
-                         namespaces.get(TOOLS_URI));
-  }
-
-  @NotNull
   private String getBackgroundImageCollapseMode(@NotNull Map<String, String> namespaces) {
     if (myParallax.isSelected()) {
       return "";
@@ -499,69 +485,6 @@ public class AppBarConfigurationDialog extends JDialog {
     return String.format(TAG_FLOATING_ACTION_BUTTON, namespaces.get(ANDROID_URI),
                          namespaces.get(AUTO_URI),
                          myFloatingActionButtonImage);
-  }
-
-  @NotNull
-  private static Map<String, String> getNameSpaces(@Nullable XmlTag root, boolean includeToolsNamespace) {
-    Map<String, String> reverse = new HashMap<>();
-    if (root != null) {
-      Map<String, String> namespaces = root.getLocalNamespaceDeclarations();
-      for (String prefix : namespaces.keySet()) {
-        reverse.put(namespaces.get(prefix), prefix);
-      }
-    }
-    if (!reverse.containsKey(ANDROID_URI)) {
-      reverse.put(ANDROID_URI, ANDROID_NS_NAME);
-    }
-    if (!reverse.containsKey(AUTO_URI)) {
-      reverse.put(AUTO_URI, APP_PREFIX);
-    }
-    if (includeToolsNamespace && !reverse.containsKey(TOOLS_URI)) {
-      reverse.put(TOOLS_URI, TOOLS_PREFIX);
-    }
-    return reverse;
-  }
-
-  @NotNull
-  private static String formatNamespaces(@NotNull Map<String, String> namespaces) {
-    StringBuilder result = new StringBuilder();
-    for (String ns : namespaces.keySet()) {
-      String prefix = namespaces.get(ns);
-      result.append(String.format("    xmlns:%1$s=\"%2$s\"\n", prefix, ns));
-    }
-    return result.toString();
-  }
-
-  // If AppBarLayout is applied a second time it should replace the current AppBarLayout:
-  @NotNull
-  private static String getDesignContent(@NotNull XmlFile file) {
-    XmlTag content = file.getRootTag();
-    if (content != null && content.getName().equals(COORDINATOR_LAYOUT)) {
-      XmlTag root = content;
-      content = null;
-      for (XmlTag tag : root.getSubTags()) {
-        if (!tag.getName().equals(APP_BAR_LAYOUT) &&
-            !tag.getName().equals(FLOATING_ACTION_BUTTON)) {
-          if (tag.getName().equals(CLASS_NESTED_SCROLL_VIEW)) {
-            content = tag.getSubTags().length > 0 ? tag.getSubTags()[0] : null;
-          }
-          else {
-            content = tag;
-          }
-          break;
-        }
-      }
-    }
-    if (content == null) {
-      return "";
-    }
-    // Remove any xmlns: attributes since this element will be added into the document
-    for (XmlAttribute attribute : content.getAttributes()) {
-      if (attribute != null && attribute.getName().startsWith(XMLNS_PREFIX)) {
-        attribute.delete();
-      }
-    }
-    return content.getText();
   }
 
   private void updateCollapsedImage(@NotNull PsiFile collapsedXmlFile) {
@@ -632,6 +555,86 @@ public class AppBarConfigurationDialog extends JDialog {
     image = ImageUtils.scale(image, scale, scale);
     view.setIcon(new ImageIcon(image));
     myPreview.setText(PREVIEW_HEADER);
+  }
+
+  @Nullable
+  private static Future<?> cancel(@Nullable Future<?> future) {
+    if (future != null) {
+      future.cancel(true);
+    }
+    return null;
+  }
+
+  @NotNull
+  private static String getScrollPos(boolean collapsed, @NotNull Map<String, String> namespaces) {
+    if (!collapsed) {
+      return "";
+    }
+    return String.format("        %1$s:scrollY=\"830px\"\n",
+                         namespaces.get(TOOLS_URI));
+  }
+
+  @NotNull
+  private static Map<String, String> getNameSpaces(@Nullable XmlTag root, boolean includeToolsNamespace) {
+    Map<String, String> reverse = new HashMap<>();
+    if (root != null) {
+      Map<String, String> namespaces = root.getLocalNamespaceDeclarations();
+      for (String prefix : namespaces.keySet()) {
+        reverse.put(namespaces.get(prefix), prefix);
+      }
+    }
+    if (!reverse.containsKey(ANDROID_URI)) {
+      reverse.put(ANDROID_URI, ANDROID_NS_NAME);
+    }
+    if (!reverse.containsKey(AUTO_URI)) {
+      reverse.put(AUTO_URI, APP_PREFIX);
+    }
+    if (includeToolsNamespace && !reverse.containsKey(TOOLS_URI)) {
+      reverse.put(TOOLS_URI, TOOLS_PREFIX);
+    }
+    return reverse;
+  }
+
+  @NotNull
+  private static String formatNamespaces(@NotNull Map<String, String> namespaces) {
+    StringBuilder result = new StringBuilder();
+    for (String ns : namespaces.keySet()) {
+      String prefix = namespaces.get(ns);
+      result.append(String.format("    xmlns:%1$s=\"%2$s\"\n", prefix, ns));
+    }
+    return result.toString();
+  }
+
+  // If AppBarLayout is applied a second time it should replace the current AppBarLayout:
+  @NotNull
+  private static String getDesignContent(@NotNull XmlFile file) {
+    XmlTag content = file.getRootTag();
+    if (content != null && content.getName().equals(COORDINATOR_LAYOUT)) {
+      XmlTag root = content;
+      content = null;
+      for (XmlTag tag : root.getSubTags()) {
+        if (!tag.getName().equals(APP_BAR_LAYOUT) &&
+            !tag.getName().equals(FLOATING_ACTION_BUTTON)) {
+          if (tag.getName().equals(CLASS_NESTED_SCROLL_VIEW)) {
+            content = tag.getSubTags().length > 0 ? tag.getSubTags()[0] : null;
+          }
+          else {
+            content = tag;
+          }
+          break;
+        }
+      }
+    }
+    if (content == null) {
+      return "";
+    }
+    // Remove any xmlns: attributes since this element will be added into the document
+    for (XmlAttribute attribute : content.getAttributes()) {
+      if (attribute != null && attribute.getName().startsWith(XMLNS_PREFIX)) {
+        attribute.delete();
+      }
+    }
+    return content.getText();
   }
 
   private static Logger getLogger() {
