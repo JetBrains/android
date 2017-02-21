@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
-import com.intellij.ui.JBListWithHintProvider;
+import com.intellij.ui.components.JBList;
 import com.intellij.ui.popup.PopupFactoryImpl;
 import com.intellij.ui.popup.list.ListPopupModel;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -88,7 +88,7 @@ public class ComboBoxActionFixture {
   }
 
   private void selectItemByText(@NotNull final String text) {
-    JList list = GuiTests.waitUntilFound(myRobot, Matchers.byType(JBListWithHintProvider.class));
+    JList list = GuiTests.waitUntilShowingAndEnabled(myRobot, null, Matchers.byType(JBList.class));
     Wait.seconds(1).expecting("the list to be populated")
       .until(() -> {
         ListPopupModel popupModel = (ListPopupModel)list.getModel();
