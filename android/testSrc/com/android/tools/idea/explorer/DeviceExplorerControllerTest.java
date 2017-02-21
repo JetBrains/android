@@ -31,12 +31,18 @@ import com.intellij.openapi.fileChooser.FileSaverDialog;
 import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.InputValidator;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.ui.TestInputDialog;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.ui.UIBundle;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -64,6 +70,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 
 public class DeviceExplorerControllerTest extends AndroidTestCase {
   private static final long TIMEOUT_MILLISECONDS = 30_000;
@@ -77,6 +84,10 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   private MockDeviceFileEntry myFile1;
   private MockDeviceFileSystem myDevice2;
   private RepaintManager myMockRepaintManager;
+  private MockDeviceFileEntry myFooDir;
+  private TestDialog myInitialTestDialog;
+  private TestInputDialog myInitialTestInputDialog;
+  private FutureCallbackExecutor myEdtExecutor;
 
   @Override
   protected void setUp() throws Exception {
@@ -86,17 +97,18 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     ToolWindow toolWindow = toolWindowManager.registerToolWindow(
       DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID, false, ToolWindowAnchor.RIGHT, getProject(), true);
 
+    myEdtExecutor = new FutureCallbackExecutor(EdtExecutor.INSTANCE);
     myModel = new DeviceExplorerModel();
-    myMockService = new MockDeviceFileSystemService(getProject(), EdtExecutor.INSTANCE);
+    myMockService = new MockDeviceFileSystemService(getProject(), myEdtExecutor);
     myMockView = new MockDeviceExplorerView(getProject(), toolWindow, new MockDeviceFileSystemRenderer(), myModel);
-    myMockFileManager = new MockDeviceExplorerFileManager(getProject(), EdtExecutor.INSTANCE);
+    myMockFileManager = new MockDeviceExplorerFileManager(getProject(), myEdtExecutor);
 
     myDevice1 = myMockService.addDevice("TestDevice-1");
     myFoo = myDevice1.getRoot().addDirectory("Foo");
     myFoo.addFile("fooFile1.txt");
     myFoo.addFile("fooFile2.txt");
     myFoo.addFileLink("fooLink1.txt", "fooFile1.txt");
-    myFoo.addDirectory("fooDir");
+    myFooDir = myFoo.addDirectory("fooDir");
     myFile1 = myDevice1.getRoot().addFile("file1.txt");
     myDevice1.getRoot().addFile("file2.txt");
     myDevice1.getRoot().addFile("file3.txt");
@@ -112,6 +124,14 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     try {
       RepaintManager.setCurrentManager(null);
       myMockRepaintManager = null;
+
+      if (myInitialTestDialog != null) {
+        Messages.setTestDialog(myInitialTestDialog);
+      }
+
+      if (myInitialTestInputDialog != null) {
+        Messages.setTestInputDialog(myInitialTestInputDialog);
+      }
 
       if (myMockFileManager != null) {
         Disposer.dispose(myMockFileManager);
@@ -260,23 +280,12 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Listen to node expansion effect (structure changed event)
     TreePath fooPath = getFileEntryPath(myFoo);
-    SettableFuture<TreePath> futureTreeStructureChanged = SettableFuture.create();
+    SettableFuture<TreePath> futureNodeExpanded = createNodeExpandedFuture(myFoo);
     SettableFuture<MyLoadingNode> futureTreeNodesChanged = SettableFuture.create();
     myMockView.getTree().getModel().addTreeModelListener(new TreeModelAdapter() {
       @Override
-      public void treeStructureChanged(TreeModelEvent event) {
-        // Ensure this is the final event where we have all children (and not just the
-        // "Loading..." child)
-        if (fooPath.getLastPathComponent() == event.getTreePath().getLastPathComponent()) {
-          if (((DeviceFileEntryNode)fooPath.getLastPathComponent()).getChildCount() == myFoo.getMockEntries().size()) {
-            futureTreeStructureChanged.set(event.getTreePath());
-          }
-        }
-      }
-
-      @Override
       public void treeNodesChanged(TreeModelEvent event) {
-        if (fooPath.getLastPathComponent() == event.getTreePath().getLastPathComponent()) {
+        if (Objects.equals(fooPath.getLastPathComponent(), event.getTreePath().getLastPathComponent())) {
           Object[] children = event.getChildren();
           if (children != null && children.length == 1) {
             Object child = children[0];
@@ -293,11 +302,11 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Wait for tree node to be expanded
     MyLoadingNode myLoadingNode = pumpEventsAndWaitForFuture(futureTreeNodesChanged);
-    TreePath treeStructureChangedPath = pumpEventsAndWaitForFuture(futureTreeStructureChanged);
+    TreePath nodeExpandedPath = pumpEventsAndWaitForFuture(futureNodeExpanded);
 
     // Assert
     assertTrue(myLoadingNode.getDownloadingTick() > 1);
-    assertEquals(fooPath.getLastPathComponent(), treeStructureChangedPath.getLastPathComponent());
+    assertEquals(fooPath.getLastPathComponent(), nodeExpandedPath.getLastPathComponent());
   }
 
   public void testExpandChildrenFailure() throws InterruptedException, ExecutionException, TimeoutException {
@@ -503,7 +512,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     checkMockViewActiveDevice(myDevice2);
   }
 
-  public void testFileSystemTreeContextMenu() throws InterruptedException, ExecutionException, TimeoutException {
+  public void testFileSystemTree_ContextMenu_Items_Present() throws InterruptedException, ExecutionException, TimeoutException {
     // Prepare
     DeviceExplorerController controller = createController();
 
@@ -514,7 +523,11 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Assert
     ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
-    assertEquals(4, actionGroup.getChildren(null).length);
+    assertEquals(6, actionGroup.getChildren(null).length);
+
+    ActionGroup subGroup = getSubGroup(actionGroup, "New");
+    assertNotNull(subGroup);
+    assertEquals(2, subGroup.getChildren(null).length);
 
     // Act: Call "update" on each action, just to make sure the code is covered
     myMockView.getTree().setSelectionPath(getFileEntryPath(myFile1));
@@ -523,7 +536,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     actions.forEach(x -> x.update(e));
   }
 
-  public void testFileSystemTreeOpenContextMenuItem() throws Exception {
+  public void testFileSystemTree_ContextMenu_Open_Works() throws Exception {
     downloadFile(() -> {
       ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
       AnAction action = getActionByText(actionGroup, "Open");
@@ -543,7 +556,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
   }
 
-  public void testFileSystemTreeSaveAsContextMenuItem() throws Exception {
+  public void testFileSystemTree_ContextMenu_SaveAs_Works() throws Exception {
     File tempFile = FileUtil.createTempFile("foo", "bar");
 
     downloadFile(() -> {
@@ -581,17 +594,150 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     assertEquals(200_000, tempFile.length());
   }
 
-  /**
-   * Replace an application component with a custom component instance
-   */
-  private static <T> void replaceApplicationComponent(Class<T> cls, T instance) {
-    String key = cls.getName();
-    MutablePicoContainer container = (MutablePicoContainer)ApplicationManager.getApplication().getPicoContainer();
-    container.unregisterComponent(key);
-    container.registerComponentInstance(key, instance);
+  public void testFileSystemTree_ContextMenu_New_IsHiddenForFiles() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    // Act
+    myMockView.getTree().setSelectionPath(getFileEntryPath(myFile1));
+
+    // Assert
+    checkContextMenuItemVisible("New/File", false);
+    checkContextMenuItemVisible("New/Directory", false);
   }
 
-  public void testFileSystemTreeCopyPathContextMenuItem() throws Exception {
+  public void testFileSystemTree_ContextMenu_New_IsVisibleForDirectories() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    // Act
+    expandEntry(myFoo);
+    myMockView.getTree().setSelectionPath(getFileEntryPath(myFooDir));
+
+    // Assert
+    checkContextMenuItemVisible("New/File", true);
+    checkContextMenuItemVisible("New/Directory", true);
+  }
+
+  public void testFileSystemTree_ContextMenu_NewFile_Works() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    expandEntry(myFoo);
+    TreePath fooDirPath = getFileEntryPath(myFooDir);
+    myMockView.getTree().setSelectionPath(fooDirPath);
+    SettableFuture<TreePath> fooDirExpandedFuture = createNodeExpandedFuture(myFooDir);
+    String newFileName = "foobar.txt";
+    replaceTestInputDialog(newFileName);
+
+    // Act
+    AnAction action = getContextMenuAction("New/File");
+    AnActionEvent e = createContentMenuItemEvent();
+    action.update(e);
+    action.actionPerformed(e);
+
+    // Assert
+    pumpEventsAndWaitForFuture(fooDirExpandedFuture);
+
+    // Look for the new file entry in the tree view
+    DeviceFileEntryNode newChild = enumerationAsList(((DeviceFileEntryNode)fooDirPath.getLastPathComponent()).children())
+      .stream()
+      .filter(x -> x instanceof DeviceFileEntryNode)
+      .map(x -> (DeviceFileEntryNode)x)
+      .filter(x -> Objects.equals(newFileName, x.getEntry().getName()) && x.getEntry().isFile())
+      .findFirst()
+      .orElse(null);
+    assertNotNull(newChild);
+  }
+
+  public void testFileSystemTree_ContextMenu_NewDirectory_Works() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    expandEntry(myFoo);
+    TreePath fooDirPath = getFileEntryPath(myFooDir);
+    myMockView.getTree().setSelectionPath(fooDirPath);
+    SettableFuture<TreePath> fooDirExpandedFuture = createNodeExpandedFuture(myFooDir);
+    String newDirectoryName = "foobar.txt";
+    replaceTestInputDialog(newDirectoryName);
+
+    // Act
+    AnAction action = getContextMenuAction("New/Directory");
+    AnActionEvent e = createContentMenuItemEvent();
+    action.update(e);
+    action.actionPerformed(e);
+
+    // Assert
+    pumpEventsAndWaitForFuture(fooDirExpandedFuture);
+
+    // Look for the new file entry in the tree view
+    DeviceFileEntryNode newChild = enumerationAsList(((DeviceFileEntryNode)fooDirPath.getLastPathComponent()).children())
+      .stream()
+      .filter(x -> x instanceof DeviceFileEntryNode)
+      .map(x -> (DeviceFileEntryNode)x)
+      .filter(x -> Objects.equals(newDirectoryName, x.getEntry().getName()) && x.getEntry().isDirectory())
+      .findFirst()
+      .orElse(null);
+    assertNotNull(newChild);
+  }
+
+  public void testFileSystemTree_ContextMenu_NewDirectory_ExistingPath_Fails() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    TreePath fooPath = getFileEntryPath(myFoo);
+    myMockView.getTree().setSelectionPath(fooPath);
+    String newDirectoryName = myFooDir.getName(); // Existing name to create conflict
+    replaceTestInputDialog(newDirectoryName);
+    SettableFuture<String> futureMessageDialog = SettableFuture.create();
+    replaceTestDialog(s -> {
+      futureMessageDialog.set(s);
+
+      // Simulate a "Cancel" dialog in the "New Folder Name" dialog, since the controller
+      // shows the "New Folder Name" dialog as long as an error is detected when
+      // creating the new folder.
+      replaceTestInputDialog(null);
+      return 0;
+    });
+
+    // Act
+    AnAction action = getContextMenuAction("New/Directory");
+    AnActionEvent e = createContentMenuItemEvent();
+    action.update(e);
+    action.actionPerformed(e);
+
+    // Assert
+    String message = pumpEventsAndWaitForFuture(futureMessageDialog);
+    assertNotNull(message);
+    assertTrue(message.contains(UIBundle.message("create.new.folder.could.not.create.folder.error.message", newDirectoryName)));
+
+    // Ensure entry does not exist in tree view
+    DeviceFileEntryNode newChild = enumerationAsList(((DeviceFileEntryNode)fooPath.getLastPathComponent()).children())
+      .stream()
+      .filter(x -> x instanceof DeviceFileEntryNode)
+      .map(x -> (DeviceFileEntryNode)x)
+      .filter(x -> Objects.equals(newDirectoryName, x.getEntry().getName()) && x.getEntry().isDirectory())
+      .findFirst()
+      .orElse(null);
+    assertNull(newChild);
+  }
+
+  public void testFileSystemTree_ContextMenu_CopyPath_Works() throws Exception {
     // Prepare
     DeviceExplorerController controller = createController();
 
@@ -622,6 +768,51 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     assertEquals("/" + myFile1.getName(), contents.getTransferData(DataFlavor.stringFlavor));
   }
 
+  private static <V> List<V> enumerationAsList(Enumeration e) {
+    //noinspection unchecked
+    return Collections.list(e);
+  }
+
+  @SuppressWarnings("SameParameterValue")
+  private void replaceTestDialog(@NotNull Function<String, Integer> showFunction) {
+    TestDialog previousDialog = Messages.setTestDialog(showFunction::apply);
+    if (myInitialTestDialog == null) {
+      myInitialTestDialog = previousDialog;
+    }
+  }
+
+  @SuppressWarnings("SameParameterValue")
+  private void replaceTestInputDialog(@Nullable String returnValue) {
+    TestInputDialog previousDialog = Messages.setTestInputDialog(new TestInputDialog() {
+      @Override
+      public String show(String message) {
+        return show(message, null);
+      }
+
+      @Override
+      public String show(String message, @Nullable InputValidator validator) {
+        if (validator != null) {
+          validator.checkInput(message);
+        }
+        return returnValue;
+      }
+    });
+
+    if (myInitialTestInputDialog == null) {
+      myInitialTestInputDialog = previousDialog;
+    }
+  }
+
+  /**
+   * Replace an application component with a custom component instance
+   */
+  private static <T> void replaceApplicationComponent(Class<T> cls, T instance) {
+    String key = cls.getName();
+    MutablePicoContainer container = (MutablePicoContainer)ApplicationManager.getApplication().getPicoContainer();
+    container.unregisterComponent(key);
+    container.registerComponentInstance(key, instance);
+  }
+
   @NotNull
   private static AnActionEvent createContentMenuItemEvent() {
     return AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, dataId -> null);
@@ -637,6 +828,85 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       })
       .findFirst()
       .orElseGet(() -> null);
+  }
+
+  @SuppressWarnings("SameParameterValue")
+  @Nullable
+  private static ActionGroup getSubGroup(@NotNull ActionGroup actionGroup, @NotNull String name) {
+    return Arrays.stream(actionGroup.getChildren(null))
+      .filter(x -> x instanceof ActionGroup)
+      .map(x -> (ActionGroup)x)
+      .filter(x -> Objects.equals(name, x.getTemplatePresentation().getText()))
+      .findFirst()
+      .orElse(null);
+  }
+
+  private void checkContextMenuItemVisible(@NotNull String menuPath, boolean visible) {
+    AnAction action = getContextMenuAction(menuPath);
+    AnActionEvent e = createContentMenuItemEvent();
+    action.update(e);
+
+    // Assert
+    assertEquals(visible, e.getPresentation().isVisible());
+    assertEquals(visible, e.getPresentation().isEnabled());
+  }
+
+  @NotNull
+  private AnAction getContextMenuAction(@NotNull String menuPath) {
+    ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
+    List<String> menuNames = StringUtil.split(menuPath, "/");
+    for (int i = 0; i < menuNames.size() - 1; i++) {
+      ActionGroup subGroup = getSubGroup(actionGroup, menuNames.get(i));
+      assertNotNull(subGroup);
+      actionGroup = subGroup;
+    }
+    AnAction action = getActionByText(actionGroup, menuNames.get(menuNames.size() - 1));
+    assertNotNull(action);
+    return action;
+  }
+
+  @NotNull
+  private SettableFuture<TreePath> createNodeExpandedFuture(@NotNull final MockDeviceFileEntry entry) {
+    assert entry.isDirectory();
+
+    TreePath entryPath = getFileEntryPath(entry);
+    SettableFuture<TreePath> futureTreeStructureChanged = SettableFuture.create();
+    TreeModelAdapter treeModelAdapter = new TreeModelAdapter() {
+      @Override
+      public void treeStructureChanged(TreeModelEvent event) {
+        DeviceFileEntryNode entryNode = DeviceFileEntryNode.fromNode(entryPath.getLastPathComponent());
+        assertNotNull(entryNode);
+
+        // Ensure this is the final event where we have all children (and not just the
+        // "Loading..." child)
+        if (!Objects.equals(entryNode, event.getTreePath().getLastPathComponent())) {
+          return;
+        }
+
+        if (entryNode.getChildCount() != entry.getMockEntries().size()) {
+          return;
+        }
+
+        for(int i = 0; i < entryNode.getChildCount(); i++) {
+          DeviceFileEntryNode childNode = DeviceFileEntryNode.fromNode(entryNode.getChildAt(i));
+          if (childNode == null) {
+            // It could be the "Loading..." node
+            return;
+          }
+
+          if (!Objects.equals(childNode.getEntry().getName(), entry.getMockEntries().get(i).getName())) {
+            return;
+          }
+        }
+
+        // All children are equal, the parent node is fully expanded!
+        futureTreeStructureChanged.set(event.getTreePath());
+      }
+    };
+    myMockView.getTree().getModel().addTreeModelListener(treeModelAdapter);
+    myEdtExecutor.addConsumer(futureTreeStructureChanged,
+                              (path, throwable) -> myMockView.getTree().getModel().removeTreeModelListener(treeModelAdapter));
+    return futureTreeStructureChanged;
   }
 
   private void checkMockViewInitialState(DeviceExplorerController controller, MockDeviceFileSystem activeDevice)
@@ -709,6 +979,17 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     pumpEventsAndWaitForFuture(myMockFileManager.getDownloadFileEntryCompletionTracker().consume());
   }
 
+  private void expandEntry(@NotNull MockDeviceFileEntry entry) {
+    // Attach listener for node expansion completion
+    SettableFuture<TreePath> futureNodeExpanded = createNodeExpandedFuture(entry);
+
+    // Expand node
+    myMockView.getTree().expandPath(getFileEntryPath(entry));
+
+    // Wait for tree node to be expanded
+    pumpEventsAndWaitForFuture(futureNodeExpanded);
+  }
+
   private DeviceExplorerController createController() {
     return createController(myMockView, myMockService);
   }
@@ -748,12 +1029,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
    * Throws an exception if the file entry is not found.
    */
   @NotNull
-  private TreePath getFileEntryPath(@NotNull MockDeviceFileEntry entry) {
-    Stack<MockDeviceFileEntry> entries = new Stack<>();
-    while (entry != null) {
-      entries.add(entry);
-      entry = (MockDeviceFileEntry)entry.getParent();
-    }
+  private TreePath getFileEntryPath(@NotNull final MockDeviceFileEntry entry) {
+    Stack<MockDeviceFileEntry> entries = getEntryStack(entry);
 
     List<Object> nodes = new ArrayList<>();
     DeviceFileEntryNode currentNode = DeviceFileEntryNode.fromNode(myMockView.getTree().getModel().getRoot());
@@ -774,11 +1051,21 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
           break;
         }
       }
-      assertNotNull(currentEntry);
+      assertNotNull(String.format("File System Tree does not contain node \"%s\"", entry.getFullPath()), currentEntry);
       nodes.add(currentNode);
     }
 
     return new TreePath(nodes.toArray());
+  }
+
+  @NotNull
+  private static Stack<MockDeviceFileEntry> getEntryStack(@NotNull MockDeviceFileEntry entry) {
+    Stack<MockDeviceFileEntry> entries = new Stack<>();
+    while (entry != null) {
+      entries.add(entry);
+      entry = (MockDeviceFileEntry)entry.getParent();
+    }
+    return entries;
   }
 
   private static void fireEnterKey(@NotNull JComponent component) {

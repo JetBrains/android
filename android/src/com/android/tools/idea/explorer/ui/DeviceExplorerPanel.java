@@ -73,6 +73,7 @@ public class DeviceExplorerPanel {
   @TestOnly
   public JBScrollPane getColumnTreePane() { return myColumnTreePane; }
 
+  @SuppressWarnings("unused")
   private void createToolbar() {
     final ActionManager actionManager = ActionManager.getInstance();
     ActionToolbar actionToolbar = actionManager.createActionToolbar("Device Explorer Toolbar",

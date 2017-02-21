@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.explorer;
 
+import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;
 import com.android.tools.idea.explorer.fs.*;
 import com.android.utils.FileUtils;
 import com.google.common.util.concurrent.FutureCallback;
@@ -26,11 +27,14 @@ import com.intellij.openapi.fileChooser.FileSaverDescriptor;
 import com.intellij.openapi.fileChooser.FileSaverDialog;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.InputValidatorEx;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
+import com.intellij.ui.UIBundle;
 import com.intellij.util.Alarm;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
@@ -44,8 +48,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.Executor;
+import java.util.concurrent.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -55,6 +59,7 @@ import java.util.stream.Collectors;
 public class DeviceExplorerController {
   private static final Logger LOGGER = Logger.getInstance(DeviceExplorerController.class);
   private static final Key<DeviceExplorerController> KEY = Key.create(DeviceExplorerController.class.getName());
+  private static final long FILE_ENTRY_CREATION_TIMEOUT_MILLIS = 10_000;
 
   private int myShowLoadingNodeDelayMillis = 200;
   private int myDownloadingNodeRepaintMillis = 100;
@@ -347,16 +352,103 @@ public class DeviceExplorerController {
 
     @Override
     public void copyNodePathInvoked(@NotNull DeviceFileEntryNode treeNode) {
-      CopyPasteManager.getInstance().setContents(new StringSelection(getEntryPath(treeNode.getEntry())));
+      CopyPasteManager.getInstance().setContents(new StringSelection(treeNode.getEntry().getFullPath()));
     }
 
-    @NotNull
-    private String getEntryPath(@NotNull DeviceFileEntry entry) {
-      if (entry.getParent() == null) {
-        return "";
-      } else {
-        return getEntryPath(entry.getParent()) + "/" + entry.getName();
+
+    @Override
+    public void newFileInvoked(@NotNull DeviceFileEntryNode parentTreeNode) {
+      newFileOrDirectory(parentTreeNode,
+                         "NewTextFile.txt",
+                         UIBundle.message("new.file.dialog.title"),
+                         UIBundle.message("create.new.file.enter.new.file.name.prompt.text"),
+                         UIBundle.message("create.new.file.file.name.cannot.be.empty.error.message"),
+                         x -> UIBundle.message("create.new.file.could.not.create.file.error.message", x),
+                         x -> parentTreeNode.getEntry().getFileSystem().createNewFile(parentTreeNode.getEntry(), x));
+    }
+
+    @Override
+    public void newDirectoryInvoked(@NotNull DeviceFileEntryNode parentTreeNode) {
+      newFileOrDirectory(parentTreeNode,
+                         "NewFolder",
+                         UIBundle.message("new.folder.dialog.title"),
+                         UIBundle.message("create.new.folder.enter.new.folder.name.prompt.text"),
+                         UIBundle.message("create.new.folder.folder.name.cannot.be.empty.error.message"),
+                         x -> UIBundle.message("create.new.folder.could.not.create.folder.error.message", x),
+                         x -> parentTreeNode.getEntry().getFileSystem().createNewDirectory(parentTreeNode.getEntry(), x));
+    }
+
+    private void newFileOrDirectory(@NotNull DeviceFileEntryNode parentTreeNode,
+                                    @NotNull String initialName,
+                                    @NotNull String title,
+                                    @NotNull String prompt,
+                                    @NotNull String emptyErrorMessage,
+                                    @NotNull Function<String, String> errorMessage,
+                                    @NotNull Function<String, ListenableFuture<Void>> createFunction) {
+      DefaultTreeModel treeModel = getTreeModel();
+      if (treeModel == null) {
+        return;
       }
+
+      while (true) {
+        String newFileName = Messages.showInputDialog(prompt, title, Messages.getQuestionIcon(), initialName, new InputValidatorEx() {
+          @Nullable
+          @Override
+          public String getErrorText(String inputString) {
+            if (StringUtil.isEmpty(inputString.trim())) {
+              return emptyErrorMessage;
+            }
+            else if (inputString.contains(AdbPathUtil.FILE_SEPARATOR)) {
+              return "Path cannot contain \"/\" characters";
+            }
+            return null;
+          }
+
+          @Override
+          public boolean checkInput(String inputString) {
+            return canClose(inputString);
+          }
+
+          @Override
+          public boolean canClose(String inputString) {
+            return !StringUtil.isEmpty(inputString.trim());
+          }
+        });
+        if (newFileName == null) {
+          return;
+        }
+
+        ListenableFuture<Void> futureResult = createFunction.apply(newFileName);
+        try {
+          futureResult.get(FILE_ENTRY_CREATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+
+          // Refresh the parent node to show the newly created file
+          parentTreeNode.setLoaded(false);
+          loadNodeChildren(parentTreeNode);
+        }
+        catch(ExecutionException | InterruptedException | TimeoutException e) {
+          showErrorMessage(errorMessage.apply(newFileName), e);
+          initialName = newFileName;
+          continue;  // Try again
+        }
+        return;
+      }
+    }
+
+    private void showErrorMessage(@NotNull String message, @NotNull Throwable error) {
+      // Execution exceptions contain the actual cause of the error
+      if (error instanceof ExecutionException) {
+        if (error.getCause() != null) {
+          error = error.getCause();
+        }
+      }
+      // Add error message from execption if we have one
+      if (error.getMessage() != null) {
+        message += ":\n" + error.getMessage();
+      }
+
+      // Show error dialog
+      Messages.showMessageDialog(message, UIBundle.message("error.dialog.title"), Messages.getErrorIcon());
     }
 
     @NotNull
@@ -431,6 +523,10 @@ public class DeviceExplorerController {
 
     @Override
     public void treeNodeExpanding(@NotNull DeviceFileEntryNode node) {
+      loadNodeChildren(node);
+    }
+
+    private void loadNodeChildren(@NotNull final DeviceFileEntryNode node) {
       // Ensure node is expanded only once
       if (node.isLoaded()) {
         return;
@@ -451,6 +547,7 @@ public class DeviceExplorerController {
       if (!Objects.equals(fileSystem, node.getEntry().getFileSystem())) {
         return;
       }
+
       ShowLoadingNodeRequest showLoadingNode = new ShowLoadingNodeRequest(treeModel, node);
       myLoadingNodesAlarms.addRequest(showLoadingNode, myShowLoadingNodeDelayMillis);
 
@@ -464,15 +561,15 @@ public class DeviceExplorerController {
 
           List<DeviceFileEntryNode> nodes = result.stream().map(DeviceFileEntryNode::new).collect(Collectors.toList());
           node.removeAllChildren();
+          node.setAllowsChildren(nodes.size() > 0);
           nodes.forEach(node::add);
+          treeModel.nodeStructureChanged(node);
 
           List<DeviceFileEntryNode> symlinkNodes = nodes
             .stream()
             .filter(x -> x.getEntry().isSymbolicLink())
             .collect(Collectors.toList());
           querySymbolicLinks(symlinkNodes, treeModel);
-          node.setAllowsChildren(nodes.size() > 0);
-          treeModel.nodeStructureChanged(node);
         }
 
         @Override

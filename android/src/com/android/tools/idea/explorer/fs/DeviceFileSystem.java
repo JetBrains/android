@@ -51,4 +51,20 @@ public interface DeviceFileSystem {
    */
   @NotNull
   ListenableFuture<Void> downloadFile(@NotNull DeviceFileEntry entry, @NotNull Path localPath, @NotNull FileTransferProgress progress);
+
+  /**
+   * Creates a new file "{@code fileName}" in the given {@code parentEntry}, and returns a future that
+   * completes when the file is created. If there is any error creating the file (including the path
+   * already exists), the future completes with an exception.
+   */
+  @NotNull
+  ListenableFuture<Void> createNewFile(@NotNull DeviceFileEntry parentEntry, @NotNull String fileName);
+
+  /**
+   * Creates a new directory "{@code directoryName}" in the given {@code parentEntry}, and returns a
+   * future that completes when the directory is created. If there is any error creating the directory
+   * (including the path already exists), the future completes with an exception.
+   */
+  @NotNull
+  ListenableFuture<Void> createNewDirectory(@NotNull DeviceFileEntry parentEntry, @NotNull String directoryName);
 }
