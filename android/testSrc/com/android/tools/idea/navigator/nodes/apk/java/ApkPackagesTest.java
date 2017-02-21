@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.java;
 
+import com.android.tools.idea.apk.debugging.ApkClass;
+import com.android.tools.idea.apk.debugging.ApkPackage;
 import com.android.tools.idea.navigator.nodes.apk.java.DexFileContents.ApkPackages;
 import org.junit.Before;
 import org.junit.Test;

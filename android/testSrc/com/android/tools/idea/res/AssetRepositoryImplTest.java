@@ -32,7 +32,7 @@ public class AssetRepositoryImplTest extends AndroidGradleTestCase {
     super.setUp();
 
     // Using the navigator project because it has assets
-    loadProject(TestProjectPaths.NAVIGATOR + "/packageview/simple");
+    loadProject(TestProjectPaths.NAVIGATOR_PACKAGEVIEW_SIMPLE);
     assertNotNull(myAndroidFacet);
   }
 

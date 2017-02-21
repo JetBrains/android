@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.navigator.nodes.apk.java;
+package com.android.tools.idea.apk.debugging;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -23,28 +23,61 @@ import com.intellij.testFramework.IdeaTestCase;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.navigator.nodes.apk.java.SmaliFinder.getDefaultSmaliOutputFolderPath;
+import static com.android.tools.idea.apk.debugging.SmaliFiles.getDefaultSmaliOutputFolderPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.util.io.FileUtil.ensureExists;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link SmaliFinder}.
+ * Tests for {@link SmaliFiles}.
  */
-public class SmaliFinderTest extends IdeaTestCase {
+public class SmaliFilesTest extends IdeaTestCase {
   private File myOutputFolderPath;
-  private SmaliFinder mySmaliFinder;
+  private SmaliFiles mySmaliFiles;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     Project project = getProject();
-    mySmaliFinder = new SmaliFinder(project);
+    mySmaliFiles = new SmaliFiles(project);
 
     myOutputFolderPath = getDefaultSmaliOutputFolderPath(project);
     ensureExists(myOutputFolderPath);
+  }
+
+  public void testIsSmaliFileWithJavaFile() {
+    VirtualFile file = mock(VirtualFile.class);
+
+    when(file.isDirectory()).thenReturn(false);
+    when(file.getExtension()).thenReturn("smali");
+    assertTrue(SmaliFiles.isSmaliFile(file));
+  }
+
+  public void testIsSmaliFileWithDirectory() {
+    VirtualFile file = mock(VirtualFile.class);
+
+    when(file.isDirectory()).thenReturn(true);
+    assertFalse(SmaliFiles.isSmaliFile(file));
+  }
+
+  public void testIsSmaliFileWithTextFile() {
+    VirtualFile file = mock(VirtualFile.class);
+
+    when(file.isDirectory()).thenReturn(false);
+    when(file.getExtension()).thenReturn("text");
+    assertFalse(SmaliFiles.isSmaliFile(file));
+  }
+
+  public void testIsSmaliFileWithFileWithoutExtension() {
+    VirtualFile file = mock(VirtualFile.class);
+
+    when(file.isDirectory()).thenReturn(false);
+    when(file.getExtension()).thenReturn("");
+    assertFalse(SmaliFiles.isSmaliFile(file));
   }
 
   public void testFindSmaliFile() {
@@ -52,10 +85,10 @@ public class SmaliFinderTest extends IdeaTestCase {
     createIfNotExists(smaliFilePath);
 
     LocalFileSystem.getInstance().refresh(false /* synchronous */);
-    VirtualFile file = mySmaliFinder.findSmaliFile("com.android.smali.MyClass");
+    VirtualFile file = mySmaliFiles.findSmaliFile("com.android.smali.MyClass");
     assertNotNull(file);
 
-    file = mySmaliFinder.findSmaliFile("com.android.smali.MyClass2");
+    file = mySmaliFiles.findSmaliFile("com.android.smali.MyClass2");
     assertNull(file);
   }
 
@@ -63,7 +96,7 @@ public class SmaliFinderTest extends IdeaTestCase {
     File packagePath = new File(myOutputFolderPath, join("com", "android", "smali"));
     ensureExists(packagePath);
 
-    File found = mySmaliFinder.findPackageFilePath("com.android.smali");
+    File found = mySmaliFiles.findPackageFilePath("com.android.smali");
     assertAbout(file()).that(found).isEquivalentAccordingToCompareTo(packagePath);
   }
 }

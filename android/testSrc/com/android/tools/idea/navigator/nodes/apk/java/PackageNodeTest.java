@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.java;
 
+import com.android.tools.idea.apk.debugging.ApkClass;
+import com.android.tools.idea.apk.debugging.ApkPackage;
+import com.android.tools.idea.apk.debugging.JavaFiles;
+import com.android.tools.idea.apk.debugging.SmaliFiles;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
@@ -25,8 +29,8 @@ import org.mockito.Mock;
 
 import java.io.File;
 
-import static com.android.tools.idea.navigator.nodes.apk.java.SimpleApplicationContents.*;
-import static com.android.tools.idea.navigator.nodes.apk.java.SmaliFinder.getDefaultSmaliOutputFolderPath;
+import static com.android.tools.idea.apk.debugging.SimpleApplicationContents.*;
+import static com.android.tools.idea.apk.debugging.SmaliFiles.getDefaultSmaliOutputFolderPath;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static java.io.File.separatorChar;
@@ -52,7 +56,7 @@ public class PackageNodeTest extends AndroidGradleTestCase {
     ApkClass activityApkClass = getMyActivityApkClass();
     myPackage = activityApkClass.getParent();
 
-    myNode = new PackageNode(project, myPackage, mySettings, new ClassFinder(project), new SmaliFinder(project));
+    myNode = new PackageNode(project, myPackage, mySettings, new JavaFiles(), new SmaliFiles(project));
   }
 
   public void testUpdate() {
