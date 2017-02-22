@@ -29,15 +29,11 @@ import java.util.Properties;
 public class ProfilerState {
   @NonNls public static final boolean EXPERIMENTAL_PROFILING_FLAG_ENABLED = System.getProperty("enable.experimental.profiling") != null;
 
-  /** Whether to apply the profiling plugin. */
+  public static final String ANDROID_CUSTOM_CLASS_TRANSFORMS = "android.custom.class.transforms";
+
+  /** Whether to apply the profiling transform. */
   public boolean ENABLE_ADVANCED_PROFILING = true;
   public static final String ENABLE_ADVANCED_PROFILING_NAME = "android.profiler.enabled";
-
-  public boolean SUPPORT_LIB_ENABLED = true;
-  private static final String SUPPORT_LIB_ENABLED_NAME = "android.profiler.supportLib.enabled";
-
-  public boolean INSTRUMENTATION_ENABLED = true;
-  private static final String INSTRUMENTATION_ENABLED_NAME = "android.profiler.instrumentation.enabled";
 
   /**
    * Reads the state from the {@link Element}, overwriting all member values.
@@ -55,8 +51,6 @@ public class ProfilerState {
 
   public Properties toProperties() {
     Properties result = new Properties();
-    result.setProperty(SUPPORT_LIB_ENABLED_NAME, String.valueOf(SUPPORT_LIB_ENABLED));
-    result.setProperty(INSTRUMENTATION_ENABLED_NAME, String.valueOf(INSTRUMENTATION_ENABLED));
     result.setProperty(ENABLE_ADVANCED_PROFILING_NAME, String.valueOf(ENABLE_ADVANCED_PROFILING));
     return result;
   }
