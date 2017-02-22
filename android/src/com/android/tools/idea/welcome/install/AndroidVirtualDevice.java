@@ -130,7 +130,7 @@ public class AndroidVirtualDevice extends InstallableComponent {
     boolean useRanchu = AvdManagerConnection.doesSystemImageSupportQemu2(systemImageDescription, myFileOp);
     boolean supportsSmp = abi != null && abi.supportsMultipleCpuCores() && getMaxCpuCores() > 1;
     Map<String, String> settings = getAvdSettings(internalName, d);
-    settings.put(AvdManagerConnection.AVD_INI_DISPLAY_NAME, displayName);
+    settings.put(AVD_INI_DISPLAY_NAME, displayName);
     if (useRanchu) {
       settings.put(CPU_CORES_KEY, String.valueOf(supportsSmp ? getMaxCpuCores() : 1));
     }

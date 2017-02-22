@@ -95,7 +95,6 @@ public class AvdManagerConnection {
   private static final int LMP_MR1_API_LEVEL_22 = 22;
 
   public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
-  public static final String AVD_INI_DISPLAY_NAME = "avd.ini.displayname";
   public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0 rc1");
   public static final Revision TOOLS_REVISION_25_0_2_RC3 = Revision.parseRevision("25.0.2 rc3");
   public static final Revision PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0");
@@ -726,7 +725,7 @@ public class AvdManagerConnection {
   }
 
   public static String getAvdDisplayName(@NotNull AvdInfo avdInfo) {
-    String displayName = avdInfo.getProperties().get(AVD_INI_DISPLAY_NAME);
+    String displayName = avdInfo.getProperties().get(AvdManager.AVD_INI_DISPLAY_NAME);
     if (displayName == null) {
       displayName = avdInfo.getName().replaceAll("[_-]+", " ");
     }

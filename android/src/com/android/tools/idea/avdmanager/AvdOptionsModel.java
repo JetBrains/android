@@ -206,7 +206,7 @@ public final class AvdOptionsModel extends WizardModel {
     if (avdInfo != null) {
       return avdInfo.getName();
     }
-    String candidateBase = hardwareProperties.get(AvdManagerConnection.AVD_INI_DISPLAY_NAME);
+    String candidateBase = hardwareProperties.get(AvdManager.AVD_INI_DISPLAY_NAME);
     if (candidateBase == null || candidateBase.isEmpty()) {
       String deviceName = device.getDisplayName().replace(' ', '_');
       String manufacturer = device.getManufacturer().replace(' ', '_');
