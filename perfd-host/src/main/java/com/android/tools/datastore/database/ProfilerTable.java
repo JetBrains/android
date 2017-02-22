@@ -20,6 +20,7 @@ import com.android.tools.profiler.proto.Profiler;
 import com.google.protobuf3jarjar.InvalidProtocolBufferException;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -39,6 +40,8 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
     SELECT_DEVICE,
     FIND_AGENT_STATUS,
     UPDATE_AGENT_STATUS,
+    INSERT_BYTES,
+    GET_BYTES
   }
 
   // Need to have a lock due to processes being updated and queried at the same time.
@@ -54,11 +57,13 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
   public void initialize(Connection connection) {
     super.initialize(connection);
     try {
+      createTable("Profiler_Bytes", "Id STRING NOT NULL", "Session STRING NOT NULL", "Data BLOB");
       createTable("Profiler_Devices", "DeviceId INTEGER", "StartTime INTEGER", "EndTime INTEGER", "Data BLOB");
       createTable("Profiler_Processes", "DeviceId INTEGER", "ProcessId INTEGER", "StartTime INTEGER", "EndTime INTEGER",
                   "HasAgent INTEGER", "LastKnownAttachedTime INTEGER", "Data BLOB");
       createIndex("Profiler_Devices", "DeviceId", "StartTime");
       createIndex("Profiler_Processes", "DeviceId", "ProcessId", "StartTime");
+      createIndex("Profiler_Bytes", "Id", "Session");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
@@ -84,6 +89,8 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
                       "SELECT HasAgent, LastKnownAttachedTime from Profiler_Processes WHERE DeviceId = ? AND ProcessId = ? AND StartTime = ?");
       createStatement(ProfilerStatements.UPDATE_AGENT_STATUS,
                       "UPDATE Profiler_Processes SET HasAgent = ?, LastKnownAttachedTime = ? WHERE DeviceId = ? AND ProcessId = ? AND StartTime = ?");
+      createStatement(ProfilerStatements.INSERT_BYTES, "INSERT OR REPLACE INTO Profiler_Bytes (Id, Session, Data) VALUES (?, ?, ?)");
+      createStatement(ProfilerStatements.GET_BYTES, "SELECT Data FROM Profiler_Bytes WHERE ID = ? AND Session = ?");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
@@ -202,5 +209,25 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
 
       return responseBuilder.build();
     }
+  }
+
+  public void insertOrUpdateBytes(String id, Common.Session session, Profiler.BytesResponse response) {
+    execute(ProfilerStatements.INSERT_BYTES, id, session, response.toByteArray());
+  }
+
+  @Nullable
+  public Profiler.BytesResponse getBytes(Profiler.BytesRequest request) {
+    try {
+      ResultSet results =
+        executeQuery(ProfilerStatements.GET_BYTES, request.getId(), request.getSession());
+      if (results.next()) {
+        return Profiler.BytesResponse.parseFrom(results.getBytes(1));
+      }
+    }
+    catch (InvalidProtocolBufferException | SQLException ex) {
+      getLogger().error(ex);
+    }
+
+    return null;
   }
 }
