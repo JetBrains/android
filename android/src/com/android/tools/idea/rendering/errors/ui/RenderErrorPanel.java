@@ -209,10 +209,10 @@ public class RenderErrorPanel extends JPanel implements ListDataListener, Dispos
    */
   @Nullable
   private static Icon getSeverityIcon(@NotNull HighlightSeverity severity) {
-    if (severity.equals(HighlightSeverity.ERROR)) {
+    if (HighlightSeverity.ERROR.getName().equals(severity.getName())) {
       return AllIcons.General.Error;
     }
-    else if (severity.equals(HighlightSeverity.WARNING)) {
+    else if (HighlightSeverity.WARNING.getName().equals(severity.getName())) {
       return AllIcons.General.Warning;
     }
 

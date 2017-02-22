@@ -41,10 +41,6 @@ import java.nio.file.Paths;
   NlDesignSurfaceTest.class, // flaky in bazel
   NlComponentTreeTest.class,
   InteractionManagerTest.class,
-
-  // Failing after IJ 2017.1 merge
-  NlModelTest.class,
-  NlUsageTrackerManagerTest.class,
 })
 public class DesignerTestSuite {
 
