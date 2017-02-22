@@ -228,6 +228,7 @@ public class MemoryProfilerStage extends Stage {
         getLogger().debug(String.format("A heap dump for %d is already in progress.", myProcessId));
         break;
       case UNSPECIFIED:
+      case NOT_PROFILING:
       case FAILURE_UNKNOWN:
       case UNRECOGNIZED:
         break;
@@ -272,6 +273,7 @@ public class MemoryProfilerStage extends Stage {
         myTrackingAllocations = false;
         break;
       case UNSPECIFIED:
+      case NOT_PROFILING:
       case FAILURE_UNKNOWN:
       case UNRECOGNIZED:
         break;
