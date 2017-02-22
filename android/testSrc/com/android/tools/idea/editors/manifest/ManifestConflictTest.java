@@ -29,7 +29,6 @@ import java.util.regex.Pattern;
 
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 
-@Ignore // Broken after 2017.1 merge
 public class ManifestConflictTest extends AndroidGradleTestCase {
 
   private HtmlLinkManager myHtmlLinkManager = new HtmlLinkManager();
