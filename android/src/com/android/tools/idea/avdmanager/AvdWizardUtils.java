@@ -99,7 +99,7 @@ public class AvdWizardUtils {
   public static final String BACKUP_SKIN_FILE_KEY = AvdManager.AVD_INI_BACKUP_SKIN_PATH;
   public static final String DEVICE_FRAME_KEY = "showDeviceFrame";
 
-  public static final String DISPLAY_NAME_KEY = AvdManagerConnection.AVD_INI_DISPLAY_NAME;
+  public static final String DISPLAY_NAME_KEY = AvdManager.AVD_INI_DISPLAY_NAME;
   public static final String AVD_INI_AVD_ID = "AvdId";
   public static final String AVD_ID_KEY = AVD_INI_AVD_ID;
 
