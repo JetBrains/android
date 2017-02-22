@@ -31,8 +31,10 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.*;
+import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -66,7 +68,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.*;
+import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.Projects.getModulesToBuildFromSelection;
+import static com.android.tools.idea.run.editor.ProfilerState.ANDROID_CUSTOM_CLASS_TRANSFORMS;
 import static com.android.tools.idea.run.editor.ProfilerState.EXPERIMENTAL_PROFILING_FLAG_ENABLED;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -326,30 +330,31 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   @NotNull
   public static List<String> getProfilingOptions(@NotNull RunConfiguration configuration) {
-    if (!EXPERIMENTAL_PROFILING_FLAG_ENABLED) {
+    if (!EXPERIMENTAL_PROFILING_FLAG_ENABLED || !(configuration instanceof AndroidRunConfigurationBase)) {
       return Collections.emptyList();
     }
+    List<String> arguments = new LinkedList<>();
+    ProfilerState state = ((AndroidRunConfigurationBase)configuration).getProfilerState();
+    if (state.ENABLE_ADVANCED_PROFILING) {
+      File file = EmbeddedDistributionPaths.getInstance().findEmbeddedProfilerTransform();
+      arguments.add(createProjectProperty(ANDROID_CUSTOM_CLASS_TRANSFORMS, file.getAbsolutePath()));
 
-    if (!(configuration instanceof AndroidRunConfigurationBase)) {
-      return Collections.emptyList();
+      Properties profilerProperties = state.toProperties();
+      try {
+        File propertiesFile = createTempFile("profiler", ".properties");
+        propertiesFile.deleteOnExit(); // TODO: It'd be nice to clean this up sooner than at exit.
+
+        Writer writer = new OutputStreamWriter(new FileOutputStream(propertiesFile), Charsets.UTF_8);
+        profilerProperties.store(writer, "Android Studio Profiler Gradle Plugin Properties");
+        writer.close();
+
+        arguments.add(AndroidGradleSettings.createJvmArg("android.profiler.properties", propertiesFile.getAbsolutePath()));
+      }
+      catch (IOException e) {
+        Throwables.propagate(e);
+      }
     }
-
-    Properties profilerProperties = ((AndroidRunConfigurationBase)configuration).getProfilerState().toProperties();
-    try {
-      File propertiesFile = createTempFile("profiler", ".properties");
-      propertiesFile.deleteOnExit(); // TODO: It'd be nice to clean this up sooner than at exit.
-
-      Writer writer = new OutputStreamWriter(new FileOutputStream(propertiesFile), Charsets.UTF_8);
-      profilerProperties.store(writer, "Android Studio Profiler Gradle Plugin Properties");
-      writer.close();
-
-      String profilingOption = AndroidGradleSettings.createProjectProperty("android.profiler.properties", propertiesFile.getAbsolutePath());
-      return Collections.singletonList(profilingOption);
-    }
-    catch (IOException e) {
-      Throwables.propagate(e);
-      return Collections.emptyList();
-    }
+    return arguments;
   }
 
   private static BeforeRunBuilder createBuilder(@NotNull ExecutionEnvironment env,
