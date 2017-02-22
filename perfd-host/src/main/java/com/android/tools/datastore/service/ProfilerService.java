@@ -52,7 +52,8 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(request.getSession());
     if (client != null) {
       observer.onNext(client.getCurrentTime(request));
-    } else {
+    }
+    else {
       // Need to return something in the case of no device.
       observer.onNext(Profiler.TimeResponse.getDefaultInstance());
     }
@@ -104,9 +105,19 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
 
   @Override
   public void getBytes(Profiler.BytesRequest request, StreamObserver<Profiler.BytesResponse> responseObserver) {
-    // TODO: This should check a local cache of files (either in a database or on disk) before
-    // making the request against the device
-    responseObserver.onNext(myService.getProfilerClient(request.getSession()).getBytes(request));
+    // TODO: Currently the cache is on demand, we want to look into caching all available files.
+    Profiler.BytesResponse response = myTable.getBytes(request);
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(request.getSession());
+
+    if (response == null && client != null) {
+      response = myService.getProfilerClient(request.getSession()).getBytes(request);
+      myTable.insertOrUpdateBytes(request.getId(), request.getSession(), response);
+    }
+    else if (response == null) {
+      response = Profiler.BytesResponse.getDefaultInstance();
+    }
+
+    responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
 
