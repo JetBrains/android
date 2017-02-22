@@ -229,6 +229,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
     action.execute();
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
   }
+
   @Override
   public String getToolTipText(){
     return "Resize View";

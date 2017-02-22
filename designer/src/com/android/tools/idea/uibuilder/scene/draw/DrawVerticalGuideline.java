@@ -92,6 +92,10 @@ public class DrawVerticalGuideline extends DrawRegion {
     }
   }
 
+  public static void add(DisplayList list, SceneContext transform, float left, float top, float bottom) {
+    add(list, transform, left, top, bottom, -1, -1, -1, -1, -1, 1.0f, false);
+  }
+
   public static void add(DisplayList list, SceneContext transform,
                          float left, float top, float bottom,
                          float originX, float originY, float originWidth,

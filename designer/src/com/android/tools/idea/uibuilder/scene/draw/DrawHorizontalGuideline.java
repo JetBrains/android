@@ -88,6 +88,10 @@ public class DrawHorizontalGuideline extends DrawRegion {
     }
   }
 
+  public static void add(DisplayList list, SceneContext transform, float left, float top, float right) {
+    add(list, transform, left, top, right, -1, -1, -1, -1, -1, 1.0f, false);
+  }
+
   public static void add(DisplayList list, SceneContext transform, float left, float top, float right,
                          float originX, float originY, float originHeight,
                          int begin, int end, float percent, boolean selected) {
