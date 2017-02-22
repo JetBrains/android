@@ -41,6 +41,7 @@ import java.nio.file.Paths;
   NlDesignSurfaceTest.class, // flaky in bazel
   NlComponentTreeTest.class,
   InteractionManagerTest.class,
+  StyleFilterTest.class,
 })
 public class DesignerTestSuite {
 

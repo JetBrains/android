@@ -122,10 +122,12 @@ iml_module(
     test_runtime_deps = [
         "//tools/adt/idea/adt-branding",
     ],
+    # 4 shards seem to perform the best on 840s. Keeping it at 2 for 420s.
+    # Test is heavily threaded so higher numbers negatively affect run time.
+    test_shard_count = 2,
     test_srcs = ["testSrc"],
     test_tags = [
         "slow",
-        "exclusive",
     ],
     test_timeout = "eternal",
     # do not sort: must match IML order
