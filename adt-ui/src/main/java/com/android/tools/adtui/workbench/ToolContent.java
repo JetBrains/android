@@ -38,7 +38,10 @@ public interface ToolContent<T> extends Disposable {
   void setToolContext(@Nullable T toolContext);
 
   /**
-   * @return the visual component for this tool window.
+   * Used to get the root component for this rool window.
+   * The root component may not used to interact by default. For example, it is just a decoration.
+   * To get the default interactive component, use {@link #getFocusedComponent()} instead.
+   * @return the root of component for this tool window.
    */
   @NotNull
   JComponent getComponent();
