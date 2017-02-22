@@ -548,10 +548,7 @@ public class WidgetsScene {
         mWidgets.remove(getTag(oldContainer));
         setWidget(newContainer);
         if (mRoot != null) {
-            boolean previousAnimationState = Animator.doAnimation();
-            Animator.setAnimationEnabled(false);
             mRoot.layout();
-            Animator.setAnimationEnabled(previousAnimationState);
         }
     }
 
@@ -598,10 +595,7 @@ public class WidgetsScene {
             }
             parent.add(container);
             setWidget(container);
-            boolean previousAnimationState = Animator.doAnimation();
-            Animator.setAnimationEnabled(false);
             mRoot.layout();
-            Animator.setAnimationEnabled(previousAnimationState);
         }
     }
 
