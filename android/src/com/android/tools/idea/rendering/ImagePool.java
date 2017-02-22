@@ -4,6 +4,7 @@ import com.android.annotations.VisibleForTesting;
 import com.google.common.base.FinalizablePhantomReference;
 import com.google.common.base.FinalizableReferenceQueue;
 import com.google.common.collect.EvictingQueue;
+import com.google.common.collect.ForwardingQueue;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,9 +15,9 @@ import java.awt.image.ImageObserver;
 import java.awt.image.WritableRaster;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
-import java.util.HashMap;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -55,23 +56,34 @@ public class ImagePool {
     @Override
     public void dispose() {}
   };
-
   private static final boolean DEBUG = false;
-  private static final EvictingQueue<SoftReference<BufferedImage>> NULL_EVICTING_QUEUE = EvictingQueue.create(0);
-  private static final BiFunction<Integer, Integer, Function<Integer, Integer>> DEFAULT_SIZING_POLICY = (w, h) -> (type) -> {
-    // Images below 1k, do not pool
-    if (w * h < 1000) {
-      return 0;
-    }
-
-    return 50_000_000 / (w * h);
-  };
-
-  private final HashMap<String, EvictingQueue<SoftReference<BufferedImage>>> myPool = new HashMap<>();
+  private static final Bucket NULL_BUCKET = new Bucket(0, 0, 0);
+  private final int[] myBucketSizes;
+  private final HashMap<String, Bucket> myPool = new HashMap<>();
+  private final BiFunction<Integer, Integer, Function<Integer, Integer>> myBucketSizingPolicy;
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   private final FinalizableReferenceQueue myFinalizableReferenceQueue = new FinalizableReferenceQueue();
   private final Set<Reference<?>> myReferences = Sets.newConcurrentHashSet();
-  private final BiFunction<Integer, Integer, Function<Integer, Integer>> myQueueSizingPolicy;
+
+  /**
+   * Constructs a new {@link ImagePool} with a custom queue sizing policy. The passed bucketSizingPolicy will be called
+   * every time that a new cache is needed for a given (width, height) -> (imageType).
+   * The return value from calling that function will be the size of the EvictingQueue used for caching the pooled
+   * images.
+   * @param bucketSizes Array containing a list of the allowed bucket sizes. The images will be allocated into a bucket that fits its two
+   *                    dimensions. If an image contains one dimension bigger than the biggest given bucket size, the image won't be
+   *                    allocated into the pool.
+   * @param bucketSizingPolicy Function that returns the maximum size for a given bucket. The bucket is defined by width, height and image
+   *                           type. If the returned size is 0, no pooling will be done for that bucket size.
+   */
+  public ImagePool(@NotNull int[] bucketSizes, @NotNull BiFunction<Integer, Integer, Function<Integer, Integer>> bucketSizingPolicy) {
+    if (DEBUG) {
+      System.out.println("New ImagePool");
+    }
+    myBucketSizes = bucketSizes;
+    Arrays.sort(myBucketSizes);
+    myBucketSizingPolicy = bucketSizingPolicy;
+  }
   private boolean isDisposed = false;
 
   /**
@@ -82,59 +94,95 @@ public class ImagePool {
     return String.format("%dx%d-%d", w, h, type);
   }
 
+  public ImagePool() {
+    this(new int[]{50, 500, 1000, 1500, 2000, 5000}, (w, h) -> (type) -> {
+      // Images below 1k, do not pool
+      if (w * h < 1000) {
+        return 0;
+      }
+
+      return 50_000_000 / (w * h);
+    });
+  }
+
   /**
    * Returns the queue to be used to store images of the given width, height and type.
    *
    * @param type See {@link BufferedImage} types
    */
   @NotNull
-  private EvictingQueue<SoftReference<BufferedImage>> getTypeQueue(int w, int h, int type) {
-    String poolKey = getPoolKey(w, h, type);
+  private Bucket getTypeBucket(int w, int h, int type) {
+    if (myBucketSizingPolicy.apply(w, h).apply(type) == 0) {
+      // Do not cache
+      return NULL_BUCKET;
+    }
 
-    return myPool.computeIfAbsent(poolKey, k -> {
-      int size = myQueueSizingPolicy.apply(w, h).apply(type);
+    // Find the bucket sizes for both dimensions
+    int widthBucket = -1;
+    int heightBucket = -1;
+
+    for (int bucketMinSize : myBucketSizes) {
+      if (widthBucket == -1 && w < bucketMinSize) {
+        widthBucket = bucketMinSize;
+
+        if (heightBucket != -1) {
+          break;
+        }
+      }
+      if (heightBucket == -1 && h < bucketMinSize) {
+        heightBucket = bucketMinSize;
+
+        if (widthBucket != -1) {
+          break;
+        }
+      }
+    }
+
+    if (widthBucket == -1 || heightBucket == -1) {
+      return NULL_BUCKET;
+    }
+
+    String poolKey = getPoolKey(widthBucket, heightBucket, type);
+
+    int finalWidthBucket = widthBucket;
+    int finalHeightBucket = heightBucket;
+    return myPool.computeIfAbsent(poolKey, (k) -> {
+      int size = myBucketSizingPolicy.apply(finalWidthBucket, finalHeightBucket).apply(type);
 
       if (size == 0) {
         // For size 0, do not allocate extra memory for a new EvictingQueue.
-        return NULL_EVICTING_QUEUE;
+        return NULL_BUCKET;
       }
 
-      return EvictingQueue.create(size);
+      return new Bucket(finalWidthBucket, finalHeightBucket, size);
     });
-  }
-
-  /**
-   * Constructs a new {@link ImagePool} with a custom queue sizing policy. The passed queueSizingPolicy will be called
-   * every time that a new cache is needed for a given (width, height) -> (imageType).
-   * The return value from calling that function will be the size of the EvictingQueue used for caching the pooled
-   * images.
-   */
-  public ImagePool(@NotNull BiFunction<Integer, Integer, Function<Integer, Integer>> queueSizingPolicy) {
-    if (DEBUG) {
-      System.out.println("New ImagePool");
-    }
-    myQueueSizingPolicy = queueSizingPolicy;
-  }
-
-  public ImagePool() {
-    this(DEFAULT_SIZING_POLICY);
   }
 
   @VisibleForTesting
   @NotNull
   ImageImpl create(final int w, final int h, final int type, @Nullable Consumer<BufferedImage> freedCallback) {
     assert !isDisposed : "ImagePool already disposed";
-    EvictingQueue<SoftReference<BufferedImage>> queue = getTypeQueue(w, h, type);
+
+    // To avoid creating a large number of EvictingQueues, we distribute the images in buckets and use that
+    Bucket bucket = getTypeBucket(w, h, type);
+    if (DEBUG) {
+      System.out.printf("create(%dx%d-%d) in bucket (%dx%d)\n", w, h, type, bucket.myMinWidth, bucket.myMinHeight);
+    }
 
     BufferedImage image;
     SoftReference<BufferedImage> imageRef;
     try {
-      imageRef = queue.remove();
+      imageRef = bucket.remove();
       while ((image = imageRef.get()) == null) {
-        imageRef = queue.remove();
+        imageRef = bucket.remove();
       }
       if (DEBUG) {
-        System.out.printf("Re-used image %dx%d - %d\n", w, h, type);
+        long totalSize = image.getWidth() * image.getHeight();
+        double wasted = (totalSize - w * h);
+        System.out.printf("  Re-used image %dx%d - %d\n  pool buffer %dx%d\n  wasted %d%%\n",
+                          w, h, type,
+                          image.getWidth(), image.getHeight(),
+                          (int)((wasted / totalSize) * 100));
       }
       // Clear the image
       Graphics2D g = image.createGraphics();
@@ -144,23 +192,25 @@ public class ImagePool {
     }
     catch (NoSuchElementException e) {
       if (DEBUG) {
-        System.out.printf("New image %dx%d - %d\n", w, h, type);
+        System.out.printf("  New image %dx%d - %d\n", w, h, type);
       }
       //noinspection UndesirableClassUsage
-      image = new BufferedImage(w, h, type);
+      image = new BufferedImage(Math.max(bucket.myMinWidth, w), Math.max(bucket.myMinHeight, h), type);
     }
 
-    ImageImpl pooledImage = new ImageImpl(image);
+    ImageImpl pooledImage = new ImageImpl(w, h, image);
     final BufferedImage imagePointer = image;
     FinalizablePhantomReference<Image> reference = new FinalizablePhantomReference<Image>(pooledImage, myFinalizableReferenceQueue) {
       @Override
       public void finalizeReferent() {
         // This method might be called twice if the user has manually called the free() method. The second call will have no effect.
         if (myReferences.remove(this)) {
+          boolean accepted = bucket.offer(new SoftReference<>(imagePointer));
           if (DEBUG) {
-            System.out.printf("Released image %dx%d - %d\n", w, h, type);
+            System.out.printf("%s image (%dx%d-%d) in bucket (%dx%d)\n",
+                              accepted ? "Released" : "Rejected",
+                              w, h, type, bucket.myMinWidth, bucket.myMinHeight);
           }
-          getTypeQueue(w, h, type).add(new SoftReference<>(imagePointer));
           if (freedCallback != null) {
             freedCallback.accept(imagePointer);
           }
@@ -173,9 +223,29 @@ public class ImagePool {
     return pooledImage;
   }
 
+  private static class Bucket extends ForwardingQueue<SoftReference<BufferedImage>> {
+    private final Queue<SoftReference<BufferedImage>> myDelegate;
+    private final AtomicLong myLastAccess = new AtomicLong(System.currentTimeMillis());
+    private final int myMinWidth;
+    private final int myMinHeight;
+
+    public Bucket(int minWidth, int minHeight, int maxSize) {
+      myMinWidth = minWidth;
+      myMinHeight = minHeight;
+      myDelegate = maxSize == 0 ?
+                   EvictingQueue.create(0)
+                   : new ArrayBlockingQueue<SoftReference<BufferedImage>>(maxSize);
+    }
+
+    @Override
+    protected Queue<SoftReference<BufferedImage>> delegate() {
+      myLastAccess.set(System.currentTimeMillis());
+      return myDelegate;
+    }
+  }
+
   /**
-   * Returns a new image of width w and height h. Please note that the image might have some contents so it is the responsibility of the
-   * caller to clean it.
+   * Returns a new image of width w and height h.
    */
   @NotNull
   public Image create(final int w, final int h, final int type) {
@@ -290,20 +360,27 @@ public class ImagePool {
     @Nullable
     BufferedImage myBuffer;
 
-    private ImageImpl(@NotNull BufferedImage image) {
+    final int myWidth;
+    final int myHeight;
+
+    private ImageImpl(int w, int h, @NotNull BufferedImage image) {
+      assert w <= image.getWidth() && h <= image.getHeight();
+
+      myWidth = w;
+      myHeight = h;
       myBuffer = image;
     }
 
     @Override
     public int getWidth() {
       assert myBuffer != null : "Image was already disposed";
-      return myBuffer.getWidth();
+      return myWidth;
     }
 
     @Override
     public int getHeight() {
       assert myBuffer != null : "Image was already disposed";
-      return myBuffer.getHeight();
+      return myHeight;
     }
 
     @Override
@@ -327,6 +404,15 @@ public class ImagePool {
     @NotNull
     public BufferedImage getCopy(int x, int y, int w, int h) {
       assert myBuffer != null : "Image was already disposed";
+
+      if (x + w > myWidth) {
+        throw new IndexOutOfBoundsException(String.format("x + y is out bounds (image width is = %d)", h));
+      }
+
+      if (y + h > myHeight) {
+        throw new IndexOutOfBoundsException(String.format("y + h is out bounds (image height is = %d)", h));
+      }
+
       WritableRaster raster = myBuffer.copyData(myBuffer.getRaster().createCompatibleWritableRaster(x, y, w, h));
       //noinspection UndesirableClassUsage
       return new BufferedImage(myBuffer.getColorModel(), raster, myBuffer.isAlphaPremultiplied(), null);
@@ -336,7 +422,7 @@ public class ImagePool {
     @NotNull
     public BufferedImage getCopy() {
       assert myBuffer != null : "Image was already disposed";
-      WritableRaster raster = myBuffer.copyData(myBuffer.getRaster().createCompatibleWritableRaster());
+      WritableRaster raster = myBuffer.copyData(myBuffer.getRaster().createCompatibleWritableRaster(0, 0, myWidth, myHeight));
       //noinspection UndesirableClassUsage
       return new BufferedImage(myBuffer.getColorModel(), raster, myBuffer.isAlphaPremultiplied(), null);
     }
