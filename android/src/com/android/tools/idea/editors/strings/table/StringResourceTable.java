@@ -39,6 +39,8 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -70,6 +72,10 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
 
     TableCellEditor editor = new StringsCellEditor();
     editor.addCellEditorListener(editorListener);
+
+    InputMap inputMap = getInputMap(WHEN_FOCUSED);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "delete");
 
     setAutoResizeMode(AUTO_RESIZE_OFF);
     setCellSelectionEnabled(true);
@@ -156,6 +162,12 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
 
   public int getSelectedColumnModelIndex() {
     return convertColumnIndexToModel(getSelectedColumn());
+  }
+
+  public int[] getSelectedColumnModelIndices() {
+    return Arrays.stream(getSelectedColumns())
+      .map(this::convertColumnIndexToModel)
+      .toArray();
   }
 
   @Override

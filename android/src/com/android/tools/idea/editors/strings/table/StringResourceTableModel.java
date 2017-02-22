@@ -94,7 +94,7 @@ public class StringResourceTableModel extends AbstractTableModel {
   }
 
   @Override
-  public void setValueAt(Object value, int row, int column) {
+  public void setValueAt(@NotNull Object value, int row, int column) {
     assert myData != null && myKeys != null;
 
     switch (column) {
