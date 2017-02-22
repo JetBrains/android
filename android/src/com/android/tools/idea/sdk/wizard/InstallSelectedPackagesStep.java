@@ -176,7 +176,7 @@ public final class InstallSelectedPackagesStep extends ModelWizardStep.WithoutMo
           checkForUpgrades(myInstallRequests);
         }
         myInstallationFinished.set(true);
-      }, ModalityState.defaultModalityState());
+      }, ModalityState.any());
       return null;
     };
 
