@@ -16,12 +16,17 @@
 package com.android.tools.idea.uibuilder.handlers.absolute;
 
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+
 import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
+import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.TEXT_VIEW;
+import static com.google.common.truth.Truth.assertThat;
 
 public class AbsoluteLayoutHandlerTest extends SceneTest {
 
@@ -77,6 +82,58 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
                  "    android:layout_y=\"200dp\"/>");
   }
 
+  public void testResizeSnapToMatchParent() throws Exception {
+    myInteraction.select("myButton", true);
+    myInteraction.mouseDown("myButton", ResizeBaseTarget.Type.RIGHT);
+    myInteraction.mouseRelease(995, 150);
+    myScreen.get("@id/myButton")
+      .expectXml("<Button\n" +
+                 "    android:id=\"@id/myButton\"\n" +
+                 "    android:text=\"Button\"\n" +
+                 "    android:layout_width=\"match_parent\"\n" +
+                 "    android:layout_height=\"100dp\"\n" +
+                 "    android:layout_x=\"0dp\"\n" +
+                 "    android:layout_y=\"300dp\"/>");
+  }
+
+  public void testResizeSnapToWrapContent() throws Exception {
+    SceneComponent component = myScene.getSceneComponent("myButton");
+    assertThat(component).isNotNull();
+    Dimension wrapSize = myScene.measureWrapSize(component);
+    assertThat(wrapSize).isNotNull();
+
+    myInteraction.select("myButton", true);
+    myInteraction.mouseDown("myButton", ResizeBaseTarget.Type.RIGHT_BOTTOM);
+    myInteraction.mouseRelease(wrapSize.width + 4, 300 + wrapSize.height - 3);
+    myScreen.get("@id/myButton")
+      .expectXml("<Button\n" +
+                 "    android:id=\"@id/myButton\"\n" +
+                 "    android:text=\"Button\"\n" +
+                 "    android:layout_width=\"wrap_content\"\n" +
+                 "    android:layout_height=\"wrap_content\"\n" +
+                 "    android:layout_x=\"0dp\"\n" +
+                 "    android:layout_y=\"300dp\"/>");
+  }
+
+  public void testResizeInsideOutSnapToWrapContent() throws Exception {
+    SceneComponent component = myScene.getSceneComponent("myButton");
+    assertThat(component).isNotNull();
+    Dimension wrapSize = myScene.measureWrapSize(component);
+    assertThat(wrapSize).isNotNull();
+
+    myInteraction.select("myButton", true);
+    myInteraction.mouseDown("myButton", ResizeBaseTarget.Type.LEFT_TOP);
+    myInteraction.mouseRelease(100 + wrapSize.width + 3, 400 + wrapSize.height);
+    myScreen.get("@id/myButton")
+      .expectXml("<Button\n" +
+                 "    android:id=\"@id/myButton\"\n" +
+                 "    android:text=\"Button\"\n" +
+                 "    android:layout_width=\"wrap_content\"\n" +
+                 "    android:layout_height=\"wrap_content\"\n" +
+                 "    android:layout_x=\"100dp\"\n" +
+                 "    android:layout_y=\"400dp\"/>");
+  }
+
   public void testDrag() throws Exception {
     myInteraction.select("myText", true);
     myInteraction.mouseDown("myText");
@@ -117,7 +174,15 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
                        .width("100dp")
                        .height("100dp")
                        .withAttribute("android:layout_x", "100dp")
-                       .withAttribute("android:layout_y", "100dp")
+                       .withAttribute("android:layout_y", "100dp"),
+                     component(BUTTON)
+                       .withBounds(0, 600, 200, 200)
+                       .id("@id/myButton")
+                       .text("Button")
+                       .width("100dp")
+                       .height("100dp")
+                       .withAttribute("android:layout_x", "0dp")
+                       .withAttribute("android:layout_y", "300dp")
                    ));
   }
 }
