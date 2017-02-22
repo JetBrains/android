@@ -188,8 +188,6 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     private static final String GRADLE_RUNNING_MSG_TITLE = "Gradle Running";
     private static final String PASSWORD_KEY_SUFFIX = ".password=";
 
-    public static final String ANDROID_CUSTOM_CLASS_TRANSFORMS = "android.custom.class.transforms";
-
     @NotNull private final Key<Key<?>> myContentId = Key.create("compile_content");
 
     @NotNull private final Object myMessageViewLock = new Object();
@@ -354,11 +352,6 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           initScripts.addLocalMavenRepoInitScriptCommandLineArgTo(commandLineArguments);
 
           attemptToUseEmbeddedGradle(project);
-
-          if (EXPERIMENTAL_PROFILING_FLAG_ENABLED) {
-            File file = EmbeddedDistributionPaths.getInstance().findEmbeddedProfilerTransform();
-            commandLineArguments.add(createProjectProperty(ANDROID_CUSTOM_CLASS_TRANSFORMS, file.getAbsolutePath()));
-          }
 
           // Don't include passwords in the log
           String logMessage = "Build command line options: " + commandLineArguments;
