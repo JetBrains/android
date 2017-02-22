@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.scene.draw;
 
-import android.support.constraint.solver.widgets.Animator;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.sherpa.animation.Animation;
 import com.android.tools.sherpa.drawing.ColorSet;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,7 +50,7 @@ public class DrawAnchor extends DrawRegion {
   }
 
   private int getPulseAlpha(int deltaT) {
-    int v = (int)Animator.EaseInOutinterpolator((deltaT % 1000) / 1000.0, 0, 255);
+    int v = (int)Animation.EaseInOutinterpolator((deltaT % 1000) / 1000.0, 0, 255);
     return v;
   }
 
