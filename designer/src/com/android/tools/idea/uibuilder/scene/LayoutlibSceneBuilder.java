@@ -92,7 +92,7 @@ public class LayoutlibSceneBuilder extends SceneBuilder {
     List<NlComponent> components = getModel().getComponents();
     Scene scene = getScene();
     if (components.size() == 0) {
-      scene.getSceneComponents().forEach(scene::removeComponent);
+      scene.removeAllComponents();
       scene.setRoot(null);
       return;
     }
