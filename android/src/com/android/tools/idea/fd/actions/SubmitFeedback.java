@@ -40,7 +40,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
 public class SubmitFeedback extends DumbAwareAction {
-  private static final NotificationGroup FLR_NOTIFICATION_GROUP = NotificationGroup.balloonGroup("instant.run.flight.recorder");
+  private static final NotificationGroup FLR_NOTIFICATION_GROUP = NotificationGroup.balloonGroup("Instant Run Issue Submission");
 
   public SubmitFeedback() {
     super("Report Instant Run Issue...");
