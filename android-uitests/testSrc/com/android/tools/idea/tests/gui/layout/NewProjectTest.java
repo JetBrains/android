@@ -30,7 +30,6 @@ import com.intellij.openapi.roots.LanguageLevelModuleExtension;
 import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.pom.java.LanguageLevel;
-import org.fest.swing.edt.GuiTask;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -157,10 +156,6 @@ public class NewProjectTest {
     // warnings either.
     IdeFrameFixture ideFrame = newProject("Test Application").withCpp().create();
     assertThat(ideFrame.getModuleNames()).containsExactly("app", "TestApplication");
-
-    // Workaround for Windows specific issue when using 'Inspect Code' feature.
-    // See NewInstantAppTest.testNoWarningsInDefaultNewInstantAppProjects
-    GuiTask.execute(() -> guiTest.ideFrame().getProject().save());
 
     String inspectionResults = guiTest.ideFrame()
       .openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
