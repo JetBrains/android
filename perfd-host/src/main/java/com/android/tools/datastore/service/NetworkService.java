@@ -56,18 +56,27 @@ public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase im
   @Override
   public void startMonitoringApp(NetworkProfiler.NetworkStartRequest request,
                                  StreamObserver<NetworkProfiler.NetworkStartResponse> responseObserver) {
-    responseObserver.onNext(myService.getNetworkClient(request.getSession()).startMonitoringApp(request));
-    responseObserver.onCompleted();
-    int processId = request.getProcessId();
-    myRunners.put(processId, new NetworkDataPoller(processId, request.getSession(), myNetworkTable, myService.getNetworkClient(request.getSession())));
-    myFetchExecutor.accept(myRunners.get(processId));
+    NetworkServiceGrpc.NetworkServiceBlockingStub client = myService.getNetworkClient(request.getSession());
+    if (client != null) {
+      responseObserver.onNext(client.startMonitoringApp(request));
+      responseObserver.onCompleted();
+      int processId = request.getProcessId();
+      myRunners.put(processId, new NetworkDataPoller(processId, request.getSession(), myNetworkTable, client));
+      myFetchExecutor.accept(myRunners.get(processId));
+    } else {
+      responseObserver.onNext(NetworkProfiler.NetworkStartResponse.getDefaultInstance());
+      responseObserver.onCompleted();
+    }
   }
 
   @Override
   public void stopMonitoringApp(NetworkProfiler.NetworkStopRequest request,
                                 StreamObserver<NetworkProfiler.NetworkStopResponse> responseObserver) {
     int processId = request.getProcessId();
-    myRunners.remove(processId).stop();
+    PollRunner runner = myRunners.remove(processId);
+    if (runner != null) {
+      runner.stop();
+    }
     // Our polling service can get shutdown if we unplug the device.
     // This should be the only function that gets called as StudioProfilers attempts
     // to stop monitoring the last app it was monitoring.
