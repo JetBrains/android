@@ -115,8 +115,7 @@ public class NlUsageTrackerManagerTest extends JavaCodeInsightFixtureTestCase {
                  studioEvent.getLayoutEditorEvent().getType());
   }
 
-  @Ignore // Failing after IntelliJ 2017.1 merge
-  public void ignore_testRenderLogging() {
+  public void testRenderLogging() {
     UsageTracker usageTracker = mock(UsageTracker.class);
     LinkedList<AndroidStudioEvent> logCalls = new LinkedList<>();
     doAnswer(invocation -> {
