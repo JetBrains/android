@@ -93,19 +93,31 @@ public class ImagePoolTest {
     assertEquals(image1.myBuffer, internalPtr);
     assertFalse(secondImageFreed.get());
     // The image is being reused. Check that it's a clean image
-    ImageDiffUtil.assertImageSimilar("clean", new BufferedImage(50, 50, BufferedImage.TYPE_INT_ARGB), image1.myBuffer, 0.0);
+    ImageDiffUtil
+      .assertImageSimilar("clean", new BufferedImage(50, 50, BufferedImage.TYPE_INT_ARGB), image1.myBuffer.getSubimage(0, 0, 50, 50), 0.0);
 
-    // Save the pointer to the internal image2 buffer
-    internalPtr = image2.myBuffer;
     //noinspection UnusedAssignment
     image2 = null;
     gc();
     countDown2.await(3, TimeUnit.SECONDS);
-    // We will get images from different size, and type, none of them should return the pooled image
-    assertNotEquals(internalPtr, myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB_PRE, null).myBuffer);
-    assertNotEquals(internalPtr, myPool.create(51, 50, BufferedImage.TYPE_INT_ARGB, null).myBuffer);
-    assertNotEquals(internalPtr, myPool.create(50, 51, BufferedImage.TYPE_INT_ARGB, null).myBuffer);
-    assertEquals(internalPtr, myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB, null).myBuffer);
+
+    ImagePool.ImageImpl tmpImage = myPool.create(50, 50, BufferedImage.TYPE_INT_ARGB_PRE, null);
+    assertEquals(50, tmpImage.getWidth());
+    assertEquals(50, tmpImage.getHeight());
+    assertEquals(BufferedImage.TYPE_INT_ARGB_PRE, tmpImage.myBuffer.getType());
+
+    tmpImage = myPool.create(51, 50, BufferedImage.TYPE_INT_ARGB, null);
+    assertEquals(51, tmpImage.getWidth());
+    assertEquals(50, tmpImage.getHeight());
+    assertEquals(BufferedImage.TYPE_INT_ARGB, tmpImage.myBuffer.getType());
+
+    tmpImage =  myPool.create(50, 51, BufferedImage.TYPE_INT_ARGB, null);
+    assertEquals(50, tmpImage.getWidth());
+    assertEquals(51, tmpImage.getHeight());
+    assertEquals(BufferedImage.TYPE_INT_ARGB, tmpImage.myBuffer.getType());
+
+    tmpImage = null;
+    gc();
   }
 
   @Test
@@ -132,6 +144,7 @@ public class ImagePoolTest {
 
   @Test
   public void testDefaultPooling() throws InterruptedException {
+    // Small images won't be pooled
     CountDownLatch countDown = new CountDownLatch(1);
     ImagePool.ImageImpl image1 = myPool.create(10, 10, BufferedImage.TYPE_INT_ARGB, (b) -> countDown.countDown());
 
@@ -163,6 +176,12 @@ public class ImagePoolTest {
     assertEquals(25, copy.getWidth());
     assertEquals(50, copy.getHeight());
     ImageDiffUtil.assertImageSimilar("pooledimage", original.getSubimage(0, 0, 25, 50), copy, 0.0);
+
+    try {
+      copy = image.getCopy(0, 0, 25, 150);
+      fail("IndexOutOfBoundsException expected for height out of bounds");
+    } catch (IndexOutOfBoundsException e) {
+    }
   }
 
   @Test
