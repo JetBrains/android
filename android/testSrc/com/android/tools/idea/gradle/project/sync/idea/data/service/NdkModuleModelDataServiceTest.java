@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
+import com.android.tools.idea.testing.Facets;
+import com.apple.eawt.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -28,6 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
+import static com.android.tools.idea.testing.Facets.createAndAddNdkFacet;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -45,15 +50,17 @@ public class NdkModuleModelDataServiceTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
-    myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     myDataService = new NdkModuleModelDataService(myModuleSetup);
   }
 
   public void testGetTargetDataKey() {
+    myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     assertSame(NDK_MODEL, myDataService.getTargetDataKey());
   }
 
   public void testImportData() {
+    myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+
     String appModuleName = "app";
     Module appModule = createModule(appModuleName);
 
@@ -66,5 +73,18 @@ public class NdkModuleModelDataServiceTest extends IdeaTestCase {
     myDataService.importData(dataNodes, null, getProject(), myModelsProvider);
 
     verify(myModuleSetup).setUpModule(appModule, myModelsProvider, model, null, null);
+  }
+
+  // See: https://code.google.com/p/android/issues/detail?id=229806
+  public void testOnModelsNotFound() {
+    createAndAddNdkFacet(myModule);
+
+    myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+
+    myDataService.onModelsNotFound(myModelsProvider);
+
+    ApplicationManager.getApplication().runWriteAction(() -> myModelsProvider.commit());
+
+    assertNull(NdkFacet.getInstance(myModule));
   }
 }

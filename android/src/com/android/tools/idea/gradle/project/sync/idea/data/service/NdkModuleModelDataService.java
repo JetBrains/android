@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -29,6 +31,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 
 public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleModel> {
   @NotNull private final NdkModuleSetup myModuleSetup;
@@ -57,6 +60,15 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
     for (Module module : modelsProvider.getModules()) {
       NdkModuleModel ndkModuleModel = modelsByName.get(module.getName());
       myModuleSetup.setUpModule(module, modelsProvider, ndkModuleModel, null, null);
+    }
+  }
+
+  @Override
+  protected void onModelsNotFound(@NotNull IdeModifiableModelsProvider modelsProvider) {
+    // See https://code.google.com/p/android/issues/detail?id=229806
+    for (Module module : modelsProvider.getModules()) {
+      ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
+      removeAllFacets(facetModel, NdkFacet.getFacetTypeId());
     }
   }
 }
