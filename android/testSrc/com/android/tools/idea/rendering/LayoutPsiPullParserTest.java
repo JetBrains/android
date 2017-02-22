@@ -262,16 +262,17 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
     assertTrue(psiFile instanceof XmlFile);
     XmlFile xmlFile = (XmlFile)psiFile;
+    long expectedId = AaptAttrAttributeSnapshot.ourUniqueId.get();
     LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag()); // ImageView
     assertEquals("ImageView", parser.getName());
-    assertEquals("@aapt:_aapt/0", parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
+    assertEquals("@aapt:_aapt/" + expectedId, parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
     assertEquals(END_TAG, parser.nextTag()); // ImageView (@id/first)
 
     assertEquals(START_TAG, parser.nextTag()); // ImageView (@id/second)
-    assertEquals("@aapt:_aapt/1", parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
+    assertEquals("@aapt:_aapt/" + (expectedId + 1), parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
     assertEquals(END_TAG, parser.nextTag()); // ImageView
 
     assertEquals("21dp", parser.getAaptDeclaredAttrs().get("0").getAttribute("width", ANDROID_URI));
