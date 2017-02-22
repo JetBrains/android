@@ -187,6 +187,42 @@ public class ProfilerServiceTest extends DataStorePollerTest {
     validateResponse(observerNoMatch, responseNoMatch);
   }
 
+  @Test
+  public void testGetFileCached() throws Exception {
+    // Pull data into the database cache.
+    StreamObserver<Profiler.BytesResponse> observer1 = mock(StreamObserver.class);
+    Profiler.BytesRequest request1 = Profiler.BytesRequest.newBuilder().setId(BYTES_ID_1).build();
+    Profiler.BytesResponse response1 = Profiler.BytesResponse.newBuilder().setContents(BYTES_1).build();
+    myProfilerService.getBytes(request1, observer1);
+    validateResponse(observer1, response1);
+
+    StreamObserver<Profiler.BytesResponse> observer2 = mock(StreamObserver.class);
+    Profiler.BytesRequest request2 = Profiler.BytesRequest.newBuilder().setId(BYTES_ID_2).build();
+    Profiler.BytesResponse response2 = Profiler.BytesResponse.newBuilder().setContents(BYTES_2).build();
+    myProfilerService.getBytes(request2, observer2);
+    validateResponse(observer2, response2);
+
+    // Disconnect the client
+    when(myDataStore.getProfilerClient(any())).thenReturn(null);
+
+    // Validate that we get back the expected bytes
+    observer1 = mock(StreamObserver.class);
+    myProfilerService.getBytes(request1, observer1);
+    validateResponse(observer1, response1);
+
+    observer2 = mock(StreamObserver.class);
+    myProfilerService.getBytes(request2, observer2);
+    validateResponse(observer2, response2);
+
+    // Validate that bad instances still return default.
+    StreamObserver<Profiler.BytesResponse> observerNoMatch = mock(StreamObserver.class);
+    Profiler.BytesRequest requestBad =
+      Profiler.BytesRequest.newBuilder().setId(BAD_ID).build();
+    Profiler.BytesResponse responseNoMatch = Profiler.BytesResponse.getDefaultInstance();
+    myProfilerService.getBytes(requestBad, observerNoMatch);
+    validateResponse(observerNoMatch, responseNoMatch);
+  }
+
   private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
 
     Profiler.Process myProcessToReturn = INITIAL_PROCESS;
