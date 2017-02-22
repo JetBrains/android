@@ -48,13 +48,12 @@ public class ProfilerColors {
       .put(CpuProfilerStage.ThreadState.RUNNING_CAPTURED, new JBColor(0x53B5A0, 0x44B67F))
       .put(CpuProfilerStage.ThreadState.WAITING, new JBColor(0xD4E675, 0x94A244))
       .put(CpuProfilerStage.ThreadState.WAITING_CAPTURED, new JBColor(0xEFF35C, 0xDCF35C))
-      // TODO: update zombie colors when we do a design review
-      .put(CpuProfilerStage.ThreadState.ZOMBIE, new JBColor(0xC1D6F6, 0x5A6E7D))
-      .put(CpuProfilerStage.ThreadState.ZOMBIE_CAPTURED, new JBColor(0x5A6E7D, 0xC1D6F6))
       .put(CpuProfilerStage.ThreadState.SLEEPING, new JBColor(0xEDEFF1, 0x3B3E42))
       .put(CpuProfilerStage.ThreadState.SLEEPING_CAPTURED, new JBColor(0xD4D7DA, 0x4B4E52))
       .put(CpuProfilerStage.ThreadState.DEAD, Gray.TRANSPARENT)
       .put(CpuProfilerStage.ThreadState.DEAD_CAPTURED, Gray.TRANSPARENT)
+      // TODO: remove UNKNOWN mapping when all states are covered.
+      .put(CpuProfilerStage.ThreadState.UNKNOWN, new JBColor(0xC1D6F6, 0x5A6E7D))
       .build();
 
   public static final Color TRANSPARENT_COLOR = new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0));
