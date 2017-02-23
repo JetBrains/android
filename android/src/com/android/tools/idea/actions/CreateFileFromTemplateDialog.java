@@ -344,6 +344,11 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
       protected String getActionName(String newName) {
         return creator.getActionName(newName, myKindCombo.getSelectedName());
       }
+
+      @Override
+      public boolean startInWriteAction() {
+        return false; // Should return false if e.g. modal dialog is shown inside the action.
+      }
     };
 
     show();
