@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.refactoring.safeDelete.SafeDeleteDialog;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.fixture.JCheckBoxFixture;
 import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
@@ -30,8 +31,8 @@ public class DeleteDialogFixture extends IdeaDialogFixture<SafeDeleteDialog> {
   }
 
   @NotNull
-  public static DeleteDialogFixture find(@NotNull Robot robot) {
-    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, "Safe Delete").and(
+  public static DeleteDialogFixture find(@NotNull Robot robot, @NotNull String title) {
+    JDialog dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog.class, title).and(
       new GenericTypeMatcher<JDialog>(JDialog.class) {
         @Override
         protected boolean isMatching(@NotNull JDialog dialog) {
@@ -49,5 +50,18 @@ public class DeleteDialogFixture extends IdeaDialogFixture<SafeDeleteDialog> {
   public UnsafeUsagesDialogFixture waitForUnsafeDialog() {
     GuiTests.waitForBackgroundTasks(robot());
     return UnsafeUsagesDialogFixture.find(robot());
+  }
+
+  @NotNull
+  public DeleteDialogFixture safe(boolean selected) {
+    JCheckBoxFixture checkbox =
+      new JCheckBoxFixture(robot(), robot().finder().find(Matchers.byText(JCheckBox.class, "Safe delete (with usage search)")));
+    if (selected) {
+      checkbox.select();
+    }
+    else {
+      checkbox.deselect();
+    }
+    return this;
   }
 }
