@@ -28,6 +28,7 @@ import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
@@ -38,6 +39,9 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.messages.MessageBus;
+import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.util.messages.Topic;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -65,24 +69,36 @@ public class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
   @NonNls private static final String ANDROID_SDK_PATH_KEY = "android.sdk.path";
 
+  static final Topic<IdeSdkChangeListener> IDE_SYNC_TOPIC = new Topic<>("IDE SDKs", IdeSdkChangeListener.class);
+
   @NotNull private final AndroidSdks myAndroidSdks;
   @NotNull private final Jdks myJdks;
   @NotNull private final EmbeddedDistributionPaths myEmbeddedDistributionPaths;
   @NotNull private final IdeInfo myIdeInfo;
+  @NotNull private final MessageBus myMessageBus;
 
   @NotNull
   public static IdeSdks getInstance() {
     return ServiceManager.getService(IdeSdks.class);
   }
 
+  @NotNull
+  public static MessageBusConnection subscribe(@NotNull IdeSdkChangeListener listener, @NotNull Disposable parentDisposable) {
+    MessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect(parentDisposable);
+    connection.subscribe(IDE_SYNC_TOPIC, listener);
+    return connection;
+  }
+
   public IdeSdks(@NotNull AndroidSdks androidSdks,
                  @NotNull Jdks jdks,
                  @NotNull EmbeddedDistributionPaths embeddedDistributionPaths,
-                 @NotNull IdeInfo ideInfo) {
+                 @NotNull IdeInfo ideInfo,
+                 @NotNull MessageBus messageBus) {
     myAndroidSdks = androidSdks;
     myJdks = jdks;
     myEmbeddedDistributionPaths = embeddedDistributionPaths;
     myIdeInfo = ideInfo;
+    myMessageBus = messageBus;
   }
 
   /**
@@ -220,11 +236,6 @@ public class IdeSdks {
     }
   }
 
-  @NotNull
-  public List<Sdk> setAndroidSdkPath(@NotNull File path, @Nullable Project currentProject) {
-    return setAndroidSdkPath(path, null, currentProject);
-  }
-
   /**
    * Iterates through all Android SDKs and makes them point to the given JDK.
    */
@@ -239,6 +250,11 @@ public class IdeSdks {
       modificator.setSdkAdditionalData(oldData);
       modificator.commitChanges();
     }
+  }
+
+  @NotNull
+  public List<Sdk> setAndroidSdkPath(@NotNull File path, @Nullable Project currentProject) {
+    return setAndroidSdkPath(path, null, currentProject);
   }
 
   /**
@@ -295,6 +311,8 @@ public class IdeSdks {
       List<Sdk> sdks = createAndroidSdkPerAndroidTarget(resolved, javaSdk);
 
       afterAndroidSdkPathUpdate(resolved);
+
+      myMessageBus.syncPublisher(IDE_SYNC_TOPIC).sdkPathChanged(path);
 
       return sdks;
     }
@@ -562,5 +580,9 @@ public class IdeSdks {
       }
     }
     return false;
+  }
+
+  public interface IdeSdkChangeListener {
+    void sdkPathChanged(@NotNull File newSdkPath);
   }
 }
