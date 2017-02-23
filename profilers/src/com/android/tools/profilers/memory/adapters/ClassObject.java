@@ -103,44 +103,6 @@ public abstract class ClassObject extends NamespaceObject {
   }
 
   /**
-   * @return number of instances across all heaps.
-   */
-  @Override
-  public int getTotalCount() {
-    return INVALID_VALUE;
-  }
-
-  /**
-   * @return number of instances on current heap.
-   */
-  @Override
-  public int getHeapCount() {
-    return INVALID_VALUE;
-  }
-
-  /**
-   * @return the (approximated?) size of each instance of the class.
-   */
-  public int getInstanceSize() {
-    return INVALID_VALUE;
-  }
-
-  /**
-   * @return size of instances on current heap.
-   */
-  public int getShallowSize() {
-    return INVALID_VALUE;
-  }
-
-  /**
-   * @return number of instances on current heap.
-   */
-  @Override
-  public long getRetainedSize() {
-    return INVALID_VALUE;
-  }
-
-  /**
    * @return list of instances on current heap.
    */
   @NotNull
@@ -150,4 +112,9 @@ public abstract class ClassObject extends NamespaceObject {
 
   @NotNull
   public abstract List<InstanceAttribute> getInstanceAttributes();
+
+  @Override
+  public boolean isInNamespace(@NotNull NamespaceObject target) {
+    return equals(target);
+  }
 }
