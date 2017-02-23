@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.DefaultTreeSelectionModel;
 
 public interface DeviceExplorerModelListener {
   /**
@@ -54,5 +55,5 @@ public interface DeviceExplorerModelListener {
    *
    * If there is no active device, <code>newTreeModel</code> is <code>null</code>.
    */
-  void treeModelChanged(@Nullable DefaultTreeModel newTreeModel);
+  void treeModelChanged(@Nullable DefaultTreeModel newTreeModel, @Nullable DefaultTreeSelectionModel newTreeSelectionModel);
 }

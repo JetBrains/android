@@ -66,6 +66,11 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   }
 
   @NotNull
+  public AdbFileOperations getAdbFileOperations() {
+    return myFileOperations;
+  }
+
+  @NotNull
   FutureCallbackExecutor getEdtExecutor() {
     return myService.getEdtExecutor();
   }
