@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -68,7 +69,7 @@ public class BuildApkActionTest extends AndroidGradleTestCase {
     @Nullable private Module[] myModulesToAssemble;
 
     GradleBuildInvokerStub(@NotNull Project project) {
-      super(project);
+      super(project, mock(FileDocumentManager.class));
     }
 
     @Override
