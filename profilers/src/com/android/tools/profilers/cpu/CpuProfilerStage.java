@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
@@ -115,6 +116,9 @@ public class CpuProfilerStage extends Stage {
   @Nullable
   private CaptureDetails myCaptureDetails;
 
+  @Nullable
+  private CodeLocation myCodeLocation;
+
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
     myCpuTraceDataSeries = new CpuTraceDataSeries();
@@ -193,7 +197,7 @@ public class CpuProfilerStage extends Stage {
 
   @Override
   public ProfilerMode getProfilerMode() {
-    return myCapture == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
+    return myCodeLocation != null || myCapture == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
   }
 
   public AspectModel<CpuProfilerAspect> getAspect() {
@@ -372,12 +376,18 @@ public class CpuProfilerStage extends Stage {
       myCaptureDetails = null;
     }
 
+    setCodeLocation(null);
     myAspect.changed(CpuProfilerAspect.CAPTURE_DETAILS);
   }
 
   @Nullable
   public CaptureDetails getCaptureDetails() {
     return myCaptureDetails;
+  }
+
+  public void setCodeLocation(@Nullable CodeLocation location) {
+    myCodeLocation = location;
+    getStudioProfilers().modeChanged();
   }
 
   public interface CaptureDetails {

@@ -18,16 +18,20 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.HNode;
+import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ViewBinder;
+import com.android.tools.profilers.common.CodeLocation;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.TreeExpansionEvent;
@@ -59,7 +63,7 @@ class CpuCaptureView {
   private final JBTabbedPane myPanel;
 
   @NotNull
-  private final ViewBinder<CpuCaptureView, CpuProfilerStage.CaptureDetails, CaptureDetailsView> myBinder;
+  private final ViewBinder<CpuProfilerStageView, CpuProfilerStage.CaptureDetails, CaptureDetailsView> myBinder;
 
   CpuCaptureView(@NotNull CpuProfilerStageView view) {
     myView = view;
@@ -97,7 +101,7 @@ class CpuCaptureView {
         break;
       }
     }
-    myPanel.setComponentAt(current, myBinder.build(this, details).getComponent());
+    myPanel.setComponentAt(current, myBinder.build(myView, details).getComponent());
   }
 
   void setCaptureDetailToTab() {
@@ -106,10 +110,13 @@ class CpuCaptureView {
   }
 
   @NotNull
-  private static JComponent setUpCpuTree(@NotNull JTree tree, @NotNull CpuTreeModel model) {
+  private static JComponent setUpCpuTree(@NotNull JTree tree, @NotNull CpuTreeModel model, @NotNull CpuProfilerStageView stageView) {
     tree.setModel(model);
     CpuTraceTreeSorter sorter = new CpuTraceTreeSorter(tree);
     sorter.setModel(model, DEFAULT_SORT_ORDER);
+
+    stageView.getIdeComponents().installNavigationContextMenu(tree, () -> getCodeLocation(tree),
+                                                           () -> stageView.getStage().setCodeLocation(getCodeLocation(tree)));
 
     return new ColumnTreeBuilder(tree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
@@ -152,7 +159,18 @@ class CpuCaptureView {
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, true))
                    .setComparator(DEFAULT_SORT_ORDER))
       .setTreeSorter(sorter)
+      .setBackground(ProfilerColors.MONITOR_BACKGROUND)
       .build();
+  }
+
+  @Nullable
+  private static CodeLocation getCodeLocation(@NotNull JTree tree) {
+    if (tree.getSelectionPath() == null) {
+      return null;
+    }
+    DefaultMutableTreeNode node = (DefaultMutableTreeNode)tree.getSelectionPath().getLastPathComponent();
+    CpuTreeNode cpuNode = (CpuTreeNode)node.getUserObject();
+    return new CodeLocation(cpuNode.getClassName());
   }
 
   /**
@@ -185,31 +203,29 @@ class CpuCaptureView {
   }
 
   private static class TopDownView extends CaptureDetailsView {
-    @SuppressWarnings("unused")
-    private TopDownView(@NotNull CpuCaptureView view, @NotNull CpuProfilerStage.TopDown topDown) {
+    private TopDownView(@NotNull CpuProfilerStageView view, @NotNull CpuProfilerStage.TopDown topDown) {
       TopDownTreeModel model = topDown.getModel();
       if (model == null) {
         myComponent = new JLabel("No data available");
         return;
       }
 
-      JTree tree = new JTree();
-      myComponent = setUpCpuTree(tree, model);
+      JTree tree = new Tree();
+      myComponent = setUpCpuTree(tree, model, view);
       expandTreeNodes(tree);
     }
   }
 
   private static class BottomUpView extends CaptureDetailsView {
-    @SuppressWarnings("unused")
-    private BottomUpView(@NotNull CpuCaptureView view, @NotNull CpuProfilerStage.BottomUp bottomUp) {
+    private BottomUpView(@NotNull CpuProfilerStageView view, @NotNull CpuProfilerStage.BottomUp bottomUp) {
       BottomUpTreeModel model = bottomUp.getModel();
       if (model == null) {
         myComponent = new JLabel("No data available");
         return;
       }
 
-      JTree tree = new JTree();
-      myComponent = setUpCpuTree(tree, model);
+      JTree tree = new Tree();
+      myComponent = setUpCpuTree(tree, model, view);
       tree.setRootVisible(false);
 
       tree.addTreeWillExpandListener(new TreeWillExpandListener() {
@@ -243,7 +259,7 @@ class CpuCaptureView {
 
   private static class TreeChartView extends CaptureDetailsView {
     @SuppressWarnings("unused")
-    private TreeChartView(@NotNull CpuCaptureView view, @NotNull CpuProfilerStage.TreeChart treeChart) {
+    private TreeChartView(@NotNull CpuProfilerStageView view, @NotNull CpuProfilerStage.TreeChart treeChart) {
       HNode<MethodModel> node = treeChart.getNode();
       HTreeChart<MethodModel> chart = new HTreeChart<>(treeChart.getRange());
       chart.setHRenderer(new SampledMethodUsageHRenderer());
