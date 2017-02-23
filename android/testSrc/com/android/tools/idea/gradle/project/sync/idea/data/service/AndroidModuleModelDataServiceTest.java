@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidModuleCleanupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.ContentRootsModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
@@ -42,6 +43,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
   @Mock private AndroidModuleSetup myModuleSetup;
   @Mock private AndroidModuleValidator myValidator;
+  @Mock private AndroidModuleCleanupStep myCleanupStep;
 
   private AndroidModuleModelDataService myService;
 
@@ -53,7 +55,7 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
     AndroidModuleValidator.Factory validatorFactory = mock(AndroidModuleValidator.Factory.class);
     when(validatorFactory.create(getProject())).thenReturn(myValidator);
 
-    myService = new AndroidModuleModelDataService(myModuleSetup, validatorFactory);
+    myService = new AndroidModuleModelDataService(myModuleSetup, validatorFactory, myCleanupStep);
   }
 
   public void testGetTargetDataKey() {
@@ -76,6 +78,13 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
     verify(myModuleSetup).setUpModule(appModule, modelsProvider, androidModel, null, null, false);
     verify(myValidator).validate(appModule, androidModel);
     verify(myValidator).fixAndReportFoundIssues();
+  }
+
+  public void testOnModelsNotFound() {
+    Module appModule = createModule("app");
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    myService.onModelsNotFound(modelsProvider);
+    verify(myCleanupStep).cleanUpModule(appModule, modelsProvider);
   }
 
   public void testAndroidModuleSetupSteps() {

@@ -30,9 +30,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.same;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@link ModuleModelDataService}.
@@ -43,13 +41,17 @@ public class ModuleModelDataServiceTest extends IdeaTestCase {
     Project project = getProject();
     IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(project);
 
-    MyModuleModelDataService dataService = mock(MyModuleModelDataService.class);
+    MyModuleModelDataService dataService = new MyModuleModelDataService();
     dataService.importData(toImport, mock(ProjectData.class), project, modelsProvider);
 
-    verify(dataService, never()).importData(same(toImport), same(project), same(modelsProvider), any());
+    assertTrue(dataService.onModelsNotFoundInvoked);
+    assertFalse(dataService.importDataInvoked);
   }
 
   private static class MyModuleModelDataService extends ModuleModelDataService<NdkModuleModel> {
+    boolean importDataInvoked;
+    boolean onModelsNotFoundInvoked;
+
     @Override
     @NotNull
     public Key<NdkModuleModel> getTargetDataKey() {
@@ -61,6 +63,12 @@ public class ModuleModelDataServiceTest extends IdeaTestCase {
                               @NotNull Project project,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
                               @NotNull Map<String, NdkModuleModel> modelsByName) {
+      importDataInvoked = true;
+    }
+
+    @Override
+    protected void onModelsNotFound(@NotNull IdeModifiableModelsProvider modelsProvider) {
+      onModelsNotFoundInvoked = true;
     }
   }
 }
