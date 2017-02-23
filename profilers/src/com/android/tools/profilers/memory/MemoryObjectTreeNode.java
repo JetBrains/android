@@ -95,25 +95,38 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
   public void insert(MutableTreeNode newChild, int childIndex) {
     assert newChild instanceof MemoryObjectTreeNode;
     MemoryObjectTreeNode child = (MemoryObjectTreeNode)newChild;
-    if (child.myParent != null) {
+    if (child.myParent != null && child.myParent != this) {
       child.myParent.remove(child);
     }
-    child.myParent = this;
+    child.setParent(this);
     myChildren.add(childIndex, child);
+  }
+
+  @Override
+  public void setParent(@Nullable MutableTreeNode newParent) {
+    assert newParent == null || newParent instanceof MemoryObjectTreeNode;
+    myParent = (MemoryObjectTreeNode<T>)newParent;
   }
 
   @Override
   public void remove(int childIndex) {
     MemoryObjectTreeNode child = myChildren.get(childIndex);
-    child.myParent = null;
     myChildren.remove(childIndex);
+    child.setParent(null);
   }
 
   @Override
   public void remove(MutableTreeNode node) {
     assert node instanceof MemoryObjectTreeNode;
-    ((MemoryObjectTreeNode)node).myParent = null;
-    myChildren.remove(node);
+    remove(myChildren.indexOf(node));
+  }
+
+  @Override
+  public void removeFromParent() {
+    if (myParent != null) {
+      myParent.remove(this);
+      myParent = null;
+    }
   }
 
   public void removeAll() {
@@ -129,21 +142,6 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
   @NotNull
   public T getAdapter() {
     return myAdapter;
-  }
-
-  @Override
-  public void removeFromParent() {
-    if (myParent != null) {
-      myParent.remove(this);
-    }
-  }
-
-  @Override
-  public void setParent(@Nullable MutableTreeNode newParent) {
-    removeFromParent();
-    if (newParent instanceof MemoryObjectTreeNode) {
-      myParent = (MemoryObjectTreeNode<T>)newParent;
-    }
   }
 
   public void sort(@NotNull Comparator<MemoryObjectTreeNode<T>> comparator) {

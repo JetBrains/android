@@ -16,7 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toList;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -151,6 +152,7 @@ public abstract class MemoryProfilerTestBase {
     when(object.getTotalCount()).thenReturn(instances.size());
     when(object.getHeapCount()).thenReturn(instances.size());
     when(object.getInstances()).thenReturn(instances);
+    when(object.isInNamespace(any())).thenCallRealMethod();
     when(object.getInstanceAttributes()).thenReturn(Arrays.asList(InstanceObject.InstanceAttribute.values()));
     return object;
   }
@@ -159,6 +161,8 @@ public abstract class MemoryProfilerTestBase {
   static InstanceObject mockInstanceObject(@NotNull String className,
                                            @NotNull String label,
                                            @Nullable String toString,
+                                           @Nullable AllocationStack allocationStack,
+                                           @Nullable ClassObject classObject,
                                            int fieldCount,
                                            int depth,
                                            int shallowSize,
@@ -177,9 +181,9 @@ public abstract class MemoryProfilerTestBase {
     when(object.getAllocationThreadId()).thenReturn(ThreadId.INVALID_THREAD_ID);
     when(object.getFields()).thenReturn(mockedFields);
     when(object.getFieldCount()).thenReturn(fieldCount);
-    when(object.getCallStack()).thenReturn(MemoryProfiler.AllocationStack.newBuilder()
-                                             .addStackFrames(MemoryProfiler.AllocationStack.StackFrame.newBuilder().build()).build());
+    when(object.getCallStack()).thenReturn(allocationStack);
     when(object.getReferenceAttributes()).thenReturn(Arrays.asList(InstanceObject.InstanceAttribute.values()));
+    when(object.getClassObject()).thenReturn(classObject);
     return object;
   }
 
@@ -189,7 +193,7 @@ public abstract class MemoryProfilerTestBase {
                                              int shallowSize,
                                              long retainedSize,
                                              @NotNull List<ReferenceObject> referrers,
-                                             @Nullable MemoryProfiler.AllocationStack stack) {
+                                             @Nullable AllocationStack stack) {
     ReferenceObject object = mock(ReferenceObject.class);
     when(object.getDisplayLabel()).thenReturn(label);
     when(object.getDepth()).thenReturn(depth);
@@ -199,7 +203,7 @@ public abstract class MemoryProfilerTestBase {
     when(object.getAllocationThreadId()).thenReturn(ThreadId.INVALID_THREAD_ID);
     when(object.getReferenceFieldNames()).thenReturn(Collections.emptyList());
     when(object.getReferenceAttributes()).thenReturn(Arrays.asList(InstanceObject.InstanceAttribute.values()));
-    when(object.getCallStack()).thenReturn(stack == null ? MemoryProfiler.AllocationStack.newBuilder().build() : stack);
+    when(object.getCallStack()).thenReturn(stack == null ? AllocationStack.newBuilder().build() : stack);
     return object;
   }
 
@@ -219,7 +223,7 @@ public abstract class MemoryProfilerTestBase {
                                                            long retainedSize,
                                                            int instancesCount) {
     List<InstanceObject> instances = IntStream.range(0, instancesCount)
-      .mapToObj(i -> mockInstanceObject(className, "instance" + i, null, 0, 0, shallowSize, retainedSize / (long)instancesCount))
+      .mapToObj(i -> mockInstanceObject(className, "instance" + i, null, null, null, 0, 0, shallowSize, retainedSize / (long)instancesCount))
       .collect(toList());
     return mockClassObject(className, size, shallowSize, retainedSize, instances);
   }

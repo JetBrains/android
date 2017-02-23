@@ -13,29 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.common;
+package com.android.tools.profilers.memory.adapters;
 
-public class ThreadId {
-  public static final ThreadId INVALID_THREAD_ID = new ThreadId(-1);
+import com.android.tools.profilers.common.ThreadId;
+import org.jetbrains.annotations.NotNull;
 
-  private final int myThreadId;
-
-  public ThreadId(int threadId) {
-    myThreadId = threadId;
-  }
-
-  @Override
-  public int hashCode() {
-    return Integer.hashCode(myThreadId);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return obj instanceof ThreadId && ((ThreadId)obj).myThreadId == myThreadId;
-  }
-
-  @Override
-  public String toString() {
-    return "<Thread " + myThreadId + ">";
+public class ThreadObject extends ClassifierObject {
+  public ThreadObject(@NotNull ThreadId threadId) {
+    super(threadId.toString());
   }
 }

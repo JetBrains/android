@@ -18,19 +18,23 @@ package com.android.tools.profilers.common;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+
 public class CodeLocation {
   public static final int INVALID_LINE_NUMBER = -1;
 
   @Nullable
-  private String myClassName;
+  private final String myClassName;
 
   @Nullable
-  private String myFileName;
+  private final String myFileName;
 
   @Nullable
-  private String myMethodName;
+  private final String myMethodName;
 
-  private int myLineNumber;
+  private final int myLineNumber;
+
+  private final int myHashcode;
 
   public CodeLocation(@Nullable String className) {
     this(className, null, null, INVALID_LINE_NUMBER);
@@ -51,6 +55,8 @@ public class CodeLocation {
     myFileName = fileName;
     myMethodName = methodName;
     myLineNumber = lineNumber;
+    myHashcode = Arrays.hashCode(new int[]{className == null ? 0 : className.hashCode(), fileName == null ? 0 : fileName.hashCode(),
+      methodName == null ? 0 : methodName.hashCode(), Integer.hashCode(lineNumber)});
   }
 
   @Nullable
@@ -70,6 +76,11 @@ public class CodeLocation {
 
   public int getLineNumber() {
     return myLineNumber;
+  }
+
+  @Override
+  public int hashCode() {
+    return myHashcode;
   }
 
   @Override
