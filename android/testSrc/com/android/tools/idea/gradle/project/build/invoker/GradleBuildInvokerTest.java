@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -51,7 +52,7 @@ public class GradleBuildInvokerTest extends AndroidGradleTestCase {
     myTasksExecutor = new GradleTasksExecutorStub(getProject());
     myTaskExecutorFactory = new GradleTasksExecutorFactoryStub(myTasksExecutor);
 
-    myInvoker = new GradleBuildInvoker(getProject(), myTaskExecutorFactory);
+    myInvoker = new GradleBuildInvoker(getProject(), FileDocumentManager.getInstance(),myTaskExecutorFactory);
   }
 
   // Following are common tests for all GradleInvoker test cases
