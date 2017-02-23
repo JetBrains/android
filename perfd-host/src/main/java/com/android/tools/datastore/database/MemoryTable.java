@@ -96,13 +96,13 @@ public class MemoryTable extends DatastoreTable<MemoryTable.MemoryStatements> {
   public void initialize(Connection connection) {
     super.initialize(connection);
     try {
-      createTable("Memory_Samples", "Pid INTEGER NOT NULL", "Session STRING NOT NULL", "Timestamp INTEGER", "Type INTEGER", "Data BLOB",
+      createTable("Memory_Samples", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "Timestamp INTEGER", "Type INTEGER", "Data BLOB",
                   "PRIMARY KEY(Pid, Session, Timestamp, Type)");
-      createTable("Memory_AllocationInfo", "Pid INTEGER NOT NULL", "Session STRING NOT NULL", "StartTime INTEGER", "EndTime INTEGER", "InfoData BLOB",
+      createTable("Memory_AllocationInfo", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "StartTime INTEGER", "EndTime INTEGER", "InfoData BLOB",
                   "EventsData BLOB", "DumpData BLOB", "PRIMARY KEY(Pid, Session, StartTime)");
       createTable("Memory_AllocationStack", "Id BLOB", "Data BLOB", "PRIMARY KEY(Id)");
       createTable("Memory_AllocatedClass", "Id INTEGER", "Data BLOB", "PRIMARY KEY(Id)");
-      createTable("Memory_HeapDump", "Pid INTEGER NOT NULL", "Session STRING NOT NULL", "StartTime INTEGER", "EndTime INTEGER", "Status INTEGER",
+      createTable("Memory_HeapDump", "Pid INTEGER NOT NULL", "Session INTEGER NOT NULL", "StartTime INTEGER", "EndTime INTEGER", "Status INTEGER",
                   "InfoData BLOB", "DumpData BLOB", "PRIMARY KEY(Pid, Session, StartTime)");
     }
     catch (SQLException ex) {

@@ -63,7 +63,7 @@ public class NetworkTable extends DatastoreTable<NetworkTable.NetworkStatements>
     super.initialize(connection);
     try {
       createTable("Network_Data", "Id INTEGER NOT NULL", "Type INTEGER NOT NULL", "EndTime INTEGER", "Data BLOB");
-      createTable("Network_Connection", "ProcessId INTEGER NOT NULL", "Session STRING NOT NULL", "Id INTEGER NOT NULL", "StartTime INTEGER",
+      createTable("Network_Connection", "ProcessId INTEGER NOT NULL", "Session INTEGER NOT NULL", "Id INTEGER NOT NULL", "StartTime INTEGER",
                   "EndTime INTEGER",
                   "ConnectionData BLOB", "BodyData BLOB", "RequestData BLOB", "ResponseData BLOB", "PRIMARY KEY(ProcessId, Id)");
       createIndex("Network_Data", "Id", "Type", "EndTime");

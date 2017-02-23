@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -53,10 +54,14 @@ public class CpuTableTest {
 
   @Before
   public void setUp() throws Exception {
+    HashMap<Common.Session, Long> sessionLookup = new HashMap<>();
+    sessionLookup.put(SESSION_HUNDREDS, 1L);
+    sessionLookup.put(SESSION_THOUSANDS, 2L);
     myDbFile = FileUtil.createTempFile("CpuTable", "mysql");
     myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath());
     myTable = new CpuTable();
     myDatabase.registerTable(myTable);
+    myTable.setSessionLookup(sessionLookup);
     populateDatabase();
   }
 
