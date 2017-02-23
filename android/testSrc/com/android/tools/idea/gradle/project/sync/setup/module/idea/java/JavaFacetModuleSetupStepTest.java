@@ -49,18 +49,6 @@ public class JavaFacetModuleSetupStepTest extends IdeaTestCase {
     mySetupStep = new JavaFacetModuleSetupStep();
   }
 
-  public void testGradleModelNotFound() {
-    createAndAddJavaFacet(getModule());
-
-    Module module = getModule();
-    mySetupStep.gradleModelNotFound(module, myModelsProvider);
-
-    ApplicationManager.getApplication().runWriteAction(() -> myModelsProvider.commit());
-
-    // JavaFacet should have been removed.
-    assertNull(findJavaFacet(module));
-  }
-
   public void testDoSetUpModuleWithExistingJavaFacet() throws IOException {
     createAndAddGradleFacet(getModule());
 

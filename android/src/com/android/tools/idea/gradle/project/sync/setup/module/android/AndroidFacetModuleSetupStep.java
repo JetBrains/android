@@ -32,7 +32,6 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 import java.io.File;
 import java.util.Collection;
 
-import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 import static com.intellij.openapi.util.io.FileUtilRt.getRelativePath;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -41,12 +40,6 @@ import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
   // It is safe to use "/" instead of File.separator. JpsAndroidModule uses it.
   private static final String SEPARATOR = "/";
-
-  @Override
-  protected void gradleModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
-    ModifiableFacetModel facetModel = ideModelsProvider.getModifiableFacetModel(module);
-    removeAllFacets(facetModel, AndroidFacet.ID);
-  }
 
   @Override
   protected void doSetUpModule(@NotNull Module module,

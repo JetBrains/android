@@ -41,26 +41,36 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 public class AndroidModuleModelDataService extends ModuleModelDataService<AndroidModuleModel> {
   @NotNull private final AndroidModuleSetup myModuleSetup;
   @NotNull private final AndroidModuleValidator.Factory myModuleValidatorFactory;
+  @NotNull private final AndroidModuleCleanupStep myCleanupStep;
 
   // This constructor is called by the IDE. See this module's plugin.xml file, implementation of extension 'externalProjectDataService'.
   @SuppressWarnings("unused")
   public AndroidModuleModelDataService() {
     this(new AndroidModuleSetup(new AndroidFacetModuleSetupStep(), new SdkModuleSetupStep(), new JdkModuleSetupStep(),
                                 new ContentRootsModuleSetupStep(), new DependenciesAndroidModuleSetupStep(), new CompilerOutputModuleSetupStep()),
-         new AndroidModuleValidator.Factory());
+         new AndroidModuleValidator.Factory(), new AndroidModuleCleanupStep());
   }
 
   @VisibleForTesting
   AndroidModuleModelDataService(@NotNull AndroidModuleSetup moduleSetup,
-                                @NotNull AndroidModuleValidator.Factory moduleValidatorFactory) {
+                                @NotNull AndroidModuleValidator.Factory moduleValidatorFactory,
+                                @NotNull AndroidModuleCleanupStep cleanupStep) {
     myModuleSetup = moduleSetup;
     myModuleValidatorFactory = moduleValidatorFactory;
+    myCleanupStep = cleanupStep;
   }
 
   @Override
   @NotNull
   public Key<AndroidModuleModel> getTargetDataKey() {
     return ANDROID_MODEL;
+  }
+
+  @Override
+  protected void onModelsNotFound(@NotNull IdeModifiableModelsProvider modelsProvider) {
+    for (Module module : modelsProvider.getModules()) {
+      myCleanupStep.cleanUpModule(module, modelsProvider);
+    }
   }
 
   @Override
