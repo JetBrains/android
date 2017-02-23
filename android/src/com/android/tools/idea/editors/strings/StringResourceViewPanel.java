@@ -158,7 +158,10 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
           StringResourceTableModel model = myTable.getModel();
           Locale locale = model.getLocale(column);
           StringResource resource = model.getStringResourceAt(row);
-          myItemAtMouseClickLocation = locale == null ? resource.getDefaultValueAsResourceItem() : resource.getTranslationAsResourceItem(locale);
+
+          myItemAtMouseClickLocation =
+            locale == null ? resource.getDefaultValueAsResourceItem() : resource.getTranslationAsResourceItem(locale);
+
           if (myItemAtMouseClickLocation != null) {
             menu.show(myTable, e.getX(), e.getY());
           }
@@ -229,6 +232,11 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     public void focusGained(@NotNull FocusEvent event) {
       mySelectedRowCount = myTable.getSelectedRowCount();
       mySelectedColumnCount = myTable.getSelectedColumnCount();
+
+      if (mySelectedRowCount != 1 || mySelectedColumnCount != 1) {
+        return;
+      }
+
       myRow = myTable.getSelectedRowModelIndex();
       myColumn = myColumnSupplier.getAsInt();
     }
