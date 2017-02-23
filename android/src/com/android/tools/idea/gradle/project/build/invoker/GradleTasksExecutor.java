@@ -45,6 +45,7 @@ import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.compiler.CompilerBundle;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -532,7 +533,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           }
         }
       };
-      invokeLaterIfNeeded(addMessageTask);
+      TransactionGuard.submitTransaction(myProject, addMessageTask);
     }
 
     private void handleTaskExecutionError(@NotNull Throwable e) {
