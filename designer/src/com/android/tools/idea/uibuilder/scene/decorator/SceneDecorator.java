@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.scene.decorator;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
@@ -31,6 +32,8 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities.getDpValue;
 
 /**
  * The generic Scene Decorator
@@ -138,11 +141,19 @@ public class SceneDecorator {
                           @NotNull SceneComponent component) {
     Rectangle rect = new Rectangle();
     component.fillRect(rect); // get the rectangle from the component
-    boolean hasHorizontalConstraints = true; // for now, don't check
-    boolean hasVerticalConstraints = true; // for now, don't check
-    DrawComponentFrame.add(list, sceneContext, rect, component.getDrawState().ordinal(), hasHorizontalConstraints, hasVerticalConstraints); // add to the list
+
+    int layout_width = layoutDimToMode(component.getNlComponent(), SdkConstants.ATTR_LAYOUT_WIDTH);
+    int layout_height = layoutDimToMode(component.getNlComponent(), SdkConstants.ATTR_LAYOUT_HEIGHT);
+    DrawComponentFrame.add(list, sceneContext, rect, component.getDrawState().ordinal(), layout_width, layout_height ); // add to the list
   }
 
+  private  int layoutDimToMode(NlComponent component,String attr) {
+    String value = component.getAttribute(SdkConstants.ANDROID_URI, attr);
+    if (SdkConstants.VALUE_WRAP_CONTENT.equalsIgnoreCase(value)) return -2;
+    if (SdkConstants.VALUE_MATCH_PARENT.equalsIgnoreCase(value)) return -1;
+    return getDpValue(component, value);
+
+  }
   /**
    * This is responsible for setting the clip and building the list for this component's children
    *
