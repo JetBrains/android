@@ -181,7 +181,7 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
 
     private void renderThreadElement(@NotNull ThreadElement threadElement, boolean selected) {
       setIcon(AllIcons.Debugger.ThreadSuspended);
-      String text = "<Thread " + threadElement.getThreadId().getThreadId() + ">";
+      String text = threadElement.getThreadId().toString();
       append(text, selected ? REGULAR_ATTRIBUTES : GRAY_ATTRIBUTES, text);
     }
   }
