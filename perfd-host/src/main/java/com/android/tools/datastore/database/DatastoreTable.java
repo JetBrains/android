@@ -31,9 +31,12 @@ import java.util.Map;
  */
 public abstract class DatastoreTable<T extends Enum> {
 
+  private static final Logger LOG = Logger.getInstance(DatastoreTable.class.getCanonicalName());
+  private static final long KEYS_ERROR = -1;
+
   private ThreadLocal<Map<T, PreparedStatement>> myStatementMap = new ThreadLocal<>();
   private Connection myConnection;
-  private static final Logger LOG = Logger.getInstance(DatastoreTable.class.getCanonicalName());
+  protected HashMap<Common.Session, Long> mySessionIdLookup;
 
   /**
    * Initialization function to create tables for the Database.
@@ -50,6 +53,10 @@ public abstract class DatastoreTable<T extends Enum> {
       prepareStatements(myConnection);
     }
     return myStatementMap.get();
+  }
+
+  public void setSessionLookup(HashMap<Common.Session, Long> sessionId) {
+    mySessionIdLookup = sessionId;
   }
 
   /**
@@ -81,6 +88,10 @@ public abstract class DatastoreTable<T extends Enum> {
     getStatementMap().put(statement, myConnection.prepareStatement(stmt));
   }
 
+  protected void createStatement(T statement, String stmt, int statementFlags) throws SQLException {
+    getStatementMap().put(statement, myConnection.prepareStatement(stmt, statementFlags));
+  }
+
   protected void execute(T statement, Object... params) {
     try {
       PreparedStatement stmt = getStatementMap().get(statement);
@@ -90,6 +101,19 @@ public abstract class DatastoreTable<T extends Enum> {
     catch (SQLException ex) {
       LOG.error(ex);
     }
+  }
+
+  protected long executeWithGeneratedKeys(T statement, Object... params) {
+    try {
+      PreparedStatement stmt = getStatementMap().get(statement);
+      applyParams(stmt, params);
+      stmt.execute();
+      return stmt.getGeneratedKeys().getLong(1);
+    }
+    catch (SQLException ex) {
+      LOG.error(ex);
+    }
+    return KEYS_ERROR;
   }
 
   protected ResultSet executeQuery(T statement, Object... params) throws SQLException {
@@ -116,7 +140,13 @@ public abstract class DatastoreTable<T extends Enum> {
         statement.setBytes(i + 1, (byte[])params[i]);
       }
       else if (params[i] instanceof Common.Session) {
-        statement.setString(i + 1, ((Common.Session)params[i]).toString());
+        if (mySessionIdLookup.containsKey(params[i])) {
+          statement.setLong(i + 1, mySessionIdLookup.get(params[i]));
+        } else {
+          // TODO: Throw exception if a user attempts to insert / update a session id that is invalid
+          LOG.warn("Session not found: " + params[i]);
+          statement.setLong(i + 1, KEYS_ERROR);
+        }
       }
       else {
         //Not implemented type cast

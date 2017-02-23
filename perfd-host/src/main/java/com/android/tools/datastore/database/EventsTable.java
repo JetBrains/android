@@ -47,8 +47,8 @@ public class EventsTable extends DatastoreTable<EventsTable.EventStatements> {
   public void initialize(Connection connection) {
     super.initialize(connection);
     try {
-      createTable("Events_Activity", "Id INTEGER NOT NULL", "AppId INTEGER NOT NULL", "Session STRING NOT NULL", "Data BLOB");
-      createTable("Events_System", "Id INTEGER NOT NULL", "AppId INTEGER NOT NULL", "Session STRING NOT NULL", "StartTime INTEGER", "EndTime INTEGER", "Data BLOB");
+      createTable("Events_Activity", "Id INTEGER NOT NULL", "AppId INTEGER NOT NULL", "Session INTEGER NOT NULL", "Data BLOB");
+      createTable("Events_System", "Id INTEGER NOT NULL", "AppId INTEGER NOT NULL", "Session INTEGER NOT NULL", "StartTime INTEGER", "EndTime INTEGER", "Data BLOB");
       createIndex("Events_Activity", "Id", "AppId", "Session");
       createIndex("Events_System", "Id", "AppId", "Session");
     }

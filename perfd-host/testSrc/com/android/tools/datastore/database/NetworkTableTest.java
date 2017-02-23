@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -51,10 +52,13 @@ public class NetworkTableTest {
 
   @Before
   public void setUp() throws Exception {
+    HashMap<Common.Session, Long> sessionLookup = new HashMap<>();
+    sessionLookup.put(VALID_SESSION, 1L);
     myDbFile = File.createTempFile("NetworkTable", "mysql");
     myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath());
     myTable = new NetworkTable();
     myDatabase.registerTable(myTable);
+    myTable.setSessionLookup(sessionLookup);
     populateDatabase();
   }
 
