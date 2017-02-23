@@ -74,6 +74,11 @@ public class DeviceFileEntryNode extends DefaultMutableTreeNode {
     return myEntry;
   }
 
+  @NotNull
+  public void setEntry(@NotNull DeviceFileEntry entry) {
+    myEntry = entry;
+  }
+
   public boolean isDownloading() {
     return myDownloading;
   }
