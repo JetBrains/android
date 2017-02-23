@@ -19,19 +19,17 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.Semaphore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public interface GradleTaskRunner {
-  String USE_SPLIT_APK = "USE_SPLIT_APK";
-
   boolean run(@NotNull List<String> tasks, @Nullable BuildMode buildMode, @NotNull List<String> commandLineArguments)
     throws InvocationTargetException, InterruptedException;
 
@@ -57,9 +55,9 @@ public interface GradleTaskRunner {
           }
         };
 
-        // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use SwingUtilities.invokeAndWait. I tried
-        // using Application.invokeAndWait but it never worked. IDEA also uses SwingUtilities in this scenario (see CompileStepBeforeRun.)
-        SwingUtilities.invokeAndWait(() -> {
+        // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use TransactionGuard.submitTransaction.
+        // IDEA also uses TransactionGuard.submitTransaction in this scenario (see CompileStepBeforeRun.)
+        TransactionGuard.submitTransaction(project, () -> {
           gradleBuildInvoker.add(afterTask);
           gradleBuildInvoker.executeTasks(tasks, buildMode, commandLineArguments);
         });

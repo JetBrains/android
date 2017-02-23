@@ -464,8 +464,9 @@ public class GradleBuildInvoker {
     myAfterTasks.add(task);
   }
 
+  @VisibleForTesting
   @NotNull
-  AfterGradleInvocationTask[] getAfterInvocationTasks() {
+  protected AfterGradleInvocationTask[] getAfterInvocationTasks() {
     return myAfterTasks.toArray(new AfterGradleInvocationTask[myAfterTasks.size()]);
   }
 
