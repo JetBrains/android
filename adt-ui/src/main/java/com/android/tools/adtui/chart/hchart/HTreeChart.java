@@ -35,14 +35,13 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
 
   private static final String NO_HTREE = "No data available.";
   private static final String NO_RANGE = "X range width is zero: Please use a wider range.";
-
-  private static final int BORDER_PLUS_PADDING = 2;
   private static final int ZOOM_FACTOR = 20;
   private static final String ACTION_ZOOM_IN = "zoom in";
   private static final String ACTION_ZOOM_OUT = "zoom out";
   private static final String ACTION_MOVE_LEFT = "move left";
   private static final String ACTION_MOVE_RIGHT = "move right";
   private static final int ACTION_MOVEMENT_FACTOR = 5;
+  private static final int BORDER_PLUS_PADDING = 2;
 
   private final Orientation mOrientation;
 
@@ -65,6 +64,12 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
   private final List<HNode<T>> mNodes;
 
   @NotNull
+  private final List<Rectangle2D.Float> mDrawnRectangles;
+
+  @NotNull
+  private final List<HNode<T>> mDrawnNodes;
+
+  @NotNull
   private final HTreeChartReducer<T> mReducer;
 
   private boolean mRender;
@@ -73,6 +78,8 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
   public HTreeChart(@NotNull Range xRange, Orientation orientation, @NotNull HTreeChartReducer<T> reducer) {
     mRectangles = new ArrayList<>();
     mNodes = new ArrayList<>();
+    mDrawnNodes = new ArrayList<>();
+    mDrawnRectangles = new ArrayList<>();
     mXRange = xRange;
     mRoot = new HNode<>();
     mReducer = reducer;
@@ -82,6 +89,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
     setFocusable(true);
     addMouseListener(this);
     initializeInputMap();
+    setFont(AdtUiUtils.DEFAULT_FONT);
 
     xRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::changed);
     changed();
@@ -122,9 +130,10 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
       return;
     }
 
-    List<HNode<T>> reducedNodes = new ArrayList<>(mNodes);
-    List<Rectangle2D.Float> reducedRectangles = new ArrayList<>(mRectangles.size());
+    mDrawnNodes.clear();
+    mDrawnNodes.addAll(mNodes);
 
+    mDrawnRectangles.clear();
     // Transform
     for (Rectangle2D.Float rect : mRectangles) {
       Rectangle2D.Float newRect = new Rectangle2D.Float();
@@ -136,19 +145,21 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
       if (mOrientation == HTreeChart.Orientation.BOTTOM_UP) {
         newRect.y = (float)(dim.getHeight() - newRect.y - newRect.getHeight());
       }
-      reducedRectangles.add(newRect);
+
+      mDrawnRectangles.add(newRect);
     }
 
-    mReducer.reduce(reducedRectangles, reducedNodes);
-    assert reducedNodes.size() == reducedRectangles.size();
+    mReducer.reduce(mDrawnRectangles, mDrawnNodes);
+
+    assert mDrawnRectangles.size() == mDrawnNodes.size();
     assert mHRenderer != null;
-    for (int i = 0; i < reducedNodes.size(); ++i) {
-      mHRenderer.render(g, reducedNodes.get(i).getData(), reducedRectangles.get(i));
+    for (int i = 0; i < mDrawnNodes.size(); ++i) {
+      mHRenderer.render(g, mDrawnNodes.get(i).getData(), mDrawnRectangles.get(i));
     }
 
     addDebugInfo("Draw time %.2fms", (System.nanoTime() - startTime) / 1e6);
     addDebugInfo("# of nodes %d", mNodes.size());
-    addDebugInfo("# of reduced nodes %d", reducedNodes.size());
+    addDebugInfo("# of reduced nodes %d", mDrawnNodes.size());
   }
 
   protected void render() {
@@ -209,6 +220,19 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
 
   public Range getXRange() {
     return mXRange;
+  }
+
+  @Nullable
+  public HNode<T> getHoveredNode() {
+    Point p = getMousePosition();
+    if (p != null) {
+      for (int i = 0; i < mDrawnNodes.size(); ++i) {
+        if (mDrawnRectangles.get(i).contains(p)) {
+          return mDrawnNodes.get(i);
+        }
+      }
+    }
+    return null;
   }
 
   private void initializeInputMap() {

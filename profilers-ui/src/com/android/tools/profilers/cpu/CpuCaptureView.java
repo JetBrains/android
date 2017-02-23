@@ -263,13 +263,16 @@ class CpuCaptureView {
   }
 
   private static class TreeChartView extends CaptureDetailsView {
-    @SuppressWarnings("unused")
     private TreeChartView(@NotNull CpuProfilerStageView view, @NotNull CpuProfilerStage.TreeChart treeChart) {
-      HNode<MethodModel> node = treeChart.getNode();
       HTreeChart<MethodModel> chart = new HTreeChart<>(treeChart.getRange());
       chart.setHRenderer(new SampledMethodUsageHRenderer());
-      chart.setHTree(node);
+      chart.setHTree(treeChart.getNode());
       myComponent = chart;
+
+      view.getIdeComponents().installNavigationContextMenu(chart, () -> {
+        HNode<MethodModel> n = chart.getHoveredNode();
+        return n != null && n.getData() != null ? new CodeLocation(n.getData().getClassName()) : null;
+      }, () -> view.getStage().handleNavigatedToCode());
     }
   }
 
