@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkModuleCleanupStep;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -38,10 +39,11 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class NdkModuleModelDataServiceTest extends IdeaTestCase {
   @Mock private NdkModuleSetup myModuleSetup;
+  @Mock private NdkModuleCleanupStep myCleanupStep;
 
   private GradleSyncState mySyncState;
   private IdeModifiableModelsProvider myModelsProvider;
-  private NdkModuleModelDataService myDataService;
+  private NdkModuleModelDataService myService;
 
   @Override
   protected void setUp() throws Exception {
@@ -50,11 +52,11 @@ public class NdkModuleModelDataServiceTest extends IdeaTestCase {
 
     mySyncState = IdeComponents.replaceServiceWithMock(getProject(), GradleSyncState.class);
     myModelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-    myDataService = new NdkModuleModelDataService(myModuleSetup);
+    myService = new NdkModuleModelDataService(myModuleSetup, myCleanupStep);
   }
 
   public void testGetTargetDataKey() {
-    assertSame(NDK_MODEL, myDataService.getTargetDataKey());
+    assertSame(NDK_MODEL, myService.getTargetDataKey());
   }
 
   public void testImportData() {
@@ -67,9 +69,15 @@ public class NdkModuleModelDataServiceTest extends IdeaTestCase {
     DataNode<NdkModuleModel> dataNode = new DataNode<>(NDK_MODEL, model, null);
     Collection<DataNode<NdkModuleModel>> dataNodes = Collections.singleton(dataNode);
 
-    myDataService.importData(dataNodes, null, getProject(), myModelsProvider);
+    myService.importData(dataNodes, null, getProject(), myModelsProvider);
 
     verify(mySyncState).isSyncSkipped();
     verify(myModuleSetup).setUpModule(appModule, myModelsProvider, model, null, null, false);
+  }
+
+  public void testOnModelsNotFound() {
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+    myService.onModelsNotFound(modelsProvider);
+    verify(myCleanupStep).cleanUpModule(myModule, modelsProvider);
   }
 }

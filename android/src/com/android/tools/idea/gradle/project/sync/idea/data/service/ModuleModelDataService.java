@@ -42,6 +42,7 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
                                @NotNull Project project,
                                @NotNull IdeModifiableModelsProvider modelsProvider) {
     if (toImport.isEmpty()) {
+      onModelsNotFound(modelsProvider);
       return;
     }
     try {
@@ -52,6 +53,9 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
       String msg = e.getMessage();
       GradleSyncState.getInstance(project).syncFailed(isNotEmpty(msg) ? msg : e.getClass().getCanonicalName());
     }
+  }
+
+  protected void onModelsNotFound(@NotNull IdeModifiableModelsProvider modelsProvider) {
   }
 
   private void importData(@NotNull Collection<DataNode<T>> toImport,
