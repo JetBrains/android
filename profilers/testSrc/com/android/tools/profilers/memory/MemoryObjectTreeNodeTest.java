@@ -34,12 +34,14 @@ public class MemoryObjectTreeNodeTest {
     MemoryObjectTreeNode<TestMemoryObject> node = new MemoryObjectTreeNode<>(new TestMemoryObject());
     MemoryObjectTreeNode<TestMemoryObject> child = new MemoryObjectTreeNode<>(new TestMemoryObject());
     MemoryObjectTreeNode<TestMemoryObject> existingParent = new MemoryObjectTreeNode<>(new TestMemoryObject());
-    child.setParent(existingParent);
-    assertNotEquals(node, child.getParent());
+    existingParent.add(child);
+    assertEquals(existingParent, child.getParent());
+    assertEquals(1, existingParent.getChildCount());
     node.add(child);
     assertEquals(node, child.getParent());
     assertEquals(1, node.getChildCount());
     assertEquals(child, node.getChildAt(0));
+    assertEquals(0, existingParent.getChildCount());
   }
 
   @Test(expected = AssertionError.class)

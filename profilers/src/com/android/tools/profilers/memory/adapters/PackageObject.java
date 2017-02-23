@@ -17,40 +17,8 @@ package com.android.tools.profilers.memory.adapters;
 
 import org.jetbrains.annotations.NotNull;
 
-public class PackageObject extends NamespaceObject {
-  private int myTotalCount = 0;
-  private int myHeapCount = 0;
-
-  private long myRetainedSize = 0L;
-
+public class PackageObject extends ClassifierObject {
   public PackageObject(@NotNull String name) {
     super(name);
-  }
-
-  public void setTotalCount(int totalCount) {
-    myTotalCount = totalCount;
-  }
-
-  @Override
-  public int getTotalCount() {
-    return myTotalCount;
-  }
-
-  public void setHeapCount(int heapCount) {
-    myHeapCount = heapCount;
-  }
-
-  @Override
-  public int getHeapCount() {
-    return myHeapCount;
-  }
-
-  public void setRetainedSize(long retainedSize) {
-    myRetainedSize = retainedSize;
-  }
-
-  @Override
-  public long getRetainedSize() {
-    return myRetainedSize;
   }
 }
