@@ -20,6 +20,7 @@ import com.android.tools.idea.editors.strings.StringResource;
 import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.editors.strings.StringResourceKey;
 import com.android.tools.idea.rendering.Locale;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,7 +59,7 @@ public class StringResourceTableModel extends AbstractTableModel {
 
   @NotNull
   public StringResource getStringResourceAt(int row) {
-    return myData.getStringResource(myKeys.get(row));
+    return myData.getStringResource(getKey(row));
   }
 
   @NotNull
@@ -98,12 +99,11 @@ public class StringResourceTableModel extends AbstractTableModel {
 
     switch (column) {
       case KEY_COLUMN:
-        StringResourceKey oldKey = myKeys.get(row);
-        StringResourceKey newKey = new StringResourceKey((String)value, oldKey.getDirectory());
-
-        myData.changeKeyName(oldKey, newKey);
-        fireTableRowsUpdated(0, myKeys.size());
-
+        String oldName = getKey(row).getName();
+        String newName = (String)value;
+        if (!StringUtil.equals(oldName, newName)) {
+          myData.changeKeyName(getKey(row), newName);
+        }
         break;
       case RESOURCE_FOLDER_COLUMN:
         break;

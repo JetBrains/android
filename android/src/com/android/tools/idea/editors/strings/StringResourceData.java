@@ -19,11 +19,18 @@ import com.android.SdkConstants;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.refactoring.BaseRefactoringProcessor;
+import com.intellij.refactoring.rename.RenameProcessor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,19 +48,17 @@ public class StringResourceData {
     myKeyToResourceMap = keyToResourceMap;
   }
 
-  public void changeKeyName(@NotNull StringResourceKey oldKey, @NotNull StringResourceKey newKey) {
-    if (!myKeyToResourceMap.containsKey(oldKey)) {
-      throw new IllegalArgumentException("The old key \"" + oldKey + "\" doesn't exist.");
-    }
-
-    if (myKeyToResourceMap.containsKey(newKey)) {
-      throw new IllegalArgumentException("The new key \"" + newKey + "\" already exists.");
-    }
-
-    StringResource stringResource = myKeyToResourceMap.remove(oldKey);
-    stringResource.setKey(newKey);
-
-    myKeyToResourceMap.put(newKey, stringResource);
+  public void changeKeyName(@NotNull StringResourceKey key, @NotNull String newName) {
+    ResourceItem res = getStringResource(key).getDefaultValueAsResourceItem();
+    if (res == null) return; // String does not exist in the default locale.
+    XmlTag tag = LocalResourceRepository.getItemTag(myFacet.getModule().getProject(), res);
+    assert tag != null;
+    XmlAttribute name = tag.getAttribute(SdkConstants.ATTR_NAME);
+    assert name != null;
+    XmlAttributeValue nameValue = name.getValueElement();
+    assert nameValue != null;
+    BaseRefactoringProcessor rename = new RenameProcessor(myFacet.getModule().getProject(), nameValue, newName, false, false);
+    ApplicationManager.getApplication().invokeLater(rename);
   }
 
   public boolean setTranslatable(@NotNull StringResourceKey key, boolean translatable) {
