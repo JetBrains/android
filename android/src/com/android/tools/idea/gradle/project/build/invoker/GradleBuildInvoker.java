@@ -56,7 +56,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.EXECUTE_TASK;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static org.jetbrains.android.util.AndroidCommonUtils.isInstrumentationTestConfiguration;
 import static org.jetbrains.android.util.AndroidCommonUtils.isTestConfiguration;
 
@@ -66,6 +65,7 @@ import static org.jetbrains.android.util.AndroidCommonUtils.isTestConfiguration;
  */
 public class GradleBuildInvoker {
   @NotNull private final Project myProject;
+  @NotNull private final FileDocumentManager myDocumentManager;
   @NotNull private final GradleTasksExecutor.Factory myTaskExecutorFactory;
 
   @NotNull private final Set<AfterGradleInvocationTask> myAfterTasks = new LinkedHashSet<>();
@@ -77,13 +77,14 @@ public class GradleBuildInvoker {
     return ServiceManager.getService(project, GradleBuildInvoker.class);
   }
 
-  public GradleBuildInvoker(@NotNull Project project) {
-    this(project, new GradleTasksExecutor.Factory());
+  public GradleBuildInvoker(@NotNull Project project, @NotNull FileDocumentManager documentManager) {
+    this(project, documentManager, new GradleTasksExecutor.Factory());
   }
 
   @VisibleForTesting
-  GradleBuildInvoker(@NotNull Project project, @NotNull GradleTasksExecutor.Factory tasksExecutorFactory) {
+  GradleBuildInvoker(@NotNull Project project, @NotNull FileDocumentManager documentManager, @NotNull GradleTasksExecutor.Factory tasksExecutorFactory) {
     myProject = project;
+    myDocumentManager = documentManager;
     myTaskExecutorFactory = tasksExecutorFactory;
   }
 
@@ -280,9 +281,9 @@ public class GradleBuildInvoker {
     if (gradleTasks.isEmpty()) {
       return;
     }
-    GradleTasksExecutor executor = myTaskExecutorFactory.create(request, myBuildStopper);
-    saveAllFilesSafely();
+    myDocumentManager.saveAllDocuments();
 
+    GradleTasksExecutor executor = myTaskExecutorFactory.create(request, myBuildStopper);
     if (ApplicationManager.getApplication().isDispatchThread()) {
       executor.queue();
     }
@@ -290,15 +291,8 @@ public class GradleBuildInvoker {
       executor.queueAndWaitForCompletion();
     }
     else {
-      invokeAndWaitIfNeeded((Runnable)executor::queue);
+      TransactionGuard.getInstance().submitTransactionAndWait(executor::queue);
     }
-  }
-
-  /**
-   * Saves all edited documents. This method can be called from any thread.
-   */
-  public static void saveAllFilesSafely() {
-    TransactionGuard.getInstance().submitTransactionAndWait(() -> FileDocumentManager.getInstance().saveAllDocuments());
   }
 
   private static void findAndAddGradleBuildTasks(@NotNull Module module,
@@ -500,7 +494,7 @@ public class GradleBuildInvoker {
     private boolean myWaitForCompletion;
     private boolean myUseEmbeddedGradle;
 
-    public Request(@NotNull Project project, @NotNull String...gradleTasks) {
+    public Request(@NotNull Project project, @NotNull String... gradleTasks) {
       this(project, Arrays.asList(gradleTasks));
     }
 

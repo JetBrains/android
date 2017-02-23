@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.TimeoutUtil;
 import com.intellij.util.ui.UIUtil;
@@ -30,6 +31,8 @@ import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
+
+import static org.mockito.Mockito.mock;
 
 public class GradleTaskRunnerTest extends AndroidGradleTestCase {
 
@@ -66,7 +69,7 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
 
   private static class GradleBuildInvokerStub extends GradleBuildInvoker {
     GradleBuildInvokerStub(@NotNull Project project) {
-      super(project);
+      super(project, mock(FileDocumentManager.class));
     }
 
     @Override

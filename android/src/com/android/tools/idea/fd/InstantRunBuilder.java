@@ -25,7 +25,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.AppState;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.fd.client.InstantRunClient;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.run.BeforeRunBuilder;
 import com.android.tools.idea.gradle.run.GradleTaskRunner;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
@@ -36,8 +35,10 @@ import com.android.tools.idea.run.util.MultiUserUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -162,7 +163,7 @@ public class InstantRunBuilder implements BeforeRunBuilder {
     // a bit earlier than that here (turning the Gradle file save into a no-op) because the we need to check whether the
     // manifest file or a resource referenced from the manifest has changed since the last build.
     if (ApplicationManager.getApplication() != null) { // guard against invoking this in unit tests
-      GradleBuildInvoker.saveAllFilesSafely();
+      TransactionGuard.submitTransaction(ApplicationManager.getApplication(), () -> FileDocumentManager.getInstance().saveAllDocuments());
     }
 
     if (manifestResourceChanged(device)) {
