@@ -46,10 +46,12 @@ import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -225,7 +227,7 @@ public class NewProjectModel extends WizardModel {
     performCreateProject(false, params);
 
     // Allow all other Wizard models to run handleFinished() (and the Wizard to close), before starting the (slow) import process.
-    SwingUtilities.invokeLater(this::performGradleImport);
+   ApplicationManager.getApplication().invokeLater(this::performGradleImport);
   }
 
   private boolean performCreateProject(boolean dryRun, @NotNull Map<String, Object> params) {
