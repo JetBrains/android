@@ -16,6 +16,7 @@
 package com.android.tools.idea.explorer;
 
 import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.explorer.adbimpl.AdbShellCommandException;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
 import com.android.tools.idea.explorer.mocks.*;
@@ -81,7 +82,10 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   private MockDeviceExplorerFileManager myMockFileManager;
   private MockDeviceFileSystem myDevice1;
   private MockDeviceFileEntry myFoo;
+  private MockDeviceFileEntry myFooFile1;
+  private MockDeviceFileEntry myFooFile2;
   private MockDeviceFileEntry myFile1;
+  private MockDeviceFileEntry myFile2;
   private MockDeviceFileSystem myDevice2;
   private RepaintManager myMockRepaintManager;
   private MockDeviceFileEntry myFooDir;
@@ -105,12 +109,12 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     myDevice1 = myMockService.addDevice("TestDevice-1");
     myFoo = myDevice1.getRoot().addDirectory("Foo");
-    myFoo.addFile("fooFile1.txt");
-    myFoo.addFile("fooFile2.txt");
+    myFooFile1 = myFoo.addFile("fooFile1.txt");
+    myFooFile2 = myFoo.addFile("fooFile2.txt");
     myFoo.addFileLink("fooLink1.txt", "fooFile1.txt");
     myFooDir = myFoo.addDirectory("fooDir");
     myFile1 = myDevice1.getRoot().addFile("file1.txt");
-    myDevice1.getRoot().addFile("file2.txt");
+    myFile2 = myDevice1.getRoot().addFile("file2.txt");
     myDevice1.getRoot().addFile("file3.txt");
 
     myDevice2 = myMockService.addDevice("TestDevice-2");
@@ -330,7 +334,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       // Send a VK_ENTER key event
       fireEnterKey(myMockView.getTree());
 
-      pumpEventsAndWaitForFuture(myMockView.getOpenNodeInEditorInvokedTracker().consume());
+      pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
     });
     pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
   }
@@ -344,7 +348,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       // Fire double-click event
       fireDoubleClick(myMockView.getTree(), pathBounds.x, pathBounds.y);
 
-      pumpEventsAndWaitForFuture(myMockView.getOpenNodeInEditorInvokedTracker().consume());
+      pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
     });
     pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
   }
@@ -366,7 +370,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Send a VK_ENTER key event
     fireEnterKey(myMockView.getTree());
-    pumpEventsAndWaitForFuture(myMockView.getOpenNodeInEditorInvokedTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
 
     pumpEventsAndWaitForFuture(myMockFileManager.getDownloadFileEntryTracker().consume());
     Throwable t = pumpEventsAndWaitForFutureException(myMockFileManager.getDownloadFileEntryCompletionTracker().consume());
@@ -395,7 +399,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Send a VK_ENTER key event
     fireEnterKey(myMockView.getTree());
-    pumpEventsAndWaitForFuture(myMockView.getOpenNodeInEditorInvokedTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
 
     pumpEventsAndWaitForFuture(myMockFileManager.getDownloadFileEntryTracker().consume());
     pumpEventsAndWaitForFuture(myMockFileManager.getDownloadFileEntryCompletionTracker().consume());
@@ -523,7 +527,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Assert
     ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
-    assertEquals(6, actionGroup.getChildren(null).length);
+    assertEquals(7, actionGroup.getChildren(null).length);
 
     ActionGroup subGroup = getSubGroup(actionGroup, "New");
     assertNotNull(subGroup);
@@ -551,7 +555,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       action.actionPerformed(e);
 
       // Assert
-      pumpEventsAndWaitForFuture(myMockView.getOpenNodeInEditorInvokedTracker().consume());
+      pumpEventsAndWaitForFuture(myMockView.getOpenNodesInEditorInvokedTracker().consume());
     });
     pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
   }
@@ -760,12 +764,121 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Act
     action.actionPerformed(e);
-    pumpEventsAndWaitForFuture(myMockView.getCopyNodePathTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getCopyNodePathsTracker().consume());
 
     // Assert
     Transferable contents = CopyPasteManager.getInstance().getContents();
     assertNotNull(contents);
     assertEquals("/" + myFile1.getName(), contents.getTransferData(DataFlavor.stringFlavor));
+  }
+
+  public void testFileSystemTree_ContextMenu_CopyPaths_Works() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+
+    // Act
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    myMockView.getTree().setSelectionPath(getFileEntryPath(myFile1));
+    myMockView.getTree().addSelectionPath(getFileEntryPath(myFile2));
+
+    ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
+    AnAction action = getActionByText(actionGroup, "Copy Path");
+    assertNotNull(action);
+    AnActionEvent e = createContentMenuItemEvent();
+    action.update(e);
+
+    // Assert
+    assertTrue(e.getPresentation().isVisible());
+    assertTrue(e.getPresentation().isEnabled());
+
+    // Act
+    action.actionPerformed(e);
+    pumpEventsAndWaitForFuture(myMockView.getCopyNodePathsTracker().consume());
+
+    // Assert
+    Transferable contents = CopyPasteManager.getInstance().getContents();
+    assertNotNull(contents);
+    assertEquals(myFile1.getFullPath() + "\n" + myFile2.getFullPath(), contents.getTransferData(DataFlavor.stringFlavor));
+  }
+
+  public void testFileSystemTree_ContextMenu_Delete_Works() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+
+    // Act
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    expandEntry(myFoo);
+    myMockView.getTree().setSelectionPath(getFileEntryPath(myFooFile1));
+    myMockView.getTree().addSelectionPath(getFileEntryPath(myFooFile2));
+
+    SettableFuture<TreePath> futureTreeChanged = createNodeExpandedFuture(myFoo);
+    ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
+    AnAction action = getActionByText(actionGroup, "Delete...");
+    assertNotNull(action);
+    AnActionEvent e = createContentMenuItemEvent();
+    action.update(e);
+    replaceTestDialog(s -> 0); // "OK" button
+
+    // Assert
+    assertTrue(e.getPresentation().isVisible());
+    assertTrue(e.getPresentation().isEnabled());
+
+    // Act
+    action.actionPerformed(e);
+    pumpEventsAndWaitForFuture(myMockView.getDeleteNodesTracker().consume());
+    pumpEventsAndWaitForFuture(futureTreeChanged);
+
+    // Assert
+    assertEquals(2, DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent()).getChildCount());
+  }
+
+  public void testFileSystemTree_ContextMenu_Delete_ShowProblems() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+
+    // Act
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    expandEntry(myFoo);
+    myFooFile1.setDeleteError(new AdbShellCommandException("Error deleting file"));
+    myMockView.getTree().setSelectionPath(getFileEntryPath(myFooFile1));
+    myMockView.getTree().addSelectionPath(getFileEntryPath(myFooFile2));
+
+    SettableFuture<TreePath> futureTreeChanged = createNodeExpandedFuture(myFoo);
+    ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
+    AnAction action = getActionByText(actionGroup, "Delete...");
+    assertNotNull(action);
+    AnActionEvent e = createContentMenuItemEvent();
+    action.update(e);
+    SettableFuture<Void> showProblemsFuture = SettableFuture.create();
+    replaceTestDialog(s -> {
+      if (s.contains("Could not erase")) {
+        showProblemsFuture.set(null);
+      }
+      return 0;  // "OK" button
+    });
+
+    // Assert
+    assertTrue(e.getPresentation().isVisible());
+    assertTrue(e.getPresentation().isEnabled());
+
+    // Act
+    action.actionPerformed(e);
+    pumpEventsAndWaitForFuture(myMockView.getDeleteNodesTracker().consume());
+    pumpEventsAndWaitForFuture(showProblemsFuture);
+    pumpEventsAndWaitForFuture(futureTreeChanged);
+
+    // Assert
+    // One entry has been deleted
+    assertEquals(3, DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent()).getChildCount());
   }
 
   private static <V> List<V> enumerationAsList(Enumeration e) {
@@ -870,43 +983,49 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     assert entry.isDirectory();
 
     TreePath entryPath = getFileEntryPath(entry);
-    SettableFuture<TreePath> futureTreeStructureChanged = SettableFuture.create();
+    SettableFuture<TreePath> isNodeExpandedFuture = SettableFuture.create();
     TreeModelAdapter treeModelAdapter = new TreeModelAdapter() {
       @Override
-      public void treeStructureChanged(TreeModelEvent event) {
+      protected void process(TreeModelEvent event, EventType type) {
+        if (isNodeFullyUpdated(event)) {
+          isNodeExpandedFuture.set(event.getTreePath());
+        }
+      }
+
+      private boolean isNodeFullyUpdated(TreeModelEvent event) {
         DeviceFileEntryNode entryNode = DeviceFileEntryNode.fromNode(entryPath.getLastPathComponent());
         assertNotNull(entryNode);
 
         // Ensure this is the final event where we have all children (and not just the
         // "Loading..." child)
         if (!Objects.equals(entryNode, event.getTreePath().getLastPathComponent())) {
-          return;
+          return false;
         }
 
         if (entryNode.getChildCount() != entry.getMockEntries().size()) {
-          return;
+          return false;
         }
 
         for(int i = 0; i < entryNode.getChildCount(); i++) {
           DeviceFileEntryNode childNode = DeviceFileEntryNode.fromNode(entryNode.getChildAt(i));
           if (childNode == null) {
             // It could be the "Loading..." node
-            return;
+            return false;
           }
 
           if (!Objects.equals(childNode.getEntry().getName(), entry.getMockEntries().get(i).getName())) {
-            return;
+            return false;
           }
         }
 
         // All children are equal, the parent node is fully expanded!
-        futureTreeStructureChanged.set(event.getTreePath());
+        return true;
       }
     };
     myMockView.getTree().getModel().addTreeModelListener(treeModelAdapter);
-    myEdtExecutor.addConsumer(futureTreeStructureChanged,
+    myEdtExecutor.addConsumer(isNodeExpandedFuture,
                               (path, throwable) -> myMockView.getTree().getModel().removeTreeModelListener(treeModelAdapter));
-    return futureTreeStructureChanged;
+    return isNodeExpandedFuture;
   }
 
   private void checkMockViewInitialState(DeviceExplorerController controller, MockDeviceFileSystem activeDevice)
