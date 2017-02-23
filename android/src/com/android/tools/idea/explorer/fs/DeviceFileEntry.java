@@ -56,6 +56,12 @@ public interface DeviceFileEntry {
   ListenableFuture<List<DeviceFileEntry>> getEntries();
 
   /**
+   * Deletes the entry from the device file system.
+   */
+  @NotNull
+  ListenableFuture<Void> delete();
+
+  /**
    * Returns {@code true} if the entry is a symbolic link that points to a directory.
    * @see com.android.tools.idea.explorer.adbimpl.AdbFileListing#isDirectoryLink
    */

@@ -43,6 +43,7 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
   private long mySize;
   private boolean myIsSymbolicLinkToDirectory;
   private Throwable myGetEntriesError;
+  private Throwable myDeleteError;
   private int myGetEntriesTimeoutMillis = OPERATION_TIMEOUT_MILLIS;
 
   @NotNull
@@ -70,6 +71,11 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
     throwIfEntryExists(name);
     return new MockDeviceFileEntry(myFileSystem, this, name, true, false, null);
   }
+
+  private void removeEntry(MockDeviceFileEntry childEntry) {
+    myEntries.remove(childEntry);
+  }
+
 
   public MockDeviceFileEntry(@NotNull MockDeviceFileSystem fileSystem,
                              @Nullable MockDeviceFileEntry parent,
@@ -137,6 +143,18 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
 
   @NotNull
   @Override
+  public ListenableFuture<Void> delete() {
+    if (myDeleteError != null) {
+      return FutureUtils.delayedError(myDeleteError, OPERATION_TIMEOUT_MILLIS);
+    }
+    return FutureUtils.delayedOperation(() -> {
+      myParent.removeEntry(this);
+      return null;
+    }, OPERATION_TIMEOUT_MILLIS);
+  }
+
+  @NotNull
+  @Override
   public ListenableFuture<Boolean> isSymbolicLinkToDirectory() {
     return FutureUtils.delayedValue(myIsSymbolicLinkToDirectory, OPERATION_TIMEOUT_MILLIS);
   }
@@ -183,7 +201,7 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
     return myLinkTarget;
   }
 
-  public void setGetEntriesError(Throwable t) {
+  public void setGetEntriesError(@Nullable Throwable t) {
     myGetEntriesError = t;
   }
 
@@ -193,6 +211,10 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
 
   public void setSymbolicLinkToDirectory(boolean symbolicLinkToDirectory) {
     myIsSymbolicLinkToDirectory = symbolicLinkToDirectory;
+  }
+
+  public void setDeleteError(@Nullable Throwable t) {
+    myDeleteError = t;
   }
 }
 

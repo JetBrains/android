@@ -19,12 +19,15 @@ import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public interface DeviceExplorerViewListener {
   void deviceSelected(@Nullable DeviceFileSystem device);
   void treeNodeExpanding(@NotNull DeviceFileEntryNode treeNode);
-  void openNodeInEditorInvoked(@NotNull DeviceFileEntryNode treeNode);
+  void openNodesInEditorInvoked(@NotNull List<DeviceFileEntryNode> treeNodes);
   void saveNodeAsInvoked(@NotNull DeviceFileEntryNode treeNode);
-  void copyNodePathInvoked(@NotNull DeviceFileEntryNode treeNode);
+  void copyNodePathsInvoked(@NotNull List<DeviceFileEntryNode> treeNodes);
   void newDirectoryInvoked(@NotNull DeviceFileEntryNode parentTreeNode);
   void newFileInvoked(@NotNull DeviceFileEntryNode parentTreeNode);
+  void deleteNodesInvoked(@NotNull List<DeviceFileEntryNode> nodes);
 }

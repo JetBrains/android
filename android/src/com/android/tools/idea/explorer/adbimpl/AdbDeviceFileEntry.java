@@ -156,6 +156,17 @@ public class AdbDeviceFileEntry implements DeviceFileEntry {
 
   @NotNull
   @Override
+  public ListenableFuture<Void> delete() {
+    if (isDirectory()) {
+      return myDevice.getAdbFileOperations().deleteRecursive(getFullPath());
+    }
+    else {
+      return myDevice.getAdbFileOperations().deleteFile(getFullPath());
+    }
+  }
+
+  @NotNull
+  @Override
   public ListenableFuture<Boolean> isSymbolicLinkToDirectory() {
     return myDevice.getAdbFileListing().isDirectoryLink(myEntry);
   }

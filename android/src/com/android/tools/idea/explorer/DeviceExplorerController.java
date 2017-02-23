@@ -17,10 +17,14 @@ package com.android.tools.idea.explorer;
 
 import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;
 import com.android.tools.idea.explorer.fs.*;
+import com.android.tools.idea.explorer.ui.TreeUtil;
 import com.android.utils.FileUtils;
 import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.CommonBundle;
+import com.intellij.openapi.application.ApplicationBundle;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
@@ -36,18 +40,18 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.ui.UIBundle;
 import com.intellij.util.Alarm;
+import com.intellij.util.ArrayUtil;
+import com.intellij.util.ExceptionUtil;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
+import javax.swing.tree.*;
 import java.awt.datatransfer.StringSelection;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -60,6 +64,7 @@ public class DeviceExplorerController {
   private static final Logger LOGGER = Logger.getInstance(DeviceExplorerController.class);
   private static final Key<DeviceExplorerController> KEY = Key.create(DeviceExplorerController.class.getName());
   private static final long FILE_ENTRY_CREATION_TIMEOUT_MILLIS = 10_000;
+  private static final long FILE_ENTRY_DELETION_TIMEOUT_MILLIS = 10_000;
 
   private int myShowLoadingNodeDelayMillis = 200;
   private int myDownloadingNodeRepaintMillis = 100;
@@ -108,6 +113,11 @@ public class DeviceExplorerController {
   @Nullable
   private DefaultTreeModel getTreeModel() {
     return myModel.getTreeModel();
+  }
+
+  @Nullable
+  private DefaultTreeSelectionModel getTreeSelectionModel() {
+    return myModel.getTreeSelectionModel();
   }
 
   public void setup() {
@@ -168,13 +178,13 @@ public class DeviceExplorerController {
     myEdtExecutor.addCallback(futureTreeModel, new FutureCallback<DefaultTreeModel>() {
       @Override
       public void onSuccess(@Nullable DefaultTreeModel result) {
-        myModel.setActiveDeviceTreeModel(device, result);
+        myModel.setActiveDeviceTreeModel(device, result, new DefaultTreeSelectionModel());
       }
 
       @Override
       public void onFailure(@NotNull Throwable t) {
         assert device != null; // Never fails for "null" device
-        myModel.setActiveDeviceTreeModel(device, null);
+        myModel.setActiveDeviceTreeModel(device, null, null);
         myView.reportErrorRelatedToDevice(device, "Unable to get root directory of device", t);
       }
     });
@@ -203,6 +213,25 @@ public class DeviceExplorerController {
       }
     });
     return futureResult;
+  }
+
+  /**
+   * Execute a task from the {@code taskFactory} for each element of the {@code iterator},
+   * waiting for the {@link ListenableFuture} returned by each task before executing the next one.
+   * The goal is to ensure we don't overload a device with many parallel requests.
+   * Cancellation can be implemented by the {@code taskFactory}, typically returning immediate
+   * no-op futures when the cancellation condition is detected.
+   *
+   * @param iterator    The source of elements to process
+   * @param taskFactory A factory {@link Function} that returns a {@link ListenableFuture} for a given element
+   * @param <T>         The type of the elements to process
+   */
+  private <T> void executeFuturesInSequence(@NotNull Iterator<T> iterator,
+                                            @NotNull Function<T, ListenableFuture<Void>> taskFactory) {
+    if (iterator.hasNext()) {
+      ListenableFuture<Void> future = taskFactory.apply(iterator.next());
+      myEdtExecutor.addConsumer(future, (aVoid, throwable) -> executeFuturesInSequence(iterator, taskFactory));
+    }
   }
 
   private void startDownloadNode(@NotNull DeviceFileEntryNode node) {
@@ -289,34 +318,46 @@ public class DeviceExplorerController {
     }
 
     @Override
-    public void openNodeInEditorInvoked(@NotNull DeviceFileEntryNode treeNode) {
-      if (treeNode.getEntry().isDirectory()) {
-        return;
-      }
+    public void openNodesInEditorInvoked(@NotNull List<DeviceFileEntryNode> treeNodes) {
+      DeviceFileSystem device = myModel.getActiveDevice();
 
-      if (treeNode.isDownloading()) {
-        myView.reportErrorRelatedToNode(treeNode, "Entry is already downloading", new RuntimeException());
-        return;
-      }
+      executeFuturesInSequence(treeNodes.iterator(), treeNode -> {
+        if (!Objects.equals(device, myModel.getActiveDevice())) {
+          return Futures.immediateFuture(null);
+        }
 
-      ListenableFuture<Path> futurePath = downloadFileEntry(treeNode, false);
-      myEdtExecutor.addCallback(futurePath, new FutureCallback<Path>() {
-        @Override
-        public void onSuccess(@Nullable Path localPath) {
-          assert localPath != null;
-          try {
-            myFileManager.openFileInEditor(localPath, true);
-          } catch(Throwable t) {
-            String message = String.format("Unable to open file \"%s\" in editor", localPath);
+        if (treeNode.getEntry().isDirectory()) {
+          return Futures.immediateFuture(null);
+        }
+
+        if (treeNode.isDownloading()) {
+          myView.reportErrorRelatedToNode(treeNode, "Entry is already downloading", new RuntimeException());
+          return Futures.immediateFuture(null);
+        }
+
+        ListenableFuture<Path> futurePath = downloadFileEntry(treeNode, false);
+        myEdtExecutor.addCallback(futurePath, new FutureCallback<Path>() {
+          @Override
+          public void onSuccess(@Nullable Path localPath) {
+            assert localPath != null;
+            try {
+              myFileManager.openFileInEditor(localPath, true);
+            }
+            catch (Throwable t) {
+              String message = String.format("Unable to open file \"%s\" in editor", localPath);
+              myView.reportErrorRelatedToNode(treeNode, message, t);
+            }
+          }
+
+          @Override
+          public void onFailure(@NotNull Throwable t) {
+            String message = String.format("Error downloading contents of device file %s", getUserFacingNodeName(treeNode));
             myView.reportErrorRelatedToNode(treeNode, message, t);
           }
-        }
-
-        @Override
-        public void onFailure(@NotNull Throwable t) {
-          String message = String.format("Error downloading contents of device file %s", getUserFacingNodeName(treeNode));
-          myView.reportErrorRelatedToNode(treeNode, message, t);
-        }
+        });
+        SettableFuture<Void> futureResult = SettableFuture.create();
+        myEdtExecutor.addConsumer(futurePath, (path, throwable) -> futureResult.set(null));
+        return futureResult;
       });
     }
 
@@ -351,8 +392,9 @@ public class DeviceExplorerController {
     }
 
     @Override
-    public void copyNodePathInvoked(@NotNull DeviceFileEntryNode treeNode) {
-      CopyPasteManager.getInstance().setContents(new StringSelection(treeNode.getEntry().getFullPath()));
+    public void copyNodePathsInvoked(@NotNull List<DeviceFileEntryNode> treeNodes) {
+      String text = treeNodes.stream().map(x -> x.getEntry().getFullPath()).collect(Collectors.joining("\n"));
+      CopyPasteManager.getInstance().setContents(new StringSelection(text));
     }
 
 
@@ -365,6 +407,103 @@ public class DeviceExplorerController {
                          UIBundle.message("create.new.file.file.name.cannot.be.empty.error.message"),
                          x -> UIBundle.message("create.new.file.could.not.create.file.error.message", x),
                          x -> parentTreeNode.getEntry().getFileSystem().createNewFile(parentTreeNode.getEntry(), x));
+    }
+
+    @Override
+    public void deleteNodesInvoked(@NotNull List<DeviceFileEntryNode> nodes) {
+      if (nodes.isEmpty()) {
+        return;
+      }
+
+      List<DeviceFileEntry> fileEntries = nodes.stream().map(DeviceFileEntryNode::getEntry).collect(Collectors.toList());
+      String message = createDeleteConfirmationMessage(fileEntries);
+      int returnValue = Messages.showOkCancelDialog(message,
+                                                    UIBundle.message("delete.dialog.title"),
+                                                    ApplicationBundle.message("button.delete"),
+                                                    CommonBundle.getCancelButtonText(),
+                                                    Messages.getQuestionIcon());
+      if (returnValue != Messages.OK) {
+        return;
+      }
+
+      fileEntries.sort(Comparator.comparing(DeviceFileEntry::getFullPath));
+
+      List<String> problems = ContainerUtil.newLinkedList();
+      for (DeviceFileEntry fileEntry : fileEntries) {
+        ListenableFuture<Void> futureDelete = fileEntry.delete();
+        try {
+          futureDelete.get(FILE_ENTRY_DELETION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+        }
+        catch (Throwable t) {
+          LOGGER.info(String.format("Error deleting file \"%s\"", fileEntry.getFullPath()), t);
+          String problemMessage = ExceptionUtil.getRootCause(t).getMessage();
+          if (StringUtil.isEmpty(problemMessage)) {
+            problemMessage = "Error deleting file";
+          }
+          problemMessage = String.format("%s: %s", fileEntry.getFullPath(), problemMessage);
+          problems.add(problemMessage);
+        }
+      }
+
+      if (!problems.isEmpty()) {
+        reportDeletionProblem(problems);
+      }
+
+      // Refresh the parent node(s) to remove the deleted files
+      Set<DeviceFileEntryNode> parentsToRefresh = nodes.stream()
+        .map(x -> DeviceFileEntryNode.fromNode(x.getParent()))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
+      executeFuturesInSequence(parentsToRefresh.iterator(), parentNode -> {
+        parentNode.setLoaded(false);
+        return loadNodeChildren(parentNode);
+      });
+    }
+
+    private void reportDeletionProblem(@NotNull List<String> problems) {
+      if (problems.size() == 1) {
+        Messages.showMessageDialog("Could not erase file or folder:\n" + problems.get(0),
+                                   UIBundle.message("error.dialog.title"), Messages.getErrorIcon());
+        return;
+      }
+      boolean more = false;
+      if (problems.size() > 10) {
+        problems = problems.subList(0, 10);
+        more = true;
+      }
+      Messages.showMessageDialog("Could not erase files or folders:\n  " + StringUtil.join(problems, ",\n  ") + (more ? "\n  ..." : ""),
+                                 UIBundle.message("error.dialog.title"), Messages.getErrorIcon());
+    }
+
+    private String createDeleteConfirmationMessage(@NotNull List<DeviceFileEntry> filesToDelete) {
+      if (filesToDelete.size() == 1) {
+        if (filesToDelete.get(0).isDirectory()) {
+          return UIBundle.message("are.you.sure.you.want.to.delete.selected.folder.confirmation.message", filesToDelete.get(0).getName());
+        }
+        else {
+          return UIBundle.message("are.you.sure.you.want.to.delete.selected.file.confirmation.message", filesToDelete.get(0).getName());
+        }
+      }
+      else {
+        boolean hasFiles = false;
+        boolean hasFolders = false;
+        for (DeviceFileEntry file : filesToDelete) {
+          boolean isDirectory = file.isDirectory();
+          hasFiles |= !isDirectory;
+          hasFolders |= isDirectory;
+        }
+        if (hasFiles && hasFolders) {
+          return UIBundle
+            .message("are.you.sure.you.want.to.delete.selected.files.and.directories.confirmation.message", filesToDelete.size());
+        }
+        else if (hasFolders) {
+          return UIBundle.message("are.you.sure.you.want.to.delete.selected.folders.confirmation.message", filesToDelete.size());
+        }
+        else {
+          return UIBundle.message("are.you.sure.you.want.to.delete.selected.files.and.files.confirmation.message", filesToDelete.size());
+        }
+      }
     }
 
     @Override
@@ -426,7 +565,7 @@ public class DeviceExplorerController {
           parentTreeNode.setLoaded(false);
           loadNodeChildren(parentTreeNode);
         }
-        catch(ExecutionException | InterruptedException | TimeoutException e) {
+        catch (ExecutionException | InterruptedException | TimeoutException e) {
           showErrorMessage(errorMessage.apply(newFileName), e);
           initialName = newFileName;
           continue;  // Try again
@@ -526,46 +665,47 @@ public class DeviceExplorerController {
       loadNodeChildren(node);
     }
 
-    private void loadNodeChildren(@NotNull final DeviceFileEntryNode node) {
+    private ListenableFuture<Void> loadNodeChildren(@NotNull final DeviceFileEntryNode node) {
       // Ensure node is expanded only once
       if (node.isLoaded()) {
-        return;
+        return Futures.immediateFuture(null);
       }
       node.setLoaded(true);
 
       // Leaf nodes are not expandable
       if (node.isLeaf()) {
-        return;
+        return Futures.immediateFuture(null);
       }
 
       DefaultTreeModel treeModel = getTreeModel();
-      if (treeModel == null) {
-        return;
+      DefaultTreeSelectionModel treeSelectionModel = getTreeSelectionModel();
+      if (treeModel == null || treeSelectionModel == null) {
+        return Futures.immediateFuture(null);
       }
 
       DeviceFileSystem fileSystem = myModel.getActiveDevice();
       if (!Objects.equals(fileSystem, node.getEntry().getFileSystem())) {
-        return;
+        return Futures.immediateFuture(null);
       }
 
       ShowLoadingNodeRequest showLoadingNode = new ShowLoadingNodeRequest(treeModel, node);
       myLoadingNodesAlarms.addRequest(showLoadingNode, myShowLoadingNodeDelayMillis);
+
+      SettableFuture<Void> futureResult = SettableFuture.create();
 
       startLoadChildren(node);
       ListenableFuture<List<DeviceFileEntry>> futureEntries = node.getEntry().getEntries();
       myEdtExecutor.addCallback(futureEntries, new FutureCallback<List<DeviceFileEntry>>() {
         @Override
         public void onSuccess(List<DeviceFileEntry> result) {
-          stopLoadChildren(node);
-          myLoadingNodesAlarms.cancelRequest(showLoadingNode);
+          // Save selection
+          TreePath[] oldSelections = getTreeSelectionModel().getSelectionPaths();
+          List<DeviceFileEntryNode> addedNodes = updateChildrenNodes(treeModel, node, result);
 
-          List<DeviceFileEntryNode> nodes = result.stream().map(DeviceFileEntryNode::new).collect(Collectors.toList());
-          node.removeAllChildren();
-          node.setAllowsChildren(nodes.size() > 0);
-          nodes.forEach(node::add);
-          treeModel.nodeStructureChanged(node);
+          // Restore selection
+          restoreTreeSelection(treeSelectionModel, oldSelections, node);
 
-          List<DeviceFileEntryNode> symlinkNodes = nodes
+          List<DeviceFileEntryNode> symlinkNodes = addedNodes
             .stream()
             .filter(x -> x.getEntry().isSymbolicLink())
             .collect(Collectors.toList());
@@ -574,8 +714,6 @@ public class DeviceExplorerController {
 
         @Override
         public void onFailure(@NotNull Throwable t) {
-          stopLoadChildren(node);
-          myLoadingNodesAlarms.cancelRequest(showLoadingNode);
           String message = String.format("Unable to list entries of directory %s", getUserFacingNodeName(node));
           myView.reportErrorRelatedToNode(node, message, t);
 
@@ -585,6 +723,85 @@ public class DeviceExplorerController {
           treeModel.nodeStructureChanged(node);
         }
       });
+
+      myEdtExecutor.addConsumer(futureEntries, (entries, throwable) -> {
+        stopLoadChildren(node);
+        myLoadingNodesAlarms.cancelRequest(showLoadingNode);
+        futureResult.set(null);
+      });
+
+      return futureResult;
+    }
+
+    @NotNull
+    private List<DeviceFileEntryNode> updateChildrenNodes(@NotNull DefaultTreeModel treeModel,
+                                                          @NotNull DeviceFileEntryNode parentNode,
+                                                          @NotNull List<DeviceFileEntry> newEntries) {
+
+      TreeUtil.UpdateChildrenOps<DeviceFileEntryNode, DeviceFileEntry> updateChildrenOps =
+        new TreeUtil.UpdateChildrenOps<DeviceFileEntryNode, DeviceFileEntry>() {
+          @Nullable
+          @Override
+          public DeviceFileEntryNode getChildNode(@NotNull DeviceFileEntryNode parentNode, int index) {
+            // Some nodes (e.g. "error" or "loading" nodes) are not of the same type,
+            // we return null in those cases to that the update algorithm will remove them from
+            // the parent node.
+            return DeviceFileEntryNode.fromNode(parentNode.getChildAt(index));
+          }
+
+          @NotNull
+          @Override
+          public DeviceFileEntryNode mapEntry(@NotNull DeviceFileEntry entry) {
+            return new DeviceFileEntryNode(entry);
+          }
+
+          @Override
+          public int compareNodeWithEntry(@NotNull DeviceFileEntryNode node,
+                                          @NotNull DeviceFileEntry entry) {
+            return node.getEntry().getName().compareTo(entry.getName());
+          }
+
+          @Override
+          public void updateNode(@NotNull DeviceFileEntryNode node,
+                                 @NotNull DeviceFileEntry entry) {
+            node.setEntry(entry);
+          }
+        };
+
+      List<DeviceFileEntryNode> addedNodes = TreeUtil.updateChildrenNodes(treeModel, parentNode, newEntries, updateChildrenOps);
+      parentNode.setAllowsChildren(parentNode.getChildCount() > 0);
+      return addedNodes;
+    }
+
+    private void restoreTreeSelection(@NotNull DefaultTreeSelectionModel treeSelectionModel,
+                                      @NotNull TreePath[] oldSelections,
+                                      @NotNull DefaultMutableTreeNode parentNode) {
+      Set<TreePath> newSelections = new HashSet<>();
+      TreePath parentPath = new TreePath(parentNode.getPath());
+      Arrays.stream(oldSelections)
+        .forEach(x -> restorePathSelection(parentPath, x, newSelections));
+
+      TreePath[] newSelectionArray = ArrayUtil.toObjectArray(newSelections.stream().collect(Collectors.toList()), TreePath.class);
+      treeSelectionModel.addSelectionPaths(newSelectionArray);
+    }
+
+    private void restorePathSelection(@NotNull TreePath parentPath,
+                                      @NotNull TreePath oldPath,
+                                      @NotNull Set<TreePath> selections) {
+
+      if (Objects.equals(parentPath, oldPath)) {
+        return;
+      }
+      if (!parentPath.isDescendant(oldPath)) {
+        return;
+      }
+      TreeNode node = (TreeNode)parentPath.getLastPathComponent();
+      for (int i = 0; i < node.getChildCount(); i++) {
+        if (Objects.equals(node.getChildAt(i), oldPath.getLastPathComponent())) {
+          return;
+        }
+      }
+      selections.add(parentPath);
     }
 
     /**
@@ -595,7 +812,9 @@ public class DeviceExplorerController {
       querySymbolicLinksWorker(symlinkNodes, 0, treeModel);
     }
 
-    private void querySymbolicLinksWorker(@NotNull List<DeviceFileEntryNode> symlinkNodes, int nodeIndex, @NotNull DefaultTreeModel treeModel) {
+    private void querySymbolicLinksWorker(@NotNull List<DeviceFileEntryNode> symlinkNodes,
+                                          int nodeIndex,
+                                          @NotNull DefaultTreeModel treeModel) {
       if (nodeIndex >= symlinkNodes.size()) {
         return;
       }
@@ -610,7 +829,7 @@ public class DeviceExplorerController {
         if (throwable != null) {
           LOGGER.info(String.format("Error determining if file entry \"%s\" is a link to a directory",
                                     treeNode.getEntry().getName()),
-                                    throwable);
+                      throwable);
         }
 
         // Stop all processing if tree model has changed, i.e. UI has been switched to another device
@@ -656,7 +875,7 @@ public class DeviceExplorerController {
   private class MyDownloadingNodesRepaint implements Runnable {
     @Override
     public void run() {
-      myDownloadingNodes.forEach(x ->  {
+      myDownloadingNodes.forEach(x -> {
         x.incDownloadingTick();
         if (getTreeModel() != null) {
           getTreeModel().nodeChanged(x);
@@ -669,7 +888,7 @@ public class DeviceExplorerController {
   private class MyLoadingChildrenRepaint implements Runnable {
     @Override
     public void run() {
-      myLoadingChildren.forEach(x ->  {
+      myLoadingChildren.forEach(x -> {
         if (x.getChildCount() == 0)
           return;
 
