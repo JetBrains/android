@@ -26,7 +26,6 @@ import com.android.tools.idea.sdk.Jdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -91,10 +90,7 @@ public class ProjectJdkSetupStep extends ProjectSetupStep {
     if (homePath != null) {
       Sdk jdk = ideJdk;
       Runnable task = () -> application.runWriteAction(() -> myJdks.setJdk(project, jdk));
-      if (application.isUnitTestMode()) {
-        submitTransaction(project, task);
-      }
-      TransactionGuard.getInstance().submitTransactionLater(project, task);
+      submitTransaction(project, task);
       PostProjectBuildTasksExecutor.getInstance(project).updateJavaLangLevelAfterBuild();
     }
   }
