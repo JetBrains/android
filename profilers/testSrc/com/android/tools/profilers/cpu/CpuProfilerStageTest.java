@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.common.CodeLocation;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -220,6 +221,20 @@ public class CpuProfilerStageTest extends AspectObserver {
     assertNotEquals(details, newDetails);
     assertTrue(newDetails instanceof CpuProfilerStage.BottomUp);
     assertNotNull(((CpuProfilerStage.BottomUp)newDetails).getModel());
+  }
+
+  @Test
+  public void setCodeLocation() throws IOException {
+    // to EXPANDED mode
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    myStage.setAndSelectCapture(new CpuCapture(CpuCaptureTest.readValidTrace()));
+    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+    // After code navigation it should be Normal mode.
+    myStage.setCodeLocation(new CodeLocation("className"));
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+
+    myStage.setCapture(new CpuCapture(CpuCaptureTest.readValidTrace()));
+    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
   }
 
   private void captureSuccessfully() throws InterruptedException {
