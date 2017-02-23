@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.gradle.util.GradleBuilds;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
@@ -213,7 +212,7 @@ public class GradleBuildInvoker {
     }
 
     for (Module module : modules) {
-      if (GradleBuilds.BUILD_SRC_FOLDER_NAME.equals(module.getName())) {
+      if (BUILD_SRC_FOLDER_NAME.equals(module.getName())) {
         // "buildSrc" is a special case handled automatically by Gradle.
         continue;
       }
