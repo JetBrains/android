@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySp
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ExpectedModuleDependency;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
@@ -63,7 +64,7 @@ public class GradleBuildModelFixture {
   }
 
   public void applyChanges() {
-    GuiTask.execute(() -> WriteCommandAction.runWriteCommandAction(myTarget.getProject(), myTarget::applyChanges));
+    ApplicationManager.getApplication().invokeAndWait(() -> WriteCommandAction.runWriteCommandAction(myTarget.getProject(), myTarget::applyChanges));
   }
 
   public void reparse() {
