@@ -33,6 +33,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.psi.PsiDocumentManager;
@@ -109,6 +110,11 @@ public class NlPreviewManager implements ProjectComponent {
     myToolWindow =
       ToolWindowManager.getInstance(myProject).registerToolWindow(toolWindowId, false, ToolWindowAnchor.RIGHT, myProject, true);
     myToolWindow.setIcon(AndroidIcons.AndroidPreview);
+
+    // The NlPreviewForm contains collapsible components like the palette. If one of those has the focus when the tool window is deactivated
+    // it won't be able to regain it at the next activation. So we make sure the tool window does not try to give the focus on activation to
+    // the last component that had it, but gives it instead to the default focusable component.
+    ((ToolWindowEx)myToolWindow).setUseLastFocusedOnActivation(false);
 
     ((ToolWindowManagerEx)ToolWindowManager.getInstance(myProject)).addToolWindowManagerListener(new ToolWindowManagerAdapter() {
       @Override
