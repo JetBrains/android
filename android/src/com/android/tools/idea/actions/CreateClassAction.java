@@ -21,6 +21,7 @@ import com.intellij.ide.IdeView;
 import com.intellij.ide.actions.CreateFromTemplateAction;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.EditorEx;
@@ -28,6 +29,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.util.IncorrectOperationException;
@@ -71,7 +73,8 @@ public final class CreateClassAction extends AnAction {
         @Override
         public PsiClass createFile(@NotNull String name, @NotNull Map<String, String> creationOptions, @NotNull String templateName) {
           String enteredPackageName = creationOptions.get(FileTemplate.ATTRIBUTE_PACKAGE_NAME);
-          PsiDirectory packageSubdirectory = createPackageSubdirectory(directory, enteredPackageName);
+          PsiDirectory packageSubdirectory = ApplicationManager.getApplication()
+            .runWriteAction((Computable<PsiDirectory>)() -> createPackageSubdirectory(directory, enteredPackageName));
           return checkOrCreate(name, packageSubdirectory, templateName, creationOptions);
         }
 
