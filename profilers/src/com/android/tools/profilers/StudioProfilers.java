@@ -258,14 +258,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       process = getPreferredProcess(processes);
     }
     if (!Objects.equals(process, myProcess)) {
-      if (myDevice != null && myProcess != null && myDevice.getState() == Profiler.Device.State.ONLINE) {
+      if (myDevice != null && myProcess != null &&
+          myDevice.getState() == Profiler.Device.State.ONLINE &&
+          myProcess.getState() == Profiler.Process.State.ALIVE) {
         myProfilers.forEach(profiler -> profiler.stopProfiling(getSession(), myProcess));
       }
 
       myProcess = process;
       changed(ProfilerAspect.PROCESSES);
 
-      if (myDevice != null && myProcess != null && myDevice.getState() == Profiler.Device.State.ONLINE) {
+      if (myDevice != null && myProcess != null &&
+          myDevice.getState() == Profiler.Device.State.ONLINE &&
+          myProcess.getState() == Profiler.Process.State.ALIVE) {
         myProfilers.forEach(profiler -> profiler.startProfiling(getSession(), myProcess));
       }
       setStage(new StudioMonitorStage(this));
