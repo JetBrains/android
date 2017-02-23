@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.java.*;
+import com.android.tools.idea.gradle.project.sync.setup.module.java.JavaModuleCleanupStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
@@ -34,23 +35,32 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 
 public class JavaModuleModelDataService extends ModuleModelDataService<JavaModuleModel> {
   @NotNull private final JavaModuleSetup myModuleSetup;
+  @NotNull private final JavaModuleCleanupStep myCleanupStep;
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public JavaModuleModelDataService() {
     this(new JavaModuleSetup(new JavaFacetModuleSetupStep(), new ContentRootsModuleSetupStep(), new DependenciesModuleSetupStep(),
                              new ArtifactsByConfigurationModuleSetupStep(), new CompilerOutputModuleSetupStep(),
-                             new JavaLanguageLevelModuleSetupStep()));
+                             new JavaLanguageLevelModuleSetupStep()), new JavaModuleCleanupStep());
   }
 
   @VisibleForTesting
-  JavaModuleModelDataService(@NotNull JavaModuleSetup moduleSetup) {
+  JavaModuleModelDataService(@NotNull JavaModuleSetup moduleSetup, @NotNull JavaModuleCleanupStep cleanupStep) {
     myModuleSetup = moduleSetup;
+    myCleanupStep = cleanupStep;
   }
 
   @Override
   @NotNull
   public Key<JavaModuleModel> getTargetDataKey() {
     return JAVA_MODULE_MODEL;
+  }
+
+  @Override
+  protected void onModelsNotFound(@NotNull IdeModifiableModelsProvider modelsProvider) {
+    for (Module module : modelsProvider.getModules()) {
+      myCleanupStep.cleanUpModule(module, modelsProvider);
+    }
   }
 
   @Override

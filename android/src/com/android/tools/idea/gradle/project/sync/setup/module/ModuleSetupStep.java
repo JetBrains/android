@@ -29,13 +29,9 @@ public abstract class ModuleSetupStep<T> {
                                 @Nullable SyncAction.ModuleModels gradleModels,
                                 @Nullable ProgressIndicator indicator) {
     if (gradleModel == null) {
-      gradleModelNotFound(module, ideModelsProvider);
       return;
     }
     doSetUpModule(module, ideModelsProvider, gradleModel, gradleModels, indicator);
-  }
-
-  protected void gradleModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
   }
 
   protected abstract void doSetUpModule(@NotNull Module module,
@@ -44,6 +40,7 @@ public abstract class ModuleSetupStep<T> {
                                         @Nullable SyncAction.ModuleModels gradleModels,
                                         @Nullable ProgressIndicator indicator);
 
+  // TODO: delete
   @NotNull
   public abstract String getDescription();
 

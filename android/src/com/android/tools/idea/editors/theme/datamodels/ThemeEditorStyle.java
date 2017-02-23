@@ -27,7 +27,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ProjectResourceRepository;
@@ -38,6 +37,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
@@ -373,7 +373,7 @@ public class ThemeEditorStyle {
           if (facet != null) {
             facet.refreshResources();
             // This is because the ResourceFolderRepository may initialize through the file instead of Psi.
-            GradleBuildInvoker.saveAllFilesSafely();
+            FileDocumentManager.getInstance().saveAllDocuments();
           }
         }
 
@@ -421,19 +421,20 @@ public class ThemeEditorStyle {
     assert !qualifiedThemeName.startsWith(SdkConstants.STYLE_RESOURCE_PREFIX);
 
     String newParentResourceUrl = ResolutionUtils.getStyleResourceUrl(qualifiedThemeName);
-    int parentApi = ResolutionUtils.getOriginalApiLevel(newParentResourceUrl, myManager.getProject());
+    Project project = myManager.getProject();
+    int parentApi = ResolutionUtils.getOriginalApiLevel(newParentResourceUrl, project);
     int minSdk = ThemeEditorUtils.getMinApiLevel(myManager.getModule());
 
     // When api level of both attribute and value is not greater that Minimum SDK,
     // we should modify every FolderConfiguration, thus we set desiredApi to -1
     final int desiredApi = (parentApi <= minSdk) ? -1 : parentApi;
 
-    new WriteCommandAction.Simple(myManager.getProject(), "Updating Parent to " + qualifiedThemeName) {
+    new WriteCommandAction.Simple(project, "Updating Parent to " + qualifiedThemeName) {
       @Override
       protected void run() {
         // Makes the command global even if only one xml file is modified
         // That way, the Undo is always available from the theme editor
-        CommandProcessor.getInstance().markCurrentCommandAsGlobal(myManager.getProject());
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
 
         Collection<FolderConfiguration> toBeCopied = findToBeCopied(desiredApi);
         for (FolderConfiguration configuration : toBeCopied) {
@@ -449,7 +450,7 @@ public class ThemeEditorStyle {
           if (facet != null) {
             facet.refreshResources();
             // This is because the ResourceFolderRepository may initialize through the file instead of Psi.
-            GradleBuildInvoker.saveAllFilesSafely();
+            FileDocumentManager.getInstance().saveAllDocuments();
           }
         }
 
