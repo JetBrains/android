@@ -26,7 +26,6 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -263,7 +262,7 @@ public class LayoutPullParserFactory {
     }
 
     Application application = ApplicationManager.getApplication();
-    application.invokeAndWait(() -> application.runWriteAction(() -> fileManager.saveDocument(document)), ModalityState.any());
+    application.invokeAndWait(() -> application.runWriteAction(() -> fileManager.saveDocument(document)));
   }
 
   protected static Element addRootElement(@NotNull Document document, @NotNull String tag) {
