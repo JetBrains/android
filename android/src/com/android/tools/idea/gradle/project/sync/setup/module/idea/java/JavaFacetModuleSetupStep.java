@@ -32,16 +32,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
-import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 
 public class JavaFacetModuleSetupStep extends JavaModuleSetupStep {
-  @Override
-  protected void gradleModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
-    ModifiableFacetModel facetModel = ideModelsProvider.getModifiableFacetModel(module);
-    removeAllFacets(facetModel, JavaFacet.getFacetTypeId());
-  }
-
   @Override
   protected void doSetUpModule(@NotNull Module module,
                                @NotNull IdeModifiableModelsProvider ideModelsProvider,

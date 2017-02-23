@@ -45,12 +45,6 @@ public class ContentRootModuleSetupStep extends NdkModuleSetupStep {
     setup.execute(contentEntries);
   }
 
-  @Override
-  protected void gradleModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
-    ModifiableRootModel moduleModel = ideModelsProvider.getModifiableRootModel(module);
-    removeExistingContentEntries(moduleModel);
-  }
-
   @NotNull
   private static List<ContentEntry> findContentEntries(@NotNull ModifiableRootModel moduleModel,
                                                        @NotNull NdkModuleModel ndkModuleModel) {

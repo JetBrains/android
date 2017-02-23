@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.ContentRootModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkFacetModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkModuleCleanupStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
@@ -35,21 +36,30 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 
 public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleModel> {
   @NotNull private final NdkModuleSetup myModuleSetup;
+  @NotNull private final NdkModuleCleanupStep myCleanupStep;
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public NdkModuleModelDataService() {
-    this(new NdkModuleSetup(new NdkFacetModuleSetupStep(), new ContentRootModuleSetupStep()));
+    this(new NdkModuleSetup(new NdkFacetModuleSetupStep(), new ContentRootModuleSetupStep()), new NdkModuleCleanupStep());
   }
 
   @VisibleForTesting
-  NdkModuleModelDataService(@NotNull NdkModuleSetup moduleSetup) {
+  NdkModuleModelDataService(@NotNull NdkModuleSetup moduleSetup, @NotNull NdkModuleCleanupStep cleanupStep) {
     myModuleSetup = moduleSetup;
+    myCleanupStep = cleanupStep;
   }
 
   @Override
   @NotNull
   public Key<NdkModuleModel> getTargetDataKey() {
     return NDK_MODEL;
+  }
+
+  @Override
+  protected void onModelsNotFound(@NotNull IdeModifiableModelsProvider modelsProvider) {
+    for (Module module : modelsProvider.getModules()) {
+      myCleanupStep.cleanUpModule(module, modelsProvider);
+    }
   }
 
   @Override
