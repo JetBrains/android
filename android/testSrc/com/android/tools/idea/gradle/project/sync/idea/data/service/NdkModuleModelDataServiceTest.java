@@ -18,8 +18,6 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
-import com.android.tools.idea.testing.Facets;
-import com.apple.eawt.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
