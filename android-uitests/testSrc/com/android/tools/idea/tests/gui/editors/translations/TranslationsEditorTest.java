@@ -253,6 +253,23 @@ public final class TranslationsEditorTest {
   }
 
   @Test
+  public void rename() {
+    myTranslationsEditor.getTable().enterValue(TableCell.row(1).column(KEY_COLUMN), "new_key");
+    myGuiTest.waitForBackgroundTasks();
+
+    assertEquals("<string name=\"new_key\">Hello world!</string>", myGuiTest.ideFrame().getEditor()
+      .open("app/src/main/res/values/strings.xml")
+      .moveBetween("new_key", "\"")
+      .getCurrentLine()
+      .trim());
+    assertEquals("<string name=\"new_key\">Hello world!</string>", myGuiTest.ideFrame().getEditor()
+      .open("app/src/main/res/values-en/strings.xml")
+      .moveBetween("new_key", "\"")
+      .getCurrentLine()
+      .trim());
+  }
+
+  @Test
   public void resourceFolderColumn() {
     JTableFixture table = myTranslationsEditor.getTable();
 
