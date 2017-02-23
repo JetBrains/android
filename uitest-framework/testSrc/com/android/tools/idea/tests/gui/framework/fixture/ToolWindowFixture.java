@@ -17,9 +17,11 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
+import com.intellij.util.ui.UIUtil;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
@@ -28,6 +30,7 @@ import org.fest.swing.util.TextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.concurrent.TimeUnit;
 
 public abstract class ToolWindowFixture {
@@ -109,7 +112,11 @@ public abstract class ToolWindowFixture {
   }
 
   protected boolean isActive() {
-    return GuiQuery.getNonNull(myToolWindow::isActive);
+    return GuiQuery.getNonNull(() -> {
+      Content content = myToolWindow.getContentManager().getSelectedContent();
+      Component owner = IdeFocusManager.getInstance(myProject).getFocusOwner();
+      return myToolWindow.isActive() && content != null && UIUtil.isDescendingFrom(owner, content.getPreferredFocusableComponent());
+    });
   }
 
   public void activate() {
