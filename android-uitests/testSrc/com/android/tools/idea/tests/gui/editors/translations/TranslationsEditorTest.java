@@ -227,6 +227,13 @@ public final class TranslationsEditorTest {
   }
 
   @Test
+  public void goToDeclaration() {
+    JTableFixture table = myTranslationsEditor.getTable();
+    table.showPopupMenuAt(TableCell.row(5).column(ENGLISH_COLUMN)).menuItemWithPath("Go to Declaration").click();
+    assertEquals("<string name=\"app_name\">Simple Application(en)</string>", myGuiTest.ideFrame().getEditor().getCurrentLine().trim());
+  }
+
+  @Test
   public void enteringValueUpdatesDebugStringsXml() {
     myTranslationsEditor.getTable().enterValue(TableCell.row(5).column(HEBREW_COLUMN), "app_name_debug_iw");
 
