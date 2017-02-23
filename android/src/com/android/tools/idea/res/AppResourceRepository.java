@@ -595,7 +595,14 @@ public class AppResourceRepository extends MultiResourceRepository {
       if (resourceTextFile == null) {
         continue;
       }
-      Integer[] in = RDotTxtParser.getDeclareStyleableArray(resourceTextFile, attrs, styleableName);
+      Integer[] in = null;
+      try {
+        in = RDotTxtParser.getDeclareStyleableArray(resourceTextFile, attrs, styleableName);
+      } catch (Throwable e) {
+        // Filter all possible errors while parsing the R.txt file
+        assert false : e.getLocalizedMessage();
+        LOG.warn("Error while parsing R.txt", e);
+      }
       if (in != null) {
         // Reorder the list to place this library first. It's likely that there will be more calls to the same library.
         iter.remove();
