@@ -96,7 +96,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     }
 
     if (usageInfos.length < 5) {
-      SwingUtilities.invokeLater(applyRunnable(project, () -> usageInfos));
+      ApplicationManager.getApplication().invokeLater(applyRunnable(project, () -> usageInfos));
     }
     else {
       showUsageView(project, usageInfos, scope, this);
