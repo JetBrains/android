@@ -65,10 +65,4 @@ public class CompilerOutputModuleSetupStep extends JavaModuleSetupStep {
       myCompilerSettingsSetup.setOutputPaths(moduleModel, mainClassesFolder, testClassesFolder);
     }
   }
-
-  @Override
-  @NotNull
-  public String getDescription() {
-    return "Compiler output setup";
-  }
 }

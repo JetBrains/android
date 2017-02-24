@@ -57,12 +57,6 @@ public class CompilerOutputModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   @Override
-  @NotNull
-  public String getDescription() {
-    return "Compiler output setup";
-  }
-
-  @Override
   public boolean invokeOnBuildVariantChange() {
     return true;
   }

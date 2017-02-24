@@ -59,10 +59,4 @@ public class ContentRootsModuleSetupStep extends JavaModuleSetupStep {
     }
     return contentEntries;
   }
-
-  @Override
-  @NotNull
-  public String getDescription() {
-    return "Source folder(s) setup";
-  }
 }

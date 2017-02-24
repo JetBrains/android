@@ -86,10 +86,4 @@ public class ArtifactsByConfigurationModuleSetupStep extends JavaModuleSetupStep
       }
     }
   }
-
-  @Override
-  @NotNull
-  public String getDescription() {
-    return "artifacts by configuration setup";
-  }
 }

@@ -97,10 +97,4 @@ public class JavaLanguageLevelModuleSetupStep extends JavaModuleSetupStep {
     }
     return null;
   }
-
-  @Override
-  @NotNull
-  public String getDescription() {
-    return "Java language level setup";
-  }
 }
