@@ -22,5 +22,6 @@
     <orderEntry type="module" module-name="lang-api" />
     <orderEntry type="module" module-name="ddmlib" />
     <orderEntry type="module" module-name="platform-impl" />
+    <orderEntry type="module" module-name="adt-ui" scope="TEST" />
   </component>
 </module>
