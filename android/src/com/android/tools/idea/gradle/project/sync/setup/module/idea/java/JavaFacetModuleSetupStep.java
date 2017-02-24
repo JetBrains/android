@@ -70,10 +70,4 @@ public class JavaFacetModuleSetupStep extends JavaModuleSetupStep {
     model.addFacet(facet);
     return facet;
   }
-
-  @Override
-  @NotNull
-  public String getDescription() {
-    return "Java Facet setup";
-  }
 }

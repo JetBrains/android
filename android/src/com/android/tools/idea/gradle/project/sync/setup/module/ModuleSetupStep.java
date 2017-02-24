@@ -40,10 +40,6 @@ public abstract class ModuleSetupStep<T> {
                                         @Nullable SyncAction.ModuleModels gradleModels,
                                         @Nullable ProgressIndicator indicator);
 
-  // TODO: delete
-  @NotNull
-  public abstract String getDescription();
-
   public boolean invokeOnBuildVariantChange() {
     return false;
   }

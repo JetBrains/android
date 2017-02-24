@@ -176,10 +176,4 @@ public class SdkModuleSetupStep extends AndroidModuleSetupStep {
     }
     return false;
   }
-
-  @Override
-  @NotNull
-  public String getDescription() {
-    return "Android SDK setup";
-  }
 }
