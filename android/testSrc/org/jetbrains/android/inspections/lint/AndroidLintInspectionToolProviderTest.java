@@ -77,7 +77,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
     List<Issue> allIssues = fullRegistry.getIssues();
 
     for (Issue issue : allIssues) {
-      if (!isRelevant(issue)) {
+      if (!LintIdeIssueRegistry.isRelevant(issue)) {
         continue;
       }
       String className = "com.android.tools.idea.lint.AndroidLint" + issue.getId() + "Inspection";
@@ -109,7 +109,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
 
     final List<Issue> missing = new ArrayList<>();
     for (Issue issue : allIssues) {
-      if (!isRelevant(issue) || registered.contains(issue.getId())) {
+      if (!LintIdeIssueRegistry.isRelevant(issue) || registered.contains(issue.getId())) {
         continue;
       }
 
@@ -232,9 +232,6 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
               String line = original.substring(begin, end);
               String trimmed = line.trim();
               if ((trimmed.startsWith("<globalInspection hasStaticDescription=\"true\" shortName=\"AndroidLint") &&
-                   // keep these separate
-                   !(trimmed.startsWith("<globalInspection hasStaticDescription=\"true\" shortName=\"AndroidLintCustomError\"")) &&
-                   !(trimmed.startsWith("<globalInspection hasStaticDescription=\"true\" shortName=\"AndroidLintCustomWarning\"")) &&
                    trimmed.compareToIgnoreCase(insert) > 0) ||
                   // Passed all lint registration entries: insert it here (must be newly last alphabetical issue)
                   trimmed.startsWith("<globalInspection hasStaticDescription=\"true\" shortName=\"PermissionUsageInspection\"")) {
@@ -481,16 +478,5 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
     }
 
     return sb.toString();
-  }
-
-  private static boolean isRelevant(Issue issue) {
-    // Supported more directly by other IntelliJ checks(?)
-    if (issue == NamespaceDetector.UNUSED ||                // IDEA already does full validation
-        issue == ManifestTypoDetector.ISSUE ||              // IDEA already does full validation
-        issue == ManifestDetector.WRONG_PARENT) {           // IDEA checks for this in Java code
-      return false;
-    }
-
-    return true;
   }
 }

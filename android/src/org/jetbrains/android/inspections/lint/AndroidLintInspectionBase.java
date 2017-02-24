@@ -8,6 +8,9 @@ import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.*;
+import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
+import com.intellij.codeInspection.ex.InspectionProfileImpl;
+import com.intellij.codeInspection.ex.InspectionProfileKt;
 import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.lang.annotation.ProblemGroup;
 import com.intellij.openapi.application.ApplicationManager;
@@ -22,6 +25,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
+import gnu.trove.THashMap;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -280,7 +284,49 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
           }
         }
       }
-      return ourIssue2InspectionShortName.get(issue);
+
+      String name = ourIssue2InspectionShortName.get(issue);
+      if (name == null) {
+        AndroidLintInspectionBase tool = createInspection(issue);
+        LintInspectionFactory factory = new LintInspectionFactory(tool);
+        // We have to add the tool both to the current and the base profile; otherwise, bringing up
+        // the profile settings will show all these issues as modified (blue) because
+        // InspectionProfileModifiableModel#isProperSetting returns true if the tool is found
+        // only in the current profile, not the base profile (and returning true from that method
+        // shows the setting as modified, even though the name seems totally unrelated)
+        InspectionProfileImpl base = InspectionProfileKt.getBASE_PROFILE();
+        InspectionProfileImpl current = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
+        base.addTool(project, factory, new THashMap<>());
+        current.addTool(project, factory, new THashMap<>());
+
+        name = tool.getShortName();
+        ourIssue2InspectionShortName.put(issue, name);
+      }
+      return name;
+    }
+  }
+
+  private static AndroidLintInspectionBase createInspection(Issue issue) {
+    return new AndroidLintInspectionBase(issue.getBriefDescription(TEXT), issue) {};
+  }
+
+  private static class LintInspectionFactory extends GlobalInspectionToolWrapper {
+    private final AndroidLintInspectionBase myInspection;
+
+    private LintInspectionFactory(AndroidLintInspectionBase inspection) {
+      super(inspection);
+      myInspection = inspection;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return myInspection.isEnabledByDefault();
+    }
+
+    @NotNull
+    @Override
+    public GlobalInspectionToolWrapper createCopy() {
+      return new LintInspectionFactory(createInspection(myInspection.myIssue));
     }
   }
 
@@ -362,7 +408,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   @NotNull
   @Override
   public String getShortName() {
-    return InspectionProfileEntry.getShortName(getClass().getSimpleName());
+    return LINT_INSPECTION_PREFIX + myIssue.getId();
   }
 
   @NotNull
