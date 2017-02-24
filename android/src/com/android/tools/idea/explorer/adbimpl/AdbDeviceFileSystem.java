@@ -226,7 +226,7 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
           long size = entry.getSize();
           syncService.pullFile(entry.myEntry.getFullPath(),
                                localPath.toString(),
-                               new SinglePullFileProgressMonitor(getEdtExecutor(), progress, size));
+                               new SingleFileProgressMonitor(getEdtExecutor(), progress, size));
           futureResult.set(null);
         }
         catch (SyncException e) {
@@ -267,10 +267,11 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
         assert syncService != null;
 
         try {
+          long fileLength = localPath.toFile().length();
           String remotePath = AdbPathUtil.resolve(remoteDirectory.getFullPath(), localPath.getFileName().toString());
           syncService.pushFile(localPath.toString(),
                                remotePath,
-                               new SinglePushFileProgressMonitor(getEdtExecutor(), progress));
+                               new SingleFileProgressMonitor(getEdtExecutor(), progress, fileLength));
           futureResult.set(null);
         }
         catch (SyncException e) {
@@ -318,13 +319,20 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
     return futureResult;
   }
 
-  private static class SinglePullFileProgressMonitor implements SyncService.ISyncProgressMonitor {
+  /**
+   * Forward callbacks from a {@link SyncService.ISyncProgressMonitor}, running on a pooled thread,
+   * to a {@link FileTransferProgress}, using the provided {@link Executor}, typically the
+   * {@link com.android.tools.idea.ddms.EdtExecutor}
+   */
+  private static class SingleFileProgressMonitor implements SyncService.ISyncProgressMonitor {
     private final Executor myCallbackExecutor;
     private final FileTransferProgress myProgress;
     private final long myTotalBytes;
     private long myCurrentBytes;
 
-    public SinglePullFileProgressMonitor(Executor callbackExecutor, FileTransferProgress progress, long totalBytes) {
+    public SingleFileProgressMonitor(@NotNull Executor callbackExecutor,
+                                     @NotNull FileTransferProgress progress,
+                                     long totalBytes) {
       myCallbackExecutor = callbackExecutor;
       myProgress = progress;
       myTotalBytes = totalBytes;
@@ -332,47 +340,10 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
 
     @Override
     public void start(int totalWork) {
-      // Note: The current implementation of SyncService always sends
-      // "0" as the value of totalWork.
-      myCallbackExecutor.execute(() -> myProgress.progress(0, myTotalBytes));
-    }
-
-    @Override
-    public void stop() {
-      myCallbackExecutor.execute(() -> myProgress.progress(myTotalBytes, myTotalBytes));
-    }
-
-    @Override
-    public boolean isCanceled() {
-      return myProgress.isCancelled();
-    }
-
-    @Override
-    public void startSubTask(String name) {
-      assert false : "A single file sync should not have multiple tasks";
-    }
-
-    @Override
-    public void advance(int work) {
-      myCurrentBytes += work;
-      myCallbackExecutor.execute(() -> myProgress.progress(myCurrentBytes, myTotalBytes));
-    }
-  }
-
-  private static class SinglePushFileProgressMonitor implements SyncService.ISyncProgressMonitor {
-    private final Executor myCallbackExecutor;
-    private final FileTransferProgress myProgress;
-    private long myTotalBytes;
-    private long myCurrentBytes;
-
-    public SinglePushFileProgressMonitor(Executor callbackExecutor, FileTransferProgress progress) {
-      myCallbackExecutor = callbackExecutor;
-      myProgress = progress;
-    }
-
-    @Override
-    public void start(int totalWork) {
-      myTotalBytes = totalWork;
+      // Note: We ignore the value of "totalWork" because 1) during a "pull", it is
+      //       always 0, and 2) during a "push", it is truncated to 2GB (int), which
+      //       makes things confusing when push a very big file (>2GB).
+      //       This is why we have our owm "myTotalBytes" field.
       myCallbackExecutor.execute(() -> myProgress.progress(0, myTotalBytes));
     }
 

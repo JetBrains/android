@@ -46,6 +46,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.UIBundle;
+import com.intellij.util.Consumer;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -76,6 +77,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class DeviceExplorerControllerTest extends AndroidTestCase {
   private static final long TIMEOUT_MILLISECONDS = 30_000;
@@ -88,6 +90,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   private MockDeviceFileEntry myFoo;
   private MockDeviceFileEntry myFooFile1;
   private MockDeviceFileEntry myFooFile2;
+  private MockDeviceFileEntry myFooLink1;
   private MockDeviceFileEntry myFile1;
   private MockDeviceFileEntry myFile2;
   private MockDeviceFileSystem myDevice2;
@@ -126,7 +129,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     myFoo = myDevice1.getRoot().addDirectory("Foo");
     myFooFile1 = myFoo.addFile("fooFile1.txt");
     myFooFile2 = myFoo.addFile("fooFile2.txt");
-    myFoo.addFileLink("fooLink1.txt", "fooFile1.txt");
+    myFooLink1 = myFoo.addFileLink("fooLink1.txt", "fooFile1.txt");
     myFooDir = myFoo.addDirectory("fooDir");
     myFile1 = myDevice1.getRoot().addFile("file1.txt");
     myFile2 = myDevice1.getRoot().addFile("file2.txt");
@@ -583,7 +586,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     pumpEventsAndWaitForFuture(myMockFileManager.getOpenFileInEditorTracker().consume());
   }
 
-  public void testFileSystemTree_ContextMenu_SaveAs_Works() throws Exception {
+  public void testFileSystemTree_ContextMenu_SaveFileAs_Works() throws Exception {
     File tempFile = FileUtil.createTempFile("foo", "bar");
 
     downloadFile(() -> {
@@ -613,12 +616,215 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       action.actionPerformed(e);
 
       // Assert
-      pumpEventsAndWaitForFuture(myMockView.getSaveNodeAsTracker().consume());
+      pumpEventsAndWaitForFuture(myMockView.getSaveNodesAsTracker().consume());
     });
 
     // Assert
     assertTrue(tempFile.exists());
     assertEquals(200_000, tempFile.length());
+  }
+
+  public void testFileSystemTree_ContextMenu_SaveDirectoryAs_Works() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    // Act
+    // Select node
+    TreePath file1Path = getFileEntryPath(myFoo);
+    myMockView.getTree().setSelectionPath(file1Path);
+
+    ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
+    AnAction action = getActionByText(actionGroup, "Save As...");
+    assertNotNull(action);
+    AnActionEvent e = createContentMenuItemEvent();
+    action.update(e);
+
+    // Assert
+    assertTrue(e.getPresentation().isVisible());
+    assertTrue(e.getPresentation().isEnabled());
+
+    // Prepare
+    // The "Choose file" dialog does not work in headless mode, so we register a custom
+    // component that simply returns the tempFile we created above.
+    File tempDirectory = FileUtil.createTempDirectory("saveAsDir", "");
+    myDevice1.setDownloadFileChunkSize(1_000); // download chunks of 1000 bytes at a time
+    myDevice1.setDownloadFileChunkIntervalMillis(10); // wait 10 millis between each 1000 bytes chunk
+
+    replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
+      @NotNull
+      @Override
+      public PathChooserDialog createPathChooser(@NotNull FileChooserDescriptor descriptor,
+                                                 @Nullable Project project,
+                                                 @Nullable Component parent) {
+        return (toSelect, callback) -> {
+          List<VirtualFile> list = Collections.singletonList(new VirtualFileWrapper(tempDirectory).getVirtualFile());
+          callback.consume(list);
+        };
+      }
+    });
+
+    // Act
+    myMockView.getStartTreeBusyIndicatorTacker().clear();
+    myMockView.getStopTreeBusyIndicatorTacker().clear();
+    myMockView.getReportMessageRelatedToNodeTracker().clear();
+    action.actionPerformed(e);
+
+    // Assert
+    pumpEventsAndWaitForFuture(myMockView.getStartTreeBusyIndicatorTacker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStopTreeBusyIndicatorTacker().consume());
+    String summaryMessage = pumpEventsAndWaitForFuture(myMockView.getReportMessageRelatedToNodeTracker().consume());
+
+    assertNotNull(summaryMessage);
+    System.out.println("SaveAs message: " + summaryMessage);
+    assertTrue(summaryMessage.contains("Successfully downloaded"));
+
+    File[] files = tempDirectory.listFiles();
+    assertNotNull(files);
+
+    List<File> createdFiles = Arrays.asList(files);
+    assertEquals(4, createdFiles.size());
+    assertTrue(createdFiles.stream().anyMatch(x -> Objects.equals(x.getName(), myFooFile1.getName())));
+    assertTrue(createdFiles.stream().anyMatch(x -> Objects.equals(x.getName(), myFooFile2.getName())));
+    assertTrue(createdFiles.stream().anyMatch(x -> Objects.equals(x.getName(), myFooLink1.getName())));
+    assertTrue(createdFiles.stream().anyMatch(x -> Objects.equals(x.getName(), myFooDir.getName())));
+  }
+
+  public void testFileSystemTree_ContextMenu_SaveMultipleFilesAs_Works() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    // Act
+    // Select nodes
+    expandEntry(myFoo);
+    myMockView.getTree().setSelectionPath(getFileEntryPath(myFooFile1));
+    myMockView.getTree().addSelectionPath(getFileEntryPath(myFooFile2));
+
+    ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
+    AnAction action = getActionByText(actionGroup, "Save As...");
+    assertNotNull(action);
+    AnActionEvent e = createContentMenuItemEvent();
+    action.update(e);
+
+    // Assert
+    assertTrue(e.getPresentation().isVisible());
+    assertTrue(e.getPresentation().isEnabled());
+
+    // Prepare
+    // The "Choose file" dialog does not work in headless mode, so we register a custom
+    // component that simply returns the tempFile we created above.
+    File tempDirectory = FileUtil.createTempDirectory("saveAsDir", "");
+    myDevice1.setDownloadFileChunkSize(1_000); // download chunks of 1000 bytes at a time
+    myDevice1.setDownloadFileChunkIntervalMillis(10); // wait 10 millis between each 1000 bytes chunk
+
+    replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
+      @NotNull
+      @Override
+      public PathChooserDialog createPathChooser(@NotNull FileChooserDescriptor descriptor,
+                                                 @Nullable Project project,
+                                                 @Nullable Component parent) {
+        return (toSelect, callback) -> {
+          List<VirtualFile> list = Collections.singletonList(new VirtualFileWrapper(tempDirectory).getVirtualFile());
+          callback.consume(list);
+        };
+      }
+    });
+
+    // Act
+    myMockView.getStartTreeBusyIndicatorTacker().clear();
+    myMockView.getStopTreeBusyIndicatorTacker().clear();
+    myMockView.getReportMessageRelatedToNodeTracker().clear();
+    action.actionPerformed(e);
+
+    // Assert
+    pumpEventsAndWaitForFuture(myMockView.getStartTreeBusyIndicatorTacker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStopTreeBusyIndicatorTacker().consume());
+    String summaryMessage = pumpEventsAndWaitForFuture(myMockView.getReportMessageRelatedToNodeTracker().consume());
+
+    assertNotNull(summaryMessage);
+    System.out.println("SaveAs message: " + summaryMessage);
+    assertTrue(summaryMessage.contains("Successfully downloaded"));
+
+    File[] files = tempDirectory.listFiles();
+    assertNotNull(files);
+    List<File> createdFiles = Arrays.asList(files);
+    assertEquals(2, createdFiles.size());
+    assertTrue(createdFiles.stream().anyMatch(x -> Objects.equals(x.getName(), myFooFile1.getName())));
+    assertTrue(createdFiles.stream().anyMatch(x -> Objects.equals(x.getName(), myFooFile2.getName())));
+  }
+
+  public void testFileSystemTree_ContextMenu_SaveDirectoryAs_ShowsProblems() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    // Act
+    // Select node
+    TreePath file1Path = getFileEntryPath(myFoo);
+    myMockView.getTree().setSelectionPath(file1Path);
+
+    ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
+    AnAction action = getActionByText(actionGroup, "Save As...");
+    assertNotNull(action);
+    AnActionEvent e = createContentMenuItemEvent();
+    action.update(e);
+
+    // Assert
+    assertTrue(e.getPresentation().isVisible());
+    assertTrue(e.getPresentation().isEnabled());
+
+    // Prepare
+    // The "Choose file" dialog does not work in headless mode, so we register a custom
+    // component that simply returns the tempFile we created above.
+    File tempDirectory = FileUtil.createTempDirectory("saveAsDir", "");
+    myDevice1.setDownloadFileChunkSize(1_000); // download chunks of 1000 bytes at a time
+    myDevice1.setDownloadFileChunkIntervalMillis(10); // wait 10 millis between each 1000 bytes chunk
+    String downloadErrorMessage = "[test] Error downloading file";
+    myDevice1.setDownloadError(new Exception(downloadErrorMessage));
+
+    replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
+      @NotNull
+      @Override
+      public PathChooserDialog createPathChooser(@NotNull FileChooserDescriptor descriptor,
+                                                 @Nullable Project project,
+                                                 @Nullable Component parent) {
+        return (toSelect, callback) -> {
+          List<VirtualFile> list = Collections.singletonList(new VirtualFileWrapper(tempDirectory).getVirtualFile());
+          callback.consume(list);
+        };
+      }
+    });
+
+    // Act
+    myMockView.getStartTreeBusyIndicatorTacker().clear();
+    myMockView.getStopTreeBusyIndicatorTacker().clear();
+    myMockView.getReportMessageRelatedToNodeTracker().clear();
+    action.actionPerformed(e);
+
+    // Assert
+    pumpEventsAndWaitForFuture(myMockView.getStartTreeBusyIndicatorTacker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStopTreeBusyIndicatorTacker().consume());
+    String summaryMessage = pumpEventsAndWaitForFuture(myMockView.getReportErrorRelatedToNodeTracker().consume());
+
+    assertNotNull(summaryMessage);
+    System.out.println("SaveAs message: " + summaryMessage);
+    assertTrue(summaryMessage.contains("There were errors"));
+    assertTrue(summaryMessage.contains(downloadErrorMessage));
+
+    // Note: Even though downloading files failed, empty directories are still created during
+    //       a directory tree download, in this case we should have exactly one.
+    File[] files = tempDirectory.listFiles();
+    assertNotNull(files);
+    List<File> createdFiles = Arrays.asList(files);
+    assertEquals(1, createdFiles.size());
+    assertTrue(createdFiles.stream().anyMatch(x -> Objects.equals(x.getName(), myFooDir.getName())));
   }
 
   public void testFileSystemTree_ContextMenu_New_IsHiddenForFiles() throws Exception {
@@ -931,21 +1137,14 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
       @NotNull
       @Override
-      public FileChooserDialog createFileChooser(@NotNull FileChooserDescriptor descriptor,
+      public PathChooserDialog createPathChooser(@NotNull FileChooserDescriptor descriptor,
                                                  @Nullable Project project,
                                                  @Nullable Component parent) {
-        return new FileChooserDialog() {
-          @NotNull
-          @Override
-          public VirtualFile[] choose(@Nullable VirtualFile toSelect, @Nullable Project project) {
-            throw new UnsupportedOperationException("Test does not support this method");
-          }
-
-          @NotNull
-          @Override
-          public VirtualFile[] choose(@Nullable Project project, @NotNull VirtualFile... toSelect) {
-            return new VirtualFile[]{new VirtualFileWrapper(tempFile).getVirtualFile()};
-          }
+        return (toSelect, callback) -> {
+          List<VirtualFile> files = Stream.of(tempFile)
+            .map(x -> new VirtualFileWrapper(x).getVirtualFile())
+            .collect(Collectors.toList());
+          callback.consume(files);
         };
       }
     });
@@ -1005,24 +1204,14 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
       @NotNull
       @Override
-      public FileChooserDialog createFileChooser(@NotNull FileChooserDescriptor descriptor,
+      public PathChooserDialog createPathChooser(@NotNull FileChooserDescriptor descriptor,
                                                  @Nullable Project project,
                                                  @Nullable Component parent) {
-        return new FileChooserDialog() {
-          @NotNull
-          @Override
-          public VirtualFile[] choose(@Nullable VirtualFile toSelect, @Nullable Project project) {
-            throw new UnsupportedOperationException("Test does not support this method");
-          }
-
-          @NotNull
-          @Override
-          public VirtualFile[] choose(@Nullable Project project, @NotNull VirtualFile... toSelect) {
-            return new VirtualFile[]{
-              new VirtualFileWrapper(tempFile).getVirtualFile(),
-              new VirtualFileWrapper(tempDirectory).getVirtualFile()
-            };
-          }
+        return (toSelect, callback) -> {
+          List<VirtualFile> files = Stream.of(tempFile, tempDirectory)
+            .map(x -> new VirtualFileWrapper(x).getVirtualFile())
+            .collect(Collectors.toList());
+          callback.consume(files);
         };
       }
     });
@@ -1082,23 +1271,14 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
       @NotNull
       @Override
-      public FileChooserDialog createFileChooser(@NotNull FileChooserDescriptor descriptor,
+      public PathChooserDialog createPathChooser(@NotNull FileChooserDescriptor descriptor,
                                                  @Nullable Project project,
                                                  @Nullable Component parent) {
-        return new FileChooserDialog() {
-          @NotNull
-          @Override
-          public VirtualFile[] choose(@Nullable VirtualFile toSelect, @Nullable Project project) {
-            throw new UnsupportedOperationException("Test does not support this method");
-          }
-
-          @NotNull
-          @Override
-          public VirtualFile[] choose(@Nullable Project project, @NotNull VirtualFile... toSelect) {
-            return tempFiles.stream()
-              .map(x -> new VirtualFileWrapper(x).getVirtualFile())
-              .toArray(VirtualFile[]::new);
-          }
+        return (toSelect, callback) -> {
+          List<VirtualFile> files = tempFiles.stream()
+            .map(x -> new VirtualFileWrapper(x).getVirtualFile())
+            .collect(Collectors.toList());
+          callback.consume(files);
         };
       }
     });
