@@ -28,6 +28,8 @@ import com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttrib
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.ui.popup.IconButton;
+import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.containers.HashMap;
@@ -40,8 +42,10 @@ import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 final class MemoryInstanceView extends AspectObserver {
   private static final int LABEL_COLUMN_WIDTH = 500;
@@ -133,9 +137,11 @@ final class MemoryInstanceView extends AspectObserver {
     JLabel instanceViewLabel = new JLabel("Instance View");
     instanceViewLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
     headingPanel.add(instanceViewLabel, BorderLayout.WEST);
-    JButton close = new JButton(AllIcons.Actions.Close);
-    close.addActionListener(e -> myStage.selectClass(null));
-    headingPanel.add(close, BorderLayout.EAST);
+
+    IconButton closeIcon = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
+    InplaceButton closeButton = new InplaceButton(closeIcon, e -> myStage.selectClass(null));
+    closeButton.setMinimumSize(closeButton.getPreferredSize()); // Prevent layout phase from squishing this button
+    headingPanel.add(closeButton, BorderLayout.EAST);
 
     myInstancesPanel.add(headingPanel, BorderLayout.NORTH);
     myInstancesPanel.setVisible(false);

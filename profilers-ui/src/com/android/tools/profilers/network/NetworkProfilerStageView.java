@@ -19,6 +19,7 @@ import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.common.ProfilerButton;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
@@ -175,8 +176,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   public JComponent getToolbar() {
     // TODO Replace with real network profiler toolbar elements. The following buttons are debug only.
     JPanel toolbar = new JPanel(new BorderLayout());
-    JButton button = new JButton();
-    button.setIcon(AllIcons.Actions.Back);
+    JButton button = new ProfilerButton(ProfilerIcons.BACK_ARROW);
     button.addActionListener(action -> getStage().getStudioProfilers().setMonitoringStage());
     toolbar.add(button, BorderLayout.WEST);
     return toolbar;
