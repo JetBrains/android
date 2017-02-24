@@ -44,7 +44,8 @@ public class NetworkProfilerStage extends Stage {
   @Nullable
   private HttpData mySelectedConnection;
 
-  private AspectObserver myAspectObserver = new AspectObserver();
+  // Intentionally local field, to prevent GC from cleaning it and removing weak listeners
+  @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
   private AspectModel<NetworkProfilerAspect> myAspect = new AspectModel<>();
 
   StateChartModel<NetworkRadioDataSeries.RadioState> myRadioState;
@@ -84,21 +85,20 @@ public class NetworkProfilerStage extends Stage {
     myEventMonitor = new EventMonitor(profilers);
 
     myStackTraceModel.addDependency(myAspectObserver)
-      .onChange(StackTraceModel.Aspect.SELECTED_LOCATION, profilers::modeChanged);
+      .onChange(StackTraceModel.Aspect.SELECTED_LOCATION, () -> {
+        setProfilerMode(
+          myStackTraceModel.getSelectedType() == StackTraceModel.Type.STACK_FRAME ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED);
+      });
 
     mySelectionModel = new SelectionModel(timeline.getSelectionRange(), timeline.getViewRange());
     profilers.addDependency(myAspectObserver)
       .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
     mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());
-  }
 
-  @Override
-  public ProfilerMode getProfilerMode() {
-    if (myStackTraceModel.getSelectedType() == StackTraceModel.Type.STACK_FRAME) {
-      return ProfilerMode.NORMAL;
-    }
-    boolean noSelection = getStudioProfilers().getTimeline().getSelectionRange().isEmpty();
-    return mySelectedConnection == null && noSelection ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
+    getStudioProfilers().getTimeline().getSelectionRange().addDependency(myAspectObserver)
+      .onChange(Range.Aspect.RANGE, () -> {
+        setProfilerMode(getStudioProfilers().getTimeline().getSelectionRange().isEmpty() ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED);
+      });
   }
 
   @NotNull
@@ -135,7 +135,6 @@ public class NetworkProfilerStage extends Stage {
       }
     }
     mySelectedConnection = data;
-    getStudioProfilers().modeChanged();
     getAspect().changed(NetworkProfilerAspect.ACTIVE_CONNECTION);
   }
 

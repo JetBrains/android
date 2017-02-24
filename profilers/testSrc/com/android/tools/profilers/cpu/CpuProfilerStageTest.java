@@ -224,13 +224,13 @@ public class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  public void setCodeLocation() throws IOException {
+  public void profilerReturnsToNormalModeAfterNavigatingToCode() throws IOException {
     // to EXPANDED mode
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myStage.setAndSelectCapture(new CpuCapture(CpuCaptureTest.readValidTrace()));
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
     // After code navigation it should be Normal mode.
-    myStage.setCodeLocation(new CodeLocation("className"));
+    myStage.handleNavigatedToCode();
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
 
     myStage.setCapture(new CpuCapture(CpuCaptureTest.readValidTrace()));
