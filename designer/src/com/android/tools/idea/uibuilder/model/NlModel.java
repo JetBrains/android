@@ -373,7 +373,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       RenderService renderService = RenderService.getInstance(myFacet);
       RenderLogger logger = renderService.createLogger();
-      if (myRenderTask != null) {
+      if (myRenderTask != null && !myRenderTask.isDisposed()) {
         myRenderTask.dispose();
       }
       myRenderTask = renderService.createTask(myFile, configuration, logger, mySurface);
