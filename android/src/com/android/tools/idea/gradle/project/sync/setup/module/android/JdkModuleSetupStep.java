@@ -146,12 +146,6 @@ public class JdkModuleSetupStep extends AndroidModuleSetupStep {
     return msg;
   }
 
-  @Override
-  @NotNull
-  public String getDescription() {
-    return "JDK setup";
-  }
-
   @VisibleForTesting
   static class CompileSdkVersionFinder {
     // Returns the offset where the 'compileSdkVersion' value is in a build.gradle file.

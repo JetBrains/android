@@ -54,12 +54,6 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
     configureFacet(facet, androidModel);
   }
 
-  @Override
-  @NotNull
-  public String getDescription() {
-    return "Android Facet setup";
-  }
-
   @NotNull
   private static AndroidFacet createAndAddFacet(@NotNull Module module, @NotNull IdeModifiableModelsProvider ideModelsProvider) {
     ModifiableFacetModel model = ideModelsProvider.getModifiableFacetModel(module);

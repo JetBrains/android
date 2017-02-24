@@ -54,12 +54,6 @@ public class ContentRootModuleSetupStep extends NdkModuleSetupStep {
   }
 
   @Override
-  @NotNull
-  public String getDescription() {
-    return "Source folder(s) setup";
-  }
-
-  @Override
   public boolean invokeOnBuildVariantChange() {
     return true;
   }
