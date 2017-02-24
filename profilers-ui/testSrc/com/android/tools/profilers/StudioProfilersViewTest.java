@@ -373,11 +373,6 @@ public class StudioProfilersViewTest {
     public void exit() {
 
     }
-
-    @Override
-    public ProfilerMode getProfilerMode() {
-      return ProfilerMode.NORMAL;
-    }
   }
 
   static class FakeView extends StageView<FakeStage> {

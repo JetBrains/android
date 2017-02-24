@@ -37,7 +37,6 @@ import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.Cla
 import static com.android.tools.profilers.memory.MemoryProfilerTestBase.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 public class MemoryClassViewTest {
   @Rule
@@ -483,7 +482,7 @@ public class MemoryClassViewTest {
     Runnable navigationCallback = myFakeIdeProfilerComponents.getNavigationCallback(classTree);
     assertNotNull(navigationCallback);
     navigationCallback.run();
-    verify(myStage).setProfilerMode(ProfilerMode.NORMAL);
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
   }
 
   @Test
