@@ -134,10 +134,4 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
     }
     return DEFAULT_DEPENDENCY_SCOPE;
   }
-
-  @Override
-  @NotNull
-  public String getDescription() {
-    return "Java dependencies setup";
-  }
 }

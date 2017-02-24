@@ -93,12 +93,6 @@ public class ContentRootsModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   @Override
-  @NotNull
-  public String getDescription() {
-    return "Source folder(s) setup";
-  }
-
-  @Override
   public boolean invokeOnBuildVariantChange() {
     return true;
   }

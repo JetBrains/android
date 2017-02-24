@@ -206,12 +206,6 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   @Override
-  @NotNull
-  public String getDescription() {
-    return "Android dependencies setup";
-  }
-
-  @Override
   public boolean invokeOnBuildVariantChange() {
     return true;
   }
