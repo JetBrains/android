@@ -62,4 +62,9 @@ final class AllocationsClassObject extends ClassObject {
   public List<InstanceObject.InstanceAttribute> getInstanceAttributes() {
     return Arrays.asList(LABEL, SHALLOW_SIZE);
   }
+
+  @Override
+  public boolean hasStackInfo() {
+    return true;
+  }
 }

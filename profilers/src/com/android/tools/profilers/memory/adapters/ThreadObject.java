@@ -22,4 +22,9 @@ public class ThreadObject extends ClassifierObject {
   public ThreadObject(@NotNull ThreadId threadId) {
     super(threadId.toString());
   }
+
+  @Override
+  public boolean hasStackInfo() {
+    return true;
+  }
 }
