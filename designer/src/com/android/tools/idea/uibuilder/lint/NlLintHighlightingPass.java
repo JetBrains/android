@@ -101,7 +101,7 @@ public class NlLintHighlightingPass implements HighlightingPass {
 
       Issue issue = problemData.getIssue();
       Pair<AndroidLintInspectionBase, HighlightDisplayLevel> pair =
-        AndroidLintUtil.getHighlighLevelAndInspection(xmlFile.getProject(), issue, xmlFile);
+        AndroidLintUtil.getHighlightLevelAndInspection(xmlFile.getProject(), issue, xmlFile);
       if (pair == null) {
         continue;
       }
