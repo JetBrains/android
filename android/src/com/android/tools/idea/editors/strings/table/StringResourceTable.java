@@ -75,6 +75,7 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
     setCellSelectionEnabled(true);
     setDefaultEditor(String.class, editor);
     setDefaultRenderer(String.class, new StringsCellRenderer());
+    setRowSorter(new ThreeStateTableRowSorter<>(getModel()));
 
     new TableSpeedSearch(this);
   }
@@ -110,12 +111,12 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
 
   @Override
   public void createDefaultColumnsFromModel() {
-    Map<Integer, TableColumn> old = new HashMap<>();
+    Map<Object, TableColumn> old = new HashMap<>();
     // Remove any current columns
     TableColumnModel columnModel = getColumnModel();
     while (columnModel.getColumnCount() != 0) {
       TableColumn col = columnModel.getColumn(0);
-      old.put(col.getModelIndex(), col);
+      old.put(col.getIdentifier(), col);
       columnModel.removeColumn(col);
     }
 
@@ -124,7 +125,7 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
     for (int i = 0; i < model.getColumnCount(); i++) {
       Locale locale = model.getLocale(i);
       if (i < FIXED_COLUMN_COUNT || myColumnFilter == null || myColumnFilter.include(locale)) {
-        TableColumn newColumn = old.get(i);
+        TableColumn newColumn = old.get(model.getColumnName(i));
         if (newColumn == null) {
           newColumn = new TableColumn(i);
           if (i != KEY_COLUMN) {
@@ -133,6 +134,9 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
               newColumn.setPreferredWidth(optionalWidth.getAsInt());
             }
           }
+        }
+        else {
+          newColumn.setModelIndex(i);
         }
         addColumn(newColumn);
       }
@@ -168,7 +172,10 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
   @Override
   public void setModel(@NotNull TableModel model) {
     super.setModel(model);
-    setRowSorter(new ThreeStateTableRowSorter<>(getModel()));
+    TableRowSorter<StringResourceTableModel> sorter = getRowSorter();
+    if (sorter != null) { // can be null when called from constructor
+      sorter.setModel(getModel());
+    }
     OptionalInt optionalWidth = getKeyColumnPreferredWidth();
 
     if (optionalWidth.isPresent()) {
@@ -269,6 +276,13 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
         return;
       }
       super.toggleSortOrder(column);
+    }
+
+    @Override
+    public void modelStructureChanged() {
+      List<? extends SortKey> sortKeys = getSortKeys();
+      super.modelStructureChanged();
+      setSortKeys(sortKeys);
     }
   }
 }
