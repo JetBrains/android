@@ -275,8 +275,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertEquals("@aapt:_aapt/" + (expectedId + 1), parser.getAttributeValue(ANDROID_URI, ATTR_SRC));
     assertEquals(END_TAG, parser.nextTag()); // ImageView
 
-    assertEquals("21dp", parser.getAaptDeclaredAttrs().get("0").getAttribute("width", ANDROID_URI));
-    assertEquals("22dp", parser.getAaptDeclaredAttrs().get("1").getAttribute("width", ANDROID_URI));
+    assertEquals("21dp", parser.getAaptDeclaredAttrs().get(Long.toString(expectedId)).getAttribute("width", ANDROID_URI));
+    assertEquals("22dp", parser.getAaptDeclaredAttrs().get(Long.toString(expectedId + 1)).getAttribute("width", ANDROID_URI));
   }
 
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }
