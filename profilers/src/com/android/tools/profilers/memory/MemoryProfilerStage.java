@@ -37,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -74,6 +75,7 @@ public class MemoryProfilerStage extends Stage {
   private final MemoryProfilerSelection mySelection;
   private final MemoryProfilerConfiguration myConfiguration;
   private final EventMonitor myEventMonitor;
+  private final SelectionModel mySelectionModel;
   private boolean myTrackingAllocations;
   private boolean myUpdateCaptureOnSelection = true;
 
@@ -118,6 +120,12 @@ public class MemoryProfilerStage extends Stage {
     myGcCount.setAttachedSeries(myDetailedMemoryUsage.getObjectsSeries());
 
     myEventMonitor = new EventMonitor(profilers);
+
+    mySelectionModel = new SelectionModel(profilers.getTimeline().getSelectionRange(), profilers.getTimeline().getViewRange());
+    mySelectionModel.setSelectFullConstraint(true);
+    mySelectionModel.addConstraint(myAllocationDurations);
+    mySelectionModel.addConstraint(myHeapDumpDurations);
+    mySelectionModel.addChangeListener(this::selectionChanged);
   }
 
   public DetailedMemoryUsage getDetailedMemoryUsage() {
@@ -135,15 +143,10 @@ public class MemoryProfilerStage extends Stage {
     getStudioProfilers().getUpdater().register(myObjectsAxis);
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myGcCount);
-
-    getStudioProfilers().getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, this::selectionChanged);
   }
 
   @Override
   public void exit() {
-
-    getStudioProfilers().getTimeline().getSelectionRange().removeDependencies(this);
-
     myEventMonitor.exit();
     getStudioProfilers().getUpdater().unregister(myDetailedMemoryUsage);
     getStudioProfilers().getUpdater().unregister(myHeapDumpDurations);
@@ -156,8 +159,12 @@ public class MemoryProfilerStage extends Stage {
     myLoader.stop();
   }
 
+  @NotNull
+  public SelectionModel getSelectionModel() {
+    return mySelectionModel;
+  }
 
-  private void selectionChanged() {
+  private void selectionChanged(ChangeEvent event) {
     if (!myUpdateCaptureOnSelection) {
       return;
     }

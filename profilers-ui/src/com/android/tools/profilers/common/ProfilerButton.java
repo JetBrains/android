@@ -17,6 +17,8 @@ package com.android.tools.profilers.common;
 
 import com.android.tools.profilers.ProfilerColors;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
@@ -39,6 +41,20 @@ public class ProfilerButton extends JButton {
   private static final int PADDING = 5;
 
   public ProfilerButton() {
+    this(null, null);
+  }
+
+  public ProfilerButton(@NotNull String text) {
+    this(text, null);
+  }
+
+  public ProfilerButton(@NotNull Icon icon) {
+    this(null, icon);
+  }
+
+  public ProfilerButton(@Nullable String text, @Nullable Icon icon) {
+    super(text, icon);
+
     setOpaque(false);
     addMouseListener(new MouseAdapter() {
       @Override
@@ -82,7 +98,8 @@ public class ProfilerButton extends JButton {
     protected void paintText(Graphics g, AbstractButton b, Rectangle textRect, String text) {
       if (b.getModel().isEnabled()) {
         g.setColor(ProfilerColors.BUTTON_TEXT);
-      } else {
+      }
+      else {
         // The disabled button label text color in BasicButtonUI is the same as IntelliJ's toolbar,
         // where most of the profiler buttons are located at. As a result, disabled buttons might
         // get their text invisible and that's why we set a custom color here.

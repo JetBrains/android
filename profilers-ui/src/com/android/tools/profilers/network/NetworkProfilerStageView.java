@@ -18,8 +18,8 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
-import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.common.ProfilerButton;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
@@ -48,7 +48,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
       .onChange(NetworkProfilerAspect.ACTIVE_CONNECTION, this::updateConnectionDetailsView);
 
     myConnectionDetails = new ConnectionDetailsView(this);
-    myConnectionDetails.setMinimumSize(new Dimension(JBUI.scale(450), (int) myConnectionDetails.getMinimumSize().getHeight()));
+    myConnectionDetails.setMinimumSize(new Dimension(JBUI.scale(450), (int)myConnectionDetails.getMinimumSize().getHeight()));
     myConnectionsView = new ConnectionsView(this, stage::setSelectedConnection);
     myConnectionsScroller = new JBScrollPane(myConnectionsView.getComponent());
     myConnectionsScroller.setVisible(false);
@@ -90,7 +90,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     panel.add(timeAxis, new TabularLayout.Constraint(3, 0));
 
     EventMonitorView eventsView = new EventMonitorView(getProfilersView(), getStage().getEventMonitor());
-    JComponent eventsComponent = eventsView.initialize();
+    JComponent eventsComponent = eventsView.getComponent();
     panel.add(eventsComponent, new TabularLayout.Constraint(0, 0));
 
     panel.add(new NetworkRadioView(this).getComponent(), new TabularLayout.Constraint(1, 0));
@@ -146,9 +146,8 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
-    SelectionModel selectionModel = new SelectionModel(timeline.getSelectionRange(), timeline.getViewRange());
-    SelectionComponent selection = new SelectionComponent(selectionModel);
-    selectionModel.addChangeListener(this::onSelectionChanged);
+    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel());
+    getStage().getSelectionModel().addChangeListener(this::onSelectionChanged);
 
     monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
@@ -177,8 +176,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   public JComponent getToolbar() {
     // TODO Replace with real network profiler toolbar elements. The following buttons are debug only.
     JPanel toolbar = new JPanel(new BorderLayout());
-    JButton button = new JButton();
-    button.setIcon(AllIcons.Actions.Back);
+    JButton button = new ProfilerButton(ProfilerIcons.BACK_ARROW);
     button.addActionListener(action -> getStage().getStudioProfilers().setMonitoringStage());
     toolbar.add(button, BorderLayout.WEST);
     return toolbar;

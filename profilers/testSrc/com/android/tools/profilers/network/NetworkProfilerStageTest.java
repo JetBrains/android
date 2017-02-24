@@ -17,6 +17,7 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.common.StackTraceModel;
 import com.google.common.collect.ImmutableList;
@@ -38,6 +39,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
 public class NetworkProfilerStageTest {
+  private static final float EPSILON = 0.00001f;
+
   private static final ImmutableList<NetworkProfilerData> FAKE_DATA =
     new ImmutableList.Builder<NetworkProfilerData>()
       .add(FakeNetworkService.newSpeedData(0, 1, 2))
@@ -50,7 +53,9 @@ public class NetworkProfilerStageTest {
       .add(FakeNetworkService.newHttpData(7, 0, 7, 14))
       .build();
 
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("NetworkProfilerStageTest", new FakeProfilerService(false),
+
+  private FakeProfilerService myProfilerService = new FakeProfilerService(true);
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("NetworkProfilerStageTest", myProfilerService,
                                                                    FakeNetworkService.newBuilder().setNetworkDataList(FAKE_DATA)
                                                                      .setHttpDataList(FAKE_HTTP_DATA).build());
 
@@ -64,7 +69,7 @@ public class NetworkProfilerStageTest {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
     myStage = new NetworkProfilerStage(profilers);
     myStage.getStudioProfilers().getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(10));
-    myStage.enter();
+    myStage.getStudioProfilers().setStage(myStage);
   }
 
   @Test
@@ -312,5 +317,29 @@ public class NetworkProfilerStageTest {
     assertTrue(navigated[0]);
     assertTrue(modeChanged[0]);
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+  }
+
+  @Test
+  public void selectionDisabledWithoutAgent() {
+    Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    // Need to re-enter the stage again given the device/process can be set and return to the default StudioMonitorStage.
+    myStage.getStudioProfilers().setStage(myStage);
+
+    assertTrue(myStage.getStudioProfilers().isAgentAttached());
+    myStage.getSelectionModel().set(0, 100);
+    assertEquals(0, selection.getMin(), EPSILON);
+    assertEquals(100, selection.getMax(), EPSILON);
+
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.DETACHED);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
+    assertFalse(myStage.getStudioProfilers().isAgentAttached());
+
+    // Attempting to select a range should do nothing.
+    myStage.getSelectionModel().set(100, 200);
+    assertEquals(0, selection.getMin(), EPSILON);
+    assertEquals(100, selection.getMax(), EPSILON);
   }
 }
