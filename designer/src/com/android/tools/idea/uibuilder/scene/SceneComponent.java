@@ -45,6 +45,7 @@ import java.util.List;
  * <li>can mix NlComponent from different NlModel in the same tree</li>
  * </ul>
  */
+@SuppressWarnings("ForLoopReplaceableByForEach")
 public class SceneComponent {
   @VisibleForTesting public static final int ANIMATION_DURATION = 350; // ms -- the duration of the animation
   public HashMap<String, Object> myCache = new HashMap<>();
@@ -95,7 +96,7 @@ public class SceneComponent {
   /////////////////////////////////////////////////////////////////////////////
 
   protected SceneComponent(@NotNull Scene scene,
-                         @NotNull NlComponent component) {
+                           @NotNull NlComponent component) {
     myScene = scene;
     myNlComponent = component;
     myScene.addComponent(this);
@@ -217,6 +218,7 @@ public class SceneComponent {
 
   /**
    * Returns the index of the first instance of the given class in the list of targets
+   *
    * @param aClass
    * @return
    */
@@ -236,6 +238,7 @@ public class SceneComponent {
 
   /**
    * Returns true if the given candidate is an ancestor of this component
+   *
    * @param candidate
    * @return
    */
@@ -266,14 +269,28 @@ public class SceneComponent {
     myShowBaseline = value;
   }
 
+  /**
+   * Get the X coordinate of this {@link SceneComponent}. If an animation is running, returns
+   * the value at the start of the animation.
+   * <p>This is the equivalent of {@link SceneComponent#getDrawX(long 0)}</p>
+   */
   public int getDrawX() {
     return myAnimatedDrawX.getValue(0);
   }
 
+  /**
+   * Get the Y coordinate of this {@link SceneComponent}. If an animation is running, returns
+   * the value at the start of the animation.
+   * <p>This is the equivalent of {@link SceneComponent#getDrawY(long 0)}</p>
+   */
   public int getDrawY() {
     return myAnimatedDrawY.getValue(0);
   }
 
+  /**
+   * @return the x offset of this component relative to its parent or the relative to the
+   * {@link Scene} if it has no parent.
+   */
   public int getOffsetParentX() {
     if (myParent != null) {
       return getDrawX() - myParent.getDrawX();
@@ -281,6 +298,10 @@ public class SceneComponent {
     return getDrawX();
   }
 
+  /**
+   * @return the y offset of this component relative to its parent or the relative to the
+   * {@link Scene} if it has no parent.
+   */
   public int getOffsetParentY() {
     if (myParent != null) {
       return getDrawY() - myParent.getDrawY();
@@ -288,37 +309,88 @@ public class SceneComponent {
     return getDrawY();
   }
 
+  /**
+   * @return The width of this {@link SceneComponent}. If an animation is running, returns
+   * the value at the start of the animation.
+   */
   public int getDrawWidth() {
     return myAnimatedDrawWidth.getValue(0);
   }
 
+  /**
+   * @return The height of this {@link SceneComponent}. If an animation is running, returns
+   * the value at the start of the animation.
+   */
   public int getDrawHeight() {
     return myAnimatedDrawHeight.getValue(0);
   }
 
+  /**
+   * Return the X coordinate given an elapsed time. <br/>
+   * If beyond duration, returns the target value,
+   * if time or progress is zero, returns the start value.
+   */
   public int getDrawX(long time) {
     return myAnimatedDrawX.getValue(time);
   }
 
+  /**
+   * Return the Y coordinate given an elapsed time. <br/>
+   * If beyond duration, returns the target value,
+   * if time or progress is zero, returns the start value.
+   */
   public int getDrawY(long time) {
     return myAnimatedDrawY.getValue(time);
   }
 
+  /**
+   * Return the width given an elapsed time. <br/>
+   * If beyond duration, returns the target value,
+   * if time or progress is zero, returns the start value.
+   */
   public int getDrawWidth(long time) {
     return myAnimatedDrawWidth.getValue(time);
   }
 
+  /**
+   * Return the height given an elapsed time. <br/>
+   * If beyond duration, returns the target value,
+   * if time or progress is zero, returns the start value.
+   */
   public int getDrawHeight(long time) {
     return myAnimatedDrawHeight.getValue(time);
   }
 
+  /**
+   * Immediately set the position of this {@link SceneComponent} and of the underlying
+   * {@link NlComponent}
+   *
+   * @param dx X coordinate in DP
+   * @param dy Y coordinate in DP
+   */
   public void setPosition(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy) {
-    myAnimatedDrawX.setValue(dx);
-    myAnimatedDrawY.setValue(dy);
-    myNlComponent.x = Coordinates.dpToPx(myNlComponent.getModel(), dx);
-    myNlComponent.y = Coordinates.dpToPx(myNlComponent.getModel(), dy);
+    setPosition(dx, dy, true);
   }
 
+  public void setPosition(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy, boolean applyToModel) {
+    myAnimatedDrawX.setValue(dx);
+    myAnimatedDrawY.setValue(dy);
+    if (applyToModel) {
+      myNlComponent.x = Coordinates.dpToPx(myNlComponent.getModel(), dx);
+      myNlComponent.y = Coordinates.dpToPx(myNlComponent.getModel(), dy);
+    }
+  }
+
+  /**
+   * Set the position of this {@link SceneComponent} and begin the animation to the given
+   * position at the given time.
+   *
+   * The position of the underlying NlComponent is set immediately.
+   *
+   * @param dx   The X position to animate the component to
+   * @param dy   The Y position to animate the component to
+   * @param time The time when the animation begins
+   */
   public void setPositionTarget(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy, long time) {
     myAnimatedDrawX.setTarget(dx, time);
     myAnimatedDrawY.setTarget(dy, time);
@@ -326,6 +398,10 @@ public class SceneComponent {
     myNlComponent.y = Coordinates.dpToPx(myNlComponent.getModel(), dy);
   }
 
+  /**
+   * Immediately set the size of this {@link SceneComponent} and of the underlying
+   * {@link NlComponent}
+   */
   public void setSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height) {
     myAnimatedDrawWidth.setValue(width);
     myAnimatedDrawHeight.setValue(height);
@@ -333,6 +409,16 @@ public class SceneComponent {
     myNlComponent.h = Coordinates.dpToPx(myNlComponent.getModel(), height);
   }
 
+  /**
+   * Set the size of this {@link SceneComponent} and begin the animation to the given
+   * position at the given time.
+   *
+   * The size of the underlying NlComponent is set immediately.
+   *
+   * @param width  The width to animate the component to
+   * @param height The height to animate the component to
+   * @param time   The time when the animation begins
+   */
   public void setSizeTarget(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height, long time) {
     myAnimatedDrawWidth.setTarget(width, time);
     myAnimatedDrawHeight.setTarget(height, time);
@@ -340,6 +426,9 @@ public class SceneComponent {
     myNlComponent.h = Coordinates.dpToPx(myNlComponent.getModel(), height);
   }
 
+  /**
+   * @return The underlying NlComponent
+   */
   @NotNull
   public NlComponent getNlComponent() {
     return myNlComponent;
@@ -375,13 +464,14 @@ public class SceneComponent {
   }
 
   public void setSelected(boolean selected) {
-    if (!selected || (selected && !myIsSelected)) {
+    if (!selected || !myIsSelected) {
       myShowBaseline = false;
     }
     myIsSelected = selected;
     if (myIsSelected) {
       myDrawState = DrawState.SELECTED;
-    } else {
+    }
+    else {
       myDrawState = DrawState.NORMAL;
     }
   }
@@ -392,7 +482,9 @@ public class SceneComponent {
     }
   }
 
-  public boolean isDragging() { return myDragging; }
+  public boolean isDragging() {
+    return myDragging;
+  }
 
   public DrawState getDrawState() {
     return myDrawState;
@@ -547,12 +639,12 @@ public class SceneComponent {
   /////////////////////////////////////////////////////////////////////////////
 
   public boolean layout(@NotNull SceneContext sceneTransform, long time) {
-    boolean needsRepaint = false;
+    boolean needsRepaint;
     myCurrentLeft = myAnimatedDrawX.getValue(time);
     myCurrentTop = myAnimatedDrawY.getValue(time);
     myCurrentRight = myCurrentLeft + myAnimatedDrawWidth.getValue(time);
     myCurrentBottom = myCurrentTop + myAnimatedDrawHeight.getValue(time);
-    needsRepaint |= myAnimatedDrawX.animating;
+    needsRepaint = myAnimatedDrawX.animating;
     needsRepaint |= myAnimatedDrawY.animating;
     needsRepaint |= myAnimatedDrawWidth.animating;
     needsRepaint |= myAnimatedDrawHeight.animating;
@@ -622,7 +714,7 @@ public class SceneComponent {
     if (myNlComponent.viewInfo == null) {
       return null;
     }
-    return  myNlComponent.viewInfo.getClassName();
+    return myNlComponent.viewInfo.getClassName();
   }
 
   public boolean containsX(@AndroidDpCoordinate int xDp) {
@@ -633,6 +725,12 @@ public class SceneComponent {
     return getDrawY() <= yDp && yDp <= getDrawY() + getDrawHeight();
   }
 
+  /**
+   * Set the TargetProvider for this component
+   *
+   * @param targetProvider The target provider to set
+   * @param isParent       The SceneComponent is the layout
+   */
   public void setTargetProvider(TargetProvider targetProvider, boolean isParent) {
     if (myTargetProvider == targetProvider) {
       return;

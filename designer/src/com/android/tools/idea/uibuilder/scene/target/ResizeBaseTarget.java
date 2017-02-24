@@ -35,7 +35,7 @@ import java.awt.*;
 /**
  * Base class for resizing targets.
  */
-public abstract class   ResizeBaseTarget extends BaseTarget {
+public abstract class ResizeBaseTarget extends BaseTarget {
 
   protected final Type myType;
   protected final int mySize = 2;
@@ -50,7 +50,9 @@ public abstract class   ResizeBaseTarget extends BaseTarget {
   }
 
   // Type of possible resize handles
-  public enum Type { LEFT, LEFT_TOP, LEFT_BOTTOM, TOP, BOTTOM, RIGHT, RIGHT_TOP, RIGHT_BOTTOM }
+  public enum Type {
+    LEFT, LEFT_TOP, LEFT_BOTTOM, TOP, BOTTOM, RIGHT, RIGHT_TOP, RIGHT_BOTTOM
+  }
 
   /////////////////////////////////////////////////////////////////////////////
   //region Constructor
@@ -67,12 +69,12 @@ public abstract class   ResizeBaseTarget extends BaseTarget {
 
   @Override
   public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
-    float ratio = 1f / (float) sceneTransform.getScale();
+    float ratio = 1f / (float)sceneTransform.getScale();
     if (ratio > 2) {
       ratio = 2;
     }
     float size = (mySize * ratio);
-    float minWidth =  4 * size;
+    float minWidth = 4 * size;
     float minHeight = 4 * size;
     if (r - l < minWidth) {
       float d = (minWidth - (r - l)) / 2f;
@@ -94,49 +96,57 @@ public abstract class   ResizeBaseTarget extends BaseTarget {
         myTop = mh - size;
         myRight = l + size;
         myBottom = mh + size;
-      } break;
+      }
+      break;
       case TOP: {
         myLeft = mw - size;
         myTop = t - size;
         myRight = mw + size;
         myBottom = t + size;
-      } break;
+      }
+      break;
       case RIGHT: {
         myLeft = r - size;
         myTop = mh - size;
         myRight = r + size;
         myBottom = mh + size;
-      } break;
+      }
+      break;
       case BOTTOM: {
         myLeft = mw - size;
         myTop = b - size;
         myRight = mw + size;
         myBottom = b + size;
-      } break;
+      }
+      break;
       case LEFT_TOP: {
         myLeft = l - size;
         myTop = t - size;
         myRight = l + size;
         myBottom = t + size;
-      } break;
+      }
+      break;
       case LEFT_BOTTOM: {
         myLeft = l - size;
         myTop = b - size;
         myRight = l + size;
         myBottom = b + size;
-      } break;
+      }
+      break;
       case RIGHT_TOP: {
         myLeft = r - size;
         myTop = t - size;
         myRight = r + size;
         myBottom = t + size;
-      } break;
+      }
+      break;
       case RIGHT_BOTTOM: {
         myLeft = r - size;
         myTop = b - size;
         myRight = r + size;
         myBottom = b + size;
-      } break;
+      }
+      break;
     }
     return false;
   }
@@ -231,7 +241,7 @@ public abstract class   ResizeBaseTarget extends BaseTarget {
   }
 
   @Override
-  public String getToolTipText(){
+  public String getToolTipText() {
     return "Resize View";
   }
   //endregion
