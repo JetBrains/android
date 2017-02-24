@@ -16,9 +16,11 @@
 package com.android.tools.profilers.network;
 
 import com.android.testutils.TestResources;
+import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.common.StackTraceModel;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +32,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -237,5 +241,37 @@ public class ConnectionDetailsViewTest {
     myView.getStackTraceView().getModel().setSelectedIndex(0);
     assertThat(modeChanged[0]).isTrue();
     assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
+  }
+
+  @Test
+  public void sentReceivedLegendRendersCorrectly() {
+    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), 0, 0, "*", "*");
+
+    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), TimeUnit.MILLISECONDS.toMicros(1000), 0, "0ms", "*");
+    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), TimeUnit.MILLISECONDS.toMicros(2500), 0, "1s 500ms", "*");
+
+    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), TimeUnit.MILLISECONDS.toMicros(3000),
+                                TimeUnit.MILLISECONDS.toMicros(3000), "2s", "0ms");
+    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), TimeUnit.MILLISECONDS.toMicros(3000),
+                                TimeUnit.MILLISECONDS.toMicros(4234), "2s", "1s 234ms");
+
+    // No download time indicates request timed out / was aborted
+    assertExpectedTimingLegends(TimeUnit.MILLISECONDS.toMicros(1000), 0, TimeUnit.MILLISECONDS.toMicros(2000), "*", "*");
+  }
+
+  private void assertExpectedTimingLegends(long startTimeUs,
+                                           long downloadingTimeUs,
+                                           long endTimeUs,
+                                           String sentLegend,
+                                           String receivedLegend) {
+    HttpData data = new HttpData.Builder(0, startTimeUs, endTimeUs, downloadingTimeUs).setUrl("unusedUrl").setMethod("GET").build();
+    myView.setHttpData(data);
+
+    LegendComponent legendComponent =
+      (LegendComponent)new TreeWalker(myView).descendantStream().filter(c -> c instanceof LegendComponent).findFirst().get();
+    List<Legend> legends = legendComponent.getModel().getLegends();
+
+    assertThat(legends.get(0).getValue()).isEqualTo(sentLegend);
+    assertThat(legends.get(1).getValue()).isEqualTo(receivedLegend);
   }
 }

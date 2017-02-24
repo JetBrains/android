@@ -78,7 +78,7 @@ public class LegendComponent extends AnimatedComponent {
 
   private final int myVerticalPadding;
 
-  private LegendComponentModel myModel;
+  private final LegendComponentModel myModel;
 
   /**
    * The visual configuration of the legends
@@ -97,7 +97,7 @@ public class LegendComponent extends AnimatedComponent {
    * @param orientation     Determines if we want the labels to be stacked horizontally or vertically
    * @param frequencyMillis How frequently the labels get updated
    */
-  public LegendComponent(LegendComponentModel model, int verticalPadding) {
+  public LegendComponent(@NotNull LegendComponentModel model, int verticalPadding) {
     myModel = model;
     myConfigs = new HashMap<>();
     myOrientation = Orientation.HORIZONTAL;
@@ -108,7 +108,7 @@ public class LegendComponent extends AnimatedComponent {
     modelChanged();
   }
 
-  public LegendComponent(LegendComponentModel model) {
+  public LegendComponent(@NotNull LegendComponentModel model) {
     this(model, DEFAULT_VERTICAL_PADDING_PX);
   }
 
@@ -151,6 +151,11 @@ public class LegendComponent extends AnimatedComponent {
 
   public void setOrientation(@NotNull Orientation orientation) {
     myOrientation = orientation;
+  }
+
+  @NotNull
+  public LegendComponentModel getModel() {
+    return myModel;
   }
 
   @Override
