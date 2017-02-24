@@ -1231,7 +1231,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     throws Exception {
     BuiltinIssueRegistry registry = new LintIdeIssueRegistry();
     Map<Issue, Map<File, List<ProblemData>>> map = new HashMap<>();
-    LintIdeClient client = LintIdeClient.forBatch(project, map, new AnalysisScope(project), registry.getIssues());
+    LintIdeClient client = LintIdeClient.forBatch(project, map, new AnalysisScope(project), Sets.newHashSet(registry.getIssues()));
     LintDriver driver = new LintDriver(registry, client);
     List<Module> modules = Arrays.asList(ModuleManager.getInstance(project).getModules());
     LintRequest request = new LintIdeRequest(client, project, null, modules, false);
