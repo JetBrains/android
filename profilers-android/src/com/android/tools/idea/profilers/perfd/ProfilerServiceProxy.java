@@ -24,6 +24,8 @@ import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.ImmutableSet;
+import com.android.ddmlib.*;
+import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
@@ -35,7 +37,7 @@ import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
-
+import java.io.IOException;
 import java.util.*;
 
 import static com.android.ddmlib.Client.CHANGE_NAME;
@@ -58,7 +60,11 @@ public class ProfilerServiceProxy extends PerfdProxyService
     super(ProfilerServiceGrpc.getServiceDescriptor());
     myDevice = device;
     myServiceStub = ProfilerServiceGrpc.newBlockingStub(channel);
-    myProfilerDevice = Profiler.Device.newBuilder()
+    Profiler.GetDevicesResponse devices = myServiceStub.getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
+
+    //TODO Remove set functions when we move functionality over to perfd.
+    assert devices.getDeviceList().size() == 1;
+    myProfilerDevice = devices.getDevice(0).toBuilder()
       .setSerial(device.getSerialNumber())
       .setModel(DevicePropertyUtil.getModel(device, ""))
       .setVersion(StringUtil.notNullize(device.getProperty(IDevice.PROP_BUILD_VERSION)))
@@ -66,9 +72,6 @@ public class ProfilerServiceProxy extends PerfdProxyService
       .setManufacturer(DevicePropertyUtil.getManufacturer(device, ""))
       .setIsEmulator(device.isEmulator())
       .setState(convertState(device.getState()))
-      //TODO: Change this to use the device boot_id, using the serial number
-      // to keep a consistent ID across plug/unplug sessions.
-      .setBootId(Integer.toString(device.getSerialNumber().hashCode()))
       .build();
     updateProcesses();
 
