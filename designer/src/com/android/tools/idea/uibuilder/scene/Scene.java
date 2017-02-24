@@ -17,6 +17,10 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -25,6 +29,9 @@ import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +40,9 @@ import java.awt.event.InputEvent;
 import java.util.*;
 import java.util.List;
 
+import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIUS;
 
@@ -888,5 +898,48 @@ public class Scene implements SelectionListener {
 
   void setRoot(SceneComponent root) {
     myRoot = root;
+  }
+
+  @Nullable
+  @AndroidDpCoordinate
+  public Dimension measureWrapSize(@NotNull SceneComponent component) {
+    return measure(component, (n, namespace, localName) -> {
+      // Change attributes to wrap_content
+      if (ATTR_LAYOUT_WIDTH.equals(localName) && ANDROID_URI.equals(namespace)) {
+        return VALUE_WRAP_CONTENT;
+      }
+      if (ATTR_LAYOUT_HEIGHT.equals(localName) && ANDROID_URI.equals(namespace)) {
+        return VALUE_WRAP_CONTENT;
+      }
+      return null;
+    });
+  }
+
+  @Nullable
+  @AndroidDpCoordinate
+  private Dimension measure(@NotNull SceneComponent component, @Nullable RenderTask.AttributeFilter filter) {
+    // TODO: Reuse snapshot!
+    NlComponent neleComponent = component.getNlComponent();
+    XmlTag tag = neleComponent.getTag();
+    if (!tag.isValid()) {
+      return null;
+    }
+    NlModel model = neleComponent.getModel();
+    XmlFile xmlFile = model.getFile();
+    AndroidFacet facet = model.getFacet();
+    RenderService renderService = RenderService.getInstance(facet);
+    RenderLogger logger = renderService.createLogger();
+    final RenderTask task = renderService.createTask(xmlFile, model.getConfiguration(), logger, null);
+    if (task == null) {
+      return null;
+    }
+
+    ViewInfo viewInfo = task.measureChild(tag, filter);
+    if (viewInfo == null) {
+      return null;
+    }
+    viewInfo = RenderService.getSafeBounds(viewInfo);
+    return new Dimension(Coordinates.pxToDp(mySceneView, viewInfo.getRight() - viewInfo.getLeft()),
+                         Coordinates.pxToDp(mySceneView, viewInfo.getBottom() - viewInfo.getTop()));
   }
 }
