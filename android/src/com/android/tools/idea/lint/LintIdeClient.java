@@ -41,7 +41,6 @@ import com.android.tools.lint.client.api.*;
 import com.android.tools.lint.detector.api.*;
 import com.android.utils.Pair;
 import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
@@ -88,13 +87,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static com.android.tools.idea.lint.LintIdeIssueRegistry.CUSTOM_ERROR;
-import static com.android.tools.idea.lint.LintIdeIssueRegistry.CUSTOM_WARNING;
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 /**
@@ -116,7 +110,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   public static LintIdeClient forBatch(@NotNull Project project,
                                        @NotNull Map<Issue, Map<File, List<ProblemData>>> problemMap,
                                        @NotNull AnalysisScope scope,
-                                       @NotNull List<Issue> issues) {
+                                       @NotNull Set<Issue> issues) {
     return new BatchLintClient(project, problemMap, scope, issues);
   }
 
@@ -197,8 +191,7 @@ public class LintIdeClient extends LintClient implements Disposable {
                   }
                 }
 
-                // This is a LIST lookup. I should make this faster!
-                if (!getIssues().contains(issue) && (driver == null || !driver.isCustomIssue(issue))) {
+                if (!getIssues().contains(issue)) {
                   return Severity.IGNORE;
                 }
 
@@ -218,7 +211,7 @@ public class LintIdeClient extends LintClient implements Disposable {
           return true;
         }
 
-        return driver != null && driver.isCustomIssue(issue) || issue == IssueRegistry.BASELINE || issue == IssueRegistry.CANCELLED;
+        return issue == IssueRegistry.BASELINE || issue == IssueRegistry.CANCELLED;
       }
     };
   }
@@ -234,8 +227,8 @@ public class LintIdeClient extends LintClient implements Disposable {
     assert false : message;
   }
 
-  @NonNull protected List<Issue> getIssues() {
-    return Collections.emptyList();
+  @NonNull protected Set<Issue> getIssues() {
+    return Collections.emptySet();
   }
 
   @Nullable
@@ -494,37 +487,6 @@ public class LintIdeClient extends LintClient implements Disposable {
     return new File(dir, Project.DIRECTORY_STORE_FOLDER).exists();
   }
 
-  private static List<Issue> ourReportedCustomIssues;
-
-  private static void recordCustomIssue(@NonNull Issue issue) {
-    if (ourReportedCustomIssues == null) {
-      ourReportedCustomIssues = Lists.newArrayList();
-    } else if (ourReportedCustomIssues.contains(issue)) {
-      return;
-    }
-    ourReportedCustomIssues.add(issue);
-  }
-
-  @Nullable
-  public static Issue findCustomIssue(@NonNull String errorMessage) {
-    if (ourReportedCustomIssues != null) {
-      // We stash the original id into the error message such that we can
-      // find it later
-      int begin = errorMessage.lastIndexOf('[');
-      int end = errorMessage.lastIndexOf(']');
-      if (begin < end && begin != -1) {
-        String id = errorMessage.substring(begin + 1, end);
-        for (Issue issue : ourReportedCustomIssues) {
-          if (id.equals(issue.getId())) {
-            return issue;
-          }
-        }
-      }
-    }
-
-    return null;
-  }
-
   private static final String MERGED_MANIFEST_INFO = "lint-merged-manifest-info";
 
   @Nullable
@@ -617,7 +579,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
     @NonNull
     @Override
-    protected List<Issue> getIssues() {
+    protected Set<Issue> getIssues() {
       return myState.getIssues();
     }
 
@@ -632,14 +594,6 @@ public class LintIdeClient extends LintClient implements Disposable {
       if (location != null) {
         final File file = location.getFile();
         final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
-
-        if (context.getDriver().isCustomIssue(issue)) {
-          // Record original issue id in the message (such that we can find
-          // it later, in #findCustomIssue)
-          message += " [" + issue.getId() + "]";
-          recordCustomIssue(issue);
-          issue = Severity.WARNING.compareTo(severity) <= 0 ? CUSTOM_WARNING : CUSTOM_ERROR;
-        }
 
         if (myState.getMainFile().equals(vFile)) {
           final Position start = location.getStart();
@@ -657,7 +611,6 @@ public class LintIdeClient extends LintClient implements Disposable {
         Location secondary = location.getSecondary();
         if (secondary != null && myState.getMainFile().equals(LocalFileSystem.getInstance().findFileByIoFile(secondary.getFile()))) {
           reportSecondary(context, issue, severity, location, message, format, quickfixData);
-
         }
       }
     }
@@ -752,12 +705,12 @@ public class LintIdeClient extends LintClient implements Disposable {
   private static class BatchLintClient extends LintIdeClient {
     private final Map<Issue, Map<File, List<ProblemData>>> myProblemMap;
     private final AnalysisScope myScope;
-    private final List<Issue> myIssues;
+    private final Set<Issue> myIssues;
 
     public BatchLintClient(@NotNull Project project,
                            @NotNull Map<Issue, Map<File, List<ProblemData>>> problemMap,
                            @NotNull AnalysisScope scope,
-                           @NotNull List<Issue> issues) {
+                           @NotNull Set<Issue> issues) {
       super(project);
       myProblemMap = problemMap;
       myScope = scope;
@@ -773,7 +726,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
     @NonNull
     @Override
-    protected List<Issue> getIssues() {
+    protected Set<Issue> getIssues() {
       return myIssues;
     }
 
@@ -823,14 +776,6 @@ public class LintIdeClient extends LintClient implements Disposable {
       }
 
       if (inScope) {
-        if (context.getDriver().isCustomIssue(issue)) {
-          // Record original issue id in the message (such that we can find
-          // it later, in #findCustomIssue)
-          message += " [" + issue.getId() + "]";
-          recordCustomIssue(issue);
-          issue = Severity.WARNING.compareTo(severity) <= 0 ? CUSTOM_WARNING : CUSTOM_ERROR;
-        }
-
         file = new File(PathUtil.getCanonicalPath(file.getPath()));
 
         Map<File, List<ProblemData>> file2ProblemList = myProblemMap.get(issue);

@@ -26,11 +26,11 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node.G
 import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.AssignStmt;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.stmt.Stmt;
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
+import com.android.tools.lint.detector.api.Category;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.analysis.AnalysisScope;
-import com.intellij.codeInsight.daemon.GroupNames;
 import com.intellij.codeInspection.*;
 import com.intellij.codeInspection.reference.RefEntity;
 import com.intellij.codeInspection.reference.RefMethod;
@@ -38,6 +38,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.util.ArrayUtil;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,9 +79,21 @@ public class PermissionUsageInspection extends GlobalInspectionTool {
     return DISPLAY_NAME;
   }
 
+  @Nls
+  @NotNull
   @Override
   public String getGroupDisplayName() {
-    return GroupNames.PERFORMANCE_GROUP_NAME;
+    return AndroidBundle.message("android.lint.inspections.group.name");
+  }
+
+  @NotNull
+  @Override
+  public String[] getGroupPath() {
+    return ArrayUtil.mergeArrays(new String[]{
+      AndroidBundle.message("android.inspections.group.name"),
+      AndroidBundle.message("android.lint.inspections.subgroup.name"),
+      Category.CORRECTNESS.getName()
+    });
   }
 
   @Override

@@ -548,9 +548,6 @@
                      enabledByDefault="true"
                      key="android.inspections.root.tag.name" groupKey="android.inspections.group.name"/>
 
-    <globalInspection hasStaticDescription="true" shortName="AndroidLintCustomError" displayName="Error from Custom Lint Check" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintCustomErrorInspection"/>
-    <globalInspection hasStaticDescription="true" shortName="AndroidLintCustomWarning" displayName="Warning from Custom Lint Check" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintCustomWarningInspection"/>
-
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAaptCrash" displayName="Potential AAPT crash" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintAaptCrashInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAccidentalOctal" displayName="Accidental Octal" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.AndroidLintAccidentalOctalInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintAdapterViewChildren" displayName="AdapterViews cannot have children in XML" groupKey="android.lint.inspections.group.name.correctness" bundle="messages.AndroidBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.AndroidLintAdapterViewChildrenInspection"/>
