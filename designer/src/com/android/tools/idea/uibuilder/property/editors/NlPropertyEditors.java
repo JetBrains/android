@@ -54,7 +54,10 @@ public class NlPropertyEditors implements PTableCellEditorProvider, ProjectCompo
 
   @NotNull
   @Override
-  public PTableCellEditor getCellEditor(@NotNull PTableItem item) {
+  public PTableCellEditor getCellEditor(@NotNull PTableItem item, int column) {
+    if (!(item instanceof NlProperty)) {
+      return NlNoEditor.getInstance();
+    }
     switch (getEditorType((NlProperty)item)) {
       case BOOLEAN:
         return getBooleanEditor();
