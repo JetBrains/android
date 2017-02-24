@@ -62,7 +62,8 @@ public class StudioProfilersView extends AspectObserver {
   }
 
   @VisibleForTesting
-  public <S extends Stage, T extends StageView> void bind(@NotNull Class<S> clazz, @NotNull BiFunction<StudioProfilersView, S, T> constructor) {
+  public <S extends Stage, T extends StageView> void bind(@NotNull Class<S> clazz,
+                                                          @NotNull BiFunction<StudioProfilersView, S, T> constructor) {
     myBinder.bind(clazz, constructor);
   }
 
@@ -92,6 +93,7 @@ public class StudioProfilersView extends AspectObserver {
     processCombo.setRenderer(new ProcessComboBoxRenderer());
 
     JPanel toolbar = new JPanel(new BorderLayout());
+    toolbar.setBorder(ProfilerLayout.MONITOR_BORDER);
 
     myProcessSelection = new JPanel();
     myProcessSelection.add(deviceCombo);

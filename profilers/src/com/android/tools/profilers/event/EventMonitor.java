@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.event.SimpleEventType;
 import com.android.tools.adtui.model.event.StackedEventType;
+import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfilers;
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +32,8 @@ public class EventMonitor extends ProfilerMonitor {
   @NotNull
   private final EventModel<StackedEventType> myActivityEvents;
 
+  private boolean myEnabled;
+
   public EventMonitor(@NotNull StudioProfilers profilers) {
     super(profilers);
     SimpleEventDataSeries events = new SimpleEventDataSeries(myProfilers.getClient(),
@@ -42,6 +45,9 @@ public class EventMonitor extends ProfilerMonitor {
                                                                      myProfilers.getProcessId(),
                                                                      myProfilers.getSession());
     myActivityEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), activities));
+
+    myProfilers.addDependency(this).onChange(ProfilerAspect.AGENT, this::onAgentStatusChanged);
+    onAgentStatusChanged();
   }
 
   @Override
@@ -74,5 +80,18 @@ public class EventMonitor extends ProfilerMonitor {
   @Override
   public boolean canExpand() {
     return false;
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return myEnabled;
+  }
+
+  private void onAgentStatusChanged() {
+    boolean agentAttached = myProfilers.isAgentAttached();
+    if (myEnabled != agentAttached) {
+      myEnabled = agentAttached;
+      changed(Aspect.ENABLE);
+    }
   }
 }

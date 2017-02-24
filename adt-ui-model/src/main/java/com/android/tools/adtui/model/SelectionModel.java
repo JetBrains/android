@@ -48,9 +48,12 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
 
   private boolean mySelectFullConstraint;
 
+  private boolean mySelectionEnabled;
+
   public SelectionModel(@NotNull Range selection, @NotNull Range range) {
     myRange = range;
     mySelectionRange = selection;
+    mySelectionEnabled = true;
 
     myRange.addDependency(this).onChange(Range.Aspect.RANGE, this::rangesChanged);
     mySelectionRange.addDependency(this).onChange(Range.Aspect.RANGE, this::rangesChanged);
@@ -75,6 +78,9 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
   }
 
   public void set(double min, double max) {
+    if (!mySelectionEnabled) {
+      return;
+    }
 
     if (myConstraints.isEmpty()) {
       mySelectionRange.set(min, max);
@@ -133,5 +139,12 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
    */
   public void setSelectFullConstraint(boolean selectFullConstraint) {
     mySelectFullConstraint = selectFullConstraint;
+  }
+
+  /**
+   * If set, selection cannot be set. Note that if a previous selection exist, it will NOT be cleared.
+   */
+  public void setSelectionEnabled(boolean enabled) {
+    mySelectionEnabled = enabled;
   }
 }

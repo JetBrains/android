@@ -142,7 +142,7 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
                                     @NotNull Supplier<String> dialogTitleSupplier,
                                     @NotNull Supplier<String> extensionSupplier,
                                     @NotNull Consumer<File> saveToFile) {
-    JButton button = new JButton(buttonText, AllIcons.Actions.Export);
+    JButton button = new ProfilerButton(buttonText, AllIcons.Actions.Export);
     button.setToolTipText(tooltip);
     button.addActionListener(e -> ApplicationManager.getApplication().invokeLater(() -> {
       String extension = extensionSupplier.get();

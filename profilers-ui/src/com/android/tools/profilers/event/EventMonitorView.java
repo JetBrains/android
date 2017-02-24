@@ -28,6 +28,7 @@ import java.util.Map;
 public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
 
   private static final Map<SimpleEventType, SimpleEventRenderer> RENDERERS;
+
   static {
     RENDERERS = new HashMap<>();
     RENDERERS.put(SimpleEventType.TOUCH, new TouchEventRenderer());
