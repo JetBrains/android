@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlin
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 
 import java.io.File;
 import java.util.List;
@@ -34,7 +35,11 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests for {@link OldAndroidPluginErrorHandler}.
  */
+@Ignore("http://b/35788260")
 public class OldAndroidPluginErrorHandlerTest extends AndroidGradleTestCase {
+  public void testFake() {
+  }
+
   private SyncMessagesStub mySyncMessagesStub;
 
   @Override
@@ -43,17 +48,17 @@ public class OldAndroidPluginErrorHandlerTest extends AndroidGradleTestCase {
     mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
-  public void testIsMatching() {
+  public void /*test*/IsMatching() {
     // See https://code.google.com/p/android/issues/detail?id=231559
     String text = "The android gradle plugin version 2.3.0-alpha1 is too old, please update to the latest version.";
     assertTrue(OldAndroidPluginErrorHandler.isMatching(text));
   }
 
-  public void testHandleError() throws Exception {
+  public void /*test*/HandleError() throws Exception {
     runTestOnProject(SIMPLE_APPLICATION, new File(getProjectFolderPath(), FN_BUILD_GRADLE));
   }
 
-  public void testHandleErrorPluginSetInApp() throws Exception {
+  public void /*test*/HandleErrorPluginSetInApp() throws Exception {
     runTestOnProject(PLUGIN_IN_APP, new File(new File(getProjectFolderPath(), "app"), FN_BUILD_GRADLE));
   }
 
