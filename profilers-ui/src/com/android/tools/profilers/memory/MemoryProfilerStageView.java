@@ -27,6 +27,7 @@ import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.common.LoadingPanel;
+import com.android.tools.profilers.common.ProfilerButton;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.annotations.VisibleForTesting;
@@ -60,6 +61,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private final Splitter myInstanceDetailsSplitter = new Splitter(true);
 
   @NotNull private JButton myAllocationButton;
+  @NotNull private JButton myHeapDumpButton;
 
   public MemoryProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull MemoryProfilerStage stage) {
     super(profilersView, stage);
@@ -73,10 +75,12 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myMainSplitter.setSecondComponent(myInstanceDetailsSplitter);
     myMainSplitter.setProportion(0.6f);
     getComponent().add(myMainSplitter, BorderLayout.CENTER);
-    captureObjectChanged();
 
-    myAllocationButton = new JButton("Record");
-    myAllocationButton.setToolTipText("Starts/stops recording of memory allocations");
+    myHeapDumpButton = new ProfilerButton(ProfilerIcons.HEAP_DUMP);
+    myHeapDumpButton.setToolTipText("Takes an Hprof snapshot of the application memory");
+    myHeapDumpButton.addActionListener(e -> getStage().requestHeapDump(SwingUtilities::invokeLater));
+
+    myAllocationButton = new ProfilerButton();
     myAllocationButton
       .addActionListener(e -> getStage().trackAllocations(!getStage().isTrackingAllocations(), SwingUtilities::invokeLater));
 
@@ -85,31 +89,25 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::captureObjectFinishedLoading)
       .onChange(MemoryProfilerAspect.LEGACY_ALLOCATION, this::legacyAllocationChanged);
 
+    captureObjectChanged();
     legacyAllocationChanged();
   }
 
   @Override
   public JComponent getToolbar() {
-    JButton backButton = new JButton();
+    JButton backButton = new ProfilerButton(ProfilerIcons.BACK_ARROW);
     backButton.addActionListener(action -> getStage().getStudioProfilers().setMonitoringStage());
-    backButton.setIcon(AllIcons.Actions.Back);
 
     JToolBar toolBar = new JToolBar();
     toolBar.setFloatable(false);
     toolBar.add(backButton);
 
-    JButton forceGarbageCollectionButton = new JButton();
-    forceGarbageCollectionButton.setIcon(ProfilerIcons.FORCE_GARBAGE_COLLECTION);
-    forceGarbageCollectionButton.setToolTipText("Triggers a garbage collection event");
+    JButton forceGarbageCollectionButton = new ProfilerButton(ProfilerIcons.FORCE_GARBAGE_COLLECTION);
+    forceGarbageCollectionButton.setToolTipText("Force garbage collection");
     forceGarbageCollectionButton.addActionListener(e -> getStage().forceGarbageCollection(SwingUtilities::invokeLater));
     toolBar.add(forceGarbageCollectionButton);
 
-    JButton triggerHeapDumpButton = new JButton();
-    triggerHeapDumpButton.setIcon(ProfilerIcons.HEAP_DUMP);
-    triggerHeapDumpButton.setToolTipText("Takes an Hprof snapshot of the application memory");
-    triggerHeapDumpButton.addActionListener(e -> getStage().requestHeapDump(SwingUtilities::invokeLater));
-    toolBar.add(triggerHeapDumpButton);
-
+    toolBar.add(myHeapDumpButton);
     toolBar.add(myAllocationButton);
 
     return toolBar;
@@ -171,7 +169,17 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   private void legacyAllocationChanged() {
     //TODO enable/disable hprof/allocation if they cannot be performed
-    myAllocationButton.setText(getStage().isTrackingAllocations() ? "Stop" : "Record");
+    if (getStage().isTrackingAllocations()) {
+      myAllocationButton.setText("Stop Recording");
+      myAllocationButton.setIcon(ProfilerIcons.STOP_RECORDING);
+      myAllocationButton.setToolTipText("Stops recording of memory allocations");
+    }
+    else {
+      myAllocationButton.setText("Record");
+      myAllocationButton.setIcon(ProfilerIcons.RECORD);
+      myAllocationButton.setToolTipText("Starts recording of memory allocation");
+    }
+
   }
 
   @NotNull
@@ -329,10 +337,14 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     stopLoadingUi();
     myCaptureObject = getStage().getSelectedCapture();
     if (myCaptureObject == null) {
+      myAllocationButton.setEnabled(true);
+      myHeapDumpButton.setEnabled(true);
       myChartCaptureSplitter.setSecondComponent(null);
       return;
     }
 
+    myAllocationButton.setEnabled(false);
+    myHeapDumpButton.setEnabled(false);
     myCaptureLoadingPanel = getProfilersView().getIdeProfilerComponents().createLoadingPanel();
     myCaptureLoadingPanel.setLoadingText("Fetching results");
     myCaptureLoadingPanel.startLoading();
@@ -340,6 +352,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   private void captureObjectFinishedLoading() {
+    myAllocationButton.setEnabled(true);
+    myHeapDumpButton.setEnabled(true);
     if (myCaptureObject != getStage().getSelectedCapture()) {
       return;
     }
