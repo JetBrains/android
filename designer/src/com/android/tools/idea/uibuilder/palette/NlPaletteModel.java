@@ -32,6 +32,9 @@ import java.util.EnumMap;
 import java.util.Map;
 
 public class NlPaletteModel {
+  public static final String ANDROID_PALETTE = "android-palette";
+  public static final String PALETTE_VERSION = "v1";
+
   private final Map<NlLayoutType, Palette> myTypeToPalette;
   private final Project myProject;
 
