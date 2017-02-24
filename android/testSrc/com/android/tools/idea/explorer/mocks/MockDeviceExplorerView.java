@@ -43,7 +43,7 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceSelectedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myTreeNodeExpandingTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> myOpenNodesInEditorInvokedTracker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<DeviceFileEntryNode> mySaveNodeAsTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> mySaveNodesAsTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> myCopyNodePathsTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> myDeleteNodesTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myUploadFilesTracker = new FutureValuesTracker<>();
@@ -61,6 +61,7 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull private final FutureValuesTracker<String> myReportErrorRelatedToServiceTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<String> myReportErrorRelatedToDeviceTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<String> myReportErrorRelatedToNodeTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<String> myReportMessageRelatedToNodeTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<Void> myStartTreeBusyIndicatorTacker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<Void> myStopTreeBusyIndicatorTacker = new FutureValuesTracker<>();
   private int myBusyIndicatorCount;
@@ -137,6 +138,7 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
 
   @Override
   public void reportMessageRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message) {
+    myReportMessageRelatedToNodeTracker.produce(message);
     myViewImpl.reportMessageRelatedToNode(node, message);
   }
 
@@ -253,6 +255,11 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   }
 
   @NotNull
+  public FutureValuesTracker<String> getReportMessageRelatedToNodeTracker() {
+    return myReportMessageRelatedToNodeTracker;
+  }
+
+  @NotNull
   public FutureValuesTracker<Void> getStartTreeBusyIndicatorTacker() {
     return myStartTreeBusyIndicatorTacker;
   }
@@ -263,8 +270,8 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   }
 
   @NotNull
-  public FutureValuesTracker<DeviceFileEntryNode> getSaveNodeAsTracker() {
-    return mySaveNodeAsTracker;
+  public FutureValuesTracker<List<DeviceFileEntryNode>> getSaveNodesAsTracker() {
+    return mySaveNodesAsTracker;
   }
 
   @NotNull
@@ -310,9 +317,9 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     }
 
     @Override
-    public void saveNodeAsInvoked(@NotNull DeviceFileEntryNode treeNode) {
-      mySaveNodeAsTracker.produce(treeNode);
-      myListeners.forEach(l -> l.saveNodeAsInvoked(treeNode));
+    public void saveNodesAsInvoked(@NotNull List<DeviceFileEntryNode> treeNodes) {
+      mySaveNodesAsTracker.produce(treeNodes);
+      myListeners.forEach(l -> l.saveNodesAsInvoked(treeNodes));
     }
 
     @Override
