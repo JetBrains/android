@@ -582,6 +582,11 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     myFixture.checkHighlighting(true, false, false);
   }
 
+  public void testSpellNewlines() throws Throwable {
+    myFixture.enableInspections(SpellCheckingInspection.class);
+    doTestHighlighting();
+  }
+
   public void testDoNotFlagLintXml() throws Throwable {
     // In default locale, with a tools:locale defined to non-English, should not get typos highlighted
     myFixture.enableInspections(SpellCheckingInspection.class);
