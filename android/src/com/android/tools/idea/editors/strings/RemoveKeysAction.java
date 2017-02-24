@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.safeDelete.SafeDeleteHandler;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
@@ -43,13 +44,11 @@ final class RemoveKeysAction extends AnAction {
   }
 
   @Override
-  public void actionPerformed(@NotNull AnActionEvent event) {
+  public void actionPerformed(@Nullable AnActionEvent event) {
     StringResourceTable table = myPanel.getTable();
     StringResourceTableModel model = table.getModel();
     StringResourceRepository repository = myPanel.getRepository();
-
-    Project project = event.getProject();
-    assert project != null;
+    Project project = myPanel.getFacet().getModule().getProject();
 
     PsiElement[] elements = Arrays.stream(table.getSelectedRowModelIndices())
       .mapToObj(index -> model.getStringResourceAt(index).getKey())
@@ -57,6 +56,6 @@ final class RemoveKeysAction extends AnAction {
       .map(item -> LocalResourceRepository.getItemTag(project, item))
       .toArray(PsiElement[]::new);
 
-    SafeDeleteHandler.invoke(project, elements, LangDataKeys.MODULE.getData(event.getDataContext()), true, null);
+    SafeDeleteHandler.invoke(project, elements, myPanel.getFacet().getModule(), true, null);
   }
 }
