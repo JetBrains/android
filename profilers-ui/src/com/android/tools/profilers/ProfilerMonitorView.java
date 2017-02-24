@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.AspectObserver;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
@@ -38,13 +39,26 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
     myContainer.setBorder(ProfilerLayout.MONITOR_BORDER);
     myContainer.setMinimumSize(new Dimension(0, MINIMUM_MONITOR_HEIGHT));
 
+    myMonitor.addDependency(this).onChange(ProfilerMonitor.Aspect.ENABLE, this::monitorEnabledChanged);
+    monitorEnabledChanged();
+
     myMonitor.addDependency(this).onChange(ProfilerMonitor.Aspect.FOCUS, this::focusChanged);
     focusChanged();
   }
 
+  @NotNull
+  public JComponent getComponent() {
+    return myContainer;
+  }
+
   protected void focusChanged() {
-    boolean highlight = myMonitor.isFocused() && myMonitor.canExpand();
-    myContainer.setBackground(highlight ? ProfilerColors.MONITOR_FOCUSED : ProfilerColors.MONITOR_BACKGROUND);
+    if (myMonitor.isEnabled()) {
+      boolean highlight = myMonitor.isFocused() && myMonitor.canExpand();
+      myContainer.setBackground(highlight ? ProfilerColors.MONITOR_FOCUSED : ProfilerColors.MONITOR_BACKGROUND);
+    }
+    else {
+      myContainer.setBackground(ProfilerColors.MONITOR_DISABLED);
+    }
   }
 
   @NotNull
@@ -52,16 +66,32 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
     return myMonitor;
   }
 
-  public final JComponent initialize() {
-    populateUi(myContainer);
-    return myContainer;
-  }
-
   /**
    * @return the vertical weight this monitor view should have in a layout.
    */
   public float getVerticalWeight() {
     return 1f;
+  }
+
+  @NotNull
+  public String getDisabledMessage() {
+    return "Advanced profiling is unavailable for the currently selected app.";
+  }
+
+  private void monitorEnabledChanged() {
+    myContainer.removeAll();
+    if (getMonitor().isEnabled()) {
+      myContainer.setBackground(ProfilerColors.MONITOR_BACKGROUND);
+      populateUi(myContainer);
+    }
+    else {
+      myContainer.setBackground(ProfilerColors.MONITOR_DISABLED);
+      myContainer.setLayout(new TabularLayout("*", "*"));
+      JLabel disabledMessage = new JLabel(getDisabledMessage());
+      disabledMessage.setHorizontalAlignment(SwingConstants.CENTER);
+      disabledMessage.setVerticalAlignment(SwingConstants.CENTER);
+      myContainer.add(disabledMessage, new TabularLayout.Constraint(0, 0));
+    }
   }
 
   abstract protected void populateUi(JPanel container);

@@ -45,7 +45,7 @@ public final class MemoryCaptureView extends AspectObserver {
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::reset)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refresh);
     myExportButton =
-      ideProfilerComponents.createExportButton("Export",
+      ideProfilerComponents.createExportButton(null,
                                                "Exports the currently selected capture to file.",
                                                () -> "Export As",
                                                this::getFileExtension,

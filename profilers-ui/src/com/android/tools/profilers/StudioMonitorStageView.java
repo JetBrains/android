@@ -101,7 +101,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     int rowIndex = 0;
     for (ProfilerMonitor monitor : stage.getMonitors()) {
       ProfilerMonitorView view = binder.build(profilersView, monitor);
-      JComponent component = view.initialize();
+      JComponent component = view.getComponent();
       tooltip.registerListenersOn(component);
       component.addMouseListener(new MouseAdapter() {
         @Override
