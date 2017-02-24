@@ -31,16 +31,21 @@ public class DrawComponentFrame extends DrawRegion {
 
   static Stroke myNormalStroke = new BasicStroke(1);
   static Stroke myProblemStroke = new BasicStroke(2);
+  static Stroke myWrapStroke =  new BasicStroke(2);
+  static Stroke myMatchParentStroke = new BasicStroke(2);
+  static Stroke myMatchConstraintStroke = new FancyStroke(FancyStroke.Type.SPRING, 2, 2, 2);
 
   int myMode;
-  boolean myHasHorizontalConstraints;
-  boolean myHasVerticalConstraints;
+  int myLayoutWidth;
+  int myLayoutHeight;
 
   public DrawComponentFrame(String s) {
     String[] sp = s.split(",");
     int c = 0;
     c = super.parse(sp, c);
     myMode = Integer.parseInt(sp[c++]);
+    myLayoutWidth = Integer.parseInt(sp[c++]);
+    myLayoutHeight = Integer.parseInt(sp[c++]);
   }
 
   @Override
@@ -53,12 +58,25 @@ public class DrawComponentFrame extends DrawRegion {
                             int width,
                             int height,
                             int mode,
-                            boolean hasHorizontalConstraints,
-                            boolean hasVerticalConstraints) {
+                            int layout_width,
+                            int layout_height) {
     super(x, y, width, height);
     myMode = mode;
-    myHasHorizontalConstraints = hasHorizontalConstraints;
-    myHasVerticalConstraints = hasVerticalConstraints;
+    myLayoutWidth = layout_width;
+    myLayoutHeight = layout_height;
+  }
+
+  private Stroke getStroke(int dim) {
+    if (dim == 0) {
+      return myMatchConstraintStroke;
+    }
+    if (dim == -1) {
+      return myMatchParentStroke ;
+    }
+    if (dim == -2) {
+      return myWrapStroke;
+    }
+    return myNormalStroke;
   }
 
   @Override
@@ -68,28 +86,18 @@ public class DrawComponentFrame extends DrawRegion {
     Stroke previousStroke = g.getStroke();
     g.setStroke(myNormalStroke);
     g.setColor(colorFrame[myMode]);
-    if (myHasHorizontalConstraints && myHasVerticalConstraints) {
+    if (myLayoutWidth == myLayoutHeight) {
+      g.setStroke(getStroke(myLayoutWidth));
       g.drawRect(x, y, width, height);
     }
     else {
-      if (!myHasHorizontalConstraints) {
-        g.setStroke(myProblemStroke);
-        g.setColor(colorSet.getUnconstrainedColor());
-      }
-      else {
-        g.setStroke(myNormalStroke);
-        g.setColor(colorFrame[myMode]);
-      }
+
+      g.setColor(colorFrame[myMode]);
+      g.setStroke(getStroke(myLayoutHeight));
       g.drawLine(x, y, x, y + height);
       g.drawLine(x + width, y, x + width, y + height);
-      if (!myHasVerticalConstraints) {
-        g.setStroke(myProblemStroke);
-        g.setColor(colorSet.getUnconstrainedColor());
-      }
-      else {
-        g.setStroke(myNormalStroke);
-        g.setColor(colorFrame[myMode]);
-      }
+      g.setColor(colorFrame[myMode]);
+      g.setStroke(getStroke(myLayoutWidth));
       g.drawLine(x, y, x + width, y);
       g.drawLine(x, y + height, x + width, y + height);
     }
@@ -98,19 +106,19 @@ public class DrawComponentFrame extends DrawRegion {
 
   @Override
   public String serialize() {
-    return super.serialize() + "," + myMode;
+    return super.serialize() + "," + myMode+ "," + myLayoutHeight+ "," + myLayoutHeight;
   }
 
   public static void add(DisplayList list,
                          SceneContext sceneContext,
                          Rectangle rect,
                          int mode,
-                         boolean hasHorizontalConstraints,
-                         boolean hasVerticalConstraints) {
+                         int layout_width,
+                         int layout_height) {
     int l = sceneContext.getSwingX(rect.x);
     int t = sceneContext.getSwingY(rect.y);
     int w = sceneContext.getSwingDimension(rect.width);
     int h = sceneContext.getSwingDimension(rect.height);
-    list.add(new DrawComponentFrame(l, t, w, h, mode, hasHorizontalConstraints, hasVerticalConstraints));
+    list.add(new DrawComponentFrame(l, t, w, h, mode, layout_width, layout_height));
   }
 }
