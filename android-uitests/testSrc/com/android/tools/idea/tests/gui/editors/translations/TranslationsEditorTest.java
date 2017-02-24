@@ -30,6 +30,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.EmptyClipboardOwner;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.KeyPressInfo;
+import org.fest.swing.core.Robot;
 import org.fest.swing.data.TableCell;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
@@ -45,6 +46,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.text.DefaultEditorKit;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -115,7 +117,7 @@ public final class TranslationsEditorTest {
     dialog.getResourceFolderComboBox().selectItem(toResourceName("app/src/debug/res"));
     dialog.getOkButton().click();
 
-    Object expected = Arrays.asList("app_name", "hello_world", "action_settings", "some_id", "cancel", "app_name",  "action_settings");
+    Object expected = Arrays.asList("app_name", "hello_world", "action_settings", "some_id", "cancel", "app_name", "action_settings");
     assertEquals(expected, myTranslationsEditor.keys());
   }
 
@@ -357,6 +359,22 @@ public final class TranslationsEditorTest {
     translationTextField.pressAndReleaseKey(KeyPressInfo.keyCode(keyStroke.getKeyCode()).modifiers(keyStroke.getModifiers()));
 
     assertEquals(-1, translationTextField.font().target().canDisplayUpTo("יישום פשוט"));
+  }
+
+  @Test
+  public void translationTextFieldFocusListenerDoesntThrowIndexOutOfBoundsException() {
+    JTableFixture table = myTranslationsEditor.getTable();
+    TableCell cell = TableCell.row(0).column(ENGLISH_COLUMN);
+
+    table.selectCell(cell);
+
+    Robot robot = myGuiTest.robot();
+    // deselectCell
+    robot.pressKey(KeyEvent.VK_CONTROL);
+    table.cell(cell).click();
+    robot.releaseKey(KeyEvent.VK_CONTROL);
+
+    myTranslationsEditor.getTranslationTextField().focus();
   }
 
   @Test
