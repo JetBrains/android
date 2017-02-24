@@ -82,24 +82,24 @@ public class SceneDisplayListTestToolsAttr extends SceneTest {
                  "    app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
                  "    android:text=\"text\"/>");
 
-    String simpleList = "DrawComponentFrame,0,0,1000,1000,1\n" +
+    String simpleList = "DrawComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                         "Clip,0,0,1000,1000\n" +
                         "DrawComponentBackground,450,490,100,20,1\n" +
                         "DrawTextRegion,450,490,100,20,0,false,false,5,5,\"text\"\n" +
-                        "DrawComponentFrame,450,490,100,20,1\n" +
+                        "DrawComponentFrame,450,490,100,20,1,20,20\n" +
                         "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5\n" +
                         "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5\n" +
                         "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5\n" +
                         "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5\n" +
                         "DrawComponentBackground,450,490,100,20,1\n" +
                         "DrawTextRegion,450,490,100,20,0,false,false,5,5,\"text\"\n" +
-                        "DrawComponentFrame,450,490,100,20,1\n" +
+                        "DrawComponentFrame,450,490,100,20,1,20,20\n" +
                         "DrawConnection,6,450x490x100x20,0,450x490x100x20,0,0,true,0,0,false,0.5\n" +
                         "DrawConnection,6,450x490x100x20,1,450x490x100x20,1,0,true,0,0,false,0.5\n" +
                         "DrawConnection,5,450x490x100x0,5,450x490x100x0,5,0,false,0,0,false,0.0\n" +
                         "DrawComponentBackground,450,490,100,20,1\n" +
                         "DrawTextRegion,450,490,100,20,0,false,false,5,5,\"tools\"\n" +
-                        "DrawComponentFrame,450,490,100,20,1\n" +
+                        "DrawComponentFrame,450,490,100,20,1,20,20\n" +
                         "DrawConnection,6,450x490x100x20,0,450x490x100x20,0,0,true,0,0,false,0.5\n" +
                         "DrawConnection,6,450x490x100x20,1,450x490x100x20,1,0,true,0,0,false,0.5\n" +
                         "DrawConnection,5,450x490x100x0,5,450x490x100x0,5,0,false,0,0,false,0.0\n" +

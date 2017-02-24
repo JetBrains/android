@@ -61,11 +61,11 @@ public class SceneDisplayListTest6 extends SceneTest {
                  "    app:layout_constraintTop_toTopOf=\"@+id/content_main\"\n" +
                  "    app:layout_constraintBottom_toBottomOf=\"@+id/content_main\"/>");
 
-    String simpleList = "DrawComponentFrame,0,0,1000,1000,1\n" +
+    String simpleList = "DrawComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                         "Clip,0,0,1000,1000\n" +
                         "DrawComponentBackground,450,490,100,20,1\n" +
                         "DrawTextRegion,450,490,100,20,0,false,false,5,5,\"\"\n" +
-                        "DrawComponentFrame,450,490,100,20,1\n" +
+                        "DrawComponentFrame,450,490,100,20,1,20,20\n" +
                         "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5\n" +
                         "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5\n" +
                         "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5\n" +
@@ -80,16 +80,17 @@ public class SceneDisplayListTest6 extends SceneTest {
     disp.paint(img.createGraphics(), SceneContext.get());
     assertEquals(10, disp.getCommands().size());
     String result = disp.generateSortedDisplayList(SceneContext.get());
-    String sorted = "DrawComponentFrame,0,0,1000,1000,1\n" +
+    String sorted = "DrawComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                     "Clip,0,0,1000,1000\n" +
                     "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5\n" +
                     "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5\n" +
                     "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5\n" +
                     "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5\n" +
                     "DrawComponentBackground,450,490,100,20,1\n" +
-                    "DrawComponentFrame,450,490,100,20,1\n" +
+                    "DrawComponentFrame,450,490,100,20,1,20,20\n" +
                     "DrawTextRegion,450,490,100,20,0,false,false,5,5,\"\"\n" +
-                    "UNClip\n\n";
+                    "UNClip\n" +
+                    "\n";
     assertEquals(sorted, result);
     disp.clear();
   }
