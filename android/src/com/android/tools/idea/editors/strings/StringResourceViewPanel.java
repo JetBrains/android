@@ -177,10 +177,8 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   }
 
   private void createDefaultValueTextField() {
-    myDefaultValueTextField = new TextFieldWithBrowseButton();
-
+    myDefaultValueTextField = new TextFieldWithBrowseButton(new ShowMultilineActionListener(), this);
     myDefaultValueTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
-    myDefaultValueTextField.addActionListener(new ShowMultilineActionListener());
 
     JComponent textField = myDefaultValueTextField.getTextField();
 
@@ -189,10 +187,8 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   }
 
   private void createTranslationTextField() {
-    myTranslationTextField = new TextFieldWithBrowseButton();
-
+    myTranslationTextField = new TextFieldWithBrowseButton(new ShowMultilineActionListener(), this);
     myTranslationTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
-    myTranslationTextField.addActionListener(new ShowMultilineActionListener());
 
     JComponent textField = myTranslationTextField.getTextField();
 
