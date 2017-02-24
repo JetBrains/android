@@ -197,6 +197,11 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     myTranslationTextField.getTextField().addFocusListener(new SetTableValueAtFocusListener(myTable::getSelectedColumnModelIndex));
   }
 
+  @Nullable
+  public AndroidFacet getFacet() {
+    return myFacet;
+  }
+
   private static final class TranslationsEditorTextField extends JBTextField {
     private TranslationsEditorTextField() {
       super(10);
