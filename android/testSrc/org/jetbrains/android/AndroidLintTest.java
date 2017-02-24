@@ -6,20 +6,25 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.lint.checks.CommentDetector;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.lint.checks.TextViewDetector;
+import com.android.tools.lint.detector.api.Issue;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInspection.ex.InspectionProfileImpl;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.ProjectViewTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -859,7 +864,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testSingleLine() throws Exception {
     deleteManifest();
     myFixture.copyFileToProject(BASE_PATH_GLOBAL + "deprecation/AndroidManifest.xml", "AndroidManifest.xml");
-    myFixture.enableInspections(new AndroidLintDeprecatedInspection());
+    enableExactlyOneInspection(myFixture, new AndroidLintDeprecatedInspection());
     myFixture.configureFromExistingVirtualFile(
       myFixture.copyFileToProject(BASE_PATH + "singleLine.xml", "res/layout/singleLine.xml"));
     final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Replace singleLine=\"true\" with maxLines=\"1\"");
@@ -873,7 +878,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testSingleLineFalse() throws Exception {
     deleteManifest();
     myFixture.copyFileToProject(BASE_PATH_GLOBAL + "deprecation/AndroidManifest.xml", "AndroidManifest.xml");
-    myFixture.enableInspections(new AndroidLintDeprecatedInspection());
+    enableExactlyOneInspection(myFixture, new AndroidLintDeprecatedInspection());
     myFixture.configureFromExistingVirtualFile(
       myFixture.copyFileToProject(BASE_PATH + "singleLineFalse.xml", "res/layout/singleLineFalse.xml"));
     final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Replace singleLine=\"true\" with maxLines=\"1\"");
@@ -1050,11 +1055,28 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   private void doTestHighlighting(@NotNull AndroidLintInspectionBase inspection, @NotNull String copyTo, @NotNull String extension)
-    throws IOException {
-    myFixture.enableInspections(inspection);
+      throws IOException {
+    enableExactlyOneInspection(myFixture, inspection);
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + "." + extension, copyTo);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.doHighlighting();
     myFixture.checkHighlighting(true, false, false);
+  }
+
+  public static void enableExactlyOneInspection(@NotNull JavaCodeInsightTestFixture fixture, @NotNull AndroidLintInspectionBase inspection) {
+    // Ensure all issues are initially registered but disabled
+    Project project = fixture.getProject();
+    for (Issue issue : new LintIdeIssueRegistry().getIssues()) {
+      AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue);
+      InspectionProfileImpl profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
+      String shortName = AndroidLintInspectionBase.LINT_INSPECTION_PREFIX + issue.getId();
+      if (issue != inspection.getIssue()) {
+        profile.disableTool(shortName, project);
+      } else {
+        profile.enableTool(shortName, project);
+      }
+    }
+
+    fixture.enableInspections(inspection);
   }
 }

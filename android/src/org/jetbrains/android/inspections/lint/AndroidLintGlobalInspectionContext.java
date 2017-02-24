@@ -77,8 +77,8 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       return;
     }
 
-    List<Issue> issues = AndroidLintExternalAnnotator.getIssuesFromInspections(project, null);
-    if (issues.size() == 0) {
+    Set<Issue> issues = AndroidLintExternalAnnotator.getIssuesFromInspections(project, null);
+    if (issues.isEmpty()) {
       return;
     }
 
@@ -88,7 +88,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       String id = tool.getShortName().substring(LINT_INSPECTION_PREFIX.length());
       Issue issue = new LintIdeIssueRegistry().getIssue(id);
       if (issue != null && !issue.isEnabledByDefault()) {
-        issues = Collections.singletonList(issue);
+        issues = Collections.singleton(issue);
         issue.setEnabledByDefault(true);
         // And turn it back off again in cleanup
         myEnabledIssue = issue;
