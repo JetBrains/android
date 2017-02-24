@@ -15,17 +15,39 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear;
 
+import com.android.tools.idea.uibuilder.handlers.absolute.AbsoluteResizeTarget;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.scene.target.DragBaseTarget;
 import org.jetbrains.annotations.NotNull;
 
+import static com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.*;
+
 /**
- * Target to handle the drag of LinearLayout's children
+ * Target to handle the resizing of LinearLayout's children
  */
-public class LinearDragTarget extends DragBaseTarget {
+public class LinearResizeTarget extends AbsoluteResizeTarget {
+
+  public LinearResizeTarget(@NotNull Type type) {
+    super(type);
+  }
 
   @Override
   protected void updateAttributes(@NotNull AttributesTransaction attributes, int x, int y) {
 
+    Type t = getType();
+    if (TOP == t || LEFT_TOP == t || RIGHT_TOP == t) {
+      updateHeight(attributes, getNewHeight(y));
+    }
+
+    if (BOTTOM == t || LEFT_BOTTOM == t || RIGHT_BOTTOM == t) {
+      updateHeight(attributes, getNewHeight(y));
+    }
+
+    if (LEFT == t || LEFT_BOTTOM == t || LEFT_TOP == t) {
+      updateWidth(attributes, getNewWidth(x));
+    }
+
+    if (RIGHT == t || RIGHT_BOTTOM == t || RIGHT_TOP == t) {
+      updateWidth(attributes, getNewWidth(x));
+    }
   }
 }
