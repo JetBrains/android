@@ -22,12 +22,11 @@ import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.handlers.absolute.AbsoluteResizeTarget;
-import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.model.Insets;
+import com.android.tools.idea.uibuilder.model.Coordinates;
+import com.android.tools.idea.uibuilder.model.FillPolicy;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.SegmentType;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneInteraction;
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -40,13 +39,10 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
+import java.awt.geom.AffineTransform;
 import java.util.List;
-import java.util.Map;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.model.Coordinates.getSwingX;
-import static com.android.tools.idea.uibuilder.model.Coordinates.getSwingY;
 import static com.android.utils.XmlUtils.formatFloatAttribute;
 
 /**
@@ -78,28 +74,6 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     return ImmutableList.of(ATTR_ORIENTATION);
   }
 
-  @Override
-  public boolean paintConstraints(@NotNull ScreenView screenView, @NotNull Graphics2D graphics, @NotNull NlComponent component) {
-    NlComponent prev = null;
-    boolean vertical = isVertical(component);
-    for (NlComponent child : component.getChildren()) {
-      if (prev != null) {
-        if (vertical) {
-          int middle = getSwingY(screenView, (prev.y + prev.h + child.y) / 2);
-          NlGraphics.drawLine(NlDrawingStyle.GUIDELINE_DASHED, graphics, getSwingX(screenView, component.x), middle,
-                              getSwingX(screenView, component.x + component.w), middle);
-        }
-        else {
-          int middle = getSwingX(screenView, (prev.x + prev.w + child.x) / 2);
-          NlGraphics.drawLine(NlDrawingStyle.GUIDELINE_DASHED, graphics, middle, getSwingY(screenView, component.y), middle,
-                              getSwingY(screenView, component.y + component.h));
-        }
-      }
-      prev = child;
-    }
-    return false;
-  }
-
   /**
    * Returns true if the given node represents a vertical linear layout.
    *
@@ -121,347 +95,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     if (layout.getDrawWidth() == 0 || layout.getDrawHeight() == 0) {
       return null;
     }
-    return new LinearDragHandler(editor, layout, components, type);
-  }
-
-  private class LinearDragHandler extends DragHandler {
-    /**
-     * Vertical layout?
-     */
-    private final boolean myVertical;
-
-    /**
-     * Insert points (dp + index)
-     */
-    private final List<MatchPos> myIndices;
-
-    /**
-     * Number of insert positions in the target node
-     */
-    private final int myNumPositions;
-
-    /**
-     * Current marker X position
-     */
-    @AndroidDpCoordinate
-    private Integer myCurrX;
-
-    /**
-     * Current marker Y position
-     */
-    @AndroidDpCoordinate
-    private Integer myCurrY;
-
-    /**
-     * Position of the dragged element in this layout (or
-     * -1 if the dragged element is from elsewhere)
-     */
-    private int mySelfPos;
-
-    /**
-     * Current drop insert index (-1 for "at the end")
-     */
-    private int myInsertPos = -1;
-
-    /**
-     * width of match line if it's a horizontal one
-     */
-    @AndroidDpCoordinate
-    private Integer myWidth;
-
-    /**
-     * height of match line if it's a vertical one
-     */
-    @AndroidDpCoordinate
-    private Integer myHeight;
-
-
-    public LinearDragHandler(@NotNull ViewEditor editor,
-                             @NotNull SceneComponent layout,
-                             @NotNull List<SceneComponent> components,
-                             @NotNull DragType type) {
-      super(editor, LinearLayoutHandler.this, layout, components, type);
-      assert !components.isEmpty();
-
-      myVertical = isVertical(layout.getNlComponent());
-
-      // Prepare a list of insertion points: X coordinates for horizontal, Y for
-      // vertical.
-      myIndices = new ArrayList<>();
-
-      @AndroidDpCoordinate
-      int last = myVertical
-                 ? layout.getDrawY() + editor.pxToDp(layout.getNlComponent().getPadding().top)
-                 : layout.getDrawX() + editor.pxToDp(layout.getNlComponent().getPadding().left);
-      int pos = 0;
-      boolean lastDragged = false;
-      mySelfPos = -1;
-      for (SceneComponent it : layout.getChildren()) {
-        if (it.getDrawWidth() > 0 && it.getDrawHeight() > 0) {
-          boolean isDragged = components.contains(it);
-
-          // We don't want to insert drag positions before or after the
-          // element that is itself being dragged. However, we -do- want
-          // to insert a match position here, at the center, such that
-          // when you drag near its current position we show a match right
-          // where it's already positioned.
-          if (isDragged) {
-            @AndroidDpCoordinate int v = myVertical ? it.getDrawY() + (it.getDrawHeight() / 2) : it.getDrawX() + (it.getDrawWidth() / 2);
-            mySelfPos = pos;
-            myIndices.add(new MatchPos(v, pos++));
-          }
-          else if (lastDragged) {
-            // Even though we don't want to insert a match below, we
-            // need to increment the index counter such that subsequent
-            // lines know their correct index in the child list.
-            pos++;
-          }
-          else {
-            // Add an insertion point between the last point and the
-            // start of this child
-            @AndroidDpCoordinate int v = myVertical ? it.getDrawY() : it.getDrawX();
-            v = (last + v) / 2;
-            myIndices.add(new MatchPos(v, pos++));
-          }
-
-          last = myVertical ? (it.getDrawY() + it.getDrawHeight()) : (it.getDrawX() + it.getDrawWidth());
-          lastDragged = isDragged;
-        }
-        else {
-          // We still have to count this position even if it has no bounds, or
-          // subsequent children will be inserted at the wrong place
-          pos++;
-        }
-      }
-
-      // Finally add an insert position after all the children - unless of
-      // course we happened to be dragging the last element
-      if (!lastDragged) {
-        @AndroidDpCoordinate int v = last + 1;
-        myIndices.add(new MatchPos(v, pos));
-      }
-
-      myNumPositions = layout.getChildCount() + 1;
-    }
-
-    @Nullable
-    @Override
-    public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @InputEventMask int modifiers) {
-      super.update(x, y, modifiers);
-
-      boolean isVertical = myVertical;
-
-      @AndroidDpCoordinate int bestDist = Integer.MAX_VALUE;
-      int bestIndex = Integer.MIN_VALUE;
-      Integer bestPos = null;
-
-      for (MatchPos index : myIndices) {
-        @AndroidDpCoordinate int i = index.getDistance();
-        int pos = index.getPosition();
-        @AndroidDpCoordinate int dist = (isVertical ? y : x) - i;
-        if (dist < 0) {
-          dist = -dist;
-        }
-        if (dist < bestDist) {
-          bestDist = dist;
-          bestIndex = i;
-          bestPos = pos;
-          if (bestDist <= 0) {
-            break;
-          }
-        }
-      }
-
-      if (bestIndex != Integer.MIN_VALUE) {
-        if (isVertical) {
-          myCurrX = layout.getDrawX() + layout.getDrawWidth() / 2;
-          myCurrY = bestIndex;
-          myWidth = layout.getDrawWidth();
-          myHeight = null;
-        }
-        else {
-          myCurrX = bestIndex;
-          myCurrY = layout.getDrawY() + layout.getDrawHeight() / 2;
-          myWidth = null;
-          myHeight = layout.getDrawHeight();
-        }
-
-        myInsertPos = bestPos;
-      }
-
-      return null;
-    }
-
-    @Override
-    public void paint(@NotNull NlGraphics gc) {
-      @AndroidCoordinate Insets padding = layout.getNlComponent().getPadding();
-      @AndroidDpCoordinate int layoutX = layout.getDrawX() + editor.pxToDp(padding.left);
-      @AndroidDpCoordinate int layoutW = layout.getDrawWidth() - editor.pxToDp(padding.width());
-      @AndroidDpCoordinate int layoutY = layout.getDrawY() + editor.pxToDp(padding.top);
-      @AndroidDpCoordinate int layoutH = layout.getDrawHeight() - editor.pxToDp(padding.height());
-
-      // Highlight the receiver
-      gc.useStyle(NlDrawingStyle.DROP_RECIPIENT);
-      gc.drawRectDp(layoutX, layoutY, layoutW, layoutH);
-
-      gc.useStyle(NlDrawingStyle.DROP_ZONE);
-
-      boolean isVertical = myVertical;
-      int selfPos = mySelfPos;
-
-      for (MatchPos it : myIndices) {
-        @AndroidDpCoordinate int i = it.getDistance();
-        int pos = it.getPosition();
-        // Don't show insert drop zones for "self"-index since that one goes
-        // right through the center of the widget rather than in a sibling
-        // position
-        if (pos != selfPos) {
-          if (isVertical) {
-            // draw horizontal lines
-            gc.drawLineDp(layoutX, i, layoutW, i);
-          }
-          else {
-            // draw vertical lines
-            gc.drawLineDp(i, layoutY, i, layoutH);
-          }
-        }
-      }
-
-      @AndroidDpCoordinate Integer currX = myCurrX;
-      @AndroidDpCoordinate Integer currY = myCurrY;
-
-      if (currX != null && currY != null) {
-        gc.useStyle(NlDrawingStyle.DROP_ZONE_ACTIVE);
-
-        @AndroidDpCoordinate int x = currX;
-        @AndroidDpCoordinate int y = currY;
-
-        SceneComponent be = components.get(0);
-
-        // Draw a clear line at the closest drop zone (unless we're over the
-        // dragged element itself)
-        if (myInsertPos != selfPos || selfPos == -1) {
-          gc.useStyle(NlDrawingStyle.DROP_PREVIEW);
-          if (myWidth != null) {
-            @AndroidDpCoordinate int width = myWidth;
-            @AndroidDpCoordinate int fromX = x - width / 2;
-            @AndroidDpCoordinate int toX = x + width / 2;
-            gc.drawLineDp(fromX, y, toX, y);
-          }
-          else if (myHeight != null) {
-            @AndroidDpCoordinate int height = myHeight;
-            @AndroidDpCoordinate int fromY = y - height / 2;
-            @AndroidDpCoordinate int toY = y + height / 2;
-            gc.drawLineDp(x, fromY, x, toY);
-          }
-        }
-
-        if (be.getDrawWidth() > 0 && be.getDrawHeight() > 0) {
-          boolean isLast = myInsertPos == myNumPositions - 1;
-
-          // At least the first element has a bound. Draw rectangles for
-          // all dropped elements with valid bounds, offset at the drop
-          // point.
-          @AndroidDpCoordinate int offsetX;
-          @AndroidDpCoordinate int offsetY;
-          if (isVertical) {
-            offsetX = layoutX - be.getDrawX();
-            offsetY = currY - be.getDrawY() - (isLast ? 0 : (be.getDrawHeight() / 2));
-          }
-          else {
-            offsetX = currX - be.getDrawX() - (isLast ? 0 : (be.getDrawWidth() / 2));
-            offsetY = layoutY - be.getDrawY();
-          }
-
-          gc.useStyle(NlDrawingStyle.DROP_PREVIEW);
-          for (SceneComponent element : components) {
-            if (element.getDrawWidth() > 0 && element.getDrawHeight() > 0 &&
-                (element.getDrawWidth() > layoutW || element.getDrawHeight() > layoutH) &&
-                layout.getChildCount() == 0) {
-              // The bounds of the child does not fully fit inside the target.
-              // Limit the bounds to the layout bounds (but only when there
-              // are no children, since otherwise positioning around the existing
-              // children gets difficult)
-              @AndroidDpCoordinate final int px, py, pw, ph;
-              if (element.getDrawWidth() > layoutW) {
-                px = layoutX;
-                pw = layoutW;
-              }
-              else {
-                px = element.getDrawX() + offsetX;
-                pw = element.getDrawWidth();
-              }
-              if (element.getDrawHeight() > layoutH) {
-                py = layoutY;
-                ph = layoutH;
-              }
-              else {
-                py = element.getDrawY() + offsetY;
-                ph = element.getDrawHeight();
-              }
-              gc.drawRectDp(px, py, pw, ph);
-            }
-            else {
-              drawElement(gc, element.getNlComponent(), editor.dpToPx(offsetX), editor.dpToPx(offsetY));
-            }
-          }
-        }
-      }
-    }
-
-    /**
-     * Draws the bounds of the given elements and all its children elements in the canvas
-     * with the specified offset.
-     *
-     * @param gc        the graphics context
-     * @param component the element to be drawn
-     * @param offsetX   a horizontal delta to add to the current bounds of the element when
-     *                  drawing it
-     * @param offsetY   a vertical delta to add to the current bounds of the element when
-     *                  drawing it
-     */
-    public void drawElement(NlGraphics gc, NlComponent component, @AndroidCoordinate int offsetX, @AndroidCoordinate int offsetY) {
-      if (component.w > 0 && component.h > 0) {
-        gc.drawRect(component.x + offsetX, component.y + offsetY, component.w, component.h);
-      }
-
-      for (NlComponent inner : component.getChildren()) {
-        drawElement(gc, inner, offsetX, offsetY);
-      }
-    }
-
-    @Override
-    public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
-      insertComponents(myInsertPos, insertType);
-    }
-  }
-
-  /**
-   * A possible match position
-   */
-  private static class MatchPos {
-    /**
-     * The dp distance
-     */
-    @AndroidDpCoordinate private final int myDistance;
-    /**
-     * The position among siblings
-     */
-    private final int myPosition;
-
-    public MatchPos(@AndroidDpCoordinate int distance, int position) {
-      myDistance = distance;
-      myPosition = position;
-    }
-
-    @AndroidDpCoordinate
-    private int getDistance() {
-      return myDistance;
-    }
-
-    private int getPosition() {
-      return myPosition;
-    }
+    return new LinearDragHandler(editor, layout, components, type, this);
   }
 
   @Override
@@ -543,308 +177,11 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     return new LinearResizeHandler(editor, this, component, horizontalEdgeType, verticalEdgeType);
   }
 
-  private class LinearResizeHandler extends DefaultResizeHandler {
-    /**
-     * Whether the node should be assigned a new weight
-     */
-    public boolean useWeight;
-    /**
-     * Weight sum to be applied to the parent
-     */
-    private float mNewWeightSum;
-    /**
-     * The weight to be set on the node (provided {@link #useWeight} is true)
-     */
-    private float mWeight;
-    /**
-     * Map from nodes to preferred bounds of nodes where the weights have been cleared
-     */
-    public final Map<NlComponent, Dimension> unweightedSizes;
-    /**
-     * Total required size required by the siblings <b>without</b> weights
-     */
-    public int totalLength;
-    /**
-     * List of nodes which should have their weights cleared
-     */
-    public List<NlComponent> mClearWeights;
-
-    public LinearResizeHandler(@NotNull ViewEditor editor,
-                               @NotNull ViewGroupHandler handler,
-                               @NotNull NlComponent component,
-                               @Nullable SegmentType horizontalEdgeType,
-                               @Nullable SegmentType verticalEdgeType) {
-      super(editor, handler, component, horizontalEdgeType, verticalEdgeType);
-
-      unweightedSizes = editor.measureChildren(layout, (n, namespace, localName) -> {
-        // Clear out layout weights; we need to measure the unweighted sizes
-        // of the children
-        if (ATTR_LAYOUT_WEIGHT.equals(localName) && ANDROID_URI.equals(namespace)) {
-          return ""; //$NON-NLS-1$
-        }
-
-        return null;
-      });
-      // Compute total required size required by the siblings *without* weights
-      totalLength = 0;
-      final boolean isVertical = isVertical(layout);
-      if (unweightedSizes != null) {
-        for (Map.Entry<NlComponent, Dimension> entry : unweightedSizes.entrySet()) {
-          Dimension preferredSize = entry.getValue();
-          if (isVertical) {
-            totalLength += preferredSize.height;
-          }
-          else {
-            totalLength += preferredSize.width;
-          }
-        }
-      }
-    }
-
-    /**
-     * Resets the computed state
-     */
-    void reset() {
-      mNewWeightSum = -1;
-      useWeight = false;
-      mClearWeights = null;
-    }
-
-    /**
-     * Sets a weight to be applied to the node
-     */
-    void setWeight(float weight) {
-      useWeight = true;
-      mWeight = weight;
-    }
-
-    /**
-     * Sets a weight sum to be applied to the parent layout
-     */
-    void setWeightSum(float weightSum) {
-      mNewWeightSum = weightSum;
-    }
-
-    /**
-     * Marks that the given node should be cleared when applying the new size
-     */
-    void clearWeight(NlComponent n) {
-      if (mClearWeights == null) {
-        mClearWeights = new ArrayList<>();
-      }
-      mClearWeights.add(n);
-    }
-
-    /**
-     * Applies the state to the nodes
-     */
-    public void apply() {
-      assert useWeight;
-
-      String value = mWeight > 0 ? formatFloatAttribute(mWeight) : null;
-      component.setAttribute(ANDROID_URI, ATTR_LAYOUT_WEIGHT, value);
-
-      if (mClearWeights != null) {
-        for (NlComponent n : mClearWeights) {
-          if (getWeight(n) > 0.0f) {
-            n.setAttribute(ANDROID_URI, ATTR_LAYOUT_WEIGHT, null);
-          }
-        }
-      }
-
-      if (mNewWeightSum > 0.0) {
-        layout.setAttribute(ANDROID_URI, ATTR_WEIGHT_SUM,
-                            formatFloatAttribute(mNewWeightSum));
-      }
-    }
-
-    protected void updateResizeState(final NlComponent component, NlComponent layout,
-                                     Rectangle oldBounds, Rectangle newBounds, SegmentType horizontalEdge,
-                                     SegmentType verticalEdge) {
-      // Update the resize state.
-      // This method attempts to compute a new layout weight to be used in the direction
-      // of the linear layout. If the superclass has already determined that we can snap to
-      // a wrap_content or match_parent boundary, we prefer that. Otherwise, we attempt to
-      // compute a layout weight - which can fail if the size is too big (not enough room),
-      // or if the size is too small (smaller than the natural width of the node), and so on.
-      // In that case this method just aborts, which will leave the resize state object
-      // in such a state that it will call the superclass to resize instead, which will fall
-      // back to device independent pixel sizing.
-      reset();
-
-      if (oldBounds.equals(newBounds)) {
-        return;
-      }
-
-      // If we're setting the width/height to wrap_content/match_parent in the dimension of the
-      // linear layout, then just apply wrap_content and clear weights.
-      boolean isVertical = isVertical(layout);
-      if (!isVertical && verticalEdge != null) {
-        if (wrapWidth || fillWidth) {
-          clearWeight(component);
-          return;
-        }
-        if (newBounds.width == oldBounds.width) {
-          return;
-        }
-      }
-
-      if (isVertical && horizontalEdge != null) {
-        if (wrapHeight || fillHeight) {
-          clearWeight(component);
-          return;
-        }
-        if (newBounds.height == oldBounds.height) {
-          return;
-        }
-      }
-
-      // Compute weight sum
-      float sum = getWeightSum(layout);
-      if (sum <= 0.0f) {
-        sum = 1.0f;
-        setWeightSum(sum);
-      }
-
-      // If the new size of the node is smaller than its preferred/wrap_content size,
-      // then we cannot use weights to size it; switch to pixel-based sizing instead
-      Map<NlComponent, Dimension> sizes = unweightedSizes;
-      Dimension nodePreferredSize = sizes != null ? sizes.get(component) : null;
-      if (nodePreferredSize != null) {
-        if (horizontalEdge != null && newBounds.height < nodePreferredSize.height ||
-            verticalEdge != null && newBounds.width < nodePreferredSize.width) {
-          return;
-        }
-      }
-
-      Rectangle layoutBounds = new Rectangle(layout.x, layout.y, layout.w, layout.h);
-      int remaining = (isVertical ? layoutBounds.height : layoutBounds.width) - totalLength;
-      Dimension nodeBounds = sizes != null ? sizes.get(component) : null;
-      if (nodeBounds == null) {
-        return;
-      }
-
-      if (remaining > 0) {
-        int missing = 0;
-        if (isVertical) {
-          if (newBounds.height > nodeBounds.height) {
-            missing = newBounds.height - nodeBounds.height;
-          }
-          else if (wrapBounds != null && newBounds.height > wrapBounds.height) {
-            // The weights concern how much space to ADD to the view.
-            // What if we have resized it to a size *smaller* than its current
-            // size without the weight delta? This can happen if you for example
-            // have set a hardcoded size, such as 500dp, and then size it to some
-            // smaller size.
-            missing = newBounds.height - wrapBounds.height;
-            remaining += nodeBounds.height - wrapBounds.height;
-            wrapHeight = true;
-          }
-        }
-        else {
-          if (newBounds.width > nodeBounds.width) {
-            missing = newBounds.width - nodeBounds.width;
-          }
-          else if (wrapBounds != null && newBounds.width > wrapBounds.width) {
-            missing = newBounds.width - wrapBounds.width;
-            remaining += nodeBounds.width - wrapBounds.width;
-            wrapWidth = true;
-          }
-        }
-        if (missing > 0) {
-          // (weight / weightSum) * remaining = missing, so
-          // weight = missing * weightSum / remaining
-          float weight = missing * sum / remaining;
-          setWeight(weight);
-        }
-      }
-    }
-
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Overridden in this layout in order to make resizing affect the layout_weight
-     * attribute instead of the layout_width (for horizontal LinearLayouts) or
-     * layout_height (for vertical LinearLayouts).
-     */
-    @Override
-    protected void setNewSizeBounds(@NotNull NlComponent component,
-                                    @NotNull NlComponent layout,
-                                    @NotNull Rectangle oldBounds,
-                                    @NotNull Rectangle newBounds,
-                                    @Nullable SegmentType horizontalEdge,
-                                    @Nullable SegmentType verticalEdge) {
-      updateResizeState(component, layout, oldBounds, newBounds, horizontalEdge, verticalEdge);
-
-      if (useWeight) {
-        apply();
-
-        // Handle resizing in the opposite dimension of the layout
-        final boolean isVertical = isVertical(layout);
-        if (!isVertical && horizontalEdge != null) {
-          if (newBounds.height != oldBounds.height || wrapHeight || fillHeight) {
-            component.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, getHeightAttribute());
-          }
-        }
-        if (isVertical && verticalEdge != null) {
-          if (newBounds.width != oldBounds.width || wrapWidth || fillWidth) {
-            component.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, getWidthAttribute());
-          }
-        }
-      }
-      else {
-        component.setAttribute(ANDROID_URI, ATTR_LAYOUT_WEIGHT, null);
-        super.setNewSizeBounds(component, layout, oldBounds, newBounds, horizontalEdge, verticalEdge);
-      }
-    }
-
-    @Override
-    protected String getResizeUpdateMessage(@NotNull NlComponent child,
-                                            @NotNull NlComponent parent,
-                                            @NotNull Rectangle newBounds,
-                                            @Nullable SegmentType horizontalEdge,
-                                            @Nullable SegmentType verticalEdge) {
-      updateResizeState(child, parent, newBounds, newBounds,
-                        horizontalEdge, verticalEdge);
-
-      if (useWeight) {
-        String weight = formatFloatAttribute(mWeight);
-        String dimension = String.format("weight %1$s", weight);
-
-        String width;
-        String height;
-        if (isVertical(parent)) {
-          width = getWidthAttribute();
-          height = dimension;
-        }
-        else {
-          width = dimension;
-          height = getHeightAttribute();
-        }
-
-        if (horizontalEdge == null) {
-          return width;
-        }
-        else if (verticalEdge == null) {
-          return height;
-        }
-        else {
-          // U+00D7: Unicode for multiplication sign
-          return String.format("%s \u00D7 %s", width, height);
-        }
-      }
-      else {
-        return super.getResizeUpdateMessage(child, parent, newBounds,
-                                            horizontalEdge, verticalEdge);
-      }
-    }
-  }
-
   /**
    * Returns the layout weight of of the given child of a LinearLayout, or 0.0 if it
    * does not define a weight
    */
-  private static float getWeight(@NotNull NlComponent linearLayoutChild) {
+  static float getWeight(@NotNull NlComponent linearLayoutChild) {
     String weight = linearLayoutChild.getAttribute(ANDROID_URI, ATTR_LAYOUT_WEIGHT);
     if (weight != null && weight.length() > 0) {
       try {
@@ -863,7 +200,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    * @param linearLayout the layout to compute the total sum for
    * @return the total sum of all the layout weights in the given layout
    */
-  private static float getWeightSum(@NotNull NlComponent linearLayout) {
+  static float getWeightSum(@NotNull NlComponent linearLayout) {
     String weightSum = linearLayout.getAttribute(ANDROID_URI, ATTR_WEIGHT_SUM);
     float sum;
     if (weightSum != null) {
@@ -955,12 +292,14 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     addToolbarActionsToMenu("LinearLayout", actions);
   }
 
-  private class ToggleOrientationAction extends DirectViewAction {
+  private static class ToggleOrientationAction extends DirectViewAction {
     @Override
     public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      boolean isHorizontal = !isVertical(component);
+      assert handler instanceof LinearLayoutHandler;
+      LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
+      boolean isHorizontal = !linearLayoutHandler.isVertical(component);
       String value = isHorizontal ? VALUE_VERTICAL : null; // null: horizontal is the default
       component.setAttribute(ANDROID_URI, ATTR_ORIENTATION, value);
     }
@@ -972,7 +311,9 @@ public class LinearLayoutHandler extends ViewGroupHandler {
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers) {
-      boolean vertical = isVertical(component);
+      assert handler instanceof LinearLayoutHandler;
+      LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
+      boolean vertical = linearLayoutHandler.isVertical(component);
 
       presentation.setLabel("Convert orientation to " + (!vertical ? VALUE_VERTICAL : VALUE_HORIZONTAL));
       Icon icon = vertical ? AndroidDesignerIcons.SwitchVerticalLinear : AndroidDesignerIcons.SwitchHorizontalLinear;
@@ -980,7 +321,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     }
   }
 
-  private class DistributeWeightsAction extends DirectViewAction {
+  private static class DistributeWeightsAction extends DirectViewAction {
     public DistributeWeightsAction() {
       super(AndroidDesignerIcons.DistributeWeights, "Distribute Weights Evenly");
     }
@@ -999,11 +340,14 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren, @InputEventMask int modifiers) {
 
-      distributeWeights(component, selectedChildren);
+
+      assert handler instanceof LinearLayoutHandler;
+      LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
+      linearLayoutHandler.distributeWeights(component, selectedChildren);
     }
   }
 
-  private class DominateWeightsAction extends DirectViewAction {
+  private static class DominateWeightsAction extends DirectViewAction {
     public DominateWeightsAction() {
       super(AndroidDesignerIcons.DominateWeight, "Assign All Weight");
     }
@@ -1011,7 +355,10 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     @Override
     public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren, @InputEventMask int modifiers) {
-      distributeWeights(component, selectedChildren);
+
+      assert handler instanceof LinearLayoutHandler;
+      LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
+      linearLayoutHandler.distributeWeights(component, selectedChildren);
     }
 
     @Override
@@ -1025,7 +372,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     }
   }
 
-  private class ClearWeightsAction extends DirectViewAction {
+  private static class ClearWeightsAction extends DirectViewAction {
     public ClearWeightsAction() {
       super(AndroidDesignerIcons.ClearWeights, "Clear All Weights");
     }
@@ -1033,7 +380,10 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     @Override
     public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren, @InputEventMask int modifiers) {
-      clearWeights(component, selectedChildren);
+
+      assert handler instanceof LinearLayoutHandler;
+      LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
+      linearLayoutHandler.clearWeights(component, selectedChildren);
     }
 
 
@@ -1045,33 +395,6 @@ public class LinearLayoutHandler extends ViewGroupHandler {
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers) {
       presentation.setVisible(!selectedChildren.isEmpty());
-    }
-  }
-
-  private static class BaselineAction extends DirectViewAction {
-    @Override
-    public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren, @InputEventMask int modifiers) {
-      boolean align = !isBaselineAligned(component);
-      component.setAttribute(ANDROID_URI, ATTR_BASELINE_ALIGNED, align ? null : VALUE_FALSE);
-    }
-
-
-    @Override
-    public void updatePresentation(@NotNull ViewActionPresentation presentation,
-                                   @NotNull ViewEditor editor,
-                                   @NotNull ViewHandler handler,
-                                   @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers) {
-      boolean align = !isBaselineAligned(component);
-      presentation.setIcon(align ? AndroidDesignerIcons.Baseline : AndroidDesignerIcons.NoBaseline);
-      presentation.setLabel(align ? "Align with the baseline" : "Do not align with the baseline");
-    }
-
-    private static boolean isBaselineAligned(NlComponent component) {
-      String value = component.getAttribute(ANDROID_URI, ATTR_BASELINE_ALIGNED);
-      return value == null ? true : Boolean.valueOf(value);
     }
   }
 
@@ -1080,7 +403,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   @Nullable
   @Override
   public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent layout) {
-    return new SceneInteraction(screenView);
+    return null;
   }
 
   /**
@@ -1104,10 +427,28 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   @Override
   public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView,
                            @NotNull NlComponent component) {
-    // do nothing here, subclasses need to override this and handlesPainting() to be called
+    NlComponent prev = null;
+    boolean vertical = isVertical(component);
+    AffineTransform tx = gc.getTransform();
+    Coordinates.transformGraphics(screenView, gc);
+    for (NlComponent child : component.getChildren()) {
+      if (prev != null) {
+        if (vertical) {
+          int middle = (prev.y + prev.h + child.y) / 2;
+          NlGraphics.drawLine(NlDrawingStyle.GUIDELINE_DASHED, gc, component.x, middle,
+                              component.x + component.w, middle);
+        }
+        else {
+          int middle = (prev.x + prev.w + child.x) / 2;
+          NlGraphics.drawLine(NlDrawingStyle.GUIDELINE_DASHED, gc, middle, component.y, middle,
+                              component.y + component.h);
+        }
+      }
+      prev = child;
+    }
+    gc.setTransform(tx);
     return false;
   }
-
 
   /**
    * Give a chance to the ViewGroup to add targets to the {@linkplain SceneComponent}
@@ -1118,15 +459,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   @Override
   @NotNull
   public List<Target> createTargets(@NotNull SceneComponent component, boolean isParent) {
-    if(isParent) {
-
-    }
-    return ImmutableList.of(
-      new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
-      new AbsoluteResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM),
-      new AbsoluteResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
-      new AbsoluteResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM)
-    );
+    return super.createTargets(component, isParent);
   }
 
   /**
