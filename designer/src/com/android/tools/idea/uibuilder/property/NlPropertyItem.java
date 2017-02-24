@@ -31,7 +31,9 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.xml.XmlName;
@@ -146,11 +148,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   public void setStarState(@NotNull StarState starState) {
     myStarState = starState;
     NlProperties.saveStarState(myNamespace, myName, starState == StarState.STARRED);
-    updateAllProperties();
-  }
-
-  private void updateAllProperties() {
-    getModel().getSelectionModel().updateListeners();
+    myPropertiesManager.starStateChanged();
   }
 
   @Override
@@ -230,9 +228,13 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     }
   }
 
+  public static boolean isReference(@Nullable String value) {
+    return value != null && (value.startsWith("?") || value.startsWith("@") && !isId(value));
+  }
+
   @NotNull
   private String resolveValueUsingResolver(@NotNull String value) {
-    if (value.startsWith("?") || value.startsWith("@") && !isId(value)) {
+    if (isReference(value)) {
       ResourceResolver resolver = getResolver();
       if (resolver != null) {
         ResourceValue resource = resolver.findResValue(value, false);
@@ -327,38 +329,37 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
 
   @Override
   public void setValue(@Nullable Object value) {
+    String strValue = value == null ? null : value.toString();
+    if (StringUtil.isEmpty(strValue) || isDefaultValue(strValue)) {
+      strValue = null;
+    }
+    setValueIgnoreDefaultValue(strValue, null);
+  }
+
+  protected void setValueIgnoreDefaultValue(@Nullable String attrValue, @Nullable Runnable valueUpdated) {
     // TODO: Consider making getApplication() a field to avoid statics
     assert ApplicationManager.getApplication().isDispatchThread();
     if (getModel().getProject().isDisposed()) {
       return;
     }
-    String strValue = value == null ? null : value.toString();
-    if (StringUtil.isEmpty(strValue) || isDefaultValue(strValue)) {
-      strValue = null;
-    }
-    final String attrValue = strValue;
+    String oldValue = getValue();
     NlComponent first = myComponents.get(0);
     String componentName = myComponents.size() == 1 ? first.getTagName() : "Multiple";
     String msg = String.format("Set %1$s.%2$s to %3$s", componentName, myName, attrValue);
-    new WriteCommandAction.Simple(getModel().getProject(), msg, getModel().getFile()) {
+    Project project = getModel().getProject();
+    TransactionGuard.submitTransaction(project, () -> new WriteCommandAction.Simple(project, msg, getModel().getFile()) {
       @Override
       protected void run() throws Throwable {
         for (NlComponent component : myComponents) {
-          String v = StringUtil.isEmpty(attrValue) ? null : attrValue;
-          component.setAttribute(myNamespace, myName, v);
-          TemplateUtils.reformatAndRearrange(getProject(), component.getTag());
+          component.setAttribute(myNamespace, myName, attrValue);
+          TemplateUtils.reformatAndRearrange(project, component.getTag());
+        }
+        myPropertiesManager.propertyChanged(NlPropertyItem.this, oldValue, attrValue);
+        if (valueUpdated != null) {
+          valueUpdated.run();
         }
       }
-    }.execute();
-
-    if (SdkConstants.VIEW_MERGE.equals(componentName) &&
-        SdkConstants.TOOLS_URI.equals(getNamespace()) &&
-        SdkConstants.ATTR_PARENT_TAG.equals(getName())) {
-      // Special case: When the tools:parentTag is updated on a <merge> tag, the set of attributes for
-      // the <merge> tag may change e.g. if the value is set to "LinearLayout" the <merge> tag will
-      // then have all attributes from a <LinearLayout>. Force an update of all properties:
-      updateAllProperties();
-    }
+    }.execute());
   }
 
   @NotNull
@@ -379,7 +380,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   }
 
   @Override
-  public boolean isEditable(int col) {
+  public boolean isEditable(int column) {
     return true;
   }
 
