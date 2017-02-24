@@ -252,6 +252,10 @@ public class RenderTask implements IImageFactory {
     return myShowDecorations;
   }
 
+  public boolean isDisposed() {
+    return isDisposed.get();
+  }
+
   /**
    * Disposes the RenderTask and releases the allocated resources. The execution of the dispose operation will run asynchronously.
    * The returned {@link Future} can be used to wait for the dispose operation to complete.
