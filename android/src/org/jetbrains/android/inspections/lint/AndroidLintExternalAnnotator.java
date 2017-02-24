@@ -11,6 +11,7 @@ import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.Scope;
 import com.android.utils.SdkUtils;
+import com.google.common.collect.Sets;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.DaemonBundle;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
@@ -35,7 +36,10 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.*;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Iconable;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiElement;
@@ -53,10 +57,10 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.GroovyFileType;
 
 import javax.swing.*;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.lint.detector.api.TextFormat.HTML;
@@ -119,8 +123,8 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       return null;
     }
 
-    final List<Issue> issues = getIssuesFromInspections(file.getProject(), file);
-    if (issues.size() == 0) {
+    final Set<Issue> issues = getIssuesFromInspections(file.getProject(), file);
+    if (issues.isEmpty()) {
       return null;
     }
     return new State(module, vFile, file.getText(), issues);
@@ -175,16 +179,13 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
   }
 
   @NotNull
-  static List<Issue> getIssuesFromInspections(@NotNull Project project, @Nullable PsiElement context) {
-    final List<Issue> result = new ArrayList<>();
+  static Set<Issue> getIssuesFromInspections(@NotNull Project project, @Nullable PsiElement context) {
     final IssueRegistry fullRegistry = new LintIdeIssueRegistry();
 
-    for (Issue issue : fullRegistry.getIssues()) {
+    final List<Issue> issueList = fullRegistry.getIssues();
+    final Set<Issue> result = Sets.newHashSetWithExpectedSize(issueList.size() + 10);
+    for (Issue issue : issueList) {
       final String inspectionShortName = AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue);
-      if (inspectionShortName == null) {
-        continue;
-      }
-
       final HighlightDisplayKey key = HighlightDisplayKey.find(inspectionShortName);
       if (key == null) {
         continue;
@@ -226,7 +227,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       }
 
       final Pair<AndroidLintInspectionBase, HighlightDisplayLevel> pair =
-        AndroidLintUtil.getHighlighLevelAndInspection(project, issue, file);
+        AndroidLintUtil.getHighlightLevelAndInspection(project, issue, file);
       if (pair == null) {
         continue;
       }
@@ -261,14 +262,6 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
             }
 
             String id = key.getID();
-            if (LintIdeIssueRegistry.CUSTOM_ERROR == issue
-                || LintIdeIssueRegistry.CUSTOM_WARNING == issue) {
-              Issue original = LintIdeClient.findCustomIssue(message);
-              if (original != null) {
-                id = original.getId();
-              }
-            }
-
             annotation.registerFix(new SuppressLintIntentionAction(id, startElement));
             annotation.registerFix(new MyDisableInspectionFix(key));
             annotation.registerFix(new MyEditInspectionToolsSettingsAction(key, inspection));

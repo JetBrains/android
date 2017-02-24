@@ -20,6 +20,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
+import org.jetbrains.android.AndroidLintTest;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.AndroidTestUtils;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
@@ -227,7 +228,7 @@ public class LintIdeApiDetectorTest extends AndroidTestCase {
     if (createManifest) {
       createManifest();
     }
-    myFixture.enableInspections(inspection);
+    AndroidLintTest.enableExactlyOneInspection(myFixture, inspection);
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", "src/p1/p2/Class.java");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);
