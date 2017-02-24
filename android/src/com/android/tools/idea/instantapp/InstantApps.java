@@ -18,6 +18,7 @@ package com.android.tools.idea.instantapp;
 import com.android.builder.model.AndroidAtom;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.run.editor.InstallOption;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.module.Module;
@@ -27,8 +28,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+
 import static com.android.SdkConstants.GRADLE_PLUGIN_AIA_VERSION;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 public class InstantApps {
@@ -67,8 +72,29 @@ public class InstantApps {
     return defaultUrl;
   }
 
+  @Nullable
   public static String getAiaSdkLocation() {
     return AIA_SDK_LOCATION;
+  }
+
+  @NotNull
+  public static File getInstantAppSdk() throws Exception {
+    String path = getAiaSdkLocation();
+    if (path == null) {
+      throw new Exception("Environment variable " + AIA_SDK_ENV_VAR + " not defined");
+    }
+
+    File instantAppSdkFile = new File(path);
+    if (! instantAppSdkFile.exists() || ! instantAppSdkFile.isDirectory()) {
+      throw new FileNotFoundException("Directory " + instantAppSdkFile.getAbsolutePath() + "defined in environment variable " + AIA_SDK_ENV_VAR + " does not exist");
+    }
+
+    return instantAppSdkFile;
+  }
+
+  public static boolean isInstantAppApplicationModule(@NotNull Module module) {
+    AndroidModuleModel model = AndroidModuleModel.get(module);
+    return model != null && model.getProjectType() == PROJECT_TYPE_INSTANTAPP;
   }
 
   // Can't directly set environment variables in Java so need this for testing.
