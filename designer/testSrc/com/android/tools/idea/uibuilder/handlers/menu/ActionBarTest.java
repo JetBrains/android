@@ -32,7 +32,7 @@ public final class ActionBarTest extends LayoutTestCase {
     SceneComponent menu = new SyncLayoutlibSceneManager(model, screen.getScreen()).build().getRoot();
     SceneComponent item = menu.getChildren().get(0);
     item.setPosition(0, 0);
-    item.setSize(-1, -1);
+    item.setSize(-1, -1, false);
 
     ActionBar actionBar = new ActionBar(menu);
 

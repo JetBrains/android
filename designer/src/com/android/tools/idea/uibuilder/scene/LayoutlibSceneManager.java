@@ -73,11 +73,11 @@ public class LayoutlibSceneManager extends SceneManager {
     List<NlComponent> components = model.getComponents();
     if (components.size() != 0) {
       NlComponent rootComponent = components.get(0).getRoot();
-      scene.setAnimate(false);
+      scene.setAnimated(false);
       SceneComponent root = updateFromComponent(rootComponent, new HashSet<>());
       scene.setRoot(root);
       addTargets(root);
-      scene.setAnimate(true);
+      scene.setAnimated(true);
     }
     model.addListener(new ModelChangeListener());
     // let's make sure the selection is correct
@@ -157,20 +157,20 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   private void updateFromComponent(@NotNull NlComponent component, SceneComponent sceneComponent) {
-    if (getScene().getAnimate()) {
+    if (getScene().isAnimated()) {
       long time = System.currentTimeMillis();
       sceneComponent.setPositionTarget(Coordinates.pxToDp(component.getModel(), component.x),
                                        Coordinates.pxToDp(component.getModel(), component.y),
-                                       time);
+                                       time, true);
       sceneComponent.setSizeTarget(Coordinates.pxToDp(component.getModel(), component.w),
                                    Coordinates.pxToDp(component.getModel(), component.h),
-                                   time);
+                                   time, true);
     }
     else {
       sceneComponent.setPosition(Coordinates.pxToDp(component.getModel(), component.x),
-                                 Coordinates.pxToDp(component.getModel(), component.y));
+                                 Coordinates.pxToDp(component.getModel(), component.y), true);
       sceneComponent.setSize(Coordinates.pxToDp(component.getModel(), component.w),
-                             Coordinates.pxToDp(component.getModel(), component.h));
+                             Coordinates.pxToDp(component.getModel(), component.h), true);
     }
   }
 
@@ -217,11 +217,11 @@ public class LayoutlibSceneManager extends SceneManager {
 
     @Override
     public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
-      boolean previous = getScene().getAnimate();
+      boolean previous = getScene().isAnimated();
       UIUtil.invokeLaterIfNeeded(() -> {
-        getScene().setAnimate(animate);
+        getScene().setAnimated(animate);
         update();
-        getScene().setAnimate(previous);
+        getScene().setAnimated(previous);
       });
     }
 

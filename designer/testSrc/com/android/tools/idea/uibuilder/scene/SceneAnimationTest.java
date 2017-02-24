@@ -65,7 +65,7 @@ public class SceneAnimationTest extends SceneTest {
     long currentTime = System.currentTimeMillis();
     assertEquals(100, component.getDrawX(currentTime));
     component.getNlComponent().x = 1800;
-    myScene.setAnimate(true);
+    myScene.setAnimated(true);
     mySceneManager.update();
     long time = currentTime + 500;
     try {

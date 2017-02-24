@@ -27,10 +27,10 @@ public abstract class TemporarySceneComponent extends SceneComponent {
   public TemporarySceneComponent(@NotNull Scene scene, @NotNull NlComponent component) {
     super(scene, component);
     addTarget(new DragDndTarget());
-    scene.setAnimate(false);
+    scene.setAnimated(false);
     scene.getRoot().addChild(this);
     init();
-    scene.setAnimate(true);
+    scene.setAnimated(true);
   }
 
   abstract void init();
