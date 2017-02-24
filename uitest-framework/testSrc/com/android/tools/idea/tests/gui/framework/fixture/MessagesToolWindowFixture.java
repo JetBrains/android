@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.intellij.ide.errorTreeView.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.notification.EditableNotificationMessageElement;
 import com.intellij.openapi.externalSystem.service.notification.NotificationMessageElement;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -28,7 +29,6 @@ import com.intellij.pom.Navigatable;
 import com.intellij.ui.content.Content;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
-import org.fest.swing.edt.GuiTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -298,11 +298,10 @@ public class MessagesToolWindowFixture extends ToolWindowFixture {
 
     private void click(boolean synchronous) {
       if (synchronous) {
-        GuiTask.execute(() -> HyperlinkFixture.this.doClick());
+        ApplicationManager.getApplication().invokeAndWait(this::doClick);
       }
       else {
-        //noinspection SSBasedInspection
-        SwingUtilities.invokeLater(this::doClick);
+        ApplicationManager.getApplication().invokeLater(this::doClick);
       }
     }
 
