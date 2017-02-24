@@ -15,84 +15,56 @@
  */
 package com.android.tools.idea.uibuilder.handlers.absolute;
 
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
+import com.android.tools.idea.uibuilder.scene.target.ResizeWithSnapBaseTarget;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;
 
-public class AbsoluteResizeTarget extends ResizeBaseTarget {
+public class AbsoluteResizeTarget extends ResizeWithSnapBaseTarget {
 
   public AbsoluteResizeTarget(@NotNull Type type) {
     super(type);
   }
 
-  private static void updateXPos(@NotNull AttributesTransaction attributes, int x) {
+  private static void updateXPos(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int x) {
     attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_X, String.format(VALUE_N_DP, Math.max(x, 0)));
   }
 
-  private static void updateYPos(@NotNull AttributesTransaction attributes, int y) {
+  private static void updateYPos(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int y) {
     attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_Y, String.format(VALUE_N_DP, Math.max(y, 0)));
   }
 
-  private static void updateWidth(@NotNull AttributesTransaction attributes, int width) {
-    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, String.format(VALUE_N_DP, Math.max(width, 1)));
+  private static void updateWidth(@NotNull AttributesTransaction attributes, @NotNull String width) {
+    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, width);
   }
 
-  private static void updateHeight(@NotNull AttributesTransaction attributes, int height) {
-    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, String.format(VALUE_N_DP, Math.max(height, 1)));
-  }
-
-  private void updateLeftEdge(@NotNull AttributesTransaction attributes, int x) {
-    updateXPos(attributes, Math.min(x, myStartX2) - myComponent.getParent().getDrawX());
-    updateWidth(attributes, Math.abs(myStartX2 - x));
-  }
-
-  private void updateRightEdge(@NotNull AttributesTransaction attributes, int x) {
-    updateXPos(attributes, Math.min(x, myStartX1) - myComponent.getParent().getDrawX());
-    updateWidth(attributes, Math.abs(myStartX1 - x));
-  }
-
-  private void updateTopEdge(@NotNull AttributesTransaction attributes, int y) {
-    updateYPos(attributes, Math.min(y, myStartY2) - myComponent.getParent().getDrawY());
-    updateHeight(attributes, Math.abs(myStartY2 - y));
-  }
-
-  private void updateBottomEdge(@NotNull AttributesTransaction attributes, int y) {
-    updateYPos(attributes, Math.min(y, myStartY1) - myComponent.getParent().getDrawY());
-    updateHeight(attributes, Math.abs(myStartY1 - y));
+  private static void updateHeight(@NotNull AttributesTransaction attributes, @NotNull String height) {
+    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, height);
   }
 
   @Override
-  protected void updateAttributes(@NotNull AttributesTransaction attributes, int x, int y) {
+  protected void updateAttributes(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     switch (myType) {
       case LEFT:
-        updateLeftEdge(attributes, x);
+      case RIGHT:
+        updateXPos(attributes, getNewXPos(x));
+        updateWidth(attributes, getNewWidth(x));
         break;
       case TOP:
-        updateTopEdge(attributes, y);
-        break;
-      case RIGHT:
-        updateRightEdge(attributes, x);
-        break;
       case BOTTOM:
-        updateBottomEdge(attributes, y);
+        updateYPos(attributes, getNewYPos(y));
+        updateHeight(attributes, getNewHeight(y));
         break;
       case LEFT_TOP:
-        updateLeftEdge(attributes, x);
-        updateTopEdge(attributes, y);
-        break;
       case LEFT_BOTTOM:
-        updateLeftEdge(attributes, x);
-        updateBottomEdge(attributes, y);
-        break;
       case RIGHT_TOP:
-        updateRightEdge(attributes, x);
-        updateTopEdge(attributes, y);
-        break;
       case RIGHT_BOTTOM:
-        updateRightEdge(attributes, x);
-        updateBottomEdge(attributes, y);
+        updateXPos(attributes, getNewXPos(x));
+        updateYPos(attributes, getNewYPos(y));
+        updateWidth(attributes, getNewWidth(x));
+        updateHeight(attributes, getNewHeight(y));
         break;
     }
   }
