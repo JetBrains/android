@@ -152,12 +152,6 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
     return myFlags.getTagName();
   }
 
-  @NotNull
-  @Override
-  public TableCellRenderer getCellRenderer() {
-    return NlPropertyRenderers.getFlagItemRenderer();
-  }
-
   @Override
   public boolean isEditable(int col) {
     return true;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.property.ptable.renderers;
+package com.android.tools.idea.uibuilder.property.renderer;
 
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.idea.uibuilder.property.ptable.PNameRenderer;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.ptable.StarState;
@@ -30,20 +32,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 
 import static com.android.SdkConstants.TOOLS_URI;
 import static icons.AndroidIcons.NeleIcons.DesignProperty;
 
-public class PNameRenderer implements TableCellRenderer {
+public class NlTableNameRenderer implements PNameRenderer {
   private static final int BEFORE_STAR_SPACING = 2;
   private static final int STAR_SIZE = 16;
   private final JPanel myPanel;
   private final JLabel myStarLabel;
   private final ColoredTableCellRenderer myRenderer;
 
-  public PNameRenderer() {
+  public NlTableNameRenderer() {
     myPanel = new JPanel(new BorderLayout());
     myStarLabel = new JBLabel();
     myRenderer = new Renderer();
@@ -54,14 +55,16 @@ public class PNameRenderer implements TableCellRenderer {
   }
 
   @Override
-  public Component getTableCellRendererComponent(@NotNull JTable table, @NotNull Object value, boolean isSelected, boolean cellHasFocus, int row, int column) {
+  public Component getTableCellRendererComponent(@NotNull JTable table, @NotNull Object value, boolean isSelected, boolean cellHasFocus,
+                                                 int row, int column) {
     myRenderer.clear();
     PTable ptable = (PTable)table;
     PTableItem item = (PTableItem)value;
 
     myRenderer.getTableCellRendererComponent(table, value, isSelected, cellHasFocus, row, column);
     myRenderer.setBackground(isSelected ? UIUtil.getTableSelectionBackground() : table.getBackground());
-    boolean hoveringOnStar = ptable.isHover(row, column) && hitTestStarIcon(ptable.getHoverPosition().x);
+    Point hoverPos = ptable.getHoverPosition();
+    boolean hoveringOnStar = ptable.isHover(row, column) && hitTestStarIcon(hoverPos.x, hoverPos.y);
     myStarLabel.setIcon(getStar(item.getStarState(), isSelected, hoveringOnStar));
     myPanel.setBackground(isSelected ? UIUtil.getTableSelectionBackground() : table.getBackground());
 
@@ -129,11 +132,13 @@ public class PNameRenderer implements TableCellRenderer {
     }
   }
 
-  public static boolean hitTestStarIcon(int x) {
+  @Override
+  public boolean hitTestStarIcon(@SwingCoordinate int x, @SwingCoordinate int y) {
     return x >= BEFORE_STAR_SPACING && x < STAR_SIZE + BEFORE_STAR_SPACING;
   }
 
-  public static boolean hitTestTreeNodeIcon(@NotNull PTableItem item, int x) {
+  @Override
+  public boolean hitTestTreeNodeIcon(@NotNull PTableItem item, @SwingCoordinate int x, @SwingCoordinate int y) {
     Icon icon = UIUtil.getTreeNodeIcon(item.isExpanded(), true, true);
     int beforeIcon = BEFORE_STAR_SPACING + STAR_SIZE + getBeforeIconSpacing(getDepth(item), icon.getIconWidth());
     return x >= beforeIcon && x <= beforeIcon + icon.getIconWidth();
