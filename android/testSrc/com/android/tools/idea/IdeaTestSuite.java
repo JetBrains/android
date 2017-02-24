@@ -56,18 +56,25 @@ import java.nio.file.Paths;
   com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationTypeTest.class,
 
   // Failing in gradle-feature branch
+  // http://b/35788105
   com.android.tools.idea.gradle.plugin.AndroidPluginInfoTest.class,
   com.android.tools.idea.gradle.project.model.AndroidModuleModelTest.class,
+  com.android.tools.idea.model.AndroidModuleInfoTest.class,
+  com.android.tools.idea.gradle.project.sync.DependencySetupTest.class,
+
+  // http://b/35788260
   com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandlerTest.class,
+
+  // http://b/35788310
   com.android.tools.idea.instantapp.InstantAppSupportTest.class,
   com.android.tools.idea.instantapp.MultiAtomSupportTest.class,
-  com.android.tools.idea.model.AndroidModuleInfoTest.class,
   com.android.tools.idea.npw.importing.ArchiveToGradleModuleModelTest.class,
   com.android.tools.idea.npw.importing.ArchiveToGradleModuleStepTest.class,
   com.android.tools.idea.npw.project.AndroidGradleModuleUtilsTest.class,
-  com.android.tools.idea.gradle.project.sync.DependencySetupTest.class,
   com.android.tools.idea.instantapp.InstantAppsTest.class,
   com.android.tools.idea.npw.importing.SourceToGradleModuleStepTest.class,
+
+  // http://b/35787983
   com.android.tools.idea.testartifacts.AndroidTestAndJUnitConfigurationConflictsTest.class,
   com.android.tools.idea.testartifacts.instrumented.AndroidTestRunnerTest.class,
 })

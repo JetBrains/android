@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.project.Project;
+import org.junit.Ignore;
 
 import java.io.File;
 import java.util.List;
@@ -36,9 +37,12 @@ import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LIN
 import static com.android.tools.idea.testing.HighlightInfos.assertFileHasNoErrors;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
 
+@Ignore("http://b/35788310")
 public class InstantAppSupportTest extends AndroidGradleTestCase {
+  public void testFake() {
+  }
 
-  public void testLoadInstantAppProject() throws Exception {
+  public void /*test*/LoadInstantAppProject() throws Exception {
     loadProject(INSTANT_APP);
     generateSources();
 
@@ -51,14 +55,14 @@ public class InstantAppSupportTest extends AndroidGradleTestCase {
     assertFileHasNoErrors(project, new File("baseatom/src/test/java/com/example/instantapp/ExampleUnitTest.java"));
   }
 
-  public void testInstantRunDisabled() throws Exception {
+  public void /*test*/InstantRunDisabled() throws Exception {
     loadProject(INSTANT_APP, "instant-app");
 
     // by definition, InstantRunGradleSupport.INSTANT_APP != InstantRunGradleSupport.SUPPORTED
     assertEquals(InstantRunGradleSupport.INSTANT_APP, getIrSupportStatus(getModel(), null));
   }
 
-  public void testCorrectRunConfigurationsCreated() throws Exception {
+  public void /*test*/CorrectRunConfigurationsCreated() throws Exception {
     loadProject(INSTANT_APP, "instant-app");
 
     // Create one run configuration

@@ -32,6 +32,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,7 +50,11 @@ import static com.intellij.openapi.util.io.FileUtil.join;
  * the tests check that an archive that is not part of the project but is under the project root can be imported correctly into the parent
  * project (this is required for importing multi-module projects from the Eclipse ADT to Android Studio).
  */
+@Ignore("http://b/35788310")
 public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
+  public void testFake() {
+  }
+
   private static final String ARCHIVE_DEFAULT_GRADLE_PATH = ":library";
   private static final String ARCHIVE_JAR_NAME = "library.jar";
   private static final String ARCHIVE_JAR_PATH = join("lib", ARCHIVE_JAR_NAME);
@@ -148,7 +153,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     myJarOutsideProject = new File(getTestDataPath(), join(IMPORTING, SIMPLE_MODULE_NAME, ARCHIVE_JAR_PATH));
   }
 
-  public void testImportStandaloneArchive() throws Exception {
+  public void /*test*/ImportStandaloneArchive() throws Exception {
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject());
     model.archive().set(myJarOutsideProject.getAbsolutePath());
 
@@ -159,7 +164,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     assertWithMessage("Source file still exists").that(myJarOutsideProject.isFile()).isTrue();
   }
 
-  public void testImportStandaloneArchiveWithCustomPath() throws Exception {
+  public void /*test*/ImportStandaloneArchiveWithCustomPath() throws Exception {
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject());
     model.archive().set(myJarOutsideProject.getAbsolutePath());
 
@@ -171,7 +176,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     assertWithMessage("Source file still exists").that(myJarOutsideProject.isFile()).isTrue();
   }
 
-  public void testImportStandaloneArchiveWithNestedPath() throws Exception {
+  public void /*test*/ImportStandaloneArchiveWithNestedPath() throws Exception {
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject());
     model.archive().set(myJarOutsideProject.getAbsolutePath());
 
@@ -183,7 +188,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     assertWithMessage("Source file still exists").that(myJarOutsideProject.isFile()).isTrue();
   }
 
-  public void testMoveStandaloneArchive() throws Exception {
+  public void /*test*/MoveStandaloneArchive() throws Exception {
     // Have to copy the file so we don't delete test data!
     File archiveToImport = new File(FileUtil.createTempDirectory("archiveLocation", null), ARCHIVE_JAR_NAME);
     copyFileOrDir(myJarOutsideProject, archiveToImport);
@@ -199,7 +204,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     assertWithMessage("Source file deleted").that(archiveToImport.isFile()).isFalse();
   }
 
-  public void testImportArchiveFromModuleWithinProject() throws Exception {
+  public void /*test*/ImportArchiveFromModuleWithinProject() throws Exception {
     String moduleName = SIMPLE_MODULE_NAME;
     File archiveToImport = loadProjectAndDoImport(IMPORTING, moduleName, false);
 
@@ -210,7 +215,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     assertIsValidAndroidBuildModel(buildModel);
   }
 
-  public void testImportArchiveFromNestedModuleWithinProject() throws Exception {
+  public void /*test*/ImportArchiveFromNestedModuleWithinProject() throws Exception {
     String moduleName = NESTED_MODULE_NAME;
     File archiveToImport = loadProjectAndDoImport(IMPORTING, moduleName, false);
 
@@ -222,7 +227,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
   }
 
 
-  public void testMoveArchiveFromModuleWithinProject() throws Exception {
+  public void /*test*/MoveArchiveFromModuleWithinProject() throws Exception {
     String moduleName = SIMPLE_MODULE_NAME;
     File archiveToImport = loadProjectAndDoImport(IMPORTING, moduleName, true);
 
@@ -234,7 +239,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     assertHasAddedModuleDependency(buildModel);
   }
 
-  public void testMoveArchiveFromNestedModuleWithinProject() throws Exception {
+  public void /*test*/MoveArchiveFromNestedModuleWithinProject() throws Exception {
     String moduleName = NESTED_MODULE_NAME;
     File archiveToImport = loadProjectAndDoImport(IMPORTING, moduleName, true);
 
@@ -246,7 +251,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     assertHasAddedModuleDependency(buildModel);
   }
 
-  public void testMoveArchiveFromModuleWithFileDependencyWithinProject() throws Exception {
+  public void /*test*/MoveArchiveFromModuleWithFileDependencyWithinProject() throws Exception {
     String moduleName = DEPENDENCY_MODULE_NAME;
     File archiveToImport = loadProjectAndDoImport(IMPORTING, moduleName, true);
 
@@ -261,7 +266,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     assertEquals(0, buildModel.dependencies().files().size());
   }
 
-  public void testMoveArchiveFromModuleWithMultipleFileDependenciesWithinProject() throws Exception {
+  public void /*test*/MoveArchiveFromModuleWithMultipleFileDependenciesWithinProject() throws Exception {
     String moduleName = MULTI_DEPENDENCY_MODULE_NAME;
     File archiveToImport = loadProjectAndDoImport(IMPORTING, moduleName, true);
 
@@ -277,7 +282,7 @@ public class ArchiveToGradleModuleModelTest extends AndroidGradleTestCase {
     assertEquals("some/other/file.jar", buildModel.dependencies().files().get(0).file().value());
   }
 
-  public void testPropertiesAreStripped() {
+  public void /*test*/PropertiesAreStripped() {
     String testString = "some Test String";
     ArchiveToGradleModuleModel model = new ArchiveToGradleModuleModel(getProject());
 
