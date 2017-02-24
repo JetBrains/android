@@ -18,8 +18,10 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,6 +29,7 @@ import org.junit.Test;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -35,19 +38,28 @@ public class NetworkProfilerStageViewTest {
   private FakeUi myFakeUi;
   private StudioProfilersView myView;
 
-  private final FakeNetworkService myService = FakeNetworkService.newBuilder().build();
+  private final FakeProfilerService myProfilerService = new FakeProfilerService(true);
+  private final FakeNetworkService myNetworkService = FakeNetworkService.newBuilder().build();
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("NetworkProfilerStageViewTestChannel", myService);
+  public FakeGrpcChannel myGrpcChannel =
+    new FakeGrpcChannel("NetworkProfilerStageViewTestChannel", myProfilerService, myNetworkService);
+
+  private FakeTimer myTimer;
 
   @Before
   public void setUp() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
-    myView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
-    JPanel viewComponent = myView.getComponent();
-    NetworkProfilerStage stage = new NetworkProfilerStage(profilers);
-    profilers.setStage(stage);
+    myTimer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
+    myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.ATTACHED);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(1));
 
+    // StudioProfilersView initialization needs to happen after the tick, as during setDevice/setProcess the StudioMonitorStage is
+    // constructed. If the StudioMonitorStageView is constructed as well, grpc exceptions will be thrown due to lack of various services
+    // in the channel, and the tick loop would not complete properly to set the process and agent status.
+    myView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
+    profilers.setStage(new NetworkProfilerStage(profilers));
+    JPanel viewComponent = myView.getComponent();
     viewComponent.setSize(new Dimension(600, 200));
     myFakeUi = new FakeUi(viewComponent);
   }

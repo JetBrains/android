@@ -25,7 +25,8 @@ import org.jetbrains.annotations.NotNull;
 public abstract class ProfilerMonitor extends AspectModel<ProfilerMonitor.Aspect> {
 
   public enum Aspect {
-    FOCUS
+    FOCUS,
+    ENABLE
   }
 
   public static final int LEGEND_UPDATE_FREQUENCY_MS = 100;
@@ -70,5 +71,9 @@ public abstract class ProfilerMonitor extends AspectModel<ProfilerMonitor.Aspect
 
   public boolean isFocused() {
     return myFocus;
+  }
+
+  public boolean isEnabled() {
+    return true;
   }
 }

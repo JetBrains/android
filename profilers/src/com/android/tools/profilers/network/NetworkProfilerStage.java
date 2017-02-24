@@ -21,10 +21,7 @@ import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
-import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.ProfilerMonitor;
-import com.android.tools.profilers.Stage;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.common.StackTraceModel;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
@@ -63,14 +60,16 @@ public class NetworkProfilerStage extends Stage {
   private final AxisComponentModel myConnectionsAxis;
   private final EventMonitor myEventMonitor;
   private final StackTraceModel myStackTraceModel = new StackTraceModel();
+  private final SelectionModel mySelectionModel;
 
   public NetworkProfilerStage(StudioProfilers profilers) {
     super(profilers);
 
+    ProfilerTimeline timeline = profilers.getTimeline();
     NetworkRadioDataSeries radioDataSeries =
       new NetworkRadioDataSeries(profilers.getClient().getNetworkClient(), profilers.getProcessId(), getStudioProfilers().getSession());
     myRadioState = new StateChartModel<>();
-    myRadioState.addSeries(new RangedSeries<>(getStudioProfilers().getTimeline().getViewRange(), radioDataSeries));
+    myRadioState.addSeries(new RangedSeries<>(timeline.getViewRange(), radioDataSeries));
 
     myDetailedNetworkUsage = new DetailedNetworkUsage(profilers);
 
@@ -80,12 +79,17 @@ public class NetworkProfilerStage extends Stage {
     myConnectionsAxis = new AxisComponentModel(myDetailedNetworkUsage.getConnectionsRange(), CONNECTIONS_AXIS_FORMATTER);
     myConnectionsAxis.setClampToMajorTicks(true);
 
-    myLegends = new NetworkStageLegends(myDetailedNetworkUsage, profilers.getTimeline().getDataRange());
+    myLegends = new NetworkStageLegends(myDetailedNetworkUsage, timeline.getDataRange());
 
     myEventMonitor = new EventMonitor(profilers);
 
     myStackTraceModel.addDependency(myAspectObserver)
       .onChange(StackTraceModel.Aspect.SELECTED_LOCATION, profilers::modeChanged);
+
+    mySelectionModel = new SelectionModel(timeline.getSelectionRange(), timeline.getViewRange());
+    profilers.addDependency(myAspectObserver)
+      .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
+    mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());
   }
 
   @Override
@@ -100,6 +104,11 @@ public class NetworkProfilerStage extends Stage {
   @NotNull
   public NetworkConnectionsModel getConnectionsModel() {
     return myConnectionsModel;
+  }
+
+  @NotNull
+  public SelectionModel getSelectionModel() {
+    return mySelectionModel;
   }
 
   @NotNull

@@ -66,6 +66,8 @@ public class ProfilerColors {
 
   public static final Color MONITOR_FOCUSED = new JBColor(0xF5F7F8, 0x2B2C2D);
 
+  public static final Color MONITOR_DISABLED = new JBColor(0xF8F8F8, 0x333436);
+
   public static final Color MONITOR_MAX_LINE = new JBColor(0xCCCDCD, 0x494949);
 
   public static final Color MONITOR_BORDER = new JBColor(0xC9C9C9, 0xC9C9C9);
