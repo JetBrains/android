@@ -407,7 +407,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       }
     }
     else {
-      return PlatformIcons.INTERFACE_ICON;
+      return (instance.getCallStack() == null || instance.getCallStack().getStackFramesCount() == 0)
+             ? PlatformIcons.INTERFACE_ICON
+             : ProfilerIcons.INTERFACE_STACK;
     }
   }
 }

@@ -77,4 +77,11 @@ public class NamespaceObject implements MemoryObject {
    * Accumulate the stats of the given {@link NamespaceObject} into this {@link NamespaceObject}.
    */
   public void accumulateNamespaceObject(@NotNull NamespaceObject namespaceObject) {}
+
+  /**
+   * @return true if this {@link NamespaceObject} or any descendant nodes have stack information
+   */
+  public boolean hasStackInfo() {
+    return false;
+  }
 }
