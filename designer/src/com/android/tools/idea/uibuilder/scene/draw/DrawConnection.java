@@ -66,9 +66,7 @@ public class DrawConnection implements DrawCommand {
 
   final static int myChainSmallLinkLength = 6;
   final static int myChainLinkLength = 8;
-  static Stroke myChainStroke1 = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{myChainSmallLinkLength, myChainLinkLength}, 0f);
-  static Stroke myChainStroke2 = new BasicStroke(5, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{myChainLinkLength, myChainSmallLinkLength}, myChainSmallLinkLength + 2);
-  static Stroke myChainStroke3 = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{myChainLinkLength - 4, myChainLinkLength + 2}, myChainSmallLinkLength);
+  static Stroke myChainStroke = new FancyStroke(FancyStroke.Type.CHAIN, 3, 6, 1);
 
   @Override
   public int getLevel() {
@@ -270,12 +268,7 @@ public class DrawConnection implements DrawCommand {
                         endx, endy);
         Stroke defaultStroke = g.getStroke();
         g.setColor(color.getConstraints());
-        g.setStroke(myChainStroke1);
-        g.draw(ourPath);
-        g.setStroke(myChainStroke2);
-        g.draw(ourPath);
-        g.setColor(color.getComponentObligatoryBackground());
-        g.setStroke(myChainStroke3);
+        g.setStroke(myChainStroke);
         g.draw(ourPath);
         g.setStroke(defaultStroke);
         break;
@@ -460,9 +453,17 @@ public class DrawConnection implements DrawCommand {
             }
           }
         }
-        ourPath.curveTo(startx + scale_source * dirDeltaX[sourceDirection], starty + scale_source * dirDeltaY[sourceDirection],
-                        endx + dx + scale_dest * dirDeltaX[destDirection], endy + dy + scale_dest * dirDeltaY[destDirection],
-                        endx + dx, endy + dy);
+        if (sourceDirection == destDirection && margin == 0) {
+          scale_source /=3;
+          scale_dest   /=2;
+          ourPath.curveTo(startx + scale_source * dirDeltaX[sourceDirection], starty + scale_source * dirDeltaY[sourceDirection],
+                          endx + dx + scale_dest * dirDeltaX[destDirection], endy + dy + scale_dest * dirDeltaY[destDirection],
+                          endx + dx, endy + dy);
+        } else {
+          ourPath.curveTo(startx + scale_source * dirDeltaX[sourceDirection], starty + scale_source * dirDeltaY[sourceDirection],
+                          endx + dx + scale_dest * dirDeltaX[destDirection], endy + dy + scale_dest * dirDeltaY[destDirection],
+                          endx + dx, endy + dy);
+        }
         defaultStroke = g.getStroke();
         g.setStroke(myBackgroundStroke);
         g.setColor(color.getBackground());
