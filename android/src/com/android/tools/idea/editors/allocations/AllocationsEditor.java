@@ -72,12 +72,6 @@ public class AllocationsEditor implements FileEditor {
           throw new ProcessCanceledException();
         }
 
-        if (AllocationsParser.hasOverflowedNumEntriesBug(data)) {
-          myErrorMessage =
-            "Invalid allocations file detected. Please refer to https://code.google.com/p/android/issues/detail?id=204503 for details.";
-          throw new ProcessCanceledException();
-        }
-
         try {
           myAllocations = AllocationsParser.parse(data);
         }
