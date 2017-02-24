@@ -29,6 +29,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -100,6 +101,10 @@ public class StringsWriteUtils {
     new WriteCommandAction.Simple(project, "Setting attribute " + attribute, files.toArray(new PsiFile[files.size()])) {
       @Override
       public void run() {
+        // Makes the command global even if only one xml file is modified
+        // That way, the Undo is always available from the translation editor
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+
         for (XmlTag tag : tags) {
           if (deleteTag) {
             tag.delete();
@@ -132,6 +137,10 @@ public class StringsWriteUtils {
       new WriteCommandAction.Simple(project, "Setting value of " + item.getName(), tag.getContainingFile()) {
         @Override
         public void run() {
+          // Makes the command global even if only one xml file is modified
+          // That way, the Undo is always available from the translation editor
+          CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+
           // First remove the existing value of the tag (any text and possibly other XML nested tags - like xliff:g).
           for (XmlTagChild child : tag.getValue().getChildren()) {
             child.delete();
@@ -176,6 +185,10 @@ public class StringsWriteUtils {
     new WriteCommandAction.Simple(project, "Creating string " + name, resourceFile) {
       @Override
       public void run() {
+        // Makes the command global even if only one xml file is modified
+        // That way, the Undo is always available from the translation editor
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+
         XmlTag child = root.createChildTag(ResourceType.STRING.getName(), root.getNamespace(), escapeResourceStringAsXml(value), false);
 
         child.setAttribute(SdkConstants.ATTR_NAME, name);
