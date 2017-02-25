@@ -225,6 +225,9 @@ public class ProfilerServiceProxy extends PerfdProxyService
       }
       observer.onNext(Profiler.AgentAttachResponse.newBuilder().setStatus(status).build());
       observer.onCompleted();
+
+      // Inform the on-device daemon to establish the communication channel with the agent.
+      myServiceStub.attachAgent(request);
     }
   }
 
