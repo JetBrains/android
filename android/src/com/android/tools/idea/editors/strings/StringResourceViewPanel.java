@@ -56,7 +56,6 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLoadingPanel;
-import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -69,12 +68,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntSupplier;
 
@@ -183,38 +177,32 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   }
 
   private void createDefaultValueTextField() {
-    myDefaultValueTextField = new TextFieldWithBrowseButton(new TranslationsEditorTextField());
+    myDefaultValueTextField = new TextFieldWithBrowseButton();
 
     myDefaultValueTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
     myDefaultValueTextField.addActionListener(new ShowMultilineActionListener());
 
-    FocusListener listener = new SetTableValueAtFocusListener(StringResourceTableModel.DEFAULT_VALUE_COLUMN);
-    myDefaultValueTextField.getTextField().addFocusListener(listener);
+    JComponent textField = myDefaultValueTextField.getTextField();
+
+    textField.addFocusListener(new SetTableValueAtFocusListener(StringResourceTableModel.DEFAULT_VALUE_COLUMN));
+    new TranslationsEditorPasteAction().registerCustomShortcutSet(textField, this);
   }
 
   private void createTranslationTextField() {
-    myTranslationTextField = new TextFieldWithBrowseButton(new TranslationsEditorTextField());
+    myTranslationTextField = new TextFieldWithBrowseButton();
 
     myTranslationTextField.setButtonIcon(AllIcons.Actions.ShowViewer);
     myTranslationTextField.addActionListener(new ShowMultilineActionListener());
-    myTranslationTextField.getTextField().addFocusListener(new SetTableValueAtFocusListener(myTable::getSelectedColumnModelIndex));
+
+    JComponent textField = myTranslationTextField.getTextField();
+
+    textField.addFocusListener(new SetTableValueAtFocusListener(myTable::getSelectedColumnModelIndex));
+    new TranslationsEditorPasteAction().registerCustomShortcutSet(textField, this);
   }
 
   @NotNull
   public AndroidFacet getFacet() {
     return myFacet;
-  }
-
-  private static final class TranslationsEditorTextField extends JBTextField {
-    private TranslationsEditorTextField() {
-      super(10);
-    }
-
-    @Override
-    public void paste() {
-      super.paste();
-      setFont(FontUtil.getFontAbleToDisplay(getText(), getFont()));
-    }
   }
 
   private final class SetTableValueAtFocusListener implements FocusListener {
