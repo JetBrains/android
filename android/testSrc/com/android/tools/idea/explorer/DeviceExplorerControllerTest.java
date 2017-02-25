@@ -24,11 +24,12 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.ide.ClipboardSynchronizer;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.fileChooser.FileChooserFactory;
-import com.intellij.openapi.fileChooser.FileSaverDescriptor;
-import com.intellij.openapi.fileChooser.FileSaverDialog;
+import com.intellij.openapi.fileChooser.*;
 import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
@@ -39,6 +40,7 @@ import com.intellij.openapi.ui.TestInputDialog;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
@@ -55,9 +57,7 @@ import javax.swing.*;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.TreeModelEvent;
-import javax.swing.tree.ExpandVetoException;
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreePath;
+import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -66,12 +66,16 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class DeviceExplorerControllerTest extends AndroidTestCase {
   private static final long TIMEOUT_MILLISECONDS = 30_000;
@@ -102,7 +106,18 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
       DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID, false, ToolWindowAnchor.RIGHT, getProject(), true);
 
     myEdtExecutor = new FutureCallbackExecutor(EdtExecutor.INSTANCE);
-    myModel = new DeviceExplorerModel();
+    myModel = new DeviceExplorerModel() {
+      @Override
+      public void setActiveDeviceTreeModel(@Nullable DeviceFileSystem device,
+                                           @Nullable DefaultTreeModel treeModel,
+                                           @Nullable DefaultTreeSelectionModel treeSelectionModel) {
+        // We notify the mock view before everything else to avoid having a dependency
+        // on the order of registration of listeners registered with {@code DeviceExplorerModel.addListener()}
+        assert myMockView != null;
+        myMockView.deviceTreeModelUpdated(device, treeModel, treeSelectionModel);
+        super.setActiveDeviceTreeModel(device, treeModel, treeSelectionModel);
+      }
+    };
     myMockService = new MockDeviceFileSystemService(getProject(), myEdtExecutor);
     myMockView = new MockDeviceExplorerView(getProject(), toolWindow, new MockDeviceFileSystemRenderer(), myModel);
     myMockFileManager = new MockDeviceExplorerFileManager(getProject(), myEdtExecutor);
@@ -153,6 +168,14 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     assert current != null;
     myMockRepaintManager = Mockito.spy(current);
     RepaintManager.setCurrentManager(myMockRepaintManager);
+  }
+
+  public void testControllerIsSetAsProjectKey() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+
+    // Assert
+    assertEquals(controller, DeviceExplorerController.getProjectController(getProject()));
   }
 
   public void testStartController() throws InterruptedException, ExecutionException, TimeoutException {
@@ -279,7 +302,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Set timers to ensure the "loading..." animation code is hit
     controller.setShowLoadingNodeDelayMillis(10);
-    controller.setDownloadingNodeRepaintMillis(10);
+    controller.setTransferringNodeRepaintMillis(10);
     myFoo.setGetEntriesTimeoutMillis(1_000);
 
     // Listen to node expansion effect (structure changed event)
@@ -309,7 +332,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     TreePath nodeExpandedPath = pumpEventsAndWaitForFuture(futureNodeExpanded);
 
     // Assert
-    assertTrue(myLoadingNode.getDownloadingTick() > 1);
+    assertTrue(myLoadingNode.getTick() > 1);
     assertEquals(fooPath.getLastPathComponent(), nodeExpandedPath.getLastPathComponent());
   }
 
@@ -527,7 +550,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Assert
     ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
-    assertEquals(7, actionGroup.getChildren(null).length);
+    assertEquals(8, actionGroup.getChildren(null).length);
 
     ActionGroup subGroup = getSubGroup(actionGroup, "New");
     assertNotNull(subGroup);
@@ -881,6 +904,227 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     assertEquals(3, DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent()).getChildCount());
   }
 
+  public void testFileSystemTree_ContextMenu_Upload_SingleFile_Works() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    expandEntry(myFoo);
+    myMockView.getTree().setSelectionPath(getFileEntryPath(myFoo));
+
+    SettableFuture<TreePath> futureTreeChanged = createNodeExpandedFuture(myFoo);
+    ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
+    AnAction action = getActionByText(actionGroup, "Upload...");
+    assertNotNull(action);
+    AnActionEvent e = createContentMenuItemEvent();
+    action.update(e);
+
+    // The "Choose file" dialog does not work in headless mode, so we register a custom
+    // component that simply returns the tempFile we created above.
+    File tempFile = FileUtil.createTempFile("foo", "bar.txt");
+    Files.write(tempFile.toPath(), new byte[10_000]);
+    myDevice1.setUploadFileChunkSize(500);
+    myDevice1.setUploadFileChunkIntervalMillis(20);
+
+    replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
+      @NotNull
+      @Override
+      public FileChooserDialog createFileChooser(@NotNull FileChooserDescriptor descriptor,
+                                                 @Nullable Project project,
+                                                 @Nullable Component parent) {
+        return new FileChooserDialog() {
+          @NotNull
+          @Override
+          public VirtualFile[] choose(@Nullable VirtualFile toSelect, @Nullable Project project) {
+            throw new UnsupportedOperationException("Test does not support this method");
+          }
+
+          @NotNull
+          @Override
+          public VirtualFile[] choose(@Nullable Project project, @NotNull VirtualFile... toSelect) {
+            return new VirtualFile[]{new VirtualFileWrapper(tempFile).getVirtualFile()};
+          }
+        };
+      }
+    });
+
+    // Assert
+    assertTrue(e.getPresentation().isVisible());
+    assertTrue(e.getPresentation().isEnabled());
+
+    // Act
+    myMockView.getStartTreeBusyIndicatorTacker().clear();
+    myMockView.getStopTreeBusyIndicatorTacker().clear();
+    action.actionPerformed(e);
+    pumpEventsAndWaitForFuture(myMockView.getStartTreeBusyIndicatorTacker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getUploadFilesTracker().consume());
+    pumpEventsAndWaitForFuture(futureTreeChanged);
+    pumpEventsAndWaitForFuture(myMockView.getStopTreeBusyIndicatorTacker().consume());
+
+    // Assert
+    // One node has been added
+    assertEquals(5, DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent()).getChildCount());
+  }
+
+  public void testFileSystemTree_ContextMenu_Upload_DirectoryAndFile_Works() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+
+    // Act
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    expandEntry(myFoo);
+    myMockView.getTree().setSelectionPath(getFileEntryPath(myFoo));
+
+    SettableFuture<TreePath> futureTreeChanged = createNodeExpandedFuture(myFoo);
+    ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
+    AnAction action = getActionByText(actionGroup, "Upload...");
+    assertNotNull(action);
+    AnActionEvent e = createContentMenuItemEvent();
+    action.update(e);
+
+    File tempFile = FileUtil.createTempFile("foo", "bar.txt");
+    Files.write(tempFile.toPath(), new byte[10_000]);
+
+    File tempDirectory = FileUtil.createTempDirectory("foo", "dir");
+    File foobar2File = FileUtil.createTempFile(tempDirectory, "foobar2", ".txt");
+    Files.write(foobar2File.toPath(), new byte[10_000]);
+
+    File foobar3File = FileUtil.createTempFile(tempDirectory, "foobar3", ".txt");
+    Files.write(foobar3File.toPath(), new byte[10_000]);
+
+    File foobar4File = FileUtil.createTempFile(tempDirectory, "foobar4", ".txt");
+    Files.write(foobar4File.toPath(), new byte[10_000]);
+
+    // The "Choose file" dialog does not work in headless mode, so we register a custom
+    // component that simply returns the tempFile we created above.
+    replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
+      @NotNull
+      @Override
+      public FileChooserDialog createFileChooser(@NotNull FileChooserDescriptor descriptor,
+                                                 @Nullable Project project,
+                                                 @Nullable Component parent) {
+        return new FileChooserDialog() {
+          @NotNull
+          @Override
+          public VirtualFile[] choose(@Nullable VirtualFile toSelect, @Nullable Project project) {
+            throw new UnsupportedOperationException("Test does not support this method");
+          }
+
+          @NotNull
+          @Override
+          public VirtualFile[] choose(@Nullable Project project, @NotNull VirtualFile... toSelect) {
+            return new VirtualFile[]{
+              new VirtualFileWrapper(tempFile).getVirtualFile(),
+              new VirtualFileWrapper(tempDirectory).getVirtualFile()
+            };
+          }
+        };
+      }
+    });
+
+    // Assert
+    assertTrue(e.getPresentation().isVisible());
+    assertTrue(e.getPresentation().isEnabled());
+
+    // Act
+    myMockView.getStartTreeBusyIndicatorTacker().clear();
+    myMockView.getStopTreeBusyIndicatorTacker().clear();
+    action.actionPerformed(e);
+    pumpEventsAndWaitForFuture(myMockView.getStartTreeBusyIndicatorTacker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getUploadFilesTracker().consume());
+    pumpEventsAndWaitForFuture(futureTreeChanged);
+    pumpEventsAndWaitForFuture(myMockView.getStopTreeBusyIndicatorTacker().consume());
+
+    // Assert
+    // Two nodes have been added
+    assertEquals(6, DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent()).getChildCount());
+  }
+
+  public void testFileSystemTree_ContextMenu_Upload_ShowsProblems() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+
+    // Act
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    expandEntry(myFoo);
+    myMockView.getTree().setSelectionPath(getFileEntryPath(myFoo));
+
+    SettableFuture<TreePath> futureTreeChanged = createNodeExpandedFuture(myFoo);
+    ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
+    AnAction action = getActionByText(actionGroup, "Upload...");
+    assertNotNull(action);
+    AnActionEvent e = createContentMenuItemEvent();
+    action.update(e);
+
+    // Create 15 temporary files, so that we hit the "limit # of problems to display to 10" code path
+    List<File> tempFiles = IntStream.range(0, 15)
+      .mapToObj(i -> {
+        try {
+          return FileUtil.createTempFile("foo", ".txt");
+        }
+        catch (IOException ignored) {
+          return null;
+        }
+      })
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
+
+    // The "Choose file" dialog does not work in headless mode, so we register a custom
+    // component that simply returns the tempFile we created above.
+    replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
+      @NotNull
+      @Override
+      public FileChooserDialog createFileChooser(@NotNull FileChooserDescriptor descriptor,
+                                                 @Nullable Project project,
+                                                 @Nullable Component parent) {
+        return new FileChooserDialog() {
+          @NotNull
+          @Override
+          public VirtualFile[] choose(@Nullable VirtualFile toSelect, @Nullable Project project) {
+            throw new UnsupportedOperationException("Test does not support this method");
+          }
+
+          @NotNull
+          @Override
+          public VirtualFile[] choose(@Nullable Project project, @NotNull VirtualFile... toSelect) {
+            return tempFiles.stream()
+              .map(x -> new VirtualFileWrapper(x).getVirtualFile())
+              .toArray(VirtualFile[]::new);
+          }
+        };
+      }
+    });
+
+    // Ensure file upload fails
+    myDevice1.setUploadError(new AdbShellCommandException("Permission error"));
+
+    // Assert
+    assertTrue(e.getPresentation().isVisible());
+    assertTrue(e.getPresentation().isEnabled());
+
+    // Act
+    myMockView.getStartTreeBusyIndicatorTacker().clear();
+    myMockView.getStopTreeBusyIndicatorTacker().clear();
+    action.actionPerformed(e);
+    pumpEventsAndWaitForFuture(myMockView.getStartTreeBusyIndicatorTacker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getUploadFilesTracker().consume());
+    pumpEventsAndWaitForFuture(futureTreeChanged);
+    pumpEventsAndWaitForFuture(myMockView.getStopTreeBusyIndicatorTacker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getReportErrorRelatedToNodeTracker().consume());
+
+    // Assert
+    // No node has been added
+    assertEquals(4, DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent()).getChildCount());
+  }
+
   private static <V> List<V> enumerationAsList(Enumeration e) {
     //noinspection unchecked
     return Collections.list(e);
@@ -1006,7 +1250,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
           return false;
         }
 
-        for(int i = 0; i < entryNode.getChildCount(); i++) {
+        for (int i = 0; i < entryNode.getChildCount(); i++) {
           DeviceFileEntryNode childNode = DeviceFileEntryNode.fromNode(entryNode.getChildAt(i));
           if (childNode == null) {
             // It could be the "Loading..." node
