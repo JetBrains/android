@@ -190,6 +190,13 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     myTabsPanel.removeAll();
     boolean hasContent = false;
 
+    // Populate references
+    myReferenceColumnTree = buildReferenceColumnTree(instance);
+    if (myReferenceColumnTree != null) {
+      myTabsPanel.addTab("References", myReferenceColumnTree);
+      hasContent = true;
+    }
+
     // Populate Callstacks
     AllocationStack callStack = instance.getCallStack();
     if (callStack != null && !callStack.getStackFramesList().isEmpty()) {
@@ -198,13 +205,6 @@ final class MemoryInstanceDetailsView extends AspectObserver {
         .collect(Collectors.toList());
       myStackTraceView.getModel().setStackFrames(instance.getAllocationThreadId(), stackFrames);
         myTabsPanel.addTab("Callstack", myStackTraceView.getComponent());
-      hasContent = true;
-    }
-
-    // Populate references
-    myReferenceColumnTree = buildReferenceColumnTree(instance);
-    if (myReferenceColumnTree != null) {
-      myTabsPanel.addTab("References", myReferenceColumnTree);
       hasContent = true;
     }
 

@@ -18,7 +18,20 @@ package com.android.tools.profilers.memory.adapters;
 import org.jetbrains.annotations.NotNull;
 
 public class PackageObject extends ClassifierObject {
+  private boolean myHasStackInfo = false;
+
   public PackageObject(@NotNull String name) {
     super(name);
+  }
+
+  @Override
+  public boolean hasStackInfo() {
+    return myHasStackInfo;
+  }
+
+  @Override
+  public void accumulateNamespaceObject(@NotNull NamespaceObject namespaceObject) {
+    super.accumulateNamespaceObject(namespaceObject);
+    myHasStackInfo |= namespaceObject.hasStackInfo();
   }
 }

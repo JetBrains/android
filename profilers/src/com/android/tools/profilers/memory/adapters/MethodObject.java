@@ -30,4 +30,9 @@ public class MethodObject extends ClassifierObject {
   public CodeLocation getCodeLocation() {
     return myCodeLocation;
   }
+
+  @Override
+  public boolean hasStackInfo() {
+    return true;
+  }
 }
