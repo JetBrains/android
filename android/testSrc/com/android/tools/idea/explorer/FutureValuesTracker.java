@@ -86,6 +86,15 @@ public class FutureValuesTracker<V> {
   }
 
   /**
+   * Clear all pending values
+   */
+  public void clear() {
+    synchronized (LOCK) {
+      myValues.clear();
+    }
+  }
+
+  /**
    * Returns a {@link ListenableFuture} that completes when the next value
    * is made available.
    */

@@ -30,4 +30,5 @@ public interface DeviceExplorerViewListener {
   void newDirectoryInvoked(@NotNull DeviceFileEntryNode parentTreeNode);
   void newFileInvoked(@NotNull DeviceFileEntryNode parentTreeNode);
   void deleteNodesInvoked(@NotNull List<DeviceFileEntryNode> nodes);
+  void uploadFilesInvoked(@NotNull DeviceFileEntryNode treeNode);
 }

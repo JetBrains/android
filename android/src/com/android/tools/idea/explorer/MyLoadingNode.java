@@ -23,8 +23,8 @@ import org.jetbrains.annotations.NotNull;
  * A {@link LoadingNode} that supports download ticks for animations
  */
 public class MyLoadingNode extends LoadingNode {
-  private final @NotNull DeviceFileEntry myParentEntry;
-  private int myDownloadingTick;
+  @NotNull private final DeviceFileEntry myParentEntry;
+  private int myTick;
 
   public MyLoadingNode(@NotNull DeviceFileEntry entry) {
     myParentEntry = entry;
@@ -40,11 +40,11 @@ public class MyLoadingNode extends LoadingNode {
     return true;
   }
 
-  public int getDownloadingTick() {
-    return myDownloadingTick;
+  public int getTick() {
+    return myTick;
   }
 
-  public void incDownloadingTick() {
-    myDownloadingTick++;
+  public void incTick() {
+    myTick++;
   }
 }
