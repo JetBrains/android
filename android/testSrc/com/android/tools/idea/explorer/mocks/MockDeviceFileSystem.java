@@ -16,6 +16,7 @@
 package com.android.tools.idea.explorer.mocks;
 
 import com.android.tools.idea.explorer.FutureUtils;
+import com.android.tools.idea.explorer.adbimpl.AdbShellCommandException;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 @SuppressWarnings("SameParameterValue")
@@ -38,16 +40,18 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
   @NotNull private final String myName;
   @NotNull private final MockDeviceFileEntry myRoot;
   private long myDownloadChunkSize = 1024;
+  private long myUploadChunkSize = 1024;
   private int myDownloadFileChunkIntervalMillis = MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS;
+  private int myUploadFileChunkIntervalMillis = MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS;
   private Throwable myDownloadError;
   private Throwable myRootDirectoryError;
+  private Throwable myUploadError;
 
   public MockDeviceFileSystem(@NotNull MockDeviceFileSystemService service, @NotNull String name) {
     myService = service;
     myName = name;
     myRoot = MockDeviceFileEntry.createRoot(this);
   }
-
 
   @NotNull
   public MockDeviceFileSystemService getService() {
@@ -93,6 +97,18 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
 
   @NotNull
   @Override
+  public ListenableFuture<Void> uploadFile(@NotNull Path localFilePath,
+                                           @NotNull DeviceFileEntry remoteDirectory,
+                                           @NotNull FileTransferProgress progress) {
+    if (myUploadError != null) {
+      return FutureUtils.delayedError(myUploadError, MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS);
+    }
+
+    return new UploadWorker((MockDeviceFileEntry)remoteDirectory, localFilePath, progress).myFutureResult;
+  }
+
+  @NotNull
+  @Override
   public ListenableFuture<Void> createNewFile(@NotNull DeviceFileEntry parentEntry, @NotNull String fileName) {
     return FutureUtils.delayedOperation(() -> {
       ((MockDeviceFileEntry)parentEntry).addFile(fileName);
@@ -117,12 +133,24 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
     myDownloadFileChunkIntervalMillis = millis;
   }
 
+  public void setUploadFileChunkSize(long size) {
+    myUploadChunkSize = size;
+  }
+
+  public void setUploadFileChunkIntervalMillis(int millis) {
+    myUploadFileChunkIntervalMillis = millis;
+  }
+
   public void setDownloadError(@Nullable Throwable t) {
     myDownloadError = t;
   }
 
   public void setRootDirectoryError(@Nullable Throwable t) {
     myRootDirectoryError = t;
+  }
+
+  public void setUploadError(@Nullable Throwable t) {
+    myUploadError = t;
   }
 
   public class DownloadWorker implements Disposable {
@@ -161,7 +189,8 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
       }
 
       // Report progress
-      myService.getEdtExecutor().execute(() -> myProgress.progress(myCurrentOffset, myEntry.getSize()));
+      final long currentOffset = myCurrentOffset;
+      myService.getEdtExecutor().execute(() -> myProgress.progress(currentOffset, myEntry.getSize()));
 
       // Write bytes and enqueue next request if not done yet
       if (myCurrentOffset < myEntry.getSize()) {
@@ -227,6 +256,87 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
           throw new RuntimeException(e);
         }
       }
+    }
+  }
+
+  public class UploadWorker implements Disposable {
+    @NotNull private final MockDeviceFileEntry myEntry;
+    @NotNull private final Path myPath;
+    @NotNull private final FileTransferProgress myProgress;
+    @NotNull private final SettableFuture<Void> myFutureResult;
+    @NotNull private final Alarm myAlarm;
+    private long myCurrentOffset;
+    private long myFileLength;
+    private MockDeviceFileEntry myCreatedEntry;
+
+    public UploadWorker(@NotNull MockDeviceFileEntry entry, @NotNull Path path, @NotNull FileTransferProgress progress) {
+      myEntry = entry;
+      myPath = path;
+      myProgress = progress;
+      myFutureResult = SettableFuture.create();
+      myAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this);
+      Disposer.register(ApplicationManager.getApplication(), this);
+      addRequest();
+    }
+
+    private void addRequest() {
+      myAlarm.addRequest(this::processNextChunk, myUploadFileChunkIntervalMillis);
+    }
+
+    public void processNextChunk() {
+      assert !myFutureResult.isDone();
+
+      // Add entry right away (simulate behavior of device upload, where an empty file is immediately created on upload)
+      if (myCreatedEntry == null) {
+        try {
+          myFileLength = Files.size(myPath);
+          myCreatedEntry = myEntry.addFile(myPath.getFileName().toString());
+        }
+        catch (AdbShellCommandException | IOException e) {
+          doneWithError(e);
+          return;
+        }
+      }
+
+      // Report progress
+      final long currentOffset = myCurrentOffset;
+      myService.getEdtExecutor().execute(() -> myProgress.progress(currentOffset, myFileLength));
+
+      // Write bytes and enqueue next request if not done yet
+      if (myCurrentOffset < myFileLength) {
+        addRequest();
+
+        long chunkSize = Math.min(myUploadChunkSize, myFileLength - myCurrentOffset);
+        myCreatedEntry.setSize(myCreatedEntry.getSize() + chunkSize);
+        myCurrentOffset += chunkSize;
+        return;
+      }
+
+      // Complete future if done
+      done();
+    }
+
+    private void done() {
+      try {
+        Disposer.dispose(this);
+      }
+      finally {
+        myFutureResult.set(null);
+      }
+    }
+
+    private void doneWithError(Throwable t) {
+      try {
+        Disposer.dispose(this);
+      }
+      finally {
+        myFutureResult.setException(t);
+      }
+    }
+
+    @Override
+    public void dispose() {
+      myAlarm.cancelAllRequests();
     }
   }
 }
