@@ -274,8 +274,8 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     myListeners.forEach(x -> x.openNodesInEditorInvoked(treeNodes));
   }
 
-  private void saveNodeAs(@NotNull DeviceFileEntryNode treeNode) {
-    myListeners.forEach(x -> x.saveNodeAsInvoked(treeNode));
+  private void saveNodesAs(@NotNull List<DeviceFileEntryNode> treeNodes) {
+    myListeners.forEach(x -> x.saveNodesAsInvoked(treeNodes));
   }
 
   private void newDirectory(@NotNull DeviceFileEntryNode treeNode) {
@@ -554,7 +554,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     }
   }
 
-  private class SaveAsMenuItem extends SingleSelectionTreeMenuItem {
+  private class SaveAsMenuItem extends TreeMenuItem {
     @NotNull
     @Override
     public String getText() {
@@ -569,12 +569,12 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
     @Override
     public boolean isVisible(@NotNull DeviceFileEntryNode node) {
-      return node.getEntry().isFile();
+      return true;
     }
 
     @Override
-    public void run(@NotNull DeviceFileEntryNode node) {
-      saveNodeAs(node);
+    public void run(@NotNull List<DeviceFileEntryNode> nodes) {
+      saveNodesAs(nodes);
     }
   }
 

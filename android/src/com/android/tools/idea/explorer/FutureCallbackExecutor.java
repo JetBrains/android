@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * An {@link Executor} implementation that registers {@link ListenableFuture} callbacks
@@ -54,10 +55,10 @@ public class FutureCallbackExecutor implements Executor {
   /**
    * Adds a {@link BiConsumer} callback to a {@link ListenableFuture} with this instance as the executor.
    * <ul>
-   *   <li>In case of success, the {@link BiConsumer#accept consumer.accept(v, null)} method is invoked,
-   *   where "{@code v}" is the future completion value.</li>
-   *   <li>In case of failure, the {@link BiConsumer#accept consumer.accept(null, t)} method is invoked,
-   *   where "{@code t}" is the future exception.</li>
+   * <li>In case of success, the {@link BiConsumer#accept consumer.accept(v, null)} method is invoked,
+   * where "{@code v}" is the future completion value.</li>
+   * <li>In case of failure, the {@link BiConsumer#accept consumer.accept(null, t)} method is invoked,
+   * where "{@code t}" is the future exception.</li>
    * </ul>
    */
   public <V> void addConsumer(@NotNull final ListenableFuture<V> future,
@@ -73,5 +74,22 @@ public class FutureCallbackExecutor implements Executor {
         consumer.accept(null, t);
       }
     });
+  }
+
+  /**
+   * Similar to {@link ListenableFuture#addListener(Runnable, Executor)}, using this instance as the executor.
+   */
+  public <V> void addListener(@NotNull final ListenableFuture<V> future,
+                              @NotNull final Runnable listener) {
+    future.addListener(listener, myExecutor);
+  }
+
+  /**
+   * Similar to {@link Futures#transform(ListenableFuture, com.google.common.base.Function, Executor)},
+   * using this instance as the executor.
+   */
+  public <I, O> ListenableFuture<O> transform(@NotNull ListenableFuture<I> input,
+                                              @NotNull Function<? super I, ? extends O> function) {
+    return Futures.transform(input, function::apply, myExecutor);
   }
 }
