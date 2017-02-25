@@ -39,7 +39,7 @@ public class AdbShellCommandResult {
     return myError;
   }
 
-  public void ThrowIfError() throws AdbShellCommandException {
+  public void throwIfError() throws AdbShellCommandException {
     if (isError()) {
       // Shell commands that fail outright usually have a single output line containing the error message
       if (myOutput.size() == 1) {
