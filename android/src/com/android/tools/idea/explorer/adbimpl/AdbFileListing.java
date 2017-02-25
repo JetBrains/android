@@ -160,13 +160,6 @@ public class AdbFileListing {
       .stream()
       .map(x -> processLsOutputLine(entry, x))
       .filter(Objects::nonNull)
-      // sort the children by name
-      .sorted((entry1, entry2) -> {
-        if (entry1 != null && entry2 != null) {
-          return entry1.getName().compareTo(entry2.getName());
-        }
-        return 0;
-      })
       .collect(Collectors.toList());
     if (entries.isEmpty() && commandResult.isError()) {
       commandResult.ThrowIfError();
