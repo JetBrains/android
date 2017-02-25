@@ -34,6 +34,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.function.BiFunction;
 
@@ -79,7 +81,7 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
     myScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 
     myListView.addListSelectionListener(e -> {
-      int index = myListView.getLeadSelectionIndex();
+      int index = myListView.getSelectedIndex();
       if (index < 0 || index >= myListView.getItemsCount() || myListView.getItemsCount() == 0) {
         myModel.clearSelection();
         return;
@@ -89,6 +91,17 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
       element.navigate();
       myModel.setSelectedIndex(index);
     });
+
+    myListView.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+          myListView.clearSelection();
+          e.consume();
+        }
+      }
+    });
+
 
     myModel.addDependency(this).
       onChange(StackTraceModel.Aspect.STACK_FRAMES, () -> {

@@ -16,6 +16,8 @@
 package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.swing.FakeKeyboard;
+import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.StackFrameParser;
 import com.android.tools.profilers.common.StackTraceModel;
@@ -70,6 +72,7 @@ public class IntelliJStackTraceViewTest {
   @Before
   public void before() {
     myStackView = new IntelliJStackTraceView(myProject, new StackTraceModel(), (project, location) -> new FakeStackNavigation(location));
+    myStackView.getComponent().setSize(100, 400); // Arbitrary size just so we can click on it
   }
 
   @Test
@@ -114,7 +117,28 @@ public class IntelliJStackTraceViewTest {
   }
 
   @Test
-  public void clickComponentTest() throws InvocationTargetException, InterruptedException {
+  public void setSelectedRowByModel() throws InvocationTargetException, InterruptedException {
+    final int[] invocationCount = {0};
+    myStackView.getModel().setStackFrames(STACK_STRING);
+    myStackView.getListView().addListSelectionListener(e -> invocationCount[0]++);
+
+    JList list = myStackView.getListView();
+    assertEquals(0, invocationCount[0]);
+    assertEquals(-1, list.getSelectedIndex());
+
+    myStackView.getModel().setSelectedIndex(3);
+    assertTrue(list.getSelectedValue() instanceof FakeStackNavigation);
+    assertEquals(1, invocationCount[0]);
+    assertEquals(3, list.getSelectedIndex());
+
+    myStackView.getModel().setSelectedIndex(-1);
+    assertEquals(2, invocationCount[0]);
+    assertNull(list.getSelectedValue());
+  }
+
+  @Test
+  public void setSelectedRowByUiInput() throws InvocationTargetException, InterruptedException {
+    FakeUi fakeUi = new FakeUi(myStackView.getComponent());
     AspectObserver observer = new AspectObserver();
     final int[] invocationCount = {0};
     myStackView.getModel().addDependency(observer).onChange(StackTraceModel.Aspect.SELECTED_LOCATION, () -> invocationCount[0]++);
@@ -127,9 +151,15 @@ public class IntelliJStackTraceViewTest {
     myStackView.getModel().setStackFrames(STACK_STRING);
     assertEquals(CODE_LOCATIONS.size(), myStackView.getModel().getCodeLocations().size());
 
+    // fakeUi.mouse.click(5, 5); <- Can't click as the ListView is a heavyweight component and
+    // can't be interacted with in headless mode. Instead, just set programmatically:
     list.setSelectedIndex(0);
     assertTrue(list.getSelectedValue() instanceof FakeStackNavigation);
     assertEquals(1, invocationCount[0]);
+
+    fakeUi.keyboard.setFocus(myStackView.getListView());
+    fakeUi.keyboard.press(FakeKeyboard.Key.ESC);
+    assertNull(list.getSelectedValue());
   }
 
   /**
