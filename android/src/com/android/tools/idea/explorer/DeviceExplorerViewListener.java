@@ -25,7 +25,7 @@ public interface DeviceExplorerViewListener {
   void deviceSelected(@Nullable DeviceFileSystem device);
   void treeNodeExpanding(@NotNull DeviceFileEntryNode treeNode);
   void openNodesInEditorInvoked(@NotNull List<DeviceFileEntryNode> treeNodes);
-  void saveNodeAsInvoked(@NotNull DeviceFileEntryNode treeNode);
+  void saveNodesAsInvoked(@NotNull List<DeviceFileEntryNode> treeNodes);
   void copyNodePathsInvoked(@NotNull List<DeviceFileEntryNode> treeNodes);
   void newDirectoryInvoked(@NotNull DeviceFileEntryNode parentTreeNode);
   void newFileInvoked(@NotNull DeviceFileEntryNode parentTreeNode);
