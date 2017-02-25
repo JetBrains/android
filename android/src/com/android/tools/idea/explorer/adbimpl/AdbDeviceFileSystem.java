@@ -189,6 +189,17 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
 
   @NotNull
   @Override
+  public ListenableFuture<Void> uploadFile(@NotNull Path localFilePath,
+                                           @NotNull DeviceFileEntry remoteDirectory,
+                                           @NotNull FileTransferProgress progress) {
+    if (!(remoteDirectory instanceof AdbDeviceFileEntry)) {
+      return Futures.immediateFailedFuture(new IllegalArgumentException("Invalid directory entry"));
+    }
+    return uploadFileWorker(localFilePath, (AdbDeviceFileEntry)remoteDirectory, progress);
+  }
+
+  @NotNull
+  @Override
   public ListenableFuture<Void> createNewFile(@NotNull DeviceFileEntry parentEntry, @NotNull String fileName) {
     return myFileOperations.createNewFile(parentEntry.getFullPath(), fileName);
   }
@@ -215,7 +226,51 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
           long size = entry.getSize();
           syncService.pullFile(entry.myEntry.getFullPath(),
                                localPath.toString(),
-                               new SingleFileSyncProgressMonitor(getEdtExecutor(), progress, size));
+                               new SinglePullFileProgressMonitor(getEdtExecutor(), progress, size));
+          futureResult.set(null);
+        }
+        catch (SyncException e) {
+          if (e.wasCanceled()) {
+            futureResult.setException(new CancellationException());
+          }
+          else {
+            futureResult.setException(e);
+          }
+        }
+        catch (Throwable t) {
+          futureResult.setException(t);
+        }
+        finally {
+          syncService.close();
+        }
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        futureResult.setException(t);
+      }
+    });
+
+    return futureResult;
+  }
+
+  @NotNull
+  private ListenableFuture<Void> uploadFileWorker(@NotNull Path localPath,
+                                                  @NotNull AdbDeviceFileEntry remoteDirectory,
+                                                  @NotNull FileTransferProgress progress) {
+    SettableFuture<Void> futureResult = SettableFuture.create();
+
+    ListenableFuture<SyncService> futureSyncService = getSyncService();
+    getTaskExecutor().addCallback(futureSyncService, new FutureCallback<SyncService>() {
+      @Override
+      public void onSuccess(@Nullable SyncService syncService) {
+        assert syncService != null;
+
+        try {
+          String remotePath = AdbPathUtil.resolve(remoteDirectory.getFullPath(), localPath.getFileName().toString());
+          syncService.pushFile(localPath.toString(),
+                               remotePath,
+                               new SinglePushFileProgressMonitor(getEdtExecutor(), progress));
           futureResult.set(null);
         }
         catch (SyncException e) {
@@ -263,13 +318,13 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
     return futureResult;
   }
 
-  private static class SingleFileSyncProgressMonitor implements SyncService.ISyncProgressMonitor {
+  private static class SinglePullFileProgressMonitor implements SyncService.ISyncProgressMonitor {
     private final Executor myCallbackExecutor;
     private final FileTransferProgress myProgress;
     private final long myTotalBytes;
     private long myCurrentBytes;
 
-    public SingleFileSyncProgressMonitor(Executor callbackExecutor, FileTransferProgress progress, long totalBytes) {
+    public SinglePullFileProgressMonitor(Executor callbackExecutor, FileTransferProgress progress, long totalBytes) {
       myCallbackExecutor = callbackExecutor;
       myProgress = progress;
       myTotalBytes = totalBytes;
@@ -279,6 +334,45 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
     public void start(int totalWork) {
       // Note: The current implementation of SyncService always sends
       // "0" as the value of totalWork.
+      myCallbackExecutor.execute(() -> myProgress.progress(0, myTotalBytes));
+    }
+
+    @Override
+    public void stop() {
+      myCallbackExecutor.execute(() -> myProgress.progress(myTotalBytes, myTotalBytes));
+    }
+
+    @Override
+    public boolean isCanceled() {
+      return myProgress.isCancelled();
+    }
+
+    @Override
+    public void startSubTask(String name) {
+      assert false : "A single file sync should not have multiple tasks";
+    }
+
+    @Override
+    public void advance(int work) {
+      myCurrentBytes += work;
+      myCallbackExecutor.execute(() -> myProgress.progress(myCurrentBytes, myTotalBytes));
+    }
+  }
+
+  private static class SinglePushFileProgressMonitor implements SyncService.ISyncProgressMonitor {
+    private final Executor myCallbackExecutor;
+    private final FileTransferProgress myProgress;
+    private long myTotalBytes;
+    private long myCurrentBytes;
+
+    public SinglePushFileProgressMonitor(Executor callbackExecutor, FileTransferProgress progress) {
+      myCallbackExecutor = callbackExecutor;
+      myProgress = progress;
+    }
+
+    @Override
+    public void start(int totalWork) {
+      myTotalBytes = totalWork;
       myCallbackExecutor.execute(() -> myProgress.progress(0, myTotalBytes));
     }
 
