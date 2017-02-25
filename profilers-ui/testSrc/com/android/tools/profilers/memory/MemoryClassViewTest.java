@@ -203,6 +203,109 @@ public class MemoryClassViewTest {
   }
 
   @Test
+  public void stackExistenceTest() {
+    MemoryClassView classView = new MemoryClassView(myStage, myFakeIdeProfilerComponents);
+
+    CodeLocation codeLocation1 = new CodeLocation("Foo", "", "fooMethod1", 5);
+    CodeLocation codeLocation2 = new CodeLocation("Foo", "", "fooMethod2", 10);
+    CodeLocation codeLocation3 = new CodeLocation("Foo", "", "fooMethod3", 15);
+    CodeLocation codeLocation4 = new CodeLocation("Bar", "", "barMethod1", 20);
+
+    //noinspection ConstantConditions
+    AllocationStack callstack1 = AllocationStack.newBuilder()
+      .addStackFrames(
+        AllocationStack.StackFrame.newBuilder()
+          .setClassName(codeLocation2.getClassName())
+          .setMethodName(codeLocation2.getMethodName())
+          .setLineNumber(codeLocation2.getLineNumber() + 1))
+      .addStackFrames(
+        AllocationStack.StackFrame.newBuilder()
+          .setClassName(codeLocation1.getClassName())
+          .setMethodName(codeLocation1.getMethodName())
+          .setLineNumber(codeLocation1.getLineNumber() + 1))
+      .build();
+    //noinspection ConstantConditions
+    AllocationStack callstack2 = AllocationStack.newBuilder()
+      .addStackFrames(
+        AllocationStack.StackFrame.newBuilder()
+          .setClassName(codeLocation3.getClassName())
+          .setMethodName(codeLocation3.getMethodName())
+          .setLineNumber(codeLocation3.getLineNumber() + 1))
+      .addStackFrames(
+        AllocationStack.StackFrame.newBuilder()
+          .setClassName(codeLocation1.getClassName())
+          .setMethodName(codeLocation1.getMethodName())
+          .setLineNumber(codeLocation1.getLineNumber() + 1))
+      .build();
+    //noinspection ConstantConditions
+    AllocationStack callstack3 = AllocationStack.newBuilder()
+      .addStackFrames(
+        AllocationStack.StackFrame.newBuilder()
+          .setClassName(codeLocation4.getClassName())
+          .setMethodName(codeLocation4.getMethodName())
+          .setLineNumber(codeLocation4.getLineNumber() + 1))
+      .build();
+
+    List<InstanceObject> mockClass1Instances = new ArrayList<>();
+    List<InstanceObject> mockClass2Instances = new ArrayList<>();
+    List<InstanceObject> mockClass3Instances = new ArrayList<>();
+
+    ClassObject mockClass1 = mockClassObject("com.android.studio.Foo", 8, 2, 104, mockClass1Instances);
+    ClassObject mockClass2 = mockClassObject("int[]", 1, 2, 3, mockClass2Instances);
+    ClassObject mockClass3 = mockClassObject("com.google.Bar", 8, 2, 16, mockClass3Instances);
+    HeapObject mockHeap = mockHeapObject("app heap", Arrays.asList(mockClass1, mockClass2, mockClass3));
+
+    InstanceObject mockInstance1 =
+      mockInstanceObject("com.android.studio.Foo", "instance1", "toString: instance1", callstack1, mockClass1, 2, 2, 2, 16);
+    InstanceObject mockInstance2 =
+      mockInstanceObject("com.android.studio.Foo", "instance2", "toString: instance2", callstack1, mockClass1, 2, 2, 2, 24);
+    InstanceObject mockInstance3 =
+      mockInstanceObject("com.android.studio.Foo", "instance3", "toString: instance3", callstack1, mockClass1, 2, 2, 2, 16);
+    InstanceObject mockInstance4 =
+      mockInstanceObject("com.android.studio.Foo", "instance4", "toString: instance4", callstack2, mockClass1, 2, 2, 2, 16);
+    InstanceObject mockInstance5 =
+      mockInstanceObject("com.android.studio.Foo", "instance5", "toString: instance5", callstack2, mockClass1, 2, 2, 2, 16);
+    InstanceObject mockInstance6 =
+      mockInstanceObject("com.android.studio.Foo", "instance6", "toString: instance6", callstack3, mockClass1, 2, 2, 2, 16);
+    InstanceObject mockInstance7 =
+      mockInstanceObject("com.google.Bar", "instance7", "toString: instance7", callstack3, mockClass3, 2, 2, 2, 16);
+    InstanceObject mockInstance8 =
+      mockInstanceObject("int[]", "int instance", "toString: int instance", null, mockClass2, 0, 2, 8, 8);
+
+    mockClass1Instances.addAll(Arrays.asList(mockInstance1, mockInstance2, mockInstance3, mockInstance4, mockInstance5, mockInstance6));
+    mockClass2Instances.add(mockInstance8);
+    mockClass3Instances.add(mockInstance7);
+
+    myStage.selectHeap(mockHeap);
+
+    assertEquals(myStage.getConfiguration().getClassGrouping(), ARRANGE_BY_CLASS);
+    assertNull(myStage.getSelectedClass());
+
+    JTree classTree = classView.getTree();
+    assertNotNull(classTree);
+    Object rootObject = classTree.getModel().getRoot();
+    assertTrue(rootObject instanceof MemoryObjectTreeNode);
+    assertTrue(((MemoryObjectTreeNode)rootObject).getAdapter() instanceof NamespaceObject);
+    //noinspection unchecked
+    MemoryObjectTreeNode<NamespaceObject> root = (MemoryObjectTreeNode<NamespaceObject>)rootObject;
+    assertEquals(3, root.getChildCount());
+
+    MemoryObjectTreeNode<NamespaceObject> class1Node = getSingularInList(root.getChildren(), child -> child.getAdapter() == mockClass1);
+    assertTrue(class1Node.getAdapter().hasStackInfo());
+    MemoryObjectTreeNode<NamespaceObject> class2Node = getSingularInList(root.getChildren(), child -> child.getAdapter() == mockClass2);
+    assertFalse(class2Node.getAdapter().hasStackInfo());
+    MemoryObjectTreeNode<NamespaceObject> class3Node = getSingularInList(root.getChildren(), child -> child.getAdapter() == mockClass3);
+    assertTrue(class3Node.getAdapter().hasStackInfo());
+
+    myStage.getConfiguration().setClassGrouping(ARRANGE_BY_PACKAGE);
+    assertEquals(2, root.getChildCount());
+    class2Node = getSingularInList(root.getChildren(), child -> child.getAdapter() == mockClass2);
+    assertFalse(class2Node.getAdapter().hasStackInfo());
+    MemoryObjectTreeNode<NamespaceObject> comNode = getSingularInList(root.getChildren(), child -> (child.getAdapter() instanceof PackageObject) && ((PackageObject)child.getAdapter()).getName().equals("com"));
+    assertTrue(comNode.getAdapter().hasStackInfo());
+  }
+
+  @Test
   public void groupByStackTraceTest() {
     MemoryClassView classView = new MemoryClassView(myStage, myFakeIdeProfilerComponents);
 
@@ -247,10 +350,11 @@ public class MemoryClassViewTest {
       .build();
 
     List<InstanceObject> mockClass1List = new ArrayList<>();
+    List<InstanceObject> mockClass2List = new ArrayList<>();
     List<InstanceObject> mockClass3List = new ArrayList<>();
 
     ClassObject mockClass1 = mockClassObject("com.android.studio.Foo", 8, 2, 104, mockClass1List);
-    ClassObject mockClass2 = mockClassObject("int", 1, 2, 3, Collections.emptyList());
+    ClassObject mockClass2 = mockClassObject("int[]", 1, 2, 3, mockClass2List);
     ClassObject mockClass3 = mockClassObject("com.google.Bar", 8, 2, 16, mockClass3List);
     HeapObject mockHeap = mockHeapObject("app heap", Arrays.asList(mockClass1, mockClass2, mockClass3));
 
@@ -268,17 +372,20 @@ public class MemoryClassViewTest {
       mockInstanceObject("com.android.studio.Foo", "instance6", "toString: instance6", callstack3, mockClass1, 2, 2, 2, 16);
     InstanceObject mockInstance7 =
       mockInstanceObject("com.google.Bar", "instance7", "toString: instance7", callstack3, mockClass3, 2, 2, 2, 16);
+    InstanceObject mockInstance8 =
+      mockInstanceObject("int[]", "int instance", "toString: int instance", null, mockClass2, 0, 2, 8, 8);
 
     mockClass1List.addAll(Arrays.asList(mockInstance1, mockInstance2, mockInstance3, mockInstance4, mockInstance5, mockInstance6));
+    mockClass2List.add(mockInstance8);
     mockClass3List.add(mockInstance7);
 
     myStage.selectHeap(mockHeap);
 
     assertEquals(myStage.getConfiguration().getClassGrouping(), ARRANGE_BY_CLASS);
     assertNull(myStage.getSelectedClass());
-    assertNotNull(classView.getTree());
 
     JTree classTree = classView.getTree();
+    assertNotNull(classTree);
     Object rootObject = classTree.getModel().getRoot();
     assertTrue(rootObject instanceof MemoryObjectTreeNode);
     assertTrue(((MemoryObjectTreeNode)rootObject).getAdapter() instanceof NamespaceObject);
@@ -288,7 +395,7 @@ public class MemoryClassViewTest {
 
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CALLSTACK);
     assertEquals(root, classTree.getModel().getRoot());
-    assertEquals(2, root.getChildCount());
+    assertEquals(3, root.getChildCount());
 
     MemoryObjectTreeNode<NamespaceObject> codeLocation1Node =
       getSingularInList(root.getChildren(), child -> (child.getAdapter() instanceof MethodObject) &&

@@ -33,6 +33,12 @@ public class ProfilerIcons {
 
   public static final Icon HEAP_DUMP = load("/icons/heap-dump.png");
 
+  public static final Icon CLASS_STACK = load("/icons/stack-class.png");
+
+  public static final Icon INTERFACE_STACK = load("/icons/stack-interface.png");
+
+  public static final Icon PACKAGE_STACK = load("/icons/stack-package.png");
+
   // Collections of constant, do not instantiate.
   private ProfilerIcons() {}
 

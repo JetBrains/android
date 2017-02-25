@@ -154,6 +154,8 @@ public abstract class MemoryProfilerTestBase {
     when(object.getInstances()).thenReturn(instances);
     when(object.isInNamespace(any())).thenCallRealMethod();
     when(object.getInstanceAttributes()).thenReturn(Arrays.asList(InstanceObject.InstanceAttribute.values()));
+    when(object.hasStackInfo()).thenAnswer(invocationOnMock ->
+      instances.stream().anyMatch(instance -> instance.getCallStack() != null && instance.getCallStack().getStackFramesCount() > 0));
     return object;
   }
 
@@ -223,7 +225,8 @@ public abstract class MemoryProfilerTestBase {
                                                            long retainedSize,
                                                            int instancesCount) {
     List<InstanceObject> instances = IntStream.range(0, instancesCount)
-      .mapToObj(i -> mockInstanceObject(className, "instance" + i, null, null, null, 0, 0, shallowSize, retainedSize / (long)instancesCount))
+      .mapToObj(
+        i -> mockInstanceObject(className, "instance" + i, null, null, null, 0, 0, shallowSize, retainedSize / (long)instancesCount))
       .collect(toList());
     return mockClassObject(className, size, shallowSize, retainedSize, instances);
   }

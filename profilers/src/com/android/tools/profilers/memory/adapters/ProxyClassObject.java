@@ -27,6 +27,7 @@ public class ProxyClassObject extends ClassObject {
   private int myTotalCount;
   private int myHeapCount;
   private long myRetainedSize;
+  private boolean myHasStackInfo;
 
   public ProxyClassObject(@NotNull ClassObject classObject, @NotNull InstanceObject instanceObject) {
     super(classObject.getName());
@@ -35,6 +36,7 @@ public class ProxyClassObject extends ClassObject {
     myTotalCount = 1;
     myHeapCount = 1;
     myRetainedSize = instanceObject.getRetainedSize();
+    myHasStackInfo = instanceObject.getCallStack() != null;
   }
 
   @NotNull
@@ -96,5 +98,6 @@ public class ProxyClassObject extends ClassObject {
     myHeapCount += 1;
     myTotalCount += 1;
     myRetainedSize += Math.max(instanceObject.getRetainedSize(), 0);
+    myHasStackInfo |= instanceObject.getCallStack() != null;
   }
 }

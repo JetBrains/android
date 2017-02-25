@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerIcons;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.ThreadId;
@@ -479,7 +480,7 @@ final class MemoryClassView extends AspectObserver {
 
         MemoryObjectTreeNode node = (MemoryObjectTreeNode)value;
         if (node.getAdapter() instanceof ClassObject) {
-          setIcon(PlatformIcons.CLASS_ICON);
+          setIcon(((ClassObject)node.getAdapter()).hasStackInfo() ? ProfilerIcons.CLASS_STACK : PlatformIcons.CLASS_ICON);
           ClassObject classObject;
           if (node.getAdapter() instanceof ClassObject) {
             classObject = (ClassObject)node.getAdapter();
@@ -498,8 +499,8 @@ final class MemoryClassView extends AspectObserver {
           }
         }
         else if (node.getAdapter() instanceof PackageObject) {
-          setIcon(PlatformIcons.PACKAGE_ICON);
           NamespaceObject adapter = (NamespaceObject)node.getAdapter();
+          setIcon(adapter.hasStackInfo() ? ProfilerIcons.PACKAGE_STACK : PlatformIcons.PACKAGE_ICON);
           String name = adapter.getName();
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }

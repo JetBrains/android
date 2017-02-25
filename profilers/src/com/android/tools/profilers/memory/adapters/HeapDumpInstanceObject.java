@@ -267,7 +267,7 @@ class HeapDumpInstanceObject implements InstanceObject {
   @Nullable
   @Override
   public AllocationStack getCallStack() {
-    if (myInstance == null) {
+    if (myInstance == null || myInstance.getStack() == null) {
       return null;
     }
 

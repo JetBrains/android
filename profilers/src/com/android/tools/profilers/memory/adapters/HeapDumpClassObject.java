@@ -31,6 +31,8 @@ final class HeapDumpClassObject extends ClassObject {
   @NotNull private final ClassObj myClassObj;
   @NotNull private final HeapDumpHeapObject myHeapObject;
   private long myRetainedSize;
+  private final boolean myHasStackInfo;
+
 
   @Nullable
   private List<InstanceObject> myInstanceObjects = null;
@@ -42,6 +44,8 @@ final class HeapDumpClassObject extends ClassObject {
     for (Instance instance : myClassObj.getHeapInstances(myHeapObject.getHeap().getId())) {
       myRetainedSize += instance.getTotalRetainedSize();
     }
+    myHasStackInfo =
+      getInstances().stream().anyMatch(instance -> instance.getCallStack() != null && instance.getCallStack().getStackFramesCount() > 0);
   }
 
   @Override
@@ -110,5 +114,10 @@ final class HeapDumpClassObject extends ClassObject {
     return Arrays
       .asList(InstanceObject.InstanceAttribute.LABEL, InstanceObject.InstanceAttribute.DEPTH, InstanceObject.InstanceAttribute.SHALLOW_SIZE,
               InstanceObject.InstanceAttribute.RETAINED_SIZE);
+  }
+
+  @Override
+  public boolean hasStackInfo() {
+    return myHasStackInfo;
   }
 }
