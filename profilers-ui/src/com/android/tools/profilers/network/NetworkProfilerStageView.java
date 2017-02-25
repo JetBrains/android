@@ -21,7 +21,6 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.common.ProfilerButton;
 import com.android.tools.profilers.event.EventMonitorView;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -161,7 +160,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   }
 
   private void updateConnectionDetailsView() {
-    myConnectionDetails.update(getStage().getSelectedConnection());
+    myConnectionDetails.setHttpData(getStage().getSelectedConnection());
   }
 
   private void onSelectionChanged(ChangeEvent event) {
