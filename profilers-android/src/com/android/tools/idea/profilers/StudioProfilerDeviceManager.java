@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.android.ddmlib.IDevice.CHANGE_STATE;
+import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_JVMTI_PROFILING;
 
 /**
  * Manages the interactions between DDMLIB provided devices, and what is needed to spawn ProfilerClient's.
@@ -57,6 +58,8 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
   private static final int MAX_MESSAGE_SIZE = 512 * 1024 * 1024 - 1;
   private static final int DEVICE_PORT = 12389;
+  // On-device daemon uses Unix abstract socket for O and future devices.
+  private static final String DEVICE_SOCKET_NAME = "AndroidStudioProfiler";
 
   @NotNull
   private final DataStoreService myDataStoreService;
@@ -162,34 +165,16 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
           // Development mode
           dir = new File(PathManager.getHomePath(), "../../out/studio/native/out/release");
         }
+        String deviceDir = "/data/local/tmp/perfd/";
+        copyFileToDevice("perfd", dir, deviceDir, true);
 
-        File perfd = null;
-        for (String abi : myDevice.getAbis()) {
-          File candidate = new File(dir, abi + "/perfd");
-          if (candidate.exists()) {
-            perfd = candidate;
-            break;
-          }
+        // Perfd's command line argument is a temporary workaround to tell perfd whether jvmti is used.
+        // TODO: remove perfdArguments after agent uses only JVMTI to instrument bytecode on O+ devices.
+        String perfdArguments = "";
+        if (myDevice.getVersion().getFeatureLevel() >= 26 && ENABLE_JVMTI_PROFILING) {
+          perfdArguments = " -use_jvmti";
         }
-
-        // TODO: Handle the case where we don't have perfd for this platform.
-        assert perfd != null;
-        // TODO: Add debug support for development
-        String devicePath = "/data/local/tmp/perfd/";
-        myDevice.executeShellCommand("mkdir -p " + devicePath, new NullOutputReceiver());
-        myDevice.pushFile(perfd.getAbsolutePath(), devicePath + "/perfd");
-
-        /*
-         * In older devices, chmod letter usage isn't fully supported but CTS tests have been added for it since.
-         * Hence we first try the letter scheme which is guaranteed in newer devices, and fall back to the octal scheme only if necessary.
-         */
-        ChmodOutputListener chmodListener = new ChmodOutputListener();
-        myDevice.executeShellCommand("chmod +x " + devicePath + "perfd", chmodListener);
-        if (chmodListener.hasErrors()) {
-          myDevice.executeShellCommand("chmod 777 " + devicePath + "perfd", new NullOutputReceiver());
-        }
-
-        myDevice.executeShellCommand(devicePath + "perfd", new IShellOutputReceiver() {
+        myDevice.executeShellCommand(deviceDir + "perfd" + perfdArguments, new IShellOutputReceiver() {
           @Override
           public void addOutput(byte[] data, int offset, int length) {
             String s = new String(data, offset, length, Charsets.UTF_8);
@@ -214,6 +199,43 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
         getLogger().info("Terminating perfd thread");
       }
+      catch (TimeoutException | AdbCommandRejectedException | ShellCommandUnresponsiveException | IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    /**
+     * Copies a file from host (where Studio is running) to the device. Optionally marks it executable.
+     */
+    private void copyFileToDevice(String fileName, File hostDir, String deviceDir, boolean markItExecutable) {
+      try {
+        File file = null;
+        for (String abi : myDevice.getAbis()) {
+          File candidate = new File(hostDir, abi + "/" + fileName);
+          if (candidate.exists()) {
+            file = candidate;
+            break;
+          }
+        }
+
+        // TODO: Handle the case where we don't have file for this platform.
+        assert file != null;
+        // TODO: Add debug support for development
+        myDevice.executeShellCommand("mkdir -p " + deviceDir, new NullOutputReceiver());
+        myDevice.pushFile(file.getAbsolutePath(), deviceDir + fileName);
+
+        if (markItExecutable) {
+          /*
+           * In older devices, chmod letter usage isn't fully supported but CTS tests have been added for it since.
+           * Hence we first try the letter scheme which is guaranteed in newer devices, and fall back to the octal scheme only if necessary.
+           */
+          ChmodOutputListener chmodListener = new ChmodOutputListener();
+          myDevice.executeShellCommand("chmod +x " + deviceDir + fileName, chmodListener);
+          if (chmodListener.hasErrors()) {
+            myDevice.executeShellCommand("chmod 777 " + deviceDir + fileName, new NullOutputReceiver());
+          }
+        }
+      }
       catch (TimeoutException | AdbCommandRejectedException | SyncException | ShellCommandUnresponsiveException | IOException e) {
         throw new RuntimeException(e);
       }
@@ -222,7 +244,12 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     private void createPerfdProxy() {
       try {
         myLocalPort = NetUtils.findAvailableSocketPort();
-        myDevice.createForward(myLocalPort, DEVICE_PORT);
+        if (myDevice.getVersion().getFeatureLevel() >= 26 && ENABLE_JVMTI_PROFILING) {
+          myDevice.createForward(myLocalPort, DEVICE_SOCKET_NAME,
+                                 IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+        } else {
+          myDevice.createForward(myLocalPort, DEVICE_PORT);
+        }
         if (myLocalPort < 0) {
           return;
         }
