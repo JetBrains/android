@@ -16,11 +16,14 @@
 package com.android.tools.idea.explorer;
 
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
+import com.android.tools.idea.explorer.ui.TreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * A {@link DefaultMutableTreeNode} model for a {@link DeviceFileEntry}
@@ -139,15 +142,19 @@ public class DeviceFileEntryNode extends DefaultMutableTreeNode {
     return myTotalTransferredBytes;
   }
 
+  @NotNull
+  public List<DeviceFileEntryNode> getChildEntryNodes() {
+    return TreeUtil.getChildren(this)
+      .map(DeviceFileEntryNode::fromNode)
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
+  }
+
+  @Nullable
   public DeviceFileEntryNode findChildEntry(@NotNull String name) {
-    for (int i = 0; i < getChildCount(); i++) {
-      if (getChildAt(i) instanceof DeviceFileEntryNode) {
-        DeviceFileEntryNode childEntry = ((DeviceFileEntryNode)getChildAt(i));
-        if (Objects.equals(childEntry.getEntry().getName(), name)) {
-          return childEntry;
-        }
-      }
-    }
-    return null;
+    return getChildEntryNodes().stream()
+      .filter(x -> Objects.equals(x.getEntry().getName(), name))
+      .findFirst()
+      .orElse(null);
   }
 }

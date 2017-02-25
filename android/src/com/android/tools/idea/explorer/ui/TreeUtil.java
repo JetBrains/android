@@ -18,14 +18,51 @@ package com.android.tools.idea.explorer.ui;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
-import java.util.ArrayList;
-import java.util.List;
+import javax.swing.tree.*;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class TreeUtil {
+  /**
+   * Returns a {@link Stream}&lt;{@link TreeNode}&gt; over the children of the given {@code node}
+   */
+  @NotNull
+  public static Stream<TreeNode> getChildren(@NotNull TreeNode node) {
+    Enumeration e = node.children();
+    return StreamSupport.stream(
+      Spliterators.spliterator(
+        new Iterator<TreeNode>() {
+          @Override
+          public TreeNode next() {
+            return (TreeNode)e.nextElement();
+          }
+          @Override
+          public boolean hasNext() {
+            return e.hasMoreElements();
+          }
+        },
+        node.getChildCount(), Spliterator.ORDERED), false);
+  }
+
+  /**
+   * Returns the {@link @TreePath} representing the largest path, starting at the root node, common
+   * to all elements of {@code treeNodes} list.
+   * <p>Example: Given {@code [a, b, c, e]} and {@code [a, b, f]}, the method returns the path {@code [a, b]}.
+   */
+  @Nullable
+  public static <V extends DefaultMutableTreeNode> TreePath getCommonPath(@NotNull List<V> treeNodes) {
+    if (treeNodes.isEmpty()) {
+      return null;
+    }
+    TreePath[] paths = treeNodes.stream()
+      .map(DefaultMutableTreeNode::getPath)
+      .map(TreePath::new)
+      .toArray(TreePath[]::new);
+    return com.intellij.util.ui.tree.TreeUtil.findCommonPath(paths);
+  }
+
   public interface UpdateChildrenOps<T extends MutableTreeNode, U> {
     /** Returns a child node if it is of type {@link T}, or {@code null} otherwise */
     @Nullable
