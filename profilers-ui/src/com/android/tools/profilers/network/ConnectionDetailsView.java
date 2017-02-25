@@ -128,7 +128,7 @@ public class ConnectionDetailsView extends JPanel {
     myTabsPanel.addTab("Call Stack", myStackTraceView.getComponent());
 
     IconButton closeIcon = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
-    InplaceButton closeButton = new InplaceButton(closeIcon, e -> this.update((HttpData)null));
+    InplaceButton closeButton = new InplaceButton(closeIcon, e -> this.setHttpData(null));
     closeButton.setMinimumSize(closeButton.getPreferredSize()); // Prevent layout phase from squishing this button
 
     rootPanel.add(closeButton, new TabularLayout.Constraint(0, 1));
@@ -138,10 +138,10 @@ public class ConnectionDetailsView extends JPanel {
   }
 
   /**
-   * Updates the view to show given data. If given {@code httpData} is not null, show the details and set the view to be visible;
-   * otherwise, clears the view and set view to be invisible.
+   * Updates the view to show given data. If {@code httpData} is {@ocde null}, this clears the view
+   * and closes it.
    */
-  public void update(@Nullable HttpData httpData) {
+  public void setHttpData(@Nullable HttpData httpData) {
     setBackground(JBColor.background());
     myResponsePanel.removeAll();
     myHeadersPanel.removeAll();
