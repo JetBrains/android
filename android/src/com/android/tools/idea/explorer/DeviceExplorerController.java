@@ -55,6 +55,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -1162,6 +1163,19 @@ public class DeviceExplorerController {
         public void onSuccess(List<DeviceFileEntry> result) {
           // Save selection
           TreePath[] oldSelections = getTreeSelectionModel().getSelectionPaths();
+
+          // Collect existing entries that have the "isLinkToDirectory" property set
+          Set<String> isLinkToDirectory = node.getChildEntryNodes().stream()
+            .filter(DeviceFileEntryNode::isSymbolicLinkToDirectory)
+            .map(x -> x.getEntry().getName())
+            .collect(Collectors.toSet());
+
+          // Sort new entries according to presentation sort order
+          Comparator<DeviceFileEntry> comparator = NodeSorting.getCustomComparator(
+            DeviceFileEntry::getName,
+            x -> x.isDirectory() || isLinkToDirectory.contains(x.getName()));
+          result.sort(comparator);
+
           List<DeviceFileEntryNode> addedNodes = updateChildrenNodes(treeModel, node, result);
 
           // Restore selection
@@ -1176,8 +1190,10 @@ public class DeviceExplorerController {
 
         @Override
         public void onFailure(@NotNull Throwable t) {
-          String message = String.format("Unable to list entries of directory %s", getUserFacingNodeName(node));
-          myView.reportErrorRelatedToNode(node, message, t);
+          String message = ExceptionUtil.getRootCause(t).getMessage();
+          if (StringUtil.isEmpty(message)) {
+            message = String.format("Unable to list entries of directory %s", getUserFacingNodeName(node));
+          }
 
           node.removeAllChildren();
           node.add(new ErrorNode(message));
@@ -1291,8 +1307,25 @@ public class DeviceExplorerController {
           // Update tree node appearance (in case of "null"" result, we assume the entry
           // does not target a directory).
           boolean isDirectory = result != null && result;
-          treeNode.setSymbolicLinkToDirectory(isDirectory);
-          treeModel.nodeStructureChanged(treeNode);
+
+          if (treeNode.isSymbolicLinkToDirectory() != isDirectory) {
+            MutableTreeNode parent = (MutableTreeNode)treeNode.getParent();
+
+            // Remove element from tree at current position (assume tree is sorted)
+            int previousIndex = TreeUtil.binarySearch(parent, treeNode, NodeSorting.getTreeNodeComparator());
+            if (previousIndex >= 0) {
+              treeModel.removeNodeFromParent(treeNode);
+            }
+
+            // Update node state (is-link-to-directory)
+            treeNode.setSymbolicLinkToDirectory(isDirectory);
+
+            // Insert node in its new position
+            int newIndex = TreeUtil.binarySearch(parent, treeNode, NodeSorting.getTreeNodeComparator());
+            if (newIndex < 0) {
+              treeModel.insertNodeInto(treeNode, parent, -(newIndex + 1));
+            }
+          }
         });
         return myEdtExecutor.transform(futureIsLinkToDirectory, aBoolean -> null);
       });
@@ -1353,6 +1386,73 @@ public class DeviceExplorerController {
         }
       });
       myLoadingChildrenAlarms.addRequest(new MyLoadingChildrenRepaint(), myTransferringNodeRepaintMillis);
+    }
+  }
+
+  private static class NodeSorting {
+    /**
+     * Compare {@link DeviceFileEntryNode} by directory first, by name second.
+     */
+    @NotNull
+    public static Comparator<DeviceFileEntryNode> getEntryNodeComparator() {
+      return getCustomComparator(x -> x.getEntry().getName(), o1 -> o1.getEntry().isDirectory() || o1.isSymbolicLinkToDirectory());
+    }
+
+    /**
+     * Compare {@link TreeNode} as {@link DeviceFileEntryNode}. Any other type of tree node
+     * is considered "less than".
+     */
+    @NotNull
+    public static Comparator<TreeNode> getTreeNodeComparator() {
+      return (o1, o2) -> {
+        if (o1 instanceof DeviceFileEntryNode && o2 instanceof DeviceFileEntryNode) {
+          return getEntryNodeComparator().compare((DeviceFileEntryNode)o1, (DeviceFileEntryNode)o2);
+        }
+        else if (o1 instanceof DeviceFileEntryNode) {
+          return 1;
+        }
+        else if (o2 instanceof DeviceFileEntryNode) {
+          return -1;
+        }
+        else {
+          return 0;
+        }
+      };
+    }
+
+    /**
+     * Apply the same ordering as {@link NodeSorting#getEntryNodeComparator()} on any
+     * object type given a custom {@code isDirectory} predicate and @{link getName}
+     * function.
+     */
+    @NotNull
+    public static <V> Comparator<V> getCustomComparator(@NotNull Function<V, String> nameProvider,
+                                                        @NotNull Predicate<V> isDirectory) {
+      // Compare so that directory are always before files
+      return (o1, o2) -> {
+        if (o1 == null && o2 == null) {
+          return 0;
+        }
+        else if (o1 == null) {
+          return -1;
+        }
+        else if (o2 == null) {
+          return 1;
+        }
+        else {
+          boolean isDir1 = isDirectory.test(o1);
+          boolean isDir2 = isDirectory.test(o2);
+          if (isDir1 == isDir2) {
+            return StringUtil.compare(nameProvider.apply(o1), nameProvider.apply(o2), true);
+          }
+          else if (isDir1) {
+            return -1;
+          }
+          else {
+            return 1;
+          }
+        }
+      };
     }
   }
 }
