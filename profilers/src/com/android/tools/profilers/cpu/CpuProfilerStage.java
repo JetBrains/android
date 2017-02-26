@@ -23,7 +23,6 @@ import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
@@ -121,9 +120,6 @@ public class CpuProfilerStage extends Stage {
   @Nullable
   private CaptureDetails myCaptureDetails;
 
-  @Nullable
-  private CodeLocation myCodeLocation;
-
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
     myCpuTraceDataSeries = new CpuTraceDataSeries();
@@ -209,10 +205,6 @@ public class CpuProfilerStage extends Stage {
     getStudioProfilers().getUpdater().unregister(myThreadsStates);
   }
 
-  @Override
-  public ProfilerMode getProfilerMode() {
-    return myCodeLocation != null || myCapture == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED;
-  }
 
   public AspectModel<CpuProfilerAspect> getAspect() {
     return myAspect;
@@ -296,6 +288,8 @@ public class CpuProfilerStage extends Stage {
       getStudioProfilers().modeChanged();
     }
     myAspect.changed(CpuProfilerAspect.CAPTURE);
+
+    setProfilerMode(myCapture == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED);
   }
 
   public void setAndSelectCapture(@Nullable CpuCapture capture) {
@@ -394,9 +388,9 @@ public class CpuProfilerStage extends Stage {
     else {
       myCaptureDetails = null;
     }
-
-    setCodeLocation(null);
     myAspect.changed(CpuProfilerAspect.CAPTURE_DETAILS);
+
+    setProfilerMode(myCapture == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED);
   }
 
   @Nullable
@@ -404,9 +398,8 @@ public class CpuProfilerStage extends Stage {
     return myCaptureDetails;
   }
 
-  public void setCodeLocation(@Nullable CodeLocation location) {
-    myCodeLocation = location;
-    getStudioProfilers().modeChanged();
+  public void handleNavigatedToCode() {
+    setProfilerMode(ProfilerMode.NORMAL);
   }
 
   public interface CaptureDetails {

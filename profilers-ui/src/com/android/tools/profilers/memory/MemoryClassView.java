@@ -227,7 +227,7 @@ final class MemoryClassView extends AspectObserver {
         }
         return null;
       },
-      () -> myStage.setProfilerMode(ProfilerMode.NORMAL));
+      myStage::handleNavigatedToCode);
 
     assert myHeapObject != null;
     List<ClassAttribute> attributes = myHeapObject.getClassAttributes();

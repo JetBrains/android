@@ -20,8 +20,10 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.common.*;
+import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.ContextMenuItem;
+import com.android.tools.profilers.common.StackTraceView;
+import com.android.tools.profilers.common.TabsPanel;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute;
@@ -73,13 +75,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     myIdeProfilerComponents = ideProfilerComponents;
 
     myTabsPanel = ideProfilerComponents.createTabsPanel();
-    myStackTraceView = ideProfilerComponents.createStackView(new StackTraceModel());
-    myStackTraceView.getModel().addDependency(this).onChange(
-      StackTraceModel.Aspect.SELECTED_LOCATION, () -> {
-        if (myStackTraceView.getModel().getSelectedType() == StackTraceModel.Type.STACK_FRAME) {
-          myStage.setProfilerMode(ProfilerMode.NORMAL);
-        }
-      });
+    myStackTraceView = ideProfilerComponents.createStackView(stage.getStackTraceModel());
 
     myAttributeColumns.put(
       InstanceObject.InstanceAttribute.LABEL,
@@ -282,7 +278,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
       InstanceObject instanceObject = (InstanceObject)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
       return new CodeLocation(instanceObject.getClassName());
-    }, () -> myStage.setProfilerMode(ProfilerMode.NORMAL));
+    }, myStage::handleNavigatedToCode);
 
     myIdeProfilerComponents.installContextMenu(tree, new ContextMenuItem() {
       @NotNull
