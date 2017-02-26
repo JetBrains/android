@@ -53,6 +53,8 @@ public class ProfilerTimelineTest {
     timeline.setStreaming(true);
     assertTrue(timeline.canStream());
     assertTrue(timeline.isStreaming());
+    // Give time to update
+    timeline.update(TimeUnit.SECONDS.toNanos(10));
     assertEquals(dataRange.getMax(), viewRange.getMax(), 0);
     assertEquals(10, viewRange.getLength(), 0);
 
