@@ -18,6 +18,7 @@ package com.android.tools.profilers.network;
 import com.android.testutils.TestResources;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.common.StackTraceModel;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +51,8 @@ public class ConnectionDetailsViewTest {
 
   @Before
   public void before() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
     NetworkProfilerStage stage = new NetworkProfilerStage(profilers);
     StudioProfilersView view = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     profilers.setStage(stage);
