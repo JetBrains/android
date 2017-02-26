@@ -115,8 +115,13 @@ class CpuCaptureView {
     CpuTraceTreeSorter sorter = new CpuTraceTreeSorter(tree);
     sorter.setModel(model, DEFAULT_SORT_ORDER);
 
-    stageView.getIdeComponents().installNavigationContextMenu(tree, () -> getCodeLocation(tree),
-                                                           () -> stageView.getStage().setCodeLocation(getCodeLocation(tree)));
+    stageView.getIdeComponents().installNavigationContextMenu(
+      tree, () -> getCodeLocation(tree),
+      () -> {
+        if (getCodeLocation(tree) != null) {
+          stageView.getStage().handleNavigatedToCode();
+        }
+      });
 
     return new ColumnTreeBuilder(tree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()

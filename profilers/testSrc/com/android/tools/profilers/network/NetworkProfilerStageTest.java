@@ -291,31 +291,24 @@ public class NetworkProfilerStageTest {
     assertEquals(2, data.getStackTrace().getCodeLocations().size());
     myStage.getStackTraceModel().setStackFrames(data.getStackTrace().getTrace());
 
-    final boolean[] navigated = {false};
+    final boolean[] stackTraceSelectionChanged = {false};
     AspectObserver observer = new AspectObserver();
     myStage.getStackTraceModel().addDependency(observer)
-      .onChange(StackTraceModel.Aspect.SELECTED_LOCATION, () -> navigated[0] = true);
+      .onChange(StackTraceModel.Aspect.SELECTED_LOCATION, () -> stackTraceSelectionChanged[0] = true);
 
-    final boolean[] modeChanged = {false};
-    myStage.getStudioProfilers().addDependency(observer).onChange(ProfilerAspect.MODE, () -> modeChanged[0] = true);
-
-    // This expands profiler mode
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myStage.getStudioProfilers().getTimeline().getSelectionRange().set(0, 10);
-
-    assertFalse(navigated[0]);
-    assertFalse(modeChanged[0]);
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+
+    assertFalse(stackTraceSelectionChanged[0]);
     myStage.getStackTraceModel().setSelectedIndex(0);
-    assertTrue(navigated[0]);
-    assertTrue(modeChanged[0]);
+    assertTrue(stackTraceSelectionChanged[0]);
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
 
-    navigated[0] = false;
-    modeChanged[0] = false;
+    stackTraceSelectionChanged[0] = false;
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myStage.getStackTraceModel().clearSelection();
-    assertTrue(navigated[0]);
-    assertTrue(modeChanged[0]);
+    assertTrue(stackTraceSelectionChanged[0]);
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
   }
 
