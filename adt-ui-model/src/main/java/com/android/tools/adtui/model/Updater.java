@@ -130,7 +130,7 @@ public class Updater implements StopwatchTimer.TickHandler {
     }
   }
 
-  public static double lerp(double from, double to, float fraction, long frameLengthNs, float threshold) {
+  public static double lerp(double from, double to, float fraction, long frameLengthNs, double threshold) {
     if (Math.abs(to - from) < threshold) {
       return to;
     }
@@ -139,5 +139,9 @@ public class Updater implements StopwatchTimer.TickHandler {
       double q = Math.pow(1.0f - fraction, length);
       return from * q + to * (1.0 - q);
     }
+  }
+
+  public static double lerp(double a, double b, float factor) {
+    return a * (1.0f - factor) + b * factor;
   }
 }
