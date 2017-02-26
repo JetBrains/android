@@ -42,6 +42,11 @@ public class AdbDeviceFileEntry implements DeviceFileEntry {
     myParent = parent;
   }
 
+  @Override
+  public String toString() {
+    return String.format("%s: %s", myEntry.getKind(), myEntry.getName());
+  }
+
   @NotNull
   @Override
   public DeviceFileSystem getFileSystem() {

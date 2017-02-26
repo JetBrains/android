@@ -342,17 +342,27 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   public void testExpandChildrenFailure() throws InterruptedException, ExecutionException, TimeoutException {
     // Prepare
     DeviceExplorerController controller = createController();
-    String errorMessage = "<Expected test error>";
-    myDevice1.getRoot().setGetEntriesError(new RuntimeException(errorMessage));
-
-    // Act
     controller.setup();
     pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
-    String loadingError = pumpEventsAndWaitForFuture(myMockView.getReportErrorRelatedToNodeTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+    String errorMessage = "<Expected test error>";
+    myFoo.setGetEntriesError(new RuntimeException(errorMessage));
+    SettableFuture<TreePath> nodeExpandedFuture = createNodeExpandedFuture(myFoo);
+
+    // Act
+    expandEntry(myFoo);
+    pumpEventsAndWaitForFuture(nodeExpandedFuture);
 
     // Assert
-    assertNotNull(loadingError);
-    assertTrue(loadingError.contains(errorMessage));
+    Object fooNode = getFileEntryPath(myFoo).getLastPathComponent();
+    assertNotNull(fooNode);
+    assertInstanceOf(fooNode, TreeNode.class);
+    assertTrue(((TreeNode)fooNode).getChildCount() == 1);
+
+    Object errorNode = ((TreeNode)fooNode).getChildAt(0);
+    assertNotNull(errorNode);
+    assertInstanceOf(errorNode, ErrorNode.class);
+    assertEquals(errorMessage, ((ErrorNode)errorNode).getText());
   }
 
   public void testDownloadFileWithEnterKey() throws Exception {
@@ -1426,24 +1436,17 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
           return false;
         }
 
+        if (entryNode.getChildCount() == 1 && entryNode.getChildAt(0) instanceof ErrorNode) {
+          return true;
+        }
+
         if (entryNode.getChildCount() != entry.getMockEntries().size()) {
           return false;
         }
 
-        for (int i = 0; i < entryNode.getChildCount(); i++) {
-          DeviceFileEntryNode childNode = DeviceFileEntryNode.fromNode(entryNode.getChildAt(i));
-          if (childNode == null) {
-            // It could be the "Loading..." node
-            return false;
-          }
-
-          if (!Objects.equals(childNode.getEntry().getName(), entry.getMockEntries().get(i).getName())) {
-            return false;
-          }
-        }
-
-        // All children are equal, the parent node is fully expanded!
-        return true;
+        Set<String> nodes = entryNode.getChildEntryNodes().stream().map(x -> x.getEntry().getName()).collect(Collectors.toSet());
+        Set<String> entries = entry.getMockEntries().stream().map(MockDeviceFileEntry::getName).collect(Collectors.toSet());
+        return nodes.equals(entries);
       }
     };
     myMockView.getTree().getModel().addTreeModelListener(treeModelAdapter);
