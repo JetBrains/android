@@ -7,6 +7,8 @@ import com.android.tools.lint.checks.CommentDetector;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.lint.checks.TextViewDetector;
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
@@ -73,8 +75,28 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestHardcodedQuickfix();
   }
 
+  // Like CodeInsightTestFixtureImpl#doGetAvailableIntentions but allows filtering to overlapping an offset
+  @NotNull
+  private String listAvailableFixes() {
+    ShowIntentionsPass.IntentionsInfo intentions = new ShowIntentionsPass.IntentionsInfo();
+    ShowIntentionsPass.getActionsToShow(myFixture.getEditor(), myFixture.getFile(), intentions, -1);
+
+    StringBuilder sb = new StringBuilder();
+    for (HighlightInfo.IntentionActionDescriptor descriptor : intentions.inspectionFixesToShow) {
+      sb.append(descriptor.getAction().getText()).append("\n");
+    }
+    return sb.toString();
+  }
+
   public void testHardcodedString() throws Exception {
     doTestHighlighting(new AndroidLintHardcodedTextInspection(), "/res/layout/layout.xml", "xml");
+
+    // Make sure we only have the extract quickfix and the suppress quickfix: not the disable inspection fix, and
+    // the edit inspection settings quickfix (they are suppressed in AndroidLintExternalAnnotator)
+    assertEquals("" +
+                 "Extract string resource\n" +
+                 "Suppress: Add tools:ignore=\"HardcodedText\" attribute\n",
+                 listAvailableFixes());
   }
 
   private void doTestHardcodedQuickfix() throws IOException {
