@@ -66,7 +66,7 @@ class FlatButtonUI extends BasicButtonUI {
   public void paint(Graphics g, JComponent c) {
     AbstractButton b = (AbstractButton)c;
     if (myHover || b.isSelected()) {
-      FlatUIUtils.paintBackground(g, c);
+      FlatUiUtils.paintBackground(g, c);
     }
     super.paint(g, c);
   }
