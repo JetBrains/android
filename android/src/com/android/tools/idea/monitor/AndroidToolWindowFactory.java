@@ -107,7 +107,7 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
     // if there are two projects opened, things go very wrong.
     ClientData.setMethodProfilingHandler(new OpenVmTraceHandler(project));
 
-    final AndroidLogcatView logcatView = new AndroidLogcatView(project, deviceContext, getToolWindowId());
+    final AndroidLogcatView logcatView = new AndroidLogcatView(project, deviceContext, getToolWindowId(), !showMonitors());
     Content logcatContent = createLogcatContent(layoutUi, project, logcatView);
     layoutUi.addContent(logcatContent, 0, PlaceInGrid.center, false);
     JPanel searchComponent = logcatView.createSearchComponent();
