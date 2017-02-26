@@ -23,6 +23,7 @@ import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A fake mouse device that can be used for clicking on / scrolling programmatically in tests.
@@ -117,6 +118,17 @@ public final class FakeMouse {
   }
 
   /**
+   * Convenience method which calls {@link #click(int, int)} twice in quick succession.
+   */
+  public void doubleClick(int x, int y, Button button) {
+    if (myCursor != null) {
+      throw new IllegalStateException("Mouse already pressed. Call release before double-clicking.");
+    }
+    click(x, y, button);
+    click(x, y, button);
+  }
+
+  /**
    * Convenience method which calls {@link #press(JComponent, int, int, Button)}, {@link #dragTo(int, int)},
    * and {@link #release()} in turn.
    */
@@ -140,6 +152,10 @@ public final class FakeMouse {
     click(x, y, Button.LEFT);
   }
 
+  public void doubleClick(int x, int y) {
+    doubleClick(x, y, Button.LEFT);
+  }
+
   public void drag(int xStart, int yStart, int xDelta, int yDelta) {
     drag(xStart, yStart, xDelta, yDelta, Button.LEFT);
   }
@@ -159,7 +175,7 @@ public final class FakeMouse {
 
   private void dispatchMouseEvent(FakeUi.RelativePoint point, int eventType, int modifiers, int button) {
     //noinspection MagicConstant (modifier code is valid, from FakeKeyboard class)
-    MouseEvent event = new MouseEvent(myUi.getRoot(), eventType, System.nanoTime(),
+    MouseEvent event = new MouseEvent(myUi.getRoot(), eventType, TimeUnit.NANOSECONDS.toMillis(System.nanoTime()),
                                       myKeyboard.toModifiersCode() | modifiers,
                                       point.x, point.y, 1, false, button);
     point.component.dispatchEvent(event);
@@ -168,7 +184,7 @@ public final class FakeMouse {
   private void dispatchMouseWheelEvent(int x, int y, int rotation) {
     //noinspection MagicConstant (modifier code is valid, from FakeKeyboard class)
     FakeUi.RelativePoint point = myUi.targetMouseEvent(x, y);
-    MouseWheelEvent event = new MouseWheelEvent(myUi.getRoot(), MouseEvent.MOUSE_WHEEL, System.nanoTime(),
+    MouseWheelEvent event = new MouseWheelEvent(myUi.getRoot(), MouseEvent.MOUSE_WHEEL, TimeUnit.NANOSECONDS.toMillis(System.nanoTime()),
                                                 myKeyboard.toModifiersCode(), point.x, point.y, 0, false,
                                                 MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, rotation);
     point.component.dispatchEvent(event);
