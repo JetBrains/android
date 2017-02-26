@@ -163,10 +163,12 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   }
 
   private void onSelectionChanged(ChangeEvent event) {
-    // TODO This should be moved to the model, not here.
     StudioProfilers profilers = getStage().getStudioProfilers();
-    myConnectionsScroller.setVisible(!profilers.getTimeline().getSelectionRange().isEmpty());
-    profilers.modeChanged();
+    boolean isRangeEmpty = profilers.getTimeline().getSelectionRange().isEmpty();
+    myConnectionsScroller.setVisible(!isRangeEmpty);
+    if (isRangeEmpty) {
+      myConnectionDetails.setHttpData(null);
+    }
   }
 
   @NotNull

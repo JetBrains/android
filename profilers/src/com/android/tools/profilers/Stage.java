@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.AspectObserver;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,6 +25,8 @@ import org.jetbrains.annotations.NotNull;
 public abstract class Stage extends AspectObserver {
 
   private final StudioProfilers myProfilers;
+
+  private ProfilerMode myProfilerMode = ProfilerMode.NORMAL;
 
   public Stage(@NotNull StudioProfilers profilers) {
     myProfilers = profilers;
@@ -37,5 +40,22 @@ public abstract class Stage extends AspectObserver {
 
   abstract public void exit();
 
-  abstract public ProfilerMode getProfilerMode();
+  @NotNull
+  public final ProfilerMode getProfilerMode() { return myProfilerMode; }
+
+  /**
+   * Allow inheriting classes to modify the {@link ProfilerMode}.
+   *
+   * Note that this method is intentionally not public, as only the stages themselves should
+   * contain the logic for setting their profiler mode. If a view finds itself needing to
+   * toggle the profiler mode, it should do it indirectly, either by modifying a model class
+   * inside the stage or by calling a public method on the stage which changes the mode as a
+   * side effect.
+   */
+  protected final void setProfilerMode(@NotNull ProfilerMode profilerMode) {
+    if (myProfilerMode != profilerMode) {
+      myProfilerMode = profilerMode;
+      getStudioProfilers().modeChanged();
+    }
+  }
 }

@@ -72,11 +72,6 @@ public class StudioMonitorStage extends Stage {
     myMonitors.forEach(ProfilerMonitor::exit);
   }
 
-  @Override
-  public ProfilerMode getProfilerMode() {
-    return ProfilerMode.NORMAL;
-  }
-
   @NotNull
   public List<ProfilerMonitor> getMonitors() {
     return myMonitors;
