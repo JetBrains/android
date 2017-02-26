@@ -19,7 +19,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
 
 /**
  * Borderless button with hover effect used by studio profilers.
@@ -45,10 +44,5 @@ public class FlatButton extends JButton {
   @Override
   public void updateUI() {
     setUI(new FlatButtonUI());
-  }
-
-  @Override
-  public Dimension getPreferredSize() {
-    return super.getPreferredSize();
   }
 }

@@ -115,7 +115,6 @@ public class StudioProfilersView extends AspectObserver {
     myCommonToolbar.add(button);
     myCommonToolbar.add(new FlatSeparator());
 
-
     JComboBox<Class<? extends Stage>> stageCombo = new FlatComboBox<>();
     JComboBoxView stages = new JComboBoxView<>(stageCombo, myProfiler, ProfilerAspect.STAGE,
                                                myProfiler::getDirectStages,
@@ -125,7 +124,6 @@ public class StudioProfilersView extends AspectObserver {
     stages.bind();
     myCommonToolbar.add(stageCombo);
     myCommonToolbar.add(new FlatSeparator());
-
 
     leftToolbar.add(myMonitoringToolbar);
     leftToolbar.add(myCommonToolbar);
