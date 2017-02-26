@@ -16,9 +16,17 @@
 package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.profilers.common.CodeLocation;
+import com.intellij.ui.ColoredTextContainer;
+import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 
-public interface StackNavigation extends StackElement {
+import static com.intellij.ui.SimpleTextAttributes.*;
+
+/**
+ * An element which represents a line in a stack trace, i.e. a fully qualified method name.
+ */
+interface CodeElement extends StackElement {
   String UNKONWN_CLASS = "<unkonwn class>";
   String UNKNOWN_PACKAGE = "<unknown package>";
   String NO_PACKAGE = "<no package>";
@@ -37,7 +45,8 @@ public interface StackNavigation extends StackElement {
   String getMethodName();
 
   /**
-   * @return true if the destination of this element's {@link CodeLocation} is in the current user's work context (e.g. {@link com.intellij.openapi.project.Project})
+   * @return true if the destination of this element's {@link CodeLocation} is in the current user's work context
+   * (e.g. {@link com.intellij.openapi.project.Project})
    */
   boolean isInUserCode();
 }

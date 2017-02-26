@@ -51,7 +51,7 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
 
       ProfilerService service = ServiceManager.getService(ProfilerService.class);
       ProfilerClient client = service.getProfilerClient(project);
-      myProfilers = new StudioProfilers(client, new IntellijProfilerServices());
+      myProfilers = new StudioProfilers(client, new IntellijProfilerServices(project));
 
       StartupManager.getInstance(project)
         .runWhenProjectIsInitialized(() -> myProfilers.setPreferredProcessName(getPreferredProcessName(myProject)));

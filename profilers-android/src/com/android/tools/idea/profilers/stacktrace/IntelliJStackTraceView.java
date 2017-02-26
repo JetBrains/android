@@ -17,10 +17,7 @@ package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.common.CodeLocation;
-import com.android.tools.profilers.common.StackTraceModel;
-import com.android.tools.profilers.common.StackTraceView;
-import com.android.tools.profilers.common.ThreadId;
+import com.android.tools.profilers.common.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
@@ -49,7 +46,7 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
   private final StackTraceModel myModel;
 
   @NotNull
-  private final BiFunction<Project, CodeLocation, StackNavigation> myGenerator;
+  private final BiFunction<Project, CodeLocation, CodeElement> myGenerator;
 
   @NotNull
   private final JBScrollPane myScrollPane;
@@ -60,14 +57,15 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
   @NotNull
   private final JBList myListView;
 
-  public IntelliJStackTraceView(@NotNull Project project, @NotNull StackTraceModel model) {
-    this(project, model, IntelliJStackNavigation::new);
+  public IntelliJStackTraceView(@NotNull Project project,
+                                @NotNull StackTraceModel model) {
+    this(project, model, IntelliJCodeElement::new);
   }
 
   @VisibleForTesting
   IntelliJStackTraceView(@NotNull Project project,
                          @NotNull StackTraceModel model,
-                         @NotNull BiFunction<Project, CodeLocation, StackNavigation> stackNavigationGenerator) {
+                         @NotNull BiFunction<Project, CodeLocation, CodeElement> stackNavigationGenerator) {
     myProject = project;
     myModel = model;
     myGenerator = stackNavigationGenerator;
@@ -87,8 +85,6 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
         return;
       }
 
-      StackElement element = myListModel.getElementAt(index);
-      element.navigate();
       myModel.setSelectedIndex(index);
     });
 
@@ -152,10 +148,13 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
     return myListView;
   }
 
-  private static class StackElementRenderer extends ColoredListCellRenderer {
+  /**
+   * Renderer for a JList of {@link StackElement} instances.
+   */
+  private static final class StackElementRenderer extends ColoredListCellRenderer<StackElement> {
     @Override
     protected void customizeCellRenderer(@NotNull JList list,
-                                         Object value,
+                                         StackElement value,
                                          int index,
                                          boolean selected,
                                          boolean hasFocus) {
@@ -169,8 +168,8 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
         return;
       }
 
-      if (value instanceof StackNavigation) {
-        renderStackNavigation((StackNavigation)value, selected);
+      if (value instanceof CodeElement) {
+        renderStackNavigation((CodeElement)value, selected);
       }
       else if (value instanceof ThreadElement) {
         renderThreadElement((ThreadElement)value, selected);
@@ -180,15 +179,15 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
       }
     }
 
-    private void renderStackNavigation(@NotNull StackNavigation navigation, boolean selected) {
+    private void renderStackNavigation(@NotNull CodeElement codeElement, boolean selected) {
       setIcon(PlatformIcons.METHOD_ICON);
-      SimpleTextAttributes textAttribute = selected || navigation.isInUserCode() ? REGULAR_ATTRIBUTES : GRAY_ATTRIBUTES;
-      CodeLocation location = navigation.getCodeLocation();
-      append(navigation.getMethodName(), textAttribute, navigation.getMethodName());
+      SimpleTextAttributes textAttribute = selected || codeElement.isInUserCode() ? REGULAR_ATTRIBUTES : GRAY_ATTRIBUTES;
+      CodeLocation location = codeElement.getCodeLocation();
+      append(codeElement.getMethodName(), textAttribute, codeElement.getMethodName());
       String lineNumberText = ":" + Integer.toString(location.getLineNumber() + 1) + ", ";
       append(lineNumberText, textAttribute, lineNumberText);
-      append(navigation.getSimpleClassName(), textAttribute, navigation.getSimpleClassName());
-      String packageName = " (" + navigation.getPackageName() + ")";
+      append(codeElement.getSimpleClassName(), textAttribute, codeElement.getSimpleClassName());
+      String packageName = " (" + codeElement.getPackageName() + ")";
       append(packageName, selected ? REGULAR_ITALIC_ATTRIBUTES : GRAYED_ITALIC_ATTRIBUTES, packageName);
     }
 
