@@ -19,7 +19,6 @@ import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.ContextMenuItem;
 import com.android.tools.profilers.memory.adapters.ClassObject;
@@ -276,7 +275,7 @@ final class MemoryInstanceView extends AspectObserver {
         return new CodeLocation(instanceObject.getClassName());
       }
       return null;
-    }, () -> myStage.setProfilerMode(ProfilerMode.NORMAL));
+    }, myStage::handleNavigatedToCode);
 
     myIdeProfilerComponents.installContextMenu(myTree, new ContextMenuItem() {
       @NotNull

@@ -26,6 +26,7 @@ import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.common.StackTraceModel;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.annotations.VisibleForTesting;
@@ -65,9 +66,6 @@ public class MemoryProfilerStage extends Stage {
   @NotNull
   private AspectModel<MemoryProfilerAspect> myAspect = new AspectModel<>();
 
-  @NotNull
-  private ProfilerMode myProfilerMode = ProfilerMode.NORMAL;
-
   private final MemoryServiceBlockingStub myClient;
   private final DurationDataModel<CaptureDurationData<HeapDumpCaptureObject>> myHeapDumpDurations;
   private final DurationDataModel<CaptureDurationData<AllocationsCaptureObject>> myAllocationDurations;
@@ -76,6 +74,7 @@ public class MemoryProfilerStage extends Stage {
   private final MemoryProfilerConfiguration myConfiguration;
   private final EventMonitor myEventMonitor;
   private final SelectionModel mySelectionModel;
+  private final StackTraceModel myStackTraceModel;
   private boolean myTrackingAllocations;
   private boolean myUpdateCaptureOnSelection = true;
 
@@ -126,6 +125,18 @@ public class MemoryProfilerStage extends Stage {
     mySelectionModel.addConstraint(myAllocationDurations);
     mySelectionModel.addConstraint(myHeapDumpDurations);
     mySelectionModel.addChangeListener(this::selectionChanged);
+
+    myStackTraceModel = new StackTraceModel();
+    myStackTraceModel.addDependency(this).onChange(
+      StackTraceModel.Aspect.SELECTED_LOCATION, () -> {
+        if (myStackTraceModel.getSelectedType() == StackTraceModel.Type.STACK_FRAME) {
+          handleNavigatedToCode();
+        }
+      });
+  }
+
+  public void handleNavigatedToCode() {
+    setProfilerMode(ProfilerMode.NORMAL);
   }
 
   public DetailedMemoryUsage getDetailedMemoryUsage() {
@@ -164,6 +175,11 @@ public class MemoryProfilerStage extends Stage {
     return mySelectionModel;
   }
 
+  @NotNull
+  public StackTraceModel getStackTraceModel() {
+    return myStackTraceModel;
+  }
+
   private void selectionChanged(ChangeEvent event) {
     if (!myUpdateCaptureOnSelection) {
       return;
@@ -197,19 +213,6 @@ public class MemoryProfilerStage extends Stage {
     }
 
     selectCapture(captureObject, SwingUtilities::invokeLater);
-  }
-
-  @NotNull
-  @Override
-  public ProfilerMode getProfilerMode() {
-    return myProfilerMode;
-  }
-
-  public void setProfilerMode(@NotNull ProfilerMode profilerMode) {
-    if (profilerMode != myProfilerMode) {
-      myProfilerMode = profilerMode;
-      getStudioProfilers().modeChanged();
-    }
   }
 
   @NotNull
