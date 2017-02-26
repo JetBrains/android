@@ -150,13 +150,13 @@ public class AdbFileListing {
 
   @NotNull
   private List<AdbFileListingEntry> listChildren(@NotNull AdbFileListingEntry entry)
-    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, AdbShellCommandException {
 
     // Run "ls -l" command and process matching output lines
     String command = String.format("ls -l %s", getEscapedDirectoryPath(entry.getFullPath())); //$NON-NLS-1$
-    AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommandNoErrorCheck(myDevice, command);
+    AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
 
-    return commandResult.getOutput()
+    List<AdbFileListingEntry> entries = commandResult.getOutput()
       .stream()
       .map(x -> processLsOutputLine(entry, x))
       .filter(Objects::nonNull)
@@ -168,6 +168,10 @@ public class AdbFileListing {
         return 0;
       })
       .collect(Collectors.toList());
+    if (entries.isEmpty() && commandResult.isError()) {
+      commandResult.ThrowIfError();
+    }
+    return entries;
   }
 
   @Nullable
