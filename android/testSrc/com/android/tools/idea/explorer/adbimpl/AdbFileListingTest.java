@@ -16,7 +16,6 @@
 package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.IShellOutputReceiver;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
@@ -29,7 +28,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.awt.*;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -37,16 +35,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
 public class AdbFileListingTest {
-  private static final Logger LOGGER = Logger.getInstance(AdbFileListingTest.class);
+  @NotNull private static final String ERROR_LINE_MARKER = "ERR-ERR-ERR-ERR";
+  @NotNull private static final String COMMAND_ERROR_CHECK_SUFFIX = " || echo " + ERROR_LINE_MARKER;
   private static final long TIMEOUT_MILLISECONDS = 30_000;
 
   @Rule
-  public ExpectedException thrown= ExpectedException.none();
+  public ExpectedException thrown = ExpectedException.none();
 
   @ClassRule
   public static DebugLoggerFactoryRule ourLoggerFactoryRule = new DebugLoggerFactoryRule();
@@ -143,7 +140,7 @@ public class AdbFileListingTest {
   public void testGetRootChildrenError() throws Exception {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
-    commands.addError("ls -l /", new ShellCommandUnresponsiveException());
+    commands.addError("ls -l /" + COMMAND_ERROR_CHECK_SUFFIX, new ShellCommandUnresponsiveException());
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileListing fileListing = new AdbFileListing(device, taskExecutor);
@@ -203,48 +200,48 @@ public class AdbFileListingTest {
 
   private static void addNexus7Commands(@NotNull TestShellCommands shellCommands) {
     // These are results from a Nexus 7, Android 6.0.1, API 23
-    shellCommands.add("ls -l /", "drwxr-xr-x root     root              2016-11-21 12:09 acct\r\n" +
-                                 "drwxrwx--- system   cache             2016-08-26 12:12 cache\r\n" +
-                                 "lrwxrwxrwx root     root              1969-12-31 16:00 charger -> /sbin/healthd\r\n" +
-                                 "dr-x------ root     root              2016-11-21 12:09 config\r\n" +
-                                 "lrwxrwxrwx root     root              2016-11-21 12:09 d -> /sys/kernel/debug\r\n" +
-                                 "drwxrwx--x system   system            2016-11-21 12:10 data\r\n" +
-                                 "-rw-r--r-- root     root          564 1969-12-31 16:00 default.prop\r\n" +
-                                 "drwxr-xr-x root     root              2016-11-21 14:04 dev\r\n" +
-                                 "lrwxrwxrwx root     root              2016-11-21 12:09 etc -> /system/etc\r\n" +
-                                 "-rw-r--r-- root     root        21429 1969-12-31 16:00 file_contexts\r\n" +
-                                 "drwxrwx--x system   system            2016-11-21 12:09 firmware\r\n" +
-                                 "-rw-r----- root     root         3447 1969-12-31 16:00 fstab.flo\r\n" +
-                                 "lstat '//init' failed: Permission denied\r\n" +
-                                 "-rwxr-x--- root     root          852 1969-12-31 16:00 init.environ.rc\r\n" +
-                                 "-rwxr-x--- root     root           79 1969-12-31 16:00 init.flo.diag.rc\r\n" +
-                                 "-rwxr-x--- root     root        15962 1969-12-31 16:00 init.flo.rc\r\n" +
-                                 "-rwxr-x--- root     root         8086 1969-12-31 16:00 init.flo.usb.rc\r\n" +
-                                 "-rwxr-x--- root     root        26830 1969-12-31 16:00 init.rc\r\n" +
-                                 "-rwxr-x--- root     root         1921 1969-12-31 16:00 init.trace.rc\r\n" +
-                                 "-rwxr-x--- root     root         9283 1969-12-31 16:00 init.usb.configfs.rc\r\n" +
-                                 "-rwxr-x--- root     root         5339 1969-12-31 16:00 init.usb.rc\r\n" +
-                                 "-rwxr-x--- root     root          342 1969-12-31 16:00 init.zygote32.rc\r\n" +
-                                 "drwxr-xr-x root     system            2016-11-21 12:09 mnt\r\n" +
-                                 "drwxr-xr-x root     root              1969-12-31 16:00 oem\r\n" +
-                                 "lstat '//persist' failed: Permission denied\r\n" +
-                                 "dr-xr-xr-x root     root              1969-12-31 16:00 proc\r\n" +
-                                 "-rw-r--r-- root     root         3405 1969-12-31 16:00 property_contexts\r\n" +
-                                 "drwxr-xr-x root     root              1969-12-31 16:00 res\r\n" +
-                                 "drwx------ root     root              2016-07-01 17:00 root\r\n" +
-                                 "drwxr-x--- root     root              1969-12-31 16:00 sbin\r\n" +
-                                 "lrwxrwxrwx root     root              2016-11-21 12:09 sdcard -> /storage/self/primary\r\n" +
-                                 "-rw-r--r-- root     root          596 1969-12-31 16:00 seapp_contexts\r\n" +
-                                 "-rw-r--r-- root     root           51 1969-12-31 16:00 selinux_version\r\n" +
-                                 "-rw-r--r-- root     root       149405 1969-12-31 16:00 sepolicy\r\n" +
-                                 "-rw-r--r-- root     root         9769 1969-12-31 16:00 service_contexts\r\n" +
-                                 "drwxr-xr-x root     root              2016-11-21 12:10 storage\r\n" +
-                                 "dr-xr-xr-x root     root              2016-11-21 12:09 sys\r\n" +
-                                 "drwxr-xr-x root     root              2016-08-26 12:02 system\r\n" +
-                                 "lrwxrwxrwx root     root              2016-11-21 12:09 tombstones -> /data/tombstones\r\n" +
-                                 "-rw-r--r-- root     root         2195 1969-12-31 16:00 ueventd.flo.rc\r\n" +
-                                 "-rw-r--r-- root     root         4587 1969-12-31 16:00 ueventd.rc\r\n" +
-                                 "lrwxrwxrwx root     root              2016-11-21 12:09 vendor -> /system/vendor\r\n");
+    addCommand(shellCommands, "ls -l /", "drwxr-xr-x root     root              2016-11-21 12:09 acct\r\n" +
+                                         "drwxrwx--- system   cache             2016-08-26 12:12 cache\r\n" +
+                                         "lrwxrwxrwx root     root              1969-12-31 16:00 charger -> /sbin/healthd\r\n" +
+                                         "dr-x------ root     root              2016-11-21 12:09 config\r\n" +
+                                         "lrwxrwxrwx root     root              2016-11-21 12:09 d -> /sys/kernel/debug\r\n" +
+                                         "drwxrwx--x system   system            2016-11-21 12:10 data\r\n" +
+                                         "-rw-r--r-- root     root          564 1969-12-31 16:00 default.prop\r\n" +
+                                         "drwxr-xr-x root     root              2016-11-21 14:04 dev\r\n" +
+                                         "lrwxrwxrwx root     root              2016-11-21 12:09 etc -> /system/etc\r\n" +
+                                         "-rw-r--r-- root     root        21429 1969-12-31 16:00 file_contexts\r\n" +
+                                         "drwxrwx--x system   system            2016-11-21 12:09 firmware\r\n" +
+                                         "-rw-r----- root     root         3447 1969-12-31 16:00 fstab.flo\r\n" +
+                                         "lstat '//init' failed: Permission denied\r\n" +
+                                         "-rwxr-x--- root     root          852 1969-12-31 16:00 init.environ.rc\r\n" +
+                                         "-rwxr-x--- root     root           79 1969-12-31 16:00 init.flo.diag.rc\r\n" +
+                                         "-rwxr-x--- root     root        15962 1969-12-31 16:00 init.flo.rc\r\n" +
+                                         "-rwxr-x--- root     root         8086 1969-12-31 16:00 init.flo.usb.rc\r\n" +
+                                         "-rwxr-x--- root     root        26830 1969-12-31 16:00 init.rc\r\n" +
+                                         "-rwxr-x--- root     root         1921 1969-12-31 16:00 init.trace.rc\r\n" +
+                                         "-rwxr-x--- root     root         9283 1969-12-31 16:00 init.usb.configfs.rc\r\n" +
+                                         "-rwxr-x--- root     root         5339 1969-12-31 16:00 init.usb.rc\r\n" +
+                                         "-rwxr-x--- root     root          342 1969-12-31 16:00 init.zygote32.rc\r\n" +
+                                         "drwxr-xr-x root     system            2016-11-21 12:09 mnt\r\n" +
+                                         "drwxr-xr-x root     root              1969-12-31 16:00 oem\r\n" +
+                                         "lstat '//persist' failed: Permission denied\r\n" +
+                                         "dr-xr-xr-x root     root              1969-12-31 16:00 proc\r\n" +
+                                         "-rw-r--r-- root     root         3405 1969-12-31 16:00 property_contexts\r\n" +
+                                         "drwxr-xr-x root     root              1969-12-31 16:00 res\r\n" +
+                                         "drwx------ root     root              2016-07-01 17:00 root\r\n" +
+                                         "drwxr-x--- root     root              1969-12-31 16:00 sbin\r\n" +
+                                         "lrwxrwxrwx root     root              2016-11-21 12:09 sdcard -> /storage/self/primary\r\n" +
+                                         "-rw-r--r-- root     root          596 1969-12-31 16:00 seapp_contexts\r\n" +
+                                         "-rw-r--r-- root     root           51 1969-12-31 16:00 selinux_version\r\n" +
+                                         "-rw-r--r-- root     root       149405 1969-12-31 16:00 sepolicy\r\n" +
+                                         "-rw-r--r-- root     root         9769 1969-12-31 16:00 service_contexts\r\n" +
+                                         "drwxr-xr-x root     root              2016-11-21 12:10 storage\r\n" +
+                                         "dr-xr-xr-x root     root              2016-11-21 12:09 sys\r\n" +
+                                         "drwxr-xr-x root     root              2016-08-26 12:02 system\r\n" +
+                                         "lrwxrwxrwx root     root              2016-11-21 12:09 tombstones -> /data/tombstones\r\n" +
+                                         "-rw-r--r-- root     root         2195 1969-12-31 16:00 ueventd.flo.rc\r\n" +
+                                         "-rw-r--r-- root     root         4587 1969-12-31 16:00 ueventd.rc\r\n" +
+                                         "lrwxrwxrwx root     root              2016-11-21 12:09 vendor -> /system/vendor\r\n");
 
     shellCommands.add("ls -l -d /charger/", "/charger/: Permission denied\r\n");
     shellCommands.add("ls -l -d /d/", "drwxr-xr-x root     root              1969-12-31 16:00\r\n");
@@ -254,44 +251,9 @@ public class AdbFileListingTest {
     shellCommands.add("ls -l -d /vendor/", "drwxr-xr-x root     shell             2013-06-15 12:54\r\n");
   }
 
-  private static IDevice createMockDevice(TestShellCommands shellCommands) throws Exception {
-    IDevice device = mock(IDevice.class);
-
-    // Implement the executeShellCommand method
-    doAnswer(invocation -> {
-      String command = invocation.getArgument(0);
-      IShellOutputReceiver receiver = invocation.getArgument(1);
-
-      TestShellCommandResult commandResult = shellCommands.get(command);
-      if (commandResult == null) {
-        UnsupportedOperationException error = new UnsupportedOperationException(
-          String.format("Command \"%s\" not found in mock device. Test case is not setup correctly", command));
-        LOGGER.error(error);
-        throw error;
-      }
-
-      if (commandResult.getError() != null) {
-        throw commandResult.getError();
-      }
-
-      if (commandResult.getOutput() == null) {
-        UnsupportedOperationException error = new UnsupportedOperationException(
-          String.format("Command \"%s\" has no result. Test case is not setup correctly", command));
-        LOGGER.error(error);
-        throw error;
-      }
-
-      byte[] bytes = commandResult.getOutput().getBytes(Charset.forName("UTF-8"));
-      int chunkSize = 100;
-      for (int i = 0; i < bytes.length; i += chunkSize) {
-        int count = Math.min(chunkSize, bytes.length - i);
-        receiver.addOutput(bytes, i, count);
-      }
-      receiver.flush();
-      return null;
-    }).when(device).executeShellCommand(any(), any());
-
-    return device;
+  @SuppressWarnings("SameParameterValue")
+  private static void addCommand(@NotNull TestShellCommands commands, @NotNull String command, @NotNull String result) {
+    commands.add(command + COMMAND_ERROR_CHECK_SUFFIX, result);
   }
 
   private static <V> V waitForFuture(@NotNull ListenableFuture<V> future) throws Exception {
