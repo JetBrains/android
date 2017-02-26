@@ -63,6 +63,10 @@ public class TreeUtil {
     return com.intellij.util.ui.tree.TreeUtil.findCommonPath(paths);
   }
 
+  public static int binarySearch(@NotNull TreeNode parent, @NotNull TreeNode key, @NotNull Comparator<TreeNode> comparator) {
+    return com.intellij.util.ui.tree.TreeUtil.indexedBinarySearch(parent, key, comparator);
+  }
+
   public interface UpdateChildrenOps<T extends MutableTreeNode, U> {
     /** Returns a child node if it is of type {@link T}, or {@code null} otherwise */
     @Nullable
