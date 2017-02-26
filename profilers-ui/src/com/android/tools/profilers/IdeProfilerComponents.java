@@ -54,20 +54,15 @@ public interface IdeProfilerComponents {
   void installContextMenu(@NotNull JComponent component, @NotNull ContextMenuItem contextMenuItem);
 
   /**
-   * Creates an export button placeable in the UI.
+   * Opens an export dialog
    *
-   * @param buttonText          Text to display for the button.
-   * @param tooltip             Tooltip when the user hovers over the button.
    * @param dialogTitleSupplier Title supplier for the title of the file chooser popup when the user clicks on the button.
    * @param extensionSupplier   Extension supplier for the extension of the target file.
    * @param saveToFile          File consumer for the file to save to (usually method to write to the file).
    */
-  @NotNull
-  JButton createExportButton(@Nullable String buttonText,
-                             @Nullable String tooltip,
-                             @NotNull Supplier<String> dialogTitleSupplier,
-                             @NotNull Supplier<String> extensionSupplier,
-                             @NotNull Consumer<File> saveToFile);
+  void openExportDialog(@NotNull Supplier<String> dialogTitleSupplier,
+                        @NotNull Supplier<String> extensionSupplier,
+                        @NotNull Consumer<File> saveToFile);
 
   @NotNull
   FileViewer createFileViewer(@NotNull File file);

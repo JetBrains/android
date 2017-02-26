@@ -20,7 +20,6 @@ import com.android.tools.idea.actions.PsiClassNavigation;
 import com.android.tools.idea.profilers.stacktrace.IntelliJStackTraceView;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.common.*;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
@@ -135,16 +134,11 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
     });
   }
 
-  @NotNull
   @Override
-  public JButton createExportButton(@Nullable String buttonText,
-                                    @Nullable String tooltip,
-                                    @NotNull Supplier<String> dialogTitleSupplier,
-                                    @NotNull Supplier<String> extensionSupplier,
-                                    @NotNull Consumer<File> saveToFile) {
-    JButton button = new ProfilerButton(buttonText, AllIcons.Actions.Export);
-    button.setToolTipText(tooltip);
-    button.addActionListener(e -> ApplicationManager.getApplication().invokeLater(() -> {
+  public void openExportDialog(@NotNull Supplier<String> dialogTitleSupplier,
+                               @NotNull Supplier<String> extensionSupplier,
+                               @NotNull Consumer<File> saveToFile) {
+    ApplicationManager.getApplication().invokeLater(() -> {
       String extension = extensionSupplier.get();
       if (extension != null) {
         ExportDialog dialog = new ExportDialog(myProject, dialogTitleSupplier.get(), extension);
@@ -152,8 +146,7 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
           saveToFile.accept(dialog.getFile());
         }
       }
-    }));
-    return button;
+    });
   }
 
   @NotNull

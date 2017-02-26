@@ -15,8 +15,10 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.Updatable;
+import com.android.tools.adtui.model.Updater;
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +27,11 @@ import java.util.concurrent.TimeUnit;
 /**
  * A helper object that manages the current view and selection ranges for the Studio Profilers.
  */
-public final class ProfilerTimeline implements Updatable {
+public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect> implements Updatable {
+
+  public enum Aspect {
+    STREAMING
+  }
 
   @VisibleForTesting
   public static final long DEFAULT_VIEW_LENGTH_US = TimeUnit.SECONDS.toMicros(30);
@@ -35,7 +41,12 @@ public final class ProfilerTimeline implements Updatable {
   @NotNull private final Range mySelectionRangeUs;
   @NotNull private final Range myTooltipRangeUs;
   @NotNull private RelativeTimeConverter myRelativeTimeConverter;
+
   private boolean myStreaming;
+
+  private float myStreamingFactor;
+  private double myZoomLeft;
+
   private boolean myCanStream = true;
   private long myLengthNs;
 
@@ -64,6 +75,8 @@ public final class ProfilerTimeline implements Updatable {
     myStreaming = isStreaming;
     // Update the ranges as if no time has passed.
     update(0);
+
+    changed(Aspect.STREAMING);
   }
 
   public boolean isStreaming() {
@@ -83,6 +96,11 @@ public final class ProfilerTimeline implements Updatable {
 
   public boolean canStream() {
     return myCanStream;
+  }
+
+  public void toggleStreaming() {
+    myZoomLeft = 0.0;
+    setStreaming(!isStreaming());
   }
 
   @NotNull
@@ -109,14 +127,28 @@ public final class ProfilerTimeline implements Updatable {
     long deviceNowNs = myRelativeTimeConverter.convertToAbsoluteTime(myLengthNs);
     long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
     myDataRangeUs.setMax(deviceNowUs);
+    double viewUs = myViewRangeUs.getLength();
     if (myStreaming) {
-      double viewUs = myViewRangeUs.getLength();
-      myViewRangeUs.set(deviceNowUs - viewUs, deviceNowUs);
+      myStreamingFactor = Updater.lerp(myStreamingFactor, 1.0f, 0.95f, elapsedNs, Float.MIN_VALUE);
+      double min = Updater.lerp(myViewRangeUs.getMin(), deviceNowUs - viewUs, myStreamingFactor);
+      double max = Updater.lerp(myViewRangeUs.getMax(), deviceNowUs, myStreamingFactor);
+      myViewRangeUs.set(min, max);
+    } else {
+      myStreamingFactor = 0.0f;
     }
+
+    double left = Updater.lerp(myZoomLeft, 0.0, 0.95f, elapsedNs, myViewRangeUs.getLength() * 0.0001f);
+    zoom(myZoomLeft - left, myStreaming ? 1.0 : 0.5f);
+    myZoomLeft = left;
   }
 
   public void zoom(double deltaUs, double percent) {
-    setStreaming(false);
+    if (deltaUs == 0.0) {
+      return;
+    }
+    if (deltaUs < 0 && percent < 1.0) {
+      setStreaming(false);
+    }
     double minUs = myViewRangeUs.getMin() - deltaUs * percent;
     double maxUs = myViewRangeUs.getMax() + deltaUs * (1 - percent);
     if (minUs < myDataRangeUs.getMin()) {
@@ -130,6 +162,18 @@ public final class ProfilerTimeline implements Updatable {
     // minUs could have gone past again.
     minUs = Math.max(minUs, myDataRangeUs.getMin());
     myViewRangeUs.set(minUs, maxUs);
+  }
+
+  public void zoomOut() {
+    myZoomLeft += myViewRangeUs.getLength() * 0.1f;
+  }
+
+  public void zoomIn() {
+    myZoomLeft -= myViewRangeUs.getLength() * 0.1f;
+  }
+
+  public void resetZoom() {
+    myZoomLeft = DEFAULT_VIEW_LENGTH_US - myViewRangeUs.getLength();
   }
 
   public void pan(double deltaUs) {
