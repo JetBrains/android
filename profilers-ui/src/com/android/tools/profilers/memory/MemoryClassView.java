@@ -21,7 +21,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerIcons;
-import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.ThreadId;
 import com.android.tools.profilers.memory.adapters.*;
@@ -213,21 +212,18 @@ final class MemoryClassView extends AspectObserver {
       }
     });
 
-    myIdeProfilerComponents.installNavigationContextMenu(
-      myTree,
-      () -> {
-        TreePath selection = myTree.getSelectionPath();
-        if (selection == null || !(selection.getLastPathComponent() instanceof MemoryObjectTreeNode)) {
-          return null;
-        }
-
-        if (((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter() instanceof ClassObject) {
-          ClassObject classObject = (ClassObject)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
-          return new CodeLocation(classObject.getName());
-        }
+    myIdeProfilerComponents.installNavigationContextMenu(myTree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
+      TreePath selection = myTree.getSelectionPath();
+      if (selection == null || !(selection.getLastPathComponent() instanceof MemoryObjectTreeNode)) {
         return null;
-      },
-      myStage::handleNavigatedToCode);
+      }
+
+      if (((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter() instanceof ClassObject) {
+        ClassObject classObject = (ClassObject)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
+        return new CodeLocation(classObject.getName());
+      }
+      return null;
+    });
 
     assert myHeapObject != null;
     List<ClassAttribute> attributes = myHeapObject.getClassAttributes();

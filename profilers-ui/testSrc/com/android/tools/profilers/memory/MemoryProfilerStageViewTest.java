@@ -15,10 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.FakeIdeProfilerComponents;
-import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.memory.adapters.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
