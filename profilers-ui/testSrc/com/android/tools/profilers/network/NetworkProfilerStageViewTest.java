@@ -57,8 +57,9 @@ public class NetworkProfilerStageViewTest {
     // StudioProfilersView initialization needs to happen after the tick, as during setDevice/setProcess the StudioMonitorStage is
     // constructed. If the StudioMonitorStageView is constructed as well, grpc exceptions will be thrown due to lack of various services
     // in the channel, and the tick loop would not complete properly to set the process and agent status.
-    myView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     profilers.setStage(new NetworkProfilerStage(profilers));
+    // Initialize the view after the stage, otherwise it will create the views for the monitoring stage.
+    myView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
     JPanel viewComponent = myView.getComponent();
     viewComponent.setSize(new Dimension(600, 200));
     myFakeUi = new FakeUi(viewComponent);

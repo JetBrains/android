@@ -23,11 +23,10 @@ import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.common.LoadingPanel;
-import com.android.tools.profilers.common.ProfilerButton;
+import com.android.tools.adtui.flat.FlatButton;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.annotations.VisibleForTesting;
@@ -76,11 +75,11 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myMainSplitter.setProportion(0.6f);
     getComponent().add(myMainSplitter, BorderLayout.CENTER);
 
-    myHeapDumpButton = new ProfilerButton(ProfilerIcons.HEAP_DUMP);
+    myHeapDumpButton = new FlatButton(ProfilerIcons.HEAP_DUMP);
     myHeapDumpButton.setToolTipText("Takes an Hprof snapshot of the application memory");
     myHeapDumpButton.addActionListener(e -> getStage().requestHeapDump(SwingUtilities::invokeLater));
 
-    myAllocationButton = new ProfilerButton();
+    myAllocationButton = new FlatButton();
     myAllocationButton
       .addActionListener(e -> getStage().trackAllocations(!getStage().isTrackingAllocations(), SwingUtilities::invokeLater));
 
@@ -95,14 +94,8 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   @Override
   public JComponent getToolbar() {
-    JButton backButton = new ProfilerButton(ProfilerIcons.BACK_ARROW);
-    backButton.addActionListener(action -> getStage().getStudioProfilers().setMonitoringStage());
-
-    JToolBar toolBar = new JToolBar();
-    toolBar.setFloatable(false);
-    toolBar.add(backButton);
-
-    JButton forceGarbageCollectionButton = new ProfilerButton(ProfilerIcons.FORCE_GARBAGE_COLLECTION);
+    JPanel toolBar = new JPanel(TOOLBAR_LAYOUT);
+    JButton forceGarbageCollectionButton = new FlatButton(ProfilerIcons.FORCE_GARBAGE_COLLECTION);
     forceGarbageCollectionButton.setToolTipText("Force garbage collection");
     forceGarbageCollectionButton.addActionListener(e -> getStage().forceGarbageCollection(SwingUtilities::invokeLater));
     toolBar.add(forceGarbageCollectionButton);
@@ -110,7 +103,9 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     toolBar.add(myHeapDumpButton);
     toolBar.add(myAllocationButton);
 
-    return toolBar;
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.add(toolBar, BorderLayout.WEST);
+    return panel;
   }
 
   @VisibleForTesting
@@ -219,7 +214,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     final LineChart lineChart = new LineChart(memoryUsage);
     configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_JAVA, memoryUsage.getJavaSeries());
     configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_NATIVE, memoryUsage.getNativeSeries());
-    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_GRAPHCIS, memoryUsage.getGraphicsSeries());
+    configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_GRAPHICS, memoryUsage.getGraphicsSeries());
     configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_STACK, memoryUsage.getStackSeries());
     configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_CODE, memoryUsage.getCodeSeries());
     configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_OTHERS, memoryUsage.getOtherSeries());

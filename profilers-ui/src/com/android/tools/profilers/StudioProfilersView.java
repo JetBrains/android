@@ -17,6 +17,10 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.adtui.flat.FlatButton;
+import com.android.tools.adtui.flat.FlatComboBox;
+import com.android.tools.adtui.flat.FlatSeparator;
+import com.android.tools.adtui.flat.FlatToggleButton;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -24,7 +28,7 @@ import com.android.tools.profilers.memory.MemoryProfilerStageView;
 import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.ui.ComboBox;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
@@ -41,7 +45,9 @@ public class StudioProfilersView extends AspectObserver {
   private BorderLayout myLayout;
   private JPanel myComponent;
   private JPanel myStageToolbar;
-  private JPanel myProcessSelection;
+  private JPanel myMonitoringToolbar;
+  private JPanel myCommonToolbar;
+  private AbstractButton myGoLive;
 
   @NotNull
   private final IdeProfilerComponents myIdeProfilerComponents;
@@ -59,6 +65,7 @@ public class StudioProfilersView extends AspectObserver {
     myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
 
     myProfiler.addDependency(this).onChange(ProfilerAspect.STAGE, this::updateStageView);
+    updateStageView();
   }
 
   @VisibleForTesting
@@ -76,7 +83,7 @@ public class StudioProfilersView extends AspectObserver {
     myLayout = new BorderLayout();
     myComponent = new JPanel(myLayout);
 
-    JComboBox<Profiler.Device> deviceCombo = new ComboBox<>();
+    JComboBox<Profiler.Device> deviceCombo = new FlatComboBox<>();
     JComboBoxView devices = new JComboBoxView<>(deviceCombo, myProfiler, ProfilerAspect.DEVICES,
                                                 myProfiler::getDevices,
                                                 myProfiler::getDevice,
@@ -84,7 +91,7 @@ public class StudioProfilersView extends AspectObserver {
     devices.bind();
     deviceCombo.setRenderer(new DeviceComboBoxRenderer());
 
-    JComboBox<Profiler.Process> processCombo = new ComboBox<>();
+    JComboBox<Profiler.Process> processCombo = new FlatComboBox<>();
     JComboBoxView processes = new JComboBoxView<>(processCombo, myProfiler, ProfilerAspect.PROCESSES,
                                                   myProfiler::getProcesses,
                                                   myProfiler::getProcess,
@@ -93,17 +100,71 @@ public class StudioProfilersView extends AspectObserver {
     processCombo.setRenderer(new ProcessComboBoxRenderer());
 
     JPanel toolbar = new JPanel(new BorderLayout());
-    toolbar.setBorder(ProfilerLayout.MONITOR_BORDER);
+    JPanel leftToolbar = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
 
-    myProcessSelection = new JPanel();
-    myProcessSelection.add(deviceCombo);
-    myProcessSelection.add(processCombo);
-    toolbar.add(myProcessSelection, BorderLayout.WEST);
+    toolbar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER));
+    toolbar.setPreferredSize(new Dimension(15, 30));
+
+    myMonitoringToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
+    myMonitoringToolbar.add(deviceCombo);
+    myMonitoringToolbar.add(processCombo);
+
+    myCommonToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
+    JButton button = new FlatButton(ProfilerIcons.BACK_ARROW);
+    button.addActionListener(action -> myProfiler.setMonitoringStage());
+    myCommonToolbar.add(button);
+    myCommonToolbar.add(new FlatSeparator());
+
+
+    JComboBox<Class<? extends Stage>> stageCombo = new FlatComboBox<>();
+    JComboBoxView stages = new JComboBoxView<>(stageCombo, myProfiler, ProfilerAspect.STAGE,
+                                               myProfiler::getDirectStages,
+                                               myProfiler::getStageClass,
+                                               myProfiler::setNewStage);
+    stageCombo.setRenderer(new StageComboBoxRenderer());
+    stages.bind();
+    myCommonToolbar.add(stageCombo);
+    myCommonToolbar.add(new FlatSeparator());
+
+
+    leftToolbar.add(myMonitoringToolbar);
+    leftToolbar.add(myCommonToolbar);
+    toolbar.add(leftToolbar, BorderLayout.WEST);
+
+    JPanel rightToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
+    toolbar.add(rightToolbar, BorderLayout.EAST);
+
+    ProfilerTimeline timeline = myProfiler.getTimeline();
+    FlatButton zoomOut = new FlatButton(ProfilerIcons.ZOOM_OUT);
+    zoomOut.addActionListener(event -> timeline.zoomOut());
+    rightToolbar.add(zoomOut);
+
+    FlatButton zoomIn = new FlatButton(ProfilerIcons.ZOOM_IN);
+    zoomIn.addActionListener(event -> timeline.zoomIn());
+    rightToolbar.add(zoomIn);
+
+    FlatButton resetZoom = new FlatButton(ProfilerIcons.RESET_ZOOM);
+    resetZoom.addActionListener(event -> timeline.resetZoom());
+    rightToolbar.add(resetZoom);
+    rightToolbar.add(new FlatSeparator());
+
+    myGoLive = new FlatToggleButton("Go Live", ProfilerIcons.GOTO_LIVE);
+    myGoLive.addActionListener(event -> timeline.toggleStreaming());
+    timeline.addDependency(this).onChange(ProfilerTimeline.Aspect.STREAMING, this::updateStreaming);
+
+    myGoLive.setHorizontalTextPosition(SwingConstants.LEFT);
+    rightToolbar.add(myGoLive);
 
     myStageToolbar = new JPanel(new BorderLayout());
     toolbar.add(myStageToolbar, BorderLayout.CENTER);
 
     myComponent.add(toolbar, BorderLayout.NORTH);
+
+    updateStreaming();
+  }
+
+  private void updateStreaming() {
+    myGoLive.setSelected(myProfiler.getTimeline().isStreaming());
   }
 
   private void updateStageView() {
@@ -112,19 +173,23 @@ public class StudioProfilersView extends AspectObserver {
       return;
     }
 
-    myStageView = myBinder.build(this, stage);
-    Component prev = myLayout.getLayoutComponent(BorderLayout.CENTER);
-    if (prev != null) {
-      myComponent.remove(prev);
+    if (stage != null) {
+      myStageView = myBinder.build(this, stage);
+      Component prev = myLayout.getLayoutComponent(BorderLayout.CENTER);
+      if (prev != null) {
+        myComponent.remove(prev);
+      }
+      myComponent.add(myStageView.getComponent(), BorderLayout.CENTER);
+      myComponent.revalidate();
+
+      myStageToolbar.removeAll();
+      myStageToolbar.add(myStageView.getToolbar(), BorderLayout.CENTER);
+      myStageToolbar.revalidate();
     }
-    myComponent.add(myStageView.getComponent(), BorderLayout.CENTER);
-    myComponent.revalidate();
 
-    myStageToolbar.removeAll();
-    myStageToolbar.add(myStageView.getToolbar(), BorderLayout.CENTER);
-    myStageToolbar.revalidate();
-
-    myProcessSelection.setVisible(myStageView.needsProcessSelection());
+    boolean topLevel = myStageView == null || myStageView.needsProcessSelection();
+    myMonitoringToolbar.setVisible(topLevel);
+    myCommonToolbar.setVisible(!topLevel);
   }
 
   public JPanel getComponent() {
@@ -214,6 +279,22 @@ public class StudioProfilersView extends AspectObserver {
       return myEmptyText;
     }
   }
+
+  @VisibleForTesting
+  public static class StageComboBoxRenderer extends ColoredListCellRenderer<Class> {
+
+    private static ImmutableMap<Class<? extends Stage>, String> CLASS_TO_NAME = ImmutableMap.of(
+      CpuProfilerStage.class, "CPU",
+      MemoryProfilerStage.class, "MEMORY",
+      NetworkProfilerStage.class, "NETWORK");
+
+    @Override
+    protected void customizeCellRenderer(@NotNull JList list, Class value, int index, boolean selected, boolean hasFocus) {
+      String name = CLASS_TO_NAME.get(value);
+      append(name == null ? "[UNKNOWN]" : name, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    }
+  }
+
 
   @NotNull
   public IdeProfilerComponents getIdeProfilerComponents() {
