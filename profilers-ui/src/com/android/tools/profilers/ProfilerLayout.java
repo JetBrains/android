@@ -21,6 +21,7 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
+import java.awt.*;
 
 /**
  * Common layout constants that are shared across profiler views.
@@ -46,6 +47,8 @@ public class ProfilerLayout {
   public static final Border MONITOR_BORDER = BorderFactory.createCompoundBorder(
     new MatteBorder(0, 0, 1, 0, ProfilerColors.MONITOR_BORDER),
     new EmptyBorder(0, 0, 0, 0));
+
+  public static final FlowLayout TOOLBAR_LAYOUT = new FlowLayout(FlowLayout.CENTER, 0, 2);
 
   private ProfilerLayout() {
     // Static class designed to hold constants only

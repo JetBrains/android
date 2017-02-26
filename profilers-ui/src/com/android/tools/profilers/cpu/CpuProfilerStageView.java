@@ -26,11 +26,11 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
+import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.profilers.common.LoadingPanel;
-import com.android.tools.profilers.common.ProfilerButton;
+import com.android.tools.adtui.flat.FlatButton;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.ListCellRendererWrapper;
@@ -200,7 +200,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     mySplitter.setSecondComponent(null);
     getComponent().add(mySplitter, BorderLayout.CENTER);
 
-    myCaptureButton = new ProfilerButton();
+    myCaptureButton = new FlatButton();
     myCaptureButton.addActionListener(event -> capture());
 
     myCaptureViewLoading = getProfilersView().getIdeProfilerComponents().createLoadingPanel();
@@ -208,7 +208,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     updateCaptureState();
 
-    myProfilingModesCombo = new ComboBox<>();
+    myProfilingModesCombo = new FlatComboBox<>();
     JComboBoxView<CpuProfiler.CpuProfilingAppStartRequest.Mode, CpuProfilerAspect> profilingModes =
       new JComboBoxView<>(myProfilingModesCombo, stage.getAspect(), CpuProfilerAspect.PROFILING_MODE,
                           stage::getProfilingModes, stage::getProfilingMode, stage::setProfilingMode);
@@ -245,12 +245,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   @Override
   public JComponent getToolbar() {
     JPanel panel = new JPanel(new BorderLayout());
-    JPanel toolbar = new JPanel();
+    JPanel toolbar = new JPanel(TOOLBAR_LAYOUT);
 
-    JButton button = new ProfilerButton(ProfilerIcons.BACK_ARROW);
-    button.addActionListener(action -> myStage.getStudioProfilers().setMonitoringStage());
-
-    toolbar.add(button);
     toolbar.add(myProfilingModesCombo);
     toolbar.add(myCaptureButton);
 

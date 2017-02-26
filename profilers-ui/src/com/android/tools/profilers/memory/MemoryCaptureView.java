@@ -15,9 +15,11 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.flat.FlatButton;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,12 +46,13 @@ public final class MemoryCaptureView extends AspectObserver {
     myStage.getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::reset)
       .onChange(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE, this::refresh);
-    myExportButton =
-      ideProfilerComponents.createExportButton(null,
-                                               "Exports the currently selected capture to file.",
+
+    myExportButton = new FlatButton(AllIcons.Actions.Export);
+    myExportButton.setToolTipText("Exports the currently selected capture to file.");
+    myExportButton.addActionListener(e -> ideProfilerComponents.openExportDialog(
                                                () -> "Export As",
                                                this::getFileExtension,
-                                               file -> stage.getStudioProfilers().getIdeServices().saveFile(file, this::saveToFile, null));
+                                               file -> stage.getStudioProfilers().getIdeServices().saveFile(file, this::saveToFile, null)));
     reset();
   }
 

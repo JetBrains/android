@@ -70,7 +70,7 @@ public class ProfilerColors {
 
   public static final Color MONITOR_MAX_LINE = new JBColor(0xCCCDCD, 0x494949);
 
-  public static final Color MONITOR_BORDER = new JBColor(0xC9C9C9, 0xC9C9C9);
+  public static final Color MONITOR_BORDER = new JBColor(0xC9C9C9, 0x3F4142);
 
   public static final Color NETWORK_CONNECTIONS_COLOR = new JBColor(0x9C928B, 0x9C928B);
 
@@ -104,7 +104,7 @@ public class ProfilerColors {
 
   public static final Color MEMORY_STACK = MEMORY_CODE; // TODO awaiting final color choice
 
-  public static final Color MEMORY_GRAPHCIS = new JBColor(new Color(251, 207, 140), new Color(232, 187, 105));
+  public static final Color MEMORY_GRAPHICS = new JBColor(new Color(251, 207, 140), new Color(232, 187, 105));
 
   public static final Color MEMORY_OTHERS = new JBColor(new Color(103, 144, 178), new Color(59, 85, 97));
 

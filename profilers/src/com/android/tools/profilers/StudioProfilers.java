@@ -20,9 +20,12 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfiler;
+import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.event.EventProfiler;
 import com.android.tools.profilers.memory.MemoryProfiler;
+import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkProfiler;
+import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -31,6 +34,8 @@ import io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -380,5 +385,29 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   public AxisComponentModel getViewAxis() {
     return myViewAxis;
+  }
+
+  public List<Class<? extends Stage>> getDirectStages() {
+    return ImmutableList.of(
+      CpuProfilerStage.class,
+      MemoryProfilerStage.class,
+      NetworkProfilerStage.class
+    );
+  }
+
+  public Class<? extends Stage> getStageClass() {
+    return myStage == null ? null : myStage.getClass();
+  }
+
+  // TODO: Unify with how monitors expand.
+  public void setNewStage(Class<? extends Stage> clazz) {
+    try {
+      Constructor<? extends Stage> constructor = clazz.getConstructor(StudioProfilers.class);
+      Stage stage = constructor.newInstance(this);
+      setStage(stage);
+    }
+    catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
+      // will not happen
+    }
   }
 }

@@ -115,16 +115,10 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     menus.add(contextMenuItem);
   }
 
-  @NotNull
   @Override
-  public JButton createExportButton(@Nullable String buttonText,
-                                    @Nullable String tooltip,
-                                    @NotNull Supplier<String> dialogTitleSupplier,
-                                    @NotNull Supplier<String> extensionSupplier,
-                                    @NotNull Consumer<File> saveToFile) {
-    JButton button = new JButton(buttonText);
-    button.setToolTipText(tooltip);
-    return button;
+  public void openExportDialog(@NotNull Supplier<String> dialogTitleSupplier,
+                               @NotNull Supplier<String> extensionSupplier,
+                               @NotNull Consumer<File> saveToFile) {
   }
 
   @Nullable

@@ -87,6 +87,7 @@ public class AndroidLogcatView implements Disposable {
 
   /**
    * Called internally when the device may have changed, or been significantly altered.
+   *
    * @param forceReconnect Forces the logcat connection to restart even if the device has not changed.
    */
   private void notifyDeviceUpdated(final boolean forceReconnect) {
@@ -120,7 +121,10 @@ public class AndroidLogcatView implements Disposable {
   /**
    * Logcat view with device obtained from {@link DeviceContext}
    */
-  public AndroidLogcatView(@NotNull final Project project, @NotNull DeviceContext deviceContext, @NotNull String toolWindowId, boolean screenCaptureActions) {
+  public AndroidLogcatView(@NotNull final Project project,
+                           @NotNull DeviceContext deviceContext,
+                           @NotNull String toolWindowId,
+                           boolean screenCaptureActions) {
     myDeviceContext = deviceContext;
     myProject = project;
     myToolWindowId = toolWindowId;
