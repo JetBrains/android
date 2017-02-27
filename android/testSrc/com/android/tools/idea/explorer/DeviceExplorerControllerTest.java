@@ -46,7 +46,6 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.UIBundle;
-import com.intellij.util.Consumer;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -131,6 +130,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     myFooFile2 = myFoo.addFile("fooFile2.txt");
     myFooLink1 = myFoo.addFileLink("fooLink1.txt", "fooFile1.txt");
     myFooDir = myFoo.addDirectory("fooDir");
+    myFooDir.addFile("fooDirFile1.txt");
+    myFooDir.addFile("fooDirFile2.txt");
     myFile1 = myDevice1.getRoot().addFile("file1.txt");
     myFile2 = myDevice1.getRoot().addFile("file2.txt");
     myDevice1.getRoot().addFile("file3.txt");
@@ -563,7 +564,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Assert
     ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
-    assertEquals(8, actionGroup.getChildren(null).length);
+    assertEquals(9, actionGroup.getChildren(null).length);
 
     ActionGroup subGroup = getSubGroup(actionGroup, "New");
     assertNotNull(subGroup);
@@ -1313,6 +1314,54 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Assert
     // No node has been added
     assertEquals(4, DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent()).getChildCount());
+  }
+
+  public void testFileSystemTree_ContextMenu_Synchronize_Works() throws Exception {
+    // Prepare
+    DeviceExplorerController controller = createController();
+    controller.setup();
+    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    checkMockViewInitialState(controller, myDevice1);
+
+    // Expand 2 directories
+    expandEntry(myFoo);
+    expandEntry(myFooDir);
+
+    // Select 2 nodes, but do not select the "myFooDir" subdirectory, as synchronizing
+    // its parent ("myFoo") show implicitly expand all its children too.
+    myMockView.getTree().setSelectionPath(getFileEntryPath(myFoo));
+    myMockView.getTree().addSelectionPath(getFileEntryPath(myFooFile2));
+
+    ActionGroup actionGroup = myMockView.getFileTreeActionGroup();
+    AnAction action = getActionByText(actionGroup, "Synchronize");
+    assertNotNull(action);
+    AnActionEvent e = createContentMenuItemEvent();
+    action.update(e);
+    assertTrue(e.getPresentation().isVisible());
+    assertTrue(e.getPresentation().isEnabled());
+
+    // Add 1 files in each expanded directory, check the tree does not show them yet
+    myFoo.addFile("NewFile.txt");
+    myFooDir.addFile("NewFile.txt");
+    assertEquals(myFoo.getMockEntries().size() - 1,
+                 DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent()).getChildCount());
+    assertEquals(myFooDir.getMockEntries().size() - 1,
+                 DeviceFileEntryNode.fromNode(getFileEntryPath(myFooDir).getLastPathComponent()).getChildCount());
+
+    SettableFuture<TreePath> futureMyFooChanged = createNodeExpandedFuture(myFoo);
+    SettableFuture<TreePath> futureMyFooDirChanged = createNodeExpandedFuture(myFooDir);
+
+    // Act
+    action.actionPerformed(e);
+
+    // Assert
+    pumpEventsAndWaitForFuture(myMockView.getSynchronizeNodesTracker().consume());
+    pumpEventsAndWaitForFuture(futureMyFooChanged);
+    pumpEventsAndWaitForFuture(futureMyFooDirChanged);
+    assertEquals(myFoo.getMockEntries().size(),
+                 DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent()).getChildCount());
+    assertEquals(myFooDir.getMockEntries().size(),
+                 DeviceFileEntryNode.fromNode(getFileEntryPath(myFooDir).getLastPathComponent()).getChildCount());
   }
 
   private static <V> List<V> enumerationAsList(Enumeration e) {
