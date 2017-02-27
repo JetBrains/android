@@ -27,12 +27,14 @@ import com.intellij.debugger.ui.tree.render.DescriptorLabelListener;
 import com.intellij.debugger.ui.tree.render.ToStringCommand;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiElement;
 import com.sun.jdi.IntegerValue;
 import com.sun.jdi.Value;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ResolveTypedIntegerCommand extends ToStringCommand {
   private final ValueDescriptor myDescriptor;
@@ -66,19 +68,10 @@ public class ResolveTypedIntegerCommand extends ToStringCommand {
     PsiAnnotation annotation = ApplicationManager.getApplication().runReadAction(new Computable<PsiAnnotation>() {
       @Override
       public PsiAnnotation compute() {
-        PsiElement context = PositionUtil.getContextElement(debuggerContext);
-        if (context == null) {
-          return null;
+        try {
+          return getAnnotation(debuggerContext);
         }
-
-        if (myDescriptor instanceof LocalVariableDescriptor) {
-          return AndroidResolveHelper.getAnnotationForLocal(context, myDescriptor.getName());
-        }
-        else if (myDescriptor instanceof FieldDescriptor) {
-          String className = ((FieldDescriptor)myDescriptor).getField().declaringType().name();
-          return AndroidResolveHelper.getAnnotationForField(context, className, myDescriptor.getName());
-        }
-        else {
+        catch (IndexNotReadyException e) {
           return null;
         }
       }
@@ -91,6 +84,23 @@ public class ResolveTypedIntegerCommand extends ToStringCommand {
     }
 
     evaluationResult("");
+  }
+
+  @Nullable
+  private PsiAnnotation getAnnotation(DebuggerContextImpl debuggerContext) {
+    PsiElement context = PositionUtil.getContextElement(debuggerContext);
+    if (context == null) {
+      return null;
+    }
+
+    if (myDescriptor instanceof LocalVariableDescriptor) {
+      return AndroidResolveHelper.getAnnotationForLocal(context, myDescriptor.getName());
+    }
+    if (myDescriptor instanceof FieldDescriptor) {
+      String className = ((FieldDescriptor)myDescriptor).getField().declaringType().name();
+      return AndroidResolveHelper.getAnnotationForField(context, className, myDescriptor.getName());
+    }
+    return null;
   }
 
   @Override
