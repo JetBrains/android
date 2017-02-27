@@ -38,6 +38,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtilRt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.filechooser.FileSystemView;
 import java.io.IOException;
@@ -67,6 +68,11 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     myProject = project;
     myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerAdapter());
     myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
+  }
+
+  @TestOnly
+  public void setDefaultDownloadPath(@NotNull Path path) {
+    myDefaultDownloadPath = path;
   }
 
   @NotNull
