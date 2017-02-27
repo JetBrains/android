@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.editors.strings.StringResourceData;
+import com.android.tools.idea.editors.strings.StringsWriteUtils;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.ui.TableUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -24,36 +25,37 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.ui.JBMenuItem;
+import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.table.JBTable;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
+import javax.swing.table.*;
+import java.awt.*;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.OptionalInt;
 import java.util.stream.IntStream;
 
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.*;
 
 public final class StringResourceTable extends JBTable implements DataProvider, PasteProvider {
-  @Nullable private StringResourceTableColumnFilter myColumnFilter;
+  @NotNull
+  private final AndroidFacet myFacet;
 
-  public StringResourceTable() {
+  @Nullable
+  private StringResourceTableColumnFilter myColumnFilter;
+
+  public StringResourceTable(@NotNull AndroidFacet facet) {
     super(new StringResourceTableModel());
 
     CellEditorListener editorListener = new CellEditorListener() {
@@ -68,7 +70,6 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
     };
 
     getDefaultEditor(Boolean.class).addCellEditorListener(editorListener);
-    tableHeader.setReorderingAllowed(false);
 
     TableCellEditor editor = new StringsCellEditor();
     editor.addCellEditorListener(editorListener);
@@ -82,8 +83,57 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
     setDefaultEditor(String.class, editor);
     setDefaultRenderer(String.class, new StringsCellRenderer());
     setRowSorter(new ThreeStateTableRowSorter<>(getModel()));
-
     new TableSpeedSearch(this);
+
+    myFacet = facet;
+  }
+
+  @NotNull
+  @Override
+  protected JTableHeader createDefaultTableHeader() {
+    JTableHeader header = new JBTableHeader();
+
+    header.setName("tableHeader");
+    header.setReorderingAllowed(false);
+
+    header.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mousePressed(@NotNull MouseEvent event) {
+        if (!event.isPopupTrigger()) {
+          return;
+        }
+
+        JTableHeader header = (JTableHeader)event.getSource();
+        Point point = event.getPoint();
+        int column = header.columnAtPoint(point);
+
+        if (column == -1) {
+          return;
+        }
+
+        Locale locale = getModel().getLocale(column);
+
+        if (locale == null) {
+          return;
+        }
+
+        showRemoveLocalePopupMenu(locale, header, point);
+      }
+    });
+
+    return header;
+  }
+
+  private void showRemoveLocalePopupMenu(@NotNull Locale locale, @NotNull Component invoker, @NotNull Point point) {
+    JMenuItem item = new JBMenuItem("Remove Locale");
+
+    item.setName("removeLocaleMenuItem");
+    item.addActionListener(event -> StringsWriteUtils.removeLocale(locale, myFacet, this));
+
+    JPopupMenu menu = new JBPopupMenu();
+
+    menu.add(item);
+    menu.show(invoker, point.x, point.y);
   }
 
   @Nullable
@@ -130,7 +180,8 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
     // Create new columns from the data model info
     for (int i = 0; i < model.getColumnCount(); i++) {
       Locale locale = model.getLocale(i);
-      if (i < FIXED_COLUMN_COUNT || myColumnFilter == null || myColumnFilter.include(locale)) {
+
+      if (i < FIXED_COLUMN_COUNT || myColumnFilter == null || (locale != null && myColumnFilter.include(locale))) {
         TableColumn newColumn = old.get(model.getColumnName(i));
         if (newColumn == null) {
           newColumn = new TableColumn(i);

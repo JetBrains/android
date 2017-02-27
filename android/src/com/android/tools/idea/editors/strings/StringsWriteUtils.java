@@ -51,7 +51,7 @@ import java.util.Objects;
 import java.util.Set;
 
 public class StringsWriteUtils {
-  static void removeLocale(@NotNull Locale locale, @NotNull AndroidFacet facet, @NotNull Object requestor) {
+  public static void removeLocale(@NotNull Locale locale, @NotNull AndroidFacet facet, @NotNull Object requestor) {
     FolderConfiguration configuration = new FolderConfiguration();
     configuration.setLocaleQualifier(locale.qualifier);
 
