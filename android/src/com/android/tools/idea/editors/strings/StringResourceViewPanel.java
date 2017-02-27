@@ -19,6 +19,7 @@ import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
+import com.android.tools.idea.editors.strings.table.StringsCellEditor;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
@@ -52,6 +53,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
@@ -62,13 +64,23 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntSupplier;
 
@@ -118,6 +130,44 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       new ParseTask("Loading string resource data").queue();
+    }
+  }
+
+  interface TextChangeListener {
+    void textChanged(@NotNull String text);
+  }
+
+  void addTextChangeListener(@NotNull TextChangeListener listener) {
+
+    FocusListener focusListener = new FocusAdapter() {
+      @Override
+      public void focusGained(@NotNull FocusEvent event) {
+        JTextComponent textComponent = (JTextComponent)event.getSource();
+        listener.textChanged(textComponent.getText());
+      }
+    };
+    myDefaultValueTextField.getTextField().addFocusListener(focusListener);
+    myTranslationTextField.getTextField().addFocusListener(focusListener);
+    ((StringsCellEditor)myTable.getDefaultEditor(String.class)).getTextField().addFocusListener(focusListener);
+
+    DocumentListener documentListener = new DocumentAdapter() {
+      @Override
+      protected void textChanged(@NotNull DocumentEvent event) {
+        listener.textChanged(getText(event.getDocument()));
+      }
+    };
+    myDefaultValueTextField.getTextField().getDocument().addDocumentListener(documentListener);
+    myTranslationTextField.getTextField().getDocument().addDocumentListener(documentListener);
+    ((StringsCellEditor)myTable.getDefaultEditor(String.class)).getTextField().getDocument().addDocumentListener(documentListener);
+  }
+
+  @NotNull
+  private static String getText(@NotNull Document document) {
+    try {
+      return document.getText(0, document.getLength());
+    }
+    catch (BadLocationException e) {
+      return "";
     }
   }
 
