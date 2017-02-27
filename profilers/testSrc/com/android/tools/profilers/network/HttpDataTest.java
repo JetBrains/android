@@ -156,9 +156,11 @@ public class HttpDataTest {
   public void testBuilder() {
     long id = 1111;
     long startTime = 10, downloadTime = 100, endTime = 1000;
+    String trace = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)";
+
     HttpData.Builder builder = new HttpData.Builder(id, startTime, endTime, downloadTime);
     builder.setResponseFields("status line =  HTTP/1.1 302 Found \n").setMethod("method")
-      .setResponsePayloadId("payloadId").setTrace("trace").setUrl("url");
+      .setResponsePayloadId("payloadId").setTrace(trace).setUrl("url");
 
     HttpData data = builder.build();
 
@@ -170,7 +172,7 @@ public class HttpDataTest {
     assertThat(data.getStatusCode(), equalTo(302));
     assertThat(data.getMethod(), equalTo("method"));
     assertThat(data.getResponsePayloadId(), equalTo("payloadId"));
-    assertThat(data.getStackTrace().getTrace(), equalTo("trace"));
+    assertThat(data.getStackTrace().getTrace(), equalTo(trace));
     assertThat(data.getUrl(), equalTo("url"));
   }
 
