@@ -180,6 +180,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     }
 
     public void clickPath(@NotNull MouseButton button, @NotNull final String... paths) {
+      Wait.seconds(5).expecting("Tree to load").until(() -> !String.valueOf(myTree.target().getCellRenderer()).equals("loading..."));
       StringBuilder totalPath = new StringBuilder();
       for (String node : paths) {
         totalPath.append(node);
