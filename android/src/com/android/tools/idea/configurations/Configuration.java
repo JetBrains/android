@@ -199,15 +199,6 @@ public class Configuration implements Disposable, ModificationTracker {
         myStateName = orientation.getShortDisplayValue();
       }
     }
-
-    if (file != null) {
-      if (ResourceHelper.getFolderType(file) == ResourceFolderType.XML) {
-        myPsiFile = AndroidPsiUtils.getPsiFileSafely(manager.getProject(), file);
-        if (myPsiFile != null && TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(myPsiFile))) {
-          myTarget = manager.getTarget(PREFERENCES_MIN_API);
-        }
-      }
-    }
   }
 
   /**
