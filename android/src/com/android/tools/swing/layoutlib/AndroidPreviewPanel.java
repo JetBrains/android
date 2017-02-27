@@ -31,9 +31,16 @@ import com.intellij.openapi.project.DumbService;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -164,6 +171,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
 
   private final DumbService myDumbService;
   private final Object myGraphicsLayoutRendererLock = new Object();
+  @GuardedBy("myGraphicsLayoutRendererLock")
   private GraphicsLayoutRenderer myGraphicsLayoutRenderer;
   private Configuration myConfiguration;
   private Document myDocument;
@@ -222,6 +230,17 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
         myGraphicsLayoutRenderer.setScale(scale);
       }
     }
+  }
+
+  @Override
+  public void revalidate() {
+    synchronized (myGraphicsLayoutRendererLock) {
+      if (myGraphicsLayoutRenderer != null) {
+        myCurrentWidth = getWidth();
+        myGraphicsLayoutRenderer.setSize(myCurrentWidth, getHeight());
+      }
+    }
+    super.revalidate();
   }
 
   public void invalidateGraphicsRenderer() {
@@ -327,6 +346,13 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
       }
 
       return myGraphicsLayoutRenderer.getUsedAttrs();
+    }
+  }
+
+  @NotNull
+  public List<ViewInfo> getRootViews() {
+    synchronized (myGraphicsLayoutRendererLock) {
+      return myGraphicsLayoutRenderer == null ? Collections.emptyList() : myGraphicsLayoutRenderer.getRootViews();
     }
   }
 

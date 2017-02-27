@@ -97,6 +97,11 @@ public class StringsCellEditor extends AbstractTableCellEditor {
     return myTextField.getText();
   }
 
+  @NotNull
+  public JBTextField getTextField() {
+    return myTextField;
+  }
+
   @VisibleForTesting
   public void setCellEditorValue(@NotNull Object value) {
     myTextField.setText((String)value);

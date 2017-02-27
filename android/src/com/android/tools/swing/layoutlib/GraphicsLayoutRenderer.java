@@ -475,6 +475,11 @@ public class GraphicsLayoutRenderer {
     return null;
   }
 
+  @NotNull
+  public List<ViewInfo> getRootViews() {
+    return myRenderSession == null ? Collections.emptyList() : myRenderSession.getRootViews();
+  }
+
   /**
    * Find the view at a given point.
    */
