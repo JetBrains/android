@@ -45,6 +45,7 @@ import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -99,6 +100,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
   private StringResourceRepository myResourceRepository;
   private ResourceChangeListener myResourceChangeListener;
+  private RemoveKeysAction myRemoveKeysAction;
 
   @Nullable private ResourceItem myItemAtMouseClickLocation;
 
@@ -172,10 +174,48 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   }
 
   private void createUIComponents() {
-    myTable = new StringResourceTable();
+    createTable();
     createTablePopupMenu();
     createDefaultValueTextField();
     createTranslationTextField();
+  }
+
+  private void createTable() {
+    myTable = new StringResourceTable();
+
+    ActionMap actionMap = myTable.getActionMap();
+    actionMap.put("delete", new AbstractAction() {
+      @Override
+      public void actionPerformed(@Nullable ActionEvent event) {
+        int[] cols = myTable.getSelectedColumnModelIndices();
+        for (int col : cols) {
+          if (col == StringResourceTableModel.KEY_COLUMN ||
+              col == StringResourceTableModel.RESOURCE_FOLDER_COLUMN ||
+              col == StringResourceTableModel.UNTRANSLATABLE_COLUMN) {
+            // if its not a translation we are deleting, then call the delete action for the whole string
+            myRemoveKeysAction.actionPerformed(null);
+            return;
+          }
+        }
+        int[] rows = myTable.getSelectedRowModelIndices();
+        if (rows.length == 1 && cols.length == 1) {
+          myTable.getModel().setValueAt("", rows[0], cols[0]);
+        }
+        else {
+          // remove all in a single action (so we can undo it in 1 go)
+          new WriteCommandAction.Simple(myFacet.getModule().getProject(), "Delete multiple strings") {
+            @Override
+            protected void run() throws Throwable {
+              for (int row : rows) {
+                for (int col : cols) {
+                  myTable.getModel().setValueAt("", row, col);
+                }
+              }
+            }
+          }.execute();
+        }
+      }
+    });
   }
 
   private void createTablePopupMenu() {
@@ -321,8 +361,10 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     JComponent toolbarComponent = toolbar.getComponent();
     toolbarComponent.setName("toolbar");
 
+    myRemoveKeysAction = new RemoveKeysAction(this);
+
     group.add(new AddKeyAction(myTable, myFacet));
-    group.add(new RemoveKeysAction(this));
+    group.add(myRemoveKeysAction);
     group.add(new AddLocaleAction(myTable, myFacet));
     group.add(new RemoveLocaleAction(myTable, myFacet));
     group.add(new FilterKeysAction(myTable));

@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.editors.translations;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.tests.gui.framework.*;
+import com.android.tools.idea.tests.gui.framework.fixture.DeleteDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.DialogBuilderFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -58,6 +59,7 @@ import java.util.stream.IntStream;
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab.EDITOR;
 import static org.junit.Assert.*;
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
 public final class TranslationsEditorTest {
@@ -393,6 +395,30 @@ public final class TranslationsEditorTest {
     editor.getTranslationEditorTextField().replaceText("Multiline\nTest");
     editor.clickOk();
     myTranslationsEditor.getTable().cell(TableCell.row(1).column(ENGLISH_COLUMN)).requireValue("Multiline\nTest");
+  }
+
+  @Test
+  public void deleteString() {
+    // delete just the translation
+    myTranslationsEditor.getTable().selectCell(TableCell.row(1).column(ENGLISH_COLUMN));
+    myGuiTest.robot().pressAndReleaseKey(KeyEvent.VK_DELETE);
+
+    EditorFixture editor = myGuiTest.ideFrame().getEditor().open("app/src/main/res/values-en/strings.xml");
+    assertThat(editor.getCurrentFileContents()).doesNotContain("hello_world");
+
+    editor.awaitNotification("Edit translations for all locales in the translations editor.")
+      .performAction("Open editor");
+
+    // delete the entire string
+    myTranslationsEditor.getTable().selectCell(TableCell.row(1).column(KEY_COLUMN));
+    myGuiTest.robot().pressAndReleaseKey(KeyEvent.VK_DELETE);
+    DeleteDialogFixture.find(myGuiTest.robot()).clickOk().waitForUnsafeDialog().deleteAnyway();
+
+    editor = myGuiTest.ideFrame().getEditor().open("app/src/main/res/values/strings.xml");
+    assertThat(editor.getCurrentFileContents()).doesNotContain("hello_world");
+
+    editor = myGuiTest.ideFrame().getEditor().open("app/src/main/res/values-ta/strings.xml");
+    assertThat(editor.getCurrentFileContents()).doesNotContain("hello_world");
   }
 
   @NotNull
