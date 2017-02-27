@@ -74,4 +74,10 @@ class TopDownNode extends CpuTreeNode<TopDownNode> {
     MethodModel data = getNodes().get(0).getData();
     return data == null ? "" : data.getClassName();
   }
+
+  @Override
+  public String getSignature() {
+    MethodModel data = getNodes().get(0).getData();
+    return data == null ? "" : data.getSignature();
+  }
 }

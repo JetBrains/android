@@ -366,7 +366,7 @@ final class MemoryClassView extends AspectObserver {
       assert callStack != null;
       // TODO this is potentially super slow, so we might need to speed this up
       List<CodeLocation> stackFrames = Lists.reverse(callStack.getStackFramesList()).stream()
-        .map((frame) -> new CodeLocation(frame.getClassName(), frame.getFileName(), frame.getMethodName(), frame.getLineNumber() - 1))
+        .map((frame) -> new CodeLocation(frame.getClassName(), frame.getFileName(), frame.getMethodName(), null, frame.getLineNumber() - 1))
         .collect(Collectors.toList());
 
       ThreadId threadId = instanceObject.getAllocationThreadId();

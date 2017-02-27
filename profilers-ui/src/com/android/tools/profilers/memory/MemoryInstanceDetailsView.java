@@ -197,7 +197,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     AllocationStack callStack = instance.getCallStack();
     if (callStack != null && !callStack.getStackFramesList().isEmpty()) {
       List<CodeLocation> stackFrames = callStack.getStackFramesList().stream()
-        .map((frame) -> new CodeLocation(frame.getClassName(), frame.getFileName(), frame.getMethodName(), frame.getLineNumber() - 1))
+        .map((frame) -> new CodeLocation(frame.getClassName(), frame.getFileName(), frame.getMethodName(), null, frame.getLineNumber() - 1))
         .collect(Collectors.toList());
       myStackTraceView.getModel().setStackFrames(instance.getAllocationThreadId(), stackFrames);
         myTabsPanel.addTab("Callstack", myStackTraceView.getComponent());

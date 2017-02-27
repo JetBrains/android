@@ -39,9 +39,9 @@ import java.util.stream.Stream;
 import static com.google.common.truth.Truth.assertThat;
 
 public class ConnectionDetailsViewTest {
-
+  private static final String dumbTrace = "com.google.downloadUrlToStream(ImageFetcher.java:274)";
   private static final HttpData DEFAULT_DATA = new HttpData.Builder(1, 10000, 50000, 100000)
-    .setUrl("dumbUrl").setTrace("dumbTrace").setMethod("GET").build();
+    .setUrl("dumbUrl").setTrace(dumbTrace).setMethod("GET").build();
   private static final String RESPONSE_HEADERS = "null =  HTTP/1.1 302 Found \n Content-Type = 111 \n Content-Length = 222 \n";
   private static final String TEST_HEADERS = "car = value \n border = value \n apple = value \n 123 = value \n";
 
