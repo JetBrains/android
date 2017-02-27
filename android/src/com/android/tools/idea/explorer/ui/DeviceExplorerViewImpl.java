@@ -253,6 +253,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     myTreePopupMenu.addItem(new UploadFilesMenuItem());
     myTreePopupMenu.addItem(new DeleteNodesMenuItem());
     myTreePopupMenu.addSeparator();
+    myTreePopupMenu.addItem(new SynchronizeNodesMenuItem());
     myTreePopupMenu.addItem(new CopyPathMenuItem());
     myTreePopupMenu.install();
   }
@@ -288,6 +289,10 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
   private void deleteNodes(@NotNull List<DeviceFileEntryNode> treeNodes) {
     myListeners.forEach(x -> x.deleteNodesInvoked(treeNodes));
+  }
+
+  private void synchronizeNodes(@NotNull List<DeviceFileEntryNode> treeNodes) {
+    myListeners.forEach(x -> x.synchronizeNodesInvoked(treeNodes));
   }
 
   private void uploadFiles(@NotNull DeviceFileEntryNode treeNode) {
@@ -653,6 +658,30 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     @Override
     public void run(@NotNull List<DeviceFileEntryNode> nodes) {
       deleteNodes(nodes);
+    }
+  }
+
+  private class SynchronizeNodesMenuItem extends TreeMenuItem {
+    @NotNull
+    @Override
+    public String getText() {
+      return "Synchronize";
+    }
+
+    @Nullable
+    @Override
+    public Icon getIcon() {
+      return AllIcons.Actions.Refresh;
+    }
+
+    @Override
+    public boolean isVisible(@NotNull DeviceFileEntryNode node) {
+      return true;
+    }
+
+    @Override
+    public void run(@NotNull List<DeviceFileEntryNode> nodes) {
+      synchronizeNodes(nodes);
     }
   }
 
