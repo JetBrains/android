@@ -23,6 +23,7 @@ import com.android.tools.idea.explorer.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
+import com.android.tools.idea.explorer.fs.ThrottledProgress;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -325,8 +326,10 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
    * {@link com.android.tools.idea.ddms.EdtExecutor}
    */
   private static class SingleFileProgressMonitor implements SyncService.ISyncProgressMonitor {
-    private final Executor myCallbackExecutor;
-    private final FileTransferProgress myProgress;
+    private static final int PROGRESS_REPORT_INTERVAL_MILLIS = 50;
+    @NotNull private final Executor myCallbackExecutor;
+    @NotNull private final FileTransferProgress myProgress;
+    @NotNull private final ThrottledProgress myThrottledProgress;
     private final long myTotalBytes;
     private long myCurrentBytes;
 
@@ -336,6 +339,7 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
       myCallbackExecutor = callbackExecutor;
       myProgress = progress;
       myTotalBytes = totalBytes;
+      myThrottledProgress = new ThrottledProgress(PROGRESS_REPORT_INTERVAL_MILLIS);
     }
 
     @Override
@@ -365,7 +369,11 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
     @Override
     public void advance(int work) {
       myCurrentBytes += work;
-      myCallbackExecutor.execute(() -> myProgress.progress(myCurrentBytes, myTotalBytes));
+      if (myThrottledProgress.check()) {
+        // Capture value for lambda (since lambda may be executed after some delay)
+        final long currentBytes = myCurrentBytes;
+        myCallbackExecutor.execute(() -> myProgress.progress(currentBytes, myTotalBytes));
+      }
     }
   }
 }

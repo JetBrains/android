@@ -24,6 +24,8 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.KeyboardShortcut;
+import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
@@ -55,13 +57,17 @@ import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.stream.Collectors;
 
+import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
+import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
+
 public class DeviceExplorerViewImpl implements DeviceExplorerView {
   @NotNull private final List<DeviceExplorerViewListener> myListeners = new ArrayList<>();
+  @NotNull private final List<DeviceExplorerViewProgressListener> myProgressListeners = new ArrayList<>();
   @NotNull private final Project myProject;
   @NotNull private final ToolWindow myToolWindow;
   @NotNull private final DeviceFileSystemRenderer myDeviceRenderer;
+  @NotNull private final DeviceExplorerPanel myPanel;
   @Nullable private JBLoadingPanel myLoadingPanel;
-  @Nullable private DeviceExplorerPanel myPanel;
   @Nullable private ComponentPopupMenu myTreePopupMenu;
   private int myTreeLoadingCount;
 
@@ -73,18 +79,20 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     myToolWindow = toolWindow;
     model.addListener(new ModelListener());
     myDeviceRenderer = deviceRenderer;
+    myPanel = new DeviceExplorerPanel();
+    myPanel.setCancelActionListener(e -> myProgressListeners.forEach(DeviceExplorerViewProgressListener::cancellationRequested));
   }
 
   @TestOnly
   @Nullable
   public JComboBox<DeviceFileSystem> getDeviceCombo() {
-    return myPanel != null ? myPanel.getDeviceCombo() : null;
+    return myPanel.getDeviceCombo();
   }
 
   @TestOnly
   @Nullable
   public JTree getFileTree() {
-    return myPanel != null ? myPanel.getTree() : null;
+    return myPanel.getTree();
   }
 
   @TestOnly
@@ -113,6 +121,16 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   @Override
   public void removeListener(@NotNull DeviceExplorerViewListener listener) {
     myListeners.remove(listener);
+  }
+
+  @Override
+  public void addProgressListener(@NotNull DeviceExplorerViewProgressListener listener) {
+    myProgressListeners.add(listener);
+  }
+
+  @Override
+  public void removeProgressListener(@NotNull DeviceExplorerViewProgressListener listener) {
+    myProgressListeners.remove(listener);
   }
 
   @Override
@@ -183,7 +201,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     Content c = contentManager.getFactory().createContent(myLoadingPanel, "", true);
     contentManager.addContent(c);
 
-    myPanel = new DeviceExplorerPanel();
     myPanel.getComponent().setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
     myLoadingPanel.add(myPanel.getComponent(), BorderLayout.CENTER);
 
@@ -242,7 +259,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   }
 
   private void createTreePopupMenu() {
-    assert myPanel != null;
     myTreePopupMenu = new ComponentPopupMenu(myPanel.getTree());
     ComponentPopupMenu fileMenu = myTreePopupMenu.addPopup("New");
     fileMenu.addItem(new NewFileMenuItem());
@@ -307,8 +323,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   }
 
   public void setRootFolder(@Nullable DefaultTreeModel model, DefaultTreeSelectionModel treeSelectionModel) {
-    assert myPanel != null;
-
     Tree tree = myPanel.getTree();
     tree.setModel(model);
     tree.setSelectionModel(treeSelectionModel);
@@ -334,9 +348,47 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
   @Override
   public void expandNode(@NotNull DeviceFileEntryNode treeNode) {
-    if (myPanel != null) {
-      myPanel.getTree().expandPath(new TreePath(treeNode.getPath()));
-    }
+    myPanel.getTree().expandPath(new TreePath(treeNode.getPath()));
+  }
+
+  @Override
+  public void startProgress() {
+    myPanel.getProgressPanel().start();
+  }
+
+  @Override
+  public void setProgressIndeterminate(boolean indeterminate) {
+    myPanel.getProgressPanel().setIndeterminate(indeterminate);
+  }
+
+  @Override
+  public void setProgressValue(double fraction) {
+    myPanel.getProgressPanel().setProgress(fraction);
+  }
+
+  @Override
+  public void setProgressOkColor() {
+    myPanel.getProgressPanel().setOkStatusColor();
+  }
+
+  @Override
+  public void setProgressWarningColor() {
+    myPanel.getProgressPanel().setWarningStatusColor();
+  }
+
+  @Override
+  public void setProgressErrorColor() {
+    myPanel.getProgressPanel().setErrorStatusColor();
+  }
+
+  @Override
+  public void setProgressText(@NotNull String text) {
+    myPanel.getProgressPanel().setText(text);
+  }
+
+  @Override
+  public void stopProgress() {
+    myPanel.getProgressPanel().stop();
   }
 
   private void expandTreeNode(@NotNull DeviceFileEntryNode node) {
@@ -344,8 +396,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   }
 
   private void incrementTreeLoading() {
-    assert myPanel != null;
-
     if (myTreeLoadingCount == 0) {
       myPanel.getTree().setPaintBusy(true);
     }
@@ -353,8 +403,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   }
 
   private void decrementTreeLoading() {
-    assert myPanel != null;
-
     myTreeLoadingCount--;
     if (myTreeLoadingCount == 0) {
       myPanel.getTree().setPaintBusy(false);
@@ -364,31 +412,23 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   private class ModelListener implements DeviceExplorerModelListener {
     @Override
     public void allDevicesRemoved() {
-      if (myPanel != null) {
-        myPanel.getDeviceCombo().removeAllItems();
-      }
+      myPanel.getDeviceCombo().removeAllItems();
     }
 
     @Override
     public void deviceAdded(@NotNull DeviceFileSystem device) {
-      if (myPanel != null) {
-        myPanel.getDeviceCombo().addItem(device);
-      }
+       myPanel.getDeviceCombo().addItem(device);
     }
 
     @Override
     public void deviceRemoved(@NotNull DeviceFileSystem device) {
-      if (myPanel != null) {
-        myPanel.getDeviceCombo().removeItem(device);
-      }
+      myPanel.getDeviceCombo().removeItem(device);
     }
 
     @Override
     public void deviceUpdated(@NotNull DeviceFileSystem device) {
-      if (myPanel != null) {
-        if (myPanel.getDeviceCombo().getSelectedItem() == device) {
-          myPanel.getDeviceCombo().repaint();
-        }
+      if (myPanel.getDeviceCombo().getSelectedItem() == device) {
+        myPanel.getDeviceCombo().repaint();
       }
     }
 
@@ -456,7 +496,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
     @Nullable
     private List<DeviceFileEntryNode> getSelectedNodes() {
-      assert myPanel != null;
       TreePath[] paths = myPanel.getTree().getSelectionPaths();
       if (paths == null) {
         return null;
@@ -548,6 +587,13 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
       return AllIcons.Actions.Menu_open;
     }
 
+    @Nullable
+    @Override
+    public String getShortcutId() {
+      // Re-use existing shortcut, see platform/platform-resources/src/keymaps/$default.xml
+      return "OpenFile";
+    }
+
     @Override
     public boolean isVisible(@NotNull DeviceFileEntryNode node) {
       return node.getEntry().isFile();
@@ -570,6 +616,15 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     @Override
     public Icon getIcon() {
       return AllIcons.Actions.Menu_saveall;
+    }
+
+    @Nullable
+    @Override
+    public Shortcut[] getShortcuts() {
+      return new Shortcut[]{
+        new KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_S, CTRL_DOWN_MASK | SHIFT_DOWN_MASK), null),
+        new KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_D, CTRL_DOWN_MASK | SHIFT_DOWN_MASK), null),
+      };
     }
 
     @Override
@@ -652,7 +707,8 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     @Nullable
     @Override
     public String getShortcutId() {
-      return "$Delete"; // Re-use existing shortcut
+      // Re-use existing shortcut, see platform/platform-resources/src/keymaps/$default.xml
+      return "$Delete";
     }
 
     @Override
@@ -690,6 +746,15 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
     @Override
     public String getText() {
       return "Upload...";
+    }
+
+    @Nullable
+    @Override
+    public Shortcut[] getShortcuts() {
+      return new Shortcut[]{
+        new KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_O, CTRL_DOWN_MASK | SHIFT_DOWN_MASK), null),
+        new KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_U, CTRL_DOWN_MASK | SHIFT_DOWN_MASK), null),
+      };
     }
 
     @Override

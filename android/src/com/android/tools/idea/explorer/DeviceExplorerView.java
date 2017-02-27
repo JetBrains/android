@@ -37,4 +37,15 @@ public interface DeviceExplorerView {
   void stopTreeBusyIndicator();
 
   void expandNode(@NotNull DeviceFileEntryNode treeNode);
+
+  void addProgressListener(@NotNull DeviceExplorerViewProgressListener listener);
+  void removeProgressListener(@NotNull DeviceExplorerViewProgressListener listener);
+  void startProgress();
+  void setProgressIndeterminate(boolean indeterminate);
+  void setProgressValue(double fraction);
+  void setProgressOkColor();
+  void setProgressWarningColor();
+  void setProgressErrorColor();
+  void setProgressText(@NotNull String text);
+  void stopProgress();
 }

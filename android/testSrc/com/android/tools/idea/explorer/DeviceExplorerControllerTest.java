@@ -50,6 +50,7 @@ import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.ide.PooledThreadExecutor;
 import org.mockito.Mockito;
 import org.picocontainer.MutablePicoContainer;
 
@@ -98,6 +99,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   private TestDialog myInitialTestDialog;
   private TestInputDialog myInitialTestInputDialog;
   private FutureCallbackExecutor myEdtExecutor;
+  private FutureCallbackExecutor myTaskExecutor;
 
   @Override
   protected void setUp() throws Exception {
@@ -107,7 +109,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     ToolWindow toolWindow = toolWindowManager.registerToolWindow(
       DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID, false, ToolWindowAnchor.RIGHT, getProject(), true);
 
-    myEdtExecutor = new FutureCallbackExecutor(EdtExecutor.INSTANCE);
+    myEdtExecutor = FutureCallbackExecutor.wrap(EdtExecutor.INSTANCE);
+    myTaskExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE);
     myModel = new DeviceExplorerModel() {
       @Override
       public void setActiveDeviceTreeModel(@Nullable DeviceFileSystem device,
@@ -603,7 +606,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     downloadFile(() -> {
       // Prepare
       // The "Save As" dialog does not work in headless mode, so we register a custom
-      // comonent that simply returns the tempFile we created above.
+      // component that simply returns the tempFile we created above.
       replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
         @NotNull
         @Override
@@ -1075,7 +1078,9 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     pumpEventsAndWaitForFuture(futureTreeChanged);
 
     // Assert
-    assertEquals(2, DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent()).getChildCount());
+    DeviceFileEntryNode fooNode = DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent());
+    assertNotNull(fooNode);
+    assertEquals(2, fooNode.getChildCount());
   }
 
   public void testFileSystemTree_ContextMenu_Delete_ShowProblems() throws Exception {
@@ -1118,7 +1123,9 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Assert
     // One entry has been deleted
-    assertEquals(3, DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent()).getChildCount());
+    DeviceFileEntryNode fooNode = DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent());
+    assertNotNull(fooNode);
+    assertEquals(3, fooNode.getChildCount());
   }
 
   public void testFileSystemTree_ContextMenu_Upload_SingleFile_Works() throws Exception {
@@ -1175,7 +1182,9 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Assert
     // One node has been added
-    assertEquals(5, DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent()).getChildCount());
+    DeviceFileEntryNode fooNode = DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent());
+    assertNotNull(fooNode);
+    assertEquals(5, fooNode.getChildCount());
   }
 
   public void testFileSystemTree_ContextMenu_Upload_DirectoryAndFile_Works() throws Exception {
@@ -1242,7 +1251,9 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Assert
     // Two nodes have been added
-    assertEquals(6, DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent()).getChildCount());
+    DeviceFileEntryNode fooNode = DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent());
+    assertNotNull(fooNode);
+    assertEquals(6, fooNode.getChildCount());
   }
 
   public void testFileSystemTree_ContextMenu_Upload_ShowsProblems() throws Exception {
@@ -1313,7 +1324,9 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Assert
     // No node has been added
-    assertEquals(4, DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent()).getChildCount());
+    DeviceFileEntryNode fooNode = DeviceFileEntryNode.fromNode(getFileEntryPath(myFoo).getLastPathComponent());
+    assertNotNull(fooNode);
+    assertEquals(4, fooNode.getChildCount());
   }
 
   public void testFileSystemTree_ContextMenu_Synchronize_Works() throws Exception {
@@ -1590,7 +1603,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
   }
 
   private DeviceExplorerController createController(DeviceExplorerView view, DeviceFileSystemService service) {
-    return new DeviceExplorerController(getProject(), myModel, view, service, myMockFileManager, EdtExecutor.INSTANCE);
+    return new DeviceExplorerController(getProject(), myModel, view, service, myMockFileManager, myEdtExecutor, myTaskExecutor);
   }
 
   private static <V> List<V> pumpEventsAndWaitForFutures(List<ListenableFuture<V>> futures) {
