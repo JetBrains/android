@@ -32,6 +32,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.io.PathKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -55,6 +56,11 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
     myProject = project;
     myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
     myFileManagerImpl = new DeviceExplorerFileManagerImpl(project, edtExecutor);
+  }
+
+  @TestOnly
+  public void setDefaultDownloadPath(@NotNull Path path) {
+    myFileManagerImpl.setDefaultDownloadPath(path);
   }
 
   @NotNull
