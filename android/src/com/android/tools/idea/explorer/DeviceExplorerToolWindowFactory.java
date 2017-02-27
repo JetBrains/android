@@ -34,16 +34,17 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-    Executor callbackExecutor = EdtExecutor.INSTANCE;
+    Executor edtExecutor = EdtExecutor.INSTANCE;
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
 
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(project, callbackExecutor, taskExecutor);
+    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(project, edtExecutor, taskExecutor);
     DeviceFileSystemRenderer renderer = new AdbDeviceFileSystemRenderer(service);
-    DeviceExplorerFileManager fileManager = new DeviceExplorerFileManagerImpl(project, callbackExecutor);
+    DeviceExplorerFileManager fileManager = new DeviceExplorerFileManagerImpl(project, edtExecutor);
 
     DeviceExplorerModel model = new DeviceExplorerModel();
     DeviceExplorerView view = new DeviceExplorerViewImpl(project, toolWindow, renderer, model);
-    DeviceExplorerController controller = new DeviceExplorerController(project, model, view, service, fileManager, callbackExecutor);
+    DeviceExplorerController controller =
+      new DeviceExplorerController(project, model, view, service, fileManager, edtExecutor, taskExecutor);
 
     controller.setup();
   }

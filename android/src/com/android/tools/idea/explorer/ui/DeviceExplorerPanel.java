@@ -42,6 +42,7 @@ import org.jetbrains.annotations.TestOnly;
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
+import java.awt.event.ActionListener;
 
 public class DeviceExplorerPanel {
   private static final int TEXT_RENDERER_HORIZ_PADDING = 6;
@@ -50,6 +51,7 @@ public class DeviceExplorerPanel {
   @SuppressWarnings("unused") private JBScrollPane myColumnTreePane;
   private JPanel myComponent;
   private JPanel myToolbarPanel;
+  @NotNull private ProgressPanel myProgressPanel;
 
   private Tree myTree;
 
@@ -70,8 +72,17 @@ public class DeviceExplorerPanel {
     return myDeviceCombo;
   }
 
+  @NotNull
+  public ProgressPanel getProgressPanel() {
+    return myProgressPanel;
+  }
+
   @TestOnly
   public JBScrollPane getColumnTreePane() { return myColumnTreePane; }
+
+  public void setCancelActionListener(@Nullable ActionListener cancelActionListener) {
+    myProgressPanel.setCancelActionListener(cancelActionListener);
+  }
 
   @SuppressWarnings("unused")
   private void createToolbar() {
