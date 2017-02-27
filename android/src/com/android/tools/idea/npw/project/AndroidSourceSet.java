@@ -80,61 +80,76 @@ public final class AndroidSourceSet {
   @NotNull
   public SourceProvider toSourceProvider() {
     return new SourceProvider() {
+      @NotNull
       @Override
       public String getName() {
         return myName;
       }
 
+      @NotNull
       @Override
       public File getManifestFile() {
         return new File(myPaths.getManifestDirectory(), ANDROID_MANIFEST_XML);
       }
 
+      @NotNull
       @Override
       public Collection<File> getJavaDirectories() {
-        return Collections.singleton(myPaths.getSrcDirectory());
+        File srcDirectory = myPaths.getSrcDirectory();
+        return srcDirectory == null ? Collections.emptyList() : Collections.singleton(srcDirectory);
       }
 
+      @NotNull
       @Override
       public Collection<File> getResourcesDirectories() {
         return Collections.emptyList();
       }
 
+      @NotNull
       @Override
       public Collection<File> getAidlDirectories() {
-        return Collections.singleton(myPaths.getAidlDirectory());
+        File aidlDirectory = myPaths.getAidlDirectory();
+        return aidlDirectory == null ? Collections.emptyList() : Collections.singleton(aidlDirectory);
       }
 
+      @NotNull
       @Override
       public Collection<File> getRenderscriptDirectories() {
         return Collections.emptyList();
       }
 
+      @NotNull
       @Override
       public Collection<File> getCDirectories() {
         return Collections.emptyList();
       }
 
+      @NotNull
       @Override
       public Collection<File> getCppDirectories() {
         return Collections.emptyList();
       }
 
+      @NotNull
       @Override
       public Collection<File> getResDirectories() {
-        return Collections.singleton(myPaths.getResDirectory());
+        File resDirectory = myPaths.getResDirectory();
+        return resDirectory == null ? Collections.emptyList() : Collections.singleton(resDirectory);
       }
 
+      @NotNull
       @Override
       public Collection<File> getAssetsDirectories() {
         return Collections.emptyList();
       }
 
+      @NotNull
       @Override
       public Collection<File> getJniLibsDirectories() {
         return Collections.emptyList();
       }
 
+      @NotNull
       @Override
       public Collection<File> getShadersDirectories() {
         return Collections.emptyList();
