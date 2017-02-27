@@ -70,7 +70,7 @@ public class ConnectionDetailsView extends JPanel {
   private static final float TITLE_FONT_SIZE = 14.f;
   private static final float FIELD_FONT_SIZE = 11.f;
   private static final LongFunction<String> TIME_FORMATTER =
-    time -> time > 0 ? StringUtil.formatDuration(TimeUnit.MICROSECONDS.toMillis(time)) : "*";
+    time -> time >= 0 ? StringUtil.formatDuration(TimeUnit.MICROSECONDS.toMillis(time)) : "*";
 
   @NotNull
   private final JPanel myResponsePanel;
@@ -255,11 +255,16 @@ public class ConnectionDetailsView extends JPanel {
     timeline.getComponent().setMinimumSize(new Dimension(0, 28));
     panel.add(timeline.getComponent());
 
-    long receivingTime = httpData.getDownloadingTimeUs() > 0 ? httpData.getEndTimeUs() - httpData.getDownloadingTimeUs() : -1;
-    long sendingEndTime = receivingTime > 0 ? httpData.getDownloadingTimeUs() : httpData.getEndTimeUs();
-    long sendingTime = sendingEndTime - httpData.getStartTimeUs();
-    Legend sentLegend = new FixedLegend(String.format("Sent: %s", TIME_FORMATTER.apply(sendingTime)));
-    Legend receivedLegend = new FixedLegend(String.format("Received: %s", TIME_FORMATTER.apply(receivingTime)));
+    long sentTime = -1;
+    long receivedTime = -1;
+    // Note: If download time is 0 but end time is non-zero, it means the connection was aborted or
+    // experienced some error. In that case, we can't be certain about our timings, so leave at -1.
+    if (httpData.getDownloadingTimeUs() > 0) {
+      sentTime = httpData.getDownloadingTimeUs() - httpData.getStartTimeUs();
+      receivedTime = httpData.getEndTimeUs() - httpData.getDownloadingTimeUs();
+    }
+    Legend sentLegend = new FixedLegend("Sent", TIME_FORMATTER.apply(sentTime));
+    Legend receivedLegend = new FixedLegend("Received", TIME_FORMATTER.apply(receivedTime));
     LegendComponentModel legendModel = new LegendComponentModel(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
     legendModel.add(sentLegend);
     legendModel.add(receivedLegend);
