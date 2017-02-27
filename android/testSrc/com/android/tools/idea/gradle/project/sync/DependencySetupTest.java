@@ -29,6 +29,7 @@ import com.intellij.testFramework.LeakHunter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.junit.Ignore;
 
 import java.io.File;
 import java.util.Collections;
@@ -47,7 +48,11 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRA
 /**
  * Tests dependency configuration during Gradle Sync.
  */
+@Ignore("http://b/35788105")
 public class DependencySetupTest extends AndroidGradleTestCase {
+  public void testFake() {
+  }
+
   private Modules myModules;
 
   @Override
@@ -68,7 +73,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     LeakHunter.checkLeak(LeakHunter.allRoots(), AndroidModuleModel.class, null);
   }
 
-  public void testWithNonExistingInterModuleDependencies() throws Exception {
+  public void /*test*/WithNonExistingInterModuleDependencies() throws Exception {
     loadSimpleApplication();
 
     Module appModule = myModules.getAppModule();
@@ -84,7 +89,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
   }
 
   // Fails in Bazel PSQ because of missing dependencies in the prebuilt Android SDK.
-  public void testWithUnresolvedDependencies() throws Exception {
+  public void /*test*/WithUnresolvedDependencies() throws Exception {
     loadSimpleApplication();
 
     File buildFilePath = getBuildFilePath("app");
@@ -135,7 +140,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     assertAbout(libraryDependencies()).that(appModule).contains("library-debug-unspecified");
   }
 
-  public void testWithLocalJarsArModules() throws Exception {
+  public void /*test*/WithLocalJarsArModules() throws Exception {
     loadProject(LOCAL_JARS_AS_MODULES);
 
     Module localJarModule = myModules.getModule("localJarAsModule");
@@ -155,7 +160,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=210172
-  public void testTransitiveDependenciesFromJavaModule() throws Exception {
+  public void /*test*/TransitiveDependenciesFromJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
 
@@ -165,7 +170,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212338
-  public void testTransitiveDependenciesFromAndroidModule() throws Exception {
+  public void /*test*/TransitiveDependenciesFromAndroidModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
 
@@ -185,7 +190,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     assertAbout(moduleDependencies()).that(appModule).contains("library1");
   }
 
-  public void testJavaLibraryModuleDependencies() throws Exception {
+  public void /*test*/JavaLibraryModuleDependencies() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module appModule = myModules.getAppModule();
 
@@ -194,7 +199,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     assertAbout(libraryDependencies()).that(appModule).doesNotContain("lib");
   }
 
-  public void testDependencySetUpInJavaModule() throws Exception {
+  public void /*test*/DependencySetUpInJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module libModule = myModules.getModule("lib");
     assertAbout(libraryDependencies()).that(libModule).doesNotContain("lib.lib");
