@@ -19,27 +19,52 @@ import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
-import com.android.tools.profiler.proto.Profiler;
+import com.android.tools.profiler.proto.*;
+import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profilers.*;
+import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.android.tools.profiler.proto.Common.CommonData;
+import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
+import static com.android.tools.profiler.proto.NetworkProfiler.SpeedData;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("OptionalGetWithoutIsPresent")
 public class NetworkProfilerStageViewTest {
+
+  private static final List<NetworkProfilerData> NETWORK_PROFILER_DATA_LIST = ImmutableList.<NetworkProfilerData>builder()
+    .add(createSpeedData(0, 0, 0))
+    .add(createSpeedData(10, 1, 1))
+    .add(createSpeedData(20, 0, 0))
+    .add(createSpeedData(30, 1, 1))
+    .add(createSpeedData(40, 1, 1))
+    .add(createSpeedData(50, 1, 1))
+    .add(createConnectionData(0, 0))
+    .add(createConnectionData(10, 0))
+    .add(createConnectionData(20, 0))
+    .add(createConnectionData(30, 0))
+    .add(createConnectionData(40, 1)).build();
+  private static final Range VIEW_RANGE = new Range(0, 60);
+
   private FakeUi myFakeUi;
   private StudioProfilersView myView;
 
   private final FakeProfilerService myProfilerService = new FakeProfilerService(true);
-  private final FakeNetworkService myNetworkService = FakeNetworkService.newBuilder().build();
+  private final FakeNetworkService myNetworkService =
+    FakeNetworkService.newBuilder().setNetworkDataList(NETWORK_PROFILER_DATA_LIST).build();
 
   @Rule
   public FakeGrpcChannel myGrpcChannel =
@@ -63,6 +88,7 @@ public class NetworkProfilerStageViewTest {
     JPanel viewComponent = myView.getComponent();
     viewComponent.setSize(new Dimension(600, 200));
     myFakeUi = new FakeUi(viewComponent);
+    profilers.getTimeline().getViewRange().set(0, 60);
   }
 
   @Test
@@ -85,5 +111,39 @@ public class NetworkProfilerStageViewTest {
     myFakeUi.keyboard.setFocus(selectionComponent);
     myFakeUi.keyboard.press(FakeKeyboard.Key.ESC);
     assertThat(connectionsViewWalker.ancestorStream().allMatch(Component::isVisible)).isFalse();
+  }
+
+  @Test
+  public void dragSelectionToggleInfoPanelVisibility() {
+    NetworkProfilerStageView stageView = (NetworkProfilerStageView)myView.getStageView();
+    TreeWalker treeWalker = new TreeWalker(stageView.getComponent());
+    JComponent infoPanel = (JComponent)treeWalker.descendantStream().filter(c -> "Info".equals(c.getName())).findFirst().get();
+    assertFalse(infoPanel.isVisible());
+    LineChart lineChart = (LineChart)treeWalker.descendantStream().filter(LineChart.class::isInstance).findFirst().get();
+
+    int microSecondToX = (int)(lineChart.getSize().getWidth() / (VIEW_RANGE.getMax() - VIEW_RANGE.getMin()));
+    Point start = myFakeUi.getPosition(lineChart);
+    myFakeUi.mouse.drag(start.x, start.y, 9 * microSecondToX, 0);
+    assertThat(infoPanel.isVisible()).isFalse();
+    myFakeUi.mouse.drag(start.x + 10 * microSecondToX, start.y, 5 * microSecondToX, 0);
+    assertThat(infoPanel.isVisible()).isTrue();
+    myFakeUi.mouse.drag(start.x + 20 * microSecondToX, start.y, 5 * microSecondToX, 0);
+    assertThat(infoPanel.isVisible()).isFalse();
+    myFakeUi.mouse.drag(start.x + 35 * microSecondToX, start.y, 2 * microSecondToX, 0);
+    assertThat(infoPanel.isVisible()).isTrue();
+    myFakeUi.mouse.drag(start.x, start.y, 40 * microSecondToX, 0);
+    assertThat(infoPanel.isVisible()).isTrue();
+  }
+
+  private static NetworkProfilerData createSpeedData(long time, long sent, long received) {
+    return NetworkProfilerData.newBuilder()
+      .setBasicInfo(CommonData.newBuilder().setEndTimestamp(TimeUnit.MICROSECONDS.toNanos(time)).build())
+      .setSpeedData(SpeedData.newBuilder().setReceived(received).setSent(sent).build()).build();
+  }
+
+  private static NetworkProfilerData createConnectionData(long time, int connectionNumber) {
+    return NetworkProfilerData.newBuilder()
+      .setBasicInfo(CommonData.newBuilder().setEndTimestamp(TimeUnit.MICROSECONDS.toNanos(time)).build())
+      .setConnectionData(NetworkProfiler.ConnectionData.newBuilder().setConnectionNumber(connectionNumber).build()).build();
   }
 }
