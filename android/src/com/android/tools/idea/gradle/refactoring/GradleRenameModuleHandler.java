@@ -28,6 +28,7 @@ import com.intellij.ide.IdeBundle;
 import com.intellij.ide.TitledHandler;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.command.undo.BasicUndoableAction;
@@ -184,8 +185,9 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
             modifiableModel.renameModule(myModule, inputString);
           }
           catch (ModuleWithNameAlreadyExists moduleWithNameAlreadyExists) {
-            Messages.showErrorDialog(project, IdeBundle.message("error.module.already.exists", inputString),
-                                     IdeBundle.message("title.rename.module"));
+            ApplicationManager.getApplication().invokeLater(
+              () -> Messages.showErrorDialog(project, IdeBundle.message("error.module.already.exists", inputString),
+                                             IdeBundle.message("title.rename.module")));
             result.setResult(false);
             reset(modifiedBuildModels);
             return;
@@ -197,7 +199,8 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
             moduleRoot.rename(this, inputString);
           }
           catch (IOException e) {
-            Messages.showErrorDialog(project, "Rename folder failed: " + e.getMessage(), IdeBundle.message("title.rename.module"));
+            ApplicationManager.getApplication().invokeLater(
+              () -> Messages.showErrorDialog(project, "Rename folder failed: " + e.getMessage(), IdeBundle.message("title.rename.module")));
             result.setResult(false);
             reset(modifiedBuildModels);
             return;
