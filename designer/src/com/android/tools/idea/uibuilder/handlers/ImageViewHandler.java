@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -110,14 +111,16 @@ public class ImageViewHandler extends ViewHandler {
   }
 
   public void setSrcAttribute(@NotNull NlComponent component, @NotNull String imageSource) {
-    if (shouldUseSrcCompat(component.getModel())) {
-      component.setAttribute(ANDROID_URI, ATTR_SRC, null);
-      component.setAttribute(AUTO_URI, ATTR_SRC_COMPAT, imageSource);
-    }
-    else {
-      component.setAttribute(ANDROID_URI, ATTR_SRC, imageSource);
-      component.setAttribute(AUTO_URI, ATTR_SRC_COMPAT, null);
-    }
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      if (shouldUseSrcCompat(component.getModel())) {
+        component.setAttribute(ANDROID_URI, ATTR_SRC, null);
+        component.setAttribute(AUTO_URI, ATTR_SRC_COMPAT, imageSource);
+      }
+      else {
+        component.setAttribute(ANDROID_URI, ATTR_SRC, imageSource);
+        component.setAttribute(AUTO_URI, ATTR_SRC_COMPAT, null);
+      }
+    });
   }
 
   public boolean shouldUseSrcCompat(@NotNull NlModel model) {
