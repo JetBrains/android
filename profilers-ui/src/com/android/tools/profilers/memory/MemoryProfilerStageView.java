@@ -380,13 +380,13 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     if (instance instanceof FieldObject) {
       FieldObject field = (FieldObject)instance;
       if (field.getIsArray()) {
-        return AllIcons.Debugger.Db_array;
+        return getStackedIcon(instance, ProfilerIcons.ARRAY_STACK, AllIcons.Debugger.Db_array);
       }
       else if (field.getIsPrimitive()) {
         return AllIcons.Debugger.Db_primitive;
       }
       else {
-        return PlatformIcons.FIELD_ICON;
+        return getStackedIcon(instance, ProfilerIcons.FIELD_STACK, PlatformIcons.FIELD_ICON);
       }
     }
     else if (instance instanceof ReferenceObject) {
@@ -395,16 +395,18 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
         return AllIcons.Hierarchy.Subtypes;
       }
       else if (referrer.getIsArray()) {
-        return AllIcons.Debugger.Db_array;
+        return getStackedIcon(instance, ProfilerIcons.ARRAY_STACK, AllIcons.Debugger.Db_array);
       }
       else {
-        return PlatformIcons.FIELD_ICON;
+        return getStackedIcon(instance, ProfilerIcons.FIELD_STACK, PlatformIcons.FIELD_ICON);
       }
     }
     else {
-      return (instance.getCallStack() == null || instance.getCallStack().getStackFramesCount() == 0)
-             ? PlatformIcons.INTERFACE_ICON
-             : ProfilerIcons.INTERFACE_STACK;
+      return getStackedIcon(instance, ProfilerIcons.INTERFACE_STACK, PlatformIcons.INTERFACE_ICON);
     }
+  }
+
+  private static Icon getStackedIcon(@NotNull InstanceObject instance, @NotNull Icon stackedIcon, @NotNull Icon nonStackedIcon) {
+    return (instance.getCallStack() == null || instance.getCallStack().getStackFramesCount() == 0) ? nonStackedIcon : stackedIcon;
   }
 }
