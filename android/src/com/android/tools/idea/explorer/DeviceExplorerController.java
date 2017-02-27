@@ -603,6 +603,49 @@ public class DeviceExplorerController {
     }
 
     @Override
+    public void synchronizeNodesInvoked(@NotNull List<DeviceFileEntryNode> nodes) {
+      if (nodes.isEmpty()) {
+        return;
+      }
+
+      // Collect directories as well as parent directories of files
+      Set<DeviceFileEntryNode> directoryNodes = nodes.stream()
+        .map(x -> {
+          if (x.isSymbolicLinkToDirectory() || x.getEntry().isDirectory()) {
+            return x;
+          }
+          return DeviceFileEntryNode.fromNode(x.getParent());
+        })
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+
+      // Add descendant directories that have been expanded/loaded
+      directoryNodes = directoryNodes.stream()
+        .flatMap(node -> {
+          List<DeviceFileEntryNode> nodesToSynchronize = new ArrayList<>();
+          Stack<DeviceFileEntryNode> stack = new Stack<>(); // iterative DFS traversal
+          stack.push(node);
+          while (!stack.isEmpty()) {
+            DeviceFileEntryNode currentNode = stack.pop();
+            nodesToSynchronize.add(currentNode);
+            currentNode.getChildEntryNodes().stream()
+              .filter(x -> x.getEntry().isDirectory() || x.isSymbolicLinkToDirectory())
+              .filter(DeviceFileEntryNode::isLoaded)
+              .forEach(stack::push);
+          }
+          return nodesToSynchronize.stream();
+        })
+        .collect(Collectors.toSet());
+
+      myView.startTreeBusyIndicator();
+      ListenableFuture<Void> futuresRefresh = executeFuturesInSequence(directoryNodes.iterator(), treeNode -> {
+        treeNode.setLoaded(false);
+        return loadNodeChildren(treeNode);
+      });
+      myEdtExecutor.addListener(futuresRefresh, myView::stopTreeBusyIndicator);
+    }
+
+    @Override
     public void deleteNodesInvoked(@NotNull List<DeviceFileEntryNode> nodes) {
       if (nodes.isEmpty()) {
         return;

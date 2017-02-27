@@ -46,6 +46,7 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> mySaveNodesAsTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> myCopyNodePathsTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> myDeleteNodesTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> mySynchronizeNodesTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myUploadFilesTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myNewDirectoryTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myNewFileTracker = new FutureValuesTracker<>();
@@ -297,6 +298,11 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     }
   }
 
+  @NotNull
+  public FutureValuesTracker<List<DeviceFileEntryNode>> getSynchronizeNodesTracker() {
+    return mySynchronizeNodesTracker;
+  }
+
   private class MyDeviceExplorerViewListener implements DeviceExplorerViewListener {
     @Override
     public void deviceSelected(@Nullable DeviceFileSystem device) {
@@ -350,6 +356,12 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     public void uploadFilesInvoked(@NotNull DeviceFileEntryNode treeNode) {
       myUploadFilesTracker.produce(treeNode);
       myListeners.forEach(l -> l.uploadFilesInvoked(treeNode));
+    }
+
+    @Override
+    public void synchronizeNodesInvoked(@NotNull List<DeviceFileEntryNode> treeNodes) {
+      mySynchronizeNodesTracker.produce(treeNodes);
+      myListeners.forEach(l -> l.synchronizeNodesInvoked(treeNodes));
     }
   }
 
