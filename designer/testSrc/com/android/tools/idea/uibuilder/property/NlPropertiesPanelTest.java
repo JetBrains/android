@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.CARD_TABLE;
+import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import static com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PROPERTY_MODE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.eq;
@@ -290,7 +290,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
   }
 
   public void testInitialModeIsReadFromOptions() {
-    PropertiesComponent.getInstance().setValue(PROPERTY_MODE, CARD_TABLE);
+    PropertiesComponent.getInstance().setValue(PROPERTY_MODE, PropertiesViewMode.TABLE.name());
     Disposer.dispose(myPanel);
     myPanel = new NlPropertiesPanel(myPropertiesManager, myDisposable, myTable, myInspector);
     assertThat(myPanel.isAllPropertiesPanelVisible()).isTrue();
@@ -306,7 +306,7 @@ public class NlPropertiesPanelTest extends PropertyTestCase {
   public void testInitialModeIsSavedToOptions() {
     assertThat(PropertiesComponent.getInstance().getValue(PROPERTY_MODE)).isNull();
     myPanel.setAllPropertiesPanelVisible(true);
-    assertThat(PropertiesComponent.getInstance().getValue(PROPERTY_MODE)).isEqualTo(CARD_TABLE);
+    assertThat(PropertiesComponent.getInstance().getValue(PROPERTY_MODE)).isEqualTo(PropertiesViewMode.TABLE.name());
   }
 
   private int findRowOf(@NotNull String namespace, @NotNull String name) {

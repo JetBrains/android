@@ -35,6 +35,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBCardLayout;
@@ -67,8 +68,6 @@ import static com.android.SdkConstants.TOOLS_URI;
 public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction.Model, Disposable,
                                                          DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
   static final String PROPERTY_MODE = "properties.mode";
-  static final String CARD_TABLE = "table";
-  static final String CARD_INSPECTOR = "inspector";
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 25;
 
@@ -85,7 +84,8 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
 
   private List<NlComponent> myComponents;
   private List<NlPropertyItem> myProperties;
-  private boolean myAllPropertiesPanelVisible;
+  @NotNull
+  private PropertiesViewMode myPropertiesViewMode;
 
   public NlPropertiesPanel(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
     this(propertiesManager, parentDisposable, new PTable(new PTableModel()), null);
@@ -123,18 +123,19 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
 
     myCardLayout = new JBCardLayout();
     myCardPanel = new JPanel(myCardLayout);
-    myCardPanel.add(CARD_INSPECTOR, ScrollPaneFactory.createScrollPane(myInspectorPanel,
-                                                                       ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                                                       ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER));
+    myCardPanel.add(PropertiesViewMode.INSPECTOR.name(),
+                    ScrollPaneFactory.createScrollPane(myInspectorPanel,
+                                                       ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                                       ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER));
     JScrollPane tableScrollPane = ScrollPaneFactory.createScrollPane(myTablePanel);
     tableScrollPane.getVerticalScrollBar().setUnitIncrement(VERTICAL_SCROLLING_UNIT_INCREMENT);
     tableScrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
     tableScrollPane.setBorder(BorderFactory.createEmptyBorder());
-    myCardPanel.add(CARD_TABLE, tableScrollPane);
+    myCardPanel.add(PropertiesViewMode.TABLE.name(), tableScrollPane);
     myCardPanel.setFocusCycleRoot(true);
     myCardPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
-    myAllPropertiesPanelVisible = getAllPropertiesPanelVisibleInitially();
-    myCardLayout.show(myCardPanel, myAllPropertiesPanelVisible ? CARD_TABLE : CARD_INSPECTOR);
+    myPropertiesViewMode = getPropertiesViewModeInitially();
+    myCardLayout.show(myCardPanel, myPropertiesViewMode.name());
     myComponents = Collections.emptyList();
     myProperties = Collections.emptyList();
     add(myCardPanel, BorderLayout.CENTER);
@@ -319,21 +320,33 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
 
   @Override
   public boolean isAllPropertiesPanelVisible() {
-    return myAllPropertiesPanelVisible;
+    return myPropertiesViewMode == PropertiesViewMode.TABLE;
   }
 
   @Override
   public void setAllPropertiesPanelVisible(boolean viewAllProperties) {
-    myAllPropertiesPanelVisible = viewAllProperties;
-    String name = viewAllProperties ? CARD_TABLE : CARD_INSPECTOR;
+    myPropertiesViewMode = viewAllProperties ? PropertiesViewMode.TABLE : PropertiesViewMode.INSPECTOR;
     Component next = viewAllProperties ? myTable : myInspectorPanel;
-    myCardLayout.swipe(myCardPanel, name, JBCardLayout.SwipeDirection.AUTO, next::requestFocus);
-    PropertiesComponent.getInstance().setValue(PROPERTY_MODE, name);
+    myCardLayout.swipe(myCardPanel, myPropertiesViewMode.name(), JBCardLayout.SwipeDirection.AUTO, next::requestFocus);
+    PropertiesComponent.getInstance().setValue(PROPERTY_MODE, myPropertiesViewMode.name());
   }
 
-  private static boolean getAllPropertiesPanelVisibleInitially() {
-    String value = PropertiesComponent.getInstance().getValue(PROPERTY_MODE, CARD_INSPECTOR);
-    return CARD_TABLE.equals(value);
+  @NotNull
+  private static PropertiesViewMode getPropertiesViewModeInitially() {
+    String name = PropertiesComponent.getInstance().getValue(PROPERTY_MODE, PropertiesViewMode.INSPECTOR.name());
+
+    PropertiesViewMode mode;
+    try {
+      mode = PropertiesViewMode.valueOf(name);
+    }
+    catch (IllegalArgumentException e) {
+      mode = PropertiesViewMode.INSPECTOR;
+      Logger.getInstance(NlPropertiesPanel.class)
+        .warn("There is no PropertiesViewMode called " + name + ", uses " + mode.name() + " instead", e);
+      // store the new property mode as preference
+      PropertiesComponent.getInstance().setValue(PROPERTY_MODE, mode.name());
+    }
+    return mode;
   }
 
   public boolean activatePreferredEditor(@NotNull String propertyName, boolean afterload) {
@@ -468,6 +481,11 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     return myTable;
   }
 
+  enum PropertiesViewMode {
+    TABLE,
+    INSPECTOR
+  }
+
   @VisibleForTesting
   static class MyFilter extends RowFilter<PTableModel, Integer> {
     private final SpeedSearchComparator myComparator = new SpeedSearchComparator(false);
@@ -509,7 +527,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     @Override
     public void keyPressed(@NotNull KeyEvent event) {
       if (!myFilter.myPattern.isEmpty() && event.getKeyCode() == KeyEvent.VK_ENTER && event.getModifiers() == 0) {
-        if (myAllPropertiesPanelVisible) {
+        if (myPropertiesViewMode == PropertiesViewMode.TABLE) {
           enterInFilter(event);
         }
         else {
