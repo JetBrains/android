@@ -18,22 +18,31 @@ package com.android.tools.adtui.model.legend;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Basic legend with static data that never changes.
+ */
 public class FixedLegend implements Legend {
-  private final String myLegend;
+  private final String myName;
+  @Nullable private final String myValue;
 
-  public FixedLegend(String legend) {
-    myLegend = legend;
+  public FixedLegend(@NotNull String legend) {
+    this(legend, null);
+  }
+
+  public FixedLegend(@NotNull String name, @Nullable String value) {
+    myName = name;
+    myValue = value;
   }
 
   @NotNull
   @Override
   public String getName() {
-    return myLegend;
+    return myName;
   }
 
   @Nullable
   @Override
   public String getValue() {
-    return null;
+    return myValue;
   }
 }
