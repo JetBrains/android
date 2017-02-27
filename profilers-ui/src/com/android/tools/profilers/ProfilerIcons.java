@@ -29,6 +29,8 @@ public class ProfilerIcons {
   public static final Icon HEAP_DUMP = load("/icons/heap-dump.png");
   public static final Icon CLASS_STACK = load("/icons/stack-class.png");
   public static final Icon INTERFACE_STACK = load("/icons/stack-interface.png");
+  public static final Icon ARRAY_STACK = load("/icons/stack-db_array.png");
+  public static final Icon FIELD_STACK = load("/icons/stack-field.png");
   public static final Icon PACKAGE_STACK = load("/icons/stack-package.png");
   public static final Icon GOTO_LIVE = load("/icons/goto-live.png");
   public static final Icon ZOOM_OUT = load("/icons/zoom-out.png");
