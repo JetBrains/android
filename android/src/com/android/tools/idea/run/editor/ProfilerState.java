@@ -27,12 +27,13 @@ import java.util.Properties;
  * Holds all the project persisted state variables for the profilers.
  */
 public class ProfilerState {
-  @NonNls public static final boolean EXPERIMENTAL_PROFILING_FLAG_ENABLED = System.getProperty("enable.experimental.profiling") != null;
+  // Enable experimental profiling by default, but allow switching it off if set to false.
+  @NonNls public static final boolean EXPERIMENTAL_PROFILING_FLAG_ENABLED = !"false".equals(System.getProperty("enable.experimental.profiling"));
 
   public static final String ANDROID_CUSTOM_CLASS_TRANSFORMS = "android.custom.class.transforms";
 
   /** Whether to apply the profiling transform. */
-  public boolean ENABLE_ADVANCED_PROFILING = true;
+  public boolean ADVANCED_PROFILING_ENABLED = false;
   public static final String ENABLE_ADVANCED_PROFILING_NAME = "android.profiler.enabled";
 
   /**
@@ -51,7 +52,7 @@ public class ProfilerState {
 
   public Properties toProperties() {
     Properties result = new Properties();
-    result.setProperty(ENABLE_ADVANCED_PROFILING_NAME, String.valueOf(ENABLE_ADVANCED_PROFILING));
+    result.setProperty(ENABLE_ADVANCED_PROFILING_NAME, String.valueOf(ADVANCED_PROFILING_ENABLED));
     return result;
   }
 }
