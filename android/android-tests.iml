@@ -73,17 +73,6 @@
     <orderEntry type="module" module-name="properties-psi-api" scope="TEST" />
     <orderEntry type="module" module-name="assetstudio" scope="TEST" />
     <orderEntry type="module" module-name="instant-run-client" scope="TEST" />
-    <orderEntry type="module-library" scope="TEST">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../out/studio/grpc-java/jarjar/studio-profiler-grpc-1.0-jarjar.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../../../out/studio/grpc-java/jarjar/studio-profiler-grpc-1.0-jarjar.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="diff-impl" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="dexlib2-2.2b4" level="project" />
     <orderEntry type="module" module-name="properties-psi-impl" scope="TEST" />
