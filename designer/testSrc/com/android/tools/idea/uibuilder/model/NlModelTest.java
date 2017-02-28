@@ -22,10 +22,13 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
-import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.SyncNlModel;
+import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -517,7 +520,7 @@ public class NlModelTest extends LayoutTestCase {
     frameViewInfo.setChildren(Collections.emptyList());
     viewInfo.setChildren(Arrays.asList(buttonInfo, frameViewInfo));
 
-    model.updateHierarchy(newRoot, views);
+    LayoutlibSceneManager.updateHierarchy(views, model);
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:500x500, instance=3}\n" +
                  // Make sure these instances are NOT reusing instances from before that
@@ -535,6 +538,11 @@ public class NlModelTest extends LayoutTestCase {
                                "</resources>");
     NlModel model = createDefaultModelBuilder(true)
       .build();
+    SceneView sceneView = mock(SceneView.class);
+    when(sceneView.getSelectionModel()).thenReturn(model.getSelectionModel());
+    when(sceneView.getSurface()).thenReturn(mock(NlDesignSurface.class));
+    LayoutlibSceneManager sceneManager = new LayoutlibSceneManager(model, sceneView);
+    sceneManager.build();
     Configuration configuration = model.getConfiguration();
     String defaultTheme = configuration.getTheme();
     assertNotNull(defaultTheme);
@@ -585,12 +593,12 @@ public class NlModelTest extends LayoutTestCase {
     XmlTag parentRoot = parentXml.getRootTag();
     TagSnapshot parentRootSnapshot = TagSnapshot.createTagSnapshot(parentRoot, null);
 
-    XmlTag mergeRoot = mergeXml.getRootTag();
     ImmutableList<ViewInfo> list = ImmutableList.of(
       new ViewInfo("android.widget.Button", new MergeCookie(parentRootSnapshot), 0, 0, 50, 50),
       new ViewInfo("android.widget.TextView", new MergeCookie(parentRootSnapshot), 0, 50, 50, 100));
 
-    model.updateHierarchy(mergeRoot, list);
+    LayoutlibSceneManager.updateHierarchy(list, model);
+
     NlComponent rootComponent = model.getComponents().get(0);
     assertNotNull(rootComponent);
     assertEquals(2, rootComponent.getChildCount());
@@ -620,7 +628,7 @@ public class NlModelTest extends LayoutTestCase {
     ViewInfo searchViewInfo = new ViewInfo("android.widget.SearchView", rootSnapshot.children.get(0), 0, 0, 500, 500);
     searchViewInfo.setChildren(ImmutableList.of(new ViewInfo("android.widget.LinearLayout", rootSnapshot.children.get(0), 0, 0, 500, 500)));
     rootViewInfo.setChildren(ImmutableList.of(searchViewInfo));
-    model.updateHierarchy(modelXml.getRootTag(), ImmutableList.of(rootViewInfo));
+    LayoutlibSceneManager.updateHierarchy(ImmutableList.of(rootViewInfo), model);
 
     //noinspection OptionalGetWithoutIsPresent
     NlComponent searchViewComponent = model.flattenComponents().filter(c -> c.getTagName().equals("SearchView")).findFirst().get();
