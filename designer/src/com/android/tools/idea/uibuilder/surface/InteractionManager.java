@@ -934,8 +934,7 @@ public class InteractionManager {
         components = model.getSelectionModel().getSelection();
       }
       else {
-        components = ApplicationManager.getApplication()
-          .runWriteAction((Computable<List<NlComponent>>)() -> model.createComponents(sceneView, item, insertType));
+        components = model.createComponents(sceneView, item, insertType);
 
         if (components == null) {
           return null;  // User cancelled
