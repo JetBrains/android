@@ -16,13 +16,13 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.google.common.base.Strings;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
@@ -38,7 +38,7 @@ import java.util.Map;
  */
 public final class StringResource {
   @NotNull
-  private StringResourceKey myKey;
+  private final StringResourceKey myKey;
 
   @NotNull
   private final String myResourceFolder;
@@ -85,25 +85,18 @@ public final class StringResource {
   }
 
   @NotNull
-  private static String toString(@NotNull ResourceItem item) {
+  @VisibleForTesting
+  static String toString(@NotNull ResourceItem item) {
     // THIS GETTER WITH SIDE EFFECTS that registers we have taken an interest in this value
     // so that if the value changes we will get a resource changed event fire.
     ResourceValue value = item.getResourceValue(false);
 
-    if (value == null) {
-      return "";
-    }
-
-    return Strings.nullToEmpty(ValueXmlHelper.unescapeResourceString(value.getRawXmlValue(), false, false));
+    return value == null ? "" : ValueXmlHelper.unescapeResourceStringAsXml(value.getRawXmlValue());
   }
 
   @NotNull
   StringResourceKey getKey() {
     return myKey;
-  }
-
-  void setKey(@NotNull StringResourceKey key) {
-    myKey = key;
   }
 
   @NotNull
