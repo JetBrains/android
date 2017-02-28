@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.npw.project;
 
-import com.android.annotations.NonNull;
 import com.android.builder.model.SourceProvider;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
@@ -33,30 +31,17 @@ public class AndroidSourceSetTest {
   @Test
   public void testToSourceProviderDirectories() {
     File javaDirectory = mock(File.class);
-    File resourceDirectory = mock(File.class);
     File aidlDirectory = mock(File.class);
-    File renderscriptDirectory = mock(File.class);
-    File cDirectory = mock(File.class);
-    File cppDirectory = mock(File.class);
     File resDirectory = mock(File.class);
-    File assetsDirectory = mock(File.class);
-    File jniLibsDirectory = mock(File.class);
-    File shadersDirectory = mock(File.class);
 
-    AndroidProjectPaths mockProjectPaths = new AndroidProjectPaths(mock(File.class), mock(File.class), new SourceProvider() {
-      @NonNull @Override public String getName() { return ""; }
-      @NonNull @Override public File getManifestFile() { return mock(File.class); }
-      @NonNull @Override public Collection<File> getJavaDirectories() { return Collections.singleton(javaDirectory); }
-      @NonNull @Override public Collection<File> getResourcesDirectories() { return Collections.singleton(resourceDirectory); }
-      @NonNull @Override public Collection<File> getAidlDirectories() { return Collections.singleton(aidlDirectory); }
-      @NonNull @Override public Collection<File> getRenderscriptDirectories() { return Collections.singleton(renderscriptDirectory); }
-      @NonNull @Override public Collection<File> getCDirectories() { return Collections.singleton(cDirectory); }
-      @NonNull @Override public Collection<File> getCppDirectories() { return Collections.singleton(cppDirectory); }
-      @NonNull @Override public Collection<File> getResDirectories() { return Collections.singleton(resDirectory); }
-      @NonNull @Override public Collection<File> getAssetsDirectories() { return Collections.singleton(assetsDirectory); }
-      @NonNull @Override public Collection<File> getJniLibsDirectories() { return Collections.singleton(jniLibsDirectory); }
-      @NonNull @Override public Collection<File> getShadersDirectories() { return Collections.singleton(shadersDirectory); }
-    });
+    AndroidProjectPaths mockProjectPaths = new AndroidProjectPaths() {
+      @Nullable @Override public File getModuleRoot() { return null; }
+      @Nullable @Override public File getSrcDirectory(@Nullable String packageName) { return javaDirectory; }
+      @Nullable @Override public File getTestDirectory(@Nullable String packageName) { return null; }
+      @Nullable @Override public File getResDirectory() { return resDirectory; }
+      @Nullable @Override public File getAidlDirectory() { return aidlDirectory; }
+      @Nullable @Override public File getManifestDirectory() { return null; }
+    };
 
     AndroidSourceSet sourceSet = new AndroidSourceSet("", mockProjectPaths);
     SourceProvider sourceProvider = sourceSet.toSourceProvider();
@@ -76,20 +61,14 @@ public class AndroidSourceSetTest {
 
   @Test
   public void testToSourceProviderWithEmptyDirectories() {
-    AndroidProjectPaths mockProjectPaths = new AndroidProjectPaths(mock(File.class), mock(File.class), new SourceProvider() {
-      @NonNull @Override public String getName() { return ""; }
-      @NonNull @Override public File getManifestFile() { return mock(File.class); }
-      @NonNull @Override public Collection<File> getJavaDirectories() { return Collections.emptyList(); }
-      @NonNull @Override public Collection<File> getResourcesDirectories() { return Collections.emptyList(); }
-      @NonNull @Override public Collection<File> getAidlDirectories() { return Collections.emptyList(); }
-      @NonNull @Override public Collection<File> getRenderscriptDirectories() { return Collections.emptyList(); }
-      @NonNull @Override public Collection<File> getCDirectories() { return Collections.emptyList(); }
-      @NonNull @Override public Collection<File> getCppDirectories() { return Collections.emptyList(); }
-      @NonNull @Override public Collection<File> getResDirectories() { return Collections.emptyList(); }
-      @NonNull @Override public Collection<File> getAssetsDirectories() { return Collections.emptyList(); }
-      @NonNull @Override public Collection<File> getJniLibsDirectories() { return Collections.emptyList(); }
-      @NonNull @Override public Collection<File> getShadersDirectories() { return Collections.emptyList(); }
-    });
+    AndroidProjectPaths mockProjectPaths = new AndroidProjectPaths() {
+      @Nullable @Override public File getModuleRoot() { return null; }
+      @Nullable @Override public File getSrcDirectory(@Nullable String packageName) { return null; }
+      @Nullable @Override public File getTestDirectory(@Nullable String packageName) { return null; }
+      @Nullable @Override public File getResDirectory() { return null; }
+      @Nullable @Override public File getAidlDirectory() { return null; }
+      @Nullable @Override public File getManifestDirectory() { return null; }
+    };
 
     AndroidSourceSet sourceSet = new AndroidSourceSet("", mockProjectPaths);
     SourceProvider sourceProvider = sourceSet.toSourceProvider();

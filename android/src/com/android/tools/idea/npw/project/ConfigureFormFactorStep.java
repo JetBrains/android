@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.project;
 
 import com.android.SdkConstants;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.instantapp.ConfigureInstantModuleStep;
 import com.android.tools.idea.npw.module.NewModuleModel;
@@ -108,7 +109,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
     for (final FormFactor formFactor : formFactors) {
       FormFactorInfo formFactorInfo = myFormFactors.get(formFactor);
 
-      AndroidSourceSet dummySourceSet = new AndroidSourceSet("main", new AndroidProjectPaths(new File("")));
+      AndroidSourceSet dummySourceSet = GradleAndroidProjectPaths.createDummySourceSet();
 
       NewModuleModel moduleModel = new NewModuleModel(getModel(), formFactorInfo.templateFile);
       RenderTemplateModel renderModel = new RenderTemplateModel(moduleModel, null, dummySourceSet,
@@ -138,7 +139,7 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
         String projectPath = getModel().projectLocation().get();
 
         moduleModel.moduleName().set(moduleName);
-        renderModel.getSourceSet().set(new AndroidSourceSet("main", new AndroidProjectPaths(new File(projectPath, moduleName))));
+        renderModel.getSourceSet().set(GradleAndroidProjectPaths.createDefaultSourceSetAt(new File(projectPath, moduleName)));
       });
     }
 
