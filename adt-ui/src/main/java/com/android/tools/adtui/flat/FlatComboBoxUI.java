@@ -106,7 +106,7 @@ class FlatComboBoxUI extends BasicComboBoxUI {
   @Override
   public void paint(Graphics g, JComponent c) {
     if (myHover || isPopupVisible(comboBox)) {
-      FlatUIUtils.paintBackground(g, c);
+      FlatUiUtils.paintBackground(g, c);
     }
     super.paint(g, c);
   }

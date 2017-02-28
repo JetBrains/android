@@ -26,10 +26,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 
-public class FlatUIUtils {
+public class FlatUiUtils {
 
   /**
-   * Background based on com.intellij.openapi.actionSystem.impl.IdeaActionButtonLook
+   * Background based on {@link com.intellij.openapi.actionSystem.impl.IdeaActionButtonLook}
    * to match IJ style in toolbars.
    */
   public static void paintBackground(Graphics graphics, JComponent component) {
@@ -48,7 +48,7 @@ public class FlatUIUtils {
       g.draw(rect);
     } else {
       boolean dark = UIUtil.isUnderDarcula();
-      Color color = UIUtil.isUnderWin10LookAndFeel() ? Gray.xE6 : ColorUtil.shift(bg, dark? 1d / 0.7d :  0.7d);
+      Color color = UIUtil.isUnderWin10LookAndFeel() ? Gray.xE6 : ColorUtil.shift(bg, dark ? 1d / 0.7d :  0.7d);
       g.setColor(color);
       g.fill(rect);
       double shift = UIUtil.isUnderDarcula() ? 1 / 0.49 : 0.49;
