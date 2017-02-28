@@ -598,6 +598,35 @@ public class NlModelTest extends LayoutTestCase {
     assertNull(rootComponent.getChild(1).viewInfo);
   }
 
+  /**
+   * Tests that {@code ViewGroup} components like {@code SearchView} do not assign incorrectly the {@link NlComponent#viewInfo}.
+   * In this particular test, SearchView has a "hidden" {@code LinerLayout} as a children. {@code SearchView} viewInfo must point to the
+   * SearchView component and not to any of its children.
+   */
+  public void testChildComponentWithoutViewInfo() {
+    XmlFile modelXml = (XmlFile)myFixture.addFileToProject("res/layout/model.xml",
+                                                            "<LinearLayout" +
+                                                            "         xmlns:android=\"http://schemas.android.com/apk/res/android\"" +
+                                                            "         android:layout_width=\"match_parent\"" +
+                                                            "         android:layout_height=\"match_parent\">" +
+                                                            "             <SearchView" +
+                                                            "               android:layout_width=\"match_parent\"" +
+                                                            "               android:layout_height=\"48dp\" />" +
+                                                            "</LinearLayout>");
+    NlModel model = SyncNlModel.create(createSurface(), myFixture.getProject(), myFacet, modelXml);
+
+    TagSnapshot rootSnapshot = TagSnapshot.createTagSnapshot(modelXml.getRootTag(), null);
+    ViewInfo rootViewInfo = new ViewInfo("android.widget.LinearLayout", rootSnapshot, 0, 0, 500, 500);
+    ViewInfo searchViewInfo = new ViewInfo("android.widget.SearchView", rootSnapshot.children.get(0), 0, 0, 500, 500);
+    searchViewInfo.setChildren(ImmutableList.of(new ViewInfo("android.widget.LinearLayout", rootSnapshot.children.get(0), 0, 0, 500, 500)));
+    rootViewInfo.setChildren(ImmutableList.of(searchViewInfo));
+    model.updateHierarchy(modelXml.getRootTag(), ImmutableList.of(rootViewInfo));
+
+    //noinspection OptionalGetWithoutIsPresent
+    NlComponent searchViewComponent = model.flattenComponents().filter(c -> c.getTagName().equals("SearchView")).findFirst().get();
+    assertEquals("android.widget.SearchView", searchViewComponent.viewInfo.getClassName());
+  }
+
   @Override
   public void tearDown() throws Exception {
     super.tearDown();
