@@ -28,7 +28,7 @@ import com.intellij.util.ui.JBUI;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.TypeMatcher;
-import org.fest.swing.core.matcher.JButtonMatcher;
+import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,7 +57,7 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
 
   @NotNull
   public JTextComponentFixture getNameTextField() {
-    return new JTextComponentFixture(robot(), (JTextComponent)robot().finder().findByLabel("Name"));
+    return new JTextComponentFixture(robot(), (JTextComponent)robot().finder().findByLabel(target(), "Name"));
   }
 
   public JTextComponentFixture getSearchField() {
@@ -115,11 +115,8 @@ public class ChooseResourceDialogFixture extends IdeaDialogFixture<ChooseResourc
 
   @NotNull
   public JPopupMenuFixture clickNewResource() {
-    JButtonFixture button = new JButtonFixture(robot(), robot().finder().find(target(), JButtonMatcher.withText("New Resource").andShowing()));
-    button.click();
-    JPopupMenu contextMenu = robot().findActivePopupMenu();
-    assert contextMenu != null;
-    return new JPopupMenuFixture(robot(), contextMenu);
+    new JLabelFixture(robot(), GuiTests.waitUntilShowing(robot(), target(), JLabelMatcher.withText("Add new resource"))).click();
+    return new JPopupMenuFixture(robot(), robot().findActivePopupMenu());
   }
 
   public JTableFixture getResourceNameTable() {
