@@ -43,8 +43,6 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.wm.IdeFocusManager;
-import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.util.Consumer;
 import org.jetbrains.android.diagnostics.error.IdeaITNProxy;
 import org.jetbrains.android.util.AndroidBundle;
@@ -70,17 +68,6 @@ public class ErrorReporter extends ErrorReportSubmitter {
                         @NotNull Consumer<SubmittedReportInfo> callback) {
     IdeaLoggingEvent event = events[0];
     ErrorBean bean = new ErrorBean(event.getThrowable(), IdeaLogger.ourLastActionId);
-    if (parentComponent == null) {
-      parentComponent = IdeFocusManager.findInstance().getFocusOwner();
-      if (parentComponent == null) {
-        parentComponent = IdeFrameImpl.getActiveFrame();
-      }
-      if (parentComponent == null) {
-        return false;
-      }
-    }
-
-    final DataContext dataContext = DataManager.getInstance().getDataContext(parentComponent);
 
     bean.setDescription(description);
     bean.setMessage(event.getMessage());
@@ -98,6 +85,13 @@ public class ErrorReporter extends ErrorReportSubmitter {
       bean.setAttachments(((AbstractMessage)data).getIncludedAttachments());
     }
 
+    // Android Studio: SystemHealthMonitor is always calling submit with a null parentComponent. In order to determine the data context
+    // associated with the currently-focused component, we run that query on the UI thread and delay the rest of the invocation below.
+    Consumer<DataContext> submitter = dataContext -> {
+    if (dataContext == null) {
+      return;
+    }
+
     final Project project = CommonDataKeys.PROJECT.getData(dataContext);
 
     Consumer<String> successCallback = token -> {
@@ -109,7 +103,6 @@ public class ErrorReporter extends ErrorReportSubmitter {
         .createNotification(ReportMessages.ERROR_REPORT, "Submitted", NotificationType.INFORMATION, null)
         .setImportant(false)
         .notify(project);
-
     };
 
     Consumer<Exception> errorCallback = e -> {
@@ -136,6 +129,13 @@ public class ErrorReporter extends ErrorReportSubmitter {
       feedbackTask.run(new EmptyProgressIndicator());
     } else {
       ProgressManager.getInstance().run(feedbackTask);
+    }
+    };
+
+    if (parentComponent != null) {
+      submitter.consume(DataManager.getInstance().getDataContext(parentComponent));
+    } else {
+      DataManager.getInstance().getDataContextFromFocus().doWhenDone(submitter);
     }
 
     return true;
