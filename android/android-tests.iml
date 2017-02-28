@@ -85,19 +85,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="diff-impl" scope="TEST" />
-    <orderEntry type="module-library" scope="TEST">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/dexlib2-2.0.8-dev.jar!/" />
-          <root url="jar://$MODULE_DIR$/lib/dexlib2-util-2.0.8-dev.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/src/dexlib2-2.0.8-dev-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/lib/src/dexlib2-util-2.0.8-dev-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
+    <orderEntry type="library" scope="TEST" name="dexlib2-2.2b4" level="project" />
     <orderEntry type="module" module-name="properties-psi-impl" scope="TEST" />
     <orderEntry type="module" module-name="compiler-impl" scope="TEST" />
     <orderEntry type="module" module-name="junit" scope="TEST" />
