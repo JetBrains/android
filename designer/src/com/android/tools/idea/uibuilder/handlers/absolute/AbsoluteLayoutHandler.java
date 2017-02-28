@@ -50,7 +50,7 @@ public class AbsoluteLayoutHandler extends ViewGroupHandler {
 
   @Override
   @NotNull
-  public List<Target> createTargets(@NotNull SceneComponent component, boolean isParent) {
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
     List<Target> result = new ArrayList<>();
     if (!isParent) {
       result.add(new AbsoluteDragTarget());

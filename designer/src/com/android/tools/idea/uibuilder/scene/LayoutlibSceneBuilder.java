@@ -44,6 +44,7 @@ public class LayoutlibSceneBuilder extends SceneBuilder {
 
   /**
    * Creates a {@link Scene} from our {@link NlModel}. This must only be called once per builder.
+   *
    * @return
    */
   @NotNull
@@ -129,7 +130,7 @@ public class LayoutlibSceneBuilder extends SceneBuilder {
   /**
    * Update (and if necessary, create) the SceneComponent paired to the given NlComponent
    *
-   * @param component a given NlComponent
+   * @param component      a given NlComponent
    * @param seenComponents Collector of components that were seen during NlComponent tree traversal.
    * @return the SceneComponent paired with the given NlComponent
    */
@@ -246,7 +247,7 @@ public class LayoutlibSceneBuilder extends SceneBuilder {
     void clearChildTargets(SceneComponent component) {
       component.setTargetProvider(null, true);
       for (SceneComponent child : component.getChildren()) {
-        component.setTargetProvider(null, false);
+        child.setTargetProvider(null, false);
         clearChildTargets(child);
       }
     }

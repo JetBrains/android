@@ -25,5 +25,5 @@ import java.util.List;
  */
 public interface TargetProvider {
   @NotNull
-  List<Target> createTargets(@NotNull SceneComponent component, boolean parent);
+  List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent);
 }

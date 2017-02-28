@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import android.support.constraint.solver.widgets.ConstraintAnchor;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
@@ -401,10 +400,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     boolean showAnchors = !isParent;
     NlComponent nlComponent = component.getNlComponent();
     if (nlComponent.viewInfo != null
-        && nlComponent.viewInfo.getClassName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
-      String orientation = nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ORIENTATION);
+        && nlComponent.viewInfo.getClassName().equalsIgnoreCase(CONSTRAINT_LAYOUT_GUIDELINE)) {
+      String orientation = nlComponent.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
       boolean isHorizontal = true;
-      if (orientation != null && orientation.equalsIgnoreCase(SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
+      if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
         isHorizontal = false;
       }
       result.add(new GuidelineTarget(isHorizontal));
@@ -459,7 +458,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * @param component
    */
   @Override
-  public void clearAttributes(NlComponent component) {
+  public void clearAttributes(@NotNull NlComponent component) {
     ConstraintComponentUtilities.clearAttributes(component);
   }
 
@@ -912,7 +911,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    * @param component the component we want to check
    * @param deleted   the list of components that are deleted
    */
-  private void willDelete(NlComponent component, @NotNull List<NlComponent> deleted) {
+  private static void willDelete(NlComponent component, @NotNull List<NlComponent> deleted) {
     final int count = deleted.size();
     for (int i = 0; i < count; i++) {
       NlComponent deletedComponent = deleted.get(i);
