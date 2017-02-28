@@ -25,8 +25,9 @@ import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SegmentType;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.SceneInteraction;
+import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -166,15 +167,6 @@ public class LinearLayoutHandler extends ViewGroupHandler {
         newChild.setAttribute(ANDROID_URI, sizeAttribute, VALUE_ZERO_DP);
       }
     }
-  }
-
-  @Override
-  @Nullable
-  public ResizeHandler createResizeHandler(@NotNull ViewEditor editor,
-                                           @NotNull NlComponent component,
-                                           @Nullable SegmentType horizontalEdgeType,
-                                           @Nullable SegmentType verticalEdgeType) {
-    return new LinearResizeHandler(editor, this, component, horizontalEdgeType, verticalEdgeType);
   }
 
   /**
@@ -398,12 +390,12 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     }
   }
 
-  /*------------- NEW ARCHITECTURE TODO remove this -----------*/
+  /*------------- NEW ARCHITECTURE ---------------*/
 
   @Nullable
   @Override
-  public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent layout) {
-    return null;
+  public Interaction createInteraction(@NotNull ScreenView sceneView, @NotNull NlComponent layout) {
+    return new SceneInteraction(sceneView);
   }
 
   /**
@@ -450,16 +442,23 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     return false;
   }
 
-  /**
-   * Give a chance to the ViewGroup to add targets to the {@linkplain SceneComponent}
-   *
-   * @param component the component we'll add targets on
-   * @param isParent  is it the parent viewgroup component
-   */
   @Override
   @NotNull
-  public List<Target> createTargets(@NotNull SceneComponent component, boolean isParent) {
-    return super.createTargets(component, isParent);
+  public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
+    if (isParent) {
+      return super.createTargets(sceneComponent, true);
+    }
+
+    // TODO Only display the Resize target in the direction that can be resized depending on the gravity
+    ImmutableList.Builder<Target> listBuilder = ImmutableList.builder();
+    listBuilder
+      .add(new LinearDragTarget())
+      .add(new LinearResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM))
+      .add(new LinearResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP))
+      .add(new LinearResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM))
+      .add(new LinearResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
+
+    return listBuilder.build();
   }
 
   /**
@@ -468,7 +467,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    * @param component
    */
   @Override
-  public void clearAttributes(NlComponent component) {
+  public void clearAttributes(@NotNull NlComponent component) {
     // do nothing
   }
 }

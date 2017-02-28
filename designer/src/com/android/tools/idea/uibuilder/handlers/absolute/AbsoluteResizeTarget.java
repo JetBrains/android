@@ -36,11 +36,11 @@ public class AbsoluteResizeTarget extends ResizeWithSnapBaseTarget {
     attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_Y, String.format(VALUE_N_DP, Math.max(y, 0)));
   }
 
-  private static void updateWidth(@NotNull AttributesTransaction attributes, @NotNull String width) {
+  protected static void updateWidth(@NotNull AttributesTransaction attributes, @NotNull String width) {
     attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, width);
   }
 
-  private static void updateHeight(@NotNull AttributesTransaction attributes, @NotNull String height) {
+  protected static void updateHeight(@NotNull AttributesTransaction attributes, @NotNull String height) {
     attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, height);
   }
 
