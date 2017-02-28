@@ -15,12 +15,14 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.StudioProfilers;
 import com.intellij.util.containers.ImmutableList;
 import org.junit.Before;
@@ -36,13 +38,16 @@ public class CpuTraceDataSeriesTest {
   private final FakeCpuService myService = new FakeCpuService();
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuTraceDataSeriesTest", myService);
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuTraceDataSeriesTest", myService, new FakeProfilerService());
 
   private CpuProfilerStage.CpuTraceDataSeries mySeries;
 
   @Before
   public void setUp() throws Exception {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    // One second must be enough for new devices (and processes) to be picked up
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     CpuProfilerStage stage = new CpuProfilerStage(profilers);
     mySeries = stage.getCpuTraceDataSeries();
   }

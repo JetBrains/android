@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.common.CodeLocation;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,9 +45,9 @@ public class CpuProfilerStageTest extends AspectObserver {
     FakeTimer timer = new FakeTimer();
     myServices = new FakeIdeProfilerServices();
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), myServices, timer);
-    myStage = new CpuProfilerStage(profilers);
     // One second must be enough for new devices (and processes) to be picked up
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myStage = new CpuProfilerStage(profilers);
   }
 
   @Test
@@ -235,6 +234,25 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     myStage.setCapture(new CpuCapture(CpuCaptureTest.readValidTrace()));
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+  }
+
+  @Test
+  public void captureStateDependsOnAppBeingProfiling() {
+    FakeTimer timer = new FakeTimer();
+    myCpuService.setAppBeingProfiled(true);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    // One second must be enough for new devices (and processes) to be picked up
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    CpuProfilerStage stage = new CpuProfilerStage(profilers);
+    assertEquals(CpuProfilerStage.CaptureState.CAPTURING, stage.getCaptureState());
+
+    timer = new FakeTimer();
+    myCpuService.setAppBeingProfiled(false);
+    profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    stage = new CpuProfilerStage(profilers);
+    assertEquals(CpuProfilerStage.CaptureState.IDLE, stage.getCaptureState());
+
   }
 
   private void captureSuccessfully() throws InterruptedException {
