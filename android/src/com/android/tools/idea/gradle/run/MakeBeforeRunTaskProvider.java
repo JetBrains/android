@@ -335,7 +335,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     }
     List<String> arguments = new LinkedList<>();
     ProfilerState state = ((AndroidRunConfigurationBase)configuration).getProfilerState();
-    if (state.ENABLE_ADVANCED_PROFILING) {
+    if (state.ADVANCED_PROFILING_ENABLED) {
       File file = EmbeddedDistributionPaths.getInstance().findEmbeddedProfilerTransform();
       arguments.add(createProjectProperty(ANDROID_CUSTOM_CLASS_TRANSFORMS, file.getAbsolutePath()));
 
