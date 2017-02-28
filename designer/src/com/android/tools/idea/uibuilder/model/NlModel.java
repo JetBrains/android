@@ -1240,7 +1240,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           }
         }
 
-        if (component != null) {
+        if (component != null && component.viewInfo == null) {
           component.viewInfo = view;
           int left = parentX + bounds.getLeft();
           int top = parentY + bounds.getTop();
