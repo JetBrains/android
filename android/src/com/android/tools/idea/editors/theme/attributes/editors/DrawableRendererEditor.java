@@ -65,6 +65,7 @@ public class DrawableRendererEditor extends GraphicalResourceRendererEditor {
     final RenderService service = RenderService.getInstance(facet);
     RenderTask task = service.createTask(null, configuration, DRAWABLE_RENDER_LOGGER, null);
     assert task != null;
+    task.getLayoutlibCallback().setLogger(DRAWABLE_RENDER_LOGGER);
     return task;
   }
 
