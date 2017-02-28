@@ -20,21 +20,16 @@ import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
-import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Attr;
@@ -45,7 +40,6 @@ import java.util.Set;
 
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.rendering.api.SessionParams.RenderingMode.V_SCROLL;
-import static com.android.tools.idea.configurations.Configuration.PREFERENCES_MIN_API;
 
 /**
  * The {@linkplain LayoutPullParserFactory} is responsible for creating
@@ -70,37 +64,13 @@ public class LayoutPullParserFactory {
           XmlTag rootTag = ((XmlFile)file).getRootTag();
           if (rootTag != null) {
             String tag = rootTag.getName();
-            return tag.equals(TAG_APPWIDGET_PROVIDER) || (tag.equals(TAG_PREFERENCE_SCREEN) && prefCapableTargetInstalled(file));
+            return tag.equals(TAG_APPWIDGET_PROVIDER) || tag.equals(TAG_PREFERENCE_SCREEN);
           }
         }
         return false;
       default:
         return false;
     }
-  }
-
-  /**
-   * Returns if a target capable of rendering preferences file is found.
-   */
-  private static boolean prefCapableTargetInstalled(@NotNull PsiFile file) {
-    Module module = ModuleUtilCore.findModuleForPsiElement(file);
-    if (module != null) {
-      AndroidPlatform platform = AndroidPlatform.getInstance(module);
-      if (platform != null) {
-        IAndroidTarget[] targets = platform.getSdkData().getTargets();
-        for (int i = targets.length - 1; i >= 0; i--) {
-          IAndroidTarget target = targets[i];
-          if (target.isPlatform()) {
-            AndroidVersion version = target.getVersion();
-            int featureLevel = version.getFeatureLevel();
-            if (featureLevel >= PREFERENCES_MIN_API) {
-              return true;
-            }
-          }
-        }
-      }
-    }
-    return false;
   }
 
   @Nullable
