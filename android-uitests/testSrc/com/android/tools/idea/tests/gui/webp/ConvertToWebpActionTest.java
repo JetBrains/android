@@ -21,6 +21,8 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.webp.WebpConversionDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.webp.WebpPreviewDialogFixture;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.fest.swing.core.MouseButton;
