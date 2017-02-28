@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.Disposable;
@@ -93,7 +94,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final InteractionManager myInteractionManager;
   private final GlassPane myGlassPane;
   protected final RenderErrorPanel myErrorPanel;
-  protected List<DesignSurfaceListener> myListeners;
+  protected List<DesignSurfaceListener> myListeners = new ArrayList<>();
   private List<PanZoomListener> myZoomListeners;
   private final ActionManager myActionManager;
   @SuppressWarnings("CanBeFinal") private float mySavedErrorPanelProportion;
@@ -236,7 +237,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return mySelectionModel;
   }
 
-  protected abstract void doSetModel(@Nullable NlModel model);
+  protected final void createSceneViews() {
+    doCreateSceneViews();
+    notifySceneViewChanged();
+  }
+
+  protected abstract void doCreateSceneViews();
 
   @Nullable
   public NlModel getModel() {
@@ -271,7 +277,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       mySceneManager = null;
     }
 
-    doSetModel(model);
+    createSceneViews();
 
     if (model != null) {
       SelectionModel selectionModel = model.getSelectionModel();
@@ -288,6 +294,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     if (!selectionBefore.equals(selectionAfter)) {
       notifySelectionListeners(selectionAfter);
+    }
+    for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
+      listener.modelChanged(this, model);
     }
     notifySceneViewChanged();
   }
@@ -438,8 +447,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected boolean hasProblems() {
     return false;
   }
-
-  protected abstract Point translateCoordinate(@NotNull Point coordinate);
 
   public void resetHover() {
     if (hasProblems()) {
@@ -689,51 +696,36 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   private void notifySelectionListeners(@NotNull List<NlComponent> newSelection) {
-    if (myListeners != null) {
-      List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
-      for (DesignSurfaceListener listener : listeners) {
-        listener.componentSelectionChanged(this, newSelection);
-      }
+    List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
+    for (DesignSurfaceListener listener : listeners) {
+      listener.componentSelectionChanged(this, newSelection);
     }
   }
 
   private void notifySceneViewChanged() {
     SceneView screenView = getCurrentSceneView();
-    NlModel model = screenView != null ? screenView.getModel() : null;
-    if (myListeners != null) {
-      List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
-      for (DesignSurfaceListener listener : listeners) {
-        listener.modelChanged(this, model);
-        listener.sceneChanged(this, screenView);
-      }
+    List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
+    for (DesignSurfaceListener listener : listeners) {
+      listener.sceneChanged(this, screenView);
     }
   }
 
   void notifyActivateComponent(@NotNull NlComponent component) {
-    if (myListeners != null) {
-      List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
-      for (DesignSurfaceListener listener : listeners) {
-        if (listener.activatePreferredEditor(this, component)) {
-          break;
-        }
+    List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
+    for (DesignSurfaceListener listener : listeners) {
+      if (listener.activatePreferredEditor(this, component)) {
+        break;
       }
     }
   }
 
   public void addListener(@NotNull DesignSurfaceListener listener) {
-    if (myListeners == null) {
-      myListeners = Lists.newArrayList();
-    }
-    else {
-      myListeners.remove(listener); // ensure single registration
-    }
+    myListeners.remove(listener); // ensure single registration
     myListeners.add(listener);
   }
 
   public void removeListener(@NotNull DesignSurfaceListener listener) {
-    if (myListeners != null) {
-      myListeners.remove(listener);
-    }
+    myListeners.remove(listener);
   }
 
   private final SelectionListener mySelectionListener = (model, selection) -> {

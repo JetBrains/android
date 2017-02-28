@@ -18,12 +18,9 @@ package com.android.tools.idea;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManagerTest;
-import com.android.tools.idea.uibuilder.model.NlModelTest;
-import com.android.tools.idea.uibuilder.property.editors.support.StyleFilterTest;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeTest;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurfaceTest;
 import com.android.tools.idea.uibuilder.surface.InteractionManagerTest;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurfaceTest;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import org.jetbrains.annotations.NotNull;
 import org.junit.AfterClass;
@@ -61,7 +58,6 @@ public class DesignerTestSuite {
     provideRealJdkPathForGradle("prebuilts/studio/jdk");
   }
 
-
   /**
    * Gradle cannot handle a JDK set up with symlinks. It gets confused
    * and in two consecutive executions it thinks that we are calling it
@@ -84,7 +80,8 @@ public class DesignerTestSuite {
     Path path = Paths.get(TMP_DIR, p);
     try {
       Files.createDirectories(path);
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       throw new RuntimeException(e);
     }
     return path;
@@ -96,7 +93,8 @@ public class DesignerTestSuite {
     try {
       Files.createDirectories(linkName.getParent());
       Files.createSymbolicLink(linkName, targetPath);
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       throw new RuntimeException(e);
     }
   }

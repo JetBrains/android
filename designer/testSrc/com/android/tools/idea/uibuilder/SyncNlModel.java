@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.Disposable;
@@ -51,15 +50,6 @@ public class SyncNlModel extends NlModel {
 
   public NlDesignSurface getSurface() {
     return mySurface;
-  }
-
-  @Override
-  protected void setupRenderTask(@Nullable RenderTask task) {
-    super.setupRenderTask(task);
-
-    if (task != null) {
-      task.disableSecurityManager();
-    }
   }
 
   @VisibleForTesting
