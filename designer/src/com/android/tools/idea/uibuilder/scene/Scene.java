@@ -95,7 +95,6 @@ public class Scene implements SelectionListener {
    * Default constructor
    *
    * @param sceneView
-   * @param dpiFactor
    */
   public Scene(@NotNull SceneView sceneView) {
     mySceneView = sceneView;
@@ -190,7 +189,7 @@ public class Scene implements SelectionListener {
 
     if (component != null) {
       myDnDComponent = component;
-      myDnDComponent.setTargetProvider((c, p) -> ImmutableList.of(new DragDndTarget()), false);
+      myDnDComponent.setTargetProvider((sceneComponent, isParent) -> ImmutableList.of(new DragDndTarget()), false);
     }
   }
 
@@ -343,9 +342,9 @@ public class Scene implements SelectionListener {
   }
 
   /**
-   * Select the given component
+   * Select the given components
    *
-   * @param component
+   * @param components The components to select
    */
   public void select(List<SceneComponent> components) {
     if (mySceneView != null) {
@@ -549,7 +548,6 @@ public class Scene implements SelectionListener {
      * @return the preferred target out of the list
      */
     public Target getFilteredTarget(Target filteredTarget) {
-      int count = myHitTargets.size();
       Target hit = null;
       boolean found = false;
       for (Target target : myHitTargets) {
@@ -683,7 +681,6 @@ public class Scene implements SelectionListener {
     // update other selected widgets
     java.util.List<NlComponent> selection = getSelection();
     if (selection.size() > 1) {
-      int count = selection.size();
       for (NlComponent nlComponent : selection) {
         if (nlComponent == currentComponent.getNlComponent()) {
           continue;
@@ -705,7 +702,6 @@ public class Scene implements SelectionListener {
     // update other selected widgets
     java.util.List<NlComponent> selection = getSelection();
     if (selection.size() > 1) {
-      int count = selection.size();
       for (NlComponent nlComponent : selection) {
         if (nlComponent == currentComponent.getNlComponent()) {
           continue;
