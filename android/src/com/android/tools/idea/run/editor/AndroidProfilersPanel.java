@@ -33,8 +33,6 @@ public class AndroidProfilersPanel {
   }
 
   AndroidProfilersPanel(Project project, ProfilerState state) {
-    myAdvancedProfilingCheckBox.setVisible(EXPERIMENTAL_PROFILING_FLAG_ENABLED);
-
     resetFrom(state);
   }
 
@@ -42,13 +40,13 @@ public class AndroidProfilersPanel {
    * Resets the settings panel to the values in the specified {@link ProfilerState}.
    */
   void resetFrom(ProfilerState state) {
-    myAdvancedProfilingCheckBox.setSelected(state.ENABLE_ADVANCED_PROFILING);
+    myAdvancedProfilingCheckBox.setSelected(state.ADVANCED_PROFILING_ENABLED);
   }
 
   /**
    * Assigns the current UI state to the specified {@link ProfilerState}.
    */
   void applyTo(ProfilerState state) {
-    state.ENABLE_ADVANCED_PROFILING = EXPERIMENTAL_PROFILING_FLAG_ENABLED && myAdvancedProfilingCheckBox.isSelected();
+    state.ADVANCED_PROFILING_ENABLED = EXPERIMENTAL_PROFILING_FLAG_ENABLED && myAdvancedProfilingCheckBox.isSelected();
   }
 }
