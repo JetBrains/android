@@ -30,7 +30,7 @@ public class ProfilerState {
   // Enable experimental profiling by default, but allow switching it off if set to false.
   @NonNls public static final boolean EXPERIMENTAL_PROFILING_FLAG_ENABLED = !"false".equals(System.getProperty("enable.experimental.profiling"));
 
-  public static final String ANDROID_CUSTOM_CLASS_TRANSFORMS = "android.custom.class.transforms";
+  public static final String ANDROID_ADVANCED_PROFILING_TRANSFORMS = "android.advanced.profiling.transforms";
 
   /** Whether to apply the profiling transform. */
   public boolean ADVANCED_PROFILING_ENABLED = false;
