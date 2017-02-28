@@ -17,14 +17,21 @@ package com.android.tools.idea.gradle.project;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
+import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.project.BuildSystemService;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
+import java.util.List;
+
+import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GradleBuildSystemService extends BuildSystemService {
   @Override
@@ -55,5 +62,10 @@ public class GradleBuildSystemService extends BuildSystemService {
     GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(artifact + ":+");
     manager.ensureLibraryIsIncluded(module, Collections.singletonList(coordinate), null);
+  }
+
+  @Override
+  public List<AndroidSourceSet> getSourceSets(@NotNull AndroidFacet facet, @Nullable VirtualFile targetDirectory) {
+    return GradleAndroidProjectPaths.getSourceSets(facet, targetDirectory);
   }
 }
