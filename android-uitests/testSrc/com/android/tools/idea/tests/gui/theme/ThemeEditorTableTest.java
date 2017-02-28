@@ -188,7 +188,7 @@ public class ThemeEditorTableTest {
     FontFixture cellFont = themeEditorTable.fontAt(cell);
     cellFont.requireNotBold();
     assertEquals("android:textColorPrimary", themeEditorTable.attributeNameAt(cell));
-    assertEquals("@android:color/primary_text_material_dark", themeEditorTable.valueAt(cell));
+    assertEquals("@android:color/text_color_primary", themeEditorTable.valueAt(cell));
 
     JTableCellFixture stateListCell = themeEditorTable.cell(cell);
     ResourceComponentFixture resourceComponent = new ResourceComponentFixture(guiTest.robot(), (ResourceComponent)stateListCell.editor());
@@ -202,14 +202,15 @@ public class ThemeEditorTableTest {
 
     final StateListComponentFixture state0 = states.get(0);
     assertEquals("Not enabled", state0.getStateName());
-    assertEquals("@android:color/primary_text_default_material_dark", state0.getValue());
+    assertEquals("?android:attr/colorForeground", state0.getValue());
     assertTrue(state0.isAlphaVisible());
-    assertEquals("@android:dimen/disabled_alpha_material_dark", state0.getAlphaValue());
+    assertEquals("?android:attr/disabledAlpha", state0.getAlphaValue());
 
     final StateListComponentFixture state1 = states.get(1);
     assertEquals("Default", state1.getStateName());
-    assertEquals("@android:color/primary_text_default_material_dark", state1.getValue());
-    assertFalse(state1.isAlphaVisible());
+    assertEquals("?android:attr/colorForeground", state1.getValue());
+    assertTrue(state1.isAlphaVisible());
+    assertEquals("?android:attr/primaryContentAlpha", state1.getAlphaValue());
 
     state0.getValueComponent().getSwatchButton().click();
     ChooseResourceDialogFixture secondDialog = ChooseResourceDialogFixture.find(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
@@ -218,11 +219,13 @@ public class ThemeEditorTableTest {
         return !component.equals(dialog.target());
       }
     });
+    secondDialog.clickNewResource().menuItemWithPath("New color Value...").click();
     secondDialog.getColorPicker().setColorWithIntegers(new Color(200, 0, 0, 200));
+    secondDialog.getNameTextField().enterText("myColor");
     secondDialog.clickOK();
-    Wait.seconds(1).expecting("component update").until(() -> "@color/primary_text_default_material_dark".equals(state0.getValue()));
+    Wait.seconds(1).expecting("component update").until(() -> "@color/myColor".equals(state0.getValue()));
 
-    state0.getAlphaComponent().getSwatchButton().click();
+    state1.getAlphaComponent().getSwatchButton().click();
     secondDialog = ChooseResourceDialogFixture.find(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog component) {
@@ -231,18 +234,7 @@ public class ThemeEditorTableTest {
     });
     secondDialog.getResourceNameTable().cell("android:disabledAlpha").click();
     secondDialog.clickOK();
-    Wait.seconds(1).expecting("component update").until(() -> "?android:attr/disabledAlpha".equals(state0.getAlphaValue()));
-
-    state1.getValueComponent().getSwatchButton().click();
-    secondDialog = ChooseResourceDialogFixture.find(guiTest.robot(), new GenericTypeMatcher<JDialog>(JDialog.class) {
-      @Override
-      protected boolean isMatching(@NotNull JDialog component) {
-        return !component.equals(dialog.target());
-      }
-    });
-    secondDialog.getColorPicker().setColorWithIntegers(new Color(0, 200, 0, 255));
-    secondDialog.clickOK();
-    Wait.seconds(1).expecting("component update").until(() -> "@color/primary_text_default_material_dark".equals(state1.getValue()));
+    Wait.seconds(1).expecting("component update").until(() -> "?android:attr/disabledAlpha".equals(state1.getAlphaValue()));
 
     dialog.requireNoError();
 
@@ -252,7 +244,7 @@ public class ThemeEditorTableTest {
     cellFont = themeEditorTable.fontAt(cell);
     cellFont.requireBold();
     assertEquals("android:textColorPrimary", themeEditorTable.attributeNameAt(cell));
-    assertEquals("@color/primary_text_material_dark", themeEditorTable.valueAt(cell));
+    assertEquals("@color/text_color_primary", themeEditorTable.valueAt(cell));
   }
 
   /**
