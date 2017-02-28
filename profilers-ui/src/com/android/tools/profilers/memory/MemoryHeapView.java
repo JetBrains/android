@@ -77,7 +77,7 @@ public class MemoryHeapView extends AspectObserver {
 
     // TODO provide a default selection in the model API?
     for (HeapObject heap : heaps) {
-      if (heap.getHeapName().equals("app")) {
+      if (heap.getName().equals("app")) {
         myComboBox.setSelectedItem(heap);
         myStage.selectHeap(heap);
         return;

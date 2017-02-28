@@ -108,7 +108,7 @@ public abstract class MemoryProfilerTestBase {
   static CaptureObject mockCaptureObject(@NotNull String name, long startTimeNs, long endTimeNs,
                                          @NotNull List<HeapObject> heaps, boolean loadSuccess) {
     CaptureObject object = mock(CaptureObject.class);
-    when(object.getLabel()).thenReturn(name);
+    when(object.getName()).thenReturn(name);
     when(object.getStartTimeNs()).thenReturn(startTimeNs);
     when(object.getEndTimeNs()).thenReturn(endTimeNs);
     when(object.getHeaps()).thenReturn(heaps);
@@ -128,7 +128,7 @@ public abstract class MemoryProfilerTestBase {
   @NotNull
   static HeapObject mockHeapObject(@NotNull String name, @NotNull List<ClassObject> klasses) {
     HeapObject object = mock(HeapObject.class);
-    when(object.getHeapName()).thenReturn(name);
+    when(object.getName()).thenReturn(name);
     when(object.getClasses()).thenReturn(klasses);
     when(object.getClassAttributes()).thenReturn(Arrays.asList(ClassObject.ClassAttribute.values()));
     return object;
@@ -175,7 +175,7 @@ public abstract class MemoryProfilerTestBase {
     }
     InstanceObject object = mock(InstanceObject.class);
     when(object.getClassName()).thenReturn(className);
-    when(object.getDisplayLabel()).thenReturn(label);
+    when(object.getName()).thenReturn(label);
     when(object.getToStringText()).thenReturn(toString);
     when(object.getDepth()).thenReturn(depth);
     when(object.getShallowSize()).thenReturn(shallowSize);
@@ -197,7 +197,7 @@ public abstract class MemoryProfilerTestBase {
                                              @NotNull List<ReferenceObject> referrers,
                                              @Nullable AllocationStack stack) {
     ReferenceObject object = mock(ReferenceObject.class);
-    when(object.getDisplayLabel()).thenReturn(label);
+    when(object.getName()).thenReturn(label);
     when(object.getDepth()).thenReturn(depth);
     when(object.getShallowSize()).thenReturn(shallowSize);
     when(object.getRetainedSize()).thenReturn(retainedSize);
@@ -213,7 +213,7 @@ public abstract class MemoryProfilerTestBase {
   static FieldObject mockFieldObject(@NotNull String className, @NotNull String label, @NotNull String fieldName) {
     FieldObject object = mock(FieldObject.class);
     when(object.getClassName()).thenReturn(className);
-    when(object.getDisplayLabel()).thenReturn(label);
+    when(object.getName()).thenReturn(label);
     when(object.getFieldName()).thenReturn(fieldName);
     when(object.getAllocationThreadId()).thenReturn(ThreadId.INVALID_THREAD_ID);
     return object;

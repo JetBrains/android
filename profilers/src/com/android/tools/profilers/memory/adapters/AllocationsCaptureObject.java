@@ -26,7 +26,6 @@ import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
@@ -79,7 +78,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
 
   @NotNull
   @Override
-  public String getLabel() {
+  public String getName() {
     return myLabel;
   }
 
@@ -186,12 +185,12 @@ public final class AllocationsCaptureObject implements CaptureObject {
   final class AllocationsHeapObject implements HeapObject {
     @Override
     public String toString() {
-      return getHeapName();
+      return getName();
     }
 
     @NotNull
     @Override
-    public String getHeapName() {
+    public String getName() {
       return "default";
     }
 

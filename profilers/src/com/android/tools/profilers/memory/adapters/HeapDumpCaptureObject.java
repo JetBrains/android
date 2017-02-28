@@ -89,7 +89,7 @@ public final class HeapDumpCaptureObject implements CaptureObject {
 
   @NotNull
   @Override
-  public String getLabel() {
+  public String getName() {
     return myLabel;
   }
 

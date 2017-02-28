@@ -77,7 +77,7 @@ public final class MemoryCaptureView extends AspectObserver {
     boolean validCapture = captureObject == myCaptureObject && myCaptureObject != null;
     myExportButton.setEnabled(validCapture);
     if (validCapture) {
-      myLabel.setText(myCaptureObject.getLabel());
+      myLabel.setText(myCaptureObject.getName());
     }
   }
 
