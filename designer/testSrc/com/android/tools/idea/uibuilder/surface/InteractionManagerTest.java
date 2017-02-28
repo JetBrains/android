@@ -18,14 +18,12 @@ package com.android.tools.idea.uibuilder.surface;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.model.Coordinates;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.xml.XmlFile;
 import org.intellij.lang.annotations.Language;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -34,9 +32,7 @@ import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.LINEAR_LAYOUT;
-import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
 
 public class InteractionManagerTest extends LayoutTestCase {
@@ -44,17 +40,19 @@ public class InteractionManagerTest extends LayoutTestCase {
   public void testDragAndDrop() throws Exception {
     // Drops a fragment (xmlFragment below) into the design surface (via drag & drop events) and verifies that
     // the resulting document ends up modified as expected.
-    SyncNlModel model = model("linear.xml", component(LINEAR_LAYOUT)
-      .withBounds(0, 0, 1000, 1000)
-      .withAttribute("android:orientation", "vertical")).build();
+    SyncNlModel model = model("test.xml", component(LINEAR_LAYOUT)
+      .withAttribute(ATTR_ORIENTATION, VALUE_VERTICAL)
+      .withBounds(0, 0, 100, 100)).build();
 
     ScreenView screenView = createScreen(model);
+
     DesignSurface designSurface = screenView.getSurface();
     InteractionManager manager = createManager(designSurface);
 
     @Language("XML")
     String xmlFragment = "" +
                          "<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                         "     android:id=\"@+id/textView\"\n" +
                          "     android:layout_width=\"wrap_content\"\n" +
                          "     android:layout_height=\"wrap_content\"\n" +
                          "     android:text=\"Hello World\"\n" +
@@ -66,6 +64,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     String expected = "NlComponent{tag=<LinearLayout>, bounds=[0,150:2x2, instance=0}\n" +
                       "    NlComponent{tag=<TextView>, bounds=[0,150:2x2, instance=1}";
     assertEquals(expected, new NlTreeDumper().toTree(model.getComponents()));
+    assertEquals("Hello World", model.find("textView").getAttribute(ANDROID_URI, ATTR_TEXT));
   }
 
   public void testLinearLayoutCursorHoverComponent() throws Exception {
@@ -111,13 +110,14 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   private InteractionManager setupLinearLayoutCursorTest() {
-    SyncNlModel model = model("linear.xml", component(LINEAR_LAYOUT)
+    SyncNlModel model = model("test.xml", component(LINEAR_LAYOUT)
+      .withAttribute(ATTR_ORIENTATION, VALUE_VERTICAL)
       .withBounds(0, 0, 100, 100)
-      .withAttribute("android:orientation", "vertical")
       .children(
         component(TEXT_VIEW)
+          .withBounds(0, 0, 50, 50)
           .id("@+id/textView")
-          .withBounds(0, 0, 100, 100)
+          .text("Hello World")
           .wrapContentWidth()
           .wrapContentHeight())).build();
 

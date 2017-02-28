@@ -181,10 +181,8 @@ public class NlDesignSurface extends DesignSurface {
       boolean adjustZoom = screenMode == ScreenMode.BOTH || myScreenMode == ScreenMode.BOTH;
       myScreenMode = screenMode;
 
+      createSceneViews();
       if (myScreenView != null) {
-        NlModel model = myScreenView.getModel();
-        setModel(null);
-        setModel(model);
         if (adjustZoom) {
           zoomToFit();
         }
@@ -446,7 +444,8 @@ public class NlDesignSurface extends DesignSurface {
   }
 
   @Override
-  public void doSetModel(@Nullable NlModel model) {
+  protected void doCreateSceneViews() {
+    NlModel model = getModel();
     if (model == null && myScreenView == null) {
       return;
     }
@@ -535,11 +534,6 @@ public class NlDesignSurface extends DesignSurface {
     }
 
     return new Dimension(requiredWidth, requiredHeight);
-  }
-
-  @Override
-  protected Point translateCoordinate(@NotNull Point coord) {
-    return Coordinates.getAndroidCoordinate(myScreenView, coord);
   }
 
   private class MyBottomLayer extends Layer {

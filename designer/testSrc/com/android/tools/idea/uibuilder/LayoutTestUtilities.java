@@ -23,7 +23,6 @@ import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.fixtures.MouseEventBuilder;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -37,8 +36,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
-import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -134,13 +131,6 @@ public class LayoutTestUtilities {
 
     verify(dropEvent, times(1)).acceptDrop(anyInt());
     verify(dropEvent, times(1)).dropComplete(true);
-  }
-
-  public static SyncNlModel createModel(NlDesignSurface surface, AndroidFacet facet, XmlFile xmlFile) {
-    SyncNlModel model = SyncNlModel.create(surface, xmlFile.getProject(), facet, xmlFile);
-    model.updateModel();
-    model.notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
-    return model;
   }
 
   public static ScreenView createScreen(SyncNlModel model) {
