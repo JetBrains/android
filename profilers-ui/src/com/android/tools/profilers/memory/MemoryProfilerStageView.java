@@ -20,6 +20,7 @@ import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
+import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
@@ -310,17 +311,18 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   @NotNull
   private JPanel buildCaptureUi() {
-    JPanel headingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+    JPanel toolbar = new JPanel(TOOLBAR_LAYOUT);
+    toolbar.add(myCaptureView.getExportButton());
+    toolbar.add(new FlatSeparator());
+    toolbar.add(myCaptureView.getComponent());
+    toolbar.add(new FlatSeparator());
+
+    toolbar.add(myHeapView.getComponent());
+    toolbar.add(myClassGrouping.getComponent());
+
+    JPanel headingPanel = new JPanel(new BorderLayout());
     headingPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
-    headingPanel.add(myCaptureView.getExportButton());
-    headingPanel.add(myCaptureView.getComponent());
-
-    JToolBar toolBar = new JToolBar();
-    toolBar.setFloatable(false);
-    toolBar.add(myHeapView.getComponent());
-    toolBar.add(myClassGrouping.getComponent());
-    headingPanel.add(toolBar);
-
+    headingPanel.add(toolbar, BorderLayout.WEST);
     JPanel capturePanel = new JPanel(new BorderLayout());
     capturePanel.add(headingPanel, BorderLayout.PAGE_START);
     capturePanel.add(myClassView.getComponent(), BorderLayout.CENTER);
