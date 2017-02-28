@@ -23,7 +23,11 @@ import com.intellij.util.ui.UIUtil;
 import javax.swing.*;
 import java.awt.*;
 
- public class FlatSeparator extends JComponent {
+/**
+ * Based on {@link com.intellij.openapi.actionSystem.impl.ActionToolbarImpl.MySeparator}
+ * to match IJ style in toolbars.
+ */
+public class FlatSeparator extends JComponent {
   private final Dimension mySize;
 
   public FlatSeparator() {
