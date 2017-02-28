@@ -24,6 +24,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
@@ -126,8 +127,9 @@ public final class SdkQuickfixUtils {
 
     List<String> unknownPaths = new ArrayList<>();
     List<UpdatablePackage> resolvedPackages;
-    mgr.loadSynchronously(0, new StudioLoggerProgressIndicator(SdkQuickfixUtils.class),
-                          new StudioDownloader(), StudioSettingsController.getInstance());
+    mgr.load(0, null, null, null,
+                    new StudioProgressRunner(true, false, false, "Finding Available SDK Components", false, project),
+                    new StudioDownloader(null), StudioSettingsController.getInstance(), true);
     RepositoryPackages packages = mgr.getPackages();
     if (requestedPackages == null) {
       requestedPackages = new ArrayList<>();
