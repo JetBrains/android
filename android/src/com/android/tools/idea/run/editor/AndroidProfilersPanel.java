@@ -27,6 +27,7 @@ import static com.android.tools.idea.run.editor.ProfilerState.EXPERIMENTAL_PROFI
 public class AndroidProfilersPanel {
   private JPanel myPanel;
   private JCheckBox myAdvancedProfilingCheckBox;
+  private JTextPane myAllowsTheProfilersToTextPane;
 
   public JComponent getComponent() {
     return myPanel;
