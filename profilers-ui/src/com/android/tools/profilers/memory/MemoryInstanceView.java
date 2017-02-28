@@ -22,6 +22,7 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.ContextMenuItem;
 import com.android.tools.profilers.memory.adapters.ClassObject;
+import com.android.tools.profilers.memory.adapters.FieldObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
@@ -64,7 +65,7 @@ final class MemoryInstanceView extends AspectObserver {
 
   @Nullable private DefaultTreeModel myTreeModel;
 
-  @Nullable private MemoryObjectTreeNode<InstanceObject> myTreeRoot;
+  @Nullable private LazyMemoryObjectTreeNode<InstanceObject> myTreeRoot;
 
   @Nullable private ClassObject myClassObject;
 
@@ -86,7 +87,7 @@ final class MemoryInstanceView extends AspectObserver {
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
         SortOrder.ASCENDING,
-        Comparator.comparing(o -> ((InstanceObject)o.getAdapter()).getDisplayLabel())));
+        Comparator.comparing(o -> o.getAdapter().getName())));
     myAttributeColumns.put(
       InstanceObject.InstanceAttribute.DEPTH,
       new AttributeColumn(
@@ -109,8 +110,10 @@ final class MemoryInstanceView extends AspectObserver {
       InstanceObject.InstanceAttribute.SHALLOW_SIZE,
       new AttributeColumn(
         "Shallow Size",
-        () -> new SimpleColumnRenderer(value -> Integer.toString(((InstanceObject)value.getAdapter()).getShallowSize()), value -> null,
-                                       SwingConstants.RIGHT),
+        () -> new SimpleColumnRenderer(value -> {
+          MemoryObject node = value.getAdapter();
+          return node instanceof InstanceObject ? Integer.toString(((InstanceObject)value.getAdapter()).getShallowSize()) : "";
+        }, value -> null, SwingConstants.RIGHT),
         SwingConstants.RIGHT,
         DEFAULT_COLUMN_WIDTH,
         SortOrder.UNSORTED,
@@ -181,10 +184,10 @@ final class MemoryInstanceView extends AspectObserver {
     assert myColumnTree == null && myTreeModel == null && myTreeRoot == null;
 
     //noinspection Convert2Lambda
-    myTreeRoot = new MemoryObjectTreeNode<>(new InstanceObject() {
+    myTreeRoot = new LazyMemoryObjectTreeNode<InstanceObject>(new InstanceObject() {
       @NotNull
       @Override
-      public String getDisplayLabel() {
+      public String getName() {
         return "";
       }
 
@@ -199,9 +202,30 @@ final class MemoryInstanceView extends AspectObserver {
       public String getClassName() {
         return null;
       }
-    });
+    }) {
+      @Override
+      public int computeChildrenCount() {
+        return myClassObject.getHeapCount();
+      }
+
+      @Override
+      public void expandNode() {
+        if (myMemoizedChildrenCount == myChildren.size()) {
+          return;
+        }
+
+        List<InstanceObject> instances = myClassObject.getInstances();
+        myMemoizedChildrenCount = instances.size();
+        for (InstanceObject subAdapter : instances) {
+          InstanceTreeNode child = new InstanceTreeNode(subAdapter);
+          child.setTreeModel(getTreeModel());
+          add(child);
+        }
+      }
+    };
 
     myTreeModel = new DefaultTreeModel(myTreeRoot);
+    myTreeRoot.setTreeModel(myTreeModel);
     myTree = new Tree(myTreeModel);
     myTree.setRootVisible(false);
     myTree.setShowsRootHandles(true);
@@ -212,9 +236,11 @@ final class MemoryInstanceView extends AspectObserver {
       }
 
       assert path.getLastPathComponent() instanceof MemoryObjectTreeNode;
-      MemoryObjectTreeNode instanceObject = (MemoryObjectTreeNode)path.getLastPathComponent();
-      assert instanceObject.getAdapter() instanceof InstanceObject;
-      myStage.selectInstance((InstanceObject)instanceObject.getAdapter());
+      MemoryObjectTreeNode instanceNode = (MemoryObjectTreeNode)path.getLastPathComponent();
+      instanceNode.select();
+      if (instanceNode.getAdapter() instanceof InstanceObject) {
+        myStage.selectInstance((InstanceObject)instanceNode.getAdapter());
+      }
     });
     // Not all nodes have been populated during buildTree. Here we capture the TreeExpansionEvent to check whether any children
     // under the expanded node need to be populated.
@@ -223,15 +249,13 @@ final class MemoryInstanceView extends AspectObserver {
       public void treeExpanded(TreeExpansionEvent event) {
         TreePath path = event.getPath();
 
-        assert path.getLastPathComponent() instanceof MemoryObjectTreeNode;
-        MemoryObjectTreeNode treeNode = (MemoryObjectTreeNode)path.getLastPathComponent();
+        assert path.getLastPathComponent() instanceof LazyMemoryObjectTreeNode;
+        LazyMemoryObjectTreeNode treeNode = (LazyMemoryObjectTreeNode)path.getLastPathComponent();
         if (treeNode == myTreeRoot) {
           return; // children under root have already been expanded (check in case this gets called on the root)
         }
-        assert treeNode instanceof InstanceTreeNode;
-        InstanceTreeNode instanceTreeNode = (InstanceTreeNode)treeNode;
-        instanceTreeNode.expandNode();
-        myTreeModel.nodeStructureChanged(instanceTreeNode);
+        treeNode.expandNode();
+        myTreeModel.nodeStructureChanged(treeNode);
       }
 
       @Override
@@ -310,12 +334,8 @@ final class MemoryInstanceView extends AspectObserver {
 
   private void populateTreeContents() {
     assert myClassObject != null && myTreeRoot != null && myTreeModel != null;
-    myTreeRoot.removeAll();
-
-    for (InstanceObject instanceObject : myClassObject.getInstances()) {
-      InstanceTreeNode instanceNode = new InstanceTreeNode(instanceObject);
-      myTreeRoot.add(instanceNode);
-    }
+    myTreeRoot.reset();
+    myTreeRoot.expandNode();
     myTreeModel.nodeChanged(myTreeRoot);
     myTreeModel.reload();
   }
@@ -385,17 +405,12 @@ final class MemoryInstanceView extends AspectObserver {
         return;
       }
 
-      InstanceObject adapter = getAdapter();
-      myMemoizedChildrenCount = 0;
-      for (InstanceObject subAdapter : adapter.getFields()) {
-        MemoryObjectTreeNode child = new MemoryObjectTreeNode<>(subAdapter);
+      List<FieldObject> fields = getAdapter().getFields();
+      myMemoizedChildrenCount = fields.size();
+      for (InstanceObject subAdapter : fields) {
+        InstanceTreeNode child = new InstanceTreeNode(subAdapter);
+        child.setTreeModel(getTreeModel());
         add(child);
-        myMemoizedChildrenCount++;
-      }
-
-      assert myMemoizedChildrenCount == myChildren.size();
-      if (myComparator != null) {
-        sort(myComparator);
       }
     }
   }

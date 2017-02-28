@@ -65,12 +65,12 @@ final class HeapDumpHeapObject implements HeapObject {
 
   @Override
   public String toString() {
-    return getHeapName();
+    return getName();
   }
 
   @NotNull
   @Override
-  public String getHeapName() {
+  public String getName() {
     return myHeap.getName();
   }
 
