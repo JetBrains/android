@@ -66,8 +66,6 @@ import static com.android.tools.idea.configurations.ConfigurationListener.*;
  */
 public class Configuration implements Disposable, ModificationTracker {
 
-  /** Min API version that supports preferences API rendering. */
-  public static final int PREFERENCES_MIN_API = 22;
   public static final String CUSTOM_DEVICE_ID = "Custom";
 
   /** The associated file */
