@@ -119,17 +119,27 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   public void startMonitoringApp(CpuProfiler.CpuStartRequest request, StreamObserver<CpuProfiler.CpuStartResponse> observer) {
     // Start monitoring request needs to happen before we begin the poller to inform the device that we are going to be requesting
     // data for a specific process id.
-    observer.onNext(myService.getCpuClient(request.getSession()).startMonitoringApp(request));
-    observer.onCompleted();
-    int processId = request.getProcessId();
-    myRunners.put(processId, new CpuDataPoller(processId, request.getSession(), myCpuTable, myService.getCpuClient(request.getSession())));
-    myFetchExecutor.accept(myRunners.get(processId));
+    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession());
+    if (client != null) {
+      observer.onNext(client.startMonitoringApp(request));
+      observer.onCompleted();
+      int processId = request.getProcessId();
+      myRunners
+        .put(processId, new CpuDataPoller(processId, request.getSession(), myCpuTable, myService.getCpuClient(request.getSession())));
+      myFetchExecutor.accept(myRunners.get(processId));
+    } else {
+      observer.onNext(CpuProfiler.CpuStartResponse.getDefaultInstance());
+      observer.onCompleted();
+    }
   }
 
   @Override
   public void stopMonitoringApp(CpuProfiler.CpuStopRequest request, StreamObserver<CpuProfiler.CpuStopResponse> observer) {
     int processId = request.getProcessId();
-    myRunners.remove(processId).stop();
+    PollRunner runner = myRunners.remove(processId);
+    if (runner != null) {
+      runner.stop();
+    }
     // Our polling service can get shutdown if we unplug the device.
     // This should be the only function that gets called as StudioProfilers attempts
     // to stop monitoring the last app it was monitoring.
@@ -147,22 +157,31 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request,
                                 StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> observer) {
     // TODO: start time shouldn't be keep in a variable here, but passed through request/response instead.
-    myStartTraceTimestamp = getCurrentDeviceTimeNs(request.getSession());
-    observer.onNext(myService.getCpuClient(request.getSession()).startProfilingApp(request));
+    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession());
+    if (client != null) {
+      myStartTraceTimestamp = getCurrentDeviceTimeNs(request.getSession());
+      observer.onNext(client.startProfilingApp(request));
+    } else {
+      observer.onNext(CpuProfiler.CpuProfilingAppStartResponse.getDefaultInstance());
+    }
     observer.onCompleted();
   }
 
   @Override
   public void stopProfilingApp(CpuProfiler.CpuProfilingAppStopRequest request,
                                StreamObserver<CpuProfiler.CpuProfilingAppStopResponse> observer) {
-    CpuProfiler.CpuProfilingAppStopResponse response = myService.getCpuClient(request.getSession()).stopProfilingApp(request);
-    CpuProfiler.TraceInfo trace = CpuProfiler.TraceInfo.newBuilder()
-      .setTraceId(response.getTraceId())
-      .setFromTimestamp(myStartTraceTimestamp)
-      .setToTimestamp(getCurrentDeviceTimeNs(request.getSession()))
-      .build();
-    myCpuTable.insertTrace(trace, request.getSession(), response.getTrace());
-    myStartTraceTimestamp = -1;
+    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession());
+    CpuProfiler.CpuProfilingAppStopResponse response = CpuProfiler.CpuProfilingAppStopResponse.getDefaultInstance();
+    if (client != null) {
+      response = client.stopProfilingApp(request);
+      CpuProfiler.TraceInfo trace = CpuProfiler.TraceInfo.newBuilder()
+        .setTraceId(response.getTraceId())
+        .setFromTimestamp(myStartTraceTimestamp)
+        .setToTimestamp(getCurrentDeviceTimeNs(request.getSession()))
+        .build();
+      myCpuTable.insertTrace(trace, request.getSession(), response.getTrace());
+      myStartTraceTimestamp = -1;
+    }
     observer.onNext(response);
     observer.onCompleted();
   }

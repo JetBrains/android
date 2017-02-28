@@ -101,27 +101,37 @@ public class EventService extends EventServiceGrpc.EventServiceImplBase implemen
 
   @Override
   public void startMonitoringApp(EventProfiler.EventStartRequest request, StreamObserver<EventProfiler.EventStartResponse> observer) {
-    observer.onNext(myService.getEventClient(request.getSession()).startMonitoringApp(request));
-    observer.onCompleted();
-    int processId = request.getProcessId();
-    Common.Session session = request.getSession();
-    myRunners.put(processId, new EventDataPoller(processId, session, myEventsTable, myService.getEventClient(session)));
-    myFetchExecutor.accept(myRunners.get(processId));
+    EventServiceGrpc.EventServiceBlockingStub client = myService.getEventClient(request.getSession());
+    if (client != null) {
+      observer.onNext(client.startMonitoringApp(request));
+      observer.onCompleted();
+      int processId = request.getProcessId();
+      Common.Session session = request.getSession();
+      myRunners.put(processId, new EventDataPoller(processId, session, myEventsTable, client));
+      myFetchExecutor.accept(myRunners.get(processId));
+    } else {
+      observer.onNext(EventProfiler.EventStartResponse.getDefaultInstance());
+      observer.onCompleted();
+    }
   }
 
   @Override
   public void stopMonitoringApp(EventProfiler.EventStopRequest request, StreamObserver<EventProfiler.EventStopResponse> observer) {
     int processId = request.getProcessId();
-    myRunners.remove(processId).stop();
+    PollRunner runner = myRunners.remove(processId);
+    if (runner != null) {
+      runner.stop();
+    }
 
     // Our polling service can get shutdown if we unplug the device.
     // This should be the only function that gets called as StudioProfilers attempts
     // to stop monitoring the last app it was monitoring.
-    EventServiceGrpc.EventServiceBlockingStub service = myService.getEventClient(request.getSession());
-    if (service == null) {
+    EventServiceGrpc.EventServiceBlockingStub client = myService.getEventClient(request.getSession());
+    if (client == null) {
       observer.onNext(EventProfiler.EventStopResponse.getDefaultInstance());
-    } else {
-      observer.onNext(service.stopMonitoringApp(request));
+    }
+    else {
+      observer.onNext(client.stopMonitoringApp(request));
     }
     observer.onCompleted();
   }

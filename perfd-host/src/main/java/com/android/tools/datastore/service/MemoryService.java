@@ -49,24 +49,32 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   @Override
   public void startMonitoringApp(MemoryStartRequest request, StreamObserver<MemoryStartResponse> observer) {
-    observer.onNext(myService.getMemoryClient(request.getSession()).startMonitoringApp(request));
-    observer.onCompleted();
-    int processId = request.getProcessId();
-    Common.Session session = request.getSession();
-    myRunners.put(processId,
-                  new MemoryDataPoller(processId,
-                                       session,
-                                       myMemoryTable,
-                                       myService.getMemoryClient(session),
-                                       myFetchExecutor));
-    myFetchExecutor.accept(myRunners.get(processId));
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(request.getSession());
+    if (client != null) {
+      observer.onNext(client.startMonitoringApp(request));
+      observer.onCompleted();
+      int processId = request.getProcessId();
+      Common.Session session = request.getSession();
+      myRunners.put(processId,
+                    new MemoryDataPoller(processId,
+                                         session,
+                                         myMemoryTable,
+                                         client,
+                                         myFetchExecutor));
+      myFetchExecutor.accept(myRunners.get(processId));
+    } else {
+      observer.onNext(MemoryStartResponse.getDefaultInstance());
+      observer.onCompleted();
+    }
   }
 
   @Override
   public void stopMonitoringApp(MemoryStopRequest request, StreamObserver<MemoryStopResponse> observer) {
-
     int processId = request.getProcessId();
-    myRunners.remove(processId).stop();
+    PollRunner runner = myRunners.remove(processId);
+    if (runner != null) {
+      runner.stop();
+    }
     // Our polling service can get shutdown if we unplug the device.
     // This should be the only function that gets called as StudioProfilers attempts
     // to stop monitoring the last app it was monitoring.
@@ -81,14 +89,17 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   @Override
   public void triggerHeapDump(TriggerHeapDumpRequest request, StreamObserver<TriggerHeapDumpResponse> responseObserver) {
-    TriggerHeapDumpResponse response = myService.getMemoryClient(request.getSession()).triggerHeapDump(request);
-    // Saves off the HeapDumpInfo immediately instead of waiting for the MemoryDataPoller to pull it through, which can be delayed
-    // and results in a NOT_FOUND status when the profiler tries to pull the dump's data in quick successions.
-    if (response.getStatus() == TriggerHeapDumpResponse.Status.SUCCESS) {
-      assert response.getInfo() != null;
-      myMemoryTable.insertOrReplaceHeapInfo(request.getProcessId(), request.getSession(), response.getInfo());
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(request.getSession());
+    TriggerHeapDumpResponse response = TriggerHeapDumpResponse.getDefaultInstance();
+    if (client != null) {
+      response = client.triggerHeapDump(request);
+      // Saves off the HeapDumpInfo immediately instead of waiting for the MemoryDataPoller to pull it through, which can be delayed
+      // and results in a NOT_FOUND status when the profiler tries to pull the dump's data in quick successions.
+      if (response.getStatus() == TriggerHeapDumpResponse.Status.SUCCESS) {
+        assert response.getInfo() != null;
+        myMemoryTable.insertOrReplaceHeapInfo(request.getProcessId(), request.getSession(), response.getInfo());
+      }
     }
-
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
@@ -129,14 +140,17 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   @Override
   public void trackAllocations(TrackAllocationsRequest request,
                                StreamObserver<TrackAllocationsResponse> responseObserver) {
-    TrackAllocationsResponse response = myService.getMemoryClient(request.getSession()).trackAllocations(request);
-    // Saves off the AllocationsInfo immediately instead of waiting for the MemoryDataPoller to pull it through, which can be delayed
-    // and results in a NOT_FOUND status when the profiler tries to pull the info's data in quick successions.
-    if (request.getEnabled() && response.getStatus() == TrackAllocationsResponse.Status.SUCCESS) {
-      assert response.getInfo() != null;
-      myMemoryTable.insertOrReplaceAllocationsInfo(request.getProcessId(), request.getSession(), response.getInfo());
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(request.getSession());
+    TrackAllocationsResponse response = TrackAllocationsResponse.getDefaultInstance();
+    if (client != null) {
+      response = client.trackAllocations(request);
+      // Saves off the AllocationsInfo immediately instead of waiting for the MemoryDataPoller to pull it through, which can be delayed
+      // and results in a NOT_FOUND status when the profiler tries to pull the info's data in quick successions.
+      if (request.getEnabled() && response.getStatus() == TrackAllocationsResponse.Status.SUCCESS) {
+        assert response.getInfo() != null;
+        myMemoryTable.insertOrReplaceAllocationsInfo(request.getProcessId(), request.getSession(), response.getInfo());
+      }
     }
-
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
@@ -212,8 +226,12 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   @Override
   public void forceGarbageCollection(ForceGarbageCollectionRequest request, StreamObserver<ForceGarbageCollectionResponse> observer) {
-    MemoryServiceGrpc.MemoryServiceBlockingStub service = myService.getMemoryClient(request.getSession());
-    observer.onNext(service.forceGarbageCollection(request));
+    MemoryServiceGrpc.MemoryServiceBlockingStub client = myService.getMemoryClient(request.getSession());
+    if (client != null) {
+      observer.onNext(client.forceGarbageCollection(request));
+    } else {
+      observer.onNext(ForceGarbageCollectionResponse.getDefaultInstance());
+    }
     observer.onCompleted();
   }
 }
