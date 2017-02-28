@@ -33,6 +33,7 @@ import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -48,7 +49,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
   private ProfilerServiceGrpc.ProfilerServiceBlockingStub myServiceStub;
   private final IDevice myDevice;
   private final Profiler.Device myProfilerDevice;
-  private final List<Profiler.Process> myProcesses;
+  private final List<Profiler.Process> myProcesses = Collections.synchronizedList(new ArrayList<>());
 
   public ProfilerServiceProxy(@NotNull IDevice device, @NotNull ManagedChannel channel) {
     super(ProfilerServiceGrpc.getServiceDescriptor());
@@ -66,7 +67,6 @@ public class ProfilerServiceProxy extends PerfdProxyService
       // to keep a consistent ID across plug/unplug sessions.
       .setBootId(Integer.toString(device.getSerialNumber().hashCode()))
       .build();
-    myProcesses = new ArrayList<>();
     updateProcesses();
 
     AndroidDebugBridge.addDeviceChangeListener(this);
@@ -102,9 +102,11 @@ public class ProfilerServiceProxy extends PerfdProxyService
   }
 
   public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
-    Profiler.GetProcessesResponse response = Profiler.GetProcessesResponse.newBuilder().addAllProcess(myProcesses).build();
-    responseObserver.onNext(response);
-    responseObserver.onCompleted();
+    synchronized (myProcesses) {
+      Profiler.GetProcessesResponse response = Profiler.GetProcessesResponse.newBuilder().addAllProcess(myProcesses).build();
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    }
   }
 
   @Override
@@ -134,29 +136,31 @@ public class ProfilerServiceProxy extends PerfdProxyService
   }
 
   private void updateProcesses() {
-    myProcesses.clear();
-    assert myDevice.isOnline();
-    // Only request the time if we have processes, this is needed as the service test calls this function
-    // without setting up a full profiler service
-    if (myDevice.getClients().length > 0) {
-      Profiler.TimeResponse times = myServiceStub.getCurrentTime(Profiler.TimeRequest.getDefaultInstance());
-      Profiler.DeviceProcesses.Builder deviceProcesses = Profiler.DeviceProcesses.newBuilder();
-      deviceProcesses.setDevice(myProfilerDevice);
-      // TODO: getTimes should take the device
-      for (Client client : myDevice.getClients()) {
-        String description = client.getClientData().getClientDescription();
-        if (description == null) {
-          continue; // Process is still starting up and not ready yet
+    synchronized (myProcesses) {
+      myProcesses.clear();
+      assert myDevice.isOnline();
+      // Only request the time if we have processes, this is needed as the service test calls this function
+      // without setting up a full profiler service
+      if (myDevice.getClients().length > 0) {
+        Profiler.TimeResponse times = myServiceStub.getCurrentTime(Profiler.TimeRequest.getDefaultInstance());
+        Profiler.DeviceProcesses.Builder deviceProcesses = Profiler.DeviceProcesses.newBuilder();
+        deviceProcesses.setDevice(myProfilerDevice);
+        // TODO: getTimes should take the device
+        for (Client client : myDevice.getClients()) {
+          String description = client.getClientData().getClientDescription();
+          if (description == null) {
+            continue; // Process is still starting up and not ready yet
+          }
+          deviceProcesses.addProcess(Profiler.Process.newBuilder()
+                                       .setName(description)
+                                       .setPid(client.getClientData().getPid())
+                                       .setState(Profiler.Process.State.ALIVE)
+                                       // TODO: Set this to the applications actual start time.
+                                       .setStartTimestampNs(times.getTimestampNs())
+                                       .build());
         }
-        deviceProcesses.addProcess(Profiler.Process.newBuilder()
-                                     .setName(description)
-                                     .setPid(client.getClientData().getPid())
-                                     .setState(Profiler.Process.State.ALIVE)
-                                     // TODO: Set this to the applications actual start time.
-                                     .setStartTimestampNs(times.getTimestampNs())
-                                     .build());
+        myProcesses.addAll(deviceProcesses.getProcessList());
       }
-      myProcesses.addAll(deviceProcesses.getProcessList());
     }
   }
 
