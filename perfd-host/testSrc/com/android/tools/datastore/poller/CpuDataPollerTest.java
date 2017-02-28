@@ -104,6 +104,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
   public void tearDown() {
     stopMonitoringApp();
   }
+
   private void startMonitoringApp() {
     CpuProfiler.CpuStartRequest request = CpuProfiler.CpuStartRequest.newBuilder()
       .setProcessId(TEST_APP_ID).setSession(DataStorePollerTest.SESSION).build();
@@ -114,6 +115,14 @@ public class CpuDataPollerTest extends DataStorePollerTest {
     CpuProfiler.CpuStopRequest request = CpuProfiler.CpuStopRequest.newBuilder()
       .setProcessId(TEST_APP_ID).setSession(DataStorePollerTest.SESSION).build();
     myCpuService.stopMonitoringApp(request, mock(StreamObserver.class));
+  }
+
+  @Test
+  public void testAppStoppedRequestHandled() {
+    stopMonitoringApp();
+    StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> observer = mock(StreamObserver.class);
+    myCpuService.startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest.getDefaultInstance(), observer);
+    validateResponse(observer, CpuProfiler.CpuProfilingAppStartResponse.getDefaultInstance());
   }
 
   @Test
