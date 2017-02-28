@@ -16,8 +16,12 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.common.CodeNavigator;
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.impl.EditConfigurationsDialog;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -33,14 +37,17 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 public class IntellijProfilerServices implements IdeProfilerServices {
-  private final IntellijCodeNavigator myCodeNavigator;
-
-  public IntellijProfilerServices(@NotNull Project project) {
-    myCodeNavigator = new IntellijCodeNavigator(project);
-  }
 
   private static Logger getLogger() {
     return Logger.getInstance(IntellijProfilerServices.class);
+  }
+
+  private final IntellijCodeNavigator myCodeNavigator;
+  @NotNull private final Project myProject;
+
+  public IntellijProfilerServices(@NotNull Project project) {
+    myProject = project;
+    myCodeNavigator = new IntellijCodeNavigator(project);
   }
 
   @NotNull
@@ -91,5 +98,30 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   @Override
   public CodeNavigator getCodeNavigator() {
     return myCodeNavigator;
+  }
+
+
+  /**
+   * Note - this opens the Run Configuration dialog which is modal and blocking until the dialog closes.
+   */
+  @Override
+  public void enableAdvancedProfiling() {
+    // Attempts to find the AndroidRunConfiguration to enable the profiler state validation.
+    AndroidRunConfigurationBase androidConfiguration = null;
+    RunManager runManager = RunManager.getInstance(myProject);
+    if (runManager != null) {
+      RunnerAndConfigurationSettings configurationSettings = runManager.getSelectedConfiguration();
+      if (configurationSettings != null && configurationSettings.getConfiguration() instanceof AndroidRunConfigurationBase) {
+        androidConfiguration = (AndroidRunConfigurationBase)configurationSettings.getConfiguration();
+        androidConfiguration.getProfilerState().setCheckAdvancedProfiling(true);
+      }
+    }
+
+    EditConfigurationsDialog dialog = new EditConfigurationsDialog(myProject);
+    dialog.show();
+
+    if (androidConfiguration != null) {
+      androidConfiguration.getProfilerState().setCheckAdvancedProfiling(false);
+    }
   }
 }

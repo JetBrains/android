@@ -54,4 +54,9 @@ public interface IdeProfilerServices {
    */
   @NotNull
   CodeNavigator getCodeNavigator();
+
+  /**
+   * request to enable advanced profiling.
+   */
+  void enableAdvancedProfiling();
 }
