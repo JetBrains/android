@@ -20,6 +20,7 @@ import com.android.tools.datastore.DataStorePollerTest;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.MemoryService;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.google.protobuf3jarjar.ByteString;
@@ -100,6 +101,22 @@ public class MemoryDataPollerTest extends DataStorePollerTest {
     myDataStore.shutdown();
     myMemoryService
       .stopMonitoringApp(MemoryStopRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
+  }
+
+  @Test
+  public void testAppStoppedRequestHandled() {
+    myMemoryService
+      .stopMonitoringApp(MemoryStopRequest.newBuilder().setProcessId(TEST_APP_ID).build(), mock(StreamObserver.class));
+    when(myDataStore.getMemoryClient(any())).thenReturn(null);
+    StreamObserver<TriggerHeapDumpResponse> heapDump = mock(StreamObserver.class);
+    myMemoryService.triggerHeapDump(TriggerHeapDumpRequest.getDefaultInstance(), heapDump);
+    validateResponse(heapDump, TriggerHeapDumpResponse.getDefaultInstance());
+    StreamObserver<TrackAllocationsResponse> allocations = mock(StreamObserver.class);
+    myMemoryService.trackAllocations(TrackAllocationsRequest.getDefaultInstance(), allocations);
+    validateResponse(allocations, TrackAllocationsResponse.getDefaultInstance());
+    StreamObserver<ForceGarbageCollectionResponse> garbageCollection = mock(StreamObserver.class);
+    myMemoryService.forceGarbageCollection(ForceGarbageCollectionRequest.getDefaultInstance(), garbageCollection);
+    validateResponse(garbageCollection, ForceGarbageCollectionResponse.getDefaultInstance());
   }
 
   @Test

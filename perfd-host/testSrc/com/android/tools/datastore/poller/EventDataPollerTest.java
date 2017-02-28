@@ -109,6 +109,19 @@ public class EventDataPollerTest extends DataStorePollerTest {
   }
 
   @Test
+  public void testAppStoppedRequestHandled() {
+    when(myDataStoreService.getEventClient(any())).thenReturn(null);
+    EventProfiler.EventStopRequest stopRequest = EventProfiler.EventStopRequest.newBuilder().setSession(DataStorePollerTest.SESSION).build();
+    StreamObserver<EventProfiler.EventStopResponse> stopObserver = mock(StreamObserver.class);
+    myEventDataPoller.stopMonitoringApp(stopRequest, stopObserver);
+    validateResponse(stopObserver, EventProfiler.EventStopResponse.getDefaultInstance());
+    EventProfiler.EventStartRequest startRequest = EventProfiler.EventStartRequest.newBuilder().setSession(DataStorePollerTest.SESSION).build();
+    StreamObserver<EventProfiler.EventStartResponse> startObserver = mock(StreamObserver.class);
+    myEventDataPoller.startMonitoringApp(startRequest, startObserver);
+    validateResponse(startObserver, EventProfiler.EventStartResponse.getDefaultInstance());
+  }
+
+  @Test
   public void testGetSystemDataInRange() throws Exception {
     EventProfiler.EventDataRequest request = EventProfiler.EventDataRequest.newBuilder()
       .setProcessId(TEST_APP_ID)
