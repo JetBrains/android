@@ -330,6 +330,18 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
         return AvdManagerConnection.getAvdDisplayName(info);
       }
     },
+    new AvdIconColumnInfo("Play Store", JBUI.scale(75)) {
+      @Nullable
+      @Override
+      public Icon valueOf(AvdInfo avdInfo) {
+        return avdInfo.hasPlayStore() ? AndroidIcons.PlayStore : null;
+      }
+      @NotNull
+      @Override
+      public Comparator<AvdInfo> getComparator() {
+        return (avd1, avd2) -> Boolean.compare(avd2.hasPlayStore(), avd1.hasPlayStore());
+      }
+    },
     new AvdColumnInfo("Resolution") {
       @Nullable
       @Override
