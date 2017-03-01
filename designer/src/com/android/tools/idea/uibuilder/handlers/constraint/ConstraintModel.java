@@ -136,7 +136,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       constraintModel = new ConstraintModel(model);
       model.addListener(constraintModel);
       ourModelCache.put(model, constraintModel);
-      constraintModel.modelChanged(model);
+      constraintModel.modelDerivedDataChanged(model);
     }
     ourLock.unlock();
     return constraintModel;
@@ -159,7 +159,7 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
    * @param model
    */
   @Override
-  public void modelChanged(@NotNull NlModel model) {
+  public void modelDerivedDataChanged(@NotNull NlModel model) {
     ApplicationManager.getApplication().invokeLater(() -> {
       ourLock.lock();
       if (DEBUG) {
@@ -260,15 +260,6 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
   public void requestSaveToXML() {
     updateMemoryXML(); // Send changes to the XML without committing them
     mySaveXmlTimer.reset();
-  }
-
-  /**
-   * Schedule a render
-   */
-  public void requestRender() {
-    ourLock.lock();
-    ConstraintUtilities.renderModel(this);
-    ourLock.unlock();
   }
 
   /**
@@ -679,7 +670,6 @@ public class ConstraintModel implements ModelListener, SelectionListener, Select
       }
       ConstraintUtilities.saveModelToXML(myNlModel, true);
       selection.clearModifiedWidgets();
-      requestRender();
     }
   }
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
-import android.support.constraint.solver.widgets.ConstraintAnchor;
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
@@ -170,8 +169,12 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
     inferConstraints(model);
   }
 
-  private static void inferConstraints(NlModel model) {
-    RenderResult result = model.getRenderResult();
+  private void inferConstraints(NlModel model) {
+    ScreenView sceneView = mySurface.getCurrentSceneView();
+    RenderResult result = null;
+    if (sceneView != null) {
+      result = sceneView.getResult();
+    }
     if (result == null || !result.getRenderResult().isSuccess()) {
       return;
     }
@@ -219,7 +222,7 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
   }
 
   @Override
-  public void modelChanged(@NotNull NlModel model) {
+  public void modelDerivedDataChanged(@NotNull NlModel model) {
     model.removeListener(this);
     inferConstraints(model);
   }

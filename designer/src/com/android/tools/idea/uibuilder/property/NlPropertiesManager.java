@@ -318,10 +318,6 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   }
 
   @Override
-  public void modelChanged(@NotNull NlModel model) {
-  }
-
-  @Override
   public void modelRendered(@NotNull NlModel model) {
     myPropertiesPanel.modelRendered(this);
   }
