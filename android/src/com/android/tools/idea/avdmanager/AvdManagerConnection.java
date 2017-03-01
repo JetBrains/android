@@ -627,6 +627,7 @@ public class AvdManagerConnection {
                                   sdCard,
                                   hardwareProperties,
                                   device.getBootProps(),
+                                  device.hasPlayStore(),
                                   createSnapshot,
                                   false,
                                   removePrevious,
