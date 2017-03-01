@@ -270,7 +270,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       }
     });
 
-    myIdeProfilerComponents.installNavigationContextMenu(tree, () -> {
+    myIdeProfilerComponents.installNavigationContextMenu(tree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
       TreePath selection = tree.getSelectionPath();
       if (selection == null) {
         return null;
@@ -278,7 +278,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
 
       InstanceObject instanceObject = (InstanceObject)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
       return new CodeLocation(instanceObject.getClassName());
-    }, myStage::handleNavigatedToCode);
+    });
 
     myIdeProfilerComponents.installContextMenu(tree, new ContextMenuItem() {
       @NotNull

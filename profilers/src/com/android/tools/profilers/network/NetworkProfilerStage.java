@@ -22,6 +22,8 @@ import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.CodeNavigator;
 import com.android.tools.profilers.common.StackTraceModel;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
@@ -35,7 +37,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 
-public class NetworkProfilerStage extends Stage {
+public class NetworkProfilerStage extends Stage implements CodeNavigator.Listener {
 
   private static final BaseAxisFormatter TRAFFIC_AXIS_FORMATTER = new NetworkTrafficFormatter(1, 5, 5);
   private static final BaseAxisFormatter CONNECTIONS_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 1, "");
@@ -60,7 +62,7 @@ public class NetworkProfilerStage extends Stage {
   private final AxisComponentModel myTrafficAxis;
   private final AxisComponentModel myConnectionsAxis;
   private final EventMonitor myEventMonitor;
-  private final StackTraceModel myStackTraceModel = new StackTraceModel();
+  private final StackTraceModel myStackTraceModel;
   private final SelectionModel mySelectionModel;
 
   public NetworkProfilerStage(StudioProfilers profilers) {
@@ -84,11 +86,7 @@ public class NetworkProfilerStage extends Stage {
 
     myEventMonitor = new EventMonitor(profilers);
 
-    myStackTraceModel.addDependency(myAspectObserver)
-      .onChange(StackTraceModel.Aspect.SELECTED_LOCATION, () -> {
-        setProfilerMode(
-          myStackTraceModel.getSelectedType() == StackTraceModel.Type.STACK_FRAME ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED);
-      });
+    myStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
 
     mySelectionModel = new SelectionModel(timeline.getSelectionRange(), timeline.getViewRange());
     profilers.addDependency(myAspectObserver)
@@ -169,21 +167,27 @@ public class NetworkProfilerStage extends Stage {
   @Override
   public void enter() {
     myEventMonitor.enter();
+
     getStudioProfilers().getUpdater().register(myRadioState);
     getStudioProfilers().getUpdater().register(myDetailedNetworkUsage);
     getStudioProfilers().getUpdater().register(myTrafficAxis);
     getStudioProfilers().getUpdater().register(myConnectionsAxis);
     getStudioProfilers().getUpdater().register(myLegends);
+
+    getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
   }
 
   @Override
   public void exit() {
     myEventMonitor.exit();
+
     getStudioProfilers().getUpdater().unregister(myRadioState);
     getStudioProfilers().getUpdater().unregister(myDetailedNetworkUsage);
     getStudioProfilers().getUpdater().unregister(myTrafficAxis);
     getStudioProfilers().getUpdater().unregister(myConnectionsAxis);
     getStudioProfilers().getUpdater().unregister(myLegends);
+
+    getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
   }
 
   @NotNull
@@ -214,6 +218,11 @@ public class NetworkProfilerStage extends Stage {
   @NotNull
   public EventMonitor getEventMonitor() {
     return myEventMonitor;
+  }
+
+  @Override
+  public void onNavigated(@NotNull CodeLocation location) {
+    setProfilerMode(ProfilerMode.NORMAL);
   }
 
   public static class NetworkStageLegends extends LegendComponentModel {

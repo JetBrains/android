@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.common.CodeNavigator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +33,12 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 public class IntellijProfilerServices implements IdeProfilerServices {
+  private final IntellijCodeNavigator myCodeNavigator;
+
+  public IntellijProfilerServices(@NotNull Project project) {
+    myCodeNavigator = new IntellijCodeNavigator(project);
+  }
+
   private static Logger getLogger() {
     return Logger.getInstance(IntellijProfilerServices.class);
   }
@@ -76,5 +85,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
     if (virtualFile != null) {
       virtualFile.refresh(true, false, postRunnable);
     }
+  }
+
+  @NotNull
+  @Override
+  public CodeNavigator getCodeNavigator() {
+    return myCodeNavigator;
   }
 }

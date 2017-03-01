@@ -115,13 +115,9 @@ class CpuCaptureView {
     CpuTraceTreeSorter sorter = new CpuTraceTreeSorter(tree);
     sorter.setModel(model, DEFAULT_SORT_ORDER);
 
-    stageView.getIdeComponents().installNavigationContextMenu(
-      tree, () -> getCodeLocation(tree),
-      () -> {
-        if (getCodeLocation(tree) != null) {
-          stageView.getStage().handleNavigatedToCode();
-        }
-      });
+    stageView.getIdeComponents()
+      .installNavigationContextMenu(tree, stageView.getStage().getStudioProfilers().getIdeServices().getCodeNavigator(),
+                                    () -> getCodeLocation(tree));
 
     return new ColumnTreeBuilder(tree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
@@ -269,10 +265,11 @@ class CpuCaptureView {
       chart.setHTree(treeChart.getNode());
       myComponent = chart;
 
-      view.getIdeComponents().installNavigationContextMenu(chart, () -> {
-        HNode<MethodModel> n = chart.getHoveredNode();
-        return n != null && n.getData() != null ? new CodeLocation(n.getData().getClassName()) : null;
-      }, () -> view.getStage().handleNavigatedToCode());
+      view.getIdeComponents()
+        .installNavigationContextMenu(chart, view.getStage().getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
+          HNode<MethodModel> n = chart.getHoveredNode();
+          return n != null && n.getData() != null ? new CodeLocation(n.getData().getClassName()) : null;
+        });
     }
   }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.profilers.common.CodeNavigator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,4 +45,13 @@ public interface IdeProfilerServices {
    * @param postRunnable             A callback for when the system finally finishes writing to and synchronizing the file.
    */
   void saveFile(@NotNull File file, @NotNull Consumer<FileOutputStream> fileOutputStreamConsumer, @Nullable Runnable postRunnable);
+
+  /**
+   * Returns a service that can navigate to a target code location.
+   *
+   * Implementors of this method should be sure to return the same instance each time, not a new
+   * instance per call.
+   */
+  @NotNull
+  CodeNavigator getCodeNavigator();
 }

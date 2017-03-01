@@ -18,17 +18,13 @@ package com.android.tools.idea.profilers.stacktrace;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
-import com.android.tools.profilers.common.CodeLocation;
-import com.android.tools.profilers.common.StackFrameParser;
-import com.android.tools.profilers.common.StackTraceModel;
-import com.android.tools.profilers.common.ThreadId;
+import com.android.tools.profilers.common.*;
 import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.pom.Navigatable;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.messages.MessageBus;
 import org.jetbrains.annotations.NonNls;
@@ -71,7 +67,12 @@ public class IntelliJStackTraceViewTest {
 
   @Before
   public void before() {
-    myStackView = new IntelliJStackTraceView(myProject, new StackTraceModel(), (project, location) -> new FakeStackNavigation(location));
+    StackTraceModel model = new StackTraceModel(new CodeNavigator() {
+      @Override
+      protected void handleNavigate(@NotNull CodeLocation location) {
+      }
+    });
+    myStackView = new IntelliJStackTraceView(myProject, model, (project, location) -> new FakeCodeElement(location));
     myStackView.getComponent().setSize(100, 400); // Arbitrary size just so we can click on it
   }
 
@@ -127,11 +128,11 @@ public class IntelliJStackTraceViewTest {
     assertEquals(-1, list.getSelectedIndex());
 
     myStackView.getModel().setSelectedIndex(3);
-    assertTrue(list.getSelectedValue() instanceof FakeStackNavigation);
+    assertTrue(list.getSelectedValue() instanceof FakeCodeElement);
     assertEquals(1, invocationCount[0]);
     assertEquals(3, list.getSelectedIndex());
 
-    myStackView.getModel().setSelectedIndex(-1);
+    myStackView.getModel().setSelectedIndex(-2);
     assertEquals(2, invocationCount[0]);
     assertNull(list.getSelectedValue());
   }
@@ -154,7 +155,7 @@ public class IntelliJStackTraceViewTest {
     // fakeUi.mouse.click(5, 5); <- Can't click as the ListView is a heavyweight component and
     // can't be interacted with in headless mode. Instead, just set programmatically:
     list.setSelectedIndex(0);
-    assertTrue(list.getSelectedValue() instanceof FakeStackNavigation);
+    assertTrue(list.getSelectedValue() instanceof FakeCodeElement);
     assertEquals(1, invocationCount[0]);
 
     fakeUi.keyboard.setFocus(myStackView.getListView());
@@ -306,36 +307,11 @@ public class IntelliJStackTraceViewTest {
     }
   }
 
-  private static class FakeNavigatable implements Navigatable {
+  private static class FakeCodeElement implements CodeElement {
     @NotNull private final CodeLocation myCodeLocation;
 
-    public FakeNavigatable(@NotNull CodeLocation codeLocation) {
+    public FakeCodeElement(@NotNull CodeLocation codeLocation) {
       myCodeLocation = codeLocation;
-    }
-
-    @Override
-    public void navigate(boolean requestFocus) {
-    }
-
-    @Override
-    public boolean canNavigate() {
-      return true;
-    }
-
-    @Override
-    public boolean canNavigateToSource() {
-      return true;
-    }
-  }
-
-  private static class FakeStackNavigation implements StackNavigation {
-    @NotNull private final CodeLocation myCodeLocation;
-
-    @NotNull private final FakeNavigatable myNavigatable;
-
-    public FakeStackNavigation(@NotNull CodeLocation codeLocation) {
-      myCodeLocation = codeLocation;
-      myNavigatable = new FakeNavigatable(myCodeLocation);
     }
 
     @NotNull
@@ -365,11 +341,6 @@ public class IntelliJStackTraceViewTest {
     @Override
     public boolean isInUserCode() {
       return false;
-    }
-
-    @Override
-    public void navigate() {
-      myNavigatable.navigate(false);
     }
   }
 }

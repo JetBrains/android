@@ -17,7 +17,6 @@ package com.android.tools.profilers;
 
 import com.android.tools.profilers.common.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.File;
@@ -36,16 +35,17 @@ public interface IdeProfilerComponents {
   StackTraceView createStackView(@NotNull StackTraceModel model);
 
   /**
-   * Installs an IntelliJ context menu on a {@link JComponent}.
+   * Installs an IntelliJ context menu on a {@link JComponent} which, when clicked, will navigate
+   * to a code location provided by the {@code codeLocationSupplier}.
    *
    * @param component            The target {@link JComponent} that the context menu is to be installed on.
+   * @param navigator            A {@link CodeNavigator} that should ultimately handle the navigation, allowing the profiler to respond to
    * @param codeLocationSupplier A {@link Supplier} of the desired code to navigate to. When the supplier is resolved, the system is not
    *                             necessarily ready to conduct the navigation (i.e. displaying the menu popup, awaiting user input).
-   * @param navigationCallback   A runnable callback invoked just prior to the actual act of navigating to the code.
    */
   void installNavigationContextMenu(@NotNull JComponent component,
-                                    @NotNull Supplier<CodeLocation> codeLocationSupplier,
-                                    @Nullable Runnable navigationCallback);
+                                    @NotNull CodeNavigator navigator,
+                                    @NotNull Supplier<CodeLocation> codeLocationSupplier);
 
   /**
    * Installs a generic IntelliJ context menu on a {@code component} from the specified {@code contextMenu}.

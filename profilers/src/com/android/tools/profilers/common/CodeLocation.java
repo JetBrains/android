@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
-public class CodeLocation {
+public final class CodeLocation {
   public static final int INVALID_LINE_NUMBER = -1;
 
   @Nullable

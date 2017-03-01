@@ -15,19 +15,16 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.idea.actions.EditMultipleSourcesAction;
-import com.android.tools.idea.actions.PsiClassNavigation;
+import com.android.tools.idea.profilers.actions.NavigateToCodeAction;
 import com.android.tools.idea.profilers.stacktrace.IntelliJStackTraceView;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.common.*;
-import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.components.JBLoadingPanel;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,8 +35,7 @@ import java.util.function.Supplier;
 public class IntellijProfilerComponents implements IdeProfilerComponents {
   private static final String COMPONENT_CONTEXT_MENU = "ComponentContextMenu";
 
-  @NotNull
-  private Project myProject;
+  @NotNull private final Project myProject;
 
   public IntellijProfilerComponents(@NotNull Project project) {
     myProject = project;
@@ -88,30 +84,11 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @Override
   public void installNavigationContextMenu(@NotNull JComponent component,
-                                           @NotNull Supplier<CodeLocation> codeLocationSupplier,
-                                           @Nullable Runnable navigationCallback) {
-    component.putClientProperty(DataManager.CLIENT_PROPERTY_DATA_PROVIDER, (DataProvider)dataId -> {
-      if (CommonDataKeys.NAVIGATABLE_ARRAY.is(dataId)) {
-        CodeLocation location = codeLocationSupplier.get();
-        if (location == null) {
-          return null;
-        }
-
-        if (location.getLineNumber() > 0) {
-          return PsiClassNavigation.getNavigationForClass(myProject, location.getClassName(), location.getLineNumber());
-        }
-        else {
-          return PsiClassNavigation.getNavigationForClass(myProject, location.getClassName());
-        }
-      }
-      else if (CommonDataKeys.PROJECT.is(dataId)) {
-        return myProject;
-      }
-      return null;
-    });
+                                           @NotNull CodeNavigator navigator,
+                                           @NotNull Supplier<CodeLocation> codeLocationSupplier) {
 
     DefaultActionGroup popupGroup = createOrGetActionGroup(component);
-    popupGroup.add(new EditMultipleSourcesAction(navigationCallback));
+    popupGroup.add(new NavigateToCodeAction(codeLocationSupplier, navigator));
   }
 
   @Override
