@@ -114,8 +114,17 @@ public class StringResourceTableModel extends AbstractTableModel {
         }
 
         break;
+      case DEFAULT_VALUE_COLUMN:
+        if (myData.setDefaultValue(getKey(row), (String)value)) {
+          fireTableCellUpdated(row, column);
+        }
+
+        break;
       default:
-        if (myData.setTranslation(getKey(row), getLocale(column), (String)value)) {
+        Locale locale = getLocale(column);
+        assert locale != null;
+
+        if (myData.setTranslation(getKey(row), locale, (String)value)) {
           fireTableCellUpdated(row, column);
         }
 
