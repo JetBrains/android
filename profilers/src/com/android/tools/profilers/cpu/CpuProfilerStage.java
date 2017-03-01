@@ -96,8 +96,8 @@ public class CpuProfilerStage extends Stage {
 
   /**
    * Represents the current state of the capture.
-   * TODO: instead of keeping/setting all these state here, we might want to get the current state from perfd.
    */
+  @NotNull
   private CaptureState myCaptureState;
 
   /**
@@ -143,11 +143,12 @@ public class CpuProfilerStage extends Stage {
     myThreadsStates = new CpuThreadsModel(viewRange, this, getStudioProfilers().getProcessId(), getStudioProfilers().getSession());
 
     myEventMonitor = new EventMonitor(profilers);
-    myCaptureState = CaptureState.IDLE;
     myProfilingMode = CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED;
 
     mySelectionModel = new SelectionModel(selectionRange, viewRange);
     mySelectionModel.addConstraint(myTraceDurations);
+
+    myCaptureState = isCapturing() ? CaptureState.CAPTURING : CaptureState.IDLE;
   }
 
   @NotNull
@@ -279,6 +280,20 @@ public class CpuProfilerStage extends Stage {
           return capture;
         }, getStudioProfilers().getIdeServices().getMainExecutor());
     }
+  }
+
+  private boolean isCapturing() {
+    long currentTimeNs = TimeUnit.MICROSECONDS.toNanos((long)getStudioProfilers().getTimeline().getDataRange().getMax()) +
+                  TimeUnit.SECONDS.toNanos(StudioProfilers.TIMELINE_BUFFER);
+    CpuServiceGrpc.CpuServiceBlockingStub cpuService = getStudioProfilers().getClient().getCpuClient();
+    CpuProfiler.ProfilingStateRequest request = CpuProfiler.ProfilingStateRequest.newBuilder()
+      .setAppPkgName(getStudioProfilers().getProcess().getName())
+      .setSession(getStudioProfilers().getSession())
+      .setTimestamp(currentTimeNs)
+      .build();
+
+    // TODO: move this call to a separate thread if we identify it's not fast enough.
+    return cpuService.checkAppProfilingState(request).getBeingProfiled();
   }
 
   public void setCapture(@Nullable CpuCapture capture) {

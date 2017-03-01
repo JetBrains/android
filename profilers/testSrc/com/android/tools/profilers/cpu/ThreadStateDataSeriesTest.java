@@ -15,15 +15,9 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.adtui.model.DataSeries;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.adtui.model.*;
 import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profilers.FakeGrpcChannel;
-import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.ProfilersTestData;
-import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.*;
 import com.intellij.util.containers.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
@@ -42,13 +36,16 @@ public class ThreadStateDataSeriesTest {
   private final FakeCpuService myService = new FakeCpuService();
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("ThreadStateDataSeriesTest", myService);
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("ThreadStateDataSeriesTest", myService, new FakeProfilerService());
 
   private CpuThreadsModel myThreadsModel;
 
   @Before
   public void setUp() {
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), timer);
+    // One second must be enough for new devices (and processes) to be picked up
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myThreadsModel = new CpuThreadsModel(new Range(), new CpuProfilerStage(profilers), FAKE_PID, ProfilersTestData.SESSION_DATA);
   }
 

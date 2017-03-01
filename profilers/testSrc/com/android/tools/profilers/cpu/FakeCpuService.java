@@ -72,6 +72,8 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   private long myTraceThreadActivityBuffer;
 
+  private boolean myIsAppBeingProfiled;
+
   @Override
   public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request, StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> responseObserver) {
     CpuProfiler.CpuProfilingAppStartResponse.Builder response = CpuProfiler.CpuProfilingAppStartResponse.newBuilder();
@@ -99,12 +101,26 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     responseObserver.onCompleted();
   }
 
+  @Override
+  public void checkAppProfilingState(CpuProfiler.ProfilingStateRequest request,
+                                     StreamObserver<CpuProfiler.ProfilingStateResponse> responseObserver) {
+    CpuProfiler.ProfilingStateResponse.Builder response = CpuProfiler.ProfilingStateResponse.newBuilder();
+    response.setBeingProfiled(myIsAppBeingProfiled);
+
+    responseObserver.onNext(response.build());
+    responseObserver.onCompleted();
+  }
+
   public void setStartProfilingStatus(CpuProfiler.CpuProfilingAppStartResponse.Status status) {
     myStartProfilingStatus = status;
   }
 
   public void setStopProfilingStatus(CpuProfiler.CpuProfilingAppStopResponse.Status status) {
     myStopProfilingStatus = status;
+  }
+
+  public void setAppBeingProfiled(boolean appBeingProfiled) {
+    myIsAppBeingProfiled = appBeingProfiled;
   }
 
   public void setValidTrace(boolean validTrace) {
