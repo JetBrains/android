@@ -20,8 +20,11 @@ import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.scene.SceneManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,6 +47,12 @@ public class ScreenView extends SceneView {
   public ScreenView(@NotNull NlDesignSurface surface, @NotNull ScreenViewType type, @NotNull NlModel model) {
     super(surface, model);
     myType = type;
+  }
+
+  @NotNull
+  @Override
+  protected SceneManager createSceneBuilder(@NotNull NlModel model) {
+    return new LayoutlibSceneManager(model, this);
   }
 
   /**
@@ -120,4 +129,16 @@ public class ScreenView extends SceneView {
     }
     super.updateCursor(x, y);
   }
+
+  @Override
+  public LayoutlibSceneManager getSceneManager() {
+    return (LayoutlibSceneManager)super.getSceneManager();
+  }
+
+  @Nullable
+  public RenderResult getResult() {
+    return getSceneManager().getRenderResult();
+  }
+
+
 }

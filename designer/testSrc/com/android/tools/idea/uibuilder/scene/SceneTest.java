@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -32,7 +33,7 @@ public abstract class SceneTest extends LayoutTestCase {
 
   protected NlModel myModel;
   protected Scene myScene;
-  protected SceneBuilder mySceneBuilder;
+  protected SceneManager mySceneManager;
   protected ScreenFixture myScreen;
   protected SceneMouseInteraction myInteraction;
 
@@ -42,11 +43,11 @@ public abstract class SceneTest extends LayoutTestCase {
     myModel = createModel().build();
     myScreen = surface().screen(myModel);
     myScreen.withScale(1);
-    mySceneBuilder = new LayoutlibSceneBuilder(myModel, myScreen.getScreen());
-    myScene = mySceneBuilder.build();
+    mySceneManager = new SyncLayoutlibSceneManager(myModel, myScreen.getScreen());
+    myScene = mySceneManager.build();
     myScene.setShowAllConstraints(true);
     myScene.setAnimate(false);
-    mySceneBuilder.update();
+    mySceneManager.update();
     myInteraction = new SceneMouseInteraction(myScene);
   }
 
