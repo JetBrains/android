@@ -18,6 +18,7 @@ package com.android.tools.datastore.database;
 import com.android.tools.datastore.DataStoreDatabase;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Profiler;
+import com.intellij.openapi.util.io.FileUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,8 +35,7 @@ public class ProfilerTableTest {
 
   @Before
   public void setUp() throws Exception {
-    // TODO: Update to work on windows. PathUtil.getTempPath() fails with bazel
-    myDbFile = new File("/tmp/ProfilerTableTestDb");
+    myDbFile = FileUtil.createTempFile("ProfileTable", "mysql");
     myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath());
     myTable = new ProfilerTable();
     myDatabase.registerTable(myTable);
