@@ -16,11 +16,11 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
@@ -168,10 +168,15 @@ public class StringResourceData {
   }
 
   @Nullable
-  private ResourceItem createItem(@NotNull StringResourceKey key, @Nullable Locale locale, @NotNull String value) {
+  @VisibleForTesting
+  ResourceItem createItem(@NotNull StringResourceKey key, @Nullable Locale locale, @NotNull String value) {
     VirtualFile directory = key.getDirectory();
 
     if (directory == null) {
+      return null;
+    }
+
+    if (value.isEmpty()) {
       return null;
     }
 
