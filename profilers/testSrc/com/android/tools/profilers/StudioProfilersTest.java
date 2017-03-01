@@ -248,18 +248,6 @@ final public class StudioProfilersTest {
     assertEquals(2, observer.getAgentStatusChangedCount());
   }
 
-  private static class AgentStatusAspectObserver extends AspectObserver {
-    private int myAgentStatusChangedCount;
-
-    void AgentStatusChanged() {
-      myAgentStatusChangedCount++;
-    }
-
-    int getAgentStatusChangedCount() {
-      return myAgentStatusChangedCount;
-    }
-  }
-
   @Test
   public void testProcessRestartedSetsAliveAsActive() throws Exception {
     FakeTimer timer = new FakeTimer();
@@ -311,5 +299,55 @@ final public class StudioProfilersTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertEquals(21, profilers.getProcess().getPid());
     assertEquals(profilers.getProcess().getState(), Profiler.Process.State.ALIVE);
+  }
+
+  @Test
+  public void testProcessStateChangesShouldNotTriggerStageChange() throws Exception {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+    Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess")
+      .build();
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    myProfilerService.addDevice(device);
+    myProfilerService.addProcess(session, process);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(20, profilers.getProcess().getPid());
+    assertEquals(profilers.getProcess().getState(), Profiler.Process.State.ALIVE);
+
+    AspectObserver observer = new AspectObserver();
+    profilers.addDependency(observer).onChange(ProfilerAspect.STAGE, () -> {
+      assert false;
+    });
+
+    // Change the alive (active) process to DEAD
+    myProfilerService.removeProcess(session, process);
+    process = process.toBuilder()
+      .setState(Profiler.Process.State.DEAD)
+      .build();
+    myProfilerService.addProcess(session, process);
+
+    //Verify the process is in the dead state.
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(20, profilers.getProcess().getPid());
+    assertEquals(profilers.getProcess().getState(), Profiler.Process.State.DEAD);
+  }
+
+  private static class AgentStatusAspectObserver extends AspectObserver {
+    private int myAgentStatusChangedCount;
+
+    void AgentStatusChanged() {
+      myAgentStatusChangedCount++;
+    }
+
+    int getAgentStatusChangedCount() {
+      return myAgentStatusChangedCount;
+    }
   }
 }
