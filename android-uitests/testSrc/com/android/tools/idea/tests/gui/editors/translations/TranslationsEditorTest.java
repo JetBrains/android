@@ -403,20 +403,39 @@ public final class TranslationsEditorTest {
     myTranslationsEditor.getTable().selectCell(TableCell.row(1).column(ENGLISH_COLUMN));
     myGuiTest.robot().pressAndReleaseKey(KeyEvent.VK_DELETE);
 
+    // gone from en
     EditorFixture editor = myGuiTest.ideFrame().getEditor().open("app/src/main/res/values-en/strings.xml");
     assertThat(editor.getCurrentFileContents()).doesNotContain("hello_world");
 
-    editor.awaitNotification("Edit translations for all locales in the translations editor.")
-      .performAction("Open editor");
+    // still in other languages
+    editor = myGuiTest.ideFrame().getEditor().open("app/src/main/res/values-ta/strings.xml");
+    assertThat(editor.getCurrentFileContents()).contains("hello_world");
+  }
 
+  @Test
+  public void deleteKey() {
     // delete the entire string
     myTranslationsEditor.getTable().selectCell(TableCell.row(1).column(KEY_COLUMN));
     myGuiTest.robot().pressAndReleaseKey(KeyEvent.VK_DELETE);
-    DeleteDialogFixture.find(myGuiTest.robot()).clickOk().waitForUnsafeDialog().deleteAnyway();
+    DeleteDialogFixture.find(myGuiTest.robot(), "Delete").safe(false).clickOk().waitUntilNotShowing();
 
-    editor = myGuiTest.ideFrame().getEditor().open("app/src/main/res/values/strings.xml");
+    // gone from all languages
+    EditorFixture editor = myGuiTest.ideFrame().getEditor().open("app/src/main/res/values/strings.xml");
     assertThat(editor.getCurrentFileContents()).doesNotContain("hello_world");
+    editor = myGuiTest.ideFrame().getEditor().open("app/src/main/res/values-ta/strings.xml");
+    assertThat(editor.getCurrentFileContents()).doesNotContain("hello_world");
+  }
 
+  @Test
+  public void deleteSafe() {
+    // delete the entire string
+    myTranslationsEditor.getTable().selectCell(TableCell.row(1).column(KEY_COLUMN));
+    myGuiTest.robot().pressAndReleaseKey(KeyEvent.VK_DELETE);
+    DeleteDialogFixture.find(myGuiTest.robot(), "Delete").safe(true).clickOk().waitForUnsafeDialog().deleteAnyway();
+
+    // gone from all languages
+    EditorFixture editor = myGuiTest.ideFrame().getEditor().open("app/src/main/res/values/strings.xml");
+    assertThat(editor.getCurrentFileContents()).doesNotContain("hello_world");
     editor = myGuiTest.ideFrame().getEditor().open("app/src/main/res/values-ta/strings.xml");
     assertThat(editor.getCurrentFileContents()).doesNotContain("hello_world");
   }
