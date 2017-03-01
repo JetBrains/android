@@ -9,7 +9,7 @@ public class Class {
             new GridLayout(null); // OK
         }
         if (Utils.isGingerbread()) {
-            <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>; // ERROR
+            <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout</error>(null); // ERROR
         }
     }
 
