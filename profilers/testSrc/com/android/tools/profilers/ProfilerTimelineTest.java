@@ -161,4 +161,33 @@ public class ProfilerTimelineTest {
     // Test moving past the end doesn't stop streaming either
     timeline.pan(10);
   }
+
+  @Test
+  public void testPause() throws Exception {
+    ProfilerTimeline timeline = new ProfilerTimeline(myRelativeTimeConverter);
+    Range dataRange = timeline.getDataRange();
+    Range viewRange = timeline.getViewRange();
+    dataRange.set(0, 100);
+    viewRange.set(0, 30);
+
+    timeline.setStreaming(true);
+    timeline.update(TimeUnit.SECONDS.toNanos(10));
+    assertEquals(dataRange.getMax(), viewRange.getMax(), 0);
+    assertEquals(30, viewRange.getLength(), 0);
+    assertEquals(TimeUnit.SECONDS.toMicros(10), dataRange.getMax(), 0);
+
+    timeline.setIsPaused(true);
+    timeline.update(TimeUnit.SECONDS.toNanos(10));
+    assertEquals(dataRange.getMax(), viewRange.getMax(), 0);
+    assertEquals(30, viewRange.getLength(), 0);
+    assertEquals(TimeUnit.SECONDS.toMicros(10), dataRange.getMax(), 0);
+    assertFalse(timeline.isStreaming());
+    assertTrue(timeline.isPaused());
+
+    timeline.setIsPaused(false);
+    timeline.update(TimeUnit.SECONDS.toNanos(10));
+    assertEquals(dataRange.getMax(), viewRange.getMax(), 0);
+    assertEquals(30, viewRange.getLength(), 0);
+    assertEquals(TimeUnit.SECONDS.toMicros(30), dataRange.getMax(), 0);
+  }
 }
