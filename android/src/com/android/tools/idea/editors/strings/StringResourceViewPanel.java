@@ -43,9 +43,9 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -65,23 +65,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.event.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntSupplier;
 
@@ -181,7 +170,7 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   }
 
   private void createTable() {
-    myTable = new StringResourceTable();
+    myTable = new StringResourceTable(myFacet);
 
     ActionMap actionMap = myTable.getActionMap();
     actionMap.put("delete", new AbstractAction() {
@@ -366,7 +355,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     group.add(new AddKeyAction(myTable, myFacet));
     group.add(myRemoveKeysAction);
     group.add(new AddLocaleAction(myTable, myFacet));
-    group.add(new RemoveLocaleAction(myTable, myFacet));
     group.add(new FilterKeysAction(myTable));
     group.add(new FilterLocalesAction(myTable));
     group.add(new BrowserHelpAction("Translations editor", "https://developer.android.com/r/studio-ui/translations-editor.html"));
