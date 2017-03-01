@@ -120,5 +120,12 @@ public class FakeGrpcServer extends FakeGrpcChannel {
       response.onNext(GetThreadsResponse.getDefaultInstance());
       response.onCompleted();
     }
+
+    @Override
+    public void checkAppProfilingState(ProfilingStateRequest request,
+                                       StreamObserver<ProfilingStateResponse> response) {
+      response.onNext(ProfilingStateResponse.getDefaultInstance());
+      response.onCompleted();
+    }
   }
 }

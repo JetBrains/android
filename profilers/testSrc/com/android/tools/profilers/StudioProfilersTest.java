@@ -43,8 +43,7 @@ final public class StudioProfilersTest {
 
   @Test
   public void testClearedOnMonitorStage() throws Exception {
-    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices());
-
+    StudioProfilers profilers = getProfilersWithDeviceAndProcess();
     assertTrue(profilers.getTimeline().getSelectionRange().isEmpty());
 
     profilers.setStage(new CpuProfilerStage(profilers));
@@ -56,7 +55,7 @@ final public class StudioProfilersTest {
 
   @Test
   public void testProfilerModeChange() throws Exception {
-    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices());
+    StudioProfilers profilers = getProfilersWithDeviceAndProcess();
     assertEquals(ProfilerMode.NORMAL, profilers.getMode());
     CpuProfilerStage stage = new CpuProfilerStage(profilers);
     profilers.setStage(stage);
@@ -325,7 +324,6 @@ final public class StudioProfilersTest {
     profilers.addDependency(observer).onChange(ProfilerAspect.STAGE, () -> {
       assert false;
     });
-
     // Change the alive (active) process to DEAD
     myProfilerService.removeProcess(session, process);
     process = process.toBuilder()
@@ -337,6 +335,32 @@ final public class StudioProfilersTest {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertEquals(20, profilers.getProcess().getPid());
     assertEquals(profilers.getProcess().getState(), Profiler.Process.State.DEAD);
+  }
+
+  private StudioProfilers getProfilersWithDeviceAndProcess() {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
+    myProfilerService.addDevice(device);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
+
+    assertEquals("FakeDevice", profilers.getDevice().getSerial());
+    assertNull(profilers.getProcess());
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setName("FakeProcess")
+      .setState(Profiler.Process.State.ALIVE)
+      .build();
+    myProfilerService.addProcess(session, process);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
+    return profilers;
   }
 
   private static class AgentStatusAspectObserver extends AspectObserver {

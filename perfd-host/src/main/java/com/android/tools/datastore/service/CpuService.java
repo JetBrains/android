@@ -187,6 +187,14 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   }
 
   @Override
+  public void checkAppProfilingState(CpuProfiler.ProfilingStateRequest request,
+                                     StreamObserver<CpuProfiler.ProfilingStateResponse> observer) {
+    CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession());
+    observer.onNext(client.checkAppProfilingState(request));
+    observer.onCompleted();
+  }
+
+  @Override
   public void getTrace(CpuProfiler.GetTraceRequest request, StreamObserver<CpuProfiler.GetTraceResponse> observer) {
     ByteString data = myCpuTable.getTraceData(request.getTraceId(), request.getSession());
     CpuProfiler.GetTraceResponse.Builder builder = CpuProfiler.GetTraceResponse.newBuilder();

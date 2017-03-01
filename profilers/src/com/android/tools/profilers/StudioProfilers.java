@@ -53,7 +53,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   public static final int PROFILERS_UPDATE_RATE = 60;
 
-  @VisibleForTesting
   public static final int TIMELINE_BUFFER = 1;
 
   private final ProfilerClient myClient;
