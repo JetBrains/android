@@ -49,6 +49,8 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
 
   private boolean myCanStream = true;
   private long myLengthNs;
+  private boolean myIsPaused = false;
+  private long myPausedTime;
 
   public ProfilerTimeline(@NotNull RelativeTimeConverter converter) {
     myDataRangeUs = new Range(0, 0);
@@ -80,7 +82,7 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   }
 
   public boolean isStreaming() {
-    return myStreaming;
+    return myStreaming && !myIsPaused;
   }
 
   /**
@@ -95,12 +97,23 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   }
 
   public boolean canStream() {
-    return myCanStream;
+    return myCanStream && !myIsPaused;
   }
 
   public void toggleStreaming() {
     myZoomLeft = 0.0;
     setStreaming(!isStreaming());
+  }
+
+  public boolean isPaused() {
+    return myIsPaused;
+  }
+
+  public void setIsPaused(boolean paused) {
+    myIsPaused = paused;
+    if (myIsPaused) {
+      myPausedTime = myLengthNs;
+    }
   }
 
   @NotNull
@@ -124,7 +137,12 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   @Override
   public void update(long elapsedNs) {
     myLengthNs += elapsedNs;
-    long deviceNowNs = myRelativeTimeConverter.convertToAbsoluteTime(myLengthNs);
+    long maxTimelineTime = myLengthNs;
+    if (myIsPaused) {
+      maxTimelineTime = myPausedTime;
+    }
+
+    long deviceNowNs = myRelativeTimeConverter.convertToAbsoluteTime(maxTimelineTime);
     long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
     myDataRangeUs.setMax(deviceNowUs);
     double viewUs = myViewRangeUs.getLength();
@@ -133,10 +151,10 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
       double min = Updater.lerp(myViewRangeUs.getMin(), deviceNowUs - viewUs, myStreamingFactor);
       double max = Updater.lerp(myViewRangeUs.getMax(), deviceNowUs, myStreamingFactor);
       myViewRangeUs.set(min, max);
-    } else {
+    }
+    else {
       myStreamingFactor = 0.0f;
     }
-
     double left = Updater.lerp(myZoomLeft, 0.0, 0.95f, elapsedNs, myViewRangeUs.getLength() * 0.0001f);
     zoom(myZoomLeft - left, myStreaming ? 1.0 : 0.5f);
     myZoomLeft = left;
@@ -191,6 +209,7 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
   public void reset(@NotNull RelativeTimeConverter converter) {
     myRelativeTimeConverter = converter;
     myLengthNs = 0;
+    myIsPaused = false;
     double us = TimeUnit.NANOSECONDS.toMicros(converter.getDeviceStartTimeNs());
     myDataRangeUs.set(us, us);
     myViewRangeUs.set(us - DEFAULT_VIEW_LENGTH_US, us);

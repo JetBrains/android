@@ -227,14 +227,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           .setDeviceSerial(myDevice.getSerial())
           .setBootId(myDevice.getBootId())
           .build();
-
-        // TODO: getTimes should take the device
-        Profiler.TimeResponse times = myClient.getProfilerClient().getCurrentTime(Profiler.TimeRequest.newBuilder()
-                                                                                    .setSession(getSession())
-                                                                                    .build());
-        myRelativeTimeConverter = new RelativeTimeConverter(times.getTimestampNs() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
-        myTimeline.reset(myRelativeTimeConverter);
-        myTimeline.setStreaming(true);
       }
       else {
         mySessionData = null;
@@ -275,7 +267,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       if (myDevice != null && myProcess != null &&
           myDevice.getState() == Profiler.Device.State.ONLINE &&
           myProcess.getState() == Profiler.Process.State.ALIVE) {
+        myRelativeTimeConverter = new RelativeTimeConverter(myProcess.getStartTimestampNs() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
+        myTimeline.reset(myRelativeTimeConverter);
         myProfilers.forEach(profiler -> profiler.startProfiling(getSession(), myProcess));
+      } else {
+        myTimeline.setIsPaused(true);
       }
 
       if (!onlyStateChanged) {
