@@ -60,6 +60,31 @@ public class SyncNlModel extends NlModel {
     }
   }
 
+  @Override
+  public void requestRender() {
+    runAfterCommandIfNecessary(this::render);
+  }
+
+  @Override
+  protected void requestModelUpdate() {
+    runAfterCommandIfNecessary(this::updateModel);
+  }
+
+  private void runAfterCommandIfNecessary(Runnable runnable) {
+    if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
+      CommandProcessor.getInstance().addCommandListener(new CommandAdapter() {
+        @Override
+        public void commandFinished(CommandEvent event) {
+          runnable.run();
+          CommandProcessor.getInstance().removeCommandListener(this);
+        }
+      });
+    }
+    else {
+      runnable.run();
+    }
+  }
+
   @VisibleForTesting
   public void setConfiguration(Configuration configuration) {
     myConfiguration =  configuration;
