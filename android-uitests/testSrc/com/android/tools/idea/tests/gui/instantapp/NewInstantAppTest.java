@@ -106,7 +106,7 @@ public class NewInstantAppTest {
     assertThat(inspectionResults).isEqualTo(
       "Project '" + guiTest.getProjectPath() + "' " + projectName + "\n" +
       // TODO: Linting for Android Instant Apps needs to be updated as it isn't correctly picking up the dependencies
-      "    Android > Lint > Correctness\n" +
+      "    Android Lint: Correctness\n" +
       "        Menu namespace\n" +
       "            menu_main.xml\n" +
       "                Should use 'android:showAsAction' when not using the appcompat library\n" +
@@ -118,12 +118,12 @@ public class NewInstantAppTest {
       //"            build.gradle\n" +
       //"                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
       // This warning is unfortunate. We may want to get rid of it.
-      "    Android > Lint > Security\n" +
+      "    Android Lint: Security\n" +
       "        AllowBackup/FullBackupContent Problems\n" +
       "            AndroidManifest.xml\n" +
       "                On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute 'android:fullBackupContent' to specify an '@xml' resource which configures which files to backup. More info: https://developer.android.com/training/backup/autosyncapi.html\n" +
       // TODO: Not valid for instant apps - linting needs updating
-      "    Android > Lint > Usability > Icons\n" +
+      "    Android Lint: Usability\n" +
       "        Missing application icon\n" +
       "            AndroidManifest.xml\n" +
       "                Should explicitly set 'android:icon', there is no default\n" +
