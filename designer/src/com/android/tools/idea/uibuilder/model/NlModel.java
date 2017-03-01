@@ -447,7 +447,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @VisibleForTesting
   public void updateHierarchy(@Nullable XmlTag rootTag, @NotNull Iterable<ViewInfo> rootViews) {
-    ModelUpdater updater = new ModelUpdater(this);
+    ModelUpdater updater = new LayoutlibModelUpdater(this);
     updater.update(rootTag, rootViews);
   }
 
@@ -884,7 +884,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @NotNull
   public List<NlComponent> getComponents() {
-    return myComponents;
+    return Collections.unmodifiableList(myComponents);
   }
 
   @NotNull
@@ -893,21 +893,21 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   /**
-   * Synchronizes a {@linkplain NlModel} after a render such that the component hierarchy
-   * is up to date wrt view bounds, tag snapshots etc. Crucially, it attempts to preserve
+   * Synchronizes a {@linkplain NlModel} such that the component hierarchy
+   * is up to date wrt tag snapshots etc. Crucially, it attempts to preserve
    * component hierarchy (since XmlTags may sometimes not survive a PSI reparse, but we
    * want the {@linkplain NlComponent} instances to keep the same instances across these
    * edits such that for example the selection (a set of {@link NlComponent} instances)
    * are preserved.
    */
-  private static class ModelUpdater {
-    private final NlModel myModel;
-    private final Map<XmlTag, NlComponent> myTagToComponentMap = Maps.newIdentityHashMap();
+  static class ModelUpdater {
+    protected final NlModel myModel;
+    protected final Map<XmlTag, NlComponent> myTagToComponentMap = Maps.newIdentityHashMap();
     private final Map<NlComponent, XmlTag> myComponentToTagMap = Maps.newIdentityHashMap();
     /**
      * Map from snapshots in the old component map to the corresponding components
      */
-    private final Map<TagSnapshot, NlComponent> mySnapshotToComponent = Maps.newIdentityHashMap();
+    protected final Map<TagSnapshot, NlComponent> mySnapshotToComponent = Maps.newIdentityHashMap();
     /**
      * Map from tags in the view render tree to the corresponding snapshots
      */
@@ -930,7 +930,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
 
     /**
-     * Update the component hierarchy associated with this {@linkplain ModelUpdater} such
+     * Update the component hierarchy associated with this {@link NlModel} such
      * that the associated component list correctly reflects the latest versions of the
      * XML PSI file, the given tag snapshot and {@link ViewInfo} hierarchy from layoutlib.
      */
@@ -973,49 +973,18 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       // Wipe out state in older components to make sure on reuse we don't accidentally inherit old
       // data
       for (NlComponent component : myTagToComponentMap.values()) {
-        component.setBounds(0, 0, -1, -1); // -1: not initialized
-        component.viewInfo = null;
+        clearDerivedData(component);
         component.setSnapshot(null);
       }
 
-      // Update the bounds. This is based on the ViewInfo instances.
+      // Update the components' snapshots
       for (ViewInfo view : rootViews) {
-        updateHierarchy(view, 0, 0);
+        updateHierarchy(view);
       }
-
-      // Finally, fix up bounds: ensure that all components not found in the view
-      // info hierarchy inherit position from parent
-      fixBounds(root);
     }
 
-    private static void fixBounds(NlComponent root) {
-      boolean computeBounds = false;
-      if (root.w == -1 && root.h == -1) { // -1: not initialized
-        computeBounds = true;
-
-        // Look at parent instead
-        NlComponent parent = root.getParent();
-        if (parent != null && parent.w >= 0) {
-          root.setBounds(parent.x, parent.y, 0, 0);
-        }
-      }
-
-      List<NlComponent> children = root.children;
-      if (children != null && !children.isEmpty()) {
-        for (NlComponent child : children) {
-          fixBounds(child);
-        }
-
-        if (computeBounds) {
-          Rectangle rectangle = new Rectangle(root.x, root.y, root.w, root.h);
-          // Grow bounds to include child bounds
-          for (NlComponent child : children) {
-            rectangle = rectangle.union(new Rectangle(child.x, child.y, child.w, child.h));
-          }
-
-          root.setBounds(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
-        }
-      }
+    protected void clearDerivedData(@NotNull NlComponent component) {
+      // Nothing
     }
 
     private void mapOldToNew(@NotNull XmlTag newRootTag) {
@@ -1025,7 +994,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       // If there have been no structural changes, these map 1-1 from the previous hierarchy.
       // We first attempt to do it based on the XmlTags:
       //  (1) record a map from XmlTag to NlComponent in the previous component list
-      for (NlComponent component : myModel.myComponents) {
+      for (NlComponent component : myModel.getComponents()) {
         gatherTagsAndSnapshots(component);
       }
 
@@ -1229,12 +1198,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       return component;
     }
 
-    private void updateHierarchy(ViewInfo view,
-                                 int parentX,
-                                 int parentY) {
-      ViewInfo bounds = RenderService.getSafeBounds(view);
+    private void updateHierarchy(ViewInfo view) {
       Object cookie = view.getCookie();
-      NlComponent component = null;
+      NlComponent component;
       if (cookie != null) {
         if (cookie instanceof TagSnapshot) {
           TagSnapshot snapshot = (TagSnapshot)cookie;
@@ -1249,23 +1215,104 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
             component.setTag(snapshot.tag);
           }
         }
+      }
+      for (ViewInfo child : view.getChildren()) {
+        updateHierarchy(child);
+      }
+    }
+  }
 
-        if (component != null && component.viewInfo == null) {
-          component.viewInfo = view;
-          int left = parentX + bounds.getLeft();
-          int top = parentY + bounds.getTop();
-          int width = bounds.getRight() - bounds.getLeft();
-          int height = bounds.getBottom() - bounds.getTop();
 
-          component.setBounds(left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE), Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
+  /**
+   * A {@link ModelUpdater} that also updates the bounds of the components based on layoutlib information.
+   *
+   * TODO: move to LayoutlibSceneManager
+   * TODO: remove bounds from NlComponent and use Scene bounds instead.
+   */
+  private static class LayoutlibModelUpdater extends ModelUpdater {
+
+    public LayoutlibModelUpdater(@NotNull NlModel model) {
+      super(model);
+    }
+
+    @Override
+    protected void clearDerivedData(@NotNull NlComponent component) {
+      super.clearDerivedData(component);
+      component.setBounds(0, 0, -1, -1); // -1: not initialized
+      component.viewInfo = null;
+    }
+
+    @Override
+    public void update(@Nullable XmlTag newRoot, @NotNull Iterable<ViewInfo> rootViews) {
+      super.update(newRoot, rootViews);
+
+      // Update the bounds. This is based on the ViewInfo instances.
+      for (ViewInfo view : rootViews) {
+        updateBounds(view, 0, 0);
+      }
+
+      // Finally, fix up bounds: ensure that all components not found in the view
+      // info hierarchy inherit position from parent
+      fixBounds(myModel.getComponents().get(0));
+    }
+
+    private static void fixBounds(@NotNull NlComponent root) {
+      boolean computeBounds = false;
+      if (root.w == -1 && root.h == -1) { // -1: not initialized
+        computeBounds = true;
+
+        // Look at parent instead
+        NlComponent parent = root.getParent();
+        if (parent != null && parent.w >= 0) {
+          root.setBounds(parent.x, parent.y, 0, 0);
         }
       }
 
+      List<NlComponent> children = root.children;
+      if (children != null && !children.isEmpty()) {
+        for (NlComponent child : children) {
+          fixBounds(child);
+        }
+
+        if (computeBounds) {
+          Rectangle rectangle = new Rectangle(root.x, root.y, root.w, root.h);
+          // Grow bounds to include child bounds
+          for (NlComponent child : children) {
+            rectangle = rectangle.union(new Rectangle(child.x, child.y, child.w, child.h));
+          }
+
+          root.setBounds(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+        }
+      }
+    }
+
+    private void updateBounds(@NotNull ViewInfo view, int parentX, int parentY) {
+      ViewInfo bounds = RenderService.getSafeBounds(view);
+      Object cookie = view.getCookie();
+      NlComponent component;
+      if (cookie != null) {
+        if (cookie instanceof TagSnapshot) {
+          TagSnapshot snapshot = (TagSnapshot)cookie;
+          component = mySnapshotToComponent.get(snapshot);
+          if (component == null) {
+            component = myTagToComponentMap.get(snapshot.tag);
+          }
+          if (component != null && component.viewInfo == null) {
+            component.viewInfo = view;
+            int left = parentX + bounds.getLeft();
+            int top = parentY + bounds.getTop();
+            int width = bounds.getRight() - bounds.getLeft();
+            int height = bounds.getBottom() - bounds.getTop();
+
+            component.setBounds(left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE), Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
+          }
+        }
+      }
       parentX += bounds.getLeft();
       parentY += bounds.getTop();
 
       for (ViewInfo child : view.getChildren()) {
-        updateHierarchy(child, parentX, parentY);
+        updateBounds(child, parentX, parentY);
       }
     }
   }
