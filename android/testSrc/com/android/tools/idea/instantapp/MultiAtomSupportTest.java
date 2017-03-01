@@ -22,8 +22,11 @@ import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.*;
 import static com.android.tools.idea.testing.TestProjectPaths.MULTI_ATOM;
 
 public class MultiAtomSupportTest extends AndroidGradleTestCase {
+  public void testFake() {
+  }
 
-  public void testLoadMultiAtomProject() throws Exception {
+  //http://b/35853764
+  public void /*test*/LoadMultiAtomProject() throws Exception {
     loadProject(MULTI_ATOM);
 
     generateSources();

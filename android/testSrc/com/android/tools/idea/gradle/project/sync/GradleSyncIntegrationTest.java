@@ -17,8 +17,11 @@ package com.android.tools.idea.gradle.project.sync;
 
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.ProjectLibraries;
+import com.android.tools.idea.gradle.actions.SyncProjectAction;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -30,6 +33,8 @@ import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -48,7 +53,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-import org.junit.Ignore;
 
 import java.io.File;
 import java.io.IOException;
@@ -63,6 +67,7 @@ import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSub
 import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
 import static com.android.tools.idea.gradle.util.FilePaths.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertAbout;
@@ -81,8 +86,8 @@ import static org.mockito.Mockito.*;
 /**
  * Integration tests for 'Gradle Sync'.
  */
-@Ignore // Temporary during merge
 public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
+  private IdeInfo myOriginalIdeInfo;
   private DataNodeCaches myOriginalDataNodeCaches;
   private SyncMessages myOriginalSyncMessages;
 
@@ -90,6 +95,9 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   protected void tearDown() throws Exception {
     try {
       Project project = getProject();
+      if (myOriginalIdeInfo != null) {
+        IdeComponents.replaceService(IdeInfo.class, myOriginalIdeInfo);
+      }
       if (myOriginalDataNodeCaches != null) {
         IdeComponents.replaceService(project, DataNodeCaches.class, myOriginalDataNodeCaches);
       }
@@ -408,5 +416,30 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     }
 
     assertTrue(String.format("Folder '%1$s' should be excluded", centralBuildDirPath.getPath()), isExcluded);
+  }
+
+  public void testGradleSyncActionAfterFailedSync() {
+    myOriginalIdeInfo = IdeInfo.getInstance();
+    IdeInfo ideInfo = IdeComponents.replaceServiceWithMock(IdeInfo.class);
+    when(ideInfo.isAndroidStudio()).thenReturn(true);
+
+    SyncProjectAction action = new SyncProjectAction();
+
+    Presentation presentation = new Presentation();
+    presentation.setEnabledAndVisible(false);
+    AnActionEvent event = mock(AnActionEvent.class);
+    when(event.getPresentation()).thenReturn(presentation);
+    when(event.getProject()).thenReturn(getProject());
+
+    assertFalse(GradleProjectInfo.getInstance(getProject()).isBuildWithGradle());
+    action.update(event);
+    assertFalse(presentation.isEnabledAndVisible());
+
+    Module app = createModule("app");
+    createAndAddGradleFacet(app);
+
+    assertTrue(GradleProjectInfo.getInstance(getProject()).isBuildWithGradle());
+    action.update(event);
+    assertTrue(presentation.isEnabledAndVisible());
   }
 }
