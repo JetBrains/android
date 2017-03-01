@@ -41,6 +41,10 @@ public class GradleFacet extends Facet<GradleFacetConfiguration> {
 
   @Nullable private GradleModuleModel myGradleModuleModel;
 
+  public static boolean isAppliedTo(@NotNull Module module) {
+    return getInstance(module) != null;
+  }
+
   @Nullable
   public static GradleFacet getInstance(@NotNull Module module) {
     return FacetManager.getInstance(module).getFacetByType(getFacetTypeId());

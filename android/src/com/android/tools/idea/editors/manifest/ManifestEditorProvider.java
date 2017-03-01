@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.manifest;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -35,7 +35,7 @@ public class ManifestEditorProvider implements FileEditorProvider {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
         boolean isManifest = SdkConstants.FN_ANDROID_MANIFEST_XML.equals(file.getName());
-        if (isManifest && Projects.isBuildWithGradle(module)) {
+        if (isManifest && GradleFacet.isAppliedTo(module)) {
           return true;
         }
       }
