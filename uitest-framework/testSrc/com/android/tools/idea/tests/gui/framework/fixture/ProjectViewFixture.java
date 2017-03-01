@@ -84,9 +84,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
   @NotNull
   public LibraryPropertiesDialogFixture showPropertiesForLibrary(@NotNull String libraryName) {
-    selectProjectPane();
-    new JTreeFixture(myRobot, GuiTests.waitUntilShowing(myRobot, Matchers.byType(ProjectViewTree.class)))
-      .clickPath("External Libraries/" + libraryName, MouseButton.RIGHT_BUTTON);
+    selectProjectPane().clickPath(MouseButton.RIGHT_BUTTON, "External Libraries", libraryName);
     new JMenuItemFixture(myRobot, GuiTests.waitUntilShowing(myRobot,  Matchers.byText(JMenuItem.class, "Library Properties..."))).click();
     return LibraryPropertiesDialogFixture.find(myRobot, libraryName, myProject);
   }
@@ -181,11 +179,10 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
     public void clickPath(@NotNull MouseButton button, @NotNull final String... paths) {
       Wait.seconds(5).expecting("Tree to load").until(() -> !String.valueOf(myTree.target().getCellRenderer()).equals("loading..."));
-      StringBuilder totalPath = new StringBuilder();
-      for (String node : paths) {
-        totalPath.append(node);
+      StringBuilder totalPath = new StringBuilder(paths[0]);
+      for (int i = 1; i < paths.length; i++) {
         myTree.expandPath(totalPath.toString());
-        totalPath.append('/');
+        totalPath.append('/').append(paths[i]);
       }
       myTree.clickPath(totalPath.toString(), button);
     }
