@@ -266,6 +266,7 @@ public class AddGradleDependencyTest {
     editor.invokeAction(UNDO);
     guiTest.ideFrame().findMessageDialog("Undo").clickOk();
     guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    editor.moveBetween("", ""); // Error analysis seems unreliable on build bot, move cursor to start of the file to refresh it
     editor.waitForCodeAnalysisHighlightCount(ERROR, expectedErrorCount);
   }
 }
