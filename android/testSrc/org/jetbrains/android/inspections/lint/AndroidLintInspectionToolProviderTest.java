@@ -206,8 +206,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
         desc.append(id);
         desc.append("\" displayName=\"");
         desc.append(XmlUtils.toXmlAttributeValue(issue.getBriefDescription(TextFormat.TEXT)));
-        desc.append("\" groupKey=\"").append(getCategoryBundleKey(issue.getCategory()))
-          .append("\" bundle=\"messages.AndroidBundle\" enabledByDefault=\"");
+        desc.append("\" bundle=\"messages.AndroidBundle\" enabledByDefault=\"");
         desc.append(issue.isEnabledByDefault());
         desc.append("\" level=\"");
         desc.append(issue.getDefaultSeverity() == Severity.ERROR || issue.getDefaultSeverity() == Severity.FATAL ?
@@ -350,18 +349,6 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
 
       sb.append("\nAdded registrations for ").append(missing.size()).append(" issues (out of a total issue count of ")
         .append(allIssues.size()).append(")\n");
-
-      System.out.println("*IF* necessary, add these category descriptors to AndroidBundle.properties:\n");
-      Set<Category> categories = Sets.newHashSet();
-      for (Issue issue : missing) {
-        categories.add(issue.getCategory());
-      }
-      List<Category> sorted = Lists.newArrayList(categories);
-      Collections.sort(sorted);
-      for (Category category : sorted) {
-        sb.append(getCategoryBundleKey(category)).append('=').append(
-          escapePropertyValue(("Android > Lint > " + category.getFullName()).replace(":", " > "))).append("\n");
-      }
 
       System.out.println(sb.toString());
       return false;
