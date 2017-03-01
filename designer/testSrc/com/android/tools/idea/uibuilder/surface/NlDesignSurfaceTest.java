@@ -54,10 +54,10 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
-    assertNull(model.getRenderResult());
+    assertNull(mySurface.getCurrentSceneView().getSceneManager().getRenderResult());
 
     mySurface.requestRender();
-    assertTrue(model.getRenderResult().getRenderResult().isSuccess());
+    assertTrue(mySurface.getCurrentSceneView().getSceneManager().getRenderResult().getRenderResult().isSuccess());
     assertTrue(mySurface.getErrorModel().getIssues().isEmpty());
   }
 
@@ -80,7 +80,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
-    assertNull(model.getRenderResult());
+    assertNull(mySurface.getCurrentSceneView().getSceneManager().getRenderResult());
 
     mySurface.requestRender();
     assertEquals(1, mySurface.getErrorModel().getIssues().size());
@@ -119,17 +119,17 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.getConfiguration().setTheme("android:Theme.NoTitleBar.Fullscreen");
     mySurface.setModel(model);
-    assertNull(model.getRenderResult());
+    assertNull(mySurface.getCurrentSceneView().getSceneManager().getRenderResult());
 
     mySurface.setScreenMode(NlDesignSurface.ScreenMode.SCREEN_ONLY, false);
     mySurface.requestRender();
-    assertTrue(model.getRenderResult().getRenderResult().isSuccess());
+    assertTrue(mySurface.getCurrentSceneView().getSceneManager().getRenderResult().getRenderResult().isSuccess());
     assertNotNull(mySurface.getCurrentSceneView());
     assertNull(mySurface.getBlueprintView());
 
     mySurface.setScreenMode(NlDesignSurface.ScreenMode.BOTH, false);
     mySurface.requestRender();
-    assertTrue(model.getRenderResult().getRenderResult().isSuccess());
+    assertTrue(mySurface.getCurrentSceneView().getSceneManager().getRenderResult().getRenderResult().isSuccess());
 
     ScreenView screenView = mySurface.getCurrentSceneView();
     ScreenView blueprintView = mySurface.getBlueprintView();

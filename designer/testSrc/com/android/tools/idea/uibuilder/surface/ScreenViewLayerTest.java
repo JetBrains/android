@@ -70,7 +70,7 @@ public class ScreenViewLayerTest {
     // Create a high quality image bigger than the screenView that will be scaled
     ImagePool.Image imageHQ = getTestImage(IMAGE_WIDTH, IMAGE_HEIGHT);
 
-    when(myScreenView.getModel().getRenderResult()).thenReturn(myRenderResult);
+    when(myScreenView.getResult()).thenReturn(myRenderResult);
     when(myRenderResult.getRenderedImage()).thenReturn(imageHQ);
     when(myRenderResult.hasImage()).thenReturn(true);
 
