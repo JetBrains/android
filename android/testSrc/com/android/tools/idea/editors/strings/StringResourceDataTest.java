@@ -253,6 +253,10 @@ public class StringResourceDataTest extends AndroidTestCase {
     assertEquals("Hello", data.getStringResource(newStringResourceKey(key)).getTranslationAsString(locale));
   }
 
+  public void testCreateItem() {
+    assertNull(data.createItem(newStringResourceKey("key4"), null, ""));
+  }
+
   @NotNull
   private StringResourceKey newStringResourceKey(@NotNull String name) {
     return new StringResourceKey(name, resourceDirectory);
