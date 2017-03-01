@@ -59,6 +59,12 @@ public final class StringResourceKey implements Comparable<StringResourceKey> {
     return Objects.hash(myName, myDirectory);
   }
 
+  @NotNull
+  @Override
+  public String toString() {
+    return myDirectory == null ? myName : myName + " (" + myDirectory + ')';
+  }
+
   @Override
   public int compareTo(@NotNull StringResourceKey key) {
     return COMPARATOR.compare(this, key);
