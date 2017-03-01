@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.rendering.RenderErrorModelFactory;
+import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
@@ -25,14 +28,19 @@ import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.lint.LintNotificationPanel;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.utils.HtmlBuilder;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
+import com.intellij.ide.DataManager;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -51,6 +59,7 @@ import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ButtonlessScrollBarUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NonNls;
@@ -74,9 +83,24 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.DESIGN_SURFA
 public abstract class DesignSurface extends EditorDesignSurface implements Disposable, DataProvider {
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
   private static final String PROPERTY_ERROR_PANEL_SPLITTER = DesignSurface.class.getCanonicalName() + ".error.panel.split";
+  /**
+   * {@link RenderErrorModel} with one issue that is displayed while the project is still building. This avoids displaying an error
+   * panel full of errors.
+   */
+  private static final RenderErrorModel STILL_BUILDING_ERROR_MODEL = new RenderErrorModel(ImmutableList.of(
+    RenderErrorModel.Issue.builder()
+      .setSeverity(HighlightSeverity.INFORMATION)
+      .setSummary("The project is still building")
+      .setHtmlContent(new HtmlBuilder()
+                        .add("The project is still building and the current preview might be inaccurate.")
+                        .newline()
+                        .add("The preview will automatically refresh once the build finishes."))
+      .build()
+  ));
 
   private final Project myProject;
   private final JBSplitter myErrorPanelSplitter;
+  private boolean myRenderHasProblems;
 
   private boolean myZoomFitted = true;
   /**
@@ -91,7 +115,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected final List<Layer> myLayers = Lists.newArrayList();
   private final InteractionManager myInteractionManager;
   private final GlassPane myGlassPane;
-  protected final RenderErrorPanel myErrorPanel;
+  private final RenderErrorPanel myErrorPanel;
   protected List<DesignSurfaceListener> myListeners;
   private List<PanZoomListener> myZoomListeners;
   private final ActionManager myActionManager;
@@ -249,6 +273,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     doSetModel(model);
 
     if (model != null) {
+      // If the model has already rendered, there may be errors to display,
+      // so update the error panel to reflect that.
+      updateErrorDisplay(model.getRenderResult());
+
       SelectionModel selectionModel = model.getSelectionModel();
       selectionModel.addListener(mySelectionListener);
       selectionAfter = selectionModel.getSelection();
@@ -379,7 +407,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       layer.hover(x, y);
     }
 
-    if (myErrorPanel.isVisible() && hasProblems()) {
+    if (myErrorPanel.isVisible() && myRenderHasProblems) {
       // don't show any warnings on hover if there is already some errors that are being displayed
       // TODO: we should really move this logic into the error panel itself
       return;
@@ -411,14 +439,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  protected boolean hasProblems() {
-    return false;
-  }
-
   protected abstract Point translateCoordinate(@NotNull Point coord);
 
   public void resetHover() {
-    if (hasProblems()) {
+    if (myRenderHasProblems) {
       return;
     }
     // if we were showing some warnings, then close it.
@@ -724,17 +748,19 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   };
 
-  protected void modelRendered(@NotNull NlModel model) {
-    if (getCurrentSceneView() != null) {
-      repaint();
-      layoutContent();
-    }
-  }
-
   private final ModelListener myModelListener = new ModelListener() {
     @Override
+    public void modelChanged(@NotNull NlModel model) {
+      model.render();
+    }
+
+    @Override
     public void modelRendered(@NotNull NlModel model) {
-      DesignSurface.this.modelRendered(model);
+      if (getCurrentSceneView() != null) {
+        updateErrorDisplay(getCurrentSceneView().getResult());
+        repaint();
+        layoutContent();
+      }
     }
 
     @Override
@@ -945,6 +971,24 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
+  /**
+   * Notifies the design surface that the given screen view (which must be showing in this design surface)
+   * has been rendered (possibly with errors)
+   */
+  public void updateErrorDisplay(@Nullable final RenderResult result) {
+    assert ApplicationManager.getApplication().isDispatchThread() ||
+           !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock when calling updateErrorDisplay!";
+
+    getErrorQueue().cancelAllUpdates();
+    myRenderHasProblems = result != null && result.getLogger().hasProblems();
+    if (myRenderHasProblems) {
+      updateErrors(result);
+    }
+    else {
+      setShowErrorPanel(false);
+    }
+  }
+
   public void setShowErrorPanel(boolean show) {
     UIUtil.invokeLaterIfNeeded(() -> {
       myErrorPanel.setVisible(show);
@@ -954,8 +998,40 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     });
   }
 
+  /**
+   * When we have render errors for a given result, kick off a background computation
+   * of the error panel HTML, which when done will update the UI thread
+   */
+  private void updateErrors(@Nullable final RenderResult result) {
+    assert result != null && result.getLogger().hasProblems();
+
+    getErrorQueue().cancelAllUpdates();
+    getErrorQueue().queue(new Update("errors") {
+      @Override
+      public void run() {
+        // Look up *current* result; a newer one could be available
+        final RenderResult result = getCurrentSceneView() != null ? getCurrentSceneView().getResult() : null;
+        if (result == null) {
+          return;
+        }
+
+        RenderErrorModel model =
+          BuildSettings.getInstance(myProject).getBuildMode() != null && result.getLogger().hasErrors() ?
+          STILL_BUILDING_ERROR_MODEL :
+          RenderErrorModelFactory.createErrorModel(result, DataManager.getInstance().getDataContext(myErrorPanel));
+        myErrorPanel.setModel(model);
+        setShowErrorPanel(model.getSize() != 0);
+      }
+
+      @Override
+      public boolean canEat(Update update) {
+        return true;
+      }
+    });
+  }
+
   @NotNull
-  protected MergingUpdateQueue getErrorQueue() {
+  private MergingUpdateQueue getErrorQueue() {
     synchronized (myErrorQueueLock) {
       if (myErrorQueue == null) {
         myErrorQueue = new MergingUpdateQueue("android.error.computation", 200, true, null, myProject, null,
@@ -1029,10 +1105,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  protected boolean useSmallProgressIcon() {
-    return true;
-  }
-
   /**
    * Panel which displays the progress icon. The progress icon can either be a large icon in the
    * center, when there is no rendering showing, or a small icon in the upper right corner when there
@@ -1073,7 +1145,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     public void showProgressIcon() {
       if (!myProgressVisible) {
-        setSmallIcon(useSmallProgressIcon());
+        boolean hasResult = getCurrentSceneView() != null && getCurrentSceneView().getResult() != null;
+        setSmallIcon(hasResult);
         myProgressVisible = true;
         setVisible(true);
         AsyncProcessIcon icon = getProgressIcon();
@@ -1157,14 +1230,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   @Override
   public void requestRender(boolean invalidateModel) {
-    SceneView sceneView = getCurrentSceneView();
-    if (sceneView != null) {
+    SceneView screenView = getCurrentSceneView();
+    if (screenView != null) {
       if (invalidateModel) {
         // Invalidate the current model and request a render
-        sceneView.getModel().notifyModified(NlModel.ChangeType.REQUEST_RENDER);
+        screenView.getModel().notifyModified(NlModel.ChangeType.REQUEST_RENDER);
       }
       else {
-        sceneView.getSceneManager().requestRender();
+        screenView.getModel().requestRender();
       }
     }
   }

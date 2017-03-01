@@ -149,7 +149,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     Mockito.when(surface.getScale()).thenReturn(1.0);
     NlModel model = createModel(surface, myFacet, xmlFile);
 
-    ScreenView screenView = new SyncScreenView(surface, ScreenView.ScreenViewType.NORMAL, model);
+    ScreenView screenView = new ScreenView(surface, ScreenView.ScreenViewType.NORMAL, model);
     Mockito.when(surface.getSceneView(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenReturn(screenView);
     InteractionManager manager = createManager(surface);
     screenView.getScene().buildDisplayList(new DisplayList(), 0);
@@ -213,7 +213,7 @@ public class InteractionManagerTest extends LayoutTestCase {
     NlDesignSurface surface = createSurface();
     Mockito.when(surface.getScale()).thenReturn(1.0);
 
-    ScreenView screenView = new SyncScreenView(surface, ScreenView.ScreenViewType.NORMAL, model);
+    ScreenView screenView = new ScreenView(surface, ScreenView.ScreenViewType.NORMAL, model);
     Mockito.when(surface.getSceneView(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenReturn(screenView);
     InteractionManager manager = createManager(surface);
     screenView.getScene().buildDisplayList(new DisplayList(), 0);
