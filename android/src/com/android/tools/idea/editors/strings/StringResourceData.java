@@ -81,57 +81,101 @@ public class StringResourceData {
     return false;
   }
 
-  public boolean setTranslation(@NotNull StringResourceKey key, @Nullable Locale locale, @NotNull String value) {
-    StringResource stringResource = getStringResource(key);
-    ResourceItem currentItem =
-      locale == null ? stringResource.getDefaultValueAsResourceItem() : stringResource.getTranslationAsResourceItem(locale);
-    if (currentItem != null) { // modify existing item
-      CharSequence oldText = locale == null ? stringResource.getDefaultValueAsString() : stringResource.getTranslationAsString(locale);
+  public boolean setDefaultValue(@NotNull StringResourceKey key, @NotNull String value) {
+    StringResource resource = getStringResource(key);
 
-      if (!StringUtil.equals(oldText, value)) {
-        boolean changed = StringsWriteUtils.setItemText(myFacet.getModule().getProject(), currentItem, value);
-        if (changed) {
-          if (value.isEmpty()) {
-            if (locale == null) {
-              stringResource.removeDefaultValue();
-            }
-            else {
-              stringResource.removeTranslation(locale);
-            }
-          }
-          else {
-            if (locale == null) {
-              stringResource.setDefaultValue(currentItem, value);
-            }
-            else {
-              stringResource.putTranslation(locale, currentItem, value);
-            }
-          }
-        }
-        return changed;
-      }
-    }
-    else { // create new item
-      VirtualFile directory = key.getDirectory();
+    if (resource.getDefaultValueAsResourceItem() == null) {
+      ResourceItem item = createItem(key, null, value);
 
-      if (directory == null) {
+      if (item == null) {
         return false;
       }
 
-      ResourceItem item = StringsWriteUtils.createItem(myFacet, directory, locale, key.getName(), value, stringResource.isTranslatable());
+      resource.setDefaultValue(item, value);
+      return true;
+    }
 
-      if (item != null) {
-        if (locale == null) {
-          stringResource.setDefaultValue(item, value);
-        }
-        else {
-          stringResource.putTranslation(locale, item, value);
-        }
-        return true;
-      }
+    return setDefaultValueItemText(key, value);
+  }
+
+  private boolean setDefaultValueItemText(@NotNull StringResourceKey key, @NotNull String value) {
+    StringResource resource = getStringResource(key);
+
+    if (resource.getDefaultValueAsString().equals(value)) {
       return false;
     }
-    return false;
+
+    ResourceItem item = resource.getDefaultValueAsResourceItem();
+    assert item != null;
+
+    boolean changed = StringsWriteUtils.setItemText(myFacet.getModule().getProject(), item, value);
+
+    if (!changed) {
+      return false;
+    }
+
+    if (value.isEmpty()) {
+      resource.removeDefaultValue();
+    }
+    else {
+      resource.setDefaultValue(item, value);
+    }
+
+    return true;
+  }
+
+  public boolean setTranslation(@NotNull StringResourceKey key, @NotNull Locale locale, @NotNull String value) {
+    StringResource resource = getStringResource(key);
+
+    if (resource.getTranslationAsResourceItem(locale) == null) {
+      ResourceItem item = createItem(key, locale, value);
+
+      if (item == null) {
+        return false;
+      }
+
+      resource.putTranslation(locale, item, value);
+      return true;
+    }
+
+    return setTranslationItemText(key, locale, value);
+  }
+
+  private boolean setTranslationItemText(@NotNull StringResourceKey key, @NotNull Locale locale, @NotNull String value) {
+    StringResource resource = getStringResource(key);
+
+    if (resource.getTranslationAsString(locale).equals(value)) {
+      return false;
+    }
+
+    ResourceItem item = resource.getTranslationAsResourceItem(locale);
+    assert item != null;
+
+    boolean changed = StringsWriteUtils.setItemText(myFacet.getModule().getProject(), item, value);
+
+    if (!changed) {
+      return false;
+    }
+
+    if (value.isEmpty()) {
+      resource.removeTranslation(locale);
+    }
+    else {
+      resource.putTranslation(locale, item, value);
+    }
+
+    return true;
+  }
+
+  @Nullable
+  private ResourceItem createItem(@NotNull StringResourceKey key, @Nullable Locale locale, @NotNull String value) {
+    VirtualFile directory = key.getDirectory();
+
+    if (directory == null) {
+      return null;
+    }
+
+    return StringsWriteUtils.createItem(myFacet, directory, locale, key.getName(), value, getStringResource(key).isTranslatable());
   }
 
   @Nullable
