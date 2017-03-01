@@ -269,6 +269,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         myProfilers.forEach(profiler -> profiler.stopProfiling(getSession(), myProcess));
       }
 
+      boolean onlyStateChanged = isSameProcess(myProcess, process);
       myProcess = process;
       changed(ProfilerAspect.PROCESSES);
 
@@ -277,7 +278,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           myProcess.getState() == Profiler.Process.State.ALIVE) {
         myProfilers.forEach(profiler -> profiler.startProfiling(getSession(), myProcess));
       }
-      setStage(new StudioMonitorStage(this));
+
+      if (!onlyStateChanged) {
+        setStage(new StudioMonitorStage(this));
+      }
     }
   }
 
@@ -299,12 +303,22 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         }
       }
     }
-    // Next, prefer the one previously used, either selected by user or automatically.
-    if (myProcess != null && processes.contains(myProcess)) {
-      return myProcess;
+    // Next, prefer the one previously used, either selected by user or automatically (even if the process has switched states)
+    if (myProcess != null) {
+      for (Profiler.Process process : processes) {
+        if (isSameProcess(myProcess, process)) {
+          return process;
+        }
+      }
     }
     // No preferred candidate. Choose a new process.
     return processes.get(0);
+  }
+
+  private boolean isSameProcess(@Nullable Profiler.Process process1, @Nullable Profiler.Process process2) {
+    return process1 != null &&
+           process2 != null &&
+           process1.getPid() == process2.getPid() && process1.getName().equals(process2.getName());
   }
 
   public List<Profiler.Process> getProcesses() {
