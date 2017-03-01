@@ -15,20 +15,18 @@
  */
 package com.android.tools.idea.profilers.stacktrace;
 
-import com.android.tools.idea.actions.PsiClassNavigation;
 import com.android.tools.profilers.common.CodeLocation;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.StubVirtualFile;
-import com.intellij.pom.Navigatable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class IntelliJStackNavigation implements StackNavigation {
+public final class IntelliJCodeElement implements CodeElement {
   private static final VirtualFile UNRESOLVED_CLASS_FILE = new StubVirtualFile();
 
   @NotNull private final Project myProject;
@@ -38,7 +36,7 @@ final class IntelliJStackNavigation implements StackNavigation {
 
   @Nullable private VirtualFile myCachedClassFile = UNRESOLVED_CLASS_FILE;
 
-  IntelliJStackNavigation(@NotNull Project project, @NotNull CodeLocation codeLocation) {
+  public IntelliJCodeElement(@NotNull Project project, @NotNull CodeLocation codeLocation) {
     myProject = project;
     myCodeLocation = codeLocation;
 
@@ -58,28 +56,6 @@ final class IntelliJStackNavigation implements StackNavigation {
   @NotNull
   public CodeLocation getCodeLocation() {
     return myCodeLocation;
-  }
-
-  @Override
-  public void navigate() {
-    Navigatable[] navigatables;
-    if (myCodeLocation.getLineNumber() > 0) {
-      navigatables =
-        PsiClassNavigation.getNavigationForClass(myProject, myCodeLocation.getClassName(), myCodeLocation.getLineNumber());
-    }
-    else {
-      navigatables = PsiClassNavigation.getNavigationForClass(myProject, myCodeLocation.getClassName());
-    }
-
-    if (navigatables == null) {
-      return;
-    }
-
-    for (Navigatable navigatable : navigatables) {
-      if (navigatable.canNavigate()) {
-        navigatable.navigate(false);
-      }
-    }
   }
 
   @Override

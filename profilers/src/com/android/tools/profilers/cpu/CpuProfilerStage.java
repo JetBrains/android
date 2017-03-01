@@ -23,6 +23,8 @@ import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.CodeNavigator;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
@@ -39,7 +41,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
-public class CpuProfilerStage extends Stage {
+public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 5, 10, "%");
   private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(1, 5, 1, "");
@@ -193,6 +195,8 @@ public class CpuProfilerStage extends Stage {
     getStudioProfilers().getUpdater().register(myThreadCountAxis);
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myThreadsStates);
+
+    getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
   }
 
   @Override
@@ -204,6 +208,8 @@ public class CpuProfilerStage extends Stage {
     getStudioProfilers().getUpdater().unregister(myThreadCountAxis);
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myThreadsStates);
+
+    getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
   }
 
 
@@ -413,7 +419,8 @@ public class CpuProfilerStage extends Stage {
     return myCaptureDetails;
   }
 
-  public void handleNavigatedToCode() {
+  @Override
+  public void onNavigated(@NotNull CodeLocation location) {
     setProfilerMode(ProfilerMode.NORMAL);
   }
 

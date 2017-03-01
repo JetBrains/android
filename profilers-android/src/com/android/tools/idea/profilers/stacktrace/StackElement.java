@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.profilers.stacktrace;
 
-import com.intellij.pom.Navigatable;
-import org.jetbrains.annotations.Nullable;
+import javax.swing.*;
 
-public interface StackElement {
-  /**
-   * @param preNavigate A callback that will be invoked just prior to actual navigation to the returned {@link Navigatable}, if it occurs.
-   */
-  void navigate();
+/**
+ * Base class for elements of a stack trace that will be added to a {@link JList}
+ */
+interface StackElement {
 }

@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.common.CodeLocation;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -224,12 +225,15 @@ public class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void profilerReturnsToNormalModeAfterNavigatingToCode() throws IOException {
+    // We need to be on the stage itself or else we won't be listening to code navigation events
+    myStage.getStudioProfilers().setStage(myStage);
+
     // to EXPANDED mode
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myStage.setAndSelectCapture(new CpuCapture(CpuCaptureTest.readValidTrace()));
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
     // After code navigation it should be Normal mode.
-    myStage.handleNavigatedToCode();
+    myStage.getStudioProfilers().getIdeServices().getCodeNavigator().navigate(new CodeLocation(null));
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
 
     myStage.setCapture(new CpuCapture(CpuCaptureTest.readValidTrace()));

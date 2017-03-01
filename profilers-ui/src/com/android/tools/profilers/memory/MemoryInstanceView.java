@@ -264,7 +264,7 @@ final class MemoryInstanceView extends AspectObserver {
   private void installTreeContextMenus() {
     assert myTree != null;
 
-    myIdeProfilerComponents.installNavigationContextMenu(myTree, () -> {
+    myIdeProfilerComponents.installNavigationContextMenu(myTree, myStage.getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
       TreePath selection = myTree.getSelectionPath();
       if (selection == null || !(selection.getLastPathComponent() instanceof MemoryObjectTreeNode)) {
         return null;
@@ -275,7 +275,7 @@ final class MemoryInstanceView extends AspectObserver {
         return new CodeLocation(instanceObject.getClassName());
       }
       return null;
-    }, myStage::handleNavigatedToCode);
+    });
 
     myIdeProfilerComponents.installContextMenu(myTree, new ContextMenuItem() {
       @NotNull
