@@ -45,6 +45,16 @@ public class DefaultLineChartReducerTest {
   }
 
   @Test
+  public void testNegativeCoordinate() {
+    float[][] given = {{1, 5}, {2f, -1f}, {2f, 0}, {1, 0}};
+    float[][] expected = {{1, 5}, {2f, -1}, {2, 0}, {1, 0}};
+    convertToScreenCoordinates(given);
+    convertToScreenCoordinates(expected);
+    float[][] result = convertToArray(myReducer.reduce(convertToPath(given), config));
+    assertPointsEquals(expected, result);
+  }
+
+  @Test
   public void testReduceOnePointPerPixel() {
     float[][] given = {{1.2f, 2}, {2, 0}, {3, 5}};
     float[][] expected = {{1.2f, 2}, {2, 0}, {3, 5}};
