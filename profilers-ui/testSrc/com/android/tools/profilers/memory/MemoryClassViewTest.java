@@ -479,9 +479,7 @@ public class MemoryClassViewTest {
     String codeLocationClassName = codeLocation.getClassName();
     assertEquals(testClassName, codeLocationClassName);
 
-    Runnable navigationCallback = myFakeIdeProfilerComponents.getNavigationCallback(classTree);
-    assertNotNull(navigationCallback);
-    navigationCallback.run();
+    myStage.getStudioProfilers().getIdeServices().getCodeNavigator().navigate(codeLocation);
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
   }
 

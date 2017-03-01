@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.CodeNavigator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,6 +26,12 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 public final class FakeIdeProfilerServices implements IdeProfilerServices {
+  private final CodeNavigator myFakeNavigationService = new CodeNavigator() {
+    @Override
+    protected void handleNavigate(@NotNull CodeLocation location) {
+    }
+  };
+
   /**
    * Callback to be run after the executor calls its execute() method.
    */
@@ -61,6 +69,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   @Override
   public void saveFile(@NotNull File file, @NotNull Consumer<FileOutputStream> fileOutputStreamConsumer, @Nullable Runnable postRunnable) {
+  }
+
+  @NotNull
+  @Override
+  public CodeNavigator getCodeNavigator() {
+    return myFakeNavigationService;
   }
 
   public void setOnExecute(@Nullable Runnable onExecute) {

@@ -33,7 +33,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
-  @NotNull private Map<JComponent, ComponentNavigations> myComponentNavigations = new HashMap<>();
+  @NotNull private Map<JComponent, Supplier<CodeLocation>> myComponentNavigations = new HashMap<>();
   @NotNull private Map<JComponent, List<ContextMenuItem>> myComponentContextMenus = new HashMap<>();
 
   @NotNull
@@ -103,10 +103,10 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
   @Override
   public void installNavigationContextMenu(@NotNull JComponent component,
-                                           @NotNull Supplier<CodeLocation> codeLocationSupplier,
-                                           @Nullable Runnable navigationCallback) {
+                                           @NotNull CodeNavigator navigator,
+                                           @NotNull Supplier<CodeLocation> codeLocationSupplier) {
     assertFalse(myComponentNavigations.containsKey(component));
-    myComponentNavigations.put(component, new ComponentNavigations(codeLocationSupplier, navigationCallback));
+    myComponentNavigations.put(component, codeLocationSupplier);
   }
 
   @Override
@@ -124,31 +124,12 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
   @Nullable
   public Supplier<CodeLocation> getCodeLocationSupplier(@NotNull JComponent component) {
     assertTrue(myComponentNavigations.containsKey(component));
-    return myComponentNavigations.get(component).myCodeLocationSupplier;
-  }
-
-  @Nullable
-  public Runnable getNavigationCallback(@NotNull JComponent component) {
-    assertTrue(myComponentNavigations.containsKey(component));
-    return myComponentNavigations.get(component).myPreNavigate;
+    return myComponentNavigations.get(component);
   }
 
   @Nullable
   public List<ContextMenuItem> getComponentContextMenus(@NotNull JComponent component) {
     return myComponentContextMenus.get(component);
-  }
-
-  private static class ComponentNavigations {
-    @Nullable
-    private Supplier<CodeLocation> myCodeLocationSupplier;
-
-    @Nullable
-    private Runnable myPreNavigate;
-
-    private ComponentNavigations(@Nullable Supplier<CodeLocation> supplier, @Nullable Runnable navigate) {
-      myCodeLocationSupplier = supplier;
-      myPreNavigate = navigate;
-    }
   }
 
   @NotNull
@@ -171,8 +152,8 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     };
   }
 
-  public static class StackTraceViewStub implements StackTraceView {
-    private StackTraceModel myModel = new StackTraceModel();
+  public final class StackTraceViewStub implements StackTraceView {
+    private StackTraceModel myModel;
 
     public StackTraceViewStub(@NotNull StackTraceModel model) {
       myModel = model;

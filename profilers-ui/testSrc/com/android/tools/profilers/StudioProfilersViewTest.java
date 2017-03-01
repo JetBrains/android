@@ -45,7 +45,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
 
 public class StudioProfilersViewTest {
 
@@ -58,9 +57,8 @@ public class StudioProfilersViewTest {
 
   @Before
   public void setUp() throws Exception {
-    IdeProfilerServices ide = mock(IdeProfilerServices.class);
     myTimer = new FakeTimer();
-    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), ide, myTimer);
+    myProfilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
     // Make sure a process is selected
     myView = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
     myView.bind(FakeStage.class, FakeView::new);
