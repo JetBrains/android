@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.common.collect.ImmutableList;
@@ -44,7 +45,6 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 import static com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker.getApplicationId;
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static javax.swing.SwingConstants.TOP;
 
 /**
@@ -88,7 +88,7 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
       }
       else {
         AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null && facet.requiresAndroidModel() && isBuildWithGradle(module)) {
+        if (facet != null && facet.requiresAndroidModel() && GradleFacet.isAppliedTo(module)) {
           myEditors.add(new GenericEditor<>("Properties", () -> {
             SingleObjectPanel panel = new SingleObjectPanel(myProject, myName, null, BUILD_FILE_GENERIC_PROPERTIES);
             panel.init();

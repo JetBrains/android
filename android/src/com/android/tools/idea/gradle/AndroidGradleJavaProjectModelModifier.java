@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.model.android.CompileOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.model.java.JavaModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -63,7 +64,6 @@ import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigu
 import static com.android.tools.idea.gradle.util.GradleUtil.getDependencies;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.android.tools.idea.gradle.util.Projects.getAndroidModel;
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
 import static com.intellij.openapi.roots.libraries.LibraryUtil.findLibrary;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.splitPath;
@@ -120,7 +120,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   @Nullable
   @Override
   public Promise<Void> addLibraryDependency(@NotNull Module from, @NotNull Library library, @NotNull DependencyScope scope) {
-    if (!isBuildWithGradle(from)) {
+    if (!GradleFacet.isAppliedTo(from)) {
       return null;
     }
     ArtifactDependencySpec dependencySpec = findNewExternalDependency(from.getProject(), library);
@@ -171,7 +171,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
   @Override
   public Promise<Void> changeLanguageLevel(@NotNull Module module, @NotNull LanguageLevel level) {
     Project project = module.getProject();
-    if (!isBuildWithGradle(module)) {
+    if (!GradleFacet.isAppliedTo(module)) {
       return null;
     }
 
