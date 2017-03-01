@@ -263,8 +263,10 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
             String id = key.getID();
             annotation.registerFix(new SuppressLintIntentionAction(id, startElement));
-            annotation.registerFix(new MyDisableInspectionFix(key));
-            annotation.registerFix(new MyEditInspectionToolsSettingsAction(key, inspection));
+            if (INCLUDE_IDEA_SUPPRESS_ACTIONS) {
+              annotation.registerFix(new MyDisableInspectionFix(key));
+              annotation.registerFix(new MyEditInspectionToolsSettingsAction(key, inspection));
+            }
 
             if (issue == DeprecationDetector.ISSUE || issue == GradleDetector.DEPRECATED) {
               annotation.setHighlightType(ProblemHighlightType.LIKE_DEPRECATED);
