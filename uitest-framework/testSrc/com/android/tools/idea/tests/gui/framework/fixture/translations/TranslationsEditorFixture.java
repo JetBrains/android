@@ -34,12 +34,13 @@ import org.fest.swing.driver.JTableCheckBoxEditorCellWriter;
 import org.fest.swing.driver.JTableTextComponentEditorCellWriter;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JButtonFixture;
-import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTableFixture;
+import org.fest.swing.fixture.JTableHeaderFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.table.JTableHeader;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.util.List;
@@ -62,29 +63,19 @@ public final class TranslationsEditorFixture {
 
   @NotNull
   public ActionButtonFixture getAddKeyButton() {
-    return newActionButtonFixture("Add Key");
+    GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton button) {
+        return "Add Key".equals(button.getAction().getTemplatePresentation().getText());
+      }
+    };
+
+    return new ActionButtonFixture(myRobot, GuiTests.waitUntilShowingAndEnabled(myRobot, myTranslationsEditor, matcher));
   }
 
   @NotNull
   public AddKeyDialogFixture getAddKeyDialog() {
     return new AddKeyDialogFixture(myRobot, myRobot.finder().find(DialogMatcher.withTitle("Add Key")));
-  }
-
-  public void clickRemoveLocaleItem(@NotNull String text) {
-    newActionButtonFixture("Remove Locale").click();
-    new JListFixture(myRobot, "localeList").clickItem(text);
-  }
-
-  @NotNull
-  private ActionButtonFixture newActionButtonFixture(@NotNull String text) {
-    GenericTypeMatcher<ActionButton> matcher = new GenericTypeMatcher<ActionButton>(ActionButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull ActionButton button) {
-        return text.equals(button.getAction().getTemplatePresentation().getText());
-      }
-    };
-
-    return new ActionButtonFixture(myRobot, GuiTests.waitUntilShowingAndEnabled(myRobot, myTranslationsEditor, matcher));
   }
 
   public void clickFilterKeysComboBoxItem(@NotNull String text) {
@@ -105,6 +96,11 @@ public final class TranslationsEditorFixture {
   private void clickComboBoxItem(@NotNull JButtonFixture button, @NotNull String text) {
     button.click();
     GuiTests.clickPopupMenuItemMatching(t -> t.equals(text), myRobot.finder().findByName(myTranslationsEditor, "toolbar"), myRobot);
+  }
+
+  @NotNull
+  public JTableHeaderFixture getTableHeader() {
+    return new JTableHeaderFixture(myRobot, (JTableHeader)myRobot.finder().findByName(myTranslationsEditor, "tableHeader"));
   }
 
   @NotNull

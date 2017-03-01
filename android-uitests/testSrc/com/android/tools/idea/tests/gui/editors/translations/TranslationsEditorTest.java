@@ -18,11 +18,7 @@ package com.android.tools.idea.tests.gui.editors.translations;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.tests.gui.framework.*;
-import com.android.tools.idea.tests.gui.framework.fixture.DeleteDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.DialogBuilderFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.MultilineStringEditorDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.AddKeyDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.intellij.notification.Notification;
@@ -58,8 +54,8 @@ import java.util.stream.IntStream;
 
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.*;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.Tab.EDITOR;
-import static org.junit.Assert.*;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.*;
 
 @RunWith(GuiTestRunner.class)
 public final class TranslationsEditorTest {
@@ -147,7 +143,7 @@ public final class TranslationsEditorTest {
     VirtualFile mainValuesEn = frame.findFileByRelativePath("app/src/main/res/values-en", false);
     assert mainValuesEn != null;
 
-    myTranslationsEditor.clickRemoveLocaleItem("en");
+    myTranslationsEditor.getTableHeader().showPopupMenuAt(ENGLISH_COLUMN).menuItem("removeLocaleMenuItem").click();
 
     Object expected = Arrays.asList("English (en) in United Kingdom (GB)", "Hebrew (iw)", "Tamil (ta)", "Chinese (zh) in China (CN)");
     assertEquals(expected, myTranslationsEditor.locales());
