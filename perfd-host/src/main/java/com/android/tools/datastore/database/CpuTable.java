@@ -57,14 +57,14 @@ public class CpuTable extends DatastoreTable<CpuTable.CpuStatements> {
       createTable("Cpu_Data",
                   "AppId INTEGER NOT NULL",
                   "Timestamp INTEGER NOT NULL",
-                  "Session STRING NOT NULL",
+                  "Session INTEGER NOT NULL",
                   "Data BLOB");
       createTable("Thread_Activities",
-                  "AppId INTEGER NOT NULL", "Session STRING NOT NULL", "ThreadId INTEGER NOT NULL", "Timestamp INTEGER",
+                  "AppId INTEGER NOT NULL", "Session INTEGER NOT NULL", "ThreadId INTEGER NOT NULL", "Timestamp INTEGER",
                   "State TEXT, Name TEXT");
       createTable("Cpu_Trace",
                   "TraceId INTEGER NOT NULL",
-                  "Session STRING NOT NULL",
+                  "Session INTEGER NOT NULL",
                   "StartTime INTEGER",
                   "EndTime INTEGER",
                   "Data BLOB");
