@@ -85,7 +85,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
       IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
-    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
+    IdeaProjectTestFixture projectFixture = projectBuilder.getFixture();
+    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectFixture);
     final JavaModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(JavaModuleFixtureBuilder.class);
     final String dirPath = myFixture.getTempDirPath() + getContentRootPath();
     final File dir = new File(dirPath);
@@ -145,7 +146,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     ArrayList<String> allowedRoots = new ArrayList<>();
     collectAllowedRoots(allowedRoots);
-    registerAllowedRoots(allowedRoots, getTestRootDisposable());
+    registerAllowedRoots(allowedRoots, projectFixture.getTestRootDisposable());
     myUseCustomSettings = getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS;
     getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = true;
 
@@ -154,6 +155,25 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
     ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      StudioEmbeddedRenderTarget.setDisableEmbeddedTarget(false);
+      myModule = null;
+      myAdditionalModules = null;
+      myFixture.tearDown();
+      getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = myUseCustomSettings;
+      if (RenderSecurityManager.RESTRICT_READS) {
+        RenderSecurityManager.sEnabled = true;
+      }
+    }
+    finally {
+      myFixture = null;
+      myFacet = null;
+      super.tearDown();
+    }
   }
 
   protected void collectAllowedRoots(List<String> roots) throws IOException {
@@ -259,25 +279,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
         }
       }
     });
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      StudioEmbeddedRenderTarget.setDisableEmbeddedTarget(false);
-      myModule = null;
-      myAdditionalModules = null;
-      myFixture.tearDown();
-      myFixture = null;
-      myFacet = null;
-      getAndroidCodeStyleSettings().USE_CUSTOM_SETTINGS = myUseCustomSettings;
-      if (RenderSecurityManager.RESTRICT_READS) {
-        RenderSecurityManager.sEnabled = true;
-      }
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   protected AndroidXmlCodeStyleSettings getAndroidCodeStyleSettings() {
