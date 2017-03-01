@@ -30,11 +30,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectRootModificationTracker;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.Consumer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -73,6 +70,29 @@ public class GradleProjectInfo {
   }
 
   /**
+   * Indicates whether Gradle is used to build at least one module in this project.
+   * Note: {@link AndroidProjectInfo#requiresAndroidModel())} indicates whether a project requires an {@link AndroidModel}.
+   * That method should be preferred in almost all cases. Use this method only if you explicitly need to check whether the model is
+   * Gradle-specific.
+   */
+  public boolean isBuildWithGradle() {
+    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
+      ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+      for (Module module : moduleManager.getModules()) {
+        if (Projects.isBuildWithGradle(module)) {
+          return true;
+        }
+      }
+      // See https://code.google.com/p/android/issues/detail?id=203384
+      // This could be a project without modules. Check that at least it synced with Gradle.
+      if (GradleSyncState.getInstance(myProject).getSummary().getSyncTimestamp() != -1L) {
+        return true;
+      }
+      return hasTopLevelGradleBuildFile();
+    });
+  }
+
+  /**
    * Indicates whether the project has a build.gradle file in the project's root folder.
    *
    * @return {@code true} if the project has a build.gradle file in the project's root folder; {@code false} otherwise.
@@ -81,31 +101,6 @@ public class GradleProjectInfo {
     File projectFolderPath = getBaseDirPath(myProject);
     File buildFilePath = new File(projectFolderPath, FN_BUILD_GRADLE);
     return buildFilePath.isFile();
-  }
-
-  /**
-   * Indicates whether Gradle is used to build at least one module in this project.
-   * Note: {@link AndroidProjectInfo#requiresAndroidModel())} indicates whether a project requires an {@link AndroidModel}.
-   * That method should be preferred in almost all cases. Use this method only if you explicitly need to check whether the model is
-   * Gradle-specific.
-   */
-  public boolean isBuildWithGradle() {
-    return ApplicationManager.getApplication().runReadAction(
-      (Computable<Boolean>)() -> !myProject.isDisposed() && CachedValuesManager.getManager(myProject).getCachedValue(myProject,
-           () -> CachedValueProvider.Result.create(calcIsBuildWithGradle(myProject),
-                                                   ProjectRootModificationTracker.getInstance(myProject))));
-  }
-
-  private static boolean calcIsBuildWithGradle(@NotNull Project project) {
-    ModuleManager moduleManager = ModuleManager.getInstance(project);
-    for (Module module : moduleManager.getModules()) {
-      if (Projects.isBuildWithGradle(module)) {
-        return true;
-      }
-    }
-    // See https://code.google.com/p/android/issues/detail?id=203384
-    // This could be a project without modules. Check that at least it synced with Gradle.
-    return GradleSyncState.getInstance(project).getSummary().getSyncTimestamp() != -1L;
   }
 
   /**
