@@ -16,12 +16,14 @@
 package com.android.tools.datastore;
 
 import com.android.tools.datastore.database.DatastoreTable;
+import com.android.tools.profiler.proto.Common;
 import com.intellij.openapi.diagnostic.Logger;
 
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.HashMap;
 
 public class DataStoreDatabase {
 
@@ -30,9 +32,11 @@ public class DataStoreDatabase {
   }
 
   private final Connection myConnection;
+  private HashMap<Common.Session, Long> mySessionIdLookup;
 
   public DataStoreDatabase(String database) {
     myConnection = initConnection(new File(database));
+    mySessionIdLookup = new HashMap<>();
   }
 
   private Connection initConnection(File dbFile) {
@@ -75,6 +79,7 @@ public class DataStoreDatabase {
     if (table != null) {
       table.initialize(myConnection);
       table.prepareStatements(myConnection);
+      table.setSessionLookup(mySessionIdLookup);
     }
   }
 }

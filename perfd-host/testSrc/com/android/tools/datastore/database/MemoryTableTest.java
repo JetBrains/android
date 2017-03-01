@@ -20,6 +20,7 @@ import com.android.tools.datastore.DataStoreDatabase;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler.*;
 import com.google.protobuf3jarjar.ByteString;
+import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -28,6 +29,7 @@ import org.junit.Test;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 
 import static org.junit.Assert.*;
 
@@ -51,11 +53,13 @@ public class MemoryTableTest {
 
   @Before
   public void setUp() throws Exception {
-    // TODO: Update to work on windows. PathUtil.getTempPath() fails with bazel
-    myDbFile = new File("/tmp/MemoryTableTestDb");
+    HashMap<Common.Session, Long> sessionLookup = new HashMap<>();
+    sessionLookup.put(VALID_SESSION, 1L);
+    myDbFile = FileUtil.createTempFile("MemoryTable", "mysql");
     myDatabase = new DataStoreDatabase(myDbFile.getAbsolutePath());
     myTable = new MemoryTable();
     myDatabase.registerTable(myTable);
+    myTable.setSessionLookup(sessionLookup);
   }
 
   @After

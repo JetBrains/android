@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -33,6 +34,7 @@ import java.sql.SQLException;
 public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatements> {
   public enum ProfilerStatements {
     INSERT_DEVICE,
+    UPDATE_DEVICE,
     INSERT_PROCESS,
     UPDATE_PROCESS,
     SELECT_PROCESSES,
@@ -57,13 +59,13 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
   public void initialize(Connection connection) {
     super.initialize(connection);
     try {
-      createTable("Profiler_Bytes", "Id STRING NOT NULL", "Session STRING NOT NULL", "Data BLOB");
-      createTable("Profiler_Devices", "DeviceId INTEGER", "StartTime INTEGER", "EndTime INTEGER", "Data BLOB");
-      createTable("Profiler_Processes", "DeviceId INTEGER", "ProcessId INTEGER", "StartTime INTEGER", "EndTime INTEGER",
+      createTable("Profiler_Bytes", "Id STRING NOT NULL", "Session INTEGER NOT NULL", "Data BLOB");
+      createTable("Profiler_Devices", "Session STRING", "Data BLOB");
+      createTable("Profiler_Processes", "Session INTEGER", "ProcessId INTEGER", "StartTime INTEGER", "EndTime INTEGER",
                   "HasAgent INTEGER", "LastKnownAttachedTime INTEGER", "Data BLOB");
-      createIndex("Profiler_Devices", "DeviceId", "StartTime");
-      createIndex("Profiler_Processes", "DeviceId", "ProcessId", "StartTime");
+      createIndex("Profiler_Processes", "Session", "ProcessId", "StartTime");
       createIndex("Profiler_Bytes", "Id", "Session");
+      createIndex("Profiler_Devices", "Session");
     }
     catch (SQLException ex) {
       getLogger().error(ex);
@@ -74,21 +76,23 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
   public void prepareStatements(Connection connection) {
     try {
       createStatement(ProfilerStatements.INSERT_DEVICE,
-                      "INSERT OR REPLACE INTO Profiler_Devices (DeviceId, StartTime, EndTime, Data) values (?, ?, ?, ?)");
+                      "INSERT INTO Profiler_Devices (Session, Data) values (?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+      createStatement(ProfilerStatements.UPDATE_DEVICE,
+                      "UPDATE Profiler_Devices SET Data = ? WHERE Session = ?");
       createStatement(ProfilerStatements.INSERT_PROCESS,
-                      "INSERT OR REPLACE INTO Profiler_Processes (DeviceId, ProcessId, StartTime, EndTime, Data) values (?, ?, ?, ?, ?)");
+                      "INSERT OR REPLACE INTO Profiler_Processes (Session, ProcessId, StartTime, EndTime, Data) values (?, ?, ?, ?, ?)");
       createStatement(ProfilerStatements.UPDATE_PROCESS,
-                      "UPDATE Profiler_Processes Set EndTime = ?, Data = ? WHERE DeviceId = ? AND ProcessId = ? AND StartTime = ?");
+                      "UPDATE Profiler_Processes Set EndTime = ?, Data = ? WHERE Session = ? AND ProcessId = ? AND StartTime = ?");
       createStatement(ProfilerStatements.SELECT_PROCESSES,
-                      "SELECT Data from Profiler_Processes WHERE DeviceId = ? AND (EndTime > ? OR EndTime = 0) AND StartTime < ?");
+                      "SELECT Data from Profiler_Processes WHERE Session = ? AND (EndTime > ? OR EndTime = 0) AND StartTime < ?");
       createStatement(ProfilerStatements.SELECT_PROCESS_BY_ID,
-                      "SELECT Data from Profiler_Processes WHERE DeviceId = ? AND ProcessId = ? AND StartTime = ?");
+                      "SELECT Data from Profiler_Processes WHERE Session = ? AND ProcessId = ? AND StartTime = ?");
       createStatement(ProfilerStatements.SELECT_DEVICE,
-                      "SELECT Data from Profiler_Devices WHERE (EndTime > ? OR EndTime = 0) AND StartTime < ?");
+                      "SELECT Data from Profiler_Devices");
       createStatement(ProfilerStatements.FIND_AGENT_STATUS,
-                      "SELECT HasAgent, LastKnownAttachedTime from Profiler_Processes WHERE DeviceId = ? AND ProcessId = ? AND StartTime = ?");
+                      "SELECT HasAgent, LastKnownAttachedTime from Profiler_Processes WHERE Session = ? AND ProcessId = ? AND StartTime = ?");
       createStatement(ProfilerStatements.UPDATE_AGENT_STATUS,
-                      "UPDATE Profiler_Processes SET HasAgent = ?, LastKnownAttachedTime = ? WHERE DeviceId = ? AND ProcessId = ? AND StartTime = ?");
+                      "UPDATE Profiler_Processes SET HasAgent = ?, LastKnownAttachedTime = ? WHERE Session = ? AND ProcessId = ? AND StartTime = ?");
       createStatement(ProfilerStatements.INSERT_BYTES, "INSERT OR REPLACE INTO Profiler_Bytes (Id, Session, Data) VALUES (?, ?, ?)");
       createStatement(ProfilerStatements.GET_BYTES, "SELECT Data FROM Profiler_Bytes WHERE ID = ? AND Session = ?");
     }
@@ -101,7 +105,7 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
     synchronized (myLock) {
       Profiler.GetDevicesResponse.Builder responseBuilder = Profiler.GetDevicesResponse.newBuilder();
       try {
-        ResultSet results = executeQuery(ProfilerStatements.SELECT_DEVICE, Long.MIN_VALUE, Long.MAX_VALUE);
+        ResultSet results = executeQuery(ProfilerStatements.SELECT_DEVICE);
         while (results.next()) {
           responseBuilder.addDevice(Profiler.Device.parseFrom(results.getBytes(1)));
         }
@@ -118,7 +122,7 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
       Profiler.GetProcessesResponse.Builder responseBuilder = Profiler.GetProcessesResponse.newBuilder();
       try {
         ResultSet results =
-          executeQuery(ProfilerStatements.SELECT_PROCESSES, request.getSession().toString().hashCode(), Long.MIN_VALUE, Long.MAX_VALUE);
+          executeQuery(ProfilerStatements.SELECT_PROCESSES, request.getSession(), Long.MIN_VALUE, Long.MAX_VALUE);
         while (results.next()) {
           byte[] data = results.getBytes(1);
           Profiler.Process process = data == null ? Profiler.Process.getDefaultInstance() : Profiler.Process.parseFrom(data);
@@ -136,21 +140,30 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
     synchronized (myLock) {
       //TODO: Update start/end times with times polled from device.
       //End time always equals now, start time comes from device. This way if we get disconnected we still have an accurate end time.
-      execute(ProfilerStatements.INSERT_DEVICE, device.getSerial().hashCode(), 0L, 0L, device.toByteArray());
+      Common.Session session = Common.Session.newBuilder()
+        .setBootId(device.getBootId())
+        .setDeviceSerial(device.getSerial())
+        .build();
+      if (mySessionIdLookup.containsKey(session)) {
+        execute(ProfilerStatements.UPDATE_DEVICE, device.toByteArray(), session.toString());
+      } else {
+        long id = executeWithGeneratedKeys(ProfilerStatements.INSERT_DEVICE, session.toString(), device.toByteArray());
+        mySessionIdLookup.put(session, id);
+      }
     }
   }
 
   public void insertOrUpdateProcess(Common.Session session, Profiler.Process process) {
     synchronized (myLock) {
       try {
-        ResultSet results = executeQuery(ProfilerStatements.SELECT_PROCESS_BY_ID, session.toString().hashCode(), process.getPid(), 0L);
+        ResultSet results = executeQuery(ProfilerStatements.SELECT_PROCESS_BY_ID, session, process.getPid(), 0L);
         if (results.next()) {
-          execute(ProfilerStatements.UPDATE_PROCESS, 0L, process.toByteArray(), session.toString().hashCode(), process.getPid(), 0L);
+          execute(ProfilerStatements.UPDATE_PROCESS, 0L, process.toByteArray(), session, process.getPid(), 0L);
         }
         else {
           //TODO: Properly set end time. Here the end time comes from the device, or is set to now, so we don't leave
           //end times open.
-          execute(ProfilerStatements.INSERT_PROCESS, session.toString().hashCode(), process.getPid(), 0L, 0L, process.toByteArray());
+          execute(ProfilerStatements.INSERT_PROCESS, session, process.getPid(), 0L, 0L, process.toByteArray());
         }
       }
       catch (SQLException ex) {
@@ -168,7 +181,7 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
     synchronized (myLock) {
       try {
         ResultSet results =
-          executeQuery(ProfilerStatements.FIND_AGENT_STATUS, session.toString().hashCode(), process.getPid(), 0L);
+          executeQuery(ProfilerStatements.FIND_AGENT_STATUS, session, process.getPid(), 0L);
         if (results.next()) {
           Profiler.AgentStatusResponse.Status status = Profiler.AgentStatusResponse.Status.forNumber(results.getInt(1));
           switch (status) {
@@ -182,7 +195,7 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
           }
 
           execute(ProfilerStatements.UPDATE_AGENT_STATUS, status.ordinal(), agentStatus.getLastTimestamp(),
-                  session.toString().hashCode(), process.getPid(), 0L);
+                  session, process.getPid(), 0L);
         }
       }
       catch (SQLException ex) {
@@ -197,7 +210,7 @@ public class ProfilerTable extends DatastoreTable<ProfilerTable.ProfilerStatemen
       Profiler.AgentStatusResponse.Builder responseBuilder = Profiler.AgentStatusResponse.newBuilder();
       try {
         ResultSet results =
-          executeQuery(ProfilerStatements.FIND_AGENT_STATUS, request.getSession().toString().hashCode(), request.getProcessId(), 0L);
+          executeQuery(ProfilerStatements.FIND_AGENT_STATUS, request.getSession(), request.getProcessId(), 0L);
         if (results.next()) {
           responseBuilder.setStatusValue(results.getInt(1));
           responseBuilder.setLastTimestamp(results.getLong(2));
