@@ -23,7 +23,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.containers.HashMap;
 import gnu.trove.THashMap;
 import org.jetbrains.android.util.AndroidBundle;
@@ -51,16 +50,11 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   private static volatile Map<Issue, String> ourIssue2InspectionShortName;
 
   protected final Issue myIssue;
-  private final String[] myGroupPath;
+  private String[] myGroupPath;
   private final String myDisplayName;
 
   protected AndroidLintInspectionBase(@NotNull String displayName, @NotNull Issue issue) {
     myIssue = issue;
-
-    final Category category = issue.getCategory();
-
-    myGroupPath = ArrayUtil.mergeArrays(new String[]{AndroidBundle.message("android.inspections.group.name"),
-      AndroidBundle.message("android.lint.inspections.subgroup.name")}, computeAllNames(category));
     myDisplayName = displayName;
   }
 
@@ -131,27 +125,24 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       if (vFile == null) {
         continue;
       }
-      ApplicationManager.getApplication().runReadAction(new Runnable() {
-        @Override
-        public void run() {
-          final PsiManager psiManager = PsiManager.getInstance(globalContext.getProject());
-          final PsiFile psiFile = psiManager.findFile(vFile);
+      ApplicationManager.getApplication().runReadAction(() -> {
+        final PsiManager psiManager = PsiManager.getInstance(globalContext.getProject());
+        final PsiFile psiFile = psiManager.findFile(vFile);
 
-          if (psiFile != null) {
-            final ProblemDescriptor[] descriptors = computeProblemDescriptors(psiFile, manager, entry.getValue());
+        if (psiFile != null) {
+          final ProblemDescriptor[] descriptors = computeProblemDescriptors(psiFile, manager, entry.getValue());
+
+          if (descriptors.length > 0) {
+            problemDescriptionsProcessor.addProblemElement(globalContext.getRefManager().getReference(psiFile), descriptors);
+          }
+        } else if (vFile.isDirectory()) {
+          final PsiDirectory psiDirectory = psiManager.findDirectory(vFile);
+
+          if (psiDirectory != null) {
+            final ProblemDescriptor[] descriptors = computeProblemDescriptors(psiDirectory, manager, entry.getValue());
 
             if (descriptors.length > 0) {
-              problemDescriptionsProcessor.addProblemElement(globalContext.getRefManager().getReference(psiFile), descriptors);
-            }
-          } else if (vFile.isDirectory()) {
-            final PsiDirectory psiDirectory = psiManager.findDirectory(vFile);
-
-            if (psiDirectory != null) {
-              final ProblemDescriptor[] descriptors = computeProblemDescriptors(psiDirectory, manager, entry.getValue());
-
-              if (descriptors.length > 0) {
-                problemDescriptionsProcessor.addProblemElement(globalContext.getRefManager().getReference(psiDirectory), descriptors);
-              }
+              problemDescriptionsProcessor.addProblemElement(globalContext.getRefManager().getReference(psiDirectory), descriptors);
             }
           }
         }
@@ -163,7 +154,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   private ProblemDescriptor[] computeProblemDescriptors(@NotNull PsiElement psiFile,
                                                         @NotNull InspectionManager manager,
                                                         @NotNull List<ProblemData> problems) {
-    final List<ProblemDescriptor> result = new ArrayList<ProblemDescriptor>();
+    final List<ProblemDescriptor> result = new ArrayList<>();
 
     for (ProblemData problemData : problems) {
       final String originalMessage = problemData.getMessage();
@@ -210,7 +201,7 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   public SuppressQuickFix[] getBatchSuppressActions(@Nullable PsiElement element) {
     SuppressLintQuickFix suppressLintQuickFix = new SuppressLintQuickFix(myIssue);
     if (AndroidLintExternalAnnotator.INCLUDE_IDEA_SUPPRESS_ACTIONS) {
-      final List<SuppressQuickFix> result = new ArrayList<SuppressQuickFix>();
+      final List<SuppressQuickFix> result = new ArrayList<>();
       result.add(suppressLintQuickFix);
       result.addAll(Arrays.asList(BatchSuppressManager.SERVICE.getInstance().createBatchSuppressActions(HighlightDisplayKey.find(getShortName()))));
       result.addAll(Arrays.asList(new XmlSuppressableInspectionTool.SuppressTagStatic(getShortName()),
@@ -330,34 +321,45 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     }
   }
 
-  @NotNull
-  private static String[] computeAllNames(@NotNull Category category) {
-    final List<String> result = new ArrayList<String>();
-
-    Category c = category;
-
-    while (c != null) {
-      final String name = c.getName();
-
-      if (name == null) {
-        return ArrayUtil.EMPTY_STRING_ARRAY;
-      }
-      result.add(name);
-      c = c.getParent();
-    }
-    return ArrayUtil.reverseArray(ArrayUtil.toStringArray(result));
-  }
-
   @Nls
   @NotNull
   @Override
   public String getGroupDisplayName() {
-    return AndroidBundle.message("android.lint.inspections.group.name");
+    // Use root category (inspections window doesn't do nesting the way the preference window does)
+    Category category = myIssue.getCategory();
+    while (category.getParent() != null) {
+      category = category.getParent();
+    }
+
+    return AndroidBundle.message("android.lint.inspections.group.name") + ": " + category.getName();
   }
 
   @NotNull
   @Override
   public String[] getGroupPath() {
+    if (myGroupPath == null) {
+      Category category = myIssue.getCategory();
+
+      int count = 2; // "Android", "Lint"
+      Category curr = category;
+      while (curr != null) {
+        count++;
+        curr = curr.getParent();
+      }
+
+      String[] path = new String[count];
+      while (category != null) {
+        path[--count] = category.getName();
+        category = category.getParent();
+      }
+      assert count == 2;
+
+      path[0] = AndroidBundle.message("android.inspections.group.name");
+      path[1] = AndroidBundle.message("android.lint.inspections.subgroup.name");
+
+      myGroupPath = path;
+    }
+
     return myGroupPath;
   }
 
@@ -415,9 +417,6 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   @Override
   public HighlightDisplayLevel getDefaultLevel() {
     final Severity defaultSeverity = myIssue.getDefaultSeverity();
-    if (defaultSeverity == null) {
-      return HighlightDisplayLevel.WARNING;
-    }
     final HighlightDisplayLevel displayLevel = toHighlightDisplayLevel(defaultSeverity);
     return displayLevel != null ? displayLevel : HighlightDisplayLevel.WARNING;
   }
@@ -497,9 +496,9 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   }
 
   /**
-   * A {@link com.intellij.codeInspection.ProblemDescriptor} for image and directory files. This is
+   * A {@link ProblemDescriptor} for image and directory files. This is
    * necessary because the {@link InspectionManager}'s createProblemDescriptor methods
-   * all use {@link com.intellij.codeInspection.ProblemDescriptorBase} where in the constructor
+   * all use {@link ProblemDescriptorBase} where in the constructor
    * it insists that the start and end {@link PsiElement} instances must have a valid
    * <b>text</b> range, which does not apply for images.
    * <p>
