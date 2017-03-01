@@ -15,34 +15,24 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.google.gct.testrecorder.ui.RecordingDialog;
 import org.fest.swing.core.Robot;
-import org.fest.swing.core.matcher.DialogMatcher;
-import org.fest.swing.finder.WindowFinder;
-import org.fest.swing.fixture.ContainerFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
-import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.google.common.truth.Truth.assertThat;
 
 /** Fixture for {@link com.google.gct.testrecorder.ui.RecordingDialog}. */
-public class RecordingDialogFixture extends ComponentFixture<RecordingDialogFixture, JDialog>
-  implements ContainerFixture<JDialog>{
-
+public class RecordingDialogFixture extends IdeaDialogFixture<RecordingDialog> {
   @NotNull
   public static RecordingDialogFixture find(@NotNull Robot robot) {
-    Dialog dialog = WindowFinder.findDialog(DialogMatcher.withTitle("Record Your Test").andShowing())
-      .withTimeout(TimeUnit.SECONDS.toMillis(10)).using(robot)
-      .target();
-    assertThat(dialog).isInstanceOf(JDialog.class);
-    return new RecordingDialogFixture(robot, (JDialog)dialog);
+    return new RecordingDialogFixture(robot, find(robot, RecordingDialog.class, Matchers.byTitle(JDialog.class, "Record Your Test")));
   }
 
-  private RecordingDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {
-    super(RecordingDialogFixture.class, robot, target);
+  private RecordingDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<RecordingDialog> dialogAndWrapper) {
+    super(robot, dialogAndWrapper);
   }
 
   public void clickOk() {

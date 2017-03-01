@@ -15,34 +15,26 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.google.gct.testrecorder.ui.TestClassNameInputDialog;
 import org.fest.swing.core.Robot;
-import org.fest.swing.core.matcher.DialogMatcher;
-import org.fest.swing.finder.WindowFinder;
-import org.fest.swing.fixture.ContainerFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
-import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.google.common.truth.Truth.assertThat;
 
 /** Fixture for {@link com.google.gct.testrecorder.ui.TestClassNameInputDialog}. */
-public class TestClassNameInputDialogFixture extends ComponentFixture<TestClassNameInputDialogFixture, JDialog>
-  implements ContainerFixture<JDialog> {
+public class TestClassNameInputDialogFixture extends IdeaDialogFixture<TestClassNameInputDialog> {
 
   @NotNull
   public static TestClassNameInputDialogFixture find(@NotNull Robot robot) {
-    Dialog dialog = WindowFinder.findDialog(DialogMatcher.withTitle("Pick a test class name for your test").andShowing())
-      .withTimeout(TimeUnit.SECONDS.toMillis(10)).using(robot)
-      .target();
-    assertThat(dialog).isInstanceOf(JDialog.class);
-    return new TestClassNameInputDialogFixture(robot, (JDialog)dialog);
+    return new TestClassNameInputDialogFixture(
+      robot, find(robot, TestClassNameInputDialog.class, Matchers.byTitle(JDialog.class, "Pick a test class name for your test")));
   }
 
-  private TestClassNameInputDialogFixture(@NotNull Robot robot, @NotNull JDialog target) {
-    super(TestClassNameInputDialogFixture.class, robot, target);
+  private TestClassNameInputDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<TestClassNameInputDialog> dialogAndWrapper) {
+    super(robot, dialogAndWrapper);
   }
 
   public void clickOk() {
