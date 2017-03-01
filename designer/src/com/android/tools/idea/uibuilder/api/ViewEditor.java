@@ -25,6 +25,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -130,6 +131,12 @@ public abstract class ViewEditor {
    */
   @NotNull
   public abstract NlModel getModel();
+
+  /**
+   * Returns the SceneManager used to generate a Scene from our model.
+   */
+  @NotNull
+  public abstract LayoutlibSceneManager getSceneBuilder();
 
   @NotNull
   public abstract Collection<ViewInfo> getRootViews();

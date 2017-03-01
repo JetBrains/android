@@ -335,7 +335,6 @@ public class WidgetConstraintPanel extends JPanel {
     AttributesTransaction transaction = mComponent.startAttributeTransaction();
     transaction.setAttribute(nameSpace, attribute, value);
     transaction.apply();
-    model.requestLayout(false);
 
     myTimer.setRepeats(false);
 
