@@ -21,10 +21,8 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import com.intellij.refactoring.safeDelete.SafeDeleteHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,6 +54,6 @@ final class RemoveKeysAction extends AnAction {
       .map(item -> LocalResourceRepository.getItemTag(project, item))
       .toArray(PsiElement[]::new);
 
-    SafeDeleteHandler.invoke(project, elements, myPanel.getFacet().getModule(), true, null);
+    DelegateDeleteHandler.deletePsiElement(project, elements, myPanel.getFacet().getModule());
   }
 }
