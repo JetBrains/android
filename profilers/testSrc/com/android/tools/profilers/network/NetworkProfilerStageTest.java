@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.common.StackTraceModel;
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf3jarjar.ByteString;
 import org.junit.Before;
@@ -286,30 +285,17 @@ public class NetworkProfilerStageTest {
   }
 
   @Test
-  public void stackLineNavigation() {
+  public void codeNavigationUnexpandsProfiler() {
     HttpData data = FAKE_HTTP_DATA.get(0);
     assertEquals(2, data.getStackTrace().getCodeLocations().size());
     myStage.getStackTraceModel().setStackFrames(data.getStackTrace().getTrace());
-
-    final boolean[] stackTraceSelectionChanged = {false};
-    AspectObserver observer = new AspectObserver();
-    myStage.getStackTraceModel().addDependency(observer)
-      .onChange(StackTraceModel.Aspect.SELECTED_LOCATION, () -> stackTraceSelectionChanged[0] = true);
 
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
     myStage.getStudioProfilers().getTimeline().getSelectionRange().set(0, 10);
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
 
-    assertFalse(stackTraceSelectionChanged[0]);
     myStage.getStackTraceModel().setSelectedIndex(0);
-    assertTrue(stackTraceSelectionChanged[0]);
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
-
-    stackTraceSelectionChanged[0] = false;
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
-    myStage.getStackTraceModel().clearSelection();
-    assertTrue(stackTraceSelectionChanged[0]);
-    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
   }
 
   @Test

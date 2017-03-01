@@ -32,6 +32,8 @@ import static com.android.tools.profilers.common.ThreadId.INVALID_THREAD_ID;
  * intention to navigate to that line of code.
  */
 public final class StackTraceModel extends AspectModel<StackTraceModel.Aspect> {
+  private final CodeNavigator myCodeNavigator;
+
   public enum Aspect {
     STACK_FRAMES,
     SELECTED_LOCATION,
@@ -53,7 +55,12 @@ public final class StackTraceModel extends AspectModel<StackTraceModel.Aspect> {
 
   private int mySelectedIndex = INVALID_INDEX;
 
-  public StackTraceModel() {
+  /**
+   * Initiate this model with an associated {@link CodeNavigator}. The navigator will be triggered
+   * each time {@link #setSelectedIndex(int)} is called corresponding to a stack trace line.
+   */
+  public StackTraceModel(CodeNavigator codeNavigator) {
+    myCodeNavigator = codeNavigator;
     myStackFrames = Collections.emptyList();
     myThreadId = INVALID_THREAD_ID;
   }
@@ -109,7 +116,8 @@ public final class StackTraceModel extends AspectModel<StackTraceModel.Aspect> {
 
   /**
    * Selects a target {@link CodeLocation} by using an index into the list returned by
-   * {@link #getCodeLocations()}.
+   * {@link #getCodeLocations()}. If a new code location is selected, this method will also fire
+   * it's navigator's {@link CodeNavigator#navigate(CodeLocation)} method automatically.
    *
    * If out of bounds, e.g. -1, this will clear the selection, but for clarity you should
    * prefer to use {@link #clearSelection()} instead.
@@ -118,9 +126,13 @@ public final class StackTraceModel extends AspectModel<StackTraceModel.Aspect> {
     int size = myStackFrames.size() + (INVALID_THREAD_ID.equals(myThreadId) ? 0 : 1);
     int newIndex = index >= 0 && index < size ? index : INVALID_INDEX;
     boolean indexChanging = newIndex != mySelectedIndex;
-    mySelectedIndex = index;
+    mySelectedIndex = newIndex;
     if (indexChanging) {
       changed(Aspect.SELECTED_LOCATION);
+
+      if (getSelectedType() == Type.STACK_FRAME) {
+        myCodeNavigator.navigate(myStackFrames.get(mySelectedIndex));
+      }
     }
   }
 

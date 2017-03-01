@@ -26,6 +26,8 @@ import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.CodeNavigator;
 import com.android.tools.profilers.common.StackTraceModel;
 import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.memory.adapters.*;
@@ -46,7 +48,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.profilers.StudioProfilers.TIMELINE_BUFFER;
 
-public class MemoryProfilerStage extends Stage {
+public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener {
   private static Logger getLogger() {
     return Logger.getInstance(MemoryProfilerStage.class);
   }
@@ -126,17 +128,7 @@ public class MemoryProfilerStage extends Stage {
     mySelectionModel.addConstraint(myHeapDumpDurations);
     mySelectionModel.addChangeListener(this::selectionChanged);
 
-    myStackTraceModel = new StackTraceModel();
-    myStackTraceModel.addDependency(this).onChange(
-      StackTraceModel.Aspect.SELECTED_LOCATION, () -> {
-        if (myStackTraceModel.getSelectedType() == StackTraceModel.Type.STACK_FRAME) {
-          handleNavigatedToCode();
-        }
-      });
-  }
-
-  public void handleNavigatedToCode() {
-    setProfilerMode(ProfilerMode.NORMAL);
+    myStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
   }
 
   public DetailedMemoryUsage getDetailedMemoryUsage() {
@@ -154,6 +146,8 @@ public class MemoryProfilerStage extends Stage {
     getStudioProfilers().getUpdater().register(myObjectsAxis);
     getStudioProfilers().getUpdater().register(myLegends);
     getStudioProfilers().getUpdater().register(myGcCount);
+
+    getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
   }
 
   @Override
@@ -168,6 +162,8 @@ public class MemoryProfilerStage extends Stage {
     getStudioProfilers().getUpdater().unregister(myGcCount);
     selectCapture(null, null);
     myLoader.stop();
+
+    getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
   }
 
   @NotNull
@@ -402,6 +398,11 @@ public class MemoryProfilerStage extends Stage {
 
   public String getName() {
     return "MEMORY";
+  }
+
+  @Override
+  public void onNavigated(@NotNull CodeLocation location) {
+    setProfilerMode(ProfilerMode.NORMAL);
   }
 
   public static class MemoryStageLegends extends LegendComponentModel {

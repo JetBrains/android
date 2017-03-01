@@ -16,18 +16,21 @@
 package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.profilers.common.ThreadId;
+import com.intellij.icons.AllIcons;
+import com.intellij.ui.ColoredTextContainer;
 import org.jetbrains.annotations.NotNull;
 
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+
+/**
+ * A {@link StackElement} which represents the current thread a stack trace belongs to.
+ */
 final class ThreadElement implements StackElement {
   @NotNull private final ThreadId myThreadId;
 
   ThreadElement(@NotNull ThreadId threadId) {
     myThreadId = threadId;
-  }
-
-  @Override
-  public void navigate() {
-
   }
 
   @NotNull
