@@ -124,7 +124,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
         NlModel model = screenView != null ? screenView.getModel() : null;
         if (model != null) {
           model.setElapsedFrameTimeMs(timeMs);
-          mySurface.getCurrentSceneView().getSceneManager().requestRender();
+          mySurface.getCurrentSceneView().getModel().requestRender();
         }
       }, 16);
       contentPanel.add(myAnimationToolbar, BorderLayout.SOUTH);
@@ -241,14 +241,17 @@ public class NlPreviewForm implements Disposable, CaretListener {
     public final NlModel model;
     public boolean valid = true;
 
-    public Pending(XmlFile file, NlModel model, DesignSurface surface) {
+    public Pending(XmlFile file, NlModel model) {
       this.file = file;
       this.model = model;
       model.addListener(this);
-      ScreenView view = mySurface.getCurrentSceneView();
-      if (view != null) {
-        view.getSceneManager().requestRender();
-      }
+      model.requestRender(); // on file switches, render as soon as possible; the delay is for edits
+    }
+
+    @Override
+    public void modelChanged(@NotNull NlModel model) {
+      // This won't be called in the dispatch thread so, to avoid a 10ms delay in requestRender
+      model.render();
     }
 
     @Override
@@ -312,7 +315,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     else {
       XmlFile xmlFile = (XmlFile)file;
       NlModel model = NlModel.create(mySurface, null, facet, xmlFile);
-      myPendingFile = new Pending(xmlFile, model, mySurface);
+      myPendingFile = new Pending(xmlFile, model);
     }
     return true;
   }

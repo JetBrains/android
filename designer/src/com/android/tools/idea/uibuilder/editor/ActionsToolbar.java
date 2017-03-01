@@ -213,6 +213,10 @@ abstract public class ActionsToolbar implements DesignSurfaceListener, ModelList
   // ---- Implements ModelListener ----
 
   @Override
+  public void modelChanged(@NotNull NlModel model) {
+  }
+
+  @Override
   public void modelRendered(@NotNull NlModel model) {
     // Ensure that the toolbar is populated initially
     updateActions();
