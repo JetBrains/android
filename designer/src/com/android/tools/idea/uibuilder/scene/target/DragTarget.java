@@ -380,6 +380,9 @@ public class DragTarget extends ConstraintTarget {
 
   @Override
   public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
+    if (!myComponent.isDragging()) {
+      return;
+    }
     myComponent.setDragging(false);
     if (myComponent.getParent() != null) {
       boolean commitChanges = true;
