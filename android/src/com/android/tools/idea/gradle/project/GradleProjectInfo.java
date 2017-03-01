@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildCo
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.collect.ImmutableList;
@@ -79,7 +78,7 @@ public class GradleProjectInfo {
     return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
       ModuleManager moduleManager = ModuleManager.getInstance(myProject);
       for (Module module : moduleManager.getModules()) {
-        if (Projects.isBuildWithGradle(module)) {
+        if (GradleFacet.isAppliedTo(module)) {
           return true;
         }
       }

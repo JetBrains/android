@@ -165,7 +165,7 @@ public final class Projects {
       return false;
     }
     String basePath = module.getProject().getBasePath();
-    return basePath != null && filesEqual(moduleRootFolderPath, new File(basePath)) && !isBuildWithGradle(module);
+    return basePath != null && filesEqual(moduleRootFolderPath, new File(basePath)) && !GradleFacet.isAppliedTo(module);
   }
 
   @Nullable
@@ -186,14 +186,6 @@ public final class Projects {
   @Deprecated
   public static boolean isBuildWithGradle(@NotNull Project project) {
     return GradleProjectInfo.getInstance(project).isBuildWithGradle();
-  }
-
-  /**
-   * Indicates whether Gradle is used to build the module.
-   */
-  // TODO move this method out of Projects.
-  public static boolean isBuildWithGradle(@NotNull Module module) {
-    return GradleFacet.getInstance(module) != null;
   }
 
   /**
@@ -220,14 +212,14 @@ public final class Projects {
     }
 
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet != null && androidFacet.requiresAndroidModel() && isBuildWithGradle(module)) {
+    if (androidFacet != null && androidFacet.requiresAndroidModel() && GradleFacet.isAppliedTo(module)) {
       // If the module is an Android project, check that the module's path is the same as the project's.
       File moduleFilePath = toSystemDependentPath(module.getModuleFilePath());
       File moduleRootDirPath = moduleFilePath.getParentFile();
       return pathsEqual(moduleRootDirPath.getPath(), module.getProject().getBasePath());
     }
     // For non-Android project modules, the top-level one is the one without an "Android-Gradle" facet.
-    return !isBuildWithGradle(module);
+    return !GradleFacet.isAppliedTo(module);
   }
 
   /**
