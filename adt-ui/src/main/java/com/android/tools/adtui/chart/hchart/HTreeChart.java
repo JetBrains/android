@@ -210,7 +210,7 @@ public class HTreeChart<T> extends AnimatedComponent implements MouseWheelListen
 
   public void setHRenderer(HRenderer<T> r) {
     this.mHRenderer = r;
-    this.mHRenderer.setFont(AdtUiUtils.DEFAULT_FONT);
+    this.mHRenderer.setFont(getFont());
   }
 
   public void setHTree(@Nullable HNode<T> root) {
