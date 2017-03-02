@@ -17,10 +17,25 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.UnpackedNativeCodeDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
+import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
+import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.VALUE_FALSE;
+import static com.android.xml.AndroidManifest.ATTRIBUTE_EXTRACT_NATIVE_LIBS;
 
 public class AndroidLintUnpackedNativeCodeInspection extends AndroidLintInspectionBase {
   public AndroidLintUnpackedNativeCodeInspection() {
     super(AndroidBundle.message("android.lint.inspections.unpacked.native.code"), UnpackedNativeCodeDetector.ISSUE);
+  }
+
+  @NotNull
+  @Override
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+    return new AndroidLintQuickFix[]{new SetAttributeQuickFix("Add android:extractNativeLibs attribute",
+                                                              ATTRIBUTE_EXTRACT_NATIVE_LIBS,
+                                                              ANDROID_URI, VALUE_FALSE)};
   }
 }
