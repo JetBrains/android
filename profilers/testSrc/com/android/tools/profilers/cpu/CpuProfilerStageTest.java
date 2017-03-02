@@ -233,7 +233,7 @@ public class CpuProfilerStageTest extends AspectObserver {
     myStage.setAndSelectCapture(new CpuCapture(CpuCaptureTest.readValidTrace()));
     assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
     // After code navigation it should be Normal mode.
-    myStage.getStudioProfilers().getIdeServices().getCodeNavigator().navigate(new CodeLocation(""));
+    myStage.getStudioProfilers().getIdeServices().getCodeNavigator().navigate(CodeLocation.stub());
     assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
 
     myStage.setCapture(new CpuCapture(CpuCaptureTest.readValidTrace()));

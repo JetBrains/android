@@ -220,7 +220,7 @@ final class MemoryClassView extends AspectObserver {
 
       if (((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter() instanceof ClassObject) {
         ClassObject classObject = (ClassObject)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
-        return new CodeLocation(classObject.getName());
+        return new CodeLocation.Builder(classObject.getName()).build();
       }
       return null;
     });
@@ -366,7 +366,11 @@ final class MemoryClassView extends AspectObserver {
       assert callStack != null;
       // TODO this is potentially super slow, so we might need to speed this up
       List<CodeLocation> stackFrames = Lists.reverse(callStack.getStackFramesList()).stream()
-        .map((frame) -> new CodeLocation(frame.getClassName(), frame.getFileName(), frame.getMethodName(), null, frame.getLineNumber() - 1))
+        .map((frame) -> new CodeLocation.Builder(frame.getClassName())
+          .setFileName(frame.getFileName())
+          .setMethodName(frame.getMethodName())
+          .setLineNumber(frame.getLineNumber() - 1)
+          .build())
         .collect(Collectors.toList());
 
       ThreadId threadId = instanceObject.getAllocationThreadId();

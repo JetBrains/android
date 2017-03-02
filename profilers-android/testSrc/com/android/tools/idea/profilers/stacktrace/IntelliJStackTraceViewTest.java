@@ -55,10 +55,7 @@ public class IntelliJStackTraceViewTest {
     "java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:607)\n" +
     "java.lang.Thread.run(Thread.java:761)";
   private static final List<CodeLocation> CODE_LOCATIONS = Arrays.stream(STACK_STRING.split("\\n")).map(
-    line -> {
-      StackFrameParser parser = new StackFrameParser(line);
-      return new CodeLocation(parser.getClassName(), parser.getFileName(), parser.getMethodName(), null, parser.getLineNumber() - 1);
-    })
+    line -> new StackFrameParser(line).toCodeLocation())
     .collect(Collectors.toList());
 
   private final Project myProject = ProjectStub.getInstance();
@@ -80,15 +77,10 @@ public class IntelliJStackTraceViewTest {
   public void equalityTest() {
     final String duplicateTestString = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)";
     StackFrameParser parser = new StackFrameParser(duplicateTestString);
-    CodeLocation positiveTest =
-      new CodeLocation(parser.getClassName(), parser.getFileName(), parser.getMethodName(), null,  parser.getLineNumber() - 1);
-    CodeLocation negativeTest1 =
-      new CodeLocation("", null, null, null, -1);
-    CodeLocation negativeTest2 =
-      new CodeLocation(positiveTest.getClassName(), positiveTest.getMethodName(), null, positiveTest.getFileName(),
-                       positiveTest.getLineNumber() - 1);
-    CodeLocation negativeTest3 =
-      new CodeLocation(positiveTest.getClassName(), positiveTest.getFileName(), null, positiveTest.getMethodName(), -1);
+    CodeLocation positiveTest = parser.toCodeLocation();
+    CodeLocation negativeTest1 = CodeLocation.stub();
+    CodeLocation negativeTest2 = new CodeLocation.Builder(positiveTest).setMethodName(positiveTest.getFileName()).build();
+    CodeLocation negativeTest3 = new CodeLocation.Builder(positiveTest).setLineNumber(-1).build();
     assertEquals(positiveTest, CODE_LOCATIONS.get(0));
     assertNotEquals(positiveTest, negativeTest1);
     assertNotEquals(positiveTest, negativeTest2);
