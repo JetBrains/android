@@ -173,6 +173,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     getStudioProfilers().getUpdater().register(myLegends);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
   }
 
   @Override

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +33,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     }
   };
 
+  private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
   /**
    * Callback to be run after the executor calls its execute() method.
    */
@@ -75,6 +77,12 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   @Override
   public CodeNavigator getCodeNavigator() {
     return myFakeNavigationService;
+  }
+
+  @NotNull
+  @Override
+  public FeatureTracker getFeatureTracker() {
+    return myFakeFeatureTracker;
   }
 
   @Override

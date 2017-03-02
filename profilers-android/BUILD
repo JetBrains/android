@@ -23,5 +23,7 @@ iml_module(
         "//tools/base/ddmlib:studio.ddmlib[module]",
         "//tools/idea:platform-impl_and_others[module]",
         "//tools/adt/idea/adt-ui[module, test]",
+        "//tools/analytics-library/protos:analytics-protos[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
     ],
 )
