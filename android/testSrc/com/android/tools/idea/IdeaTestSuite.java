@@ -44,7 +44,6 @@ import java.nio.file.Paths;
   com.android.tools.perf.idea.gradle.project.sync.GradleSyncPerfTest.class, // Sync performance test only runs on perf buildbot
   org.jetbrains.android.databinding.DataBindingScopeTest.class,
   org.jetbrains.android.databinding.GeneratedCodeMatchTest.class,
-  org.jetbrains.android.dom.AndroidValueResourcesTest.class,
 
   // Require resources with spaces (HTML File template)
   // https://github.com/bazelbuild/bazel/issues/374
