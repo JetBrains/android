@@ -300,7 +300,9 @@ public class MemoryClassViewTest {
     assertEquals(2, root.getChildCount());
     class2Node = getSingularInList(root.getChildren(), child -> child.getAdapter() == mockClass2);
     assertFalse(class2Node.getAdapter().hasStackInfo());
-    MemoryObjectTreeNode<NamespaceObject> comNode = getSingularInList(root.getChildren(), child -> (child.getAdapter() instanceof PackageObject) && ((PackageObject)child.getAdapter()).getName().equals("com"));
+    MemoryObjectTreeNode<NamespaceObject> comNode = getSingularInList(root.getChildren(),
+                                                                      child -> (child.getAdapter() instanceof PackageObject) &&
+                                                                               child.getAdapter().getName().equals("com"));
     assertTrue(comNode.getAdapter().hasStackInfo());
   }
 
@@ -370,13 +372,16 @@ public class MemoryClassViewTest {
     InstanceObject mockInstance6 =
       mockInstanceObject("com.android.studio.Foo", "instance6", "toString: instance6", callstack3, mockClass1, 2, 2, 2, 16);
     InstanceObject mockInstance7 =
-      mockInstanceObject("com.google.Bar", "instance7", "toString: instance7", callstack3, mockClass3, 2, 2, 2, 16);
+      mockInstanceObject("com.android.studio.Foo", "instance7", "toString: instance7", null, mockClass1, 2, 2, 2, 16);
     InstanceObject mockInstance8 =
+      mockInstanceObject("com.google.Bar", "Bar instance", "toString: Bar instance", callstack3, mockClass3, 2, 2, 2, 16);
+    InstanceObject mockInstance9 =
       mockInstanceObject("int[]", "int instance", "toString: int instance", null, mockClass2, 0, 2, 8, 8);
 
-    mockClass1List.addAll(Arrays.asList(mockInstance1, mockInstance2, mockInstance3, mockInstance4, mockInstance5, mockInstance6));
-    mockClass2List.add(mockInstance8);
-    mockClass3List.add(mockInstance7);
+    mockClass1List
+      .addAll(Arrays.asList(mockInstance1, mockInstance2, mockInstance3, mockInstance4, mockInstance5, mockInstance6, mockInstance7));
+    mockClass2List.add(mockInstance9);
+    mockClass3List.add(mockInstance8);
 
     myStage.selectHeap(mockHeap);
 
@@ -394,7 +399,7 @@ public class MemoryClassViewTest {
 
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CALLSTACK);
     assertEquals(root, classTree.getModel().getRoot());
-    assertEquals(3, root.getChildCount());
+    assertEquals(4, root.getChildCount());
 
     MemoryObjectTreeNode<NamespaceObject> codeLocation1Node =
       getSingularInList(root.getChildren(), child -> (child.getAdapter() instanceof MethodObject) &&
@@ -430,15 +435,22 @@ public class MemoryClassViewTest {
     MemoryObjectTreeNode<NamespaceObject> barNode =
       getSingularInList(codeLocation4Node.getChildren(),
                         child -> (child.getAdapter() instanceof ProxyClassObject) &&
-                                 child.getAdapter().isInNamespace(new ProxyClassObject(mockClass3, mockInstance7)));
+                                 child.getAdapter().isInNamespace(new ProxyClassObject(mockClass3, mockInstance8)));
     classTree.setSelectionPath(new TreePath(new Object[]{rootObject, codeLocation4Node, barNode}));
+
+    MemoryObjectTreeNode<NamespaceObject> noStackFoo =
+      getSingularInList(root.getChildren(),
+                        child -> (child.getAdapter() instanceof ProxyClassObject) &&
+                                 child.getAdapter().isInNamespace(new ProxyClassObject(mockClass2, mockInstance7)));
+    assertEquals(1, noStackFoo.getAdapter().getTotalCount());
 
     myStage.getConfiguration().setClassGrouping(ARRANGE_BY_CLASS);
     assertEquals(3, root.getChildCount());
     TreePath selectionPath = classTree.getSelectionPath();
     assertNotNull(selectionPath);
     Object previouslySelectedObject = selectionPath.getLastPathComponent();
-    assertTrue(previouslySelectedObject instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)previouslySelectedObject).getAdapter() instanceof ClassObject);
+    assertTrue(previouslySelectedObject instanceof MemoryObjectTreeNode &&
+               ((MemoryObjectTreeNode)previouslySelectedObject).getAdapter() instanceof ClassObject);
     assertEquals(mockClass3, ((MemoryObjectTreeNode)previouslySelectedObject).getAdapter());
   }
 
