@@ -47,19 +47,6 @@ public class EventIconRendererTest {
   }
 
   @Test
-  public void g2dTransformIsSetProperly() {
-    AffineTransform originalTransform = new AffineTransform();
-    AffineTransform testTransform = new AffineTransform();
-    when(myGraphics2D.getTransform()).thenReturn(originalTransform);
-    myRenderer.draw(new JPanel(), myGraphics2D, testTransform, 0);
-
-    ArgumentCaptor<AffineTransform> transforms = ArgumentCaptor.forClass(AffineTransform.class);
-    verify(myGraphics2D, atLeast(1)).setTransform(transforms.capture());
-    assertEquals(testTransform, transforms.getAllValues().get(0));
-    assertEquals(originalTransform, transforms.getAllValues().get(1));
-  }
-
-  @Test
   public void iconIsPaint() {
     myRenderer.draw(new JPanel(), myGraphics2D, new AffineTransform(), 0);
     verify(myIcon).paintIcon(any(JPanel.class), eq(myGraphics2D), eq(-1), eq(0));
