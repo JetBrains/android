@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
@@ -48,6 +49,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.dsl.model.GradleBuildModel.parseBuildFile;
@@ -100,22 +102,21 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
 
   @Override
   public void applyPlugin(@NotNull String plugin) {
-    plugin = plugin.trim();
-
-    myReferences.applyPlugin(plugin);
+    String name = plugin.trim();
+    myReferences.applyPlugin(name);
 
     Project project = myContext.getProject();
     File buildFile = getGradleBuildFilePath(myContext.getModuleRoot());
     if (project.isInitialized()) {
       GradleBuildModel buildModel = getBuildModel(buildFile, project);
-      if (!buildModel.appliedPlugins().contains(plugin)) {
-        buildModel.applyPlugin(plugin);
+      if (buildModel.appliedPlugins().stream().noneMatch(x -> x.value().equals(name))) {
+        buildModel.applyPlugin(name);
         myIO.applyChanges(buildModel);
       }
     }
     else {
       String destinationContents = buildFile.exists() ? nullToEmpty(readTextFile(buildFile)) : "";
-      String applyPluginStatement = "apply plugin: '" + plugin + "'";
+      String applyPluginStatement = "apply plugin: '" + name + "'";
       String result = destinationContents.isEmpty() ? applyPluginStatement : destinationContents + LINE_SEPARATOR + applyPluginStatement;
       try {
         myIO.writeFile(this, result, buildFile);
