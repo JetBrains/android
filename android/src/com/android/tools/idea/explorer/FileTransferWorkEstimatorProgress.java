@@ -13,37 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer.ui;
+package com.android.tools.idea.explorer;
 
-import com.intellij.openapi.actionSystem.Shortcut;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-
-/**
- * A wrapper for creating popup menu items for a UI component.
- */
-public interface PopupMenuItem extends Runnable {
-  @NotNull
-  String getText();
-
-  @Nullable
-  Icon getIcon();
-
-  boolean isEnabled();
-
-  default boolean isVisible() {
-    return true;
-  }
-
-  @Nullable
-  default String getShortcutId() {
-    return null;
-  }
-
-  @Nullable
-  default Shortcut[] getShortcuts() {
-    return null;
-  }
+public interface FileTransferWorkEstimatorProgress {
+  void progress(int fileCount, int directoryCount);
+  boolean isCancelled();
 }

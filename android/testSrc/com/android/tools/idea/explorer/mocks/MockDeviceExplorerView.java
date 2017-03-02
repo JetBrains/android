@@ -38,6 +38,7 @@ import java.util.List;
 @SuppressWarnings({"NullableProblems", "unused"})
 public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull private final List<DeviceExplorerViewListener> myListeners = new ArrayList<>();
+  @NotNull private final List<DeviceExplorerViewProgressListener> myProgressListeners = new ArrayList<>();
   @NotNull private final DeviceExplorerViewImpl myViewImpl;
   @NotNull private final FutureValuesTracker<Void> myServiceSetupSuccessTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceSelectedTracker = new FutureValuesTracker<>();
@@ -96,6 +97,16 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @Override
   public void removeListener(@NotNull DeviceExplorerViewListener listener) {
     myListeners.remove(listener);
+  }
+
+  @Override
+  public void addProgressListener(@NotNull DeviceExplorerViewProgressListener listener) {
+    myProgressListeners.add(listener);
+  }
+
+  @Override
+  public void removeProgressListener(@NotNull DeviceExplorerViewProgressListener listener) {
+    myProgressListeners.remove(listener);
   }
 
   @Override
@@ -176,6 +187,46 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @Override
   public void expandNode(@NotNull DeviceFileEntryNode treeNode) {
     myViewImpl.expandNode(treeNode);
+  }
+
+  @Override
+  public void startProgress() {
+    myViewImpl.startProgress();
+  }
+
+  @Override
+  public void setProgressIndeterminate(boolean indeterminate) {
+    myViewImpl.setProgressIndeterminate(indeterminate);
+  }
+
+  @Override
+  public void setProgressValue(double fraction) {
+    myViewImpl.setProgressValue(fraction);
+  }
+
+  @Override
+  public void setProgressOkColor() {
+    myViewImpl.setProgressOkColor();
+  }
+
+  @Override
+  public void setProgressWarningColor() {
+    myViewImpl.setProgressWarningColor();
+  }
+
+  @Override
+  public void setProgressErrorColor() {
+    myViewImpl.setProgressErrorColor();
+  }
+
+  @Override
+  public void setProgressText(@NotNull String text) {
+    myViewImpl.setProgressText(text);
+  }
+
+  @Override
+  public void stopProgress() {
+    myViewImpl.stopProgress();
   }
 
   public FutureValuesTracker<DeviceFileSystem> getDeviceAddedTracker() {

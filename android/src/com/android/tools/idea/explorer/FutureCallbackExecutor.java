@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.explorer;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.Iterator;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -39,9 +39,29 @@ public class FutureCallbackExecutor implements Executor {
     myExecutor = executor;
   }
 
+  public static FutureCallbackExecutor wrap(@NotNull Executor executor) {
+    if (executor instanceof FutureCallbackExecutor) {
+      return (FutureCallbackExecutor)executor;
+    }
+    return new FutureCallbackExecutor(executor);
+  }
+
   @Override
   public void execute(@NotNull Runnable command) {
     myExecutor.execute(command);
+  }
+
+  public <V> ListenableFuture<V> executeAsync(@NotNull Callable<V> function) {
+    SettableFuture<V> futureResult = SettableFuture.create();
+    myExecutor.execute(() -> {
+      try {
+        futureResult.set(function.call());
+      }
+      catch (Exception e) {
+        futureResult.setException(e);
+      }
+    });
+    return futureResult;
   }
 
   /**
@@ -91,5 +111,47 @@ public class FutureCallbackExecutor implements Executor {
   public <I, O> ListenableFuture<O> transform(@NotNull ListenableFuture<I> input,
                                               @NotNull Function<? super I, ? extends O> function) {
     return Futures.transform(input, function::apply, myExecutor);
+  }
+
+  /**
+   * Similar to {@link Futures#transform(ListenableFuture, com.google.common.base.Function, Executor)},
+   * using this instance as the executor.
+   */
+  public <I, O> ListenableFuture<O> transformAsync(@NotNull ListenableFuture<I> input,
+                                                   @NotNull AsyncFunction<? super I, ? extends O> function) {
+    return Futures.transformAsync(input, function, myExecutor);
+  }
+
+  /**
+   * Execute a task from the {@code taskFactory} for each element of the {@code iterator},
+   * waiting for the {@link ListenableFuture} returned by each task before executing the next one.
+   *
+   * <p>The goal is to serialize the execution of multiple tasks that would otherwise
+   * execute in parallel, typically as a way of throttling tasks.
+   *
+   * <p>Returns a {@link ListenableFuture} that completes when all tasks have completed.
+   *
+   * @param iterator    The source of elements to process
+   * @param taskFactory A factory {@link Function} that returns a {@link ListenableFuture} for a given element
+   * @param <T>         The type of the elements to process
+   */
+  @NotNull
+  public <T> ListenableFuture<Void> executeFuturesInSequence(@NotNull Iterator<T> iterator,
+                                                             @NotNull Function<T, ListenableFuture<Void>> taskFactory) {
+    SettableFuture<Void> finalResult = SettableFuture.create();
+    executeFuturesInSequenceWorker(iterator, taskFactory, finalResult);
+    return finalResult;
+  }
+
+  private <T> void executeFuturesInSequenceWorker(@NotNull Iterator<T> iterator,
+                                                  @NotNull Function<T, ListenableFuture<Void>> taskFactory,
+                                                  @NotNull SettableFuture<Void> finalResult) {
+    if (iterator.hasNext()) {
+      ListenableFuture<Void> future = taskFactory.apply(iterator.next());
+      addConsumer(future, (aVoid, throwable) -> executeFuturesInSequenceWorker(iterator, taskFactory, finalResult));
+    }
+    else {
+      finalResult.set(null);
+    }
   }
 }
