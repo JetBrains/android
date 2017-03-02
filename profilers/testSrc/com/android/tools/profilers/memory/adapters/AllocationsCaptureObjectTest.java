@@ -67,7 +67,7 @@ public class AllocationsCaptureObjectTest {
     // Verify values associated with the AllocationsInfo object.
     assertEquals(startTimeNs, capture.getStartTimeNs());
     assertEquals(endTimeNs, capture.getEndTimeNs());
-    assertEquals("Allocations from 3ms to 8ms", capture.getLabel());
+    assertEquals("Allocations from 3ms to 8ms", capture.getName());
 
     final CountDownLatch loadLatch = new CountDownLatch(1);
     final CountDownLatch doneLatch = new CountDownLatch(1);
@@ -190,7 +190,7 @@ public class AllocationsCaptureObjectTest {
   }
 
   private void verifyHeap(HeapObject heap, String name, int klassSize) {
-    assertEquals(name, heap.getHeapName());
+    assertEquals(name, heap.getName());
     assertEquals(klassSize, heap.getClasses().size());
   }
 
@@ -200,7 +200,7 @@ public class AllocationsCaptureObjectTest {
   }
 
   private void verifyInstance(InstanceObject instance, String name, int depth, int fieldSize, int referenceSize, int frameCount) {
-    assertEquals(name, instance.getDisplayLabel());
+    assertEquals(name, instance.getName());
     assertEquals(depth, instance.getDepth());
     assertEquals(fieldSize, instance.getFields().size());
     assertEquals(referenceSize, instance.getReferences().size());

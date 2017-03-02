@@ -20,10 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public interface HeapObject extends MemoryObject {
-
-  @NotNull
-  String getHeapName();
-
   @NotNull
   List<ClassObject> getClasses();
 

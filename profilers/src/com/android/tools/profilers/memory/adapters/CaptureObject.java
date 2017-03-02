@@ -23,9 +23,6 @@ import java.io.OutputStream;
 import java.util.List;
 
 public interface CaptureObject extends MemoryObject {
-  @NotNull
-  String getLabel();
-
   @Nullable
   String getExportableExtension();
 

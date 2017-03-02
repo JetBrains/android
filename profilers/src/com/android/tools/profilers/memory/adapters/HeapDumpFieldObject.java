@@ -86,7 +86,7 @@ final class HeapDumpFieldObject extends HeapDumpInstanceObject implements FieldO
 
   @NotNull
   @Override
-  public String getDisplayLabel() {
+  public String getName() {
     return String.format(FIELD_DISPLAY_FORMAT, myField.getField().getName(), myField.getValue() == null ? "{null}" : myField.getValue());
   }
 
