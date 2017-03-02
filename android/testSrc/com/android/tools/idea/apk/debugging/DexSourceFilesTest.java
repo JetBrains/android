@@ -23,7 +23,6 @@ import com.intellij.testFramework.IdeaTestCase;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.apk.debugging.SmaliFiles.getDefaultSmaliOutputFolderPath;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.util.io.FileUtil.ensureExists;
@@ -33,35 +32,67 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link SmaliFiles}.
+ * Tests for {@link DexSourceFiles}.
  */
-public class SmaliFilesTest extends IdeaTestCase {
+public class DexSourceFilesTest extends IdeaTestCase {
   private File myOutputFolderPath;
-  private SmaliFiles mySmaliFiles;
+  private DexSourceFiles myDexSourceFiles;
 
   @Override
-  protected void setUp() throws Exception {
+  public void setUp() throws Exception {
     super.setUp();
     Project project = getProject();
-    mySmaliFiles = new SmaliFiles(project);
+    myDexSourceFiles = new DexSourceFiles(project);
 
-    myOutputFolderPath = getDefaultSmaliOutputFolderPath(project);
+    myOutputFolderPath = DexSourceFiles.getInstance(project).getDefaultSmaliOutputFolderPath();
     ensureExists(myOutputFolderPath);
   }
+
+  public void testIsJavaFileWithJavaFile() {
+    VirtualFile file = mock(VirtualFile.class);
+
+    when(file.isDirectory()).thenReturn(false);
+    when(file.getExtension()).thenReturn("java");
+    assertTrue(myDexSourceFiles.isJavaFile(file));
+  }
+
+  public void testIsJavaFileWithDirectory() {
+    VirtualFile file = mock(VirtualFile.class);
+
+    when(file.isDirectory()).thenReturn(true);
+    assertFalse(myDexSourceFiles.isJavaFile(file));
+  }
+
+  public void testIsJavaFileWithTextFile() {
+    VirtualFile file = mock(VirtualFile.class);
+
+    when(file.isDirectory()).thenReturn(false);
+    when(file.getExtension()).thenReturn("text");
+    assertFalse(myDexSourceFiles.isJavaFile(file));
+  }
+
+  public void testIsJavaFileWithFileWithoutExtension() {
+    VirtualFile file = mock(VirtualFile.class);
+
+    when(file.isDirectory()).thenReturn(false);
+    when(file.getExtension()).thenReturn("");
+    assertFalse(myDexSourceFiles.isJavaFile(file));
+  }
+
 
   public void testIsSmaliFileWithJavaFile() {
     VirtualFile file = mock(VirtualFile.class);
 
     when(file.isDirectory()).thenReturn(false);
     when(file.getExtension()).thenReturn("smali");
-    assertTrue(SmaliFiles.isSmaliFile(file));
+    assertTrue(myDexSourceFiles.isSmaliFile(file));
   }
 
   public void testIsSmaliFileWithDirectory() {
     VirtualFile file = mock(VirtualFile.class);
 
     when(file.isDirectory()).thenReturn(true);
-    assertFalse(SmaliFiles.isSmaliFile(file));
+    assertFalse(myDexSourceFiles.isSmaliFile(file));
   }
 
   public void testIsSmaliFileWithTextFile() {
@@ -69,7 +100,7 @@ public class SmaliFilesTest extends IdeaTestCase {
 
     when(file.isDirectory()).thenReturn(false);
     when(file.getExtension()).thenReturn("text");
-    assertFalse(SmaliFiles.isSmaliFile(file));
+    assertFalse(myDexSourceFiles.isSmaliFile(file));
   }
 
   public void testIsSmaliFileWithFileWithoutExtension() {
@@ -77,7 +108,7 @@ public class SmaliFilesTest extends IdeaTestCase {
 
     when(file.isDirectory()).thenReturn(false);
     when(file.getExtension()).thenReturn("");
-    assertFalse(SmaliFiles.isSmaliFile(file));
+    assertFalse(myDexSourceFiles.isSmaliFile(file));
   }
 
   public void testFindSmaliFile() {
@@ -85,18 +116,17 @@ public class SmaliFilesTest extends IdeaTestCase {
     createIfNotExists(smaliFilePath);
 
     LocalFileSystem.getInstance().refresh(false /* synchronous */);
-    VirtualFile file = mySmaliFiles.findSmaliFile("com.android.smali.MyClass");
+    VirtualFile file = myDexSourceFiles.findSmaliFile("com.android.smali.MyClass");
     assertNotNull(file);
 
-    file = mySmaliFiles.findSmaliFile("com.android.smali.MyClass2");
+    file = myDexSourceFiles.findSmaliFile("com.android.smali.MyClass2");
     assertNull(file);
   }
 
-  public void testFindPackageFilePath() throws IOException {
+  public void testFindSmaliFilePathForPackage() throws IOException {
     File packagePath = new File(myOutputFolderPath, join("com", "android", "smali"));
     ensureExists(packagePath);
 
-    File found = mySmaliFiles.findPackageFilePath("com.android.smali");
+    File found = myDexSourceFiles.findSmaliFilePathForPackage("com.android.smali");
     assertAbout(file()).that(found).isEquivalentAccordingToCompareTo(packagePath);
-  }
-}
+  }}

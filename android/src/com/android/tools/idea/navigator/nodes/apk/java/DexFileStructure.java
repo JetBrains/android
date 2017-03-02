@@ -38,13 +38,13 @@ import static com.android.tools.idea.apk.dex.DexFiles.getDexFile;
 import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
 import static com.intellij.debugger.impl.DebuggerUtilsEx.signatureToName;
 
-class DexFileContents {
+class DexFileStructure {
   @NotNull private final Future<DexBackedDexFile> myDexFileFuture;
 
   @NotNull private final ApkPackages myPackages = new ApkPackages();
   private boolean myPackagesComputed;
 
-  DexFileContents(@NotNull VirtualFile dexFile) {
+  DexFileStructure(@NotNull VirtualFile dexFile) {
     ListeningExecutorService executor = listeningDecorator(PooledThreadExecutor.INSTANCE);
     myDexFileFuture = executor.submit(() -> getDexFile(dexFile));
   }
