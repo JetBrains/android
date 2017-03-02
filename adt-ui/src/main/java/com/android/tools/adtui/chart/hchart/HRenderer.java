@@ -18,7 +18,6 @@
 package com.android.tools.adtui.chart.hchart;
 
 import com.android.annotations.NonNull;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.ui.JBColor;
 
 import java.awt.*;
@@ -75,7 +74,7 @@ public abstract class HRenderer<T> {
 
     Font prevFont = g.getFont();
     g.setFont(mFont);
-    g.setPaint(AdtUiUtils.DEFAULT_FONT_COLOR);
+    g.setPaint(Color.BLACK);
     g.drawString(text, textPositionX, textPositionY);
     g.setFont(prevFont);
   }
