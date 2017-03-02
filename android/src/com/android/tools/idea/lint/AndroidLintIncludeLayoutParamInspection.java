@@ -17,11 +17,13 @@ package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.IncludeDetector;
 import com.google.common.collect.Lists;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -35,13 +37,20 @@ public class AndroidLintIncludeLayoutParamInspection extends AndroidLintInspecti
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                             @NotNull PsiElement endElement,
+                                             @NotNull String message,
+                                             @Nullable Object extraData) {
     List<AndroidLintQuickFix> fixes = Lists.newArrayListWithExpectedSize(2);
-    if (IncludeDetector.requestsWidth(message)) {
-      fixes.add(new SetAttributeQuickFix("Set layout_width", ATTR_LAYOUT_WIDTH, null));
-    }
-    if (IncludeDetector.requestsHeight(message)) {
-      fixes.add(new SetAttributeQuickFix("Set layout_height", ATTR_LAYOUT_HEIGHT, null));
+    if (extraData instanceof List) {
+      @SuppressWarnings("unchecked")
+      List<String> missing = (List<String>) extraData;
+      if (missing.contains(ATTR_LAYOUT_WIDTH)) {
+        fixes.add(new SetAttributeQuickFix("Set layout_width", ATTR_LAYOUT_WIDTH, null));
+      }
+      if (missing.contains(ATTR_LAYOUT_HEIGHT)) {
+        fixes.add(new SetAttributeQuickFix("Set layout_height", ATTR_LAYOUT_HEIGHT, null));
+      }
     }
     return fixes.toArray(new AndroidLintQuickFix[fixes.size()]);
   }
