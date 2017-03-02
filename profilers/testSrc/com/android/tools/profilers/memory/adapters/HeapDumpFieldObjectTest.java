@@ -35,7 +35,7 @@ public class HeapDumpFieldObjectTest {
     HeapDumpFieldObject fieldObject = new HeapDumpFieldObject(parentInstance, field, childInstance);
     assertEquals("field0", fieldObject.getFieldName());
     assertEquals(ClassObject.ValueType.OBJECT, fieldObject.getValueType());
-    assertEquals(String.format(FieldObject.FIELD_DISPLAY_FORMAT, "field0", childInstance), fieldObject.getDisplayLabel());
+    assertEquals(String.format(FieldObject.FIELD_DISPLAY_FORMAT, "field0", childInstance), fieldObject.getName());
     assertEquals(childDepth, fieldObject.getDepth());
     assertEquals(0, fieldObject.getShallowSize());
     assertEquals(0, fieldObject.getRetainedSize());
@@ -52,7 +52,7 @@ public class HeapDumpFieldObjectTest {
     HeapDumpFieldObject fieldObject = new HeapDumpFieldObject(parentInstance, field, null);
     assertEquals("field0", fieldObject.getFieldName());
     assertEquals(ClassObject.ValueType.NULL, fieldObject.getValueType());
-    assertEquals(String.format(FieldObject.FIELD_DISPLAY_FORMAT, "field0", "{null}"), fieldObject.getDisplayLabel());
+    assertEquals(String.format(FieldObject.FIELD_DISPLAY_FORMAT, "field0", "{null}"), fieldObject.getName());
     assertEquals(Integer.MAX_VALUE, fieldObject.getDepth());
     assertEquals(0, fieldObject.getShallowSize());
     assertEquals(0, fieldObject.getRetainedSize());
@@ -69,7 +69,7 @@ public class HeapDumpFieldObjectTest {
     HeapDumpFieldObject fieldObject = new HeapDumpFieldObject(parentInstance, field, null);
     assertEquals("field0", fieldObject.getFieldName());
     assertEquals(ClassObject.ValueType.BOOLEAN, fieldObject.getValueType());
-    assertEquals(String.format(FieldObject.FIELD_DISPLAY_FORMAT, "field0", true), fieldObject.getDisplayLabel());
+    assertEquals(String.format(FieldObject.FIELD_DISPLAY_FORMAT, "field0", true), fieldObject.getName());
     assertEquals(parentDepth, fieldObject.getDepth());
     assertEquals(Type.BOOLEAN.getSize(), fieldObject.getShallowSize());
     assertEquals(Type.BOOLEAN.getSize(), fieldObject.getRetainedSize());

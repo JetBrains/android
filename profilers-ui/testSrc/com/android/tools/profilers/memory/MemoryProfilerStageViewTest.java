@@ -174,7 +174,7 @@ public class MemoryProfilerStageViewTest extends MemoryProfilerTestBase {
     }
     else {
       assertEquals(stageView.getCapturePanel(), stageView.getChartCaptureSplitter().getSecondComponent());
-      assertEquals(expectedCaptureObject.getLabel(), stageView.getCaptureView().getComponent().getText());
+      assertEquals(expectedCaptureObject.getName(), stageView.getCaptureView().getComponent().getText());
       assertEquals(expectedCaptureObject.getHeaps(),
                    IntStream.range(0, heapObjectComboBoxModel.getSize()).mapToObj(heapObjectComboBoxModel::getElementAt)
                      .collect(Collectors.toList()));

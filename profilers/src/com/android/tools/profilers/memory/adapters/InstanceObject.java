@@ -41,9 +41,6 @@ public interface InstanceObject extends MemoryObject {
     }
   }
 
-  @NotNull
-  String getDisplayLabel();
-
   @Nullable
   default String getToStringText() {
     return null;

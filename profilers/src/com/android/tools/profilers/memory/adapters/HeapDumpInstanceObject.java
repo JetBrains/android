@@ -171,7 +171,7 @@ class HeapDumpInstanceObject implements InstanceObject {
 
   @NotNull
   @Override
-  public String getDisplayLabel() {
+  public String getName() {
     // TODO show length of array instance
     return myMemoizedLabel;
   }

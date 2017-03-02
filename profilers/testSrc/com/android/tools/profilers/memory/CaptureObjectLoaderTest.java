@@ -178,7 +178,7 @@ public class CaptureObjectLoaderTest {
 
     @NotNull
     @Override
-    public String getLabel() {
+    public String getName() {
       return "";
     }
 

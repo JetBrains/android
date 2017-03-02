@@ -98,7 +98,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
               }
             }
 
-            builder.append(node.getDisplayLabel());
+            builder.append(node.getName());
             return builder.toString();
           },
           value -> MemoryProfilerStageView.getInstanceObjectIcon((InstanceObject)value.getAdapter()),
@@ -106,7 +106,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
         SwingConstants.LEFT,
         LABEL_COLUMN_WIDTH,
         SortOrder.ASCENDING,
-        Comparator.comparing(o -> ((InstanceObject)o.getAdapter()).getDisplayLabel())));
+        Comparator.comparing(o -> ((InstanceObject)o.getAdapter()).getName())));
     myAttributeColumns.put(
       InstanceObject.InstanceAttribute.DEPTH,
       new AttributeColumn(
