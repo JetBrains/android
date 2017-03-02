@@ -69,7 +69,7 @@ public class TraceSignatureConverter  {
    * @return - signature of the given method encoded by java encoding and by applying type erasure.
    *
    * For example:
-   * {@code int aMethod(List<String> a, ArrayList<T> b, boolean c)}
+   * {@code int aMethod(List<String> a, ArrayList<T> b, boolean c, Integer[][] d)}
    * returns (Ljava/util/List;Ljava/util/ArrayList;Z[[Ljava/lang/Integer;)I
    */
   @NotNull
