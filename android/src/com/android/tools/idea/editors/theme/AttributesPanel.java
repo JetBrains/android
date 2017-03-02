@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.tools.swing.layoutlib.AndroidPreviewPanel;
+import com.android.tools.swing.util.SwingUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import com.intellij.ui.ColorUtil;
@@ -111,6 +112,7 @@ public class AttributesPanel {
     myThemeCombo.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
     // there is also an option to set a global setting for this, but we probably do not want to do that:
     // UIManager.getLookAndFeelDefaults().put("ComboBox.noActionOnKeyNavigation", true);
+    SwingUtil.doNotSelectSeparators(myThemeCombo);
 
     // Set combo boxes names to be able to distinguish them in UI tests
     myThemeCombo.setName(THEME_SELECTOR_NAME);
