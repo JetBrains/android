@@ -40,7 +40,7 @@ public class NewVectorAssetTest {
   @Before
   public void openAssetStudioWizard() throws Exception {
     IdeFrameFixture frame = guiTest.importSimpleApplication();
-    frame.getProjectView().selectAndroidPane();
+    frame.getProjectView().selectAndroidPane().clickPath("app");
 
     myDialog = frame.openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Vector Asset");
     myStep = myDialog.getVectorAssetStep();
