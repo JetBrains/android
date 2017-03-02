@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
+import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.*;
@@ -88,7 +89,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @NotNull
   private final CpuTraceDataSeries myCpuTraceDataSeries;
 
-  private AspectModel<CpuProfilerAspect> myAspect = new AspectModel<>();
+  private final AspectModel<CpuProfilerAspect> myAspect = new AspectModel<>();
+  private final AspectObserver myAspectObserver = new AspectObserver();
 
   /**
    * The current capture.
@@ -101,6 +103,18 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   @NotNull
   private CaptureState myCaptureState;
+
+  /**
+   * Reference to a selection range converted to ClockType.THREAD.
+   */
+  private final Range myCaptureConvertedRange;
+
+  /**
+   * Whether selection range update was triggered by an update in the converted range.
+   * Converted range updates selection range and vice-versa. To avoid stack overflow,
+   * we avoid updating the converted range in a loop.
+   */
+  private boolean myIsConvertedRangeUpdatingSelection;
 
   /**
    * Id of the current selected thread.
@@ -122,6 +136,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @Nullable
   private CaptureDetails myCaptureDetails;
 
+  @NotNull
+  private ClockType myClockType;
+
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
     myCpuTraceDataSeries = new CpuTraceDataSeries();
@@ -129,6 +146,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     Range viewRange = getStudioProfilers().getTimeline().getViewRange();
     Range dataRange = getStudioProfilers().getTimeline().getDataRange();
     Range selectionRange = getStudioProfilers().getTimeline().getSelectionRange();
+    selectionRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::updateCaptureConvertedRange);
 
     myCpuUsage = new DetailedCpuUsage(profilers);
 
@@ -151,6 +169,10 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     mySelectionModel.addConstraint(myTraceDurations);
 
     myCaptureState = isCapturing() ? CaptureState.CAPTURING : CaptureState.IDLE;
+
+    myClockType = ClockType.GLOBAL;
+    myCaptureConvertedRange = new Range();
+    myCaptureConvertedRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::updateSelectionRange);
   }
 
   @NotNull
@@ -305,6 +327,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   public void setCapture(@Nullable CpuCapture capture) {
     myCapture = capture;
     if (capture != null) {
+      myCapture.updateClockType(myClockType);
       setCaptureDetails(myCaptureDetails != null ? myCaptureDetails.getType() : CaptureDetails.Type.TOP_DOWN);
       getStudioProfilers().modeChanged();
     }
@@ -315,8 +338,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   public void setAndSelectCapture(@Nullable CpuCapture capture) {
     if (capture != null) {
-      ProfilerTimeline timeline = getStudioProfilers().getTimeline();
-      timeline.getSelectionRange().set(capture.getRange());
+      getStudioProfilers().getTimeline().getSelectionRange().set(capture.getRange());
     }
     setCapture(capture);
   }
@@ -331,6 +353,28 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
   }
 
+  @NotNull
+  public List<ClockType> getClockTypes() {
+    return ContainerUtil.immutableList(ClockType.GLOBAL, ClockType.THREAD);
+  }
+
+  @NotNull
+  public ClockType getClockType() {
+    return myClockType;
+  }
+
+  public void setClockType(@NotNull ClockType clockType) {
+    myClockType = clockType;
+    if (myCapture != null) {
+      myCapture.updateClockType(clockType);
+    }
+    if (myCaptureDetails != null) {
+      setCaptureDetails(myCaptureDetails.getType());
+    }
+    updateCaptureConvertedRange();
+    myAspect.changed(CpuProfilerAspect.CLOCK_TYPE);
+  }
+
   /**
    * The current capture of the cpu profiler, if null there is no capture to display otherwise we need to be in
    * a capture viewing mode.
@@ -340,11 +384,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return myCapture;
   }
 
+  @NotNull
   public CaptureState getCaptureState() {
     return myCaptureState;
   }
 
-  public void setCaptureState(CaptureState captureState) {
+  public void setCaptureState(@NotNull CaptureState captureState) {
     myCaptureState = captureState;
     myAspect.changed(CpuProfilerAspect.CAPTURE);
   }
@@ -402,9 +447,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   public void setCaptureDetails(@Nullable CaptureDetails.Type type) {
     if (type != null) {
-      Range range = getStudioProfilers().getTimeline().getSelectionRange();
       HNode<MethodModel> node = myCapture != null ? myCapture.getCaptureNode(getSelectedThread()) : null;
-      myCaptureDetails = type.build(range, node);
+      updateCaptureConvertedRange();
+      myCaptureDetails = type.build(myCaptureConvertedRange, node);
     }
     else {
       myCaptureDetails = null;
@@ -422,6 +467,54 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @Override
   public void onNavigated(@NotNull CodeLocation location) {
     setProfilerMode(ProfilerMode.NORMAL);
+  }
+
+  /**
+   * When using ClockType.THREAD, we need to scale the selection to actually select a relevant range in the capture.
+   * That happens because selection is based on wall-clock time, which is usually way greater than thread time.
+   * As the two types of clock are synced at start time, making a selection starting at a time
+   * greater than (start + thread time length) will result in no feedback for the user, which is wrong.
+   * Therefore, we scale the selection so we can provide relevant thread time data as the user changes selection.
+   */
+  private void updateCaptureConvertedRange() {
+    if (myIsConvertedRangeUpdatingSelection) {
+      myIsConvertedRangeUpdatingSelection = false;
+      return;
+    }
+    myIsConvertedRangeUpdatingSelection = true;
+
+    // TODO: improve performance of select range conversion.
+    Range selection = getStudioProfilers().getTimeline().getSelectionRange();
+    HNode<MethodModel> topLevelNode;
+    if (myClockType == ClockType.GLOBAL || myCapture == null || (topLevelNode = myCapture.getCaptureNode(getSelectedThread())) == null) {
+      myCaptureConvertedRange.set(selection);
+      return;
+    }
+    assert topLevelNode instanceof CaptureNode;
+    CaptureNode node = (CaptureNode)topLevelNode;
+
+    double convertedMin = node.getStartThread() + node.threadGlobalRatio() * (selection.getMin() - node.getStartGlobal());
+    double convertedMax = convertedMin + node.threadGlobalRatio() * selection.getLength();
+    myCaptureConvertedRange.set(convertedMin, convertedMax);
+  }
+
+  /**
+   * Updates the selection range based on the converted range in case THREAD clock is being used.
+   */
+  private void updateSelectionRange() {
+    // TODO: improve performance of range conversion.
+    HNode<MethodModel> topLevelNode;
+    if (myClockType == ClockType.GLOBAL || myCapture == null || (topLevelNode = myCapture.getCaptureNode(getSelectedThread())) == null) {
+      getStudioProfilers().getTimeline().getSelectionRange().set(myCaptureConvertedRange);
+      return;
+    }
+    assert topLevelNode instanceof CaptureNode;
+    CaptureNode node = (CaptureNode)topLevelNode;
+
+    double threadToGlobal = 1 / node.threadGlobalRatio();
+    double convertedMin = node.getStartGlobal() + threadToGlobal * (myCaptureConvertedRange.getMin() - node.getStartThread());
+    double convertedMax = convertedMin + threadToGlobal * myCaptureConvertedRange.getLength();
+    getStudioProfilers().getTimeline().getSelectionRange().set(convertedMin, convertedMax);
   }
 
   public interface CaptureDetails {
