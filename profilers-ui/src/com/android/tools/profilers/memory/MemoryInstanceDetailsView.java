@@ -197,7 +197,11 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     AllocationStack callStack = instance.getCallStack();
     if (callStack != null && !callStack.getStackFramesList().isEmpty()) {
       List<CodeLocation> stackFrames = callStack.getStackFramesList().stream()
-        .map((frame) -> new CodeLocation(frame.getClassName(), frame.getFileName(), frame.getMethodName(), null, frame.getLineNumber() - 1))
+        .map((frame) -> new CodeLocation.Builder(frame.getClassName())
+          .setFileName(frame.getFileName())
+          .setMethodName(frame.getMethodName())
+          .setLineNumber(frame.getLineNumber() - 1)
+          .build())
         .collect(Collectors.toList());
       myStackTraceView.getModel().setStackFrames(instance.getAllocationThreadId(), stackFrames);
         myTabsPanel.addTab("Callstack", myStackTraceView.getComponent());
@@ -277,7 +281,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       }
 
       InstanceObject instanceObject = (InstanceObject)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
-      return new CodeLocation(instanceObject.getClassName());
+      return new CodeLocation.Builder(instanceObject.getClassName()).build();
     });
 
     myIdeProfilerComponents.installContextMenu(tree, new ContextMenuItem() {

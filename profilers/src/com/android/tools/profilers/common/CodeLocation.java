@@ -18,63 +18,41 @@ package com.android.tools.profilers.common;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.Arrays;
 
 public final class CodeLocation {
   public static final int INVALID_LINE_NUMBER = -1;
-
   @NotNull
   private final String myClassName;
-
   @Nullable
   private final String myFileName;
-
   @Nullable
   private final String myMethodName;
-
   /**
-   * Signature of a method, encoded by java type encoding
-   *
-   * For example:
-   * {@code int aMethod(List<String> a, ArrayList<T> b, boolean c, Integer[][] d)}
-   * the signature is (Ljava/util/List;Ljava/util/ArrayList;Z[[Ljava/lang/Integer;)I
-   *
-   * Java encoding: https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName()
+   * See {@link Builder#setMethodSignature(String, String)} for details about this field.
    */
   @Nullable
   private final String mySignature;
-
   private final int myLineNumber;
-
   private final int myHashcode;
 
-  public CodeLocation(@NotNull String className) {
-    this(className, null, null, null, INVALID_LINE_NUMBER);
+  private CodeLocation(@NotNull Builder builder) {
+    myClassName = builder.myClassName;
+    myFileName = builder.myFileName;
+    myMethodName = builder.myMethodName;
+    mySignature = builder.mySignature;
+    myLineNumber = builder.myLineNumber;
+    myHashcode = Arrays.hashCode(new int[]{myClassName.hashCode(), myFileName == null ? 0 : myFileName.hashCode(),
+      myMethodName == null ? 0 : myMethodName.hashCode(), mySignature == null ? 0 : mySignature.hashCode(),
+      Integer.hashCode(myLineNumber)});
   }
 
-  /**
-   * @param lineNumber 0-based line number
-   */
-  public CodeLocation(@NotNull String className, int lineNumber) {
-    this(className, null, null, null, lineNumber);
-  }
-
-  /**
-   * @param lineNumber 0-based line number
-   */
-  public CodeLocation(@NotNull String className,
-                      @Nullable String fileName,
-                      @Nullable String methodName,
-                      @Nullable String signature,
-                      int lineNumber) {
-    myClassName = className;
-    myFileName = fileName;
-    myMethodName = methodName;
-    mySignature = signature;
-    myLineNumber = lineNumber;
-    myHashcode = Arrays.hashCode(new int[]{className.hashCode(), fileName == null ? 0 : fileName.hashCode(),
-      methodName == null ? 0 : methodName.hashCode(), signature == null ? 0 : signature.hashCode(), Integer.hashCode(lineNumber)});
+  @TestOnly
+  @NotNull
+  public static CodeLocation stub() {
+    return new CodeLocation.Builder("").build();
   }
 
   @NotNull
@@ -92,10 +70,16 @@ public final class CodeLocation {
     return myMethodName;
   }
 
+  /**
+   * @param lineNumber 0-based line number
+   */
   public int getLineNumber() {
     return myLineNumber;
   }
 
+  /**
+   * See {@link Builder#setMethodSignature(String, String)} for details about this value.
+   */
   @Nullable
   public String getSignature() {
     return mySignature;
@@ -118,5 +102,67 @@ public final class CodeLocation {
            StringUtil.equals(myMethodName, other.myMethodName) &&
            StringUtil.equals(mySignature, other.mySignature) &&
            myLineNumber == other.myLineNumber;
+  }
+
+  public static final class Builder {
+    @NotNull private final String myClassName;
+    @Nullable String myFileName;
+    @Nullable String myMethodName;
+    @Nullable String mySignature;
+    int myLineNumber = INVALID_LINE_NUMBER;
+
+    public Builder(@NotNull String className) {
+      myClassName = className;
+    }
+
+    public Builder(@NotNull CodeLocation rhs) {
+      myClassName = rhs.getClassName();
+      myFileName = rhs.getFileName();
+      myMethodName = rhs.getMethodName();
+      mySignature = rhs.getSignature();
+      myLineNumber = rhs.getLineNumber();
+    }
+
+    @NotNull
+    public Builder setFileName(@Nullable String fileName) {
+      myFileName = StringUtil.nullize(fileName); // "" is an invalid name and should be converted to null
+      return this;
+    }
+
+    @NotNull
+    public Builder setMethodName(@Nullable String methodName) {
+      myMethodName = StringUtil.nullize(methodName); // "" is an invalid name and should be converted to null
+      return this;
+    }
+
+    /**
+     * Signature of a method, encoded by java type encoding
+     *
+     * For example:
+     * {@code int aMethod(List<String> a, ArrayList<T> b, boolean c, Integer[][] d)}
+     * the signature is (Ljava/util/List;Ljava/util/ArrayList;Z[[Ljava/lang/Integer;)I
+     *
+     * Java encoding: https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName()
+     */
+    @NotNull
+    public Builder setMethodSignature(@NotNull String methodName, @NotNull String signature) {
+      myMethodName = methodName;
+      mySignature = signature;
+      return this;
+    }
+
+    /**
+     * @param lineNumber 0-based line number.
+     */
+    @NotNull
+    public Builder setLineNumber(int lineNumber) {
+      myLineNumber = lineNumber;
+      return this;
+    }
+
+    @NotNull
+    public CodeLocation build() {
+      return new CodeLocation(this);
+    }
   }
 }

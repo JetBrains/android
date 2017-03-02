@@ -205,10 +205,10 @@ public class MemoryClassViewTest {
   public void stackExistenceTest() {
     MemoryClassView classView = new MemoryClassView(myStage, myFakeIdeProfilerComponents);
 
-    CodeLocation codeLocation1 = new CodeLocation("Foo", "", "fooMethod1", null, 5);
-    CodeLocation codeLocation2 = new CodeLocation("Foo", "", "fooMethod2", null, 10);
-    CodeLocation codeLocation3 = new CodeLocation("Foo", "", "fooMethod3", null, 15);
-    CodeLocation codeLocation4 = new CodeLocation("Bar", "", "barMethod1", null, 20);
+    CodeLocation codeLocation1 = new CodeLocation.Builder("Foo").setMethodName("fooMethod1").setLineNumber(5).build();
+    CodeLocation codeLocation2 = new CodeLocation.Builder("Foo").setMethodName("fooMethod2").setLineNumber(10).build();
+    CodeLocation codeLocation3 = new CodeLocation.Builder("Foo").setMethodName("fooMethod3").setLineNumber(15).build();
+    CodeLocation codeLocation4 = new CodeLocation.Builder("Bar").setMethodName("barMethod1").setLineNumber(20).build();
 
     //noinspection ConstantConditions
     AllocationStack callstack1 = AllocationStack.newBuilder()
@@ -308,10 +308,10 @@ public class MemoryClassViewTest {
   public void groupByStackTraceTest() {
     MemoryClassView classView = new MemoryClassView(myStage, myFakeIdeProfilerComponents);
 
-    CodeLocation codeLocation1 = new CodeLocation("Foo", "", "fooMethod1", null, 5);
-    CodeLocation codeLocation2 = new CodeLocation("Foo", "", "fooMethod2", null, 10);
-    CodeLocation codeLocation3 = new CodeLocation("Foo", "", "fooMethod3", null, 15);
-    CodeLocation codeLocation4 = new CodeLocation("Bar", "", "barMethod1", null, 20);
+    CodeLocation codeLocation1 = new CodeLocation.Builder("Foo").setMethodName("fooMethod1").setLineNumber(5).build();
+    CodeLocation codeLocation2 = new CodeLocation.Builder("Foo").setMethodName("fooMethod2").setLineNumber(10).build();
+    CodeLocation codeLocation3 = new CodeLocation.Builder("Foo").setMethodName("fooMethod3").setLineNumber(15).build();
+    CodeLocation codeLocation4 = new CodeLocation.Builder("Bar").setMethodName("barMethod1").setLineNumber(20).build();
 
     //noinspection ConstantConditions
     AllocationStack callstack1 = AllocationStack.newBuilder()
