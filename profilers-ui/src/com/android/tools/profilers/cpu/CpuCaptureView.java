@@ -171,7 +171,7 @@ class CpuCaptureView {
     }
     DefaultMutableTreeNode node = (DefaultMutableTreeNode)tree.getSelectionPath().getLastPathComponent();
     CpuTreeNode cpuNode = (CpuTreeNode)node.getUserObject();
-    return new CodeLocation(cpuNode.getClassName());
+    return new CodeLocation(cpuNode.getClassName(), null, cpuNode.getMethodName(), cpuNode.getSignature(), CodeLocation.INVALID_LINE_NUMBER);
   }
 
   /**
