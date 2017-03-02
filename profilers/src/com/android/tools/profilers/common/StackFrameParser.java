@@ -91,4 +91,17 @@ public final class StackFrameParser {
   public int getCloseParen() {
     return myLine.indexOf(')');
   }
+
+  @NotNull
+  public CodeLocation toCodeLocation() {
+    String className = getClassName();
+    if (className == null) {
+      throw new IllegalStateException("Trying to create CodeLocation from an incomplete StackFrameParser");
+    }
+
+    return new CodeLocation.Builder(className).
+      setFileName(getFileName()).
+      setMethodName(getMethodName()).
+      setLineNumber(getLineNumber() - 1).build();
+  }
 }
