@@ -33,8 +33,6 @@ import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -343,7 +341,7 @@ final class MemoryClassView extends AspectObserver {
     assert myHeapObject != null;
 
     List<InstanceObject> instancesWithStack = new ArrayList<>();
-    Set<ClassObject> stacklessClasses = new HashSet<>();
+    List<InstanceObject> stacklessInstances = new ArrayList<>();
     for (ClassObject classObject : myHeapObject.getClasses()) {
       for (InstanceObject instanceObject : classObject.getInstances()) {
         assert instanceObject.getClassObject() != null;
@@ -353,7 +351,7 @@ final class MemoryClassView extends AspectObserver {
           instancesWithStack.add(instanceObject);
         }
         else {
-          stacklessClasses.add(instanceObject.getClassObject());
+          stacklessInstances.add(instanceObject);
         }
       }
     }
@@ -396,8 +394,20 @@ final class MemoryClassView extends AspectObserver {
       myTreeRoot.add(classificationIndex.getTreeNode());
     }
 
-    for (ClassObject classObject : stacklessClasses) {
-      myTreeRoot.add(new MemoryObjectTreeNode<>(classObject));
+    Map<ClassObject, ProxyClassObject> stacklessClasses = new HashMap<>();
+    for (InstanceObject instanceObject : stacklessInstances) {
+      ClassObject classObject = instanceObject.getClassObject();
+      assert classObject != null;
+      if (!stacklessClasses.containsKey(classObject)) {
+        stacklessClasses.put(classObject, new ProxyClassObject(classObject, instanceObject));
+      }
+      else {
+        stacklessClasses.get(classObject).accumulateInstanceObject(instanceObject);
+      }
+    }
+
+    for (ProxyClassObject proxyClassObject : stacklessClasses.values()) {
+      myTreeRoot.add(new MemoryObjectTreeNode<>(proxyClassObject));
     }
   }
 
