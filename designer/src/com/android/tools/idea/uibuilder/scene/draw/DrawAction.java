@@ -15,23 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.scene.draw;
 
+import com.android.tools.idea.uibuilder.graphics.NlIcon;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.sherpa.drawing.ColorSet;
 
-import java.awt.*;
-
-import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
-import icons.AndroidIcons.SherpaIcons;
-
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * Draw Action
  */
 public class DrawAction extends DrawRegion {
-  public static final int CLEAR = 0;
-  public static final int BASELINE = 1;
-  public static final int CHAIN = 2;
+  private final NlIcon myIcon;
   private boolean myIsOver;
 
   int myMode;
@@ -43,16 +38,9 @@ public class DrawAction extends DrawRegion {
     return POST_CLIP_LEVEL;
   }
 
-  public DrawAction(String s) {
-    String[] sp = s.split(",");
-    int c = 0;
-    c = super.parse(sp, c);
-    myMode = Integer.parseInt(sp[c++]);
-  }
-
-  public DrawAction(int x, int y, int width, int height, int mode, boolean isOver) {
+  public DrawAction(int x, int y, int width, int height, NlIcon icon, boolean isOver) {
     super(x, y, width, height);
-    myMode = mode;
+    myIcon = icon;
     myIsOver = isOver;
   }
 
@@ -74,13 +62,7 @@ public class DrawAction extends DrawRegion {
     }
     Color color = colorSet.getText();
     g.setColor(color);
-    Icon icon = (colorSet.getStyle() == WidgetDecorator.BLUEPRINT_STYLE) ? SherpaIcons.DeleteConstraintB : SherpaIcons.DeleteConstraint;
-    if (myMode == 1) {
-      icon = (colorSet.getStyle() == WidgetDecorator.BLUEPRINT_STYLE) ? SherpaIcons.BaselineBlue : SherpaIcons.BaselineColor;
-    }
-    else if (myMode == 2) {
-      icon = (colorSet.getStyle() == WidgetDecorator.BLUEPRINT_STYLE) ? SherpaIcons.ChainBlue : SherpaIcons.Chain;
-    }
+    Icon icon = myIcon.getSelectedIcon(sceneContext);
     g.setFont(mFont);
     FontMetrics fontMetrics = g.getFontMetrics();
     int iw = icon.getIconWidth();
@@ -113,12 +95,12 @@ public class DrawAction extends DrawRegion {
                          float top,
                          float right,
                          float bottom,
-                         int mode,
+                         NlIcon icon,
                          boolean isOver) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
     int w = transform.getSwingDimension(right - left);
     int h = transform.getSwingDimension(bottom - top);
-    list.add(new DrawAction(l, t, w, h, mode, isOver));
+    list.add(new DrawAction(l, t, w, h, icon, isOver));
   }
 }
