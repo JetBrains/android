@@ -123,6 +123,8 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     myMockService = new MockDeviceFileSystemService(getProject(), myEdtExecutor);
     myMockView = new MockDeviceExplorerView(getProject(), toolWindow, new MockDeviceFileSystemRenderer(), myModel);
     myMockFileManager = new MockDeviceExplorerFileManager(getProject(), myEdtExecutor);
+    File downloadPath = FileUtil.createTempDirectory("device-explorer-temp", "", true);
+    myMockFileManager.setDefaultDownloadPath(downloadPath.toPath());
 
     myDevice1 = myMockService.addDevice("TestDevice-1");
     myFoo = myDevice1.getRoot().addDirectory("Foo");
@@ -603,7 +605,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     downloadFile(() -> {
       // Prepare
       // The "Save As" dialog does not work in headless mode, so we register a custom
-      // comonent that simply returns the tempFile we created above.
+      // component that simply returns the tempFile we created above.
       replaceApplicationComponent(FileChooserFactory.class, new FileChooserFactoryImpl() {
         @NotNull
         @Override
