@@ -93,6 +93,29 @@ public class ActivityEventDataSeriesTest {
   }
 
   @Test
+  public void testActivityDied() {
+    myEventService.addActivityEvent(
+      buildActivityEvent(ACTIVITY_NAME,
+                         new ActivityStateData[]{
+                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.CREATED,
+                                                 TEST_START_TIME_NS),
+                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.RESUMED,
+                                                 TEST_START_TIME_NS),
+                           new ActivityStateData(EventProfiler.ActivityStateData.ActivityState.DESTROYED,
+                                                 TEST_END_TIME_NS),
+                         }
+      ));
+    Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
+    List<SeriesData<EventAction<StackedEventType>>> dataList = mySeries.getDataForXRange(range);
+    assertEquals(dataList.size(), 1);
+    SeriesData<EventAction<StackedEventType>> event = dataList.get(0);
+    verifyActivity(event, TEST_END_TIME_NS);
+    assertEquals(event.value.getType(), StackedEventType.ACTIVITY_COMPLETED);
+    assertEquals(((ActivityAction)event.value).getData(), ACTIVITY_NAME);
+  }
+
+
+  @Test
   public void testMultipleActivity() {
     myEventService.addActivityEvent(
       buildActivityEvent(ACTIVITY_NAME,
