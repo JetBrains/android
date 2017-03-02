@@ -2,13 +2,14 @@ package org.jetbrains.android.inspections.lint;
 
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.LocalQuickFixOnPsiElement;
+import com.intellij.openapi.application.WriteActionAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
-public interface AndroidLintQuickFix {
+public interface AndroidLintQuickFix extends WriteActionAware {
   AndroidLintQuickFix[] EMPTY_ARRAY = new AndroidLintQuickFix[0];
 
   void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context);
@@ -64,12 +65,20 @@ public interface AndroidLintQuickFix {
     @NotNull
     @Override
     public String getFamilyName() {
+      // Ensure that we use different family names so actions are not collapsed into a single button in
+      // the inspections UI (and then *all* processed when the user invokes the action; see
+      // https://code.google.com/p/android/issues/detail?id=235641)
       return myFix.getName();
     }
 
     @Override
     public void invoke(@NotNull Project project, @NotNull PsiFile file, @NotNull PsiElement startElement, @NotNull PsiElement endElement) {
       myFix.apply(startElement, endElement, AndroidQuickfixContexts.BatchContext.getInstance());
+    }
+
+    @Override
+    public boolean startInWriteAction() {
+      return myFix.startInWriteAction();
     }
   }
 }
