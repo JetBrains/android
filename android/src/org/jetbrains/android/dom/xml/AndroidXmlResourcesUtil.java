@@ -17,6 +17,7 @@
 package org.jetbrains.android.dom.xml;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.dom.xml.PathsDomFileDescription;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.android.dom.AndroidDomUtil;
@@ -51,7 +52,7 @@ public class AndroidXmlResourcesUtil {
 
   private static final ImmutableSet<String> ROOT_TAGS = ImmutableSet
     .of(SdkConstants.TAG_APPWIDGET_PROVIDER, SEARCHABLE_TAG_NAME, KEYBOARD_TAG_NAME, DEVICE_ADMIN_TAG_NAME, ACCOUNT_AUTHENTICATOR_TAG_NAME,
-        PREFERENCE_HEADERS_TAG_NAME);
+        PREFERENCE_HEADERS_TAG_NAME, PathsDomFileDescription.TAG_NAME);
 
   private AndroidXmlResourcesUtil() {
   }
