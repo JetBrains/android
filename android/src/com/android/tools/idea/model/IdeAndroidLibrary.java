@@ -22,8 +22,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -54,7 +54,17 @@ public class IdeAndroidLibrary extends IdeAndroidBundle implements AndroidLibrar
     myExternalAnnotations = library.getExternalAnnotations();
     myPublicResources = library.getPublicResources();
     mySymbolFile = library.getSymbolFile();
-    myOptional = library.isOptional();
+    boolean optional = false;
+    try {
+      // isOptional is deprecated and isProvided should be used instead when null is returned
+      optional = library.isOptional();
+    }
+    catch (NullPointerException e) {
+      optional = !library.isProvided();
+    }
+    finally {
+      myOptional = optional;
+    }
   }
 
   @Override

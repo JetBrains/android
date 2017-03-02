@@ -54,7 +54,7 @@ public class IdeAndroidProject implements AndroidProject, Serializable {
   @NotNull private final File myBuildFolder;
   @Nullable private final String myResourcePrefix;
   private final int myApiVersion;
-  private final boolean myisLibrary;
+  private final boolean myIsLibrary;
   private final int myProjectType;
   private final int myPluginGeneration;
 
@@ -68,6 +68,7 @@ public class IdeAndroidProject implements AndroidProject, Serializable {
     myModelGradleVersion = GradleVersion.parse(myModelVersion);
 
     myName = project.getName();
+
     myDefaultConfig = new IdeProductFlavorContainer(project.getDefaultConfig());
 
     myBuildTypes = new ArrayList<>();
@@ -121,12 +122,12 @@ public class IdeAndroidProject implements AndroidProject, Serializable {
     myBuildFolder = project.getBuildFolder();
     myResourcePrefix = project.getResourcePrefix();
     myApiVersion = project.getApiVersion();
-    myisLibrary = project.isLibrary();
+    myIsLibrary = project.isLibrary();
 
     if (myModelGradleVersion.isAtLeast(2,3,0)) {
       myProjectType = project.getProjectType();
     } else {
-      myProjectType = myisLibrary ? PROJECT_TYPE_LIBRARY : PROJECT_TYPE_APP;
+      myProjectType = myIsLibrary ? PROJECT_TYPE_LIBRARY : PROJECT_TYPE_APP;
     }
 
     myPluginGeneration = project.getPluginGeneration();
@@ -265,7 +266,7 @@ public class IdeAndroidProject implements AndroidProject, Serializable {
 
   @Override
   public boolean isLibrary() {
-    return myisLibrary;
+    return myIsLibrary;
   }
 
   @Override
