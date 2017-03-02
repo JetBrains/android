@@ -17,16 +17,19 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.Features;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
+import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
+import com.android.tools.idea.uibuilder.editor.NlEditor;
+import com.android.tools.idea.uibuilder.graphics.NlIcon;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.*;
 import com.android.tools.idea.uibuilder.scene.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.scene.draw.ConstraintLayoutNotchProvider;
-import com.android.tools.idea.uibuilder.scene.draw.DrawAction;
 import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.Interaction;
@@ -41,12 +44,24 @@ import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
+import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.util.PsiUtilCore;
+import com.intellij.psi.xml.XmlAttribute;
+import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -57,6 +72,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.editor.NlEditorProvider.DESIGNER_ID;
 
 /**
  * Handles interactions for the ConstraintLayout viewgroups
@@ -73,11 +89,18 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   public static final String SHOW_CONSTRAINTS_PREF_KEY = PREFERENCE_KEY_PREFIX + "ShowAllConstraints";
 
+  private static final NlIcon BASELINE_ICON =
+    new NlIcon(AndroidIcons.SherpaIcons.BaselineColor, AndroidIcons.SherpaIcons.BaselineBlue);
+  private static final NlIcon NAVIGATE_TO_ICON =
+    new NlIcon(AndroidIcons.SherpaIcons.ArrowRight, AndroidIcons.SherpaIcons.ArrowRight);
+
   private boolean myShowAllConstraints = true;
 
   ArrayList<ViewAction> myActions = new ArrayList<>();
   ArrayList<ViewAction> myPopupActions = new ArrayList<>();
   ArrayList<ViewAction> myControlActions = new ArrayList<>();
+
+  private JLabel breadcrumb = new JLabel("Navigated from ");
 
   /**
    * Utility function to convert from an Icon to an Image
@@ -429,25 +452,67 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       result.add(new LassoTarget());
       component.setNotchProvider(new ConstraintLayoutNotchProvider());
     }
+
     result.add(new AnchorTarget(AnchorTarget.Type.LEFT, showAnchors));
     result.add(new AnchorTarget(AnchorTarget.Type.TOP, showAnchors));
     result.add(new AnchorTarget(AnchorTarget.Type.RIGHT, showAnchors));
     result.add(new AnchorTarget(AnchorTarget.Type.BOTTOM, showAnchors));
+
+    ActionTarget previousAction = null;
     if (showAnchors) {
-      ActionTarget previousAction = new ClearConstraintsTarget(null);
+      previousAction = new ClearConstraintsTarget(previousAction);
       result.add(previousAction);
+
       int baseline = component.getNlComponent().getBaseline();
       if (baseline <= 0 && component.getNlComponent().viewInfo != null) {
         baseline = component.getNlComponent().viewInfo.getBaseLine();
       }
       if (baseline > 0) {
         result.add(new AnchorTarget(AnchorTarget.Type.BASELINE, true));
-        ActionTarget baselineActionTarget = new ActionTarget(previousAction, (SceneComponent c) -> c.setShowBaseline(!c.canShowBaseline()));
-        baselineActionTarget.setActionType(DrawAction.BASELINE);
+        ActionTarget baselineActionTarget =
+          new ActionTarget(previousAction, BASELINE_ICON, (SceneComponent c) -> c.setShowBaseline(!c.canShowBaseline())) {
+            @Override
+            @Nullable
+            public String getToolTipText() {
+              return "Edit Baselines";
+            }
+          };
         result.add(baselineActionTarget);
         previousAction = baselineActionTarget;
       }
-      result.add(new ChainCycleTarget(previousAction, null));
+      ActionTarget chainCycleTarget = new ChainCycleTarget(previousAction, null);
+      result.add(chainCycleTarget);
+      previousAction = chainCycleTarget;
+    }
+
+    if (Features.INCLUDE_NAVIGATION_ENABLED && VIEW_INCLUDE.equals(nlComponent.getTagName())) {
+      ActionTarget navigateTo = new ActionTarget(previousAction, NAVIGATE_TO_ICON, (c) -> {
+        XmlAttribute layoutAttribute = nlComponent.getTag().getAttribute(ATTR_LAYOUT);
+        if (layoutAttribute != null) {
+          XmlAttributeValue value = layoutAttribute.getValueElement();
+          PsiReference reference = value != null ? value.getReference() : null;
+          PsiElement navigationElement = reference != null ? reference.resolve() : null;
+          Project project = nlComponent.getModel().getProject();
+          VirtualFile destinationFile = PsiUtilCore.getVirtualFile(navigationElement);
+          if (destinationFile != null) {
+            FileEditorManager manager = FileEditorManager.getInstance(project);
+            VirtualFile currentFile = value.getContainingFile().getVirtualFile();
+            FileEditor currentEditor = manager.getSelectedEditor(currentFile);
+            boolean isInDesignerMode = currentEditor instanceof NlEditor;
+
+            OpenFileDescriptor openFileDescriptor =
+              new OpenFileDescriptor(project, destinationFile);
+            manager.openEditor(openFileDescriptor, true);
+            manager
+              .setSelectedEditor(destinationFile, isInDesignerMode ? DESIGNER_ID : TextEditorProvider.getInstance().getEditorTypeId());
+
+            FileEditor newEditor = manager.getSelectedEditor(destinationFile);
+            LayoutNavigationManager.getInstance(project).updateNavigation(currentEditor, currentFile, newEditor, destinationFile);
+          }
+        }
+      });
+      result.add(navigateTo);
+      previousAction = navigateTo;
     }
     return result;
   }

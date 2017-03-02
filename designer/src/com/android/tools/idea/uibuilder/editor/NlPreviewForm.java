@@ -20,6 +20,7 @@ import com.android.tools.adtui.workbench.Side;
 import com.android.tools.adtui.workbench.Split;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.uibuilder.Features;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -51,8 +52,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class NlPreviewForm implements Disposable, CaretListener {
-  private static final boolean ANIMATIONS_PREVIEW_ENABLED = Boolean.getBoolean("enable.animated.preview");
-
   private final NlPreviewManager myManager;
   private final NlDesignSurface mySurface;
   private final WorkBench<DesignSurface> myWorkBench;
@@ -118,7 +117,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     contentPanel.add(myActionsToolbar.getToolbarComponent(), BorderLayout.NORTH);
     contentPanel.add(mySurface, BorderLayout.CENTER);
 
-    if (ANIMATIONS_PREVIEW_ENABLED) {
+    if (Features.ANIMATIONS_PREVIEW_ENABLED) {
       myAnimationToolbar = new AnimationToolbar(this, (timeMs) -> {
         ScreenView screenView = mySurface.getCurrentSceneView();
         NlModel model = screenView != null ? screenView.getModel() : null;
