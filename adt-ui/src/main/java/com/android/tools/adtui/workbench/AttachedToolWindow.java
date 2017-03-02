@@ -559,7 +559,7 @@ class AttachedToolWindow<T> implements Disposable {
 
   private class GearAction extends AnAction {
     public GearAction() {
-      super("Gear");
+      super("More Options");
       Presentation presentation = getTemplatePresentation();
       presentation.setIcon(AllIcons.General.Gear);
       presentation.setHoveredIcon(AllIcons.General.GearHover);
