@@ -46,7 +46,16 @@ public class IdeLibrary implements Library, Serializable {
     myRequestedCoordinates = liRequestedCoordinate == null ? null :new IdeMavenCoordinates(liRequestedCoordinate, gradleVersion);
 
     mySkipped = library.isSkipped();
-    myProvided = library.isProvided();
+    boolean provided = false;
+    try {
+      provided = library.isProvided();
+    }
+    catch (NullPointerException e) {
+      provided = false;
+    }
+    finally {
+      myProvided = provided;
+    }
   }
 
   @Override
