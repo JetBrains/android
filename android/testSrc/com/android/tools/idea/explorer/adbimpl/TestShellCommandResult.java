@@ -20,13 +20,13 @@ import org.jetbrains.annotations.Nullable;
 
 class TestShellCommandResult {
   @Nullable private String myOutput;
-  @Nullable private Throwable myError;
+  @Nullable private Exception myError;
 
   public TestShellCommandResult(@NotNull String output) {
     this.myOutput = output;
   }
 
-  public TestShellCommandResult(@NotNull Throwable error) {
+  public TestShellCommandResult(@NotNull Exception error) {
     this.myError = error;
   }
 
@@ -36,7 +36,7 @@ class TestShellCommandResult {
   }
 
   @Nullable
-  public Throwable getError() {
+  public Exception getError() {
     return myError;
   }
 }
