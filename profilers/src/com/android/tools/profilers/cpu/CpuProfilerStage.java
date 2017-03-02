@@ -24,13 +24,11 @@ import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,8 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
 
 public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
@@ -92,13 +88,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   private final CpuTraceDataSeries myCpuTraceDataSeries;
 
   private final AspectModel<CpuProfilerAspect> myAspect = new AspectModel<>();
-  private final AspectObserver myAspectObserver = new AspectObserver();
 
-  /**
-   * The current capture.
-   */
-  @Nullable
-  private CpuCapture myCapture;
+  @NotNull
+  private final CaptureModel myCaptureModel;
 
   /**
    * Represents the current state of the capture.
@@ -106,22 +98,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @NotNull
   private CaptureState myCaptureState;
 
-  /**
-   * Reference to a selection range converted to ClockType.THREAD.
-   */
-  private final Range myCaptureConvertedRange;
-
-  /**
-   * Whether selection range update was triggered by an update in the converted range.
-   * Converted range updates selection range and vice-versa. To avoid stack overflow,
-   * we avoid updating the converted range in a loop.
-   */
-  private boolean myIsConvertedRangeUpdatingSelection;
-
-  /**
-   * Id of the current selected thread.
-   */
-  private int mySelectedThread;
 
   @NotNull
   private CpuProfiler.CpuProfilingAppStartRequest.Mode myProfilingMode;
@@ -135,12 +111,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   private Map<Integer, CpuCapture> myTraceCaptures = new HashMap<>();
 
-  @Nullable
-  private CaptureDetails myCaptureDetails;
-
-  @NotNull
-  private ClockType myClockType;
-
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     super(profilers);
     myCpuTraceDataSeries = new CpuTraceDataSeries();
@@ -148,7 +118,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     Range viewRange = getStudioProfilers().getTimeline().getViewRange();
     Range dataRange = getStudioProfilers().getTimeline().getDataRange();
     Range selectionRange = getStudioProfilers().getTimeline().getSelectionRange();
-    selectionRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::updateCaptureConvertedRange);
 
     myCpuUsage = new DetailedCpuUsage(profilers);
 
@@ -178,9 +147,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     myCaptureState = isCapturing() ? CaptureState.CAPTURING : CaptureState.IDLE;
 
-    myClockType = ClockType.GLOBAL;
-    myCaptureConvertedRange = new Range();
-    myCaptureConvertedRange.addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::updateSelectionRange);
+    myCaptureModel = new CaptureModel(this);
   }
 
   @NotNull
@@ -334,15 +301,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   public void setCapture(@Nullable CpuCapture capture) {
-    myCapture = capture;
-    if (capture != null) {
-      myCapture.updateClockType(myClockType);
-      setCaptureDetails(myCaptureDetails != null ? myCaptureDetails.getType() : CaptureDetails.Type.TOP_DOWN);
-      getStudioProfilers().modeChanged();
-    }
-    myAspect.changed(CpuProfilerAspect.CAPTURE);
-
-    setProfilerMode(myCapture == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED);
+    myCaptureModel.setCapture(capture);
+    setProfilerMode(capture == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED);
   }
 
   public void setAndSelectCapture(@Nullable CpuCapture capture) {
@@ -353,15 +313,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   public int getSelectedThread() {
-    return mySelectedThread;
+    return myCaptureModel.getThread();
   }
 
   public void setSelectedThread(int id) {
-    if (mySelectedThread != id) {
-      mySelectedThread = id;
-      setCaptureDetails(myCaptureDetails != null ? myCaptureDetails.getType() : CaptureDetails.Type.TOP_DOWN);
-      myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
-    }
+    myCaptureModel.setThread(id);
   }
 
   @NotNull
@@ -371,19 +327,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   @NotNull
   public ClockType getClockType() {
-    return myClockType;
+    return myCaptureModel.getClockType();
   }
 
   public void setClockType(@NotNull ClockType clockType) {
-    myClockType = clockType;
-    if (myCapture != null) {
-      myCapture.updateClockType(clockType);
-    }
-    if (myCaptureDetails != null) {
-      setCaptureDetails(myCaptureDetails.getType());
-    }
-    updateCaptureConvertedRange();
-    myAspect.changed(CpuProfilerAspect.CLOCK_TYPE);
+    myCaptureModel.setClockType(clockType);
   }
 
   /**
@@ -392,7 +340,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
    */
   @Nullable
   public CpuCapture getCapture() {
-    return myCapture;
+    return myCaptureModel.getCapture();
   }
 
   @NotNull
@@ -456,23 +404,13 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     return capture;
   }
 
-  public void setCaptureDetails(@Nullable CaptureDetails.Type type) {
-    if (type != null) {
-      HNode<MethodModel> node = myCapture != null ? myCapture.getCaptureNode(getSelectedThread()) : null;
-      updateCaptureConvertedRange();
-      myCaptureDetails = type.build(myCaptureConvertedRange, node);
-    }
-    else {
-      myCaptureDetails = null;
-    }
-    myAspect.changed(CpuProfilerAspect.CAPTURE_DETAILS);
-
-    setProfilerMode(myCapture == null ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED);
+  public void setCaptureDetails(@Nullable CaptureModel.Details.Type type) {
+    myCaptureModel.setDetails(type);
   }
 
   @Nullable
-  public CaptureDetails getCaptureDetails() {
-    return myCaptureDetails;
+  public CaptureModel.Details getCaptureDetails() {
+    return myCaptureModel.getDetails();
   }
 
   @Override
@@ -480,135 +418,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     setProfilerMode(ProfilerMode.NORMAL);
   }
 
-  /**
-   * When using ClockType.THREAD, we need to scale the selection to actually select a relevant range in the capture.
-   * That happens because selection is based on wall-clock time, which is usually way greater than thread time.
-   * As the two types of clock are synced at start time, making a selection starting at a time
-   * greater than (start + thread time length) will result in no feedback for the user, which is wrong.
-   * Therefore, we scale the selection so we can provide relevant thread time data as the user changes selection.
-   */
-  private void updateCaptureConvertedRange() {
-    if (myIsConvertedRangeUpdatingSelection) {
-      myIsConvertedRangeUpdatingSelection = false;
-      return;
-    }
-    myIsConvertedRangeUpdatingSelection = true;
 
-    // TODO: improve performance of select range conversion.
-    Range selection = getStudioProfilers().getTimeline().getSelectionRange();
-    HNode<MethodModel> topLevelNode;
-    if (myClockType == ClockType.GLOBAL || myCapture == null || (topLevelNode = myCapture.getCaptureNode(getSelectedThread())) == null) {
-      myCaptureConvertedRange.set(selection);
-      return;
-    }
-    assert topLevelNode instanceof CaptureNode;
-    CaptureNode node = (CaptureNode)topLevelNode;
-
-    double convertedMin = node.getStartThread() + node.threadGlobalRatio() * (selection.getMin() - node.getStartGlobal());
-    double convertedMax = convertedMin + node.threadGlobalRatio() * selection.getLength();
-    myCaptureConvertedRange.set(convertedMin, convertedMax);
-  }
-
-  /**
-   * Updates the selection range based on the converted range in case THREAD clock is being used.
-   */
-  private void updateSelectionRange() {
-    // TODO: improve performance of range conversion.
-    HNode<MethodModel> topLevelNode;
-    if (myClockType == ClockType.GLOBAL || myCapture == null || (topLevelNode = myCapture.getCaptureNode(getSelectedThread())) == null) {
-      getStudioProfilers().getTimeline().getSelectionRange().set(myCaptureConvertedRange);
-      return;
-    }
-    assert topLevelNode instanceof CaptureNode;
-    CaptureNode node = (CaptureNode)topLevelNode;
-
-    double threadToGlobal = 1 / node.threadGlobalRatio();
-    double convertedMin = node.getStartGlobal() + threadToGlobal * (myCaptureConvertedRange.getMin() - node.getStartThread());
-    double convertedMax = convertedMin + threadToGlobal * myCaptureConvertedRange.getLength();
-    getStudioProfilers().getTimeline().getSelectionRange().set(convertedMin, convertedMax);
-  }
-
-  public interface CaptureDetails {
-    enum Type {
-      TOP_DOWN(TopDown::new),
-      BOTTOM_UP(BottomUp::new),
-      CHART(TreeChart::new);
-
-      @NotNull
-      private final BiFunction<Range, HNode<MethodModel>, CaptureDetails> myBuilder;
-
-      Type(@NotNull BiFunction<Range, HNode<MethodModel>, CaptureDetails> builder) {
-        myBuilder = builder;
-      }
-
-      public CaptureDetails build(Range range, HNode<MethodModel> node) {
-        return myBuilder.apply(range, node);
-      }
-    }
-
-    Type getType();
-  }
-
-  public static class TopDown implements CaptureDetails {
-    @Nullable private TopDownTreeModel myModel;
-
-    public TopDown(@NotNull Range range, @Nullable HNode<MethodModel> node) {
-      myModel = node == null ? null : new TopDownTreeModel(range, new TopDownNode(node));
-    }
-
-    @Nullable
-    public TopDownTreeModel getModel() {
-      return myModel;
-    }
-
-    @Override
-    public Type getType() {
-      return Type.TOP_DOWN;
-    }
-  }
-
-  public static class BottomUp implements CaptureDetails {
-    @Nullable private BottomUpTreeModel myModel;
-
-    public BottomUp(@NotNull Range range, @Nullable HNode<MethodModel> node) {
-      myModel = node == null ? null : new BottomUpTreeModel(range, new BottomUpNode(node));
-    }
-
-    @Nullable
-    public BottomUpTreeModel getModel() {
-      return myModel;
-    }
-
-    @Override
-    public Type getType() {
-      return Type.BOTTOM_UP;
-    }
-  }
-
-  public static class TreeChart implements CaptureDetails {
-    @NotNull private final Range myRange;
-    @Nullable private HNode<MethodModel> myNode;
-
-    public TreeChart(@NotNull Range range, @Nullable HNode<MethodModel> node) {
-      myRange = range;
-      myNode = node;
-    }
-
-    @NotNull
-    public Range getRange() {
-      return myRange;
-    }
-
-    @Nullable
-    public HNode<MethodModel> getNode() {
-      return myNode;
-    }
-
-    @Override
-    public Type getType() {
-      return Type.CHART;
-    }
-  }
 
   @VisibleForTesting
   class CpuTraceDataSeries implements DataSeries<CpuCapture> {
