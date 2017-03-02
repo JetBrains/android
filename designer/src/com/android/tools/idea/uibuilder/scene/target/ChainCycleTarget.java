@@ -16,29 +16,20 @@
 package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.draw.DrawAction;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlFile;
+import com.android.tools.idea.uibuilder.graphics.NlIcon;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
 
 /**
  * Implements an action to cycle chains
  */
 public class ChainCycleTarget extends ActionTarget {
+  private static final NlIcon CHAIN_ICON = new NlIcon(AndroidIcons.SherpaIcons.Chain, AndroidIcons.SherpaIcons.ChainBlue);
 
   public ChainCycleTarget(ActionTarget previous, Action action) {
-    super(previous, action);
-    setActionType(DrawAction.CHAIN);
+    super(previous, CHAIN_ICON, action);
   }
 
   @Override

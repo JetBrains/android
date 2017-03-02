@@ -17,14 +17,15 @@ package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.draw.DrawAction;
+import com.android.tools.idea.uibuilder.graphics.NlIcon;
+import icons.AndroidIcons;
 
 public class ClearConstraintsTarget extends ActionTarget implements ActionTarget.Action {
+  private static final NlIcon CLEAR_ICON = new NlIcon(AndroidIcons.SherpaIcons.DeleteConstraint, AndroidIcons.SherpaIcons.DeleteConstraintB);
 
   public ClearConstraintsTarget(ActionTarget previous) {
-    super(previous, null);
+    super(previous, CLEAR_ICON,null);
     setAction(this);
-    setActionType(DrawAction.CLEAR);
   }
 
   @Override
