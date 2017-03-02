@@ -236,4 +236,12 @@ public class AndroidXmlResourcesDomTest extends AndroidDomTestCase {
     copyFileToProject("javaCompletion.xml");
     doTestJavaCompletion("p1.p2");
   }
+
+  public void testPathsRootCompletion() throws Throwable {
+    toTestCompletion("paths1.xml", "paths1_after.xml");
+  }
+
+  public void testPathsChildrenCompletion() throws Throwable {
+    toTestCompletion("paths2.xml", "paths2_after.xml");
+  }
 }
