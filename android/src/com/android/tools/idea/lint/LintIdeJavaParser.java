@@ -18,16 +18,14 @@ package com.android.tools.idea.lint;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.annotations.VisibleForTesting;
-import com.android.builder.model.Dependencies;
-import com.android.builder.model.Variant;
 import com.android.tools.lint.client.api.JavaEvaluator;
 import com.android.tools.lint.client.api.JavaParser;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.JavaContext;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Severity;
+import com.android.tools.lint.helpers.DefaultJavaEvaluator;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.ExternalAnnotationsManager;
 import com.intellij.openapi.application.AccessToken;
@@ -65,7 +63,22 @@ public class LintIdeJavaParser extends JavaParser {
 
   public LintIdeJavaParser(LintClient client, Project project, com.android.tools.lint.detector.api.Project lintProject) {
     myClient = client;
-    myJavaEvaluator = new LintPsiJavaEvaluator(project, lintProject);
+    myJavaEvaluator = new DefaultJavaEvaluator(project, lintProject) {
+      @NonNull
+      @Override
+      public PsiAnnotation[] getAllAnnotations(@NonNull PsiModifierListOwner element, boolean inHierarchy) {
+        //return AnnotationUtil.getAllAnnotations(element, inHierarchy, null, true);
+        if (inHierarchy) {
+          return CachedValuesManager.getCachedValue(element,
+                                                    () -> CachedValueProvider.Result.create(AnnotationUtil.getAllAnnotations(
+                                                      element, true, null), PsiModificationTracker.MODIFICATION_COUNT));
+        } else {
+          return CachedValuesManager.getCachedValue(element,
+                                                    () -> CachedValueProvider.Result.create(AnnotationUtil.getAllAnnotations(
+                                                      element, false, null), PsiModificationTracker.MODIFICATION_COUNT));
+        }
+      }
+    };
   }
 
   @Override
@@ -562,155 +575,6 @@ public class LintIdeJavaParser extends JavaParser {
     }
 
     return false;
-  }
-
-  public static class LintPsiJavaEvaluator extends JavaEvaluator {
-    private final Project myProject;
-    private final com.android.tools.lint.detector.api.Project myLintProject;
-
-    public LintPsiJavaEvaluator(Project project, com.android.tools.lint.detector.api.Project lintProject) {
-      myProject = project;
-      myLintProject = lintProject;
-    }
-
-    @Override
-    public boolean extendsClass(@Nullable PsiClass cls, @NonNull String className, boolean strict) {
-      // TODO: This checks interfaces too. Let's find a cheaper method which only checks direct super classes!
-      return InheritanceUtil.isInheritor(cls, strict, className);
-    }
-
-    @Override
-    public boolean implementsInterface(@NonNull PsiClass cls, @NonNull String interfaceName, boolean strict) {
-      // TODO: This checks superclasses too. Let's find a cheaper method which only checks interfaces.
-      return InheritanceUtil.isInheritor(cls, strict, interfaceName);
-    }
-
-    @Override
-    public boolean inheritsFrom(@NonNull PsiClass cls, @NonNull String className, boolean strict) {
-      return InheritanceUtil.isInheritor(cls, strict, className);
-    }
-
-    @Nullable
-    @Override
-    public PsiClass findClass(@NonNull String qualifiedName) {
-      return JavaPsiFacade.getInstance(myProject).findClass(qualifiedName, GlobalSearchScope.allScope(myProject));
-    }
-
-    @Nullable
-    @Override
-    public PsiClassType getClassType(@Nullable PsiClass cls) {
-      return cls != null ? JavaPsiFacade.getElementFactory(myProject).createType(cls) : null;
-    }
-
-    @NonNull
-    @Override
-    public PsiAnnotation[] getAllAnnotations(@NonNull PsiModifierListOwner element, boolean inHierarchy) {
-      //return AnnotationUtil.getAllAnnotations(element, inHierarchy, null, true);
-      if (inHierarchy) {
-        return CachedValuesManager.getCachedValue(element,
-                                                  () -> CachedValueProvider.Result.create(AnnotationUtil.getAllAnnotations(
-                                                    element, true, null), PsiModificationTracker.MODIFICATION_COUNT));
-      } else {
-        return CachedValuesManager.getCachedValue(element,
-                                                  () -> CachedValueProvider.Result.create(AnnotationUtil.getAllAnnotations(
-                                                    element, false, null), PsiModificationTracker.MODIFICATION_COUNT));
-      }
-    }
-
-    @Nullable
-    @Override
-    public PsiAnnotation findAnnotationInHierarchy(@NonNull PsiModifierListOwner listOwner, @NonNull String... annotationNames) {
-      return AnnotationUtil.findAnnotationInHierarchy(listOwner, Sets.newHashSet(annotationNames));
-    }
-
-    @Nullable
-    @Override
-    public PsiAnnotation findAnnotation(@Nullable PsiModifierListOwner listOwner, @NonNull String... annotationNames) {
-      return AnnotationUtil.findAnnotation(listOwner, false, annotationNames);
-    }
-
-    @Override
-    public boolean areSignaturesEqual(@NotNull PsiMethod method1, @NotNull PsiMethod method2) {
-      return MethodSignatureUtil.areSignaturesEqual(method1, method2);
-    }
-
-    @Nullable
-    @Override
-    public String findJarPath(@NonNull PsiElement element) {
-      PsiFile containingFile = element.getContainingFile();
-      if (containingFile instanceof PsiCompiledFile) {
-        ///This code is roughly similar to the following:
-        //      VirtualFile jarVirtualFile = PsiUtil.getJarFile(containingFile);
-        //      if (jarVirtualFile != null) {
-        //        return jarVirtualFile.getPath();
-        //      }
-        // However, the above methods will do some extra string manipulation and
-        // VirtualFile lookup which we don't actually need (we're just after the
-        // raw URL suffix)
-        VirtualFile file = containingFile.getVirtualFile();
-        if (file != null && file.getFileSystem().getProtocol().equals("jar")) {
-          String path = file.getPath();
-          final int separatorIndex = path.indexOf("!/");
-          if (separatorIndex >= 0) {
-            return path.substring(0, separatorIndex);
-          }
-        }
-      }
-
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public PsiPackage getPackage(@NonNull PsiElement node) {
-      PsiFile containingFile = node.getContainingFile();
-      if (containingFile != null) {
-        PsiDirectory dir = containingFile.getParent();
-        if (dir != null) {
-          return JavaDirectoryService.getInstance().getPackage(dir);
-        }
-      }
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public Dependencies getDependencies() {
-      if (myLintProject.isAndroidProject()) {
-        Variant variant = myLintProject.getCurrentVariant();
-        if (variant != null) {
-          return variant.getMainArtifact().getDependencies();
-        }
-      }
-      return null;
-    }
-
-    @Nullable
-    @Override
-    public String getInternalName(@NonNull PsiClass psiClass) {
-      String internalName = LintIdeUtils.getInternalName(psiClass);
-      if (internalName != null) {
-        return internalName;
-      }
-      return super.getInternalName(psiClass);
-    }
-
-    @Nullable
-    @Override
-    public String getInternalName(@NonNull PsiClassType psiClassType) {
-      PsiType erased = TypeConversionUtil.erasure(psiClassType);
-      if (erased instanceof PsiClassType) {
-        return super.getInternalName((PsiClassType) erased);
-      }
-
-      return super.getInternalName(psiClassType);
-    }
-
-    @Nullable
-    @Override
-    public String getInternalDescription(@NonNull PsiMethod method, boolean includeName, boolean includeReturn) {
-      return LintIdeUtils.getInternalDescription(method, includeName, includeReturn);
-    }
   }
 
   /* Handle for creating positions cheaply and returning full fledged locations later */

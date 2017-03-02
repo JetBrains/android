@@ -20,6 +20,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.lint.detector.api.ResourceEvaluator;
+import com.android.tools.lint.helpers.DefaultJavaEvaluator;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -165,7 +166,7 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
                 // advantage that it can also resolve complex expressions used as the
                 // getString argument.
                 ResourceUrl resource = ResourceEvaluator.getResource(
-                  new LintIdeJavaParser.LintPsiJavaEvaluator(expression.getProject(), null),
+                  new DefaultJavaEvaluator(expression.getProject(), null),
                   expressions[0]);
 
                 if (resource == null || resource.framework || resource.type != ResourceType.STRING) {
