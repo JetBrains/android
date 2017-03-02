@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers.stacktrace;
 
-import com.android.tools.idea.actions.PsiClassNavigation;
 import com.android.tools.idea.profilers.TraceSignatureConverter;
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.CodeNavigator;
@@ -71,7 +70,7 @@ public final class IntellijCodeNavigator extends CodeNavigator {
   }
 
   @Nullable
-  private PsiMethod findMethod(@NotNull PsiClass psiClass, @NotNull String methodName, @NotNull String signature) {
+  private static PsiMethod findMethod(@NotNull PsiClass psiClass, @NotNull String methodName, @NotNull String signature) {
     for (PsiMethod method : psiClass.findMethodsByName(methodName, true)) {
       if (signature.equals(TraceSignatureConverter.getTraceSignature(method))) {
         return method;
