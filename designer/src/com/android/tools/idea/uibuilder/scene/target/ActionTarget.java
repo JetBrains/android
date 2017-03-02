@@ -19,12 +19,9 @@ import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawAction;
-import com.android.tools.idea.uibuilder.scene.draw.DrawTextRegion;
-import com.android.tools.sherpa.drawing.decorator.TextWidget;
+import com.android.tools.idea.uibuilder.graphics.NlIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
 
 /**
  * Implements an Action target
@@ -34,24 +31,21 @@ public class ActionTarget extends ConstraintTarget {
   final static int mySize = 12;
   final static int myGap = 4;
   final ActionTarget myPreviousActionTarget;
-  Action myAction;
-  private int myActionType;
+  @Nullable private Action myAction;
+  @NotNull private final NlIcon myIcon;
   protected boolean myIsVisible = true;
 
   public interface Action {
     void apply(SceneComponent component);
   }
 
-  public ActionTarget(ActionTarget previous, Action action) {
+  public ActionTarget(@Nullable ActionTarget previous, @NotNull NlIcon icon, @Nullable Action action) {
     myPreviousActionTarget = previous;
+    myIcon = icon;
     myAction = action;
   }
 
-  public void setActionType(int type) {
-    myActionType = type;
-  }
-
-  public void setAction(Action action) {
+  public void setAction(@Nullable Action action) {
     myAction = action;
   }
 
@@ -90,7 +84,7 @@ public class ActionTarget extends ConstraintTarget {
       return;
     }
     if (myIsVisible) {
-      DrawAction.add(list, sceneContext, myLeft, myTop, myRight, myBottom, myActionType, mIsOver);
+      DrawAction.add(list, sceneContext, myLeft, myTop, myRight, myBottom, myIcon, mIsOver);
     }
   }
 
@@ -110,11 +104,5 @@ public class ActionTarget extends ConstraintTarget {
       myAction.apply(myComponent);
       myComponent.getScene().needsRebuildList();
     }
-  }
-
-  @Override
-  @Nullable
-  public String getToolTipText() {
-    return (myActionType == DrawAction.BASELINE) ? "Edit Baselines" : null;
   }
 }
