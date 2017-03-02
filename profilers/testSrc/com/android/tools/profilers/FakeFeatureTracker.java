@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,22 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.profilers.analytics.FeatureTracker;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * This stage only gets set when the profilers first open. It represents the stage of no-data, and no-device.
- */
-public class NullMonitorStage extends Stage {
+final class FakeFeatureTracker implements FeatureTracker {
+  @Override
+  public void trackEnterStage(@NotNull Class<? extends Stage> stage) {
 
-  public NullMonitorStage(@NotNull StudioProfilers profiler) {
-    super(profiler);
   }
 
   @Override
-  public void enter() {
-    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
+  public void trackProfilingStarted() {
+
   }
 
   @Override
-  public void exit() {
+  public void trackAdvancedProfilingStarted() {
+
   }
 }

@@ -148,6 +148,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().register(myGcCount);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
   }
 
   @Override

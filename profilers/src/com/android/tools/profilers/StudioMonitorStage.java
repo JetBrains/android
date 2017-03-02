@@ -65,6 +65,8 @@ public class StudioMonitorStage extends Stage {
       }
     }
     myMonitors.forEach(ProfilerMonitor::enter);
+
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
   }
 
   @Override
