@@ -175,5 +175,6 @@ iml_module(
         "//tools/analytics-library/testing:analytics-testing[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/adt/idea/wizard[module, test]",
+        "//tools/adt/idea/smali[module, test]",
     ],
 )
