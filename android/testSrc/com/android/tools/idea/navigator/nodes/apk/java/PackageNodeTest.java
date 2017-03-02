@@ -17,8 +17,7 @@ package com.android.tools.idea.navigator.nodes.apk.java;
 
 import com.android.tools.idea.apk.debugging.ApkClass;
 import com.android.tools.idea.apk.debugging.ApkPackage;
-import com.android.tools.idea.apk.debugging.JavaFiles;
-import com.android.tools.idea.apk.debugging.SmaliFiles;
+import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
@@ -30,7 +29,6 @@ import org.mockito.Mock;
 import java.io.File;
 
 import static com.android.tools.idea.apk.debugging.SimpleApplicationContents.*;
-import static com.android.tools.idea.apk.debugging.SmaliFiles.getDefaultSmaliOutputFolderPath;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static java.io.File.separatorChar;
@@ -45,6 +43,7 @@ public class PackageNodeTest extends AndroidGradleTestCase {
 
   private PackageNode myNode;
   private ApkPackage myPackage;
+  private DexSourceFiles myDexSourceFiles;
 
   @Override
   public void setUp() throws Exception {
@@ -56,7 +55,8 @@ public class PackageNodeTest extends AndroidGradleTestCase {
     ApkClass activityApkClass = getMyActivityApkClass();
     myPackage = activityApkClass.getParent();
 
-    myNode = new PackageNode(project, myPackage, mySettings, new JavaFiles(), new SmaliFiles(project));
+    myDexSourceFiles = new DexSourceFiles(project);
+    myNode = new PackageNode(project, myPackage, mySettings, myDexSourceFiles);
   }
 
   public void testUpdate() {
@@ -87,7 +87,7 @@ public class PackageNodeTest extends AndroidGradleTestCase {
   }
 
   public void testContainsSmaliFile() throws Exception {
-    File packageFolderPath = new File(getDefaultSmaliOutputFolderPath(getProject()), myPackage.getFqn().replace('.', separatorChar));
+    File packageFolderPath = new File(myDexSourceFiles.getDefaultSmaliOutputFolderPath(), myPackage.getFqn().replace('.', separatorChar));
     File smaliFilePath = new File(packageFolderPath, "Test.smali");
     createIfNotExists(smaliFilePath);
 
