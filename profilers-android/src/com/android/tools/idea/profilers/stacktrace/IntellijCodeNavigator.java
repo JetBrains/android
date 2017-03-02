@@ -16,14 +16,25 @@
 package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.idea.actions.PsiClassNavigation;
+import com.android.tools.idea.profilers.TraceSignatureConverter;
 import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.CodeNavigator;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.pom.Navigatable;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.util.ClassUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@link CodeNavigator} with logic to jump to code inside of an IntelliJ code editor.
+ * How it works:
+ *   - If the specified CodeLocation has a line number => navigates to the line.
+ *   - If it doesn't have a line number, but has a method name and its signature => navigates to the corresponding method.
+ *   - Otherwise, navigates to the class.
  */
 public final class IntellijCodeNavigator extends CodeNavigator {
   private final Project myProject;
@@ -34,22 +45,38 @@ public final class IntellijCodeNavigator extends CodeNavigator {
 
   @Override
   protected void handleNavigate(@NotNull CodeLocation location) {
-    Navigatable[] navigatables;
-    if (location.getLineNumber() > 0) {
-      navigatables = PsiClassNavigation.getNavigationForClass(myProject, location.getClassName(), location.getLineNumber());
+    Navigatable nav = getNavigatable(location);
+    if (nav != null) {
+      nav.navigate(true);
+    }
+  }
+
+  @Nullable
+  private Navigatable getNavigatable(@NotNull CodeLocation location) {
+    PsiClass psiClass = ClassUtil.findPsiClassByJVMName(PsiManager.getInstance(myProject), location.getClassName());
+    if (psiClass == null) {
+      return null;
+    }
+
+    if (location.getLineNumber() >= 0) {
+      return new OpenFileDescriptor(myProject, psiClass.getContainingFile().getVirtualFile(), location.getLineNumber(), 0);
+    }
+    else if (location.getMethodName() != null && location.getSignature() != null) {
+      PsiMethod method = findMethod(psiClass, location.getMethodName(), location.getSignature());
+      return method != null ? method : psiClass;
     }
     else {
-      navigatables = PsiClassNavigation.getNavigationForClass(myProject, location.getClassName());
+      return psiClass;
     }
-    if (navigatables == null) {
-      return;
-    }
-    for (Navigatable navigatable : navigatables) {
-      // If multiple navigatables, intentionally navigate to all of them, as this will have the
-      // effect of opening up editors for each one.
-      if (navigatable.canNavigate()) {
-        navigatable.navigate(false);
+  }
+
+  @Nullable
+  private PsiMethod findMethod(@NotNull PsiClass psiClass, @NotNull String methodName, @NotNull String signature) {
+    for (PsiMethod method : psiClass.findMethodsByName(methodName, true)) {
+      if (signature.equals(TraceSignatureConverter.getTraceSignature(method))) {
+        return method;
       }
     }
+    return null;
   }
 }

@@ -73,7 +73,7 @@ public final class StackTraceModel extends AspectModel<StackTraceModel.Aspect> {
     updateStackFrames(INVALID_THREAD_ID, Arrays.stream(trace.split("\\n")).map(
       stackFrame -> {
         StackFrameParser parser = new StackFrameParser(stackFrame);
-        return new CodeLocation(parser.getClassName(), parser.getFileName(), parser.getMethodName(), parser.getLineNumber() - 1);
+        return new CodeLocation(parser.getClassName(), parser.getFileName(), parser.getMethodName(), null, parser.getLineNumber() - 1);
       }).collect(Collectors.toList()));
   }
 

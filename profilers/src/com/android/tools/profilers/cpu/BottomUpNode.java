@@ -159,4 +159,13 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     MethodModel method = myPathNodes.get(0).getData();
     return (method == null ? "" : method.getClassName());
   }
+
+  @Override
+  public String getSignature() {
+    if (myIsRoot) {
+      return "";
+    }
+    MethodModel method = myPathNodes.get(0).getData();
+    return (method == null ? "" : method.getSignature());
+  }
 }
