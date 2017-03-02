@@ -17,22 +17,22 @@ package com.android.tools.idea.profilers;
 
 import com.android.tools.profilers.common.TabsPanel;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.ActionCallback;
 import com.intellij.ui.tabs.TabInfo;
 import com.intellij.ui.tabs.impl.JBTabsImpl;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Map;
+import java.awt.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class IntellijTabsPanel implements TabsPanel {
   @NotNull private final JBTabsImpl myTabsImpl;
-  @NotNull private final Map<JComponent, TabInfo> myTabsCache;
 
   IntellijTabsPanel(@NotNull Project project) {
     myTabsImpl = new JBTabsImpl(project);
-    myTabsCache = new HashMap<>();
   }
 
   @NotNull
@@ -45,30 +45,62 @@ public class IntellijTabsPanel implements TabsPanel {
   public void addTab(@NotNull String label, @NotNull JComponent content) {
     TabInfo info = new TabInfo(content);
     info.setText(label);
-    myTabsCache.put(content, info);
     myTabsImpl.addTab(info);
   }
 
   @Override
   public void removeTab(@NotNull JComponent tab) {
-    assert myTabsCache.containsKey(tab);
-    myTabsImpl.removeTab(myTabsCache.get(tab));
-    myTabsCache.remove(tab);
+    myTabsImpl.removeTab(myTabsImpl.findInfo(tab));
   }
 
   @Override
   public void removeAll() {
     myTabsImpl.removeAllTabs();
-    myTabsCache.clear();
   }
 
   @Nullable
   @Override
-  public JComponent getSelectedComponent() {
+  public JComponent getSelectedTabComponent() {
     TabInfo info = myTabsImpl.getSelectedInfo();
     if (info == null) {
       return null;
     }
     return info.getComponent();
+  }
+
+  @Override
+  public void selectTab(@NotNull String label) {
+    for(TabInfo tab : myTabsImpl.getTabs()) {
+      if (tab.getText().equals(label)) {
+        myTabsImpl.select(tab, true);
+      }
+    }
+  }
+
+  @Override
+  public List<Component> getTabsComponents() {
+    return myTabsImpl.getTabs().stream().map(TabInfo::getComponent).collect(Collectors.toList());
+  }
+
+  @Override
+  public void setOnSelectionChange(@Nullable Runnable callback) {
+    if (callback == null) {
+      myTabsImpl.setSelectionChangeHandler(null);
+      return;
+    }
+    myTabsImpl.setSelectionChangeHandler((info, requestFocus, activeRunnable) -> {
+      ActionCallback actionCallback = activeRunnable.run();
+      callback.run();
+      return actionCallback;
+    });
+  }
+
+  @Override
+  public String getSelectedTab() {
+    TabInfo info = myTabsImpl.getSelectedInfo();
+    if (info == null) {
+      return null;
+    }
+    return info.getText();
   }
 }

@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -89,8 +91,34 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
       @Nullable
       @Override
-      public JComponent getSelectedComponent() {
+      public JComponent getSelectedTabComponent() {
         return null;
+      }
+
+      @Override
+      public List<Component> getTabsComponents() {
+        return IntStream.range(0, myTabbedPane.getTabCount()).mapToObj(i -> myTabbedPane.getTabComponentAt(i)).collect(Collectors.toList());
+      }
+
+      @Override
+      public void selectTab(@NotNull String label) {
+        for(int i = 0; i < myTabbedPane.getTabCount(); i++) {
+          if (myTabbedPane.getComponentAt(i).getName().equals(label)) {
+            myTabbedPane.setSelectedIndex(i);
+          }
+        }
+      }
+
+      @Override
+      public void setOnSelectionChange(@Nullable Runnable callback) {
+        if (callback != null) {
+          myTabbedPane.getModel().addChangeListener((event) -> callback.run());
+        }
+      }
+
+      @Override
+      public String getSelectedTab() {
+        return myTabbedPane.getComponentAt(myTabbedPane.getSelectedIndex()).getName();
       }
     };
   }
