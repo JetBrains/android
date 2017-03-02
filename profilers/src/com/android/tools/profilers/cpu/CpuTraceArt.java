@@ -32,7 +32,7 @@ public class CpuTraceArt {
    * Tree representation of ART trace (generated from perflib tree).
    * Keys are thread ids and values are their respective {@link HNode}
    */
-  Map<ThreadInfo, HNode<MethodModel>> myNodes;
+  Map<ThreadInfo, CaptureNode> myNodes;
 
   public void parse(VmTraceData data) throws IOException {
     myNodes = new HashMap<>();
@@ -42,32 +42,44 @@ public class CpuTraceArt {
       if (threadInfo.getTopLevelCall() == null) {
         continue;
       }
-      myNodes.put(threadInfo, convertCallsToNode(data, threadInfo.getTopLevelCall(), 0));
+      Call topLevelCall = threadInfo.getTopLevelCall();
+
+      long topLevelGlobalStart = topLevelCall.getEntryTime(ClockType.GLOBAL, TimeUnit.MICROSECONDS) + data.getStartTimeUs();
+      myNodes.put(threadInfo, convertCallsToNode(data, topLevelCall, 0, topLevelGlobalStart));
     }
   }
 
-  private HNode<MethodModel> convertCallsToNode(VmTraceData data, Call call, int depth) {
+  private static CaptureNode convertCallsToNode(VmTraceData data, Call call, int depth, long topLevelStart) {
 
-    HNode<MethodModel> node = new HNode<>();
-    // ART stores timestamp in a compressed fashion: All timestamp are 32 bits relative to a startTime.
+    CaptureNode node = new CaptureNode();
+    // ART stores timestamp in a compressed fashion: timestamps of ClockType.GLOBAL type are 32 bits relative to a startTime.
     // We need to reconstruct the full timestamp by adding each of them to startTime.
-    node.setStart((call.getEntryTime(ClockType.GLOBAL, TimeUnit.MICROSECONDS) + data.getStartTimeUs()));
-    node.setEnd((call.getExitTime(ClockType.GLOBAL, TimeUnit.MICROSECONDS) + data.getStartTimeUs()));
-    node.setDepth(depth);
+    long globalStartTime = call.getEntryTime(ClockType.GLOBAL, TimeUnit.MICROSECONDS) + data.getStartTimeUs();
+    node.setStartGlobal(globalStartTime);
+    long globalEndTime = call.getExitTime(ClockType.GLOBAL, TimeUnit.MICROSECONDS) + data.getStartTimeUs();
+    node.setEndGlobal(globalEndTime);
+
+    // Timestamps of ClockType.THREAD are stored in a different way: the first event on the thread is considered as the base
+    // and the subsequent events timestamps are stored in 32 bits relative to that base. We sum this timestamps to topLevelStart,
+    // so the first entry timestamp (represented as 0) is aligned (in wall clock time) with the top-level call start timestamp.
+    long threadStartTime = topLevelStart + call.getEntryTime(ClockType.THREAD, TimeUnit.MICROSECONDS);
+    node.setStartThread(threadStartTime);
+    long threadEndTime = topLevelStart + call.getExitTime(ClockType.THREAD, TimeUnit.MICROSECONDS);
+    node.setEndThread(threadEndTime);
 
     MethodModel method = new MethodModel(data.getMethod(call.getMethodId()).methodName);
     method.setClassName(data.getMethod(call.getMethodId()).className);
     method.setSignature(data.getMethod(call.getMethodId()).signature);
-
     node.setData(method);
 
+    node.setDepth(depth);
     for (Call callee : call.getCallees()) {
-      node.addHNode(convertCallsToNode(data, callee, depth + 1));
+      node.addHNode(convertCallsToNode(data, callee, depth + 1, topLevelStart));
     }
     return node;
   }
 
-  public Map<ThreadInfo, HNode<MethodModel>> getThreadsGraph() {
+  public Map<ThreadInfo, CaptureNode> getThreadsGraph() {
     return myNodes;
   }
 }

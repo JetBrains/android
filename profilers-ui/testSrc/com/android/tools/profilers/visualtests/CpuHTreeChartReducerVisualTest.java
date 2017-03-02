@@ -24,6 +24,7 @@ import com.android.tools.adtui.model.Updatable;
 import com.android.tools.adtui.visualtests.VisualTest;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
+import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuTraceArt;
 import com.android.tools.profilers.cpu.MethodModel;
 import com.android.tools.profilers.cpu.SampledMethodUsageHRenderer;
@@ -84,7 +85,7 @@ public class CpuHTreeChartReducerVisualTest extends VisualTest {
     catch (IOException e) {
       e.printStackTrace();
     }
-    for (Map.Entry<ThreadInfo, HNode<MethodModel>> entry: art.getThreadsGraph().entrySet()) {
+    for (Map.Entry<ThreadInfo, CaptureNode> entry: art.getThreadsGraph().entrySet()) {
       if (entry.getKey().getName().equals("main")) {
         return entry.getValue();
       }

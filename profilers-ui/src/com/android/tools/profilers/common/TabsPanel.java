@@ -19,6 +19,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
+import java.util.List;
 
 /**
  * An abstraction of a Tab UI's functionality.
@@ -37,5 +39,16 @@ public interface TabsPanel {
   void removeAll();
 
   @Nullable
-  JComponent getSelectedComponent();
+  JComponent getSelectedTabComponent();
+
+  List<Component> getTabsComponents();
+
+  void selectTab(@NotNull String label);
+
+  /**
+   * Set a callback to be called when tab selection changes.
+   */
+  void setOnSelectionChange(@Nullable Runnable callback);
+
+  String getSelectedTab();
 }
