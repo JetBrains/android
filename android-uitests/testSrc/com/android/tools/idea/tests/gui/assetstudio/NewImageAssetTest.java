@@ -53,7 +53,7 @@ public class NewImageAssetTest {
   @Before
   public void openProject() throws Exception {
     IdeFrameFixture frame = guiTest.importSimpleApplication();
-    frame.getProjectView().selectAndroidPane();
+    frame.getProjectView().selectAndroidPane().clickPath("app");
   }
 
   private void openAssetStudioWizard() {
