@@ -162,7 +162,7 @@ public class AdbFileListing {
       .filter(Objects::nonNull)
       .collect(Collectors.toList());
     if (entries.isEmpty() && commandResult.isError()) {
-      commandResult.ThrowIfError();
+      commandResult.throwIfError();
     }
     return entries;
   }
