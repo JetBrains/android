@@ -92,6 +92,11 @@ public class ComponentPopupMenu {
       }
     }
 
+    Shortcut[] shortcuts = popupMenuItem.getShortcuts();
+    if (shortcuts != null && shortcuts.length > 0) {
+      action.registerCustomShortcutSet(new CustomShortcutSet(shortcuts), myComponent);
+    }
+
     myGroup.add(action);
   }
 }

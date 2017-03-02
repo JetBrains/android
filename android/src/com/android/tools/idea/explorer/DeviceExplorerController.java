@@ -26,12 +26,14 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.application.ApplicationBundle;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.*;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.InputValidatorEx;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -63,8 +65,12 @@ import java.util.stream.Collectors;
  * Implementation of the Device Explorer application logic
  */
 public class DeviceExplorerController {
+  @NotNull
   private static final Logger LOGGER = Logger.getInstance(DeviceExplorerController.class);
+  @NotNull
   private static final Key<DeviceExplorerController> KEY = Key.create(DeviceExplorerController.class.getName());
+  @NotNull
+  private static final String DEVICE_EXPLORER_BUSY_MESSAGE = "Device Explorer is busy, please retry later or cancel current operation";
   private static final long FILE_ENTRY_CREATION_TIMEOUT_MILLIS = 10_000;
   private static final long FILE_ENTRY_DELETION_TIMEOUT_MILLIS = 10_000;
 
@@ -77,26 +83,30 @@ public class DeviceExplorerController {
   @NotNull private final DeviceFileSystemService myService;
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
   @NotNull private final DeviceExplorerFileManager myFileManager;
+  @NotNull private final FileTransferWorkEstimator myWorkEstimator;
   @NotNull private final Set<DeviceFileEntryNode> myTransferringNodes = new HashSet<>();
   @NotNull private final Set<DeviceFileEntryNode> myLoadingChildren = new HashSet<>();
   @NotNull private final Alarm myLoadingNodesAlarms;
   @NotNull private final Alarm myTransferringNodesAlarms;
   @NotNull private final Alarm myLoadingChildrenAlarms;
+  @Nullable private LongRunningOperationTracker myLongRunningOperationTracker;
 
   public DeviceExplorerController(@NotNull Project project,
                                   @NotNull DeviceExplorerModel model,
                                   @NotNull DeviceExplorerView view,
                                   @NotNull DeviceFileSystemService service,
                                   @NotNull DeviceExplorerFileManager fileManager,
-                                  @NotNull Executor edtExecutor) {
+                                  @NotNull Executor edtExecutor,
+                                  @NotNull Executor taskExecutor) {
     myProject = project;
     myModel = model;
     myView = view;
     myService = service;
-    myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
+    myEdtExecutor = FutureCallbackExecutor.wrap(edtExecutor);
     myService.addListener(new ServiceListener());
     myView.addListener(new ViewListener());
     myFileManager = fileManager;
+    myWorkEstimator = new FileTransferWorkEstimator(myEdtExecutor, taskExecutor);
     myLoadingNodesAlarms = new Alarm(Alarm.ThreadToUse.SWING_THREAD);
     myTransferringNodesAlarms = new Alarm(Alarm.ThreadToUse.SWING_THREAD);
     myLoadingChildrenAlarms = new Alarm(Alarm.ThreadToUse.SWING_THREAD);
@@ -217,35 +227,9 @@ public class DeviceExplorerController {
     return futureResult;
   }
 
-  /**
-   * Execute a task from the {@code taskFactory} for each element of the {@code iterator},
-   * waiting for the {@link ListenableFuture} returned by each task before executing the next one.
-   * The goal is to ensure we don't overload a device with many parallel requests.
-   * Cancellation can be implemented by the {@code taskFactory}, typically returning immediate
-   * no-op futures when the cancellation condition is detected.
-   *
-   * @param iterator    The source of elements to process
-   * @param taskFactory A factory {@link Function} that returns a {@link ListenableFuture} for a given element
-   * @param <T>         The type of the elements to process
-   */
-  @NotNull
   private <T> ListenableFuture<Void> executeFuturesInSequence(@NotNull Iterator<T> iterator,
                                                               @NotNull Function<T, ListenableFuture<Void>> taskFactory) {
-    SettableFuture<Void> finalResult = SettableFuture.create();
-    executeFuturesInSequenceWorker(iterator, taskFactory, finalResult);
-    return finalResult;
-  }
-
-  private <T> void executeFuturesInSequenceWorker(@NotNull Iterator<T> iterator,
-                                                  @NotNull Function<T, ListenableFuture<Void>> taskFactory,
-                                                  @NotNull SettableFuture<Void> finalResult) {
-    if (iterator.hasNext()) {
-      ListenableFuture<Void> future = taskFactory.apply(iterator.next());
-      myEdtExecutor.addConsumer(future, (aVoid, throwable) -> executeFuturesInSequenceWorker(iterator, taskFactory, finalResult));
-    }
-    else {
-      finalResult.set(null);
-    }
+    return myEdtExecutor.executeFuturesInSequence(iterator, taskFactory);
   }
 
   private void startNodeDownload(@NotNull DeviceFileEntryNode node) {
@@ -307,6 +291,22 @@ public class DeviceExplorerController {
     }
   }
 
+  private boolean checkLongRunningOperationAllowed() {
+    return myLongRunningOperationTracker == null;
+  }
+
+  private void registerLongRunningOperation(@NotNull LongRunningOperationTracker tracker) throws Exception {
+    if (!checkLongRunningOperationAllowed()) {
+      throw new Exception(DEVICE_EXPLORER_BUSY_MESSAGE);
+    }
+
+    myLongRunningOperationTracker = tracker;
+    Disposer.register(myLongRunningOperationTracker, () -> {
+      assert ApplicationManager.getApplication().isDispatchThread();
+      myLongRunningOperationTracker = null;
+    });
+  }
+
   public boolean hasActiveDevice() {
     return myModel.getActiveDevice() != null;
   }
@@ -355,6 +355,15 @@ public class DeviceExplorerController {
 
     @Override
     public void openNodesInEditorInvoked(@NotNull List<DeviceFileEntryNode> treeNodes) {
+      if (treeNodes.isEmpty()) {
+        return;
+      }
+
+      if (!checkLongRunningOperationAllowed()) {
+        myView.reportErrorRelatedToNode(getCommonParentNode(treeNodes), DEVICE_EXPLORER_BUSY_MESSAGE, new RuntimeException());
+        return;
+      }
+
       DeviceFileSystem device = myModel.getActiveDevice();
 
       executeFuturesInSequence(treeNodes.iterator(), treeNode -> {
@@ -402,6 +411,10 @@ public class DeviceExplorerController {
       }
 
       DeviceFileEntryNode commonParentNode = getCommonParentNode(treeNodes);
+      if (!checkLongRunningOperationAllowed()) {
+        myView.reportErrorRelatedToNode(commonParentNode, DEVICE_EXPLORER_BUSY_MESSAGE, new RuntimeException());
+        return;
+      }
 
       ListenableFuture<FileTransferSummary> futureSummary = (treeNodes.size() == 1) ?
                                                             saveSingleNodeAs(treeNodes.get(0)) :
@@ -427,7 +440,9 @@ public class DeviceExplorerController {
 
     @NotNull
     private ListenableFuture<FileTransferSummary> saveSingleNodeAs(@NotNull DeviceFileEntryNode treeNode) {
-      if (treeNode.getEntry().isDirectory()) {
+      // When saving a single entry, we should consider whether the entry is a symbolic link to
+      // a directory, not just a plain directory.
+      if (treeNode.getEntry().isDirectory() || treeNode.isSymbolicLinkToDirectory()) {
         // If single directory, choose the local directory path to download to, then download
         Path localDirectory;
         try {
@@ -441,7 +456,9 @@ public class DeviceExplorerController {
           return Futures.immediateFailedFuture(new CancellationException());
         }
 
-        return saveNodeAsWorker(summary -> downloadSingleDirectory(treeNode, localDirectory, summary));
+        return wrapFileTransfer(
+          tracker -> addDownloadOperationWork(tracker, treeNode),
+          tracker -> downloadSingleDirectory(treeNode, localDirectory, tracker));
       }
       else {
         // If single file, choose the local file path to download to, then download
@@ -457,7 +474,9 @@ public class DeviceExplorerController {
           return Futures.immediateFailedFuture(new CancellationException());
         }
 
-        return saveNodeAsWorker(summary -> downloadSingleFile(treeNode, localFile, summary));
+        return wrapFileTransfer(
+          tracker -> addDownloadOperationWork(tracker, treeNode),
+          tracker -> downloadSingleFile(treeNode, localFile, tracker));
       }
     }
 
@@ -480,62 +499,141 @@ public class DeviceExplorerController {
         return Futures.immediateFailedFuture(new CancellationException());
       }
 
-      return saveNodeAsWorker(summary -> {
-        //noinspection CodeBlock2Expr
-        return executeFuturesInSequence(treeNodes.iterator(), treeNode -> {
+      return wrapFileTransfer(
+        tracker -> addDownloadOperationWork(tracker, treeNodes),
+        tracker -> executeFuturesInSequence(treeNodes.iterator(), treeNode -> {
           Path nodePath = localDirectory.resolve(treeNode.getEntry().getName());
-          return downloadSingleNode(treeNode, nodePath, summary);
-        });
+          return downloadSingleNode(treeNode, nodePath, tracker);
+        }));
+    }
+
+    /**
+     * Wrap a file transfer operation (either "SaveAs" or "Upload") so that the operation
+     * shows various UI elements related to progress (and resets them when the operation
+     * is over).
+     *
+     * @param prepareTransfer An operation to run before the transfer, typically
+     *                        to estimate the amount of work, used for tracking progress
+     *                        later on
+     * @param performTransfer The transfer operation itself
+     * @return A {@link ListenableFuture}&lt;{@link FileTransferSummary}&gt; that completes
+     * when the whole transfer operation finishes. In case of cancellation, the future
+     * completes with a {@link CancellationException}.
+     */
+    @NotNull
+    private ListenableFuture<FileTransferSummary> wrapFileTransfer(
+      @NotNull Function<FileTransferOperationTracker, ListenableFuture<Void>> prepareTransfer,
+      @NotNull Function<FileTransferOperationTracker, ListenableFuture<Void>> performTransfer) {
+
+      FileTransferOperationTracker tracker = new FileTransferOperationTracker(myView);
+      try {
+        registerLongRunningOperation(tracker);
+      }
+      catch (Exception e) {
+        return Futures.immediateFailedFuture(e);
+      }
+
+      tracker.start();
+      tracker.setCalculatingText(0, 0);
+      tracker.setIndeterminate(true);
+      Disposer.register(myProject, tracker);
+
+      myView.startTreeBusyIndicator();
+      ListenableFuture<Void> futurePrepare = prepareTransfer.apply(tracker);
+      ListenableFuture<Void> futureTransfer = myEdtExecutor.transformAsync(futurePrepare, aVoid -> {
+        tracker.setIndeterminate(false);
+        return performTransfer.apply(tracker);
+      });
+      myEdtExecutor.addListener(futureTransfer, myView::stopTreeBusyIndicator);
+      myEdtExecutor.addListener(futureTransfer, () -> Disposer.dispose(tracker));
+      return myEdtExecutor.transform(futureTransfer, aVoid -> tracker.getSummary());
+    }
+
+    public ListenableFuture<Void> addUploadOperationWork(@NotNull FileTransferOperationTracker tracker,
+                                                         @NotNull List<Path> files) {
+
+      return executeFuturesInSequence(files.iterator(), x -> addUploadOperationWork(tracker, x));
+    }
+
+    public ListenableFuture<Void> addUploadOperationWork(@NotNull FileTransferOperationTracker tracker,
+                                                         @NotNull Path path) {
+      FileTransferWorkEstimatorProgress progress = createFileTransferEstimatorProgress(tracker);
+      ListenableFuture<FileTransferWorkEstimate> futureWork = myWorkEstimator.estimateUploadWork(path, progress);
+      return myEdtExecutor.transform(futureWork, work -> {
+        assert work != null;
+        tracker.addWorkEstimate(work);
+        return null;
+      });
+    }
+
+    public ListenableFuture<Void> addDownloadOperationWork(@NotNull FileTransferOperationTracker tracker,
+                                                           @NotNull List<DeviceFileEntryNode> entryNodes) {
+      ListenableFuture<Void> futureWork =
+        executeFuturesInSequence(entryNodes.iterator(), node -> addDownloadOperationWork(tracker, node));
+      return myEdtExecutor.transform(futureWork, aVoid -> null);
+    }
+
+    public ListenableFuture<Void> addDownloadOperationWork(@NotNull FileTransferOperationTracker tracker,
+                                                           @NotNull DeviceFileEntryNode entryNode) {
+      FileTransferWorkEstimatorProgress progress = createFileTransferEstimatorProgress(tracker);
+      ListenableFuture<FileTransferWorkEstimate> futureEstimate =
+        myWorkEstimator.estimateDownloadWork(entryNode.getEntry(), entryNode.isSymbolicLinkToDirectory(), progress);
+      return myEdtExecutor.transform(futureEstimate, estimate -> {
+        assert estimate != null;
+        tracker.addWorkEstimate(estimate);
+        return null;
       });
     }
 
     @NotNull
-    private ListenableFuture<FileTransferSummary> saveNodeAsWorker(
-      @NotNull Function<FileTransferSummary, ListenableFuture<Void>> downloadWorker) {
+    private FileTransferWorkEstimatorProgress createFileTransferEstimatorProgress(@NotNull final FileTransferOperationTracker tracker) {
+      return new FileTransferWorkEstimatorProgress() {
+        @Override
+        public void progress(int fileCount, int directoryCount) {
+          tracker.setCalculatingText(fileCount, directoryCount);
+        }
 
-      FileTransferSummary summary = new FileTransferSummary();
-
-      myView.startTreeBusyIndicator();
-      ListenableFuture<Void> futureDownload = downloadWorker.apply(summary);
-      myEdtExecutor.addListener(futureDownload, myView::stopTreeBusyIndicator);
-
-      return myEdtExecutor.transform(futureDownload, aVoid -> summary);
+        @Override
+        public boolean isCancelled() {
+          return tracker.isCancelled();
+        }
+      };
     }
 
     @NotNull
     private ListenableFuture<Void> downloadSingleNode(@NotNull DeviceFileEntryNode node,
                                                       @NotNull Path localPath,
-                                                      @NotNull FileTransferSummary summary) {
+                                                      @NotNull FileTransferOperationTracker tracker) {
       if (node.getEntry().isDirectory()) {
-        return downloadSingleDirectory(node, localPath, summary);
+        return downloadSingleDirectory(node, localPath, tracker);
       }
       else {
-        return downloadSingleFile(node, localPath, summary);
+        return downloadSingleFile(node, localPath, tracker);
       }
     }
 
     @NotNull
     private ListenableFuture<Void> downloadSingleFile(@NotNull DeviceFileEntryNode treeNode,
                                                       @NotNull Path localPath,
-                                                      @NotNull FileTransferSummary summary) {
+                                                      @NotNull FileTransferOperationTracker tracker) {
       assert !treeNode.getEntry().isDirectory();
 
       // Download single file
       if (treeNode.isTransferring()) {
-        summary.problems.add(new Exception(String.format("File %s is already downloading or uploading", getUserFacingNodeName(treeNode))));
+        tracker.addProblem(new Exception(String.format("File %s is already downloading or uploading", getUserFacingNodeName(treeNode))));
         return Futures.immediateFuture(null);
       }
 
-      ListenableFuture<Long> futureEntrySize = downloadFileEntry(treeNode, localPath);
+      ListenableFuture<Long> futureEntrySize = downloadFileEntry(treeNode, localPath, tracker);
       SettableFuture<Void> futureResult = SettableFuture.create();
       myEdtExecutor.addConsumer(futureEntrySize, (byteCount, throwable) -> {
         if (throwable != null) {
-          summary.problems.add(new Exception(String.format("Error saving contents of device file %s", getUserFacingNodeName(treeNode)),
-                                             throwable));
+          tracker.addProblem(new Exception(String.format("Error saving contents of device file %s", getUserFacingNodeName(treeNode)),
+                                           throwable));
         }
         else {
-          summary.fileCount++;
-          summary.byteCount += byteCount;
+          tracker.getSummary().addFileCount(1);
+          tracker.getSummary().addByteCount(byteCount);
         }
         futureResult.set(null);
       });
@@ -545,8 +643,12 @@ public class DeviceExplorerController {
     @NotNull
     private ListenableFuture<Void> downloadSingleDirectory(@NotNull DeviceFileEntryNode treeNode,
                                                            @NotNull Path localDirectoryPath,
-                                                           @NotNull FileTransferSummary summary) {
-      assert treeNode.getEntry().isDirectory();
+                                                           @NotNull FileTransferOperationTracker tracker) {
+      assert treeNode.getEntry().isDirectory() || treeNode.isSymbolicLinkToDirectory();
+      if (tracker.isCancelled()) {
+        return Futures.immediateCancelledFuture();
+      }
+      tracker.processDirectory();
 
       // Ensure directory is created locally
       try {
@@ -555,7 +657,7 @@ public class DeviceExplorerController {
       catch (Exception e) {
         return Futures.immediateFailedFuture(e);
       }
-      summary.directoryCount++;
+      tracker.getSummary().addDirectoryCount(1);
 
       SettableFuture<Void> futureResult = SettableFuture.create();
 
@@ -565,11 +667,11 @@ public class DeviceExplorerController {
         public void onSuccess(@Nullable Void result) {
           ListenableFuture<Void> futureDownloadChildren = executeFuturesInSequence(treeNode.getChildEntryNodes().iterator(), node -> {
             Path nodePath = localDirectoryPath.resolve(node.getEntry().getName());
-            return downloadSingleNode(node, nodePath, summary);
+            return downloadSingleNode(node, nodePath, tracker);
           });
           myEdtExecutor.addConsumer(futureDownloadChildren, (aVoid, throwable) -> {
             if (throwable != null) {
-              summary.problems.add(throwable);
+              tracker.addProblem(throwable);
             }
             futureResult.set(null);
           });
@@ -577,7 +679,7 @@ public class DeviceExplorerController {
 
         @Override
         public void onFailure(@NotNull Throwable t) {
-          summary.problems.add(t);
+          tracker.addProblem(t);
           futureResult.set(null);
         }
       });
@@ -648,6 +750,11 @@ public class DeviceExplorerController {
     @Override
     public void deleteNodesInvoked(@NotNull List<DeviceFileEntryNode> nodes) {
       if (nodes.isEmpty()) {
+        return;
+      }
+
+      if (!checkLongRunningOperationAllowed()) {
+        myView.reportErrorRelatedToNode(getCommonParentNode(nodes), DEVICE_EXPLORER_BUSY_MESSAGE, new RuntimeException());
         return;
       }
 
@@ -799,7 +906,8 @@ public class DeviceExplorerController {
 
           // Refresh the parent node to show the newly created file
           parentTreeNode.setLoaded(false);
-          loadNodeChildren(parentTreeNode);
+          ListenableFuture<Void> futureLoad = loadNodeChildren(parentTreeNode);
+          myEdtExecutor.addListener(futureLoad, () -> myView.expandNode(parentTreeNode));
         }
         catch (ExecutionException | InterruptedException | TimeoutException e) {
           showErrorMessage(errorMessage.apply(newFileName), e);
@@ -817,7 +925,7 @@ public class DeviceExplorerController {
           error = error.getCause();
         }
       }
-      // Add error message from execption if we have one
+      // Add error message from exception if we have one
       if (error.getMessage() != null) {
         message += ":\n" + error.getMessage();
       }
@@ -828,17 +936,38 @@ public class DeviceExplorerController {
 
     @Override
     public void uploadFilesInvoked(@NotNull DeviceFileEntryNode treeNode) {
+      if (!checkLongRunningOperationAllowed()) {
+        myView.reportErrorRelatedToNode(treeNode, DEVICE_EXPLORER_BUSY_MESSAGE, new RuntimeException());
+        return;
+      }
+
       FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createAllButJarContentsDescriptor();
       AtomicReference<List<VirtualFile>> filesRef = new AtomicReference<>();
       FileChooser.chooseFiles(descriptor, myProject, null, filesRef::set);
       if (filesRef.get() == null || filesRef.get().isEmpty()) {
         return;
       }
-      FileTransferSummary summary = new FileTransferSummary();
-      myView.startTreeBusyIndicator();
-      ListenableFuture<Void> future = uploadVirtualFiles(treeNode, filesRef.get(), summary);
-      myEdtExecutor.addListener(future, myView::stopTreeBusyIndicator);
-      myEdtExecutor.addListener(future, () -> reportUploadFilesSummary(treeNode, summary));
+
+      ListenableFuture<FileTransferSummary> futureSummary =
+        wrapFileTransfer(tracker -> {
+                           List<Path> paths = filesRef.get().stream()
+                             .map(x -> Paths.get(x.getPath()))
+                             .collect(Collectors.toList());
+                           return addUploadOperationWork(tracker, paths);
+                         },
+                         tracker -> uploadVirtualFiles(treeNode, filesRef.get(), tracker));
+      myEdtExecutor.addCallback(futureSummary, new FutureCallback<FileTransferSummary>() {
+        @Override
+        public void onSuccess(@Nullable FileTransferSummary result) {
+          assert result != null;
+          reportUploadFilesSummary(treeNode, result);
+        }
+
+        @Override
+        public void onFailure(@NotNull Throwable t) {
+          myView.reportErrorRelatedToNode(treeNode, "Error uploading files(s) to device", t);
+        }
+      });
     }
 
     private void reportUploadFilesSummary(@NotNull DeviceFileEntryNode treeNode, @NotNull FileTransferSummary summary) {
@@ -847,107 +976,125 @@ public class DeviceExplorerController {
 
     private ListenableFuture<Void> uploadVirtualFiles(@NotNull DeviceFileEntryNode parentNode,
                                                       @NotNull List<VirtualFile> files,
-                                                      @NotNull FileTransferSummary problems) {
-      return executeFuturesInSequence(files.iterator(), file -> uploadVirtualFile(parentNode, file, problems));
+                                                      @NotNull FileTransferOperationTracker tracker) {
+      // Upload each file
+      ListenableFuture<Void> futureUploadFiles =
+        executeFuturesInSequence(files.iterator(), file -> uploadVirtualFile(parentNode, file, tracker));
+
+      // Refresh children nodes
+      return myEdtExecutor.transformAsync(futureUploadFiles, aVoid -> {
+        parentNode.setLoaded(false);
+        return loadNodeChildren(parentNode);
+      });
     }
 
     @NotNull
     private ListenableFuture<Void> uploadVirtualFile(@NotNull DeviceFileEntryNode treeNode,
                                                      @NotNull VirtualFile file,
-                                                     @NotNull FileTransferSummary summary) {
+                                                     @NotNull FileTransferOperationTracker tracker) {
       if (file.isDirectory()) {
-        return uploadDirectory(treeNode, file, summary);
+        return uploadDirectory(treeNode, file, tracker);
       }
       else {
-        return uploadFile(treeNode, file, summary);
+        return uploadFile(treeNode, file, tracker);
       }
     }
 
     @NotNull
-    private ListenableFuture<Void> uploadDirectory(@NotNull DeviceFileEntryNode treeNode,
+    private ListenableFuture<Void> uploadDirectory(@NotNull DeviceFileEntryNode parentNode,
                                                    @NotNull VirtualFile file,
-                                                   @NotNull FileTransferSummary summary) {
-      summary.directoryCount++;
+                                                   @NotNull FileTransferOperationTracker tracker) {
+      if (tracker.isCancelled()) {
+        return Futures.immediateCancelledFuture();
+      }
+      tracker.processDirectory();
+      tracker.getSummary().addDirectoryCount(1);
+
       SettableFuture<Void> futureResult = SettableFuture.create();
       logFuture(futureResult, String.format("Uploading local directory \"%s\" to remote path \"%s\"",
                                             file.getPath(),
-                                            treeNode.getEntry().getFullPath()));
+                                            parentNode.getEntry().getFullPath()));
 
       // Create directory in destination device
-      DeviceFileEntry entry = treeNode.getEntry();
+      DeviceFileEntry parentEntry = parentNode.getEntry();
       String directoryName = file.getName();
-      ListenableFuture<Void> futureDirectory = entry.getFileSystem().createNewDirectory(entry, directoryName);
-      myEdtExecutor.addCallback(futureDirectory, new FutureCallback<Void>() {
-        @Override
-        public void onSuccess(@Nullable Void result) {
-          // Refresh node entries
-          treeNode.setLoaded(false);
-          ListenableFuture<Void> futureLoadChildren = loadNodeChildren(treeNode);
-          myEdtExecutor.addCallback(futureLoadChildren, new FutureCallback<Void>() {
-            @Override
-            public void onSuccess(@Nullable Void result) {
-              // Find node for newly created directory
-              DeviceFileEntryNode childNode = treeNode.findChildEntry(directoryName);
-              if (childNode == null) {
-                // Note: This would happen if we didn't filter hidden files in the code below
-                summary.problems.add(new RuntimeException(String.format("Error creating directory \"%s\"", directoryName)));
-                futureResult.set(null);
-                return;
+      ListenableFuture<Void> futureDirectory = parentEntry.getFileSystem().createNewDirectory(parentEntry, directoryName);
+      myEdtExecutor.addConsumer(futureDirectory, (aVoid, createDirectoryError) -> {
+        // Refresh node entries
+        parentNode.setLoaded(false);
+        ListenableFuture<Void> futureLoadChildren = loadNodeChildren(parentNode);
+        myEdtExecutor.addCallback(futureLoadChildren, new FutureCallback<Void>() {
+          @Override
+          public void onSuccess(@Nullable Void result) {
+            // Find node for newly created directory
+            DeviceFileEntryNode childNode = parentNode.findChildEntry(directoryName);
+            if (childNode == null) {
+              // Note: This would happen if we didn't filter hidden files in the code below
+              //       or if we failed to create the child directory
+              if (createDirectoryError != null) {
+                tracker.addProblem(createDirectoryError);
               }
-              myView.expandNode(childNode);
-
-              // Upload all files into destination device
-              // Note: We ignore hidden files ("." prefix) for now, as the listing service
-              //       currently does not list hidden files/directories.
-              ListenableFuture<Void> futureFileUploads = executeFuturesInSequence(
-                Arrays.stream(file.getChildren()).filter(x -> !x.getName().startsWith(".")).iterator(),
-                x -> uploadVirtualFile(childNode, x, summary));
-              myEdtExecutor.addListener(futureFileUploads, () -> futureResult.set(null));
-            }
-
-            @Override
-            public void onFailure(@NotNull Throwable t) {
-              summary.problems.add(t);
+              else {
+                tracker.addProblem(new Exception(String.format("Error creating directory \"%s\"", directoryName)));
+              }
               futureResult.set(null);
+              return;
             }
-          });
-        }
 
-        @Override
-        public void onFailure(@NotNull Throwable t) {
-          summary.problems.add(t);
-          futureResult.set(null);
-        }
+            // Upload all files into destination device
+            // Note: We ignore hidden files ("." prefix) for now, as the listing service
+            //       currently does not list hidden files/directories.
+            List<VirtualFile> childFiles = Arrays.stream(file.getChildren())
+              .filter(x -> !x.getName().startsWith("."))
+              .collect(Collectors.toList());
+            ListenableFuture<Void> futureFileUploads = uploadVirtualFiles(childNode, childFiles, tracker);
+            myEdtExecutor.addListener(futureFileUploads, () -> futureResult.set(null));
+          }
+
+          @Override
+          public void onFailure(@NotNull Throwable t) {
+            tracker.addProblem(t);
+            futureResult.set(null);
+          }
+        });
       });
       return futureResult;
     }
 
-    private class UploadFileState {
-      @Nullable public ListenableFuture<Void> loadChildrenFuture;
-      @Nullable public DeviceFileEntryNode childNode;
-      public long byteCount;
-    }
-
     @NotNull
-    private ListenableFuture<Void> uploadFile(@NotNull DeviceFileEntryNode treeNode,
+    private ListenableFuture<Void> uploadFile(@NotNull DeviceFileEntryNode parentNode,
                                               @NotNull VirtualFile file,
-                                              @NotNull FileTransferSummary summary) {
+                                              @NotNull FileTransferOperationTracker tracker) {
+      if (tracker.isCancelled()) {
+        return Futures.immediateCancelledFuture();
+      }
+      tracker.processFile();
+      tracker.setUploadFileText(file, 0, 0);
+
       SettableFuture<Void> futureResult = SettableFuture.create();
       logFuture(futureResult, String.format("Uploading local file \"%s\" to remote path \"%s\"",
                                             file.getPath(),
-                                            treeNode.getEntry().getFullPath()));
+                                            parentNode.getEntry().getFullPath()));
 
-      DeviceFileEntry entry = treeNode.getEntry();
+      DeviceFileEntry parentEntry = parentNode.getEntry();
       Path localPath = Paths.get(file.getPath());
       UploadFileState uploadState = new UploadFileState();
-      ListenableFuture<Void> futureUpload = entry.getFileSystem().uploadFile(localPath, entry, new FileTransferProgress() {
+      ListenableFuture<Void> futureUpload = parentEntry.getFileSystem().uploadFile(localPath, parentEntry, new FileTransferProgress() {
+        private long previousBytes;
+
         @Override
         public void progress(long currentBytes, long totalBytes) {
+          // Update progress UI
+          tracker.processFileBytes(currentBytes - previousBytes);
+          tracker.setUploadFileText(file, currentBytes, totalBytes);
+          previousBytes = currentBytes;
+
+          // Update Tree UI
           uploadState.byteCount = totalBytes;
           // First check if child node already exists
           if (uploadState.childNode == null) {
             String fileName = localPath.getFileName().toString();
-            uploadState.childNode = treeNode.findChildEntry(fileName);
+            uploadState.childNode = parentNode.findChildEntry(fileName);
             if (uploadState.childNode != null) {
               startNodeUpload(uploadState.childNode);
             }
@@ -967,84 +1114,83 @@ public class DeviceExplorerController {
           // Start loading children
           if (currentBytes > 0) {
             if (uploadState.loadChildrenFuture == null) {
-              treeNode.setLoaded(false);
-              uploadState.loadChildrenFuture = loadNodeChildren(treeNode);
+              parentNode.setLoaded(false);
+              uploadState.loadChildrenFuture = loadNodeChildren(parentNode);
             }
           }
         }
 
         @Override
         public boolean isCancelled() {
-          return false;
+          return tracker.isCancelled();
         }
       });
 
       myEdtExecutor.addConsumer(futureUpload, (aVoid, throwable) -> {
+        // Complete this method
+        futureResult.set(null);
+
+        // Update summary
         if (throwable != null) {
-          summary.problems.add(throwable);
+          tracker.addProblem(throwable);
         }
         else {
-          summary.fileCount++;
-          summary.byteCount += uploadState.byteCount;
+          tracker.getSummary().addFileCount(1);
+          tracker.getSummary().addByteCount(uploadState.byteCount);
         }
-      });
 
-      // After the upload, refresh the list of children.
-      myEdtExecutor.addListener(futureUpload, () -> {
         // Signal upload is done
         if (uploadState.childNode != null) {
           stopNodeUpload(uploadState.childNode);
         }
-        // Refresh children
-        treeNode.setLoaded(false);
-        ListenableFuture<Void> futureLoadChildren = loadNodeChildren(treeNode);
-        myEdtExecutor.addListener(futureLoadChildren, () -> futureResult.set(null));
       });
+
       return futureResult;
     }
 
-    private class FileTransferSummary {
-      public int fileCount;
-      public int directoryCount;
+    private class UploadFileState {
+      @Nullable public ListenableFuture<Void> loadChildrenFuture;
+      @Nullable public DeviceFileEntryNode childNode;
       public long byteCount;
-      @NotNull public List<Throwable> problems = new ArrayList<>();
     }
 
     private void reportFileTransferSummary(@NotNull DeviceFileEntryNode node,
                                            @NotNull FileTransferSummary summary,
                                            @NotNull String pastParticiple,
                                            @NotNull String presentParticiple) {
-      String fileString = StringUtil.pluralize("file", summary.fileCount);
-      String directoryString = StringUtil.pluralize("directory", summary.directoryCount);
-      String byteCountString = StringUtil.pluralize("byte", Ints.saturatedCast(summary.byteCount));
+      String fileString = StringUtil.pluralize("file", summary.getFileCount());
+      String directoryString = StringUtil.pluralize("directory", summary.getDirectoryCount());
+      String byteCountString = StringUtil.pluralize("byte", Ints.saturatedCast(summary.getByteCount()));
 
       // Report success if no errors
-      if (summary.problems.isEmpty()) {
+      if (summary.getProblems().isEmpty()) {
         String successMessage;
-        if (summary.directoryCount > 0) {
-          successMessage = String.format("Successfully %s %,d %s and %,d %s for a total size of %,d %s.",
+        if (summary.getDirectoryCount() > 0) {
+          successMessage = String.format("Successfully %s %,d %s and %,d %s for a total size of %,d %s in %s.",
                                          pastParticiple,
-                                         summary.fileCount,
+                                         summary.getFileCount(),
                                          fileString,
-                                         summary.directoryCount,
+                                         summary.getDirectoryCount(),
                                          directoryString,
-                                         summary.byteCount,
-                                         byteCountString);
+                                         summary.getByteCount(),
+                                         byteCountString,
+                                         StringUtil.formatDuration(summary.getDurationMillis()));
         }
         else {
-          successMessage = String.format("Successfully %s %,d %s for a total of size of %,d %s.",
+          successMessage = String.format("Successfully %s %,d %s for a total of size of %,d %s in %s.",
                                          pastParticiple,
-                                         summary.fileCount,
+                                         summary.getFileCount(),
                                          fileString,
-                                         summary.byteCount,
-                                         byteCountString);
+                                         summary.getByteCount(),
+                                         byteCountString,
+                                         StringUtil.formatDuration(summary.getDurationMillis()));
         }
         myView.reportMessageRelatedToNode(node, successMessage);
         return;
       }
 
       // Report error if there were any
-      List<String> problems = summary.problems.stream()
+      List<String> problems = summary.getProblems().stream()
         .map(x -> ExceptionUtil.getRootCause(x).getMessage())
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
@@ -1056,13 +1202,14 @@ public class DeviceExplorerController {
       }
 
       String message = String.format("There were errors %s files and/or directories", presentParticiple);
-      if (summary.fileCount > 0) {
-        message += String.format(", although %,d %s %s successfully %s for a total of size of %,d %s",
-                                 summary.fileCount,
+      if (summary.getFileCount() > 0) {
+        message += String.format(", although %,d %s %s successfully %s in %s for a total of size of %,d %s",
+                                 summary.getFileCount(),
                                  fileString,
-                                 StringUtil.pluralize("was", summary.fileCount),
+                                 (summary.getFileCount() <= 1 ? "was" : "were"),
                                  pastParticiple,
-                                 summary.byteCount,
+                                 StringUtil.formatDuration(summary.getDurationMillis()),
+                                 summary.getByteCount(),
                                  byteCountString);
       }
       myView.reportErrorRelatedToNode(node,
@@ -1121,7 +1268,7 @@ public class DeviceExplorerController {
 
       FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
       AtomicReference<Path> result = new AtomicReference<>();
-      FileChooser.chooseFiles(descriptor, myProject, null, files -> {
+      FileChooser.chooseFiles(descriptor, myProject, localDir, files -> {
         if (files.size() == 1) {
           Path path = Paths.get(files.get(0).getPath());
           result.set(path);
@@ -1142,26 +1289,47 @@ public class DeviceExplorerController {
         return Futures.immediateFailedFuture(t);
       }
 
-      ListenableFuture<Long> futureSize = downloadFileEntry(treeNode, localPath);
-      return myEdtExecutor.transform(futureSize, aLong -> localPath);
+      ListenableFuture<FileTransferSummary> futureSave = wrapFileTransfer(
+        tracker -> addDownloadOperationWork(tracker, treeNode),
+        tracker -> {
+          ListenableFuture<Long> futureSize = downloadFileEntry(treeNode, localPath, tracker);
+          return myEdtExecutor.transform(futureSize, aLong -> null);
+        });
+      return myEdtExecutor.transform(futureSave, summary -> localPath);
     }
 
     @NotNull
-    private ListenableFuture<Long> downloadFileEntry(@NotNull DeviceFileEntryNode treeNode, @NotNull Path localPath) {
+    private ListenableFuture<Long> downloadFileEntry(@NotNull DeviceFileEntryNode treeNode,
+                                                     @NotNull Path localPath,
+                                                     @NotNull FileTransferOperationTracker tracker) {
+      if (tracker.isCancelled()) {
+        return Futures.immediateCancelledFuture();
+      }
+      tracker.processFile();
+      tracker.setDownloadFileText(treeNode.getEntry(), 0, 0);
+
       // Download the entry to the local path
       DeviceFileEntry entry = treeNode.getEntry();
       startNodeDownload(treeNode);
       AtomicReference<Long> sizeRef = new AtomicReference<>();
       ListenableFuture<Void> futureDownload = myFileManager.downloadFileEntry(entry, localPath, new FileTransferProgress() {
+        private long previousBytes;
+
         @Override
         public void progress(long currentBytes, long totalBytes) {
+          // Update progress UI
+          tracker.processFileBytes(currentBytes - previousBytes);
+          previousBytes = currentBytes;
+          tracker.setDownloadFileText(treeNode.getEntry(), currentBytes, totalBytes);
+
+          // Update Tree UI
           treeNode.setTransferProgress(currentBytes, totalBytes);
           sizeRef.set(totalBytes);
         }
 
         @Override
         public boolean isCancelled() {
-          return false;
+          return tracker.isCancelled();
         }
       });
       myEdtExecutor.addListener(futureDownload, () -> stopNodeDownload(treeNode));
@@ -1297,16 +1465,19 @@ public class DeviceExplorerController {
       Set<TreePath> newSelections = new HashSet<>();
       TreePath parentPath = new TreePath(parentNode.getPath());
       Arrays.stream(oldSelections)
-        .forEach(x -> restorePathSelection(parentPath, x, newSelections));
+        .forEach(x -> restorePathSelection(treeSelectionModel, parentPath, x, newSelections));
 
       TreePath[] newSelectionArray = ArrayUtil.toObjectArray(newSelections.stream().collect(Collectors.toList()), TreePath.class);
       treeSelectionModel.addSelectionPaths(newSelectionArray);
     }
 
-    private void restorePathSelection(@NotNull TreePath parentPath,
+    private void restorePathSelection(@NotNull DefaultTreeSelectionModel treeSelectionModel,
+                                      @NotNull TreePath parentPath,
                                       @NotNull TreePath oldPath,
                                       @NotNull Set<TreePath> selections) {
-
+      if (treeSelectionModel.isPathSelected(oldPath)) {
+        return;
+      }
       if (Objects.equals(parentPath, oldPath)) {
         return;
       }
