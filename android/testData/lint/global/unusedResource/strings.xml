@@ -1,0 +1,4 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="used" tools:keep="@string/used">Used</string>
+    <string name="unused">Unused</string>
+</resources>
