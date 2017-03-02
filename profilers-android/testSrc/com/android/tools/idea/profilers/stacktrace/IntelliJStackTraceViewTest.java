@@ -57,7 +57,7 @@ public class IntelliJStackTraceViewTest {
   private static final List<CodeLocation> CODE_LOCATIONS = Arrays.stream(STACK_STRING.split("\\n")).map(
     line -> {
       StackFrameParser parser = new StackFrameParser(line);
-      return new CodeLocation(parser.getClassName(), parser.getFileName(), parser.getMethodName(), parser.getLineNumber() - 1);
+      return new CodeLocation(parser.getClassName(), parser.getFileName(), parser.getMethodName(), null, parser.getLineNumber() - 1);
     })
     .collect(Collectors.toList());
 
@@ -81,14 +81,14 @@ public class IntelliJStackTraceViewTest {
     final String duplicateTestString = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)";
     StackFrameParser parser = new StackFrameParser(duplicateTestString);
     CodeLocation positiveTest =
-      new CodeLocation(parser.getClassName(), parser.getFileName(), parser.getMethodName(), parser.getLineNumber() - 1);
+      new CodeLocation(parser.getClassName(), parser.getFileName(), parser.getMethodName(), null,  parser.getLineNumber() - 1);
     CodeLocation negativeTest1 =
-      new CodeLocation(null, null, null, -1);
+      new CodeLocation("", null, null, null, -1);
     CodeLocation negativeTest2 =
-      new CodeLocation(positiveTest.getClassName(), positiveTest.getMethodName(), positiveTest.getFileName(),
+      new CodeLocation(positiveTest.getClassName(), positiveTest.getMethodName(), null, positiveTest.getFileName(),
                        positiveTest.getLineNumber() - 1);
     CodeLocation negativeTest3 =
-      new CodeLocation(positiveTest.getClassName(), positiveTest.getFileName(), positiveTest.getMethodName(), -1);
+      new CodeLocation(positiveTest.getClassName(), positiveTest.getFileName(), null, positiveTest.getMethodName(), -1);
     assertEquals(positiveTest, CODE_LOCATIONS.get(0));
     assertNotEquals(positiveTest, negativeTest1);
     assertNotEquals(positiveTest, negativeTest2);
