@@ -97,6 +97,9 @@ public class GradleProjectInfo {
    * @return {@code true} if the project has a build.gradle file in the project's root folder; {@code false} otherwise.
    */
   public boolean hasTopLevelGradleBuildFile() {
+    if (myProject.isDefault()) {
+      return false;
+    }
     File projectFolderPath = getBaseDirPath(myProject);
     File buildFilePath = new File(projectFolderPath, FN_BUILD_GRADLE);
     return buildFilePath.isFile();
