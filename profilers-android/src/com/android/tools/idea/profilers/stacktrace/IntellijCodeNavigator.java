@@ -30,10 +30,6 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@link CodeNavigator} with logic to jump to code inside of an IntelliJ code editor.
- * How it works:
- *   - If the specified CodeLocation has a line number => navigates to the line.
- *   - If it doesn't have a line number, but has a method name and its signature => navigates to the corresponding method.
- *   - Otherwise, navigates to the class.
  */
 public final class IntellijCodeNavigator extends CodeNavigator {
   private final Project myProject;
@@ -56,15 +52,17 @@ public final class IntellijCodeNavigator extends CodeNavigator {
     if (psiClass == null) {
       return null;
     }
-
-    if (location.getLineNumber() >= 0) {
+    else if (location.getLineNumber() >= 0) {
+      // If the specified CodeLocation has a line number, navigatable is that line
       return new OpenFileDescriptor(myProject, psiClass.getContainingFile().getVirtualFile(), location.getLineNumber(), 0);
     }
     else if (location.getMethodName() != null && location.getSignature() != null) {
+      // If it has both method name and signature, navigatable is the corresponding method
       PsiMethod method = findMethod(psiClass, location.getMethodName(), location.getSignature());
       return method != null ? method : psiClass;
     }
     else {
+      // Otherwise, navigatable is the class
       return psiClass;
     }
   }
