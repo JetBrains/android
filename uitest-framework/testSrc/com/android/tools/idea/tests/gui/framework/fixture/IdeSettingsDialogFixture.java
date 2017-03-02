@@ -37,6 +37,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.util.List;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButtonWhenEnabled;
 import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 
@@ -91,6 +92,10 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
       }
     });
     return this;
+  }
+
+  public void clickOK() {
+    findAndClickButtonWhenEnabled(this, "OK");
   }
 
   private static final JTreeCellReader TREE_NODE_CELL_READER = (jTree, modelValue) -> {
