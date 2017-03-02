@@ -49,9 +49,9 @@ import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
 
 class CpuCaptureView {
   private static final Map<String, CpuProfilerStage.CaptureDetails.Type> TABS = ImmutableMap.of(
-      "Top Down", CpuProfilerStage.CaptureDetails.Type.TOP_DOWN,
-      "Bottom Up", CpuProfilerStage.CaptureDetails.Type.BOTTOM_UP,
-      "Chart", CpuProfilerStage.CaptureDetails.Type.CHART);
+    "Top Down", CpuProfilerStage.CaptureDetails.Type.TOP_DOWN,
+    "Bottom Up", CpuProfilerStage.CaptureDetails.Type.BOTTOM_UP,
+    "Chart", CpuProfilerStage.CaptureDetails.Type.CHART);
 
   private static final Comparator<DefaultMutableTreeNode> DEFAULT_SORT_ORDER =
     Collections.reverseOrder(new DoubleValueNodeComparator(CpuTreeNode::getTotal));
@@ -69,7 +69,7 @@ class CpuCaptureView {
     myView = view;
 
     myPanel = new JBTabbedPane();
-    for (String label: TABS.keySet()) {
+    for (String label : TABS.keySet()) {
       myPanel.add(label, new JPanel());
     }
     myPanel.getModel().addChangeListener(event -> setCaptureDetailToTab());
@@ -171,7 +171,8 @@ class CpuCaptureView {
     }
     DefaultMutableTreeNode node = (DefaultMutableTreeNode)tree.getSelectionPath().getLastPathComponent();
     CpuTreeNode cpuNode = (CpuTreeNode)node.getUserObject();
-    return new CodeLocation(cpuNode.getClassName(), null, cpuNode.getMethodName(), cpuNode.getSignature(), CodeLocation.INVALID_LINE_NUMBER);
+    return new CodeLocation(cpuNode.getClassName(), null, cpuNode.getMethodName(), cpuNode.getSignature(),
+                            CodeLocation.INVALID_LINE_NUMBER);
   }
 
   /**
@@ -267,8 +268,12 @@ class CpuCaptureView {
 
       view.getIdeComponents()
         .installNavigationContextMenu(chart, view.getStage().getStudioProfilers().getIdeServices().getCodeNavigator(), () -> {
-          HNode<MethodModel> n = chart.getHoveredNode();
-          return n != null && n.getData() != null ? new CodeLocation(n.getData().getClassName()) : null;
+          HNode<MethodModel> node = chart.getHoveredNode();
+          if (node == null || node.getData() == null) {
+            return null;
+          }
+          MethodModel method = node.getData();
+          return new CodeLocation(method.getClassName(), null, method.getName(), method.getSignature(), CodeLocation.INVALID_LINE_NUMBER);
         });
     }
   }
