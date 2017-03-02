@@ -171,8 +171,7 @@ class CpuCaptureView {
     }
     DefaultMutableTreeNode node = (DefaultMutableTreeNode)tree.getSelectionPath().getLastPathComponent();
     CpuTreeNode cpuNode = (CpuTreeNode)node.getUserObject();
-    return new CodeLocation(cpuNode.getClassName(), null, cpuNode.getMethodName(), cpuNode.getSignature(),
-                            CodeLocation.INVALID_LINE_NUMBER);
+    return new CodeLocation.Builder(cpuNode.getClassName()).setMethodSignature(cpuNode.getMethodName(), cpuNode.getSignature()).build();
   }
 
   /**
@@ -273,7 +272,7 @@ class CpuCaptureView {
             return null;
           }
           MethodModel method = node.getData();
-          return new CodeLocation(method.getClassName(), null, method.getName(), method.getSignature(), CodeLocation.INVALID_LINE_NUMBER);
+          return new CodeLocation.Builder(method.getClassName()).setMethodSignature(method.getName(), method.getSignature()).build();
         });
     }
   }

@@ -272,7 +272,7 @@ final class MemoryInstanceView extends AspectObserver {
 
       if (((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter() instanceof InstanceObject) {
         InstanceObject instanceObject = (InstanceObject)((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
-        return new CodeLocation(instanceObject.getClassName());
+        return new CodeLocation.Builder(instanceObject.getClassName()).build();
       }
       return null;
     });
