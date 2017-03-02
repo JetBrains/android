@@ -24,30 +24,48 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.awt.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import static com.google.common.truth.Truth.assertThat;
 
+@RunWith(Parameterized.class)
 public class AdbFileOperationsTest {
   private static final long TIMEOUT_MILLISECONDS = 30_000;
   @NotNull private static final String ERROR_LINE_MARKER = "ERR-ERR-ERR-ERR";
   @NotNull private static final String COMMAND_ERROR_CHECK_SUFFIX = " || echo " + ERROR_LINE_MARKER;
 
+  @NotNull private Consumer<TestShellCommands> mySetupCommands;
+
+  @Parameterized.Parameters
+  public static Object[] data() {
+    return new Object[]{
+      (Consumer<TestShellCommands>)AdbFileOperationsTest::addEmulatorApi10Commands,
+      (Consumer<TestShellCommands>)AdbFileOperationsTest::addNexus7Api23Commands,
+    };
+  }
+
   @Rule
-  public ExpectedException thrown= ExpectedException.none();
+  public ExpectedException thrown = ExpectedException.none();
 
   @ClassRule
   public static DebugLoggerFactoryRule ourLoggerFactoryRule = new DebugLoggerFactoryRule();
+
+  public AdbFileOperationsTest(@NotNull Consumer<TestShellCommands> setupCommands) {
+    mySetupCommands = setupCommands;
+  }
 
   @Test
   public void testCreateNewFileSuccess() throws Exception {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
-    addNexus7Commands(commands);
+    mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
@@ -63,7 +81,7 @@ public class AdbFileOperationsTest {
   public void testCreateNewFileInvalidFileNameError() throws Exception {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
-    addNexus7Commands(commands);
+    mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
@@ -78,7 +96,7 @@ public class AdbFileOperationsTest {
   public void testCreateNewFileReadOnlyError() throws Exception {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
-    addNexus7Commands(commands);
+    mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
@@ -93,7 +111,7 @@ public class AdbFileOperationsTest {
   public void testCreateNewFilePermissionError() throws Exception {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
-    addNexus7Commands(commands);
+    mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
@@ -101,14 +119,14 @@ public class AdbFileOperationsTest {
     // Act/Assert
     thrown.expect(ExecutionException.class);
     thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
-    waitForFuture(fileOperations.createNewFile("/data", "foo.txt"));
+    waitForFuture(fileOperations.createNewFile("/system", "foo.txt"));
   }
 
   @Test
   public void testCreateNewFileExistError() throws Exception {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
-    addNexus7Commands(commands);
+    mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
@@ -116,14 +134,14 @@ public class AdbFileOperationsTest {
     // Act/Assert
     thrown.expect(ExecutionException.class);
     thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
-    waitForFuture(fileOperations.createNewFile("/", "file_contexts"));
+    waitForFuture(fileOperations.createNewFile("/", "default.prop"));
   }
 
   @Test
   public void testCreateNewDirectorySuccess() throws Exception {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
-    addNexus7Commands(commands);
+    mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
@@ -139,7 +157,7 @@ public class AdbFileOperationsTest {
   public void testCreateNewDirectoryInvalidNameError() throws Exception {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
-    addNexus7Commands(commands);
+    mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
@@ -156,7 +174,7 @@ public class AdbFileOperationsTest {
   public void testCreateNewDirectoryReadOnlyError() throws Exception {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
-    addNexus7Commands(commands);
+    mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
@@ -173,7 +191,7 @@ public class AdbFileOperationsTest {
   public void testCreateNewDirectoryPermissionError() throws Exception {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
-    addNexus7Commands(commands);
+    mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
@@ -183,14 +201,14 @@ public class AdbFileOperationsTest {
     // Assert
     thrown.expect(ExecutionException.class);
     thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
-    waitForFuture(fileOperations.createNewDirectory("/data", "foo-dir"));
+    waitForFuture(fileOperations.createNewDirectory("/system", "foo-dir"));
   }
 
   @Test
   public void testCreateNewDirectoryExistError() throws Exception {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
-    addNexus7Commands(commands);
+    mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
@@ -207,7 +225,7 @@ public class AdbFileOperationsTest {
   public void testDeleteExistingFileSuccess() throws Exception {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
-    addNexus7Commands(commands);
+    mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
@@ -223,7 +241,7 @@ public class AdbFileOperationsTest {
   public void testDeleteExistingDirectoryAsFileError() throws Exception {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
-    addNexus7Commands(commands);
+    mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
@@ -238,7 +256,7 @@ public class AdbFileOperationsTest {
   public void testDeleteExistingReadOnlyFileError() throws Exception {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
-    addNexus7Commands(commands);
+    mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
@@ -246,14 +264,14 @@ public class AdbFileOperationsTest {
     // Act/Assert
     thrown.expect(ExecutionException.class);
     thrown.expectCause(IsInstanceOf.instanceOf(AdbShellCommandException.class));
-    waitForFuture(fileOperations.deleteFile("/system/app/Street/Street.apk"));
+    waitForFuture(fileOperations.deleteFile("/system/bin/sh"));
   }
 
   @Test
   public void testDeleteExistingDirectorySucceeds() throws Exception {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
-    addNexus7Commands(commands);
+    mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
@@ -269,7 +287,7 @@ public class AdbFileOperationsTest {
   public void testDeleteExistingDirectoryPermissionError() throws Exception {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
-    addNexus7Commands(commands);
+    mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
@@ -280,30 +298,92 @@ public class AdbFileOperationsTest {
     waitForFuture(fileOperations.deleteRecursive("/config"));
   }
 
-  private static void addNexus7Commands(@NotNull TestShellCommands commands) {
-    // These are command + result as run on a Nexus 7, Android 6.0.1, API 23
-    addFailedCommand(commands, "test -e '/foo.txt'");
-    addFailedCommand(commands, "touch '/foo.txt'", "touch: '/foo.txt': Read-only file system\n");
+  /**
+   * These are command + result as run on a Nexus 7, Android 6.0.1, API 23
+   */
+  private static void addNexus7Api23Commands(@NotNull TestShellCommands commands) {
+    commands.setDescription("Nexus 7, Android 6.0.1, API 23");
 
-    addCommand(commands, "test -e '/file_contexts'", "");
+    // "test" capability detection
+    addCommand(commands, "echo >/data/local/tmp/device-explorer/.__temp_test_test__file__.tmp", "");
+    addCommand(commands, "test -e /data/local/tmp/device-explorer/.__temp_test_test__file__.tmp", "");
+    addCommand(commands, "rm /data/local/tmp/device-explorer/.__temp_test_test__file__.tmp", "");
 
-    addFailedCommand(commands, "test -e '/sdcard/foo.txt'");
-    addCommand(commands, "touch '/sdcard/foo.txt'", "");
+    // "rm -f" capability detection
+    addCommand(commands, "echo >/data/local/tmp/device-explorer/.__temp_rm_test_file__.tmp", "");
+    addCommand(commands, "rm -f /data/local/tmp/device-explorer/.__temp_rm_test_file__.tmp", "");
 
-    addFailedCommand(commands, "test -e '/data/foo.txt'");
-    addFailedCommand(commands, "touch '/data/foo.txt'", "touch: '/data/foo.txt': Permission denied\n");
+    // "touch" capability detection
+    addCommand(commands, "touch /data/local/tmp/device-explorer/.__temp_touch_test_file__.tmp", "");
+    addCommand(commands, "rm /data/local/tmp/device-explorer/.__temp_touch_test_file__.tmp", "");
 
-    addCommand(commands, "mkdir '/sdcard/foo-dir'", "");
-    addFailedCommand(commands, "mkdir '/foo-dir'", "mkdir: '/foo-dir': Read-only file system\n");
-    addFailedCommand(commands, "mkdir '/data/foo-dir'", "mkdir: '/data/foo-dir': Permission denied\n");
-    addFailedCommand(commands, "mkdir '/data'", "mkdir: '/data': File exists\n");
+    addFailedCommand(commands, "test -e /foo.txt");
+
+    addFailedCommand(commands, "touch /foo.txt", "touch: '/foo.txt': Read-only file system\n");
+
+    addCommand(commands, "test -e /default.prop", "");
+
+    addFailedCommand(commands, "test -e /sdcard/foo.txt");
+    addCommand(commands, "touch /sdcard/foo.txt", "");
+
+    addFailedCommand(commands, "test -e /system/foo.txt");
+    addFailedCommand(commands, "touch /system/foo.txt", "touch: '/system/foo.txt': Read-only file system\n");
+
+    addCommand(commands, "mkdir /sdcard/foo-dir", "");
+    addFailedCommand(commands, "mkdir /foo-dir", "mkdir: '/foo-dir': Read-only file system\n");
+    addFailedCommand(commands, "mkdir /system/foo-dir", "mkdir: '/system/foo-dir': Read-only file system\n");
+    addFailedCommand(commands, "mkdir /data", "mkdir: '/data': File exists\n");
 
     addCommand(commands, "rm -f /sdcard/foo.txt", "");
     addFailedCommand(commands, "rm -f /sdcard/foo-dir", "rm: sdcard/foo-dir: is a directory\n");
-    addFailedCommand(commands, "rm -f /system/app/Street/Street.apk", "rm: /system/app/Street/Street.apk: Read-only file system\n");
+    addFailedCommand(commands, "rm -f /system/bin/sh", "rm: /system/bin/sh: Read-only file system\n");
 
     addCommand(commands, "rm -r -f /sdcard/foo-dir", "");
     addFailedCommand(commands, "rm -r -f /config", "rm: /config: Permission denied\n");
+  }
+
+  /**
+   * Add commands from a Nexus emulator, Android 2.3.7, API 10
+   */
+  private static void addEmulatorApi10Commands(@NotNull TestShellCommands commands) {
+    commands.setDescription("Nexus 5, Android 2.3.7, API 10");
+
+    // "test" capability detection
+    addCommand(commands, "echo >/data/local/tmp/device-explorer/.__temp_test_test__file__.tmp", "");
+    addFailedCommand(commands, "test -e /data/local/tmp/device-explorer/.__temp_test_test__file__.tmp", "test: not found\n");
+    addCommand(commands, "rm /data/local/tmp/device-explorer/.__temp_test_test__file__.tmp", "");
+
+    // "touch" capability detection
+    addFailedCommand(commands, "touch /data/local/tmp/device-explorer/.__temp_touch_test_file__.tmp", "touch: not found\n");
+
+    // "rm -f" capability detection
+    addCommand(commands, "echo >/data/local/tmp/device-explorer/.__temp_rm_test_file__.tmp", "");
+    addFailedCommand(commands, "rm -f /data/local/tmp/device-explorer/.__temp_rm_test_file__.tmp", "rm failed for -f, Read-only file system\n");
+    addCommand(commands, "rm /data/local/tmp/device-explorer/.__temp_rm_test_file__.tmp", "");
+
+    addFailedCommand(commands, "ls -d -a /foo.txt", "/foo.txt: No such file or directory\n");
+
+    addFailedCommand(commands, "echo -n >/foo.txt", "cannot create /foo.txt: read-only file system\n");
+
+    addCommand(commands, "ls -d -a /default.prop", "");
+
+    addFailedCommand(commands, "ls -d -a /sdcard/foo.txt", "/sdcard/foo.txt: No such file or directory\n");
+    addCommand(commands, "echo -n >/sdcard/foo.txt", "");
+
+    addFailedCommand(commands, "ls -d -a /system/foo.txt", "/system/foo.txt: No such file or directory\n");
+    addFailedCommand(commands, "echo -n >/system/foo.txt", "cannot create /system/foo.txt: read-only file system\n");
+
+    addCommand(commands, "mkdir /sdcard/foo-dir", "");
+    addFailedCommand(commands, "mkdir /foo-dir", "mkdir failed for /foo-dir, Read-only file system\n");
+    addFailedCommand(commands, "mkdir /system/foo-dir", "mkdir: '/data/foo-dir': Permission denied\n");
+    addFailedCommand(commands, "mkdir /data", "mkdir failed for /data, File exists\n");
+
+    addCommand(commands, "rm /sdcard/foo.txt", "");
+    addFailedCommand(commands, "rm /sdcard/foo-dir", "rm failed for /sdcard/foo-dir, Is a directory\n");
+    addFailedCommand(commands, "rm /system/bin/sh", "rm failed for /system/bin/sh, Read-only file system\n");
+
+    addCommand(commands, "rm -r /sdcard/foo-dir", "");
+    addFailedCommand(commands, "rm -r /config", "rm failed for /config, Read-only file system\n");
   }
 
   private static void addFailedCommand(@NotNull TestShellCommands commands, @NotNull String command) {
