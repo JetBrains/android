@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.tools.idea.assistant.view.UIUtils;
 import com.android.tools.idea.configurations.ConfigurationHolder;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -28,8 +29,10 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -165,7 +168,8 @@ abstract public class ActionsToolbar implements DesignSurfaceListener, ModelList
       return;
     }
 
-    myActionToolbar.getComponent().setVisible(mySurface.getLayoutType().isSupportedByDesigner());
+    boolean isSupportedByDesigner = mySurface.getLayoutType().isSupportedByDesigner();
+    UIUtil.invokeLaterIfNeeded(() -> myActionToolbar.getComponent().setVisible(isSupportedByDesigner));
 
     // TODO: Perform caching
     myDynamicGroup.removeAll();
