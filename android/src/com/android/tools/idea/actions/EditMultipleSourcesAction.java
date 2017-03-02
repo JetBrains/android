@@ -28,6 +28,8 @@ import com.intellij.pom.Navigatable;
 import com.intellij.ui.components.JBList;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+
 public class EditMultipleSourcesAction extends AnAction {
   @Nullable private final Runnable myNavigationCallback;
 
@@ -73,17 +75,23 @@ public class EditMultipleSourcesAction extends AnAction {
     assert files != null && files.length > 0;
 
     if (files.length > 1) {
-      final JBList<Navigatable> list = new JBList<>(files);
+      DefaultListModel listModel = new DefaultListModel();
+      for (int i = 0; i < files.length; ++i) {
+        assert files[i] instanceof PsiClassNavigation;
+        //noinspection unchecked
+        listModel.add(i, ((PsiClassNavigation)files[i]).getPsiFile());
+      }
+      final JBList list = new JBList(listModel);
       int width = WindowManager.getInstance().getFrame(project).getSize().width;
       list.setCellRenderer(new GotoFileCellRenderer(width));
 
       JBPopup popup =
         JBPopupFactory.getInstance().createListPopupBuilder(list).setTitle("Choose Target File").setItemChoosenCallback(() -> {
           Object selectedValue = list.getSelectedValue();
-          Navigatable navigationWrapper = null;
+          PsiClassNavigation navigationWrapper = null;
           for (Navigatable file : files) {
-            if (selectedValue == file) {
-              navigationWrapper = file;
+            if (selectedValue == ((PsiClassNavigation)file).getPsiFile()) {
+              navigationWrapper = (PsiClassNavigation)file;
               break;
             }
           }
@@ -104,7 +112,8 @@ public class EditMultipleSourcesAction extends AnAction {
       }
     }
     else {
-      Navigatable file = files[0];
+      assert files[0] instanceof PsiClassNavigation;
+      PsiClassNavigation file = (PsiClassNavigation)files[0];
       if (file.canNavigate()) {
         if (myNavigationCallback != null) {
           myNavigationCallback.run();
