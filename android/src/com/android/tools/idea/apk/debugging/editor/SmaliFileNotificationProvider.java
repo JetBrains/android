@@ -17,12 +17,16 @@ package com.android.tools.idea.apk.debugging.editor;
 
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
+import com.android.tools.idea.smali.psi.SmaliFile;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +34,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
+import static com.intellij.codeInsight.navigation.NavigationUtil.openFileWithPsiElement;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 public class SmaliFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
@@ -61,6 +67,21 @@ public class SmaliFileNotificationProvider extends EditorNotifications.Provider<
         // The smali file is inside the folder where baksmali generated the smali files by disassembling classes.dex.
         EditorNotificationPanel panel = new EditorNotificationPanel();
         panel.setText("Disassembled classes.dex file");
+
+        PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
+        if (psiFile instanceof SmaliFile) {
+          String classFqn = myDexSourceFiles.findJavaClassName((SmaliFile)psiFile);
+          if (isNotEmpty(classFqn)) {
+            PsiClass javaPsiClass = myDexSourceFiles.findJavaPsiClass(classFqn);
+            if (javaPsiClass != null) {
+              panel.createActionLabel("Open Java file", () -> openFileWithPsiElement(javaPsiClass, true, true));
+            }
+            else {
+              panel.createActionLabel("Choose Sources...", new ChooseAndAttachSourcesTask(classFqn, module, myDexSourceFiles));
+            }
+          }
+        }
+
         return panel;
       }
     }
