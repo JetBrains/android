@@ -247,7 +247,7 @@ public class HttpData {
           continue;
         }
         StackFrameParser parser = new StackFrameParser(line);
-        builder.add(new CodeLocation(parser.getClassName(), parser.getFileName(), parser.getMethodName(), parser.getLineNumber() - 1));
+        builder.add(new CodeLocation(parser.getClassName(), parser.getFileName(), parser.getMethodName(), null, parser.getLineNumber() - 1));
       }
       myLocations = builder.build();
     }
