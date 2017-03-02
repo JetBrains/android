@@ -15,18 +15,25 @@
  */
 package com.android.tools.profilers.cpu;
 
+
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.HNode;
+import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profilers.JComboBoxView;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ViewBinder;
 import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.common.TabsPanel;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.tree.TreeModelAdapter;
@@ -40,6 +47,7 @@ import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
+import java.awt.*;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
@@ -59,20 +67,33 @@ class CpuCaptureView {
   @NotNull
   private final CpuProfilerStageView myView;
 
-  @NotNull
-  private final JBTabbedPane myPanel;
+  private final JPanel myPanel;
+
+  private final TabsPanel myTabsPanel;
 
   @NotNull
   private final ViewBinder<CpuProfilerStageView, CpuProfilerStage.CaptureDetails, CaptureDetailsView> myBinder;
 
   CpuCaptureView(@NotNull CpuProfilerStageView view) {
     myView = view;
+    myPanel = new JPanel(new TabularLayout("*,Fit", "Fit,*"));
 
-    myPanel = new JBTabbedPane();
+    myTabsPanel = view.getIdeComponents().createTabsPanel();
+
     for (String label : TABS.keySet()) {
-      myPanel.add(label, new JPanel());
+      myTabsPanel.addTab(label, new JPanel(new BorderLayout()));
     }
-    myPanel.getModel().addChangeListener(event -> setCaptureDetailToTab());
+    myTabsPanel.setOnSelectionChange(this::setCaptureDetailToTab);
+
+    JComboBox<ClockType> clockTypeCombo = new ComboBox<>();
+    JComboBoxView clockTypes =
+      new JComboBoxView<>(clockTypeCombo, view.getStage().getAspect(), CpuProfilerAspect.CLOCK_TYPE,
+                          view.getStage()::getClockTypes, view.getStage()::getClockType, view.getStage()::setClockType);
+    clockTypes.bind();
+    clockTypeCombo.setRenderer(new ClockTypeCellRenderer());
+
+    myPanel.add(clockTypeCombo, new TabularLayout.Constraint(0, 1));
+    myPanel.add(myTabsPanel.getComponent(), new TabularLayout.Constraint(0, 0, 2, 2));
 
     myBinder = new ViewBinder<>();
     myBinder.bind(CpuProfilerStage.TopDown.class, TopDownView::new);
@@ -83,8 +104,11 @@ class CpuCaptureView {
   }
 
   void updateView() {
-    for (int i = 0; i < myPanel.getTabCount(); ++i) {
-      myPanel.setComponentAt(i, new JPanel());
+    // Clear the content of all the tabs
+    for (Component tab : myTabsPanel.getTabsComponents()) {
+      // In the constructor, we make sure to use JPanel as root components of the tabs.
+      assert tab instanceof JPanel;
+      ((JPanel)tab).removeAll();
     }
 
     CpuProfilerStage.CaptureDetails details = myView.getStage().getCaptureDetails();
@@ -92,21 +116,28 @@ class CpuCaptureView {
       return;
     }
 
-    int current = myPanel.getSelectedIndex();
-    for (int i = 0; i < myPanel.getTabCount(); i++) {
-      String title = myPanel.getTitleAt(i);
-      if (current != i && TABS.get(title).equals(details.getType())) {
-        myPanel.setSelectedIndex(i);
-        current = i;
-        break;
+    // Update the current selected tab
+    if (myTabsPanel.getSelectedTab() == null || !TABS.get(myTabsPanel.getSelectedTab()).equals(details.getType())) {
+      for (String tab : TABS.keySet()) {
+        if (TABS.get(tab).equals(details.getType())) {
+          myTabsPanel.selectTab(tab);
+        }
       }
     }
-    myPanel.setComponentAt(current, myBinder.build(myView, details).getComponent());
+    // Update selected tab content. As we need to update the content of the tabs dynamically,
+    // we use a JPanel (set on the constructor) to wrap the content of each tab's content.
+    // This is required because JBTabsImpl doesn't behave consistently when setting tab's component dynamically.
+    JComponent selectedTab = myTabsPanel.getSelectedTabComponent();
+    assert selectedTab instanceof JPanel;
+    selectedTab.add(myBinder.build(myView, details).getComponent(), BorderLayout.CENTER);
   }
 
   void setCaptureDetailToTab() {
-    int index = myPanel.getSelectedIndex();
-    myView.getStage().setCaptureDetails(TABS.get(myPanel.getTitleAt(index)));
+    myView.getStage().setCaptureDetails(TABS.get(myTabsPanel.getSelectedTab()));
+  }
+
+  private static Logger getLog() {
+    return Logger.getInstance(CpuCaptureView.class);
   }
 
   @NotNull
@@ -200,6 +231,26 @@ class CpuCaptureView {
     @NotNull
     protected JComponent getComponent() {
       return myComponent;
+    }
+  }
+
+  private static class ClockTypeCellRenderer extends ListCellRendererWrapper<ClockType> {
+    @Override
+    public void customize(JList list,
+                          ClockType value,
+                          int index,
+                          boolean selected,
+                          boolean hasFocus) {
+      switch (value) {
+        case GLOBAL:
+          setText("Wall Clock Time");
+          break;
+        case THREAD:
+          setText("Thread Time");
+          break;
+        default:
+          getLog().warn("Unexpected clock type received.");
+      }
     }
   }
 

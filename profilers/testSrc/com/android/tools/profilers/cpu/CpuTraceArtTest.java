@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.testutils.TestUtils;
 import com.android.tools.adtui.model.HNode;
+import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.perflib.vmtrace.VmTraceData;
 import com.android.tools.perflib.vmtrace.VmTraceParser;
@@ -26,26 +27,25 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class CpuTraceArtTest {
   private static final String CPU_TRACES_DIR = "tools/adt/idea/profilers/testData/cputraces/";
 
   @Test
   public void testParse() throws IOException {
-    File traceFile = TestUtils.getWorkspaceFile(CPU_TRACES_DIR + "basic.trace");
-    VmTraceParser parser = new VmTraceParser(traceFile);
-    parser.parse();
-    VmTraceData data = parser.getTraceData();
+    VmTraceData data = getTraceData();
     CpuTraceArt traceArt = new CpuTraceArt();
     traceArt.parse(data);
-    Map<ThreadInfo, HNode<MethodModel>> graphs = traceArt.getThreadsGraph();
+    Map<ThreadInfo, CaptureNode> graphs = traceArt.getThreadsGraph();
     assertEquals(1, graphs.size());
     ThreadInfo info = graphs.keySet().iterator().next();
     assertEquals("AsyncTask #1", info.getName());
     assertEquals(11, info.getId());
 
-    HNode<MethodModel> node = graphs.values().iterator().next();
+    CaptureNode node = graphs.values().iterator().next();
+    assertTrue(node.getClockType() == ClockType.GLOBAL);
 
     assertEquals("AsyncTask #1.", node.getData().getId());
 
@@ -58,6 +58,40 @@ public class CpuTraceArtTest {
     expectedChildrenIds(node.getChildren().get(2), "dalvik/system/VMDebug.stopMethodTracing()V");
     expectedChildrenIds(node.getFirstChild().getChildren().get(0),
                         "dalvik/system/VMDebug.startMethodTracing(Ljava/lang/String;II)V");
+  }
+
+  @Test
+  public void testThreadClock() throws IOException {
+    VmTraceData data = getTraceData();
+    CpuTraceArt traceArt = new CpuTraceArt();
+    traceArt.parse(data);
+    Map<ThreadInfo, CaptureNode> graphs = traceArt.getThreadsGraph();
+    assertEquals(1, graphs.size());
+
+    CaptureNode root = graphs.values().iterator().next();
+    assertEquals(ClockType.GLOBAL, root.getClockType());
+
+    long topLevelStart = root.getStart();
+
+    root.setClockType(ClockType.THREAD);
+    assertEquals(ClockType.THREAD, root.getClockType());
+
+    // Thread clock is based on the topLevel call start time.
+    // Therefore all nodes should have their thread start time >= top level's global start time.
+    assertTrue(root.getStart() >= topLevelStart);
+    for(HNode<MethodModel> child : root.getChildren()) {
+      assertTrue(child instanceof CaptureNode);
+      CaptureNode node = (CaptureNode)child;
+      node.setClockType(ClockType.THREAD);
+      assertTrue(node.getStart() >= topLevelStart);
+    }
+  }
+
+  private static VmTraceData getTraceData() throws IOException {
+    File traceFile = TestUtils.getWorkspaceFile(CPU_TRACES_DIR + "basic.trace");
+    VmTraceParser parser = new VmTraceParser(traceFile);
+    parser.parse();
+    return parser.getTraceData();
   }
 
   private static void expectedChildrenIds(HNode<MethodModel> node, String... ids) {
