@@ -79,7 +79,19 @@ public class NetworkProfilerStageViewTest {
     assertThat(connectionsViewWalker.ancestorStream().allMatch(Component::isVisible)).isFalse();
 
     Point start = myFakeUi.getPosition(lineChart);
-    myFakeUi.mouse.drag(start.x, start.y, 10, 0);
+    assertThat(stageView.getStage().getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
+    assertThat(connectionsViewWalker.ancestorStream().allMatch(Component::isVisible)).isFalse();
+
+    myFakeUi.mouse.press(start.x, start.y);
+    assertThat(stageView.getStage().getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
+    assertThat(connectionsViewWalker.ancestorStream().allMatch(Component::isVisible)).isFalse();
+
+    myFakeUi.mouse.dragDelta(10, 0);
+    assertThat(stageView.getStage().getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
+    assertThat(connectionsViewWalker.ancestorStream().allMatch(Component::isVisible)).isFalse();
+
+    myFakeUi.mouse.release();
+    assertThat(stageView.getStage().getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
     assertThat(connectionsViewWalker.ancestorStream().allMatch(Component::isVisible)).isTrue();
 
     myFakeUi.keyboard.setFocus(selectionComponent);
