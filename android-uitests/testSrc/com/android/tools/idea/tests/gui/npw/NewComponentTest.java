@@ -36,7 +36,7 @@ public class NewComponentTest {
   public void testNewValueWizard() throws IOException {
     guiTest.importSimpleApplication();
 
-    guiTest.ideFrame().getProjectView().selectAndroidPane();
+    guiTest.ideFrame().getProjectView().selectAndroidPane().clickPath("app");
     guiTest.ideFrame().invokeMenuPath("File", "New", "XML", "Values XML File");
 
     final NewXmlValueWizardFixture wizardFixture = NewXmlValueWizardFixture.find(guiTest.robot());
