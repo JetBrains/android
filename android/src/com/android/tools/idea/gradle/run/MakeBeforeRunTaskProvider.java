@@ -70,7 +70,7 @@ import java.util.stream.Collectors;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.Projects.getModulesToBuildFromSelection;
-import static com.android.tools.idea.run.editor.ProfilerState.ANDROID_CUSTOM_CLASS_TRANSFORMS;
+import static com.android.tools.idea.run.editor.ProfilerState.ANDROID_ADVANCED_PROFILING_TRANSFORMS;
 import static com.android.tools.idea.run.editor.ProfilerState.EXPERIMENTAL_PROFILING_FLAG_ENABLED;
 import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -337,7 +337,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     ProfilerState state = ((AndroidRunConfigurationBase)configuration).getProfilerState();
     if (state.ADVANCED_PROFILING_ENABLED) {
       File file = EmbeddedDistributionPaths.getInstance().findEmbeddedProfilerTransform();
-      arguments.add(createProjectProperty(ANDROID_CUSTOM_CLASS_TRANSFORMS, file.getAbsolutePath()));
+      arguments.add(createProjectProperty(ANDROID_ADVANCED_PROFILING_TRANSFORMS, file.getAbsolutePath()));
 
       Properties profilerProperties = state.toProperties();
       try {
