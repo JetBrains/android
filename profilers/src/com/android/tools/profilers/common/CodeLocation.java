@@ -37,7 +37,7 @@ public final class CodeLocation {
    * Signature of a method, encoded by java type encoding
    *
    * For example:
-   * {@code int aMethod(List<String> a, ArrayList<T> b, boolean c)}
+   * {@code int aMethod(List<String> a, ArrayList<T> b, boolean c, Integer[][] d)}
    * the signature is (Ljava/util/List;Ljava/util/ArrayList;Z[[Ljava/lang/Integer;)I
    *
    * Java encoding: https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName()
