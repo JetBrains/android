@@ -20,7 +20,6 @@ import com.android.tools.idea.lint.LintIdeClient;
 import com.android.tools.idea.lint.LintIdeUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.lint.checks.ApiLookup;
-import com.android.tools.lint.checks.VersionChecks;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.openapi.project.Project;

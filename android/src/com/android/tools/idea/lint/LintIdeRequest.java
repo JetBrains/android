@@ -24,7 +24,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -51,7 +50,7 @@ public class LintIdeRequest extends LintRequest {
                         @Nullable List<VirtualFile> fileList,
                         @NonNull List<Module> modules,
                         boolean incremental) {
-    super(client, Collections.<File>emptyList());
+    super(client, Collections.emptyList());
     mLintClient = client;
     myProject = project;
     myModules = modules;
@@ -95,7 +94,7 @@ public class LintIdeRequest extends LintRequest {
         Pair<com.android.tools.lint.detector.api.Project,com.android.tools.lint.detector.api.Project> pair =
           LintIdeProject.createForSingleFile(mLintClient, myFileList.get(0), myModules.get(0));
         projects = pair.first != null ? Collections.singletonList(pair.first)
-                                      : Collections.<com.android.tools.lint.detector.api.Project>emptyList();
+                                      : Collections.emptyList();
         myMainProject = pair.second;
       } else if (!myModules.isEmpty()) {
         // Make one project for each module, mark each one as a library,
