@@ -122,6 +122,45 @@ public class SelectionModelTest {
     assertEquals(40, mySelection.getMax(), Float.MIN_VALUE);
   }
 
+  @Test
+  public void testSelectionFiredAsExpected() throws Exception {
+    SelectionModel model = new SelectionModel(mySelection, myRange);
+
+    final boolean[] selectionChanged = {false};
+    model.addChangeListener(e -> selectionChanged[0] = true);
+
+    // Basic selection modification
+    selectionChanged[0] = false;
+    model.set(1, 2);
+    assertTrue(selectionChanged[0]);
+
+    // Selection change not fired if not changed
+    selectionChanged[0] = false;
+    model.set(1, 2);
+    assertFalse(selectionChanged[0]);
+
+    // Selection change only fired after updating is finished
+    selectionChanged[0] = false;
+    model.beginUpdate();
+    model.set(3, 4);
+    assertFalse(selectionChanged[0]);
+    model.set(3, 5);
+    assertFalse(selectionChanged[0]);
+    model.endUpdate();
+    assertTrue(selectionChanged[0]);
+
+    // Selection change not fired if not changed during update
+    selectionChanged[0] = false;
+    model.beginUpdate();
+    model.endUpdate();
+    assertFalse(selectionChanged[0]);
+
+    // Fired on clear
+    selectionChanged[0] = false;
+    model.getSelectionRange().clear();
+    assertTrue(selectionChanged[0]);
+  }
+
   private DurationDataModel<DefaultDurationData> createConstraint(long... values) {
     DefaultDataSeries<DefaultDurationData> series = new DefaultDataSeries<>();
     RangedSeries<DefaultDurationData> ranged = new RangedSeries<>(myRange, series);
