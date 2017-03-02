@@ -69,7 +69,7 @@ final class AllocationsInstanceObject implements InstanceObject {
 
   @NotNull
   @Override
-  public String getDisplayLabel() {
+  public String getName() {
     return getClassName();
   }
 

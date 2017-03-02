@@ -31,6 +31,7 @@ import org.junit.Test;
 import javax.swing.*;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -206,7 +207,7 @@ public class MemoryInstanceViewTest {
     for (int i = 0; i < root.getChildCount(); i++) {
       InstanceObject instance = INSTANCE_OBJECT_LIST.get(2 - i);
       treeInfo.verifyRendererValues(root.getChildAt(i),
-                                    new String[]{instance.getDisplayLabel(), instance.getToStringText()},
+                                    new String[]{instance.getName(), instance.getToStringText()},
                                     new String[]{(instance.getDepth() >= 0 && instance.getDepth() < Integer.MAX_VALUE) ?
                                                  Integer.toString(instance.getDepth()) : ""},
                                     new String[]{Integer.toString(instance.getShallowSize())},
@@ -226,7 +227,44 @@ public class MemoryInstanceViewTest {
     instanceTreeNode1.expandNode();
     instanceTreeNode2.expandNode();
     assertEquals(0, instanceTreeNode0.getBuiltChildren().size());
+    assertTrue(instanceTreeNode0.getBuiltChildren().stream().allMatch(node -> node instanceof InstanceTreeNode));
     assertEquals(1, instanceTreeNode1.getBuiltChildren().size());
+    assertTrue(instanceTreeNode1.getBuiltChildren().stream().allMatch(node -> node instanceof InstanceTreeNode));
     assertEquals(5, instanceTreeNode2.getBuiltChildren().size());
+    assertTrue(instanceTreeNode2.getBuiltChildren().stream().allMatch(node -> node instanceof InstanceTreeNode));
+  }
+
+  @Test
+  public void testLazyPopulateSiblings() {
+    MemoryInstanceView view = new MemoryInstanceView(myStage, myFakeIdeProfilerComponents);
+
+    // create a mock class containing 209 instances
+    List<InstanceObject> fakeInstances = new ArrayList<>();
+    for (int i = 0; i < 209; i++) {
+      String name = Integer.toString(i);
+      fakeInstances.add(MemoryProfilerTestBase.mockInstanceObject(
+        MOCK_CLASS_NAME, name, name, null, null, i, i, i, i));
+    }
+
+    ClassObject fakeClass = MemoryProfilerTestBase.mockClassObject(
+      MOCK_CLASS_NAME, 1, 1, 1, fakeInstances);
+    myStage.selectClass(fakeClass);
+    JTree tree = view.getTree();
+    MemoryObjectTreeNode root = (MemoryObjectTreeNode)tree.getModel().getRoot();
+
+    // View would display only the first 100 object, plus an extra node for sibling expansion.
+    assertEquals(101, root.getChildCount());
+
+    // Selecting a regular node would do nothing
+    tree.addSelectionPath(new TreePath(new Object[]{root, root.getChildAt(0)}));
+    assertEquals(101, root.getChildCount());
+
+    // Selecting the last node would expand the next 100
+    tree.addSelectionPath(new TreePath(new Object[]{root, root.getChildAt(100)}));
+    assertEquals(201, root.getChildCount());
+
+    // Selecting the last node again would expand the remaining 9
+    tree.addSelectionPath(new TreePath(new Object[]{root, root.getChildAt(200)}));
+    assertEquals(209, root.getChildCount());
   }
 }

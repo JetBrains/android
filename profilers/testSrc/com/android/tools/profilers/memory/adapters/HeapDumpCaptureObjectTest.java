@@ -26,7 +26,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -216,7 +215,7 @@ public class HeapDumpCaptureObjectTest {
   }
 
   private void verifyHeap(HeapObject heap, String name, int klassSize) {
-    assertEquals(name, heap.getHeapName());
+    assertEquals(name, heap.getName());
     assertEquals(klassSize, heap.getClasses().size());
   }
 
@@ -226,18 +225,18 @@ public class HeapDumpCaptureObjectTest {
   }
 
   private void verifyInstance(InstanceObject instance, String name, int depth, int fieldSize, int referenceSize) {
-    assertEquals(name, instance.getDisplayLabel());
+    assertEquals(name, instance.getName());
     assertEquals(depth, instance.getDepth());
     assertEquals(fieldSize, instance.getFields().size());
     assertEquals(referenceSize, instance.getReferences().size());
   }
 
   private void verifyField(FieldObject field, String fieldName, String valueName) {
-    assertEquals(String.format(FieldObject.FIELD_DISPLAY_FORMAT, fieldName, valueName), field.getDisplayLabel());
+    assertEquals(String.format(FieldObject.FIELD_DISPLAY_FORMAT, fieldName, valueName), field.getName());
   }
 
   private void verifyReference(ReferenceObject reference, String referrerName, List<String> referrerFieldNames) {
-    assertEquals(referrerName, reference.getDisplayLabel());
+    assertEquals(referrerName, reference.getName());
     assertEquals(referrerFieldNames, reference.getReferenceFieldNames());
   }
 }

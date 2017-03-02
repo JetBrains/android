@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.profilers.memory.adapters.MemoryObject;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -23,9 +24,7 @@ import javax.swing.tree.MutableTreeNode;
 import java.util.Comparator;
 import java.util.Enumeration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public class MemoryObjectTreeNodeTest {
 
@@ -105,6 +104,56 @@ public class MemoryObjectTreeNodeTest {
     node1.getPathToRoot();
   }
 
+  @Test
+  public void testNoRedundantSort() {
+    Comparator<MemoryObjectTreeNode<TestMemoryObject>> testComparator =
+      Comparator.comparingInt(node -> node.getAdapter().getNum());
+
+    MemoryObjectTreeNode<TestMemoryObject> parent = new MemoryObjectTreeNode<>(new TestMemoryObject(1));
+    MemoryObjectTreeNode<TestMemoryObject> child1 = new MemoryObjectTreeNode<>(new TestMemoryObject(4));
+    MemoryObjectTreeNode<TestMemoryObject> child2 = new MemoryObjectTreeNode<>(new TestMemoryObject(3));
+    MemoryObjectTreeNode<TestMemoryObject> grandchild1 = new MemoryObjectTreeNode<>(new TestMemoryObject(6));
+    MemoryObjectTreeNode<TestMemoryObject> grandchild2 = new MemoryObjectTreeNode<>(new TestMemoryObject(5));
+
+    // Calling add would require sorting
+    assertFalse(parent.orderNeedsUpdating());
+    parent.add(child1);
+    assertTrue(parent.orderNeedsUpdating());
+    assertFalse(child1.orderNeedsUpdating());
+
+    // Calling sort on parent would false the children to require sorting
+    parent.sort(testComparator);
+    assertFalse(parent.orderNeedsUpdating());
+    assertTrue(child1.orderNeedsUpdating());
+
+    // Calling getChildAt would force a sort after node addition.
+    parent.add(child2);
+    assertTrue(parent.orderNeedsUpdating());
+    assertEquals(child2, parent.getChildAt(0));
+    assertEquals(child1, parent.getChildAt(1));
+    assertFalse(parent.orderNeedsUpdating());
+
+    // Calling indexof would force a sort
+    child1.add(grandchild1);
+    child1.add(grandchild2);
+    assertTrue(child1.orderNeedsUpdating());
+    assertEquals(0, child1.getIndex(grandchild2));
+    assertEquals(1, child1.getIndex(grandchild1));
+    assertFalse(child1.orderNeedsUpdating());
+
+    // Calling getChildren would force a sort.
+    child1.remove(1);
+    assertTrue(child1.orderNeedsUpdating());
+    child1.getChildren();
+    assertFalse(child1.orderNeedsUpdating());
+
+    // Calling children would force a sort.
+    child1.remove(grandchild2);
+    assertTrue(child1.orderNeedsUpdating());
+    child1.children();
+    assertFalse(child1.orderNeedsUpdating());
+  }
+
   private static class TestMemoryObject implements MemoryObject {
     private final int myNum;
 
@@ -118,6 +167,12 @@ public class MemoryObjectTreeNodeTest {
 
     public int getNum() {
       return myNum;
+    }
+
+    @NotNull
+    @Override
+    public String getName() {
+      return Integer.toString(myNum);
     }
   }
 }
