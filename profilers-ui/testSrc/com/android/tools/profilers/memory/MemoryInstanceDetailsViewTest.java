@@ -210,7 +210,7 @@ public class MemoryInstanceDetailsViewTest {
     for (int i = 0; i < root.getChildCount(); i++) {
       ReferenceObject ref = references.get(i);
       treeInfo.verifyRendererValues(root.getChildAt(i),
-                                    new String[]{ref.getDisplayLabel()},
+                                    new String[]{ref.getName()},
                                     new String[]{Integer.toString(ref.getDepth())},
                                     new String[]{Integer.toString(ref.getShallowSize())},
                                     new String[]{Long.toString(ref.getRetainedSize())});

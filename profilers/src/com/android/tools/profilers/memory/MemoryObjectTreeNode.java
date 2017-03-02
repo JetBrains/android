@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.profilers.memory.adapters.MemoryObject;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +24,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 import java.util.*;
 
 /**
@@ -39,6 +39,10 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
   @Nullable protected Comparator<MemoryObjectTreeNode<T>> myComparator = null;
 
   @NotNull private final T myAdapter;
+
+  private boolean myChildrenChanged;
+
+  private boolean myComparatorChanged;
 
   public MemoryObjectTreeNode(@NotNull T adapter) {
     myAdapter = adapter;
@@ -63,6 +67,7 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
   @Override
   public int getIndex(TreeNode treeNode) {
     assert treeNode instanceof MemoryObjectTreeNode;
+    ensureOrder();
     return myChildren.indexOf(treeNode);
   }
 
@@ -79,6 +84,7 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
 
   @NotNull
   public ImmutableList<MemoryObjectTreeNode<T>> getChildren() {
+    ensureOrder();
     return ContainerUtil.immutableList(myChildren);
   }
 
@@ -89,6 +95,7 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
 
   public void add(@NotNull MemoryObjectTreeNode child) {
     insert(child, myChildren.size());
+    myChildrenChanged = true;
   }
 
   @Override
@@ -100,6 +107,7 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
     }
     child.setParent(this);
     myChildren.add(childIndex, child);
+    myChildrenChanged = true;
   }
 
   @Override
@@ -113,12 +121,14 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
     MemoryObjectTreeNode child = myChildren.get(childIndex);
     myChildren.remove(childIndex);
     child.setParent(null);
+    myChildrenChanged = true;
   }
 
   @Override
   public void remove(MutableTreeNode node) {
     assert node instanceof MemoryObjectTreeNode;
     remove(myChildren.indexOf(node));
+    myChildrenChanged = true;
   }
 
   @Override
@@ -132,6 +142,7 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
   public void removeAll() {
     myChildren.forEach(child -> child.myParent = null);
     myChildren.clear();
+    myChildrenChanged = true;
   }
 
   @Override
@@ -145,9 +156,13 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
   }
 
   public void sort(@NotNull Comparator<MemoryObjectTreeNode<T>> comparator) {
+    // Note - this is only called on the root node.
     assert myParent == null;
-    myComparator = comparator;
-    ensureOrder();
+    if (myComparator != comparator) {
+      myComparator = comparator;
+      myComparatorChanged = true;
+      ensureOrder();
+    }
   }
 
   @NotNull
@@ -168,11 +183,27 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
     return path;
   }
 
-  private void ensureOrder() {
-    if ((myParent != null && myParent.myComparator != myComparator)
-        || myParent == null && myComparator != null) {
+  protected void ensureOrder() {
+    if (orderNeedsUpdating()) {
       myComparator = myParent != null ? myParent.myComparator : myComparator;
-      myChildren.sort(myComparator);
+      if (myComparator != null) {
+        myChildren.sort(myComparator);
+      }
+
+      myComparatorChanged = false;
+      myChildrenChanged = false;
     }
+  }
+
+  @VisibleForTesting
+  boolean orderNeedsUpdating() {
+    return (myParent != null && myParent.myComparator != myComparator) || myComparatorChanged || myChildrenChanged;
+  }
+
+  /**
+   * Optimization - a callback mechanism to notify the node it has been selected in the tree. This allows us to modify the node's content
+   * on the fly, such as adding additional nodes which helps to avoid populating too many nodes at once.
+   */
+  public void select() {
   }
 }

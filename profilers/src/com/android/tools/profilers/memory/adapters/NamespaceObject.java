@@ -24,6 +24,7 @@ public class NamespaceObject implements MemoryObject {
     myName = name;
   }
 
+  @Override
   @NotNull
   public String getName() {
     return myName;

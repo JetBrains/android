@@ -16,6 +16,7 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
@@ -42,17 +43,17 @@ public class InstanceColumnRenderer extends ColoredTreeCellRenderer {
       return;
     }
 
-    MemoryObjectTreeNode treeNode = (MemoryObjectTreeNode)value;
-    if (!(treeNode.getAdapter() instanceof InstanceObject)) {
-      append(value.toString());
+    MemoryObject adapter = ((MemoryObjectTreeNode)value).getAdapter();
+    if (!(adapter instanceof InstanceObject)) {
+      append(adapter.getName());
       return;
     }
 
-    InstanceObject instanceObject = (InstanceObject)treeNode.getAdapter();
+    InstanceObject instanceObject = (InstanceObject)adapter;
     setIcon(MemoryProfilerStageView.getInstanceObjectIcon(instanceObject));
 
     setTextAlign(SwingConstants.LEFT);
-    String displayLabel = instanceObject.getDisplayLabel();
+    String displayLabel = instanceObject.getName();
     append(displayLabel, SimpleTextAttributes.REGULAR_ATTRIBUTES, displayLabel);
     String valueText = instanceObject.getToStringText();
     if (valueText != null) {
