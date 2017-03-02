@@ -78,7 +78,7 @@ public class LayoutLibraryLoader {
     LayoutLibrary library;
     final ILogger logger = new LogWrapper(LOG);
     // We instantiate the local Bridge implementation and pass it to the LayoutLibrary instance
-    library = LayoutLibrary.load(new Bridge(), LayoutLibraryLoader.class.getClassLoader());
+    library = LayoutLibrary.load(new Bridge(), new LayoutlibClassLoader(LayoutLibraryLoader.class.getClassLoader()));
 
     final Map<String, String> buildPropMap = ProjectProperties.parsePropertyFile(new BufferingFileWrapper(buildProp), logger);
     final LayoutLog layoutLog = new LayoutLogWrapper(LOG);
