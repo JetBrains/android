@@ -95,5 +95,6 @@
     <orderEntry type="module" module-name="gradle-tooling-extension-impl" />
     <orderEntry type="module" module-name="wizard" />
     <orderEntry type="library" name="commons-io-2.4" level="project" />
+    <orderEntry type="module" module-name="smali" />
   </component>
 </module>
