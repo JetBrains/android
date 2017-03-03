@@ -78,7 +78,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private Common.Session mySessionData;
 
-  @Nullable
+  @NotNull
   private Stage myStage;
 
   private Updater myUpdater;
@@ -101,7 +101,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myClient = client;
     myIdeServices = ideServices;
     myPreferredProcessName = null;
-    myStage = null;
+    myStage = new NullMonitorStage(this);
     myUpdater = new Updater(timer);
     myProfilers = ImmutableList.of(
       new EventProfiler(this),
@@ -325,6 +325,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return processes == null ? ImmutableList.of() : processes;
   }
 
+  @NotNull
   public Stage getStage() {
     return myStage;
   }
@@ -341,10 +342,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return mySessionData;
   }
 
-  public void setStage(Stage stage) {
-    if (myStage != null) {
-      myStage.exit();
-    }
+  public void setStage(@NotNull Stage stage) {
+    myStage.exit();
     myStage = stage;
     myStage.enter();
     this.changed(ProfilerAspect.STAGE);
@@ -377,9 +376,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   public ProfilerMode getMode() {
-    if (myStage == null) {
-      return ProfilerMode.NORMAL;
-    }
     return myStage.getProfilerMode();
   }
 
@@ -408,8 +404,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     );
   }
 
+  @NotNull
   public Class<? extends Stage> getStageClass() {
-    return myStage == null ? null : myStage.getClass();
+    return myStage.getClass();
   }
 
   // TODO: Unify with how monitors expand.

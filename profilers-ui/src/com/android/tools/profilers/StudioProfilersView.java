@@ -63,6 +63,7 @@ public class StudioProfilersView extends AspectObserver {
     myBinder.bind(CpuProfilerStage.class, CpuProfilerStageView::new);
     myBinder.bind(MemoryProfilerStage.class, MemoryProfilerStageView::new);
     myBinder.bind(NetworkProfilerStage.class, NetworkProfilerStageView::new);
+    myBinder.bind(NullMonitorStage.class, NullMonitorStageView::new);
 
     myProfiler.addDependency(this).onChange(ProfilerAspect.STAGE, this::updateStageView);
     updateStageView();
@@ -171,19 +172,17 @@ public class StudioProfilersView extends AspectObserver {
       return;
     }
 
-    if (stage != null) {
-      myStageView = myBinder.build(this, stage);
-      Component prev = myLayout.getLayoutComponent(BorderLayout.CENTER);
-      if (prev != null) {
-        myComponent.remove(prev);
-      }
-      myComponent.add(myStageView.getComponent(), BorderLayout.CENTER);
-      myComponent.revalidate();
-
-      myStageToolbar.removeAll();
-      myStageToolbar.add(myStageView.getToolbar(), BorderLayout.CENTER);
-      myStageToolbar.revalidate();
+    myStageView = myBinder.build(this, stage);
+    Component prev = myLayout.getLayoutComponent(BorderLayout.CENTER);
+    if (prev != null) {
+      myComponent.remove(prev);
     }
+    myComponent.add(myStageView.getComponent(), BorderLayout.CENTER);
+    myComponent.revalidate();
+
+    myStageToolbar.removeAll();
+    myStageToolbar.add(myStageView.getToolbar(), BorderLayout.CENTER);
+    myStageToolbar.revalidate();
 
     boolean topLevel = myStageView == null || myStageView.needsProcessSelection();
     myMonitoringToolbar.setVisible(topLevel);
