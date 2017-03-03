@@ -20,10 +20,10 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.ProfilersTestData;
-import com.intellij.util.containers.ImmutableList;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -47,7 +47,7 @@ public class GcStatsDataSeriesTest {
     myService.setMemoryData(memoryData);
 
     GcStatsDataSeries series = new GcStatsDataSeries(myGrpcChannel.getClient().getMemoryClient(), 1, ProfilersTestData.SESSION_DATA);
-    ImmutableList<SeriesData<GcDurationData>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
+    List<SeriesData<GcDurationData>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());
     SeriesData<GcDurationData> data1 = dataList.get(0);
