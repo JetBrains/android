@@ -21,6 +21,7 @@ import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -37,7 +38,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.intellij.ide.actions.OpenFileAction.openFile;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -87,7 +87,7 @@ class ClassNode extends ProjectViewNode<ApkClass> {
       VirtualFile smaliFile = myDexSourceFiles.findSmaliFile(fqn);
       if (smaliFile != null) {
         // Found .smali file
-        openFile(smaliFile, myProject);
+        FileEditorManager.getInstance(myProject).openFile(smaliFile, true);
       }
     }
   }
