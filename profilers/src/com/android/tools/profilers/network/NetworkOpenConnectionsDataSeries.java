@@ -21,8 +21,6 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -49,7 +47,7 @@ public class NetworkOpenConnectionsDataSeries implements DataSeries<Long> {
   }
 
   @Override
-  public ImmutableList<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     List<SeriesData<Long>> seriesData = new ArrayList<>();
 
     // TODO: Change the Network API to allow specifying padding in the request as number of samples.
@@ -66,6 +64,6 @@ public class NetworkOpenConnectionsDataSeries implements DataSeries<Long> {
       NetworkProfiler.ConnectionData connectionData = data.getConnectionData();
       seriesData.add(new SeriesData<>(xTimestamp, (long)connectionData.getConnectionNumber()));
     }
-    return ContainerUtil.immutableList(seriesData);
+    return seriesData;
   }
 }

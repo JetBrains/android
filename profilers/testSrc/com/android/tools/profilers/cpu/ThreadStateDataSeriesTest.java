@@ -18,7 +18,6 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.*;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
-import com.intellij.util.containers.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,7 +60,7 @@ public class ThreadStateDataSeriesTest {
   public void emptyRange() {
     // Create a series with empty range and arbitrary tid
     ThreadStateDataSeries series = createThreadSeries(new Range(), 10);
-    ImmutableList<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(new Range());
+    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(new Range());
     assertNotNull(dataSeries);
     // No data within given range
     assertTrue(dataSeries.isEmpty());
@@ -75,7 +74,7 @@ public class ThreadStateDataSeriesTest {
     ThreadStateDataSeries series = createThreadSeries(range, 2);
     // We don't want to get thread information from the trace
     myService.setValidTrace(false);
-    ImmutableList<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(range);
+    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(range);
     assertNotNull(dataSeries);
     // thread2 state changes are RUNNING, STOPPED, SLEEPING, WAITING and DEAD
     assertEquals(5, dataSeries.size());
@@ -98,7 +97,7 @@ public class ThreadStateDataSeriesTest {
     myService.setValidTrace(true);
     myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.FAILURE);
 
-    ImmutableList<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(capture.getRange());
+    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(capture.getRange());
     assertNotNull(dataSeries);
 
     // Even if getTrace() grpc call returns a valid trace, the response status should be SUCCESS
@@ -120,7 +119,7 @@ public class ThreadStateDataSeriesTest {
     // Start the capture 2 seconds before the first thread activity
     myService.setTraceThreadActivityBuffer(-2);
     myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
-    ImmutableList<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(capture.getRange());
+    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(capture.getRange());
     assertNotNull(dataSeries);
 
     // We expect the portions of the thread activities that are within the capture range to be duplicated with a "_CAPTURED" suffix.
@@ -142,7 +141,7 @@ public class ThreadStateDataSeriesTest {
     // Start the capture 1 second after the first thread activity
     myService.setTraceThreadActivityBuffer(1);
     myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
-    ImmutableList<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(capture.getRange());
+    List<SeriesData<CpuProfilerStage.ThreadState>> dataSeries = series.getDataForXRange(capture.getRange());
     assertNotNull(dataSeries);
 
     // We expect the portions of the thread activities that are within the capture range to be duplicated with a "_CAPTURED" suffix.

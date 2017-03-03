@@ -25,8 +25,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.profilers.ProfilerClient;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -47,7 +45,7 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEv
   }
 
   @Override
-  public ImmutableList<SeriesData<EventAction<StackedEventType>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<EventAction<StackedEventType>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     List<SeriesData<EventAction<StackedEventType>>> seriesData = new ArrayList<>();
     EventServiceGrpc.EventServiceBlockingStub eventService = myClient.getEventClient();
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
@@ -95,6 +93,6 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEv
       }
     }
 
-    return ContainerUtil.immutableList(seriesData);
+    return seriesData;
   }
 }

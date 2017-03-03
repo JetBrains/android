@@ -23,8 +23,6 @@ import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -50,7 +48,7 @@ class HeapDumpSampleDataSeries implements DataSeries<CaptureDurationData<HeapDum
   }
 
   @Override
-  public ImmutableList<SeriesData<CaptureDurationData<HeapDumpCaptureObject>>> getDataForXRange(Range xRange) {
+  public List<SeriesData<CaptureDurationData<HeapDumpCaptureObject>>> getDataForXRange(Range xRange) {
     long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
     long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
     MemoryProfiler.ListHeapDumpInfosResponse response = myClient.listHeapDumpInfos(
@@ -65,6 +63,6 @@ class HeapDumpSampleDataSeries implements DataSeries<CaptureDurationData<HeapDum
         new HeapDumpCaptureObject(myClient, mySession, myProcessId, info, null, myConverter))));
     }
 
-    return ContainerUtil.immutableList(seriesData);
+    return seriesData;
   }
 }

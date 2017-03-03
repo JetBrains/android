@@ -19,7 +19,6 @@ import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.SelectionComponent;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -134,7 +133,7 @@ public class SelectionVisualTest extends VisualTest {
     public void paint(Graphics graphics) {
       Graphics2D g = (Graphics2D)graphics;
       Range range = myConstraints.getSeries().getXRange();
-      ImmutableList<SeriesData<DefaultDurationData>> series = myConstraints.getSeries().getSeries();
+      List<SeriesData<DefaultDurationData>> series = myConstraints.getSeries().getSeries();
       g.setColor(myColor);
       for (SeriesData<DefaultDurationData> data : series) {
         double x = (data.x - range.getMin()) / range.getLength() * getSize().width;

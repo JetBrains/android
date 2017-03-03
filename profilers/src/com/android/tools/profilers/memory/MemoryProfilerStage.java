@@ -35,12 +35,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
+import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -185,7 +185,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     CaptureObject captureObject = null;
 
     double overlap = 0.0f;
-    ImmutableList<SeriesData<CaptureDurationData<HeapDumpCaptureObject>>>
+    List<SeriesData<CaptureDurationData<HeapDumpCaptureObject>>>
       heaps = getHeapDumpSampleDurations().getSeries().getDataSeries().getDataForXRange(range);
     for (SeriesData<CaptureDurationData<HeapDumpCaptureObject>> data : heaps) {
       Range c = new Range(data.x, data.x + data.value.getDuration());
@@ -197,7 +197,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     }
 
 
-    ImmutableList<SeriesData<CaptureDurationData<AllocationsCaptureObject>>>
+    List<SeriesData<CaptureDurationData<AllocationsCaptureObject>>>
       allocs = getAllocationInfosDurations().getSeries().getDataSeries().getDataForXRange(range);
     for (SeriesData<CaptureDurationData<AllocationsCaptureObject>> data : allocs) {
       Range c = new Range(data.x, data.x + data.value.getDuration());

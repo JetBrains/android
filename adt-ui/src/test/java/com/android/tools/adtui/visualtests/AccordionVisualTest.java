@@ -22,7 +22,6 @@ import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -121,7 +120,7 @@ public class AccordionVisualTest extends VisualTest {
           while (true) {
             long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
             for (LongDataSeries series : mData) {
-              ImmutableList<SeriesData<Long>> data = series.getAllData();
+              List<SeriesData<Long>> data = series.getAllData();
               long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
               float delta = 10 * ((float)Math.random() - 0.45f);
               series.add(nowUs, last + (long)delta);
