@@ -93,10 +93,8 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
       .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
     mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());
 
-    getStudioProfilers().getTimeline().getSelectionRange().addDependency(myAspectObserver)
-      .onChange(Range.Aspect.RANGE, () -> {
-        setProfilerMode(getStudioProfilers().getTimeline().getSelectionRange().isEmpty() ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED);
-      });
+    mySelectionModel.addChangeListener(l -> setProfilerMode(
+      getStudioProfilers().getTimeline().getSelectionRange().isEmpty() ? ProfilerMode.NORMAL : ProfilerMode.EXPANDED));
   }
 
   @NotNull

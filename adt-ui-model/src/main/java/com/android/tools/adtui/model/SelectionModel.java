@@ -20,7 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.ChangeEvent;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
 
@@ -50,6 +51,12 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
 
   private boolean mySelectionEnabled;
 
+  /**
+   * If updating, don't fire selection events.
+   */
+  private boolean myIsUpdating;
+  private boolean myPostponeSelectionEvent;
+
   public SelectionModel(@NotNull Range selection, @NotNull Range range) {
     myRange = range;
     mySelectionRange = selection;
@@ -64,17 +71,51 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
     myConstraints.add(constraints);
   }
 
-  private void rangesChanged() {
-    changed(Aspect.SELECTION);
-  }
-
+  /**
+   * Add a listener which is fired whenever the selection is created, modified, or changed.
+   *
+   * Unlike the {@link Aspect#SELECTION} aspect, this event will not be fired between calls to
+   * {@link #beginUpdate()} and {@link #endUpdate()}
+   */
   public void addChangeListener(final SelectionListener listener) {
     myListeners.add(listener);
   }
 
-  public void fireSelectionEvent() {
+  private void fireListeners() {
+    if (myIsUpdating) {
+      myPostponeSelectionEvent = true;
+      return;
+    }
+
     ChangeEvent e = new ChangeEvent(this);
     myListeners.forEach(l -> l.selectionStateChanged(e));
+  }
+
+  private void rangesChanged() {
+    changed(Aspect.SELECTION);
+    fireListeners();
+  }
+
+  /**
+   * Indicate that no events should be fired until the update is complete.
+   * Calls to this method should not be nested.
+   */
+  public void beginUpdate() {
+    myIsUpdating = true;
+  }
+
+  /**
+   * Mark the end of a previously called {@link #beginUpdate()}. When an update is finished,
+   * any events will be triggered if they would have been fired during the update.
+   */
+  public void endUpdate() {
+    if (myIsUpdating) {
+      myIsUpdating = false;
+      if (myPostponeSelectionEvent) {
+        myPostponeSelectionEvent = false;
+        fireListeners();
+      }
+    }
   }
 
   public void set(double min, double max) {
