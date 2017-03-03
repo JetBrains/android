@@ -23,7 +23,6 @@ import com.intellij.util.ui.JBFont;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 
 public class KeyboardEventRenderer implements SimpleEventRenderer {
 
@@ -60,8 +59,8 @@ public class KeyboardEventRenderer implements SimpleEventRenderer {
     int pointWidth = width + ROUND_ARC;
 
     // Offset the word by half width to ensure arrow is pointing at the exact time of the event.
-    transform.translate(-width/2, 0);
-    g2d.setTransform(transform);
+    transform.translate(-width / 2, 0);
+    g2d.transform(transform);
 
     //Build and draw geometry used for background of string
     Polygon poly = new Polygon(new int[]{-PADDING, pointWidth, (pointWidth) / 2},
