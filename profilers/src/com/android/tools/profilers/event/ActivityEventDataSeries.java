@@ -63,6 +63,7 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEv
       for (int i = 0; i < data.getStateChangesCount(); i++) {
         EventProfiler.ActivityStateData state = data.getStateChanges(i);
         StackedEventType action = StackedEventType.NONE;
+        String displayString = data.getName();
         // Match start states with end states.
         switch (state.getState()) {
           case RESUMED:
@@ -71,6 +72,7 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEv
             break;
           case PAUSED:
           case DESTROYED:
+            displayString = String.format("%s - %s", displayString, state.getState().toString().toLowerCase());
             action = StackedEventType.ACTIVITY_COMPLETED;
             // In the UI we track the end of an activity when the activity gets paused.
             // We also listen to the destroyed event here in case the app stops and we force a destroyed event.
@@ -86,7 +88,7 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEv
 
         // Create a UI event if we have an end time, or if we got to the end of our list.
         if (actionEnd != 0 || (i == data.getStateChangesCount()-1 && actionStart != 0)) {
-          seriesData.add(new SeriesData<>(actionStart, new ActivityAction(actionStart, actionEnd, action, data.getName())));
+          seriesData.add(new SeriesData<>(actionStart, new ActivityAction(actionStart, actionEnd, action, displayString)));
           actionEnd = 0;
           actionStart = 0;
         }
