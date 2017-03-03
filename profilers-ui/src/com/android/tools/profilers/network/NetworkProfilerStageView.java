@@ -18,11 +18,15 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.containers.ImmutableList;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
@@ -30,14 +34,20 @@ import org.jetbrains.annotations.TestOnly;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import java.awt.*;
+import java.util.Collections;
+import java.util.function.Function;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
+  private static final String CARD_CONNECTIONS = "Connections";
+  private static final String CARD_INFO = "Info";
+
   private final ConnectionsView myConnectionsView;
   private final ConnectionDetailsView myConnectionDetails;
   private final JBScrollPane myConnectionsScroller;
+  private final JPanel myConnectionsPanel;
 
   public NetworkProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull NetworkProfilerStage stage) {
     super(profilersView, stage);
@@ -49,11 +59,26 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     myConnectionDetails.setMinimumSize(new Dimension(JBUI.scale(450), (int)myConnectionDetails.getMinimumSize().getHeight()));
     myConnectionsView = new ConnectionsView(this, stage::setSelectedConnection);
     myConnectionsScroller = new JBScrollPane(myConnectionsView.getComponent());
-    myConnectionsScroller.setVisible(false);
 
     Splitter leftSplitter = new Splitter(true);
     leftSplitter.setFirstComponent(buildMonitorUi());
-    leftSplitter.setSecondComponent(myConnectionsScroller);
+
+    myConnectionsPanel = new JPanel(new CardLayout());
+    myConnectionsPanel.add(myConnectionsScroller, CARD_CONNECTIONS);
+
+    InfoMessagePanel.UrlData learnMoreData =
+      new InfoMessagePanel.UrlData("Learn More", "https://developer.android.com/studio/profile/android-monitor.html");
+    JPanel infoPanel = new InfoMessagePanel("Connections Unavailable", "No connection is supported for instrumentation.", learnMoreData);
+    infoPanel.setName(CARD_INFO);
+    myConnectionsPanel.add(infoPanel, CARD_INFO);
+
+    myConnectionsPanel.setVisible(false);
+    leftSplitter.setSecondComponent(myConnectionsPanel);
+
+    getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> {
+      CardLayout cardLayout = (CardLayout) myConnectionsPanel.getLayout();
+      cardLayout.show(myConnectionsPanel, selectionHasTrafficUsageWithNoConnection() ? CARD_INFO : CARD_CONNECTIONS);
+    });
 
     Splitter splitter = new Splitter(false, 0.6f);
     splitter.setFirstComponent(leftSplitter);
@@ -165,7 +190,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private void onSelectionChanged(ChangeEvent event) {
     StudioProfilers profilers = getStage().getStudioProfilers();
     boolean isRangeEmpty = profilers.getTimeline().getSelectionRange().isEmpty();
-    myConnectionsScroller.setVisible(!isRangeEmpty);
+    myConnectionsPanel.setVisible(!isRangeEmpty);
     if (isRangeEmpty) {
       myConnectionDetails.setHttpData(null);
     }
@@ -175,5 +200,38 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   @Override
   public JComponent getToolbar() {
     return new JPanel(new BorderLayout());
+  }
+
+  private boolean selectionHasTrafficUsageWithNoConnection() {
+    Range range = getTimeline().getSelectionRange();
+    boolean hasNoConnection = !range.isEmpty() && getStage().getConnectionsModel().getData(range).isEmpty();
+    if (hasNoConnection) {
+      DetailedNetworkUsage detailedNetworkUsage = getStage().getDetailedNetworkUsage();
+      return hasTrafficUsage(detailedNetworkUsage.getRxSeries(), range) ||
+             hasTrafficUsage(detailedNetworkUsage.getTxSeries(), range);
+    }
+    else {
+      return false;
+    }
+  }
+
+  private static boolean hasTrafficUsage(RangedContinuousSeries series, Range range) {
+    ImmutableList<SeriesData<Long>> list = series.getDataSeries().getDataForXRange(range);
+    if (list.stream().anyMatch(data -> data.x >= range.getMin() && data.x <= range.getMax() && data.value > 0)) {
+      return true;
+    }
+
+    // If there is no positive value at a time t within given range, check if there is index i that
+    // list.get(i).x < range.getMin <= range.getMax < list.get(i + 1).x; and values at i and i+1 are positive.
+    Function<Long, Integer> getInsertPoint = time -> {
+      int index = Collections.binarySearch(list, new SeriesData<>(time, 0L), (o1, o2) -> Long.compare(o1.x, o2.x));
+      return index < 0 ? - (index + 1) : index;
+    };
+    int minIndex = getInsertPoint.apply((long) range.getMin());
+    int maxIndex = getInsertPoint.apply((long) range.getMax());
+    if (minIndex == maxIndex) {
+      return minIndex > 0 && list.get(minIndex - 1).value > 0 && minIndex < list.size() && list.get(minIndex).value > 0;
+    }
+    return false;
   }
 }
