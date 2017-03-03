@@ -77,6 +77,7 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.fd.gradle.InstantRunGradleSupport.*;
 
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<JavaRunConfigurationModule> implements PreferGradleMake {
+
   private static final Logger LOG = Logger.getInstance(AndroidRunConfigurationBase.class);
 
   private static final String GRADLE_SYNC_FAILED_ERR_MSG = "Gradle project sync failed. Please fix your project and try again.";
@@ -87,8 +88,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   private static final String PROFILERS_ELEMENT_NAME = "Profilers";
 
   private static final DialogWrapper.DoNotAskOption ourKillLaunchOption = new MyDoNotPromptOption();
-
-  public String PREFERRED_AVD = "";
 
   public boolean CLEAR_LOGCAT = false;
   public boolean SHOW_LOGCAT_AUTOMATICALLY = false;
@@ -117,17 +116,22 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
     // TODO: Do something with the extra error information? Error count?
     ValidationError topError = Ordering.natural().max(errors);
-    if (topError.isFatal()) {
-      throw new RuntimeConfigurationError(topError.getMessage(), topError.getQuickfix());
+    switch (topError.getSeverity()) {
+      case FATAL:
+        throw new RuntimeConfigurationError(topError.getMessage(), topError.getQuickfix());
+      case WARNING:
+        throw new RuntimeConfigurationWarning(topError.getMessage(), topError.getQuickfix());
+      case INFO:
+      default:
+        break;
     }
-    throw new RuntimeConfigurationWarning(topError.getMessage(), topError.getQuickfix());
   }
 
   /**
    * We collect errors rather than throwing to avoid missing fatal errors by exiting early for a warning.
    * We use a separate method for the collection so the compiler prevents us from accidentally throwing.
    */
-  private List<ValidationError> validate(@Nullable Executor executor) {
+  public List<ValidationError> validate(@Nullable Executor executor) {
     List<ValidationError> errors = Lists.newArrayList();
     JavaRunConfigurationModule configurationModule = getConfigurationModule();
     try {
@@ -178,6 +182,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     if (androidDebuggerState != null) {
       errors.addAll(androidDebuggerState.validate(facet, executor));
     }
+
+    errors.addAll(myProfilerState.validate());
 
     return errors;
   }
@@ -396,8 +402,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     ApkProvider apkProvider = getApkProvider(facet, applicationIdProvider);
     LaunchTasksProviderFactory providerFactory =
-      new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, apkProvider, deviceFutures, launchOptions, processHandler,
-                                            instantRunContext);
+      new AndroidLaunchTasksProviderFactory(this, env, facet, applicationIdProvider, apkProvider, deviceFutures, launchOptions,
+                                            processHandler, instantRunContext);
 
     InstantRunStatsService.get(project).notifyBuildStarted();
     return new AndroidRunState(env, getName(), module, applicationIdProvider, getConsoleProvider(), deviceFutures, providerFactory,
@@ -671,6 +677,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   /**
    * Returns the current {@link ProfilerState} for this configuration.
    */
+  @NotNull
   public ProfilerState getProfilerState() {
     return myProfilerState;
   }

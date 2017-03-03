@@ -17,11 +17,14 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.AspectObserver;
+import com.intellij.ui.HyperlinkAdapter;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 
 public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends AspectObserver {
@@ -75,7 +78,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
 
   @NotNull
   public String getDisabledMessage() {
-    return "Advanced profiling is unavailable for the currently selected app.";
+    return "Advanced profiling is unavailable";
   }
 
   private void monitorEnabledChanged() {
@@ -86,11 +89,23 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
     }
     else {
       myContainer.setBackground(ProfilerColors.MONITOR_DISABLED);
-      myContainer.setLayout(new TabularLayout("*", "*"));
+      myContainer.setLayout(new TabularLayout("*,Fit,*", "6*,4*"));
+
       JLabel disabledMessage = new JLabel(getDisabledMessage());
       disabledMessage.setHorizontalAlignment(SwingConstants.CENTER);
-      disabledMessage.setVerticalAlignment(SwingConstants.CENTER);
-      myContainer.add(disabledMessage, new TabularLayout.Constraint(0, 0));
+      disabledMessage.setVerticalAlignment(SwingConstants.BOTTOM);
+      disabledMessage.setFont(disabledMessage.getFont().deriveFont(16f));
+      myContainer.add(disabledMessage, new TabularLayout.Constraint(0, 0, 3));
+
+      HyperlinkLabel linkToConfigMessage = new HyperlinkLabel();
+      linkToConfigMessage.setHyperlinkText("Configure this setting in the Run Configuration dialog ", "here", "");
+      linkToConfigMessage.addHyperlinkListener(new HyperlinkAdapter() {
+        @Override
+        protected void hyperlinkActivated(HyperlinkEvent e) {
+          myMonitor.getProfilers().getIdeServices().enableAdvancedProfiling();
+        }
+      });
+      myContainer.add(linkToConfigMessage, new TabularLayout.Constraint(1, 1));
     }
   }
 

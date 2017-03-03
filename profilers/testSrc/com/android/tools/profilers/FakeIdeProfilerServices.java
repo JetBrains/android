@@ -77,6 +77,11 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
     return myFakeNavigationService;
   }
 
+  @Override
+  public void enableAdvancedProfiling() {
+    // No-op.
+  }
+
   public void setOnExecute(@Nullable Runnable onExecute) {
     myOnExecute = onExecute;
   }
