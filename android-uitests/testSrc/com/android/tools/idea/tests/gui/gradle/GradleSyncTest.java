@@ -168,14 +168,13 @@ public class GradleSyncTest {
 
     ProjectViewFixture projectView = guiTest.ideFrame().getProjectView();
     ProjectViewFixture.PaneFixture projectPane = projectView.selectProjectPane();
-    ProjectViewFixture.NodeFixture externalLibrariesNode = projectPane.findExternalLibrariesNode();
-    projectPane.expand();
+    projectPane.clickPath("External Libraries", "< 1.8 >", "rt.jar");
 
     // 2 nodes should be changed: JDK (remove all children except rt.jar) and rt.jar (remove all children except packages 'java' and
     // 'javax'.
     Wait.seconds(1).expecting("'Project View' to be customized").until(() -> changedNodes.size() == 2);
 
-    List<ProjectViewFixture.NodeFixture> libraryNodes = externalLibrariesNode.getChildren();
+    List<ProjectViewFixture.NodeFixture> libraryNodes = projectPane.findExternalLibrariesNode().getChildren();
 
     ProjectViewFixture.NodeFixture jdkNode = null;
     // Find JDK node.
