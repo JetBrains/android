@@ -37,7 +37,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.intellij.codeInsight.navigation.NavigationUtil.openFileWithPsiElement;
 import static com.intellij.ide.actions.OpenFileAction.openFile;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -81,10 +80,7 @@ class ClassNode extends ProjectViewNode<ApkClass> {
     if (canNavigate()) {
       assert myProject != null;
       String fqn = myClass.getFqn();
-      PsiClass found = myDexSourceFiles.findJavaPsiClass(fqn);
-      if (found != null) {
-        // Found .java file
-        openFileWithPsiElement(found, requestFocus, requestFocus);
+      if (myDexSourceFiles.navigateToJavaFile(fqn)) {
         return;
       }
 

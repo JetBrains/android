@@ -36,10 +36,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.EmptyModuleType;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleType;
+import com.intellij.openapi.module.*;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -79,6 +76,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -502,15 +500,27 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   @NotNull
   protected Module createModule(@NotNull String name, @NotNull ModuleType type) {
     VirtualFile projectRootFolder = getProject().getBaseDir();
-    assertNotNull(projectRootFolder);
-    final File moduleFile = new File(virtualToIoFile(projectRootFolder), name + ModuleFileType.DOT_DEFAULT_EXTENSION);
+    File moduleFile = new File(virtualToIoFile(projectRootFolder), name + ModuleFileType.DOT_DEFAULT_EXTENSION);
     createIfDoesntExist(moduleFile);
+
+    VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
+    return createModule(virtualFile, type);
+  }
+
+  @NotNull
+  public Module createModule(@NotNull File modulePath, @NotNull ModuleType type) {
+    VirtualFile moduleFolder = findFileByIoFile(modulePath, true);
+    assertNotNull(moduleFolder);
+    return createModule(moduleFolder,type);
+  }
+
+  @NotNull
+  private Module createModule(@NotNull VirtualFile file, @NotNull ModuleType type) {
     return new WriteAction<Module>() {
       @Override
       protected void run(@NotNull Result<Module> result) throws Throwable {
-        VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
-        assertNotNull(virtualFile);
-        Module module = ModuleManager.getInstance(getProject()).newModule(virtualFile.getPath(), type.getId());
+        ModuleManager moduleManager = ModuleManager.getInstance(getProject());
+        Module module = moduleManager.newModule(file.getPath(), type.getId());
         module.getModuleFile();
         result.setResult(module);
       }
