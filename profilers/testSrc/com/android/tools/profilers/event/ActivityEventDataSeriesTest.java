@@ -89,7 +89,9 @@ public class ActivityEventDataSeriesTest {
     SeriesData<EventAction<StackedEventType>> event = dataList.get(0);
     verifyActivity(event, TEST_END_TIME_NS);
     assertEquals(event.value.getType(), StackedEventType.ACTIVITY_COMPLETED);
-    assertEquals(((ActivityAction)event.value).getData(), ACTIVITY_NAME);
+    assertEquals(((ActivityAction)event.value).getData(), String.format("%s - %s", ACTIVITY_NAME,
+                                                                        EventProfiler.ActivityStateData.ActivityState.PAUSED.toString()
+                                                                          .toLowerCase()));
   }
 
   @Test
@@ -111,7 +113,9 @@ public class ActivityEventDataSeriesTest {
     SeriesData<EventAction<StackedEventType>> event = dataList.get(0);
     verifyActivity(event, TEST_END_TIME_NS);
     assertEquals(event.value.getType(), StackedEventType.ACTIVITY_COMPLETED);
-    assertEquals(((ActivityAction)event.value).getData(), ACTIVITY_NAME);
+    assertEquals(((ActivityAction)event.value).getData(), String.format("%s - %s", ACTIVITY_NAME,
+                                                                        EventProfiler.ActivityStateData.ActivityState.DESTROYED.toString()
+                                                                          .toLowerCase()));
   }
 
 
@@ -148,7 +152,9 @@ public class ActivityEventDataSeriesTest {
     event = dataList.get(1);
     verifyActivity(event, TEST_END_TIME_NS);
     assertEquals(event.value.getType(), StackedEventType.ACTIVITY_COMPLETED);
-    assertEquals(((ActivityAction)event.value).getData(), ACTIVITY_NAME_2);
+    assertEquals(((ActivityAction)event.value).getData(), String.format("%s - %s", ACTIVITY_NAME_2,
+                                                                        EventProfiler.ActivityStateData.ActivityState.PAUSED.toString()
+                                                                          .toLowerCase()));
   }
 
   private void verifyActivity(SeriesData<EventAction<StackedEventType>> event, long endTime) {
