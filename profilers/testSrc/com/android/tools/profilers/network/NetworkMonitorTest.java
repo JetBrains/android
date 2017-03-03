@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.google.common.collect.ImmutableList;
@@ -143,7 +144,7 @@ public class NetworkMonitorTest {
 
   @Test
   public void testExpand() {
-    assertNull(myProfilers.getStage());
+    assertEquals(myProfilers.getStage().getClass(), NullMonitorStage.class);
     myMonitor.expand();
     assertThat(myProfilers.getStage(), instanceOf(NetworkProfilerStage.class));
   }
