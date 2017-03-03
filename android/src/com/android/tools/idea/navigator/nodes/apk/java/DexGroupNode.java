@@ -16,8 +16,7 @@
 package com.android.tools.idea.navigator.nodes.apk.java;
 
 import com.android.tools.idea.apk.debugging.ApkPackage;
-import com.android.tools.idea.apk.debugging.JavaFiles;
-import com.android.tools.idea.apk.debugging.SmaliFiles;
+import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -36,8 +35,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.apk.debugging.JavaFiles.isJavaFile;
-import static com.android.tools.idea.apk.debugging.SmaliFiles.isSmaliFile;
 import static com.intellij.icons.AllIcons.Modules.SourceRoot;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
@@ -45,31 +42,36 @@ import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 public class DexGroupNode extends ProjectViewNode<VirtualFile> {
-  @NotNull private final JavaFiles myJavaFiles;
-  @NotNull private final SmaliFiles mySmaliFiles;
+  @NotNull private final DexSourceFiles myDexSourceFiles;
 
-  @Nullable private final DexFileContents myDexFileContents;
+  @Nullable private final DexFileStructure myDexFileStructure;
 
   private Collection<ApkPackage> myPackages = Collections.emptyList();
 
   public DexGroupNode(@NotNull Project project, @NotNull ViewSettings settings, @Nullable VirtualFile dexFile) {
+    this(project, settings, DexSourceFiles.getInstance(project), dexFile);
+  }
+
+  DexGroupNode(@NotNull Project project,
+               @NotNull ViewSettings settings,
+               @NotNull DexSourceFiles dexSourceFiles,
+               @Nullable VirtualFile dexFile) {
     super(project, dexFile, settings);
-    myJavaFiles = new JavaFiles();
-    mySmaliFiles = new SmaliFiles(project);
+    myDexSourceFiles = dexSourceFiles;
     if (dexFile != null) {
-      myDexFileContents = new DexFileContents(dexFile);
+      myDexFileStructure = new DexFileStructure(dexFile);
     }
     else {
-      myDexFileContents = null;
+      myDexFileStructure = null;
     }
   }
 
   @Override
   @NotNull
   public Collection<? extends AbstractTreeNode> getChildren() {
-    if (myDexFileContents != null) {
+    if (myDexFileStructure != null) {
       try {
-        myPackages = myDexFileContents.getPackages();
+        myPackages = myDexFileStructure.getPackages();
         return getChildren(myPackages);
       }
       catch (Throwable e) {
@@ -127,25 +129,25 @@ public class DexGroupNode extends ProjectViewNode<VirtualFile> {
   @NotNull
   private PackageNode createNode(ApkPackage apkPackage) {
     assert myProject != null;
-    return new PackageNode(myProject, apkPackage, getSettings(), myJavaFiles, mySmaliFiles);
+    return new PackageNode(myProject, apkPackage, getSettings(), myDexSourceFiles);
   }
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    if (myDexFileContents != null) {
-      if (isJavaFile(file)) {
+    if (myDexFileStructure != null) {
+      if (myDexSourceFiles.isJavaFile(file)) {
         assert myProject != null;
-        String foundPackage = myJavaFiles.findPackage(file, myProject);
+        String foundPackage = myDexSourceFiles.findJavaPackageNameIn(file);
         for (ApkPackage apkPackage : myPackages) {
           if (foundPackage != null && foundPackage.contains(apkPackage.getFqn())) {
             return true;
           }
         }
       }
-      else if (isSmaliFile(file)) {
+      else if (myDexSourceFiles.isSmaliFile(file)) {
         File filePath = virtualToIoFile(file);
         for (ApkPackage apkPackage : myPackages) {
-          File packageFilePath = mySmaliFiles.findPackageFilePath(apkPackage.getFqn());
+          File packageFilePath = myDexSourceFiles.findSmaliFilePathForPackage(apkPackage.getFqn());
           if (isAncestor(packageFilePath, filePath, false)) {
             return true;
           }

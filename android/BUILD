@@ -73,6 +73,7 @@ iml_module(
         "//tools/idea/plugins/gradle/tooling-extension-impl:gradle-tooling-extension-impl[module]",
         "//tools/adt/idea/wizard[module]",
         "//tools/idea/.idea/libraries:commons-io-2.4",
+        "//tools/adt/idea/smali[module]",
     ],
 )
 
@@ -173,6 +174,5 @@ iml_module(
         "//tools/analytics-library/testing:analytics-testing[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/adt/idea/wizard[module, test]",
-        "//tools/adt/idea/smali[module, test]",
     ],
 )

@@ -19,7 +19,6 @@ iml_module(
         "//tools/idea:compiler-impl_and_others[module]",
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/base/testutils:studio.testutils[module, test]",
-        "//tools/adt/idea/android-test-framework[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:Guava",
     ],
