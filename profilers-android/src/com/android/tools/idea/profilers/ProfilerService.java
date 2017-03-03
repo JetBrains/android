@@ -15,57 +15,50 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.annotations.Nullable;
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.tools.idea.ddms.EdtExecutor;
-import com.android.tools.idea.ddms.adb.AdbService;
+import com.android.tools.datastore.DataStoreService;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.profilers.ProfilerClient;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.IOException;
+import java.nio.file.Paths;
 
 public class ProfilerService implements Disposable {
-  private StudioProfilerDeviceManager myManager;
+
+  public static ProfilerService getInstance(@NotNull Project project) {
+    ProfilerService service = ServiceManager.getService(ProfilerService.class);
+    service.myManager.initialize(project);
+    return service;
+  }
+
+  private static final String DATASTORE_NAME = "DataStoreService";
+
+  @NotNull
+  private final StudioProfilerDeviceManager myManager;
+  @NotNull
+  private final ProfilerClient myClient;
 
   private ProfilerService() {
+    String directory = Paths.get(System.getProperty("user.home"), ".android").toString() + File.separator;
+    DataStoreService dataStoreService = new DataStoreService(DATASTORE_NAME,
+                                                             directory + DATASTORE_NAME,
+                                                             ApplicationManager.getApplication()::executeOnPooledThread);
+    myManager = new StudioProfilerDeviceManager(dataStoreService);
+    myClient = new ProfilerClient(DATASTORE_NAME);
+    IdeSdks.subscribe(myManager, this);
   }
 
   @Override
   public void dispose() {
-    if (myManager != null) {
-      myManager.dispose();
-    }
+    myManager.dispose();
   }
 
   @NotNull
-  public ProfilerClient getProfilerClient(@NotNull Project project) throws IOException {
-    if (myManager == null) {
-      // TODO: Once the bridge API doesn't require a project, rework this to not use it.
-      final File adb = AndroidSdkUtils.getAdb(project);
-      if (adb == null) {
-        // TODO: Handle ADB errors appropriately.
-        throw new IllegalStateException("No adb found");
-      }
-      myManager = new StudioProfilerDeviceManager();
-      ListenableFuture<AndroidDebugBridge> future = AdbService.getInstance().getDebugBridge(adb);
-      Futures.addCallback(future, new FutureCallback<AndroidDebugBridge>() {
-        @Override
-        public void onSuccess(@Nullable AndroidDebugBridge bridge) {
-        }
-
-        @Override
-        public void onFailure(@NotNull Throwable t) {
-          // TODO: Handle this error correctly. Is this fired too to the bridge listeners?
-        }
-      }, EdtExecutor.INSTANCE);
-    }
-    return myManager.getClient();
+  public ProfilerClient getProfilerClient() {
+    return myClient;
   }
 }

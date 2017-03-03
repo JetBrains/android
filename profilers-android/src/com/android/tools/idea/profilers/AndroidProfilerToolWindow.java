@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.profilers.*;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -31,8 +30,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 
 public class AndroidProfilerToolWindow extends AspectObserver implements Disposable {
 
@@ -44,27 +41,21 @@ public class AndroidProfilerToolWindow extends AspectObserver implements Disposa
   private final Project myProject;
 
   public AndroidProfilerToolWindow(@NotNull final Project project) {
-    try {
-      myProject = project;
-      Disposer.register(project, this);
+    myProject = project;
+    Disposer.register(project, this);
 
+    ProfilerService service = ProfilerService.getInstance(myProject);
+    ProfilerClient client = service.getProfilerClient();
+    myProfilers = new StudioProfilers(client, new IntellijProfilerServices(myProject));
 
-      ProfilerService service = ServiceManager.getService(ProfilerService.class);
-      ProfilerClient client = service.getProfilerClient(project);
-      myProfilers = new StudioProfilers(client, new IntellijProfilerServices(project));
+    StartupManager.getInstance(project)
+      .runWhenProjectIsInitialized(() -> myProfilers.setPreferredProcessName(getPreferredProcessName(myProject)));
 
-      StartupManager.getInstance(project)
-        .runWhenProjectIsInitialized(() -> myProfilers.setPreferredProcessName(getPreferredProcessName(myProject)));
+    myView = new StudioProfilersView(myProfilers, new IntellijProfilerComponents(myProject));
 
-      myView = new StudioProfilersView(myProfilers, new IntellijProfilerComponents(myProject));
-
-      myProfilers.addDependency(this)
-        .onChange(ProfilerAspect.MODE, this::updateToolWindow)
-        .onChange(ProfilerAspect.STAGE, this::updateToolWindow);
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+    myProfilers.addDependency(this)
+      .onChange(ProfilerAspect.MODE, this::updateToolWindow)
+      .onChange(ProfilerAspect.STAGE, this::updateToolWindow);
   }
 
   public void updateToolWindow() {
