@@ -20,12 +20,12 @@ import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.event.SimpleEventType;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -63,7 +63,7 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
     //TODO Pull logic of combining events out of component and into EventHandler
     double max = myModel.getRangedSeries().getXRange().getMax();
     mIconsToDraw.clear();
-    ImmutableList<SeriesData<EventAction<SimpleEventType>>> series = myModel.getRangedSeries().getSeries();
+    List<SeriesData<EventAction<SimpleEventType>>> series = myModel.getRangedSeries().getSeries();
     int size = series.size();
 
     for (int i = 0; i < size; i++) {

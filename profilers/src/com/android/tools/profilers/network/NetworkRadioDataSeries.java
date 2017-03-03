@@ -21,8 +21,6 @@ import com.android.tools.adtui.model.SeriesData;
 
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -48,7 +46,7 @@ public class NetworkRadioDataSeries implements DataSeries<NetworkRadioDataSeries
 
   @Override
   @NotNull
-  public ImmutableList<SeriesData<RadioState>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<RadioState>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     // TODO: Change the Network API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     NetworkDataRequest.Builder dataRequestBuilder = NetworkDataRequest.newBuilder()
@@ -88,7 +86,7 @@ public class NetworkRadioDataSeries implements DataSeries<NetworkRadioDataSeries
           break;
       }
     }
-    return ContainerUtil.immutableList(seriesData);
+    return seriesData;
   }
 
 }

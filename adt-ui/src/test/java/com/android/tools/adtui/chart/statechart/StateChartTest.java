@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
-import com.intellij.util.containers.ContainerUtil;
+import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 
 import java.awt.*;
@@ -33,7 +33,7 @@ public class StateChartTest {
   @Test
   public void emptyStateChartShouldNotThrowException() {
     StateChartModel<State> model = new StateChartModel<>();
-    DataSeries<State> dataSeries = (range) -> ContainerUtil.immutableList();
+    DataSeries<State> dataSeries = (range) -> ImmutableList.of();
 
     model.addSeries(new RangedSeries<>(new Range(0, 100), dataSeries));
     EnumMap<State, Color> colors = new EnumMap<>(State.class);

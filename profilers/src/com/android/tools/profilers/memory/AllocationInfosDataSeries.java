@@ -60,7 +60,7 @@ class AllocationInfosDataSeries implements DataSeries<CaptureDurationData<Alloca
   }
 
   @Override
-  public ImmutableList<SeriesData<CaptureDurationData<AllocationsCaptureObject>>> getDataForXRange(Range xRange) {
+  public List<SeriesData<CaptureDurationData<AllocationsCaptureObject>>> getDataForXRange(Range xRange) {
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin()) - bufferNs;
     long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax()) + bufferNs;
@@ -77,6 +77,6 @@ class AllocationInfosDataSeries implements DataSeries<CaptureDurationData<Alloca
                                         durationUs,
                                         new AllocationsCaptureObject(myClient, myProcessId, mySession, info, myConverter))));
     }
-    return ContainerUtil.immutableList(seriesData);
+    return seriesData;
   }
 }
