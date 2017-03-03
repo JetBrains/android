@@ -16,7 +16,6 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.Range;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -189,5 +188,29 @@ public class ProfilerTimelineTest {
     assertEquals(dataRange.getMax(), viewRange.getMax(), 0);
     assertEquals(30, viewRange.getLength(), 0);
     assertEquals(TimeUnit.SECONDS.toMicros(30), dataRange.getMax(), 0);
+  }
+
+  @Test
+  public void testReset() throws Exception {
+    ProfilerTimeline timeline = new ProfilerTimeline(myRelativeTimeConverter);
+    assertFalse(timeline.isStreaming());
+
+    long deviceStartTimeNs = 20;
+    RelativeTimeConverter converter = new RelativeTimeConverter(deviceStartTimeNs);
+    timeline.reset(converter);
+
+    // Timeline should be streaming after reset
+    assertTrue(timeline.isStreaming());
+    // Timeline should not be paused after reset
+    assertFalse(timeline.isPaused());
+
+    // Timeline data range should be [deviceStartTimeUs, deviceStartTimeUs] after reset
+    assertEquals(TimeUnit.NANOSECONDS.toMicros(deviceStartTimeNs), timeline.getDataRange().getMin(), 0);
+    assertEquals(TimeUnit.NANOSECONDS.toMicros(deviceStartTimeNs), timeline.getDataRange().getMax(), 0);
+
+    // Timeline view range should be [deviceStartTimeUs - DEFAULT_VIEW_LENGTH_US, deviceStartTimeUs] after reset
+    assertEquals(TimeUnit.NANOSECONDS.toMicros(deviceStartTimeNs) - ProfilerTimeline.DEFAULT_VIEW_LENGTH_US,
+                 timeline.getViewRange().getMin(), 0);
+    assertEquals(TimeUnit.NANOSECONDS.toMicros(deviceStartTimeNs), timeline.getViewRange().getMax(), 0);
   }
 }
