@@ -44,8 +44,8 @@ public class DeployTargetPickerDialogFixture extends ComponentFixture<DeployTarg
   @NotNull
   public static DeployTargetPickerDialogFixture find(@NotNull Robot robot) {
     Dialog dialog = WindowFinder.findDialog(DialogMatcher.withTitle(AndroidBundle.message("choose.device.dialog.title")).andShowing())
-                                .withTimeout(TimeUnit.SECONDS.toMillis(5)).using(robot)
-                                .target();
+      .withTimeout(TimeUnit.SECONDS.toMillis(5)).using(robot)
+      .target();
     assertThat(dialog).isInstanceOf(JDialog.class);
     // When adb & avd manager are not initialized, animated icons are displayed. We wait until those animated icons disappear.
     waitUntilGone(robot, dialog, new GenericTypeMatcher<AnimatedIcon>(AnimatedIcon.class) {
