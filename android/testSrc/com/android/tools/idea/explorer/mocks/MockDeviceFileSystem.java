@@ -19,6 +19,7 @@ import com.android.tools.idea.explorer.FutureUtils;
 import com.android.tools.idea.explorer.adbimpl.AdbShellCommandException;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
+import com.android.tools.idea.explorer.fs.DeviceState;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
@@ -67,6 +68,12 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
   @Override
   public String getName() {
     return myName;
+  }
+
+  @NotNull
+  @Override
+  public DeviceState getDeviceState() {
+    return DeviceState.ONLINE;
   }
 
   @NotNull

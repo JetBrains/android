@@ -193,7 +193,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Act
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
 
     // Assert
     checkMockViewInitialState(controller, myDevice1);
@@ -227,7 +227,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Assert
     assertNotNull(errorMessage);
-    assertTrue(errorMessage.contains("Unable to start file system service"));
+    assertTrue(errorMessage.contains("Error initializing ADB"));
   }
 
   public void testRestartController() throws InterruptedException, ExecutionException, TimeoutException {
@@ -235,7 +235,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     DeviceExplorerController controller = createController();
 
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     // Act
@@ -290,7 +290,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Act
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
 
     checkMockViewComboBox(controller);
     String errorMessage = pumpEventsAndWaitForFuture(myMockView.getReportErrorRelatedToDeviceTracker().consume());
@@ -306,7 +306,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Act
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     // Set timers to ensure the "loading..." animation code is hit
@@ -349,7 +349,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Prepare
     DeviceExplorerController controller = createController();
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
     String errorMessage = "<Expected test error>";
     myFoo.setGetEntriesError(new RuntimeException(errorMessage));
@@ -401,7 +401,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Act
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     String errorMessage = "<Expected test error>";
@@ -430,7 +430,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Act
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     String errorMessage = "<Expected test error>";
@@ -458,7 +458,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Act
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     myMockView.getDeviceCombo().setSelectedItem(myDevice2);
@@ -471,7 +471,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Prepare
     DeviceExplorerController controller = createController();
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
     TreeModel model = myModel.getTreeModel();
 
@@ -498,7 +498,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Act
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     SettableFuture<Void> futureItemAdded = SettableFuture.create();
@@ -531,7 +531,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Act
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     SettableFuture<Void> futureItemRemoved = SettableFuture.create();
@@ -564,7 +564,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Act
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     // Assert
@@ -644,7 +644,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Prepare
     DeviceExplorerController controller = createController();
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     // Act
@@ -712,7 +712,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Prepare
     DeviceExplorerController controller = createController();
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     // Act
@@ -778,7 +778,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Prepare
     DeviceExplorerController controller = createController();
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     // Act
@@ -847,7 +847,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Prepare
     DeviceExplorerController controller = createController();
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     // Act
@@ -862,7 +862,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Prepare
     DeviceExplorerController controller = createController();
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     // Act
@@ -878,7 +878,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Prepare
     DeviceExplorerController controller = createController();
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     expandEntry(myFoo);
@@ -912,7 +912,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Prepare
     DeviceExplorerController controller = createController();
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     expandEntry(myFoo);
@@ -946,7 +946,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Prepare
     DeviceExplorerController controller = createController();
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     TreePath fooPath = getFileEntryPath(myFoo);
@@ -992,7 +992,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Act
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     myMockView.getTree().setSelectionPath(getFileEntryPath(myFile1));
@@ -1023,7 +1023,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Act
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     myMockView.getTree().setSelectionPath(getFileEntryPath(myFile1));
@@ -1055,7 +1055,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Act
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     expandEntry(myFoo);
@@ -1091,7 +1091,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Act
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     expandEntry(myFoo);
@@ -1134,7 +1134,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Prepare
     DeviceExplorerController controller = createController();
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     expandEntry(myFoo);
@@ -1195,7 +1195,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Act
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     expandEntry(myFoo);
@@ -1264,7 +1264,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Act
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     expandEntry(myFoo);
@@ -1335,7 +1335,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
     // Prepare
     DeviceExplorerController controller = createController();
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     // Expand 2 directories
@@ -1568,7 +1568,7 @@ public class DeviceExplorerControllerTest extends AndroidTestCase {
 
     // Act
     controller.setup();
-    pumpEventsAndWaitForFuture(myMockView.getServiceSetupSuccessTracker().consume());
+    pumpEventsAndWaitForFuture(myMockView.getStartRefreshTracker().consume());
     checkMockViewInitialState(controller, myDevice1);
 
     myDevice1.setDownloadFileChunkSize(1_000); // download chunks of 1000 bytes at a time
