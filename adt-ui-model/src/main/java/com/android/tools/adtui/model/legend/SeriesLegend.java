@@ -19,12 +19,11 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 /**
  * Render data used for displaying LineChart data. In particular, it will show the most recent data in the RangedContinuousSeries
@@ -55,7 +54,7 @@ public final class SeriesLegend implements Legend {
   @Override
   public String getValue() {
     double time = myRange.getMax();
-    ImmutableList<SeriesData<Long>> data = mySeries.getDataSeries().getDataForXRange(new Range(time, time));
+    List<SeriesData<Long>> data = mySeries.getDataSeries().getDataForXRange(new Range(time, time));
     if (data.isEmpty()) {
       return null;
     }

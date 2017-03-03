@@ -19,9 +19,10 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.ProfilersTestData;
-import com.intellij.util.containers.ImmutableList;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -45,7 +46,7 @@ public class CpuUsageDataSeriesTest {
     int appTime = (int) (0.4 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
     myService.setAppTimeMs(appTime);
-    ImmutableList<SeriesData<Long>> seriesData = mySeries.getDataForXRange(ANY_RANGE);
+    List<SeriesData<Long>> seriesData = mySeries.getDataForXRange(ANY_RANGE);
     assertEquals(1, seriesData.size());
     SeriesData<Long> appUsageData = seriesData.get(0);
     assertNotNull(appUsageData);
@@ -69,7 +70,7 @@ public class CpuUsageDataSeriesTest {
     mySeries = new CpuUsageDataSeries(myGrpcChannel.getClient().getCpuClient(), true, FAKE_PID, ProfilersTestData.SESSION_DATA);
     int systemTime = (int) (0.6 * FakeCpuService.TOTAL_ELAPSED_TIME);
     myService.setSystemTimeMs(systemTime);
-    ImmutableList<SeriesData<Long>> seriesData = mySeries.getDataForXRange(ANY_RANGE);
+    List<SeriesData<Long>> seriesData = mySeries.getDataForXRange(ANY_RANGE);
     assertEquals(1, seriesData.size());
     SeriesData<Long> systemUsageData = seriesData.get(0);
     assertNotNull(systemUsageData);

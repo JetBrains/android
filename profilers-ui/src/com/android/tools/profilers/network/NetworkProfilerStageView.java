@@ -26,7 +26,6 @@ import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.containers.ImmutableList;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
@@ -35,6 +34,7 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import java.awt.*;
 import java.util.Collections;
+import java.util.List;
 import java.util.function.Function;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
@@ -216,7 +216,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   }
 
   private static boolean hasTrafficUsage(RangedContinuousSeries series, Range range) {
-    ImmutableList<SeriesData<Long>> list = series.getDataSeries().getDataForXRange(range);
+    List<SeriesData<Long>> list = series.getDataSeries().getDataForXRange(range);
     if (list.stream().anyMatch(data -> data.x >= range.getMin() && data.x <= range.getMax() && data.value > 0)) {
       return true;
     }

@@ -24,12 +24,12 @@ import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.StudioProfilers;
-import com.intellij.util.containers.ImmutableList;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -77,7 +77,7 @@ public class CpuTraceDataSeriesTest {
     myService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS);
     CpuCapture expectedCapture = myService.parseTraceFile();
 
-    ImmutableList<SeriesData<CpuCapture>> seriesData = mySeries.getDataForXRange(maxRange);
+    List<SeriesData<CpuCapture>> seriesData = mySeries.getDataForXRange(maxRange);
     assertEquals(1, seriesData.size());
     SeriesData data = seriesData.get(0);
     assertNotNull(data);

@@ -28,9 +28,8 @@ import com.android.tools.profilers.common.CodeLocation;
 import com.android.tools.profilers.common.CodeNavigator;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -355,7 +354,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
   @NotNull
   public List<ClockType> getClockTypes() {
-    return ContainerUtil.immutableList(ClockType.GLOBAL, ClockType.THREAD);
+    return ImmutableList.of(ClockType.GLOBAL, ClockType.THREAD);
   }
 
   @NotNull
@@ -405,9 +404,9 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   @NotNull
-  public ImmutableList<CpuProfiler.CpuProfilingAppStartRequest.Mode> getProfilingModes() {
-    return ContainerUtil.immutableList(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED,
-                                       CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
+  public List<CpuProfiler.CpuProfilingAppStartRequest.Mode> getProfilingModes() {
+    return ImmutableList.of(CpuProfiler.CpuProfilingAppStartRequest.Mode.SAMPLED,
+                            CpuProfiler.CpuProfilingAppStartRequest.Mode.INSTRUMENTED);
   }
 
   @NotNull
@@ -602,7 +601,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   @VisibleForTesting
   class CpuTraceDataSeries implements DataSeries<CpuCapture> {
     @Override
-    public ImmutableList<SeriesData<CpuCapture>> getDataForXRange(Range xRange) {
+    public List<SeriesData<CpuCapture>> getDataForXRange(Range xRange) {
       long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin());
       long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax());
 
@@ -621,7 +620,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
           seriesData.add(new SeriesData<>((long)range.getMin(), capture));
         }
       }
-      return ContainerUtil.immutableList(seriesData);
+      return seriesData;
     }
   }
 

@@ -23,10 +23,10 @@ import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.memory.adapters.AllocationsCaptureObject;
-import com.intellij.util.containers.ImmutableList;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -51,7 +51,7 @@ public class AllocationInfosDataSeriesTest {
 
     AllocationInfosDataSeries series =
       new AllocationInfosDataSeries(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, 1, new RelativeTimeConverter(0));
-    ImmutableList<SeriesData<CaptureDurationData<AllocationsCaptureObject>>> dataList =
+    List<SeriesData<CaptureDurationData<AllocationsCaptureObject>>> dataList =
       series.getDataForXRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());

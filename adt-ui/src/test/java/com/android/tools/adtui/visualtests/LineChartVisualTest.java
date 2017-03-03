@@ -20,7 +20,6 @@ import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.*;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -154,7 +153,7 @@ public class LineChartVisualTest extends VisualTest {
             int v = variance.get();
             long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
             for (DefaultDataSeries<Long> series : mData) {
-              ImmutableList<SeriesData<Long>> data = series.getAllData();
+              List<SeriesData<Long>> data = series.getAllData();
               long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
               float delta = ((float)Math.random() - 0.45f) * v;
               // Make sure not to add negative numbers.
@@ -259,7 +258,7 @@ public class LineChartVisualTest extends VisualTest {
       public void mouseReleased(MouseEvent e) {
         // Wraps up the latest event by assigning it a duration value relative to where it was started.
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-        ImmutableList<SeriesData<DefaultDurationData>> allEvents = mDurationData1.getAllData();
+        List<SeriesData<DefaultDurationData>> allEvents = mDurationData1.getAllData();
         SeriesData<DefaultDurationData> lastEvent = allEvents.get(allEvents.size() - 1);
         lastEvent.value.setDuration(nowUs - lastEvent.x);
       }
@@ -280,7 +279,7 @@ public class LineChartVisualTest extends VisualTest {
       public void mouseReleased(MouseEvent e) {
         // Wraps up the latest event by assigning it a duration value relative to where it was started.
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-        ImmutableList<SeriesData<DefaultDurationData>> allEvents = mDurationData2.getAllData();
+        List<SeriesData<DefaultDurationData>> allEvents = mDurationData2.getAllData();
         SeriesData<DefaultDurationData> lastEvent = allEvents.get(allEvents.size() - 1);
         lastEvent.value.setDuration(nowUs - lastEvent.x);
       }
