@@ -18,10 +18,12 @@ package com.android.tools.idea.tests.gui.emulator;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.fixture.DeployTargetPickerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.BrowseSamplesWizardFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
@@ -43,6 +45,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   private static final String APP_NAME = "app";
+  private static final String APPLICATION_STARTED = ".*Application started.*";
   private static final String PROCESS_NAME = "google.simpleapplication";
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
     ".*adb shell am start .*google\\.simpleapplication.*", Pattern.DOTALL);
@@ -87,9 +90,41 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
     ideFrameFixture.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
     ideFrameFixture.getDebugToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(DEBUG_OUTPUT), 120);
 
-    ideFrameFixture.getAndroidToolWindow().selectDevicesTab()
-                                       .selectProcess(PROCESS_NAME)
-                                       .clickTerminateApplication();
+    ideFrameFixture.getAndroidToolWindow()
+      .selectDevicesTab()
+      .selectProcess(PROCESS_NAME)
+      .clickTerminateApplication();
+  }
+
+  /**
+   * To verify NDK project compiles when running two files with same filename in different libs.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C14603477
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Open Android Studio
+   *   2. Import NdkDupeFilename project.
+   *   3. Compile and run on the emulator.
+   *   Verify:
+   *   1. Application can run without errors.
+   *   </pre>
+   * <p>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void testNdkHandlesDupeFilename() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("NdkDupeFilename");
+    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+    ideFrameFixture
+      .runApp(APP_NAME)
+      .selectDevice(AVD_NAME)
+      .clickOk();
+    ExecutionToolWindowFixture.ContentFixture contentWindow = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
+    contentWindow.waitForOutput(new PatternTextMatcher(Pattern.compile(APPLICATION_STARTED, Pattern.DOTALL)), 120);
+    contentWindow.stop();
   }
 
   /**
@@ -142,7 +177,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
       .invokeAction(EditorFixture.EditorAction.GOTO_IMPLEMENTATION)
       .invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT); // Second break point - HandleInput()
 
-      assertThat(guiTest.ideFrame().getEditor().getCurrentLine())
+    assertThat(guiTest.ideFrame().getEditor().getCurrentLine())
       .contains("int32_t Engine::HandleInput(");
 
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
@@ -168,7 +203,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
       .waitForBreakPointHit();
 
     // Check we have the right debug line
-      assertThat(guiTest.ideFrame().getEditor().getCurrentLine())
+    assertThat(guiTest.ideFrame().getEditor().getCurrentLine())
       .contains(lineText);
 
     // Remove break point
