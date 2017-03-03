@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.apk.debugging.editor;
 
+import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.gradle.util.FilePaths;
 import com.android.tools.idea.testing.FileSubject;
 import com.intellij.openapi.application.ApplicationManager;
@@ -34,7 +35,6 @@ import org.mockito.Mock;
 
 import java.io.File;
 
-import static com.android.tools.idea.apk.debugging.SmaliFiles.getDefaultSmaliOutputFolderPath;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddApkFacet;
 import static com.android.tools.idea.testing.TestProjectPaths.APK_SAN_ANGELES;
@@ -55,13 +55,14 @@ public class SmaliFileNotificationProviderTest extends IdeaTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    myNotificationProvider = new SmaliFileNotificationProvider(getProject());
+    Project project = getProject();
+    myNotificationProvider = new SmaliFileNotificationProvider(project, DexSourceFiles.getInstance(project));
   }
 
   public void testCreateNotificationPanelWithSmaliFile() throws Exception {
     loadProject(APK_SAN_ANGELES);
 
-    File outputFolderPath = getDefaultSmaliOutputFolderPath(getProject());
+    File outputFolderPath = DexSourceFiles.getInstance(getProject()).getDefaultSmaliOutputFolderPath();
     File rSmaliFilePath = new File(outputFolderPath, join("com", "example", "SanAngeles", "R.smali"));
     assertAbout(FileSubject.file()).that(rSmaliFilePath).isFile();
 

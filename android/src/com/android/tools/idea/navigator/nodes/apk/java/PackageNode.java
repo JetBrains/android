@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.java;
 
-import com.android.tools.idea.apk.debugging.ApkClass;
-import com.android.tools.idea.apk.debugging.ApkPackage;
-import com.android.tools.idea.apk.debugging.JavaFiles;
-import com.android.tools.idea.apk.debugging.SmaliFiles;
+import com.android.tools.idea.apk.debugging.*;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -34,26 +31,21 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static com.android.tools.idea.apk.debugging.JavaFiles.isJavaFile;
-import static com.android.tools.idea.apk.debugging.SmaliFiles.isSmaliFile;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 class PackageNode extends ProjectViewNode<ApkPackage> {
   @NotNull private final ApkPackage myPackage;
-  @NotNull private final JavaFiles myJavaFiles;
-  @NotNull private final SmaliFiles mySmaliFiles;
+  @NotNull private final DexSourceFiles myDexSourceFiles;
 
   PackageNode(@NotNull Project project,
               @NotNull ApkPackage apkPackage,
               @NotNull ViewSettings settings,
-              @NotNull JavaFiles javaFiles,
-              @NotNull SmaliFiles smaliFiles) {
+              @NotNull DexSourceFiles dexSourceFiles) {
     super(project, apkPackage, settings);
     // TODO show members (methods/fields) if ViewSettings are configured to show those.
     myPackage = apkPackage;
-    myJavaFiles = javaFiles;
-    mySmaliFiles = smaliFiles;
+    myDexSourceFiles = dexSourceFiles;
   }
 
   @Override
@@ -67,7 +59,7 @@ class PackageNode extends ProjectViewNode<ApkPackage> {
       addSubpackagesAsTree(myPackage.getSubpackages(), children);
     }
     for (ApkClass apkClass : myPackage.getClasses()) {
-      children.add(new ClassNode(myProject, apkClass, settings, myJavaFiles, mySmaliFiles));
+      children.add(new ClassNode(myProject, apkClass, settings, myDexSourceFiles));
     }
     return children;
   }
@@ -93,22 +85,22 @@ class PackageNode extends ProjectViewNode<ApkPackage> {
   @NotNull
   private PackageNode createChildNode(@NotNull ApkPackage subpackage) {
     assert myProject != null;
-    return new PackageNode(myProject, subpackage, getSettings(), myJavaFiles, mySmaliFiles);
+    return new PackageNode(myProject, subpackage, getSettings(), myDexSourceFiles);
   }
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
     String fqn = myPackage.getFqn();
-    if (isJavaFile(file)) {
+    if (myDexSourceFiles.isJavaFile(file)) {
       assert myProject != null;
-      String foundPackage = myJavaFiles.findPackage(file, myProject);
+      String foundPackage = myDexSourceFiles.findJavaPackageNameIn(file);
       if (foundPackage != null && foundPackage.contains(fqn)) {
         return true;
       }
     }
-    else if (isSmaliFile(file)) {
+    else if (myDexSourceFiles.isSmaliFile(file)) {
       File filePath = virtualToIoFile(file);
-      File packageFilePath = mySmaliFiles.findPackageFilePath(fqn);
+      File packageFilePath = myDexSourceFiles.findSmaliFilePathForPackage(fqn);
       return isAncestor(packageFilePath, filePath, false);
     }
     return false;
