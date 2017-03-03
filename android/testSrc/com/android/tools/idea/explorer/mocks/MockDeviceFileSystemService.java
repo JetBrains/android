@@ -86,7 +86,7 @@ public class MockDeviceFileSystemService implements DeviceFileSystemService {
     myEdtExecutor.addCallback(futureResult, new FutureCallback<Void>() {
       @Override
       public void onSuccess(@Nullable Void result) {
-        myListeners.forEach(DeviceFileSystemServiceListener::updated);
+        myListeners.forEach(DeviceFileSystemServiceListener::serviceRestarted);
       }
 
       @Override

@@ -20,10 +20,7 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.SyncService;
 import com.android.tools.idea.explorer.FutureCallbackExecutor;
-import com.android.tools.idea.explorer.fs.DeviceFileEntry;
-import com.android.tools.idea.explorer.fs.DeviceFileSystem;
-import com.android.tools.idea.explorer.fs.FileTransferProgress;
-import com.android.tools.idea.explorer.fs.ThrottledProgress;
+import com.android.tools.idea.explorer.fs.*;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -85,6 +82,29 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   @Override
   public String getName() {
     return myDevice.getName();
+  }
+
+  @NotNull
+  @Override
+  public DeviceState getDeviceState() {
+    switch(myDevice.getState()) {
+      case ONLINE:
+        return DeviceState.ONLINE;
+      case OFFLINE:
+        return DeviceState.OFFLINE;
+      case UNAUTHORIZED:
+        return DeviceState.UNAUTHORIZED;
+      case DISCONNECTED:
+        return DeviceState.DISCONNECTED;
+      case BOOTLOADER:
+        return DeviceState.BOOTLOADER;
+      case RECOVERY:
+        return DeviceState.RECOVERY;
+      case SIDELOAD:
+        return DeviceState.SIDELOAD;
+      default:
+        return DeviceState.DISCONNECTED;
+    }
   }
 
   @NotNull

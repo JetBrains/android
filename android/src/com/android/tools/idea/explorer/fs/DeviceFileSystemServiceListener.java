@@ -26,7 +26,7 @@ public interface DeviceFileSystemServiceListener {
    * meaning all devices and file system are now invalid and should be
    * re-acquired.
    */
-  void updated();
+  void serviceRestarted();
 
   /**
    * A {@link DeviceFileSystem} has been added to the list of connected devices of the
