@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.property.PropertyTestCase;
 import com.android.tools.idea.uibuilder.property.editors.*;
 import com.android.tools.idea.uibuilder.property.inspector.TextInspectorProvider.TextInspectorComponent;
 import com.google.common.collect.ImmutableList;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
 
@@ -135,13 +136,14 @@ public class TextInspectorProviderTest extends PropertyTestCase {
     inspector.refresh();
 
     Optional<NlComponentEditor> textAppearanceEditor = inspector.getEditors().stream()
-      .filter(editor -> editor.getProperty() != null && editor.getProperty().getName().equals(ATTR_TEXT_APPEARANCE))
+      .filter(editor -> editor.getProperty().getName().equals(ATTR_TEXT_APPEARANCE))
       .findFirst();
     assertThat(textAppearanceEditor.isPresent()).isTrue();
     assert textAppearanceEditor.isPresent();
     assertThat(textAppearanceEditor.get()).isInstanceOf(NlBaseComponentEditor.class);
     NlBaseComponentEditor editor = (NlBaseComponentEditor)textAppearanceEditor.get();
     editor.stopEditing("Material.Display1");
+    UIUtil.dispatchAllInvocationEvents();
 
     assertThat(properties.get(ATTR_TEXT_APPEARANCE).getValue()).isEqualTo("Material.Display1");
     assertThat(properties.get(ATTR_FONT_FAMILY).getValue()).isNull();

@@ -155,6 +155,7 @@ public class LayoutTestUtilities {
     when(screenView.getY()).thenReturn(y);
 
     when(surface.getSceneView(anyInt(), anyInt())).thenReturn(screenView);
+    when(surface.getCurrentSceneView()).thenReturn(screenView);
     LayoutlibSceneBuilder builder = new LayoutlibSceneBuilder(model, screenView);
     Scene scene = builder.build();
     scene.buildDisplayList(new DisplayList(), 0);

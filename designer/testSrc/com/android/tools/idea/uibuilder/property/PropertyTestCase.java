@@ -21,6 +21,8 @@ import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorProvider;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -43,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
 import static com.google.common.truth.Truth.assertThat;
 
 public abstract class PropertyTestCase extends LayoutTestCase {
@@ -68,6 +71,8 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlComponent myTabLayout;
   protected NlComponent myRelativeLayout;
   protected NlModel myModel;
+  protected NlDesignSurface myDesignSurface;
+  protected ScreenView myScreenView;
   protected NlPropertiesManager myPropertiesManager;
   protected AndroidDomElementDescriptorProvider myDescriptorProvider;
   protected Map<String, NlComponent> myComponentMap;
@@ -97,7 +102,9 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myImageViewInCollapsingToolbarLayout = myComponentMap.get("imgv");
     myTabLayout = myComponentMap.get("tabLayout");
     myRelativeLayout = myComponentMap.get("relativeLayout");
-    myPropertiesManager = new NlPropertiesManager(getProject(), null);
+    myDesignSurface = surface().getSurface();
+    myScreenView = createScreen(myDesignSurface, myModel, myModel.getSelectionModel());
+    myPropertiesManager = new NlPropertiesManager(getProject(), myDesignSurface);
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myPropertiesComponent = new PropertiesComponentMock();
     registerApplicationComponent(PropertiesComponent.class, myPropertiesComponent);
@@ -108,7 +115,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     try {
       Disposer.dispose(myModel);
       Disposer.dispose(myPropertiesManager);
-    }
+      Disposer.dispose(myDesignSurface);    }
     finally {
       super.tearDown();
     }
