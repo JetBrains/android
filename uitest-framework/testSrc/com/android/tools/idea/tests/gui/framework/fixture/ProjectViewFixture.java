@@ -35,7 +35,9 @@ import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
+import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.tree.TreeUtil;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
@@ -45,6 +47,7 @@ import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -178,7 +181,12 @@ public class ProjectViewFixture extends ToolWindowFixture {
     }
 
     public void clickPath(@NotNull MouseButton button, @NotNull final String... paths) {
-      Wait.seconds(5).expecting("Tree to load").until(() -> !String.valueOf(myTree.target().getCellRenderer()).equals("loading..."));
+      GuiTests.waitUntilShowing(myRobot, myTree.target(), new GenericTypeMatcher<AsyncProcessIcon>(AsyncProcessIcon.class) {
+         @Override
+         protected boolean isMatching(@Nonnull AsyncProcessIcon component) {
+           return !component.isRunning();
+         }
+      });
       StringBuilder totalPath = new StringBuilder(paths[0]);
       for (int i = 1; i < paths.length; i++) {
         myTree.expandPath(totalPath.toString());
