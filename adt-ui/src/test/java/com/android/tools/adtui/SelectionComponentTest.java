@@ -17,8 +17,8 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SelectionModel;
-import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.swing.FakeKeyboard;
+import com.android.tools.adtui.swing.FakeUi;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
