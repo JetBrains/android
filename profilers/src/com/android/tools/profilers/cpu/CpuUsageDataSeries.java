@@ -21,8 +21,6 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -48,7 +46,7 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
   }
 
   @Override
-  public ImmutableList<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     List<SeriesData<Long>> seriesData = new ArrayList<>();
     // Get an extra padding on each side, to have a smooth rendering at the edges.
     // TODO: Change the CPU API to allow specifying this padding in the request as number of samples.
@@ -77,7 +75,7 @@ public class CpuUsageDataSeries implements DataSeries<Long> {
       }
       lastCpuData = data;
     }
-    return ContainerUtil.immutableList(seriesData);
+    return seriesData;
   }
 
   private static CpuUsageDataSeries.CpuUsageData getCpuUsageData(CpuProfiler.CpuProfilerData data, CpuProfiler.CpuProfilerData lastData) {

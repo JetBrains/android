@@ -45,7 +45,7 @@ public class LineChartModel extends AspectModel<LineChartModel.Aspect> implement
       Range range = ranged.getYRange();
       double yMax = Double.MIN_VALUE;
 
-      ImmutableList<SeriesData<Long>> seriesList = ranged.getSeries();
+      List<SeriesData<Long>> seriesList = ranged.getSeries();
       for (int i = 0; i < seriesList.size(); i++) {
         double value = seriesList.get(i).value;
         if (yMax < value) {

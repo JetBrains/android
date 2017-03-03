@@ -15,7 +15,6 @@
  */
 package com.android.tools.adtui.model;
 
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,7 +93,7 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
 
     for (DurationDataModel<? extends DurationData> constraint : myConstraints) {
       DataSeries<? extends DurationData> series = constraint.getSeries().getDataSeries();
-      ImmutableList<? extends SeriesData<? extends DurationData>> constraints = series.getDataForXRange(new Range(min, max));
+      List<? extends SeriesData<? extends DurationData>> constraints = series.getDataForXRange(new Range(min, max));
       for (SeriesData<? extends DurationData> data : constraints) {
         Range r = new Range(data.x, data.x + data.value.getDuration());
         // Check if this constraint intersects the candidate range.

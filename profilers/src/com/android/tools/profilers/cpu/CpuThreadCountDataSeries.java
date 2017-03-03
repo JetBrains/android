@@ -21,8 +21,6 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -49,7 +47,7 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
   }
 
   @Override
-  public ImmutableList<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
       .setProcessId(myProcessId)
@@ -93,6 +91,6 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
       data.add(new SeriesData<>((long)timeCurrentRangeUs.getMax(), total));
     }
 
-    return ContainerUtil.immutableList(data);
+    return data;
   }
 }

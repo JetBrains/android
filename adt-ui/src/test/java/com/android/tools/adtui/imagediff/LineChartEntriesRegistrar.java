@@ -22,9 +22,6 @@ import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
-import com.intellij.openapi.util.IconLoader;
-import com.intellij.util.containers.ImmutableList;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -192,7 +189,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
     protected void generateTestData() {
       for (int i = 0; i < TOTAL_VALUES; i++) {
         for (DefaultDataSeries<Long> series : myData) {
-          ImmutableList<SeriesData<Long>> data = series.getAllData();
+          List<SeriesData<Long>> data = series.getAllData();
           long last = data.isEmpty() ? LINE_CHART_INITIAL_VALUE : data.get(data.size() - 1).value;
           long delta = VARIANCE_ARRAY[myVarianceArrayIndex++];
           // Make sure not to add negative numbers.

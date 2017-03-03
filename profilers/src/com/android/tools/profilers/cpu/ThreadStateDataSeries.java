@@ -22,8 +22,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -49,7 +47,7 @@ public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.
   }
 
   @Override
-  public ImmutableList<SeriesData<CpuProfilerStage.ThreadState>> getDataForXRange(Range xRange) {
+  public List<SeriesData<CpuProfilerStage.ThreadState>> getDataForXRange(Range xRange) {
     // TODO Investigate if this is too slow. We can then have them share a common "series", and return a view to that series.
     ArrayList<SeriesData<CpuProfilerStage.ThreadState>> data = new ArrayList<>();
 
@@ -116,7 +114,7 @@ public final class ThreadStateDataSeries implements DataSeries<CpuProfilerStage.
         }
       }
     }
-    return ContainerUtil.immutableList(data);
+    return data;
   }
 
   private static CpuProfilerStage.ThreadState getState(CpuProfiler.GetThreadsResponse.State state, boolean captured) {
