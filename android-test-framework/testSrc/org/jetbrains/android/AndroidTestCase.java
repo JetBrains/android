@@ -20,10 +20,12 @@ import com.android.SdkConstants;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.startup.AndroidCodeStyleSettingsModifier;
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.codeInspection.CommonProblemDescriptor;
 import com.intellij.codeInspection.GlobalInspectionTool;
 import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.ex.GlobalInspectionToolWrapper;
 import com.intellij.codeInspection.ex.InspectionManagerEx;
+import com.intellij.codeInspection.reference.RefEntity;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.Disposable;
@@ -59,6 +61,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestCase extends AndroidTestBase {
@@ -325,9 +328,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     });
   }
 
-  protected final void doGlobalInspectionTest(
+  protected final Map<RefEntity, CommonProblemDescriptor[]>  doGlobalInspectionTest(
     @NotNull GlobalInspectionTool inspection, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
-    doGlobalInspectionTest(new GlobalInspectionToolWrapper(inspection), globalTestDir, scope);
+    return doGlobalInspectionTest(new GlobalInspectionToolWrapper(inspection), globalTestDir, scope);
   }
 
   /**
@@ -335,7 +338,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
    * inspection on the current test project and verify that its output matches that of the
    * expected file.
    */
-  protected final void doGlobalInspectionTest(
+  protected final Map<RefEntity, CommonProblemDescriptor[]> doGlobalInspectionTest(
     @NotNull GlobalInspectionToolWrapper wrapper, @NotNull String globalTestDir, @NotNull AnalysisScope scope) {
     myFixture.enableInspections(wrapper.getTool());
 
@@ -347,6 +350,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     InspectionTestUtil.runTool(wrapper, scope, globalContext);
     InspectionTestUtil.compareToolResults(globalContext, wrapper, false, getTestDataPath() + globalTestDir);
+
+    return globalContext.getPresentation(wrapper).getProblemElements();
   }
 
   public <T> void registerApplicationComponent(@NotNull Class<T> key, @NotNull T instance) {
