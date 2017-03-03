@@ -29,53 +29,22 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link JavaFiles}.
+ * Tests for {@link DexSourceFiles}.
  */
-public class JavaFilesTest extends AndroidGradleTestCase {
-  private JavaFiles myJavaFiles;
+public class DexSourceFilesGradleTest extends AndroidGradleTestCase {
+  private DexSourceFiles myDexSourceFiles;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     loadSimpleApplication();
-    myJavaFiles = new JavaFiles();
-  }
-
-  public void testIsJavaFileWithJavaFile() {
-    VirtualFile file = mock(VirtualFile.class);
-
-    when(file.isDirectory()).thenReturn(false);
-    when(file.getExtension()).thenReturn("java");
-    assertTrue(JavaFiles.isJavaFile(file));
-  }
-
-  public void testIsJavaFileWithDirectory() {
-    VirtualFile file = mock(VirtualFile.class);
-
-    when(file.isDirectory()).thenReturn(true);
-    assertFalse(JavaFiles.isJavaFile(file));
-  }
-
-  public void testIsJavaFileWithTextFile() {
-    VirtualFile file = mock(VirtualFile.class);
-
-    when(file.isDirectory()).thenReturn(false);
-    when(file.getExtension()).thenReturn("text");
-    assertFalse(JavaFiles.isJavaFile(file));
-  }
-
-  public void testIsJavaFileWithFileWithoutExtension() {
-    VirtualFile file = mock(VirtualFile.class);
-
-    when(file.isDirectory()).thenReturn(false);
-    when(file.getExtension()).thenReturn("");
-    assertFalse(JavaFiles.isJavaFile(file));
+    myDexSourceFiles = new DexSourceFiles(getProject());
   }
 
   public void testFindClass() throws Exception {
     ApkClass myActivityClass = getMyActivityApkClass();
     String fqn = myActivityClass.getFqn();
-    PsiClass found = myJavaFiles.findClass(fqn, getProject());
+    PsiClass found = myDexSourceFiles.findJavaPsiClass(fqn);
     assertNotNull(found);
     assertEquals(fqn, found.getQualifiedName());
   }
@@ -84,7 +53,7 @@ public class JavaFilesTest extends AndroidGradleTestCase {
     Module appModule = myModules.getAppModule();
     VirtualFile myActivityFile = getMyActivityFile(appModule);
 
-    List<String> found = myJavaFiles.findClasses(myActivityFile, getProject());
+    List<String> found = myDexSourceFiles.findJavaClassesIn(myActivityFile);
     assertNotNull(found);
     assertThat(found).containsExactly(getMyActivityApkClass().getFqn());
   }
@@ -93,7 +62,7 @@ public class JavaFilesTest extends AndroidGradleTestCase {
     Module appModule = myModules.getAppModule();
     VirtualFile myActivityFile = getMyActivityFile(appModule);
 
-    String found = myJavaFiles.findPackage(myActivityFile, getProject());
+    String found = myDexSourceFiles.findJavaPackageNameIn(myActivityFile);
     assertNotNull(found);
     assertEquals(getMyActivityApkClass().getParent().getFqn(), found);
   }

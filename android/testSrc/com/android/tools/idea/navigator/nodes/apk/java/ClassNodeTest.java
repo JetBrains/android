@@ -16,8 +16,7 @@
 package com.android.tools.idea.navigator.nodes.apk.java;
 
 import com.android.tools.idea.apk.debugging.ApkClass;
-import com.android.tools.idea.apk.debugging.JavaFiles;
-import com.android.tools.idea.apk.debugging.SmaliFiles;
+import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
@@ -33,9 +32,10 @@ import org.mockito.Mock;
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.apk.debugging.SimpleApplicationContents.*;
+import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -44,11 +44,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class ClassNodeTest extends AndroidGradleTestCase {
   @Mock private ViewSettings mySettings;
-  @Mock private SmaliFiles mySmaliFiles;
 
   private ApkClass myActivityApkClass;
   private ApkClass myUnitTestClass;
-  private JavaFiles myJavaFiles;
+  private DexSourceFiles myDexSourceFiles;
 
   private ClassNode myNode;
 
@@ -62,9 +61,9 @@ public class ClassNodeTest extends AndroidGradleTestCase {
     myActivityApkClass = getMyActivityApkClass();
     myUnitTestClass = getUnitTestClass();
 
-    myJavaFiles = new JavaFiles();
+    myDexSourceFiles = new DexSourceFiles(project);
 
-    myNode = new ClassNode(project, myActivityApkClass, mySettings, myJavaFiles, mySmaliFiles);
+    myNode = new ClassNode(project, myActivityApkClass, mySettings, myDexSourceFiles);
   }
 
   public void testUpdate() {
@@ -86,14 +85,18 @@ public class ClassNodeTest extends AndroidGradleTestCase {
 
   public void testContainsSmaliFile() throws Throwable {
     Project project = getProject();
+    myDexSourceFiles = mock(DexSourceFiles.class);
+    myNode = new ClassNode(project, myActivityApkClass, mySettings, myDexSourceFiles);
+
     VirtualFile smaliFile = ApplicationManager.getApplication().runWriteAction((ThrowableComputable<VirtualFile, IOException>)() ->
       project.getBaseDir().createChildData(this, "Test.smali"));
     File smaliFilePath = virtualToIoFile(smaliFile);
 
-    when(mySmaliFiles.findSmaliFilePath(myActivityApkClass.getFqn())).thenReturn(smaliFilePath);
+    when(myDexSourceFiles.findSmaliFilePathForClass(myActivityApkClass.getFqn())).thenReturn(smaliFilePath);
+    when(myDexSourceFiles.isSmaliFile(smaliFile)).thenReturn(true);
     assertTrue(myNode.contains(smaliFile));
 
-    when(mySmaliFiles.findSmaliFilePath(myActivityApkClass.getFqn())).thenReturn(getBaseDirPath(project));
+    when(myDexSourceFiles.findSmaliFilePathForClass(myActivityApkClass.getFqn())).thenReturn(getBaseDirPath(project));
     assertFalse(myNode.contains(smaliFile));
   }
 
@@ -130,7 +133,7 @@ public class ClassNodeTest extends AndroidGradleTestCase {
 
   @NotNull
   private PsiClass getPsiClass(@NotNull ApkClass apkClass) {
-    PsiClass psiClass = myJavaFiles.findClass(apkClass.getFqn(), getProject());
+    PsiClass psiClass = myDexSourceFiles.findJavaPsiClass(apkClass.getFqn());
     assertNotNull(psiClass);
     return psiClass;
   }
