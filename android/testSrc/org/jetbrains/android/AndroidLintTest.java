@@ -7,11 +7,16 @@ import com.android.tools.lint.checks.CommentDetector;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.lint.checks.TextViewDetector;
 import com.android.tools.lint.detector.api.Issue;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.ShowIntentionsPass;
 import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInspection.CommonProblemDescriptor;
+import com.intellij.codeInspection.QuickFix;
 import com.intellij.codeInspection.ex.InspectionProfileImpl;
+import com.intellij.codeInspection.reference.RefEntity;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.openapi.application.Result;
@@ -44,6 +49,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
@@ -80,15 +87,26 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestHardcodedQuickfix();
   }
 
-  // Like CodeInsightTestFixtureImpl#doGetAvailableIntentions but allows filtering to overlapping an offset
+  @NotNull
+  private List<IntentionAction> getAvailableFixes() {
+    ShowIntentionsPass.IntentionsInfo intentions = new ShowIntentionsPass.IntentionsInfo();
+    ShowIntentionsPass.getActionsToShow(myFixture.getEditor(), myFixture.getFile(), intentions, -1);
+
+    List<IntentionAction> actions = Lists.newArrayList();
+    for (HighlightInfo.IntentionActionDescriptor descriptor : intentions.inspectionFixesToShow) {
+      actions.add(descriptor.getAction());
+    }
+    return actions;
+  }
+
   @NotNull
   private String listAvailableFixes() {
     ShowIntentionsPass.IntentionsInfo intentions = new ShowIntentionsPass.IntentionsInfo();
     ShowIntentionsPass.getActionsToShow(myFixture.getEditor(), myFixture.getFile(), intentions, -1);
 
     StringBuilder sb = new StringBuilder();
-    for (HighlightInfo.IntentionActionDescriptor descriptor : intentions.inspectionFixesToShow) {
-      sb.append(descriptor.getAction().getText()).append("\n");
+    for (IntentionAction action : getAvailableFixes()) {
+      sb.append(action.getText()).append("\n");
     }
     return sb.toString();
   }
@@ -834,6 +852,55 @@ public class AndroidLintTest extends AndroidTestCase {
     doGlobalInspectionTest(new AndroidLintStopShipInspection());
   }
 
+  public void testUnusedResource() throws Exception {
+    // This test checks 3 things.
+    // First, it runs the unused resources global inspection and checks that it gets it right (the results are checked
+    // against unusedResources/expected.xml).
+    //
+    // Then, it checks that *all* the quickfixes associated with this use a unique family name. This checks that
+    // we don't get into the scenario described in issue 235641, where a *single* action is created to run all 3
+    // quickfixes (both adding tools/keep, which is taken as the display name, as well as the removal refactoring).
+    //
+    // Finally, it actually performs the unused refactoring fix. This verifies that this works without the crash
+    // also reported in issue 235641 (where the unused refactoring is invoked under a write lock, which quickfixes
+    // normally are, but which is forbidden by the refactoring framework.)
+
+    VirtualFile file = myFixture.copyFileToProject(getGlobalTestDir() + "/strings.xml", "res/values/strings.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    Map<RefEntity, CommonProblemDescriptor[]> map = doGlobalInspectionTest(new AndroidLintUnusedResourcesInspection());
+
+    CommonProblemDescriptor targetDescriptor = null;
+    QuickFix<CommonProblemDescriptor> targetFix = null;
+
+    // Ensure family names are unique; if not quickfixes get collapsed. Set.add only returns true if it wasn't already in the set.
+    for (Map.Entry<RefEntity, CommonProblemDescriptor[]> entry : map.entrySet()) {
+      for (CommonProblemDescriptor descriptor : entry.getValue()) {
+        Set<String> familyNames = Sets.newHashSet();
+        QuickFix[] fixes = descriptor.getFixes();
+        if (fixes != null) {
+          for (QuickFix fix : fixes) {
+            String name = fix.getName();
+            System.out.println("Next fix = " + name);
+            System.out.println("Next fix.family = " + fix.getFamilyName());
+            assertTrue(familyNames.add(fix.getFamilyName()));
+
+            if ("Remove Declarations for R.string.unused".equals(name)) {
+              targetDescriptor = descriptor;
+              //noinspection unchecked
+              targetFix = fix;
+            }
+          }
+        }
+      }
+    }
+
+    assertNotNull(targetDescriptor);
+    assertNotNull(targetFix);
+
+    targetFix.applyFix(getProject(), targetDescriptor);
+    myFixture.checkResultByFile(getGlobalTestDir() + "/strings_after.xml");
+  }
+
   public void testImpliedTouchscreenHardware() throws Exception {
     doTestWithFix(new AndroidLintImpliedTouchscreenHardwareInspection(),
                   "Add uses-feature tag",
@@ -1022,8 +1089,9 @@ public class AndroidLintTest extends AndroidTestCase {
                   "/src/test/pkg/WakelockTest.java", "java");
   }
 
-  private void doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
-    doGlobalInspectionTest(inspection, getGlobalTestDir(), new AnalysisScope(myModule));
+  private Map<RefEntity, CommonProblemDescriptor[]> doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
+    enableExactlyOneInspection(myFixture, inspection);
+    return doGlobalInspectionTest(inspection, getGlobalTestDir(), new AnalysisScope(myModule));
   }
 
   private String getGlobalTestDir() {
