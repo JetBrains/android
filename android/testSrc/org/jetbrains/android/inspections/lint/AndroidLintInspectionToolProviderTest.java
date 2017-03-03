@@ -19,7 +19,9 @@ import com.android.tools.idea.lint.LintIdeGradleDetector;
 import com.android.tools.idea.lint.LintIdeIssueRegistry;
 import com.android.tools.idea.lint.LintIdeProject;
 import com.android.tools.idea.lint.LintIdeViewTypeDetector;
-import com.android.tools.lint.checks.*;
+import com.android.tools.lint.checks.GradleDetector;
+import com.android.tools.lint.checks.SupportAnnotationDetector;
+import com.android.tools.lint.checks.ViewTypeDetector;
 import com.android.tools.lint.detector.api.*;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
@@ -27,11 +29,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import com.intellij.codeHighlighting.HighlightDisplayLevel;
-import com.intellij.codeInsight.daemon.HighlightDisplayKey;
-import com.intellij.codeInspection.InspectionProfile;
 import com.intellij.openapi.project.Project;
-import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -133,46 +131,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
         }
       }
 
-      final String inspectionShortName = AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue);
-      if (inspectionShortName == null) {
-        missing.add(issue);
-        continue;
-      }
-
-      // ELSE: compare severity, enabledByDefault, etc, message, etc
-
-      final HighlightDisplayKey key = HighlightDisplayKey.find(inspectionShortName);
-      if (key == null) {
-        //fail("No highlight display key for inspection " + inspectionShortName + " for issue " + issue);
-        System.out.println("No highlight display key for inspection " + inspectionShortName + " for issue " + issue);
-        continue;
-      }
-
-      final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getInspectionProfile();
-      HighlightDisplayLevel errorLevel = profile.getErrorLevel(key, null);
-      Severity s;
-      if (errorLevel == HighlightDisplayLevel.WARNING || errorLevel == HighlightDisplayLevel.WEAK_WARNING) {
-        s = Severity.WARNING;
-      } else if (errorLevel == HighlightDisplayLevel.ERROR || errorLevel == HighlightDisplayLevel.NON_SWITCHABLE_ERROR) {
-        s = Severity.ERROR;
-      } else if (errorLevel == HighlightDisplayLevel.DO_NOT_SHOW) {
-        s = Severity.IGNORE;
-      } else if (errorLevel == HighlightDisplayLevel.INFO) {
-        s = Severity.INFORMATIONAL;
-      } else {
-        //fail("Unexpected error level " + errorLevel);
-        System.out.println("Unexpected error level " + errorLevel);
-        continue;
-      }
-      Severity expectedSeverity = issue.getDefaultSeverity();
-      if (expectedSeverity == Severity.FATAL) {
-        expectedSeverity = Severity.ERROR;
-      }
-      //assertSame(expectedSeverity, s);
-
-      if (expectedSeverity != s) {
-        System.out.println("Wrong severity for " + issue + "; expected " + expectedSeverity + ", got " + s);
-      }
+      missing.add(issue);
     }
 
     String sourceTree = System.getenv(ADT_SOURCE_TREE);
