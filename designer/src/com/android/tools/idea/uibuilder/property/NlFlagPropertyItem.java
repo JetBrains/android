@@ -20,7 +20,6 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.renderer.NlFlagRenderer;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
-import com.android.util.PropertiesMap;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -34,8 +33,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
   private List<PTableItem> myItems;
@@ -132,17 +133,11 @@ public class NlFlagPropertyItem extends NlPropertyItem implements NlProperty {
 
   @Override
   public void setValue(@Nullable Object value) {
-    invalidateCachedValues();
-    PropertiesMap.Property defaultValue = getDefaultValue();
-    try {
-      // Allow the user to explicitly set the property value the current default value.
-      // NlPropertyItem.setValue will case the property value to be reset to null.
-      setDefaultValue(null);
-      super.setValue(value);
+    String strValue = value == null ? null : value.toString();
+    if (StringUtil.isEmpty(strValue)) {
+      strValue = null;
     }
-    finally {
-      setDefaultValue(defaultValue);
-    }
+    setValueIgnoreDefaultValue(strValue, this::invalidateCachedValues);
   }
 
   public int getMaskValue() {

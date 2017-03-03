@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.util.PropertiesMap;
+import com.intellij.util.ui.UIUtil;
 
 import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
@@ -106,6 +107,8 @@ public class NlFlagPropertyItemTest extends PropertyTestCase {
     NlFlagPropertyItem textStyle = (NlFlagPropertyItem)createFrom(myTextView, ATTR_TEXT_STYLE);
     textStyle.setDefaultValue(new PropertiesMap.Property(null, TextStyle.VALUE_BOLD));
     textStyle.setValue(TextStyle.VALUE_BOLD);
+    UIUtil.dispatchAllInvocationEvents();
+
     NlFlagPropertyItemValue normal = textStyle.getChildProperty(TextStyle.VALUE_NORMAL);
     NlFlagPropertyItemValue bold = textStyle.getChildProperty(TextStyle.VALUE_BOLD);
 
@@ -124,6 +127,7 @@ public class NlFlagPropertyItemTest extends PropertyTestCase {
     NlFlagPropertyItemValue centerHorizontal = gravity.getChildProperty(GRAVITY_VALUE_CENTER_HORIZONTAL);
     NlFlagPropertyItemValue centerVertical = gravity.getChildProperty(GRAVITY_VALUE_CENTER_VERTICAL);
     center.setValue(VALUE_TRUE);
+    UIUtil.dispatchAllInvocationEvents();
 
     assertThat(gravity.getValue()).isEqualTo(GRAVITY_VALUE_CENTER);
     assertThat(center.getValue()).isEqualTo(VALUE_TRUE);

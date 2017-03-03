@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.SdkConstants;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.ModelListener;
@@ -39,6 +40,7 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.awt.*;
@@ -62,6 +64,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   private MergingUpdateQueue myUpdateQueue;
   private boolean myFirstLoad = true;
   private boolean myLoading;
+  private int myUpdateCount;
 
   public NlPropertiesManager(@NotNull Project project, @Nullable NlDesignSurface designSurface) {
     myProject = project;
@@ -261,6 +264,28 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
     }
     List<NlComponent> selection = mySceneView.getModel().getSelectionModel().getSelection();
     componentSelectionChanged(mySurface, selection);
+    myUpdateCount++;
+  }
+
+  @TestOnly
+  int getUpdateCount() {
+    return myUpdateCount;
+  }
+
+  public void propertyChanged(@NotNull NlProperty property, @Nullable String oldValue, @Nullable String newValue) {
+    if (property.getComponents().size() == 1 &&
+        SdkConstants.VIEW_MERGE.equals(property.getComponents().get(0).getTagName()) &&
+        SdkConstants.TOOLS_URI.equals(property.getNamespace()) &&
+        SdkConstants.ATTR_PARENT_TAG.equals(property.getName())) {
+      // Special case: When the tools:parentTag is updated on a <merge> tag, the set of attributes for
+      // the <merge> tag may change e.g. if the value is set to "LinearLayout" the <merge> tag will
+      // then have all attributes from a <LinearLayout>. Force an update of all properties:
+      updateSelection();
+    }
+  }
+
+  public void starStateChanged() {
+    updateSelection();
   }
 
   // ---- Implements DesignSurfaceListener ----
