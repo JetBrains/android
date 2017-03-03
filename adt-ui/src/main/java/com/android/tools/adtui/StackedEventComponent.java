@@ -42,6 +42,7 @@ public class StackedEventComponent extends AnimatedComponent {
 
   private static final Color DISABLED_ACTION = new Color(221, 222, 224);
   private static final Color ENABLED_ACTION = new Color(106, 189, 180);
+  private static final Color FONT_COLOR = new Color(200, 201, 202);
   private static final int CHARACTERS_TO_SHRINK_BY = 1;
   private static final int SEGMENT_SPACING = 5;
 
@@ -177,12 +178,7 @@ public class StackedEventComponent extends AnimatedComponent {
           continue;
         }
       }
-      if (event.getEndUs() != 0) {
-        g2d.setColor(DISABLED_ACTION);
-      }
-      else {
-        g2d.setColor(ENABLED_ACTION);
-      }
+      g2d.setColor(FONT_COLOR);
       g2d.drawString(text, startPosition, (myLineThickness + SEGMENT_SPACING));
     }
   }
