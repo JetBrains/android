@@ -486,12 +486,20 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
     @NotNull
     @Override
     public String getFamilyName() {
-      return AndroidBundle.message("android.lint.quickfixes.family");
+      // Ensure that we use different family names so actions are not collapsed into a single button in
+      // the inspections UI (and then *all* processed when the user invokes the action); see
+      // https://code.google.com/p/android/issues/detail?id=235641
+      return myLintQuickFix.getName();
     }
 
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
       myLintQuickFix.apply(descriptor.getStartElement(), descriptor.getEndElement(), AndroidQuickfixContexts.BatchContext.getInstance());
+    }
+
+    @Override
+    public boolean startInWriteAction() {
+      return myLintQuickFix.startInWriteAction();
     }
   }
 
