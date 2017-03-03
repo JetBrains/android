@@ -22,9 +22,11 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
+import com.android.tools.idea.run.ValidationError;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Ordering;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
 import com.intellij.openapi.module.Module;
@@ -88,7 +90,6 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
   public AndroidRunConfigurationEditor(final Project project, final Predicate<AndroidFacet> libraryProjectValidator, T config) {
     Disposer.register(project, this);
-
     myModuleSelector = new ConfigurationModuleSelector(project, myModulesComboBox) {
       @Override
       public boolean isModuleAccepted(Module module) {
@@ -142,6 +143,8 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
     myAndroidProfilersPanel = new AndroidProfilersPanel(project, config.getProfilerState());
     myTabbedPane.add("Profiling", myAndroidProfilersPanel.getComponent());
+
+    checkValidationResults(config.validate(null));
   }
 
   public void setConfigurationSpecificEditor(ConfigurationSpecificEditor<T> configurationSpecificEditor) {
@@ -149,6 +152,25 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myConfigurationSpecificPanel.add(configurationSpecificEditor.getComponent());
     setAnchor(myConfigurationSpecificEditor.getAnchor());
     myShowLogcatCheckBox.setVisible(configurationSpecificEditor instanceof ApplicationRunParameters);
+  }
+
+  /**
+   * Allows the editor UI to response based on any validation errors.
+   * The {@link ValidationError.Category} with the most severe errors should be responded to first.
+   */
+  private void checkValidationResults(@NotNull List<ValidationError> errors) {
+    if (errors.isEmpty()) {
+      return;
+    }
+
+    ValidationError topError = Ordering.natural().max(errors);
+    switch (topError.getCategory()) {
+      case PROFILER:
+        myTabbedPane.setSelectedComponent(myAndroidProfilersPanel.getComponent());
+        break;
+      default:
+        break;
+    }
   }
 
   @Override

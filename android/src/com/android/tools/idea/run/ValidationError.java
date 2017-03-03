@@ -29,19 +29,31 @@ import org.jetbrains.annotations.Nullable;
  * See {@link AndroidRunConfigurationBase#checkConfiguration}.
  */
 public final class ValidationError implements Comparable<ValidationError> {
-  /** Severity levels in ascending order. */
+  /**
+   * Severity levels in ascending order.
+   */
   public enum Severity {
     WARNING,
-    FATAL
+    FATAL,
+    INFO
+  }
+
+  /**
+   * Category describing the area of validation.
+   */
+  public enum Category {
+    PROFILER,
   }
 
   @NotNull private final Severity mySeverity;
   @NotNull private final String myMessage;
+  @Nullable private final Category myCategory;
   @Nullable private final Runnable myQuickfix;
 
-  private ValidationError(@NotNull Severity severity, @NotNull String message, @Nullable Runnable quickfix) {
+  private ValidationError(@NotNull Severity severity, @NotNull String message, @Nullable Category category, @Nullable Runnable quickfix) {
     mySeverity = severity;
     myMessage = message;
+    myCategory = category;
     myQuickfix = quickfix;
   }
 
@@ -52,7 +64,12 @@ public final class ValidationError implements Comparable<ValidationError> {
 
   @NotNull
   public static ValidationError fatal(@NotNull String message, @Nullable Runnable quickfix) {
-    return new ValidationError(Severity.FATAL, message, quickfix);
+    return new ValidationError(Severity.FATAL, message, null, quickfix);
+  }
+
+  @NotNull
+  public static ValidationError fatal(@NotNull String message, @Nullable Category category, @Nullable Runnable quickfix) {
+    return new ValidationError(Severity.FATAL, message, category, quickfix);
   }
 
   @NotNull
@@ -62,14 +79,35 @@ public final class ValidationError implements Comparable<ValidationError> {
 
   @NotNull
   public static ValidationError warning(@NotNull String message, @Nullable Runnable quickfix) {
-    return new ValidationError(Severity.WARNING, message, quickfix);
+    return new ValidationError(Severity.WARNING, message, null, quickfix);
+  }
+
+  @NotNull
+  public static ValidationError warning(@NotNull String message, @Nullable Category category, @Nullable Runnable quickfix) {
+    return new ValidationError(Severity.WARNING, message, category, quickfix);
+  }
+
+  @NotNull
+  public static ValidationError info(@NotNull String message) {
+    return info(message, null);
+  }
+
+  @NotNull
+  public static ValidationError info(@NotNull String message, @Nullable Runnable quickfix) {
+    return new ValidationError(Severity.INFO, message, null, quickfix);
+  }
+
+  @NotNull
+  public static ValidationError info(@NotNull String message, @Nullable Category category, @Nullable Runnable quickfix) {
+    return new ValidationError(Severity.INFO, message, category, quickfix);
   }
 
   @NotNull
   public static ValidationError fromException(@NotNull RuntimeConfigurationException e) {
     if (e instanceof RuntimeConfigurationError) {
       return fatal(e.getMessage(), e.getQuickFix());
-    } else {
+    }
+    else {
       return warning(e.getMessage(), e.getQuickFix());
     }
   }
@@ -82,6 +120,11 @@ public final class ValidationError implements Comparable<ValidationError> {
   @NotNull
   public String getMessage() {
     return myMessage;
+  }
+
+  @Nullable
+  public Category getCategory() {
+    return myCategory;
   }
 
   @Nullable

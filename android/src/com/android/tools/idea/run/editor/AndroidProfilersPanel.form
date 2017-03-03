@@ -8,17 +8,22 @@
     <properties/>
     <border type="none"/>
     <children>
-      <vspacer id="eef2b">
-        <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
-        </constraints>
-      </vspacer>
       <component id="e7df9" class="javax.swing.JCheckBox" binding="myAdvancedProfilingCheckBox">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Enable advanced profiling"/>
+        </properties>
+      </component>
+      <component id="abeed" class="javax.swing.JTextPane" binding="myAllowsTheProfilersToTextPane" default-binding="true">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="1" use-parent-layout="false">
+            <preferred-size width="150" height="50"/>
+          </grid>
+        </constraints>
+        <properties>
+          <text value="Allows the profilers to track data such as network payloads, application events and object counts, but it might have a minor performance impact on your build speeds. "/>
         </properties>
       </component>
     </children>
