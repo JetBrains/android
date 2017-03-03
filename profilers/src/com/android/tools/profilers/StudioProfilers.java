@@ -281,7 +281,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       }
 
       if (!onlyStateChanged) {
-        setStage(new StudioMonitorStage(this));
+        if (myProcess == null) {
+          setStage(new NullMonitorStage(this));
+        } else {
+          setStage(new StudioMonitorStage(this));
+        }
         myIdeServices.getFeatureTracker().trackProfilingStarted();
       }
     }

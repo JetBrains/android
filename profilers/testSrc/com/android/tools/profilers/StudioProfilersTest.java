@@ -67,6 +67,45 @@ final public class StudioProfilersTest {
   }
 
   @Test
+  public void testProfilerStageChange() throws Exception {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+
+    //Validate we start in the null stage.
+    assertEquals(NullMonitorStage.class, profilers.getStageClass());
+
+    Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
+    myProfilerService.addDevice(device);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
+
+    // Validate that just because we add a device, we still have not left the  null monitor stage.
+    assertEquals("FakeDevice", profilers.getDevice().getSerial());
+    assertEquals(NullMonitorStage.class, profilers.getStageClass());
+
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setName("FakeProcess")
+      .setState(Profiler.Process.State.ALIVE)
+      .build();
+
+    // Add a process and validate the stage goes to the monitor stage.
+    myProfilerService.addProcess(session, process);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(StudioMonitorStage.class, profilers.getStageClass());
+
+    // Add a second device with no processes, and select that device.
+    device = Profiler.Device.newBuilder().setSerial("FakeDevice2").build();
+    myProfilerService.addDevice(device);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
+    profilers.setDevice(device);
+    assertEquals(NullMonitorStage.class, profilers.getStageClass());
+  }
+
+  @Test
   public void testLateConnectionOfPreferredProcess() throws Exception {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
