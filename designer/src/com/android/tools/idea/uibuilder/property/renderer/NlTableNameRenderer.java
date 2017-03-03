@@ -20,7 +20,6 @@ import com.android.tools.idea.uibuilder.property.ptable.PNameRenderer;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.ptable.StarState;
-import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.SimpleTextAttributes;
@@ -68,11 +67,8 @@ public class NlTableNameRenderer implements PNameRenderer {
     myStarLabel.setIcon(getStar(item.getStarState(), isSelected, hoveringOnStar));
     myPanel.setBackground(isSelected ? UIUtil.getTableSelectionBackground() : table.getBackground());
 
-    SimpleTextAttributes attr = SimpleTextAttributes.REGULAR_ATTRIBUTES;
     String label = item.getParent() != null ? item.getParent().getChildLabel(item) : item.getName();
-    SearchUtil.appendFragments(((PTable)table).getSpeedSearch().getEnteredPrefix(), label, attr.getStyle(), attr.getFgColor(),
-                               attr.getBgColor(), myRenderer);
-
+    myRenderer.append(label, SimpleTextAttributes.REGULAR_ATTRIBUTES);
     myRenderer.setToolTipText(item.getTooltipText());
     return myPanel;
   }

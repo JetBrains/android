@@ -231,7 +231,7 @@ public class ChooseResourceDialogTest {
     assertThat(layout.getSelection()).containsExactly(textView.getComponent());
 
     // Get property sheet, find text property, open customizer
-    layout.getPropertyInspector().findProperty("text").clickCustomizer();
+    layout.getPropertiesPanel().openAsInspector().findProperty("text").clickCustomizer();
 
     ChooseResourceDialogFixture dialog = ChooseResourceDialogFixture.find(guiTest.robot());
     JTableFixture nameTable = dialog.getResourceNameTable();
@@ -287,7 +287,7 @@ public class ChooseResourceDialogTest {
     assertThat(layout.getSelection()).containsExactly(imageView.getComponent());
 
     // Get property sheet, find srcCompat property, open customizer
-    NlPropertyInspectorFixture fixture = layout.getPropertyInspector();
+    NlPropertyInspectorFixture fixture = layout.getPropertiesPanel().openAsInspector();
     NlPropertyFixture property = fixture.findProperty("srcCompat");
     property.clickCustomizer();
 
