@@ -50,6 +50,7 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private final ObjectProperty<AndroidSourceSet> mySourceSet;
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
   @NotNull private final StringProperty myPackageName;
+  @Nullable private final MultiTemplateRender myMultiTemplateRender;
 
   /**
    * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
@@ -69,6 +70,7 @@ public final class RenderTemplateModel extends WizardModel {
     mySourceSet = new ObjectValueProperty<>(sourceSet);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
+    myMultiTemplateRender = new MultiTemplateRender();
   }
 
   public RenderTemplateModel(@NotNull NewModuleModel moduleModel,
@@ -80,6 +82,7 @@ public final class RenderTemplateModel extends WizardModel {
     mySourceSet = new ObjectValueProperty<>(sourceSet);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
+    myMultiTemplateRender = moduleModel.getMultiTemplateRender();
   }
 
   private static Logger getLog() {
@@ -140,48 +143,56 @@ public final class RenderTemplateModel extends WizardModel {
       return;
     }
 
-    AndroidProjectPaths paths = mySourceSet.get().getPaths();
-    final Project project = myProject.getValue();
-
-    boolean canRender = renderTemplate(true, project, paths, null, null);
-    if (!canRender) {
-      // If here, there was a render conflict and the user chose to cancel creating the template
-      return;
-    }
-
-    final List<File> filesToOpen = Lists.newArrayListWithExpectedSize(3);
-    final List<File> filesToReformat = Lists.newArrayList();
-
-    boolean success = new WriteCommandAction<Boolean>(project, myCommandName) {
-      @Override
-      protected void run(@NotNull Result<Boolean> result) throws Throwable {
-        boolean success = renderTemplate(false, project, paths, filesToOpen, filesToReformat);
-        if (success && myIconGenerator != null) {
-          myIconGenerator.generateImageIconsIntoPath(paths);
-        }
-
-        result.setResult(success);
-      }
-    }.execute().getResultObject();
-
-    if (success) {
-      // calling smartInvokeLater will make sure that files are open only when the project is ready
-      DumbService.getInstance(project).smartInvokeLater(() -> TemplateUtils.openEditors(project, filesToOpen, true));
-    }
+    myMultiTemplateRender.requestRender(new FreeMarkerTemplateRenderer());
   }
 
-  private boolean renderTemplate(boolean dryRun,
-                                 @NotNull Project project,
-                                 @NotNull AndroidProjectPaths paths,
-                                 @Nullable List<File> filesToOpen,
-                                 @Nullable List<File> filesToReformat) {
-    final Template template = myTemplateHandle.getTemplate();
-    File moduleRoot = paths.getModuleRoot();
-    if (moduleRoot == null) {
-      return false;
+  private class FreeMarkerTemplateRenderer implements MultiTemplateRender.TemplateRenderer {
+
+    @Override
+    public boolean doDryRun() {
+      AndroidProjectPaths paths = mySourceSet.get().getPaths();
+      final Project project = myProject.getValue();
+
+      return renderTemplate(true, project, paths, null, null);
     }
 
-    // @formatter:off
+    @Override
+    public void render() {
+      final AndroidProjectPaths paths = mySourceSet.get().getPaths();
+      final Project project = myProject.getValue();
+      final List<File> filesToOpen = Lists.newArrayListWithExpectedSize(3);
+      final List<File> filesToReformat = Lists.newArrayList();
+
+      boolean success = new WriteCommandAction<Boolean>(project, myCommandName) {
+        @Override
+        protected void run(@NotNull Result<Boolean> result) throws Throwable {
+          boolean success = renderTemplate(false, project, paths, filesToOpen, filesToReformat);
+          if (success && myIconGenerator != null) {
+            myIconGenerator.generateImageIconsIntoPath(paths);
+          }
+
+          result.setResult(success);
+        }
+      }.execute().getResultObject();
+
+      if (success) {
+        // calling smartInvokeLater will make sure that files are open only when the project is ready
+        DumbService.getInstance(project).smartInvokeLater(() -> TemplateUtils.openEditors(project, filesToOpen, true));
+      }
+    }
+
+    private boolean renderTemplate(boolean dryRun,
+                                   @NotNull Project project,
+                                   @NotNull AndroidProjectPaths paths,
+                                   @Nullable List<File> filesToOpen,
+                                   @Nullable List<File> filesToReformat) {
+      final Template template = myTemplateHandle.getTemplate();
+      File moduleRoot = paths.getModuleRoot();
+      if (moduleRoot == null) {
+        return false;
+      }
+
+      // @formatter:off
     final RenderingContext context = RenderingContext.Builder.newContext(template, project)
       .withCommandName(myCommandName)
       .withDryRun(dryRun)
@@ -192,6 +203,7 @@ public final class RenderTemplateModel extends WizardModel {
       .intoTargetFiles(filesToReformat)
       .build();
     // @formatter:on
-    return template.render(context);
+      return template.render(context);
+    }
   }
 }
