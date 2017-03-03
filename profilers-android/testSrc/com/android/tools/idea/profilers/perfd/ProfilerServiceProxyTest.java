@@ -18,11 +18,16 @@ package com.android.tools.idea.profilers.perfd;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.inprocess.InProcessChannelBuilder;
+import io.grpc.inprocess.InProcessServerBuilder;
+import io.grpc.internal.ServerImpl;
+import io.grpc.stub.StreamObserver;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -34,6 +39,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ProfilerServiceProxyTest {
+
+  @Before
+  public void setup() throws Exception {
+    InProcessServerBuilder builder = InProcessServerBuilder.forName("ProfilerServiceProxyTest");
+    builder.addService(new FakeProfilerService());
+    ServerImpl server = builder.build();
+    server.start();
+  }
   @Test
   public void testBindServiceContainsAllMethods() throws Exception {
     IDevice mockDevice = mock(IDevice.class);
@@ -52,5 +65,16 @@ public class ProfilerServiceProxyTest {
       serverDefinition.getMethods().stream().map(method -> method.getMethodDescriptor()).collect(Collectors.toSet());
     assertEquals(allMethods.size(), definedMethods.size());
     definedMethods.containsAll(allMethods);
+  }
+
+  private static class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase {
+    @Override
+    public void getDevices(Profiler.GetDevicesRequest request, StreamObserver<Profiler.GetDevicesResponse> responseObserver) {
+      responseObserver.onNext(Profiler.GetDevicesResponse.newBuilder().addDevice(Profiler.Device.newBuilder()
+                                                                                   .setSerial("Serial")
+                                                                                   .setBootId("Boot")
+                                                                                   .build()).build());
+      responseObserver.onCompleted();
+    }
   }
 }
