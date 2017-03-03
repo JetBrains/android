@@ -95,6 +95,7 @@ public final class SelectionComponent extends AnimatedComponent {
           myMode = Mode.MOVE;
         }
         else {
+          myModel.beginUpdate();
           double value = xToRange(x);
           myModel.set(value, value);
           myMode = Mode.CREATE;
@@ -105,7 +106,7 @@ public final class SelectionComponent extends AnimatedComponent {
       @Override
       public void mouseReleased(MouseEvent e) {
         if (myMode == Mode.CREATE) {
-          myModel.fireSelectionEvent();
+          myModel.endUpdate();
         }
         myMode = Mode.NONE;
         opaqueRepaint();
@@ -159,7 +160,6 @@ public final class SelectionComponent extends AnimatedComponent {
           if (!myModel.getSelectionRange().isEmpty()) {
             myModel.getSelectionRange().clear();
             e.consume();
-            myModel.fireSelectionEvent();
           }
         }
       }
