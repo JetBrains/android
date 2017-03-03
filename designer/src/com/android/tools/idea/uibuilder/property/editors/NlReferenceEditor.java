@@ -224,6 +224,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
         Icon icon = NlDefaultRenderer.getIcon(myProperty);
         myIconLabel.setIcon(icon);
         myIconLabel.setVisible(icon != null);
+        myIconLabel.setToolTipText("Pick a Resource");
       }
 
       String propValue = StringUtil.notNullize(myProperty.getValue());
