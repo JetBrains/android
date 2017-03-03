@@ -17,10 +17,11 @@ package com.android.tools.adtui.model.legend;
 
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.MockAxisFormatter;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
+
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -43,7 +44,7 @@ public class SeriesLegendTest {
 
   @Test
   public void legendValueGotFromMatchedTime() {
-    TestDataSeries dataSeries = new TestDataSeries(ContainerUtil.immutableList(
+    TestDataSeries dataSeries = new TestDataSeries(ImmutableList.of(
         new SeriesData<>(100, 123L)));
     RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), dataSeries);
     SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), new Range(0, 100));
@@ -52,7 +53,7 @@ public class SeriesLegendTest {
 
   @Test
   public void legendValueIsClosestRightGivenNoPreviousData() {
-    TestDataSeries dataSeries = new TestDataSeries(ContainerUtil.immutableList(
+    TestDataSeries dataSeries = new TestDataSeries(ImmutableList.of(
         new SeriesData<>(100, 333L), new SeriesData<>(110, 444L)));
     RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), dataSeries);
     SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), new Range(0, 99));
@@ -61,7 +62,7 @@ public class SeriesLegendTest {
 
   @Test
   public void legendValueIsClosestLeftGivenNoLaterData() {
-    TestDataSeries dataSeries = new TestDataSeries(ContainerUtil.immutableList(
+    TestDataSeries dataSeries = new TestDataSeries(ImmutableList.of(
         new SeriesData<>(0L, 111L), new SeriesData<>(10, 222L)));
     RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), dataSeries);
     SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), new Range(1, 100));
@@ -70,14 +71,14 @@ public class SeriesLegendTest {
 
   private static class TestDataSeries implements DataSeries<Long> {
 
-    @NotNull ImmutableList<SeriesData<Long>> myDataList;
+    @NotNull List<SeriesData<Long>> myDataList;
 
-    public TestDataSeries(@NotNull ImmutableList<SeriesData<Long>> data) {
+    public TestDataSeries(@NotNull List<SeriesData<Long>> data) {
       myDataList = data;
     }
 
     @Override
-    public ImmutableList<SeriesData<Long>> getDataForXRange(Range xRange) {
+    public List<SeriesData<Long>> getDataForXRange(Range xRange) {
       return myDataList;
     }
   }

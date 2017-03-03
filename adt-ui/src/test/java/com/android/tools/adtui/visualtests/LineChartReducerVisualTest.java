@@ -96,7 +96,7 @@ public class LineChartReducerVisualTest extends VisualTest {
 
   private void addData(int variance, int count) {
     for (int i = 0; i < count; ++i) {
-      ImmutableList<SeriesData<Long>> data = myData.getAllData();
+      List<SeriesData<Long>> data = myData.getAllData();
       long x = data.isEmpty() ? (long)(Math.random() * 4) : data.get(data.size() - 1).x + 1;
       long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
       float delta = ((float)Math.random() - 0.5f) * variance;

@@ -37,7 +37,6 @@ import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +44,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -218,7 +218,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   private void selectionChanged() {
     Range range = getStage().getStudioProfilers().getTimeline().getSelectionRange();
-    ImmutableList<SeriesData<CpuCapture>> captures = getStage().getTraceDurations().getSeries().getDataSeries().getDataForXRange(range);
+    List<SeriesData<CpuCapture>> captures = getStage().getTraceDurations().getSeries().getDataSeries().getDataForXRange(range);
     for (SeriesData<CpuCapture> capture : captures) {
       Range c = new Range(capture.x, capture.x + capture.value.getDuration());
       if (!c.getIntersection(range).isEmpty()) {

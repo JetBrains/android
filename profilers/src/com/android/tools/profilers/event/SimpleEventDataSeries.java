@@ -26,8 +26,6 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.profilers.ProfilerClient;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -51,7 +49,7 @@ public class SimpleEventDataSeries implements DataSeries<EventAction<SimpleEvent
   }
 
   @Override
-  public ImmutableList<SeriesData<EventAction<SimpleEventType>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<EventAction<SimpleEventType>>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     List<SeriesData<EventAction<SimpleEventType>>> seriesData = new ArrayList<>();
     EventServiceGrpc.EventServiceBlockingStub eventService = myClient.getEventClient();
     EventProfiler.EventDataRequest.Builder dataRequestBuilder = EventProfiler.EventDataRequest.newBuilder()
@@ -77,6 +75,6 @@ public class SimpleEventDataSeries implements DataSeries<EventAction<SimpleEvent
           break;
       }
     }
-    return ContainerUtil.immutableList(seriesData);
+    return seriesData;
   }
 }

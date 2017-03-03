@@ -22,7 +22,6 @@ import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.event.StackedEventType;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -83,7 +82,7 @@ public class StackedEventComponent extends AnimatedComponent {
 
     myActivities.clear();
     myActionToDrawLocationMap.clear();
-    ImmutableList<SeriesData<EventAction<StackedEventType>>> series = myModel.getRangedSeries().getSeries();
+    List<SeriesData<EventAction<StackedEventType>>> series = myModel.getRangedSeries().getSeries();
     int size = series.size();
 
     // Loop through the data series looking at all of the start events, and stop events.

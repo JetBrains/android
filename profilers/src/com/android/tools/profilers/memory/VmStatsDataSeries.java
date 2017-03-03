@@ -21,8 +21,6 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -49,7 +47,7 @@ public final class VmStatsDataSeries implements DataSeries<Long> {
   }
 
   @Override
-  public ImmutableList<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
     // TODO: Change the Memory API to allow specifying padding in the request as number of samples.
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
@@ -64,6 +62,6 @@ public final class VmStatsDataSeries implements DataSeries<Long> {
       long dataTimestamp = TimeUnit.NANOSECONDS.toMicros(sample.getTimestamp());
       seriesData.add(new SeriesData<>(dataTimestamp, myFilter.apply(sample)));
     }
-    return ContainerUtil.immutableList(seriesData);
+    return seriesData;
   }
 }

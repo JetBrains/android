@@ -17,7 +17,6 @@ package com.android.tools.adtui.chart.linechart;
 
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.*;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -104,8 +103,8 @@ public final class DurationDataRenderer<E extends DurationData> extends AspectOb
     double xMin = series.getXRange().getMin();
     double xMax = series.getXRange().getMax();
     double xLength = series.getXRange().getLength();
-    ImmutableList<SeriesData<E>> seriesList = series.getSeries();
-    ImmutableList<SeriesData<Long>> attachedSeriesList = attached != null ? attached.getSeries() : null;
+    List<SeriesData<E>> seriesList = series.getSeries();
+    List<SeriesData<Long>> attachedSeriesList = attached != null ? attached.getSeries() : null;
     int j = 0;
     float attachY = 1;
     for (int i = 0; i < seriesList.size(); i++) {
