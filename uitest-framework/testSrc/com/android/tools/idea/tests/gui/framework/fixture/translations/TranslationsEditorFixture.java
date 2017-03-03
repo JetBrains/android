@@ -19,6 +19,7 @@ import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MultilineStringEditorDialogFixture;
+import com.android.tools.swing.ui.FixedColumnTable;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.application.TransactionGuardImpl;
@@ -34,6 +35,7 @@ import org.fest.swing.driver.JTableCheckBoxEditorCellWriter;
 import org.fest.swing.driver.JTableTextComponentEditorCellWriter;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.fixture.JPopupMenuFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.fixture.JTableHeaderFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
@@ -99,13 +101,9 @@ public final class TranslationsEditorFixture {
   }
 
   @NotNull
-  public JTableHeaderFixture getTableHeader() {
-    return new JTableHeaderFixture(myRobot, (JTableHeader)myRobot.finder().findByName(myTranslationsEditor, "tableHeader"));
-  }
-
-  @NotNull
   public JTableFixture getTable() {
-    JTableFixture tableFixture = new JTableFixture(myRobot, (JTable)myRobot.finder().findByName(myTranslationsEditor, "table"));
+    FixedColumnTableFixture tableFixture =
+      new FixedColumnTableFixture(myRobot, (FixedColumnTable)myRobot.finder().findByName(myTranslationsEditor, "table"));
     tableFixture.replaceCellWriter(new TranslationsEditorTableCellWriter(myRobot));
     return tableFixture;
   }
@@ -122,9 +120,9 @@ public final class TranslationsEditorFixture {
   @NotNull
   public List<String> locales() {
     return GuiQuery.getNonNull(() -> {
-      JTable table = getTable().target();
-
-      return IntStream.range(StringResourceTableModel.FIXED_COLUMN_COUNT, table.getColumnCount())
+      FixedColumnTable table = (FixedColumnTable)getTable().target();
+      int start = StringResourceTableModel.FIXED_COLUMN_COUNT - (table.getTotalColumnCount() - table.getColumnCount());
+      return IntStream.range(start, table.getColumnCount())
         .mapToObj(table::getColumnName)
         .collect(Collectors.toList());
     });
