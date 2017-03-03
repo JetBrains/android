@@ -20,6 +20,8 @@ import com.android.tools.adtui.model.event.SimpleEventType;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.RoundRectangle2D;
 
 public class TouchEventRenderer implements SimpleEventRenderer {
 
@@ -35,19 +37,21 @@ public class TouchEventRenderer implements SimpleEventRenderer {
 
     Color currentColor = g2d.getColor();
     Stroke currentStroke = g2d.getStroke();
-    int xPosition = (int)(transform.getTranslateX() -myLineWidth/2.0);
-    int yPosition = (int)(transform.getTranslateY() + myLineWidth/2.0);
+    double xPosition = transform.getTranslateX() - myLineWidth / 2.0;
+    double yPosition = transform.getTranslateY() + myLineWidth / 2.0;
 
     // If the duration of mouse down was significant we draw a trailing line for it.
     if (length >= MIN_LENGTH) {
       BasicStroke str = new BasicStroke(myLineWidth);
       g2d.setStroke(str);
       g2d.setColor(HOLD_COLOR);
-      g2d.fillRoundRect(xPosition, yPosition, (int)length, myLineWidth, myLineWidth, myLineWidth);
+      RoundRectangle2D.Double rect = new RoundRectangle2D.Double(xPosition, yPosition, length, myLineWidth, myLineWidth, myLineWidth);
+      g2d.fill(rect);
       g2d.setStroke(currentStroke);
     }
     g2d.setColor(TOUCH_COLOR);
-    g2d.fillOval(xPosition, yPosition, myLineWidth, myLineWidth);
+    Ellipse2D.Double ellipse = new Ellipse2D.Double(xPosition, yPosition, myLineWidth, myLineWidth);
+    g2d.fill(ellipse);
     g2d.setColor(currentColor);
   }
 }
