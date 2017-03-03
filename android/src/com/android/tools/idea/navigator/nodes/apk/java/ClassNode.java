@@ -16,8 +16,7 @@
 package com.android.tools.idea.navigator.nodes.apk.java;
 
 import com.android.tools.idea.apk.debugging.ApkClass;
-import com.android.tools.idea.apk.debugging.JavaFiles;
-import com.android.tools.idea.apk.debugging.SmaliFiles;
+import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -38,8 +37,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.apk.debugging.JavaFiles.isJavaFile;
-import static com.android.tools.idea.apk.debugging.SmaliFiles.isSmaliFile;
 import static com.intellij.codeInsight.navigation.NavigationUtil.openFileWithPsiElement;
 import static com.intellij.ide.actions.OpenFileAction.openFile;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
@@ -47,18 +44,12 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 class ClassNode extends ProjectViewNode<ApkClass> {
   @NotNull private final ApkClass myClass;
-  @NotNull private final JavaFiles myJavaFiles;
-  @NotNull private final SmaliFiles mySmaliFiles;
+  @NotNull private final DexSourceFiles myDexSourceFiles;
 
-  ClassNode(@NotNull Project project,
-            @NotNull ApkClass apkClass,
-            @NotNull ViewSettings viewSettings,
-            @NotNull JavaFiles javaFiles,
-            @NotNull SmaliFiles smaliFiles) {
-    super(project, apkClass, viewSettings);
+  ClassNode(@NotNull Project project, @NotNull ApkClass apkClass, @NotNull ViewSettings settings, @NotNull DexSourceFiles dexSourceFiles) {
+    super(project, apkClass, settings);
     myClass = apkClass;
-    myJavaFiles = javaFiles;
-    mySmaliFiles = smaliFiles;
+    myDexSourceFiles = dexSourceFiles;
   }
 
   @Override
@@ -90,14 +81,14 @@ class ClassNode extends ProjectViewNode<ApkClass> {
     if (canNavigate()) {
       assert myProject != null;
       String fqn = myClass.getFqn();
-      PsiClass found = myJavaFiles.findClass(fqn, myProject);
+      PsiClass found = myDexSourceFiles.findJavaPsiClass(fqn);
       if (found != null) {
         // Found .java file
         openFileWithPsiElement(found, requestFocus, requestFocus);
         return;
       }
 
-      VirtualFile smaliFile = mySmaliFiles.findSmaliFile(fqn);
+      VirtualFile smaliFile = myDexSourceFiles.findSmaliFile(fqn);
       if (smaliFile != null) {
         // Found .smali file
         openFile(smaliFile, myProject);
@@ -149,15 +140,15 @@ class ClassNode extends ProjectViewNode<ApkClass> {
   @Override
   public boolean contains(@NotNull VirtualFile file) {
     String fqn = myClass.getFqn();
-    if (isJavaFile(file)) {
+    if (myDexSourceFiles.isJavaFile(file)) {
       assert myProject != null;
-      List<String> classes = myJavaFiles.findClasses(file, myProject);
+      List<String> classes = myDexSourceFiles.findJavaClassesIn(file);
       if (classes.contains(fqn)) {
         return true;
       }
     }
-    else if (isSmaliFile(file)) {
-      File filePath = mySmaliFiles.findSmaliFilePath(fqn);
+    else if (myDexSourceFiles.isSmaliFile(file)) {
+      File filePath = myDexSourceFiles.findSmaliFilePathForClass(fqn);
       return filesEqual(filePath, virtualToIoFile(file));
     }
     return false;
