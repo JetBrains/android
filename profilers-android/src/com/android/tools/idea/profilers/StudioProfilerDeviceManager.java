@@ -19,22 +19,26 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.*;
 import com.android.tools.datastore.DataStoreService;
+import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.profilers.perfd.PerfdProxy;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profilers.ProfilerClient;
 import com.google.common.base.Charsets;
-import com.intellij.openapi.application.ApplicationManager;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.net.NetUtils;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.netty.NettyChannelBuilder;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 
 import static com.android.ddmlib.IDevice.CHANGE_STATE;
 
@@ -43,7 +47,8 @@ import static com.android.ddmlib.IDevice.CHANGE_STATE;
  * On device connection it will spawn the performance daemon on device, and will notify the profiler system that
  * a new device has been connected. *ALL* interaction with IDevice is encapsulated in this class.
  */
-class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener {
+class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChangeListener, AndroidDebugBridge.IDeviceChangeListener,
+                                             IdeSdks.IdeSdkChangeListener {
 
   private static Logger getLogger() {
     return Logger.getInstance(StudioProfilerDeviceManager.class);
@@ -51,24 +56,46 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
 
   private static final int MAX_MESSAGE_SIZE = 512 * 1024 * 1024 - 1;
   private static final int DEVICE_PORT = 12389;
-  private static final String DATASTORE_NAME = "DataStoreService";
 
-  private final ProfilerClient myClient;
+  @NotNull
   private final DataStoreService myDataStoreService;
+  private boolean isAdbInitialized;
 
-  public StudioProfilerDeviceManager() throws IOException {
-    //TODO: Spawn the datastore in the right place (service)?
-    String directory = Paths.get(System.getProperty("user.home"), ".android").toString() + File.separator;
-
-    myDataStoreService = new DataStoreService(DATASTORE_NAME,
-                                              directory + DATASTORE_NAME,
-                                              r -> ApplicationManager.getApplication().executeOnPooledThread(r));
-
-    // The client is referenced in the update devices callback. As such the client needs to be set before we register
-    // ourself as a listener for this callback. Otherwise we may get the callback before we are fully constructed
-    myClient = new ProfilerClient(DATASTORE_NAME);
+  public StudioProfilerDeviceManager(@NotNull DataStoreService dataStoreService) {
+    myDataStoreService = dataStoreService;
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
     AndroidDebugBridge.addDeviceChangeListener(this);
+    // TODO: Once adb API doesn't require a project, move initialization to constructor and remove this flag.
+    isAdbInitialized = false;
+  }
+
+  @Override
+  public void sdkPathChanged(@NotNull File newSdkPath) {
+    isAdbInitialized = false;
+  }
+
+  public void initialize(@NotNull Project project) {
+    if (isAdbInitialized) {
+      return;
+    }
+
+    final File adb = AndroidSdkUtils.getAdb(project);
+    if (adb != null) {
+      Futures.addCallback(AdbService.getInstance().getDebugBridge(adb), new FutureCallback<AndroidDebugBridge>() {
+        @Override
+        public void onSuccess(AndroidDebugBridge result) {
+          isAdbInitialized = true;
+        }
+
+        @Override
+        public void onFailure(Throwable t) {
+          getLogger().warn(String.format("getDebugBridge %s failed", adb.getAbsolutePath()));
+        }
+      }, EdtExecutor.INSTANCE);
+    }
+    else {
+      getLogger().warn("No adb available");
+    }
   }
 
   public void dispose() {
@@ -101,10 +128,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     if ((changeMask & CHANGE_STATE) != 0 && device.isOnline()) {
       spawnPerfd(device);
     }
-  }
-
-  public ProfilerClient getClient() {
-    return myClient;
   }
 
   private void spawnPerfd(@NonNull IDevice device) {
