@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.StudioProfilers;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,7 +42,7 @@ public class MemoryMonitorTest {
   public void testExpand() {
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices());
     MemoryMonitor monitor = new MemoryMonitor(profilers);
-    assertNull(profilers.getStage());
+    assertEquals(profilers.getStage().getClass(), NullMonitorStage.class);
     monitor.expand();
     assertThat(profilers.getStage(), instanceOf(MemoryProfilerStage.class));
   }
