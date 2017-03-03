@@ -20,6 +20,7 @@ import com.android.tools.adtui.StackedEventComponent;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
+import com.intellij.ui.HyperlinkLabel;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,10 +69,12 @@ public class EventMonitorViewTest {
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
 
     children = myMonitorView.getComponent().getComponents();
-    assertEquals(1, children.length);
+    assertEquals(2, children.length);
     assertTrue(children[0] instanceof JLabel);
-
     JLabel label = (JLabel)children[0];
     assertEquals(myMonitorView.getDisabledMessage(), label.getText());
+
+    // TODO: verify content on HyperLinkLabel? There is no public API to get that at the moment.
+    assertTrue(children[1] instanceof HyperlinkLabel);
   }
 }
