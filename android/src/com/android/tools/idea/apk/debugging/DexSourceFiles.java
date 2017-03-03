@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.apk.debugging;
 
+import com.android.tools.idea.smali.psi.SmaliClassName;
+import com.android.tools.idea.smali.psi.SmaliClassSpec;
+import com.android.tools.idea.smali.psi.SmaliFile;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -34,7 +37,9 @@ import java.util.stream.Collectors;
 import static com.android.SdkConstants.EXT_JAVA;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.smali.SmaliFileType.SMALI_EXTENSION;
+import static com.intellij.codeInsight.navigation.NavigationUtil.openFileWithPsiElement;
 import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.psi.util.PsiTreeUtil.findChildOfType;
 
 public class DexSourceFiles {
   @NotNull private final Project myProject;
@@ -57,6 +62,25 @@ public class DexSourceFiles {
 
   public boolean isJavaFile(@NotNull VirtualFile file) {
     return !file.isDirectory() && EXT_JAVA.equals(file.getExtension());
+  }
+
+  @Nullable
+  public String findJavaClassName(@NotNull SmaliFile smaliFile) {
+    SmaliClassSpec classSpec = findChildOfType(smaliFile, SmaliClassSpec.class);
+    if (classSpec != null) {
+      SmaliClassName className = classSpec.getClassName();
+      return className != null ? className.getJavaClassName() : null;
+    }
+    return null;
+  }
+
+  public boolean navigateToJavaFile(@NotNull String classFqn) {
+    PsiClass javaPsiClass = findJavaPsiClass(classFqn);
+    if (javaPsiClass != null) {
+      openFileWithPsiElement(javaPsiClass, true, true);
+      return true;
+    }
+    return false;
   }
 
   @Nullable
