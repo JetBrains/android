@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jetbrains.kotlin.android.intentions
+package org.jetbrains.kotlin.android.intention
 
 import com.android.SdkConstants
 import com.google.gson.JsonObject

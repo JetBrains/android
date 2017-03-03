@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jetbrains.kotlin.android.intentions
+package org.jetbrains.kotlin.android.intention
 
 import com.android.resources.ResourceType
 import com.intellij.CommonBundle
