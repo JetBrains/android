@@ -103,9 +103,13 @@ public class AndroidToolWindowFactory implements ToolWindowFactory, DumbAware, C
 
     DeviceContext deviceContext = new DeviceContext();
 
-    // TODO Remove global handlers. These handlers are global, but are set per project.
-    // if there are two projects opened, things go very wrong.
-    ClientData.setMethodProfilingHandler(new OpenVmTraceHandler(project));
+    // We should only set OpenVmTraceHandler as ClientData's IMethodProfilingHandler when using the old monitors,
+    // because the new profilers use LegacyProfilingHandler instead.
+    if (showMonitors()) {
+      // TODO Remove global handlers. These handlers are global, but are set per project.
+      // if there are two projects opened, things go very wrong.
+      ClientData.setMethodProfilingHandler(new OpenVmTraceHandler(project));
+    }
 
     final AndroidLogcatView logcatView = new AndroidLogcatView(project, deviceContext, getToolWindowId(), !showMonitors());
     Content logcatContent = createLogcatContent(layoutUi, project, logcatView);
