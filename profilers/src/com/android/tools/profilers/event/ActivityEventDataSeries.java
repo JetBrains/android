@@ -70,8 +70,16 @@ public class ActivityEventDataSeries implements DataSeries<EventAction<StackedEv
             actionStart = TimeUnit.NANOSECONDS.toMicros(state.getTimestamp());
             break;
           case PAUSED:
+          case DESTROYED:
             action = StackedEventType.ACTIVITY_COMPLETED;
-            actionEnd = TimeUnit.NANOSECONDS.toMicros(state.getTimestamp());
+            // In the UI we track the end of an activity when the activity gets paused.
+            // We also listen to the destroyed event here in case the app stops and we force a destroyed event.
+            // If we only listen for a destroyed event, the timeline may jump, or never get called depending on
+            // how the application is handling references.
+            // The tracking of actionStart tells us if we have an activity started, or if this is our second pass through.
+            if (actionStart != 0) {
+              actionEnd = TimeUnit.NANOSECONDS.toMicros(state.getTimestamp());
+            }
           default:
             break;
         }
