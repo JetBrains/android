@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.property.ptable.StarState;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.xml.XmlName;
 import com.intellij.xml.XmlAttributeDescriptor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -31,9 +32,8 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class NlPropertyItemTest extends PropertyTestCase {
 
@@ -161,26 +161,32 @@ public class NlPropertyItemTest extends PropertyTestCase {
     assertThat(textAppearance.getResolvedValue()).isNull();
 
     textAppearance.setValue("?android:attr/textAppearanceMedium");
+    UIUtil.dispatchAllInvocationEvents();
     assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Medium");
 
     textAppearance.setValue("@android:style/TextAppearance.Medium");
+    UIUtil.dispatchAllInvocationEvents();
     assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Medium");
 
     textAppearance.setValue("?android:attr/textAppearanceMedium");
     textAppearance.setDefaultValue(new PropertiesMap.Property("?android:attr/textAppearanceMedium", null));
+    UIUtil.dispatchAllInvocationEvents();
     assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Medium");
 
     textAppearance.setValue(null);
     textAppearance.setDefaultValue(new PropertiesMap.Property("?android:attr/textAppearanceMedium", "@android:style/TextAppearance.Medium"));
+    UIUtil.dispatchAllInvocationEvents();
     assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Medium");
 
     NlPropertyItem size = createFrom(myTextView, ATTR_TEXT_SIZE);
     assertThat(size.getResolvedValue()).isEqualTo(null);
 
     size.setValue("@dimen/text_size_small_material");
+    UIUtil.dispatchAllInvocationEvents();
     assertThat(size.getResolvedValue()).isEqualTo("14sp");
 
     size.setDefaultValue(new PropertiesMap.Property("@dimen/text_size_small_material", "14sp"));
+    UIUtil.dispatchAllInvocationEvents();
     assertThat(size.getResolvedValue()).isEqualTo("14sp");
   }
 
@@ -211,16 +217,23 @@ public class NlPropertyItemTest extends PropertyTestCase {
   public void testSetValue() {
     NlPropertyItem text = createFrom(myTextView, ATTR_TEXT);
     text.setValue("Hello World");
+    UIUtil.dispatchAllInvocationEvents();
     assertThat(myTextView.getAttribute(ANDROID_URI, ATTR_TEXT)).isEqualTo("Hello World");
 
-    // Check that setting the parent_tag property causes a selection event, and that the parent attributes are added
+  }
+
+  public void testSetValueParentTagOnMergeTagAddsOrientationProperty() {
+    // Make sure the orientation property does not exist initially
     assertThat(getDescriptor(myMerge, ATTR_ORIENTATION)).isNull();
+
+    // Now set the parentTag property to a linear layout
     NlPropertyItem parentTag = createFrom(myMerge, ATTR_PARENT_TAG);
     SelectionListener selectionListener = mock(SelectionListener.class);
     myModel.getSelectionModel().addListener(selectionListener);
     parentTag.setValue(LINEAR_LAYOUT);
+    UIUtil.dispatchAllInvocationEvents();
+
     assertThat(myMerge.getAttribute(TOOLS_URI, ATTR_PARENT_TAG)).isEqualTo(LINEAR_LAYOUT);
-    verify(selectionListener).selectionChanged(eq(myModel.getSelectionModel()), anyListOf(NlComponent.class));
     assertThat(getDescriptor(myMerge, ATTR_ORIENTATION)).isNotNull();
   }
 
@@ -245,7 +258,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
 
     assertThat(text.toString()).isEqualTo("NlPropertyItem{name=text, namespace=@android:}");
     assertThat(text.getTooltipText()).startsWith("@android:text:  Text to display.");
-    assertThat(text.isEditable(0)).isTrue();
+    assertThat(text.isEditable(1)).isTrue();
   }
 
   public void testSetInitialStarred() {
@@ -257,15 +270,15 @@ public class NlPropertyItemTest extends PropertyTestCase {
   }
 
   public void testSetStarred() {
-    boolean[] selectionUpdated = new boolean[1];
-    myModel.getSelectionModel().addListener((model, selection) -> selectionUpdated[0] = true);
+    int originalUpdateCount = myPropertiesManager.getUpdateCount();
     NlPropertyItem text = createFrom(myTextView, ATTR_ELEVATION);
     assertThat(text.getStarState()).isEqualTo(StarState.STAR_ABLE);
 
     text.setStarState(StarState.STARRED);
+    UIUtil.dispatchAllInvocationEvents();
     assertThat(text.getStarState()).isEqualTo(StarState.STARRED);
     assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(ATTR_VISIBILITY + ";" + ATTR_ELEVATION + ";");
-    assertThat(selectionUpdated[0]).isTrue();
+    assertThat(myPropertiesManager.getUpdateCount()).isEqualTo(originalUpdateCount + 1);
   }
 
   private static class SimpleGroupItem extends PTableGroupItem {
