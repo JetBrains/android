@@ -17,10 +17,7 @@ package com.android.tools.idea.tests.gui.gradle;
 
 import com.android.tools.idea.gradle.dsl.model.dependencies.ExpectedModuleDependency;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.InputDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
@@ -40,6 +37,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class GradleRenameModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final ScreenshotsDuringTest movieRule = new ScreenshotsDuringTest();
 
   @Before
   public void skipSourceGenerationOnSync() {
