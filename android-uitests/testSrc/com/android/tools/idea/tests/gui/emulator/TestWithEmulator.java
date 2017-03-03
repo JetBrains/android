@@ -28,6 +28,7 @@ public class TestWithEmulator {
   @Before
   public void setUpConnection() throws Exception {
     MockAvdManagerConnection.inject();
+    getEmulatorConnection().stopRunningAvd();
     getEmulatorConnection().deleteAvdByDisplayName(AVD_NAME);
   }
 
