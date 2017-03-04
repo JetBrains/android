@@ -96,4 +96,9 @@ public class ContentRootsModuleSetupStep extends AndroidModuleSetupStep {
   public boolean invokeOnBuildVariantChange() {
     return true;
   }
+
+  @Override
+  public boolean invokeOnSkippedSync() {
+    return true;
+  }
 }
