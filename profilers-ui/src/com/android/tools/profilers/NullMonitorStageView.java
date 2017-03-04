@@ -18,6 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuMonitorTooltipView;
@@ -31,6 +32,7 @@ import com.android.tools.profilers.memory.MemoryMonitorView;
 import com.android.tools.profilers.network.NetworkMonitor;
 import com.android.tools.profilers.network.NetworkMonitorTooltipView;
 import com.android.tools.profilers.network.NetworkMonitorView;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBImageIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,6 +51,9 @@ import java.util.List;
  */
 public class NullMonitorStageView extends StageView<NullMonitorStage> {
 
+  public static final String NO_DEVICE_MESSAGE = "No device detected. Please plug in a device, or launch the emulator.";
+  public static final String NO_DEBUGGABLE_PROCESS_MESSAGE = "No debuggable processes detected for selected device.";
+  private JLabel myDisabledMessage;
   public NullMonitorStageView(@NotNull StudioProfilersView profilersView, @NotNull NullMonitorStage stage) {
     super(profilersView, stage);
 
@@ -60,13 +65,26 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
     picLabel.setVerticalAlignment(SwingConstants.BOTTOM);
     topPanel.add(picLabel, new TabularLayout.Constraint(0, 0, 1));
 
-    JLabel disabledMessage = new JLabel("No device detected, please plug in a device, or launch the emulator.");
-    disabledMessage.setHorizontalAlignment(SwingConstants.CENTER);
-    disabledMessage.setVerticalAlignment(SwingConstants.TOP);
-    topPanel.add(disabledMessage, new TabularLayout.Constraint(1, 0, 1));
+    myDisabledMessage = new JLabel(getMessage());
+    myDisabledMessage.setHorizontalAlignment(SwingConstants.CENTER);
+    myDisabledMessage.setVerticalAlignment(SwingConstants.TOP);
+    topPanel.add(myDisabledMessage, new TabularLayout.Constraint(1, 0, 1));
 
     //TODO: Add button to launch AVD Manager, requires adding a dependency on android project.
     getComponent().add(topPanel, BorderLayout.CENTER);
+    stage.getStudioProfilers().addDependency(this).onChange(ProfilerAspect.DEVICES, this::changed);
+  }
+
+  @VisibleForTesting
+  public String getMessage() {
+    if (getStage().getStudioProfilers().getDevice() == null) {
+      return NO_DEVICE_MESSAGE;
+    }
+    return NO_DEBUGGABLE_PROCESS_MESSAGE;
+  }
+
+  private void changed() {
+    myDisabledMessage.setText(getMessage());
   }
 
   @Override
