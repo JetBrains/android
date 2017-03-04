@@ -15,64 +15,81 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.TooltipComponent;
-import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.profilers.cpu.CpuMonitor;
-import com.android.tools.profilers.cpu.CpuMonitorTooltipView;
-import com.android.tools.profilers.cpu.CpuMonitorView;
-import com.android.tools.profilers.event.EventMonitor;
-import com.android.tools.profilers.event.EventMonitorTooltipView;
-import com.android.tools.profilers.event.EventMonitorView;
-import com.android.tools.profilers.memory.MemoryMonitor;
-import com.android.tools.profilers.memory.MemoryMonitorTooltipView;
-import com.android.tools.profilers.memory.MemoryMonitorView;
-import com.android.tools.profilers.network.NetworkMonitor;
-import com.android.tools.profilers.network.NetworkMonitorTooltipView;
-import com.android.tools.profilers.network.NetworkMonitorView;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.util.ui.JBImageIcon;
+import com.intellij.ide.browsers.BrowserLauncher;
+import com.intellij.ui.HyperlinkAdapter;
+import com.intellij.ui.JBColor;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.text.html.HTMLDocument;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
- * View shown if advanced profiling is not enabled
+ * View shown if no processes are selected
  */
 public class NullMonitorStageView extends StageView<NullMonitorStage> {
 
-  public static final String NO_DEVICE_MESSAGE = "No device detected. Please plug in a device, or launch the emulator.";
-  public static final String NO_DEBUGGABLE_PROCESS_MESSAGE = "No debuggable processes detected for selected device.";
-  private JLabel myDisabledMessage;
+  public static final String NO_DEVICE_MESSAGE = "No device detected. Please plug in a device,<br/>or launch the emulator.";
+  public static final String NO_DEBUGGABLE_PROCESS_MESSAGE = "No debuggable processes detected for<br/>the selected device.";
+  private JEditorPane myDisabledMessage;
+
   public NullMonitorStageView(@NotNull StudioProfilersView profilersView, @NotNull NullMonitorStage stage) {
     super(profilersView, stage);
 
-    JPanel topPanel = new JPanel(new TabularLayout("*", "*,*"));
+    JPanel topPanel = new JPanel();
+    BoxLayout layout = new BoxLayout(topPanel, BoxLayout.Y_AXIS);
+    topPanel.setLayout(layout);
+
+    topPanel.add(Box.createVerticalGlue());
     topPanel.setBackground(ProfilerColors.MONITOR_BACKGROUND);
 
     JLabel picLabel = new JLabel(ProfilerIcons.ANDROID_PROFILERS);
     picLabel.setHorizontalAlignment(SwingConstants.CENTER);
-    picLabel.setVerticalAlignment(SwingConstants.BOTTOM);
-    topPanel.add(picLabel, new TabularLayout.Constraint(0, 0, 1));
+    picLabel.setVerticalAlignment(SwingConstants.CENTER);
+    picLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    topPanel.add(picLabel);
 
-    myDisabledMessage = new JLabel(getMessage());
-    myDisabledMessage.setHorizontalAlignment(SwingConstants.CENTER);
-    myDisabledMessage.setVerticalAlignment(SwingConstants.TOP);
-    topPanel.add(myDisabledMessage, new TabularLayout.Constraint(1, 0, 1));
+    JLabel title = new JLabel("Android Profiler");
+    title.setHorizontalAlignment(SwingConstants.CENTER);
+    title.setVerticalAlignment(SwingConstants.TOP);
+    title.setAlignmentX(Component.CENTER_ALIGNMENT);
+    title.setFont(title.getFont().deriveFont(21.0f));
+    title.setForeground(new JBColor(0x000000, 0xFFFFFF));
+    topPanel.add(title);
+    topPanel.add(Box.createRigidArea(new Dimension(1, 15)));
 
-    //TODO: Add button to launch AVD Manager, requires adding a dependency on android project.
+    myDisabledMessage = new JEditorPane() {
+      @Override
+      public Dimension getMaximumSize() {
+        return getPreferredSize();
+      }
+    };
+    Font font = title.getFont().deriveFont(11.0f);
+    setUpAsHtmlLabel(myDisabledMessage, font);
+    myDisabledMessage.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      protected void hyperlinkActivated(HyperlinkEvent event) {
+        if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+          String uri = event.getDescription();
+          try {
+            BrowserLauncher.getInstance().browse(new URI(uri));
+          }
+          catch (URISyntaxException ignored) {
+          }
+        }
+      }
+    });
+    topPanel.add(myDisabledMessage);
+    topPanel.add(Box.createVerticalGlue());
+
     getComponent().add(topPanel, BorderLayout.CENTER);
     stage.getStudioProfilers().addDependency(this).onChange(ProfilerAspect.DEVICES, this::changed);
+    changed();
   }
 
   @VisibleForTesting
@@ -84,7 +101,12 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
   }
 
   private void changed() {
-    myDisabledMessage.setText(getMessage());
+    setMessageText(getMessage());
+  }
+
+  private void setMessageText(String message) {
+    myDisabledMessage.setText("<html><body><div style='text-align: center;'>" + message +
+                              " <a href=\"https://developer.android.com/r/studio-ui/about-profilers.html\">Learn More</a></div></body></html>");
   }
 
   @Override
@@ -95,5 +117,17 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
   @Override
   public boolean needsProcessSelection() {
     return true;
+  }
+
+  // TODO Unify with the AndroidUI one (move to adt-ui?)
+  public static void setUpAsHtmlLabel(@NotNull JEditorPane editorPane, @NotNull Font font) {
+    editorPane.setContentType("text/html");
+    editorPane.setEditable(false);
+    editorPane.setOpaque(false);
+    String color = UIUtil.isUnderDarcula() ? "#C8C8C8" : "#787878";
+    String bodyRule = "body { font-family: " + font.getFamily() + "; " + "font-size: " + font.getSize() + "pt; color: " + color + "; } " +
+                      "ol { padding-left: 0px; margin-left: 35px; margin-top: 0px; } " +
+                      "ol li { margin-left: 0px; padding-left: 0px; list-style-type: decimal; }";
+    ((HTMLDocument)editorPane.getDocument()).getStyleSheet().addRule(bodyRule);
   }
 }
