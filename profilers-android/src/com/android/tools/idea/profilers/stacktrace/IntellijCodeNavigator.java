@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.idea.profilers.TraceSignatureConverter;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -34,7 +35,8 @@ import org.jetbrains.annotations.Nullable;
 public final class IntellijCodeNavigator extends CodeNavigator {
   private final Project myProject;
 
-  public IntellijCodeNavigator(@NotNull Project project) {
+  public IntellijCodeNavigator(@NotNull Project project, @NotNull FeatureTracker featureTracker) {
+    super(featureTracker);
     myProject = project;
   }
 
