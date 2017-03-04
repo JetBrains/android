@@ -89,6 +89,13 @@ public class ProfilerService extends ProfilerServiceGrpc.ProfilerServiceImplBase
     observer.onCompleted();
   }
 
+  @Override
+  public void attachAgent(Profiler.AgentAttachRequest request, StreamObserver<Profiler.AgentAttachResponse> responseObserver) {
+    ProfilerServiceGrpc.ProfilerServiceBlockingStub client = myService.getProfilerClient(request.getSession());
+    responseObserver.onNext(client == null ? Profiler.AgentAttachResponse.getDefaultInstance() : client.attachAgent(request));
+    responseObserver.onCompleted();
+  }
+
   public void startMonitoring(ManagedChannel channel) {
     assert !myPollers.containsKey(channel);
     ProfilerServiceGrpc.ProfilerServiceBlockingStub stub = ProfilerServiceGrpc.newBlockingStub(channel);
