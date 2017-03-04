@@ -66,9 +66,11 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     myConnectionsPanel = new JPanel(new CardLayout());
     myConnectionsPanel.add(myConnectionsScroller, CARD_CONNECTIONS);
 
-    InfoMessagePanel.UrlData learnMoreData =
-      new InfoMessagePanel.UrlData("Learn More", "https://developer.android.com/studio/profile/android-monitor.html");
-    JPanel infoPanel = new InfoMessagePanel("Connections Unavailable", "No connection is supported for instrumentation.", learnMoreData);
+    // TODO: Add this help link in as soon as we are notified that it is hooked up
+    //InfoMessagePanel.UrlData learnMoreData =
+    //  new InfoMessagePanel.UrlData("Learn More", "https://developer.android.com/r/studio-ui/network-profiler-troubleshoot.html");
+    JPanel infoPanel =
+      new InfoMessagePanel("Network Profiling Data Unavailable", "There is no information for the network traffic you've selected.", null);
     infoPanel.setName(CARD_INFO);
     myConnectionsPanel.add(infoPanel, CARD_INFO);
 
