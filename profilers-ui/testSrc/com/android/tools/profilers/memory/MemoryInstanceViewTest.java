@@ -17,8 +17,8 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.common.CodeLocation;
-import com.android.tools.profilers.common.ContextMenuItem;
+import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.FieldObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;

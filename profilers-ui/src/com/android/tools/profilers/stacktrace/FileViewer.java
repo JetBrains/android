@@ -13,22 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.common;
+package com.android.tools.profilers.stacktrace;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
- * A wrapper for creating context menu items for a UI component.
+ * A class which provides a view for a target file, based on its extension. For example, an image may be rendered directly,
+ * while an xml file will be shown in syntax highlighted manner. If a file cannot be displayed, a message indicating that
+ * a preview is not available will be shown.
  */
-public interface ContextMenuItem extends Runnable {
+public interface FileViewer {
+
   @NotNull
-  String getText();
+  JComponent getComponent();
 
+  /**
+   * The (width x height) size of the target file, or {@code null} if the concept of a size
+   * doesn't make sense for the file type (e.g. txt, xml)
+   */
   @Nullable
-  Icon getIcon();
-
-  boolean isEnabled();
+  Dimension getDimension();
 }

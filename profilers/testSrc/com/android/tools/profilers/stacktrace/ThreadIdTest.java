@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.common;
+package com.android.tools.profilers.stacktrace;
 
 import org.junit.Test;
 
-import static com.android.tools.profilers.common.ThreadId.INVALID_THREAD_ID;
+import static com.android.tools.profilers.stacktrace.ThreadId.INVALID_THREAD_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.profilers.common.FileViewer;
+import com.android.tools.profilers.stacktrace.FileViewer;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.editor.Document;

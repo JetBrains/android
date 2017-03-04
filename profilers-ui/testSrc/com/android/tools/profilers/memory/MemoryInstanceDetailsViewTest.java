@@ -21,7 +21,7 @@ import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.common.ContextMenuItem;
+import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.memory.adapters.ClassObject;
 import com.android.tools.profilers.memory.adapters.HeapObject;
 import com.android.tools.profilers.memory.adapters.ReferenceObject;

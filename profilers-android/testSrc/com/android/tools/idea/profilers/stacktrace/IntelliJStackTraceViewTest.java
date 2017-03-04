@@ -18,7 +18,7 @@ package com.android.tools.idea.profilers.stacktrace;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
-import com.android.tools.profilers.common.*;
+import com.android.tools.profilers.stacktrace.*;
 import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;

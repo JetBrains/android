@@ -18,7 +18,7 @@ package com.android.tools.idea.profilers;
 import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.profilers.IdeProfilerServices;
-import com.android.tools.profilers.common.CodeNavigator;
+import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.impl.EditConfigurationsDialog;
