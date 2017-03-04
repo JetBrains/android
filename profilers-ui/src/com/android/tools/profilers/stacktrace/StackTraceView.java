@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.common;
+package com.android.tools.profilers.stacktrace;
 
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public interface LoadingPanel {
+public interface StackTraceView {
+  @NotNull
+  StackTraceModel getModel();
+
   @NotNull
   JComponent getComponent();
-
-  void setLoadingText(@NotNull String loadingText);
-
-  void startLoading();
-
-  void stopLoading();
 }

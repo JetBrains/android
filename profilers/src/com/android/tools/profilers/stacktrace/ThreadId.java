@@ -13,23 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers.stacktrace;
+package com.android.tools.profilers.stacktrace;
 
-import com.android.tools.profilers.stacktrace.ThreadId;
-import org.jetbrains.annotations.NotNull;
+public class ThreadId {
+  public static final ThreadId INVALID_THREAD_ID = new ThreadId(-1);
 
-/**
- * A {@link StackElement} which represents the current thread a stack trace belongs to.
- */
-final class ThreadElement implements StackElement {
-  @NotNull private final ThreadId myThreadId;
+  private final int myThreadId;
 
-  ThreadElement(@NotNull ThreadId threadId) {
+  public ThreadId(int threadId) {
     myThreadId = threadId;
   }
 
-  @NotNull
-  public ThreadId getThreadId() {
-    return myThreadId;
+  @Override
+  public int hashCode() {
+    return Integer.hashCode(myThreadId);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof ThreadId && ((ThreadId)obj).myThreadId == myThreadId;
+  }
+
+  @Override
+  public String toString() {
+    return "<Thread " + myThreadId + ">";
   }
 }

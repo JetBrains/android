@@ -28,7 +28,7 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.common.LoadingPanel;
+import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Splitter;

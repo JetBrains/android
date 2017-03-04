@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.profilers.common.CodeLocation;
-import com.android.tools.profilers.common.StackFrameParser;
+import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.android.tools.profilers.stacktrace.StackFrameParser;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
