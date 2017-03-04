@@ -331,6 +331,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         myRelativeTimeConverter = new RelativeTimeConverter(myProcess.getStartTimestampNs() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
         myTimeline.reset(myRelativeTimeConverter, runTime);
         myProfilers.forEach(profiler -> profiler.startProfiling(getSession(), myProcess));
+
+        // Attach agent for advanced profiling if one is available.
+        myClient.getProfilerClient()
+          .attachAgent(Profiler.AgentAttachRequest.newBuilder().setSession(getSession()).setProcessId(myProcess.getPid()).build());
       }
       else {
         myTimeline.setIsPaused(true);
@@ -339,7 +343,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       if (!onlyStateChanged) {
         if (myProcess == null) {
           setStage(new NullMonitorStage(this));
-        } else {
+        }
+        else {
           setStage(new StudioMonitorStage(this));
         }
         myIdeServices.getFeatureTracker().trackProfilingStarted();
