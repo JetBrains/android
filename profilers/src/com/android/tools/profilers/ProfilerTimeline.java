@@ -213,5 +213,6 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     double us = TimeUnit.NANOSECONDS.toMicros(converter.getDeviceStartTimeNs());
     myDataRangeUs.set(us, us);
     myViewRangeUs.set(us - DEFAULT_VIEW_LENGTH_US, us);
+    setStreaming(true);
   }
 }
