@@ -63,12 +63,12 @@ import java.util.function.LongFunction;
  * View to display a single network request and its response's detailed information.
  */
 public class ConnectionDetailsView extends JPanel {
-  private static final int PAGE_VGAP = JBUI.scale(32);
+  private static final int PAGE_VGAP = JBUI.scale(28);
   private static final int SECTION_VGAP = JBUI.scale(10);
   private static final int HGAP = JBUI.scale(22);
   private static final int SCROLL_UNIT = JBUI.scale(10);
   private static final float TITLE_FONT_SIZE = 14.f;
-  private static final float FIELD_FONT_SIZE = 11.f;
+  private static final float FIELD_FONT_SIZE = 10.f;
   private static final LongFunction<String> TIME_FORMATTER =
     time -> time >= 0 ? StringUtil.formatDuration(TimeUnit.MICROSECONDS.toMillis(time)) : "*";
 
@@ -236,10 +236,7 @@ public class ConnectionDetailsView extends JPanel {
     myFieldsPanel.add(timingLabel, new TabularLayout.Constraint(row, 0));
     myFieldsPanel.add(createTimingBar(httpData), new TabularLayout.Constraint(row, 2));
 
-    new TreeWalker(myFieldsPanel).descendantStream().forEach(c -> {
-      Font font = c.getFont();
-      c.setFont(font.deriveFont(FIELD_FONT_SIZE));
-    });
+    new TreeWalker(myFieldsPanel).descendantStream().forEach(c -> adjustFont(c));
 
     myFieldsPanel.setName("Response fields");
     return myFieldsPanel;
@@ -284,20 +281,22 @@ public class ConnectionDetailsView extends JPanel {
 
   @NotNull
   private static JPanel createHeaderSection(@NotNull String title, @NotNull Map<String, String> map) {
-    JPanel panel = new JPanel(new GridLayout(0, 1, 0, SECTION_VGAP));
+    JPanel panel = new JPanel(new TabularLayout("*").setVGap(SECTION_VGAP));
     panel.setBorder(BorderFactory.createEmptyBorder(0, HGAP, 0, 0));
 
     JLabel titleLabel = new NoWrapBoldLabel(title);
     titleLabel.setFont(titleLabel.getFont().deriveFont(TITLE_FONT_SIZE));
-    panel.add(titleLabel);
+    int rowIndex = 0;
+    panel.add(titleLabel, new TabularLayout.Constraint(rowIndex, 0));
 
     if (map.isEmpty()) {
       JLabel emptyLabel = new JLabel("No data available");
       // TODO: Adjust color.
-      panel.add(emptyLabel);
+      rowIndex++;
+      panel.add(emptyLabel, new TabularLayout.Constraint(rowIndex, 0));
     } else {
       Map<String, String> sortedMap = new TreeMap<>(map);
-      Border rowKeyBorder = BorderFactory.createEmptyBorder(0, 0, 0, JBUI.scale(18));
+      Border rowKeyBorder = BorderFactory.createEmptyBorder(0, 0, 0, JBUI.scale(14));
       for (Map.Entry<String, String> entry : sortedMap.entrySet()) {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         JLabel keyLabel = new NoWrapBoldLabel(entry.getKey() + ":");
@@ -305,20 +304,24 @@ public class ConnectionDetailsView extends JPanel {
         row.add(keyLabel);
         row.add(new JLabel(entry.getValue()));
         row.setName(entry.getKey());
-        panel.add(row);
+        rowIndex++;
+        panel.add(row, new TabularLayout.Constraint(rowIndex, 0));
       }
     }
 
     new TreeWalker(panel).descendantStream().forEach(c -> {
       if (c != titleLabel) {
-        Font font = c.getFont();
-        c.setFont(font.deriveFont(FIELD_FONT_SIZE));
+        adjustFont(c);
       }
     });
 
     // Set name so tests can get a handle to this panel.
     panel.setName(title);
     return panel;
+  }
+
+  private static void adjustFont(Component c) {
+    c.setFont(c.getFont().deriveFont(Font.PLAIN, FIELD_FONT_SIZE));
   }
 
   @NotNull
