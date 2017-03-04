@@ -56,7 +56,15 @@ public interface IdeProfilerServices {
   CodeNavigator getCodeNavigator();
 
   /**
-   * request to enable advanced profiling.
+   * Either enable advanced profiling or present the user with UI to make enabling it easy.
+   *
+   * By default, advanced profiling features are not turned on, as they require instrumenting the
+   * user's code, which at the very least requires a rebuild. Moreover, this may even potentially
+   * interfere with the user's app logic or slow it down.
+   *
+   * If this method is called, it means the user has expressed an intention to enable advanced
+   * profiling. It is up to the implementor of this method to help the user accomplish this
+   * request.
    */
   void enableAdvancedProfiling();
 }
