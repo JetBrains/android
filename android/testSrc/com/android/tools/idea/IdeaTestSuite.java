@@ -66,7 +66,6 @@ import java.nio.file.Paths;
 
   // http://b/35788310
   com.android.tools.idea.instantapp.InstantAppSupportTest.class,
-  com.android.tools.idea.instantapp.MultiAtomSupportTest.class,
   com.android.tools.idea.npw.importing.ArchiveToGradleModuleModelTest.class,
   com.android.tools.idea.npw.importing.ArchiveToGradleModuleStepTest.class,
   com.android.tools.idea.npw.project.AndroidGradleModuleUtilsTest.class,
