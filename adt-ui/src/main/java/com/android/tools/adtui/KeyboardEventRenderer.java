@@ -17,14 +17,13 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.KeyboardAction;
-import com.android.tools.adtui.model.event.SimpleEventType;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
-public class KeyboardEventRenderer implements SimpleEventRenderer {
+public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
 
   private static final JBFont FONT = JBFont.create(new Font(null, Font.BOLD, 11));
   private static final int ROUND_ARC = 5;
@@ -34,13 +33,12 @@ public class KeyboardEventRenderer implements SimpleEventRenderer {
   private static final JBColor TEXT_COLOR = new JBColor(0xfafafa, 0x313335);
 
 
-  public KeyboardEventRenderer() {
-
-  }
-
   @Override
-  public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length, EventAction<SimpleEventType> action) {
+  public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length, EventAction<E> action) {
     //Cache off current state of g2d.
+    if (!(action instanceof KeyboardAction)) {
+      return;
+    }
     KeyboardAction keyAction = (KeyboardAction)action;
     Color currentColor = g2d.getColor();
     Font currentFont = g2d.getFont();

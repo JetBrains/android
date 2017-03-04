@@ -63,15 +63,18 @@ public class SimpleEventDataSeries implements DataSeries<EventAction<SimpleEvent
       long actionEnd = TimeUnit.NANOSECONDS.toMicros(data.getEndTimestamp());
       switch (data.getType()) {
         case ROTATION:
-          seriesData.add(new SeriesData<>(actionStart, new EventAction(actionStart, actionEnd, SimpleEventType.ROTATION) {
-          }));
+          seriesData.add(new SeriesData<>(actionStart, new EventAction<>(actionStart, actionEnd, SimpleEventType.ROTATION)));
+          break;
+        case UNSPECIFIED:
           break;
         case TOUCH:
-          seriesData.add(new SeriesData<>(actionStart, new EventAction(actionStart, actionEnd, SimpleEventType.TOUCH)));
+          seriesData.add(new SeriesData<>(actionStart, new EventAction<>(actionStart, actionEnd, SimpleEventType.TOUCH)));
           break;
         case KEY:
           seriesData.add(
             new SeriesData<>(actionStart, new KeyboardAction(actionStart, actionEnd, new KeyboardData(data.getEventData()))));
+          break;
+        case UNRECOGNIZED:
           break;
       }
     }

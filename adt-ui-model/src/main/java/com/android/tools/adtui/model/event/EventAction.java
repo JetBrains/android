@@ -27,21 +27,17 @@ import org.jetbrains.annotations.NotNull;
 
 public class EventAction<E> {
 
-  @NotNull
   private final long mStartUs;
 
-  @NotNull
   private final long mEndUs;
 
   @NotNull
   private final E mType;
 
-  @NotNull
   public long getStartUs() {
     return mStartUs;
   }
 
-  @NotNull
   public long getEndUs() {
     return mEndUs;
   }
@@ -51,10 +47,9 @@ public class EventAction<E> {
     return mType;
   }
 
-  public EventAction(@NotNull long start, @NotNull long end, E type) {
+  public EventAction(long start, long end, @NotNull E type) {
     this.mStartUs = start;
     this.mEndUs = end;
     this.mType = type;
-
   }
 }
