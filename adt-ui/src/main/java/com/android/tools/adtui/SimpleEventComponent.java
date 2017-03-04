@@ -19,7 +19,6 @@ package com.android.tools.adtui;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.EventModel;
-import com.android.tools.adtui.model.event.SimpleEventType;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -34,19 +33,19 @@ import java.util.Map;
 public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
 
   @NotNull
-  private final EventModel<SimpleEventType> myModel;
+  private final EventModel<E> myModel;
 
   @NotNull
-  private final Map<E, SimpleEventRenderer> mRenderers;
+  private final Map<E, SimpleEventRenderer<E>> mRenderers;
 
   @NotNull
-  private final ArrayList<EventRenderData> mIconsToDraw;
+  private final ArrayList<EventRenderData<E>> mIconsToDraw;
 
   private boolean myRender;
   /**
    * Component that renders EventActions as a series of icons.
    */
-  public SimpleEventComponent(@NotNull EventModel<SimpleEventType> model, @NotNull Map<E, SimpleEventRenderer> renderers) {
+  public SimpleEventComponent(@NotNull EventModel<E> model, @NotNull Map<E, SimpleEventRenderer<E>> renderers) {
     myModel = model;
     mRenderers = renderers;
     mIconsToDraw = new ArrayList<>();
@@ -63,14 +62,14 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
     //TODO Pull logic of combining events out of component and into EventHandler
     double max = myModel.getRangedSeries().getXRange().getMax();
     mIconsToDraw.clear();
-    List<SeriesData<EventAction<SimpleEventType>>> series = myModel.getRangedSeries().getSeries();
+    List<SeriesData<EventAction<E>>> series = myModel.getRangedSeries().getSeries();
     int size = series.size();
 
     for (int i = 0; i < size; i++) {
-      SeriesData<EventAction<SimpleEventType>> seriesData = series.get(i);
-      EventAction data = seriesData.value;
+      SeriesData<EventAction<E>> seriesData = series.get(i);
+      EventAction<E> data = seriesData.value;
       long endTimeUs = data.getEndUs() == 0L ? (long)max : data.getEndUs();
-      mIconsToDraw.add(new EventRenderData(data.getStartUs(), endTimeUs, data));
+      mIconsToDraw.add(new EventRenderData<>(data.getStartUs(), endTimeUs, data));
     }
   }
 
@@ -85,14 +84,14 @@ public class SimpleEventComponent<E extends Enum<E>> extends AnimatedComponent {
     double max = myModel.getRangedSeries().getXRange().getMax();
     double scaleFactor = dim.getWidth();
     for (int i = 0; i < mIconsToDraw.size(); i++) {
-      EventRenderData data = mIconsToDraw.get(i);
+      EventRenderData<E> data = mIconsToDraw.get(i);
       double normalizedPositionStart = ((data.getStartTimestamp() - min) / (max - min));
       double normalizedPositionEnd = ((data.getEndTimestamp() - min) / (max - min));
       AffineTransform translate = AffineTransform
         .getTranslateInstance(normalizedPositionStart * scaleFactor, 0);
-      EventAction<SimpleEventType> action = data.getAction();
-      mRenderers.get(action.getType())
-        .draw(this, g2d, translate, (normalizedPositionEnd - normalizedPositionStart) * scaleFactor, action);
+      EventAction<E> action = data.getAction();
+      SimpleEventRenderer<E> renderer = mRenderers.get(action.getType());
+      renderer.draw(this, g2d, translate, (normalizedPositionEnd - normalizedPositionStart) * scaleFactor, action);
     }
   }
 
