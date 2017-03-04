@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.common;
+package com.android.tools.profilers.stacktrace;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.profilers.common.CodeLocation.INVALID_LINE_NUMBER;
+import static com.android.tools.profilers.stacktrace.CodeLocation.INVALID_LINE_NUMBER;
 
 /**
  * Class which wraps a single stack frame in a Java stack trace.

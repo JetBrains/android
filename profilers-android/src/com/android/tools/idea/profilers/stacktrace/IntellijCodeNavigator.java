@@ -16,8 +16,8 @@
 package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.idea.profilers.TraceSignatureConverter;
-import com.android.tools.profilers.common.CodeLocation;
-import com.android.tools.profilers.common.CodeNavigator;
+import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.pom.Navigatable;

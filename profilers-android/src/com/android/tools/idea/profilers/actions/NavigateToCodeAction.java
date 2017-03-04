@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.profilers.actions;
 
-import com.android.tools.profilers.common.CodeLocation;
-import com.android.tools.profilers.common.CodeNavigator;
+import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.intellij.icons.AllIcons;
 import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.actionSystem.AnAction;

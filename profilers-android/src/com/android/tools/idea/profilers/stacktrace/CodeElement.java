@@ -15,13 +15,8 @@
  */
 package com.android.tools.idea.profilers.stacktrace;
 
-import com.android.tools.profilers.common.CodeLocation;
-import com.intellij.ui.ColoredTextContainer;
-import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.util.PlatformIcons;
+import com.android.tools.profilers.stacktrace.CodeLocation;
 import org.jetbrains.annotations.NotNull;
-
-import static com.intellij.ui.SimpleTextAttributes.*;
 
 /**
  * An element which represents a line in a stack trace, i.e. a fully qualified method name.

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.profilers.stacktrace;
 
-import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
