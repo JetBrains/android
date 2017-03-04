@@ -17,7 +17,7 @@ package com.android.tools.idea.profilers.stacktrace;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.common.*;
+import com.android.tools.profilers.stacktrace.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;

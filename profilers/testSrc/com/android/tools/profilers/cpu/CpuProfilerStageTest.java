@@ -21,7 +21,7 @@ import com.android.tools.adtui.model.HNode;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.stacktrace.CodeLocation;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
