@@ -59,4 +59,9 @@ public class ContentRootsModuleSetupStep extends JavaModuleSetupStep {
     }
     return contentEntries;
   }
+
+  @Override
+  public boolean invokeOnSkippedSync() {
+    return true;
+  }
 }
