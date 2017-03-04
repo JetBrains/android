@@ -18,7 +18,7 @@ package com.android.tools.profilers;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import org.jetbrains.annotations.NotNull;
 
-final class FakeFeatureTracker implements FeatureTracker {
+public final class FakeFeatureTracker implements FeatureTracker {
   @Override
   public void trackEnterStage(@NotNull Class<? extends Stage> stage) {
 
@@ -31,6 +31,51 @@ final class FakeFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackAdvancedProfilingStarted() {
+
+  }
+
+  @Override
+  public void trackChangeDevice() {
+
+  }
+
+  @Override
+  public void trackChangeProcess() {
+
+  }
+
+  @Override
+  public void trackGoBack() {
+
+  }
+
+  @Override
+  public void trackSelectMonitor() {
+
+  }
+
+  @Override
+  public void trackZoomIn() {
+
+  }
+
+  @Override
+  public void trackZoomOut() {
+
+  }
+
+  @Override
+  public void trackResetZoom() {
+
+  }
+
+  @Override
+  public void trackToggleStreaming() {
+
+  }
+
+  @Override
+  public void trackNavigateToCode() {
 
   }
 }

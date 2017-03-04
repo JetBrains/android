@@ -45,19 +45,56 @@ public interface FeatureTracker {
    */
   void trackAdvancedProfilingStarted();
 
+  /**
+   * Track when the user takes an action to change the current device.
+   */
+  void trackChangeDevice();
+
+  /**
+   * Track when the user takes an action to change the current device.
+   */
+  void trackChangeProcess();
+
+  /**
+   * Track when the user takes an action to return back to the top-level monitor view (from a
+   * specific profiler).
+   */
+  void trackGoBack();
+
+  /**
+   * Track when the user takes an action to change to a new monitor.
+   */
+  void trackSelectMonitor();
+
+  /**
+   * Track when the user takes an action to zoom in one level.
+   */
+  void trackZoomIn();
+
+  /**
+   * Track when the user takes an action to zoom out one level.
+   */
+  void trackZoomOut();
+
+  /**
+   * Track when the user takes an action to restore zoom to its default level.
+   */
+  void trackResetZoom();
+
+  /**
+   * Track the user toggling whether the profiler should stream or not.
+   */
+  void trackToggleStreaming();
+
+  /**
+   * Track the user navigating away from the profiler to some target source code.
+   */
+  void trackNavigateToCode();
+
   // TODO: INCREMENTALLY ADD TRACKING FOR REMAINING EVENTS
   //
   /// General
   //
-  // CHANGE_DEVICE;
-  // CHANGE_PROCESS;
-  // GO_BACK;
-  // SELECT_MONITOR;
-  // ZOOM_IN;
-  // ZOOM_OUT;
-  // ZOOM_RESET;
-  // GO_LIVE;
-  // NAVIGATE_TO_CODE;
   // SELECT_RANGE;
   //
   /// CPU
