@@ -27,13 +27,13 @@ import java.util.Map;
 
 public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
 
-  private static final Map<SimpleEventType, SimpleEventRenderer> RENDERERS;
+  private static final Map<SimpleEventType, SimpleEventRenderer<SimpleEventType>> RENDERERS;
 
   static {
     RENDERERS = new HashMap<>();
-    RENDERERS.put(SimpleEventType.TOUCH, new TouchEventRenderer());
-    RENDERERS.put(SimpleEventType.ROTATION, new EventIconRenderer("/icons/events/rotate-event.png", "/icons/events/rotate-event_dark.png"));
-    RENDERERS.put(SimpleEventType.KEYBOARD, new KeyboardEventRenderer());
+    RENDERERS.put(SimpleEventType.TOUCH, new TouchEventRenderer<>());
+    RENDERERS.put(SimpleEventType.ROTATION, new EventIconRenderer<>("/icons/events/rotate-event.png", "/icons/events/rotate-event_dark.png"));
+    RENDERERS.put(SimpleEventType.KEYBOARD, new KeyboardEventRenderer<>());
   }
 
   public EventMonitorView(@NotNull StudioProfilersView profilersView, @NotNull EventMonitor monitor) {
@@ -42,9 +42,7 @@ public class EventMonitorView extends ProfilerMonitorView<EventMonitor> {
 
   @Override
   public float getVerticalWeight() {
-    /**
-     * This forces the monitor to use its specified minimum size
-     */
+    // This forces the monitor to use its specified minimum size
     return 0;
   }
 

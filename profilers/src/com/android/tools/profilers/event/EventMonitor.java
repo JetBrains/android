@@ -63,12 +63,12 @@ public class EventMonitor extends ProfilerMonitor {
   }
 
   @NotNull
-  public EventModel getSimpleEvents() {
+  public EventModel<SimpleEventType> getSimpleEvents() {
     return mySimpleEvents;
   }
 
   @NotNull
-  public EventModel getActivityEvents() {
+  public EventModel<StackedEventType> getActivityEvents() {
     return myActivityEvents;
   }
 

@@ -16,7 +16,6 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.event.EventAction;
-import com.android.tools.adtui.model.event.SimpleEventType;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +24,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
-public class EventIconRenderer implements SimpleEventRenderer {
+public class EventIconRenderer<E> implements SimpleEventRenderer<E> {
 
   @NotNull private Icon myLightThemeIcon;
   @NotNull private Icon myDarkThemeIcon;
@@ -48,7 +47,7 @@ public class EventIconRenderer implements SimpleEventRenderer {
   }
 
   @Override
-  public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length, EventAction<SimpleEventType> notUsedData) {
+  public void draw(Component parent, Graphics2D g2d, AffineTransform transform, double length, EventAction<E> notUsedData) {
     Icon icon = UIUtil.isUnderDarcula() ? myDarkThemeIcon : myLightThemeIcon;
     AffineTransform originalTransform = g2d.getTransform();
     g2d.transform(transform);

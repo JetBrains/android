@@ -39,12 +39,12 @@ public class EventVisualTest extends VisualTest {
     "MultiplayerActivity"
   };
 
-  private static final Map<ActionType, SimpleEventRenderer> MOCK_RENDERERS;
+  private static final Map<ActionType, SimpleEventRenderer<ActionType>> MOCK_RENDERERS;
   static {
-    MOCK_RENDERERS = new HashMap();
-    MOCK_RENDERERS.put(ActionType.TOUCH, new TouchEventRenderer());
-    MOCK_RENDERERS.put(ActionType.ROTATE, new EventIconRenderer("/icons/events/rotate-event.png", "/icons/events/rotate-event_dark.png"));
-    MOCK_RENDERERS.put(ActionType.KEYBOARD, new KeyboardEventRenderer());
+    MOCK_RENDERERS = new HashMap<>();
+    MOCK_RENDERERS.put(ActionType.TOUCH, new TouchEventRenderer<>());
+    MOCK_RENDERERS.put(ActionType.ROTATE, new EventIconRenderer<>("/icons/events/rotate-event.png", "/icons/events/rotate-event_dark.png"));
+    MOCK_RENDERERS.put(ActionType.KEYBOARD, new KeyboardEventRenderer<>());
   }
 
   private static final int AXIS_SIZE = 100;
@@ -57,7 +57,7 @@ public class EventVisualTest extends VisualTest {
 
   private AxisComponent myTimeAxis;
 
-  private DefaultDataSeries<EventAction<SimpleEventType>> myData;
+  private DefaultDataSeries<EventAction<ActionType>> myData;
 
   private DefaultDataSeries<EventAction<StackedEventType>> myActivityData;
 
@@ -67,7 +67,7 @@ public class EventVisualTest extends VisualTest {
 
   private AxisComponentModel myTimeAxisModel;
 
-  private EventModel<SimpleEventType> myEventModel;
+  private EventModel<ActionType> myEventModel;
   private EventModel<StackedEventType> myStackedEventModel;
 
 
@@ -112,7 +112,7 @@ public class EventVisualTest extends VisualTest {
 
   private void performTapAction() {
     long now = System.currentTimeMillis();
-    EventAction<SimpleEventType> event = new EventAction<>(now, now, SimpleEventType.TOUCH);
+    EventAction<ActionType> event = new EventAction<>(now, now, ActionType.TOUCH);
     myData.add(now, event);
   }
 
@@ -162,8 +162,8 @@ public class EventVisualTest extends VisualTest {
       @Override
       public void mouseReleased(MouseEvent e) {
         long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
-        EventAction<SimpleEventType> event =
-          new EventAction<>(mDownTime, nowUs, SimpleEventType.TOUCH);
+        EventAction<ActionType> event =
+          new EventAction<>(mDownTime, nowUs, ActionType.TOUCH);
         myData.add(nowUs, event);
       }
     });

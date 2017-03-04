@@ -15,8 +15,6 @@
  */
 package com.android.tools.adtui.model.event;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * This class stores the key, or string that was passed to use from PerfD
  * for a key action. That string is then rendered in the UI as part of the event.
@@ -26,10 +24,10 @@ public class KeyboardAction extends EventAction<SimpleEventType> {
 
   /**
    * @param start down time of the key, or start time of the soft keyboard string
-   * @param end up time of the key, or end time of the soft keyboard string often the same as the start time.
-   * @param data key character from a keyboard, or the string returned from the Softkeyboard InputConnection class.
+   * @param end   up time of the key, or end time of the soft keyboard string often the same as the start time.
+   * @param data  key character from a keyboard, or the string returned from the Softkeyboard InputConnection class.
    */
-  public KeyboardAction(@NotNull long start, @NotNull long end, KeyboardData data) {
+  public KeyboardAction(long start, long end, KeyboardData data) {
     super(start, end, SimpleEventType.KEYBOARD);
     myData = data;
   }
@@ -37,5 +35,4 @@ public class KeyboardAction extends EventAction<SimpleEventType> {
   public KeyboardData getData() {
     return myData;
   }
-
 }
