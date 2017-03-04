@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.profilers.common.TabsPanel;
+import com.android.tools.profilers.stacktrace.TabsPanel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.ui.tabs.TabInfo;

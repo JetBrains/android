@@ -13,42 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.common;
+package com.android.tools.profilers.stacktrace;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.*;
-import java.util.List;
 
-/**
- * An abstraction of a Tab UI's functionality.
- */
-public interface TabsPanel {
-  /**
-   * @return the Tab UI component.
-   */
+public interface LoadingPanel {
   @NotNull
   JComponent getComponent();
 
-  void addTab(@NotNull String label, @NotNull JComponent content);
+  void setLoadingText(@NotNull String loadingText);
 
-  void removeTab(@NotNull JComponent content);
+  void startLoading();
 
-  void removeAll();
-
-  @Nullable
-  JComponent getSelectedTabComponent();
-
-  List<Component> getTabsComponents();
-
-  void selectTab(@NotNull String label);
-
-  /**
-   * Set a callback to be called when tab selection changes.
-   */
-  void setOnSelectionChange(@Nullable Runnable callback);
-
-  String getSelectedTab();
+  void stopLoading();
 }

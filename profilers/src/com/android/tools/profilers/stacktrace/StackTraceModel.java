@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.common;
+package com.android.tools.profilers.stacktrace;
 
 import com.android.tools.adtui.model.AspectModel;
 import com.google.common.collect.ImmutableList;
@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.android.tools.profilers.common.ThreadId.INVALID_THREAD_ID;
+import static com.android.tools.profilers.stacktrace.ThreadId.INVALID_THREAD_ID;
 
 /**
  * A model which represents a list of stack frames that each make up a stack trace. Furthermore,

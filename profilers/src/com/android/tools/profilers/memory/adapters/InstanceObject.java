@@ -16,7 +16,7 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
-import com.android.tools.profilers.common.ThreadId;
+import com.android.tools.profilers.stacktrace.ThreadId;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
