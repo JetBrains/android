@@ -20,7 +20,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.common.ThreadId;
+import com.android.tools.profilers.stacktrace.ThreadId;
 import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;

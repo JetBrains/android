@@ -13,29 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.common;
+package com.android.tools.profilers.stacktrace;
 
-public class ThreadId {
-  public static final ThreadId INVALID_THREAD_ID = new ThreadId(-1);
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-  private final int myThreadId;
+import javax.swing.*;
 
-  public ThreadId(int threadId) {
-    myThreadId = threadId;
-  }
+/**
+ * A wrapper for creating context menu items for a UI component.
+ */
+public interface ContextMenuItem extends Runnable {
+  @NotNull
+  String getText();
 
-  @Override
-  public int hashCode() {
-    return Integer.hashCode(myThreadId);
-  }
+  @Nullable
+  Icon getIcon();
 
-  @Override
-  public boolean equals(Object obj) {
-    return obj instanceof ThreadId && ((ThreadId)obj).myThreadId == myThreadId;
-  }
-
-  @Override
-  public String toString() {
-    return "<Thread " + myThreadId + ">";
-  }
+  boolean isEnabled();
 }

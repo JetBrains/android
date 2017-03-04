@@ -18,7 +18,7 @@ package com.android.tools.idea.profilers;
 import com.android.tools.idea.profilers.actions.NavigateToCodeAction;
 import com.android.tools.idea.profilers.stacktrace.IntelliJStackTraceView;
 import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.common.*;
+import com.android.tools.profilers.stacktrace.*;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;

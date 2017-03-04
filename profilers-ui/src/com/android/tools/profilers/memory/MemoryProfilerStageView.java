@@ -26,7 +26,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.common.LoadingPanel;
+import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.android.tools.adtui.flat.FlatButton;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.memory.adapters.*;

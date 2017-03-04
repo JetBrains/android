@@ -17,7 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.memory.adapters.*;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;

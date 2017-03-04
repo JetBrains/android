@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.profilers.common.CodeLocation;
+import com.android.tools.profilers.stacktrace.CodeLocation;
 import org.jetbrains.annotations.NotNull;
 
 public class MethodObject extends ClassifierObject {

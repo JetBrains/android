@@ -17,7 +17,7 @@ package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
-import com.android.tools.profilers.common.ThreadId;
+import com.android.tools.profilers.stacktrace.ThreadId;
 import com.android.tools.profilers.memory.adapters.ClassObject.ValueType;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;

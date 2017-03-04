@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profilers.common.CodeLocation;
-import com.android.tools.profilers.common.CodeNavigator;
+import com.android.tools.profilers.stacktrace.CodeLocation;
+import com.android.tools.profilers.stacktrace.CodeNavigator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

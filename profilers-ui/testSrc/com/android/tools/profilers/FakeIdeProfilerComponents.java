@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.profilers.common.*;
+import com.android.tools.profilers.stacktrace.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

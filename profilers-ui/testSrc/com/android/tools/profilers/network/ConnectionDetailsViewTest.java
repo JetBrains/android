@@ -22,7 +22,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.common.StackTraceModel;
+import com.android.tools.profilers.stacktrace.StackTraceModel;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
