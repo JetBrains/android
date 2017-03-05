@@ -78,4 +78,24 @@ public final class FakeFeatureTracker implements FeatureTracker {
   public void trackNavigateToCode() {
 
   }
+
+  @Override
+  public void trackSelectNetworkRequest() {
+
+  }
+
+  @Override
+  public void trackSelectNetworkDetailsResponse() {
+
+  }
+
+  @Override
+  public void trackSelectNetworkDetailsHeaders() {
+
+  }
+
+  @Override
+  public void trackSelectNetworkDetailsStack() {
+
+  }
 }

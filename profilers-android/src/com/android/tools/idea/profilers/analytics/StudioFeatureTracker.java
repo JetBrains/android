@@ -102,6 +102,26 @@ public final class StudioFeatureTracker implements FeatureTracker {
     track(AndroidProfilerEvent.Type.NAVIGATE_TO_CODE);
   }
 
+  @Override
+  public void trackSelectNetworkRequest() {
+    track(AndroidProfilerEvent.Type.SELECT_CONNECTION);
+  }
+
+  @Override
+  public void trackSelectNetworkDetailsResponse() {
+    track(AndroidProfilerEvent.Type.SELECT_DETAILS_RESPONSE);
+  }
+
+  @Override
+  public void trackSelectNetworkDetailsHeaders() {
+    track(AndroidProfilerEvent.Type.SELECT_DETAILS_HEADERS);
+  }
+
+  @Override
+  public void trackSelectNetworkDetailsStack() {
+    track(AndroidProfilerEvent.Type.SELECT_DETAILS_STACK);
+  }
+
   private void track(AndroidProfilerEvent.Type eventType) {
     AndroidProfilerEvent profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(eventType).build();
 
