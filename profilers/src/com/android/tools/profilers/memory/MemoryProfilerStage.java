@@ -25,6 +25,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
@@ -45,8 +46,6 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.profilers.StudioProfilers.TIMELINE_BUFFER;
 
 public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener {
   private static Logger getLogger() {
@@ -265,9 +264,11 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
    * @return the actual status, which may be different from the input
    */
   public void trackAllocations(boolean enabled, @Nullable Executor loadJoiner) {
-    // Allocation tracking can go through the legacy tracker which does not reach perfd, so we need to pass in the current device(data) time.
-    long timeNs = TimeUnit.MICROSECONDS.toNanos((long)getStudioProfilers().getTimeline().getDataRange().getMax()) +
-                  TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER);
+    // Allocation tracking can go through the legacy tracker which does not reach perfd, so we need to pass in the current device time.
+    Profiler.TimeResponse timeResponse = getStudioProfilers().getClient().getProfilerClient()
+      .getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(mySessionData).build());
+    long timeNs = timeResponse.getTimestampNs();
+
     TrackAllocationsResponse response = myClient.trackAllocations(
       MemoryProfiler.TrackAllocationsRequest.newBuilder().setRequestTime(timeNs).setSession(mySessionData).setProcessId(myProcessId)
         .setEnabled(enabled).build());
