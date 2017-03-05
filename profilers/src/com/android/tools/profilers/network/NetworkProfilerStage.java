@@ -115,9 +115,9 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   /**
    * Sets the active connection, or clears the previously selected active connection if given data is null.
    */
-  public void setSelectedConnection(@Nullable HttpData data) {
+  public boolean setSelectedConnection(@Nullable HttpData data) {
     if (Objects.equals(mySelectedConnection, data)) {
-      return;
+      return false;
     }
 
     if (data != null && StringUtil.isNotEmpty(data.getResponsePayloadId()) && data.getResponsePayloadFile() == null) {
@@ -127,11 +127,12 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
         data.setResponsePayloadFile(file);
       }
       catch (IOException e) {
-        return;
+        return false;
       }
     }
     mySelectedConnection = data;
     getAspect().changed(NetworkProfilerAspect.ACTIVE_CONNECTION);
+    return true;
   }
 
   @VisibleForTesting

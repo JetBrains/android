@@ -91,6 +91,26 @@ public interface FeatureTracker {
    */
   void trackNavigateToCode();
 
+  /**
+   * Track the user selecting a row from a table of connections.
+   */
+  void trackSelectNetworkRequest();
+
+  /**
+   * Track the user opening up the "Response" tab in the network details view.
+   */
+  void trackSelectNetworkDetailsResponse();
+
+  /**
+   * Track the user opening up the "Headers" tab in the network details view.
+   */
+  void trackSelectNetworkDetailsHeaders();
+
+  /**
+   * Track the user opening up the "Trace" tab in the network details view.
+   */
+  void trackSelectNetworkDetailsStack();
+
   // TODO: INCREMENTALLY ADD TRACKING FOR REMAINING EVENTS
   //
   /// General
@@ -117,11 +137,4 @@ public interface FeatureTracker {
   // ARRANGE_CLASSES;
   // SELECT_MEMORY_STACK;
   // SELECT_MEMORY_REFERENCES;
-  //
-  /// Network
-  //
-  // SELECT_CONNECTION;
-  // SELECT_DETAILS_RESPONSE;
-  // SELECT_DETAILS_HEADERS;
-  // SELECT_DETAILS_STACK;
 }

@@ -70,7 +70,7 @@ public class ConnectionsViewTest {
   @Test
   public void dataRangeControlsVisibleConnections() throws Exception {
     Range dataRange = new Range();
-    ConnectionsView view = new ConnectionsView(myStage, dataRange, data -> {});
+    ConnectionsView view = new ConnectionsView(myStage, dataRange, data -> true);
     JTable table = getConnectionsTable(view);
 
     assertThat(table.getRowCount(), is(0));
@@ -85,7 +85,7 @@ public class ConnectionsViewTest {
   @Test
   public void activeConnectionIsAutoFocusedByTable() throws Exception {
     Range dataRange = new Range();
-    ConnectionsView view = new ConnectionsView(myStage, dataRange, data -> {});
+    ConnectionsView view = new ConnectionsView(myStage, dataRange, data -> true);
 
     JTable table = getConnectionsTable(view);
     final int[] selectedRow = {-1};
@@ -110,7 +110,7 @@ public class ConnectionsViewTest {
   @Test
   public void tableCanBeSorted() throws Exception {
     Range dataRange = new Range(0, TimeUnit.SECONDS.toMicros(100));
-    ConnectionsView view = new ConnectionsView(myStage, dataRange, data -> {});
+    ConnectionsView view = new ConnectionsView(myStage, dataRange, data -> true);
 
     JTable table = getConnectionsTable(view);
 
@@ -140,7 +140,7 @@ public class ConnectionsViewTest {
   @Test
   public void testTableRowHighlight() {
     Range dataRange = new Range(0, TimeUnit.SECONDS.toMicros(100));
-    ConnectionsView view = new ConnectionsView(myStage, dataRange, data -> {});
+    ConnectionsView view = new ConnectionsView(myStage, dataRange, data -> true);
     int timelineColumn = ConnectionsView.Column.TIMELINE.ordinal();
     JTable table = getConnectionsTable(view);
 
@@ -159,7 +159,7 @@ public class ConnectionsViewTest {
   @Test
   public void ensureAxisInTheFirstRow() throws Exception {
     Range dataRange = new Range(0, TimeUnit.SECONDS.toMicros(100));
-    ConnectionsView view = new ConnectionsView(myStage, dataRange, data -> {});
+    ConnectionsView view = new ConnectionsView(myStage, dataRange, data -> true);
 
     JTable table = getConnectionsTable(view);
 
