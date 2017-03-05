@@ -15,12 +15,12 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.adtui.flat.FlatButton;
 import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.flat.FlatToggleButton;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerStageView;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
@@ -88,7 +88,10 @@ public class StudioProfilersView extends AspectObserver {
     JComboBoxView devices = new JComboBoxView<>(deviceCombo, myProfiler, ProfilerAspect.DEVICES,
                                                 myProfiler::getDevices,
                                                 myProfiler::getDevice,
-                                                myProfiler::setDevice);
+                                                device -> {
+                                                  myProfiler.setDevice(device);
+                                                  myProfiler.getIdeServices().getFeatureTracker().trackChangeDevice();
+                                                });
     devices.bind();
     deviceCombo.setRenderer(new DeviceComboBoxRenderer());
 
@@ -96,7 +99,10 @@ public class StudioProfilersView extends AspectObserver {
     JComboBoxView processes = new JComboBoxView<>(processCombo, myProfiler, ProfilerAspect.PROCESSES,
                                                   myProfiler::getProcesses,
                                                   myProfiler::getProcess,
-                                                  myProfiler::setProcess);
+                                                  process -> {
+                                                    myProfiler.setProcess(process);
+                                                    myProfiler.getIdeServices().getFeatureTracker().trackChangeProcess();
+                                                  });
     processes.bind();
     processCombo.setRenderer(new ProcessComboBoxRenderer());
 
@@ -112,7 +118,10 @@ public class StudioProfilersView extends AspectObserver {
 
     myCommonToolbar = new JPanel(ProfilerLayout.TOOLBAR_LAYOUT);
     JButton button = new FlatButton(ProfilerIcons.BACK_ARROW);
-    button.addActionListener(action -> myProfiler.setMonitoringStage());
+    button.addActionListener(action -> {
+      myProfiler.setMonitoringStage();
+      myProfiler.getIdeServices().getFeatureTracker().trackGoBack();
+    });
     myCommonToolbar.add(button);
     myCommonToolbar.add(new FlatSeparator());
 
@@ -120,7 +129,11 @@ public class StudioProfilersView extends AspectObserver {
     JComboBoxView stages = new JComboBoxView<>(stageCombo, myProfiler, ProfilerAspect.STAGE,
                                                myProfiler::getDirectStages,
                                                myProfiler::getStageClass,
-                                               myProfiler::setNewStage);
+                                               stage -> {
+                                                 // Track first, so current stage is sent with the event
+                                                 myProfiler.getIdeServices().getFeatureTracker().trackSelectMonitor();
+                                                 myProfiler.setNewStage(stage);
+                                               });
     stageCombo.setRenderer(new StageComboBoxRenderer());
     stages.bind();
     myCommonToolbar.add(stageCombo);
@@ -135,20 +148,32 @@ public class StudioProfilersView extends AspectObserver {
 
     ProfilerTimeline timeline = myProfiler.getTimeline();
     FlatButton zoomOut = new FlatButton(ProfilerIcons.ZOOM_OUT);
-    zoomOut.addActionListener(event -> timeline.zoomOut());
+    zoomOut.addActionListener(event -> {
+      timeline.zoomOut();
+      myProfiler.getIdeServices().getFeatureTracker().trackZoomOut();
+    });
     rightToolbar.add(zoomOut);
 
     FlatButton zoomIn = new FlatButton(ProfilerIcons.ZOOM_IN);
-    zoomIn.addActionListener(event -> timeline.zoomIn());
+    zoomIn.addActionListener(event -> {
+      timeline.zoomIn();
+      myProfiler.getIdeServices().getFeatureTracker().trackZoomIn();
+    });
     rightToolbar.add(zoomIn);
 
     FlatButton resetZoom = new FlatButton(ProfilerIcons.RESET_ZOOM);
-    resetZoom.addActionListener(event -> timeline.resetZoom());
+    resetZoom.addActionListener(event -> {
+      timeline.resetZoom();
+      myProfiler.getIdeServices().getFeatureTracker().trackResetZoom();
+    });
     rightToolbar.add(resetZoom);
     rightToolbar.add(new FlatSeparator());
 
     myGoLive = new FlatToggleButton("Go Live", ProfilerIcons.GOTO_LIVE);
-    myGoLive.addActionListener(event -> timeline.toggleStreaming());
+    myGoLive.addActionListener(event -> {
+      timeline.toggleStreaming();
+      myProfiler.getIdeServices().getFeatureTracker().trackToggleStreaming();
+    });
     timeline.addDependency(this).onChange(ProfilerTimeline.Aspect.STREAMING, this::updateStreaming);
 
     myGoLive.setHorizontalTextPosition(SwingConstants.LEFT);

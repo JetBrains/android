@@ -116,6 +116,8 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
 
         @Override
         public void mouseReleased(MouseEvent e) {
+          // Track first, so current stage is sent with the event
+          getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectMonitor();
           monitor.expand();
         }
       });

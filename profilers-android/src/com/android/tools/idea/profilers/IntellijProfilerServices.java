@@ -51,7 +51,7 @@ public class IntellijProfilerServices implements IdeProfilerServices {
 
   public IntellijProfilerServices(@NotNull Project project) {
     myProject = project;
-    myCodeNavigator = new IntellijCodeNavigator(project);
+    myCodeNavigator = new IntellijCodeNavigator(project, myFeatureTracker);
   }
 
   @NotNull
