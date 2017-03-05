@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.stacktrace;
 
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,6 +27,14 @@ import java.util.List;
  */
 public abstract class CodeNavigator {
   private final List<Listener> myListeners = Lists.newArrayList();
+  @NotNull private final FeatureTracker myFeatureTracker;
+
+  /**
+   * @param featureTracker Tracker used to report how often users navigate to code.
+   */
+  public CodeNavigator(@NotNull FeatureTracker featureTracker) {
+    myFeatureTracker = featureTracker;
+  }
 
   public final void addListener(@NotNull Listener listener) {
     myListeners.add(listener);
@@ -38,6 +47,7 @@ public abstract class CodeNavigator {
   public final void navigate(@NotNull CodeLocation location) {
     handleNavigate(location);
     myListeners.forEach(l -> l.onNavigated(location));
+    myFeatureTracker.trackNavigateToCode();
   }
 
   protected abstract void handleNavigate(@NotNull CodeLocation location);

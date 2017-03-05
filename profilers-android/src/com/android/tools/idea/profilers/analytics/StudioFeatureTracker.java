@@ -57,6 +57,51 @@ public final class StudioFeatureTracker implements FeatureTracker {
     track(AndroidProfilerEvent.Type.ADVANCED_PROFILING_STARTED);
   }
 
+  @Override
+  public void trackChangeDevice() {
+    track(AndroidProfilerEvent.Type.CHANGE_DEVICE);
+  }
+
+  @Override
+  public void trackChangeProcess() {
+    track(AndroidProfilerEvent.Type.CHANGE_PROCESS);
+  }
+
+  @Override
+  public void trackGoBack() {
+    track(AndroidProfilerEvent.Type.GO_BACK);
+  }
+
+  @Override
+  public void trackSelectMonitor() {
+    track(AndroidProfilerEvent.Type.SELECT_MONITOR);
+  }
+
+  @Override
+  public void trackZoomIn() {
+    track(AndroidProfilerEvent.Type.ZOOM_IN);
+  }
+
+  @Override
+  public void trackZoomOut() {
+    track(AndroidProfilerEvent.Type.ZOOM_OUT);
+  }
+
+  @Override
+  public void trackResetZoom() {
+    track(AndroidProfilerEvent.Type.ZOOM_RESET);
+  }
+
+  @Override
+  public void trackToggleStreaming() {
+    track(AndroidProfilerEvent.Type.GO_LIVE);
+  }
+
+  @Override
+  public void trackNavigateToCode() {
+    track(AndroidProfilerEvent.Type.NAVIGATE_TO_CODE);
+  }
+
   private void track(AndroidProfilerEvent.Type eventType) {
     AndroidProfilerEvent profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(eventType).build();
 

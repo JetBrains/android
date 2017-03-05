@@ -27,13 +27,13 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 public final class FakeIdeProfilerServices implements IdeProfilerServices {
-  private final CodeNavigator myFakeNavigationService = new CodeNavigator() {
+  private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
+  private final CodeNavigator myFakeNavigationService = new CodeNavigator(myFakeFeatureTracker) {
     @Override
     protected void handleNavigate(@NotNull CodeLocation location) {
     }
   };
 
-  private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
   /**
    * Callback to be run after the executor calls its execute() method.
    */
