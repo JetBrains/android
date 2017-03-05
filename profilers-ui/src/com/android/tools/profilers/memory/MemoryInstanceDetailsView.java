@@ -20,6 +20,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.stacktrace.StackTraceView;
@@ -51,6 +52,8 @@ import java.util.stream.Collectors;
  * for automatically hiding itself.
  */
 final class MemoryInstanceDetailsView extends AspectObserver {
+  private static final String TITLE_TAB_REFERENCES = "References";
+  private static final String TITLE_TAB_CALLSTACK = "Call Stack";
   private static final int LABEL_COLUMN_WIDTH = 500;
   private static final int DEFAULT_COLUMN_WIDTH = 80;
 
@@ -75,6 +78,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     myIdeProfilerComponents = ideProfilerComponents;
 
     myTabsPanel = ideProfilerComponents.createTabsPanel();
+    myTabsPanel.setOnSelectionChange(this::trackActiveTab);
     myStackTraceView = ideProfilerComponents.createStackView(stage.getStackTraceModel());
 
     myAttributeColumns.put(
@@ -157,6 +161,25 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     instanceChanged();
   }
 
+  private void trackActiveTab() {
+    FeatureTracker featureTracker = myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
+    String selectedTab = myTabsPanel.getSelectedTab();
+    if (selectedTab == null) {
+      return;
+    }
+    switch (selectedTab) {
+      case TITLE_TAB_REFERENCES:
+        featureTracker.trackSelectMemoryReferences();
+        break;
+      case TITLE_TAB_CALLSTACK:
+        featureTracker.trackSelectMemoryStack();
+        break;
+      default:
+        // Intentional no-op
+        break;
+    }
+  }
+
   @NotNull
   JComponent getComponent() {
     return myTabsPanel.getComponent();
@@ -189,7 +212,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
     // Populate references
     myReferenceColumnTree = buildReferenceColumnTree(instance);
     if (myReferenceColumnTree != null) {
-      myTabsPanel.addTab("References", myReferenceColumnTree);
+      myTabsPanel.addTab(TITLE_TAB_REFERENCES, myReferenceColumnTree);
       hasContent = true;
     }
 
@@ -204,7 +227,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
           .build())
         .collect(Collectors.toList());
       myStackTraceView.getModel().setStackFrames(instance.getAllocationThreadId(), stackFrames);
-        myTabsPanel.addTab("Callstack", myStackTraceView.getComponent());
+        myTabsPanel.addTab(TITLE_TAB_CALLSTACK, myStackTraceView.getComponent());
       hasContent = true;
     }
 

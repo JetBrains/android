@@ -117,7 +117,12 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
       }
 
       @Override
+      @Nullable
       public String getSelectedTab() {
+        if (myTabbedPane.getSelectedIndex() < 0 || myTabbedPane.getSelectedIndex() >= myTabbedPane.getTabCount()) {
+          return null;
+        }
+
         return myTabbedPane.getComponentAt(myTabbedPane.getSelectedIndex()).getName();
       }
     };
