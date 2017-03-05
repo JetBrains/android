@@ -24,6 +24,7 @@ import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.JComboBoxView;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ViewBinder;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.TabsPanel;
 import com.google.common.collect.ImmutableMap;
@@ -51,6 +52,7 @@ import java.awt.*;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
@@ -60,6 +62,11 @@ class CpuCaptureView {
     "Top Down", CpuProfilerStage.CaptureDetails.Type.TOP_DOWN,
     "Bottom Up", CpuProfilerStage.CaptureDetails.Type.BOTTOM_UP,
     "Chart", CpuProfilerStage.CaptureDetails.Type.CHART);
+
+  private static final Map<CpuProfilerStage.CaptureDetails.Type, Consumer<FeatureTracker>> CAPTURE_TRACKERS = ImmutableMap.of(
+    CpuProfilerStage.CaptureDetails.Type.TOP_DOWN, FeatureTracker::trackSelectCaptureTopDown,
+    CpuProfilerStage.CaptureDetails.Type.BOTTOM_UP, FeatureTracker::trackSelectCaptureBottomUp,
+    CpuProfilerStage.CaptureDetails.Type.CHART, FeatureTracker::trackSelectCaptureFlameChart);
 
   private static final Comparator<DefaultMutableTreeNode> DEFAULT_SORT_ORDER =
     Collections.reverseOrder(new DoubleValueNodeComparator(CpuTreeNode::getTotal));
@@ -133,7 +140,15 @@ class CpuCaptureView {
   }
 
   void setCaptureDetailToTab() {
-    myView.getStage().setCaptureDetails(TABS.get(myTabsPanel.getSelectedTab()));
+    CpuProfilerStage.CaptureDetails.Type type = TABS.get(myTabsPanel.getSelectedTab());
+    myView.getStage().setCaptureDetails(type);
+
+    // TODO: Move this logic into setCaptureDetails later. Right now, if we do it, we track the
+    // event several times instead of just once after taking a capture. setCaptureDetails should
+    // probably have a guard condition.
+    FeatureTracker tracker = myView.getStage().getStudioProfilers().getIdeServices().getFeatureTracker();
+    CAPTURE_TRACKERS.getOrDefault(type, featureTracker -> {}).accept(tracker);
+
   }
 
   private static Logger getLog() {

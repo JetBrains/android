@@ -28,8 +28,9 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.stacktrace.LoadingPanel;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.event.EventMonitorView;
+import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.SystemInfo;
@@ -174,7 +175,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       int selectedIndex = myThreads.getSelectedIndex();
       if (selectedIndex >= 0) {
         CpuThreadsModel.RangedCpuThread thread = model.getElementAt(selectedIndex);
-        myStage.setSelectedThread(thread.getThreadId());
+        if (myStage.getSelectedThread() != thread.getThreadId()) {
+          myStage.setSelectedThread(thread.getThreadId());
+          myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectThread();
+        }
       }
     });
     JScrollPane scrollingThreads = new MyScrollPane();
@@ -301,6 +305,19 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   private void capture() {
     if (myStage.getCaptureState() == CpuProfilerStage.CaptureState.CAPTURING) {
       myStage.stopCapturing();
+
+      FeatureTracker featureTracker = myStage.getStudioProfilers().getIdeServices().getFeatureTracker();
+      switch (myStage.getProfilingMode()) {
+        case SAMPLED:
+          featureTracker.trackTraceSampled();
+          break;
+        case INSTRUMENTED:
+          featureTracker.trackTraceInstrumented();
+          break;
+        default:
+          // Intentional no-op
+          break;
+      }
     }
     else {
       myStage.startCapturing();
