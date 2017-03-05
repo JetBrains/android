@@ -92,6 +92,36 @@ public interface FeatureTracker {
   void trackNavigateToCode();
 
   /**
+   * Track the user taking a method trace using a "Sampled" strategy.
+   */
+  void trackTraceSampled();
+
+  /**
+   * Track the user taking a method trace using an "Instrumented" strategy.
+   */
+  void trackTraceInstrumented();
+
+  /**
+   * Track the user clicking on one of the threads in the thread list.
+   */
+  void trackSelectThread();
+
+  /**
+   * Track the user opening up the "Top Down" tab in the CPU capture view
+   */
+  void trackSelectCaptureTopDown();
+
+  /**
+   * Track the user opening up the "Bottom Up" tab in the CPU capture view
+   */
+  void trackSelectCaptureBottomUp();
+
+  /**
+   * Track the user opening up the "Flame Chart" tab in the CPU capture view
+   */
+  void trackSelectCaptureFlameChart();
+
+  /**
    * Track the user selecting a row from a table of connections.
    */
   void trackSelectNetworkRequest();
@@ -116,15 +146,6 @@ public interface FeatureTracker {
   /// General
   //
   // SELECT_RANGE;
-  //
-  /// CPU
-  //
-  // TRACE_SAMPLED;
-  // TRACE_INSTRUMENTED;
-  // SELECT_THREAD;
-  // SELECT_TOP_DOWN;
-  // SELECT_BOTTOM_UP;
-  // SELECT_FLAME_CHART;
   //
   /// Memory
   //
