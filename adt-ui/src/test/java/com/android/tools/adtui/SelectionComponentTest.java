@@ -16,6 +16,7 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.SelectionListener;
 import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
@@ -67,8 +68,13 @@ public class SelectionComponentTest {
   @Test
   public void selectionModelReceivesMouseClick() {
     int[] event = new int[1];
-    SelectionModel model = new SelectionModel(new Range(40, 60), new Range(20, 120));
-    model.addChangeListener(e -> event[0] = 1);
+    SelectionModel model = new SelectionModel(new Range(), new Range(20, 120));
+    model.addListener(new SelectionListener() {
+      @Override
+      public void selectionCreated() {
+        event[0] = 1;
+      }
+    });
     SelectionComponent component = new SelectionComponent(model);
     component.setSize(100, 100);
     FakeUi ui = new FakeUi(component);

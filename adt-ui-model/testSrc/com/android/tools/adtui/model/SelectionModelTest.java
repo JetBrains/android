@@ -18,6 +18,8 @@ package com.android.tools.adtui.model;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
+
 import static org.junit.Assert.*;
 
 public class SelectionModelTest {
@@ -123,42 +125,65 @@ public class SelectionModelTest {
   }
 
   @Test
-  public void testSelectionFiredAsExpected() throws Exception {
+  public void testListenersFiredAsExpected() throws Exception {
     SelectionModel model = new SelectionModel(mySelection, myRange);
 
-    final boolean[] selectionChanged = {false};
-    model.addChangeListener(e -> selectionChanged[0] = true);
+    final int SELECTION_CREATED = 0;
+    final int SELECTION_CLEARED = 1;
+    final boolean[] event = {false, false};
+    model.addListener(new SelectionListener() {
+      @Override
+      public void selectionCreated() {
+        event[SELECTION_CREATED] = true;
+      }
+
+      @Override
+      public void selectionCleared() {
+        event[SELECTION_CLEARED] = true;
+      }
+    });
 
     // Basic selection modification
-    selectionChanged[0] = false;
+    Arrays.fill(event, false);
     model.set(1, 2);
-    assertTrue(selectionChanged[0]);
+    assertTrue(event[SELECTION_CREATED]);
+    event[SELECTION_CREATED] = false;
+    model.set(1, 3);
+    assertFalse(event[SELECTION_CREATED]);
+    assertFalse(event[SELECTION_CLEARED]);
+    model.clear();
+    assertTrue(event[SELECTION_CLEARED]);
 
-    // Selection change not fired if not changed
-    selectionChanged[0] = false;
+    // Selection creation not fired if not changed
     model.set(1, 2);
-    assertFalse(selectionChanged[0]);
+    event[SELECTION_CREATED] = false;
+    model.set(1, 2);
+    assertFalse(event[SELECTION_CREATED]);
 
-    // Selection change only fired after updating is finished
-    selectionChanged[0] = false;
+    // Selection clear not fired if not changed
+    model.clear();
+    event[SELECTION_CLEARED] = false;
+    model.clear();
+    assertFalse(event[SELECTION_CLEARED]);
+
+    // Selection creation only fired after updating is finished
+    model.clear();
+    Arrays.fill(event, false);
     model.beginUpdate();
     model.set(3, 4);
-    assertFalse(selectionChanged[0]);
     model.set(3, 5);
-    assertFalse(selectionChanged[0]);
+    assertFalse(event[SELECTION_CREATED]);
     model.endUpdate();
-    assertTrue(selectionChanged[0]);
+    assertTrue(event[SELECTION_CREATED]);
 
-    // Selection change not fired if not changed during update
-    selectionChanged[0] = false;
+    // Selection clear only fired after updating is finished
+    model.set(1, 2);
+    event[SELECTION_CLEARED] = false;
     model.beginUpdate();
+    model.clear();
+    assertFalse(event[SELECTION_CLEARED]);
     model.endUpdate();
-    assertFalse(selectionChanged[0]);
-
-    // Fired on clear
-    selectionChanged[0] = false;
-    model.getSelectionRange().clear();
-    assertTrue(selectionChanged[0]);
+    assertTrue(event[SELECTION_CLEARED]);
   }
 
   private DurationDataModel<DefaultDurationData> createConstraint(long... values) {

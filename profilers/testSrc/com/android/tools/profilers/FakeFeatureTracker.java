@@ -80,6 +80,11 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackSelectRange() {
+
+  }
+
+  @Override
   public void trackTraceSampled() {
 
   }

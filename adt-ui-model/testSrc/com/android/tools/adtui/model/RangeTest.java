@@ -234,11 +234,13 @@ public class RangeTest {
   public void testToString() {
     Range same1 = new Range(0, 100);
     Range same2 = new Range(0, 100);
+    Range same3 = new Range(same2);
     Range different = new Range(1, 99);
     Range r = new Range(5, 10);
     Range empty = new Range();
 
     assertThat(same1.toString()).isEqualTo(same2.toString());
+    assertThat(same1.toString()).isEqualTo(same3.toString());
     assertThat(same1.toString()).isNotEqualTo(different.toString());
 
     assertThat(r.toString()).isNotEqualTo(empty.toString());

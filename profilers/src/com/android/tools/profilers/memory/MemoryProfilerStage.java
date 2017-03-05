@@ -126,7 +126,13 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     mySelectionModel.setSelectFullConstraint(true);
     mySelectionModel.addConstraint(myAllocationDurations);
     mySelectionModel.addConstraint(myHeapDumpDurations);
-    mySelectionModel.addChangeListener(this::selectionChanged);
+    mySelectionModel.addListener(new SelectionListener() {
+      @Override
+      public void selectionCreated() {
+        selectionChanged();
+        profilers.getIdeServices().getFeatureTracker().trackSelectRange();
+      }
+    });
 
     myStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
   }
@@ -177,7 +183,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     return myStackTraceModel;
   }
 
-  private void selectionChanged(ChangeEvent event) {
+  private void selectionChanged() {
     if (!myUpdateCaptureOnSelection) {
       return;
     }

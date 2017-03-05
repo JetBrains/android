@@ -20,6 +20,7 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.SelectionListener;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
@@ -31,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
 import java.awt.*;
 import java.util.Collections;
 import java.util.List;
@@ -170,7 +170,18 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     legendPanel.add(legend, BorderLayout.EAST);
 
     SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel());
-    getStage().getSelectionModel().addChangeListener(this::onSelectionChanged);
+    getStage().getSelectionModel().addListener(new SelectionListener() {
+      @Override
+      public void selectionCreated() {
+        onSelectionCreated();
+        getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectRange();
+      }
+
+      @Override
+      public void selectionCleared() {
+        onSelectionCleared();
+      }
+    });
 
     monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
@@ -187,13 +198,13 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     myConnectionDetails.setHttpData(getStage().getSelectedConnection());
   }
 
-  private void onSelectionChanged(ChangeEvent event) {
-    StudioProfilers profilers = getStage().getStudioProfilers();
-    boolean isRangeEmpty = profilers.getTimeline().getSelectionRange().isEmpty();
-    myConnectionsPanel.setVisible(!isRangeEmpty);
-    if (isRangeEmpty) {
-      myConnectionDetails.setHttpData(null);
-    }
+  private void onSelectionCreated() {
+    myConnectionsPanel.setVisible(true);
+  }
+
+  private void onSelectionCleared() {
+    myConnectionsPanel.setVisible(false);
+    myConnectionDetails.setHttpData(null);
   }
 
   @NotNull
