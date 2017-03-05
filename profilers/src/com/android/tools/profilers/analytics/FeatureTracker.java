@@ -92,6 +92,11 @@ public interface FeatureTracker {
   void trackNavigateToCode();
 
   /**
+   * Track anytime the user creates a range selection in any of our charts.
+   */
+  void trackSelectRange();
+
+  /**
    * Track the user taking a method trace using a "Sampled" strategy.
    */
   void trackTraceSampled();
@@ -183,10 +188,4 @@ public interface FeatureTracker {
    * Track the user opening up the "Trace" tab in the network details view.
    */
   void trackSelectNetworkDetailsStack();
-
-  // TODO: INCREMENTALLY ADD TRACKING FOR REMAINING EVENTS
-  //
-  /// General
-  //
-  // SELECT_RANGE;
 }

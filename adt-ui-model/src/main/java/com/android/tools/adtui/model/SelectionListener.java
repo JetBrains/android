@@ -15,23 +15,22 @@
  */
 package com.android.tools.adtui.model;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.event.ChangeEvent;
 import java.util.EventListener;
 
 /**
- * Interface for handling events fired by {@link SelectionComponent}.
+ * Interface for handling events fired by {@link SelectionModel}.
  */
 public interface SelectionListener extends EventListener {
   /**
-   * Event fired when the user finishes creating a new selection (for example the moment when the
-   * user releases the mouse after dragging a new selection into existence) or clearing a selection
-   * (for example the moment when the user presses ESC to dismiss a focused selection).
-   *
-   * This event doesn't contain any data but you can check the range associated with this selection
-   * component to see if it is {@link Range#isEmpty()} or not.
+   * Event fired when the user finishes creating a new selection (for example, the moment when the
+   * user releases the mouse after dragging a new selection into existence).
    */
-  void selectionStateChanged(@NotNull ChangeEvent e);
+  default void selectionCreated() {}
+
+  /**
+   * Event fired when the user clears a selection (for example, the moment when the user presses
+   * ESC to dismiss a focused selection).
+   */
+  default void selectionCleared() {}
 }
 
