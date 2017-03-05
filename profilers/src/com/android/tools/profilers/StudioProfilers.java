@@ -347,6 +347,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   public void setStage(@NotNull Stage stage) {
     myStage.exit();
+    getTimeline().getSelectionRange().clear();
     myStage = stage;
     myStage.enter();
     this.changed(ProfilerAspect.STAGE);
