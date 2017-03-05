@@ -218,6 +218,7 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getUpdater().register(myThreadsStates);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
   }
 
   @Override

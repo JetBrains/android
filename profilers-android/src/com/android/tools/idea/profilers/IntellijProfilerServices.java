@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.profilers;
 
+import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.profilers.IdeProfilerServices;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -43,6 +45,8 @@ public class IntellijProfilerServices implements IdeProfilerServices {
   }
 
   private final IntellijCodeNavigator myCodeNavigator;
+  private final StudioFeatureTracker myFeatureTracker = new StudioFeatureTracker();
+
   @NotNull private final Project myProject;
 
   public IntellijProfilerServices(@NotNull Project project) {
@@ -100,6 +104,11 @@ public class IntellijProfilerServices implements IdeProfilerServices {
     return myCodeNavigator;
   }
 
+  @NotNull
+  @Override
+  public FeatureTracker getFeatureTracker() {
+    return myFeatureTracker;
+  }
 
   /**
    * Note - this opens the Run Configuration dialog which is modal and blocking until the dialog closes.
