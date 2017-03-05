@@ -102,6 +102,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myIdeServices = ideServices;
     myPreferredProcessName = null;
     myStage = new NullMonitorStage(this);
+    myStage.enter();
+
     myUpdater = new Updater(timer);
     myProfilers = ImmutableList.of(
       new EventProfiler(this),
@@ -194,6 +196,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         if (myAgentAttached != agentAttach) {
           myAgentAttached = agentAttach;
           changed(ProfilerAspect.AGENT);
+
+          if (agentAttach) {
+            getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
+          }
         }
       }
     }
@@ -276,6 +282,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
       if (!onlyStateChanged) {
         setStage(new StudioMonitorStage(this));
+        myIdeServices.getFeatureTracker().trackProfilingStarted();
       }
     }
   }

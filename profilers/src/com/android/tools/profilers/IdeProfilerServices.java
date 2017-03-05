@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,6 +55,15 @@ public interface IdeProfilerServices {
    */
   @NotNull
   CodeNavigator getCodeNavigator();
+
+  /**
+   * Returns an opt-in service that can report when certain features were used.
+   *
+   * Implementors of this method should be sure to return the same instance each time, not a new
+   * instance per call.
+   */
+  @NotNull
+  FeatureTracker getFeatureTracker();
 
   /**
    * Either enable advanced profiling or present the user with UI to make enabling it easy.
