@@ -122,6 +122,49 @@ public interface FeatureTracker {
   void trackSelectCaptureFlameChart();
 
   /**
+   * Track when the user requests memory be garbage collected.
+   */
+  void trackForceGc();
+
+  /**
+   * Track when the user takes a snapshot of the memory heap.
+   */
+  void trackDumpHeap();
+
+  /**
+   * Track when user finishes recording memory allocations
+   */
+  void trackRecordAllocations();
+
+  /**
+   * Track when the user exports a heap snapshot.
+   * TODO: This needs to be hooked up.
+   */
+  void trackExportHeap();
+
+  /**
+   * Track when the user exports an allocation recording.
+   * TODO: This needs to be hooked up.
+   */
+  void trackExportAllocation();
+
+  /**
+   * Track when the user changes the class-arrangement strategy.
+   * TODO: This needs to be hooked up.
+   */
+  void trackChangeClassArrangment();
+
+  /**
+   * Track the user opening up the "Stack" tab in the memory details view.
+   */
+  void trackSelectMemoryStack();
+
+  /**
+   * Track the user opening up the "Reference" tab in the memory details view.
+   */
+  void trackSelectMemoryReferences();
+
+  /**
    * Track the user selecting a row from a table of connections.
    */
   void trackSelectNetworkRequest();
@@ -146,16 +189,4 @@ public interface FeatureTracker {
   /// General
   //
   // SELECT_RANGE;
-  //
-  /// Memory
-  //
-  // FORCE_GC;
-  // SNAPSHOT_HPROF;
-  // CAPTURE_ALLOCATIONS;
-  // SELECT_MEMORY_CHART;
-  // EXPORT_HPROF;
-  // EXPORT_ALLOCATION;
-  // ARRANGE_CLASSES;
-  // SELECT_MEMORY_STACK;
-  // SELECT_MEMORY_REFERENCES;
 }

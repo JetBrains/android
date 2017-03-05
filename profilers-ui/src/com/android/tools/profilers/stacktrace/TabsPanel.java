@@ -38,6 +38,9 @@ public interface TabsPanel {
 
   void removeAll();
 
+  /**
+   * Return the selected tab component, which can be {@code null} before any tab has been selected.
+   */
   @Nullable
   JComponent getSelectedTabComponent();
 
@@ -50,5 +53,9 @@ public interface TabsPanel {
    */
   void setOnSelectionChange(@Nullable Runnable callback);
 
+  /**
+   * Return the selected tab title, which can be {@code null} before any tab has been selected.
+   */
+  @Nullable
   String getSelectedTab();
 }

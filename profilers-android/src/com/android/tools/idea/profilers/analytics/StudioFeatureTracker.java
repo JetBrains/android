@@ -133,6 +133,46 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackForceGc() {
+    track(AndroidProfilerEvent.Type.FORCE_GC);
+  }
+
+  @Override
+  public void trackDumpHeap() {
+    track(AndroidProfilerEvent.Type.SNAPSHOT_HPROF);
+  }
+
+  @Override
+  public void trackRecordAllocations() {
+    track(AndroidProfilerEvent.Type.CAPTURE_ALLOCATIONS);
+  }
+
+  @Override
+  public void trackExportHeap() {
+    track(AndroidProfilerEvent.Type.EXPORT_HPROF);
+  }
+
+  @Override
+  public void trackExportAllocation() {
+    track(AndroidProfilerEvent.Type.EXPORT_ALLOCATION);
+  }
+
+  @Override
+  public void trackChangeClassArrangment() {
+    track(AndroidProfilerEvent.Type.ARRANGE_CLASSES);
+  }
+
+  @Override
+  public void trackSelectMemoryStack() {
+    track(AndroidProfilerEvent.Type.SELECT_MEMORY_STACK);
+  }
+
+  @Override
+  public void trackSelectMemoryReferences() {
+    track(AndroidProfilerEvent.Type.SELECT_MEMORY_REFERENCES);
+  }
+
+  @Override
   public void trackSelectNetworkRequest() {
     track(AndroidProfilerEvent.Type.SELECT_CONNECTION);
   }
