@@ -23,10 +23,13 @@ import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
-import com.android.tools.profilers.*;
+import com.android.tools.profilers.ProfilerMode;
+import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.Stage;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
-import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.Logger;
@@ -208,6 +211,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
     getStudioProfilers().getUpdater().unregister(myThreadsStates);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
+
+    mySelectionModel.clearListeners();
   }
 
 
