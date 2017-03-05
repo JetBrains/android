@@ -24,6 +24,7 @@ import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ProfilerMonitor;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.FileViewer;
 import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.android.tools.profilers.stacktrace.TabsPanel;
@@ -63,6 +64,10 @@ import java.util.function.LongFunction;
  * View to display a single network request and its response's detailed information.
  */
 public class ConnectionDetailsView extends JPanel {
+  private static final String TAB_TITLE_RESPONSE = "Response";
+  private static final String TAB_TITLE_STACK = "Call Stack";
+  private static final String TAB_TITLE_HEADERS = "Headers";
+
   private static final int PAGE_VGAP = JBUI.scale(28);
   private static final int SECTION_VGAP = JBUI.scale(10);
   private static final int HGAP = JBUI.scale(22);
@@ -114,18 +119,20 @@ public class ConnectionDetailsView extends JPanel {
       }
     });
 
-    myTabsPanel.addTab("Response", responseScroll);
+    myTabsPanel.addTab(TAB_TITLE_RESPONSE, responseScroll);
 
     myHeadersPanel = new JPanel(new VerticalFlowLayout(0, PAGE_VGAP));
     myHeadersPanel.setName("Headers");
     JBScrollPane headersScroll = new JBScrollPane(myHeadersPanel);
     headersScroll.getVerticalScrollBar().setUnitIncrement(SCROLL_UNIT);
     headersScroll.getHorizontalScrollBar().setUnitIncrement(SCROLL_UNIT);
-    myTabsPanel.addTab("Headers", headersScroll);
+    myTabsPanel.addTab(TAB_TITLE_HEADERS, headersScroll);
 
     myStackTraceView = myStageView.getIdeComponents().createStackView(stageView.getStage().getStackTraceModel());
     myStackTraceView.getComponent().setName("StackTrace");
-    myTabsPanel.addTab("Call Stack", myStackTraceView.getComponent());
+    myTabsPanel.addTab(TAB_TITLE_STACK, myStackTraceView.getComponent());
+
+    myTabsPanel.setOnSelectionChange(this::trackActiveTab);
 
     IconButton closeIcon = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
     InplaceButton closeButton = new InplaceButton(closeIcon, e -> this.setHttpData(null));
@@ -135,6 +142,24 @@ public class ConnectionDetailsView extends JPanel {
     rootPanel.add(myTabsPanel.getComponent(), new TabularLayout.Constraint(0, 0, 2, 2));
 
     add(rootPanel);
+  }
+
+  private void trackActiveTab() {
+    FeatureTracker featureTracker = myStageView.getStage().getStudioProfilers().getIdeServices().getFeatureTracker();
+    switch (myTabsPanel.getSelectedTab()) {
+      case TAB_TITLE_RESPONSE:
+        featureTracker.trackSelectNetworkDetailsResponse();
+        break;
+      case TAB_TITLE_HEADERS:
+        featureTracker.trackSelectNetworkDetailsHeaders();
+        break;
+      case TAB_TITLE_STACK:
+        featureTracker.trackSelectNetworkDetailsStack();
+        break;
+      default:
+        // Intentional no-op
+        break;
+    }
   }
 
   /**
