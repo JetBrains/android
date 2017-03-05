@@ -103,6 +103,36 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackTraceSampled() {
+    track(AndroidProfilerEvent.Type.TRACE_SAMPLED);
+  }
+
+  @Override
+  public void trackTraceInstrumented() {
+    track(AndroidProfilerEvent.Type.TRACE_INSTRUMENTED);
+  }
+
+  @Override
+  public void trackSelectThread() {
+    track(AndroidProfilerEvent.Type.SELECT_THREAD);
+  }
+
+  @Override
+  public void trackSelectCaptureTopDown() {
+    track(AndroidProfilerEvent.Type.SELECT_TOP_DOWN);
+  }
+
+  @Override
+  public void trackSelectCaptureBottomUp() {
+    track(AndroidProfilerEvent.Type.SELECT_BOTTOM_UP);
+  }
+
+  @Override
+  public void trackSelectCaptureFlameChart() {
+    track(AndroidProfilerEvent.Type.SELECT_FLAME_CHART);
+  }
+
+  @Override
   public void trackSelectNetworkRequest() {
     track(AndroidProfilerEvent.Type.SELECT_CONNECTION);
   }

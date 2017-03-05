@@ -80,6 +80,36 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackTraceSampled() {
+
+  }
+
+  @Override
+  public void trackTraceInstrumented() {
+
+  }
+
+  @Override
+  public void trackSelectThread() {
+
+  }
+
+  @Override
+  public void trackSelectCaptureTopDown() {
+
+  }
+
+  @Override
+  public void trackSelectCaptureBottomUp() {
+
+  }
+
+  @Override
+  public void trackSelectCaptureFlameChart() {
+
+  }
+
+  @Override
   public void trackSelectNetworkRequest() {
 
   }
