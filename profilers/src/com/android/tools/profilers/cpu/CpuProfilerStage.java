@@ -24,11 +24,13 @@ import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,6 +42,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
@@ -348,9 +351,11 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
   }
 
   public void setSelectedThread(int id) {
-    mySelectedThread = id;
-    setCaptureDetails(myCaptureDetails != null ? myCaptureDetails.getType() : CaptureDetails.Type.TOP_DOWN);
-    myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
+    if (mySelectedThread != id) {
+      mySelectedThread = id;
+      setCaptureDetails(myCaptureDetails != null ? myCaptureDetails.getType() : CaptureDetails.Type.TOP_DOWN);
+      myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
+    }
   }
 
   @NotNull
