@@ -78,11 +78,19 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     myHeapDumpButton = new FlatButton(ProfilerIcons.HEAP_DUMP);
     myHeapDumpButton.setToolTipText("Takes an Hprof snapshot of the application memory");
-    myHeapDumpButton.addActionListener(e -> getStage().requestHeapDump(SwingUtilities::invokeLater));
+    myHeapDumpButton.addActionListener(e -> {
+      getStage().requestHeapDump(SwingUtilities::invokeLater);
+      getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackDumpHeap();
+    });
 
     myAllocationButton = new FlatButton();
     myAllocationButton
-      .addActionListener(e -> getStage().trackAllocations(!getStage().isTrackingAllocations(), SwingUtilities::invokeLater));
+      .addActionListener(e -> {
+        if (getStage().isTrackingAllocations()) {
+          getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackRecordAllocations();
+        }
+        getStage().trackAllocations(!getStage().isTrackingAllocations(), SwingUtilities::invokeLater);
+      });
 
     getStage().getAspect().addDependency(this)
       .onChange(MemoryProfilerAspect.CURRENT_LOADING_CAPTURE, this::captureObjectChanged)
@@ -98,7 +106,10 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     JPanel toolBar = new JPanel(TOOLBAR_LAYOUT);
     JButton forceGarbageCollectionButton = new FlatButton(ProfilerIcons.FORCE_GARBAGE_COLLECTION);
     forceGarbageCollectionButton.setToolTipText("Force garbage collection");
-    forceGarbageCollectionButton.addActionListener(e -> getStage().forceGarbageCollection(SwingUtilities::invokeLater));
+    forceGarbageCollectionButton.addActionListener(e -> {
+      getStage().forceGarbageCollection(SwingUtilities::invokeLater);
+      getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackForceGc();
+    });
     toolBar.add(forceGarbageCollectionButton);
 
     toolBar.add(myHeapDumpButton);

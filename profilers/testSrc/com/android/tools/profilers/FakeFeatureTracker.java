@@ -110,6 +110,46 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackForceGc() {
+
+  }
+
+  @Override
+  public void trackDumpHeap() {
+
+  }
+
+  @Override
+  public void trackRecordAllocations() {
+
+  }
+
+  @Override
+  public void trackExportHeap() {
+
+  }
+
+  @Override
+  public void trackExportAllocation() {
+
+  }
+
+  @Override
+  public void trackChangeClassArrangment() {
+
+  }
+
+  @Override
+  public void trackSelectMemoryStack() {
+
+  }
+
+  @Override
+  public void trackSelectMemoryReferences() {
+
+  }
+
+  @Override
   public void trackSelectNetworkRequest() {
 
   }
