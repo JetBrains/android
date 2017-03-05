@@ -17,9 +17,10 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.AxisComponentModel;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
@@ -47,7 +48,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.tools.profilers.ProfilerColors.*;
+import static com.android.tools.profilers.ProfilerColors.NETWORK_TABLE_AXIS;
+import static com.android.tools.profilers.ProfilerColors.NETWORK_TABLE_AXIS_SELECTED;
 
 /**
  * This class responsible for displaying table of connections information (e.g url, duration, timeline)
@@ -59,7 +61,7 @@ final class ConnectionsView {
   private Range mySelectionRange;
 
   public interface DetailedViewListener {
-    void showDetailedConnection(HttpData data);
+    boolean showDetailedConnection(HttpData data);
   }
 
   /**
@@ -181,7 +183,9 @@ final class ConnectionsView {
       int selectedRow = myConnectionsTable.getSelectedRow();
       if (0 <= selectedRow && selectedRow < myTableModel.getRowCount()) {
         int modelRow = myConnectionsTable.convertRowIndexToModel(selectedRow);
-        myDetailedViewListener.showDetailedConnection(myTableModel.getHttpData(modelRow));
+        if (myDetailedViewListener.showDetailedConnection(myTableModel.getHttpData(modelRow))) {
+          myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectNetworkRequest();
+        }
       }
     });
 
