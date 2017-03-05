@@ -103,6 +103,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
+  public void trackSelectRange() {
+    track(AndroidProfilerEvent.Type.SELECT_RANGE);
+  }
+
+  @Override
   public void trackTraceSampled() {
     track(AndroidProfilerEvent.Type.TRACE_SAMPLED);
   }

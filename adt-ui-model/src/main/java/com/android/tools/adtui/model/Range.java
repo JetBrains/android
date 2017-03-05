@@ -34,6 +34,11 @@ public class Range extends AspectModel<Range.Aspect> {
     myMax = max;
   }
 
+  public Range(Range other) {
+    myMin = other.myMin;
+    myMax = other.myMax;
+  }
+
   public Range() {
     clear();
   }

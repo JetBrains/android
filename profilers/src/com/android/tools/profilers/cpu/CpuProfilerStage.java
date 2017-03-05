@@ -169,6 +169,12 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
 
     mySelectionModel = new SelectionModel(selectionRange, viewRange);
     mySelectionModel.addConstraint(myTraceDurations);
+    mySelectionModel.addListener(new SelectionListener() {
+      @Override
+      public void selectionCreated() {
+        profilers.getIdeServices().getFeatureTracker().trackSelectRange();
+      }
+    });
 
     myCaptureState = isCapturing() ? CaptureState.CAPTURING : CaptureState.IDLE;
 

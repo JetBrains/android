@@ -18,9 +18,9 @@ package com.android.tools.adtui.model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.event.ChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
 
@@ -33,6 +33,12 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
    */
   @NotNull
   private final Range mySelectionRange;
+
+  /**
+   * The previous selection range, useful for determining which event to fire (created or cleared).
+   */
+  @NotNull
+  private final Range myPreviousSelectionRange;
 
   /**
    * The reference range.
@@ -59,6 +65,7 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
   public SelectionModel(@NotNull Range selection, @NotNull Range range) {
     myRange = range;
     mySelectionRange = selection;
+    myPreviousSelectionRange = new Range(mySelectionRange);
     mySelectionEnabled = true;
 
     myRange.addDependency(this).onChange(Range.Aspect.RANGE, this::rangesChanged);
@@ -76,7 +83,7 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
    * Unlike the {@link Aspect#SELECTION} aspect, this event will not be fired between calls to
    * {@link #beginUpdate()} and {@link #endUpdate()}
    */
-  public void addChangeListener(final SelectionListener listener) {
+  public void addListener(final SelectionListener listener) {
     myListeners.add(listener);
   }
 
@@ -86,8 +93,18 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
       return;
     }
 
-    ChangeEvent e = new ChangeEvent(this);
-    myListeners.forEach(l -> l.selectionStateChanged(e));
+    Consumer<SelectionListener> event = null;
+    if (myPreviousSelectionRange.isEmpty() && !mySelectionRange.isEmpty()) {
+      event = SelectionListener::selectionCreated;
+    }
+    else if (!myPreviousSelectionRange.isEmpty() && mySelectionRange.isEmpty()) {
+      event = SelectionListener::selectionCleared;
+    }
+
+    myPreviousSelectionRange.set(mySelectionRange);
+    if (event != null) {
+      myListeners.forEach(event);
+    }
   }
 
   private void rangesChanged() {
@@ -115,6 +132,14 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
         fireListeners();
       }
     }
+  }
+
+  public void clear() {
+    if (!mySelectionEnabled) {
+      return;
+    }
+
+    mySelectionRange.clear();
   }
 
   public void set(double min, double max) {
