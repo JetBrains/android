@@ -96,6 +96,7 @@ public class IntellijTabsPanel implements TabsPanel {
   }
 
   @Override
+  @Nullable
   public String getSelectedTab() {
     TabInfo info = myTabsImpl.getSelectedInfo();
     if (info == null) {
