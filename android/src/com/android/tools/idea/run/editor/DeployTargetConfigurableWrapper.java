@@ -86,12 +86,4 @@ public class DeployTargetConfigurableWrapper implements Configurable, Configurab
   @Override
   public void apply() throws ConfigurationException {
   }
-
-  @Override
-  public void reset() {
-  }
-
-  @Override
-  public void disposeUIResources() {
-  }
 }

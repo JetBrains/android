@@ -163,10 +163,6 @@ public class InstantRunConfigurable
     myEnableRecorder.setSelected(myBuildConfiguration.ENABLE_RECORDER);
   }
 
-  @Override
-  public void disposeUIResources() {
-  }
-
   private boolean isInstantRunEnabled() {
     return myInstantRunCheckBox.isSelected();
   }

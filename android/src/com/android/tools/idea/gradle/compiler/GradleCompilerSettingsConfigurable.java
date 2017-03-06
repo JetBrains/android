@@ -141,10 +141,6 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     mySyncProjectBeforeBuildCheckBox.setSelected(myBuildConfiguration.SYNC_PROJECT_BEFORE_BUILD);
   }
 
-  @Override
-  public void disposeUIResources() {
-  }
-
   private void createUIComponents() {
     myParallelBuildDocHyperlinkLabel =
       createHyperlinkLabel("This option is in \"incubation\" and should only be used with ", "decoupled projects", ".",
