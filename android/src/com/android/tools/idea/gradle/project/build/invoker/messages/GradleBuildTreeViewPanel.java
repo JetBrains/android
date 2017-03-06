@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -223,7 +224,7 @@ public class GradleBuildTreeViewPanel extends NewErrorTreeViewPanel {
       selectElement(firstError, new Runnable() {
         @Override
         public void run() {
-          if (shouldShowFirstErrorInEditor()) {
+          if (shouldShowFirstErrorInEditor() && !ApplicationManager.getApplication().isUnitTestMode()) {
             navigateToSource(false);
           }
         }
