@@ -209,7 +209,7 @@ public class SceneMouseInteraction {
     dx = myLastX;
     dy = myLastY;
     SceneContext transform = SceneContext.get();
-    if (dx != 0 && dy != 0) {
+    if (dx != 0 || dy != 0) {
       for (int i = 0; i < steps; i++) {
         myScene.mouseDrag(transform, (int)dx, (int)dy);
         myScene.buildDisplayList(myDisplayList, System.currentTimeMillis());
