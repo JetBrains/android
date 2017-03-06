@@ -26,6 +26,8 @@ import com.android.tools.idea.uibuilder.property.editors.support.Quantity;
 import com.android.tools.idea.uibuilder.property.editors.support.TextEditorWithAutoCompletion;
 import com.android.tools.idea.uibuilder.property.renderer.NlDefaultRenderer;
 import com.google.common.collect.ImmutableList;
+import com.intellij.codeInsight.lookup.LookupAdapter;
+import com.intellij.codeInsight.lookup.LookupEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
@@ -123,6 +125,14 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     if (includeBorder) {
       myTextEditorWithAutoCompletion.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, 0, VERTICAL_SPACING, 0));
     }
+
+    myTextEditorWithAutoCompletion.addLookupListener(new LookupAdapter() {
+      @Override
+      public void itemSelected(@NotNull LookupEvent event) {
+        stopEditing(getText());
+      }
+    });
+
     myBrowsePanel = browsePanel;
     myIsInspector = (browsePanel == null);
     myPanel.add(myTextEditorWithAutoCompletion, BorderLayout.CENTER);
