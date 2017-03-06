@@ -173,16 +173,15 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     getStage().getSelectionModel().addListener(new SelectionListener() {
       @Override
       public void selectionCreated() {
-        onSelectionCreated();
-        getStage().getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectRange();
+        myConnectionsPanel.setVisible(true);
       }
 
       @Override
       public void selectionCleared() {
-        onSelectionCleared();
+        myConnectionsPanel.setVisible(false);
+        myConnectionDetails.setHttpData(null);
       }
     });
-
     monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));
@@ -196,15 +195,6 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
   private void updateConnectionDetailsView() {
     myConnectionDetails.setHttpData(getStage().getSelectedConnection());
-  }
-
-  private void onSelectionCreated() {
-    myConnectionsPanel.setVisible(true);
-  }
-
-  private void onSelectionCleared() {
-    myConnectionsPanel.setVisible(false);
-    myConnectionDetails.setHttpData(null);
   }
 
   @NotNull

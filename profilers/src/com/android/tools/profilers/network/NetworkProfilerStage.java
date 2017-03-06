@@ -92,11 +92,11 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     profilers.addDependency(myAspectObserver)
       .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
     mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());
-
     mySelectionModel.addListener(new SelectionListener() {
       @Override
       public void selectionCreated() {
         setProfilerMode(ProfilerMode.EXPANDED);
+        profilers.getIdeServices().getFeatureTracker().trackSelectRange();
       }
 
       @Override
@@ -197,6 +197,8 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     getStudioProfilers().getUpdater().unregister(myLegends);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
+
+    mySelectionModel.clearListeners();
   }
 
   @NotNull
