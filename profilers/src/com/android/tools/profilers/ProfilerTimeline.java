@@ -206,13 +206,21 @@ public final class ProfilerTimeline extends AspectModel<ProfilerTimeline.Aspect>
     myViewRangeUs.shift(deltaUs);
   }
 
-  public void reset(@NotNull RelativeTimeConverter converter) {
+  /**
+   * This function resets the internal state to the timeline.
+   * @param converter to set as a baseline for the timeline. The converter is used to 0 the timeline.
+   * @param lengthNs The initial length of the timeline. This allows us to start the timeline with length other than 0.
+   *                 This is required if we are switching between processes that have been running for a while.
+   */
+  public void reset(@NotNull RelativeTimeConverter converter, long lengthNs) {
     myRelativeTimeConverter = converter;
-    myLengthNs = 0;
+    myLengthNs = lengthNs;
     myIsPaused = false;
     double us = TimeUnit.NANOSECONDS.toMicros(converter.getDeviceStartTimeNs());
-    myDataRangeUs.set(us, us);
-    myViewRangeUs.set(us - DEFAULT_VIEW_LENGTH_US, us);
+    long deviceNowNs = myRelativeTimeConverter.convertToAbsoluteTime(myLengthNs);
+    long deviceNowUs = TimeUnit.NANOSECONDS.toMicros(deviceNowNs);
+    myDataRangeUs.set(us, deviceNowUs);
+    myViewRangeUs.set(deviceNowUs - DEFAULT_VIEW_LENGTH_US, deviceNowUs);
     setStreaming(true);
   }
 }
