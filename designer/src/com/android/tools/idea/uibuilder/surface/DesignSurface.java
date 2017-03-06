@@ -295,7 +295,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     notifySceneViewChanged();
   }
 
-
   @Override
   public void dispose() {
   }

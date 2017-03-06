@@ -89,13 +89,11 @@ abstract public class ActionsToolbar implements DesignSurfaceListener, ModelList
     layoutToolBar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
 
     JPanel bottom = new JPanel(new BorderLayout());
-    bottom.add(layoutToolBar.getComponent(), BorderLayout.WEST);
+    bottom.add(layoutToolBar.getComponent(), BorderLayout.CENTER);
 
-    JPanel combined = new JPanel(new BorderLayout());
     ActionToolbar zoomToolBar = actionManager.createActionToolbar("NlRhsToolbar", getRhsActions(mySurface), true);
     zoomToolBar.getComponent().setName("NlRhsToolbar");
-    combined.add(zoomToolBar.getComponent(), BorderLayout.WEST);
-    bottom.add(combined, BorderLayout.EAST);
+    bottom.add(zoomToolBar.getComponent(), BorderLayout.EAST);
 
     panel.add(bottom, BorderLayout.SOUTH);
 

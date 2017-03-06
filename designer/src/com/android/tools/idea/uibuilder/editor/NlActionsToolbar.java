@@ -35,25 +35,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class NlActionsToolbar extends ActionsToolbar {
 
-  public NlActionsToolbar(@NotNull DesignSurface surface) {
+  public NlActionsToolbar(@NotNull NlDesignSurface surface) {
     super(surface);
-  }
-
-  @Override
-  protected ActionGroup getRhsActions(DesignSurface designSurface) {
-    assert designSurface instanceof NlDesignSurface;
-    NlDesignSurface surface = (NlDesignSurface)designSurface;
-    DefaultActionGroup group = new DefaultActionGroup();
-
-    group.add(new SetZoomAction(surface, ZoomType.OUT));
-    group.add(new ZoomLabelAction(surface));
-    group.add(new SetZoomAction(surface, ZoomType.IN));
-    group.add(new SetZoomAction(surface, ZoomType.FIT));
-    group.add(new TogglePanningDialogAction(surface));
-    group.addSeparator();
-    group.add(new LintNotificationAction(surface));
-
-    return group;
   }
 
   @Override
@@ -87,6 +70,23 @@ public class NlActionsToolbar extends ActionsToolbar {
     group.addSeparator();
     ConfigurationMenuAction configAction = new ConfigurationMenuAction(surface);
     group.add(configAction);
+
+    return group;
+  }
+
+  @Override
+  protected ActionGroup getRhsActions(DesignSurface designSurface) {
+    assert designSurface instanceof NlDesignSurface;
+    NlDesignSurface surface = (NlDesignSurface)designSurface;
+    DefaultActionGroup group = new DefaultActionGroup();
+
+    group.add(new SetZoomAction(surface, ZoomType.OUT));
+    group.add(new ZoomLabelAction(surface));
+    group.add(new SetZoomAction(surface, ZoomType.IN));
+    group.add(new SetZoomAction(surface, ZoomType.FIT));
+    group.add(new TogglePanningDialogAction(surface));
+    group.addSeparator();
+    group.add(new LintNotificationAction(surface));
 
     return group;
   }
