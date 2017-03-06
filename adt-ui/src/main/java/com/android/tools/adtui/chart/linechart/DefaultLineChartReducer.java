@@ -56,15 +56,13 @@ class DefaultLineChartReducer implements LineChartReducer {
       int segType = iterator.currentSegment(coords);
       assert segType == PathIterator.SEG_MOVETO || segType == PathIterator.SEG_LINETO;
 
-      float lastX = curX;
-      float lastY = curY;
+      float previousX = curX;
+      float previousY = curY;
       curX = coords[0];
       curY = coords[1];
 
-      if (curIndex > 0 && curX < lastX) {
+      if (curIndex > 0 && curX < previousX) {
         // This can happen only for a filled line
-        // The second last point must be with maximum Y
-        assert equals(maxX, lastX) && equals(maxY, lastY);
         break;
       }
 
@@ -76,7 +74,7 @@ class DefaultLineChartReducer implements LineChartReducer {
           addMinMaxPoints(resultPath, config, minIndex, minX, minY, maxIndex, maxX, maxY);
 
           // Add the last point from the previous pixel
-          addToResultPath(resultPath, config, lastX, lastY);
+          addToResultPath(resultPath, config, previousX, previousY);
         }
 
         pixel = (float)Math.floor(curX) + 1;
