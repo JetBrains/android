@@ -80,12 +80,4 @@ public class LaunchConfigurableWrapper implements Configurable, Configurable.NoS
   @Override
   public void apply() throws ConfigurationException {
   }
-
-  @Override
-  public void reset() {
-  }
-
-  @Override
-  public void disposeUIResources() {
-  }
 }

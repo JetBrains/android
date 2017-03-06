@@ -739,10 +739,6 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
     return path != null ? PathUtil.getLocalPath(path) : null;
   }
 
-  @Override
-  public void disposeUIResources() {
-  }
-
   private void createUIComponents() {
     myProGuardConfigFilesPanel = new ProGuardConfigFilesPanel() {
       @Nullable

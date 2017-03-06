@@ -60,10 +60,6 @@ public class NlOptionsConfigurable implements SearchableConfigurable, Configurab
     myHide.setSelected(myState.isHideForNonLayoutFiles());
   }
 
-  @Override
-  public void disposeUIResources() {
-  }
-
   @Nls
   @Override
   public String getDisplayName() {

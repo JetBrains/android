@@ -118,10 +118,6 @@ public class GradleExperimentalSettingsConfigurable implements SearchableConfigu
     myUseNewProjectStructureCheckBox.setSelected(mySettings.USE_NEW_PROJECT_STRUCTURE_DIALOG);
   }
 
-  @Override
-  public void disposeUIResources() {
-  }
-
   private void createUIComponents() {
     int value = GradleExperimentalSettings.getInstance().MAX_MODULE_COUNT_FOR_SOURCE_GEN;
     myModuleNumberSpinner = new JSpinner(new SpinnerNumberModel(value, 0, Integer.MAX_VALUE, 1));

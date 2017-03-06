@@ -261,8 +261,4 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   public void reset() {
     myPanel.reset();
   }
-
-  @Override
-  public void disposeUIResources() {
-  }
 }

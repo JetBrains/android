@@ -211,10 +211,6 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   }
 
   @Override
-  public void disposeUIResources() {
-  }
-
-  @Override
   public void reset() {
     myOriginalSdkHomePath = getIdeAndroidSdkPath();
     myOriginalNdkHomePath = getIdeNdkPath();
@@ -383,15 +379,11 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
 
   private void createJdkLocationTextField() {
     JTextField textField = new JTextField(10);
-    myJdkLocationTextField = new TextFieldWithBrowseButton(textField, e -> {
-      chooseJdkLocation();
-    });
+    myJdkLocationTextField = new TextFieldWithBrowseButton(textField, e -> chooseJdkLocation());
   }
 
   public void chooseJdkLocation() {
-    IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
-      IdeFocusManager.getGlobalInstance().requestFocus(myJdkLocationTextField.getTextField(), true);
-    });
+    IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> IdeFocusManager.getGlobalInstance().requestFocus(myJdkLocationTextField.getTextField(), true));
 
     VirtualFile suggestedDir = null;
     File jdkLocation = getUserSelectedJdkLocation();

@@ -190,10 +190,6 @@ public class AndroidProjectConfigurable extends NamedConfigurable implements Key
     myKeyValuePane.updateUiFromCurrentObject();
   }
 
-  @Override
-  public void disposeUIResources() {
-  }
-
   @Nullable
   @Override
   public Icon getIcon(boolean expanded) {
