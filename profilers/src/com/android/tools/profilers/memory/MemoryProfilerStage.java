@@ -40,7 +40,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -128,7 +127,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     mySelectionModel.addListener(new SelectionListener() {
       @Override
       public void selectionCreated() {
-        selectionChanged();
+        selectCaptureFromSelection();
         profilers.getIdeServices().getFeatureTracker().trackSelectRange();
       }
     });
@@ -170,6 +169,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myLoader.stop();
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
+
+    mySelectionModel.clearListeners();
   }
 
   @NotNull
@@ -182,7 +183,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     return myStackTraceModel;
   }
 
-  private void selectionChanged() {
+  private void selectCaptureFromSelection() {
     if (!myUpdateCaptureOnSelection) {
       return;
     }
@@ -331,7 +332,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     return mySelection.getHeapObject();
   }
 
-  public void selectCapture(@Nullable CaptureObject captureObject, @Nullable Executor joiner) {
+  @VisibleForTesting
+  void selectCapture(@Nullable CaptureObject captureObject, @Nullable Executor joiner) {
     if (!mySelection.setCaptureObject(captureObject)) {
       return;
     }
