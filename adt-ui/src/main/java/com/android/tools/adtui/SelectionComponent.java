@@ -29,11 +29,12 @@ import java.awt.geom.Rectangle2D;
  */
 public final class SelectionComponent extends AnimatedComponent {
 
-  public static final Color DEFAULT_SELECTION_COLOR = new JBColor(new Color(0x80CDE4F8, true), new Color(0x80CDE4F8, true));
+  // TODO: support using different colors for selection, border and handle
+  public static final Color DEFAULT_SELECTION_COLOR = new JBColor(new Color(0x330478DA, true), new Color(0x4C2395F5, true));
 
-  public static final Color DEFAULT_SELECTION_BORDER = new JBColor(0x91C4EF, 0x91C4EF);
+  public static final Color DEFAULT_SELECTION_BORDER = new JBColor(new Color(0x4C0478DA, true), new Color(0x4C0478DA, true));
 
-  private static final Color DEFAULT_HANDLE = new JBColor(0x696868, 0x696868);
+  private static final Color DEFAULT_HANDLE = new JBColor(0x696868, 0xD6D6D6);
 
   public static final int HANDLE_HEIGHT = 40;
 
@@ -194,8 +195,8 @@ public final class SelectionComponent extends AnimatedComponent {
     Path2D.Float path = new Path2D.Float();
     path.moveTo(startXPos, 0);
     path.lineTo(startXPos, dim.height);
-    path.moveTo(endXPos, dim.height);
-    path.lineTo(endXPos, 0);
+    path.moveTo(endXPos - 1, dim.height);
+    path.lineTo(endXPos - 1, 0);
     g.draw(path);
 
     if (myMode != Mode.CREATE) {
