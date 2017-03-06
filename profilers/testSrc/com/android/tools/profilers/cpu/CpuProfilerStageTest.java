@@ -177,30 +177,30 @@ public class CpuProfilerStageTest extends AspectObserver {
 
     // Top Down
     myCaptureDetailsCalled = false;
-    myStage.setCaptureDetails(CpuProfilerStage.CaptureDetails.Type.TOP_DOWN);
+    myStage.setCaptureDetails(CaptureModel.Details.Type.TOP_DOWN);
     assertTrue(myCaptureDetailsCalled = true);
 
-    CpuProfilerStage.CaptureDetails details = myStage.getCaptureDetails();
-    assertTrue(details instanceof CpuProfilerStage.TopDown);
-    assertNotNull(((CpuProfilerStage.TopDown)details).getModel());
+    CaptureModel.Details details = myStage.getCaptureDetails();
+    assertTrue(details instanceof CaptureModel.TopDown);
+    assertNotNull(((CaptureModel.TopDown)details).getModel());
 
     // Bottom Up
     myCaptureDetailsCalled = false;
-    myStage.setCaptureDetails(CpuProfilerStage.CaptureDetails.Type.BOTTOM_UP);
+    myStage.setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP);
     assertTrue(myCaptureDetailsCalled);
 
     details = myStage.getCaptureDetails();
-    assertTrue(details instanceof CpuProfilerStage.BottomUp);
-    assertNotNull(((CpuProfilerStage.BottomUp)details).getModel());
+    assertTrue(details instanceof CaptureModel.BottomUp);
+    assertNotNull(((CaptureModel.BottomUp)details).getModel());
 
     // Chart
     myCaptureDetailsCalled = false;
-    myStage.setCaptureDetails(CpuProfilerStage.CaptureDetails.Type.CHART);
+    myStage.setCaptureDetails(CaptureModel.Details.Type.CHART);
     assertTrue(myCaptureDetailsCalled);
 
     details = myStage.getCaptureDetails();
-    assertTrue(details instanceof CpuProfilerStage.TreeChart);
-    assertNotNull(((CpuProfilerStage.TreeChart)details).getNode());
+    assertTrue(details instanceof CaptureModel.TreeChart);
+    assertNotNull(((CaptureModel.TreeChart)details).getNode());
 
     // null
     myCaptureDetailsCalled = false;
@@ -211,18 +211,89 @@ public class CpuProfilerStageTest extends AspectObserver {
     // HNode is null, as a result the model is null as well
     myStage.setSelectedThread(-1);
     myCaptureDetailsCalled = false;
-    myStage.setCaptureDetails(CpuProfilerStage.CaptureDetails.Type.BOTTOM_UP);
+    myStage.setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP);
     assertTrue(myCaptureDetailsCalled);
     details = myStage.getCaptureDetails();
-    assertTrue(details instanceof CpuProfilerStage.BottomUp);
-    assertNull(((CpuProfilerStage.BottomUp)details).getModel());
+    assertTrue(details instanceof CaptureModel.BottomUp);
+    assertNull(((CaptureModel.BottomUp)details).getModel());
 
     // Capture has changed, keeps the same type of details
     captureSuccessfully();
-    CpuProfilerStage.CaptureDetails newDetails = myStage.getCaptureDetails();
+    CaptureModel.Details newDetails = myStage.getCaptureDetails();
     assertNotEquals(details, newDetails);
-    assertTrue(newDetails instanceof CpuProfilerStage.BottomUp);
-    assertNotNull(((CpuProfilerStage.BottomUp)newDetails).getModel());
+    assertTrue(newDetails instanceof CaptureModel.BottomUp);
+    assertNotNull(((CaptureModel.BottomUp)newDetails).getModel());
+  }
+
+  @Test
+  public void setCaptureShouldChangeDetails() throws Exception {
+    // Capture a trace
+    myCpuService.setTraceId(0);
+    captureSuccessfully();
+
+    AspectObserver observer = new AspectObserver();
+    myStage.getAspect().addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_DETAILS, () -> myCaptureDetailsCalled = true);
+
+    myCaptureDetailsCalled = false;
+    // Capture another trace
+    myCpuService.setTraceId(1);
+    captureSuccessfully();
+
+    assertNotNull(myStage.getCapture());
+    assertEquals(myStage.getCapture(1), myStage.getCapture());
+    assertTrue(myCaptureDetailsCalled);
+  }
+
+  @Test
+  public void setSelectedThreadShouldChangeDetails() throws Exception {
+    captureSuccessfully();
+
+    AspectObserver observer = new AspectObserver();
+    myStage.getAspect().addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_DETAILS, () -> myCaptureDetailsCalled = true);
+
+    myCaptureDetailsCalled = false;
+    myStage.setSelectedThread(42);
+
+    assertEquals(42, myStage.getSelectedThread());
+    assertTrue(myCaptureDetailsCalled);
+  }
+
+  @Test
+  public void settingTheSameThreadDoesNothing() throws Exception {
+    myCpuService.setTraceId(0);
+    captureSuccessfully();
+
+    AspectObserver observer = new AspectObserver();
+    myStage.getAspect().addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_DETAILS, () -> myCaptureDetailsCalled = true);
+
+    myCaptureDetailsCalled = false;
+    myStage.setSelectedThread(42);
+    assertTrue(myCaptureDetailsCalled);
+
+    myCaptureDetailsCalled = false;
+    // Thread id is the same as the current selected thread, so it should do nothing
+    myStage.setSelectedThread(42);
+    assertFalse(myCaptureDetailsCalled);
+  }
+
+  @Test
+  public void settingTheSameDetailsTypeDoesNothing() throws Exception {
+    myCpuService.setTraceId(0);
+    captureSuccessfully();
+
+    AspectObserver observer = new AspectObserver();
+    myStage.getAspect().addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_DETAILS, () -> myCaptureDetailsCalled = true);
+    assertEquals(CaptureModel.Details.Type.TOP_DOWN, myStage.getCaptureDetails().getType());
+
+    myCaptureDetailsCalled = false;
+    // The first time we set it to bottom up, CAPTURE_DETAILS should be fired
+    myStage.setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP);
+    assertTrue(myCaptureDetailsCalled);
+
+    myCaptureDetailsCalled = false;
+    // If we call it again for bottom up, we shouldn't fire CAPTURE_DETAILS
+    myStage.setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP);
+    assertFalse(myCaptureDetailsCalled);
   }
 
   @Test
@@ -340,5 +411,4 @@ public class CpuProfilerStageTest extends AspectObserver {
     });
     myStage.stopCapturing();
   }
-
 }

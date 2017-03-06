@@ -58,15 +58,15 @@ import java.util.function.Function;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
 
 class CpuCaptureView {
-  private static final Map<String, CpuProfilerStage.CaptureDetails.Type> TABS = ImmutableMap.of(
-    "Top Down", CpuProfilerStage.CaptureDetails.Type.TOP_DOWN,
-    "Bottom Up", CpuProfilerStage.CaptureDetails.Type.BOTTOM_UP,
-    "Chart", CpuProfilerStage.CaptureDetails.Type.CHART);
+  private static final Map<String, CaptureModel.Details.Type> TABS = ImmutableMap.of(
+    "Top Down", CaptureModel.Details.Type.TOP_DOWN,
+    "Bottom Up", CaptureModel.Details.Type.BOTTOM_UP,
+    "Chart", CaptureModel.Details.Type.CHART);
 
-  private static final Map<CpuProfilerStage.CaptureDetails.Type, Consumer<FeatureTracker>> CAPTURE_TRACKERS = ImmutableMap.of(
-    CpuProfilerStage.CaptureDetails.Type.TOP_DOWN, FeatureTracker::trackSelectCaptureTopDown,
-    CpuProfilerStage.CaptureDetails.Type.BOTTOM_UP, FeatureTracker::trackSelectCaptureBottomUp,
-    CpuProfilerStage.CaptureDetails.Type.CHART, FeatureTracker::trackSelectCaptureFlameChart);
+  private static final Map<CaptureModel.Details.Type, Consumer<FeatureTracker>> CAPTURE_TRACKERS = ImmutableMap.of(
+    CaptureModel.Details.Type.TOP_DOWN, FeatureTracker::trackSelectCaptureTopDown,
+    CaptureModel.Details.Type.BOTTOM_UP, FeatureTracker::trackSelectCaptureBottomUp,
+    CaptureModel.Details.Type.CHART, FeatureTracker::trackSelectCaptureFlameChart);
 
   private static final Comparator<DefaultMutableTreeNode> DEFAULT_SORT_ORDER =
     Collections.reverseOrder(new DoubleValueNodeComparator(CpuTreeNode::getTotal));
@@ -79,7 +79,7 @@ class CpuCaptureView {
   private final TabsPanel myTabsPanel;
 
   @NotNull
-  private final ViewBinder<CpuProfilerStageView, CpuProfilerStage.CaptureDetails, CaptureDetailsView> myBinder;
+  private final ViewBinder<CpuProfilerStageView, CaptureModel.Details, CaptureDetailsView> myBinder;
 
   CpuCaptureView(@NotNull CpuProfilerStageView view) {
     myView = view;
@@ -103,9 +103,9 @@ class CpuCaptureView {
     myPanel.add(myTabsPanel.getComponent(), new TabularLayout.Constraint(0, 0, 2, 2));
 
     myBinder = new ViewBinder<>();
-    myBinder.bind(CpuProfilerStage.TopDown.class, TopDownView::new);
-    myBinder.bind(CpuProfilerStage.BottomUp.class, BottomUpView::new);
-    myBinder.bind(CpuProfilerStage.TreeChart.class, TreeChartView::new);
+    myBinder.bind(CaptureModel.TopDown.class, TopDownView::new);
+    myBinder.bind(CaptureModel.BottomUp.class, BottomUpView::new);
+    myBinder.bind(CaptureModel.TreeChart.class, TreeChartView::new);
 
     updateView();
   }
@@ -118,7 +118,7 @@ class CpuCaptureView {
       ((JPanel)tab).removeAll();
     }
 
-    CpuProfilerStage.CaptureDetails details = myView.getStage().getCaptureDetails();
+    CaptureModel.Details details = myView.getStage().getCaptureDetails();
     if (details == null) {
       return;
     }
@@ -140,7 +140,7 @@ class CpuCaptureView {
   }
 
   void setCaptureDetailToTab() {
-    CpuProfilerStage.CaptureDetails.Type type = TABS.get(myTabsPanel.getSelectedTab());
+    CaptureModel.Details.Type type = TABS.get(myTabsPanel.getSelectedTab());
     myView.getStage().setCaptureDetails(type);
 
     // TODO: Move this logic into setCaptureDetails later. Right now, if we do it, we track the
@@ -148,7 +148,6 @@ class CpuCaptureView {
     // probably have a guard condition.
     FeatureTracker tracker = myView.getStage().getStudioProfilers().getIdeServices().getFeatureTracker();
     CAPTURE_TRACKERS.getOrDefault(type, featureTracker -> {}).accept(tracker);
-
   }
 
   private static Logger getLog() {
@@ -270,7 +269,7 @@ class CpuCaptureView {
   }
 
   private static class TopDownView extends CaptureDetailsView {
-    private TopDownView(@NotNull CpuProfilerStageView view, @NotNull CpuProfilerStage.TopDown topDown) {
+    private TopDownView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.TopDown topDown) {
       TopDownTreeModel model = topDown.getModel();
       if (model == null) {
         myComponent = new JLabel("No data available");
@@ -284,7 +283,7 @@ class CpuCaptureView {
   }
 
   private static class BottomUpView extends CaptureDetailsView {
-    private BottomUpView(@NotNull CpuProfilerStageView view, @NotNull CpuProfilerStage.BottomUp bottomUp) {
+    private BottomUpView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.BottomUp bottomUp) {
       BottomUpTreeModel model = bottomUp.getModel();
       if (model == null) {
         myComponent = new JLabel("No data available");
@@ -325,7 +324,7 @@ class CpuCaptureView {
   }
 
   private static class TreeChartView extends CaptureDetailsView {
-    private TreeChartView(@NotNull CpuProfilerStageView view, @NotNull CpuProfilerStage.TreeChart treeChart) {
+    private TreeChartView(@NotNull CpuProfilerStageView view, @NotNull CaptureModel.TreeChart treeChart) {
       HTreeChart<MethodModel> chart = new HTreeChart<>(treeChart.getRange());
       chart.setHRenderer(new SampledMethodUsageHRenderer());
       chart.setHTree(treeChart.getNode());
