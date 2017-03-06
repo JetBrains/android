@@ -197,12 +197,15 @@ final public class StudioProfilersTest {
 
     int dataNow = nowInSeconds - StudioProfilers.TIMELINE_BUFFER;
     assertEquals(TimeUnit.SECONDS.toMicros(dataNow), profilers.getTimeline().getDataRange().getMin(), 0.001);
-    assertEquals(TimeUnit.SECONDS.toMicros(dataNow), profilers.getTimeline().getDataRange().getMax(), 0.001);
+    // Because we check for System.nanotime when we update devices, we need to set the delta for the test to account for the time
+    // it takes for the execution path to go from setDevice, to setProcess where the timeline gets reset and we calculate the deice time.
+    // same with below.
+    assertEquals(TimeUnit.SECONDS.toMicros(dataNow), profilers.getTimeline().getDataRange().getMax(), TimeUnit.MILLISECONDS.toMicros(10));
 
     timer.tick(FakeTimer.ONE_SECOND_IN_NS * 5);
 
     assertEquals(TimeUnit.SECONDS.toMicros(dataNow), profilers.getTimeline().getDataRange().getMin(), 0.001);
-    assertEquals(TimeUnit.SECONDS.toMicros(dataNow + 5), profilers.getTimeline().getDataRange().getMax(), 0.001);
+    assertEquals(TimeUnit.SECONDS.toMicros(dataNow + 5), profilers.getTimeline().getDataRange().getMax(), TimeUnit.MILLISECONDS.toMicros(10));
   }
 
   @Test
