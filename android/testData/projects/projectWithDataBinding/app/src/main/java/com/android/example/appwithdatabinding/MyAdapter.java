@@ -5,4 +5,9 @@ public class MyAdapter {
   public void bindFoo(android.view.View view, String foo) {
 
   }
+
+  @BindingAdapter("my_binding_attribute")
+  public void bindTestSetter(android.view.View view, String foo) {
+
+  }
 }

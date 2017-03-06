@@ -36,7 +36,7 @@ public class DataBindingDomFileDescription extends LayoutDomFileDescription<Layo
     return super.isMyFile(file, module) && hasDataBindingRootTag(file);
   }
 
-  static boolean hasDataBindingRootTag(@NotNull XmlFile file) {
+  public static boolean hasDataBindingRootTag(@NotNull XmlFile file) {
     final XmlTag rootTag = file.getRootTag();
     return rootTag != null && TAG_LAYOUT.equals(rootTag.getName());
   }
