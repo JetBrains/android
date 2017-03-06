@@ -164,12 +164,8 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     }
 
     ValidationError topError = Ordering.natural().max(errors);
-    switch (topError.getCategory()) {
-      case PROFILER:
-        myTabbedPane.setSelectedComponent(myAndroidProfilersPanel.getComponent());
-        break;
-      default:
-        break;
+    if (ValidationError.Category.PROFILER.equals(topError.getCategory())) {
+      myTabbedPane.setSelectedComponent(myAndroidProfilersPanel.getComponent());
     }
   }
 
