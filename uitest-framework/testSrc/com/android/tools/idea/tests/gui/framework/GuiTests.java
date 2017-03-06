@@ -396,7 +396,7 @@ public final class GuiTests {
 
     // First find the JBList which holds the popup. There could be other JBLists in the hierarchy,
     // so limit it to one that is actually used as a popup, as identified by its model being a ListPopupModel:
-    JBList list = robot.finder().find(root, new GenericTypeMatcher<JBList>(JBList.class) {
+    JBList list = waitUntilShowing(robot, root, new GenericTypeMatcher<JBList>(JBList.class) {
       @Override
       protected boolean isMatching(@NotNull JBList list) {
         ListModel model = list.getModel();
