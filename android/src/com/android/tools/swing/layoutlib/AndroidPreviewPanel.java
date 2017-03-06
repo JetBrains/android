@@ -100,6 +100,10 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
 
         synchronized (myGraphicsLayoutRendererLock) {
           myGraphicsLayoutRenderer = graphicsLayoutRenderer;
+          if (myNeedsRepaint) {
+            repaint();
+            myNeedsRepaint = false;
+          }
         }
       }
       catch (AlreadyDisposedException e) {
@@ -179,6 +183,7 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
   private Dimension myLastRenderedSize;
   private Dimension myCachedPreferredSize;
   private int myCurrentWidth;
+  private boolean myNeedsRepaint;
 
   @VisibleForTesting
   AndroidPreviewPanel(@NotNull Configuration configuration,
@@ -282,6 +287,9 @@ public class AndroidPreviewPanel extends JComponent implements Scrollable, Dispo
           myLastRenderedSize = renderSize;
           revalidate();
         }
+      }
+      else {
+        myNeedsRepaint = true;
       }
     }
   }
