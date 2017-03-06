@@ -87,6 +87,10 @@ public class SelectionModel extends AspectModel<SelectionModel.Aspect> {
     myListeners.add(listener);
   }
 
+  public void clearListeners() {
+    myListeners.clear();
+  }
+
   private void fireListeners() {
     if (myIsUpdating) {
       myPostponeSelectionEvent = true;
