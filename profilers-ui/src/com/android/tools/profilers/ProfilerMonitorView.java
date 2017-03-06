@@ -78,7 +78,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
 
   @NotNull
   public String getDisabledMessage() {
-    return "Advanced profiling is unavailable";
+    return "Advanced profiling is unavailable for the selected process";
   }
 
   private void monitorEnabledChanged() {
@@ -98,7 +98,7 @@ public abstract class ProfilerMonitorView<T extends ProfilerMonitor> extends Asp
       myContainer.add(disabledMessage, new TabularLayout.Constraint(0, 0, 3));
 
       HyperlinkLabel linkToConfigMessage = new HyperlinkLabel();
-      linkToConfigMessage.setHyperlinkText("Configure this setting in the Run Configuration dialog ", "here", "");
+      linkToConfigMessage.setHyperlinkText("Configure this setting in the ", "Run Configuration dialog", "");
       linkToConfigMessage.addHyperlinkListener(new HyperlinkAdapter() {
         @Override
         protected void hyperlinkActivated(HyperlinkEvent e) {
