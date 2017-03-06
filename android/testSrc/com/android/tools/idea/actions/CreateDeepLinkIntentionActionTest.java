@@ -40,7 +40,7 @@ public class CreateDeepLinkIntentionActionTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    TemplateManagerImpl.setTemplateTesting(getProject(), getTestRootDisposable());
+    TemplateManagerImpl.setTemplateTesting(getProject(), getProject());
   }
 
   public void testCreateDeepLinkIntentFilter() throws Exception {
