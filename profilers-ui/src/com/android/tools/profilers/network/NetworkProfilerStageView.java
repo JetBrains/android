@@ -67,10 +67,12 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     myConnectionsPanel.add(myConnectionsScroller, CARD_CONNECTIONS);
 
     // TODO: Add this help link in as soon as we are notified that it is hooked up
-    //InfoMessagePanel.UrlData learnMoreData =
-    //  new InfoMessagePanel.UrlData("Learn More", "https://developer.android.com/r/studio-ui/network-profiler-troubleshoot.html");
+    InfoMessagePanel.UrlData learnMoreData =
+      new InfoMessagePanel.UrlData("Learn More",
+                                   "https://developer.android.com/r/studio-ui/network-profiler-troubleshoot-connections.html");
     JPanel infoPanel =
-      new InfoMessagePanel("Network Profiling Data Unavailable", "There is no information for the network traffic you've selected.", null);
+      new InfoMessagePanel("Network Profiling Data Unavailable", "There is no information for the network traffic you've selected.",
+                           learnMoreData);
     infoPanel.setName(CARD_INFO);
     myConnectionsPanel.add(infoPanel, CARD_INFO);
 
