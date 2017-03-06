@@ -47,10 +47,11 @@ public interface DeviceExplorerFileManager {
    * the best editor type.
    *
    * <ul>
-   * <li>Throws a {@link RuntimeException} exception if the file can not be opened.</li>
-   * <li>Throws a {@link java.util.concurrent.CancellationException} if the user cancels
-   * the editor type dialog.</li>
+   * <li>Completes with a {@link RuntimeException} if the file can not be opened.</li>
+   * <li>Completes with a {@link java.util.concurrent.CancellationException} if the user cancels
+   * the 'choose editor type' dialog.</li>
    * </ul>
    */
-  void openFileInEditor(@NotNull Path localPath, boolean focusEditor);
+  @NotNull
+  ListenableFuture<Void> openFileInEditor(@NotNull Path localPath, boolean focusEditor);
 }
