@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.profilers.ProfilerColors;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ExpandedItemRendererComponentWrapper;
@@ -190,6 +191,7 @@ final class ConnectionsView {
     });
 
     myConnectionsTable.setFont(AdtUiUtils.DEFAULT_FONT);
+    myConnectionsTable.setBackground(ProfilerColors.MONITOR_BACKGROUND);
     myConnectionsTable.setShowVerticalLines(true);
     myConnectionsTable.setShowHorizontalLines(false);
     int defaultFontHeight = myConnectionsTable.getFontMetrics(AdtUiUtils.DEFAULT_FONT).getHeight();
