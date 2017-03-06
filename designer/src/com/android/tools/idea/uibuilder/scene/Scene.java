@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,6 +56,9 @@ import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIU
  */
 public class Scene implements SelectionListener {
 
+  @SwingCoordinate
+  private static final int DRAG_THRESHOLD = JBUI.scale(10);
+
   private final SceneView mySceneView;
   private static final boolean DEBUG = false;
   private final HashMap<NlComponent, SceneComponent> mySceneComponents = new HashMap<>();
@@ -70,6 +74,11 @@ public class Scene implements SelectionListener {
   private SceneComponent myDnDComponent;
 
   private int mNeedsLayout = NO_LAYOUT;
+
+  @AndroidDpCoordinate
+  protected int myPressedMouseX;
+  @AndroidDpCoordinate
+  protected int myPressedMouseY;
 
   private int myLastMouseX;
   private int myLastMouseY;
@@ -743,6 +752,9 @@ public class Scene implements SelectionListener {
   }
 
   public void mouseDown(@NotNull SceneContext transform, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    myPressedMouseX = x;
+    myPressedMouseY = y;
+
     mNeedsLayout = NO_LAYOUT;
     myLastMouseX = x;
     myLastMouseY = y;
@@ -751,7 +763,6 @@ public class Scene implements SelectionListener {
       return;
     }
     myHitListener.find(transform, myRoot, x, y);
-    myHitTarget = null;
     myHitTarget = myHitListener.getClosestTarget();
     myHitComponent = myHitListener.getClosestComponent();
     if (myHitTarget != null) {
@@ -781,6 +792,14 @@ public class Scene implements SelectionListener {
     myLastMouseX = x;
     myLastMouseY = y;
     if (myHitTarget != null) {
+      // if component is not yet being dragged, is not selected and is only moved a tiny bit, then dont do anything as the user is just trying to select it.
+      if (!myHitTarget.getComponent().isDragging() &&
+          !mySceneView.getSelectionModel().isSelected(myHitTarget.getComponent().getNlComponent()) &&
+          isWithinThreshold(myPressedMouseX, x) &&
+          isWithinThreshold(myPressedMouseY, y)) {
+        return;
+      }
+
       myHitListener.find(transform, myRoot, x, y);
       myHitTarget.mouseDrag(x, y, myHitListener.getClosestTarget());
       myHitTarget.getComponent().setDragging(true);
@@ -790,6 +809,12 @@ public class Scene implements SelectionListener {
     }
     mouseHover(transform, x, y);
     checkRequestLayoutStatus();
+  }
+
+  private boolean isWithinThreshold(@AndroidDpCoordinate int pos1, @AndroidDpCoordinate int pos2) {
+    @SwingCoordinate int pos3 = Coordinates.getSwingYDip(mySceneView, pos1);
+    @SwingCoordinate int pos4 = Coordinates.getSwingYDip(mySceneView, pos2);
+    return Math.abs(pos3 - pos4) < DRAG_THRESHOLD;
   }
 
   void checkRequestLayoutStatus() {
@@ -802,9 +827,9 @@ public class Scene implements SelectionListener {
     myLastMouseX = x;
     myLastMouseY = y;
     if (myHitTarget != null) {
-      myHitTarget.getComponent().setDragging(false);
       myHitListener.find(transform, myRoot, x, y);
       myHitTarget.mouseRelease(x, y, myHitListener.getFilteredTarget(myHitTarget));
+      myHitTarget.getComponent().setDragging(false);
       if (myHitTarget instanceof DragTarget) {
         delegateMouseReleaseToSelection(x, y, myHitListener.getClosestTarget(), myHitTarget.getComponent());
       }

@@ -67,6 +67,19 @@ public class SceneDragTest extends SceneTest {
                  "    tools:layout_editor_absoluteY=\"490dp\"/>");
   }
 
+  public void testDragTooSmall() {
+    // if the drag is too small, do not move anything if its not selected
+    myInteraction.mouseDown("button");
+    myInteraction.mouseRelease("button", 2, 2);
+    myScreen.get("@id/button")
+      .expectXml("<TextView\n" +
+                 "    android:id=\"@id/button\"\n" +
+                 "    android:layout_width=\"100dp\"\n" +
+                 "    android:layout_height=\"20dp\"\n" +
+                 "    tools:layout_editor_absoluteX=\"100dp\"\n" +
+                 "    tools:layout_editor_absoluteY=\"200dp\"/>");
+  }
+
   public void testDragTooSmallWidget() {
     // click on the center, offset by (6, 6) -- so this should be outside of
     // the widget bounds, unless we correctly expanded the target.
