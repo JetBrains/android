@@ -72,7 +72,7 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
     myListModel = new DefaultListModel<>();
     myListView = new JBList(myListModel);
     myListView.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    myListView.setBackground(ProfilerColors.MONITOR_BACKGROUND);
+    myListView.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myListView.setCellRenderer(new StackElementRenderer());
     myScrollPane = new JBScrollPane(myListView);
     myScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);

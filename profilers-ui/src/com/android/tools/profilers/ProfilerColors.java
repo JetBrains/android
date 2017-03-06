@@ -57,7 +57,7 @@ public class ProfilerColors {
 
   public static final Color THREAD_SELECTED_BACKGROUND = new JBColor(0x3476DC, 0x3476DC);
 
-  public static final Color MONITOR_BACKGROUND = new JBColor(0xFFFFFF, 0x313335);
+  public static final Color DEFAULT_BACKGROUND = new JBColor(0xFFFFFF, 0x313335);
 
   public static final Color MONITOR_FOCUSED = new JBColor(0xF5F7F8, 0x2B2C2D);
 
