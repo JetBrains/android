@@ -1372,8 +1372,13 @@ public class DeviceExplorerController {
       myEdtExecutor.addCallback(futureEntries, new FutureCallback<List<DeviceFileEntry>>() {
         @Override
         public void onSuccess(List<DeviceFileEntry> result) {
+          if (!Objects.equals(treeModel, getTreeModel())) {
+            // We switched to another device, ignore this callback
+            return;
+          }
+
           // Save selection
-          TreePath[] oldSelections = getTreeSelectionModel().getSelectionPaths();
+          TreePath[] oldSelections = treeSelectionModel.getSelectionPaths();
 
           // Collect existing entries that have the "isLinkToDirectory" property set
           Set<String> isLinkToDirectory = node.getChildEntryNodes().stream()
