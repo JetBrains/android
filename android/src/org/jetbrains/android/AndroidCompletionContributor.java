@@ -17,6 +17,7 @@ package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.android.tools.idea.lang.databinding.DataBindingCompletionUtil;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
@@ -24,7 +25,9 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInsight.lookup.LookupElementDecorator;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -45,10 +48,7 @@ import org.jetbrains.android.dom.converters.FlagConverter;
 import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
 import org.jetbrains.android.dom.drawable.fileDescriptions.DrawableStateListDomFileDescription;
 import org.jetbrains.android.dom.font.FontFamilyDomFileDescription;
-import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
-import org.jetbrains.android.dom.layout.Data;
-import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
-import org.jetbrains.android.dom.layout.LayoutElement;
+import org.jetbrains.android.dom.layout.*;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.dom.raw.RawDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomFileDescription;
@@ -208,6 +208,7 @@ public class AndroidCompletionContributor extends CompletionContributor {
       if (SdkConstants.TOOLS_URI.equals(namespace)) {
         addDesignTimeAttributes(attribute.getNamespacePrefix(), position, facet, attribute, resultSet);
       }
+      addDataBindingAttributes(attribute.getNamespacePrefix(), position, facet, attribute, resultSet);
       customizeAddedAttributes(facet, parameters, attribute, resultSet);
     }
     else if (originalParent instanceof XmlAttributeValue) {
@@ -392,6 +393,35 @@ public class AndroidCompletionContributor extends CompletionContributor {
       };
     }
     return result.withLookupElement(PrioritizedLookupElement.withPriority(lookupElement, 100.0));
+  }
+
+  /**
+   * Adds the XML attributes that come from {@code @BindingAdapter} annotations
+   */
+  private static void addDataBindingAttributes(@NotNull String prefix,
+                                               @NotNull PsiElement position,
+                                               @NotNull AndroidFacet facet,
+                                               @NotNull XmlAttribute attribute,
+                                               @NotNull CompletionResultSet resultSet) {
+    PsiFile containingFile = attribute.getContainingFile();
+    if (!(containingFile instanceof XmlFile) || !DataBindingDomFileDescription.hasDataBindingRootTag((XmlFile)containingFile)) {
+      // Not a databinding XML layout
+      return;
+    }
+
+    Module module = facet.getModule();
+    DataBindingProjectComponent dataBindingComponent = module.getProject().getComponent(DataBindingProjectComponent.class);
+    if (dataBindingComponent == null) {
+      return;
+    }
+
+    dataBindingComponent.getBindingAdapterAttributes(module).forEach((dataBindingAttribute) -> {
+      if (!prefix.isEmpty()) {
+        dataBindingAttribute = StringUtil.trimStart(dataBindingAttribute, prefix + ":");
+      }
+      resultSet.addElement(LookupElementBuilder.create(position, dataBindingAttribute)
+                             .withInsertHandler(XmlAttributeInsertHandler.INSTANCE));
+    });
   }
 
   private static void completeDataBindingTypeAttr(CompletionParameters parameters,

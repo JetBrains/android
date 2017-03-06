@@ -17,9 +17,11 @@
 package org.jetbrains.android.dom;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.databinding.DataBindingProjectComponent;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -48,6 +50,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
@@ -309,15 +312,27 @@ public class AndroidDomUtil {
       }
     }
 
-
+    AttributeDefinition definition = null;
     ResourceManager manager = ModuleResourceManagers.getInstance(facet).getResourceManager(isFramework ? SYSTEM_RESOURCE_PACKAGE : null);
     if (manager != null) {
       AttributeDefinitions attrDefs = manager.getAttributeDefinitions();
       if (attrDefs != null) {
-        return attrDefs.getAttrDefByName(localName);
+        definition = attrDefs.getAttrDefByName(localName);
       }
     }
-    return null;
+
+    if (definition == null) {
+      Module module = facet.getModule();
+      DataBindingProjectComponent dataBindingComponent = module.getProject().getComponent(DataBindingProjectComponent.class);
+      if (dataBindingComponent != null) {
+        Set<String> bindingAttributes = dataBindingComponent.getBindingAdapterAttributes(module).collect(Collectors.toSet());
+        if (bindingAttributes.contains(attribute.getName())) {
+          definition = new AttributeDefinition(localName);
+        }
+      }
+    }
+
+    return definition;
   }
 
   @NotNull
