@@ -192,12 +192,15 @@ public class ProfilerTimelineTest {
 
   @Test
   public void testReset() throws Exception {
+    // Using custom time converter so we do not need ot lerp the default view offset.
+    RelativeTimeConverter relativeTimeConverter = new RelativeTimeConverter(ProfilerTimeline.DEFAULT_VIEW_LENGTH_US);
     ProfilerTimeline timeline = new ProfilerTimeline(myRelativeTimeConverter);
     assertFalse(timeline.isStreaming());
-
+    Range dataRange = timeline.getDataRange();
+    Range viewRange = timeline.getViewRange();
     long deviceStartTimeNs = 20;
     RelativeTimeConverter converter = new RelativeTimeConverter(deviceStartTimeNs);
-    timeline.reset(converter);
+    timeline.reset(converter, 0);
 
     // Timeline should be streaming after reset
     assertTrue(timeline.isStreaming());
@@ -212,5 +215,23 @@ public class ProfilerTimelineTest {
     assertEquals(TimeUnit.NANOSECONDS.toMicros(deviceStartTimeNs) - ProfilerTimeline.DEFAULT_VIEW_LENGTH_US,
                  timeline.getViewRange().getMin(), 0);
     assertEquals(TimeUnit.NANOSECONDS.toMicros(deviceStartTimeNs), timeline.getViewRange().getMax(), 0);
+
+    timeline.update(TimeUnit.SECONDS.toNanos(1));
+    //Validate that our max is equal to our initial of DEFAULT_VIEW_LENGTH + 1 second update.
+    assertEquals(TimeUnit.SECONDS.toMicros(1),
+                 dataRange.getMax(),
+                 0);
+
+    timeline.reset(myRelativeTimeConverter, TimeUnit.SECONDS.toNanos(1));
+    assertEquals(dataRange.getMax(), viewRange.getMax(), 0);
+    assertEquals(ProfilerTimeline.DEFAULT_VIEW_LENGTH_US, viewRange.getLength(), 0);
+
+    timeline.update(TimeUnit.SECONDS.toNanos(1));
+    assertEquals(dataRange.getMax(), viewRange.getMax(), dataRange.getMax() * .05f);
+    assertEquals(ProfilerTimeline.DEFAULT_VIEW_LENGTH_US, viewRange.getLength(), 0);
+    //Validate that our max is equal to our initial of DEFAULT_VIEW_LENGTH + 1 second initial + 1 second update.
+    assertEquals(TimeUnit.SECONDS.toMicros(2),
+                 dataRange.getMax(),
+                 0);
   }
 }
