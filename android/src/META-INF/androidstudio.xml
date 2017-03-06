@@ -70,6 +70,10 @@
       <add-to-group group-id="NavBarToolBar" anchor="before" relative-to-action="ShowProjectStructureSettings" />
     </group>
 
+    <action id="WelcomeScreen.AndroidStudio.apkProfilingAndDebugging"
+            class="com.android.tools.idea.apk.ImportApkAction">
+      <add-to-group group-id="WelcomeScreen.QuickStart" relative-to-action="WelcomeScreen.ImportProject" anchor="before"/>
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
