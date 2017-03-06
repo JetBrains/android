@@ -19,11 +19,10 @@ import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
+import com.android.tools.idea.explorer.FutureCallbackExecutor;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,18 +33,21 @@ import java.util.concurrent.Executor;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
-import static com.android.ddmlib.FileListingService.*;
+import static com.android.ddmlib.FileListingService.LS_LD_PATTERN;
+import static com.android.ddmlib.FileListingService.LS_L_PATTERN;
 
 public class AdbFileListing {
   @NotNull public static final Logger LOGGER = Logger.getInstance(AdbFileListing.class);
 
   @NotNull private final IDevice myDevice;
-  @NotNull private final Executor myExecutor;
+  @NotNull private AdbDeviceCapabilities myDeviceCapabilities;
+  @NotNull private final FutureCallbackExecutor myExecutor;
   @NotNull private final AdbFileListingEntry myRoot;
 
-  public AdbFileListing(@NotNull IDevice device, @NotNull Executor taskExecutor) {
+  public AdbFileListing(@NotNull IDevice device, @NotNull AdbDeviceCapabilities deviceCapabilities, @NotNull Executor taskExecutor) {
     myDevice = device;
-    myExecutor = taskExecutor;
+    myDeviceCapabilities = deviceCapabilities;
+    myExecutor = FutureCallbackExecutor.wrap(taskExecutor);
     myRoot = new AdbFileListingEntry("/",
                                      AdbFileListingEntry.EntryKind.DIRECTORY,
                                      null,
@@ -64,17 +66,21 @@ public class AdbFileListing {
 
   @NotNull
   public ListenableFuture<List<AdbFileListingEntry>> getChildren(@NotNull AdbFileListingEntry parentEntry) {
-    SettableFuture<List<AdbFileListingEntry>> futureResult = SettableFuture.create();
-    myExecutor.execute(() -> {
-      try {
-        List<AdbFileListingEntry> result = listChildren(parentEntry);
-        futureResult.set(result);
+    return myExecutor.executeAsync(() -> {
+      // Run "ls -l" command and process matching output lines
+      String command = getCommand("ls -l ").withDirectoryEscapedPath(parentEntry.getFullPath()).build(); //$NON-NLS-1$
+      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+
+      List<AdbFileListingEntry> entries = commandResult.getOutput()
+        .stream()
+        .map(x -> processLsOutputLine(parentEntry, x))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+      if (entries.isEmpty() && commandResult.isError()) {
+        commandResult.throwIfError();
       }
-      catch (Throwable t) {
-        futureResult.setException(t);
-      }
+      return entries;
     });
-    return futureResult;
   }
 
   /**
@@ -85,86 +91,34 @@ public class AdbFileListing {
    */
   @NotNull
   public ListenableFuture<Boolean> isDirectoryLink(@NotNull AdbFileListingEntry entry) {
-    SettableFuture<Boolean> futureResult = SettableFuture.create();
+    if (!entry.isSymbolicLink()) {
+      return Futures.immediateFuture(false);
+    }
 
-    myExecutor.execute(() -> {
-      try {
-        // We simply need to determine whether the referent is a directory or not.
-        // We do this by running `ls -ld ${link}/`.  If the referent exists and is a
-        // directory, we'll see the normal directory listing.  Otherwise, we'll see an
-        // error of some sort.
-        String command = String.format("ls -l -d %s", getEscapedDirectoryPath(entry.getFullPath()));
-        AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommandNoErrorCheck(myDevice, command);
+    return myExecutor.executeAsync(() -> {
+      // We simply need to determine whether the referent is a directory or not.
+      // We do this by running `ls -ld ${link}/`.  If the referent exists and is a
+      // directory, we'll see the normal directory listing.  Otherwise, we'll see an
+      // error of some sort.
+      String command = getCommand("ls -l -d ").withDirectoryEscapedPath(entry.getFullPath()).build();
+      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommandNoErrorCheck(myDevice, command);
 
-        // Look for at least one line matching the expected output
-        int lineCount = 0;
-        for (String line : commandResult.getOutput()) {
-          Matcher m = LS_LD_PATTERN.matcher(line);
-          if (m.matches()) {
-            if (lineCount > 0) {
-              // It is odd to have more than one line matching "ls -l -d"
-              LOGGER.warn(String.format("Unexpected additional output line matching result of ld -l -d: %s", line));
-            }
-            lineCount++;
+      // Look for at least one line matching the expected output
+      int lineCount = 0;
+      for (String line : commandResult.getOutput()) {
+        Matcher m = LS_LD_PATTERN.matcher(line);
+        if (m.matches()) {
+          if (lineCount > 0) {
+            // It is odd to have more than one line matching "ls -l -d"
+            LOGGER.warn(String.format("Unexpected additional output line matching result of ld -l -d: %s", line));
           }
+          lineCount++;
         }
+      }
 
-        // All done
-        futureResult.set(lineCount > 0);
-      }
-      catch (Throwable t) {
-        futureResult.setException(t);
-      }
+      // All done
+      return lineCount > 0;
     });
-
-    return futureResult;
-  }
-
-  @NotNull
-  public static String getEscapedPath(@NotNull String path) {
-    // Special case for root
-    if (FILE_SEPARATOR.equals(path)) {
-      return path;
-    }
-
-    // Escape each segment, then re-join them by file separator
-    return StringUtil.split(path, FILE_SEPARATOR)
-      .stream()
-      .map(x -> FILE_SEPARATOR + FileEntry.escape(x))
-      .collect(Collectors.joining());
-  }
-
-  /**
-   * If we expect a file to behave like a directory, we should stick a "/" at the end.
-   * This is a good habit, and is mandatory for symlinks-to-directories, which will
-   * otherwise behave like symlinks.
-   */
-  @NotNull
-  private static String getEscapedDirectoryPath(@NotNull String path) {
-    String result = getEscapedPath(path);
-    if (!result.endsWith(FILE_SEPARATOR)) {
-      result += FILE_SEPARATOR;
-    }
-    return result;
-  }
-
-  @NotNull
-  private List<AdbFileListingEntry> listChildren(@NotNull AdbFileListingEntry entry)
-    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, AdbShellCommandException {
-
-    // Run "ls -l" command and process matching output lines
-    String command = String.format("ls -l %s", getEscapedDirectoryPath(entry.getFullPath())); //$NON-NLS-1$
-    AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
-
-    List<AdbFileListingEntry> entries = commandResult.getOutput()
-      .stream()
-      .map(x -> processLsOutputLine(entry, x))
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
-    if (entries.isEmpty() && commandResult.isError()) {
-      commandResult.throwIfError();
-    }
-    return entries;
   }
 
   @Nullable
@@ -247,5 +201,15 @@ public class AdbFileListing {
                                    time,
                                    size,
                                    info);
+  }
+
+  @NotNull
+  private AdbShellCommandBuilder getCommand(@NotNull String text)
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+    AdbShellCommandBuilder command = new AdbShellCommandBuilder();
+    if (myDeviceCapabilities.supportsSuRootCommand()) {
+      command.withSuRootPrefix();
+    }
+    return command.withText(text);
   }
 }

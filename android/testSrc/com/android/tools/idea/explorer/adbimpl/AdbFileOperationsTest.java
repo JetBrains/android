@@ -68,7 +68,7 @@ public class AdbFileOperationsTest {
     mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+    AdbFileOperations fileOperations = new AdbFileOperations(device, new AdbDeviceCapabilities(device), taskExecutor);
 
     // Act
     Void result = waitForFuture(fileOperations.createNewFile("/sdcard", "foo.txt"));
@@ -84,7 +84,7 @@ public class AdbFileOperationsTest {
     mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+    AdbFileOperations fileOperations = new AdbFileOperations(device, new AdbDeviceCapabilities(device), taskExecutor);
 
     // Act/Assert
     thrown.expect(ExecutionException.class);
@@ -99,7 +99,7 @@ public class AdbFileOperationsTest {
     mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+    AdbFileOperations fileOperations = new AdbFileOperations(device, new AdbDeviceCapabilities(device), taskExecutor);
 
     // Act/Assert
     thrown.expect(ExecutionException.class);
@@ -114,7 +114,7 @@ public class AdbFileOperationsTest {
     mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+    AdbFileOperations fileOperations = new AdbFileOperations(device, new AdbDeviceCapabilities(device), taskExecutor);
 
     // Act/Assert
     thrown.expect(ExecutionException.class);
@@ -129,7 +129,7 @@ public class AdbFileOperationsTest {
     mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+    AdbFileOperations fileOperations = new AdbFileOperations(device, new AdbDeviceCapabilities(device), taskExecutor);
 
     // Act/Assert
     thrown.expect(ExecutionException.class);
@@ -144,7 +144,7 @@ public class AdbFileOperationsTest {
     mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+    AdbFileOperations fileOperations = new AdbFileOperations(device, new AdbDeviceCapabilities(device), taskExecutor);
 
     // Act
     Void result = waitForFuture(fileOperations.createNewDirectory("/sdcard", "foo-dir"));
@@ -160,7 +160,7 @@ public class AdbFileOperationsTest {
     mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+    AdbFileOperations fileOperations = new AdbFileOperations(device, new AdbDeviceCapabilities(device), taskExecutor);
 
     // Act
 
@@ -177,7 +177,7 @@ public class AdbFileOperationsTest {
     mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+    AdbFileOperations fileOperations = new AdbFileOperations(device, new AdbDeviceCapabilities(device), taskExecutor);
 
     // Act
 
@@ -194,7 +194,7 @@ public class AdbFileOperationsTest {
     mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+    AdbFileOperations fileOperations = new AdbFileOperations(device, new AdbDeviceCapabilities(device), taskExecutor);
 
     // Act
 
@@ -211,7 +211,7 @@ public class AdbFileOperationsTest {
     mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+    AdbFileOperations fileOperations = new AdbFileOperations(device, new AdbDeviceCapabilities(device), taskExecutor);
 
     // Act
 
@@ -228,7 +228,7 @@ public class AdbFileOperationsTest {
     mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+    AdbFileOperations fileOperations = new AdbFileOperations(device, new AdbDeviceCapabilities(device), taskExecutor);
 
     // Act
     Void result = waitForFuture(fileOperations.deleteFile("/sdcard/foo.txt"));
@@ -244,7 +244,7 @@ public class AdbFileOperationsTest {
     mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+    AdbFileOperations fileOperations = new AdbFileOperations(device, new AdbDeviceCapabilities(device), taskExecutor);
 
     // Act/Assert
     thrown.expect(ExecutionException.class);
@@ -259,7 +259,7 @@ public class AdbFileOperationsTest {
     mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+    AdbFileOperations fileOperations = new AdbFileOperations(device, new AdbDeviceCapabilities(device), taskExecutor);
 
     // Act/Assert
     thrown.expect(ExecutionException.class);
@@ -274,7 +274,7 @@ public class AdbFileOperationsTest {
     mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+    AdbFileOperations fileOperations = new AdbFileOperations(device, new AdbDeviceCapabilities(device), taskExecutor);
 
     // Act
     Void result = waitForFuture(fileOperations.deleteRecursive("/sdcard/foo-dir"));
@@ -290,7 +290,7 @@ public class AdbFileOperationsTest {
     mySetupCommands.accept(commands);
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
-    AdbFileOperations fileOperations = new AdbFileOperations(device, taskExecutor);
+    AdbFileOperations fileOperations = new AdbFileOperations(device, new AdbDeviceCapabilities(device), taskExecutor);
 
     // Act/Assert
     thrown.expect(ExecutionException.class);
@@ -303,6 +303,9 @@ public class AdbFileOperationsTest {
    */
   private static void addNexus7Api23Commands(@NotNull TestShellCommands commands) {
     commands.setDescription("Nexus 7, Android 6.0.1, API 23");
+
+    // "su" capability detection
+    addFailedCommand(commands, "su 0 id", "/system/bin/sh: su: not found\n");
 
     // "test" capability detection
     addCommand(commands, "echo >/data/local/tmp/device-explorer/.__temp_test_test__file__.tmp", "");
@@ -348,6 +351,9 @@ public class AdbFileOperationsTest {
   private static void addEmulatorApi10Commands(@NotNull TestShellCommands commands) {
     commands.setDescription("Nexus 5, Android 2.3.7, API 10");
 
+    // "su" capability detection
+    addCommand(commands, "su 0 id", "uid=0(root) gid=0(root)\n");
+
     // "test" capability detection
     addCommand(commands, "echo >/data/local/tmp/device-explorer/.__temp_test_test__file__.tmp", "");
     addFailedCommand(commands, "test -e /data/local/tmp/device-explorer/.__temp_test_test__file__.tmp", "test: not found\n");
@@ -358,32 +364,33 @@ public class AdbFileOperationsTest {
 
     // "rm -f" capability detection
     addCommand(commands, "echo >/data/local/tmp/device-explorer/.__temp_rm_test_file__.tmp", "");
-    addFailedCommand(commands, "rm -f /data/local/tmp/device-explorer/.__temp_rm_test_file__.tmp", "rm failed for -f, Read-only file system\n");
+    addFailedCommand(commands, "rm -f /data/local/tmp/device-explorer/.__temp_rm_test_file__.tmp",
+                     "rm failed for -f, Read-only file system\n");
     addCommand(commands, "rm /data/local/tmp/device-explorer/.__temp_rm_test_file__.tmp", "");
 
-    addFailedCommand(commands, "ls -d -a /foo.txt", "/foo.txt: No such file or directory\n");
+    addFailedCommand(commands, "su 0 ls -d -a /foo.txt", "/foo.txt: No such file or directory\n");
 
-    addFailedCommand(commands, "echo -n >/foo.txt", "cannot create /foo.txt: read-only file system\n");
+    addFailedCommand(commands, "su 0 cat </dev/null >/foo.txt", "cannot create /foo.txt: read-only file system\n");
 
-    addCommand(commands, "ls -d -a /default.prop", "");
+    addCommand(commands, "su 0 ls -d -a /default.prop", "/default.prop\n");
 
-    addFailedCommand(commands, "ls -d -a /sdcard/foo.txt", "/sdcard/foo.txt: No such file or directory\n");
-    addCommand(commands, "echo -n >/sdcard/foo.txt", "");
+    addFailedCommand(commands, "su 0 ls -d -a /sdcard/foo.txt", "/sdcard/foo.txt: No such file or directory\n");
+    addCommand(commands, "su 0 cat </dev/null >/sdcard/foo.txt", "");
 
-    addFailedCommand(commands, "ls -d -a /system/foo.txt", "/system/foo.txt: No such file or directory\n");
-    addFailedCommand(commands, "echo -n >/system/foo.txt", "cannot create /system/foo.txt: read-only file system\n");
+    addFailedCommand(commands, "su 0 ls -d -a /system/foo.txt", "/system/foo.txt: No such file or directory\n");
+    addFailedCommand(commands, "su 0 cat </dev/null >/system/foo.txt", "cannot create /system/foo.txt: read-only file system\n");
 
-    addCommand(commands, "mkdir /sdcard/foo-dir", "");
-    addFailedCommand(commands, "mkdir /foo-dir", "mkdir failed for /foo-dir, Read-only file system\n");
-    addFailedCommand(commands, "mkdir /system/foo-dir", "mkdir: '/data/foo-dir': Permission denied\n");
-    addFailedCommand(commands, "mkdir /data", "mkdir failed for /data, File exists\n");
+    addCommand(commands, "su 0 mkdir /sdcard/foo-dir", "");
+    addFailedCommand(commands, "su 0 mkdir /foo-dir", "mkdir failed for /foo-dir, Read-only file system\n");
+    addFailedCommand(commands, "su 0 mkdir /system/foo-dir", "mkdir failed for /system/foo-dir, Read-only file system\n");
+    addFailedCommand(commands, "su 0 mkdir /data", "mkdir failed for /data, File exists\n");
 
-    addCommand(commands, "rm /sdcard/foo.txt", "");
-    addFailedCommand(commands, "rm /sdcard/foo-dir", "rm failed for /sdcard/foo-dir, Is a directory\n");
-    addFailedCommand(commands, "rm /system/bin/sh", "rm failed for /system/bin/sh, Read-only file system\n");
+    addCommand(commands, "su 0 rm /sdcard/foo.txt", "");
+    addFailedCommand(commands, "su 0 rm /sdcard/foo-dir", "rm failed for /sdcard/foo-dir, Is a directory\n");
+    addFailedCommand(commands, "su 0 rm /system/bin/sh", "rm failed for /system/bin/sh, Read-only file system\n");
 
-    addCommand(commands, "rm -r /sdcard/foo-dir", "");
-    addFailedCommand(commands, "rm -r /config", "rm failed for /config, Read-only file system\n");
+    addCommand(commands, "su 0 rm -r /sdcard/foo-dir", "");
+    addFailedCommand(commands, "su 0 rm -r /config", "rm failed for /config, Read-only file system\n");
   }
 
   private static void addFailedCommand(@NotNull TestShellCommands commands, @NotNull String command) {

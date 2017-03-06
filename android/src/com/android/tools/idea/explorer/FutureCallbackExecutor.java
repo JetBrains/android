@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -51,6 +52,10 @@ public class FutureCallbackExecutor implements Executor {
     myExecutor.execute(command);
   }
 
+  /**
+   * Submits a {@link Callable} in this executor queue, and returns a {@link ListenableFuture}
+   * that completes with the callable result or the exception thrown from the callable.
+   */
   public <V> ListenableFuture<V> executeAsync(@NotNull Callable<V> function) {
     SettableFuture<V> futureResult = SettableFuture.create();
     myExecutor.execute(() -> {
@@ -107,10 +112,13 @@ public class FutureCallbackExecutor implements Executor {
   /**
    * Similar to {@link Futures#transform(ListenableFuture, com.google.common.base.Function, Executor)},
    * using this instance as the executor.
+   * <p>Unlike {@link Futures#transform(ListenableFuture, com.google.common.base.Function, Executor) Futures.transform},
+   * the {@link ThrowableFunction function} can throw checked exceptions.
+   * See {@link Futures.AbstractChainingFuture#run}
    */
   public <I, O> ListenableFuture<O> transform(@NotNull ListenableFuture<I> input,
-                                              @NotNull Function<? super I, ? extends O> function) {
-    return Futures.transform(input, function::apply, myExecutor);
+                                              @NotNull ThrowableFunction<? super I, ? extends O> function) {
+    return Futures.transform(input, wrapThrowableFunction(function)::apply, myExecutor);
   }
 
   /**
@@ -120,6 +128,29 @@ public class FutureCallbackExecutor implements Executor {
   public <I, O> ListenableFuture<O> transformAsync(@NotNull ListenableFuture<I> input,
                                                    @NotNull AsyncFunction<? super I, ? extends O> function) {
     return Futures.transformAsync(input, function, myExecutor);
+  }
+
+  /**
+   * Similar to {@link Futures#catching(ListenableFuture, Class, com.google.common.base.Function, Executor)},
+   * using this instance as the executor.
+   * <p>Unlike {@link Futures#transform(ListenableFuture, com.google.common.base.Function, Executor) Futures.transform},
+   * the {@link ThrowableFunction function} can throw checked exceptions.
+   * See {@link Futures.AbstractChainingFuture#run} implementation.
+   */
+  @NotNull
+  public <V, X extends Throwable> ListenableFuture<V> catching(@NotNull ListenableFuture<? extends V> input, Class<X> exceptionType,
+                                                               @NotNull ThrowableFunction<? super X, ? extends V> fallback) {
+    return Futures.catching(input, exceptionType, wrapThrowableFunction(fallback)::apply, this);
+  }
+
+  /**
+   * Similar to {@link Futures#catchingAsync(ListenableFuture, Class, AsyncFunction)},
+   * using this instance as the executor.
+   */
+  @NotNull
+  public <V, X extends Throwable> ListenableFuture<V> catchingAsync(@NotNull ListenableFuture<? extends V> input, Class<X> exceptionType,
+                                                                    @NotNull AsyncFunction<? super X, ? extends V> fallback) {
+    return Futures.catchingAsync(input, exceptionType, fallback, this);
   }
 
   /**
@@ -153,5 +184,34 @@ public class FutureCallbackExecutor implements Executor {
     else {
       finalResult.set(null);
     }
+  }
+
+  /**
+   * Wrap a {@link ThrowableFunction} into a {@link Function} using a {@link UndeclaredThrowableException}.
+   *
+   * <p>See {@link Futures.AbstractChainingFuture#run} implementation: the {@link UndeclaredThrowableException} in unwrapped
+   * to the cause exception when caught, so callers don't see the UndeclaredThrowableException.
+   */
+  @NotNull
+  private static <I, O> Function<I, O> wrapThrowableFunction(@NotNull ThrowableFunction<I, O> function) {
+    return new Function<I, O>() {
+      @Nullable
+      @Override
+      public O apply(@Nullable I input) {
+        try {
+          return function.apply(input);
+        }
+        catch (Exception e) {
+          throw new UndeclaredThrowableException(e);
+        }
+      }
+    };
+  }
+
+  /**
+   * Similar to {@link Function} but allows the {@link #apply(Object)} method to throw checked exceptions.
+   */
+  public interface ThrowableFunction<T, R> {
+    R apply(T t) throws Exception;
   }
 }
