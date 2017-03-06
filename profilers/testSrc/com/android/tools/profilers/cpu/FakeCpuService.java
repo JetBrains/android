@@ -74,6 +74,8 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
   private boolean myIsAppBeingProfiled;
 
+  private int myTraceId = FAKE_TRACE_ID;
+
   @Override
   public void startProfilingApp(CpuProfiler.CpuProfilingAppStartRequest request, StreamObserver<CpuProfiler.CpuProfilingAppStartResponse> responseObserver) {
     CpuProfiler.CpuProfilingAppStartResponse.Builder response = CpuProfiler.CpuProfilingAppStartResponse.newBuilder();
@@ -95,10 +97,15 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
     }
     if (myValidTrace) {
       response.setTrace(getTrace());
+      response.setTraceId(myTraceId);
     }
 
     responseObserver.onNext(response.build());
     responseObserver.onCompleted();
+  }
+
+  public void setTraceId(int id) {
+    myTraceId = id;
   }
 
   @Override
@@ -164,7 +171,7 @@ public class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
   public void getTraceInfo(CpuProfiler.GetTraceInfoRequest request, StreamObserver<CpuProfiler.GetTraceInfoResponse> responseObserver) {
     CpuProfiler.GetTraceInfoResponse.Builder response = CpuProfiler.GetTraceInfoResponse.newBuilder();
     if (myValidTrace) {
-      response.addTraceInfo(CpuProfiler.TraceInfo.newBuilder().setTraceId(FAKE_TRACE_ID));
+      response.addTraceInfo(CpuProfiler.TraceInfo.newBuilder().setTraceId(myTraceId));
     }
 
     responseObserver.onNext(response.build());
