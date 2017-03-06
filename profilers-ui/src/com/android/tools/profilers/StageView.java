@@ -32,7 +32,7 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
     myProfilersView = profilersView;
     myStage = stage;
     myComponent = new JBPanel(new BorderLayout());
-    myComponent.setBackground(ProfilerColors.MONITOR_BACKGROUND);
+    myComponent.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
   }
 
   @NotNull

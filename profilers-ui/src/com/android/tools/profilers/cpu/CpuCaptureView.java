@@ -205,7 +205,7 @@ class CpuCaptureView {
                    .setRenderer(new DoubleValueCellRenderer(CpuTreeNode::getTotal, true))
                    .setComparator(DEFAULT_SORT_ORDER))
       .setTreeSorter(sorter)
-      .setBackground(ProfilerColors.MONITOR_BACKGROUND)
+      .setBackground(ProfilerColors.DEFAULT_BACKGROUND)
       .build();
   }
 

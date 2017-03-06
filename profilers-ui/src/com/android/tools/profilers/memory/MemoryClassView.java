@@ -238,7 +238,7 @@ final class MemoryClassView extends AspectObserver {
       myTreeRoot.sort(comparator);
       myTreeModel.nodeStructureChanged(myTreeRoot);
     });
-    builder.setBackground(ProfilerColors.MONITOR_BACKGROUND);
+    builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myColumnTree = builder.build();
     myPanel.add(myColumnTree, BorderLayout.CENTER);
   }
