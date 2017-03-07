@@ -14,7 +14,7 @@
     <orderEntry type="module" module-name="platform-impl" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="common" />
-    <orderEntry type="library" name="truth" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="testutils" scope="TEST" />
     <orderEntry type="module" module-name="adt-ui-model" />
     <orderEntry type="module" module-name="annotations-common" />
