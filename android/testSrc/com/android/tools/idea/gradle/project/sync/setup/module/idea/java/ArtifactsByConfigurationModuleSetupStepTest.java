@@ -41,6 +41,7 @@ import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubj
 import static com.android.tools.idea.gradle.util.FilePaths.pathToIdeaUrl;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
@@ -156,7 +157,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     assertThat(urls).hasLength(1);
     assertEquals(pathToIdeaUrl(jarFilePath), urls[0]);
 
-    assertAbout(libraryDependencies()).that(getModule()).contains(libraryName);
+    assertAbout(libraryDependencies()).that(getModule()).contains(libraryName, COMPILE);
   }
 
   @NotNull
@@ -188,7 +189,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     Library[] libraries = libraryTable.getLibraries();
     assertThat(libraries).isEmpty();
 
-    assertAbout(libraryDependencies()).that(module).isEmpty();
+    assertAbout(libraryDependencies()).that(module).doesNotHaveLibraryDependencies();
 
     // No libraries were created, nothing should be marked as "used".
     verify(myLibraryRegistry, never()).markAsUsed(any(), any());
