@@ -8,8 +8,8 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/idea/.idea/libraries:JUnit4",
-        "//tools/idea/.idea/libraries:truth",
+        "//tools/idea/.idea/libraries:JUnit4[test]",
+        "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/platform/util[module]",
         "//tools/idea/platform/platform-api[module]",
