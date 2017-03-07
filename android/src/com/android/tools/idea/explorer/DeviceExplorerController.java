@@ -385,13 +385,19 @@ public class DeviceExplorerController {
           @Override
           public void onSuccess(@Nullable Path localPath) {
             assert localPath != null;
-            try {
-              myFileManager.openFileInEditor(localPath, true);
-            }
-            catch (Throwable t) {
-              String message = String.format("Unable to open file \"%s\" in editor", localPath);
-              myView.reportErrorRelatedToNode(treeNode, message, t);
-            }
+            ListenableFuture<Void> futureOpen = myFileManager.openFileInEditor(localPath, true);
+            myEdtExecutor.addCallback(futureOpen, new FutureCallback<Void>() {
+              @Override
+              public void onSuccess(@Nullable Void result) {
+                // Nothing to do, file is opened in editor
+              }
+
+              @Override
+              public void onFailure(@NotNull Throwable t) {
+                String message = String.format("Unable to open file \"%s\" in editor", localPath);
+                myView.reportErrorRelatedToNode(treeNode, message, t);
+              }
+            });
           }
 
           @Override
