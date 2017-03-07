@@ -27,6 +27,9 @@ import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
+import com.intellij.openapi.actionSystem.KeyboardShortcut;
+import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.JavaSdk;
@@ -109,6 +112,11 @@ public class ProjectViewFixture extends ToolWindowFixture {
     Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byText(BaseLabel.class, "Project:"));
 
     myRobot.click(projectDropDown.getParent());
+    // In case the focus is not given to the dropdown at first, use the keyboard shortcut to ensure that it gets it.
+    Shortcut shortcut = KeymapManager.getInstance().getActiveKeymap().getShortcuts("ShowContent")[0];
+    KeyStroke firstKeyStroke = ((KeyboardShortcut)shortcut).getFirstKeyStroke();
+    myRobot.pressAndReleaseKey(firstKeyStroke.getKeyCode(), firstKeyStroke.getModifiers());
+
     GuiTests.clickPopupMenuItem(paneName, projectDropDown, myRobot);
   }
 
