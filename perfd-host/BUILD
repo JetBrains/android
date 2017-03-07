@@ -15,7 +15,7 @@ iml_module(
         "//tools/idea:platform-impl_and_others[module]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/base/common:studio.common[module]",
-        "//tools/idea/.idea/libraries:truth",
+        "//tools/idea/.idea/libraries:truth[test]",
         "//tools/base/testutils:studio.testutils[module, test]",
         "//tools/adt/idea/adt-ui-model[module]",
         "//tools/idea/platform/annotations/common:annotations-common[module]",
