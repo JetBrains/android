@@ -54,6 +54,12 @@ public class NewProjectWizardFixture extends AbstractWizardFixture<NewProjectWiz
     return new ConfigureFormFactorStepFixture(robot(), rootPane);
   }
 
+  @NotNull
+  public ConfigureCppStepFixture getConfigureCppStepFixture() {
+    JRootPane rootPane = findStepWithTitle("Customize C++ Support");
+    return new ConfigureCppStepFixture(robot(), rootPane);
+  }
+
   public NewProjectWizardFixture chooseActivity(@NotNull String activity) {
     JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
     listFixture.replaceCellReader((jList, index) -> {
