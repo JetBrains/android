@@ -173,8 +173,6 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
     private static final String PACKAGE_PREFIX = "com.example.myapplication.";
 
-    private static final int ACTIVITY_GRAPH_HEIGHT = 31;
-
     protected StackedEventComponent myStackedEventComponent;
     private EventModel<StackedEventType> myStackedEventModel;
 
