@@ -31,6 +31,12 @@ public interface DeviceFileSystem {
   String getName();
 
   /**
+   * The device state, as defined by {@link DeviceState}
+   */
+  @NotNull
+  DeviceState getDeviceState();
+
+  /**
    * Returns the root {@link DeviceFileEntry} of the device. The returned directory
    * can be used to traverse the file system recursively.
    */

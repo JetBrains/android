@@ -30,6 +30,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.*;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
@@ -48,14 +49,22 @@ public class DeviceExplorerPanel {
   private static final int TEXT_RENDERER_HORIZ_PADDING = 6;
   private static final int TEXT_RENDERER_VERT_PADDING = 4;
   private JComboBox myDeviceCombo;
-  @SuppressWarnings("unused") private JBScrollPane myColumnTreePane;
+  private JBScrollPane myColumnTreePane;
   private JPanel myComponent;
   private JPanel myToolbarPanel;
-  @NotNull private ProgressPanel myProgressPanel;
+  private ProgressPanel myProgressPanel;
+  private JPanel myErrorPanel;
+  private JBLabel myErrorText;
 
   private Tree myTree;
 
   public DeviceExplorerPanel() {
+    myErrorPanel.setBackground(UIUtil.getTreeBackground());
+
+    Font font = myErrorText.getFont();
+    myErrorText.setFont(font.deriveFont(font.getStyle(), font.getSize() + 4));
+    myErrorText.setForeground(UIUtil.getInactiveTextColor());
+
     // Disable toolbar until implementation is complete, as the "Device Explorer"
     // feature is enabled by default.
     //createToolbar();
@@ -79,6 +88,33 @@ public class DeviceExplorerPanel {
 
   @TestOnly
   public JBScrollPane getColumnTreePane() { return myColumnTreePane; }
+
+  public void showMessageLayer(@NotNull String message, boolean showDeviceList) {
+    showMessageLayerWorker(message, UIUtil.getInactiveTextColor(), showDeviceList);
+  }
+
+  public void showErrorMessageLayer(@NotNull String errorMessage, boolean showDeviceList) {
+    showMessageLayerWorker(errorMessage, JBColor.RED, showDeviceList);
+  }
+
+  private void showMessageLayerWorker(@NotNull String message, @NotNull Color color, boolean showDeviceList) {
+    myErrorText.setForeground(color);
+    myDeviceCombo.setVisible(showDeviceList);
+    myColumnTreePane.setVisible(false);
+    // Note: In addition to having the label centered in the panel, we want the text
+    // to wrap ("html") and the wrapped lines to be centered as well ("text-align").
+    String htmlText = String.format("<html><div style='text-align: center;'>%s</div></html>",
+                                    StringUtil.escapeXml(message));
+    myErrorText.setText(htmlText);
+    myErrorPanel.setVisible(true);
+  }
+
+  public void showTree() {
+    myErrorPanel.setVisible(false);
+    myDeviceCombo.setVisible(true);
+    myColumnTreePane.setVisible(true);
+    myErrorText.setText("");
+  }
 
   public void setCancelActionListener(@Nullable ActionListener cancelActionListener) {
     myProgressPanel.setCancelActionListener(cancelActionListener);

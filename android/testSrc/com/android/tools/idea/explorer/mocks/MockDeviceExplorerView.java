@@ -40,7 +40,9 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull private final List<DeviceExplorerViewListener> myListeners = new ArrayList<>();
   @NotNull private final List<DeviceExplorerViewProgressListener> myProgressListeners = new ArrayList<>();
   @NotNull private final DeviceExplorerViewImpl myViewImpl;
-  @NotNull private final FutureValuesTracker<Void> myServiceSetupSuccessTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<String> myStartRefreshTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<Void> myStopRefreshTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<Void> myShowNoDeviceScreenTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileSystem> myDeviceSelectedTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myTreeNodeExpandingTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> myOpenNodesInEditorInvokedTracker = new FutureValuesTracker<>();
@@ -74,6 +76,7 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
                                 @NotNull DeviceExplorerModel model) {
     myViewImpl = new DeviceExplorerViewImpl(project, toolWindow, deviceRenderer, model);
     myViewImpl.addListener(new MyDeviceExplorerViewListener());
+    myViewImpl.addProgressListener(new MyDeviceExplorerViewProgressListener());
     model.addListener(new MyDeviceExplorerModelListener());
   }
 
@@ -114,7 +117,6 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     myViewImpl.setup();
 
     // Force a layout so that the panel, tree view, combo, etc. have a non-empty size
-    assert myViewImpl.getLoadingPanel() != null;
     assert myViewImpl.getDeviceExplorerPanel() != null;
 
     myViewImpl.getLoadingPanel().setSize(new Dimension(100, 300));
@@ -128,6 +130,24 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     myViewImpl.getDeviceExplorerPanel().getColumnTreePane().doLayout();
     myViewImpl.getDeviceExplorerPanel().getColumnTreePane().getViewport().doLayout();
     myViewImpl.getDeviceExplorerPanel().getColumnTreePane().getViewport().getView().doLayout();
+  }
+
+  @Override
+  public void startRefresh(@NotNull String text) {
+    myViewImpl.startRefresh(text);
+    myStartRefreshTracker.produce(text);
+  }
+
+  @Override
+  public void stopRefresh() {
+    myViewImpl.stopRefresh();
+    myStopRefreshTracker.produce(null);
+  }
+
+  @Override
+  public void showNoDeviceScreen() {
+    myViewImpl.showNoDeviceScreen();
+    myShowNoDeviceScreenTracker.produce(null);
   }
 
   @Override
@@ -149,6 +169,11 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   }
 
   @Override
+  public void reportMessageRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message) {
+    myViewImpl.reportMessageRelatedToDevice(fileSystem, message);
+  }
+
+  @Override
   public void reportMessageRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message) {
     myReportMessageRelatedToNodeTracker.produce(message);
     myViewImpl.reportMessageRelatedToNode(node, message);
@@ -157,12 +182,6 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   @NotNull
   private static String getThrowableMessage(@NotNull Throwable t) {
     return t.getMessage() == null ? "" : ": " + t.getMessage();
-  }
-
-  @Override
-  public void serviceSetupSuccess() {
-    myViewImpl.serviceSetupSuccess();
-    myServiceSetupSuccessTracker.produce(null);
   }
 
   @Override
@@ -242,8 +261,18 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   }
 
   @NotNull
-  public FutureValuesTracker<Void> getServiceSetupSuccessTracker() {
-    return myServiceSetupSuccessTracker;
+  public FutureValuesTracker<String> getStartRefreshTracker() {
+    return myStartRefreshTracker;
+  }
+
+  @NotNull
+  public FutureValuesTracker<Void> getStopRefreshTracker() {
+    return myStopRefreshTracker;
+  }
+
+  @NotNull
+  public FutureValuesTracker<Void> getShowNoDeviceScreenTracker() {
+    return myShowNoDeviceScreenTracker;
   }
 
   @NotNull
@@ -355,8 +384,14 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
   }
 
   private class MyDeviceExplorerViewListener implements DeviceExplorerViewListener {
+
     @Override
-    public void deviceSelected(@Nullable DeviceFileSystem device) {
+    public void noDeviceSelected() {
+      myListeners.forEach(DeviceExplorerViewListener::noDeviceSelected);
+    }
+
+    @Override
+    public void deviceSelected(@NotNull DeviceFileSystem device) {
       myDeviceSelectedTracker.produce(device);
       myListeners.forEach(l -> l.deviceSelected(device));
     }
@@ -413,6 +448,13 @@ public class MockDeviceExplorerView implements DeviceExplorerView {
     public void synchronizeNodesInvoked(@NotNull List<DeviceFileEntryNode> treeNodes) {
       mySynchronizeNodesTracker.produce(treeNodes);
       myListeners.forEach(l -> l.synchronizeNodesInvoked(treeNodes));
+    }
+  }
+
+  private class MyDeviceExplorerViewProgressListener implements DeviceExplorerViewProgressListener {
+    @Override
+    public void cancellationRequested() {
+      myProgressListeners.forEach(DeviceExplorerViewProgressListener::cancellationRequested);
     }
   }
 
