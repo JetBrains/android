@@ -314,8 +314,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     assertThat(excludeFolderUrls).contains(pathToIdeaUrl(jarsFolderPath));
   }
 
-  // Disabled http://b.android.com/238411
-  public void ignoreTestSourceAttachmentsForJavaLibraries() throws Exception {
+  public void testSourceAttachmentsForJavaLibraries() throws Exception {
     loadSimpleApplication();
 
     ProjectLibraries libraries = new ProjectLibraries(getProject());
