@@ -134,97 +134,140 @@ public class DeviceExplorerController {
 
   public void setup() {
     myView.setup();
+    myView.startRefresh("Initializing ADB");
     ListenableFuture<Void> future = myService.start();
+    myEdtExecutor.addListener(future, myView::stopRefresh);
     myEdtExecutor.addCallback(future, new FutureCallback<Void>() {
       @Override
       public void onSuccess(@Nullable Void result) {
-        myView.serviceSetupSuccess();
-        setupInitialView();
+        refreshDeviceList();
       }
 
       @Override
       public void onFailure(@NotNull Throwable t) {
-        myView.reportErrorRelatedToService(myService, "Unable to start file system service", t);
+        myView.reportErrorRelatedToService(myService, "Error initializing ADB", t);
       }
     });
   }
 
   public void restartService() {
-    ListenableFuture<Void> futureResult = myService.restart();
-    myEdtExecutor.addCallback(futureResult, new FutureCallback<Void>() {
+    myView.startRefresh("Restarting ADB");
+    ListenableFuture<Void> future = myService.restart();
+    myEdtExecutor.addListener(future, myView::stopRefresh);
+    myEdtExecutor.addCallback(future, new FutureCallback<Void>() {
       @Override
       public void onSuccess(@Nullable Void result) {
+        // A successful restart invokes {@link ServiceListener#serviceRestarted()} which
+        // eventually refreshes the list of devices
       }
 
       @Override
       public void onFailure(@NotNull Throwable t) {
-        myView.reportErrorRelatedToService(myService, "Unable to restart file system service", t);
+        myView.reportErrorRelatedToService(myService, "Error restarting ADB", t);
       }
     });
   }
 
-  private void setupInitialView() {
-    ListenableFuture<List<DeviceFileSystem>> future = myService.getDevices();
-    myEdtExecutor.addCallback(future, new FutureCallback<List<DeviceFileSystem>>() {
+  private void refreshDeviceList() {
+    cancelPendingOperations();
+
+    myView.startRefresh("Refreshing list of devices");
+    ListenableFuture<List<DeviceFileSystem>> futureDevices = myService.getDevices();
+    myEdtExecutor.addListener(futureDevices, myView::stopRefresh);
+    myEdtExecutor.addCallback(futureDevices, new FutureCallback<List<DeviceFileSystem>>() {
       @Override
-      public void onSuccess(List<DeviceFileSystem> result) {
+      public void onSuccess(@Nullable List<DeviceFileSystem> result) {
+        assert result != null;
+        myModel.removeAllDevices();
         result.forEach(myModel::addDevice);
+        if (result.isEmpty()) {
+          myView.showNoDeviceScreen();
+        }
       }
 
       @Override
       public void onFailure(@NotNull Throwable t) {
-        myView.reportErrorRelatedToService(myService, "Unable to get list of devices", t);
+        myModel.removeAllDevices();
+        myView.reportErrorRelatedToService(myService, "Error refreshing list of devices", t);
       }
     });
   }
 
-  private void setActiveDevice(@Nullable DeviceFileSystem device) {
-    myLoadingNodesAlarms.cancelAllRequests();
-    myLoadingChildrenAlarms.cancelAllRequests();
-    myTransferringNodesAlarms.cancelAllRequests();
-    myLoadingChildren.clear();
-    myTransferringNodes.clear();
+  private void setNoActiveDevice() {
+    cancelPendingOperations();
+    myModel.setActiveDevice(null);
+    myModel.setActiveDeviceTreeModel(null, null, null);
+    myView.showNoDeviceScreen();
+  }
 
+  private void setActiveDevice(@NotNull DeviceFileSystem device) {
+    cancelPendingOperations();
     myModel.setActiveDevice(device);
-    ListenableFuture<DefaultTreeModel> futureTreeModel = createTreeModel(device);
-    myEdtExecutor.addCallback(futureTreeModel, new FutureCallback<DefaultTreeModel>() {
-      @Override
-      public void onSuccess(@Nullable DefaultTreeModel result) {
-        myModel.setActiveDeviceTreeModel(device, result, new DefaultTreeSelectionModel());
-      }
-
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        assert device != null; // Never fails for "null" device
-        myModel.setActiveDeviceTreeModel(device, null, null);
-        myView.reportErrorRelatedToDevice(device, "Unable to get root directory of device", t);
-      }
-    });
+    refreshActiveDevice(device);
   }
 
-  @NotNull
-  private ListenableFuture<DefaultTreeModel> createTreeModel(@Nullable DeviceFileSystem device) {
-    SettableFuture<DefaultTreeModel> futureResult = SettableFuture.create();
-    if (device == null) {
-      futureResult.set(null);
-      return futureResult;
+  private void deviceStateUpdated(@NotNull DeviceFileSystem device) {
+    if (!Objects.equals(device, myModel.getActiveDevice())) {
+      return;
+    }
+
+    // Refresh the active device view only if the device state has changed,
+    // for example from offline -> online.
+    DeviceState newState = device.getDeviceState();
+    DeviceState lastKnownState = myModel.getActiveDeviceLastKnownState(device);
+    if (Objects.equals(newState, lastKnownState)) {
+      return;
+    }
+    myModel.setActiveDeviceLastKnownState(device);
+    refreshActiveDevice(device);
+  }
+
+  private void refreshActiveDevice(@NotNull DeviceFileSystem device) {
+    if (!Objects.equals(device, myModel.getActiveDevice())) {
+      return;
+    }
+
+    if (device.getDeviceState() != DeviceState.ONLINE) {
+      String message;
+      if (device.getDeviceState() == DeviceState.UNAUTHORIZED ||
+          device.getDeviceState() == DeviceState.OFFLINE) {
+        message = "Device is pending authentication: please accept debugging session on the device";
+      }
+      else {
+        message = String.format("Device is not online (%s)", device.getDeviceState());
+      }
+      myView.reportMessageRelatedToDevice(device, message);
+      myModel.setActiveDeviceTreeModel(device, null, null);
+      return;
     }
 
     ListenableFuture<DeviceFileEntry> futureRoot = device.getRootDirectory();
     myEdtExecutor.addCallback(futureRoot, new FutureCallback<DeviceFileEntry>() {
       @Override
-      public void onSuccess(DeviceFileEntry result) {
+      public void onSuccess(@Nullable DeviceFileEntry result) {
+        assert result != null;
         DeviceFileEntryNode rootNode = new DeviceFileEntryNode(result);
         DefaultTreeModel model = new DefaultTreeModel(rootNode);
-        futureResult.set(model);
+        myModel.setActiveDeviceTreeModel(device, model, new DefaultTreeSelectionModel());
       }
 
       @Override
       public void onFailure(@NotNull Throwable t) {
-        futureResult.setException(t);
+        myModel.setActiveDeviceTreeModel(device, null, null);
+        myView.reportErrorRelatedToDevice(device, "Unable to access root directory of device", t);
       }
     });
-    return futureResult;
+  }
+
+  private void cancelPendingOperations() {
+    myLoadingNodesAlarms.cancelAllRequests();
+    myLoadingChildrenAlarms.cancelAllRequests();
+    myTransferringNodesAlarms.cancelAllRequests();
+    myLoadingChildren.clear();
+    myTransferringNodes.clear();
+    if (myLongRunningOperationTracker != null) {
+      myLongRunningOperationTracker.cancel();
+    }
   }
 
   private <T> ListenableFuture<Void> executeFuturesInSequence(@NotNull Iterator<T> iterator,
@@ -325,10 +368,8 @@ public class DeviceExplorerController {
 
   private class ServiceListener implements DeviceFileSystemServiceListener {
     @Override
-    public void updated() {
-      myLoadingNodesAlarms.cancelAllRequests();
-      myModel.removeAllDevices();
-      setupInitialView();
+    public void serviceRestarted() {
+      refreshDeviceList();
     }
 
     @Override
@@ -344,12 +385,18 @@ public class DeviceExplorerController {
     @Override
     public void deviceUpdated(@NotNull DeviceFileSystem device) {
       myModel.updateDevice(device);
+      deviceStateUpdated(device);
     }
   }
 
   private class ViewListener implements DeviceExplorerViewListener {
     @Override
-    public void deviceSelected(@Nullable DeviceFileSystem device) {
+    public void noDeviceSelected() {
+      setNoActiveDevice();
+    }
+
+    @Override
+    public void deviceSelected(@NotNull DeviceFileSystem device) {
       setActiveDevice(device);
     }
 
@@ -1576,6 +1623,7 @@ public class DeviceExplorerController {
 
     @Override
     public void run() {
+      myNode.setAllowsChildren(true);
       myNode.add(new MyLoadingNode(myNode.getEntry()));
       myTreeModel.nodeStructureChanged(myNode);
     }

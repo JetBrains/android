@@ -25,13 +25,17 @@ public interface DeviceExplorerView {
 
   void setup();
 
+  void startRefresh(@NotNull String text);
+  void stopRefresh();
+
+  void showNoDeviceScreen();
+
   void reportErrorRelatedToService(@NotNull DeviceFileSystemService service, @NotNull String message, @NotNull Throwable t);
   void reportErrorRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message, @NotNull Throwable t);
   void reportErrorRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message, @NotNull Throwable t);
 
+  void reportMessageRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message);
   void reportMessageRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message);
-
-  void serviceSetupSuccess();
 
   void startTreeBusyIndicator();
   void stopTreeBusyIndicator();
