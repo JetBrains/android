@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import com.google.common.collect.Maps;
 import com.google.common.truth.FailureStrategy;
-import com.google.common.truth.Subject;
 import com.google.common.truth.SubjectFactory;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
@@ -27,14 +25,10 @@ import com.intellij.openapi.roots.OrderEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-
-import static com.google.common.truth.Truth.assertThat;
-
-public class LibraryDependenciesSubject extends Subject<LibraryDependenciesSubject, Module> {
+public class LibraryDependenciesSubject extends DependenciesSubject<LibraryOrderEntry> {
   @NotNull
-  public static SubjectFactory<LibraryDependenciesSubject, Module> libraryDependencies() {
-    return new SubjectFactory<LibraryDependenciesSubject, Module>() {
+  public static SubjectFactory<DependenciesSubject<LibraryOrderEntry>, Module> libraryDependencies() {
+    return new SubjectFactory<DependenciesSubject<LibraryOrderEntry>, Module>() {
       @Override
       public LibraryDependenciesSubject getSubject(FailureStrategy failureStrategy, @Nullable Module subject) {
         return new LibraryDependenciesSubject(failureStrategy, subject);
@@ -42,17 +36,12 @@ public class LibraryDependenciesSubject extends Subject<LibraryDependenciesSubje
     };
   }
 
-  @NotNull
-  private final Map<DependencyScope, Map<String, LibraryOrderEntry>> myLibraryDependenciesByNameAndScope = Maps.newHashMap();
-
   public LibraryDependenciesSubject(FailureStrategy failureStrategy, @Nullable Module subject) {
     super(failureStrategy, subject);
-    if (subject != null) {
-      collectLibraryDependencies(subject);
-    }
   }
 
-  private void collectLibraryDependencies(@NotNull Module module) {
+  @Override
+  protected void collectDependencies(@NotNull Module module) {
     ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
 
     // Collect direct dependencies first.
@@ -61,65 +50,14 @@ public class LibraryDependenciesSubject extends Subject<LibraryDependenciesSubje
         LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)orderEntry;
         if (libraryOrderEntry.isExported()) {
           DependencyScope scope = libraryOrderEntry.getScope();
-
-          Map<String, LibraryOrderEntry> libraryDependenciesByName = myLibraryDependenciesByNameAndScope.get(scope);
-          if (libraryDependenciesByName == null) {
-            libraryDependenciesByName = new HashMap<>();
-            myLibraryDependenciesByNameAndScope.put(scope, libraryDependenciesByName);
-          }
-          libraryDependenciesByName.put(libraryOrderEntry.getLibraryName(), libraryOrderEntry);
+          getOrCreateMappingFor(scope).put(libraryOrderEntry.getLibraryName(), libraryOrderEntry);
         }
       }
     }
 
     // Collect transitive library dependencies.
     for (Module dependency : rootManager.getModuleDependencies()) {
-      collectLibraryDependencies(dependency);
+      collectDependencies(dependency);
     }
-  }
-
-  @NotNull
-  public LibraryDependenciesSubject contains(@NotNull String libraryName, @NotNull DependencyScope...scopes) {
-    assertThat(getLibraryNames(scopes)).contains(libraryName);
-    return this;
-  }
-
-  @NotNull
-  public LibraryDependenciesSubject containsMatching(@NotNull String libraryNameRegEx, @NotNull DependencyScope...scopes) {
-    boolean found = false;
-    for (String name : getLibraryNames(scopes)) {
-      if (name.matches(libraryNameRegEx)) {
-        found = true;
-        break;
-      }
-    }
-    if (!found) {
-      fail("depends on a library with name matching '" + libraryNameRegEx + "' in scope(s): " + Arrays.toString(scopes));
-    }
-    return this;
-  }
-
-  @NotNull
-  public LibraryDependenciesSubject doesNotContain(@NotNull String libraryName, @NotNull DependencyScope...scopes) {
-    assertThat(getLibraryNames(scopes)).doesNotContain(libraryName);
-    return this;
-  }
-
-  @NotNull
-  public LibraryDependenciesSubject doesNotHaveLibraryDependencies() {
-    assertThat(getLibraryNames(DependencyScope.values())).isEmpty();
-    return this;
-  }
-
-  @NotNull
-  private Set<String> getLibraryNames(@NotNull DependencyScope...scopes) {
-    Set<String> names = new HashSet<>();
-    for (DependencyScope scope : scopes) {
-      Map<String, LibraryOrderEntry> libraryDependenciesByName = myLibraryDependenciesByNameAndScope.get(scope);
-      if (libraryDependenciesByName != null) {
-        names.addAll(libraryDependenciesByName.keySet());
-      }
-    }
-    return names;
   }
 }
