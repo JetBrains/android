@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.renderer;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.ui.SimpleColoredComponent;
@@ -55,7 +56,8 @@ public class NlBooleanRenderer extends NlAttributeRenderer {
       ResourceResolver resourceResolver = p.getResolver();
       if (resourceResolver != null) {
         myLabel.append(propValue, modifyAttributes(selected, SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES));
-        String resolvedValue = resourceResolver.findResValue(propValue, false).getValue();
+        ResourceValue resource = resourceResolver.findResValue(propValue, false);
+        String resolvedValue = resource != null ? resource.getValue() : null;
         state = getState(resolvedValue);
       }
     }
