@@ -74,6 +74,11 @@
             class="com.android.tools.idea.apk.ImportApkAction">
       <add-to-group group-id="WelcomeScreen.QuickStart" relative-to-action="WelcomeScreen.ImportProject" anchor="before"/>
     </action>
+
+    <action id="ImportApkAction"
+            class="com.android.tools.idea.apk.ImportApkAction" text="Profile or debug APK...">
+      <add-to-group group-id="FileOpenGroup" relative-to-action="OpenFile" anchor="after"/>
+    </action>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
