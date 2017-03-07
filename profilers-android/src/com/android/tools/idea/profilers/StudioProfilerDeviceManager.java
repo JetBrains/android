@@ -162,6 +162,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
           File candidate = new File(dir, abi + "/perfd");
           if (candidate.exists()) {
             perfd = candidate;
+            break;
           }
         }
 
@@ -173,7 +174,17 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         String devicePath = "/data/local/tmp/perfd/";
         myDevice.executeShellCommand("mkdir -p " + devicePath, new NullOutputReceiver());
         myDevice.pushFile(perfd.getAbsolutePath(), devicePath + "/perfd");
-        myDevice.executeShellCommand("chmod +x " + devicePath + "perfd", new NullOutputReceiver());
+
+        /**
+         * In older devices, chmod letter usage isn't fully supported but CTS tests have been added for it since.
+         * Hence we first try the letter scheme which is guaranteed in newer devices, and fall back to the octal scheme only if necessary.
+         */
+        ChmodOutputListener chmodListener = new ChmodOutputListener();
+        myDevice.executeShellCommand("chmod +x " + devicePath + "perfd", chmodListener);
+        if (chmodListener.hasErrors()) {
+          myDevice.executeShellCommand("chmod 777 " + devicePath + "perfd", new NullOutputReceiver());
+        }
+
         myDevice.executeShellCommand(devicePath + "perfd", new IShellOutputReceiver() {
           @Override
           public void addOutput(byte[] data, int offset, int length) {
@@ -245,6 +256,36 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
       catch (TimeoutException | AdbCommandRejectedException | SyncException | ShellCommandUnresponsiveException | IOException e) {
         throw new RuntimeException(e);
       }
+    }
+  }
+
+  private static class ChmodOutputListener implements IShellOutputReceiver {
+    /**
+     * When chmod fails to modify permissions, the following "Bad mode" error string is output.
+     * This listener checks if the string is present to validate if chmod was successful.
+     */
+    private static final String BAD_MODE = "Bad mode";
+
+    private boolean myHasErrors;
+
+    @Override
+    public void addOutput(byte[] data, int offset, int length) {
+      String s = new String(data, Charsets.UTF_8);
+      myHasErrors = s.contains(BAD_MODE);
+    }
+
+    @Override
+    public void flush() {
+
+    }
+
+    @Override
+    public boolean isCancelled() {
+      return false;
+    }
+
+    private boolean hasErrors() {
+      return myHasErrors;
     }
   }
 }
