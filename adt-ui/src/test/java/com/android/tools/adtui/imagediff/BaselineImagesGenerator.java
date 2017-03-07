@@ -28,8 +28,9 @@ class BaselineImagesGenerator {
     try {
       resourcesDir = args[0];
     } catch (IndexOutOfBoundsException e) {
-      System.err.println("Usage: BaselineImagesGenerator <path>\nwhere <path> is a path to the imagediff test resources on your machine\n" +
-                         "e.g. ../tools/adt/idea/adt-ui/src/test/resources/imagediff");
+      System.err.println("Usage: BaselineImagesGenerator <path>\n" +
+                         "where <path> is a full path to the imagediff test resources on your machine\n" +
+                         "e.g. [...]/tools/adt/idea/adt-ui/src/test/resources/imagediff");
       return;
     }
 
