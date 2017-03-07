@@ -423,6 +423,13 @@ public final class TranslationsEditorTest {
   }
 
   @Test
+  public void deleteRightClick() {
+    myTranslationsEditor.getTable().showPopupMenuAt(TableCell.row(1).column(ENGLISH_COLUMN)).menuItemWithPath("Delete String(s)").click();
+    EditorFixture editor = myGuiTest.ideFrame().getEditor().open("app/src/main/res/values-en/strings.xml");
+    assertThat(editor.getCurrentFileContents()).doesNotContain("hello_world");
+  }
+
+  @Test
   public void deleteSafe() {
     // delete the entire string
     myTranslationsEditor.getTable().selectCell(TableCell.row(1).column(KEY_COLUMN));
