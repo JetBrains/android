@@ -33,6 +33,10 @@ abstract class LongRunningOperationTracker implements Disposable {
     myProgressListener = () -> myIsCancelled = true;
   }
 
+  public void cancel() {
+    myIsCancelled = true;
+  }
+
   public boolean isCancelled() {
     return myIsCancelled;
   }

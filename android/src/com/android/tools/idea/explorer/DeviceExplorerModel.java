@@ -16,6 +16,7 @@
 package com.android.tools.idea.explorer;
 
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
+import com.android.tools.idea.explorer.fs.DeviceState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,6 +35,7 @@ public class DeviceExplorerModel {
   @NotNull private final List<DeviceExplorerModelListener> myListeners = new ArrayList<>();
   @NotNull private final List<DeviceFileSystem> myDevices = new ArrayList<>();
   @Nullable private DeviceFileSystem myActiveDevice;
+  @Nullable private DeviceState myActiveDeviceLastKnownState;
   @Nullable private DefaultTreeModel myTreeModel;
   @Nullable private DefaultTreeSelectionModel myTreeSelectionModel;
 
@@ -45,6 +47,28 @@ public class DeviceExplorerModel {
   @Nullable
   public DeviceFileSystem getActiveDevice() {
     return myActiveDevice;
+  }
+
+  public void setActiveDevice(@Nullable DeviceFileSystem activeDevice) {
+    myActiveDevice = activeDevice;
+    myActiveDeviceLastKnownState = (activeDevice == null ? null : activeDevice.getDeviceState());
+    myListeners.forEach(x -> x.activeDeviceChanged(myActiveDevice));
+    setActiveDeviceTreeModel(activeDevice, null, null);
+  }
+
+  @Nullable
+  public DeviceState getActiveDeviceLastKnownState(@NotNull DeviceFileSystem device) {
+    if (!Objects.equals(device, myActiveDevice)) {
+      return null;
+    }
+    return myActiveDeviceLastKnownState;
+  }
+
+  public void setActiveDeviceLastKnownState(@NotNull DeviceFileSystem device) {
+    if (!Objects.equals(device, myActiveDevice)) {
+      return;
+    }
+    myActiveDeviceLastKnownState = device.getDeviceState();
   }
 
   @Nullable
@@ -63,12 +87,6 @@ public class DeviceExplorerModel {
 
   public void removeListener(@NotNull DeviceExplorerModelListener listener) {
     myListeners.remove(listener);
-  }
-
-  public void setActiveDevice(@Nullable DeviceFileSystem activeDevice) {
-    myActiveDevice = activeDevice;
-    myListeners.forEach(x -> x.activeDeviceChanged(myActiveDevice));
-    setActiveDeviceTreeModel(activeDevice, null, null);
   }
 
   public void setActiveDeviceTreeModel(@Nullable DeviceFileSystem device,
@@ -105,6 +123,8 @@ public class DeviceExplorerModel {
 
   public void removeAllDevices() {
     myDevices.clear();
+    setActiveDevice(null);
+    setActiveDeviceTreeModel(null, null, null);
     myListeners.forEach(DeviceExplorerModelListener::allDevicesRemoved);
   }
 
