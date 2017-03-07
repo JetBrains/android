@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
+import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.ModelListener;
@@ -30,6 +31,8 @@ import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.idea.IdeaApplication;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -49,6 +52,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static com.android.tools.idea.uibuilder.property.ToggleSlicePropertyEditor.SLICE_PROPERTY_EDITOR;
 
 public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSurfaceListener, ModelListener {
   public final static int UPDATE_DELAY_MSECS = 250;
@@ -119,6 +124,15 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   @Override
   public JComponent getFocusedComponent() {
     return myPropertiesPanel;
+  }
+
+  @NotNull
+  @Override
+  public List<AnAction> getGearActions() {
+    if (!Boolean.getBoolean(IdeaApplication.IDEA_IS_INTERNAL_PROPERTY)) {
+      return Collections.emptyList();
+    }
+    return Collections.singletonList(new ToggleSlicePropertyEditor(this));
   }
 
   @NotNull
@@ -281,11 +295,25 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
       // the <merge> tag may change e.g. if the value is set to "LinearLayout" the <merge> tag will
       // then have all attributes from a <LinearLayout>. Force an update of all properties:
       updateSelection();
+      return;
+    }
+
+    if (PropertiesComponent.getInstance().getBoolean(SLICE_PROPERTY_EDITOR) &&
+        (NlPropertyItem.isReference(oldValue) || NlPropertyItem.isReference(newValue))) {
+      updateSelection();
     }
   }
 
   public void starStateChanged() {
     updateSelection();
+  }
+
+  @SuppressWarnings("unused")
+  public void resourceChanged(@NotNull ResourceItem item, @Nullable String oldValue, @Nullable String newValue) {
+    if (PropertiesComponent.getInstance().getBoolean(SLICE_PROPERTY_EDITOR) &&
+        (NlPropertyItem.isReference(oldValue) || NlPropertyItem.isReference(newValue))) {
+      updateSelection();
+    }
   }
 
   // ---- Implements DesignSurfaceListener ----
