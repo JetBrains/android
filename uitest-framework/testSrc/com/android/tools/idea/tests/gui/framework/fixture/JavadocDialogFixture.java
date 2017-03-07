@@ -36,19 +36,17 @@ public class JavadocDialogFixture implements ContainerFixture<JDialog> {
 
   private final IdeFrameFixture myIdeFrameFixture;
   private final JDialog myDialog;
-  private final Robot myRobot;
 
   private JavadocDialogFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull JDialog dialog) {
     myIdeFrameFixture = ideFrameFixture;
     myDialog = dialog;
-    myRobot = ideFrameFixture.robot();
   }
 
   @NotNull
   public JavadocDialogFixture enterOutputDirectory(@NotNull String path) {
     JTextField textField =
-      GuiTests.waitUntilFound(myRobot, myDialog, Matchers.byType(TextFieldWithBrowseButton.class)).getTextField();
-    new JTextComponentFixture(myRobot, textField).enterText(path);
+      GuiTests.waitUntilFound(robot(), myDialog, Matchers.byType(TextFieldWithBrowseButton.class)).getTextField();
+    new JTextComponentFixture(robot(), textField).enterText(path);
     return this;
   }
 
@@ -75,6 +73,6 @@ public class JavadocDialogFixture implements ContainerFixture<JDialog> {
   @NotNull
   @Override
   public Robot robot() {
-    return myRobot;
+    return myIdeFrameFixture.robot();
   }
 }
