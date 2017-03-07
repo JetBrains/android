@@ -16,9 +16,9 @@
 package com.android.tools.idea.npw.module;
 
 import com.android.tools.adtui.LabelWithEditLink;
+import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.npw.project.DomainToPackageExpression;
 import com.android.tools.idea.npw.project.NewProjectModel;
@@ -119,7 +119,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     validatorPanel.registerValidator(model.packageName(),
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
-    AndroidSourceSet dummySourceSet = new AndroidSourceSet("main", new AndroidProjectPaths(new File("")));
+    AndroidSourceSet dummySourceSet = GradleAndroidProjectPaths.createDummySourceSet();
 
     myRenderModel = new RenderTemplateModel(moduleModel, null, dummySourceSet,
                                             message("android.wizard.activity.add", myFormFactor.id));
@@ -127,7 +127,8 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
     // Some changes on this step model trigger changes on the Render Model
     myListeners.listenAll(moduleModel.getProject(), moduleModel.moduleName()).withAndFire(() -> {
       String moduleName = moduleModel.moduleName().get();
-      myRenderModel.getSourceSet().set(new AndroidSourceSet("main", new AndroidProjectPaths(new File(project.getBasePath(), moduleName))));
+      myRenderModel.getSourceSet()
+        .set(GradleAndroidProjectPaths.createDefaultSourceSetAt(new File(project.getBasePath(), moduleName)));
     });
 
     myBindings.bind(myRenderModel.androidSdkInfo(), new SelectedItemProperty<>(mySdkControls));
