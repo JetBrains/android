@@ -25,7 +25,6 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.ptable.StarState;
-import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.android.util.PropertiesMap;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -42,7 +41,6 @@ import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.table.TableCellRenderer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -373,15 +371,9 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     return myDefinition;
   }
 
-  @NotNull
-  @Override
-  public TableCellRenderer getCellRenderer() {
-    return NlPropertyRenderers.get(this);
-  }
-
   @Override
   public boolean isEditable(int column) {
-    return true;
+    return column == 1;
   }
 
   @Override
