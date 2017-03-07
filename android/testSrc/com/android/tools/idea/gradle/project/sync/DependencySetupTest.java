@@ -34,7 +34,6 @@ import org.junit.Ignore;
 import java.io.File;
 import java.util.Collections;
 
-import static com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
 import static com.android.tools.idea.gradle.util.GradleUtil.getAndroidProject;
@@ -42,6 +41,8 @@ import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.roots.DependencyScope.PROVIDED;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 
@@ -79,7 +80,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     Module appModule = myModules.getAppModule();
     GradleBuildModel buildModel = GradleBuildModel.get(appModule);
     assertNotNull(buildModel);
-    buildModel.dependencies().addModule(COMPILE, ":fakeLibrary");
+    buildModel.dependencies().addModule("compile", ":fakeLibrary");
     runWriteCommandAction(getProject(), buildModel::applyChanges);
 
     String failure = requestSyncAndGetExpectedFailure();
@@ -134,10 +135,10 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     assertNull(getAndroidProject(localAarModule));
 
     // Should not expose the AAR as library, instead it should use the "exploded AAR".
-    assertAbout(libraryDependencies()).that(localAarModule).isEmpty();
+    assertAbout(libraryDependencies()).that(localAarModule).doesNotHaveLibraryDependencies();
 
     Module appModule = myModules.getAppModule();
-    assertAbout(libraryDependencies()).that(appModule).contains("library-debug-unspecified");
+    assertAbout(libraryDependencies()).that(appModule).contains("library-debug-unspecified", COMPILE);
   }
 
   public void /*test*/WithLocalJarsArModules() throws Exception {
@@ -149,7 +150,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     assertNotNull(javaFacet);
     assertFalse(javaFacet.getConfiguration().BUILDABLE);
 
-    assertAbout(libraryDependencies()).that(localJarModule).contains("localJarAsModule.local");
+    assertAbout(libraryDependencies()).that(localJarModule).contains("localJarAsModule.local", COMPILE);
   }
   // http://b.android.com/230792
   public void skip_testWithInterModuleDependencies() throws Exception {
@@ -166,7 +167,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     // 'app' module should have 'guava' as dependency.
     // 'app' -> 'lib' -> 'guava'
-    assertAbout(libraryDependencies()).that(appModule).containsMatching("guava-.*");
+    assertAbout(libraryDependencies()).that(appModule).containsMatching("guava-.*", COMPILE, PROVIDED);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212338
@@ -176,7 +177,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     // 'app' module should have 'commons-io' as dependency.
     // 'app' -> 'library2' -> 'library1' -> 'commons-io'
-    assertAbout(libraryDependencies()).that(appModule).containsMatching("commons-io-.*");
+    assertAbout(libraryDependencies()).that(appModule).containsMatching("commons-io-.*", COMPILE);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=212557
@@ -212,11 +213,11 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     // 'fakelib' is in 'libs' directory in 'library2' module.
     Module library2Module = myModules.getModule("library2");
-    assertAbout(libraryDependencies()).that(library2Module).contains("fakelib");
+    assertAbout(libraryDependencies()).that(library2Module).contains("fakelib", COMPILE);
 
     // 'app' module should have 'fakelib' as dependency.
     // 'app' -> 'library2' -> 'fakelib'
     Module appModule = myModules.getAppModule();
-    assertAbout(libraryDependencies()).that(appModule).contains("fakelib");
+    assertAbout(libraryDependencies()).that(appModule).contains("fakelib", COMPILE);
   }
 }
