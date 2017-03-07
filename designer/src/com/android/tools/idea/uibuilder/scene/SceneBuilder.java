@@ -24,12 +24,12 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A facility for creating and updating {@link Scene}s based on {@link NlModel}s.
  */
-abstract public class SceneManager {
+abstract public class SceneBuilder {
   private final NlModel myModel;
   final private SceneView mySceneView;
   private Scene myScene;
 
-  public SceneManager(NlModel model, SceneView view) {
+  public SceneBuilder(NlModel model, SceneView view) {
     myModel = model;
     mySceneView = view;
   }
@@ -64,7 +64,4 @@ abstract public class SceneManager {
     return myScene;
   }
 
-  public abstract void requestRender();
-
-  public abstract void requestLayout(boolean animate);
 }
