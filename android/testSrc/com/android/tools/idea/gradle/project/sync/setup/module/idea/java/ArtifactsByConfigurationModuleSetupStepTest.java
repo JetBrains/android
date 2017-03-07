@@ -189,7 +189,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     Library[] libraries = libraryTable.getLibraries();
     assertThat(libraries).isEmpty();
 
-    assertAbout(libraryDependencies()).that(module).doesNotHaveLibraryDependencies();
+    assertAbout(libraryDependencies()).that(module).doesNotHaveDependencies();
 
     // No libraries were created, nothing should be marked as "used".
     verify(myLibraryRegistry, never()).markAsUsed(any(), any());
