@@ -70,7 +70,7 @@ public class PTableModel extends AbstractTableModel {
 
   @Override
   public boolean isCellEditable(int row, int col) {
-    return col == 1 && myItems.get(row).isEditable(col);
+    return myItems.get(row).isEditable(col);
   }
 
   // TODO: if we want to support multiple levels of hierarchy, then this should

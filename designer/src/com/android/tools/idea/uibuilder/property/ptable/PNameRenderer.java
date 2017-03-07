@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,24 @@
  */
 package com.android.tools.idea.uibuilder.property.ptable;
 
-import com.android.annotations.Nullable;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import org.jetbrains.annotations.NotNull;
 
-public interface PTableCellEditorProvider {
+import javax.swing.table.TableCellRenderer;
 
-  @Nullable
-  PTableCellEditor getCellEditor(@NotNull PTableItem item, int column);
+public interface PNameRenderer extends TableCellRenderer {
+
+  /**
+   * Returns true if the given coordinate is considered on a star icon.
+   */
+  default boolean hitTestStarIcon(@SwingCoordinate int x, @SwingCoordinate int y) {
+    return false;
+  }
+
+  /**
+   * Returns true if the given coordinate is considered on the expand/collapse icon.
+   */
+  default boolean hitTestTreeNodeIcon(@NotNull PTableItem item, @SwingCoordinate int x, @SwingCoordinate int y) {
+    return false;
+  }
 }

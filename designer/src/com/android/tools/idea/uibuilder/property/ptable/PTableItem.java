@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.property.ptable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -27,7 +26,6 @@ import java.util.List;
 import java.util.Objects;
 
 public abstract class PTableItem {
-  private TableCellRenderer myCellRenderer;
   private PTableItem myParent;
 
   @Override
@@ -66,14 +64,6 @@ public abstract class PTableItem {
     myParent = parent;
   }
 
-  @NotNull
-  public TableCellRenderer getCellRenderer() {
-    if (myCellRenderer == null) {
-      myCellRenderer = new DefaultTableCellRenderer();
-    }
-    return myCellRenderer;
-  }
-
   public boolean isExpanded() {
     return false;
   }
@@ -81,10 +71,18 @@ public abstract class PTableItem {
   public void setExpanded(boolean expanded) {
   }
 
-  @NotNull
-  public abstract StarState getStarState();
+  @Nullable
+  public TableCellRenderer getCellRenderer() {
+    return null;
+  }
 
-  public abstract void setStarState(@NotNull StarState starState);
+  @NotNull
+  public StarState getStarState() {
+    return StarState.NOT_STAR_ABLE;
+  }
+
+  public void setStarState(@NotNull StarState starState) {
+  }
 
   @NotNull
   public abstract String getName();
@@ -98,9 +96,13 @@ public abstract class PTableItem {
   public abstract String getValue();
 
   @Nullable
-  public abstract String getResolvedValue();
+  public String getResolvedValue() {
+    return getValue();
+  }
 
-  public abstract boolean isDefaultValue(@Nullable String value);
+  public boolean isDefaultValue(@Nullable String value) {
+    return false;
+  }
 
   public abstract void setValue(@Nullable Object value);
 
@@ -115,5 +117,9 @@ public abstract class PTableItem {
 
   @SuppressWarnings("UnusedParameters")
   public void mousePressed(@NotNull MouseEvent event, Rectangle rectRightColumn) {
+  }
+
+  public int getColumnToEdit() {
+    return 1;
   }
 }

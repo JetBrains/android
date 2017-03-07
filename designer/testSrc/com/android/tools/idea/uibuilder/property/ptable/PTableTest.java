@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.ptable;
 
 import com.android.tools.idea.uibuilder.property.ptable.simple.SimpleGroupItem;
 import com.android.tools.idea.uibuilder.property.ptable.simple.SimpleItem;
+import com.android.tools.idea.uibuilder.property.renderer.NlTableNameRenderer;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
@@ -199,6 +201,20 @@ public class PTableTest extends AndroidTestCase {
   }
 
   public void testClickOnStar() {
+    NlTableNameRenderer renderer = new NlTableNameRenderer();
+    myTable.setRendererProvider(new PTableCellRendererProvider() {
+      @NotNull
+      @Override
+      public PNameRenderer getNameCellRenderer(@NotNull PTableItem item) {
+        return renderer;
+      }
+
+      @NotNull
+      @Override
+      public TableCellRenderer getValueCellRenderer(@NotNull PTableItem item) {
+        return renderer;
+      }
+    });
     fireMousePressed(1, 0, 10);
     assertThat(myEmptyItem.getStarState()).isEqualTo(StarState.STARRED);
     fireMousePressed(1, 0, 10);

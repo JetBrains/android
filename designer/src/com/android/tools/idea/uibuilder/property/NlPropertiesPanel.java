@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
@@ -36,6 +35,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBCardLayout;
@@ -64,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.tools.idea.uibuilder.property.ToggleSlicePropertyEditor.SLICE_PROPERTY_EDITOR;
 
 public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction.Model, Disposable,
                                                          DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
@@ -105,7 +106,6 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     myFilterKeyListener = new MyFilterKeyListener();
     myModel = table.getModel();
     myTable = table;
-    myTable.setEditorProvider(NlPropertyEditors.getInstance(propertiesManager.getProject()));
     myTable.getEmptyText().setText("No selected component");
     JComponent fewerPropertiesLink = createViewAllPropertiesLinkPanel(false);
     fewerPropertiesLink.setBorder(BorderFactory.createEmptyBorder(8, 4, 2, 0));
@@ -216,30 +216,17 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
                        @NotNull NlPropertiesManager propertiesManager) {
     myComponents = components;
     myProperties = extractPropertiesForTable(properties);
+    Project project = propertiesManager.getProject();
 
-    List<PTableItem> groupedProperties;
-    if (components.isEmpty()) {
-      groupedProperties = Collections.emptyList();
+    if (PropertiesComponent.getInstance().getBoolean(SLICE_PROPERTY_EDITOR)) {
+      myTablePanel.setVisible(new NlSlicePropertyBuilder(propertiesManager, myTable, components, properties).build());
     }
     else {
-      List<NlPropertyItem> sortedProperties = new NlPropertiesSorter().sort(myProperties, components);
-      groupedProperties = new NlPropertiesGrouper().group(sortedProperties, components);
-    }
-    if (myTable.isEditing()) {
-      myTable.removeEditor();
-    }
-
-    int selectedRow = myTable.getSelectedRow();
-    PTableItem selectedItem = myTable.getSelectedItem();
-
-    myModel.setItems(groupedProperties);
-    if (myTable.getRowCount() > 0) {
-      myTable.restoreSelection(selectedRow, selectedItem);
+      myTablePanel.setVisible(new NlPropertyTableBuilder(project, myTable, components, myProperties).build());
     }
 
     updateDefaultProperties(propertiesManager);
     myInspectorPanel.setComponent(components, properties, propertiesManager);
-    myTablePanel.setVisible(!groupedProperties.isEmpty());
   }
 
   @NotNull
@@ -265,7 +252,12 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   public void modelRendered(@NotNull NlPropertiesManager propertiesManager) {
     UIUtil.invokeLaterIfNeeded(() -> {
       // Bug:219552 : Make sure updateDefaultProperties is always called from the same thread (the UI thread)
-      updateDefaultProperties(propertiesManager);
+      if (PropertiesComponent.getInstance().getBoolean(SLICE_PROPERTY_EDITOR)) {
+        propertiesManager.updateSelection();
+      }
+      else {
+        updateDefaultProperties(propertiesManager);
+      }
       myInspectorPanel.refresh();
     });
   }

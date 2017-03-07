@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.property.ptable;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.uibuilder.property.ptable.renderers.PNameRenderer;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
@@ -59,10 +58,10 @@ import java.io.IOException;
 import java.util.Objects;
 
 public class PTable extends JBTable implements DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
-  private final PNameRenderer myNameRenderer = new PNameRenderer();
   private final TableSpeedSearch mySpeedSearch;
   private PTableModel myModel;
   private CopyPasteManager myCopyPasteManager;
+  private PTableCellRendererProvider myRendererProvider;
   private PTableCellEditorProvider myEditorProvider;
 
   private int myMouseHoverRow;
@@ -78,6 +77,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     super(model);
     myCopyPasteManager = copyPasteManager;
     myMouseHoverPoint = new Point(-1, -1);
+    myRendererProvider = new PTableDefaultCellRendererProvider();
 
     // since the row heights are uniform, there is no need to look at more than a few items
     setMaxItemsForSizeCalculation(5);
@@ -117,6 +117,10 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     return (PTableModel)super.getModel();
   }
 
+  public void setRendererProvider(@NotNull PTableCellRendererProvider rendererProvider) {
+    myRendererProvider = rendererProvider;
+  }
+
   public void setEditorProvider(PTableCellEditorProvider editorProvider) {
     myEditorProvider = editorProvider;
   }
@@ -132,19 +136,24 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
 
   @Override
   public TableCellRenderer getCellRenderer(int row, int column) {
-    if (column == 0) {
-      return myNameRenderer;
-    }
-
     PTableItem value = (PTableItem)getValueAt(row, column);
-    return value.getCellRenderer();
+    if (column == 0) {
+      return myRendererProvider.getNameCellRenderer(value);
+    }
+    else {
+      TableCellRenderer renderer = value.getCellRenderer();
+      if (renderer != null) {
+        return renderer;
+      }
+      return myRendererProvider.getValueCellRenderer(value);
+    }
   }
 
   @Override
   public PTableCellEditor getCellEditor(int row, int column) {
     PTableItem value = (PTableItem)getValueAt(row, column);
     if (value != null && myEditorProvider != null) {
-      return myEditorProvider.getCellEditor(value);
+      return myEditorProvider.getCellEditor(value, column);
     }
     return null;
   }
@@ -243,10 +252,15 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
       return;
     }
 
-    editCellAt(row, 1);
+    PTableItem item = (PTableItem)getValueAt(row, 0);
+    if (item == null || !editCellAt(row, item.getColumnToEdit())) {
+      return;
+    }
 
     JComponent preferredComponent = getComponentToFocus(editor);
-    if (preferredComponent == null) return;
+    if (preferredComponent == null) {
+      return;
+    }
 
     IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
       preferredComponent.requestFocusInWindow();
@@ -513,11 +527,15 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
 
       Rectangle rectLeftColumn = getCellRect(row, convertColumnIndexToView(0), false);
       if (rectLeftColumn.contains(e.getX(), e.getY())) {
-        if (PNameRenderer.hitTestTreeNodeIcon(item, e.getX() - rectLeftColumn.x) && item.hasChildren()) {
+        int x = e.getX() - rectLeftColumn.x;
+        int y = e.getY() - rectLeftColumn.y;
+        PNameRenderer nameRenderer = myRendererProvider.getNameCellRenderer(item);
+
+        if (nameRenderer.hitTestTreeNodeIcon(item, x, y) && item.hasChildren()) {
           toggleTreeNode(row);
           return;
         }
-        if (PNameRenderer.hitTestStarIcon(e.getX() - rectLeftColumn.x)) {
+        if (nameRenderer.hitTestStarIcon(x, y)) {
           toggleStar(row);
           return;
         }
