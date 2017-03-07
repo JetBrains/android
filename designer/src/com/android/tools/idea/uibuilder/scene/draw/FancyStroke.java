@@ -26,6 +26,7 @@ import java.awt.geom.PathIterator;
 public class FancyStroke implements Stroke {
   private static final float FLATNESS = .1f;
   private final float mSize, mSpacing;
+  private final static float CHAIN_RATIO = 0.6f;
   float[] mPoint = new float[6];
   Stroke myBasicStroke;
 
@@ -46,7 +47,7 @@ public class FancyStroke implements Stroke {
     myType = type;
     mSize = size;
     mSpacing = spacing;
-    myBasicStroke = new BasicStroke(width);
+    myBasicStroke = new BasicStroke(width, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL);
   }
 
   /**
@@ -247,7 +248,6 @@ public class FancyStroke implements Stroke {
           case PathIterator.SEG_QUADTO:
           case PathIterator.SEG_CUBICTO:
           default:
-
         }
         it.next();
       }
@@ -292,17 +292,17 @@ public class FancyStroke implements Stroke {
             while (dist > mSpacing) {
               float lastX = px - dx * rem;
               float lastY = py - dy * rem;
-              float space = (link)? mSpacing :mSpacing* 0.6f;
+              float space = (link) ? mSpacing : mSpacing * CHAIN_RATIO;
               px += dx * (space - rem);
               py += dy * (space - rem);
               rem = 0;
               link = !link;
-              float sign =  (link)?0.2f:1f;
+              float sign = (link) ? 0.2f : 1f;
               float cx = px - dy * mSize * sign * flip;
               float cy = py + dx * mSize * sign * flip;
-              float cx1 = lastX + - dy * mSize * sign * flip;
+              float cx1 = lastX + -dy * mSize * sign * flip;
               float cy1 = lastY + dx * mSize * sign * flip;
-              result.curveTo(cx1, cy1, cx  , cy , px, py);
+              result.curveTo(cx1, cy1, cx, cy, px, py);
               dist -= space;
             }
             if (type == PathIterator.SEG_CLOSE) {
@@ -312,11 +312,10 @@ public class FancyStroke implements Stroke {
           case PathIterator.SEG_QUADTO:
           case PathIterator.SEG_CUBICTO:
           default:
-         }
+        }
         it.next();
       }
     }
     return myBasicStroke.createStrokedShape(result);
   }
-
 }
