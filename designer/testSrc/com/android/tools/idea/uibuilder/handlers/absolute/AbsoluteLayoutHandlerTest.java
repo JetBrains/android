@@ -168,7 +168,7 @@ public class AbsoluteLayoutHandlerTest extends SceneTest {
       component.setAndroidAttribute(ATTR_LAYOUT_X, "950dp");
       component.setBounds(1900, 200, 200, 200);
     });
-    mySceneManager.update();
+    mySceneBuilder.update();
 
     // Then select the bottom right resize target by specifying a position 1dp below
     // and 1dp to the right of the bottom right corner of the TextView.
