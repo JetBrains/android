@@ -29,7 +29,8 @@ class EventEntriesRegistrar extends ImageDiffEntriesRegistrar {
   public EventEntriesRegistrar() {
     registerAddActivityEvent();
     registerAddRunningActivityEvent();
-    registerMultipleStackedActivitiesEvent();
+    // Disabled http://b.android.com/238310
+    // registerMultipleStackedActivitiesEvent();
     registerMultipleInlineActivitiesEvent();
     registerSimpleTapEvent();
     registerMultipleTapEvents();
