@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
 import com.android.tools.idea.uibuilder.property.ptable.StarState;
 import com.android.tools.idea.uibuilder.property.ptable.simple.SimpleGroupItem;
 import com.android.tools.idea.uibuilder.property.ptable.simple.SimpleItem;
+import com.android.tools.idea.uibuilder.property.renderer.NlTableNameRenderer;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.util.ui.CenteredIcon;
@@ -40,7 +41,7 @@ import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
 
 public class PNameRendererTest extends AndroidTestCase {
-  private PNameRenderer myRenderer;
+  private NlTableNameRenderer myRenderer;
   private SimpleItem myTextItem;
   private SimpleItem myStyleItem;
   private SimpleItem myBackgroundItem;
@@ -52,7 +53,7 @@ public class PNameRendererTest extends AndroidTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myRenderer = new PNameRenderer();
+    myRenderer = new NlTableNameRenderer();
     myTextItem = new SimpleItem(ATTR_TEXT, "Hello", StarState.STAR_ABLE);
     myStyleItem = new SimpleItem(ATTR_STYLE, null, StarState.STARRED);
     myBackgroundItem = new SimpleItem(ATTR_BACKGROUND, null, StarState.NOT_STAR_ABLE);

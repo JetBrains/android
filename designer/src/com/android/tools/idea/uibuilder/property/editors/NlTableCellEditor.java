@@ -66,6 +66,10 @@ public class NlTableCellEditor extends PTableCellEditor implements NlEditingList
     return myRow;
   }
 
+  protected final NlComponentEditor getEditor() {
+    return myEditor;
+  }
+
   @Override
   public boolean stopCellEditing() {
     if (myTable != null) {
