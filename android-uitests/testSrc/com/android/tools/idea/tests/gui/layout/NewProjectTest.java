@@ -147,7 +147,6 @@ public class NewProjectTest {
       "                App is not indexable by Google Search; consider adding at least one Activity with an ACTION-VIEW intent filter. See issue explanation for more details."));
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testNoWarningsInNewProjectWithCpp() {
     // Creates a new project with c++, and checks that if we run Analyze > Inspect Code, there are no warnings.
