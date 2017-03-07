@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.sync.ExpectedModuleDependency;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -74,7 +73,6 @@ public class DependenciesModuleSetupStepTest extends IdeaTestCase {
     ApplicationManager.getApplication().runWriteAction(() -> myModelsProvider.commit());
 
     // See https://code.google.com/p/android/issues/detail?id=225923
-    ExpectedModuleDependency expected = new ExpectedModuleDependency(libModule, COMPILE, true);
-    assertAbout(moduleDependencies()).that(mainModule).contains(expected);
+    assertAbout(moduleDependencies()).that(mainModule).contains(libModule.getName(), COMPILE);
   }
 }
