@@ -1589,6 +1589,15 @@ public class ConstraintUtilities {
     return parent instanceof ConstraintWidgetContainer;
   }
 
+  /**
+   * Utility function to render the current model to layoutlib
+   *
+   * @param model the ConstraintModel we want to render
+   */
+  static void renderModel(@NotNull ConstraintModel model) {
+    model.getNlModel().requestRender();
+  }
+
   static AndroidVersion getCompileSdkVersion(@NotNull NlModel model) {
     return AndroidModuleInfo.getInstance(model.getFacet()).getBuildSdkVersion();
   }

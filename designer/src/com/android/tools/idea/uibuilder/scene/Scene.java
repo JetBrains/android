@@ -819,7 +819,7 @@ public class Scene implements SelectionListener {
 
   void checkRequestLayoutStatus() {
     if (mNeedsLayout != NO_LAYOUT) {
-      mySceneView.getSceneManager().requestLayout(mNeedsLayout == ANIMATED_LAYOUT ? true : false);
+      mySceneView.getModel().requestLayout(mNeedsLayout == ANIMATED_LAYOUT ? true : false);
     }
   }
 
