@@ -23,6 +23,7 @@ import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -93,12 +94,12 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
   }
 
   @Override
-  public void openFileInEditor(@NotNull Path localPath, boolean focusEditor) {
+  public ListenableFuture<Void> openFileInEditor(@NotNull Path localPath, boolean focusEditor) {
     myOpenFileInEditorTracker.produce(localPath);
     if (myOpenFileInEditorError != null) {
-      throw myOpenFileInEditorError;
+      return Futures.immediateFailedFuture(myOpenFileInEditorError);
     }
-    myFileManagerImpl.openFileInEditor(localPath, focusEditor);
+    return myFileManagerImpl.openFileInEditor(localPath, focusEditor);
   }
 
   @Override
