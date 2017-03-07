@@ -32,6 +32,7 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
@@ -108,8 +109,14 @@ public class ViewEditorImpl extends ViewEditor {
 
   @NotNull
   @Override
+  public LayoutlibSceneManager getSceneBuilder() {
+    return (LayoutlibSceneManager)mySceneView.getSceneManager();
+  }
+
+  @NotNull
+  @Override
   public Collection<ViewInfo> getRootViews() {
-    RenderResult result = mySceneView.getModel().getRenderResult();
+    RenderResult result = getSceneBuilder().getRenderResult();
 
     if (result == null) {
       return Collections.emptyList();

@@ -22,11 +22,9 @@ import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneBuilder;
 import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.SceneBuilder;
+import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -46,34 +44,22 @@ public abstract class SceneView {
   protected final DesignSurface mySurface;
   protected final NlModel myModel;
   protected final Scene myScene;
-  private final SceneBuilder mySceneBuilder;
+  private final SceneManager mySceneManager;
 
   public SceneView(@NotNull DesignSurface surface, @NotNull NlModel model) {
     mySurface = surface;
     myModel = model;
-    mySceneBuilder = new LayoutlibSceneBuilder(model, this);
-    myScene = mySceneBuilder.build();
-    myModel.getSelectionModel().addListener(new SelectionListener() {
-      @Override
-      public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            mySurface.repaint();
-          }
-        });
-      }
-    });
+    mySceneManager = createSceneBuilder(model);
+    myScene = mySceneManager.build();
+    myModel.getSelectionModel().addListener((m, selection) -> ApplicationManager.getApplication().invokeLater(mySurface::repaint));
   }
+
+  @NotNull
+  protected abstract SceneManager createSceneBuilder(@NotNull NlModel model);
 
   @NotNull
   public Scene getScene() {
     return myScene;
-  }
-
-  @Nullable
-  public RenderResult getResult() {
-    return myModel.getRenderResult();
   }
 
   /**
@@ -214,8 +200,8 @@ public abstract class SceneView {
     mySurface.setCursor(myScene.getMouseCursor());
   }
 
-  public SceneBuilder getSceneBuilder() {
-    return mySceneBuilder;
+  public SceneManager getSceneManager() {
+    return mySceneManager;
   }
 
   /**
