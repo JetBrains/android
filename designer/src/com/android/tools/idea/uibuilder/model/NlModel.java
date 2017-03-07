@@ -209,7 +209,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
             myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
           }
         }
-        myListeners.forEach(listener -> listener.modelActivated(this));
+        requestModelUpdate();
         myModelVersion.myResourceVersion.incrementAndGet();
       }
     }
@@ -220,7 +220,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    */
   public void deactivate() {
     if (myActive) {
-      myListeners.forEach(listener -> listener.modelDeactivated(this));
+      getRenderingQueue().cancelAllUpdates();
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
       manager.removeListener(this, myFacet, myFile, myConfiguration);
       myConfigurationModificationCount = myConfiguration.getModificationCount();
@@ -258,10 +258,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   /**
    * Asynchronously inflates the model and updates the view hierarchy
-   *
-   * @deprecated moving to LayoutlibSceneManager
    */
-  public void requestModelUpdate() {
+  protected void requestModelUpdate() {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     synchronized (PROGRESS_LOCK) {
@@ -306,11 +304,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     });
   }
 
-  /**
-   * @deprecated moving to LayoutlibSceneManager
-   */
   @NotNull
-  public MergingUpdateQueue getRenderingQueue() {
+  private MergingUpdateQueue getRenderingQueue() {
     synchronized (myRenderingQueueLock) {
       if (myRenderingQueue == null) {
         myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", RENDER_DELAY_MS, true, null, this, null,
@@ -327,27 +322,17 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   /**
    * Whether we should render just the viewport
-   * @deprecated moving to LayoutlibSceneManager
    */
   private static boolean ourRenderViewPort;
 
-  /**
-   * @deprecated moving to LayoutlibSceneManager
-   */
   public static void setRenderViewPort(boolean state) {
     ourRenderViewPort = state;
   }
 
-  /**
-   * @deprecated moving to LayoutlibSceneManager
-   */
   public static boolean isRenderViewPort() {
     return ourRenderViewPort;
   }
 
-  /**
-   * @deprecated moving to LayoutlibSceneManager
-   */
   @VisibleForTesting
   protected void setupRenderTask(@Nullable RenderTask task) {
   }
@@ -357,8 +342,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    *
    * @param force forces the model to be re-inflated even if a previous version was already inflated
    * @returns whether the model was inflated in this call or not
-   *
-   * @deprecated moving to LayoutlibSceneManager
    */
   private boolean inflate(boolean force) {
     Configuration configuration = myConfiguration;
@@ -452,11 +435,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   /**
    * Synchronously update the model. This will inflate the layout and notify the listeners using
-   * {@link ModelListener#modelDerivedDataChanged(NlModel)}.
-   *
-   * @deprecated moving to LayoutlibSceneManager
+   * {@link ModelListener#modelChanged(NlModel)}.
    */
-  public void updateModel() {
+  protected void updateModel() {
     inflate(true);
     notifyListenersModelUpdateComplete();
   }
@@ -560,8 +541,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
    * <p/>
    * <b>Do not call this method from the dispatch thread!</b>
-   *
-   * @deprecated moving to LayoutlibSceneManager
    */
   public void render() {
     try {
@@ -574,9 +553,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
   }
 
-  /**
-   * @deprecated moving to LayoutlibSceneManager
-   */
   private void renderImpl() {
     if (myConfigurationModificationCount != myConfiguration.getModificationCount()) {
       // usage tracking (we only pay attention to individual changes where only one item is affected since those are likely to be triggered
@@ -636,6 +612,25 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     notifyListenersRenderComplete();
   }
 
+  /**
+   * Renders the current model asynchronously. Once the render is complete, the listeners {@link ModelListener#modelRendered(NlModel)}
+   * method will be called.
+   */
+  public void requestRender() {
+    // This update is low priority so the model updates take precedence
+    getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
+      @Override
+      public void run() {
+        render();
+      }
+
+      @Override
+      public boolean canEat(Update update) {
+        return this.equals(update);
+      }
+    });
+  }
+
   public void setElapsedFrameTimeMs(long ms) {
     myElapsedFrameTimeMs = ms;
   }
@@ -644,8 +639,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * Request a layout pass
    *
    * @param animate if true, the resulting layout should be animated
-   *
-   * @deprecated moving to LayoutlibSceneManager
    */
   public void requestLayout(boolean animate) {
     getRenderingQueue().queue(new Update("model.layout", LOW_PRIORITY) {
@@ -690,7 +683,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   /**
-   * Calls all the listeners {@link ModelListener#modelDerivedDataChanged(NlModel)} method.
+   * Calls all the listeners {@link ModelListener#modelChanged(NlModel)} method.
    */
   private void notifyListenersModelUpdateComplete() {
     List<ModelListener> listeners;
@@ -698,7 +691,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       listeners = ImmutableList.copyOf(myListeners);
     }
 
-    listeners.forEach(listener -> listener.modelDerivedDataChanged(this));
+    listeners.forEach(listener -> listener.modelChanged(this));
   }
 
   /**
@@ -727,9 +720,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     listeners.forEach(listener -> listener.modelChangedOnLayout(this, animate));
   }
 
-  /**
-   * @deprecated moving to LayoutlibSceneManager
-   */
   @Nullable
   public RenderResult getRenderResult() {
     myRenderResultLock.readLock().lock();
@@ -2090,7 +2080,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
     myModelVersion.increase(reason);
     myModificationTrigger = reason;
-    myListeners.forEach(listener -> listener.modelChanged(this));
+    requestModelUpdate();
   }
 
   /**
