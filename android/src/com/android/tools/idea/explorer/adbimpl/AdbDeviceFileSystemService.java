@@ -209,7 +209,7 @@ public class AdbDeviceFileSystemService implements DeviceFileSystemService {
       myEdtExecutor.execute(() -> {
         if (myBridge != null) {
           myDevices.clear();
-          myListeners.forEach(DeviceFileSystemServiceListener::updated);
+          myListeners.forEach(DeviceFileSystemServiceListener::serviceRestarted);
           myBridge = null;
         }
 

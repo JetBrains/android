@@ -63,11 +63,10 @@ import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
 public class DeviceExplorerViewImpl implements DeviceExplorerView {
   @NotNull private final List<DeviceExplorerViewListener> myListeners = new ArrayList<>();
   @NotNull private final List<DeviceExplorerViewProgressListener> myProgressListeners = new ArrayList<>();
-  @NotNull private final Project myProject;
   @NotNull private final ToolWindow myToolWindow;
   @NotNull private final DeviceFileSystemRenderer myDeviceRenderer;
   @NotNull private final DeviceExplorerPanel myPanel;
-  @Nullable private JBLoadingPanel myLoadingPanel;
+  @NotNull private JBLoadingPanel myLoadingPanel;
   @Nullable private ComponentPopupMenu myTreePopupMenu;
   private int myTreeLoadingCount;
 
@@ -75,12 +74,12 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
                                 @NotNull ToolWindow toolWindow,
                                 @NotNull DeviceFileSystemRenderer deviceRenderer,
                                 @NotNull DeviceExplorerModel model) {
-    myProject = project;
     myToolWindow = toolWindow;
     model.addListener(new ModelListener());
     myDeviceRenderer = deviceRenderer;
     myPanel = new DeviceExplorerPanel();
     myPanel.setCancelActionListener(e -> myProgressListeners.forEach(DeviceExplorerViewProgressListener::cancellationRequested));
+    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project);
   }
 
   @TestOnly
@@ -102,7 +101,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   }
 
   @TestOnly
-  @Nullable
+  @NotNull
   public JBLoadingPanel getLoadingPanel() {
     return myLoadingPanel;
   }
@@ -145,23 +144,35 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
   @Override
   public void reportErrorRelatedToService(@NotNull DeviceFileSystemService service, @NotNull String message, @NotNull Throwable t) {
-    assert myLoadingPanel != null;
+    if (t.getMessage() != null) {
+      message += ": " + t.getMessage();
+    }
 
-    reportError(message, t);
-
-    //TODO: Show dedicated error panel
-    myLoadingPanel.setLoadingText(String.format("Error initializing Android Debug Bridge: %s", t.getMessage()));
-    myLoadingPanel.startLoading();
+    // If the file system service (i.e. ADB under the hood) had an error, there are no devices
+    // to show until the user takes an action, so we show the error "layer", hiding the other
+    // controls.
+    myPanel.showErrorMessageLayer(message, false);
   }
 
   @Override
   public void reportErrorRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message, @NotNull Throwable t) {
-    reportError(message, t);
+    if (t.getMessage() != null) {
+      message += ": " + t.getMessage();
+    }
+
+    // If there is an error related to a device, show the error "layer", hiding the other
+    // controls, until the user takes some action to fix the issue.
+    myPanel.showErrorMessageLayer(message, true);
   }
 
   @Override
   public void reportErrorRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message, @NotNull Throwable t) {
     reportError(message, t);
+  }
+
+  @Override
+  public void reportMessageRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message) {
+    myPanel.showMessageLayer(message, true);
   }
 
   @Override
@@ -196,7 +207,6 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   }
 
   private void setupPanel() {
-    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myProject);
     final ContentManager contentManager = myToolWindow.getContentManager();
     Content c = contentManager.getFactory().createContent(myLoadingPanel, "", true);
     contentManager.addContent(c);
@@ -209,8 +219,13 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
     myPanel.getDeviceCombo().addActionListener(actionEvent -> {
       Object sel = myPanel.getDeviceCombo().getSelectedItem();
-      DeviceFileSystem device = (sel instanceof DeviceFileSystem) ? (DeviceFileSystem)sel : null;
-      myListeners.forEach(x -> x.deviceSelected(device));
+      if (sel instanceof DeviceFileSystem) {
+        DeviceFileSystem device = (DeviceFileSystem)sel;
+        myListeners.forEach(x -> x.deviceSelected(device));
+      }
+      else {
+        myListeners.forEach(DeviceExplorerViewListener::noDeviceSelected);
+      }
     });
 
     Tree tree = myPanel.getTree();
@@ -316,22 +331,37 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
   }
 
   @Override
-  public void serviceSetupSuccess() {
-    assert myLoadingPanel != null;
+  public void startRefresh(@NotNull String text) {
+    myPanel.showMessageLayer("", false);
+    myLoadingPanel.setLoadingText(text);
+    myLoadingPanel.startLoading();
+  }
 
+  @Override
+  public void stopRefresh() {
     myLoadingPanel.stopLoading();
   }
 
-  public void setRootFolder(@Nullable DefaultTreeModel model, DefaultTreeSelectionModel treeSelectionModel) {
+  @Override
+  public void showNoDeviceScreen() {
+    myPanel.showMessageLayer("Connect a Device or Emulator to get started", false);
+  }
+
+  public void setRootFolder(@Nullable DefaultTreeModel model, @Nullable DefaultTreeSelectionModel treeSelectionModel) {
     Tree tree = myPanel.getTree();
     tree.setModel(model);
     tree.setSelectionModel(treeSelectionModel);
 
     if (model != null) {
+      myPanel.showTree();
       DeviceFileEntryNode rootNode = DeviceFileEntryNode.fromNode(model.getRoot());
       if (rootNode != null) {
         tree.setRootVisible(false);
         expandTreeNode(rootNode);
+      }
+      else {
+        // Show root, since it contains an error message (ErrorNode)
+        tree.setRootVisible(true);
       }
     }
   }

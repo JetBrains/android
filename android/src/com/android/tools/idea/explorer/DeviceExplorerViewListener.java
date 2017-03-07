@@ -17,12 +17,12 @@ package com.android.tools.idea.explorer;
 
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public interface DeviceExplorerViewListener {
-  void deviceSelected(@Nullable DeviceFileSystem device);
+  void noDeviceSelected();
+  void deviceSelected(@NotNull DeviceFileSystem device);
   void treeNodeExpanding(@NotNull DeviceFileEntryNode treeNode);
   void openNodesInEditorInvoked(@NotNull List<DeviceFileEntryNode> treeNodes);
   void saveNodesAsInvoked(@NotNull List<DeviceFileEntryNode> treeNodes);
