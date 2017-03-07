@@ -35,6 +35,8 @@ public class DrawConnection implements DrawCommand {
   public static final int TYPE_BASELINE = 5;  // connected such that anchor connects back
   public static final int TYPE_CENTER_WIDGET = 6; // connected on both sides to same widget different anchors
 
+  public static final int MODE_NORMAL = 0;
+  public static final int MODE_SELECTED = 1;
   public static final int DIR_LEFT = 0;
   public static final int DIR_RIGHT = 1;
   public static final int DIR_TOP = 2;
@@ -59,14 +61,12 @@ public class DrawConnection implements DrawCommand {
   int myMarginDistance;
   boolean myIsMarginReference;
   float myBias;
+  int myMode; // use to describe various display modes 0=default 1 = Source selected
 
   static Stroke myBackgroundStroke = new BasicStroke(8);
   static Stroke myDashStroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 6}, 0f);
   static Stroke mySpringStroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 4}, 0f);
-
-  final static int myChainSmallLinkLength = 6;
-  final static int myChainLinkLength = 8;
-  static Stroke myChainStroke = new FancyStroke(FancyStroke.Type.CHAIN, 3, 6, 1);
+  static Stroke myChainStroke = new FancyStroke(FancyStroke.Type.CHAIN, 2.5f, 9, 1);
 
   @Override
   public int getLevel() {
@@ -83,7 +83,7 @@ public class DrawConnection implements DrawCommand {
     return "DrawConnection," + myConnectionType + "," + rectToString(mySource) + "," +
            mySourceDirection + "," + rectToString(myDest) + "," + myDestDirection + "," +
            myDestType + "," + myShift + "," + myMargin + "," + myMarginDistance + "," +
-           myIsMarginReference + "," + myBias;
+           myIsMarginReference + "," + myBias + "," + myMode;
   }
 
   private static String rectToString(Rectangle r) {
@@ -115,13 +115,15 @@ public class DrawConnection implements DrawCommand {
     myMarginDistance = Integer.parseInt(sp[c++]);
     myIsMarginReference = Boolean.parseBoolean(sp[c++]);
     myBias = Float.parseFloat(sp[c++]);
+    myMode = Integer.parseInt(sp[c++]);
   }
 
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
     ColorSet color = sceneContext.getColorSet();
     g.setColor(color.getConstraints());
-    draw(g, color, myConnectionType, mySource, mySourceDirection, myDest, myDestDirection, myDestType, myMargin, myMarginDistance, myIsMarginReference, myBias);
+    draw(g, color, myConnectionType, mySource, mySourceDirection, myDest, myDestDirection, myDestType, myMargin, myMarginDistance,
+         myIsMarginReference, myBias, myMode);
   }
 
   public DrawConnection(int connectionType,
@@ -134,8 +136,9 @@ public class DrawConnection implements DrawCommand {
                         int margin,
                         int marginDistance,
                         boolean isMarginReference,
-                        Float bias) {
-    config(connectionType, source, sourceDirection, dest, destDirection, destType, shift, margin, marginDistance, isMarginReference, bias);
+                        Float bias,
+                        int mode) {
+    config(connectionType, source, sourceDirection, dest, destDirection, destType, shift, margin, marginDistance, isMarginReference, bias, mode);
   }
 
   public static void buildDisplayList(DisplayList list,
@@ -149,9 +152,10 @@ public class DrawConnection implements DrawCommand {
                                       int margin,
                                       int marginDistance,
                                       boolean isMarginReference,
-                                      Float bias) {
+                                      Float bias,
+                                      int mode) {
     list
-      .add(new DrawConnection(connectionType, source, sourceDirection, dest, destDirection, destType, shift, margin, marginDistance, isMarginReference, bias));
+      .add(new DrawConnection(connectionType, source, sourceDirection, dest, destDirection, destType, shift, margin, marginDistance, isMarginReference, bias, mode));
   }
 
   public void config(int connectionType,
@@ -164,7 +168,8 @@ public class DrawConnection implements DrawCommand {
                      int margin,
                      int marginDistance,
                      boolean isMarginReference,
-                     Float bias) {
+                     Float bias,
+                     int mode) {
     mySource.setBounds(source);
     myDest.setBounds(dest);
     myConnectionType = connectionType;
@@ -178,6 +183,7 @@ public class DrawConnection implements DrawCommand {
     myMarginDistance = marginDistance;
     myIsMarginReference = isMarginReference;
     myBias = bias;
+    myMode = mode;
   }
 
   public static void draw(Graphics2D g,
@@ -190,7 +196,8 @@ public class DrawConnection implements DrawCommand {
                           int margin,
                           int marginDistance,
                           boolean isMarginReference,
-                          float bias) {
+                          float bias,
+                          int mode) {
     if (connectionType == TYPE_BASELINE) {
       drawBaseLine(g, source, dest);
     }
@@ -202,7 +209,7 @@ public class DrawConnection implements DrawCommand {
     int dy = getDestinationDY(destDirection, dest, myDestType == DEST_PARENT, 0);
     int x1 = startx;
     int y1 = starty;
-
+    Color constraintColor = (mode == MODE_SELECTED) ? color.getSelectedConstraints() : color.getConstraints();
     int scale_source = 40;
     int scale_dest = (myDestType == DEST_PARENT) ? -40 : 40;
     boolean flip_arrow = false;
@@ -267,7 +274,7 @@ public class DrawConnection implements DrawCommand {
                         endx + dx + scale_dest * dirDeltaX[destDirection], endy + dy + scale_dest * dirDeltaY[destDirection],
                         endx, endy);
         Stroke defaultStroke = g.getStroke();
-        g.setColor(color.getConstraints());
+        g.setColor(constraintColor);
         g.setStroke(myChainStroke);
         g.draw(ourPath);
         g.setStroke(defaultStroke);
@@ -304,11 +311,11 @@ public class DrawConnection implements DrawCommand {
           }
 
           if (endx == startx) {
-            g.setColor(color.getConstraints());
+            g.setColor(constraintColor);
             DrawConnectionUtils.drawVerticalZigZagLine(ourPath, startx, starty, springEndY);
           }
           else {
-            g.setColor(color.getConstraints());
+            g.setColor(constraintColor);
             DrawConnectionUtils.drawHorizontalZigZagLine(ourPath, startx, springEndX, endy);
           }
         }
@@ -364,7 +371,7 @@ public class DrawConnection implements DrawCommand {
             Stroke stroke = g.getStroke();
             g.setStroke(myDashStroke);
             int xpos = source.x + source.width / 2;
-            g.setColor(color.getConstraints());
+            g.setColor(constraintColor);
             g.drawLine(xpos, vline_y1, xpos, vline_y2);
             g.setStroke(stroke);
           }
@@ -391,7 +398,7 @@ public class DrawConnection implements DrawCommand {
             Stroke stroke = g.getStroke();
             g.setStroke(myDashStroke);
             int ypos = source.y + source.height / 2;
-            g.setColor(color.getMargins());
+            g.setColor(constraintColor);
             g.drawLine(vline_x1, ypos, vline_x2, ypos);
             g.setStroke(stroke);
           }
@@ -412,7 +419,7 @@ public class DrawConnection implements DrawCommand {
         px[5] = endx;
         py[5] = endy;
 
-        g.setColor(color.getConstraints());
+        g.setColor(constraintColor);
         if (TYPE_CENTER_WIDGET == connectionType) {
           len = DrawConnectionUtils.removeZigZag(px, py, len, 50);
         }
@@ -471,7 +478,7 @@ public class DrawConnection implements DrawCommand {
         g.fillPolygon(xPoints, yPoints, 3);
         g.draw(ourPath);
         g.setStroke(defaultStroke);
-        g.setColor(color.getConstraints());
+        g.setColor(constraintColor);
         DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
         g.fillPolygon(xPoints, yPoints, 3);
         g.draw(ourPath);

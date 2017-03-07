@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawConnection;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -206,6 +207,9 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     int w = source_rect.width;
     int h = source_rect.height;
 
+    List<NlComponent> selection = component.getScene().getSelection();
+    boolean selected = selection.contains(child.getNlComponent());
+    int mode = (selected) ? DrawConnection.MODE_SELECTED : DrawConnection.MODE_NORMAL;
 
     // Extract Scene Components constraints from cache (Table speeds up next step)
     ConnectionType[] connectionTypes = new ConnectionType[ourDirections.length];
@@ -216,6 +220,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     }
 
     for (int i = 0; i < ourDirections.length; i++) {
+      mode = (selected) ?  DrawConnection.MODE_SELECTED : DrawConnection.MODE_NORMAL;
       ConnectionType type = connectionTypes[i];
       SceneComponent sc = connectionTo[i];
       int destType = DrawConnection.DEST_NORMAL;
@@ -234,13 +239,15 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         if (connectionTo[ourOppositeDirection[i]] != null) { // opposite side is connected
           connectType = DrawConnection.TYPE_SPRING;
           if (connectionTo[ourOppositeDirection[i]] == sc && destType != DrawConnection.DEST_PARENT) { // center
-            if (connectionTypes[ourOppositeDirection[i]]!=type) {
+            if (connectionTypes[ourOppositeDirection[i]] != type) {
               connectType = DrawConnection.TYPE_CENTER;
-            } else {
+            }
+            else {
               connectType = DrawConnection.TYPE_CENTER_WIDGET;
             }
           }
         }
+
         SceneComponent toComponentsTo = (SceneComponent)sc.myCache.get(ourDirections[connect]);
         // Chain detection
         if (type == ConnectionType.BACKWARD // this connection must be backward
@@ -250,6 +257,11 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
           if (sc.myCache.containsKey(ourChainDirections[ourOppositeDirection[i]])) {
             continue; // no need to add element to display list chains only have to go one way
           }
+
+          if (selection.contains(sc.getNlComponent())) {
+            mode =  DrawConnection.MODE_SELECTED;
+          }
+
           child.myCache.put(ourChainDirections[i], "drawn");
         }
         int margin = 0;
@@ -257,10 +269,11 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         boolean isMarginReference = false;
         float bias = 0.5f;
         String marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, MARGIN_ATTR[i]);
-        if (marginString==null) {
+        if (marginString == null) {
           if (i == 0) { // left check if it is start
             marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START);
-          } else if (i == 1) { // right check if it is end
+          }
+          else if (i == 1) { // right check if it is end
             marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END);
           }
         }
@@ -287,7 +300,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
           connect = ourOppositeDirection[i];
         }
         DrawConnection
-          .buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance, isMarginReference, bias);
+          .buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance, isMarginReference, bias, mode);
       }
     }
 
@@ -302,7 +315,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       dest_rect.y += dest_offset;
       dest_rect.height = 0;
       DrawConnection
-        .buildDisplayList(list, DrawConnection.TYPE_BASELINE, source_rect, 5, dest_rect, 5, DrawConnection.DEST_NORMAL, false, 0, 0, false, 0f);
+        .buildDisplayList(list, DrawConnection.TYPE_BASELINE, source_rect, 5, dest_rect, 5, DrawConnection.DEST_NORMAL, false, 0, 0, false, 0f, mode);
     }
   }
 }
