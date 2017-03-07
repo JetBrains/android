@@ -209,7 +209,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
             myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
           }
         }
-        requestModelUpdate();
+        myListeners.forEach(listener -> listener.modelActivated(this));
         myModelVersion.myResourceVersion.incrementAndGet();
       }
     }
@@ -220,7 +220,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    */
   public void deactivate() {
     if (myActive) {
-      getRenderingQueue().cancelAllUpdates();
+      myListeners.forEach(listener -> listener.modelDeactivated(this));
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
       manager.removeListener(this, myFacet, myFile, myConfiguration);
       myConfigurationModificationCount = myConfiguration.getModificationCount();
@@ -258,8 +258,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   /**
    * Asynchronously inflates the model and updates the view hierarchy
+   *
+   * @deprecated moving to LayoutlibSceneManager
    */
-  protected void requestModelUpdate() {
+  public void requestModelUpdate() {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     synchronized (PROGRESS_LOCK) {
@@ -304,8 +306,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     });
   }
 
+  /**
+   * @deprecated moving to LayoutlibSceneManager
+   */
   @NotNull
-  private MergingUpdateQueue getRenderingQueue() {
+  public MergingUpdateQueue getRenderingQueue() {
     synchronized (myRenderingQueueLock) {
       if (myRenderingQueue == null) {
         myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", RENDER_DELAY_MS, true, null, this, null,
@@ -322,17 +327,27 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   /**
    * Whether we should render just the viewport
+   * @deprecated moving to LayoutlibSceneManager
    */
   private static boolean ourRenderViewPort;
 
+  /**
+   * @deprecated moving to LayoutlibSceneManager
+   */
   public static void setRenderViewPort(boolean state) {
     ourRenderViewPort = state;
   }
 
+  /**
+   * @deprecated moving to LayoutlibSceneManager
+   */
   public static boolean isRenderViewPort() {
     return ourRenderViewPort;
   }
 
+  /**
+   * @deprecated moving to LayoutlibSceneManager
+   */
   @VisibleForTesting
   protected void setupRenderTask(@Nullable RenderTask task) {
   }
@@ -342,6 +357,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    *
    * @param force forces the model to be re-inflated even if a previous version was already inflated
    * @returns whether the model was inflated in this call or not
+   *
+   * @deprecated moving to LayoutlibSceneManager
    */
   private boolean inflate(boolean force) {
     Configuration configuration = myConfiguration;
@@ -417,8 +434,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
     else {
       XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(myFile);
-      List<ViewInfo> rootViews;
-      rootViews = myType == NlLayoutType.MENU ? result.getSystemRootViews() : result.getRootViews();
+      List<ViewInfo> rootViews = myType == NlLayoutType.MENU ? result.getSystemRootViews() : result.getRootViews();
       updateHierarchy(rootTag, rootViews);
     }
     myModelVersion.increase(ChangeType.UPDATE_HIERARCHY);
@@ -429,16 +445,18 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @VisibleForTesting
-  public void updateHierarchy(@Nullable XmlTag rootTag, @NotNull Iterable<ViewInfo> rootViews) {
-    ModelUpdater updater = new ModelUpdater(this);
-    updater.update(rootTag, rootViews);
+  public void updateHierarchy(@Nullable XmlTag rootTag, @NotNull List<ViewInfo> rootViews) {
+    LayoutlibModelUpdater updater = new LayoutlibModelUpdater(this);
+    updater.update(rootTag, updater.makeNodeList(rootViews));
   }
 
   /**
    * Synchronously update the model. This will inflate the layout and notify the listeners using
-   * {@link ModelListener#modelChanged(NlModel)}.
+   * {@link ModelListener#modelDerivedDataChanged(NlModel)}.
+   *
+   * @deprecated moving to LayoutlibSceneManager
    */
-  protected void updateModel() {
+  public void updateModel() {
     inflate(true);
     notifyListenersModelUpdateComplete();
   }
@@ -542,6 +560,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
    * <p/>
    * <b>Do not call this method from the dispatch thread!</b>
+   *
+   * @deprecated moving to LayoutlibSceneManager
    */
   public void render() {
     try {
@@ -554,6 +574,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
   }
 
+  /**
+   * @deprecated moving to LayoutlibSceneManager
+   */
   private void renderImpl() {
     if (myConfigurationModificationCount != myConfiguration.getModificationCount()) {
       // usage tracking (we only pay attention to individual changes where only one item is affected since those are likely to be triggered
@@ -613,25 +636,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     notifyListenersRenderComplete();
   }
 
-  /**
-   * Renders the current model asynchronously. Once the render is complete, the listeners {@link ModelListener#modelRendered(NlModel)}
-   * method will be called.
-   */
-  public void requestRender() {
-    // This update is low priority so the model updates take precedence
-    getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
-      @Override
-      public void run() {
-        render();
-      }
-
-      @Override
-      public boolean canEat(Update update) {
-        return this.equals(update);
-      }
-    });
-  }
-
   public void setElapsedFrameTimeMs(long ms) {
     myElapsedFrameTimeMs = ms;
   }
@@ -640,6 +644,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * Request a layout pass
    *
    * @param animate if true, the resulting layout should be animated
+   *
+   * @deprecated moving to LayoutlibSceneManager
    */
   public void requestLayout(boolean animate) {
     getRenderingQueue().queue(new Update("model.layout", LOW_PRIORITY) {
@@ -684,7 +690,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   /**
-   * Calls all the listeners {@link ModelListener#modelChanged(NlModel)} method.
+   * Calls all the listeners {@link ModelListener#modelDerivedDataChanged(NlModel)} method.
    */
   private void notifyListenersModelUpdateComplete() {
     List<ModelListener> listeners;
@@ -692,7 +698,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       listeners = ImmutableList.copyOf(myListeners);
     }
 
-    listeners.forEach(listener -> listener.modelChanged(this));
+    listeners.forEach(listener -> listener.modelDerivedDataChanged(this));
   }
 
   /**
@@ -721,6 +727,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     listeners.forEach(listener -> listener.modelChangedOnLayout(this, animate));
   }
 
+  /**
+   * @deprecated moving to LayoutlibSceneManager
+   */
   @Nullable
   public RenderResult getRenderResult() {
     myRenderResultLock.readLock().lock();
@@ -874,7 +883,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @NotNull
   public List<NlComponent> getComponents() {
-    return myComponents;
+    return Collections.unmodifiableList(myComponents);
   }
 
   @NotNull
@@ -883,21 +892,32 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   /**
-   * Synchronizes a {@linkplain NlModel} after a render such that the component hierarchy
-   * is up to date wrt view bounds, tag snapshots etc. Crucially, it attempts to preserve
+   * A node in a tree structure where each node provides a {@link TagSnapshot}.
+   */
+  interface TagSnapshotTreeNode {
+    @Nullable
+    TagSnapshot getTagSnapshot();
+
+    @NotNull
+    List<TagSnapshotTreeNode> getChildren();
+  }
+
+  /**
+   * Synchronizes a {@linkplain NlModel} such that the component hierarchy
+   * is up to date wrt tag snapshots etc. Crucially, it attempts to preserve
    * component hierarchy (since XmlTags may sometimes not survive a PSI reparse, but we
    * want the {@linkplain NlComponent} instances to keep the same instances across these
    * edits such that for example the selection (a set of {@link NlComponent} instances)
    * are preserved.
    */
-  private static class ModelUpdater {
-    private final NlModel myModel;
-    private final Map<XmlTag, NlComponent> myTagToComponentMap = Maps.newIdentityHashMap();
+  static class ModelUpdater {
+    protected final NlModel myModel;
+    protected final Map<XmlTag, NlComponent> myTagToComponentMap = Maps.newIdentityHashMap();
     private final Map<NlComponent, XmlTag> myComponentToTagMap = Maps.newIdentityHashMap();
     /**
      * Map from snapshots in the old component map to the corresponding components
      */
-    private final Map<TagSnapshot, NlComponent> mySnapshotToComponent = Maps.newIdentityHashMap();
+    protected final Map<TagSnapshot, NlComponent> mySnapshotToComponent = Maps.newIdentityHashMap();
     /**
      * Map from tags in the view render tree to the corresponding snapshots
      */
@@ -920,12 +940,12 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
 
     /**
-     * Update the component hierarchy associated with this {@linkplain ModelUpdater} such
+     * Update the component hierarchy associated with this {@link NlModel} such
      * that the associated component list correctly reflects the latest versions of the
-     * XML PSI file, the given tag snapshot and {@link ViewInfo} hierarchy from layoutlib.
+     * XML PSI file, the given tag snapshot and {@link TagSnapshotTreeNode} hierarchy
      */
     @VisibleForTesting
-    public void update(@Nullable XmlTag newRoot, @NotNull Iterable<ViewInfo> rootViews) {
+    public void update(@Nullable XmlTag newRoot, @NotNull List<TagSnapshotTreeNode> roots) {
       if (newRoot == null) {
         myModel.myComponents = Collections.emptyList();
         return;
@@ -933,11 +953,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       // Next find the snapshots corresponding to the missing components.
       // We have to search among the view infos in the new components.
-      for (ViewInfo rootView : rootViews) {
-        gatherTagsAndSnapshots(rootView, myTagToSnapshot);
+      for (TagSnapshotTreeNode root : roots) {
+        gatherTagsAndSnapshots(root, myTagToSnapshot);
       }
 
-      NlComponent root = ApplicationManager.getApplication().runReadAction((Computable<NlComponent>)() -> {
+      NlComponent rootComponent = ApplicationManager.getApplication().runReadAction((Computable<NlComponent>)() -> {
         // Ensure that all XmlTags in the new XmlFile contents map to a corresponding component
         // form the old map
         mapOldToNew(newRoot);
@@ -958,54 +978,23 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         return createTree(newRoot);
       });
 
-      myModel.myComponents = Collections.singletonList(root);
+      myModel.myComponents = Collections.singletonList(rootComponent);
 
       // Wipe out state in older components to make sure on reuse we don't accidentally inherit old
       // data
       for (NlComponent component : myTagToComponentMap.values()) {
-        component.setBounds(0, 0, -1, -1); // -1: not initialized
-        component.viewInfo = null;
+        clearDerivedData(component);
         component.setSnapshot(null);
       }
 
-      // Update the bounds. This is based on the ViewInfo instances.
-      for (ViewInfo view : rootViews) {
-        updateHierarchy(view, 0, 0);
+      // Update the components' snapshots
+      for (TagSnapshotTreeNode root : roots) {
+        updateHierarchy(root);
       }
-
-      // Finally, fix up bounds: ensure that all components not found in the view
-      // info hierarchy inherit position from parent
-      fixBounds(root);
     }
 
-    private static void fixBounds(NlComponent root) {
-      boolean computeBounds = false;
-      if (root.w == -1 && root.h == -1) { // -1: not initialized
-        computeBounds = true;
-
-        // Look at parent instead
-        NlComponent parent = root.getParent();
-        if (parent != null && parent.w >= 0) {
-          root.setBounds(parent.x, parent.y, 0, 0);
-        }
-      }
-
-      List<NlComponent> children = root.children;
-      if (children != null && !children.isEmpty()) {
-        for (NlComponent child : children) {
-          fixBounds(child);
-        }
-
-        if (computeBounds) {
-          Rectangle rectangle = new Rectangle(root.x, root.y, root.w, root.h);
-          // Grow bounds to include child bounds
-          for (NlComponent child : children) {
-            rectangle = rectangle.union(new Rectangle(child.x, child.y, child.w, child.h));
-          }
-
-          root.setBounds(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
-        }
-      }
+    protected void clearDerivedData(@NotNull NlComponent component) {
+      // Nothing
     }
 
     private void mapOldToNew(@NotNull XmlTag newRootTag) {
@@ -1015,7 +1004,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       // If there have been no structural changes, these map 1-1 from the previous hierarchy.
       // We first attempt to do it based on the XmlTags:
       //  (1) record a map from XmlTag to NlComponent in the previous component list
-      for (NlComponent component : myModel.myComponents) {
+      for (NlComponent component : myModel.getComponents()) {
         gatherTagsAndSnapshots(component);
       }
 
@@ -1163,20 +1152,19 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       }
     }
 
-    private static void gatherTagsAndSnapshots(ViewInfo view, Map<XmlTag, TagSnapshot> map) {
-      Object cookie = view.getCookie();
-      if (cookie instanceof TagSnapshot) {
-        TagSnapshot snapshot = (TagSnapshot)cookie;
+    private static void gatherTagsAndSnapshots(@NotNull TagSnapshotTreeNode node, @NotNull Map<XmlTag, TagSnapshot> map) {
+      TagSnapshot snapshot = node.getTagSnapshot();
+      if (snapshot != null) {
         map.put(snapshot.tag, snapshot);
       }
 
-      for (ViewInfo child : view.getChildren()) {
+      for (TagSnapshotTreeNode child : node.getChildren()) {
         gatherTagsAndSnapshots(child, map);
       }
     }
 
     @NotNull
-    private NlComponent createTree(XmlTag tag) {
+    private NlComponent createTree(@NotNull XmlTag tag) {
       NlComponent component = myTagToComponentMap.get(tag);
       if (component == null) {
         // New component: tag didn't exist in the previous component hierarchy,
@@ -1219,12 +1207,138 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       return component;
     }
 
-    private void updateHierarchy(ViewInfo view,
-                                 int parentX,
-                                 int parentY) {
+    private void updateHierarchy(@NotNull TagSnapshotTreeNode node) {
+      TagSnapshot snapshot = node.getTagSnapshot();
+      NlComponent component;
+      if (snapshot != null) {
+        component = mySnapshotToComponent.get(snapshot);
+        if (component == null) {
+          component = myTagToComponentMap.get(snapshot.tag);
+        }
+
+        if (component != null) {
+          component.setSnapshot(snapshot);
+          assert snapshot.tag != null;
+          component.setTag(snapshot.tag);
+        }
+      }
+      for (TagSnapshotTreeNode child : node.getChildren()) {
+        updateHierarchy(child);
+      }
+    }
+  }
+
+  /**
+   * A {@link ModelUpdater} that also updates the bounds of the components based on layoutlib information.
+   *
+   * TODO: move to LayoutlibSceneManager
+   * TODO: remove bounds from NlComponent and use Scene bounds instead.
+   */
+  private static class LayoutlibModelUpdater extends ModelUpdater {
+
+    private Map<TagSnapshotTreeNode, ViewInfo> mySnapshotToViewMap = new HashMap<>();
+
+    public LayoutlibModelUpdater(@NotNull NlModel model) {
+      super(model);
+    }
+
+    /**
+     * A TagSnapshot tree that mirrors the ViewInfo tree.
+     */
+    private static class ViewInfoTagSnapshotNode implements TagSnapshotTreeNode {
+
+      private final ViewInfo myViewInfo;
+      private Map<TagSnapshotTreeNode, ViewInfo> mySnapshotToViewMap = new HashMap<>();
+
+      private ViewInfoTagSnapshotNode(@NotNull ViewInfo info, Map<TagSnapshotTreeNode, ViewInfo> snapshotToViewMap) {
+        myViewInfo = info;
+        mySnapshotToViewMap = snapshotToViewMap;
+      }
+
+      @Nullable
+      @Override
+      public TagSnapshot getTagSnapshot() {
+        Object result = myViewInfo.getCookie();
+        return result instanceof TagSnapshot ? (TagSnapshot)result : null;
+      }
+
+      @NotNull
+      @Override
+      public List<TagSnapshotTreeNode> getChildren() {
+        return makeNodeList(myViewInfo.getChildren(), mySnapshotToViewMap);
+      }
+    }
+
+    @NotNull
+    List<TagSnapshotTreeNode> makeNodeList(@NotNull List<ViewInfo> views) {
+      return makeNodeList(views, mySnapshotToViewMap);
+    }
+
+    @NotNull
+    private static List<TagSnapshotTreeNode> makeNodeList(@NotNull List<ViewInfo> views, Map<TagSnapshotTreeNode, ViewInfo> snapshotToViewMap) {
+      List<TagSnapshotTreeNode> result = new ArrayList<>();
+      for (ViewInfo viewInfo : views) {
+        ViewInfoTagSnapshotNode node = new ViewInfoTagSnapshotNode(viewInfo, snapshotToViewMap);
+        result.add(node);
+        snapshotToViewMap.put(node, viewInfo);
+      }
+      return result;
+    }
+
+    @Override
+    protected void clearDerivedData(@NotNull NlComponent component) {
+      super.clearDerivedData(component);
+      component.setBounds(0, 0, -1, -1); // -1: not initialized
+      component.viewInfo = null;
+    }
+
+    @Override
+    public void update(@Nullable XmlTag newRoot, @NotNull List<TagSnapshotTreeNode> rootTags) {
+      super.update(newRoot, rootTags);
+
+      // Update the bounds. This is based on the ViewInfo instances.
+      rootTags.stream().map(mySnapshotToViewMap::get)
+        .forEach(view -> updateBounds(view, 0, 0));
+
+      // Finally, fix up bounds: ensure that all components not found in the view
+      // info hierarchy inherit position from parent
+      fixBounds(myModel.getComponents().get(0));
+    }
+
+    private static void fixBounds(@NotNull NlComponent root) {
+      boolean computeBounds = false;
+      if (root.w == -1 && root.h == -1) { // -1: not initialized
+        computeBounds = true;
+
+        // Look at parent instead
+        NlComponent parent = root.getParent();
+        if (parent != null && parent.w >= 0) {
+          root.setBounds(parent.x, parent.y, 0, 0);
+        }
+      }
+
+      List<NlComponent> children = root.children;
+      if (children != null && !children.isEmpty()) {
+        for (NlComponent child : children) {
+          fixBounds(child);
+        }
+
+        if (computeBounds) {
+          Rectangle rectangle = new Rectangle(root.x, root.y, root.w, root.h);
+          // Grow bounds to include child bounds
+          for (NlComponent child : children) {
+            rectangle = rectangle.union(new Rectangle(child.x, child.y, child.w, child.h));
+          }
+
+          root.setBounds(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+        }
+      }
+    }
+
+    private void updateBounds(@NotNull ViewInfo view, int parentX, int parentY) {
       ViewInfo bounds = RenderService.getSafeBounds(view);
       Object cookie = view.getCookie();
-      NlComponent component = null;
+      NlComponent component;
       if (cookie != null) {
         if (cookie instanceof TagSnapshot) {
           TagSnapshot snapshot = (TagSnapshot)cookie;
@@ -1232,30 +1346,23 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           if (component == null) {
             component = myTagToComponentMap.get(snapshot.tag);
           }
+          if (component != null && component.viewInfo == null) {
+            component.viewInfo = view;
+            int left = parentX + bounds.getLeft();
+            int top = parentY + bounds.getTop();
+            int width = bounds.getRight() - bounds.getLeft();
+            int height = bounds.getBottom() - bounds.getTop();
 
-          if (component != null) {
-            component.setSnapshot(snapshot);
-            assert snapshot.tag != null;
-            component.setTag(snapshot.tag);
+            component.setBounds(left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE), Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
           }
         }
 
-        if (component != null && component.viewInfo == null) {
-          component.viewInfo = view;
-          int left = parentX + bounds.getLeft();
-          int top = parentY + bounds.getTop();
-          int width = bounds.getRight() - bounds.getLeft();
-          int height = bounds.getBottom() - bounds.getTop();
+        parentX += bounds.getLeft();
+        parentY += bounds.getTop();
 
-          component.setBounds(left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE), Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
+        for (ViewInfo child : view.getChildren()) {
+          updateBounds(child, parentX, parentY);
         }
-      }
-
-      parentX += bounds.getLeft();
-      parentY += bounds.getTop();
-
-      for (ViewInfo child : view.getChildren()) {
-        updateHierarchy(child, parentX, parentY);
       }
     }
   }
@@ -1983,7 +2090,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
     myModelVersion.increase(reason);
     myModificationTrigger = reason;
-    requestModelUpdate();
+    myListeners.forEach(listener -> listener.modelChanged(this));
   }
 
   /**
