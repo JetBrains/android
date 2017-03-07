@@ -16,33 +16,29 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.configurations.ConfigurationListener;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.UIUtil;
-import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE;
-import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
 /**
- * {@link SceneManager} that creates a Scene from an NlModel representing a layout using layoutlib.
+ * {@link SceneBuilder} that creates a Scene from an NlModel representing a layout using layoutlib.
  */
-public class LayoutlibSceneManager extends SceneManager {
+public class LayoutlibSceneBuilder extends SceneBuilder {
 
   private int myDpi = 0;
   private final SelectionChangeListener mySelectionChangeListener = new SelectionChangeListener();
 
-  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull SceneView sceneView) {
+  public LayoutlibSceneBuilder(@NotNull NlModel model, @NotNull SceneView sceneView) {
     super(model, sceneView);
   }
 
@@ -199,19 +195,18 @@ public class LayoutlibSceneManager extends SceneManager {
 
   private class ModelChangeListener implements ModelListener {
     @Override
-    public void modelDerivedDataChanged(@NotNull NlModel model) {
-      getModel().render();
-    }
-
-    @Override
     public void modelChanged(@NotNull NlModel model) {
-      requestModelUpdate();
+      // updateFrom needs to be called in the dispatch thread
+      UIUtil.invokeLaterIfNeeded(() -> {
+        update();
+        mySelectionChangeListener.selectionChanged(getSceneView().getSelectionModel(), getSceneView().getSelectionModel().getSelection());
+      });
     }
 
     @Override
     public void modelRendered(@NotNull NlModel model) {
       // updateFrom needs to be called in the dispatch thread
-      UIUtil.invokeLaterIfNeeded(LayoutlibSceneManager.this::update);
+      UIUtil.invokeLaterIfNeeded(LayoutlibSceneBuilder.this::update);
     }
 
     @Override
@@ -222,16 +217,6 @@ public class LayoutlibSceneManager extends SceneManager {
         update();
         getScene().setAnimate(previous);
       });
-    }
-
-    @Override
-    public void modelActivated(@NotNull NlModel model) {
-      requestModelUpdate();
-    }
-
-    @Override
-    public void modelDeactivated(@NotNull NlModel model) {
-      getModel().getRenderingQueue().cancelAllUpdates();
     }
   }
 
@@ -266,43 +251,5 @@ public class LayoutlibSceneManager extends SceneManager {
         clearChildTargets(child);
       }
     }
-  }
-
-  @Override
-  public void requestRender() {
-    // This update is low priority so the model updates take precedence
-    getModel().getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
-      @Override
-      public void run() {
-        getModel().render();
-      }
-
-      @Override
-      public boolean canEat(Update update) {
-        return this.equals(update);
-      }
-    });
-  }
-
-  protected void requestModelUpdate() {
-    getModel().requestModelUpdate();
-  }
-
-  public static boolean isRenderViewPort() {
-    return NlModel.isRenderViewPort();
-  }
-
-  public static void setRenderViewPort(boolean state) {
-    NlModel.setRenderViewPort(state);
-  }
-
-  @Override
-  public void requestLayout(boolean animate) {
-    getModel().requestLayout(animate);
-  }
-
-  @Nullable
-  public RenderResult getRenderResult() {
-    return getModel().getRenderResult();
   }
 }

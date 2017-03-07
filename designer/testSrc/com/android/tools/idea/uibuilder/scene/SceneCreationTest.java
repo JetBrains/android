@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
@@ -27,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 /**
  * Basic tests for creating and updating a Scene out of a NlModel
@@ -52,7 +53,7 @@ public class SceneCreationTest extends SceneTest {
   public void testSceneCreation() {
     ModelBuilder builder = createModel();
     NlModel model = builder.build();
-    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model, myScreen.getScreen());
+    LayoutlibSceneBuilder sceneBuilder = new LayoutlibSceneBuilder(model, myScreen.getScreen());
     Scene scene = sceneBuilder.build();
     scene.setAnimate(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
@@ -90,7 +91,7 @@ public class SceneCreationTest extends SceneTest {
   public void testSceneReparenting() {
     ModelBuilder builder = createModel();
     NlModel model = builder.build();
-    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model, myScreen.getScreen());
+    LayoutlibSceneBuilder sceneBuilder = new LayoutlibSceneBuilder(model, myScreen.getScreen());
     Scene scene = sceneBuilder.build();
     scene.setAnimate(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
@@ -124,7 +125,7 @@ public class SceneCreationTest extends SceneTest {
     Configuration config = model.getConfiguration();
     config.setDevice(config.getConfigurationManager().getDeviceById("Nexus 6P"), false);
 
-    Scene scene = new SyncLayoutlibSceneManager(model, myScreen.getScreen()).build();
+    Scene scene = new LayoutlibSceneBuilder(model, myScreen.getScreen()).build();
     scene.setAnimate(false);
 
     ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT);
