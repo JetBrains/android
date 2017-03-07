@@ -129,7 +129,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     assertNull(getAndroidProject(localAarModule));
 
     // Should not expose the AAR as library, instead it should use the "exploded AAR".
-    assertAbout(libraryDependencies()).that(localAarModule).doesNotHaveLibraryDependencies();
+    assertAbout(libraryDependencies()).that(localAarModule).doesNotHaveDependencies();
 
     Module appModule = myModules.getAppModule();
     assertAbout(libraryDependencies()).that(appModule).contains("library-debug-unspecified", COMPILE);
@@ -151,7 +151,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     loadProject(TRANSITIVE_DEPENDENCIES);
 
     Module appModule = myModules.getAppModule();
-    assertAbout(moduleDependencies()).that(appModule).contains("library2");
+    assertAbout(moduleDependencies()).that(appModule).contains("library2", COMPILE);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=210172
@@ -181,7 +181,7 @@ public class DependencySetupTest extends AndroidGradleTestCase {
 
     // 'app' module should have 'library1' as module dependency.
     // 'app' -> 'library2' -> 'library1'
-    assertAbout(moduleDependencies()).that(appModule).contains("library1");
+    assertAbout(moduleDependencies()).that(appModule).contains("library1", COMPILE);
   }
 
   public void testJavaLibraryModuleDependencies() throws Exception {
@@ -189,14 +189,14 @@ public class DependencySetupTest extends AndroidGradleTestCase {
     Module appModule = myModules.getAppModule();
 
     // dependency should be set on the module not the compiled jar.
-    assertAbout(moduleDependencies()).that(appModule).contains("lib");
-    assertAbout(libraryDependencies()).that(appModule).doesNotContain("lib");
+    assertAbout(moduleDependencies()).that(appModule).contains("lib", COMPILE);
+    assertAbout(libraryDependencies()).that(appModule).doesNotContain("lib", COMPILE);
   }
 
   public void testDependencySetUpInJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module libModule = myModules.getModule("lib");
-    assertAbout(libraryDependencies()).that(libModule).doesNotContain("lib.lib");
+    assertAbout(libraryDependencies()).that(libModule).doesNotContain("lib.lib", COMPILE);
   }
 
   // See: https://code.google.com/p/android/issues/detail?id=213627
