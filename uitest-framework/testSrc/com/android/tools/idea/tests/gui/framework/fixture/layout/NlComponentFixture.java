@@ -22,7 +22,6 @@ import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
-import com.android.tools.idea.uibuilder.scene.target.ActionTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
@@ -137,7 +136,7 @@ public class NlComponentFixture {
     // Find the position of the baseline target icon and click on it
     SceneComponent sceneComponent = sceneView.getScene().getSceneComponent(myComponent);
     Target target = GuiQuery.getNonNull(() -> sceneComponent.getTargets().stream()
-      .filter(t -> t.getClass() == ActionTarget.class)
+      .filter(t -> "Edit Baselines".equals(t.getToolTipText()))
       .findFirst().get());
     SceneContext context = SceneContext.get(sceneView);
     Point p = new Point(context.getSwingX(target.getCenterX()), context.getSwingY(target.getCenterY()));
