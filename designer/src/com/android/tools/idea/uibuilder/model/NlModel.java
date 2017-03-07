@@ -434,7 +434,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
     else {
       XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(myFile);
-      List<ViewInfo> rootViews = myType == NlLayoutType.MENU ? result.getSystemRootViews() : result.getRootViews();
+      List<ViewInfo> rootViews;
+      rootViews = myType == NlLayoutType.MENU ? result.getSystemRootViews() : result.getRootViews();
       updateHierarchy(rootTag, rootViews);
     }
     myModelVersion.increase(ChangeType.UPDATE_HIERARCHY);
@@ -445,9 +446,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @VisibleForTesting
-  public void updateHierarchy(@Nullable XmlTag rootTag, @NotNull List<ViewInfo> rootViews) {
-    LayoutlibModelUpdater updater = new LayoutlibModelUpdater(this);
-    updater.update(rootTag, updater.makeNodeList(rootViews));
+  public void updateHierarchy(@Nullable XmlTag rootTag, @NotNull Iterable<ViewInfo> rootViews) {
+    ModelUpdater updater = new LayoutlibModelUpdater(this);
+    updater.update(rootTag, rootViews);
   }
 
   /**
@@ -892,17 +893,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   /**
-   * A node in a tree structure where each node provides a {@link TagSnapshot}.
-   */
-  interface TagSnapshotTreeNode {
-    @Nullable
-    TagSnapshot getTagSnapshot();
-
-    @NotNull
-    List<TagSnapshotTreeNode> getChildren();
-  }
-
-  /**
    * Synchronizes a {@linkplain NlModel} such that the component hierarchy
    * is up to date wrt tag snapshots etc. Crucially, it attempts to preserve
    * component hierarchy (since XmlTags may sometimes not survive a PSI reparse, but we
@@ -942,10 +932,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     /**
      * Update the component hierarchy associated with this {@link NlModel} such
      * that the associated component list correctly reflects the latest versions of the
-     * XML PSI file, the given tag snapshot and {@link TagSnapshotTreeNode} hierarchy
+     * XML PSI file, the given tag snapshot and {@link ViewInfo} hierarchy from layoutlib.
      */
     @VisibleForTesting
-    public void update(@Nullable XmlTag newRoot, @NotNull List<TagSnapshotTreeNode> roots) {
+    public void update(@Nullable XmlTag newRoot, @NotNull Iterable<ViewInfo> rootViews) {
       if (newRoot == null) {
         myModel.myComponents = Collections.emptyList();
         return;
@@ -953,11 +943,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       // Next find the snapshots corresponding to the missing components.
       // We have to search among the view infos in the new components.
-      for (TagSnapshotTreeNode root : roots) {
-        gatherTagsAndSnapshots(root, myTagToSnapshot);
+      for (ViewInfo rootView : rootViews) {
+        gatherTagsAndSnapshots(rootView, myTagToSnapshot);
       }
 
-      NlComponent rootComponent = ApplicationManager.getApplication().runReadAction((Computable<NlComponent>)() -> {
+      NlComponent root = ApplicationManager.getApplication().runReadAction((Computable<NlComponent>)() -> {
         // Ensure that all XmlTags in the new XmlFile contents map to a corresponding component
         // form the old map
         mapOldToNew(newRoot);
@@ -978,7 +968,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         return createTree(newRoot);
       });
 
-      myModel.myComponents = Collections.singletonList(rootComponent);
+      myModel.myComponents = Collections.singletonList(root);
 
       // Wipe out state in older components to make sure on reuse we don't accidentally inherit old
       // data
@@ -988,8 +978,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       }
 
       // Update the components' snapshots
-      for (TagSnapshotTreeNode root : roots) {
-        updateHierarchy(root);
+      for (ViewInfo view : rootViews) {
+        updateHierarchy(view);
       }
     }
 
@@ -1152,19 +1142,20 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       }
     }
 
-    private static void gatherTagsAndSnapshots(@NotNull TagSnapshotTreeNode node, @NotNull Map<XmlTag, TagSnapshot> map) {
-      TagSnapshot snapshot = node.getTagSnapshot();
-      if (snapshot != null) {
+    private static void gatherTagsAndSnapshots(ViewInfo view, Map<XmlTag, TagSnapshot> map) {
+      Object cookie = view.getCookie();
+      if (cookie instanceof TagSnapshot) {
+        TagSnapshot snapshot = (TagSnapshot)cookie;
         map.put(snapshot.tag, snapshot);
       }
 
-      for (TagSnapshotTreeNode child : node.getChildren()) {
+      for (ViewInfo child : view.getChildren()) {
         gatherTagsAndSnapshots(child, map);
       }
     }
 
     @NotNull
-    private NlComponent createTree(@NotNull XmlTag tag) {
+    private NlComponent createTree(XmlTag tag) {
       NlComponent component = myTagToComponentMap.get(tag);
       if (component == null) {
         // New component: tag didn't exist in the previous component hierarchy,
@@ -1207,26 +1198,30 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       return component;
     }
 
-    private void updateHierarchy(@NotNull TagSnapshotTreeNode node) {
-      TagSnapshot snapshot = node.getTagSnapshot();
+    private void updateHierarchy(ViewInfo view) {
+      Object cookie = view.getCookie();
       NlComponent component;
-      if (snapshot != null) {
-        component = mySnapshotToComponent.get(snapshot);
-        if (component == null) {
-          component = myTagToComponentMap.get(snapshot.tag);
-        }
+      if (cookie != null) {
+        if (cookie instanceof TagSnapshot) {
+          TagSnapshot snapshot = (TagSnapshot)cookie;
+          component = mySnapshotToComponent.get(snapshot);
+          if (component == null) {
+            component = myTagToComponentMap.get(snapshot.tag);
+          }
 
-        if (component != null) {
-          component.setSnapshot(snapshot);
-          assert snapshot.tag != null;
-          component.setTag(snapshot.tag);
+          if (component != null) {
+            component.setSnapshot(snapshot);
+            assert snapshot.tag != null;
+            component.setTag(snapshot.tag);
+          }
         }
       }
-      for (TagSnapshotTreeNode child : node.getChildren()) {
+      for (ViewInfo child : view.getChildren()) {
         updateHierarchy(child);
       }
     }
   }
+
 
   /**
    * A {@link ModelUpdater} that also updates the bounds of the components based on layoutlib information.
@@ -1236,53 +1231,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    */
   private static class LayoutlibModelUpdater extends ModelUpdater {
 
-    private Map<TagSnapshotTreeNode, ViewInfo> mySnapshotToViewMap = new HashMap<>();
-
     public LayoutlibModelUpdater(@NotNull NlModel model) {
       super(model);
-    }
-
-    /**
-     * A TagSnapshot tree that mirrors the ViewInfo tree.
-     */
-    private static class ViewInfoTagSnapshotNode implements TagSnapshotTreeNode {
-
-      private final ViewInfo myViewInfo;
-      private Map<TagSnapshotTreeNode, ViewInfo> mySnapshotToViewMap = new HashMap<>();
-
-      private ViewInfoTagSnapshotNode(@NotNull ViewInfo info, Map<TagSnapshotTreeNode, ViewInfo> snapshotToViewMap) {
-        myViewInfo = info;
-        mySnapshotToViewMap = snapshotToViewMap;
-      }
-
-      @Nullable
-      @Override
-      public TagSnapshot getTagSnapshot() {
-        Object result = myViewInfo.getCookie();
-        return result instanceof TagSnapshot ? (TagSnapshot)result : null;
-      }
-
-      @NotNull
-      @Override
-      public List<TagSnapshotTreeNode> getChildren() {
-        return makeNodeList(myViewInfo.getChildren(), mySnapshotToViewMap);
-      }
-    }
-
-    @NotNull
-    List<TagSnapshotTreeNode> makeNodeList(@NotNull List<ViewInfo> views) {
-      return makeNodeList(views, mySnapshotToViewMap);
-    }
-
-    @NotNull
-    private static List<TagSnapshotTreeNode> makeNodeList(@NotNull List<ViewInfo> views, Map<TagSnapshotTreeNode, ViewInfo> snapshotToViewMap) {
-      List<TagSnapshotTreeNode> result = new ArrayList<>();
-      for (ViewInfo viewInfo : views) {
-        ViewInfoTagSnapshotNode node = new ViewInfoTagSnapshotNode(viewInfo, snapshotToViewMap);
-        result.add(node);
-        snapshotToViewMap.put(node, viewInfo);
-      }
-      return result;
     }
 
     @Override
@@ -1293,12 +1243,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
 
     @Override
-    public void update(@Nullable XmlTag newRoot, @NotNull List<TagSnapshotTreeNode> rootTags) {
-      super.update(newRoot, rootTags);
+    public void update(@Nullable XmlTag newRoot, @NotNull Iterable<ViewInfo> rootViews) {
+      super.update(newRoot, rootViews);
 
       // Update the bounds. This is based on the ViewInfo instances.
-      rootTags.stream().map(mySnapshotToViewMap::get)
-        .forEach(view -> updateBounds(view, 0, 0));
+      for (ViewInfo view : rootViews) {
+        updateBounds(view, 0, 0);
+      }
 
       // Finally, fix up bounds: ensure that all components not found in the view
       // info hierarchy inherit position from parent
