@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import com.google.common.collect.Maps;
 import com.google.common.truth.FailureStrategy;
 import com.google.common.truth.Subject;
 import com.google.common.truth.SubjectFactory;
@@ -26,9 +27,7 @@ import com.intellij.openapi.roots.OrderEntry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -43,7 +42,8 @@ public class LibraryDependenciesSubject extends Subject<LibraryDependenciesSubje
     };
   }
 
-  private final Map<String, LibraryOrderEntry> myLibraryDependenciesByName = new HashMap<>();
+  @NotNull
+  private final Map<DependencyScope, Map<String, LibraryOrderEntry>> myLibraryDependenciesByNameAndScope = Maps.newHashMap();
 
   public LibraryDependenciesSubject(FailureStrategy failureStrategy, @Nullable Module subject) {
     super(failureStrategy, subject);
@@ -59,8 +59,15 @@ public class LibraryDependenciesSubject extends Subject<LibraryDependenciesSubje
     for (OrderEntry orderEntry : rootManager.getOrderEntries()) {
       if (orderEntry instanceof LibraryOrderEntry) {
         LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)orderEntry;
-        if (libraryOrderEntry.isExported() && libraryOrderEntry.getScope() == DependencyScope.COMPILE) {
-          myLibraryDependenciesByName.put(libraryOrderEntry.getLibraryName(), libraryOrderEntry);
+        if (libraryOrderEntry.isExported()) {
+          DependencyScope scope = libraryOrderEntry.getScope();
+
+          Map<String, LibraryOrderEntry> libraryDependenciesByName = myLibraryDependenciesByNameAndScope.get(scope);
+          if (libraryDependenciesByName == null) {
+            libraryDependenciesByName = new HashMap<>();
+            myLibraryDependenciesByNameAndScope.put(scope, libraryDependenciesByName);
+          }
+          libraryDependenciesByName.put(libraryOrderEntry.getLibraryName(), libraryOrderEntry);
         }
       }
     }
@@ -72,41 +79,47 @@ public class LibraryDependenciesSubject extends Subject<LibraryDependenciesSubje
   }
 
   @NotNull
-  public LibraryDependenciesSubject contains(@NotNull String libraryName) {
-    assertThat(getLibraryNames()).contains(libraryName);
+  public LibraryDependenciesSubject contains(@NotNull String libraryName, @NotNull DependencyScope...scopes) {
+    assertThat(getLibraryNames(scopes)).contains(libraryName);
     return this;
   }
 
   @NotNull
-  public LibraryDependenciesSubject containsMatching(@NotNull String libraryNameRegEx) {
+  public LibraryDependenciesSubject containsMatching(@NotNull String libraryNameRegEx, @NotNull DependencyScope...scopes) {
     boolean found = false;
-    for (String name : getLibraryNames()) {
+    for (String name : getLibraryNames(scopes)) {
       if (name.matches(libraryNameRegEx)) {
         found = true;
         break;
       }
     }
     if (!found) {
-      fail("Unable to find a library with name matching '" + libraryNameRegEx + "'");
+      fail("depends on a library with name matching '" + libraryNameRegEx + "' in scope(s): " + Arrays.toString(scopes));
     }
-
     return this;
   }
 
   @NotNull
-  public LibraryDependenciesSubject doesNotContain(@NotNull String libraryName) {
-    assertThat(getLibraryNames()).doesNotContain(libraryName);
+  public LibraryDependenciesSubject doesNotContain(@NotNull String libraryName, @NotNull DependencyScope...scopes) {
+    assertThat(getLibraryNames(scopes)).doesNotContain(libraryName);
     return this;
   }
 
   @NotNull
-  public LibraryDependenciesSubject isEmpty() {
-    assertThat(getLibraryNames()).isEmpty();
+  public LibraryDependenciesSubject doesNotHaveLibraryDependencies() {
+    assertThat(getLibraryNames(DependencyScope.values())).isEmpty();
     return this;
   }
 
   @NotNull
-  private Set<String> getLibraryNames() {
-    return myLibraryDependenciesByName.keySet();
+  private Set<String> getLibraryNames(@NotNull DependencyScope...scopes) {
+    Set<String> names = new HashSet<>();
+    for (DependencyScope scope : scopes) {
+      Map<String, LibraryOrderEntry> libraryDependenciesByName = myLibraryDependenciesByNameAndScope.get(scope);
+      if (libraryDependenciesByName != null) {
+        names.addAll(libraryDependenciesByName.keySet());
+      }
+    }
+    return names;
   }
 }
