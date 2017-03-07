@@ -53,7 +53,7 @@ public final class AndroidPackageUtils {
                                          @NotNull VirtualFile targetDirectory) {
     if (sourceSets.size() > 0) {
       Module module = androidFacet.getModule();
-      File srcDirectory = sourceSets.get(0).getPaths().getSrcDirectory();
+      File srcDirectory = sourceSets.get(0).getPaths().getSrcDirectory(null);
       if (srcDirectory != null) {
         ProjectRootManager projectManager = ProjectRootManager.getInstance(module.getProject());
         String suggestedPackage = projectManager.getFileIndex().getPackageNameByDirectory(targetDirectory);

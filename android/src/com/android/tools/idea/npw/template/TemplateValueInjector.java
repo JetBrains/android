@@ -34,7 +34,6 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.SupportLibrary;
-import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
@@ -49,12 +48,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 
+import static com.android.tools.idea.instantapp.InstantApps.getAiaPluginVersion;
+import static com.android.tools.idea.instantapp.InstantApps.getAiaSdkLocation;
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.android.tools.idea.instantapp.InstantApps.getAiaPluginVersion;
-import static com.android.tools.idea.instantapp.InstantApps.getAiaSdkLocation;
 
 /**
  * Utility class that sets common Template values used by a project Module.
@@ -138,22 +137,19 @@ public final class TemplateValueInjector {
   public TemplateValueInjector setModuleRoots(@NotNull AndroidProjectPaths paths, @NotNull String packageName) {
     File moduleRoot = paths.getModuleRoot();
 
+    assert moduleRoot != null;
+
     // Register the resource directories associated with the active source provider
     myTemplateValues.put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
 
-    String packageAsDir = packageName.replace('.', File.separatorChar);
-    File srcDir = paths.getSrcDirectory();
+    File srcDir = paths.getSrcDirectory(packageName);
     if (srcDir != null) {
-      srcDir = new File(srcDir, packageAsDir);
-
       myTemplateValues.put(ATTR_SRC_DIR, getRelativePath(moduleRoot, srcDir));
       myTemplateValues.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcDir.getAbsolutePath()));
     }
 
-    File testDir = paths.getTestDirectory();
+    File testDir = paths.getTestDirectory(packageName);
     if (testDir != null) {
-      testDir = new File(testDir, packageAsDir);
-
       myTemplateValues.put(ATTR_TEST_DIR, getRelativePath(moduleRoot, testDir));
       myTemplateValues.put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testDir.getAbsolutePath()));
     }
