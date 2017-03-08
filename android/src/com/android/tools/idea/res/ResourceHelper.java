@@ -37,6 +37,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -556,6 +557,39 @@ public class ResourceHelper {
       return value;
     }
     return finalValue.getValue();
+  }
+
+  /**
+   * When annotating Java files, we need to find an associated layout file to pick the resource
+   * resolver from (e.g. to for example have a theme association which will drive how colors are
+   * resolved). This picks one of the open layout files, and if not found, the first layout
+   * file found in the resources (if any).
+   * */
+  @Nullable
+  public static VirtualFile pickAnyLayoutFile(@NotNull Module module, @NotNull AndroidFacet facet) {
+    VirtualFile[] openFiles = FileEditorManager.getInstance(module.getProject()).getOpenFiles();
+    for (VirtualFile file : openFiles) {
+      if (file.getName().endsWith(DOT_XML) && file.getParent() != null &&
+          file.getParent().getName().startsWith(FD_RES_LAYOUT)) {
+        return file;
+      }
+    }
+
+    // Pick among actual files in the project
+    for (VirtualFile resourceDir : facet.getAllResourceDirectories()) {
+      for (VirtualFile folder : resourceDir.getChildren()) {
+        if (folder.getName().startsWith(FD_RES_LAYOUT) && folder.isDirectory()) {
+          for (VirtualFile file : folder.getChildren()) {
+            if (file.getName().endsWith(DOT_XML) && file.getParent() != null &&
+                file.getParent().getName().startsWith(FD_RES_LAYOUT)) {
+              return file;
+            }
+          }
+        }
+      }
+    }
+
+    return null;
   }
 
   private static final class UnitEntry {
