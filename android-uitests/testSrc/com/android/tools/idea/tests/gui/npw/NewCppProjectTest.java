@@ -22,14 +22,18 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture.PaneFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.LinkCppProjectFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import org.fest.swing.util.PatternTextMatcher;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.util.regex.Pattern;
 
 @RunWith(GuiTestRunner.class)
@@ -87,7 +91,78 @@ public class NewCppProjectTest extends TestWithEmulator {
     testCreateNewProjectWithCpp(true, true);
   }
 
+  /**
+   * To verify project deploys successfully after adding and removing dependency
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C14603475
+   * <p>
+   *   <pre>
+   *   Steps:
+   *   1. Create a new project, checking the box for "Include C++ Support"
+   *   2. Remove the externalNativeBuild section of the project level build.gradle
+   *   3. Sync gradle; verify that the project's app/cpp files are gone but app/java remains
+   *   4. Go to File -> Link C++ Project with Gradle
+   *   5. Leave the build system dropdown on cmake and select ${projectDir}/app/CMakeLists.txt for project path (Verify 1, 2)
+   *   6. Run (Verify 3)
+   *
+   *   Verification:
+   *   1) Verify that the externalNativeBuild section of build.gradle reappears with cmake.path CMakeLists.txt
+   *   2) Verify that app/cpp reappears and contains native-lib.cpp
+   *   3) Verify that the project builds and runs on an emulator
+   *   </pre>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void testAddRemoveCppDependency() throws Exception {
+    createCppProject(false, false);
+
+    assertAndroidPanePath(true, "app", "cpp", "native-lib.cpp");
+
+    IdeFrameFixture ideFixture = guiTest.ideFrame();
+    ideFixture
+      .getEditor()
+      .open("app/build.gradle")
+      .select(getExternalNativeBuildRegExp())
+      .enterText(" ") // Remove the externalNativeBuild section
+      .getIdeFrame()
+      .requestProjectSync()
+      .waitForGradleProjectSyncToFinish();
+
+    // verify that the project's app/cpp files are gone but app/java remains
+    assertAndroidPanePath(false, "app", "cpp", "native-lib.cpp");
+    assertAndroidPanePath(true, "app", "java");
+
+    ideFixture
+      .openFromMenu(LinkCppProjectFixture::find, "File", "Link C++ Project with Gradle")
+      .selectCMakeBuildSystem()
+      .enterCMakeListsPath(getCMakeListsPath())
+      .clickOk()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .select(getExternalNativeBuildRegExp()); // externalNativeBuild section of build.gradle reappears with cmake.path CMakeLists.txt
+
+    assertAndroidPanePath(true, "app", "cpp", "native-lib.cpp"); // app/cpp reappears and contains native-lib.cpp
+
+    runAppOnEmulator();
+  }
+
   private void testCreateNewProjectWithCpp(boolean hasExceptionSupport, boolean hasRuntimeInformation) throws Exception {
+    createCppProject(hasExceptionSupport, hasRuntimeInformation);
+
+    String gradleCppFlags = guiTest.ideFrame().getEditor()
+      .open("app/build.gradle")
+      .moveBetween("cppFlags \"", "")
+      .getCurrentLine();
+
+    String cppFlags = String.format("%s %s", hasRuntimeInformation ? "-frtti" : "",  hasExceptionSupport ? "-fexceptions" : "").trim();
+    Assert.assertEquals(String.format("cppFlags \"%s\"", cppFlags), gradleCppFlags.trim());
+
+    runAppOnEmulator();
+  }
+
+  private void createCppProject(boolean hasExceptionSupport, boolean hasRuntimeInformation) {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject();
 
@@ -105,27 +180,49 @@ public class NewCppProjectTest extends TestWithEmulator {
 
     newProjectWizard.clickFinish();
 
-    IdeFrameFixture ideFrameFixture = guiTest.ideFrame()
-      .waitForGradleProjectSyncToFinish();
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+  }
 
-    String gradleCppFlags = guiTest.ideFrame().getEditor()
-      .open("app/build.gradle")
-      .moveBetween("cppFlags \"", "")
-      .getCurrentLine();
-
-    String cppFlags = String.format("%s %s", hasRuntimeInformation ? "-frtti" : "",  hasExceptionSupport ? "-fexceptions" : "").trim();
-    Assert.assertEquals(String.format("cppFlags \"%s\"", cppFlags), gradleCppFlags.trim());
-
+  private void runAppOnEmulator() throws ClassNotFoundException {
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
-    ideFrameFixture
+    guiTest.ideFrame()
       .runApp(APP_NAME)
       .selectDevice(AVD_NAME)
       .clickOk();
 
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
-    ExecutionToolWindowFixture.ContentFixture contentFixture = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
+    ExecutionToolWindowFixture.ContentFixture contentFixture = guiTest.ideFrame().getRunToolWindow().findContent(APP_NAME);
     contentFixture.waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
     contentFixture.waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
+  }
+
+  @NotNull
+  private static String getExternalNativeBuildRegExp() {
+    return "(externalNativeBuild.*\n" + // externalNativeBuild {
+           ".*  cmake .*\n" +           //   cmake {
+           ".*    path.*\n" +           //     path "CMakeLists.txt"
+           ".*\n" +                     //   }
+           ".*)";
+  }
+
+  @NotNull
+  private String getCMakeListsPath() {
+    File appPath = new File(guiTest.getProjectPath(), "app");
+    return new File(appPath, "CMakeLists.txt").getAbsolutePath();
+  }
+
+  private void assertAndroidPanePath(boolean expectedToExist, @NotNull String... path) {
+    PaneFixture androidPane = guiTest.ideFrame().getProjectView()
+      .selectAndroidPane();
+
+    try {
+      androidPane.clickPath(path);
+    }
+    catch (Throwable ex) {
+      if (expectedToExist) {
+        throw ex;
+      }
+    }
   }
 }
