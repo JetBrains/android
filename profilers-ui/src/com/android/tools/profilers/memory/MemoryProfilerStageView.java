@@ -278,6 +278,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     memoryAxis.setShowAxisLine(false);
     memoryAxis.setShowMax(true);
     memoryAxis.setShowUnitAtMax(true);
+    memoryAxis.setHideTickAtMin(true);
     memoryAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
     memoryAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(memoryAxis, BorderLayout.WEST);
@@ -286,6 +287,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     rightAxis.setShowAxisLine(false);
     rightAxis.setShowMax(true);
     rightAxis.setShowUnitAtMax(true);
+    rightAxis.setHideTickAtMin(true);
     rightAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
     rightAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
 

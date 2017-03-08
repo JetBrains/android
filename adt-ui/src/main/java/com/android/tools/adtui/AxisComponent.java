@@ -113,6 +113,7 @@ public final class AxisComponent extends AnimatedComponent {
   private boolean myShowMax;
   private boolean myShowUnitAtMax;
   private boolean myShowAxisLine = true;
+  private boolean myHideTickAtMin;
 
   public AxisComponent(@NotNull AxisComponentModel model, AxisOrientation orientation) {
     myModel = model;
@@ -314,6 +315,10 @@ public final class AxisComponent extends AnimatedComponent {
 
   private void drawMarkerLine(Graphics2D g2d, Line2D.Float line, float markerOffset,
                               Point origin, int markerLength) {
+    if (myHideTickAtMin && markerOffset == 0) {
+      return;
+    }
+
     float markerStartX = 0, markerStartY = 0, markerEndX = 0, markerEndY = 0;
     switch (myOrientation) {
       case LEFT:
@@ -410,6 +415,10 @@ public final class AxisComponent extends AnimatedComponent {
 
   public void setShowUnitAtMax(boolean showUnitAtMax) {
     myShowUnitAtMax = showUnitAtMax;
+  }
+
+  public void setHideTickAtMin(boolean hideTickAtMin) {
+    myHideTickAtMin = hideTickAtMin;
   }
 
   public void setMarkerLengths(int majorMarker, int minorMarker) {
