@@ -60,7 +60,7 @@
               <visible value="false"/>
             </properties>
             <border type="empty">
-              <size top="0" left="10" bottom="0" right="10"/>
+              <size top="120" left="10" bottom="0" right="10"/>
             </border>
             <children>
               <component id="80815" class="com.intellij.ui.components.JBLabel" binding="myErrorText">
@@ -68,6 +68,8 @@
                 <properties>
                   <horizontalAlignment value="0"/>
                   <horizontalTextPosition value="0"/>
+                  <verticalAlignment value="1"/>
+                  <verticalTextPosition value="3"/>
                 </properties>
               </component>
             </children>
