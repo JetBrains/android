@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.ide.common.res2.ResourceItem;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
@@ -27,7 +26,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.res.MultiResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -43,9 +41,6 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -53,7 +48,6 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.IdeBorderFactory;
@@ -62,7 +56,6 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.table.JBTable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -89,9 +82,10 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
   private StringResourceRepository myResourceRepository;
   private ResourceChangeListener myResourceChangeListener;
-  private RemoveKeysAction myRemoveKeysAction;
 
-  @Nullable private ResourceItem myItemAtMouseClickLocation;
+  private GoToDeclarationAction myGoToAction;
+  private DeleteStringAction myDeleteAction;
+  private RemoveKeysAction myRemoveKeysAction;
 
   StringResourceViewPanel(AndroidFacet facet, Disposable parentDisposable) {
     myFacet = facet;
@@ -122,6 +116,10 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       new ParseTask("Loading string resource data").queue();
     }
+  }
+
+  public void removeSelectedKeys() {
+    myRemoveKeysAction.actionPerformed(null);
   }
 
   interface TextChangeListener {
@@ -172,43 +170,19 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
   private void createTable() {
     myTable = new StringResourceTable(myFacet);
 
+    myRemoveKeysAction = new RemoveKeysAction(this);
+    myDeleteAction = new DeleteStringAction(this);
+    myGoToAction = new GoToDeclarationAction(this);
+
     ActionMap actionMap = myTable.getActionMap();
-    actionMap.put("delete", new AbstractAction() {
-      @Override
-      public void actionPerformed(@Nullable ActionEvent event) {
-        int[] cols = myTable.getSelectedColumnModelIndices();
-        for (int col : cols) {
-          if (col == StringResourceTableModel.KEY_COLUMN ||
-              col == StringResourceTableModel.RESOURCE_FOLDER_COLUMN ||
-              col == StringResourceTableModel.UNTRANSLATABLE_COLUMN) {
-            // if its not a translation we are deleting, then call the delete action for the whole string
-            myRemoveKeysAction.actionPerformed(null);
-            return;
-          }
-        }
-        int[] rows = myTable.getSelectedRowModelIndices();
-        if (rows.length == 1 && cols.length == 1) {
-          myTable.getModel().setValueAt("", rows[0], cols[0]);
-        }
-        else {
-          // remove all in a single action (so we can undo it in 1 go)
-          new WriteCommandAction.Simple(myFacet.getModule().getProject(), "Delete multiple strings") {
-            @Override
-            protected void run() throws Throwable {
-              for (int row : rows) {
-                for (int col : cols) {
-                  myTable.getModel().setValueAt("", row, col);
-                }
-              }
-            }
-          }.execute();
-        }
-      }
-    });
+    actionMap.put("delete", myDeleteAction);
   }
 
   private void createTablePopupMenu() {
     JPopupMenu menu = new JPopupMenu();
+    JMenuItem goTo = menu.add(myGoToAction);
+    JMenuItem delete = menu.add(myDeleteAction);
+
     myTable.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(@NotNull MouseEvent e) {
@@ -225,33 +199,12 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
       }
 
       private void openPopup(@NotNull MouseEvent e) {
-        int row = myTable.rowAtPoint(e.getPoint());
-        int column = myTable.columnAtPoint(e.getPoint());
-        if (row >= 0 && column >= 0) {
-          StringResourceTableModel model = myTable.getModel();
-          Locale locale = model.getLocale(column);
-          StringResource resource = model.getStringResourceAt(row);
-
-          myItemAtMouseClickLocation =
-            locale == null ? resource.getDefaultValueAsResourceItem() : resource.getTranslationAsResourceItem(locale);
-
-          if (myItemAtMouseClickLocation != null) {
-            menu.show(myTable, e.getX(), e.getY());
-          }
+        myGoToAction.update(goTo, e);
+        myDeleteAction.update(delete, e);
+        if (goTo.isVisible() || delete.isVisible()) {
+          menu.show(myTable, e.getX(), e.getY());
         }
       }
-    });
-
-    menu.add("Go to Declaration").addActionListener(event -> {
-      Project project = myFacet.getModule().getProject();
-      assert myItemAtMouseClickLocation != null;
-      XmlTag tag = LocalResourceRepository.getItemTag(project, myItemAtMouseClickLocation);
-      if (tag == null) {
-        // TODO strings can also be defined in gradle, find a way to go there too
-        return;
-      }
-      OpenFileDescriptor descriptor = new OpenFileDescriptor(project, tag.getContainingFile().getVirtualFile(), tag.getTextOffset());
-      FileEditorManager.getInstance(project).openEditor(descriptor, true);
     });
   }
 
@@ -349,8 +302,6 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
 
     JComponent toolbarComponent = toolbar.getComponent();
     toolbarComponent.setName("toolbar");
-
-    myRemoveKeysAction = new RemoveKeysAction(this);
 
     group.add(new AddKeyAction(myTable, myFacet));
     group.add(myRemoveKeysAction);
