@@ -143,10 +143,10 @@ public class NlComponentFixture {
     myComponentDriver.click(mySurface, p);
 
     Point sourceBaseline = getTopCenterPoint();
-    sourceBaseline.translate(0, Coordinates.getSwingDimension(sceneView, myComponent.getBaseline()));
+    sourceBaseline.translate(0, Coordinates.getSwingDimension(sceneView, myComponent.getBaseline()) - 1);
     myDragAndDrop.drag(mySurface, sourceBaseline);
     Point destinationBaseline = destination.getTopCenterPoint();
-    destinationBaseline.translate(0, Coordinates.getSwingDimension(sceneView, destination.getComponent().getBaseline()));
+    destinationBaseline.translate(0, Coordinates.getSwingDimension(sceneView, destination.getComponent().getBaseline()) - 1);
     myDragAndDrop.drop(mySurface, destinationBaseline);
     return this;
   }
