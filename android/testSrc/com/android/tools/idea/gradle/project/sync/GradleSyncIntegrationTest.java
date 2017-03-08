@@ -318,7 +318,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
     loadSimpleApplication();
 
     ProjectLibraries libraries = new ProjectLibraries(getProject());
-    Library guava = libraries.findMatchingLibrary("guava-.*");
+    Library guava = libraries.findMatchingLibrary("guava-19\\.0");
     assertNotNull(guava);
 
     String[] sources = guava.getUrls(SOURCES);
