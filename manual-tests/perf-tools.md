@@ -5,7 +5,7 @@ Marked **bold** are test expectations.
 
 ### Test basic monitoring is enabled
 
-Import the sample "Displaying Bitmaps". Make sure the gradle-plugin in use is at least 2.4.
+Import the sample "Displaying Bitmaps". (It should be using gradle plugin version 2.2.0)
 
 1. Make sure that the current Run Configuration has "Advance Profiling" disabled.
 2. Launch the app on a device with API >= 21.
@@ -19,11 +19,14 @@ Import the sample "Displaying Bitmaps". Make sure the gradle-plugin in use is at
 
 ### Advance monitoring
 
-1. Go to the run configuration.
-2. Enable "Advance Profiling" in the Profiler tab.
-3. Relaunch the app.
-4. Observe that **the current activity shows up in the event monitor** (top area).
-5. Touch and drag the app, rotate the phone, press volume and back buttons. **Observe those events showing up in the monitor**.
+1. Observe that the top monitor is not enabled, and *has a link to the configuration dialog*.
+2. Follow the link and observe that the edit configuration dialog is opened *in the profiler tab*.
+3. Options should be *disabled* and there should be a *quick-fix* link, click it.
+4. After syncing, observe that *Advance profiling is now enabled*
+5. Enable "Advance Profiling" in the Profiler tab.
+6. Relaunch the app.
+7. Observe that **the current activity shows up in the event monitor** (top area).
+8. Touch and drag the app, rotate the phone, press volume and back buttons. **Observe those events showing up in the monitor**.
 
 ### CPU profiling sanity check
 
