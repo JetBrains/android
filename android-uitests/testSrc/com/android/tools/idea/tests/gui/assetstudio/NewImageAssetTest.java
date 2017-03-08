@@ -42,7 +42,6 @@ import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
 public class NewImageAssetTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();

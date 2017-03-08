@@ -38,7 +38,6 @@ import static java.awt.event.KeyEvent.VK_ESCAPE;
 public class NlPaletteTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testSpeedSearchAcrossGroups() throws Exception {
     NlEditorFixture layout = guiTest.importSimpleApplication()
