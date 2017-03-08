@@ -186,19 +186,18 @@ final class StringResourceViewPanel implements Disposable, HyperlinkListener {
     myTable.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(@NotNull MouseEvent e) {
-        if (e.isPopupTrigger()) {
-          openPopup(e);
-        }
+        openPopup(e);
       }
 
       @Override
       public void mouseReleased(@NotNull MouseEvent e) {
-        if (e.isPopupTrigger()) {
-          openPopup(e);
-        }
+        openPopup(e);
       }
 
       private void openPopup(@NotNull MouseEvent e) {
+        if (!e.isPopupTrigger()) {
+          return;
+        }
         myGoToAction.update(goTo, e);
         myDeleteAction.update(delete, e);
         if (goTo.isVisible() || delete.isVisible()) {
