@@ -365,6 +365,10 @@ public class CanvasResizeInteraction extends Interaction {
     // When disabling the resize mode, add a render handler to call zoomToFit
     screenView.getModel().addListener(new ModelListener() {
       @Override
+      public void modelChanged(@NotNull NlModel model) {
+      }
+
+      @Override
       public void modelRendered(@NotNull NlModel model) {
         model.removeListener(this);
       }
