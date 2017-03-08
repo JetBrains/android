@@ -21,6 +21,10 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.CommandAdapter;
+import com.intellij.openapi.command.CommandEvent;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -53,6 +57,31 @@ public class SyncNlModel extends NlModel {
 
     if (task != null) {
       task.disableSecurityManager();
+    }
+  }
+
+  @Override
+  public void requestRender() {
+    runAfterCommandIfNecessary(this::render);
+  }
+
+  @Override
+  protected void requestModelUpdate() {
+    runAfterCommandIfNecessary(this::updateModel);
+  }
+
+  private void runAfterCommandIfNecessary(Runnable runnable) {
+    if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
+      CommandProcessor.getInstance().addCommandListener(new CommandAdapter() {
+        @Override
+        public void commandFinished(CommandEvent event) {
+          runnable.run();
+          CommandProcessor.getInstance().removeCommandListener(this);
+        }
+      });
+    }
+    else {
+      runnable.run();
     }
   }
 
