@@ -72,7 +72,13 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   @Override
   @NotNull
   public List<String> getInspectorProperties() {
-    return ImmutableList.of(ATTR_ORIENTATION);
+    return ImmutableList.of(ATTR_ORIENTATION, ATTR_GRAVITY);
+  }
+
+  @Override
+  @NotNull
+  public List<String> getLayoutInspectorProperties() {
+    return ImmutableList.of(ATTR_LAYOUT_WEIGHT);
   }
 
   /**
