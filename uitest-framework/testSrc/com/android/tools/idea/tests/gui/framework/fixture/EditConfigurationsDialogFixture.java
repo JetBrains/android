@@ -16,11 +16,19 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.run.editor.AndroidDebugger;
+import com.intellij.application.options.ModulesComboBox;
+import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.impl.EditConfigurationsDialog;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.module.impl.ModuleImpl;
 import org.fest.swing.cell.JComboBoxCellReader;
+import org.fest.swing.cell.JListCellReader;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.fixture.JComboBoxFixture;
+import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -46,6 +54,17 @@ public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfi
   private static final JComboBoxCellReader DEBUGGER_PICKER_READER =
     (jComboBox, index) -> (GuiQuery.getNonNull(() -> ((AndroidDebugger)jComboBox.getItemAt(index)).getDisplayName()));
 
+  private static final JListCellReader CONFIGURATION_CELL_READER = (jList, index) ->
+    ((ConfigurationType)jList.getModel().getElementAt(index)).getDisplayName();
+
+  private static final JComboBoxCellReader MODULE_PICKER_READER = (jComboBox, index) -> {
+    Object element = jComboBox.getItemAt(index);
+    if (element != null) {
+      return ((ModuleImpl)element).getName();
+    }
+    return null; // The element at index 0 is null. Deal with it specially.
+  };
+
   @NotNull
   public EditConfigurationsDialogFixture selectAutoDebugger() {
     clickDebugger();
@@ -60,4 +79,39 @@ public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfi
     findAndClickOkButton(this);
   }
 
+  @NotNull
+  public EditConfigurationsDialogFixture clickAddNewConfigurationButton() {
+    ActionButton addNewConfigurationButton = robot().finder().find(target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton button) {
+        String toolTipText = button.getToolTipText();
+        return button.isShowing() && toolTipText != null && toolTipText.startsWith("Add New Configuration");
+      }
+    });
+    robot().click(addNewConfigurationButton);
+    return this;
+  }
+
+  @NotNull
+  public EditConfigurationsDialogFixture selectConfigurationType(@NotNull String confTypeName) {
+    JListFixture listFixture= new JListFixture(robot(), waitForPopup(robot()));
+    listFixture.replaceCellReader(CONFIGURATION_CELL_READER);
+    listFixture.clickItem(confTypeName);
+    return this;
+  }
+
+  @NotNull
+  public EditConfigurationsDialogFixture enterAndroidInstrumentedTestConfigurationName(@NotNull String text) {
+    JTextField textField = robot().finder().findByLabel(target(), "Name:", JTextField.class, true);
+    new JTextComponentFixture(robot(), textField).deleteText().enterText(text);
+    return this;
+  }
+
+  @NotNull
+  public EditConfigurationsDialogFixture selectModuleForAndroidInstrumentedTestsConfiguration(@NotNull String moduleName) {
+    JComboBoxFixture comboBoxFixture = new JComboBoxFixture(robot(), robot().finder().findByType(ModulesComboBox.class, true));
+    comboBoxFixture.replaceCellReader(MODULE_PICKER_READER);
+    comboBoxFixture.selectItem(moduleName);
+    return this;
+  }
 }

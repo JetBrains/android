@@ -21,9 +21,12 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.BrowseSamplesWizardFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Ignore;
@@ -35,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
@@ -44,10 +48,15 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
 
   private static final String APP_NAME = "app";
   private static final String PROCESS_NAME = "google.simpleapplication";
+  private static final String INSTRUMENTED_TEST_CONF_NAME = "instrumented_test";
+  private static final String ANDROID_INSTRUMENTED_TESTS = "Android Instrumented Tests";
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
     ".*adb shell am start .*google\\.simpleapplication.*", Pattern.DOTALL);
+  private static final Pattern INSTRUMENTED_TEST_OUTPUT = Pattern.compile(
+    ".*adb shell am instrument .*AndroidJUnitRunner.*Tests ran to completion.*", Pattern.DOTALL);
   private static final Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
   private static final Pattern DEBUG_OUTPUT = Pattern.compile(".*Connected to the target VM.*", Pattern.DOTALL);
+  private static final String MIN_SDK = "18";
 
   @RunIn(TestGroup.QA)
   @Test
@@ -162,6 +171,51 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
     expectBreakPoint("Engine* eng = (Engine*)app->userData;");
   }
 
+  /**
+   * To verify that instrumentation tests can be added and executed.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C14578815
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Open Android Studio
+   *   2. Create a new project
+   *   3. Create an avd
+   *   4. Open the default instrumented test example
+   *   5. Open Run/Debug Configuration Settings
+   *   6. Click on the "+" button and select Android Instrumented Tests
+   *   7. Add a name to the test
+   *   8. Select the app module and click OK"
+   *   9. Run "ExampleInstrumentedTest" with test configuration created previously
+   *   Verify:
+   *   1. Test runs successfully by checking the output of running the instrumented test.
+   *   </pre>
+   * <p>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void testRunInstrumentationTest() throws Exception {
+    createNewProject();
+    createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
+
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+
+    ideFrameFixture.invokeMenuPath("Run", "Edit Configurations...");
+    EditConfigurationsDialogFixture.find(guiTest.robot())
+        .clickAddNewConfigurationButton()
+        .selectConfigurationType(ANDROID_INSTRUMENTED_TESTS)
+        .enterAndroidInstrumentedTestConfigurationName(INSTRUMENTED_TEST_CONF_NAME)
+        .selectModuleForAndroidInstrumentedTestsConfiguration(APP_NAME + "-" + APP_NAME)
+        .clickOk();
+
+    ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME).selectDevice(AVD_NAME).clickOk();
+
+    ideFrameFixture.getRunToolWindow().findContent(INSTRUMENTED_TEST_CONF_NAME)
+        .waitForOutput(new PatternTextMatcher(INSTRUMENTED_TEST_OUTPUT), 120);
+  }
+
   private void expectBreakPoint(String lineText) {
     DebugToolWindowFixture debugToolWindow = guiTest.ideFrame()
       .getDebugToolWindow()
@@ -177,5 +231,27 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
       .invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT);
 
     debugToolWindow.pressResumeProgram();
+  }
+
+  private void createNewProject() {
+    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame().createNewProject();
+
+    ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard
+        .getConfigureAndroidProjectStep();
+    configureAndroidProjectStep.enterApplicationName(APP_NAME)
+        .enterCompanyDomain("com.android")
+        .enterPackageName("com.android.test.app");
+    guiTest.setProjectPath(configureAndroidProjectStep.getLocationInFileSystem());
+    newProjectWizard.clickNext();
+
+    newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, MIN_SDK);
+    newProjectWizard.clickNext();
+
+    // Skip "Add Activity" step
+    newProjectWizard.clickNext();
+
+    newProjectWizard.clickFinish();
+
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
   }
 }
