@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.sherpa.scout;
+package com.android.tools.idea.uibuilder.scout;
 
 import java.text.DecimalFormat;
 import java.util.Arrays;

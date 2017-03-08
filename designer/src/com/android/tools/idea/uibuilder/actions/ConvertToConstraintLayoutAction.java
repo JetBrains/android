@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
-import android.support.constraint.solver.widgets.ConstraintAnchor;
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
@@ -28,7 +27,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.sherpa.scout.Scout;
+import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -184,7 +183,7 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
         // Infer new constraints
         WidgetsScene scene = constraintModel.getScene();
         try {
-          Scout.inferConstraints(scene);
+          Scout.inferConstraints(model.getComponents());
         }
         catch (Throwable t) {
           Logger.getInstance(ConvertToConstraintLayoutAction.class).warn(t);
