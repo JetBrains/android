@@ -103,6 +103,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     leftAxis.setShowAxisLine(false);
     leftAxis.setShowMax(true);
     leftAxis.setShowUnitAtMax(true);
+    leftAxis.setHideTickAtMin(true);
     leftAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
     leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(leftAxis, BorderLayout.WEST);
@@ -111,6 +112,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     rightAxis.setShowAxisLine(false);
     rightAxis.setShowMax(true);
     rightAxis.setShowUnitAtMax(true);
+    rightAxis.setHideTickAtMin(true);
     rightAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
     rightAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(rightAxis, BorderLayout.EAST);
