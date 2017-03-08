@@ -566,6 +566,7 @@ public class AndroidIcons {
     public static final Icon DatabaseFolder = load("/icons/explorer/DatabaseFolder.png"); // 16x16
     public static final Icon SdcardFolder = load("/icons/explorer/SdcardFolder.png"); // 16x16
     public static final Icon SharedPrefs = load("/icons/explorer/SharedPrefs.png"); // 16x16
+    public static final Icon DevicesLineup = load("/icons/explorer/devices-lineup.png"); // 300x150
   }
 
   public static class Assistant {
