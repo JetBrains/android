@@ -34,6 +34,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
@@ -92,7 +93,8 @@ public class GraphicsLayoutRenderer {
                                  @Nullable RenderSecurityManager securityManager,
                                  @NotNull DynamicHardwareConfig hardwareConfig,
                                  @NotNull List<ResourceValue> resourceLookupChain,
-                                 @NotNull Object credential) {
+                                 @NotNull Object credential,
+                                 @NotNull Project project) {
     mySecurityManager = securityManager;
     myHardwareConfig = hardwareConfig;
     myImageFactory = new FakeImageFactory();
@@ -102,19 +104,19 @@ public class GraphicsLayoutRenderer {
     sessionParams.setFlag(RenderParamsFlags.FLAG_KEY_DISABLE_BITMAP_CACHING, Boolean.TRUE);
     sessionParams.setImageFactory(myImageFactory);
 
-    myRenderSession = initRenderSession(layoutLib, sessionParams, mySecurityManager, myCredential);
+    myRenderSession = initRenderSession(layoutLib, sessionParams, mySecurityManager, myCredential, project);
   }
 
   @VisibleForTesting
   @NotNull
   static GraphicsLayoutRenderer create(@NotNull AndroidFacet facet,
-                                                 @NotNull AndroidPlatform platform,
-                                                 @NotNull Project project,
-                                                 @NotNull Configuration configuration,
-                                                 @NotNull ILayoutPullParser parser,
-                                                 @Nullable Color backgroundColor,
-                                                 @NotNull SessionParams.RenderingMode renderingMode,
-                                                 boolean useSecurityManager) throws InitializationException {
+                                       @NotNull AndroidPlatform platform,
+                                       @NotNull Project project,
+                                       @NotNull Configuration configuration,
+                                       @NotNull ILayoutPullParser parser,
+                                       @Nullable Color backgroundColor,
+                                       @NotNull SessionParams.RenderingMode renderingMode,
+                                       boolean useSecurityManager) throws InitializationException {
     AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(facet);
     LayoutLibrary layoutLib;
     try {
@@ -201,7 +203,7 @@ public class GraphicsLayoutRenderer {
     }
 
     RenderSecurityManager mySecurityManager = useSecurityManager ? RenderSecurityManagerFactory.create(module, platform) : null;
-    return new GraphicsLayoutRenderer(layoutLib, params, mySecurityManager, hardwareConfig, resourceLookupChain, credential);
+    return new GraphicsLayoutRenderer(layoutLib, params, mySecurityManager, hardwareConfig, resourceLookupChain, credential, project);
   }
 
   /**
@@ -376,29 +378,25 @@ public class GraphicsLayoutRenderer {
   private static RenderSession initRenderSession(@NotNull final LayoutLibrary layoutLibrary,
                                                  @NotNull final SessionParams sessionParams,
                                                  @Nullable final RenderSecurityManager securityManager,
-                                                 final @NotNull Object credential) {
+                                                 @NotNull final Object credential,
+                                                 @NotNull final Project project) {
     try {
-      RenderSession session = RenderService.runRenderAction(new Callable<RenderSession>() {
-        @Override
-        public RenderSession call() {
+      RenderSession session = RenderService.runRenderAction(() -> {
+        if (securityManager != null) {
+          securityManager.setActive(true, credential);
+        }
+        try {
+          // createSession() might access the PSI tree so we need to run it inside as a read action.
+          // Waiting for smart mode can take a while, so make sure we do not block the dispatch thread
+          assert !ApplicationManager.getApplication().isDispatchThread();
+          return DumbService.getInstance(project).runReadActionInSmartMode(() -> {
+            // createSession will also render the layout for the first time.
+            return layoutLibrary.createSession(sessionParams);
+          });
+        }
+        finally {
           if (securityManager != null) {
-            securityManager.setActive(true, credential);
-          }
-          try {
-            // createSession() might access the PSI tree so we need to run it inside as a read action.
-            return ApplicationManager.getApplication().runReadAction(new Computable<RenderSession>() {
-              @Override
-              public RenderSession compute() {
-                // createSession will also render the layout for the first time.
-                return layoutLibrary.createSession(sessionParams);
-
-              }
-            });
-          }
-          finally {
-            if (securityManager != null) {
-              securityManager.setActive(false, credential);
-            }
+            securityManager.setActive(false, credential);
           }
         }
       });
