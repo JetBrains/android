@@ -22,7 +22,7 @@ import com.android.tools.idea.uibuilder.fixtures.MouseEventBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneBuilder;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -134,7 +134,6 @@ public class LayoutTestUtilities {
 
   public static NlModel createModel(NlDesignSurface surface, AndroidFacet facet, XmlFile xmlFile) {
     NlModel model = SyncNlModel.create(surface, xmlFile.getProject(), facet, xmlFile);
-    model.updateModel();
     model.notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
     return model;
   }
@@ -157,11 +156,11 @@ public class LayoutTestUtilities {
 
     when(surface.getSceneView(anyInt(), anyInt())).thenReturn(screenView);
     when(surface.getCurrentSceneView()).thenReturn(screenView);
-    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model, screenView);
+    LayoutlibSceneBuilder builder = new LayoutlibSceneBuilder(model, screenView);
     Scene scene = builder.build();
     scene.buildDisplayList(new DisplayList(), 0);
     when(screenView.getScene()).thenReturn(scene);
-    when(screenView.getSceneManager()).thenReturn(builder);
+    when(screenView.getSceneBuilder()).thenReturn(builder);
     return screenView;
   }
 

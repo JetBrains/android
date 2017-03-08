@@ -518,7 +518,7 @@ public class MockupEditor extends JPanel implements ToolContent<DesignSurface> {
     }
 
     @Override
-    public void modelDerivedDataChanged(@NotNull NlModel model) {
+    public void modelChanged(@NotNull NlModel model) {
       processModelChange(model);
     }
 
