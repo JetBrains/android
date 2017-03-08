@@ -55,7 +55,6 @@ public class DeviceExplorerPanel {
   private ProgressPanel myProgressPanel;
   private JPanel myErrorPanel;
   private JBLabel myErrorText;
-
   private Tree myTree;
 
   public DeviceExplorerPanel() {
@@ -90,15 +89,21 @@ public class DeviceExplorerPanel {
   public JBScrollPane getColumnTreePane() { return myColumnTreePane; }
 
   public void showMessageLayer(@NotNull String message, boolean showDeviceList) {
-    showMessageLayerWorker(message, UIUtil.getInactiveTextColor(), showDeviceList);
+    showMessageLayerWorker(message, UIUtil.getInactiveTextColor(), null, showDeviceList);
+  }
+
+  @SuppressWarnings("SameParameterValue")
+  public void showMessageLayer(@NotNull String message, @NotNull Icon messageIcon, boolean showDeviceList) {
+    showMessageLayerWorker(message, UIUtil.getInactiveTextColor(), messageIcon, showDeviceList);
   }
 
   public void showErrorMessageLayer(@NotNull String errorMessage, boolean showDeviceList) {
-    showMessageLayerWorker(errorMessage, JBColor.RED, showDeviceList);
+    showMessageLayerWorker(errorMessage, JBColor.RED, null, showDeviceList);
   }
 
-  private void showMessageLayerWorker(@NotNull String message, @NotNull Color color, boolean showDeviceList) {
+  private void showMessageLayerWorker(@NotNull String message, @NotNull Color color, @Nullable Icon icon, boolean showDeviceList) {
     myErrorText.setForeground(color);
+    myErrorText.setIcon(icon);
     myDeviceCombo.setVisible(showDeviceList);
     myColumnTreePane.setVisible(false);
     // Note: In addition to having the label centered in the panel, we want the text
