@@ -20,7 +20,6 @@ import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -31,9 +30,10 @@ import static org.mockito.Mockito.*;
 public class ScrollViewHandlerTest extends LayoutTestCase {
 
   public void testScrollNothing() throws Exception {
-    android.view.View mockScrollView = mock(android.view.View.class);
+    NlModel model = createModel();
+    android.view.ViewGroup mockScrollView = (android.view.ViewGroup)model.getComponents().get(0).viewInfo.getViewObject();
 
-    surface().screen(createModel(mockScrollView))
+    surface().screen(model)
       .get("@id/myText1")
       .scroll()
       .scroll(0)
@@ -46,8 +46,10 @@ public class ScrollViewHandlerTest extends LayoutTestCase {
   }
 
   public void testCancel() throws Exception {
+    NlModel model = createModel();
+    android.view.ViewGroup mockScrollView = (android.view.ViewGroup)model.getComponents().get(0).viewInfo.getViewObject();
+
     AtomicInteger savedValue = new AtomicInteger(0);
-    android.view.View mockScrollView = mock(android.view.View.class);
     doAnswer((invocation -> {
       savedValue.set((Integer)invocation.getArguments()[0]);
       return null;
@@ -55,7 +57,7 @@ public class ScrollViewHandlerTest extends LayoutTestCase {
     when(mockScrollView.getScrollY())
       .thenAnswer((invocation) -> savedValue.get());
 
-    surface().screen(createModel(mockScrollView))
+    surface().screen(model)
       .get("@id/myText1")
       .scroll()
       .scroll(50)
@@ -67,8 +69,10 @@ public class ScrollViewHandlerTest extends LayoutTestCase {
   }
 
   public void testScroll() throws Exception {
+    NlModel model = createModel();
+    android.view.ViewGroup mockScrollView = (android.view.ViewGroup)model.getComponents().get(0).viewInfo.getViewObject();
+
     AtomicInteger savedValue = new AtomicInteger(0);
-    android.view.View mockScrollView = mock(android.view.View.class);
     doAnswer((invocation -> {
       savedValue.set((Integer)invocation.getArguments()[0]);
       return null;
@@ -76,7 +80,7 @@ public class ScrollViewHandlerTest extends LayoutTestCase {
     when(mockScrollView.getScrollY())
       .thenAnswer((invocation) -> savedValue.get());
 
-    surface().screen(createModel(mockScrollView))
+    surface().screen(model)
       .get("@id/myText1")
       .scroll()
       .scroll(50)
@@ -88,36 +92,39 @@ public class ScrollViewHandlerTest extends LayoutTestCase {
   }
 
   @NotNull
-  private NlModel createModel(@Nullable android.view.View scrollView) {
+  private NlModel createModel() {
     ModelBuilder builder = model("scroll.xml",
-                     component(SCROLL_VIEW)
-                       .viewObject(scrollView)
-                       .withBounds(0, 0, 90, 90)
-                       .matchParentWidth()
-                       .matchParentHeight()
-                       .unboundedChildren(
-                         component(LINEAR_LAYOUT)
-                          .withBounds(0, 0, 90, 120)
-                          .withAttribute("android:orientation", "vertical")
-                          .wrapContentHeight()
-                          .wrapContentWidth()
-                          .children(component(TEXT_VIEW)
-                                     .id("@id/myText1")
-                                     .withBounds(0, 0, 40, 40)
-                                     .width("40dp")
-                                     .height("40dp"),
-                                              component(TEXT_VIEW)
-                                     .id("@id/myText2")
-                                     .withBounds(0, 40, 40, 40)
-                                     .width("40dp")
-                                     .height("40dp"),
-                                              component(TEXT_VIEW)
-                                     .id("@id/myText3")
-                                     .withBounds(0, 80, 40, 40)
-                                     .width("40dp")
-                                     .height("40dp")
-
-                     )));
+                                 component(SCROLL_VIEW)
+                                   .withMockView()
+                                   .withBounds(0, 0, 90, 90)
+                                   .matchParentWidth()
+                                   .matchParentHeight()
+                                   .unboundedChildren(
+                                     component(LINEAR_LAYOUT)
+                                       .withMockView()
+                                       .withBounds(0, 0, 90, 120)
+                                       .withAttribute("android:orientation", "vertical")
+                                       .wrapContentHeight()
+                                       .wrapContentWidth()
+                                       .children(component(TEXT_VIEW)
+                                                   .withMockView()
+                                                   .id("@id/myText1")
+                                                   .withBounds(0, 0, 40, 40)
+                                                   .width("40dp")
+                                                   .height("40dp"),
+                                                 component(TEXT_VIEW)
+                                                   .withMockView()
+                                                   .id("@id/myText2")
+                                                   .withBounds(0, 40, 40, 40)
+                                                   .width("40dp")
+                                                   .height("40dp"),
+                                                 component(TEXT_VIEW)
+                                                   .withMockView()
+                                                   .id("@id/myText3")
+                                                   .withBounds(0, 80, 40, 40)
+                                                   .width("40dp")
+                                                   .height("40dp")
+                                       )));
     final NlModel model = builder.build();
     assertEquals(1, model.getComponents().size());
     assertEquals("NlComponent{tag=<ScrollView>, bounds=[0,0:90x90}\n" +
