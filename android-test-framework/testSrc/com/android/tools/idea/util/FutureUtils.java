@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.explorer;
+package com.android.tools.idea.util;
 
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -63,12 +63,12 @@ public class FutureUtils {
   }
 
   /**
-   * Waits on the dispatch thread for a {@link ListenableFuture} to complete.
-   * Calling this method instead of {@link ListenableFuture#get} is required for
-   * {@link ListenableFuture} that have callbacks executing on the
+   * Waits on the dispatch thread for a {@link Future} to complete.
+   * Calling this method instead of {@link Future#get} is required for
+   * {@link Future} that have callbacks executing on the
    * {@link EdtExecutor#INSTANCE}.
    */
-  public static <V> V pumpEventsAndWaitForFuture(ListenableFuture<V> future, long timeout, TimeUnit unit)
+  public static <V> V pumpEventsAndWaitForFuture(Future<V> future, long timeout, TimeUnit unit)
     throws ExecutionException, InterruptedException, TimeoutException {
 
     assert Toolkit.getDefaultToolkit().getSystemEventQueue() instanceof IdeEventQueue;
