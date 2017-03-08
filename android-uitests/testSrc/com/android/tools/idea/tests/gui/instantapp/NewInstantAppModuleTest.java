@@ -91,7 +91,6 @@ public class NewInstantAppModuleTest {
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testCanBuildDefaultNewInstantAppBaseLibraryModule() throws IOException {
     guiTest.importSimpleApplication();
@@ -99,7 +98,6 @@ public class NewInstantAppModuleTest {
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testDefaultNewInstantAppApplicationModuleHasNoResources() throws IOException {
     guiTest.importSimpleApplication();
