@@ -91,7 +91,7 @@ public class ScrollInteraction extends Interaction {
 
     if (scrolled != 0) {
       myScrolledAmount += scrollAmount;
-      mySceneView.getModel().requestRender();
+      mySceneView.getSceneManager().requestRender();
     }
   }
 
@@ -100,7 +100,7 @@ public class ScrollInteraction extends Interaction {
     if (canceled) {
       // Make sure we reset the scroll to where it was
       myHandler.update(0);
-      mySceneView.getModel().requestRender();
+      mySceneView.getSceneManager().requestRender();
       return;
     }
 
