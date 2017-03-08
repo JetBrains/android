@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.explorer.mocks;
 
-import com.android.tools.idea.explorer.FutureUtils;
+import com.android.tools.idea.util.FutureUtils;
 import com.android.tools.idea.explorer.adbimpl.AdbShellCommandException;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
