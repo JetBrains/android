@@ -50,9 +50,8 @@ import java.nio.file.Paths;
   com.android.tools.idea.actions.annotations.InferSupportAnnotationsTest.class,
   org.jetbrains.android.dom.CreateMissingClassFixTest.class,
 
-  //Failing after IJ 2017.1 merge
+  // Empty test in gradle-feature - http://b.android.com/230792
   com.android.tools.idea.editors.manifest.ManifestConflictTest.class,
-  com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationTypeTest.class,
 
   // Failing in gradle-feature branch
   // http://b/35788105
