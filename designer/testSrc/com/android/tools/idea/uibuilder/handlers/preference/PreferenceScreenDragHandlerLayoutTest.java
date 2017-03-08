@@ -16,14 +16,17 @@
 package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.SdkConstants.PreferenceTags;
-import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.DragType;
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneBuilder;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +38,7 @@ public final class PreferenceScreenDragHandlerLayoutTest extends PreferenceScree
   public void testCommit() {
     NlModel model = buildModel();
     ScreenFixture screenFixture = surface().screen(model).withScale(1);
-    LayoutlibSceneBuilder builder = new LayoutlibSceneBuilder(model, screenFixture.getScreen());
+    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model, screenFixture.getScreen());
     Scene scene = builder.build();
     scene.buildDisplayList(new DisplayList(), 0);
 

@@ -23,6 +23,8 @@ import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.intellij.icons.AllIcons;
@@ -211,7 +213,7 @@ public class PanZoomPanel extends JPanel
    * A change occurred inside the model object
    */
   @Override
-  public void modelChanged(@NotNull NlModel model) {
+  public void modelDerivedDataChanged(@NotNull NlModel model) {
     if (myDesignSurface != null) {
       updateDeviceConfiguration(myDesignSurface.getConfiguration());
       updateComponents(model.getComponents());
@@ -674,9 +676,12 @@ public class PanZoomPanel extends JPanel
                                    @NotNull SceneView currentSceneView,
                                    int x, int y, int scaledDeviceWidth,
                                    int scaledDeviceHeight) {
-      RenderResult renderResult = currentSceneView.getModel().getRenderResult();
-      if (renderResult != null) {
-        renderResult.getRenderedImage().drawImageTo(gc, x, y, scaledDeviceWidth, scaledDeviceHeight);
+      SceneManager builder = currentSceneView.getSceneManager();
+      if (builder instanceof LayoutlibSceneManager) {
+        RenderResult renderResult = ((LayoutlibSceneManager)builder).getRenderResult();
+        if (renderResult != null) {
+          renderResult.getRenderedImage().drawImageTo(gc, x, y, scaledDeviceWidth, scaledDeviceHeight);
+        }
       }
     }
 
