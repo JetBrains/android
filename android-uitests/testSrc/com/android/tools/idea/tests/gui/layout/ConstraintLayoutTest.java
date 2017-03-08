@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.layout;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import org.junit.Rule;
@@ -34,6 +31,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class ConstraintLayoutTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final ScreenshotsDuringTest screenshotRule = new ScreenshotsDuringTest();
 
   /**
    * Verifies the UI for adding side constraints for a ConstraintLayout in the layout editor.
