@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.sherpa.scout;
+package com.android.tools.idea.uibuilder.scout;
 
-import android.support.constraint.solver.widgets.ConstraintAnchor;
-import android.support.constraint.solver.widgets.ConstraintWidget;
-import android.support.constraint.solver.widgets.Guideline;
-import android.support.constraint.solver.widgets.WidgetContainer;
+import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
 
 import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Iterator;
+import java.util.*;
+
+import static com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities.*;
 
 /**
  * This implements the standard arrange functions
  */
 public class ScoutArrange {
-    static Comparator<ConstraintWidget> sSortY = (w1, w2) -> w1.getY() - w2.getY();
-    static Comparator<ConstraintWidget> sSortX = (w1, w2) -> w1.getX() - w2.getX();
+    static Comparator<NlComponent> sSortY = (w1, w2) -> ConstraintComponentUtilities.getDpY(w1)  - ConstraintComponentUtilities.getDpY(w2);
+    static Comparator<NlComponent> sSortX = (w1, w2) -> getDpX(w1)  - getDpX(w2);
 
     /**
      * Perform various types of arrangements on a selection of widgets
@@ -40,13 +38,13 @@ public class ScoutArrange {
      * @param widgetList       the list of selected widgets
      * @param applyConstraints if true apply related constraints (except expand and pack)
      */
-    public static void align(Scout.Arrange type, ArrayList<ConstraintWidget> widgetList,
+    public static void align(Scout.Arrange type, List<NlComponent> widgetList,
             boolean applyConstraints) {
         if (widgetList == null || widgetList.size() == 0) {
             return;
         }
         int margin = Scout.getMargin();
-        ConstraintWidget[] widgets = new ConstraintWidget[widgetList.size()];
+        NlComponent[] widgets = new NlComponent[widgetList.size()];
         widgets = widgetList.toArray(widgets);
         switch (type) {
             case AlignHorizontallyCenter:
@@ -77,103 +75,103 @@ public class ScoutArrange {
         switch (type) {
             case CenterHorizontally: {
                 Rectangle rectangle = new Rectangle();
-                WidgetContainer parent = (WidgetContainer) widgets[0].getParent();
-                ConstraintWidget[] pears = new ConstraintWidget[parent.getChildren().size()];
-                pears = parent.getChildren().toArray(pears);
+                NlComponent parent =   widgets[0].getParent();
+                NlComponent[] peers = new NlComponent[parent.getChildren().size()];
+                peers = parent.getChildren().toArray(peers);
 
-                for (ConstraintWidget widget : widgets) {
-                    rectangle.x = widget.getX();
-                    rectangle.y = widget.getY();
-                    rectangle.width = widget.getWidth();
-                    rectangle.height = widget.getHeight();
-                    int westDistance = gap(Direction.WEST, rectangle, pears);
-                    int eastDistance = gap(Direction.EAST, rectangle, pears);
-                    int x = widget.getX();
+                for (NlComponent widget : widgets) {
+                    rectangle.x = getDpX(widget);
+                    rectangle.y = getDpY(widget);
+                    rectangle.width = getDpWidth(widget);
+                    rectangle.height = getDpHeight(widget);
+                    int westDistance = gap(Direction.LEFT, rectangle, peers);
+                    int eastDistance = gap(Direction.RIGHT, rectangle, peers);
+                    int x = getDpX(widget);
 
                     if (applyConstraints) {
-                        ConstraintWidget westConnect =
-                                gapWidget(Direction.WEST, rectangle, pears);
-                        ConstraintWidget eastConnect =
-                                gapWidget(Direction.EAST, rectangle, pears);
+                        NlComponent westConnect =
+                                gapWidget(Direction.LEFT, rectangle, peers);
+                        NlComponent eastConnect =
+                                gapWidget(Direction.RIGHT, rectangle, peers);
 
-                        ConstraintAnchor.Type dir = ConstraintAnchor.Type.RIGHT;
+                        Direction dir = Direction.RIGHT;
                         if (westConnect == parent) {
-                            dir = ConstraintAnchor.Type.LEFT;
+                            dir = Direction.LEFT;
                         }
-                        widget.connect(ConstraintAnchor.Type.LEFT, westConnect, dir, 0);
-                        dir = ConstraintAnchor.Type.LEFT;
+                        connect(widget,Direction.LEFT, westConnect, dir, 0);
+                        dir = Direction.LEFT;
                         if (eastConnect == parent) {
-                            dir = ConstraintAnchor.Type.RIGHT;
+                            dir = Direction.RIGHT;
                         }
-                        widget.connect(ConstraintAnchor.Type.RIGHT, eastConnect, dir, 0);
-                        widget.setHorizontalBiasPercent(.5f);
+                        connect(widget,Direction.RIGHT, eastConnect, dir, 0);
+                        setHorizontalBiasPercent(widget, .5f);
 
                     } else {
-                        widget.setX(x + (eastDistance - westDistance) / 2);
+                        setAbsoluteDpX(widget, x + (eastDistance - westDistance) / 2);
                     }
                 }
             }
             break;
             case CenterVertically: {
                 Rectangle rectangle = new Rectangle();
-                WidgetContainer parent = (WidgetContainer) widgets[0].getParent();
-                ConstraintWidget[] pears = new ConstraintWidget[parent.getChildren().size()];
+                NlComponent parent = widgets[0].getParent();
+                NlComponent[] pears = new NlComponent[parent.getChildren().size()];
                 pears = parent.getChildren().toArray(pears);
 
-                for (ConstraintWidget widget : widgets) {
-                    rectangle.x = widget.getX();
-                    rectangle.y = widget.getY();
-                    rectangle.width = widget.getWidth();
-                    rectangle.height = widget.getHeight();
-                    int northDistance = gap(Direction.NORTH, rectangle, pears);
-                    int southDistance = gap(Direction.SOUTH, rectangle, pears);
-                    int Y = widget.getY();
+                for (NlComponent widget : widgets) {
+                    rectangle.x = getDpX(widget);
+                    rectangle.y = getDpY(widget);
+                    rectangle.width = getDpWidth(widget);
+                    rectangle.height = getDpHeight(widget);
+                    int northDistance = gap(Direction.TOP, rectangle, pears);
+                    int southDistance = gap(Direction.BOTTOM, rectangle, pears);
+                    int Y = getDpY(widget);
 
                     if (applyConstraints) {
-                        ConstraintWidget northConnect =
-                                gapWidget(Direction.NORTH, rectangle, pears);
-                        ConstraintWidget southConnect =
-                                gapWidget(Direction.SOUTH, rectangle, pears);
+                        NlComponent northConnect =
+                                gapWidget(Direction.TOP, rectangle, pears);
+                        NlComponent southConnect =
+                                gapWidget(Direction.BOTTOM, rectangle, pears);
 
-                        ConstraintAnchor.Type dir = ConstraintAnchor.Type.BOTTOM;
+                        Direction dir = Direction.BOTTOM;
                         if (northConnect == parent) {
-                            dir = ConstraintAnchor.Type.TOP;
+                            dir = Direction.TOP;
                         }
-                        widget.connect(ConstraintAnchor.Type.TOP, northConnect, dir, 0);
-                        dir = ConstraintAnchor.Type.TOP;
+                        connect(widget,Direction.TOP, northConnect, dir, 0);
+                        dir = Direction.TOP;
                         if (southConnect == parent) {
-                            dir = ConstraintAnchor.Type.BOTTOM;
+                            dir = Direction.BOTTOM;
                         }
-                        widget.connect(ConstraintAnchor.Type.BOTTOM, southConnect, dir, 0);
-                        widget.setVerticalBiasPercent(.5f);
+                        connect(widget,Direction.BOTTOM, southConnect, dir, 0);
+                        setVerticalBiasPercent(widget, .5f);
                     } else {
-                        widget.setY(Y + (southDistance - northDistance) / 2);
+                        setAbsoluteDpY(widget, Y + (southDistance - northDistance) / 2);
                     }
                 }
             }
             break;
             case CenterHorizontallyInParent: {
-                for (ConstraintWidget widget : widgets) {
-                    int parentWidth = widget.getParent().getWidth();
-                    int width = widget.getWidth();
-                    widget.setX((parentWidth - width) / 2);
+                for (NlComponent widget : widgets) {
+                    int parentWidth = getDpWidth(widget.getParent());
+                    int width = getDpWidth(widget);
+                    setAbsoluteDpX(widget, (parentWidth - width) / 2);
                     if (applyConstraints) {
-                        widget.connect(ConstraintAnchor.Type.CENTER_X, widget.getParent(),
-                                       ConstraintAnchor.Type.CENTER_X, 0);
-                        widget.setHorizontalBiasPercent(.5f);
+                        connect(widget, Direction.LEFT, widget.getParent(), Direction.LEFT, 0);
+                        connect(widget, Direction.RIGHT, widget.getParent(), Direction.RIGHT, 0);
+                        setHorizontalBiasPercent(widget, .5f);
                     }
                 }
             }
             break;
             case CenterVerticallyInParent: {
-                for (ConstraintWidget widget : widgets) {
-                    int parentHeight = widget.getParent().getHeight();
-                    int height = widget.getHeight();
-                    widget.setY((parentHeight - height) / 2);
+                for (NlComponent widget : widgets) {
+                    int parentHeight = getDpHeight(widget.getParent());
+                    int height = getDpHeight(widget);
+                    setAbsoluteDpY(widget, (parentHeight - height) / 2);
                     if (applyConstraints) {
-                        widget.connect(ConstraintAnchor.Type.CENTER_Y, widget.getParent(),
-                                       ConstraintAnchor.Type.CENTER_Y, 0);
-                        widget.setVerticalBiasPercent(.5f);
+                        connect(widget, Direction.TOP, widget.getParent(), Direction.TOP, 0);
+                        connect(widget, Direction.BOTTOM, widget.getParent(), Direction.BOTTOM, 0);
+                        setVerticalBiasPercent(widget, .5f);
                     }
                 }
             }
@@ -181,20 +179,20 @@ public class ScoutArrange {
             case AlignHorizontallyCenter: {
                 int count = 0;
                 float avg = 0;
-                for (ConstraintWidget widget : widgets) {
-                    avg += widget.getX() + widget.getWidth() / 2.0f;
+                for (NlComponent widget : widgets) {
+                    avg += getDpX(widget) + getDpWidth(widget) / 2.0f;
                     count++;
                 }
                 avg /= count;
 
-                ConstraintWidget previousWidget = null;
-                for (ConstraintWidget widget : widgets) {
-                    float current = widget.getWidth() / 2.0f;
-                    widget.setX((int)(avg - current));
+                NlComponent previousWidget = null;
+                for (NlComponent widget : widgets) {
+                    float current = getDpWidth(widget) / 2.0f;
+                    setAbsoluteDpX(widget, (int)(avg - current));
                     if (applyConstraints) {
                         if (previousWidget != null) {
-                            widget.connect(ConstraintAnchor.Type.CENTER_X, previousWidget,
-                                           ConstraintAnchor.Type.CENTER_X, 0);
+                            connect(widget, Direction.LEFT, previousWidget, Direction.LEFT, 0);
+                            connect(widget, Direction.RIGHT, previousWidget, Direction.RIGHT, 0);
                         }
                     }
                     previousWidget = widget;
@@ -203,17 +201,17 @@ public class ScoutArrange {
             break;
             case AlignHorizontallyLeft: {
                 int min = Integer.MAX_VALUE;
-                for (ConstraintWidget widget : widgets) {
-                    min = Math.min(min, widget.getX());
+                for (NlComponent widget : widgets) {
+                    min = Math.min(min, getDpX(widget));
                 }
-                ConstraintWidget previousWidget = null;
-                for (ConstraintWidget widget : widgets) {
-                    widget.setX(min);
+                NlComponent previousWidget = null;
+                for (NlComponent widget : widgets) {
+                    setAbsoluteDpX(widget, min);
                     if (applyConstraints) {
                         if (previousWidget != null) {
-                            widget.resetAnchor(widget.getAnchor(ConstraintAnchor.Type.RIGHT));
-                            widget.connect(ConstraintAnchor.Type.LEFT, previousWidget,
-                                    ConstraintAnchor.Type.LEFT, 0);
+                            clearAttributes(widget, ourRightAttributes);
+                            connect(widget,Direction.LEFT, previousWidget,
+                                    Direction.LEFT, 0);
                         }
                     }
                     previousWidget = widget;
@@ -222,18 +220,18 @@ public class ScoutArrange {
             break;
             case AlignHorizontallyRight: {
                 int max = Integer.MIN_VALUE;
-                for (ConstraintWidget widget : widgets) {
-                    max = Math.max(max, widget.getX() + widget.getWidth());
+                for (NlComponent widget : widgets) {
+                    max = Math.max(max, getDpX(widget) + getDpWidth(widget));
                 }
-                ConstraintWidget previousWidget = null;
-                for (ConstraintWidget widget : widgets) {
-                    float current = widget.getWidth();
-                    widget.setX((int) (max - current));
+                NlComponent previousWidget = null;
+                for (NlComponent widget : widgets) {
+                    float current = getDpWidth(widget);
+                    setAbsoluteDpX(widget, (int) (max - current));
                     if (applyConstraints) {
                         if (previousWidget != null) {
-                            widget.resetAnchor(widget.getAnchor(ConstraintAnchor.Type.LEFT));
-                            widget.connect(ConstraintAnchor.Type.RIGHT, previousWidget,
-                                    ConstraintAnchor.Type.RIGHT, 0);
+                            clearAttributes(widget, ourLeftAttributes);
+                            connect(widget,Direction.RIGHT, previousWidget,
+                                    Direction.RIGHT, 0);
                         }
                     }
                     previousWidget = widget;
@@ -242,17 +240,17 @@ public class ScoutArrange {
             break;
             case AlignVerticallyTop: {
                 int min = Integer.MAX_VALUE;
-                for (ConstraintWidget widget : widgets) {
-                    min = Math.min(min, widget.getY());
+                for (NlComponent widget : widgets) {
+                    min = Math.min(min, getDpY(widget));
                 }
-                ConstraintWidget previousWidget = null;
-                for (ConstraintWidget widget : widgets) {
-                    widget.setY(min);
+                NlComponent previousWidget = null;
+                for (NlComponent widget : widgets) {
+                    setAbsoluteDpY(widget, min);
                     if (applyConstraints) {
                         if (previousWidget != null) {
-                            widget.resetAnchor(widget.getAnchor(ConstraintAnchor.Type.BOTTOM));
-                            widget.connect(ConstraintAnchor.Type.TOP, previousWidget,
-                                    ConstraintAnchor.Type.TOP, 0);
+                            clearAttributes(widget, ourBottomAttributes);
+                            connect(widget,Direction.TOP, previousWidget,
+                                    Direction.TOP, 0);
                         }
                     }
                     previousWidget = widget;
@@ -262,19 +260,19 @@ public class ScoutArrange {
             case AlignVerticallyMiddle: {
                 int count = 0;
                 float avg = 0;
-                for (ConstraintWidget widget : widgets) {
-                    avg += widget.getY() + widget.getHeight() / 2.0f;
+                for (NlComponent widget : widgets) {
+                    avg += getDpY(widget) + getDpHeight(widget) / 2.0f;
                     count++;
                 }
                 avg /= count;
-                ConstraintWidget previousWidget = null;
-                for (ConstraintWidget widget : widgets) {
-                    float current = widget.getHeight() / 2.0f;
-                    widget.setY((int) (avg - current));
+                NlComponent previousWidget = null;
+                for (NlComponent widget : widgets) {
+                    float current = getDpHeight(widget) / 2.0f;
+                    setAbsoluteDpY(widget, (int) (avg - current));
                     if (applyConstraints) {
                         if (previousWidget != null) {
-                            widget.connect(ConstraintAnchor.Type.CENTER_Y, previousWidget,
-                                    ConstraintAnchor.Type.CENTER_Y, 0);
+                            connect(widget, Direction.TOP, previousWidget, Direction.TOP, 0);
+                            connect(widget, Direction.BOTTOM, previousWidget, Direction.BOTTOM, 0);
                         }
                     }
                     previousWidget = widget;
@@ -285,38 +283,38 @@ public class ScoutArrange {
                 int count = 0;
                 float avg = 0;
                 int number_of_constrained = 0;
-                ConstraintWidget fixedWidget = null;
-                for (ConstraintWidget widget : widgets) {
+                NlComponent fixedWidget = null;
+                for (NlComponent widget : widgets) {
                     if (isVerticallyConstrained(widget)) {
                         number_of_constrained++;
                         fixedWidget = widget;
                     }
-                    avg += widget.getY() + widget.getBaselineDistance();
+                    avg += getDpY(widget) + getDpBaseline(widget);
                     count++;
                 }
                 avg /= count;
                 // if one is already constrained move the rest to it
                 if (number_of_constrained == 1) {
-                    avg = fixedWidget.getY() + fixedWidget.getBaselineDistance();
+                    avg = getDpX(fixedWidget) + getDpBaseline(fixedWidget);
                 }
-                ConstraintWidget previousWidget = null;
+                NlComponent previousWidget = null;
                 if (!applyConstraints || number_of_constrained == 0) {
-                    for (ConstraintWidget widget : widgets) {
-                        float baseline = widget.getBaselineDistance();
-                        widget.setY((int) (avg - baseline));
+                    for (NlComponent widget : widgets) {
+                        float baseline = getDpBaseline(widget);
+                        setAbsoluteDpY(widget, (int) (avg - baseline));
                         if (applyConstraints) {
                             if (previousWidget != null) {
-                                widget.connect(ConstraintAnchor.Type.BASELINE, previousWidget,
-                                        ConstraintAnchor.Type.BASELINE, 0);
+                                connect(widget,Direction.BASELINE, previousWidget,
+                                        Direction.BASELINE, 0);
                             }
                         }
                         previousWidget = widget;
                     }
                 } else { // if you are creating constraints and some are already constrained
                     // Build a list of constrained and unconstrained widgets
-                    ArrayList<ConstraintWidget> unconstrained = new ArrayList<>();
-                    ArrayList<ConstraintWidget> constrained = new ArrayList<>();
-                    for (ConstraintWidget widget : widgets) {
+                    ArrayList<NlComponent> unconstrained = new ArrayList<>();
+                    ArrayList<NlComponent> constrained = new ArrayList<>();
+                    for (NlComponent widget : widgets) {
                         if (isVerticallyConstrained(widget)) {
                             constrained.add(widget);
                         } else {
@@ -325,16 +323,16 @@ public class ScoutArrange {
                     }
                     // one by one constrain widgets by finding the closest between the two list
                     while (!unconstrained.isEmpty()) {
-                        ConstraintWidget to = null;
-                        ConstraintWidget from = null;
+                        NlComponent to = null;
+                        NlComponent from = null;
                         int min = Integer.MAX_VALUE;
 
-                        for (ConstraintWidget fromCandidate : unconstrained) {
-                            for (ConstraintWidget toCandidate : constrained) {
-                                int fromLeft = fromCandidate.getX();
-                                int fromRight = fromLeft + fromCandidate.getWidth();
-                                int toLeft = toCandidate.getX();
-                                int toRight = toLeft + toCandidate.getWidth();
+                        for (NlComponent fromCandidate : unconstrained) {
+                            for (NlComponent toCandidate : constrained) {
+                                int fromLeft = getDpX(fromCandidate);
+                                int fromRight = fromLeft + getDpWidth(fromCandidate);
+                                int toLeft = getDpX(toCandidate);
+                                int toRight = toLeft + getDpWidth(toCandidate);
                                 int dist = Math.abs(toLeft - fromLeft);
                                 dist = Math.min(dist, Math.abs(toLeft - fromRight));
                                 dist = Math.min(dist, Math.abs(toRight - fromRight));
@@ -346,8 +344,8 @@ public class ScoutArrange {
                                 }
                             }
                         }
-                        from.connect(ConstraintAnchor.Type.BASELINE, to,
-                                ConstraintAnchor.Type.BASELINE, 0);
+                        connect(from,Direction.BASELINE, to,
+                                Direction.BASELINE, 0);
                         constrained.add(from);
                         unconstrained.remove(from);
                     }
@@ -356,18 +354,18 @@ public class ScoutArrange {
             break;
             case AlignVerticallyBottom: {
                 int max = Integer.MIN_VALUE;
-                for (ConstraintWidget widget : widgets) {
-                    max = Math.max(max, widget.getY() + widget.getHeight());
+                for (NlComponent widget : widgets) {
+                    max = Math.max(max, getDpY(widget) + getDpHeight(widget));
                 }
-                ConstraintWidget previousWidget = null;
-                for (ConstraintWidget widget : widgets) {
-                    float current = widget.getHeight();
-                    widget.setY((int) (max - current));
+                NlComponent previousWidget = null;
+                for (NlComponent widget : widgets) {
+                    float current = getDpHeight(widget);
+                    setAbsoluteDpY(widget, (int) (max - current));
                     if (applyConstraints) {
                         if (previousWidget != null) {
-                            widget.resetAnchor(widget.getAnchor(ConstraintAnchor.Type.TOP));
-                            widget.connect(ConstraintAnchor.Type.BOTTOM, previousWidget,
-                                    ConstraintAnchor.Type.BOTTOM, 0);
+                            clearAttributes(widget, ourTopAttributes);
+                            connect(widget,Direction.BOTTOM, previousWidget,
+                                    Direction.BOTTOM, 0);
                         }
                     }
                     previousWidget = widget;
@@ -377,11 +375,11 @@ public class ScoutArrange {
             case DistributeVertically: {
                 int count = 0;
                 int sum = 0;
-                int min = widgetList.get(0).getY();
-                int max = widgetList.get(0).getY() + widgetList.get(0).getHeight();
-                for (ConstraintWidget widget : widgets) {
-                    int start = widget.getY();
-                    int size = widget.getHeight();
+                int min = getDpY(widgetList.get(0));
+                int max = getDpY(widgetList.get(0)) + getDpHeight(widgetList.get(0));
+                for (NlComponent widget : widgets) {
+                    int start = getDpY(widget);
+                    int size = getDpHeight(widget);
                     int end = start + size;
                     sum += size;
                     min = Math.min(min, start);
@@ -395,17 +393,17 @@ public class ScoutArrange {
                         rootDistanceY(widgets[0]) > rootDistanceY(widgets[widgets.length - 1]);
                 for (int i = 0; i < count; i++) {
                     if (i > 0) {
-                        int size = widgets[i - 1].getHeight();
+                        int size  = getDpHeight( widgets[i - 1]);
                         min += size;
                         int pos = min + (totalGap * i) / gaps;
-                        widgets[i].setY(pos);
+                        setAbsoluteDpY(widgets[i],pos);
                         if (applyConstraints) {
                             if (reverse) {
-                                widgets[i - 1].connect(ConstraintAnchor.Type.BOTTOM, widgets[i],
-                                        ConstraintAnchor.Type.TOP, pos - lastY - size);
+                                connect(widgets[i - 1], Direction.BOTTOM, widgets[i],
+                                        Direction.TOP, pos - lastY - size);
                             } else {
-                                widgets[i].connect(ConstraintAnchor.Type.TOP, widgets[i - 1],
-                                        ConstraintAnchor.Type.BOTTOM, pos - lastY - size);
+                                connect(widgets[i],Direction.TOP, widgets[i - 1],
+                                        Direction.BOTTOM, pos - lastY - size);
                             }
                             lastY = pos;
                         }
@@ -416,11 +414,11 @@ public class ScoutArrange {
             case DistributeHorizontally: {
                 int count = 0;
                 int sum = 0;
-                int min = widgetList.get(0).getX();
-                int max = widgetList.get(0).getX() + widgetList.get(0).getHeight();
-                for (ConstraintWidget widget : widgets) {
-                    int start = widget.getX();
-                    int size = widget.getWidth();
+                int min = getDpX(widgetList.get(0));
+                int max = getDpX(widgetList.get(0)) + getDpHeight(widgetList.get(0));
+                for (NlComponent widget : widgets) {
+                    int start = getDpX(widget);
+                    int size = getDpWidth(widget);
                     int end = start + size;
                     sum += size;
                     min = Math.min(min, start);
@@ -435,17 +433,17 @@ public class ScoutArrange {
                 for (int i = 0; i < count; i++) {
 
                     if (i > 0) {
-                        int size = widgets[i - 1].getWidth();
+                        int size = getDpWidth(widgets[i - 1]);
                         min += size;
                         int pos = min + (totalGap * i) / gaps;
-                        widgets[i].setX(pos);
+                        setAbsoluteDpX(widgets[i],pos);
                         if (applyConstraints) {
                             if (reverse) {
-                                widgets[i - 1].connect(ConstraintAnchor.Type.RIGHT, widgets[i],
-                                        ConstraintAnchor.Type.LEFT, pos - lastX - size);
+                                connect(widgets[i - 1], Direction.RIGHT, widgets[i],
+                                        Direction.LEFT, pos - lastX - size);
                             } else {
-                                widgets[i].connect(ConstraintAnchor.Type.LEFT, widgets[i - 1],
-                                        ConstraintAnchor.Type.RIGHT, pos - lastX - size);
+                                connect(widgets[i],Direction.LEFT, widgets[i - 1],
+                                        Direction.RIGHT, pos - lastX - size);
                             }
                             lastX = pos;
                         }
@@ -455,17 +453,17 @@ public class ScoutArrange {
             break;
             case VerticalPack: {
                 Rectangle original = getBoundingBox(widgetList);
-                ConstraintWidget[] wArray = new ConstraintWidget[widgetList.size()];
+                NlComponent[] wArray = new NlComponent[widgetList.size()];
                 wArray = widgetList.toArray(wArray);
-                Arrays.sort(wArray, (w1, w2) -> Integer.compare(w1.getY(), w2.getY()));
+                Arrays.sort(wArray, (w1, w2) -> Integer.compare(getDpY(w1), getDpY(w2)));
                 ScoutWidget[] list = ScoutWidget.getWidgetArray(
-                        (WidgetContainer) widgetList.get(0).getParent());
+                         widgetList.get(0).getParent());
 
-                for (ConstraintWidget cw : wArray) {
+                for (NlComponent cw : wArray) {
                     for (ScoutWidget scoutWidget : list) {
-                        if (scoutWidget.mConstraintWidget == cw) {
-                            int gapN = scoutWidget.gap(Direction.NORTH, list);
-                            int newY = margin + scoutWidget.mConstraintWidget.getY() - gapN;
+                        if (scoutWidget.mNlComponent == cw) {
+                            int gapN = scoutWidget.gap(Direction.TOP, list);
+                            int newY = margin + getDpY(scoutWidget.mNlComponent) - gapN;
                             newY = Math.max(newY, original.y);
                             scoutWidget.setY(newY);
                         }
@@ -475,17 +473,17 @@ public class ScoutArrange {
             break;
             case HorizontalPack: {
                 Rectangle original = getBoundingBox(widgetList);
-                ConstraintWidget[] wArray = new ConstraintWidget[widgetList.size()];
+                NlComponent[] wArray = new NlComponent[widgetList.size()];
                 wArray = widgetList.toArray(wArray);
-                Arrays.sort(wArray, (w1, w2) -> Integer.compare(w1.getX(), w2.getX()));
+                Arrays.sort(wArray, (w1, w2) -> Integer.compare(getDpX(w1), getDpX(w2)));
                 ScoutWidget[] list = ScoutWidget.getWidgetArray(
-                        (WidgetContainer) widgetList.get(0).getParent());
+                         widgetList.get(0).getParent());
 
-                for (ConstraintWidget cw : wArray) {
+                for (NlComponent cw : wArray) {
                     for (ScoutWidget scoutWidget : list) {
-                        if (scoutWidget.mConstraintWidget == cw) {
-                            int gapW = scoutWidget.gap(Direction.WEST, list);
-                            int newX = margin + scoutWidget.mConstraintWidget.getX() - gapW;
+                        if (scoutWidget.mNlComponent == cw) {
+                            int gapW = scoutWidget.gap(Direction.LEFT, list);
+                            int newX = margin + getDpX(scoutWidget.mNlComponent) - gapW;
                             newX = Math.max(newX, original.x);
                             scoutWidget.setX(newX);
                         }
@@ -509,28 +507,28 @@ public class ScoutArrange {
      * @param widgetList
      * @param margin
      */
-    private static void expandVertically(ArrayList<ConstraintWidget> widgetList, int margin) {
-        WidgetContainer base = (WidgetContainer) widgetList.get(0).getParent();
-        ConstraintWidget[] pears = new ConstraintWidget[base.getChildren().size()];
+    private static void expandVertically(List<NlComponent> widgetList, int margin) {
+        NlComponent base =   widgetList.get(0).getParent();
+        NlComponent[] pears = new NlComponent[base.getChildren().size()];
         pears = base.getChildren().toArray(pears);
 
         Rectangle selectBounds = getBoundingBox(widgetList);
 
         Rectangle clip = new Rectangle();
-        int gapNorth = gap(Direction.NORTH, selectBounds, pears);
-        int gapSouth = gap(Direction.SOUTH, selectBounds, pears);
+        int gapNorth = gap(Direction.TOP, selectBounds, pears);
+        int gapSouth = gap(Direction.BOTTOM, selectBounds, pears);
 
         clip.y = selectBounds.y - gapNorth;
         clip.height = selectBounds.height + gapSouth + gapNorth;
 
-        ArrayList<ConstraintWidget> selectedList = new ArrayList<>(widgetList);
+        ArrayList<NlComponent> selectedList = new ArrayList<>(widgetList);
         while (!selectedList.isEmpty()) {
-            ConstraintWidget widget = selectedList.remove(0);
-            ArrayList<ConstraintWidget> col = new ArrayList<>();
+            NlComponent widget = selectedList.remove(0);
+            ArrayList<NlComponent> col = new ArrayList<>();
             col.add(widget);
-            for (Iterator<ConstraintWidget> iterator = selectedList.iterator();
+            for (Iterator<NlComponent> iterator = selectedList.iterator();
                     iterator.hasNext(); ) {
-                ConstraintWidget elem = iterator.next();
+                NlComponent elem = iterator.next();
                 if (isSameColumn(widget, elem)) {
                     if (!col.contains(elem)) {
                         col.add(elem);
@@ -538,7 +536,7 @@ public class ScoutArrange {
                     iterator.remove();
                 }
             }
-            ConstraintWidget[] colArray = new ConstraintWidget[col.size()];
+            NlComponent[] colArray = new NlComponent[col.size()];
             colArray = col.toArray(colArray);
             Arrays.sort(colArray, sSortY);
             int gaps = (colArray.length - 1) * margin;
@@ -546,12 +544,10 @@ public class ScoutArrange {
 
             for (int i = 0; i < colArray.length; i++) {
                 int y = margin * i + (i * (totalHeight)) / colArray.length;
-                ConstraintWidget constraintWidget = colArray[i];
-                constraintWidget.setY(y + clip.y + margin);
+                NlComponent constraintWidget = colArray[i];
+                setAbsoluteDpY(constraintWidget, y + clip.y + margin);
                 int yend = margin * i + (totalHeight * (i + 1)) / colArray.length;
-                constraintWidget
-                        .setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
-                constraintWidget.setHeight(yend - y);
+                setAbsoluteDpHeight(constraintWidget,yend - y);
             }
         }
     }
@@ -561,26 +557,26 @@ public class ScoutArrange {
      * @param widgetList
      * @param margin
      */
-    public static void expandHorizontally(ArrayList<ConstraintWidget> widgetList, int margin) {
-        WidgetContainer base = (WidgetContainer) widgetList.get(0).getParent();
-        ConstraintWidget[] pears = new ConstraintWidget[base.getChildren().size()];
+    public static void expandHorizontally(List<NlComponent> widgetList, int margin) {
+        NlComponent base =  widgetList.get(0).getParent();
+        NlComponent[] pears = new NlComponent[base.getChildren().size()];
         pears = base.getChildren().toArray(pears);
         Rectangle selectBounds = getBoundingBox(widgetList);
 
         Rectangle clip = new Rectangle();
-        int gapWest = gap(Direction.WEST, selectBounds, pears);
-        int gapEast = gap(Direction.EAST, selectBounds, pears);
+        int gapWest = gap(Direction.LEFT, selectBounds, pears);
+        int gapEast = gap(Direction.RIGHT, selectBounds, pears);
         clip.x = selectBounds.x - gapWest;
         clip.width = selectBounds.width + gapEast + gapWest;
-        ArrayList<ConstraintWidget> selectedList;
-        selectedList = new ArrayList<ConstraintWidget>(widgetList);
+        ArrayList<NlComponent> selectedList;
+        selectedList = new ArrayList<NlComponent>(widgetList);
         while (!selectedList.isEmpty()) {
-            ConstraintWidget widget = selectedList.remove(0);
-            ArrayList<ConstraintWidget> row = new ArrayList<>();
+            NlComponent widget = selectedList.remove(0);
+            ArrayList<NlComponent> row = new ArrayList<>();
             row.add(widget);
-            for (Iterator<ConstraintWidget> iterator = selectedList.iterator();
+            for (Iterator<NlComponent> iterator = selectedList.iterator();
                     iterator.hasNext(); ) {
-                ConstraintWidget elem = iterator.next();
+                NlComponent elem = iterator.next();
                 if (isSameRow(widget, elem)) {
                     if (!row.contains(elem)) {
                         row.add(elem);
@@ -589,7 +585,7 @@ public class ScoutArrange {
                 }
             }
 
-            ConstraintWidget[] rowArray = new ConstraintWidget[row.size()];
+            NlComponent[] rowArray = new NlComponent[row.size()];
             rowArray = row.toArray(rowArray);
             Arrays.sort(rowArray, sSortX);
             int gaps = (rowArray.length - 1) * margin;
@@ -597,12 +593,11 @@ public class ScoutArrange {
 
             for (int i = 0; i < rowArray.length; i++) {
                 int x = margin * i + (i * (totalWidth)) / rowArray.length;
-                ConstraintWidget constraintWidget = rowArray[i];
-                constraintWidget.setX(x + clip.x + margin);
+                NlComponent constraintWidget = rowArray[i];
+                setAbsoluteDpX(constraintWidget,x + clip.x + margin);
                 int xend = margin * i + (totalWidth * (i + 1)) / rowArray.length;
-                constraintWidget
-                        .setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour.FIXED);
-                constraintWidget.setWidth(xend - x);
+
+                setAbsoluteDpWidth(constraintWidget,xend - x);
             }
         }
     }
@@ -613,9 +608,9 @@ public class ScoutArrange {
      * @param b
      * @return true if aligned
      */
-    static boolean isSameRow(ConstraintWidget a, ConstraintWidget b) {
-        return Math.max(a.getY(), b.getY()) <
-                Math.min(a.getY() + a.getHeight(), b.getY() + b.getHeight());
+    static boolean isSameRow(NlComponent a, NlComponent b) {
+        return Math.max(getDpY(a), getDpY(b)) <
+                Math.min(getDpY(a) + getDpHeight(a), getDpY(b) + getDpHeight(b));
     }
     /**
      * are the two widgets in the same vertical area
@@ -623,9 +618,9 @@ public class ScoutArrange {
      * @param b
      * @return true if aligned
      */
-    static boolean isSameColumn(ConstraintWidget a, ConstraintWidget b) {
-        return Math.max(a.getX(), b.getX()) <
-                Math.min(a.getX() + a.getWidth(), b.getX() + b.getWidth());
+    static boolean isSameColumn(NlComponent a, NlComponent b) {
+        return Math.max(getDpX(a), getDpX(b)) <
+                Math.min(getDpX(a) + getDpWidth(a), getDpX(b) + getDpWidth(b));
     }
 
     /**
@@ -633,12 +628,12 @@ public class ScoutArrange {
      * @param widget
      * @return
      */
-    static Rectangle getRectangle(ConstraintWidget widget) {
+    static Rectangle getRectangle(NlComponent widget) {
         Rectangle rectangle = new Rectangle();
-        rectangle.x = widget.getX();
-        rectangle.y = widget.getY();
-        rectangle.width = widget.getWidth();
-        rectangle.height = widget.getHeight();
+        rectangle.x = getDpX(widget);
+        rectangle.y = getDpY(widget);
+        rectangle.width = getDpWidth(widget);
+        rectangle.height = getDpHeight(widget);
         return rectangle;
     }
 
@@ -649,28 +644,28 @@ public class ScoutArrange {
      * @param list      list of other widgets (root == list[0])
      * @return the distance on that side
      */
-    public static ConstraintWidget gapWidget(Direction direction, Rectangle region,
-            ConstraintWidget[] list) {
-        int rootWidth = list[0].getParent().getWidth();
-        int rootHeight = list[0].getParent().getHeight();
+    public static NlComponent gapWidget(Direction direction, Rectangle region,
+            NlComponent[] list) {
+        int rootWidth = getDpWidth(list[0].getParent());
+        int rootHeight = getDpHeight(list[0].getParent());
         Rectangle rect = new Rectangle();
 
         switch (direction) {
-            case NORTH: {
+            case TOP: {
                 rect.y = 0;
                 rect.x = region.x + 1;
                 rect.width = region.width - 2;
                 rect.height = region.y;
             }
             break;
-            case SOUTH: {
+            case BOTTOM: {
                 rect.y = region.y + region.height + 1;
                 rect.x = region.x + 1;
                 rect.width = region.width - 2;
                 rect.height = rootHeight - rect.y;
             }
             break;
-            case WEST: {
+            case LEFT: {
                 rect.y = region.y + 1;
                 rect.x = 0;
                 rect.width = region.x;
@@ -678,7 +673,7 @@ public class ScoutArrange {
 
             }
             break;
-            case EAST: {
+            case RIGHT: {
                 rect.y = region.y + 1;
                 rect.x = region.x + region.width + 1;
                 rect.width = rootWidth - rect.x;
@@ -688,8 +683,8 @@ public class ScoutArrange {
 
         }
         int min = Integer.MAX_VALUE;
-        ConstraintWidget minWidget = null;
-        for (ConstraintWidget widget : list) {
+        NlComponent minWidget = null;
+        for (NlComponent widget : list) {
             Rectangle r = getRectangle(widget);
             if (r.intersects(rect)) {
                 int dist = (int)distance(r, region);
@@ -713,27 +708,27 @@ public class ScoutArrange {
      * @param list      list of other widgets (root == list[0])
      * @return the distance on that side
      */
-    public static int gap(Direction direction, Rectangle region, ConstraintWidget[] list) {
-        int rootWidth = list[0].getParent().getWidth();
-        int rootHeight = list[0].getParent().getHeight();
+    public static int gap(Direction direction, Rectangle region, NlComponent[] list) {
+        int rootWidth = getDpWidth(list[0].getParent());
+        int rootHeight = getDpHeight(list[0].getParent());
         Rectangle rect = new Rectangle();
 
         switch (direction) {
-            case NORTH: {
+            case TOP: {
                 rect.y = 0;
                 rect.x = region.x + 1;
                 rect.width = region.width - 2;
                 rect.height = region.y;
             }
             break;
-            case SOUTH: {
+            case BOTTOM: {
                 rect.y = region.y + region.height + 1;
                 rect.x = region.x + 1;
                 rect.width = region.width - 2;
                 rect.height = rootHeight - rect.y;
             }
             break;
-            case WEST: {
+            case LEFT: {
                 rect.y = region.y + 1;
                 rect.x = 0;
                 rect.width = region.x;
@@ -741,7 +736,7 @@ public class ScoutArrange {
 
             }
             break;
-            case EAST: {
+            case RIGHT: {
                 rect.y = region.y + 1;
                 rect.x = region.x + region.width + 1;
                 rect.width = rootWidth - rect.x;
@@ -752,7 +747,7 @@ public class ScoutArrange {
         }
         int min = Integer.MAX_VALUE;
         for (int i = 0; i < list.length; i++) {
-            ConstraintWidget widget = list[i];
+            NlComponent widget = list[i];
 
             Rectangle r = getRectangle(widget);
             if (r.intersects(rect)) {
@@ -765,13 +760,13 @@ public class ScoutArrange {
 
         if (min > Math.max(rootHeight, rootWidth)) {
             switch (direction) {
-                case NORTH:
+                case TOP:
                     return region.y;
-                case SOUTH:
+                case BOTTOM:
                     return rootHeight - (region.y + region.height);
-                case WEST:
+                case LEFT:
                     return region.x;
-                case EAST:
+                case RIGHT:
                     return rootWidth - (region.x + region.width);
             }
         }
@@ -823,10 +818,10 @@ public class ScoutArrange {
      * @param widget
      * @return
      */
-    static int rootDistanceX(ConstraintWidget widget) {
-        int rootWidth = widget.getParent().getWidth();
-        int aX = widget.getX();
-        int aWidth = widget.getWidth();
+    static int rootDistanceX(NlComponent widget) {
+        int rootWidth = getDpWidth(widget.getParent());
+        int aX = getDpX(widget);
+        int aWidth = getDpWidth(widget);
         return Math.min(aX, rootWidth - (aX + aWidth));
     }
 
@@ -836,10 +831,10 @@ public class ScoutArrange {
      * @param widget
      * @return
      */
-    static int rootDistanceY(ConstraintWidget widget) {
-        int rootHeight = widget.getParent().getHeight();
-        int aY = widget.getY();
-        int aHeight = widget.getHeight();
+    static int rootDistanceY(NlComponent widget) {
+        int rootHeight = getDpHeight(widget.getParent());
+        int aY = getDpY(widget);
+        int aHeight = getDpHeight(widget);
         return Math.min(aY, rootHeight - (aY + aHeight));
     }
 
@@ -849,17 +844,17 @@ public class ScoutArrange {
      * @param widgets
      * @return
      */
-    static Rectangle getBoundingBox(ArrayList<ConstraintWidget> widgets) {
+    static Rectangle getBoundingBox(List<NlComponent> widgets) {
         Rectangle all = null;
         Rectangle tmp = new Rectangle();
-        for (ConstraintWidget widget : widgets) {
-            if (widget instanceof Guideline) {
+        for (NlComponent widget : widgets) {
+            if (isGuideline(widget)) {
                 continue;
             }
-            tmp.x = widget.getX();
-            tmp.y = widget.getY();
-            tmp.width = widget.getWidth();
-            tmp.height = widget.getHeight();
+            tmp.x = getDpX(widget);
+            tmp.y = getDpY(widget);
+            tmp.width = getDpWidth(widget);
+            tmp.height = getDpHeight(widget);
             if (all == null) {
                 all = new Rectangle(tmp);
             } else {
@@ -874,9 +869,9 @@ public class ScoutArrange {
      *
      * @param widgets to reverse
      */
-    private static void reverse(ConstraintWidget[] widgets) {
+    private static void reverse(NlComponent[] widgets) {
         for (int i = 0; i < widgets.length / 2; i++) {
-            ConstraintWidget widget = widgets[i];
+            NlComponent widget = widgets[i];
             widgets[i] = widgets[widgets.length - 1 - i];
             widgets[widgets.length - 1 - i] = widget;
         }
@@ -888,13 +883,13 @@ public class ScoutArrange {
      * @param widget to get the distance to root
      * @return
      */
-    private static int rootDistance(ConstraintWidget widget) {
-        int rootHeight = widget.getParent().getHeight();
-        int rootWidth = widget.getParent().getWidth();
-        int aX = widget.getX();
-        int aY = widget.getY();
-        int aWidth = widget.getWidth();
-        int aHeight = widget.getHeight();
+    private static int rootDistance(NlComponent widget) {
+        int rootHeight = getDpHeight(widget.getParent());
+        int rootWidth = getDpWidth(widget.getParent());
+        int aX = getDpX(widget);
+        int aY = getDpY(widget);
+        int aWidth = getDpHeight(widget);
+        int aHeight = getDpWidth(widget);
         int minx = Math.min(aX, rootWidth - (aX + aWidth));
         int miny = Math.min(aY, rootHeight - (aY + aHeight));
         return Math.min(minx, miny);
@@ -906,14 +901,14 @@ public class ScoutArrange {
      * @param widget widget to test
      * @return true if it is constrained
      */
-    private static boolean isVerticallyConstrained(ConstraintWidget widget) {
-        if (widget.getAnchor(ConstraintAnchor.Type.BOTTOM).isConnected()) {
+    private static boolean isVerticallyConstrained(NlComponent widget) {
+        if (ScoutWidget.isConnected(widget,Direction.BOTTOM)) {
             return true;
         }
-        if (widget.getAnchor(ConstraintAnchor.Type.TOP).isConnected()) {
+        if (ScoutWidget.isConnected(widget,Direction.TOP)) {
             return true;
         }
-        if (widget.getAnchor(ConstraintAnchor.Type.BASELINE).isConnected()) {
+        if (ScoutWidget.isConnected(widget,Direction.BASELINE)) {
             return true;
         }
         return false;
@@ -926,19 +921,19 @@ public class ScoutArrange {
      * @param list   list to search
      * @return the nearest in the list
      */
-    private static ConstraintWidget nearestHorizontal(ConstraintWidget nextTo,
-            ArrayList<ConstraintWidget> list) {
+    private static NlComponent nearestHorizontal(NlComponent nextTo,
+            ArrayList<NlComponent> list) {
         int min = Integer.MAX_VALUE;
-        ConstraintWidget ret = null;
-        int nextToLeft = nextTo.getX();
-        int nextToRight = nextToLeft + nextTo.getWidth();
-        for (ConstraintWidget widget : list) {
+        NlComponent ret = null;
+        int nextToLeft = getDpX(nextTo);
+        int nextToRight = nextToLeft + getDpWidth(nextTo);
+        for (NlComponent widget : list) {
             if (widget == nextTo) {
                 continue;
             }
 
-            int left = widget.getX();
-            int right = left + widget.getWidth();
+            int left = getDpX(widget);
+            int right = left + getDpWidth(widget);
             int dist = Math.abs(left - nextToLeft);
             dist = Math.min(dist, Math.abs(left - nextToRight));
             dist = Math.min(dist, Math.abs(right - nextToRight));
@@ -949,5 +944,50 @@ public class ScoutArrange {
             }
         }
         return ret;
+    }
+
+    /**
+     * Wrapper for concept of anchor the "connector" on sides of a widget
+     */
+    class  Anchor {
+        Direction myDirection;
+        NlComponent mNlComponent;
+
+        Anchor(NlComponent component, Direction dir){
+            mNlComponent = component;
+            myDirection = dir;
+        }
+
+        public boolean isConnected() {
+            String[] attrs = ScoutWidget.ATTR_CONNECTIONS[myDirection.ordinal()];
+            for (int i = 0; i < attrs.length; i++) {
+                String attr = attrs[i];
+                String id = mNlComponent.getAttribute(SdkConstants.SHERPA_URI, attr);
+                if (id != null) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        NlComponent getOwner() {
+            return mNlComponent;
+        }
+
+        public boolean isConnectionAllowed(ScoutWidget component) {
+            return false;
+        }
+
+        public int getMargin() {
+            return ConstraintComponentUtilities.getMargin(mNlComponent,myDirection.getMarginString());
+        }
+
+        public  Direction getType() {
+            return myDirection;
+        }
+    }
+
+    public Anchor getAnchor(NlComponent component, Direction direction) {
+        return new Anchor(component, direction);
     }
 }
