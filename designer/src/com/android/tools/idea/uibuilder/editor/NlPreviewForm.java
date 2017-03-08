@@ -123,7 +123,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
         NlModel model = screenView != null ? screenView.getModel() : null;
         if (model != null) {
           model.setElapsedFrameTimeMs(timeMs);
-          mySurface.getCurrentSceneView().getModel().requestRender();
+          mySurface.getCurrentSceneView().getSceneManager().requestRender();
         }
       }, 16);
       contentPanel.add(myAnimationToolbar, BorderLayout.SOUTH);
@@ -244,13 +244,10 @@ public class NlPreviewForm implements Disposable, CaretListener {
       this.file = file;
       this.model = model;
       model.addListener(this);
-      model.requestRender(); // on file switches, render as soon as possible; the delay is for edits
-    }
-
-    @Override
-    public void modelChanged(@NotNull NlModel model) {
-      // This won't be called in the dispatch thread so, to avoid a 10ms delay in requestRender
-      model.render();
+      ScreenView view = mySurface.getCurrentSceneView();
+      if (view != null) {
+        view.getSceneManager().requestRender();
+      }
     }
 
     @Override
@@ -314,6 +311,7 @@ public class NlPreviewForm implements Disposable, CaretListener {
     else {
       XmlFile xmlFile = (XmlFile)file;
       NlModel model = NlModel.create(mySurface, null, facet, xmlFile);
+      mySurface.setModel(model);
       myPendingFile = new Pending(xmlFile, model);
     }
     return true;
@@ -323,8 +321,11 @@ public class NlPreviewForm implements Disposable, CaretListener {
     myPendingFile = null;
     ScreenView currentScreenView = mySurface.getCurrentSceneView();
     if (currentScreenView != null) {
-      currentScreenView.getModel().deactivate();
-      Disposer.dispose(currentScreenView.getModel());
+      NlModel oldModel = currentScreenView.getModel();
+      if (model != oldModel) {
+        oldModel.deactivate();
+        Disposer.dispose(oldModel);
+      }
     }
 
     if (model == null) {
@@ -333,7 +334,6 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
     else {
       myFile = model.getFile();
-      mySurface.setModel(model);
       if (!mySurface.isCanvasResizing() && mySurface.isZoomFitted()) {
         // If we are resizing, keep the zoom level constant
         // only if the zoom was previously set to FIT

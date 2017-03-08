@@ -531,7 +531,7 @@ public class Mockup implements ModelListener {
   }
 
   @Override
-  public void modelChanged(@NotNull NlModel model) {
+  public void modelDerivedDataChanged(@NotNull NlModel model) {
     parseComponent(myComponent);
   }
 
