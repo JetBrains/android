@@ -22,7 +22,7 @@ import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.google.common.collect.ImmutableList;
 import icons.AndroidDesignerIcons;
@@ -144,7 +144,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
                               @NotNull ViewHandler handler,
                               @NotNull NlComponent parent,
                               @NotNull List<NlComponent> selectedChildren) {
-      return editor.getSceneBuilder().isRenderViewPort();
+      return NlModel.isRenderViewPort();
     }
 
     @Override
@@ -153,8 +153,8 @@ public class ScrollViewHandler extends ViewGroupHandler {
                             @NotNull NlComponent parent,
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
-      LayoutlibSceneManager.setRenderViewPort(selected);
-      editor.getSceneBuilder().requestRender();
+      NlModel.setRenderViewPort(selected);
+      parent.getModel().requestRender();
     }
   }
 }

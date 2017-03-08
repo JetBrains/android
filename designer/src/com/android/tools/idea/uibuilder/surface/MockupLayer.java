@@ -50,7 +50,7 @@ public class MockupLayer extends Layer {
     if (nlModel != null && nlModel != myNlModel) {
       nlModel.addListener(new ModelListener() {
         @Override
-        public void modelDerivedDataChanged(@NotNull NlModel model) {
+        public void modelChanged(@NotNull NlModel model) {
           myMockups = Mockup.createAll(myNlModel);
         }
 
