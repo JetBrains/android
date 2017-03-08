@@ -90,9 +90,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private long myRefreshDevices;
 
-  private Long myDeviceTimeNs;
+  private long myDeviceTimeNs;
 
-  private Long myHostTimeNs;
+  private long myHostTimeNs;
 
   private boolean myConnected;
 
@@ -177,11 +177,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
       if (!newProcesses.equals(myProcesses)) {
         myProcesses = newProcesses;
-        // Attempt to choose the currently profiled device and process
-        setDevice(myDevice);
+        // Find and set preferred device
+        setDevice(findPreferredDevice());
         setProcess(null);
 
-        // These need to be fired everytime the process list changes so that the device/process dropdown always reflects the latest.
+        // These need to be fired every time the process list changes so that the device/process dropdown always reflects the latest.
         changed(ProfilerAspect.DEVICES);
         changed(ProfilerAspect.PROCESSES);
       }
@@ -220,14 +220,52 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
+   * Finds and returns the preferred devices depending on the current state of the devices connected and their processes.
+   * If the currently selected device is ONLINE and has alive processes that can be profiled, it should remain selected.
+   * Online devices (first the ones with alive processes that can profiled) have preference over disconnected/offline ones.
+   * Finally, currently selected device (in case its state has changed) has preference over others.
+   */
+  @Nullable
+  private Profiler.Device findPreferredDevice() {
+    if (myDevice != null && myDevice.getState().equals(Profiler.Device.State.ONLINE) && deviceHasAliveProcesses(myDevice)) {
+      // Current selected device is online and has alive processes that can be profiled. We don't need to change it.
+      return myDevice;
+    }
+
+    Set<Profiler.Device> devices = myProcesses.keySet();
+    Set<Profiler.Device> onlineDevices =
+      devices.stream().filter(device -> device.getState().equals(Profiler.Device.State.ONLINE)).collect(Collectors.toSet());
+    if (!onlineDevices.isEmpty()) {
+      // There are online devices. First try to find a device with alive processes that can be profiled.
+      // If cant't find one, return any online device.
+      Profiler.Device anyOnlineDevice = onlineDevices.iterator().next();
+      return onlineDevices.stream().filter(this::deviceHasAliveProcesses).findAny().orElse(anyOnlineDevice);
+    }
+
+    // In case the currently selected device state has changed, it will be represented as a new Profiler.Device object.
+    // Therefore, try to find a device with same serial as the selected one. If can't find it, return any device.
+    Profiler.Device anyDevice = devices.isEmpty() ? null : devices.iterator().next();
+    return myDevice == null ? anyDevice :
+           devices.stream().filter(device -> device.getSerial().equals(myDevice.getSerial())).findAny().orElse(anyDevice);
+  }
+
+  private boolean deviceHasAliveProcesses(@NotNull Profiler.Device device) {
+    List<Profiler.Process> deviceProcesses = myProcesses.get(device);
+    if (deviceProcesses == null) {
+      return false;
+    }
+    for (Profiler.Process process : deviceProcesses) {
+      if (process.getState().equals(Profiler.Process.State.ALIVE)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Chooses the given device. If the device is not known or null, the first available one will be chosen instead.
    */
   public void setDevice(Profiler.Device device) {
-    Set<Profiler.Device> devices = myProcesses.keySet();
-    if (!devices.contains(device)) {
-      // Device no longer exists, or is unknown. Choose a device from the available ones if there is one.
-      device = devices.isEmpty() ? null : devices.iterator().next();
-    }
     if (!Objects.equals(device, myDevice)) {
       myDevice = device;
       changed(ProfilerAspect.DEVICES);
