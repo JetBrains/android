@@ -136,6 +136,10 @@ public class IncludeTagCreator extends SimpleViewCreator {
     ModelListener listener = new ModelListener() {
 
       @Override
+      public void modelChanged(@NotNull NlModel model) {
+      }
+
+      @Override
       public void modelRendered(@NotNull NlModel model) {
         model.removeListener(this);
         if (model.getComponents().isEmpty()) {
@@ -155,6 +159,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
       }
     };
     nlModel.addListener(listener);
+    nlModel.requestRender();
     return getResourceName(newFile);
   }
 

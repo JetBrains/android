@@ -24,8 +24,6 @@ import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.utils.HtmlBuilder;
@@ -350,127 +348,122 @@ public class LintNotificationPanel implements HyperlinkListener, ActionListener 
       //noinspection UndesirableClassUsage
       BufferedImage image = new BufferedImage(iw, ih, BufferedImage.TYPE_INT_ARGB);
 
-      SceneManager builder = mySceneView.getSceneManager();
-      if (builder instanceof LayoutlibSceneManager) {
-        RenderResult renderResult = ((LayoutlibSceneManager)builder).getRenderResult();
-        if (renderResult != null && renderResult.hasImage()) {
-          // Draw the component into the preview image
-          Graphics2D g2d = (Graphics2D)image.getGraphics();
+      RenderResult renderResult = mySceneView.getModel().getRenderResult();
+      if (renderResult != null && renderResult.hasImage()) {
+        // Draw the component into the preview image
+        Graphics2D g2d = (Graphics2D)image.getGraphics();
 
-          int sx1 = component.x;
-          int sy1 = component.y;
-          int sx2 = sx1 + component.w;
-          int sy2 = sy1 + component.h;
+        int sx1 = component.x;
+        int sy1 = component.y;
+        int sx2 = sx1 + component.w;
+        int sy2 = sy1 + component.h;
 
-          int dx1 = 0;
-          int dy1 = 0;
-          int dx2 = image.getWidth();
-          int dy2 = image.getHeight();
+        int dx1 = 0;
+        int dy1 = 0;
+        int dx2 = image.getWidth();
+        int dy2 = image.getHeight();
 
-          int ex1 = 0;
-          int ey1 = 0;
-          int ew = image.getWidth();
-          int eh = image.getHeight();
+        int ex1 = 0;
+        int ey1 = 0;
+        int ew = image.getWidth();
+        int eh = image.getHeight();
 
-          if (component.isRoot()) {
-            int w = image.getWidth();
-            int h = image.getHeight();
+        if (component.isRoot()) {
+          int w = image.getWidth();
+          int h = image.getHeight();
 
-            double aspectRatio = (sx2 - sx1) / (double)(sy2 - sy1);
-            if (aspectRatio >= 1) {
-              int newH = (int)(h / aspectRatio);
-              dy1 += (h - newH) / 2;
-              h = newH;
+          double aspectRatio = (sx2 - sx1) / (double) (sy2 - sy1);
+          if (aspectRatio >= 1) {
+            int newH = (int)(h / aspectRatio);
+            dy1 += (h - newH) / 2;
+            h = newH;
 
-              if (w >= (sx2 - sx1)) {
-                // No need to scale: just buildDisplayList 1-1
-                dx1 = (w - (sx2 - sx1)) / 2;
-                w = sx2 - sx1;
-                dy1 = (h - (sy2 - sy1)) / 2;
-                h = sy2 - sy1;
-              }
+            if (w >= (sx2 - sx1)) {
+              // No need to scale: just buildDisplayList 1-1
+              dx1 = (w - (sx2 - sx1)) / 2;
+              w = sx2 - sx1;
+              dy1 = (h - (sy2 - sy1)) / 2;
+              h = sy2 - sy1;
             }
-            else {
-              int newW = (int)(w * aspectRatio);
-              dx1 += (w - newW) / 2;
-              w = newW;
+          } else {
+            int newW = (int)(w * aspectRatio);
+            dx1 += (w - newW) / 2;
+            w = newW;
 
-              if (h >= (sy2 - sy1)) {
-                // No need to scale: just buildDisplayList 1-1
-                dx1 = (w - (sx2 - sx1)) / 2;
-                w = sx2 - sx1;
-                dy1 = (h - (sy2 - sy1)) / 2;
-                h = sy2 - sy1;
-              }
+            if (h >= (sy2 - sy1)) {
+              // No need to scale: just buildDisplayList 1-1
+              dx1 = (w - (sx2 - sx1)) / 2;
+              w = sx2 - sx1;
+              dy1 = (h - (sy2 - sy1)) / 2;
+              h = sy2 - sy1;
             }
-            dx2 = dx1 + w;
-            dy2 = dy1 + h;
+          }
+          dx2 = dx1 + w;
+          dy2 = dy1 + h;
+        } else {
+          double aspectRatio = (sx2 - sx1) / (double)(sy2 - sy1);
+          if (aspectRatio >= 1) {
+            // Include enough context
+            int verticalPadding = ((sx2 - sx1) - (sy2 - sy1)) / 2;
+            sy1 -= verticalPadding;
+            sy2 += verticalPadding;
+            double scale = (sx2 - sx1) / (double)(dx2 - dx1);
+            ey1 = (int)(verticalPadding / scale);
+            eh = (int)(component.h / scale);
           }
           else {
-            double aspectRatio = (sx2 - sx1) / (double)(sy2 - sy1);
-            if (aspectRatio >= 1) {
-              // Include enough context
-              int verticalPadding = ((sx2 - sx1) - (sy2 - sy1)) / 2;
-              sy1 -= verticalPadding;
-              sy2 += verticalPadding;
-              double scale = (sx2 - sx1) / (double)(dx2 - dx1);
-              ey1 = (int)(verticalPadding / scale);
-              eh = (int)(component.h / scale);
-            }
-            else {
-              int horizontalPadding = ((sy2 - sy1) - (sx2 - sx1)) / 2;
-              sx1 -= horizontalPadding;
-              sx2 += horizontalPadding;
-              double scale = (sy2 - sy1) / (double)(dy2 - dy1);
-              ex1 = (int)(horizontalPadding / scale);
-              ew = (int)(component.w / scale);
-            }
+            int horizontalPadding = ((sy2 - sy1) - (sx2 - sx1)) / 2;
+            sx1 -= horizontalPadding;
+            sx2 += horizontalPadding;
+            double scale = (sy2 - sy1) / (double)(dy2 - dy1);
+            ex1 = (int)(horizontalPadding / scale);
+            ew = (int)(component.w / scale);
           }
-
-          // Use a gradient buildDisplayList here with alpha?
-
-          //graphics.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
-          g2d.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BICUBIC);
-          g2d.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
-          g2d.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
-          g2d.setRenderingHint(KEY_ALPHA_INTERPOLATION, VALUE_ALPHA_INTERPOLATION_QUALITY);
-          renderResult.getRenderedImage().drawImageTo(g2d, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2);
-
-          if (!component.isRoot()) {
-            Area outside = new Area(new Rectangle2D.Double(0, 0, iw, ih));
-            int padding = 10;
-            Area area = new Area(new Ellipse2D.Double(ex1 - padding, ey1 - padding, ew + 2 * padding, eh + 2 * padding));
-            outside.subtract(area);
-
-            // To get anti=aliased shape clipping (e.g. soft shape clipping) we need to use an intermediate image:
-            GraphicsConfiguration gc = g2d.getDeviceConfiguration();
-            BufferedImage img = gc.createCompatibleImage(iw, ih, Transparency.TRANSLUCENT);
-            Graphics2D g2 = img.createGraphics();
-            g2.setComposite(AlphaComposite.Clear);
-            g2.fillRect(0, 0, iw, ih);
-            g2.setComposite(AlphaComposite.Src);
-            g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
-            // This color is relative to the Android image being painted, not dark/light IDE theme
-            //noinspection UseJBColor
-            g2.setColor(Color.WHITE);
-            g2.fill(outside);
-            g2.setComposite(AlphaComposite.SrcAtop);
-            Color background = myPanel.getBackground();
-            if (background == null) {
-              background = Gray._230;
-            }
-            g2.setPaint(background);
-            g2.fillRect(0, 0, iw, ih);
-            g2.dispose();
-            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f));
-            g2d.drawImage(img, 0, 0, null);
-          }
-
-          g2d.dispose();
         }
 
-        myPreviewLabel.setIcon(new ImageIcon(image));
+        // Use a gradient buildDisplayList here with alpha?
+
+        //graphics.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BILINEAR);
+        g2d.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BICUBIC);
+        g2d.setRenderingHint(KEY_RENDERING, VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(KEY_ALPHA_INTERPOLATION, VALUE_ALPHA_INTERPOLATION_QUALITY);
+        renderResult.getRenderedImage().drawImageTo(g2d, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2);
+
+        if (!component.isRoot()) {
+          Area outside = new Area(new Rectangle2D.Double(0, 0, iw, ih));
+          int padding = 10;
+          Area area = new Area(new Ellipse2D.Double(ex1 - padding, ey1 - padding, ew + 2 * padding, eh + 2 * padding));
+          outside.subtract(area);
+
+          // To get anti=aliased shape clipping (e.g. soft shape clipping) we need to use an intermediate image:
+          GraphicsConfiguration gc = g2d.getDeviceConfiguration();
+          BufferedImage img = gc.createCompatibleImage(iw, ih, Transparency.TRANSLUCENT);
+          Graphics2D g2 = img.createGraphics();
+          g2.setComposite(AlphaComposite.Clear);
+          g2.fillRect(0, 0, iw, ih);
+          g2.setComposite(AlphaComposite.Src);
+          g2.setRenderingHint(KEY_ANTIALIASING, VALUE_ANTIALIAS_ON);
+          // This color is relative to the Android image being painted, not dark/light IDE theme
+          //noinspection UseJBColor
+          g2.setColor(Color.WHITE);
+          g2.fill(outside);
+          g2.setComposite(AlphaComposite.SrcAtop);
+          Color background = myPanel.getBackground();
+          if (background == null) {
+            background = Gray._230;
+          }
+          g2.setPaint(background);
+          g2.fillRect(0, 0, iw, ih);
+          g2.dispose();
+          g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f));
+          g2d.drawImage(img, 0, 0, null);
+        }
+
+        g2d.dispose();
       }
+
+      myPreviewLabel.setIcon(new ImageIcon(image));
     } else {
       myPreviewLabel.setIcon(null);
     }
