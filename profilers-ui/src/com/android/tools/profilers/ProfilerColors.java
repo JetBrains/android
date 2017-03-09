@@ -91,17 +91,17 @@ public class ProfilerColors {
 
   public static final Color MEMORY_TOTAL = new JBColor(new Color(98, 180, 223), new Color(83, 172, 209));
 
-  public static final Color MEMORY_JAVA = new JBColor(new Color(98, 180, 223), new Color(83, 172, 209));
+  public static final Color MEMORY_JAVA = new JBColor(new Color(69, 165, 207), new Color(60, 158, 201));
 
-  public static final Color MEMORY_NATIVE = new JBColor(new Color(73, 170, 208), new Color(47, 140, 177));
+  public static final Color MEMORY_NATIVE = new JBColor(new Color(71, 142, 178), new Color(48, 126, 163));
 
-  public static final Color MEMORY_CODE = new JBColor(new Color(127, 212, 144), new Color(97, 191, 114));
+  public static final Color MEMORY_CODE = new JBColor(new Color(107, 207, 191), new Color(103, 208, 165));
 
-  public static final Color MEMORY_STACK = MEMORY_CODE; // TODO awaiting final color choice
+  public static final Color MEMORY_STACK = new JBColor(new Color(63, 177, 160), new Color(71, 169, 129));
 
-  public static final Color MEMORY_GRAPHICS = new JBColor(new Color(251, 207, 140), new Color(232, 187, 105));
+  public static final Color MEMORY_GRAPHICS = new JBColor(new Color(226, 191, 138), new Color(203, 167, 109));
 
-  public static final Color MEMORY_OTHERS = new JBColor(new Color(103, 144, 178), new Color(59, 85, 97));
+  public static final Color MEMORY_OTHERS = new JBColor(new Color(68, 107, 127), new Color(99, 122, 133));
 
-  public static final Color MEMORY_OBJECTS = new JBColor(new Color(89, 121, 138), new Color(65, 85, 93));
+  public static final Color MEMORY_OBJECTS = new JBColor(new Color(84, 110, 121), new Color(159, 190, 213));
 }
