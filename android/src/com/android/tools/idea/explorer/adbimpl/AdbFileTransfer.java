@@ -49,7 +49,15 @@ public class AdbFileTransfer {
   public ListenableFuture<Void> downloadFile(@NotNull AdbFileListingEntry remoteFileEntry,
                                              @NotNull Path localPath,
                                              @NotNull FileTransferProgress progress) {
-    return downloadFileWorker(remoteFileEntry, localPath, progress);
+    return downloadFileWorker(remoteFileEntry.getFullPath(), remoteFileEntry.getSize(), localPath, progress);
+  }
+
+  @NotNull
+  public ListenableFuture<Void> downloadFile(@NotNull String remotePath,
+                                             long remotePathSize,
+                                             @NotNull Path localPath,
+                                             @NotNull FileTransferProgress progress) {
+    return downloadFileWorker(remotePath, remotePathSize, localPath, progress);
   }
 
   @NotNull
@@ -60,7 +68,8 @@ public class AdbFileTransfer {
   }
 
   @NotNull
-  private ListenableFuture<Void> downloadFileWorker(@NotNull AdbFileListingEntry remoteFileEntry,
+  private ListenableFuture<Void> downloadFileWorker(@NotNull String remotePath,
+                                                    long remotePathSize,
                                                     @NotNull Path localPath,
                                                     @NotNull FileTransferProgress progress) {
 
@@ -69,8 +78,8 @@ public class AdbFileTransfer {
     ListenableFuture<Void> futurePull = myTaskExecutor.transform(futureSyncService, syncService -> {
       assert syncService != null;
       try {
-        long size = remoteFileEntry.getSize();
-        syncService.pullFile(remoteFileEntry.getFullPath(),
+        long size = remotePathSize;
+        syncService.pullFile(remotePath,
                              localPath.toString(),
                              new SingleFileProgressMonitor(myProgressExecutor, progress, size));
         return null;
@@ -86,7 +95,7 @@ public class AdbFileTransfer {
         // Simply forward cancellation as the cancelled exception
         return Futures.immediateCancelledFuture();
       }
-      LOGGER.info(String.format("Error pulling file \"%s\" from \"%s\"", localPath, remoteFileEntry.getFullPath()), syncError);
+      LOGGER.info(String.format("Error pulling file \"%s\" from \"%s\"", localPath, remotePath), syncError);
       return Futures.immediateFailedFuture(syncError);
     });
   }

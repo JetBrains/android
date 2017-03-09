@@ -24,6 +24,7 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
 
@@ -37,7 +38,9 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
     Executor edtExecutor = EdtExecutor.INSTANCE;
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
 
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(project, edtExecutor, taskExecutor);
+    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(aVoid -> AndroidSdkUtils.getAdb(project),
+                                                                        edtExecutor,
+                                                                        taskExecutor);
     DeviceFileSystemRenderer renderer = new AdbDeviceFileSystemRenderer(service);
     DeviceExplorerFileManager fileManager = new DeviceExplorerFileManagerImpl(project, edtExecutor);
 

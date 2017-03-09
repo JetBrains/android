@@ -30,7 +30,11 @@ import java.util.stream.Collectors;
  * or {@link java.io.File} class to manipulate them, as these classes are platform dependent.
  */
 public class AdbPathUtil {
+  @NotNull
   public static final String FILE_SEPARATOR = FileListingService.FILE_SEPARATOR;
+
+  @NotNull
+  public static final String DEVICE_TEMP_DIRECTORY = "/data/local/tmp";
 
   /**
    * Returns the file name part of a path, i.e. the last segment.

@@ -68,6 +68,7 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
     return myFileOperations;
   }
 
+  @NotNull
   public AdbFileTransfer getAdbFileTransfer() {
     return myFileTransfer;
   }
@@ -131,7 +132,7 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
           return;
         }
 
-        String[] pathSegments = path.split(FileListingService.FILE_SEPARATOR);
+        String[] pathSegments = path.substring(1).split(FileListingService.FILE_SEPARATOR);
         resolvePathSegments(resultFuture, result, pathSegments, 0);
       }
 
@@ -150,11 +151,6 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
                                    int segmentIndex) {
     if (segmentIndex >= segments.length) {
       future.set(currentEntry);
-      return;
-    }
-
-    if (!currentEntry.isDirectory()) {
-      future.setException(new IllegalArgumentException("Segment is not a directory"));
       return;
     }
 
@@ -187,7 +183,7 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   public ListenableFuture<AdbDeviceFileEntry> resolveMountPoint(@NotNull AdbDeviceFileEntry entry) {
     return getTaskExecutor().executeAsync(() -> {
       // Root devices or "su 0" devices don't need mount points
-      if (myDeviceCapabilities.supportsSuRootCommand() || myDevice.isRoot()) {
+      if (myDeviceCapabilities.supportsSuRootCommand() || myDeviceCapabilities.isRoot()) {
         return createDirectFileEntry(entry);
       }
 
