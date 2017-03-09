@@ -76,14 +76,23 @@ public final class TooltipComponent extends AnimatedComponent {
     MouseAdapter adapter = new MouseAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
-        myLastPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), TooltipComponent.this);
-        viewRangeChanged();
-        opaqueRepaint();
+        handleMove(e);
       }
 
       @Override
       public void mouseExited(MouseEvent e) {
         myLastPoint = null;
+        opaqueRepaint();
+      }
+
+      @Override
+      public void mouseDragged(MouseEvent e) {
+        handleMove(e);
+      }
+
+      private void handleMove(MouseEvent e) {
+        myLastPoint = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), TooltipComponent.this);
+        viewRangeChanged();
         opaqueRepaint();
       }
     };
