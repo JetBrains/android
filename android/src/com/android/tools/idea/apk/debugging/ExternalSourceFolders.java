@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.apk.debugging;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.util.projectWizard.importSources.JavaModuleSourceRoot;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
@@ -47,7 +46,9 @@ public class ExternalSourceFolders {
     myModuleModel = moduleModel;
   }
 
-  public void addSourceFolders(@NotNull VirtualFile[] files, @Nullable Runnable runOnFinish) {
+  @NotNull
+  public List<VirtualFile> addSourceFolders(@NotNull VirtualFile[] files, @Nullable Runnable runOnFinish) {
+    List<VirtualFile> roots = new ArrayList<>();
     List<ContentEntry> contentEntries = new ArrayList<>();
     for (VirtualFile file : files) {
       if (isAlreadyAdded(file)) {
@@ -59,6 +60,14 @@ public class ExternalSourceFolders {
     if (!contentEntries.isEmpty()) {
       addSourceRoots(contentEntries, runOnFinish);
     }
+
+    for (ContentEntry contentEntry : contentEntries) {
+      VirtualFile file = contentEntry.getFile();
+      if (file != null) {
+        roots.add(file);
+      }
+    }
+    return roots;
   }
 
   private boolean isAlreadyAdded(@NotNull VirtualFile file) {

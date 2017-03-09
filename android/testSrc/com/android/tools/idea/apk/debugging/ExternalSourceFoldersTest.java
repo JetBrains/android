@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
@@ -67,10 +68,12 @@ public class ExternalSourceFoldersTest extends AndroidGradleTestCase {
     myModuleModel = rootManager.getModifiableModel();
     ExternalSourceFolders externalSourceFolders = new ExternalSourceFolders(myModuleModel);
     VirtualFile javaSourceFolder = findJavaSourceFolder(appModulePath);
-    externalSourceFolders.addSourceFolders(new VirtualFile[] {javaSourceFolder}, () -> {
+    List<VirtualFile> files = externalSourceFolders.addSourceFolders(new VirtualFile[]{javaSourceFolder}, () -> {
       ApplicationManager.getApplication().runWriteAction(myModuleModel::commit);
       myModuleModel = null;
     });
+
+    assertThat(files).containsExactly(javaSourceFolder);
 
     ContentEntry[] contentEntries = rootManager.getContentEntries();
     // Content entry should have been added.
