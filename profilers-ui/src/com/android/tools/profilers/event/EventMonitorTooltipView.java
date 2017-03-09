@@ -15,16 +15,16 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.profilers.MonitorTooltipView;
+import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.StudioMonitorStageView;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class EventMonitorTooltipView extends MonitorTooltipView<EventMonitor> {
+public class EventMonitorTooltipView extends ProfilerTooltipView {
 
   public EventMonitorTooltipView(StudioMonitorStageView parent, EventMonitor monitor) {
-    super(monitor);
+    super(monitor.getTimeline(), monitor.getName());
   }
 
   @Override
