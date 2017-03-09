@@ -929,6 +929,22 @@ public class LintIdeProject extends Project {
 
     @Nullable
     @Override
+    public String getBuildTargetHash() {
+      AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
+      if (androidModel != null) {
+        return androidModel.getAndroidProject().getCompileTarget();
+      }
+
+      AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
+      if (platform != null) {
+        return AndroidTargetHash.getPlatformHashString(platform.getApiVersion());
+      }
+
+      return super.getBuildTargetHash();
+    }
+
+    @Nullable
+    @Override
     public AndroidProject getGradleProjectModel() {
       // TODO: b/22928250
       AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
