@@ -17,16 +17,12 @@ package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
-import com.android.ddmlib.SyncService;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.Charset;
 import java.util.Map;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 public class TestShellCommands {
   @NotNull private static final Logger LOGGER = Logger.getInstance(TestShellCommands.class);
@@ -51,26 +47,10 @@ public class TestShellCommands {
   }
 
   public IDevice createMockDevice() throws Exception {
-    SyncService syncService = mock(SyncService.class);
-
-    IDevice device = mock(IDevice.class);
-
-    doReturn(IDevice.DeviceState.ONLINE).when(device).getState();
-    doReturn(myDescription).when(device).getName();
-    doReturn("1234").when(device).getSerialNumber();
-    doReturn(syncService).when(device).getSyncService();
-
-    doAnswer(invocation -> {
-      String command = invocation.getArgument(0);
-      IShellOutputReceiver receiver = invocation.getArgument(1);
-      executeShellCommand(command, receiver);
-      return null;
-    }).when(device).executeShellCommand(any(), any());
-
-    return device;
+    return new MockDdmlibDevice().setName(myDescription).setShellCommands(this).getIDevice();
   }
 
-  private void executeShellCommand(String command, IShellOutputReceiver receiver) throws Exception {
+  public void executeShellCommand(String command, IShellOutputReceiver receiver) throws Exception {
     TestShellCommandResult commandResult = this.get(command);
     if (commandResult == null) {
       UnsupportedOperationException error = new UnsupportedOperationException(

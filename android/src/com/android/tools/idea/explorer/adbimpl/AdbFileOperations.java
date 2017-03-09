@@ -18,13 +18,13 @@ package com.android.tools.idea.explorer.adbimpl;
 import com.android.ddmlib.*;
 import com.android.tools.idea.explorer.FutureCallbackExecutor;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
@@ -46,53 +46,33 @@ public class AdbFileOperations {
 
   @NotNull
   public ListenableFuture<Void> createNewFileRunAs(@NotNull String parentPath, @NotNull String fileName, @Nullable String runAs) {
-    SettableFuture<Void> futureResult = SettableFuture.create();
-
-    if (fileName.contains(AdbPathUtil.FILE_SEPARATOR)) {
-      futureResult.setException(AdbShellCommandException.create("File name \"%s\" contains invalid characters", fileName));
-      return futureResult;
-    }
-
-    myExecutor.execute(() -> {
-      try {
-        String remotePath = AdbPathUtil.resolve(parentPath, fileName);
-
-        // Check remote file does not exists, so that we can give a relevant error message.
-        // The check + create below is not an atomic operation, but this service does not
-        // aim to guarantee strong atomicity for file system operations.
-        String command;
-        if (myDeviceCapabilities.supportsTestCommand()) {
-          command = getCommand(runAs, "test -e ").withEscapedPath(remotePath).build();
-        }
-        else {
-          command = getCommand(runAs, "ls -d -a ").withEscapedPath(remotePath).build();
-        }
-        AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
-        if (!commandResult.isError()) {
-          futureResult.setException(AdbShellCommandException.create("File \"%s\" already exists on device", remotePath));
-          return;
-        }
-
-        if (myDeviceCapabilities.supportsTouchCommand()) {
-          // Touch creates an empty file if the file does not exist.
-          // Touch fails if there are permissions errors.
-          command = getCommand(runAs, "touch ").withEscapedPath(remotePath).build();
-        }
-        else {
-          command = getCommand(runAs, "cat </dev/null >").withEscapedPath(remotePath).build();
-        }
-        commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
-        commandResult.throwIfError();
-
-        // All done
-        futureResult.set(null);
+    return myExecutor.executeAsync(() -> {
+      if (fileName.contains(AdbPathUtil.FILE_SEPARATOR)) {
+        throw AdbShellCommandException.create("File name \"%s\" contains invalid characters", fileName);
       }
-      catch (Throwable t) {
-        futureResult.setException(t);
+
+      String remotePath = AdbPathUtil.resolve(parentPath, fileName);
+
+      // Check remote file does not exists, so that we can give a relevant error message.
+      // The check + create below is not an atomic operation, but this service does not
+      // aim to guarantee strong atomicity for file system operations.
+      String command;
+      if (myDeviceCapabilities.supportsTestCommand()) {
+        command = getCommand(runAs, "test -e ").withEscapedPath(remotePath).build();
       }
+      else {
+        command = getCommand(runAs, "ls -d -a ").withEscapedPath(remotePath).build();
+      }
+      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      if (!commandResult.isError()) {
+        throw AdbShellCommandException.create("File \"%s\" already exists on device", remotePath);
+      }
+
+      touchFileRunAs(remotePath, runAs);
+
+      // All done
+      return null;
     });
-
-    return futureResult;
   }
 
   @NotNull
@@ -102,30 +82,20 @@ public class AdbFileOperations {
 
   @NotNull
   public ListenableFuture<Void> createNewDirectoryRunAs(@NotNull String parentPath, @NotNull String directoryName, @Nullable String runAs) {
-    SettableFuture<Void> futureResult = SettableFuture.create();
-
-    if (directoryName.contains(AdbPathUtil.FILE_SEPARATOR)) {
-      futureResult.setException(AdbShellCommandException.create("Directory name \"%s\" contains invalid characters", directoryName));
-      return futureResult;
-    }
-
-    myExecutor.execute(() -> {
-      try {
-        // "mkdir" fails if the file/directory already exists
-        String remotePath = AdbPathUtil.resolve(parentPath, directoryName);
-        String command = getCommand(runAs, "mkdir ").withEscapedPath(remotePath).build();
-        AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
-        commandResult.throwIfError();
-
-        // All done
-        futureResult.set(null);
+    return myExecutor.executeAsync(() -> {
+      if (directoryName.contains(AdbPathUtil.FILE_SEPARATOR)) {
+        throw AdbShellCommandException.create("Directory name \"%s\" contains invalid characters", directoryName);
       }
-      catch (Throwable t) {
-        futureResult.setException(t);
-      }
+
+      // "mkdir" fails if the file/directory already exists
+      String remotePath = AdbPathUtil.resolve(parentPath, directoryName);
+      String command = getCommand(runAs, "mkdir ").withEscapedPath(remotePath).build();
+      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      commandResult.throwIfError();
+
+      // All done
+      return null;
     });
-
-    return futureResult;
   }
 
   public ListenableFuture<List<String>> listPackages() {
@@ -158,23 +128,14 @@ public class AdbFileOperations {
 
   @NotNull
   public ListenableFuture<Void> deleteFileRunAs(@NotNull String path, @Nullable String runAs) {
-    SettableFuture<Void> futureResult = SettableFuture.create();
+    return myExecutor.executeAsync(() -> {
+      String command = getRmCommand(runAs, path, false);
+      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      commandResult.throwIfError();
 
-    myExecutor.execute(() -> {
-      try {
-        String command = getRmCommand(runAs, path, false);
-        AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
-        commandResult.throwIfError();
-
-        // All done
-        futureResult.set(null);
-      }
-      catch (Throwable t) {
-        futureResult.setException(t);
-      }
+      // All done
+      return null;
     });
-
-    return futureResult;
   }
 
   @NotNull
@@ -184,23 +145,74 @@ public class AdbFileOperations {
 
   @NotNull
   public ListenableFuture<Void> deleteRecursiveRunAs(@NotNull String path, @Nullable String runAs) {
-    SettableFuture<Void> futureResult = SettableFuture.create();
+    return myExecutor.executeAsync(() -> {
+      String command = getRmCommand(runAs, path, true);
+      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      commandResult.throwIfError();
 
-    myExecutor.execute(() -> {
-      try {
-        String command = getRmCommand(runAs, path, true);
-        AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
-        commandResult.throwIfError();
-
-        // All done
-        futureResult.set(null);
-      }
-      catch (Throwable t) {
-        futureResult.setException(t);
-      }
+      // All done
+      return null;
     });
+  }
 
-    return futureResult;
+  @NotNull
+  public ListenableFuture<Void> copyFile(@NotNull String source, @NotNull String destination) {
+    return copyFileRunAs(source, destination, null);
+  }
+
+  @NotNull
+  public ListenableFuture<Void> copyFileRunAs(@NotNull String source, @NotNull String destination, @Nullable String runAs) {
+    return myExecutor.executeAsync(() -> {
+      String command;
+      if (myDeviceCapabilities.supportsCpCommand()) {
+        command = getCommand(runAs, "cp ").withEscapedPath(source).withText(" ").withEscapedPath(destination).build();
+      }
+      else {
+        command = getCommand(runAs, "cat ").withEscapedPath(source).withText(" >").withEscapedPath(destination).build();
+      }
+      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      commandResult.throwIfError();
+      return null;
+    });
+  }
+
+  @NotNull
+  public ListenableFuture<String> createTempFile(@NotNull String tempPath) {
+    return createTempFileRunAs(tempPath, null);
+  }
+
+  @SuppressWarnings("SameParameterValue")
+  @NotNull
+  public ListenableFuture<String> createTempFileRunAs(@NotNull String tempDirectoy, @Nullable String runAs) {
+    return myExecutor.executeAsync(() -> {
+      // Note: Instead of using "mktemp", we use our own unique filename generation + a call to "touch"
+      //       for 2 reasons:
+      //       * mktemp is not available on all API levels
+      //       * mktemp creates a file with 600 permission, meaning the file is not
+      //         accessible by processes running as "run-as"
+      //
+      // Note: UUID.randomUUID() uses SecureRandom with 128 bits entropy, which
+      //       is more than good enough for our requirements.
+      String tempFileName = String.format("tmp.%s", UUID.randomUUID().toString());
+      String remotePath = AdbPathUtil.resolve(tempDirectoy, tempFileName);
+      touchFileRunAs(remotePath, runAs);
+      return remotePath;
+    });
+  }
+
+  private void touchFileRunAs(String remotePath, @Nullable String runAs)
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, AdbShellCommandException {
+    String command;
+    if (myDeviceCapabilities.supportsTouchCommand()) {
+      // Touch creates an empty file if the file does not exist.
+      // Touch fails if there are permissions errors.
+      command = getCommand(runAs, "touch ").withEscapedPath(remotePath).build();
+    }
+    else {
+      command = getCommand(runAs, "echo -n >").withEscapedPath(remotePath).build();
+    }
+    AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+    commandResult.throwIfError();
   }
 
   @NotNull

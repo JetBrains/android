@@ -104,12 +104,13 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
   @NotNull
   public ListenableFuture<Void> uploadFile(@NotNull Path localFilePath,
                                            @NotNull DeviceFileEntry remoteDirectory,
+                                           @NotNull String fileName,
                                            @NotNull FileTransferProgress progress) {
     if (myUploadError != null) {
       return FutureUtils.delayedError(myUploadError, MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS);
     }
 
-    return new UploadWorker((MockDeviceFileEntry)remoteDirectory, localFilePath, progress).myFutureResult;
+    return new UploadWorker((MockDeviceFileEntry)remoteDirectory, fileName, localFilePath, progress).myFutureResult;
   }
 
   public void setDownloadFileChunkSize(long size) {
@@ -248,6 +249,7 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
 
   public class UploadWorker implements Disposable {
     @NotNull private final MockDeviceFileEntry myEntry;
+    @NotNull private final String myFileName;
     @NotNull private final Path myPath;
     @NotNull private final FileTransferProgress myProgress;
     @NotNull private final SettableFuture<Void> myFutureResult;
@@ -256,8 +258,9 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
     private long myFileLength;
     private MockDeviceFileEntry myCreatedEntry;
 
-    public UploadWorker(@NotNull MockDeviceFileEntry entry, @NotNull Path path, @NotNull FileTransferProgress progress) {
+    public UploadWorker(@NotNull MockDeviceFileEntry entry, @NotNull String fileName, @NotNull Path path, @NotNull FileTransferProgress progress) {
       myEntry = entry;
+      myFileName = fileName;
       myPath = path;
       myProgress = progress;
       myFutureResult = SettableFuture.create();
@@ -277,7 +280,7 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
       if (myCreatedEntry == null) {
         try {
           myFileLength = Files.size(myPath);
-          myCreatedEntry = myEntry.addFile(myPath.getFileName().toString());
+          myCreatedEntry = myEntry.addFile(myFileName);
         }
         catch (AdbShellCommandException | IOException e) {
           doneWithError(e);
