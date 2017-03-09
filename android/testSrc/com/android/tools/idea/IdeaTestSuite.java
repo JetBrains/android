@@ -35,7 +35,6 @@ import java.nio.file.Paths;
 @JarTestSuiteRunner.ExcludeClasses({
   com.android.tools.idea.IdeaTestSuite.class,  // a suite mustn't contain itself
   com.android.tools.idea.rendering.RenderSecurityManagerTest.class,  // calls System.setSecurityManager
-  com.android.tools.idea.templates.TemplateTest.class, // we typically set DISABLE_STUDIO_TEMPLATE_TESTS because it's so slow
   com.android.tools.idea.testing.TestProjectPathsGeneratorTest.class, // This is for a standalone, test-only application
   // The following classes had failures when run in Bazel.
   com.android.tools.idea.gradle.eclipse.GradleImportTest.class,
