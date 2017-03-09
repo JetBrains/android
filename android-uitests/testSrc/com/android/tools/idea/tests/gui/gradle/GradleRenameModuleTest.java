@@ -37,7 +37,6 @@ import static com.google.common.truth.Truth.assertThat;
 public class GradleRenameModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final ScreenshotsDuringTest movieRule = new ScreenshotsDuringTest();
 
   @Before
   public void skipSourceGenerationOnSync() {
