@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import android.view.View;
+import android.view.ViewGroup;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
@@ -30,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.Function;
 
 import static com.android.SdkConstants.*;
 
@@ -70,7 +74,6 @@ public class ScrollViewHandler extends ViewGroupHandler {
     return true;
   }
 
-
   @Nullable
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
@@ -83,20 +86,56 @@ public class ScrollViewHandler extends ViewGroupHandler {
   @Nullable
   @Override
   public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
-    int maxScrollableHeight = 0;
-    for (NlComponent child : component.getChildren()) {
-      maxScrollableHeight += child.h;
+    ViewGroup viewGroup =  getViewGroupFromComponent(component);
+    if (viewGroup == null) {
+      return null;
     }
 
-    // Subtract the viewport height from the scrollable size
-    maxScrollableHeight -= component.h;
+    int maxScrollableHeight = getMaxScrollable(viewGroup, ViewGroup::getHeight, View::getMeasuredHeight);
 
     if (maxScrollableHeight > 0) {
       // There is something to scroll
-      return ScrollViewScrollHandler.createHandler(component, maxScrollableHeight, 10, ScrollViewScrollHandler.Orientation.VERTICAL);
+      return ScrollViewScrollHandler.createHandler(viewGroup, maxScrollableHeight, 10, ScrollViewScrollHandler.Orientation.VERTICAL);
     }
 
     return null;
+  }
+
+  /**
+   * Returns the {@link ViewGroup} linked from the passed {@link NlComponent} or null if the {@link View} is not a {@link ViewGroup}.
+   */
+  @Nullable
+  static ViewGroup getViewGroupFromComponent(@NotNull NlComponent component) {
+    ViewInfo viewInfo = component.viewInfo;
+    Object viewObject = viewInfo != null ? viewInfo.getViewObject() : null;
+
+    if (viewObject != null && viewObject instanceof ViewGroup) {
+      return (ViewGroup)viewObject;
+    }
+    return null;
+  }
+
+  /**
+   * Returns the maximum distance that the passed view group could scroll
+   * @param measureGroup {@link Function} used to measure the passed viewGroup (for example {@link ViewGroup#getHeight()})
+   * @param measureChildren {@link Function} used to measure the children of the viewGroup (for example {@link View#getMeasuredHeight()})
+   */
+  static int getMaxScrollable(@NotNull ViewGroup viewGroup,
+                              @NotNull Function<ViewGroup, Integer> measureGroup,
+                              @NotNull Function<View, Integer> measureChildren) {
+    int maxScrollable = 0;
+    for (int i = 0; i < viewGroup.getChildCount(); i++) {
+      maxScrollable += measureChildren.apply(viewGroup.getChildAt(i));
+    }
+
+    // Subtract the viewport height from the scrollable size
+    maxScrollable -= measureGroup.apply(viewGroup);
+
+    if (maxScrollable < 0) {
+      maxScrollable = 0;
+    }
+
+    return maxScrollable;
   }
 
   static class OneChildDragHandler extends DragHandler {

@@ -48,10 +48,10 @@ public final class ScrollViewScrollHandler implements ScrollHandler {
   }
 
   @NotNull
-  private static ScrollViewScrollHandler createHandler(@NotNull View view,
-                                                       int maxScrollableSize,
-                                                       int scrollUnitSize,
-                                                       @NotNull Orientation orientation) {
+  public static ScrollViewScrollHandler createHandler(@NotNull View view,
+                                                      int maxScrollableSize,
+                                                      int scrollUnitSize,
+                                                      @NotNull Orientation orientation) {
     return new ScrollViewScrollHandler(
       maxScrollableSize,
       scrollUnitSize,
@@ -59,18 +59,6 @@ public final class ScrollViewScrollHandler implements ScrollHandler {
       orientation == Orientation.VERTICAL ? view::getScrollY : view::getScrollX,
       () -> handleScrolling(view)
     );
-  }
-
-  @NotNull
-  public static ScrollViewScrollHandler createHandler(@NonNull NlComponent component,
-                                                      int maxScrollableSize,
-                                                      int scrollUnitSize,
-                                                      @NotNull Orientation orientation) {
-    ViewInfo info = component.viewInfo;
-    assert info != null;
-    View view = (View)info.getViewObject();
-    assert view != null;
-    return createHandler(view, maxScrollableSize, scrollUnitSize, orientation);
   }
 
   /**

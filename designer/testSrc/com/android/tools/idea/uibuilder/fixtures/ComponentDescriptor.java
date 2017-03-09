@@ -36,6 +36,10 @@ import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ComponentDescriptor {
   @NotNull private static final Splitter SPLITTER = Splitter.on(":").omitEmptyStrings().trimResults().limit(2);
@@ -50,9 +54,47 @@ public class ComponentDescriptor {
   @Nullable private Object myViewObject;
   @Nullable private Object myLayoutParamsObject;
   private ViewType myViewType;
+  private boolean myUseMockView;
 
   public ComponentDescriptor(@NotNull String tagName) {
     myTagName = tagName;
+  }
+
+  /**
+   * Creates a mock {@link android.view.View} object that matches the current component settings (i.e. bounds and children list).
+   */
+  @NotNull
+  private android.view.View createMockView() {
+    android.view.View view;
+    if (myChildren.length > 0) {
+      android.view.ViewGroup viewGroup = mock(android.view.ViewGroup.class);
+      when(viewGroup.getChildCount()).thenReturn(myChildren.length);
+      doAnswer(invocation -> {
+        Integer i = invocation.getArgument(0);
+        return myChildren[i].myViewObject;
+      }).when(viewGroup).getChildAt(anyInt());
+      view = viewGroup;
+    }
+    else {
+      view = mock(android.view.View.class);
+    }
+    when(view.getX()).thenReturn((float)myX);
+    when(view.getY()).thenReturn((float)myY);
+    when(view.getWidth()).thenReturn(myWidth);
+    when(view.getHeight()).thenReturn(myHeight);
+    when(view.getMeasuredWidth()).thenReturn(myWidth);
+    when(view.getMeasuredHeight()).thenReturn(myHeight);
+
+    return view;
+  }
+
+  @NotNull
+  public ComponentDescriptor withMockView() {
+    assert myViewObject == null : "You already set a view object";
+
+    myUseMockView = true;
+
+    return this;
   }
 
   public ComponentDescriptor withBounds(@AndroidCoordinate int x,
@@ -149,6 +191,8 @@ public class ComponentDescriptor {
   }
 
   public ComponentDescriptor viewObject(@Nullable Object viewObject) {
+    assert !myUseMockView : "You can not set a view object if you already called withMockView()";
+
     myViewObject = viewObject;
     return this;
   }
@@ -343,6 +387,10 @@ public class ComponentDescriptor {
 
   @NotNull
   public ViewInfo createViewInfo(@Nullable ComponentDescriptor parent, @NotNull XmlTag tag) {
+    if (myViewObject == null && myUseMockView) {
+      myViewObject = createMockView();
+    }
+
     int left = myX;
     int top = myY;
     if (parent != null) {

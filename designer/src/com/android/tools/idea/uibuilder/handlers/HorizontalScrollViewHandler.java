@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import android.view.View;
+import android.view.ViewGroup;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.google.common.collect.ImmutableList;
@@ -70,17 +72,16 @@ public class HorizontalScrollViewHandler extends ScrollViewHandler {
   @Nullable
   @Override
   public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
-    int maxScrollableWidth = 0;
-    for (NlComponent child : component.getChildren()) {
-      maxScrollableWidth += child.w;
+    ViewGroup viewGroup =  getViewGroupFromComponent(component);
+    if (viewGroup == null) {
+      return null;
     }
 
-    // Subtract the viewport height from the scrollable size
-    maxScrollableWidth -= component.w;
+    int maxScrollableWidth = getMaxScrollable(viewGroup, ViewGroup::getWidth, View::getMeasuredWidth);
 
     if (maxScrollableWidth > 0) {
       // There is something to scroll
-      return ScrollViewScrollHandler.createHandler(component, maxScrollableWidth, 10, ScrollViewScrollHandler.Orientation.HORIZONTAL);
+      return ScrollViewScrollHandler.createHandler(viewGroup, maxScrollableWidth, 10, ScrollViewScrollHandler.Orientation.HORIZONTAL);
     }
 
     return null;
