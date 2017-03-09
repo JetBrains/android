@@ -31,7 +31,6 @@ import static com.google.common.truth.Truth.assertThat;
 public class ConstraintLayoutTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final ScreenshotsDuringTest screenshotRule = new ScreenshotsDuringTest();
 
   /**
    * Verifies the UI for adding side constraints for a ConstraintLayout in the layout editor.
