@@ -18,8 +18,6 @@ package com.android.tools.idea.explorer.fs;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.file.Path;
-
 /**
  * Abstraction over the file system of a single device.
  */
@@ -50,20 +48,4 @@ public interface DeviceFileSystem {
    */
   @NotNull
   ListenableFuture<DeviceFileEntry> getEntry(@NotNull String path);
-
-  /**
-   * Downloads the contents of the {@link DeviceFileEntry} to a local file.
-   */
-  @NotNull
-  ListenableFuture<Void> downloadFile(@NotNull DeviceFileEntry entry,
-                                      @NotNull Path localPath,
-                                      @NotNull FileTransferProgress progress);
-
-  /**
-   * Uploads the contents of a local file to a remote {@link DeviceFileEntry} directory.
-   */
-  @NotNull
-  ListenableFuture<Void> uploadFile(@NotNull Path localFilePath,
-                                    @NotNull DeviceFileEntry remoteDirectory,
-                                    @NotNull FileTransferProgress progress);
 }

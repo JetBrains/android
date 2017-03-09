@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -83,6 +84,20 @@ public interface DeviceFileEntry {
    */
   @NotNull
   ListenableFuture<Boolean> isSymbolicLinkToDirectory();
+
+  /**
+   * Downloads the contents of the {@link DeviceFileEntry} to a local file.
+   */
+  @NotNull
+  ListenableFuture<Void> downloadFile(@NotNull Path localPath,
+                                      @NotNull FileTransferProgress progress);
+
+  /**
+   * Uploads the contents of a local file to a remote {@link DeviceFileEntry} directory.
+   */
+  @NotNull
+  ListenableFuture<Void> uploadFile(@NotNull Path localPath,
+                                    @NotNull FileTransferProgress progress);
 
   /**
    * The permissions associated to this entry, similar to unix permissions.
