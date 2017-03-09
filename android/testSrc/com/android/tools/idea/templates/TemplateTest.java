@@ -583,8 +583,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   // preferences in the platform
   public void ignored_testTemplateFormatting() throws Exception {
     Template template = Template.createFromPath(new File(getTestDataPath(), FileUtil.join("templates", "TestTemplate")).getCanonicalFile());
-    RenderingContext context = RenderingContext.Builder.newContext(template, myFixture.getProject())
-      .withOutputRoot(new File(myFixture.getTempDirPath())).withModuleRoot(new File("dummy")).build();
+    RenderingContext context = createRenderingContext(template,
+                                                      myFixture.getProject(),
+                                                      new File(myFixture.getTempDirPath()),
+                                                      new File("dummy"),
+                                                      null);
     template.render(context);
     FileDocumentManager.getInstance().saveAllDocuments();
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
@@ -669,7 +672,6 @@ public class TemplateTest extends AndroidGradleTestCase {
    *                          only be done for activities), or whether it should be added as as a separate template
    *                          into an existing project (which is created first, followed by the template)
    * @param customizer        An instance of {@link ProjectStateCustomizer} used for providing template and project overrides.
-   *
    * @throws Exception
    */
   private void checkCreateTemplate(String category, String name, boolean createWithProject,
@@ -1072,8 +1074,7 @@ public class TemplateTest extends AndroidGradleTestCase {
           templateValues.put(ATTR_MODULE_NAME, moduleRoot.getName());
           templateValues.put(ATTR_SOURCE_PROVIDER_NAME, "main");
           templateValues.populateDirectoryParameters();
-          RenderingContext context = RenderingContext.Builder.newContext(template, project).withOutputRoot(moduleRoot)
-            .withModuleRoot(moduleRoot).withParams(templateValues.getParameters()).build();
+          RenderingContext context = createRenderingContext(template, project, moduleRoot, moduleRoot, templateValues.getParameters());
           template.render(context);
           // Add in icons if necessary
           if (templateValues.getTemplateMetadata() != null && templateValues.getTemplateMetadata().getIconName() != null) {
@@ -1165,28 +1166,22 @@ public class TemplateTest extends AndroidGradleTestCase {
         // If this is a new project, instantiate the project-level files
         if (wizardState instanceof NewProjectWizardState) {
           Template projectTemplate = ((NewProjectWizardState)wizardState).getProjectTemplate();
-          final RenderingContext projectContext = RenderingContext.Builder.newContext(projectTemplate, project)
-            .withOutputRoot(projectRoot)
-            .withModuleRoot(moduleRoot)
-            .withParams(wizardState.myParameters)
-            .build();
+          final RenderingContext projectContext =
+            createRenderingContext(projectTemplate, project, projectRoot, moduleRoot, wizardState.myParameters);
           projectTemplate.render(projectContext);
           AndroidGradleModuleUtils.setGradleWrapperExecutable(projectRoot);
         }
 
-        final RenderingContext context = RenderingContext.Builder.newContext(wizardState.myTemplate, project)
-          .withOutputRoot(projectRoot).withModuleRoot(moduleRoot).withParams(wizardState.myParameters).build();
+        final RenderingContext context =
+          createRenderingContext(wizardState.myTemplate, project, projectRoot, moduleRoot, wizardState.myParameters);
         wizardState.myTemplate.render(context);
         if (wizardState.getBoolean(ATTR_CREATE_ACTIVITY)) {
           TemplateWizardState activityTemplateState = wizardState.getActivityTemplateState();
           activityTemplateState.populateRelativePackage(null);
           Template template = activityTemplateState.getTemplate();
           assert template != null;
-          final RenderingContext activityContext = RenderingContext.Builder.newContext(template, project)
-            .withOutputRoot(moduleRoot)
-            .withModuleRoot(moduleRoot)
-            .withParams(activityTemplateState.myParameters)
-            .build();
+          final RenderingContext activityContext =
+            createRenderingContext(template, project, moduleRoot, moduleRoot, activityTemplateState.myParameters);
           template.render(activityContext);
           context.getFilesToOpen().addAll(activityContext.getFilesToOpen());
         }
@@ -1199,6 +1194,24 @@ public class TemplateTest extends AndroidGradleTestCase {
       throw new RuntimeException(e);
     }
     assertEmpty(errors);
+  }
+
+  @NotNull
+  private static RenderingContext createRenderingContext(@NotNull Template projectTemplate,
+                                                         @NotNull Project project,
+                                                         @NotNull File projectRoot,
+                                                         @NotNull File moduleRoot,
+                                                         @Nullable Map<String, Object> parameters) {
+    RenderingContext.Builder builder = RenderingContext.Builder.newContext(projectTemplate, project)
+      .withOutputRoot(projectRoot)
+      .withModuleRoot(moduleRoot)
+      .withGradleSync(false);
+
+    if (parameters != null) {
+      builder.withParams(parameters);
+    }
+
+    return builder.build();
   }
 
   /**
