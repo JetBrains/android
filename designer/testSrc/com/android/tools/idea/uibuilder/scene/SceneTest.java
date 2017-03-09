@@ -46,7 +46,7 @@ public abstract class SceneTest extends LayoutTestCase {
     mySceneManager = new SyncLayoutlibSceneManager(myModel, myScreen.getScreen());
     myScene = mySceneManager.build();
     myScene.setShowAllConstraints(true);
-    myScene.setAnimate(false);
+    myScene.setAnimated(false);
     mySceneManager.update();
     myInteraction = new SceneMouseInteraction(myScene);
   }

@@ -79,6 +79,12 @@ public abstract class BaseTarget implements Target {
     return Cursor.getDefaultCursor();
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * The default implementation adds a hittable rectangle with the same bounds as this target.
+   * </p>
+   */
   @Override
   public void addHit(@NotNull SceneContext transform, @NotNull ScenePicker picker) {
     if (!myComponent.getScene().allowsTarget(this)) {

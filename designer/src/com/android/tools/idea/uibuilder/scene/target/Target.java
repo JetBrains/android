@@ -26,6 +26,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
+/**
+ * {@link Target} are associated with s {@link SceneComponent} and are used to handle
+ * user interactions.
+ *
+ * A {@link Target} can be used to receive mouse event and can be detected by the {@link ScenePicker} to be passed
+ * in mouse event as closest target. If two target overlaps, the {@link #getPreferenceLevel()} will be used to select the one that will be selected.
+ *
+ * A Target
+ */
 public interface Target {
   // List of preference levels
   int LASSO_LEVEL = 10;
@@ -36,23 +45,86 @@ public interface Target {
   int ANCHOR_LEVEL = 60;
   int ACTION_LEVEL = 70;
 
+  /**
+   * Set priority of the {@link Target} so the {@link com.android.tools.idea.uibuilder.scene.Scene} knows which one to use.
+   * The higher value is, the higher the priority will be
+   *
+   * @return the preference level
+   */
   int getPreferenceLevel();
+
+  /**
+   * Implementing classes should make their measurement using this method
+   *
+   * @param context Current {@link SceneContext}
+   * @param l       left - Current left coordinate of the parent
+   * @param t       top - Current top coordinate of the parent
+   * @param r       right - Current right coordinate of the parent
+   * @param b       bottom - Current bottom coordinate of the parent
+   * @return true if the {@link com.android.tools.idea.uibuilder.scene.Scene} needs to be repainted.
+   */
   boolean layout(@NotNull SceneContext context, int l, int t, int r, int b);
+
+  /**
+   * Implementing classes should use this method to add a hit region to the provided {@link ScenePicker} that can handle the interaction.
+   *
+   * @param context The {@link SceneContext} used to transform coodinates when adding a region to the {@link ScenePicker}
+   * @param picker The picker to add the hii region too
+   */
   void addHit(@NotNull SceneContext context, @NotNull ScenePicker picker);
+
   void setComponent(@NotNull SceneComponent component);
+
+  /**
+   * Implementing classes should add their own {@link com.android.tools.idea.uibuilder.scene.draw.DrawCommand} to the provided
+   * {@link DisplayList} to draw any needed graphic
+   *
+   * @param list         The list where the {@link com.android.tools.idea.uibuilder.scene.draw.DrawCommand}
+   *                     will be added
+   * @param sceneContext The current {@link SceneContext} used to compute transform for
+   *                     the {@link com.android.tools.idea.uibuilder.scene.draw.DrawCommand}
+   */
   void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext);
+
   void setOver(boolean over);
+
   String getToolTipText();
 
-  void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y);
-  void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget);
-  void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget);
+  /**
+   * Implement this method to react to mouse down events
+   *
+   * @param x X coordinate of the mouse in DP relative
+   * @param y Y coordinate of the mouse in DP
+   */
+  default void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+  }
+
+  /**
+   * Implement this method to react to mouse drag events
+   *
+   * @param x             X coordinate of the mouse in DP
+   * @param y             Y coordinate of the mouse in DP
+   * @param closestTarget Closest target from the mouse if there is one
+   */
+  default void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
+  }
+
+  /**
+   * Implement this method to react to mouse release events
+   *
+   * @param x             X coordinate of the mouse in DP
+   * @param y             Y coordinate of the mouse in DP
+   * @param closestTarget Closest target from the mouse if there is one
+   */
+  default void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
+  }
 
   SceneComponent getComponent();
 
   Cursor getMouseCursor();
 
   float getCenterX();
+
   float getCenterY();
 
   boolean canChangeSelection();
