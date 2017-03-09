@@ -20,9 +20,6 @@ import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
-import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
-import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
@@ -40,7 +37,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.AffineTransform;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -419,29 +415,17 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   @Override
   public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView,
                            @NotNull NlComponent component) {
-    NlComponent prev = null;
-    boolean vertical = isVertical(component);
-    AffineTransform tx = gc.getTransform();
-    Coordinates.transformGraphics(screenView, gc);
-    for (NlComponent child : component.getChildren()) {
-      if (prev != null) {
-        if (vertical) {
-          int middle = (prev.y + prev.h + child.y) / 2;
-          NlGraphics.drawLine(NlDrawingStyle.GUIDELINE_DASHED, gc, component.x, middle,
-                              component.x + component.w, middle);
-        }
-        else {
-          int middle = (prev.x + prev.w + child.x) / 2;
-          NlGraphics.drawLine(NlDrawingStyle.GUIDELINE_DASHED, gc, middle, component.y, middle,
-                              component.y + component.h);
-        }
-      }
-      prev = child;
-    }
-    gc.setTransform(tx);
     return false;
   }
 
+  /**
+   * Creates the {@link LinearDragTarget}, {@link LinearSeparatorTarget}s, and {@link LinearResizeTarget}s
+   * for the children.
+   *
+   * @param sceneComponent The component we'll add the targets on
+   * @param isParent       is it the parent viewgroup component
+   * @return The list of target to add
+   */
   @Override
   @NotNull
   public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
@@ -452,13 +436,26 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     // TODO Only display the Resize target in the direction that can be resized depending on the gravity
     ImmutableList.Builder<Target> listBuilder = ImmutableList.builder();
     listBuilder
-      .add(new LinearDragTarget())
+      .add(new LinearDragTarget(this))
       .add(new LinearResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM))
       .add(new LinearResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP))
       .add(new LinearResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM))
       .add(new LinearResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
 
+    SceneComponent parent = sceneComponent.getParent();
+    assert parent != null;
+    boolean isVertical = isVertical(parent.getNlComponent());
+    listBuilder.add(new LinearSeparatorTarget(isVertical, false));
+
+    if (isLastChild(parent, sceneComponent)) {
+      listBuilder.add(new LinearSeparatorTarget(isVertical, true));
+    }
+
     return listBuilder.build();
+  }
+
+  private static boolean isLastChild(@NotNull SceneComponent parent, @NotNull SceneComponent sceneComponent) {
+    return parent.getNlComponent().getChild(parent.getChildCount() - 1) == sceneComponent.getNlComponent();
   }
 
   /**
