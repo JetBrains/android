@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.intellij.lang.annotations.MagicConstant;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -63,7 +64,7 @@ public class Scene implements SelectionListener {
   private static final boolean DEBUG = false;
   private final HashMap<NlComponent, SceneComponent> mySceneComponents = new HashMap<>();
   private SceneComponent myRoot;
-  private boolean myAnimate = true; // animate layout changes
+  private boolean myIsAnimated = true; // animate layout changes
 
   public static final int NO_LAYOUT = 0;
   public static final int IMMEDIATE_LAYOUT = 1;
@@ -120,17 +121,17 @@ public class Scene implements SelectionListener {
    *
    * @return true if layout updates will animate
    */
-  public boolean getAnimate() {
-    return myAnimate;
+  public boolean isAnimated() {
+    return myIsAnimated;
   }
 
   /**
    * Set the layout updates to animate or not
    *
-   * @param animate true to animate the changes
+   * @param animated true to animate the changes
    */
-  public void setAnimate(boolean animate) {
-    myAnimate = animate;
+  public void setAnimated(boolean animated) {
+    myIsAnimated = animated;
   }
 
   /**
@@ -819,7 +820,7 @@ public class Scene implements SelectionListener {
 
   void checkRequestLayoutStatus() {
     if (mNeedsLayout != NO_LAYOUT) {
-      mySceneView.getSceneManager().requestLayout(mNeedsLayout == ANIMATED_LAYOUT ? true : false);
+      mySceneView.getSceneManager().requestLayout(mNeedsLayout == ANIMATED_LAYOUT);
     }
   }
 
@@ -883,7 +884,12 @@ public class Scene implements SelectionListener {
     return false;
   }
 
-  public void needsLayout(int type) {
+  /**
+   * Set a flag to notify that the Scene needs to recompute the layout on the nex
+   * @param type Type of layout to recompute: {@link #NO_LAYOUT}, {@link #IMMEDIATE_LAYOUT}, {@link #ANIMATED_LAYOUT}
+   */
+
+  public void needsLayout(@MagicConstant(intValues = {NO_LAYOUT, IMMEDIATE_LAYOUT, ANIMATED_LAYOUT}) int type) {
     if (mNeedsLayout < type) {
       mNeedsLayout = type;
     }

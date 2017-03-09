@@ -124,6 +124,10 @@ public class SceneContext {
   public void setToolTip(@Nullable String toolTip) {
   }
 
+  public float pxToDp(int px) {
+    return px * Coordinates.DEFAULT_DENSITY;
+  }
+
   /**
    * The  SceneContext based on a ScreenView
    */
@@ -154,6 +158,11 @@ public class SceneContext {
     @Override
     public int getSwingY(float y) {
       return Coordinates.getSwingY(mySceneView, Coordinates.dpToPx(mySceneView, y));
+    }
+
+    @Override
+    public float pxToDp(int px) {
+      return Coordinates.pxToDp(mySceneView, px);
     }
 
     @Override
