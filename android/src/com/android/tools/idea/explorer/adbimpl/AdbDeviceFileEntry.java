@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,15 @@ package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-public class AdbDeviceFileEntry implements DeviceFileEntry {
+/**
+ * Abstract base class for all implementations of {@link DeviceFileEntry} that rely on
+ * an underlying {@link AdbFileListingEntry}.
+ */
+public abstract class AdbDeviceFileEntry implements DeviceFileEntry {
   public static final String SYMBOLIC_LINK_INFO_PREFIX = "-> ";
 
   @NotNull protected final AdbDeviceFileSystem myDevice;
@@ -44,7 +42,7 @@ public class AdbDeviceFileEntry implements DeviceFileEntry {
 
   @Override
   public String toString() {
-    return String.format("%s: %s", myEntry.getKind(), myEntry.getName());
+    return myEntry.toString();
   }
 
   @NotNull
@@ -132,48 +130,6 @@ public class AdbDeviceFileEntry implements DeviceFileEntry {
       return null;
     }
     return info.substring(SYMBOLIC_LINK_INFO_PREFIX.length());
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<List<DeviceFileEntry>> getEntries() {
-    SettableFuture<List<DeviceFileEntry>> futureResult = SettableFuture.create();
-
-    ListenableFuture<List<AdbFileListingEntry>> futureChildren = myDevice.getAdbFileListing().getChildren(myEntry);
-    myDevice.getTaskExecutor().addCallback(futureChildren, new FutureCallback<List<AdbFileListingEntry>>() {
-      @Override
-      public void onSuccess(@Nullable List<AdbFileListingEntry> result) {
-        assert result != null;
-        List<DeviceFileEntry> children = result.stream()
-          .map(x -> new AdbDeviceFileEntry(myDevice, x, AdbDeviceFileEntry.this))
-          .collect(Collectors.toList());
-        futureResult.set(children);
-      }
-
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        futureResult.setException(t);
-      }
-    });
-
-    return futureResult;
- }
-
-  @NotNull
-  @Override
-  public ListenableFuture<Void> delete() {
-    if (isDirectory()) {
-      return myDevice.getAdbFileOperations().deleteRecursive(getFullPath());
-    }
-    else {
-      return myDevice.getAdbFileOperations().deleteFile(getFullPath());
-    }
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<Boolean> isSymbolicLinkToDirectory() {
-    return myDevice.getAdbFileListing().isDirectoryLink(myEntry);
   }
 
   public static class AdbPermissions implements Permissions {
