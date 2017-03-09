@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.SceneView;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.Update;
@@ -206,7 +207,8 @@ public class LayoutlibSceneManager extends SceneManager {
     @Override
     public void modelChanged(@NotNull NlModel model) {
       requestModelUpdate();
-      getSceneView().getSelectionModel().updateListeners();
+      ApplicationManager.getApplication().invokeLater(() -> mySelectionChangeListener
+        .selectionChanged(getSceneView().getSelectionModel(), getSceneView().getSelectionModel().getSelection()));
     }
 
     @Override
