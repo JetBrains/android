@@ -23,8 +23,8 @@ import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 
+import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
 import static com.intellij.ide.BrowserUtil.browse;
-import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
 public class DslNotSupportedPanel extends EditorPanel {
   @NotNull private final JEditorPane myMessagePane;

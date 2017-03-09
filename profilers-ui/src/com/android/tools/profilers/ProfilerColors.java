@@ -104,4 +104,6 @@ public class ProfilerColors {
   public static final Color MEMORY_OTHERS = new JBColor(new Color(68, 107, 127), new Color(99, 122, 133));
 
   public static final Color MEMORY_OBJECTS = new JBColor(new Color(84, 110, 121), new Color(159, 190, 213));
+
+  public static final Color MESSAGE_COLOR = new JBColor(0x787878, 0xC8C8C8);
 }
