@@ -43,9 +43,11 @@ public class ConfigureFormFactorStepFixture extends AbstractWizardStepFixture<Co
       }));
     checkBox.requireEnabled().select();
 
-    ApiLevelComboBoxFixture apiLevelComboBox =
-      new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), formFactor.id + ".minSdk", JComboBox.class));
-    apiLevelComboBox.selectApiLevel(api);
+    if (formFactor != FormFactor.CAR) {
+      ApiLevelComboBoxFixture apiLevelComboBox =
+        new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), formFactor.id + ".minSdk", JComboBox.class));
+      apiLevelComboBox.selectApiLevel(api);
+    }
     return this;
   }
 
