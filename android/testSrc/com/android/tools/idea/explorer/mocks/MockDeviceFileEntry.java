@@ -20,10 +20,12 @@ import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;
 import com.android.tools.idea.explorer.adbimpl.AdbShellCommandException;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
+import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -179,6 +181,18 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
 
   @NotNull
   @Override
+  public ListenableFuture<Void> downloadFile(@NotNull Path localPath, @NotNull FileTransferProgress progress) {
+    return myFileSystem.downloadFile(this, localPath, progress);
+  }
+
+  @NotNull
+  @Override
+  public ListenableFuture<Void> uploadFile(@NotNull Path localPath, @NotNull FileTransferProgress progress) {
+    return myFileSystem.uploadFile(localPath, this, progress);
+  }
+
+  @NotNull
+  @Override
   public Permissions getPermissions() {
     return () -> "rwxrwxrwx";
   }
@@ -227,6 +241,7 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
     myGetEntriesTimeoutMillis = timeoutMillis;
   }
 
+  @SuppressWarnings("unused")
   public void setSymbolicLinkToDirectory(boolean symbolicLinkToDirectory) {
     myIsSymbolicLinkToDirectory = symbolicLinkToDirectory;
   }
