@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.ui.HyperlinkLabel;
@@ -42,19 +43,22 @@ import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
  */
 public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFixture, JFrame> {
 
-  public AvdManagerDialogFixture(@NotNull Robot robot, @NotNull JFrame target) {
+  private final IdeFrameFixture myIdeFrame;
+
+  public AvdManagerDialogFixture(@NotNull Robot robot, @NotNull JFrame target, @NotNull IdeFrameFixture ideFrame) {
     super(AvdManagerDialogFixture.class, robot, target);
+    myIdeFrame = ideFrame;
   }
 
   @NotNull
-  public static AvdManagerDialogFixture find(@NotNull Robot robot) {
+  public static AvdManagerDialogFixture find(@NotNull Robot robot, @NotNull IdeFrameFixture ideFrame) {
     JFrame frame = GuiTests.waitUntilShowing(robot, new GenericTypeMatcher<JFrame>(JFrame.class) {
       @Override
       protected boolean isMatching(@NotNull JFrame dialog) {
         return "Android Virtual Device Manager".equals(dialog.getTitle());
       }
     });
-    return new AvdManagerDialogFixture(robot, frame);
+    return new AvdManagerDialogFixture(robot, frame, ideFrame);
   }
 
   public AvdEditWizardFixture createNew() {
@@ -118,5 +122,6 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
   public void close() {
     robot().close(target());
     Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
+    myIdeFrame.requestFocusIfLost();
   }
 }

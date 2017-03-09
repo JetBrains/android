@@ -617,7 +617,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     button.requireVisible();
     button.requireEnabled();
     button.click();
-    return AvdManagerDialogFixture.find(robot());
+    return AvdManagerDialogFixture.find(robot(), this);
   }
 
   @NotNull
