@@ -34,6 +34,7 @@ import java.util.Map;
 public class ApkFacetConfiguration implements FacetConfiguration {
   @NonNls public String APK_PATH;
   @NonNls public List<String> SYMBOL_PATHS = new ArrayList<>();
+  @NonNls public List<String> NATIVE_SOURCE_PATHS = new ArrayList<>();
   public Map<String, String> SOURCE_MAP = new HashMap<>();
 
   @Override
