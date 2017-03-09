@@ -563,6 +563,7 @@ public class AndroidIcons {
   }
 
   public static class DeviceExplorer {
+    public static final Icon ToolWindow = load("/icons/explorer/tool-window-device-explorer.png"); // 16x16
     public static final Icon DatabaseFolder = load("/icons/explorer/DatabaseFolder.png"); // 16x16
     public static final Icon SdcardFolder = load("/icons/explorer/SdcardFolder.png"); // 16x16
     public static final Icon SharedPrefs = load("/icons/explorer/SharedPrefs.png"); // 16x16
