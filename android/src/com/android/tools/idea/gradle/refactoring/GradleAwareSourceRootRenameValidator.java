@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.refactoring;
 
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -30,8 +31,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.EXTERNAL_SYSTEM_ID_KEY;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemConstants.LINKED_PROJECT_PATH_KEY;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 /**
@@ -66,8 +65,8 @@ public class GradleAwareSourceRootRenameValidator implements RenameInputValidato
     VirtualFile virtualFile = ((PsiDirectory)element).getVirtualFile();
     Module[] modules = ModuleManager.getInstance(element.getProject()).getModules();
     for (Module module : modules) {
-      if (!GRADLE_SYSTEM_ID.getId().equals(module.getOptionValue(EXTERNAL_SYSTEM_ID_KEY)) ||
-          isEmpty(module.getOptionValue(LINKED_PROJECT_PATH_KEY))) {
+      if (!ExternalSystemApiUtil.isExternalSystemAwareModule(GRADLE_SYSTEM_ID, module) ||
+          isEmpty(ExternalSystemApiUtil.getExternalProjectPath(module))) {
         // Ignore modules not backed by gradle.
         continue;
       }
