@@ -61,6 +61,7 @@ public class SceneComponent {
   private SceneComponent myParent = null;
   private boolean myIsSelected = false;
   private boolean myDragging = false;
+  private boolean myIsModelUpdateAuthorized = true;
 
   private AnimatedValue myAnimatedDrawX = new AnimatedValue();
   private AnimatedValue myAnimatedDrawY = new AnimatedValue();
@@ -204,6 +205,7 @@ public class SceneComponent {
   //region Accessors
   /////////////////////////////////////////////////////////////////////////////
 
+  @Nullable
   public SceneComponent getParent() {
     return myParent;
   }
@@ -369,15 +371,25 @@ public class SceneComponent {
    * @param dy Y coordinate in DP
    */
   public void setPosition(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy) {
-    setPosition(dx, dy, true);
+    setPosition(dx, dy, false);
   }
 
-  public void setPosition(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy, boolean applyToModel) {
-    myAnimatedDrawX.setValue(dx);
-    myAnimatedDrawY.setValue(dy);
-    if (applyToModel) {
-      myNlComponent.x = Coordinates.dpToPx(myNlComponent.getModel(), dx);
-      myNlComponent.y = Coordinates.dpToPx(myNlComponent.getModel(), dy);
+  /**
+   * Immediately set the position unless the update is coming from
+   * a model update and {@link #isModelUpdateAuthorized()} is false.
+   *
+   * @param dx          X coordinate in DP
+   * @param dy          Y coordinate in DP
+   * @param isFromModel Notify the that the given coordinates are coming from a model update
+   */
+  public void setPosition(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy, boolean isFromModel) {
+    if (!isFromModel || myIsModelUpdateAuthorized) {
+      myAnimatedDrawX.setValue(dx);
+      myAnimatedDrawY.setValue(dy);
+      if(isFromModel) {
+        myNlComponent.x = Coordinates.dpToPx(myNlComponent.getModel(), dx);
+        myNlComponent.y = Coordinates.dpToPx(myNlComponent.getModel(), dy);
+      }
     }
   }
 
@@ -387,26 +399,35 @@ public class SceneComponent {
    *
    * The position of the underlying NlComponent is set immediately.
    *
-   * @param dx   The X position to animate the component to
-   * @param dy   The Y position to animate the component to
-   * @param time The time when the animation begins
+   * @param dx          The X position to animate the component to
+   * @param dy          The Y position to animate the component to
+   * @param time        The time when the animation begins
+   * @param isFromModel
    */
-  public void setPositionTarget(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy, long time) {
-    myAnimatedDrawX.setTarget(dx, time);
-    myAnimatedDrawY.setTarget(dy, time);
-    myNlComponent.x = Coordinates.dpToPx(myNlComponent.getModel(), dx);
-    myNlComponent.y = Coordinates.dpToPx(myNlComponent.getModel(), dy);
+  public void setPositionTarget(@AndroidDpCoordinate int dx, @AndroidDpCoordinate int dy, long time, boolean isFromModel) {
+    if (!isFromModel || myIsModelUpdateAuthorized) {
+      myAnimatedDrawX.setTarget(dx, time);
+      myAnimatedDrawY.setTarget(dy, time);
+      if(isFromModel) {
+        myNlComponent.x = Coordinates.dpToPx(myNlComponent.getModel(), dx);
+        myNlComponent.y = Coordinates.dpToPx(myNlComponent.getModel(), dy);
+      }
+    }
   }
 
   /**
    * Immediately set the size of this {@link SceneComponent} and of the underlying
    * {@link NlComponent}
    */
-  public void setSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height) {
-    myAnimatedDrawWidth.setValue(width);
-    myAnimatedDrawHeight.setValue(height);
-    myNlComponent.w = Coordinates.dpToPx(myNlComponent.getModel(), width);
-    myNlComponent.h = Coordinates.dpToPx(myNlComponent.getModel(), height);
+  public void setSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height, boolean isFromModel) {
+    if (!isFromModel || myIsModelUpdateAuthorized) {
+      myAnimatedDrawWidth.setValue(width);
+      myAnimatedDrawHeight.setValue(height);
+      if(isFromModel) {
+        myNlComponent.w = Coordinates.dpToPx(myNlComponent.getModel(), width);
+        myNlComponent.h = Coordinates.dpToPx(myNlComponent.getModel(), height);
+      }
+    }
   }
 
   /**
@@ -415,15 +436,20 @@ public class SceneComponent {
    *
    * The size of the underlying NlComponent is set immediately.
    *
-   * @param width  The width to animate the component to
-   * @param height The height to animate the component to
-   * @param time   The time when the animation begins
+   * @param width       The width to animate the component to
+   * @param height      The height to animate the component to
+   * @param time        The time when the animation begins
+   * @param isFromModel
    */
-  public void setSizeTarget(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height, long time) {
-    myAnimatedDrawWidth.setTarget(width, time);
-    myAnimatedDrawHeight.setTarget(height, time);
-    myNlComponent.w = Coordinates.dpToPx(myNlComponent.getModel(), width);
-    myNlComponent.h = Coordinates.dpToPx(myNlComponent.getModel(), height);
+  public void setSizeTarget(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height, long time, boolean isFromModel) {
+    if (!isFromModel || myIsModelUpdateAuthorized) {
+      myAnimatedDrawWidth.setTarget(width, time);
+      myAnimatedDrawHeight.setTarget(height, time);
+      if(isFromModel) {
+        myNlComponent.w = Coordinates.dpToPx(myNlComponent.getModel(), width);
+        myNlComponent.h = Coordinates.dpToPx(myNlComponent.getModel(), height);
+      }
+    }
   }
 
   /**
@@ -744,5 +770,23 @@ public class SceneComponent {
     if (myTargetProvider != null) {
       myTargetProvider.createTargets(this, isParent).forEach(this::addTarget);
     }
+  }
+
+  /**
+   * @param modelUpdateAuthorized
+   */
+  public void setModelUpdateAuthorized(boolean modelUpdateAuthorized) {
+    myIsModelUpdateAuthorized = modelUpdateAuthorized;
+  }
+
+  /**
+   * If false, it indicates that the size and coordinates of this {@link SceneComponent}
+   * should not be updated from a model update because they are being updated by something else, like
+   * a drag event.
+   *
+   * @return true is a
+   */
+  public boolean isModelUpdateAuthorized() {
+    return myIsModelUpdateAuthorized;
   }
 }
