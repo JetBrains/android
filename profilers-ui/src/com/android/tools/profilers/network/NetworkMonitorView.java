@@ -53,6 +53,7 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
     leftAxis.setShowAxisLine(false);
     leftAxis.setShowMax(true);
     leftAxis.setShowUnitAtMax(true);
+    leftAxis.setHideTickAtMin(true);
     leftAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH);
     leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN);
     axisPanel.add(leftAxis, BorderLayout.WEST);
