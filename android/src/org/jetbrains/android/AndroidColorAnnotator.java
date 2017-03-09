@@ -44,7 +44,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -162,43 +161,6 @@ public class AndroidColorAnnotator implements Annotator {
     }
   }
 
-  /**
-   * When annotating Java files, we need to find an associated layout file to pick the resource
-   * resolver from (e.g. to for example have a theme association which will drive how colors are
-   * resolved). This file picks one of the open layout files, and if not found, the first layout
-   * file found in the resources (if any).
-   * */
-  @Nullable
-  public static VirtualFile pickLayoutFile(@NotNull Module module, @NotNull AndroidFacet facet) {
-    VirtualFile layout = null;
-    VirtualFile[] openFiles = FileEditorManager.getInstance(module.getProject()).getOpenFiles();
-    for (VirtualFile file : openFiles) {
-      if (file.getName().endsWith(DOT_XML) && file.getParent() != null &&
-          file.getParent().getName().startsWith(FD_RES_LAYOUT)) {
-        layout = file;
-        break;
-      }
-    }
-
-    if (layout == null) {
-      // Pick among actual files in the project
-      for (VirtualFile resourceDir : facet.getAllResourceDirectories()) {
-        for (VirtualFile folder : resourceDir.getChildren()) {
-          if (folder.getName().startsWith(FD_RES_LAYOUT) && folder.isDirectory()) {
-            for (VirtualFile file : folder.getChildren()) {
-              if (file.getName().endsWith(DOT_XML) && file.getParent() != null &&
-                  file.getParent().getName().startsWith(FD_RES_LAYOUT)) {
-                layout = file;
-                break;
-              }
-            }
-          }
-        }
-      }
-    }
-    return layout;
-  }
-
   private static void annotateResourceReference(@NotNull ResourceType type,
                                                 @NotNull AnnotationHolder holder,
                                                 @NotNull PsiElement element,
@@ -247,7 +209,7 @@ public class AndroidColorAnnotator implements Annotator {
     VirtualFile layout;
     String parentName = parent.getName();
     if (!parentName.startsWith(FD_RES_LAYOUT)) {
-      layout = pickLayoutFile(module, facet);
+      layout = ResourceHelper.pickAnyLayoutFile(module, facet);
       if (layout == null) {
         return null;
       }
