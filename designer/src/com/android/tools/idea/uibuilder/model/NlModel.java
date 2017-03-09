@@ -2089,7 +2089,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
     myModelVersion.increase(reason);
     myModificationTrigger = reason;
-    myListeners.forEach(listener -> listener.modelChanged(this));
+    new ArrayList<>(myListeners).forEach(listener -> listener.modelChanged(this));
   }
 
   /**
