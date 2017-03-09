@@ -15,9 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
+import com.android.tools.idea.uibuilder.api.ScrollHandler;
+import com.android.tools.idea.uibuilder.api.ScrollViewScrollHandler;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -30,5 +39,37 @@ public class NestedScrollViewHandler extends ScrollViewHandler {
       ATTR_CONTEXT,
       ATTR_SHOW_IN,
       ATTR_CLIP_TO_PADDING);
+  }
+
+  @Nullable
+  @Override
+  public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
+    ViewGroup viewGroup =  ScrollViewHandler.getViewGroupFromComponent(component);
+    if (viewGroup == null) {
+      return null;
+    }
+
+    // NestedScrollView is a NestedScrollingChild so if the parent is an instance of NestedScrollingParent,
+    // then delegate the scrolling to it.
+    ViewParent parent = viewGroup.getParent();
+    if (parent instanceof ViewGroup) {
+      boolean nestedScrollingParent = Arrays.stream(parent.getClass().getInterfaces())
+        .map(Class::getName)
+        .anyMatch("android.support.v4.view.NestedScrollingParent"::equals);
+      if (nestedScrollingParent) {
+        viewGroup = (ViewGroup)parent;
+      }
+    }
+
+    int maxScrollableHeight = ScrollViewHandler.getMaxScrollable(viewGroup, ViewGroup::getHeight, View::getMeasuredHeight);
+
+    if (maxScrollableHeight > 0) {
+      // There is something to scroll
+      return ScrollViewScrollHandler
+        .createHandler(viewGroup, maxScrollableHeight, 10,
+                       ScrollViewScrollHandler.Orientation.VERTICAL);
+    }
+
+    return null;
   }
 }

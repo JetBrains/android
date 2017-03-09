@@ -38,7 +38,7 @@ import static com.android.SdkConstants.*;
 /**
  * Handler for the {@code <android.support.design.widget.CoordinatorLayout>} layout
  */
-public class CoordinatorLayoutHandler extends FrameLayoutHandler {
+public class CoordinatorLayoutHandler extends ScrollViewHandler {
   @NotNull
   @Override
   public List<String> getInspectorProperties() {
@@ -71,7 +71,7 @@ public class CoordinatorLayoutHandler extends FrameLayoutHandler {
     }
   }
 
-  private class CoordinatorDragHandler extends FrameDragHandler {
+  private class CoordinatorDragHandler extends FrameLayoutHandler.FrameDragHandler {
     private SceneComponent myAnchor;
     private SceneComponent myDragged;
     private NlComponent myDraggedNlComponent;
