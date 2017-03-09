@@ -33,7 +33,7 @@ import static java.lang.System.getenv;
 /**
  * Tests that the min sdk for instant apps is validated correctly
  */
-@RunIn(TestGroup.PROJECT_SUPPORT)
+@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRunner.class)
 public class MinSdkForInstantAppTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
