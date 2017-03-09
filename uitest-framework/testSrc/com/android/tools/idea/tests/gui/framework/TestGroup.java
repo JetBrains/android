@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework;
 
 public enum TestGroup {
   PROJECT_SUPPORT,
+  PROJECT_WIZARD,
   THEME,
   EDITING,
   QA,
