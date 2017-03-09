@@ -42,11 +42,19 @@ public class AdbShellCommandsUtil {
 
   public static void executeRawCommand(@NotNull IDevice device, @NotNull String command, IShellOutputReceiver receiver)
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+    long startTime = System.nanoTime();
+
     executeCommandImpl(device, command, receiver);
+
+    if (LOGGER.isTraceEnabled()) {
+      long endTime = System.nanoTime();
+      LOGGER.trace(String.format("Command took %,d ms to execute: %s", (endTime - startTime) / 1_000_000, command));
+    }
   }
 
-    private static AdbShellCommandResult executeCommandImpl(@NotNull IDevice device, @NotNull String command, boolean errorCheck)
+  private static AdbShellCommandResult executeCommandImpl(@NotNull IDevice device, @NotNull String command, boolean errorCheck)
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+    long startTime = System.nanoTime();
 
     List<String> commandOutput = new ArrayList<>();
     // Adding the " || echo xxx" command to the command allows us to detect non-zero status code
@@ -75,18 +83,18 @@ public class AdbShellCommandsUtil {
       commandOutput.remove(commandOutput.get(commandOutput.size() - 1));
     }
 
+    if (LOGGER.isTraceEnabled()) {
+      long endTime = System.nanoTime();
+      LOGGER.trace(String.format("Command took %,d ms to execute: %s", (endTime - startTime) / 1_000_000, command));
+      if (!commandOutput.isEmpty()) {
+        LOGGER.trace(String.format("  First output line: %s", commandOutput.get(0)));
+      }
+    }
     return new AdbShellCommandResult(command, commandOutput, isError);
   }
 
   private static void executeCommandImpl(@NotNull IDevice device, @NotNull String command, IShellOutputReceiver receiver)
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
-    long startTime = System.nanoTime();
-
     device.executeShellCommand(command, receiver);
-
-    if (LOGGER.isTraceEnabled()) {
-      long endTime = System.nanoTime();
-      LOGGER.trace(String.format("command took %,d ms to execute: %s", (endTime - startTime) / 1_000_000, command));
-    }
-  }
+ }
 }
