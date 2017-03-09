@@ -98,7 +98,16 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
 
     header.addMouseListener(new MouseAdapter() {
       @Override
-      public void mousePressed(@NotNull MouseEvent event) {
+      public void mousePressed(@NotNull MouseEvent e) {
+        openPopup(e);
+      }
+
+      @Override
+      public void mouseReleased(@NotNull MouseEvent e) {
+        openPopup(e);
+      }
+
+      private void openPopup(@NotNull MouseEvent event) {
         if (!event.isPopupTrigger()) {
           return;
         }
