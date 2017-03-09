@@ -51,7 +51,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
-import org.jetbrains.android.AndroidColorAnnotator;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
@@ -601,7 +600,7 @@ public class AndroidJavaDocRenderer {
 
         AndroidFacet facet = AndroidFacet.getInstance(myModule);
         if (facet != null) {
-          VirtualFile layout = AndroidColorAnnotator.pickLayoutFile(myModule, facet);
+          VirtualFile layout = ResourceHelper.pickAnyLayoutFile(myModule, facet);
           if (layout != null) {
             Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout);
             myResourceResolver = configuration.getResourceResolver();
