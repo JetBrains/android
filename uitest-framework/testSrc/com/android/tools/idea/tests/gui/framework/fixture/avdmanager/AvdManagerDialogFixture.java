@@ -116,7 +116,7 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
   }
 
   public void close() {
-    robot().pressAndReleaseKey(27);  // Esc key, since the dialog has no button or other UI element to close it
+    robot().close(target());
     Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
   }
 }
