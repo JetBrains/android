@@ -16,24 +16,29 @@
 package com.android.tools.idea.instantapp.provision;
 
 import com.android.ddmlib.IDevice;
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.List;
 
 class SupervisorPackage extends ProvisionPackage {
   @NotNull private static final String APK_PREFIX = "supervisor";
   @NotNull private static final String PKG_NAME = "com.google.android.instantapps.supervisor";
   @NotNull private static final String ARM_V8 = "arm64-v8a";
   @NotNull private static final String ARM_V7 = "armeabi-v7a";
+  // These are the variants of the apks contained in the SDK. Basically the names of the folders with apks
+  @NotNull private static final List<String> SUPPORTED_VARIANTS = Lists.newArrayList("release");
 
   SupervisorPackage(@NotNull File instantAppSdk) {
     super(instantAppSdk);
   }
 
+  @NotNull
   @Override
-  File getApk(File instantAppSdk, @NotNull String arch, @NotNull String variant) throws ProvisionException {
+  File getApk(@NotNull String arch, @NotNull String variant) throws ProvisionException {
     // The Supervisor apk present in the sdk is for architecture ARM v7. It will work in ARM v8
-    return super.getApk(instantAppSdk, arch.compareTo(ARM_V8) == 0 ? ARM_V7 : arch, variant);
+    return super.getApk(arch.compareTo(ARM_V8) == 0 ? ARM_V7 : arch, variant);
   }
 
   @Override
@@ -102,6 +107,12 @@ class SupervisorPackage extends ProvisionPackage {
                           "-e gms:wh:disableDomainFilterFallback true",
                           true /* root is required */);
     }
+  }
+
+  @NotNull
+  @Override
+  List<String> getSupportedVariants() {
+    return SUPPORTED_VARIANTS;
   }
 
   @NotNull
