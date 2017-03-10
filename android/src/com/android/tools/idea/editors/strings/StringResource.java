@@ -65,11 +65,12 @@ public final class StringResource {
 
       LocaleQualifier qualifier = item.getConfiguration().getLocaleQualifier();
 
+      String value = toString(item);
       if (qualifier == null) {
-        defaultValue = new ResourceItemEntry(item, toString(item, tag));
+        defaultValue = new ResourceItemEntry(item, value);
       }
       else {
-        localeToTranslationMap.put(Locale.create(qualifier), new ResourceItemEntry(item, toString(item, tag)));
+        localeToTranslationMap.put(Locale.create(qualifier), new ResourceItemEntry(item, value));
       }
     }
 
@@ -84,11 +85,9 @@ public final class StringResource {
   }
 
   @NotNull
-  private static String toString(@NotNull ResourceItem item, @Nullable XmlTag tag) {
-    if (tag != null) {
-      return Strings.nullToEmpty(ValueXmlHelper.unescapeResourceString(tag.getValue().getText(), false, false));
-    }
-
+  private static String toString(@NotNull ResourceItem item) {
+    // THIS GETTER WITH SIDE EFFECTS that registers we have taken an interest in this value
+    // so that if the value changes we will get a resource changed event fire.
     ResourceValue value = item.getResourceValue(false);
 
     if (value == null) {

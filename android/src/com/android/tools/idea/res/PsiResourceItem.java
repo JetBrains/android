@@ -97,6 +97,10 @@ class PsiResourceItem extends ResourceItem {
     return source;
   }
 
+  /**
+   * GETTER WITH SIDE EFFECTS that registers we have taken an interest in this value
+   * so that if the value changes we will get a resource changed event fire.
+   */
   @Nullable
   @Override
   public ResourceValue getResourceValue(boolean isFrameworks) {
