@@ -152,7 +152,8 @@ public class ScrollViewHandler extends ViewGroupHandler {
     public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
       super.update(x, y, modifiers);
 
-      if (layout.getChildCount() > 0 || components.size() > 1) {
+      // layout will already have the dragged components as child so we need to check if count > 1
+      if (layout.getChildCount() > 1 || components.size() > 1) {
         return "Layout only allows 1 child";
       }
 
