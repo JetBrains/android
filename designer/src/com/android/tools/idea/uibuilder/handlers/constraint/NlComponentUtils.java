@@ -36,8 +36,8 @@ public class NlComponentUtils {
   private static final String ATT_BB = SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF;
   private static final String[] LEFT = {ATT_LL, ATT_LR};
   private static final String[] RIGHT = {ATT_RR, ATT_RL};
-  private static final String[] TOP = {ATT_LL, ATT_LR};
-  private static final String[] BOTTOM = {ATT_RR, ATT_RL};
+  private static final String[] TOP = {ATT_TT, ATT_TB};
+  private static final String[] BOTTOM = {ATT_BT, ATT_BB};
 
   private static HashMap<String, NlComponent> getMap(NlComponent nlComponent) {
     List<NlComponent> list = nlComponent.getModel().getComponents();
