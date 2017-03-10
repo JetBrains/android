@@ -49,6 +49,7 @@ public class ThemeSelectorTest {
    * Tests the theme renaming functionality of the theme selector
    * and that IntelliJ's Undo works can revert this action
    */
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testRenameTheme() throws IOException {
     guiTest.importSimpleApplication();

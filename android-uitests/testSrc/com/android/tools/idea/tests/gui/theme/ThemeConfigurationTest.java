@@ -36,7 +36,7 @@ import java.io.IOException;
 
 import static com.android.tools.idea.tests.gui.framework.fixture.theme.ThemeEditorFixture.clickPopupMenuItem;
 
-@RunIn(TestGroup.THEME)
+@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
 public class ThemeConfigurationTest {
 
