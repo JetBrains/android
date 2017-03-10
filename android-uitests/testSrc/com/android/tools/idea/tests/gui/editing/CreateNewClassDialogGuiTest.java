@@ -75,7 +75,6 @@ public class CreateNewClassDialogGuiTest {
   private static final String FINAL_DECLARATION = "public final %s TestThing {";
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final ScreenshotsDuringTest screenshotsDuringTest = new ScreenshotsDuringTest();
   private EditorFixture myEditor;
 
   @Before
