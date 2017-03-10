@@ -14,25 +14,27 @@
  * limitations under the License.
  */
 
-package com.android.tools.sherpa.scout;
+package com.android.tools.idea.uibuilder.scout;
+
+import com.android.SdkConstants;
 
 /**
  * Possible directions for a connection
  */
 public enum Direction {
-    NORTH(0),
-    SOUTH(1),
-    WEST(2),
-    EAST(3),
-    BASE(4);
+    TOP(0),
+    BOTTOM(1),
+    LEFT(2),
+    RIGHT(3),
+    BASELINE(4);
     private final int mDirection;
 
     static final int ORIENTATION_VERTICAL = 0;
     static final int ORIENTATION_HORIZONTAL = 1;
 
     private static Direction[] sAllDirections = Direction.values();
-    private static Direction[] sVertical = { NORTH, SOUTH, BASE };
-    private static Direction[] sHorizontal = { WEST, EAST };
+    private static Direction[] sVertical = {TOP, BOTTOM, BASELINE};
+    private static Direction[] sHorizontal = {LEFT, RIGHT};
 
     Direction(int n) {
         mDirection = n;
@@ -60,15 +62,15 @@ public enum Direction {
     @Override
     public String toString() {
         switch (this) {
-            case NORTH:
+            case TOP:
                 return "N";
-            case SOUTH:
+            case BOTTOM:
                 return "S";
-            case EAST:
+            case RIGHT:
                 return "E";
-            case WEST:
+            case LEFT:
                 return "W";
-            case BASE:
+            case BASELINE:
                 return "B";
         }
         return "?";
@@ -90,18 +92,18 @@ public enum Direction {
      */
     Direction getOpposite() {
         switch (this) {
-            case NORTH:
-                return SOUTH;
-            case SOUTH:
-                return NORTH;
-            case EAST:
-                return WEST;
-            case WEST:
-                return EAST;
-            case BASE:
-                return BASE;
+            case TOP:
+                return BOTTOM;
+            case BOTTOM:
+                return TOP;
+            case RIGHT:
+                return LEFT;
+            case LEFT:
+                return RIGHT;
+            case BASELINE:
+                return BASELINE;
             default:
-                return BASE;
+                return BASELINE;
         }
     }
 
@@ -122,7 +124,7 @@ public enum Direction {
      * @return true for north and east
      */
     boolean reverse() {
-        return (this == NORTH || this == WEST);
+        return (this == TOP || this == LEFT);
     }
 
     /**
@@ -145,15 +147,33 @@ public enum Direction {
      */
     public int connectTypes() {
         switch (this) {
-            case NORTH:
-            case SOUTH:
+            case TOP:
+            case BOTTOM:
                 return 2;
-            case EAST:
-            case WEST:
+            case RIGHT:
+            case LEFT:
                 return 2;
-            case BASE:
+            case BASELINE:
                 return 1;
         }
         return 1;
     }
+
+
+    public String getMarginString() {
+        switch (this) {
+            case TOP:
+                return SdkConstants.ATTR_LAYOUT_MARGIN_TOP;
+            case BOTTOM:
+                return SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM;
+            case RIGHT:
+                return SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
+            case LEFT:
+                return SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
+            case BASELINE:
+                return SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
+        }
+        return "?";
+    }
+
 }

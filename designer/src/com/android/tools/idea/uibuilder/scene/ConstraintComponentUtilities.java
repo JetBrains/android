@@ -21,15 +21,18 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
+import com.android.tools.idea.uibuilder.scout.Direction;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.scene.draw.DrawGuidelineCycle.BEGIN;
 import static com.android.tools.idea.uibuilder.scene.draw.DrawGuidelineCycle.END;
 import static com.android.tools.idea.uibuilder.scene.draw.DrawGuidelineCycle.PERCENT;
@@ -44,15 +47,15 @@ public class ConstraintComponentUtilities {
   protected static final HashMap<String, String> ourMapMarginAttributes;
   protected static final HashMap<String, AnchorTarget.Type> ourMapSideToOriginAnchors;
   protected static final HashMap<String, AnchorTarget.Type> ourMapSideToTargetAnchors;
-  protected static final ArrayList<String> ourLeftAttributes;
-  protected static final ArrayList<String> ourTopAttributes;
-  protected static final ArrayList<String> ourRightAttributes;
-  protected static final ArrayList<String> ourBottomAttributes;
-  protected static final ArrayList<String> ourBaselineAttributes;
-  protected static final ArrayList<String> ourMarginAttributes;
-  protected static final ArrayList<String> ourHorizontalAttributes;
-  protected static final ArrayList<String> ourVerticalAttributes;
-  protected static final ArrayList<String> ourCreatorAttributes;
+  public static final ArrayList<String> ourLeftAttributes;
+  public static final ArrayList<String> ourTopAttributes;
+  public static final ArrayList<String> ourRightAttributes;
+  public static final ArrayList<String> ourBottomAttributes;
+  public static final ArrayList<String> ourBaselineAttributes;
+  public static final ArrayList<String> ourMarginAttributes;
+  public static final ArrayList<String> ourHorizontalAttributes;
+  public static final ArrayList<String> ourVerticalAttributes;
+  public static final ArrayList<String> ourCreatorAttributes;
 
   static {
     ourReciprocalAttributes = new HashMap<>();
@@ -151,6 +154,7 @@ public class ConstraintComponentUtilities {
 
   /**
    * Given a NlComponent and an attribute, return the corresponding AnchorTarget
+   *
    * @param scene
    * @param targetComponent
    * @param attribute
@@ -167,6 +171,7 @@ public class ConstraintComponentUtilities {
 
   /**
    * Given a NlComponent and an attribute, return the corresponding AnchorTarget
+   *
    * @param scene
    * @param targetComponent
    * @param attribute
@@ -227,9 +232,11 @@ public class ConstraintComponentUtilities {
 
     if (begin != null) {
       return BEGIN;
-    } else if (end != null) {
+    }
+    else if (end != null) {
       return END;
-    } else {
+    }
+    else {
       return PERCENT;
     }
   }
@@ -276,14 +283,17 @@ public class ConstraintComponentUtilities {
       transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, null);
       // transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, null);
       transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
-    } else if (attributes == ourRightAttributes) {
+    }
+    else if (attributes == ourRightAttributes) {
       transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, null);
       // transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, null);
       transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
-    } else if (attributes == ourTopAttributes) {
+    }
+    else if (attributes == ourTopAttributes) {
       transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, null);
       transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
-    } else if (attributes == ourBottomAttributes) {
+    }
+    else if (attributes == ourBottomAttributes) {
       transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, null);
       transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
     }
@@ -353,7 +363,10 @@ public class ConstraintComponentUtilities {
     }
   }
 
-  public static AttributesTransaction updateOnDelete(NlComponent component, ArrayList<String> attributes, AttributesTransaction transaction, String targetId) {
+  public static AttributesTransaction updateOnDelete(NlComponent component,
+                                                     ArrayList<String> attributes,
+                                                     AttributesTransaction transaction,
+                                                     String targetId) {
     if (isConnectedTo(component, attributes, targetId)) {
       if (transaction == null) {
         transaction = component.startAttributeTransaction();
@@ -398,5 +411,273 @@ public class ConstraintComponentUtilities {
       String position = String.format(SdkConstants.VALUE_N_DP, ((int)(0.5f + dy / dipValue)));
       transaction.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, position);
     }
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Utility methods for Scout
+  /////////////////////////////////////////////////////////////////////////////
+
+  public static int getDpX(@NotNull NlComponent component) {
+    float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
+    return (int)(0.5f + component.x / dpiFactor);
+  }
+
+  public static int getDpY(@NotNull NlComponent component) {
+    float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
+    return (int)(0.5f + component.y / dpiFactor);
+  }
+
+  public static int getDpWidth(@NotNull NlComponent component) {
+    float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
+    return (int)(0.5f + component.w / dpiFactor);
+  }
+
+  public static int getDpHeight(@NotNull NlComponent component) {
+    float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
+    return (int)(0.5f + component.h / dpiFactor);
+  }
+
+  public static int getDpBaseline(@NotNull NlComponent component) {
+    float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
+    return (int)(0.5f + component.getBaseline() / dpiFactor);
+  }
+
+  public static boolean hasBaseline(@NotNull NlComponent component) {
+    return component.getBaseline() > 0;
+  }
+
+  public static boolean isGuideline(@NotNull NlComponent component) {
+    return component.viewInfo != null ? component.viewInfo.getClassName().equalsIgnoreCase(CONSTRAINT_LAYOUT_GUIDELINE) : false;
+  }
+
+  public static boolean isHorizontalGuideline(@NotNull NlComponent component) {
+    if (component.viewInfo != null ? component.viewInfo.getClassName().equalsIgnoreCase(CONSTRAINT_LAYOUT_GUIDELINE) : false) {
+      String orientation = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_ORIENTATION);
+      if (orientation != null && orientation.equalsIgnoreCase(SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static boolean isVerticalGuideline(@NotNull NlComponent component) {
+    if (component.viewInfo != null ? component.viewInfo.getClassName().equalsIgnoreCase(CONSTRAINT_LAYOUT_GUIDELINE) : false) {
+      String orientation = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_ORIENTATION);
+      if (orientation != null && orientation.equalsIgnoreCase(SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static boolean isHorizontalResizable(@NotNull NlComponent component) {
+    String dimension = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
+    if (dimension == null) {
+      return false;
+    }
+    if (dimension.equalsIgnoreCase(SdkConstants.VALUE_MATCH_CONSTRAINT)) {
+      return true;
+    }
+    return false;
+  }
+
+  public static boolean isVerticalResizable(@NotNull NlComponent component) {
+    String dimension = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
+    if (dimension == null) {
+      return false;
+    }
+    if (dimension.equalsIgnoreCase(SdkConstants.VALUE_MATCH_CONSTRAINT)) {
+      return true;
+    }
+    return false;
+  }
+
+  public static boolean hasUserResizedHorizontally(@NotNull NlComponent component) {
+    String dimension = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
+    if (dimension == null) {
+      return false;
+    }
+    if (dimension.equalsIgnoreCase(SdkConstants.VALUE_MATCH_CONSTRAINT)) {
+      return true;
+    }
+    // TODO: need to get the wrap_content size. If the wrap content size is less than the current size,
+    // return true as the widget is resizable.
+    return false;
+  }
+
+  public static boolean hasUserResizedVertically(@NotNull NlComponent component) {
+    String dimension = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
+    if (dimension == null) {
+      return false;
+    }
+    if (dimension.equalsIgnoreCase(SdkConstants.VALUE_MATCH_CONSTRAINT)) {
+      return true;
+    }
+    // TODO: need to get the wrap_content size. If the wrap content size is less than the current size,
+    // return true as the widget is resizable.
+    return false;
+  }
+
+  public static int getMargin(@NotNull NlComponent component, String margin_attr) {
+    int margin = 0;
+
+    String marginString = component.getLiveAttribute(SdkConstants.NS_RESOURCES, margin_attr);
+    if (marginString == null) {
+      if (SdkConstants.ATTR_LAYOUT_MARGIN_LEFT.equalsIgnoreCase(margin_attr)) { // left check if it is start
+        marginString = component.getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START);
+      }
+      else { // right check if it is end
+        marginString = component.getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END);
+      }
+    }
+    if (marginString != null) {
+      if (marginString.startsWith("@")) {
+        // TODO handle isMarginReference = true;
+      }
+    }
+    float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
+    return (int)(0.5f + margin / dpiFactor);
+  }
+
+  public static void setAbsoluteDpX(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
+    setAttributeValue(component, SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, dp);
+  }
+
+  public static void setAbsoluteDpY(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
+    setAttributeValue(component, SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, dp);
+  }
+
+  public static void setAbsoluteDpWidth(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
+    setAttributeValue(component, SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH, dp);
+  }
+
+  public static void setAbsoluteDpHeight(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
+    setAttributeValue(component, SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT, dp);
+  }
+
+  public static void setVerticalBiasPercent(@NotNull NlComponent component, @AndroidDpCoordinate float value) {
+    setAttributeValue(component, SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, Float.toString(value));
+  }
+
+  public static void setHorizontalBiasPercent(@NotNull NlComponent component, @AndroidDpCoordinate float value) {
+    setAttributeValue(component, SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, Float.toString(value));
+  }
+
+  public static void setAttributeValue(@NotNull NlComponent component, @NotNull String uri,
+                                       @NotNull String attribute, @AndroidDpCoordinate int dp) {
+    if (dp <= 0) {
+      return;
+    }
+    String position = String.format(SdkConstants.VALUE_N_DP, dp);
+    setAttributeValue(component, uri, attribute, position);
+  }
+
+  public static void clearAttributes(@NotNull NlComponent component, ArrayList<String> attributes) {
+    AttributesTransaction transaction = component.startAttributeTransaction();
+    clearConnections(component, attributes, transaction);
+    transaction.apply();
+
+    NlModel nlModel = component.getModel();
+    Project project = nlModel.getProject();
+    XmlFile file = nlModel.getFile();
+
+    String label = "Clear attributes";
+    AttributesTransaction finalTransaction = transaction;
+    WriteCommandAction action = new WriteCommandAction(project, label, file) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        finalTransaction.commit();
+      }
+    };
+    action.execute();
+  }
+
+  public static void setAttributeValue(@NotNull NlComponent component, @NotNull String uri,
+                                       @NotNull String attribute, @NotNull String value) {
+    AttributesTransaction transaction = component.startAttributeTransaction();
+    transaction.setAttribute(uri, attribute, value);
+    transaction.apply();
+
+    NlModel nlModel = component.getModel();
+    Project project = nlModel.getProject();
+    XmlFile file = nlModel.getFile();
+
+    String label = "Set value";
+    AttributesTransaction finalTransaction = transaction;
+    WriteCommandAction action = new WriteCommandAction(project, label, file) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        finalTransaction.commit();
+      }
+    };
+    action.execute();
+  }
+
+  public static boolean isConstraintLayout(@NotNull NlComponent component) {
+    return component.isOrHasSuperclass(SdkConstants.CONSTRAINT_LAYOUT)
+           || component.getTag().getName().equals(SdkConstants.CONSTRAINT_LAYOUT); // used during layout conversion
+  }
+
+  // ordered the same as Direction enum
+  public static String[][] ATTRIB_MATRIX = {
+    {SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, null, null, null},
+    {SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, null, null, null},
+    {null, null, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, null},
+    {null, null, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, null},
+    {null, null, null, null, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF}
+  };
+  public static String[][] ATTRIB_CLEAR = {
+    {SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF},
+    {SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF},
+    {SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF},
+    {SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_TO_START_OF},
+    {SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF}
+  };
+
+  public static String[] ATTRIB_MARGIN = {
+    SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
+    SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
+    SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
+    SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT
+  };
+
+  public static void connect(NlComponent source, Direction sourceDirection, NlComponent target, Direction targetDirection, int margin) {
+    int srcIndex = sourceDirection.ordinal();
+    String attrib = ATTRIB_MATRIX[srcIndex][targetDirection.ordinal()];
+    if (attrib == null) {
+      System.err.println("cannot connect " + sourceDirection + " to " + targetDirection);
+    }
+    ArrayList<String> list = new ArrayList<String>();
+    for (int i = 0; i < ATTRIB_CLEAR[srcIndex].length; i++) {
+      String clr_attr = ATTRIB_CLEAR[srcIndex][i];
+      if (!attrib.equals(clr_attr)) {
+        list.add(clr_attr);
+      }
+    }
+    final AttributesTransaction transaction = source.startAttributeTransaction();
+    clearAttributes(SHERPA_URI, list, transaction);
+    String targetId = null;
+    if (target == source.getParent()) {
+      targetId = SdkConstants.ATTR_PARENT;
+    }
+    else {
+      targetId = SdkConstants.NEW_ID_PREFIX + target.ensureLiveId();
+    }
+    transaction.setAttribute(SHERPA_URI, attrib, targetId);
+    if (srcIndex <= Direction.BASELINE.ordinal()) {
+      transaction.setAttribute(ANDROID_URI, ATTRIB_MARGIN[srcIndex], margin + "dp");
+    }
+    transaction.apply();
+    NlModel nlModel = source.getModel();
+    Project project = nlModel.getProject();
+    XmlFile file = nlModel.getFile();
+    String label = "Set connect";
+    WriteCommandAction action = new WriteCommandAction(project, label, file) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        transaction.commit();
+      }
+    };
+    action.execute();
   }
 }
