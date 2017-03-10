@@ -23,13 +23,14 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 
 /**
  * Creates a deep copy of {@link OutputFile}.
  *
  * @see IdeAndroidProject
  */
-public class IdeOutputFile implements OutputFile, Serializable {
+final public class IdeOutputFile implements OutputFile, Serializable {
   @NotNull private final String myOutputType;
   @NotNull private final Collection<String> myFilterTypes;
   @NotNull private final Collection<FilterData> myFilters;
@@ -69,5 +70,25 @@ public class IdeOutputFile implements OutputFile, Serializable {
   @NotNull
   public File getOutputFile() {
     return myOutputFile;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof OutputFile)) return false;
+    OutputFile file = (OutputFile)o;
+    return Objects.equals(getOutputType(), file.getOutputType()) &&
+           Objects.equals(getOutputFile(), file.getOutputFile()) &&
+
+           getFilterTypes().containsAll(file.getFilterTypes()) &&
+           file.getFilterTypes().containsAll(getFilterTypes()) &&
+
+           getFilters().containsAll(file.getFilters()) &&
+           file.getFilters().containsAll(getFilters());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getOutputType(), getFilterTypes(), getFilters(), getOutputFile());
   }
 }

@@ -26,7 +26,7 @@ import java.util.Objects;
  *
  * @see IdeAndroidProject
  */
-public class IdeJavaCompileOptions implements JavaCompileOptions, Serializable {
+final public class IdeJavaCompileOptions implements JavaCompileOptions, Serializable {
   @NotNull private final String myEncoding;
   @NotNull private final String mySourceCompatibility;
   @NotNull private final String myTargetCompatibility;
@@ -65,4 +65,8 @@ public class IdeJavaCompileOptions implements JavaCompileOptions, Serializable {
            Objects.equals(getTargetCompatibility(), options.getTargetCompatibility());
   }
 
+  @Override
+  public int hashCode() {
+    return Objects.hash(getEncoding(), getSourceCompatibility(), getTargetCompatibility());
+  }
 }

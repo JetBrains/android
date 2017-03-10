@@ -29,7 +29,7 @@ import java.util.*;
  *
  * Holds copy object of the Android-Gradle project, maintained for persisting the Android model data.
  */
-public class IdeAndroidProject implements AndroidProject, Serializable {
+final public class IdeAndroidProject implements AndroidProject, Serializable {
 
   @NotNull private final String myModelVersion;
   @NotNull private final GradleVersion myModelGradleVersion;
@@ -43,7 +43,7 @@ public class IdeAndroidProject implements AndroidProject, Serializable {
   @NotNull private final Collection<String> myFlavorDimensions;
   @NotNull private final Collection<ArtifactMetaData> myExtraArtifacts;
   @NotNull private final String myCompileTarget;
-  @NotNull private final Collection<String> myBootClassPath;
+  @NotNull private final Collection<String> myBootClasspath;
   @NotNull private final Collection<File> myFrameworkSources;
   @NotNull private final Collection<NativeToolchain> myNativeToolchains;
   @NotNull private final AaptOptions myAaptOptions;
@@ -101,7 +101,7 @@ public class IdeAndroidProject implements AndroidProject, Serializable {
     }
 
     myCompileTarget = project.getCompileTarget();
-    myBootClassPath = new ArrayList<>(project.getBootClasspath());
+    myBootClasspath = new ArrayList<>(project.getBootClasspath());
     myFrameworkSources = new ArrayList<>(project.getFrameworkSources());
 
     myNativeToolchains = new ArrayList<>();
@@ -202,7 +202,7 @@ public class IdeAndroidProject implements AndroidProject, Serializable {
   @Override
   @NotNull
   public Collection<String> getBootClasspath() {
-    return myBootClassPath;
+    return myBootClasspath;
   }
 
   @Override
@@ -277,5 +277,52 @@ public class IdeAndroidProject implements AndroidProject, Serializable {
   @Override
   public int getPluginGeneration() {
     return myPluginGeneration;
+  }
+
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof AndroidProject)) return false;
+    AndroidProject project = (AndroidProject)o;
+
+    return isLibrary() == project.isLibrary() &&
+           getProjectType() == project.getProjectType() &&
+           getApiVersion() == project.getApiVersion() &&
+           getPluginGeneration() == project.getPluginGeneration() &&
+           Objects.equals(getModelVersion(), project.getModelVersion()) &&
+           Objects.equals(getName(), project.getName()) &&
+           Objects.equals(getDefaultConfig(), project.getDefaultConfig()) &&
+
+           getBuildTypes().containsAll(project.getBuildTypes()) &&
+           project.getBuildTypes().containsAll(getBuildTypes()) &&
+
+           Objects.equals(getProductFlavors(), project.getProductFlavors()) &&
+           Objects.equals(getBuildToolsVersion(), project.getBuildToolsVersion()) &&
+           Objects.equals(getResourcePrefix(), project.getResourcePrefix()) &&
+           Objects.equals(getSyncIssues(), project.getSyncIssues()) &&
+           Objects.equals(getVariants(), project.getVariants()) &&
+           Objects.equals(getFlavorDimensions(), project.getFlavorDimensions()) &&
+           Objects.equals(getExtraArtifacts(), project.getExtraArtifacts()) &&
+           Objects.equals(getCompileTarget(), project.getCompileTarget()) &&
+           Objects.equals(getBootClasspath(), project.getBootClasspath()) &&
+           Objects.equals(getFrameworkSources(), project.getFrameworkSources()) &&
+           Objects.equals(getNativeToolchains(), project.getNativeToolchains()) &&
+           Objects.equals(getAaptOptions(), project.getAaptOptions()) &&
+           Objects.equals(getSigningConfigs(), project.getSigningConfigs()) &&
+           Objects.equals(getLintOptions(), project.getLintOptions()) &&
+
+           getUnresolvedDependencies().containsAll(project.getUnresolvedDependencies()) &&
+           project.getUnresolvedDependencies().containsAll(getUnresolvedDependencies()) &&
+
+           Objects.equals(getJavaCompileOptions(), project.getJavaCompileOptions()) &&
+           Objects.equals(getBuildFolder(), project.getBuildFolder());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(isLibrary(), getProjectType(), getApiVersion(), getPluginGeneration(), getModelVersion(), getName(), getDefaultConfig(),
+                        getBuildTypes(), getProductFlavors(), getBuildToolsVersion(), getResourcePrefix(), getSyncIssues(), getVariants(),
+                        getFlavorDimensions(), getExtraArtifacts(), getCompileTarget(), getBootClasspath(), getFrameworkSources(),
+                        getNativeToolchains(), getAaptOptions(), getSigningConfigs(), getLintOptions(), getUnresolvedDependencies(),
+                        getJavaCompileOptions(), getBuildFolder());
   }
 }

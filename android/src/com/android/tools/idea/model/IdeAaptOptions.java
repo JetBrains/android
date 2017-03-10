@@ -23,13 +23,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Creates a deep copy of {@link AaptOptions}.
  *
  * @see IdeAndroidProject
  */
-public class IdeAaptOptions implements AaptOptions, Serializable {
+final public class IdeAaptOptions implements AaptOptions, Serializable {
   @Nullable private final String myIgnoreAssets;
   @Nullable private final Collection<String> myNoCompress;
   @Nullable private final List<String> myAdditionalParameters;
@@ -68,5 +69,20 @@ public class IdeAaptOptions implements AaptOptions, Serializable {
   @Override
   public boolean getFailOnMissingConfigEntry() {
     return myFailOnMissingConfigEntry;
+  }
+
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof AaptOptions)) return false;
+    AaptOptions options = (AaptOptions)o;
+    return getFailOnMissingConfigEntry() == options.getFailOnMissingConfigEntry() &&
+           Objects.equals(getIgnoreAssets(), options.getIgnoreAssets()) &&
+           Objects.equals(getNoCompress(), options.getNoCompress()) &&
+           Objects.equals(getAdditionalParameters(), options.getAdditionalParameters());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getIgnoreAssets(), getNoCompress(), getFailOnMissingConfigEntry(), getAdditionalParameters());
   }
 }

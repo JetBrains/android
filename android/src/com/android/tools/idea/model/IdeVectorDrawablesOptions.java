@@ -29,9 +29,9 @@ import java.util.Set;
  *
  * @see IdeAndroidProject
  */
-public class IdeVectorDrawablesOptions implements VectorDrawablesOptions, Serializable {
-  @Nullable private Set<String> myGeneratedDensities;
-  @Nullable private Boolean myUseSupportLibrary;
+final public class IdeVectorDrawablesOptions implements VectorDrawablesOptions, Serializable {
+  @Nullable private final Set<String> myGeneratedDensities;
+  @Nullable private final Boolean myUseSupportLibrary;
 
   public IdeVectorDrawablesOptions(@Nullable Set<String> generatedDensities, @Nullable Boolean useSupportLibrary) {
     myGeneratedDensities = generatedDensities;
@@ -61,7 +61,29 @@ public class IdeVectorDrawablesOptions implements VectorDrawablesOptions, Serial
     if (this == o) return true;
     if (!(o instanceof IdeVectorDrawablesOptions)) return false;
     IdeVectorDrawablesOptions options = (IdeVectorDrawablesOptions)o;
-    return Objects.equals(getGeneratedDensities(), options.getGeneratedDensities()) &&
-           Objects.equals(getUseSupportLibrary(), options.getUseSupportLibrary());
+
+    if (getGeneratedDensities()==null) {
+      if (options.getGeneratedDensities()!=null) {
+        return false;
+      }
+    }
+    else {
+      if (options.getGeneratedDensities()==null) {
+        return false;
+      }
+      if (!getGeneratedDensities().containsAll(options.getGeneratedDensities())) {
+        return false;
+      }
+      if (!options.getGeneratedDensities().containsAll(getGeneratedDensities())) {
+        return false;
+      }
+    }
+
+    return Objects.equals(getUseSupportLibrary(), options.getUseSupportLibrary());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getGeneratedDensities(), getUseSupportLibrary());
   }
 }

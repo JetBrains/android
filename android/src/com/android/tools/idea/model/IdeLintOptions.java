@@ -29,8 +29,7 @@ import java.util.*;
  *
  * @see IdeAndroidProject
  */
-public class IdeLintOptions implements LintOptions, Serializable {
-  @NotNull private final GradleVersion myGradleVersion;
+final public class IdeLintOptions implements LintOptions, Serializable {
   @NotNull private final Set<String> myDisable;
   @NotNull private final Set<String> myEnable;
   @Nullable private final Set<String> myCheck;
@@ -56,8 +55,6 @@ public class IdeLintOptions implements LintOptions, Serializable {
   private final boolean myCheckReleaseBuilds;
 
   public IdeLintOptions(@NotNull LintOptions options, @NotNull GradleVersion gradleVersion) {
-    myGradleVersion = gradleVersion;
-
     myDisable = new HashSet<>(options.getDisable());
     myEnable = new HashSet<>(options.getEnable());
 
@@ -69,7 +66,7 @@ public class IdeLintOptions implements LintOptions, Serializable {
     myHtmlOutput = options.getHtmlOutput();
     myXmlOutput = options.getXmlOutput();
 
-    if (myGradleVersion.isAtLeast(2, 3, 0, "beta", 2, true)) {
+    if (gradleVersion.isAtLeast(2, 3, 0, "beta", 2, true)) {
       myBaselineFile = options.getBaselineFile();
     }
     else {
@@ -87,7 +84,7 @@ public class IdeLintOptions implements LintOptions, Serializable {
     myIgnoreWarnings = options.isIgnoreWarnings();
     myWarningsAsErrors = options.isWarningsAsErrors();
 
-    if (myGradleVersion.isAtLeast(2,4,0)) {
+    if (gradleVersion.isAtLeast(2,4,0)) {
       myCheckTestSources = options.isCheckTestSources();
     }
     else {
@@ -256,4 +253,12 @@ public class IdeLintOptions implements LintOptions, Serializable {
            Objects.equals(getSeverityOverrides(), options.getSeverityOverrides());
   }
 
+  @Override
+  public int hashCode() {
+    return Objects
+      .hash(getDisable(), getEnable(), getCheck(), getLintConfig(), getTextOutput(), getHtmlOutput(), getXmlOutput(), getBaselineFile(),
+            getSeverityOverrides(), isAbortOnError(), isAbsolutePaths(), isNoLines(), isQuiet(), isCheckAllWarnings(), isIgnoreWarnings(),
+            isWarningsAsErrors(), isCheckTestSources(), isExplainIssues(), isShowAll(), getTextReport(), getHtmlReport(), getXmlReport(),
+            isCheckReleaseBuilds());
+  }
 }

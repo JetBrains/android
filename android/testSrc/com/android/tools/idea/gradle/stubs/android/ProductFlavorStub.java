@@ -16,14 +16,19 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.builder.model.*;
+import com.android.tools.idea.model.IdeVectorDrawablesOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class ProductFlavorStub implements ProductFlavor {
   @NotNull private final String myName;
+  @NotNull private final VectorDrawablesOptions myVectorDrawablesOptions;
 
   /**
    * Creates a new {@code ProductFlavorStub}.
@@ -32,6 +37,7 @@ public class ProductFlavorStub implements ProductFlavor {
    */
   ProductFlavorStub(@NotNull String name) {
     this.myName = name;
+    myVectorDrawablesOptions = new IdeVectorDrawablesOptions(null, null);
   }
 
   @Override
@@ -49,132 +55,132 @@ public class ProductFlavorStub implements ProductFlavor {
   @Override
   @Nullable
   public String getVersionNameSuffix() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   @Nullable
   public String getDimension() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   @Nullable
   public String getApplicationId() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   public Integer getVersionCode() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   @Nullable
   public String getVersionName() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   public ApiVersion getMinSdkVersion() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   public ApiVersion getTargetSdkVersion() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   @Nullable
   public Integer getMaxSdkVersion() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   public Integer getRenderscriptTargetApi() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   public Boolean getRenderscriptSupportModeEnabled() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   public Boolean getRenderscriptSupportModeBlasEnabled() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   public Boolean getRenderscriptNdkModeEnabled() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   @Nullable
   public String getTestApplicationId() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   @Nullable
   public String getTestInstrumentationRunner() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   @NotNull
   public Map<String, String> getTestInstrumentationRunnerArguments() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyMap();
   }
 
   @Override
   @Nullable
   public Boolean getTestHandleProfiling() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   @Nullable
   public Boolean getTestFunctionalTest() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   @NotNull
   public Collection<String> getResourceConfigurations() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Override
   @Nullable
   public SigningConfig getSigningConfig() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   @NotNull
   public VectorDrawablesOptions getVectorDrawables() {
-    throw new UnsupportedOperationException();
+    return myVectorDrawablesOptions;
   }
 
   @Override
   @Nullable
   public Boolean getWearAppUnbundled() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
   @NotNull
   public Map<String, Object> getManifestPlaceholders() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyMap();
   }
 
   @Override
   @Nullable
   public Boolean getMultiDexEnabled() {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
@@ -198,7 +204,7 @@ public class ProductFlavorStub implements ProductFlavor {
   @Override
   @NotNull
   public Map<String, ClassField> getBuildConfigFields() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyMap();
   }
 
   @Override
@@ -210,18 +216,18 @@ public class ProductFlavorStub implements ProductFlavor {
   @Override
   @NotNull
   public List<File> getProguardFiles() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Override
   @NotNull
   public List<File> getConsumerProguardFiles() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 
   @Override
   @NotNull
   public Collection<File> getTestProguardFiles() {
-    throw new UnsupportedOperationException();
+    return Collections.emptyList();
   }
 }

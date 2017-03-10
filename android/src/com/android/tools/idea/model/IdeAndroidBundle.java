@@ -16,10 +16,7 @@
 package com.android.tools.idea.model;
 
 import com.android.annotations.Nullable;
-import com.android.builder.model.AndroidBundle;
-import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.JavaLibrary;
-import com.android.builder.model.Library;
+import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +32,8 @@ import java.util.Map;
  *
  * @see IdeAndroidProject
  */
-public class IdeAndroidBundle extends IdeLibrary implements AndroidBundle, Serializable {
+public class IdeAndroidBundle implements AndroidBundle, Serializable {
+  @NotNull private final MavenCoordinates myResolvedCoordinates;
   @NotNull private final File myBundle;
   @NotNull private final File myFolder;
   @NotNull private final List<IdeAndroidLibrary> myLibraryDependencies;
@@ -44,10 +42,16 @@ public class IdeAndroidBundle extends IdeLibrary implements AndroidBundle, Seria
   @NotNull private final File myJarFile;
   @NotNull private final File myResFolder;
   @NotNull private final File myAssetsFolder;
+  @Nullable private final String myProject;
+  @Nullable private final String myName;
+  @Nullable private final MavenCoordinates myRequestedCoordinates;
   @Nullable private final String myProjectVariant;
+  private final boolean mySkipped;
+  private final boolean myProvided;
 
   public IdeAndroidBundle(@NotNull AndroidBundle bundle, @NotNull Map<Library, Library> seen, @NotNull GradleVersion gradleVersion) {
-    super(bundle, gradleVersion);
+    myResolvedCoordinates = new IdeMavenCoordinates(bundle.getResolvedCoordinates(), gradleVersion);
+
     myBundle = bundle.getBundle();
     myFolder = bundle.getFolder();
 
@@ -71,7 +75,31 @@ public class IdeAndroidBundle extends IdeLibrary implements AndroidBundle, Seria
     myJarFile = bundle.getJarFile();
     myResFolder = bundle.getResFolder();
     myAssetsFolder = bundle.getAssetsFolder();
+    myProject = bundle.getProject();
+    myName = bundle.getName();
+
+    MavenCoordinates liRequestedCoordinate = bundle.getRequestedCoordinates();
+    myRequestedCoordinates = liRequestedCoordinate == null ? null :new IdeMavenCoordinates(liRequestedCoordinate, gradleVersion);
+
     myProjectVariant = bundle.getProjectVariant();
+    mySkipped = bundle.isSkipped();
+
+    boolean provided = false;
+    try {
+      provided = bundle.isProvided();
+    }
+    catch (NullPointerException e) {
+      provided = false;
+    }
+    finally {
+      myProvided = provided;
+    }
+  }
+
+  @Override
+  @NotNull
+  public MavenCoordinates getResolvedCoordinates() {
+    return myResolvedCoordinates;
   }
 
   @Override
@@ -122,9 +150,37 @@ public class IdeAndroidBundle extends IdeLibrary implements AndroidBundle, Seria
     return myAssetsFolder;
   }
 
-  @Nullable
   @Override
+  @Nullable
+  public String getProject() {
+    return myProject;
+  }
+
+  @Override
+  @Nullable
+  public String getName() {
+    return myName;
+  }
+
+  @Override
+  @Nullable
+  public MavenCoordinates getRequestedCoordinates() {
+    return myRequestedCoordinates;
+  }
+
+  @Override
+  @Nullable
   public String getProjectVariant() {
     return myProjectVariant;
+  }
+
+  @Override
+  public boolean isSkipped() {
+    return mySkipped;
+  }
+
+  @Override
+  public boolean isProvided() {
+    return myProvided;
   }
 }

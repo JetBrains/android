@@ -21,15 +21,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Objects;
 
 /**
  * Creates a deep copy of {@link VariantOutput}.
  *
  * @see IdeAndroidProject
  */
-public class IdeVariantOutput implements VariantOutput, Serializable {
+final public class IdeVariantOutput implements VariantOutput, Serializable {
   @NotNull private final OutputFile myMainOutputFile;
   @NotNull private final Collection<IdeOutputFile> myOutputs;
   @NotNull private final File mySplitFolder;
@@ -38,7 +39,7 @@ public class IdeVariantOutput implements VariantOutput, Serializable {
   public IdeVariantOutput(@NotNull VariantOutput output) {
     myMainOutputFile = new IdeOutputFile(output.getMainOutputFile());
 
-    myOutputs = new HashSet<>();
+    myOutputs = new ArrayList<>();
     for (OutputFile file : output.getOutputs()) {
       myOutputs.add(new IdeOutputFile(file));
     }
@@ -68,5 +69,23 @@ public class IdeVariantOutput implements VariantOutput, Serializable {
   @Override
   public int getVersionCode() {
     return myVersionCode;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof VariantOutput)) return false;
+    VariantOutput output = (VariantOutput)o;
+    return getVersionCode() == output.getVersionCode() &&
+           Objects.equals(getMainOutputFile(), output.getMainOutputFile()) &&
+           Objects.equals(getSplitFolder(), output.getSplitFolder()) &&
+
+           getOutputs().containsAll(output.getOutputs()) &&
+           output.getOutputs().containsAll(getOutputs());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getMainOutputFile(), getOutputs(), getSplitFolder(), getVersionCode());
   }
 }

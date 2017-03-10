@@ -21,18 +21,27 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Creates a deep copy of {@link DependencyGraphs}.
  *
  * @see IdeAndroidProject
  */
-public class IdeDependencyGraphs implements DependencyGraphs, Serializable {
+final public class IdeDependencyGraphs implements DependencyGraphs, Serializable {
   @NotNull private final List<GraphItem> myCompileDependencies;
   @NotNull private final List<GraphItem> myPackageDependencies;
   @NotNull private final List<String> myProvidedLibraries;
   @NotNull private final List<String> mySkippedLibraries;
+
+  public IdeDependencyGraphs(){
+    myCompileDependencies = Collections.emptyList();
+    myPackageDependencies = Collections.emptyList();
+    myProvidedLibraries = Collections.emptyList();
+    mySkippedLibraries = Collections.emptyList();
+  }
 
   public IdeDependencyGraphs(@NotNull DependencyGraphs graphs) {
     myCompileDependencies = new ArrayList<>();
@@ -71,5 +80,21 @@ public class IdeDependencyGraphs implements DependencyGraphs, Serializable {
   @NotNull
   public List<String> getSkippedLibraries() {
     return mySkippedLibraries;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof DependencyGraphs)) return false;
+    DependencyGraphs graphs = (DependencyGraphs)o;
+    return Objects.equals(getCompileDependencies(), graphs.getCompileDependencies()) &&
+           Objects.equals(getPackageDependencies(), graphs.getPackageDependencies()) &&
+           Objects.equals(getProvidedLibraries(), graphs.getProvidedLibraries()) &&
+           Objects.equals(getSkippedLibraries(), graphs.getSkippedLibraries());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getCompileDependencies(), getPackageDependencies(), getProvidedLibraries(), getSkippedLibraries());
   }
 }

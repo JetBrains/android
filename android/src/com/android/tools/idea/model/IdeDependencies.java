@@ -24,14 +24,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Creates a deep copy of {@link Dependencies}.
  *
  * @see IdeAndroidProject
  */
-public class IdeDependencies implements Dependencies, Serializable {
-  @NotNull private final GradleVersion myModelGradleVersion;
+final public class IdeDependencies implements Dependencies, Serializable {
   @NotNull private final Collection<AndroidAtom> myAtoms;
   @NotNull private final Collection<AndroidLibrary> myLibraries;
   @NotNull private final Collection<JavaLibrary> myJavaLibraries;
@@ -39,9 +39,8 @@ public class IdeDependencies implements Dependencies, Serializable {
   @Nullable private final AndroidAtom myBaseAtom;
 
   public IdeDependencies(@NotNull Dependencies dependencies, @NotNull Map<Library, Library> seen, GradleVersion gradleVersion) {
-    myModelGradleVersion = gradleVersion;
     myAtoms = new ArrayList<>();
-    if (myModelGradleVersion.isAtLeast(2,3,0)) {
+    if (gradleVersion.isAtLeast(2,3,0)) {
       for (AndroidAtom atom : dependencies.getAtoms()) {
         if (!seen.containsKey(atom)) {
           seen.put(atom, new IdeAndroidAtom(atom, seen, gradleVersion));
@@ -68,7 +67,7 @@ public class IdeDependencies implements Dependencies, Serializable {
 
     myProjects = new ArrayList<>(dependencies.getProjects());
 
-    if (myModelGradleVersion.isAtLeast(2,3,0)) {
+    if (gradleVersion.isAtLeast(2,3,0)) {
       AndroidAtom deBaseAtom = dependencies.getBaseAtom();
       if (deBaseAtom != null) {
         if (!seen.containsKey(deBaseAtom)) {
@@ -113,5 +112,30 @@ public class IdeDependencies implements Dependencies, Serializable {
   @Nullable
   public AndroidAtom getBaseAtom() {
     return myBaseAtom;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof Dependencies)) return false;
+    Dependencies that = (Dependencies)o;
+    return getAtoms().containsAll(that.getAtoms()) &&
+           that.getAtoms().containsAll(getAtoms()) &&
+
+           getLibraries().containsAll(that.getLibraries()) &&
+           that.getLibraries().containsAll(getLibraries()) &&
+
+           getJavaLibraries().containsAll(that.getJavaLibraries()) &&
+           that.getJavaLibraries().containsAll(getJavaLibraries()) &&
+
+           getProjects().containsAll(that.getProjects()) &&
+           that.getProjects().containsAll(getProjects()) &&
+
+           Objects.equals(getBaseAtom(), that.getBaseAtom());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getAtoms(), getLibraries(), getJavaLibraries(), getProjects(), getBaseAtom());
   }
 }

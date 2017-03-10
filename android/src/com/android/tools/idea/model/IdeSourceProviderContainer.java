@@ -20,13 +20,14 @@ import com.android.builder.model.SourceProviderContainer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Creates a deep copy of {@link SourceProviderContainer}.
  *
  * @see IdeAndroidProject
  */
-public class IdeSourceProviderContainer implements SourceProviderContainer, Serializable {
+final public class IdeSourceProviderContainer implements SourceProviderContainer, Serializable {
   @NotNull private final String myArtifactName;
   @NotNull private final SourceProvider mySourceProvider;
 
@@ -45,5 +46,19 @@ public class IdeSourceProviderContainer implements SourceProviderContainer, Seri
   @NotNull
   public SourceProvider getSourceProvider() {
     return mySourceProvider;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof SourceProviderContainer)) return false;
+    SourceProviderContainer container = (SourceProviderContainer)o;
+    return Objects.equals(getArtifactName(), container.getArtifactName()) &&
+           Objects.equals(getSourceProvider(), container.getSourceProvider());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getArtifactName(), getSourceProvider());
   }
 }

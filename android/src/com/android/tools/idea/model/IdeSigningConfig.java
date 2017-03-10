@@ -28,7 +28,7 @@ import java.util.Objects;
  *
  * @see IdeAndroidProject
  */
-public class IdeSigningConfig implements SigningConfig, Serializable {
+final public class IdeSigningConfig implements SigningConfig, Serializable {
   @NotNull private final String myName;
   @Nullable private final File myStoreFile;
   @Nullable private final String myStorePassword;
@@ -135,4 +135,10 @@ public class IdeSigningConfig implements SigningConfig, Serializable {
            Objects.equals(getStoreType(), config.getStoreType());
   }
 
+  @Override
+  public int hashCode() {
+    return Objects
+      .hash(getName(), getStoreFile(), getStorePassword(), getKeyAlias(), getKeyPassword(), getStoreType(), isV1SigningEnabled(),
+            isV2SigningEnabled(), isSigningReady());
+  }
 }

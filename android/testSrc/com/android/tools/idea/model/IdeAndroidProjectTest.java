@@ -15,100 +15,57 @@
  */
 package com.android.tools.idea.model;
 
-import com.android.builder.model.*;
+import com.android.builder.model.AndroidProject;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.stubs.android.*;
 import com.intellij.testFramework.UsefulTestCase;
-
-import java.util.Collections;
-
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
+import nl.jqno.equalsverifier.EqualsVerifier;
 
 /**
  * Tests for {@link IdeAndroidProject}.
  */
 public class IdeAndroidProjectTest extends UsefulTestCase {
-  private AndroidProject project = TestProjects.createFlavorsProject();
-  private AndroidProject mySpyAndroidProject = spy(project);
+  private AndroidProject myAndroidProject = TestProjects.createFlavorsProject();
   private IdeAndroidProject myIdeAndroidProject;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-
-    // Add objects to not supported methods on AndroidProjectStub
-    ProductFlavorContainer spyDefaultConfig = spy(mySpyAndroidProject.getDefaultConfig());
-    ProductFlavor ideProductFlavorStub = new IdeProductFlavorStub(spyDefaultConfig.getProductFlavor().getName());
-    doReturn(ideProductFlavorStub).when(spyDefaultConfig).getProductFlavor();
-
-    SourceProvider ideSourceProviderStub = new IdeSourceProviderStub(((SourceProviderStub)spyDefaultConfig.getSourceProvider()).getFileStructure(), "stubSourceProvider");
-    doReturn(ideSourceProviderStub).when(spyDefaultConfig).getSourceProvider();
-
-    doReturn(Collections.emptyList()).when(spyDefaultConfig).getExtraSourceProviders();
-
-    doReturn(spyDefaultConfig).when(mySpyAndroidProject).getDefaultConfig();
-
-    doReturn(Collections.emptyList()).when(mySpyAndroidProject).getBuildTypes();
-
-    doReturn(Collections.emptyList()).when(mySpyAndroidProject).getProductFlavors();
-
-    doReturn("BuildToolsVersion").when(mySpyAndroidProject).getBuildToolsVersion();
-
-    doReturn(Collections.emptyList()).when(mySpyAndroidProject).getVariants();
-
-    doReturn(Collections.emptyList()).when(mySpyAndroidProject).getExtraArtifacts();
-
-    doReturn("CompileTarget").when(mySpyAndroidProject).getCompileTarget();
-
-    doReturn(Collections.emptyList()).when(mySpyAndroidProject).getBootClasspath();
-
-    doReturn(Collections.emptyList()).when(mySpyAndroidProject).getFrameworkSources();
-
-    doReturn(Collections.emptyList()).when(mySpyAndroidProject).getNativeToolchains();
-
-    AaptOptions ideAaptOptionsStub = new IdeAaptOptionsStub("AndroidProject_");
-    doReturn(ideAaptOptionsStub).when(mySpyAndroidProject).getAaptOptions();
-
-    LintOptions ideLintOptionsStub = new IdeLintOptionsStub();
-    doReturn(ideLintOptionsStub).when(mySpyAndroidProject).getLintOptions();
-
-    myIdeAndroidProject = new IdeAndroidProject(mySpyAndroidProject);
-
+    myIdeAndroidProject = new IdeAndroidProject(myAndroidProject);
   }
 
   public void testCopyAndroidProject() throws AssertionError{
-    //ToDo: Verify all getters return the same value
-    assertEquals(mySpyAndroidProject.getAaptOptions(), myIdeAndroidProject.getAaptOptions());
-    assertEquals(mySpyAndroidProject.getApiVersion(), myIdeAndroidProject.getApiVersion());
-    assertSameElements(mySpyAndroidProject.getBootClasspath(), myIdeAndroidProject.getBootClasspath());
-    assertEquals(mySpyAndroidProject.getBuildFolder(), myIdeAndroidProject.getBuildFolder());
-    assertEquals(mySpyAndroidProject.getBuildToolsVersion(), myIdeAndroidProject.getBuildToolsVersion());
-    assertSameElements(mySpyAndroidProject.getBuildTypes(), myIdeAndroidProject.getBuildTypes());
-    assertEquals(mySpyAndroidProject.getCompileTarget(), myIdeAndroidProject.getCompileTarget());
+    assertEquals(myIdeAndroidProject, myAndroidProject);
+  }
 
-    //assertEquals(mySpyAndroidProject.getDefaultConfig(), myIdeAndroidProject.getDefaultConfig());
-    assertSameElements(mySpyAndroidProject.getDefaultConfig().getExtraSourceProviders(), myIdeAndroidProject.getDefaultConfig().getExtraSourceProviders());
-    assertEquals(mySpyAndroidProject.getDefaultConfig().getProductFlavor(), myIdeAndroidProject.getDefaultConfig().getProductFlavor());
-    assertEquals(mySpyAndroidProject.getDefaultConfig().getSourceProvider(), myIdeAndroidProject.getDefaultConfig().getSourceProvider());
-
-    assertSameElements(mySpyAndroidProject.getExtraArtifacts(), myIdeAndroidProject.getExtraArtifacts());
-    assertSameElements(mySpyAndroidProject.getFlavorDimensions(), myIdeAndroidProject.getFlavorDimensions());
-    assertSameElements(mySpyAndroidProject.getFrameworkSources(), myIdeAndroidProject.getFrameworkSources());
-    assertEquals(myIdeAndroidProject.getJavaCompileOptions(), mySpyAndroidProject.getJavaCompileOptions());
-    assertEquals(myIdeAndroidProject.getLintOptions(), mySpyAndroidProject.getLintOptions());
-
-    assertEquals(mySpyAndroidProject.getModelVersion(), myIdeAndroidProject.getModelVersion());
-    assertEquals(mySpyAndroidProject.getName(), myIdeAndroidProject.getName());
-    assertSameElements(mySpyAndroidProject.getNativeToolchains(), myIdeAndroidProject.getNativeToolchains());
-    assertEquals(mySpyAndroidProject.getPluginGeneration(), myIdeAndroidProject.getPluginGeneration());
-    assertSameElements(mySpyAndroidProject.getProductFlavors(), myIdeAndroidProject.getProductFlavors());
-    assertEquals(mySpyAndroidProject.getProjectType(), myIdeAndroidProject.getProjectType());
-    assertEquals(mySpyAndroidProject.getResourcePrefix(), myIdeAndroidProject.getResourcePrefix());
-    assertSameElements(mySpyAndroidProject.getSigningConfigs(), myIdeAndroidProject.getSigningConfigs());
-    assertSameElements(mySpyAndroidProject.getSyncIssues(), myIdeAndroidProject.getSyncIssues());
-    assertSameElements(mySpyAndroidProject.getUnresolvedDependencies(), myIdeAndroidProject.getUnresolvedDependencies());
-    assertSameElements(mySpyAndroidProject.getVariants(), myIdeAndroidProject.getVariants());
-    assertEquals(mySpyAndroidProject.isLibrary(), myIdeAndroidProject.isLibrary());
+  public void testEquals() throws Exception{
+    // Run EqualsVerifier on all classes that add an equals and hashCode functions
+    EqualsVerifier.forClass(IdeAaptOptions.class).verify();
+    EqualsVerifier.forClass(IdeAndroidArtifact.class)
+      .withIgnoredFields("myGradleVersion", "myDependencyGraphs")
+      .verify();
+    EqualsVerifier.forClass(IdeAndroidArtifactOutput.class).verify();
+    EqualsVerifier.forClass(IdeApiVersion.class).verify();
+    EqualsVerifier.forClass(IdeAndroidArtifactOutput.class).verify();
+    EqualsVerifier.forClass(IdeBaseArtifact.class)
+      .withIgnoredFields("myGradleVersion", "myDependencyGraphs")
+      .verify();
+    EqualsVerifier.forClass(IdeBuildType.class).verify();
+    EqualsVerifier.forClass(IdeBuildTypeContainer.class).verify();
+    EqualsVerifier.forClass(IdeDependencies.class).verify();
+    EqualsVerifier.forClass(IdeDependencyGraphs.class).verify();
+    EqualsVerifier.forClass(IdeInstantRun.class).verify();
+    EqualsVerifier.forClass(IdeJavaArtifact.class).verify();
+    EqualsVerifier.forClass(IdeJavaCompileOptions.class).verify();
+    EqualsVerifier.forClass(IdeLintOptions.class).verify();
+    EqualsVerifier.forClass(IdeNativeLibrary.class).verify();
+    EqualsVerifier.forClass(IdeOutputFile.class).verify();
+    EqualsVerifier.forClass(IdeProductFlavor.class).verify();
+    EqualsVerifier.forClass(IdeProductFlavorContainer.class).verify();
+    EqualsVerifier.forClass(IdeSigningConfig.class).verify();
+    EqualsVerifier.forClass(IdeSourceProvider.class).verify();
+    EqualsVerifier.forClass(IdeSourceProviderContainer.class).verify();
+    EqualsVerifier.forClass(IdeVariant.class).verify();
+    EqualsVerifier.forClass(IdeVariantOutput.class).verify();
+    EqualsVerifier.forClass(IdeVectorDrawablesOptions.class).verify();
   }
 }

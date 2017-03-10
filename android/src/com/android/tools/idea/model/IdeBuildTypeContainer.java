@@ -24,13 +24,14 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * Creates a deep copy of {@link BuildTypeContainer}.
  *
  * @see IdeAndroidProject
  */
-public class IdeBuildTypeContainer implements BuildTypeContainer, Serializable {
+final public class IdeBuildTypeContainer implements BuildTypeContainer, Serializable {
   @NotNull private final BuildType myBuildType;
   @NotNull private final SourceProvider mySourceProvider;
   @NotNull private final Collection<SourceProviderContainer> myExtraSourceProviders;
@@ -61,5 +62,22 @@ public class IdeBuildTypeContainer implements BuildTypeContainer, Serializable {
   @NotNull
   public Collection<SourceProviderContainer> getExtraSourceProviders() {
     return myExtraSourceProviders;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof BuildTypeContainer)) return false;
+    BuildTypeContainer container = (BuildTypeContainer)o;
+    return Objects.equals(getBuildType(), container.getBuildType()) &&
+           Objects.equals(getSourceProvider(), container.getSourceProvider()) &&
+
+           getExtraSourceProviders().containsAll(container.getExtraSourceProviders()) &&
+           container.getExtraSourceProviders().containsAll(getExtraSourceProviders());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getBuildType(), getSourceProvider(), getExtraSourceProviders());
   }
 }

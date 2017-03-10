@@ -22,13 +22,14 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Creates a deep copy of {@link NativeLibrary}.
  *
  * @see IdeAndroidProject
  */
-public class IdeNativeLibrary implements NativeLibrary, Serializable {
+final public class IdeNativeLibrary implements NativeLibrary, Serializable {
   @NotNull private final String myName;
   @NotNull private final String myAbi;
   @NotNull private final String myToolchainName;
@@ -127,5 +128,31 @@ public class IdeNativeLibrary implements NativeLibrary, Serializable {
   @NotNull
   public List<File> getDebuggableLibraryFolders() {
     return myDebuggableLibraryFolders;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof NativeLibrary)) return false;
+    NativeLibrary library = (NativeLibrary)o;
+    return Objects.equals(getName(), library.getName()) &&
+           Objects.equals(getAbi(), library.getAbi()) &&
+           Objects.equals(getToolchainName(), library.getToolchainName()) &&
+           Objects.equals(getCIncludeDirs(), library.getCIncludeDirs()) &&
+           Objects.equals(getCppIncludeDirs(), library.getCppIncludeDirs()) &&
+           Objects.equals(getCSystemIncludeDirs(), library.getCSystemIncludeDirs()) &&
+           Objects.equals(getCppSystemIncludeDirs(), library.getCppSystemIncludeDirs()) &&
+           Objects.equals(getCDefines(), library.getCDefines()) &&
+           Objects.equals(getCppDefines(), library.getCppDefines()) &&
+           Objects.equals(getCCompilerFlags(), library.getCCompilerFlags()) &&
+           Objects.equals(getCppCompilerFlags(), library.getCppCompilerFlags()) &&
+           Objects.equals(getDebuggableLibraryFolders(), library.getDebuggableLibraryFolders());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getName(), getAbi(), getToolchainName(), getCIncludeDirs(), getCppIncludeDirs(), getCSystemIncludeDirs(),
+                        getCppSystemIncludeDirs(), getCDefines(), getCppDefines(), getCCompilerFlags(), getCppCompilerFlags(),
+                        getDebuggableLibraryFolders());
   }
 }
