@@ -21,7 +21,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
