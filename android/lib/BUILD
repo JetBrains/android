@@ -88,3 +88,10 @@ java_import(
     tags = ["managed"],
     visibility = ["//visibility:public"],
 )
+
+java_import(
+    name = "guava-testlib-21.0",
+    jars = ["guava-testlib-21.0.jar"],
+    tags = ["managed"],
+    visibility = ["//visibility:public"],
+)
