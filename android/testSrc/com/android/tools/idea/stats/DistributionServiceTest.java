@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -49,6 +50,7 @@ public class DistributionServiceTest extends AndroidTestCase {
 
   private File myDistributionFile;
   private DownloadableFileDescription myDescription;
+  private FileDownloader downloader;
 
   @Override
   public void setUp() throws Exception {
@@ -66,13 +68,19 @@ public class DistributionServiceTest extends AndroidTestCase {
         }
       }
     }
+    downloader = Mockito.mock(FileDownloader.class);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    Mockito.reset(downloader);
+    super.tearDown();
   }
 
   /**
    * Test that we get back the correct sum for an api level
    */
   public void testSimpleCase() throws Exception {
-    FileDownloader downloader = Mockito.mock(FileDownloader.class);
     Mockito.when(downloader.download(Matchers.any(File.class)))
       .thenReturn(ImmutableList.of(Pair.create(myDistributionFile, myDescription)));
     DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
@@ -85,7 +93,6 @@ public class DistributionServiceTest extends AndroidTestCase {
    * @throws Exception
    */
   public void testCache() throws Exception {
-    FileDownloader downloader = Mockito.mock(FileDownloader.class);
     Mockito.when(downloader.download(Matchers.any(File.class)))
       .thenReturn(ImmutableList.of(Pair.create(myDistributionFile, myDescription)));
     DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
@@ -98,8 +105,8 @@ public class DistributionServiceTest extends AndroidTestCase {
    * Test that refresh will run asynchronously.
    */
   public void testAsync() throws Exception {
-    final FileDownloader downloader = Mockito.mock(FileDownloader.class);
     final Semaphore s = new Semaphore();
+    CountDownLatch refreshed = new CountDownLatch(1);
     s.down();
     Mockito.when(downloader.download(Matchers.any(File.class))).thenAnswer(new Answer<List<Pair<File, DownloadableFileDescription>>>() {
       @Override
@@ -121,16 +128,20 @@ public class DistributionServiceTest extends AndroidTestCase {
         catch (IOException e) {
           throw new RuntimeException(e);
         }
+        finally {
+          Mockito.reset();
+          refreshed.countDown();
+        }
       }
     }, null);
     s.up();
+    refreshed.await();
   }
 
   /**
    * Test that if we get another call to refresh while one is in progress, it's callbacks will be queued.
    */
   public void testAsync2() throws Exception {
-    final FileDownloader downloader = Mockito.mock(FileDownloader.class);
     final Semaphore s = new Semaphore();
     s.down();
     final Semaphore s2 = new Semaphore();
@@ -147,14 +158,24 @@ public class DistributionServiceTest extends AndroidTestCase {
     service.refresh(new Runnable() {
       @Override
       public void run() {
-        check.set(true);
+        try {
+          check.set(true);
+        }
+        finally {
+          Mockito.reset();
+        }
       }
     }, null);
     service.refresh(new Runnable() {
       @Override
       public void run() {
-        assertTrue(check.get());
-        s2.up();
+        try {
+          assertTrue(check.get());
+          s2.up();
+        }
+        finally {
+          Mockito.reset();
+        }
       }
     }, null);
 
@@ -176,7 +197,6 @@ public class DistributionServiceTest extends AndroidTestCase {
    * Test that the failure callback will be called if the download fails, and then the fallback data will be used.
    */
   public void testFailure() throws Exception {
-    FileDownloader downloader = Mockito.mock(FileDownloader.class);
     Mockito.when(downloader.download(Matchers.any(File.class))).thenThrow(new RuntimeException("expected exception"));
 
     DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
@@ -184,12 +204,22 @@ public class DistributionServiceTest extends AndroidTestCase {
     service.refresh(new Runnable() {
       @Override
       public void run() {
-        assert false;
+        try {
+          assert false;
+        }
+        finally {
+          Mockito.reset();
+        }
       }
     }, new Runnable() {
       @Override
       public void run() {
-        result.set(true);
+        try {
+          result.set(true);
+        }
+        finally {
+          Mockito.reset();
+        }
       }
     });
     assertTrue(result.get(5, TimeUnit.SECONDS));
@@ -214,19 +244,28 @@ public class DistributionServiceTest extends AndroidTestCase {
       fail();
     }
 
-    FileDownloader downloader = Mockito.mock(FileDownloader.class);
     Mockito.when(downloader.download(Matchers.any(File.class))).thenThrow(new RuntimeException("expected exception"));
     DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     final FutureResult<Boolean> result = new FutureResult<>();
     service.refresh(new Runnable() {
       @Override
       public void run() {
-        result.set(true);
+        try {
+          result.set(true);
+        }
+        finally {
+          Mockito.reset();
+        }
       }
     }, new Runnable() {
       @Override
       public void run() {
-        assert false;
+        try {
+          assert false;
+        }
+        finally {
+          Mockito.reset();
+        }
       }
     });
     assertTrue(result.get(5, TimeUnit.SECONDS));
