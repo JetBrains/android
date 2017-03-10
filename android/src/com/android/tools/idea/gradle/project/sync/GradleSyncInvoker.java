@@ -28,6 +28,8 @@ import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -101,8 +103,8 @@ public class GradleSyncInvoker {
       return;
     }
 
-    invokeAndWaitIfNeeded(() -> ensureToolWindowContentInitialized(project, GRADLE_SYSTEM_ID));
     Runnable syncTask = () -> {
+      ensureToolWindowContentInitialized(project, GRADLE_SYSTEM_ID);
       try {
         if (prepareProject(project, request, listener)) {
           sync(project, request, listener);
@@ -113,11 +115,15 @@ public class GradleSyncInvoker {
       }
     };
 
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      syncTask.run();
+      return;
+    }
     if (request.isRunInBackground()) {
-      invokeLaterIfProjectAlive(project, syncTask);
+      TransactionGuard.getInstance().submitTransactionLater(project, syncTask);
     }
     else {
-      invokeAndWaitIfNeeded(syncTask);
+      TransactionGuard.getInstance().submitTransactionAndWait(syncTask);
     }
   }
 
