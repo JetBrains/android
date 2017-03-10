@@ -899,13 +899,13 @@ public class InteractionManager {
       if (!(myCurrentInteraction instanceof DragDropInteraction)) {
         return null;
       }
-      InsertType insertType = updateDropInteraction(dropAction, transferable);
+      InsertType insertType = finishDropInteraction(dropAction, transferable);
       finishInteraction(myLastMouseX, myLastMouseY, ourLastStateMask, (insertType == null));
       return insertType;
     }
 
     @Nullable
-    private InsertType updateDropInteraction(int dropAction, @Nullable Transferable transferable) {
+    private InsertType finishDropInteraction(int dropAction, @Nullable Transferable transferable) {
       if (transferable == null) {
         return null;
       }
@@ -947,7 +947,11 @@ public class InteractionManager {
         components.get(index).x = dragged.get(index).getNlComponent().x;
         components.get(index).y = dragged.get(index).getNlComponent().y;
       }
+
+      // Remove the temporary components from the scene
+      dragged.forEach(SceneComponent::removeFromParent);
       dragged.clear();
+
       components.forEach(nl -> dragged.add(sceneView.getSceneManager().createTemporaryComponent(nl)));
       return insertType;
     }
