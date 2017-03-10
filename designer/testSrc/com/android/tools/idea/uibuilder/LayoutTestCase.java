@@ -15,17 +15,20 @@
  */
 package com.android.tools.idea.uibuilder;
 
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.fixtures.SurfaceFixture;
 import com.intellij.openapi.application.PathManager;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class LayoutTestCase extends AndroidTestCase {
+  private final List<SurfaceFixture> mySurfaceFixtures = new ArrayList<>();
   public LayoutTestCase() {
   }
 
@@ -34,6 +37,15 @@ public abstract class LayoutTestCase extends AndroidTestCase {
     super.setUp();
     myFixture.setTestDataPath(getTestDataPath());
 
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    for (SurfaceFixture fixture : mySurfaceFixtures) {
+      fixture.tearDown();
+    }
+    mySurfaceFixtures.clear();
+    super.tearDown();
   }
 
   @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
@@ -60,6 +72,8 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   }
 
   protected SurfaceFixture surface() {
-    return new SurfaceFixture();
+    SurfaceFixture fixture = new SurfaceFixture();
+    mySurfaceFixtures.add(fixture);
+    return fixture;
   }
 }

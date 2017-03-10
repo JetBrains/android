@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mockito.Mockito;
 
 import java.util.List;
 
@@ -43,9 +44,14 @@ public class ScreenFixture {
   private int myTranslateY = 0;
   private Density myDensity = Density.MEDIUM;
 
-  public ScreenFixture(@NotNull SurfaceFixture surface, @NotNull NlModel model) {
+  ScreenFixture(@NotNull SurfaceFixture surface, @NotNull NlModel model) {
     mySurface = surface;
     myModel = model;
+  }
+
+  public void tearDown() {
+    ScreenView[] mocks = myScreen == null ? new ScreenView[0] : new ScreenView[]{myScreen};
+    Mockito.reset(mocks);
   }
 
   /**

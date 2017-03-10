@@ -21,11 +21,17 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mockito;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.model.SegmentType.*;
 
 public class LinearLayoutHandlerTest extends AbstractViewHandlerTest {
+  @Override
+  protected void tearDown() throws Exception {
+    Mockito.reset();
+    super.tearDown();
+  }
 
   public void testDragNothing() throws Exception {
     surface().screen(createModel())
