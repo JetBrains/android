@@ -22,7 +22,6 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.server.BuildProcessParametersProvider;
-import com.intellij.execution.configurations.CommandLineTokenizer;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
@@ -34,6 +33,7 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static com.android.tools.idea.gradle.compiler.BuildProcessJvmArgs.*;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createJvmArg;
@@ -126,14 +126,11 @@ public class AndroidGradleBuildProcessParametersProvider extends BuildProcessPar
 
     if (!isAndroidStudio()) {
       // See https://code.google.com/p/android/issues/detail?id=169743
-      String jvmOptions = executionSettings.getDaemonVmOptions();
+      Set<String> jvmOptions = executionSettings.getVmOptions();
       int jvmOptionCount = 0;
-      if (jvmOptions != null && !jvmOptions.isEmpty()) {
-        CommandLineTokenizer tokenizer = new CommandLineTokenizer(jvmOptions);
-        while(tokenizer.hasMoreTokens()) {
-          String name = GRADLE_DAEMON_JVM_OPTION_PREFIX + jvmOptionCount++;
-          jvmArgs.add(createJvmArg(name, tokenizer.nextToken()));
-        }
+      for (String option : jvmOptions) {
+        String name = GRADLE_DAEMON_JVM_OPTION_PREFIX + jvmOptionCount++;
+        jvmArgs.add(createJvmArg(name, option));
       }
     }
   }
