@@ -15,23 +15,13 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
-import com.intellij.debugger.impl.DebuggerUtilsEx;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
-import org.jf.dexlib2.dexbacked.DexBackedClassDef;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.dexbacked.reference.DexBackedMethodReference;
-import org.jf.dexlib2.iface.reference.MethodReference;
 
-import java.util.Collection;
-import java.util.Set;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 
 import static com.android.tools.idea.apk.dex.DexFiles.getDexFile;
 
@@ -39,7 +29,8 @@ public class DexParser {
   private final ListeningExecutorService myExecutor;
   private final Future<DexBackedDexFile> myDexFileFuture;
 
-  public DexParser(@NotNull ListeningExecutorService executorService, @NotNull VirtualFile file) {
+  public DexParser(@NotNull ListeningExecutorService executorService,
+                   @NotNull VirtualFile file) {
     myExecutor = executorService;
     myDexFileFuture = myExecutor.submit(() -> getDexFile(file));
   }
@@ -49,7 +40,7 @@ public class DexParser {
   }
 
   public ListenableFuture<DexFileStats> getDexFileStats() {
-    return myExecutor.submit(this::getDexStats);
+    return myExecutor.submit(() -> DexFileStats.create(myDexFileFuture.get()));
   }
 
   @NotNull
@@ -59,72 +50,14 @@ public class DexParser {
       dexFile = myDexFileFuture.get();
     }
     catch (Exception e) {
-      return new PackageTreeNode("Unknown", e.toString(), PackageTreeNode.NodeType.PACKAGE, null);
+      return new PackageTreeNode(e.toString(), PackageTreeNode.NodeType.PACKAGE, null);
     }
-
-    return constructMethodRefTreeForDex(dexFile);
+    PackageTreeCreator treeCreator = new PackageTreeCreator();
+    return treeCreator.constructPackageTree(dexFile);
   }
 
-  @NotNull
-  static PackageTreeNode constructMethodRefTreeForDex(@NotNull DexBackedDexFile dexFile) {
-    PackageTreeNode root = new PackageTreeNode("", "root", PackageTreeNode.NodeType.PACKAGE, null);
 
-    Set<String> classesWithDefinition = dexFile.getClasses()
-      .stream()
-      .map(DexBackedClassDef::getType)
-      .collect(Collectors.toSet());
 
-    Multimap<String, MethodReference> methodsByClassName = getMethodsByClassName(dexFile);
-    for (String className : methodsByClassName.keySet()) {
-      Collection<MethodReference> methods = methodsByClassName.get(className);
-      for (MethodReference ref : methods) {
-        root.insert("", DebuggerUtilsEx.signatureToName(className), ref, classesWithDefinition.contains(className));
-      }
-    }
 
-    root.sortByCount();
-    return root;
-  }
 
-  @NotNull
-  private static Multimap<String, MethodReference> getMethodsByClassName(@NotNull DexBackedDexFile dexFile) {
-    Multimap<String, MethodReference> methodsByClass = ArrayListMultimap.create();
-    for (int i = 0, m = dexFile.getMethodCount(); i < m; i++) {
-      MethodReference methodRef = new DexBackedMethodReference(dexFile, i);
-      methodsByClass.put(methodRef.getDefiningClass(), methodRef);
-    }
-
-    return methodsByClass;
-  }
-
-  @NotNull
-  private DexFileStats getDexStats() {
-    DexBackedDexFile dexFile;
-    try {
-      dexFile = myDexFileFuture.get();
-    }
-    catch (Exception e) {
-      return new DexFileStats(-1, -1, -1);
-    }
-
-    int definedMethodCount = 0;
-    Set<? extends DexBackedClassDef> classes = dexFile.getClasses();
-    for (DexBackedClassDef dexBackedClassDef : classes) {
-      definedMethodCount += Iterables.size(dexBackedClassDef.getMethods());
-    }
-
-    return new DexFileStats(classes.size(), definedMethodCount, dexFile.getMethodCount());
-  }
-
-  public static class DexFileStats {
-    public final int classCount;
-    public final int definedMethodCount;
-    public final int referencedMethodCount;
-
-    private DexFileStats(int classCount, int definedMethodCount, int referencedMethodCount) {
-      this.classCount = classCount;
-      this.definedMethodCount = definedMethodCount;
-      this.referencedMethodCount = referencedMethodCount;
-    }
-  }
 }
