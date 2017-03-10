@@ -16,7 +16,6 @@
 package com.android.tools.idea.welcome.whatsnew;
 
 import com.android.repository.Revision;
-import com.intellij.openapi.util.BuildNumber;
 import org.jetbrains.android.AndroidTestBase;
 import org.junit.Test;
 
@@ -41,8 +40,8 @@ public class WhatsNewTest {
     URI testDataUri = new File(AndroidTestBase.getTestDataPath(), "whatsNew/a").toURI();
     Path dataRoot = Paths.get(testDataUri);
     // no previous version seen, current version > latest available
-    Path path = wn.getMessageToShow(data, new Revision(1, 0, 1, 0), testDataUri.toURL());
-    assertEquals("1.0.0.1.png", dataRoot.relativize(path).toString());
+    String path = wn.getMessageToShow(data, new Revision(1, 0, 1, 0), testDataUri.toURL());
+    assertEquals("1.0.0.1.png", dataRoot.relativize(Paths.get(path)).toString());
     assertEquals(0, Revision.parseRevision("1.0.1.0").compareTo(Revision.parseRevision(data.myRevision)));
 
     // Available images are 1.0.0.0, 1.1.0.0
@@ -51,13 +50,13 @@ public class WhatsNewTest {
 
     // no previous version seen, current version == latest available
     path = wn.getMessageToShow(data, new Revision(1, 1, 0, 0), testDataUri.toURL());
-    assertEquals("1.1.0.0.png", dataRoot.relativize(path).toString());
+    assertEquals("1.1.0.0.png", dataRoot.relativize(Paths.get(path)).toString());
     assertEquals(0, Revision.parseRevision("1.1.0.0").compareTo(Revision.parseRevision(data.myRevision)));
 
     // no previous version seen, current version > latest available
     data.myRevision = null;
     path = wn.getMessageToShow(data, new Revision(1, 1, 1, 1), testDataUri.toURL());
-    assertEquals("1.1.0.0.png", dataRoot.relativize(path).toString());
+    assertEquals("1.1.0.0.png", dataRoot.relativize(Paths.get(path)).toString());
     assertEquals(0, Revision.parseRevision("1.1.1.1").compareTo(Revision.parseRevision(data.myRevision)));
 
     // no previous version seen, current version >> latest available
@@ -68,7 +67,7 @@ public class WhatsNewTest {
     // previous version seen < current version == latest available
     data.myRevision = "1.0.0.0";
     path = wn.getMessageToShow(data, new Revision(1, 1, 0, 0), testDataUri.toURL());
-    assertEquals("1.1.0.0.png", dataRoot.relativize(path).toString());
+    assertEquals("1.1.0.0.png", dataRoot.relativize(Paths.get(path)).toString());
     assertEquals(0, Revision.parseRevision("1.1.0.0").compareTo(Revision.parseRevision(data.myRevision)));
 
     // previous version seen == current version == latest available
@@ -80,7 +79,7 @@ public class WhatsNewTest {
     // previous version seen < current version < latest available
     data.myRevision = "1.0.0.0";
     path = wn.getMessageToShow(data, new Revision(1, 1, 1, 1), testDataUri.toURL());
-    assertEquals("1.1.0.0.png", dataRoot.relativize(path).toString());
+    assertEquals("1.1.0.0.png", dataRoot.relativize(Paths.get(path)).toString());
     assertEquals(0, Revision.parseRevision("1.1.1.1").compareTo(Revision.parseRevision(data.myRevision)));
   }
 }
