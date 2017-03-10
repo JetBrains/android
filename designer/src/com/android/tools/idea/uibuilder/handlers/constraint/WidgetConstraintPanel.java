@@ -16,16 +16,13 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import android.support.constraint.solver.widgets.ConstraintAnchor;
-import android.support.constraint.solver.widgets.ConstraintWidget;
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
-import com.android.tools.sherpa.structure.WidgetsScene;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -54,7 +51,6 @@ public class WidgetConstraintPanel extends JPanel {
   final JSlider mVerticalSlider = new JSlider(SwingConstants.VERTICAL);
   final JSlider mHorizontalSlider = new JSlider(SwingConstants.HORIZONTAL);
   private boolean mConfiguringUI = false;
-  ConstraintModel mConstraintModel;
   NlComponent mComponent;
   public static final int UNCONNECTED = -1;
   WriteCommandAction myWriteAction;
@@ -62,7 +58,7 @@ public class WidgetConstraintPanel extends JPanel {
   ColorSet mColorSet = new InspectorColorSet();
   Timer myTimer = new Timer(DELAY_BEFORE_COMMIT, (c) -> {
     if (myWriteAction != null) {
-      myWriteAction.execute();
+      ApplicationManager.getApplication().invokeLater(() -> myWriteAction.execute());
     }
   });
 
@@ -71,7 +67,6 @@ public class WidgetConstraintPanel extends JPanel {
    * This is usually set when the panel is being updated from the widget so there is no need to
    * feed the changes back to the widget.
    */
-  private boolean mDisableWidgetUpdates = false;
   private ChangeListener myChangeLiveListener = new ChangeListener() {
     @Override
     public void stateChanged(ChangeEvent e) {
@@ -137,17 +132,6 @@ public class WidgetConstraintPanel extends JPanel {
   /*-----------------------------------------------------------------------*/
   // code for getting values from ConstraintWidget to UI
   /*-----------------------------------------------------------------------*/
-
-  /**
-   * Called when mWidget is being changed
-   */
-  private void widgetChanged() {
-    // Ignore the the updates to the UI components since we are just going to read them from the widget
-    mDisableWidgetUpdates = true;
-    configureUI();
-    mDisableWidgetUpdates = false;
-    repaint();
-  }
 
   static final int CONNECTION_LEFT = 0;
   static final int CONNECTION_RIGHT = 1;
@@ -317,7 +301,6 @@ public class WidgetConstraintPanel extends JPanel {
     }
   }
 
-
   private void setAndroidAttribute(String attribute, String value) {
     setAttribute(SdkConstants.ANDROID_URI, attribute, value);
   }
@@ -419,12 +402,12 @@ public class WidgetConstraintPanel extends JPanel {
     mComponent = components.isEmpty() ? null : components.get(0);
     if (mComponent != null) {
       mComponent.addLiveChangeListener(myChangeLiveListener);
-      mConstraintModel = ConstraintModel.getConstraintModel(mComponent.getModel());
-      WidgetsScene mScene = mConstraintModel.getScene();
-      mConstraintModel.getSelection().setContinuousListener(e -> widgetChanged());
-      //TODO: improve the tear-down mechanism
-      ConstraintWidget widget = mScene.getWidget(mComponent);
-      if (widget == null) return;
+      //mComponent.getModel().getSelectionModel().addListener(new SelectionListener() {
+      //  @Override
+      //  public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
+      //    widgetChanged();
+      //  }
+      //});
       configureUI();
     }
   }
@@ -440,21 +423,6 @@ public class WidgetConstraintPanel extends JPanel {
   /*-----------------------------------------------------------------------*/
   // values from ui to widget & NL component
   /*-----------------------------------------------------------------------*/
-
-  /**
-   * Method is called when ever we modify the widget
-   */
-  private void widgetModified() {
-    if (mDisableWidgetUpdates) {
-      return;
-    }
-
-    saveWidget();
-  }
-
-  private void saveWidget() {
-    mConstraintModel.requestSaveToXML();
-  }
 
   private void killConstraint(ConstraintAnchor.Type type) {
     switch (type) {
