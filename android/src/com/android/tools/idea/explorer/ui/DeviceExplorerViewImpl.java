@@ -134,7 +134,7 @@ public class DeviceExplorerViewImpl implements DeviceExplorerView {
 
   @Override
   public void setup() {
-    myToolWindow.setIcon(AndroidIcons.AndroidToolWindow);
+    myToolWindow.setIcon(AndroidIcons.DeviceExplorer.ToolWindow);
     myToolWindow.setAvailable(true, null);
     myToolWindow.setToHideOnEmptyContent(true);
     myToolWindow.setTitle(DeviceExplorerToolWindowFactory.TOOL_WINDOW_ID);
