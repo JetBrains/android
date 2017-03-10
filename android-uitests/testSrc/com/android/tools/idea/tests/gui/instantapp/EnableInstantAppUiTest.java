@@ -32,7 +32,7 @@ import static java.lang.System.getenv;
 /**
  * Test that UI is correctly enabled / disabled when WH_SDK environment variable is set
  */
-@RunIn(TestGroup.PROJECT_SUPPORT)
+@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRunner.class)
 public class EnableInstantAppUiTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
