@@ -664,7 +664,7 @@ public class ConstraintComponentUtilities {
       targetId = SdkConstants.NEW_ID_PREFIX + target.ensureLiveId();
     }
     transaction.setAttribute(SHERPA_URI, attrib, targetId);
-    if (srcIndex <= Direction.BASELINE.ordinal()) {
+    if ((srcIndex <= Direction.BASELINE.ordinal()) && (margin > 0)) {
       transaction.setAttribute(ANDROID_URI, ATTRIB_MARGIN[srcIndex], margin + "dp");
     }
     transaction.apply();
