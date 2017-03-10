@@ -17,10 +17,14 @@ package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.ApkAnalyzerStats;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.openapi.util.Disposer;
@@ -96,7 +100,8 @@ public class ApkViewPanel implements TreeSelectionListener {
     // identify and set the application name and version
     myNameAsyncIcon.setVisible(true);
     myNameComponent.append("Parsing Manifest");
-    Futures.addCallback(apkParser.getApplicationInfo(), new FutureCallBackAdapter<AndroidApplicationInfo>() {
+    ListenableFuture<AndroidApplicationInfo> applicationInfo = apkParser.getApplicationInfo();
+    Futures.addCallback(applicationInfo, new FutureCallBackAdapter<AndroidApplicationInfo>() {
       @Override
       public void onSuccess(AndroidApplicationInfo result) {
         setAppInfo(result);
@@ -106,7 +111,9 @@ public class ApkViewPanel implements TreeSelectionListener {
     // obtain and set the download size
     mySizeAsyncIcon.setVisible(true);
     mySizeComponent.append("Estimating download size..");
-    Futures.addCallback(Futures.successfulAsList(apkParser.getUncompressedApkSize(), apkParser.getCompressedFullApkSize()),
+    ListenableFuture<Long> uncompressedApkSize = apkParser.getUncompressedApkSize();
+    ListenableFuture<Long> compressedFullApkSize = apkParser.getCompressedFullApkSize();
+    Futures.addCallback(Futures.successfulAsList(uncompressedApkSize, compressedFullApkSize),
                         new FutureCallBackAdapter<List<Long>>() {
                           @Override
                           public void onSuccess(List<Long> result) {
@@ -115,6 +122,31 @@ public class ApkViewPanel implements TreeSelectionListener {
                             setApkSizes(uncompressed, compressed == null ? 0 : compressed.longValue());
                           }
                         }, EdtExecutor.INSTANCE);
+
+    Futures.addCallback(Futures.allAsList(uncompressedApkSize, compressedFullApkSize, applicationInfo),
+                        new FutureCallBackAdapter<List<Object>>() {
+                          @Override
+                          public void onSuccess(@Nullable List<Object> result) {
+                            if (result == null) {
+                              return;
+                            }
+
+                            int size = result.size();
+                            long uncompressed = size > 0 && result.get(0) instanceof Long ? (Long)result.get(0) : -1;
+                            long compressed = size > 1 && result.get(1) instanceof Long ? (Long)result.get(1) : -1;
+                            String applicationId =
+                              size > 2 && result.get(2) instanceof AndroidApplicationInfo ? ((AndroidApplicationInfo)result
+                                .get(2)).packageId : "unknown";
+
+                            UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                                             .setKind(AndroidStudioEvent.EventKind.APK_ANALYZER_STATS)
+                                                             .setProjectId(AndroidStudioUsageTracker.anonymizeUtf8(applicationId))
+                                                             .setApkAnalyzerStats(
+                                                               ApkAnalyzerStats.newBuilder().setCompressedSize(compressed)
+                                                                 .setUncompressedSize(uncompressed)
+                                                                 .build()));
+                          }
+                        });
   }
 
   private void createUIComponents() {
