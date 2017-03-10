@@ -36,7 +36,7 @@ import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.WidgetDraw;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
-import com.android.tools.sherpa.scout.Scout;
+import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.common.collect.ImmutableMap;
@@ -650,15 +650,13 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
       NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.INFER_CONSTRAINS);
-      WidgetsScene scene = model.getScene();
       try {
-        Scout.inferConstraints(scene);
+        Scout.inferConstraints(component);
       }
       catch (Exception e) {
         // TODO show dialog the inference failed
         Logger.getInstance(ConstraintLayoutHandler.class).warn("Error in inferring constraints", e);
       }
-      model.saveToXML(true);
     }
 
     @Override
@@ -844,8 +842,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.ALIGN);
       modifiers &= InputEvent.CTRL_MASK;
-      Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), modifiers == 0 || ConstraintModel.isAutoConnect());
-      model.saveToXML(true);
+      Scout.arrangeWidgets(myActionType, selectedChildren, modifiers == 0 || ConstraintModel.isAutoConnect());
     }
 
     @Override

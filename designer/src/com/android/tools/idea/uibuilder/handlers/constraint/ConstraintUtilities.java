@@ -31,7 +31,7 @@ import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.sherpa.drawing.decorator.TextWidget;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.sherpa.interaction.WidgetInteractionTargets;
-import com.android.tools.sherpa.scout.Scout;
+import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.intellij.openapi.application.ApplicationManager;
@@ -1174,7 +1174,7 @@ public class ConstraintUtilities {
           }
           ArrayList<ConstraintWidget> widgets = new ArrayList<>();
           widgets.add(widget);
-          Scout.arrangeWidgets(Scout.Arrange.ExpandHorizontally, widgets, true);
+          //Scout.arrangeWidgets(Scout.Arrange.ExpandHorizontally, widgets, true);
           widget.setHeight(height);
           widget.setVerticalDimensionBehaviour(verticalBehaviour);
           overrideDimension = true;
@@ -1215,7 +1215,7 @@ public class ConstraintUtilities {
           }
           ArrayList<ConstraintWidget> widgets = new ArrayList<>();
           widgets.add(widget);
-          Scout.arrangeWidgets(Scout.Arrange.ExpandVertically, widgets, true);
+         // Scout.arrangeWidgets(Scout.Arrange.ExpandVertically, widgets, true);
           widget.setWidth(width);
           widget.setHorizontalDimensionBehaviour(horizontalBehaviour);
           overrideDimension = true;
