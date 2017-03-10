@@ -21,8 +21,8 @@ import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.ide.common.blame.parser.PatternAwareOutputParser;
-import com.android.tools.idea.fd.InstantRunBuildProgressListener;
 import com.android.tools.idea.fd.FlightRecorder;
+import com.android.tools.idea.fd.InstantRunBuildProgressListener;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.GradleModel;
 import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
@@ -329,9 +329,11 @@ public class GradleTasksExecutor extends Task.Backgroundable {
         }
         LOG.info(logMessage);
 
-        List<String> jvmArgs = Lists.newArrayList(myContext.getJvmArgs());
         BuildLauncher launcher = connection.newBuild();
-        prepare(launcher, id, executionSettings, GRADLE_LISTENER, jvmArgs, commandLineArgs, connection);
+        if (executionSettings != null) {
+          executionSettings.withVmOptions(myContext.getJvmArgs()).withArguments(commandLineArgs);
+          prepare(launcher, id, executionSettings, GRADLE_LISTENER, connection);
+        }
 
         File javaHome = IdeSdks.getJdkPath();
         if (javaHome != null) {
@@ -498,7 +500,7 @@ public class GradleTasksExecutor extends Task.Backgroundable {
       if (executionSettings == null) {
         File gradlePath = findEmbeddedGradleDistributionPath();
         assert gradlePath != null && gradlePath.isDirectory();
-        executionSettings = new GradleExecutionSettings(gradlePath.getPath(), null, DistributionType.LOCAL, null, false);
+        executionSettings = new GradleExecutionSettings(gradlePath.getPath(), null, DistributionType.LOCAL, false);
         File jdkPath = IdeSdks.getJdkPath();
         if (jdkPath != null) {
           executionSettings.setJavaHome(jdkPath.getPath());
