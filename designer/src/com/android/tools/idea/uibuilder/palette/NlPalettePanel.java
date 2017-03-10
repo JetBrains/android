@@ -38,6 +38,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,7 +59,6 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
   static final String PALETTE_PREVIEW_HEIGHT = "palette.preview.height";
   static final int DEFAULT_PREVIEW_HEIGHT = 140;
 
-  private final Project myProject;
   private final NlPreviewPanel myPreviewPane;
   private final CopyProvider myCopyProvider;
   private final NlPaletteTreeGrid myPalettePanel;
@@ -74,7 +74,6 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
 
   @VisibleForTesting
   NlPalettePanel(@NotNull Project project, @Nullable NlDesignSurface designSurface, @NotNull CopyPasteManager copyPasteManager) {
-    myProject = project;
     myCopyPasteManager = copyPasteManager;
     IconPreviewFactory iconPreviewFactory = new IconPreviewFactory();
     Disposer.register(this, iconPreviewFactory);
@@ -164,8 +163,10 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
     myPreviewPane.setDesignSurface(designSurface);
     Module module = getModule(designSurface);
     if (designSurface != null && module != null && myLayoutType != designSurface.getLayoutType()) {
+      AndroidFacet facet = AndroidFacet.getInstance(module);
+      assert facet != null;
       myLayoutType = designSurface.getLayoutType();
-      NlPaletteModel model = NlPaletteModel.get(myProject);
+      NlPaletteModel model = NlPaletteModel.get(facet);
       Palette palette = model.getPalette(myLayoutType);
       myPalettePanel.populateUiModel(palette, (NlDesignSurface)designSurface);
       myDependencyManager.setPalette(palette, module);

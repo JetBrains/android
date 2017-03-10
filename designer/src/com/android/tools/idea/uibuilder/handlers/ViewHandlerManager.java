@@ -164,6 +164,16 @@ public class ViewHandlerManager implements ProjectComponent {
   }
 
   /**
+   * Registers a {@link ViewHandler}
+   *
+   * @param viewTag the tag of the view
+   * @param handler corresponding view handler
+   */
+  public void registerHandler(@NotNull String viewTag, @NotNull ViewHandler handler) {
+    myHandlers.put(viewTag, handler);
+  }
+
+  /**
    * Finds the nearest layout/view group handler for the given component.
    *
    * @param component the component to search from
@@ -194,6 +204,7 @@ public class ViewHandlerManager implements ProjectComponent {
       case ADAPTER_VIEW_FLIPPER:
       case ADAPTER_VIEW_ANIMATOR:
       case GRID_VIEW:
+      case VIEW_GROUP:
         return new ViewGroupHandler();
       case ABSOLUTE_LAYOUT:
       case WEB_VIEW:
@@ -352,6 +363,8 @@ public class ViewHandlerManager implements ProjectComponent {
         return new ToggleButtonHandler();
       case TOOLBAR_V7:
         return new ToolbarHandler();
+      case VIEW:
+        return STANDARD_HANDLER;
       case VIEW_FRAGMENT:
         return new FragmentHandler();
       case VIEW_INCLUDE:
