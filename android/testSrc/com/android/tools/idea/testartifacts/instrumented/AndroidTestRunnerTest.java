@@ -19,7 +19,6 @@ import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.util.SystemInfo;
-import org.junit.Ignore;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,18 +29,14 @@ import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_RUNNER_
 /**
  * Tests for the Android Test Runner related things
  */
-@Ignore("http://b/35787983")
 public class AndroidTestRunnerTest extends AndroidGradleTestCase {
-  public void testFake() {
-  }
-
   @Override
   protected boolean shouldRunTest() {
     // Do not run tests on Windows (see http://b.android.com/222904)
     return !SystemInfo.isWindows && super.shouldRunTest();
   }
 
-  public void /*test*/RunnerComponentsHiddenWhenGradleProject() throws Exception {
+  public void testRunnerComponentsHiddenWhenGradleProject() throws Exception {
     loadSimpleApplication();
 
     AndroidTestRunConfiguration androidTestRunConfiguration =
@@ -56,7 +51,7 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     assertFalse("Runner component is visible in a Gradle project", testRunParameters.getRunnerComponent().isVisible());
   }
 
-  public void /*test*/RunnerArgumentsSet() throws Exception {
+  public void testRunnerArgumentsSet() throws Exception {
     loadProject(RUN_CONFIG_RUNNER_ARGUMENTS);
     Map<String, String> expectedArguments = new HashMap<>();
     expectedArguments.put("size", "medium");
