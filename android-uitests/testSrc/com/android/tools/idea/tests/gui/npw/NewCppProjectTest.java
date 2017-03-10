@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture.PaneFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.LinkCppProjectFixture;
@@ -35,6 +36,8 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.regex.Pattern;
+
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
 public class NewCppProjectTest extends TestWithEmulator {
@@ -146,6 +149,27 @@ public class NewCppProjectTest extends TestWithEmulator {
     assertAndroidPanePath(true, "app", "cpp", "native-lib.cpp"); // app/cpp reappears and contains native-lib.cpp
 
     runAppOnEmulator();
+  }
+
+  /**
+   * Creates a new project with c++, and checks that if we run Analyze > Inspect Code, there are no warnings.
+   * This checks that our (default) project templates are warnings-clean.
+   * The test then proceeds to make a couple of edits and checks that these do not generate additional warnings either.
+   */
+  @RunIn(TestGroup.PROJECT_WIZARD)
+  @Test
+  public void testNoWarningsInNewProjectWithCpp() {
+    createCppProject(false, false);
+
+    String inspectionResults = guiTest.ideFrame()
+      .openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
+      .clickOk()
+      .getResults();
+
+    // TODO Disable spell checking before running inspection, then compare for equality like testNoWarningsInNewProjects does.
+    // These two strings are categories that are very common when there will be some problem compiling.
+    assertThat(inspectionResults).doesNotContain("Declaration order");
+    assertThat(inspectionResults).doesNotContain("Unused code");
   }
 
   private void testCreateNewProjectWithCpp(boolean hasExceptionSupport, boolean hasRuntimeInformation) throws Exception {
