@@ -161,6 +161,14 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
                           "tools_designtime_completion_background_after.xml");
   }
 
+  public void testToolsUseHandlerAttribute() throws Throwable {
+    doTestCompletionVariants("tools_use_handler_completion.xml", "android.view.TextureView",
+                             "android.widget.AutoCompleteTextView",
+                             "android.widget.CheckedTextView",
+                             "android.widget.MultiAutoCompleteTextView",
+                             "android.widget.TextView");
+  }
+
   // Code completion in views inside a <layout> tag need to pick up default layout params
   public void testDataBindingLayoutPAramCompletion() throws Throwable {
     // Regression test for https://code.google.com/p/android/issues/detail?id=212690
