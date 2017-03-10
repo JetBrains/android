@@ -17,9 +17,6 @@ import org.jetbrains.android.compiler.artifact.NewKeyStoreDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import javax.swing.text.html.HTMLDocument;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
@@ -38,20 +35,6 @@ public class AndroidUiUtil {
   private static final Logger LOG = Logger.getInstance("org.jetbrains.android.util.AndroidUiUtil");
 
   private AndroidUiUtil() {
-  }
-
-  public static void setUpAsHtmlLabel(@NotNull JEditorPane editorPane) {
-    setUpAsHtmlLabel(editorPane, getLabelFont());
-  }
-
-  public static void setUpAsHtmlLabel(@NotNull JEditorPane editorPane, @NotNull Font font) {
-    editorPane.setContentType("text/html");
-    editorPane.setEditable(false);
-    editorPane.setOpaque(false);
-    String bodyRule = "body { font-family: " + font.getFamily() + "; " + "font-size: " + font.getSize() + "pt; } " +
-                      "ol { padding-left: 0px; margin-left: 35px; margin-top: 0px; } " +
-                      "ol li { margin-left: 0px; padding-left: 0px; list-style-type: decimal; }";
-    ((HTMLDocument)editorPane.getDocument()).getStyleSheet().addRule(bodyRule);
   }
 
   @Nullable
