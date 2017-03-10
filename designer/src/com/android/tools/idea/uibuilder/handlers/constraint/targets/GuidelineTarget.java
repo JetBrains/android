@@ -157,6 +157,7 @@ public class GuidelineTarget extends ConstraintDragTarget {
       }
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, percentStringValue);
     }
+    ConstraintComponentUtilities.cleanup(attributes, myComponent);
   }
 
   @Override

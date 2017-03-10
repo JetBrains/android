@@ -102,8 +102,8 @@ public class ColorSet {
     private Paint mBackgroundPaint;
     protected Color myUnconstrainedColor;
 
-    protected Color mDragReceiverFrames = new Color(220, 103, 53);
-    protected Color mDragReceiverBackground = new Color(220, 103, 53, 100);
+    protected Color mDragReceiverFrames = new Color(95, 220, 40);
+    protected Color mDragReceiverBackground = new Color(99, 225, 20, 132);
 
     public Stroke getOutlineStroke() { return sOutlineStroke; }
 

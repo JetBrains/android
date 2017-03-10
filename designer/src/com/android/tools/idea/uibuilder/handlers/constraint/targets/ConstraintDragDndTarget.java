@@ -19,7 +19,10 @@ import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
+import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +38,7 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
   @Override
   public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     if (myComponent instanceof TemporarySceneComponent) {
-      getTargetNotchConnector().gatherNotches(myComponent);
+      getTargetNotchSnapper().gatherNotches(myComponent);
     }
     else {
       super.mouseDown(x, y);
@@ -46,8 +49,8 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
   public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTarget) {
     if (myComponent instanceof TemporarySceneComponent) {
       Scene scene = myComponent.getScene();
-      int dx = getTargetNotchConnector().trySnap(x);
-      int dy = getTargetNotchConnector().trySnapY(y);
+      int dx = getTargetNotchSnapper().trySnapX(x);
+      int dy = getTargetNotchSnapper().trySnapY(y);
       myComponent.setPosition(dx, dy);
       scene.needsRebuildList();
     }
@@ -56,13 +59,18 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
     }
   }
 
+  @Override
+  public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
+    super.render(list, sceneContext);
+  }
+
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull NlComponent component) {
     myComponent.setDragging(false);
     if (myComponent.getParent() != null) {
       AttributesTransaction attributes = component.startAttributeTransaction();
       int dx = x - myOffsetX;
       int dy = y - myOffsetY;
-      Point snappedCoordinates = getTargetNotchConnector().applyNotches(myComponent, attributes, dx, dy);
+      Point snappedCoordinates = getTargetNotchSnapper().applyNotches(myComponent, attributes, dx, dy);
       updateAttributes(attributes, snappedCoordinates.x, snappedCoordinates.y);
       attributes.apply();
       attributes.commit();

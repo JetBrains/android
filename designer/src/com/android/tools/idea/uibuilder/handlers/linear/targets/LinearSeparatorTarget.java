@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
+import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearPlaceholder;
 import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearSeparator;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -22,30 +24,35 @@ import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.ScenePicker;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.scene.draw.DrawComponentBackground;
 import com.android.tools.idea.uibuilder.scene.target.BaseTarget;
+import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
 
 /**
  * Displays a separator in between LinearLayout's children and used as a target when dropping
  * a component in LinearLayout
  */
-public class LinearSeparatorTarget extends BaseTarget {
+public class LinearSeparatorTarget extends BaseTarget implements Notch.Provider {
 
   private static final boolean DEBUG = false;
-  private final boolean myVertical;
+  private final boolean myLayoutVertical;
   private final boolean myAtEnd;
   private boolean myIsHighlight;
+  private int myHighLightSize;
 
   /**
    * Create a new separator for linear layout
    *
-   * @param isVertical is the orientation of the parent LinearLayout
-   * @param atEnd      if true, a separator will be drawn at both ends of the component
+   * @param layoutVertical is the orientation of the parent LinearLayout
+   * @param atEnd          if true, a separator will be drawn at both ends of the component
    */
-  public LinearSeparatorTarget(boolean isVertical, boolean atEnd) {
+  public LinearSeparatorTarget(boolean layoutVertical, boolean atEnd) {
     super();
-    myVertical = isVertical;
+    myLayoutVertical = layoutVertical;
     myAtEnd = atEnd;
   }
 
@@ -63,13 +70,13 @@ public class LinearSeparatorTarget extends BaseTarget {
     SceneComponent parent = myComponent.getParent();
     assert parent != null : "This target cannot be added to a root component";
     NlComponent nlComponent = myComponent.getNlComponent();
-    if (myVertical) {
+    if (myLayoutVertical) {
       myLeft = parent.getDrawX();
       myRight = myLeft + parent.getDrawWidth();
       myTop = myBottom = context.pxToDp(nlComponent.y) + (myAtEnd ? context.pxToDp(nlComponent.h) : 0);
     }
     else {
-      myLeft = myRight = context.pxToDp(nlComponent.x) + (myAtEnd ? context.pxToDp(nlComponent.w) : 0 );
+      myLeft = myRight = context.pxToDp(nlComponent.x) + (myAtEnd ? context.pxToDp(nlComponent.w) : 0);
       myTop = parent.getDrawY();
       myBottom = myTop + parent.getDrawHeight();
     }
@@ -81,9 +88,18 @@ public class LinearSeparatorTarget extends BaseTarget {
     if (myComponent.isDragging()) {
       return;
     }
-    DrawLinearSeparator.add(list, sceneContext, !myVertical,
-                            myIsHighlight ? DrawLinearSeparator.STATE_HIGHLIGHT : DrawLinearSeparator.STATE_DEFAULT,
-                            myLeft, myTop, myRight, myBottom);
+
+    if (myIsHighlight) {
+      DrawLinearPlaceholder.add(list, sceneContext,
+                                myLayoutVertical,
+                                myAtEnd,
+                                myHighLightSize,
+                                myLeft, myTop, myRight, myBottom);
+    }
+    else {
+      DrawLinearSeparator.add(list, sceneContext, myLayoutVertical, // draw the separator orthogonally to the layout
+                              myLeft, myTop, myRight, myBottom);
+    }
     if (DEBUG) {
       drawDebug(list, sceneContext);
     }
@@ -102,6 +118,12 @@ public class LinearSeparatorTarget extends BaseTarget {
   private void drawDebug(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
     list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, myIsHighlight ? JBColor.GREEN : JBColor.RED);
     list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, myIsHighlight ? JBColor.GREEN : JBColor.RED);
+    if (myLayoutVertical) {
+      list.addRect(sceneContext, myLeft, myTop, myRight, myBottom + myHighLightSize, JBColor.MAGENTA);
+    }
+    else {
+      list.addRect(sceneContext, myLeft, myTop, myRight + myHighLightSize, myBottom, JBColor.MAGENTA);
+    }
   }
 
   /**
@@ -110,10 +132,63 @@ public class LinearSeparatorTarget extends BaseTarget {
    * @param isHighlight true to highlight
    */
   public void setHighlight(boolean isHighlight) {
+    setHighlight(isHighlight, 5, 5);
+  }
+
+  public void setHighlight(boolean isHighlight, int width, int height) {
     myIsHighlight = isHighlight;
+    myHighLightSize = myLayoutVertical ? height : width;
   }
 
   public boolean isAtEnd() {
     return myAtEnd;
+  }
+
+  @Override
+  public void fill(@NotNull SceneComponent owner,
+                   @NotNull SceneComponent snappableComponent,
+                   @NotNull ArrayList<Notch> horizontalNotches,
+                   @NotNull ArrayList<Notch> verticalNotches) {
+
+    Notch.Action action = attributes -> LinearLayoutHandler.insertComponentAtTarget(snappableComponent, this, false);
+    if (myLayoutVertical) {
+      int value = owner.getDrawY();
+      int displayValue = owner.getDrawY();
+      if (myAtEnd) {
+        value += owner.getDrawHeight();
+        displayValue += owner.getDrawHeight();
+      }
+      else {
+        value -= snappableComponent.getDrawHeight() / 2f + 0.5f;
+      }
+      Notch.Vertical notch = new Notch.Vertical(owner, value, displayValue, action);
+      if(myAtEnd) {
+        notch.setGap(owner.getDrawHeight() / 2);
+      }
+      notch.setTarget(this);
+      verticalNotches.add(notch);
+    }
+    else {
+      int value = owner.getDrawX();
+      int displayValue = owner.getDrawX();
+      if (myAtEnd) {
+        value += owner.getDrawWidth();
+        displayValue += owner.getDrawWidth();
+      }
+      else {
+        value -= snappableComponent.getDrawWidth() / 2f + 0.5f;
+      }
+      Notch.Horizontal notch = new Notch.Horizontal(owner, value, displayValue, action);
+      if(myAtEnd) {
+        notch.setGap(owner.getDrawWidth() / 2);
+      }
+      notch.setTarget(this);
+      horizontalNotches.add(notch);
+    }
+  }
+
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName() + " highlighted: " + myIsHighlight + " vertical: " + myLayoutVertical;
   }
 }

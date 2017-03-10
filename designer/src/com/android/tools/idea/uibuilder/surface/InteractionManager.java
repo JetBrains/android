@@ -584,7 +584,7 @@ public class InteractionManager {
         int xDp = Coordinates.getAndroidXDip(sceneView, x);
         int yDp = Coordinates.getAndroidYDip(sceneView, y);
 
-        Interaction interaction;
+        Interaction interaction = null;
         // Dragging on top of a selection handle: start a resize operation
         @AndroidDpCoordinate int max = Coordinates.getAndroidDimensionDip(sceneView, PIXEL_RADIUS + PIXEL_MARGIN);
         SelectionHandle handle =
@@ -592,7 +592,6 @@ public class InteractionManager {
         if (handle != null) {
           SceneComponent component = scene.getSceneComponent(handle.component);
           assert component != null;
-
           interaction = new ResizeInteraction(sceneView, component, handle);
         }
         else {
@@ -648,6 +647,7 @@ public class InteractionManager {
             interaction = new DragDropInteraction(mySurface, dragged);
           }
         }
+
         startInteraction(x, y, interaction, modifiers);
         updateCursor(x, y);
       }

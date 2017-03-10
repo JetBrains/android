@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.scene.draw;
+package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.scene.draw.DrawHorizontalNotch;
+import com.android.tools.idea.uibuilder.scene.draw.DrawVerticalNotch;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,31 +43,37 @@ public abstract class Notch {
      * The implementing class should override this method to add {@link Notch} to the given component.
      *
      * <p>
-     * The <i>target</i> is the component that will be snapped and <i>component</i> is a reference to {@link SceneComponent}
+     * The <i>target</i> is the component that will be snapped and <i>owner</i> is a reference to {@link SceneComponent}
      * holding the reference to this provider. It can be used to compute the position of the provider from its position or to access some other target.
      * </p>
      *
-     * @param component         {@link SceneComponent} holding the reference to this {@link Provider}.
-     *                          It can be use to compute the position of the {@link Notch}
-     * @param target            {@link SceneComponent} that will be snapped
+     * @param owner              {@link SceneComponent} holding the reference to this {@link Provider}.
+     *                           It can be use to compute the position of the {@link Notch}
+     * @param snappableComponent {@link SceneComponent} that will be snapped
      * @param horizontalNotches
      * @param verticalNotches
      */
-    void fill(@NotNull SceneComponent component, @NotNull SceneComponent target,
+    void fill(@NotNull SceneComponent owner, @NotNull SceneComponent snappableComponent,
               @NotNull ArrayList<Notch> horizontalNotches, @NotNull ArrayList<Notch> verticalNotches);
   }
 
-  SceneComponent myOwner;
+  /**
+   * A {@link Target} that can be snapped to a {@link Notch}es should implement this class
+   * to provide a {@link TargetSnapper}.
+   */
+  public interface Snappable {
 
+    @NotNull
+    TargetSnapper getTargetNotchSnapper();
+  }
+
+  SceneComponent myOwner;
   int myNotchValue;
   int myDisplayValue;
   int myGap = 8;
   @Nullable Action myAction;
   boolean myDidApply = false;
-
-  @SuppressWarnings("unused")
-  private Notch() {
-  }
+  @Nullable Target myTarget;
 
   /**
    * Create a new notch associated with the provided {@link SceneComponent} owner.
@@ -90,6 +99,10 @@ public abstract class Notch {
     myNotchValue = value;
     myDisplayValue = displayValue;
     myAction = action;
+  }
+
+  public void setGap(int gap) {
+    myGap = gap;
   }
 
   public void setAction(@Nullable Action action) {
@@ -125,6 +138,15 @@ public abstract class Notch {
       return myNotchValue;
     }
     return value;
+  }
+
+  public void setTarget(@Nullable Target target) {
+    myTarget = target;
+  }
+
+  @Nullable
+  public Target getTarget() {
+    return myTarget;
   }
 
   public abstract void render(@NotNull DisplayList list, @NotNull SceneContext context, @NotNull SceneComponent component);

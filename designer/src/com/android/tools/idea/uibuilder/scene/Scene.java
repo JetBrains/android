@@ -134,7 +134,7 @@ public class Scene implements SelectionListener {
     if (qualifier == null) {
       return false;
     }
-    return qualifier.getValue() != LayoutDirection.RTL ? false : true;
+    return qualifier.getValue() == LayoutDirection.RTL;
   }
 
   //endregion
@@ -282,7 +282,7 @@ public class Scene implements SelectionListener {
   }
 
   void removeAllComponents() {
-    for (Iterator<Map.Entry<NlComponent, SceneComponent>> it = mySceneComponents.entrySet().iterator(); it.hasNext();) {
+    for (Iterator<Map.Entry<NlComponent, SceneComponent>> it = mySceneComponents.entrySet().iterator(); it.hasNext(); ) {
       Map.Entry<NlComponent, SceneComponent> entry = it.next();
       entry.getValue().removeFromParent();
       it.remove();
@@ -326,8 +326,8 @@ public class Scene implements SelectionListener {
    * @return true if we need to repaint the screen
    */
   public void buildDisplayList(@NotNull DisplayList displayList, long time) {
-     layout(time, SceneContext.get());
-     buildDisplayList(displayList, time, SceneContext.get());
+    layout(time, SceneContext.get());
+    buildDisplayList(displayList, time, SceneContext.get());
   }
 
   public void repaint() {
@@ -372,8 +372,6 @@ public class Scene implements SelectionListener {
     }
     return needsRepaint;
   }
-
-  public boolean didPreviousRepaint() { return myDidPreviousRepaint; }
 
   /**
    * Select the given components
@@ -498,7 +496,9 @@ public class Scene implements SelectionListener {
       myPicker.setSelectListener(this);
     }
 
-    public void skipTarget(Target target) { mySkipTarget = target; }
+    public void skipTarget(Target target) {
+      mySkipTarget = target;
+    }
 
     public void find(@NotNull SceneContext transform,
                      @NotNull SceneComponent root,
@@ -524,7 +524,8 @@ public class Scene implements SelectionListener {
           myHitTargets.clear();
           myHitTargets.add(target);
           myClosestTargetDistance = dist;
-        } else if (dist == myClosestTargetDistance) {
+        }
+        else if (dist == myClosestTargetDistance) {
           myHitTargets.add(target);
         }
       }
@@ -534,7 +535,8 @@ public class Scene implements SelectionListener {
           myHitComponents.clear();
           myHitComponents.add(component);
           myClosestComponentDistance = dist;
-        } else if (dist == myClosestComponentDistance) {
+        }
+        else if (dist == myClosestComponentDistance) {
           myHitComponents.add(component);
         }
       }
@@ -573,7 +575,7 @@ public class Scene implements SelectionListener {
       for (int i = count - 2; i >= 0; i--) {
         Target target = myHitTargets.get(i);
         if (!selection.contains(target.getComponent().getNlComponent())) {
-           continue;
+          continue;
         }
         if (!inSelection || target.getPreferenceLevel() > candidate.getPreferenceLevel()) {
           candidate = target;
@@ -870,7 +872,7 @@ public class Scene implements SelectionListener {
     return Math.abs(pos3 - pos4) < DRAG_THRESHOLD;
   }
 
-  void checkRequestLayoutStatus() {
+  public void checkRequestLayoutStatus() {
     if (mNeedsLayout != NO_LAYOUT) {
       myDesignSurface.getSceneManager().layout(mNeedsLayout == ANIMATED_LAYOUT);
     }
@@ -894,15 +896,15 @@ public class Scene implements SelectionListener {
       myNewSelectedComponents.add(myHitComponent);
     }
     if (myHitTarget instanceof ActionTarget
-      || myHitTarget instanceof GuidelineTarget
-      || myHitTarget instanceof BarrierTarget) {
+        || myHitTarget instanceof GuidelineTarget
+        || myHitTarget instanceof BarrierTarget) {
       // it will be outside the bounds of the component, so will likely have
       // selected a different one...
       myNewSelectedComponents.clear();
       myNewSelectedComponents.add(myHitTarget.getComponent());
     }
-    if (myHitTarget instanceof ConstraintDragTarget) {
-      ConstraintDragTarget dragTarget = (ConstraintDragTarget)myHitTarget;
+    if (myHitTarget instanceof DragBaseTarget) {
+      DragBaseTarget dragTarget = (DragBaseTarget)myHitTarget;
       if (dragTarget.hasChangedComponent()) {
         myNewSelectedComponents.clear();
         myNewSelectedComponents.add(dragTarget.getComponent());
@@ -940,6 +942,7 @@ public class Scene implements SelectionListener {
 
   /**
    * Set a flag to notify that the Scene needs to recompute the layout on the nex
+   *
    * @param type Type of layout to recompute: {@link #NO_LAYOUT}, {@link #IMMEDIATE_LAYOUT}, {@link #ANIMATED_LAYOUT}
    */
   public void needsLayout(@MagicConstant(intValues = {NO_LAYOUT, IMMEDIATE_LAYOUT, ANIMATED_LAYOUT}) int type) {

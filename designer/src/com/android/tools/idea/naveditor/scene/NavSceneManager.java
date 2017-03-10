@@ -65,7 +65,7 @@ public class NavSceneManager extends SceneManager {
   }
 
   @Override
-  protected void addTargets(@NotNull SceneComponent component) {
+  public void addTargets(@NotNull SceneComponent component) {
     // TODO: Remove this method?
   }
 

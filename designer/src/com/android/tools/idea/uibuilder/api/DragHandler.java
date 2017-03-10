@@ -126,7 +126,8 @@ public abstract class DragHandler {
    *
    * @param graphics the graphics to buildDisplayList to
    */
-  public abstract void paint(@NotNull NlGraphics graphics);
+  public void paint(@NotNull NlGraphics graphics) {
+  }
 
   /**
    * Insert the components being dragged into this layout.

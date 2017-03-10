@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.draw.Notch;
+import com.android.tools.idea.uibuilder.scene.target.Notch;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -27,24 +27,24 @@ import java.util.ArrayList;
 public class ConstraintLayoutComponentNotchProvider implements Notch.Provider {
 
   @Override
-  public void fill(@NotNull SceneComponent component, @NotNull SceneComponent target,
+  public void fill(@NotNull SceneComponent owner, @NotNull SceneComponent snappableComponent,
                    @NotNull ArrayList<Notch> horizontalNotches, @NotNull ArrayList<Notch> verticalNotches) {
-    int x1 = component.getDrawX();
-    int x2 = x1 + component.getDrawWidth();
+    int x1 = owner.getDrawX();
+    int x2 = x1 + owner.getDrawWidth();
     // int midX = x1 + (x2 - x1) / 2 - target.getDrawWidth() / 2;
     // horizontalNotches.add(new Notch.Horizontal(midX, x1 + (x2 - x1) / 2));
-    horizontalNotches.add(new Notch.SmallHorizontal(component, x1, x1));
-    horizontalNotches.add(new Notch.SmallHorizontal(component, x2, x2));
-    horizontalNotches.add(new Notch.SmallHorizontal(component, x1 - target.getDrawWidth(), x1));
-    horizontalNotches.add(new Notch.SmallHorizontal(component, x2 - target.getDrawWidth(), x2));
+    horizontalNotches.add(new Notch.SmallHorizontal(owner, x1, x1));
+    horizontalNotches.add(new Notch.SmallHorizontal(owner, x2, x2));
+    horizontalNotches.add(new Notch.SmallHorizontal(owner, x1 - snappableComponent.getDrawWidth(), x1));
+    horizontalNotches.add(new Notch.SmallHorizontal(owner, x2 - snappableComponent.getDrawWidth(), x2));
 
-    int y1 = component.getDrawY();
-    int y2 = y1 + component.getDrawHeight();
+    int y1 = owner.getDrawY();
+    int y2 = y1 + owner.getDrawHeight();
     // int midY = y1 + (y2 - y1) / 2 - target.getDrawHeight() / 2;
     // verticalNotches.add(new Notch.Vertical(midY, y1 + (y2 - y1) / 2));
-    verticalNotches.add(new Notch.SmallVertical(component, y1, y1));
-    verticalNotches.add(new Notch.SmallVertical(component, y2, y2));
-    verticalNotches.add(new Notch.SmallVertical(component, y1 - target.getDrawHeight(), y1));
-    verticalNotches.add(new Notch.SmallVertical(component, y2 - target.getDrawHeight(), y2));
+    verticalNotches.add(new Notch.SmallVertical(owner, y1, y1));
+    verticalNotches.add(new Notch.SmallVertical(owner, y2, y2));
+    verticalNotches.add(new Notch.SmallVertical(owner, y1 - snappableComponent.getDrawHeight(), y1));
+    verticalNotches.add(new Notch.SmallVertical(owner, y2 - snappableComponent.getDrawHeight(), y2));
   }
 }
