@@ -84,6 +84,15 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     myDevices.put(session, device);
   }
 
+  public void updateDevice(Common.Session session, Profiler.Device oldDevice, Profiler.Device newDevice) {
+    // Move processes from old to new device
+    myProcesses.putValues(newDevice, myProcesses.get(oldDevice));
+    // Remove old device from processes map.
+    myProcesses.remove(oldDevice);
+    // Update device on devices map
+    myDevices.put(session, newDevice);
+  }
+
   public void addFile(String id, ByteString contents) {
     myCache.put(id, contents);
   }
