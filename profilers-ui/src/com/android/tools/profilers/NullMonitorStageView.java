@@ -15,19 +15,13 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.adtui.HtmlLabel;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ide.browsers.BrowserLauncher;
-import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.JBColor;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.text.html.HTMLDocument;
 import java.awt.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * View shown if no processes are selected
@@ -36,7 +30,7 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
 
   public static final String NO_DEVICE_MESSAGE = "No device detected. Please plug in a device,<br/>or launch the emulator.";
   public static final String NO_DEBUGGABLE_PROCESS_MESSAGE = "No debuggable processes detected for<br/>the selected device.";
-  private JEditorPane myDisabledMessage;
+  private HtmlLabel myDisabledMessage;
 
   public NullMonitorStageView(@NotNull StudioProfilersView profilersView, @NotNull NullMonitorStage stage) {
     super(profilersView, stage);
@@ -63,27 +57,9 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
     topPanel.add(title);
     topPanel.add(Box.createRigidArea(new Dimension(1, 15)));
 
-    myDisabledMessage = new JEditorPane() {
-      @Override
-      public Dimension getMaximumSize() {
-        return getPreferredSize();
-      }
-    };
+    myDisabledMessage = new HtmlLabel();
     Font font = title.getFont().deriveFont(11.0f);
-    setUpAsHtmlLabel(myDisabledMessage, font);
-    myDisabledMessage.addHyperlinkListener(new HyperlinkAdapter() {
-      @Override
-      protected void hyperlinkActivated(HyperlinkEvent event) {
-        if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-          String uri = event.getDescription();
-          try {
-            BrowserLauncher.getInstance().browse(new URI(uri));
-          }
-          catch (URISyntaxException ignored) {
-          }
-        }
-      }
-    });
+    HtmlLabel.setUpAsHtmlLabel(myDisabledMessage, font, ProfilerColors.MESSAGE_COLOR);
     topPanel.add(myDisabledMessage);
     topPanel.add(Box.createVerticalGlue());
 
@@ -117,17 +93,5 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
   @Override
   public boolean needsProcessSelection() {
     return true;
-  }
-
-  // TODO Unify with the AndroidUI one (move to adt-ui?)
-  public static void setUpAsHtmlLabel(@NotNull JEditorPane editorPane, @NotNull Font font) {
-    editorPane.setContentType("text/html");
-    editorPane.setEditable(false);
-    editorPane.setOpaque(false);
-    String color = UIUtil.isUnderDarcula() ? "#C8C8C8" : "#787878";
-    String bodyRule = "body { font-family: " + font.getFamily() + "; " + "font-size: " + font.getSize() + "pt; color: " + color + "; } " +
-                      "ol { padding-left: 0px; margin-left: 35px; margin-top: 0px; } " +
-                      "ol li { margin-left: 0px; padding-left: 0px; list-style-type: decimal; }";
-    ((HTMLDocument)editorPane.getDocument()).getStyleSheet().addRule(bodyRule);
   }
 }
