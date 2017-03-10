@@ -43,6 +43,10 @@ public abstract class SceneTest extends LayoutTestCase {
     myModel = createModel().build();
     myScreen = surface().screen(myModel);
     myScreen.withScale(1);
+    buildScene();
+  }
+
+  protected void buildScene() {
     mySceneManager = new SyncLayoutlibSceneManager(myModel, myScreen.getScreen());
     myScene = mySceneManager.build();
     myScene.setShowAllConstraints(true);

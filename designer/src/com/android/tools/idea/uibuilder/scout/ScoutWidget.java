@@ -33,7 +33,7 @@ import java.util.HashMap;
  * Main Wrapper class for Constraint Widgets
  */
 public class ScoutWidget implements Comparable<ScoutWidget> {
-  private static final boolean DEBUG = true;
+  private static final boolean DEBUG = false;
   private static final float MAXIMUM_STRETCH_GAP = 0.6f; // percentage
   private int mX;
   private int mY;
@@ -74,10 +74,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     this.mParent = parent;
     this.mX = ConstraintComponentUtilities.getDpX(component);
     this.mY = ConstraintComponentUtilities.getDpY(component);
-    if (parent != null) {
-      mX -= mParent.mX;
-      mY -= mParent.mY;
-    }
+
     this.mWidth = ConstraintComponentUtilities.getDpWidth(component);
     this.mHeight = ConstraintComponentUtilities.getDpHeight(component);
     this.mBaseLine = ConstraintComponentUtilities.getDpBaseline(component) + mY;
@@ -167,6 +164,8 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   public static ScoutWidget[] create(NlComponent[] array) {
     ScoutWidget[] ret = new ScoutWidget[array.length];
     NlComponent root = null;
+
+    //search for the root widget
     for (int i = 1; i < ret.length; i++) {
       NlComponent component1 = array[i-1];
       NlComponent component2 = array[i];
@@ -189,9 +188,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
         ret[count++] = new ScoutWidget(array[i], rootwidget);
       }
     }
-    System.out.println(Arrays.toString(ret));
-    Arrays.sort(ret,1,ret.length);
-    System.out.println(Arrays.toString(ret));
+     Arrays.sort(ret,1,ret.length);
 
     if (DEBUG) {
       for (int i = 0; i < ret.length; i++) {
@@ -370,7 +367,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   }
 
   private void connect(Direction sourceDirection, ScoutWidget target, Direction targetDirection, int gap) {
-    System.out.println("connect " + sourceDirection + " to " + target + " " + targetDirection);
     ConstraintComponentUtilities.connect(mNlComponent, sourceDirection, target.mNlComponent, targetDirection, gap);
   }
 
@@ -414,7 +410,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
         String attr = attrs[i];
         String id = mNlComponent.getAttribute(SdkConstants.SHERPA_URI, attr);
         if (id != null) {
-          System.out.println(" id " +id);
           return true;
         }
       }
@@ -697,7 +692,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
    * @return false if unable to apply
    */
   boolean setConstraint(int dir, ScoutWidget to, int cDir, float gap) {
-    System.out.println("setConstraint  " + this + "," + dir + " ");
     Direction anchorType = lookupType(dir);
     if (to.isGuideline()) {
       cDir &= 0x2;
