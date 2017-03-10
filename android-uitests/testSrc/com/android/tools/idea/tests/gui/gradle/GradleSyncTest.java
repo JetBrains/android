@@ -107,7 +107,6 @@ import static org.junit.Assert.*;
 public class GradleSyncTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final ScreenshotsDuringTest movieRule = new ScreenshotsDuringTest();
 
   private static final String ANDROID_SDK_MANAGER_DIALOG_TITLE = "Android SDK Manager";
   private static final String GRADLE_SETTINGS_DIALOG_TITLE = "Gradle Settings";
