@@ -181,7 +181,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
    *   <pre>
    *   Test Steps:
    *   1. Open Android Studio
-   *   2. Import the existing InstrumentationTest project
+   *   2. Create a new project
    *   3. Create an avd
    *   4. Open the default instrumented test example
    *   5. Open Run/Debug Configuration Settings
@@ -197,18 +197,17 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
   @RunIn(TestGroup.QA)
   @Test
   public void testRunInstrumentationTest() throws Exception {
-    guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");
+    createNewProject();
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
-    ideFrameFixture.requestFocusIfLost();
 
     ideFrameFixture.invokeMenuPath("Run", "Edit Configurations...");
     EditConfigurationsDialogFixture.find(guiTest.robot())
         .clickAddNewConfigurationButton()
         .selectConfigurationType(ANDROID_INSTRUMENTED_TESTS)
         .enterAndroidInstrumentedTestConfigurationName(INSTRUMENTED_TEST_CONF_NAME)
-        .selectModuleForAndroidInstrumentedTestsConfiguration(APP_NAME)
+        .selectModuleForAndroidInstrumentedTestsConfiguration(APP_NAME + "-" + APP_NAME)
         .clickOk();
 
     ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME).selectDevice(AVD_NAME).clickOk();
@@ -232,5 +231,27 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
       .invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT);
 
     debugToolWindow.pressResumeProgram();
+  }
+
+  private void createNewProject() {
+    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame().createNewProject();
+
+    ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard
+        .getConfigureAndroidProjectStep();
+    configureAndroidProjectStep.enterApplicationName(APP_NAME)
+        .enterCompanyDomain("com.android")
+        .enterPackageName("com.android.test.app");
+    guiTest.setProjectPath(configureAndroidProjectStep.getLocationInFileSystem());
+    newProjectWizard.clickNext();
+
+    newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, MIN_SDK);
+    newProjectWizard.clickNext();
+
+    // Skip "Add Activity" step
+    newProjectWizard.clickNext();
+
+    newProjectWizard.clickFinish();
+
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
   }
 }
