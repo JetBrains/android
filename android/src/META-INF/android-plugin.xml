@@ -892,7 +892,7 @@
                       anchor="right"
                       secondary="true"
                       conditionClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowCondition"
-                      icon="AndroidIcons.AndroidToolWindow"
+                      icon="AndroidIcons.DeviceExplorer.ToolWindow"
                       factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
     <toolWindow id="Gradle Console"
                 anchor="bottom"
