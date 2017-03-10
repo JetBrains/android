@@ -85,5 +85,6 @@
     <orderEntry type="module" module-name="analytics-testing" scope="TEST" />
     <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
     <orderEntry type="module" module-name="wizard" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="guava-testlib" level="project" />
   </component>
 </module>

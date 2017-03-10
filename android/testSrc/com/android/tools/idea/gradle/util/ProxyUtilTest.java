@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.testing.EqualsTester;
 import junit.framework.TestCase;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.jetbrains.annotations.Nullable;
@@ -31,7 +32,6 @@ import java.lang.reflect.*;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link ProxyUtil}
@@ -72,20 +72,14 @@ public class ProxyUtilTest extends TestCase {
 
   public void testEquality() throws Exception {
     MyInterface reproxy = reproxy(MyInterface.class, myProxy);
-    MyInterface reproxy2 = reproxy(MyInterface.class, myProxy);
-    assertNotNull(reproxy);
-    assertNotNull(reproxy2);
     assertNotSame(reproxy, myProxy);
     assertFalse(myProxy.equals(reproxy));
     assertFalse(myProxy.hashCode() == reproxy.hashCode());
     assertFalse(reproxy.equals(myProxy));
     assertFalse(reproxy.hashCode() == myProxy.hashCode());
-    assertThat(reproxy).isEqualTo(reproxy);
-    assertTrue(reproxy.hashCode() == reproxy.hashCode());
-    assertTrue(reproxy.equals(reproxy2));
-    assertTrue(reproxy.hashCode() == reproxy2.hashCode());
-    assertTrue(reproxy2.equals(reproxy));
-    assertTrue(reproxy2.hashCode() == reproxy.hashCode());
+    new EqualsTester()
+      .addEqualityGroup(reproxy, reproxy(MyInterface.class, myProxy))
+      .testEquals();
   }
 
   public void testToString() throws Exception {
