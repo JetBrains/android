@@ -20,6 +20,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.target.DragDndTarget;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
@@ -119,17 +120,21 @@ public class LayoutlibSceneManager extends SceneManager {
     scene.needsRebuildList();
   }
 
-  /**
-   * Creates a {@link TemporarySceneComponent} in our Scene.
-   */
+  @NotNull
   @Override
   public TemporarySceneComponent createTemporaryComponent(NlComponent component) {
-    return new TemporarySceneComponent(getScene(), component) {
-      @Override
-      void init() {
-        updateFromComponent(component, this);
-      }
-    };
+    Scene scene = getScene();
+
+    assert scene.getRoot() != null;
+
+    TemporarySceneComponent tempComponent = new TemporarySceneComponent(getScene(), component);
+    tempComponent.addTarget(new DragDndTarget());
+    scene.setAnimated(false);
+    scene.getRoot().addChild(tempComponent);
+    updateFromComponent(component, tempComponent);
+    scene.setAnimated(true);
+
+    return tempComponent;
   }
 
   /**
