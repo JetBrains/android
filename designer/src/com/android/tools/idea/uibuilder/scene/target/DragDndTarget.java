@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
-import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +72,7 @@ public class DragDndTarget extends DragTarget {
         myCurrentNotchY = null;
       }
       updateAttributes(attributes, dx, dy);
-      cleanup(attributes);
+      ConstraintComponentUtilities.cleanup(attributes, myComponent);
       attributes.apply();
       attributes.commit();
     }
