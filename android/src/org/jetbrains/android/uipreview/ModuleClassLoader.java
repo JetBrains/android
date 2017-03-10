@@ -13,7 +13,6 @@ import com.android.tools.idea.res.FileResourceRepository;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.utils.SdkUtils;
 import com.google.common.collect.Maps;
-import com.google.common.hash.Hashing;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.CompilerModuleExtension;
@@ -32,9 +31,9 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
@@ -76,6 +75,9 @@ public final class ModuleClassLoader extends RenderClassLoader {
     super(library.getClassLoader(), library.getApiLevel());
     myLibrary = library;
     myModuleReference = new WeakReference<>(module);
+
+    getLibraryJarFiles(getExternalLibraries())
+      .forEach(jarFile -> registerLibraryResourceFiles(module, jarFile));
   }
 
   @NotNull
@@ -334,12 +336,88 @@ public final class ModuleClassLoader extends RenderClassLoader {
     return super.loadClassFile(fqcn, classFile);
   }
 
+  /**
+   * Returns a {@link Stream<VirtualFile>} of the referenced libraries for the {@link Module} of this class loader.
+   */
+  @NotNull
+  private Stream<VirtualFile> getExternalLibraries() {
+    final Module module = myModuleReference.get();
+    if (module == null) {
+      return Stream.empty();
+    }
+
+    List<VirtualFile> externalLibraries;
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
+      AndroidModel androidModel = facet.getAndroidModel();
+      externalLibraries = androidModel.getClassJarProvider().getModuleExternalLibraries(module);
+    } else {
+      externalLibraries = AndroidRootUtil.getExternalLibraries(module);
+    }
+
+    return externalLibraries.stream();
+  }
+
+  private static void registerLibraryResourceFiles(@NotNull Module module, @NotNull File jarFile) {
+    File aarDir = jarFile.getParentFile();
+    if (aarDir.getPath().endsWith(DOT_AAR) || aarDir.getPath().contains(EXPLODED_AAR)) {
+      if (aarDir.getPath().contains(EXPLODED_AAR)) {
+        if (aarDir.getPath().endsWith(LIBS_FOLDER)) {
+          // Some libraries recently started packaging jars inside a sub libs folder inside jars
+          aarDir = aarDir.getParentFile();
+        }
+        // Gradle plugin version 1.2.x and later has classes in aar-dir/jars/
+        if (aarDir.getPath().endsWith(FD_JARS)) {
+          aarDir = aarDir.getParentFile();
+        }
+      }
+      AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
+      if (appResources != null) {
+        ResourceClassRegistry.get(module.getProject()).addAarLibrary(appResources, aarDir);
+      }
+
+      return;
+    }
+
+    // Build cache? We need to compute the package name in a slightly different way
+    File parentFile = aarDir.getParentFile();
+    if (parentFile != null) {
+      File manifest = new File(parentFile, ANDROID_MANIFEST_XML);
+      if (manifest.exists()) {
+        AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
+        if (appResources != null) {
+          FileResourceRepository repository = appResources.findRepositoryFor(parentFile);
+          if (repository != null) {
+            ResourceClassRegistry registry = ResourceClassRegistry.get(module.getProject());
+            registry.addLibrary(appResources, registry.getAarPackage(parentFile));
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns a {@link Stream<File>} of the JAR files for the given external libraries.
+   */
+  @NotNull
+  private static Stream<File> getLibraryJarFiles(@NotNull Stream<VirtualFile> externalLibraries) {
+    return externalLibraries
+      .filter(vFile -> EXT_JAR.equals(vFile.getExtension()))
+      .map(vFile -> new File(vFile.getPath()))
+      .filter(File::exists);
+  }
+
+  /**
+   * Returns the list of external JAR files referenced by the class loader. This method will also register any resource files in the
+   * referenced AARs that haven't been registered before.
+   */
   @Override
   protected List<URL> getExternalJars() {
     final Module module = myModuleReference.get();
     if (module == null) {
       return Collections.emptyList();
     }
+
     final List<URL> result = new ArrayList<>();
 
     if (ThemeEditorProvider.THEME_EDITOR_ENABLE) {
@@ -349,61 +427,18 @@ public final class ModuleClassLoader extends RenderClassLoader {
         result.add(customWidgetsUrl);
       }
     }
-    List<VirtualFile> externalLibraries;
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && facet.requiresAndroidModel() && facet.getAndroidModel() != null) {
-      AndroidModel androidModel = facet.getAndroidModel();
-      externalLibraries = androidModel.getClassJarProvider().getModuleExternalLibraries(module);
-    } else {
-      externalLibraries = AndroidRootUtil.getExternalLibraries(module);
-    }
-    for (VirtualFile libFile : externalLibraries) {
-      if (EXT_JAR.equals(libFile.getExtension())) {
-        final File file = new File(libFile.getPath());
-        if (file.exists()) {
-          try {
-            result.add(SdkUtils.fileToUrl(file));
 
-            File aarDir = file.getParentFile();
-            if (aarDir != null && (aarDir.getPath().endsWith(DOT_AAR) || aarDir.getPath().contains(EXPLODED_AAR))) {
-              if (aarDir.getPath().contains(EXPLODED_AAR)) {
-                if (aarDir.getPath().endsWith(LIBS_FOLDER)) {
-                  // Some libraries recently started packaging jars inside a sub libs folder inside jars
-                  aarDir = aarDir.getParentFile();
-                }
-                // Gradle plugin version 1.2.x and later has classes in aar-dir/jars/
-                if (aarDir.getPath().endsWith(FD_JARS)) {
-                  aarDir = aarDir.getParentFile();
-                }
-              }
-              AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
-              if (appResources != null) {
-                ResourceClassRegistry.get(module.getProject()).addAarLibrary(appResources, aarDir);
-              }
-            } else if (aarDir != null) {
-              // Build cache? We need to compute the package name in a slightly different way
-              File parentFile = aarDir.getParentFile();
-              if (parentFile != null) {
-                File manifest = new File(parentFile, ANDROID_MANIFEST_XML);
-                if (manifest.exists()) {
-                  AppResourceRepository appResources = AppResourceRepository.getOrCreateInstance(module);
-                  if (appResources != null) {
-                    FileResourceRepository repository = appResources.findRepositoryFor(parentFile);
-                    if (repository != null) {
-                      ResourceClassRegistry registry = ResourceClassRegistry.get(module.getProject());
-                      registry.addLibrary(appResources, registry.getAarPackage(parentFile));
-                    }
-                  }
-                }
-              }
-            }
-          }
-          catch (MalformedURLException e) {
-            LOG.error(e);
-          }
+    getLibraryJarFiles(getExternalLibraries())
+      .peek(jarFile -> {
+        try {
+          result.add(SdkUtils.fileToUrl(jarFile));
         }
-      }
-    }
+        catch (MalformedURLException e) {
+          LOG.error(e);
+        }
+      })
+      .forEach(jarFile -> registerLibraryResourceFiles(module, jarFile));
+
     return result;
   }
 
