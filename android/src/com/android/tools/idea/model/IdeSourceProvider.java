@@ -22,13 +22,14 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * Creates a deep copy of {@link SourceProvider}.
  *
  * @see IdeAndroidProject
  */
-public class IdeSourceProvider implements SourceProvider, Serializable {
+final public class IdeSourceProvider implements SourceProvider, Serializable {
   @NotNull private final String myName;
   @NotNull private final File myManifestFile;
   @NotNull private final Collection<File> myJavaDirectories;
@@ -127,5 +128,53 @@ public class IdeSourceProvider implements SourceProvider, Serializable {
   @NotNull
   public Collection<File> getShadersDirectories() {
     return myShadersDirectories;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof SourceProvider)) return false;
+    SourceProvider provider = (SourceProvider)o;
+    return Objects.equals(getName(), provider.getName()) &&
+           Objects.equals(getManifestFile(), provider.getManifestFile()) &&
+
+           getJavaDirectories().containsAll(provider.getJavaDirectories()) &&
+           provider.getJavaDirectories().containsAll(getJavaDirectories()) &&
+
+           getResourcesDirectories().containsAll(provider.getResourcesDirectories()) &&
+           provider.getResourcesDirectories().containsAll(getResourcesDirectories()) &&
+
+           getAidlDirectories().containsAll(provider.getAidlDirectories()) &&
+           provider.getAidlDirectories().containsAll(provider.getAidlDirectories()) &&
+
+           getRenderscriptDirectories().containsAll(provider.getRenderscriptDirectories()) &&
+           provider.getRenderscriptDirectories().containsAll(getRenderscriptDirectories()) &&
+
+           getCDirectories().containsAll(provider.getCDirectories()) &&
+           provider.getCDirectories().containsAll(getCDirectories()) &&
+
+           getCppDirectories().containsAll(provider.getCppDirectories()) &&
+           provider.getCppDirectories().containsAll(getCppDirectories()) &&
+
+           getResDirectories().containsAll(provider.getResDirectories()) &&
+           provider.getResDirectories().containsAll(getResDirectories()) &&
+
+           getAssetsDirectories().containsAll(provider.getAssetsDirectories()) &&
+           provider.getAssetsDirectories().containsAll(getAssetsDirectories()) &&
+
+           getJniLibsDirectories().containsAll(provider.getJniLibsDirectories()) &&
+           provider.getJniLibsDirectories().containsAll(getJniLibsDirectories()) &&
+
+           getShadersDirectories().containsAll(provider.getShadersDirectories()) &&
+           provider.getShadersDirectories().containsAll(getShadersDirectories());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects
+      .hash(getName(), getManifestFile(), getJavaDirectories(), getResourcesDirectories(), getAidlDirectories(),
+            getRenderscriptDirectories(),
+            getCDirectories(), getCppDirectories(), getResDirectories(), getAssetsDirectories(), getJniLibsDirectories(),
+            getShadersDirectories());
   }
 }

@@ -15,27 +15,60 @@
  */
 package com.android.tools.idea.model;
 
+import com.android.build.OutputFile;
 import com.android.builder.model.AndroidArtifactOutput;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Objects;
 
 /**
  * Creates a deep copy of {@link AndroidArtifactOutput}.
  *
  * @see IdeAndroidProject
  */
-public class IdeAndroidArtifactOutput extends IdeVariantOutput implements AndroidArtifactOutput, Serializable {
+final public class IdeAndroidArtifactOutput implements AndroidArtifactOutput, Serializable {
+  @NotNull private final OutputFile myMainOutputFile;
+  @NotNull private final Collection<IdeOutputFile> myOutputs;
+  @NotNull private final File mySplitFolder;
   @NotNull private final String myAssembleTaskName;
   @NotNull private final File myGeneratedManifest;
+  private final int myVersionCode;
 
   public IdeAndroidArtifactOutput(@NotNull AndroidArtifactOutput output) {
-    super(output);
+    myMainOutputFile = new IdeOutputFile(output.getMainOutputFile());
+
+    myOutputs = new ArrayList<>();
+    for (OutputFile file : output.getOutputs()) {
+      myOutputs.add(new IdeOutputFile(file));
+    }
+
+    mySplitFolder = output.getSplitFolder();
     myAssembleTaskName = output.getAssembleTaskName();
     myGeneratedManifest = output.getGeneratedManifest();
+    myVersionCode = output.getVersionCode();
   }
 
+  @Override
+  @NotNull
+  public OutputFile getMainOutputFile() {
+    return myMainOutputFile;
+  }
+
+  @Override
+  @NotNull
+  public Collection<? extends OutputFile> getOutputs() {
+    return myOutputs;
+  }
+
+  @Override
+  @NotNull
+  public File getSplitFolder() {
+    return mySplitFolder;
+  }
   @Override
   @NotNull
   public String getAssembleTaskName() {
@@ -46,5 +79,33 @@ public class IdeAndroidArtifactOutput extends IdeVariantOutput implements Androi
   @NotNull
   public File getGeneratedManifest() {
     return myGeneratedManifest;
+  }
+
+
+  @Override
+  public int getVersionCode() {
+    return myVersionCode;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof AndroidArtifactOutput)) return false;
+    AndroidArtifactOutput output = (AndroidArtifactOutput)o;
+    return Objects.equals(getMainOutputFile(), output.getMainOutputFile()) &&
+
+           getOutputs().containsAll(output.getOutputs()) &&
+           output.getOutputs().containsAll(getOutputs()) &&
+
+           Objects.equals(getSplitFolder(), output.getSplitFolder()) &&
+           Objects.equals(getAssembleTaskName(), output.getAssembleTaskName()) &&
+           Objects.equals(getGeneratedManifest(), output.getGeneratedManifest()) &&
+           getVersionCode() == output.getVersionCode();
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects
+      .hash(getMainOutputFile(), getOutputs(), getSplitFolder(), getAssembleTaskName(), getGeneratedManifest(), getVersionCode());
   }
 }

@@ -59,12 +59,6 @@ public class IdeLibrary implements Library, Serializable {
   }
 
   @Override
-  @Nullable
-  public MavenCoordinates getRequestedCoordinates() {
-    return myRequestedCoordinates;
-  }
-
-  @Override
   @NotNull
   public MavenCoordinates getResolvedCoordinates() {
     return myResolvedCoordinates;
@@ -83,6 +77,12 @@ public class IdeLibrary implements Library, Serializable {
   }
 
   @Override
+  @Nullable
+  public MavenCoordinates getRequestedCoordinates() {
+    return myRequestedCoordinates;
+  }
+
+  @Override
   public boolean isSkipped() {
     return mySkipped;
   }
@@ -91,5 +91,4 @@ public class IdeLibrary implements Library, Serializable {
   public boolean isProvided() {
     return myProvided;
   }
-
 }

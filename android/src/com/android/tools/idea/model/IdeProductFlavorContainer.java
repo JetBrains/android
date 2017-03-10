@@ -24,13 +24,14 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * Creates a deep copy of {@link ProductFlavorContainer}.
  *
  * @see IdeAndroidProject
  */
-public class IdeProductFlavorContainer implements ProductFlavorContainer, Serializable {
+final public class IdeProductFlavorContainer implements ProductFlavorContainer, Serializable {
 
   @NotNull private final ProductFlavor myProductFlavor;
   @NotNull private final SourceProvider mySourceProvider;
@@ -63,5 +64,22 @@ public class IdeProductFlavorContainer implements ProductFlavorContainer, Serial
   @NotNull
   public Collection<SourceProviderContainer> getExtraSourceProviders() {
     return myExtraSourceProviders;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof ProductFlavorContainer)) return false;
+    ProductFlavorContainer container = (ProductFlavorContainer)o;
+    return Objects.equals(getProductFlavor(), container.getProductFlavor()) &&
+           Objects.equals(getSourceProvider(), container.getSourceProvider()) &&
+
+           getExtraSourceProviders().containsAll(container.getExtraSourceProviders()) &&
+           container.getExtraSourceProviders().containsAll(getExtraSourceProviders());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getProductFlavor(), getSourceProvider(), getExtraSourceProviders());
   }
 }

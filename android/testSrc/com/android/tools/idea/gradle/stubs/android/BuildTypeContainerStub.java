@@ -69,4 +69,15 @@ public class BuildTypeContainerStub implements BuildTypeContainer {
   public Collection<SourceProviderContainer> getExtraSourceProviders() {
     return ImmutableSet.of();
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    // Must be the same if it is an stub
+    if (o instanceof BuildTypeContainerStub) return false;
+    // Take other object equals
+    if (!(o instanceof BuildTypeContainer)) return false;
+    BuildTypeContainer container = (BuildTypeContainer)o;
+    return container.equals(this);
+  }
 }

@@ -27,7 +27,7 @@ import java.util.*;
  *
  * @see IdeAndroidProject
  */
-public class IdeVariant implements Variant, Serializable {
+final public class IdeVariant implements Variant, Serializable {
   @NotNull private final String myName;
   @NotNull private final String myDisplayName;
   @NotNull private final AndroidArtifact myMainArtifact;
@@ -115,5 +115,35 @@ public class IdeVariant implements Variant, Serializable {
   @NotNull
   public Collection<TestedTargetVariant> getTestedTargetVariants() {
     return myTestedTargetVariants;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof Variant)) return false;
+    Variant variant = (Variant)o;
+    return Objects.equals(getName(), variant.getName()) &&
+           Objects.equals(getDisplayName(), variant.getDisplayName()) &&
+           Objects.equals(getMainArtifact(), variant.getMainArtifact()) &&
+           Objects.equals(getBuildType(), variant.getBuildType()) &&
+           Objects.equals(getMergedFlavor(), variant.getMergedFlavor()) &&
+
+           getExtraAndroidArtifacts().containsAll(variant.getExtraAndroidArtifacts()) &&
+           variant.getExtraAndroidArtifacts().containsAll(getExtraAndroidArtifacts()) &&
+
+           getExtraJavaArtifacts().containsAll(variant.getExtraJavaArtifacts()) &&
+           variant.getExtraJavaArtifacts().containsAll(getExtraJavaArtifacts()) &&
+
+           getProductFlavors().containsAll(variant.getProductFlavors()) &&
+           variant.getProductFlavors().containsAll(getProductFlavors()) &&
+
+           getTestedTargetVariants().containsAll(variant.getTestedTargetVariants()) &&
+           variant.getTestedTargetVariants().containsAll(getTestedTargetVariants());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getName(), getDisplayName(), getMainArtifact(), getExtraAndroidArtifacts(), getExtraJavaArtifacts(), getBuildType(),
+                        getProductFlavors(), getMergedFlavor(), getTestedTargetVariants());
   }
 }

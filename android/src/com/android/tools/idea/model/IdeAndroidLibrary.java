@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.model;
 
+import com.android.annotations.Nullable;
 import com.android.builder.model.AndroidLibrary;
+import com.android.builder.model.JavaLibrary;
 import com.android.builder.model.Library;
+import com.android.builder.model.MavenCoordinates;
 import com.android.ide.common.repository.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,6 +27,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,7 +35,16 @@ import java.util.Map;
  *
  * @see IdeAndroidProject
  */
-public class IdeAndroidLibrary extends IdeAndroidBundle implements AndroidLibrary, Serializable {
+public class IdeAndroidLibrary implements AndroidLibrary, Serializable {
+  @NotNull private final MavenCoordinates myResolvedCoordinates;
+  @NotNull private final File myBundle;
+  @NotNull private final File myFolder;
+  @NotNull private final List<IdeAndroidLibrary> myLibraryDependencies;
+  @NotNull private final Collection<IdeJavaLibrary> myJavaDependencies;
+  @NotNull private final File myManifest;
+  @NotNull private final File myJarFile;
+  @NotNull private final File myResFolder;
+  @NotNull private final File myAssetsFolder;
   @NotNull private final Collection<File> myLocalJars;
   @NotNull private final File myJniFolder;
   @NotNull private final File myAidlFolder;
@@ -41,10 +54,40 @@ public class IdeAndroidLibrary extends IdeAndroidBundle implements AndroidLibrar
   @NotNull private final File myExternalAnnotations;
   @NotNull private final File myPublicResources;
   @NotNull private final File mySymbolFile;
+  @Nullable private final String myProject;
+  @Nullable private final String myName;
+  @Nullable private final MavenCoordinates myRequestedCoordinates;
+  @Nullable private final String myProjectVariant;
+  private final boolean mySkipped;
+  private final boolean myProvided;
   private final boolean myOptional;
 
   public IdeAndroidLibrary(@NotNull AndroidLibrary library, @NotNull Map<Library, Library> seen, @NotNull GradleVersion gradleVersion) {
-    super(library, seen, gradleVersion);
+    myResolvedCoordinates = new IdeMavenCoordinates(library.getResolvedCoordinates(), gradleVersion);
+
+    myBundle = library.getBundle();
+    myFolder = library.getFolder();
+
+    myLibraryDependencies = new ArrayList<>();
+    for (AndroidLibrary dependency : library.getLibraryDependencies()) {
+      if (!seen.containsKey(dependency)) {
+        seen.put(dependency, new IdeAndroidLibrary(dependency, seen, gradleVersion));
+      }
+      myLibraryDependencies.add((IdeAndroidLibrary)seen.get(dependency));
+    }
+
+    myJavaDependencies = new ArrayList<>();
+    for (JavaLibrary dependency : library.getJavaDependencies()) {
+      if (!seen.containsKey(dependency)) {
+        seen.put(dependency, new IdeJavaLibrary(dependency, seen, gradleVersion));
+      }
+      myJavaDependencies.add((IdeJavaLibrary)seen.get(dependency));
+    }
+
+    myManifest = library.getManifest();
+    myJarFile = library.getJarFile();
+    myResFolder = library.getResFolder();
+    myAssetsFolder = library.getAssetsFolder();
     myLocalJars = new ArrayList<>(library.getLocalJars());
     myJniFolder = library.getJniFolder();
     myAidlFolder = library.getAidlFolder();
@@ -54,6 +97,26 @@ public class IdeAndroidLibrary extends IdeAndroidBundle implements AndroidLibrar
     myExternalAnnotations = library.getExternalAnnotations();
     myPublicResources = library.getPublicResources();
     mySymbolFile = library.getSymbolFile();
+    myProject = library.getProject();
+    myName = library.getName();
+
+    MavenCoordinates liRequestedCoordinate = library.getRequestedCoordinates();
+    myRequestedCoordinates = liRequestedCoordinate == null ? null :new IdeMavenCoordinates(liRequestedCoordinate, gradleVersion);
+
+    myProjectVariant = library.getProjectVariant();
+    mySkipped = library.isSkipped();
+
+    boolean provided = false;
+    try {
+      provided = library.isProvided();
+    }
+    catch (NullPointerException e) {
+      provided = false;
+    }
+    finally {
+      myProvided = provided;
+    }
+
     boolean optional = false;
     try {
       // isOptional is deprecated and isProvided should be used instead when null is returned
@@ -65,6 +128,60 @@ public class IdeAndroidLibrary extends IdeAndroidBundle implements AndroidLibrar
     finally {
       myOptional = optional;
     }
+  }
+
+  @Override
+  @NotNull
+  public MavenCoordinates getResolvedCoordinates() {
+    return myResolvedCoordinates;
+  }
+
+  @Override
+  @NotNull
+  public File getBundle() {
+    return myBundle;
+  }
+
+  @Override
+  @NotNull
+  public File getFolder() {
+    return myFolder;
+  }
+
+  @Override
+  @NotNull
+  public List<? extends AndroidLibrary> getLibraryDependencies() {
+    return myLibraryDependencies;
+  }
+
+  @Override
+  @NotNull
+  public Collection<? extends JavaLibrary> getJavaDependencies() {
+    return myJavaDependencies;
+  }
+
+  @Override
+  @NotNull
+  public File getManifest() {
+    return myManifest;
+  }
+
+  @Override
+  @NotNull
+  public File getJarFile() {
+    return myJarFile;
+  }
+
+  @Override
+  @NotNull
+  public File getResFolder() {
+    return myResFolder;
+  }
+
+  @Override
+  @NotNull
+  public File getAssetsFolder() {
+    return myAssetsFolder;
   }
 
   @Override
@@ -119,6 +236,40 @@ public class IdeAndroidLibrary extends IdeAndroidBundle implements AndroidLibrar
   @NotNull
   public File getSymbolFile() {
     return mySymbolFile;
+  }
+
+  @Override
+  @Nullable
+  public String getProject() {
+    return myProject;
+  }
+
+  @Override
+  @Nullable
+  public String getName() {
+    return myName;
+  }
+
+  @Override
+  @Nullable
+  public MavenCoordinates getRequestedCoordinates() {
+    return myRequestedCoordinates;
+  }
+
+  @Override
+  @Nullable
+  public String getProjectVariant() {
+    return myProjectVariant;
+  }
+
+  @Override
+  public boolean isSkipped() {
+    return mySkipped;
+  }
+
+  @Override
+  public boolean isProvided() {
+    return myProvided;
   }
 
   @Override

@@ -17,10 +17,10 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.annotations.NonNull;
 import com.android.builder.model.BaseArtifact;
-import com.android.builder.model.Dependencies;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.tools.idea.gradle.stubs.FileStructure;
+import com.android.tools.idea.model.IdeDependencyGraphs;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +39,7 @@ public class BaseArtifactStub implements BaseArtifact {
   @NotNull protected final String myBuildType;
   @NotNull protected final FileStructure myFileStructure;
   @NotNull private final List<File> myGeneratedSourceFolders = Lists.newArrayList();
+  @NotNull protected final DependencyGraphs myDependencyGraphs;
 
   public BaseArtifactStub(@NotNull String name, @NotNull String dirName, @NotNull DependenciesStub dependencies, @NotNull String buildType,
                           @NotNull FileStructure fileStructure) {
@@ -47,6 +48,7 @@ public class BaseArtifactStub implements BaseArtifact {
     myDependencies = dependencies;
     myBuildType = buildType;
     myFileStructure = fileStructure;
+    myDependencyGraphs = new IdeDependencyGraphs();
   }
 
 
@@ -98,7 +100,7 @@ public class BaseArtifactStub implements BaseArtifact {
   @NonNull
   @Override
   public DependencyGraphs getDependencyGraphs() {
-    throw new UnsupportedOperationException();
+     return myDependencyGraphs;
   }
 
   @Override

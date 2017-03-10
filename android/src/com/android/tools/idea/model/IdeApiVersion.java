@@ -27,7 +27,7 @@ import java.util.Objects;
  *
  * @see IdeAndroidProject
  */
-public class IdeApiVersion implements ApiVersion, Serializable {
+final public class IdeApiVersion implements ApiVersion, Serializable {
   @NotNull private final String myApiString;
   @Nullable private final String myCodename;
   private final int myApiLevel;
@@ -69,5 +69,10 @@ public class IdeApiVersion implements ApiVersion, Serializable {
     return Objects.equals(getApiString(), version.getApiString()) &&
            Objects.equals(getCodename(), version.getCodename()) &&
            getApiLevel() == version.getApiLevel();
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getApiString(), getCodename(), getApiLevel());
   }
 }

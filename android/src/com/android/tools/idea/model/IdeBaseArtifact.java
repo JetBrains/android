@@ -33,7 +33,7 @@ import java.util.*;
  *
  * @see IdeAndroidProject
  */
-public class IdeBaseArtifact implements BaseArtifact, Serializable {
+final public class IdeBaseArtifact implements BaseArtifact, Serializable {
   @NotNull private final GradleVersion myGradleVersion;
   @NotNull private final String myName;
   @NotNull private final String myCompileTaskName;
@@ -143,5 +143,37 @@ public class IdeBaseArtifact implements BaseArtifact, Serializable {
   @Nullable
   public SourceProvider getMultiFlavorSourceProvider() {
     return myMultiFlavorSourceProvider;
+  }
+
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof BaseArtifact)) return false;
+    BaseArtifact artifact = (BaseArtifact)o;
+
+    if (myGradleVersion.isAtLeast(2,3,0)) {
+      if (!Objects.equals(getDependencyGraphs(), artifact.getDependencyGraphs())) {
+        return false;
+      }
+    }
+
+    return Objects.equals(getName(), artifact.getName()) &&
+           Objects.equals(getCompileTaskName(), artifact.getCompileTaskName()) &&
+           Objects.equals(getAssembleTaskName(), artifact.getAssembleTaskName()) &&
+           Objects.equals(getClassesFolder(), artifact.getClassesFolder()) &&
+           Objects.equals(getJavaResourcesFolder(), artifact.getJavaResourcesFolder()) &&
+           Objects.equals(getDependencies(), artifact.getDependencies()) &&
+           Objects.equals(getCompileDependencies(), artifact.getCompileDependencies()) &&
+           Objects.equals(getVariantSourceProvider(), artifact.getVariantSourceProvider()) &&
+           Objects.equals(getMultiFlavorSourceProvider(), artifact.getMultiFlavorSourceProvider()) &&
+           Objects.equals(getIdeSetupTaskNames(), artifact.getIdeSetupTaskNames()) &&
+           Objects.equals(getGeneratedSourceFolders(), artifact.getGeneratedSourceFolders());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects
+      .hash(getName(), getCompileTaskName(), getAssembleTaskName(), getClassesFolder(), getJavaResourcesFolder(), getDependencies(),
+            getCompileDependencies(), myGradleVersion.isAtLeast(2,3,0) ? getDependencyGraphs():0, getVariantSourceProvider(), getMultiFlavorSourceProvider(),
+            getIdeSetupTaskNames(), getGeneratedSourceFolders());
   }
 }

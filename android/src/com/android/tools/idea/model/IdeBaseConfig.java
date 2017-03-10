@@ -29,7 +29,7 @@ import java.util.*;
  *
  * @see IdeAndroidProject
  */
-public class IdeBaseConfig implements BaseConfig, Serializable {
+final public class IdeBaseConfig implements BaseConfig, Serializable {
   @NotNull private final String myName;
   @NotNull private final Map<String,ClassField> myBuildConfigFields;
   @NotNull private final Map<String,ClassField> myResValues;
@@ -148,5 +148,25 @@ public class IdeBaseConfig implements BaseConfig, Serializable {
   @Nullable
   public File getMultiDexKeepProguard() {
     return myMultiDexKeepProguard;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof BaseConfig)) return false;
+    BaseConfig config = (BaseConfig)o;
+    return Objects.equals(getName(), config.getName()) &&
+           Objects.equals(getApplicationIdSuffix(), config.getApplicationIdSuffix()) &&
+           Objects.equals(getVersionNameSuffix(), config.getVersionNameSuffix()) &&
+           Objects.equals(getBuildConfigFields(), config.getBuildConfigFields()) &&
+           Objects.equals(getResValues(), config.getResValues()) &&
+           Objects.equals(getProguardFiles(), config.getProguardFiles()) &&
+           Objects.equals(getConsumerProguardFiles(), config.getConsumerProguardFiles()) &&
+           Objects.equals(getTestProguardFiles(), config.getTestProguardFiles()) &&
+           Objects.equals(getManifestPlaceholders(), config.getManifestPlaceholders()) &&
+           Objects.equals(getMultiDexEnabled(), config.getMultiDexEnabled()) &&
+           Objects.equals(getMultiDexKeepFile(), config.getMultiDexKeepFile()) &&
+           Objects.equals(getMultiDexKeepProguard(), config.getMultiDexKeepProguard()) &&
+           Objects.equals(getJarJarRuleFiles(), config.getJarJarRuleFiles());
   }
 }

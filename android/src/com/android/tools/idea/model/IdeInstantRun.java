@@ -20,13 +20,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Creates a deep copy of {@link InstantRun}.
  *
  * @see IdeAndroidProject
  */
-public class IdeInstantRun implements InstantRun, Serializable {
+final public class IdeInstantRun implements InstantRun, Serializable {
   @NotNull private final File myInfoFile;
   private final boolean mySupportedByArtifact;
   private final int mySupportStatus;
@@ -51,5 +52,20 @@ public class IdeInstantRun implements InstantRun, Serializable {
   @Override
   public int getSupportStatus() {
     return mySupportStatus;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof InstantRun)) return false;
+    InstantRun run = (InstantRun)o;
+    return isSupportedByArtifact() == run.isSupportedByArtifact() &&
+           getSupportStatus() == run.getSupportStatus() &&
+           Objects.equals(getInfoFile(), run.getInfoFile());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getInfoFile(), isSupportedByArtifact(), getSupportStatus());
   }
 }
