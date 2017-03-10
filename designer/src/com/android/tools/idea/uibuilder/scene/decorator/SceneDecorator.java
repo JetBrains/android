@@ -51,11 +51,6 @@ public class SceneDecorator {
    * <li>adds targets</li>
    * <li>add children (If children they are wrapped in a clip)</li>
    * </ol>
-   *
-   * @param list
-   * @param time
-   * @param screenView
-   * @param component
    */
   public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     if (sceneContext.showOnlySelection()) {
@@ -78,15 +73,15 @@ public class SceneDecorator {
   }
 
   protected void addContent(@NotNull DisplayList list,
-                                 long time,
-                                 @NotNull SceneContext sceneContext,
-                                 @NotNull SceneComponent component) {
+                            long time,
+                            @NotNull SceneContext sceneContext,
+                            @NotNull SceneComponent component) {
     // Nothing here...
   }
 
   protected void addBackground(@NotNull DisplayList list,
-                          @NotNull SceneContext sceneContext,
-                          @NotNull SceneComponent component) {
+                               @NotNull SceneContext sceneContext,
+                               @NotNull SceneComponent component) {
     if (sceneContext.getColorSet().drawBackground()) {
       Rectangle rect = new Rectangle();
       component.fillRect(rect); // get the rectangle from the component

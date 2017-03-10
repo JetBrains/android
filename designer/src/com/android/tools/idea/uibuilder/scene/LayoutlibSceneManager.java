@@ -191,7 +191,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * {@linkplain ViewGroupHandler} to do it)
    */
   @Override
-  protected void addTargets(@NotNull SceneComponent component) {
+  public void addTargets(@NotNull SceneComponent component) {
     SceneComponent parent = component.getParent();
     if (parent != null) {
       component = parent;
@@ -278,8 +278,8 @@ public class LayoutlibSceneManager extends SceneManager {
         if (!selection.isEmpty()) {
           NlComponent primary = selection.get(0);
           SceneComponent component = getScene().getSceneComponent(primary);
-          if (component != null) {
-            addTargets(component);
+          if (component != null) { // TODO only add "static" target here (the ones that are not part of any an interaction
+            addTargets(component); // or dependent on a specific state
           }
           else {
             addTargets(root);

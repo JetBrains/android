@@ -76,6 +76,8 @@ abstract public class SceneManager implements Disposable {
 
     SceneComponent root = updateFromComponent(rootComponent, usedComponents);
     oldComponents.removeAll(usedComponents);
+    // The temporary component are not present in the NLModel so won't be added to the used component array
+    oldComponents.removeIf(component -> component instanceof TemporarySceneComponent);
     oldComponents.forEach(scene::removeComponent);
 
     SelectionModel selectionModel = getDesignSurface().getSelectionModel();
@@ -86,7 +88,7 @@ abstract public class SceneManager implements Disposable {
     scene.needsRebuildList();
   }
 
-  abstract protected void addTargets(@NotNull SceneComponent component);
+  public abstract void addTargets(@NotNull SceneComponent component);
 
   /**
    * Update (and if necessary, create) the SceneComponent paired to the given NlComponent

@@ -20,17 +20,12 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentU
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.target.DragBaseTarget;
-import com.android.tools.idea.uibuilder.scene.target.Target;
-import com.android.tools.idea.uibuilder.scene.target.TargetNotchConnector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Implements a target allowing dragging a widget for the ConstraintLayout viewgroup
@@ -40,7 +35,6 @@ public class ConstraintDragTarget extends DragBaseTarget  implements MultiCompon
 
   @AndroidDpCoordinate protected int myOffsetX;
   @AndroidDpCoordinate protected int myOffsetY;
-  protected boolean myChangedComponent;
 
   private final ChainChecker myChainChecker = new ChainChecker();
 
@@ -309,9 +303,4 @@ public class ConstraintDragTarget extends DragBaseTarget  implements MultiCompon
   }
 
   //endregion
-
-  public boolean hasChangedComponent() {
-    return myChangedComponent;
-  }
-
 }

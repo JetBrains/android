@@ -30,39 +30,21 @@ import java.awt.*;
  */
 public class DrawLinearSeparator extends DrawRegion {
 
-  public static final int STATE_DEFAULT = 0;
-  public static final int STATE_HIGHLIGHT = 1;
-  public static final int STATE_SELECTED = 2;
+  private static final int STROKE_SIZE = 2;
+  private static final Stroke STROKE = new BasicStroke(STROKE_SIZE, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
+                                                       0, new float[]{2, 3}, 0);
 
-  private static final int STROKE_SIZE = 1;
-
-  private static Stroke STROKE = new BasicStroke(STROKE_SIZE,
-                                                 BasicStroke.CAP_BUTT,
-                                                 BasicStroke.JOIN_BEVEL,
-                                                 0, new float[]{2, 3},
-                                                 0);
-  private static Stroke STROKE_BOLD = new BasicStroke(STROKE_SIZE * 2,
-                                                      BasicStroke.CAP_BUTT,
-                                                      BasicStroke.JOIN_BEVEL,
-                                                      0, new float[]{4, 6},
-                                                      0);
-
-
-  private final int myState;
-
-  public DrawLinearSeparator(boolean vertical,
-                             int state,
+  public DrawLinearSeparator(boolean layoutVertical,
                              @SwingCoordinate int x,
                              @SwingCoordinate int y,
                              @SwingCoordinate int length) {
     setLocation(x, y);
-    if (vertical) {
-      setSize(STROKE_SIZE, length);
-    }
-    else {
+    if (layoutVertical) {
       setSize(length, STROKE_SIZE);
     }
-    myState = state;
+    else {
+      setSize(STROKE_SIZE, length);
+    }
   }
 
   @Override
@@ -71,39 +53,27 @@ public class DrawLinearSeparator extends DrawRegion {
     Stroke defStroke = g.getStroke();
     Color defColor = g.getColor();
 
-    Color color;
-
     g.setStroke(STROKE);
-    switch (myState) {
-      case STATE_HIGHLIGHT:
-        color = colorSet.getSelectedFrames();
-        g.setStroke(STROKE_BOLD);
-        break;
-      case STATE_SELECTED:
-        color = colorSet.getSelectedFrames();
-        break;
-      default:
-        color = colorSet.getFrames();
-    }
-    g.setColor(color);
+    g.setColor(colorSet.getDragReceiverFrames());
     g.drawLine(x, y, x + width, y + height);
 
     g.setColor(defColor);
     g.setStroke(defStroke);
   }
 
+  /**
+   * @param layoutVertical The orientation of the parent linear layout
+   */
   public static void add(DisplayList list, SceneContext context,
-                         boolean vertical,
-                         int state,
+                         boolean layoutVertical,
                          @AndroidDpCoordinate float left,
                          @AndroidDpCoordinate float top,
                          @AndroidDpCoordinate float right,
                          @AndroidDpCoordinate float bottom) {
 
-    float length = vertical ? bottom - top : right - left;
+    float length = layoutVertical ? right - left : bottom - top;
     DrawLinearSeparator separator =
-      new DrawLinearSeparator(vertical,
-                              state,
+      new DrawLinearSeparator(layoutVertical,
                               context.getSwingX(left),
                               context.getSwingY(top),
                               context.getSwingDimension(length));

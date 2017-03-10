@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.MultiComponentTarget;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -37,7 +38,7 @@ import java.util.List;
 /**
  * Base class for dragging targets.
  */
-public abstract class DragBaseTarget extends BaseTarget implements TargetNotchConnector.NotchConnectable {
+public abstract class DragBaseTarget extends BaseTarget implements Notch.Snappable, MultiComponentTarget {
 
   private static final boolean DEBUG_RENDERER = false;
 
@@ -48,15 +49,15 @@ public abstract class DragBaseTarget extends BaseTarget implements TargetNotchCo
   protected boolean myChangedComponent;
 
   private final Point mySnappedCoordinates = new Point();
-  private final TargetNotchConnector myTargetNotchConnector;
+  private final TargetSnapper myTargetSnapper;
 
-  public DragBaseTarget(@NotNull TargetNotchConnector targetNotchConnector) {
+  public DragBaseTarget(@NotNull TargetSnapper targetSnapper) {
     super();
-    myTargetNotchConnector = targetNotchConnector;
+    myTargetSnapper = targetSnapper;
   }
 
   public DragBaseTarget() {
-    this(new TargetNotchConnector());
+    this(new TargetSnapper());
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -105,7 +106,7 @@ public abstract class DragBaseTarget extends BaseTarget implements TargetNotchCo
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, JBColor.red);
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, JBColor.red);
     }
-    myTargetNotchConnector.renderCurrentNotches(list, sceneContext, myComponent);
+    myTargetSnapper.renderCurrentNotches(list, sceneContext, myComponent);
   }
 
   protected abstract void updateAttributes(@NotNull AttributesTransaction attributes,
@@ -132,7 +133,7 @@ public abstract class DragBaseTarget extends BaseTarget implements TargetNotchCo
     myOffsetX = x - myComponent.getDrawX(System.currentTimeMillis());
     myOffsetY = y - myComponent.getDrawY(System.currentTimeMillis());
     myChangedComponent = false;
-    getTargetNotchConnector().gatherNotches(myComponent);
+    getTargetNotchSnapper().gatherNotches(myComponent);
   }
 
   @Override
@@ -143,9 +144,8 @@ public abstract class DragBaseTarget extends BaseTarget implements TargetNotchCo
     myComponent.setDragging(true);
     NlComponent component = myComponent.getAuthoritativeNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
-    mySnappedCoordinates.x = x - myOffsetX;
-    mySnappedCoordinates.y = y - myOffsetY;
-    myTargetNotchConnector.applyNotches(myComponent, attributes, mySnappedCoordinates);
+    mySnappedCoordinates.x = myTargetSnapper.trySnapX(x - myOffsetX);
+    mySnappedCoordinates.y = myTargetSnapper.trySnapY(y - myOffsetY);
     updateAttributes(attributes, mySnappedCoordinates.x, mySnappedCoordinates.y);
     attributes.apply();
     component.fireLiveChangeEvent();
@@ -166,9 +166,9 @@ public abstract class DragBaseTarget extends BaseTarget implements TargetNotchCo
       }
       NlComponent component = myComponent.getAuthoritativeNlComponent();
       AttributesTransaction attributes = component.startAttributeTransaction();
-      mySnappedCoordinates.x = x - myOffsetX;
-      mySnappedCoordinates.y = y - myOffsetY;
-      myTargetNotchConnector.applyNotches(myComponent, attributes, mySnappedCoordinates);
+      mySnappedCoordinates.x = myTargetSnapper.trySnapX(x - myOffsetX);
+      mySnappedCoordinates.y = myTargetSnapper.trySnapY(y - myOffsetY);
+      myTargetSnapper.applyNotches(myComponent, attributes, mySnappedCoordinates);
       updateAttributes(attributes, mySnappedCoordinates.x, mySnappedCoordinates.y);
       attributes.apply();
 
@@ -200,13 +200,12 @@ public abstract class DragBaseTarget extends BaseTarget implements TargetNotchCo
   }
 
   @Override
-  public String getToolTipText() {
-    return "View";
+  @NotNull
+  public TargetSnapper getTargetNotchSnapper() {
+    return myTargetSnapper;
   }
 
-  @Override
-  @NotNull
-  public TargetNotchConnector getTargetNotchConnector() {
-    return myTargetNotchConnector;
+  public boolean hasChangedComponent() {
+    return myChangedComponent;
   }
 }

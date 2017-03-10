@@ -16,15 +16,15 @@
 package com.android.tools.idea.uibuilder.handlers.linear;
 
 import com.android.tools.idea.uibuilder.api.*;
-import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
-import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
+import com.android.tools.idea.uibuilder.handlers.linear.actions.*;
 import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearDragTarget;
 import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearResizeTarget;
 import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearSeparatorTarget;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneInteraction;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
@@ -32,9 +32,8 @@ import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
-import icons.AndroidDesignerIcons;
+import com.intellij.openapi.command.WriteCommandAction;
 import icons.AndroidIcons;
-import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -99,7 +98,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     if (layout.getDrawWidth() == 0 || layout.getDrawHeight() == 0) {
       return null;
     }
-    return new LinearDragHandler(editor, layout, components, type, this);
+    return new LinearDragHandler(editor, this, layout, components, type);
   }
 
   @Override
@@ -221,7 +220,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     return sum;
   }
 
-  private void clearWeights(@NotNull NlComponent component, @NotNull List<NlComponent> selectedChildren) {
+  public void clearWeights(@NotNull NlComponent component, @NotNull List<NlComponent> selectedChildren) {
     // Clear attributes
     String sizeAttribute = isVertical(component) ? ATTR_LAYOUT_HEIGHT : ATTR_LAYOUT_WIDTH;
     for (NlComponent selected : selectedChildren) {
@@ -233,7 +232,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     }
   }
 
-  private void distributeWeights(@NotNull NlComponent component, @NotNull List<NlComponent> selectedChildren) {
+  public void distributeWeights(@NotNull NlComponent component, @NotNull List<NlComponent> selectedChildren) {
     // Any XML to get weight sum?
     String weightSum = component.getAttribute(ANDROID_URI, ATTR_WEIGHT_SUM);
     double sum = -1.0;
@@ -287,112 +286,6 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     addToolbarActionsToMenu("LinearLayout", actions);
   }
 
-  private static class ToggleOrientationAction extends DirectViewAction {
-    @Override
-    public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren,
-                        @InputEventMask int modifiers) {
-      assert handler instanceof LinearLayoutHandler;
-      LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
-      boolean isHorizontal = !linearLayoutHandler.isVertical(component);
-      String value = isHorizontal ? VALUE_VERTICAL : null; // null: horizontal is the default
-      component.setAttribute(ANDROID_URI, ATTR_ORIENTATION, value);
-    }
-
-    @Override
-    public void updatePresentation(@NotNull ViewActionPresentation presentation,
-                                   @NotNull ViewEditor editor,
-                                   @NotNull ViewHandler handler,
-                                   @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers) {
-      assert handler instanceof LinearLayoutHandler;
-      LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
-      boolean vertical = linearLayoutHandler.isVertical(component);
-
-      presentation.setLabel("Convert orientation to " + (!vertical ? VALUE_VERTICAL : VALUE_HORIZONTAL));
-      Icon icon = vertical ? AndroidDesignerIcons.SwitchVerticalLinear : AndroidDesignerIcons.SwitchHorizontalLinear;
-      presentation.setIcon(icon);
-    }
-  }
-
-  private static class DistributeWeightsAction extends DirectViewAction {
-    public DistributeWeightsAction() {
-      super(AndroidDesignerIcons.DistributeWeights, "Distribute Weights Evenly");
-    }
-
-    @Override
-    public void updatePresentation(@NotNull ViewActionPresentation presentation,
-                                   @NotNull ViewEditor editor,
-                                   @NotNull ViewHandler handler,
-                                   @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers) {
-      presentation.setVisible(selectedChildren.size() > 1);
-    }
-
-    @Override
-    public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren, @InputEventMask int modifiers) {
-
-
-      assert handler instanceof LinearLayoutHandler;
-      LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
-      linearLayoutHandler.distributeWeights(component, selectedChildren);
-    }
-  }
-
-  private static class DominateWeightsAction extends DirectViewAction {
-    public DominateWeightsAction() {
-      super(AndroidDesignerIcons.DominateWeight, "Assign All Weight");
-    }
-
-    @Override
-    public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren, @InputEventMask int modifiers) {
-
-      assert handler instanceof LinearLayoutHandler;
-      LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
-      linearLayoutHandler.distributeWeights(component, selectedChildren);
-    }
-
-    @Override
-    public void updatePresentation(@NotNull ViewActionPresentation presentation,
-                                   @NotNull ViewEditor editor,
-                                   @NotNull ViewHandler handler,
-                                   @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers) {
-      presentation.setVisible(!selectedChildren.isEmpty());
-    }
-  }
-
-  private static class ClearWeightsAction extends DirectViewAction {
-    public ClearWeightsAction() {
-      super(AndroidDesignerIcons.ClearWeights, "Clear All Weights");
-    }
-
-    @Override
-    public void perform(@NotNull ViewEditor editor, @NotNull ViewHandler handler, @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren, @InputEventMask int modifiers) {
-
-      assert handler instanceof LinearLayoutHandler;
-      LinearLayoutHandler linearLayoutHandler = (LinearLayoutHandler)handler;
-      linearLayoutHandler.clearWeights(component, selectedChildren);
-    }
-
-
-    @Override
-    public void updatePresentation(@NotNull ViewActionPresentation presentation,
-                                   @NotNull ViewEditor editor,
-                                   @NotNull ViewHandler handler,
-                                   @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers) {
-      presentation.setVisible(!selectedChildren.isEmpty());
-    }
-  }
-
   /*------------- NEW ARCHITECTURE ---------------*/
 
   @Nullable
@@ -425,6 +318,8 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     return false;
   }
 
+  boolean myStateDragging = false;
+
   /**
    * Creates the {@link LinearDragTarget}, {@link LinearSeparatorTarget}s, and {@link LinearResizeTarget}s
    * for the children.
@@ -449,29 +344,67 @@ public class LinearLayoutHandler extends ViewGroupHandler {
       .add(new LinearResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM))
       .add(new LinearResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
 
-    SceneComponent parent = sceneComponent.getParent();
-    assert parent != null;
-    boolean isLayoutOrientationVertical = isVertical(parent.getNlComponent());
-    listBuilder.add(new LinearSeparatorTarget(isLayoutOrientationVertical, false));
+    if (myStateDragging) {
+      SceneComponent parent = sceneComponent.getParent();
+      assert parent != null;
+      boolean isLayoutOrientationVertical = isVertical(parent.getNlComponent());
+      listBuilder.add(new LinearSeparatorTarget(isLayoutOrientationVertical, false));
 
-    if (isLastChild(parent, sceneComponent)) {
-      listBuilder.add(new LinearSeparatorTarget(isLayoutOrientationVertical, true));
+      if (isLastChild(parent, sceneComponent)) {
+        listBuilder.add(new LinearSeparatorTarget(isLayoutOrientationVertical, true));
+      }
     }
 
     return listBuilder.build();
   }
 
-  private static boolean isLastChild(@NotNull SceneComponent parent, @NotNull SceneComponent sceneComponent) {
-    return parent.getNlComponent().getChild(parent.getChildCount() - 1) == sceneComponent.getNlComponent();
+  /**
+   * Check if the child is the last one of the LinearLayout
+   *
+   * @param linearLayoutComponent The parent of the child to check
+   * @param child                 The child to check
+   * @return True child is the last children of the provided parent
+   */
+  private static boolean isLastChild(@NotNull SceneComponent linearLayoutComponent, @NotNull SceneComponent child) {
+    NlComponent nlComponent = linearLayoutComponent.getNlComponent();
+    return nlComponent.getChild(nlComponent.getChildCount() - 1) == child.getNlComponent();
   }
 
   /**
-   * Let the ViewGroupHandler handle clearing attributes on a given component
+   * Insert the component at the position of the target
    *
-   * @param component
+   * @param component         The component to insert
+   * @param separatorTarget   The separator where the component will be inserted
+   * @param isDragFromPalette
+   * @return true if the component was inserted, false otherwise.
    */
-  @Override
-  public void clearAttributes(@NotNull NlComponent component) {
-    // do nothing
+  public static boolean insertComponentAtTarget(@NotNull SceneComponent component,
+                                                @NotNull LinearSeparatorTarget separatorTarget,
+                                                boolean isDragFromPalette) {
+    SceneComponent sceneParent = component.getParent();
+    if (sceneParent == null) {
+      return false;
+    }
+    NlComponent parent = sceneParent.getNlComponent();
+    NlModel model = parent.getModel();
+
+    Runnable swapComponent = () -> {
+      ImmutableList<NlComponent> nlComponentImmutableList = ImmutableList.of(component.getNlComponent());
+      parent.getModel().addComponents(
+        nlComponentImmutableList,
+        parent,
+        !separatorTarget.isAtEnd() ? separatorTarget.getComponent().getNlComponent() : null,
+        isDragFromPalette ? InsertType.CREATE : InsertType.MOVE_WITHIN);
+    };
+    String id = component.getNlComponent().getId();
+    String name = (isDragFromPalette ? "Insert" : "Move") + ' ' +
+                  (id != null ? id : component.getNlComponent().getTagName());
+    WriteCommandAction.runWriteCommandAction(model.getProject(), name,
+                                             null, swapComponent, model.getFile());
+    return true;
+  }
+
+  public void setDragging(boolean dragging) {
+    myStateDragging = dragging;
   }
 }
