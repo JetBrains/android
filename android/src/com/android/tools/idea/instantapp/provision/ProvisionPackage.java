@@ -50,7 +50,7 @@ abstract class ProvisionPackage {
 
   boolean shouldInstall(@NotNull IDevice device) throws ProvisionException {
     // TODO: is it always the same version for different variants?
-    File apk = getApk(myInstantAppSdk, getDeviceArchitecture(device), getSupportedVariants().get(0));
+    File apk = getApk(getDeviceArchitecture(device), getSupportedVariants().get(0));
     checkApiLevel(device);
     String apkVersion = getApkVersion(apk);
     String installedApkVersion = getInstalledApkVersion(device);
@@ -62,7 +62,7 @@ abstract class ProvisionPackage {
 
   void install(@NotNull IDevice device) throws ProvisionException {
     for (String variant : getSupportedVariants()) {
-      File apk = getApk(myInstantAppSdk, getDeviceArchitecture(device), variant);
+      File apk = getApk(getDeviceArchitecture(device), variant);
       try {
         device.installPackage(apk.getPath(), true /* allow reinstall */, "-d" /* allow downgrade */);
       }
@@ -96,12 +96,12 @@ abstract class ProvisionPackage {
   }
 
   @NotNull
-  File getApk(@NotNull File instantAppSdk, @NotNull String arch, @NotNull String variant) throws ProvisionException {
+  File getApk(@NotNull String arch, @NotNull String variant) throws ProvisionException {
     String path = "tools/apks/" + variant + "/" +
                   getApkSubFolder() + (getApkSubFolder().isEmpty() ? "" : "/") +
                   getApkPrefix() + (isArchSpecificApk() ? "_" + arch : "") + ".apk";
     path = path.replace("/", File.separator);
-    File apk = new File(instantAppSdk, path);
+    File apk = new File(myInstantAppSdk, path);
 
     if (!apk.exists() || !apk.isFile()) {
       throw new ProvisionException("Apk file " + apk.getAbsolutePath() + "not present in the SDK");
@@ -142,7 +142,7 @@ abstract class ProvisionPackage {
   }
 
   @NotNull
-  private static String getApkVersion(@NotNull File apk) throws ProvisionException {
+  static String getApkVersion(@NotNull File apk) throws ProvisionException {
     try {
       AaptInvoker invoker = AaptInvoker.getInstance();
       if (invoker == null) {
