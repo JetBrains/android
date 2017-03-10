@@ -52,10 +52,10 @@ public class Scout {
   }
 
   public static void inferConstraints(List<NlComponent> components) {
-    NlComponent root = null;
     for (NlComponent component : components) {
       if (component.getParent() == null) {
-        inferConstraints(root);
+        inferConstraints(component);
+        return;
       }
     }
   }
