@@ -149,26 +149,6 @@ public class NewProjectTest {
   }
 
   @Test
-  public void testNoWarningsInNewProjectWithCpp() {
-    // Creates a new project with c++, and checks that if we run Analyze > Inspect Code, there are no warnings.
-    // This checks that our (default) project templates are warnings-clean.
-    // The test then proceeds to make a couple of edits and checks that these do not generate additional
-    // warnings either.
-    IdeFrameFixture ideFrame = newProject("Test Application").withCpp().create();
-    assertThat(ideFrame.getModuleNames()).containsExactly("app", "TestApplication");
-
-    String inspectionResults = guiTest.ideFrame()
-      .openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
-      .clickOk()
-      .getResults();
-
-    // TODO Disable spell checking before running inspection, then compare for equality like testNoWarningsInNewProjects does.
-    // These two strings are categories that are very common when there will be some problem compiling.
-    assertThat(inspectionResults).doesNotContain("Declaration order");
-    assertThat(inspectionResults).doesNotContain("Unused code");
-  }
-
-  @Test
   public void testInferNullity() throws IOException {
     // Creates a new default project, adds a nullable API and then invokes Infer Nullity and
     // confirms that it adds nullability annotations.
@@ -306,7 +286,6 @@ public class NewProjectTest {
     private String myMinSdk = "15";
     private String myName = "TestProject";
     private String myDomain = "com.android";
-    private boolean myCpp = false;
     private boolean myWaitForSync = true;
 
     private NewProjectDescriptor(@NotNull String name) {
@@ -334,11 +313,6 @@ public class NewProjectTest {
      */
     NewProjectDescriptor withActivity(@NotNull String activity) {
       myActivity = activity;
-      return this;
-    }
-
-    NewProjectDescriptor withCpp() {
-      myCpp = true;
       return this;
     }
 
@@ -380,7 +354,7 @@ public class NewProjectTest {
         .createNewProject();
 
       ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard.getConfigureAndroidProjectStep();
-      configureAndroidProjectStep.enterApplicationName(myName).enterCompanyDomain(myDomain).enterPackageName(myPkg).setCppSupport(myCpp);
+      configureAndroidProjectStep.enterApplicationName(myName).enterCompanyDomain(myDomain).enterPackageName(myPkg);
       guiTest.setProjectPath(configureAndroidProjectStep.getLocationInFileSystem());
       newProjectWizard.clickNext();
 
@@ -391,10 +365,6 @@ public class NewProjectTest {
       newProjectWizard.clickNext();
 
       newProjectWizard.getChooseOptionsForNewFileStep().enterActivityName(myActivity);
-
-      if (myCpp) {
-        newProjectWizard.clickNext();
-      }
 
       newProjectWizard.clickFinish();
 
