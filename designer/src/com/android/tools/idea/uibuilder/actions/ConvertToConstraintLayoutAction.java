@@ -19,22 +19,18 @@ import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.rendering.AttributeSnapshot;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintModel;
-import com.android.tools.idea.uibuilder.model.ModelListener;
+import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.scout.Scout;
-import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -52,6 +48,7 @@ import com.intellij.usageView.UsageInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -68,7 +65,7 @@ import static java.util.Locale.ROOT;
  * </ul>
  * </p>
  */
-public class ConvertToConstraintLayoutAction extends AnAction implements ModelListener {
+public class ConvertToConstraintLayoutAction extends AnAction {
   public static final String TITLE = "Convert to ConstraintLayout";
   public static final boolean ENABLED = true;
 
@@ -162,51 +159,23 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
     @SuppressWarnings("ConstantConditions")
     ConstraintLayoutConverter converter = new ConstraintLayoutConverter(screenView, target, flatten, includeIds);
     converter.execute();
-
-    // Finally we need to apply the infer constraints action; we can't do that from the above action
-    // since we're holding the write lock
-
-    inferConstraints(model);
   }
 
-  private void inferConstraints(NlModel model) {
-    ScreenView sceneView = mySurface.getCurrentSceneView();
-    RenderResult result = null;
-    if (sceneView != null) {
-      result = sceneView.getResult();
-    }
-    if (result == null || !result.getRenderResult().isSuccess()) {
-      return;
-    }
-    ApplicationManager.getApplication().invokeLater(() -> {
-      final ConstraintModel constraintModel = ConstraintModel.getConstraintModel(model);
-      if (constraintModel != null) {
-        int dpi = model.getConfiguration().getDensity().getDpiValue();
-        constraintModel.setDpiValue(dpi);
-        constraintModel.updateNlModel(null, model.getComponents(), true);
-        // Infer new constraints
-        WidgetsScene scene = constraintModel.getScene();
-        try {
-          Scout.inferConstraints(model.getComponents());
-        }
-        catch (Throwable t) {
-          Logger.getInstance(ConvertToConstraintLayoutAction.class).warn(t);
-        }
-        WriteCommandAction.runWriteCommandAction(
-          model.getProject(), "Infer Constraints", null, new Runnable() {
-            @Override
-            public void run() {
-              constraintModel.saveToXML(true);
+  private static void inferConstraints(@NotNull NlComponent target) {
+    try {
+      Scout.inferConstraints(target);
+      ArrayList<NlComponent> list = new ArrayList<>(target.getChildren());
+      list.add(0, target);
 
-              // Finally remove the conversion x/y/width/height attributes
-              List<NlComponent> components = model.getComponents();
-              for (NlComponent root : components) {
-                removeAbsolutePositionAndSizes(root);
-              }
-            }
-          }, model.getFile());
+      for (NlComponent component : list) {
+        AttributesTransaction transaction = component.startAttributeTransaction();
+        transaction.commit();
       }
-    }, ModalityState.any());
+      removeAbsolutePositionAndSizes(target);
+    }
+    catch (Throwable t) {
+      Logger.getInstance(ConvertToConstraintLayoutAction.class).warn(t);
+    }
   }
 
   /** Removes absolute x/y/width/height conversion attributes */
@@ -219,21 +188,6 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
       child.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT, null);
       removeAbsolutePositionAndSizes(child);
     }
-  }
-
-  @Override
-  public void modelDerivedDataChanged(@NotNull NlModel model) {
-    model.removeListener(this);
-    inferConstraints(model);
-  }
-
-  @Override
-  public void modelRendered(@NotNull NlModel model) {
-  }
-
-  @Override
-  public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
-    // Do nothing
   }
 
   private static class ConstraintLayoutConverter extends WriteCommandAction {
@@ -280,6 +234,7 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
       flatten();
       PsiElement tag = myLayout.getTag().setName(CLASS_CONSTRAINT_LAYOUT);
       CodeStyleManager.getInstance(getProject()).reformat(tag);
+      inferConstraints(myLayout);
     }
 
     /** Add bounds to components and record components to be flattened into {@link #myToBeFlattened} */

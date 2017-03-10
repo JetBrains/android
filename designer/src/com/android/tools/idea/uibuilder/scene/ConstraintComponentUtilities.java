@@ -713,78 +713,56 @@ public final class ConstraintComponentUtilities {
     return (int)(0.5f + margin / dpiFactor);
   }
 
-  public static void setAbsoluteDpX(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
-    setAttributeValue(component, TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, dp);
+  public static void setScoutAbsoluteDpX(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
+    setScoutAttributeValue(component, TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, dp);
   }
 
-  public static void setAbsoluteDpY(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
-    setAttributeValue(component, TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, dp);
+  public static void setScoutAbsoluteDpY(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
+    setScoutAttributeValue(component, TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, dp);
   }
 
-  public static void setAbsoluteDpWidth(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
-    setAttributeValue(component, ANDROID_URI, ATTR_LAYOUT_WIDTH, dp);
+  public static void setScoutAbsoluteDpWidth(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
+    setScoutAttributeValue(component, ANDROID_URI, ATTR_LAYOUT_WIDTH, dp);
   }
 
-  public static void setAbsoluteDpHeight(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
-    setAttributeValue(component, ANDROID_URI, ATTR_LAYOUT_HEIGHT, dp);
+  public static void setScoutAbsoluteDpHeight(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
+    setScoutAttributeValue(component, ANDROID_URI, ATTR_LAYOUT_HEIGHT, dp);
   }
 
-  public static void setVerticalBiasPercent(@NotNull NlComponent component, @AndroidDpCoordinate float value) {
-    setAttributeValue(component, SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS, Float.toString(value));
+  public static void setScoutVerticalBiasPercent(@NotNull NlComponent component, @AndroidDpCoordinate float value) {
+    AttributesTransaction transaction = component.startAttributeTransaction();
+    transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, Float.toString(value));
+    transaction.apply();
   }
 
-  public static void setHorizontalBiasPercent(@NotNull NlComponent component, @AndroidDpCoordinate float value) {
-    setAttributeValue(component, SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, Float.toString(value));
+  public static void setScoutHorizontalBiasPercent(@NotNull NlComponent component, @AndroidDpCoordinate float value) {
+    AttributesTransaction transaction = component.startAttributeTransaction();
+    transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, Float.toString(value));
+    transaction.apply();
   }
 
-  public static void setAttributeValue(@NotNull NlComponent component, @NotNull String uri,
-                                       @NotNull String attribute, @AndroidDpCoordinate int dp) {
+  public static void setScoutAttributeValue(@NotNull NlComponent component, @NotNull String uri,
+                                            @NotNull String attribute, @AndroidDpCoordinate int dp) {
     if (dp <= 0) {
       return;
     }
     String position = String.format(VALUE_N_DP, dp);
-    setAttributeValue(component, uri, attribute, position);
+    AttributesTransaction transaction = component.startAttributeTransaction();
+    transaction.setAttribute(uri, attribute, position);
+    transaction.apply();
   }
 
-  public static void clearAttributes(@NotNull NlComponent component, ArrayList<String> attributes) {
+  public static void scoutClearAttributes(@NotNull NlComponent component, ArrayList<String> attributes) {
     AttributesTransaction transaction = component.startAttributeTransaction();
     clearConnections(component, attributes, transaction);
     transaction.apply();
-
-    NlModel nlModel = component.getModel();
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
-
-    String label = "Clear attributes";
-    AttributesTransaction finalTransaction = transaction;
-    WriteCommandAction action = new WriteCommandAction(project, label, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        finalTransaction.commit();
-      }
-    };
-    action.execute();
   }
 
-  public static void setAttributeValue(@NotNull NlComponent component, @NotNull String uri,
-                                       @NotNull String attribute, @NotNull String value) {
+  public static void setScoutAttributeValue(@NotNull NlComponent component, @NotNull String uri,
+                                            @NotNull String attribute, @NotNull String value) {
     AttributesTransaction transaction = component.startAttributeTransaction();
     transaction.setAttribute(uri, attribute, value);
     transaction.apply();
-
-    NlModel nlModel = component.getModel();
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
-
-    String label = "Set value";
-    AttributesTransaction finalTransaction = transaction;
-    WriteCommandAction action = new WriteCommandAction(project, label, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        finalTransaction.commit();
-      }
-    };
-    action.execute();
   }
 
   public static boolean isConstraintLayout(@NotNull NlComponent component) {
@@ -815,7 +793,7 @@ public final class ConstraintComponentUtilities {
     ATTR_LAYOUT_MARGIN_RIGHT
   };
 
-  public static void connect(NlComponent source, Direction sourceDirection, NlComponent target, Direction targetDirection, int margin) {
+  public static void scoutConnect(NlComponent source, Direction sourceDirection, NlComponent target, Direction targetDirection, int margin) {
     int srcIndex = sourceDirection.ordinal();
     String attrib = ATTRIB_MATRIX[srcIndex][targetDirection.ordinal()];
     if (attrib == null) {
@@ -842,16 +820,5 @@ public final class ConstraintComponentUtilities {
       transaction.setAttribute(ANDROID_URI, ATTRIB_MARGIN[srcIndex], margin + "dp");
     }
     transaction.apply();
-    NlModel nlModel = source.getModel();
-    Project project = nlModel.getProject();
-    XmlFile file = nlModel.getFile();
-    String label = "Set connect";
-    WriteCommandAction action = new WriteCommandAction(project, label, file) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        transaction.commit();
-      }
-    };
-    action.execute();
   }
 }

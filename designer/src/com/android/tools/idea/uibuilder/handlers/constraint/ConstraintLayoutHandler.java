@@ -26,7 +26,9 @@ import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.graphics.NlIcon;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
+import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.*;
 import com.android.tools.idea.uibuilder.scene.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.scene.draw.ConstraintLayoutNotchProvider;
@@ -43,6 +45,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -56,6 +60,7 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -95,6 +100,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     new NlIcon(AndroidIcons.SherpaIcons.ArrowRight, AndroidIcons.SherpaIcons.ArrowRight);
 
   private boolean myShowAllConstraints = true;
+  private static boolean ourAutoConnect;
+  static {
+    ourAutoConnect = PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, false);
+  }
 
   ArrayList<ViewAction> myActions = new ArrayList<>();
   ArrayList<ViewAction> myPopupActions = new ArrayList<>();
@@ -374,7 +383,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   }
 
   interface Enableable {
-    void enable(Selection selection);
+    void enable(List<NlComponent> selection);
   }
 
   /**
@@ -382,7 +391,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    *
    * @param selection
    */
-  public void updateActions(Selection selection) {
+  public void updateActions(List<NlComponent> selection) {
     if (myActions == null) {
       return;
     }
@@ -565,8 +574,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   @Override
   public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView,
                            @NotNull NlComponent component) {
-    ConstraintModel constraintModel = ConstraintModel.getConstraintModel(screenView.getModel());
-    updateActions(constraintModel.getSelection());
+    updateActions(component.getModel().getSelectionModel().getSelection());
     return false;
   }
 
@@ -576,7 +584,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     }
 
     @Override
-    public void enable(Selection selection) {
+    public void enable(List<NlComponent> selection) {
 
     }
 
@@ -614,10 +622,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-      if (model == null) {
-        return;
-      }
       NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS);
       ViewEditorImpl viewEditor = (ViewEditorImpl)editor;
@@ -644,14 +648,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-      if (model == null) {
-        return;
-      }
       NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.INFER_CONSTRAINS);
       try {
-        Scout.inferConstraints(component);
+        Scout.inferConstraintsAndCommit(component);
       }
       catch (Exception e) {
         // TODO show dialog the inference failed
@@ -835,14 +835,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-      if (model == null) {
-        return;
-      }
       NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface())
         .logAction(LayoutEditorEvent.LayoutEditorEventType.ALIGN);
       modifiers &= InputEvent.CTRL_MASK;
-      Scout.arrangeWidgets(myActionType, selectedChildren, modifiers == 0 || ConstraintModel.isAutoConnect());
+      Scout.arrangeWidgets(myActionType, selectedChildren, modifiers == 0 || ourAutoConnect);
     }
 
     @Override
@@ -855,7 +851,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
       Icon icon = myAlignIcon;
       if (myConstrainIcon != null) {
-        if (ConstraintModel.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) == 0) {
+        if (ourAutoConnect || (InputEvent.CTRL_MASK & modifiers) == 0) {
           icon = myConstrainIcon;
         }
       }
@@ -914,10 +910,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-      ConstraintModel model = ConstraintModel.getConstraintModel(editor.getModel());
-      if (model == null) {
-        return;
-      }
       DesignSurface surface = ((ViewEditorImpl)editor).getSceneView().getSurface();
       NlUsageTrackerManager.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEFAULT_MARGINS);
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
@@ -936,7 +928,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       // TODO: Use AndroidIcons.SherpaIcons.Margin instead?
       updateIcon();
       if (myMarginIcon instanceof ControlIcon) {
-        ((ControlIcon)myMarginIcon).setHighlight(ConstraintModel.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) == 0);
+        ((ControlIcon)myMarginIcon).setHighlight(ourAutoConnect || (InputEvent.CTRL_MASK & modifiers) == 0);
       }
       presentation.setIcon(myMarginIcon);
     }
