@@ -58,6 +58,7 @@ import static com.google.common.base.Strings.nullToEmpty;
  */
 public final class AvdOptionsModel extends WizardModel {
   final static int MAX_NUMBER_OF_CORES = Runtime.getRuntime().availableProcessors() / 2;
+  final static int RECOMMENDED_NUMBER_OF_CORES = Integer.min(4, MAX_NUMBER_OF_CORES);
   private final AvdInfo myAvdInfo;
 
   /**
@@ -86,7 +87,7 @@ public final class AvdOptionsModel extends WizardModel {
   private StringProperty mySystemImageName = new StringValueProperty();
   private StringProperty mySystemImageDetails = new StringValueProperty();
 
-  private OptionalProperty<Integer> myCpuCoreCount = new OptionalValueProperty<>(MAX_NUMBER_OF_CORES);
+  private OptionalProperty<Integer> myCpuCoreCount = new OptionalValueProperty<>(RECOMMENDED_NUMBER_OF_CORES);
   private ObjectProperty<Storage> myVmHeapStorage = new ObjectValueProperty<>(new Storage(16, Storage.Unit.MiB));
 
   private StringProperty myExternalSdCardLocation = new StringValueProperty();
