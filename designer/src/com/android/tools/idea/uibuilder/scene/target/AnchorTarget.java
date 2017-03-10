@@ -39,6 +39,7 @@ import java.util.HashMap;
 /**
  * Implements a target anchor for the ConstraintLayout viewgroup
  */
+@SuppressWarnings("ForLoopReplaceableByForEach")
 public class AnchorTarget extends ConstraintTarget {
 
   private static final boolean DEBUG_RENDERER = false;
@@ -49,8 +50,8 @@ public class AnchorTarget extends ConstraintTarget {
     LEFT, TOP, RIGHT, BOTTOM, BASELINE
   }
 
-  protected final int mySize = 3;
-  private final int myExpandSize = 200;
+  protected static final int ourSize = 3;
+  private static final int ourExpandSize = 200;
   private final AnchorTarget.Type myType;
   private boolean myExpandArea = false;
 
@@ -59,7 +60,7 @@ public class AnchorTarget extends ConstraintTarget {
   private int myConnectedX = -1;
   private int myConnectedY = -1;
 
-  private HashMap<String, String> mPreviousAttributes = new HashMap();
+  private HashMap<String, String> mPreviousAttributes = new HashMap<>();
 
   /////////////////////////////////////////////////////////////////////////////
   //region Constructor
@@ -111,11 +112,11 @@ public class AnchorTarget extends ConstraintTarget {
 
   @Override
   public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
-    float ratio = 1f / (float) sceneTransform.getScale();
+    float ratio = 1f / (float)sceneTransform.getScale();
     if (ratio > 2) {
       ratio = 2;
     }
-    float size = (mySize * ratio);
+    float size = (ourSize * ratio);
     float minWidth = 4 * size;
     float minHeight = 4 * size;
     if (r - l < minWidth) {
@@ -139,7 +140,7 @@ public class AnchorTarget extends ConstraintTarget {
         myRight = l + size;
         myBottom = mh + size;
         if (myExpandArea) {
-          myLeft = l - myExpandSize;
+          myLeft = l - ourExpandSize;
           myTop = t;
           myBottom = b;
         }
@@ -151,7 +152,7 @@ public class AnchorTarget extends ConstraintTarget {
         myRight = mw + size;
         myBottom = t + size;
         if (myExpandArea) {
-          myTop = t - myExpandSize;
+          myTop = t - ourExpandSize;
           myLeft = l;
           myRight = r;
         }
@@ -163,7 +164,7 @@ public class AnchorTarget extends ConstraintTarget {
         myRight = r + size;
         myBottom = mh + size;
         if (myExpandArea) {
-          myRight = r + myExpandSize;
+          myRight = r + ourExpandSize;
           myTop = t;
           myBottom = b;
         }
@@ -175,7 +176,7 @@ public class AnchorTarget extends ConstraintTarget {
         myRight = mw + size;
         myBottom = b + size;
         if (myExpandArea) {
-          myBottom = b + myExpandSize;
+          myBottom = b + ourExpandSize;
           myLeft = l;
           myRight = r;
         }
@@ -183,9 +184,9 @@ public class AnchorTarget extends ConstraintTarget {
       break;
       case BASELINE: {
         myLeft = l + size;
-        myTop = t + myComponent.getBaseline() - size/2;
+        myTop = t + myComponent.getBaseline() - size / 2;
         myRight = r - size;
-        myBottom = t + myComponent.getBaseline() + size/2;
+        myBottom = t + myComponent.getBaseline() + size / 2;
       }
       break;
     }
@@ -207,19 +208,23 @@ public class AnchorTarget extends ConstraintTarget {
     String attribute = null;
     switch (myType) {
       case LEFT: {
-        attribute = getConnectionId(myComponent.getNlComponent(), SdkConstants.SHERPA_URI, ourLeftAttributes);
+        attribute = ConstraintComponentUtilities
+          .getConnectionId(myComponent.getNlComponent(), SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourLeftAttributes);
         break;
       }
       case RIGHT: {
-        attribute = getConnectionId(myComponent.getNlComponent(), SdkConstants.SHERPA_URI, ourRightAttributes);
+        attribute = ConstraintComponentUtilities
+          .getConnectionId(myComponent.getNlComponent(), SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourRightAttributes);
         break;
       }
       case TOP: {
-        attribute = getConnectionId(myComponent.getNlComponent(), SdkConstants.SHERPA_URI, ourTopAttributes);
+        attribute = ConstraintComponentUtilities
+          .getConnectionId(myComponent.getNlComponent(), SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourTopAttributes);
         break;
       }
       case BOTTOM: {
-        attribute = getConnectionId(myComponent.getNlComponent(), SdkConstants.SHERPA_URI, ourBottomAttributes);
+        attribute = ConstraintComponentUtilities
+          .getConnectionId(myComponent.getNlComponent(), SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBottomAttributes);
         break;
       }
       case BASELINE: {
@@ -234,26 +239,27 @@ public class AnchorTarget extends ConstraintTarget {
     if (attribute == null) {
       return false;
     }
-    return attribute.equalsIgnoreCase((String) target.getComponent().getId());
+    return attribute.equalsIgnoreCase((String)target.getComponent().getId());
   }
 
   private boolean isConnected() {
     NlComponent component = myComponent.getNlComponent();
     switch (myType) {
       case LEFT:
-        return hasAttributes(component, SdkConstants.SHERPA_URI, ourLeftAttributes);
+        return ConstraintComponentUtilities.hasAttributes(component, SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourLeftAttributes);
       case TOP:
-        return hasAttributes(component, SdkConstants.SHERPA_URI, ourTopAttributes);
+        return ConstraintComponentUtilities.hasAttributes(component, SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourTopAttributes);
       case RIGHT:
-        return hasAttributes(component, SdkConstants.SHERPA_URI, ourRightAttributes);
+        return ConstraintComponentUtilities.hasAttributes(component, SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourRightAttributes);
       case BOTTOM:
-        return hasAttributes(component, SdkConstants.SHERPA_URI, ourBottomAttributes);
+        return ConstraintComponentUtilities.hasAttributes(component, SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBottomAttributes);
       case BASELINE:
         return component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
     }
     return false;
   }
 
+  @SuppressWarnings("UseJBColor")
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
     if (!myVisibility) {
@@ -293,19 +299,19 @@ public class AnchorTarget extends ConstraintTarget {
   private void clearMe(@NotNull AttributesTransaction transaction) {
     switch (myType) {
       case LEFT: {
-        clearAttributes(SdkConstants.SHERPA_URI, ourLeftAttributes, transaction);
+        ConstraintComponentUtilities.clearAttributes(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourLeftAttributes, transaction);
       }
       break;
       case RIGHT: {
-        clearAttributes(SdkConstants.SHERPA_URI, ourRightAttributes, transaction);
+        ConstraintComponentUtilities.clearAttributes(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourRightAttributes, transaction);
       }
       break;
       case TOP: {
-        clearAttributes(SdkConstants.SHERPA_URI, ourTopAttributes, transaction);
+        ConstraintComponentUtilities.clearAttributes(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourTopAttributes, transaction);
       }
       break;
       case BOTTOM: {
-        clearAttributes(SdkConstants.SHERPA_URI, ourBottomAttributes, transaction);
+        ConstraintComponentUtilities.clearAttributes(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBottomAttributes, transaction);
       }
       break;
       case BASELINE: {
@@ -432,78 +438,97 @@ public class AnchorTarget extends ConstraintTarget {
     }
     attributes.setAttribute(SdkConstants.SHERPA_URI, attribute, targetId);
     if (myType == Type.BASELINE) {
-      clearAttributes(SdkConstants.SHERPA_URI, ourTopAttributes, attributes);
-      clearAttributes(SdkConstants.SHERPA_URI, ourBottomAttributes, attributes);
+      ConstraintComponentUtilities.clearAttributes(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourTopAttributes, attributes);
+      ConstraintComponentUtilities.clearAttributes(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBottomAttributes, attributes);
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, null);
       attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, null);
-    } else if (ourReciprocalAttributes.get(attribute) != null) {
-      attributes.setAttribute(SdkConstants.SHERPA_URI, ourReciprocalAttributes.get(attribute), null);
+    }
+    else if (ConstraintComponentUtilities.ourReciprocalAttributes.get(attribute) != null) {
+      attributes.setAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourReciprocalAttributes.get(attribute), null);
     }
 
-    if (ourMapMarginAttributes.get(attribute) != null) {
+    if (ConstraintComponentUtilities.ourMapMarginAttributes.get(attribute) != null) {
       Scene scene = myComponent.getScene();
       int marginValue = getDistance(attribute, targetComponent, scene);
       if (!scene.isControlDown()) {
         if (marginValue < 0) {
           marginValue = 0;
-        } else {
+        }
+        else {
           marginValue = Scout.getMargin();
         }
-      } else {
+      }
+      else {
         marginValue = Math.max(marginValue, 0);
       }
       String margin = String.format(SdkConstants.VALUE_N_DP, marginValue);
-      attributes.setAttribute(SdkConstants.ANDROID_URI, ourMapMarginAttributes.get(attribute), margin);
+      attributes.setAttribute(SdkConstants.ANDROID_URI, ConstraintComponentUtilities.ourMapMarginAttributes.get(attribute), margin);
       scene.needsRebuildList();
       myConnectedX = myLastX;
       myConnectedY = myLastY;
     }
-    cleanup(attributes);
+    ConstraintComponentUtilities.cleanup(attributes, myComponent);
     attributes.apply();
     myComponent.getScene().needsLayout(Scene.ANIMATED_LAYOUT);
     return attributes;
   }
 
   private int getDistance(String attribute, NlComponent targetComponent, Scene scene) {
-    int marginValue;AnchorTarget targetAnchor = ConstraintComponentUtilities.getTargetAnchor(scene, targetComponent, attribute);
+    int marginValue;
+    AnchorTarget targetAnchor = ConstraintComponentUtilities.getTargetAnchor(scene, targetComponent, attribute);
+    if (targetAnchor == null) {
+      return 0;
+    }
     switch (myType) {
       case LEFT: {
         switch (targetAnchor.getType()) {
           case LEFT:
           case RIGHT: {
             marginValue = (int)(getCenterX() - targetAnchor.getCenterX());
-          } break;
-          default: marginValue = 0;
+          }
+          break;
+          default:
+            marginValue = 0;
         }
-      } break;
+      }
+      break;
       case RIGHT: {
         switch (targetAnchor.getType()) {
           case LEFT:
           case RIGHT: {
             marginValue = (int)(targetAnchor.getCenterX() - getCenterX());
-          } break;
-          default: marginValue = 0;
+          }
+          break;
+          default:
+            marginValue = 0;
         }
-      } break;
+      }
+      break;
       case TOP: {
         switch (targetAnchor.getType()) {
           case TOP:
           case BOTTOM: {
             marginValue = (int)(getCenterY() - targetAnchor.getCenterY());
-          } break;
-          default: marginValue = 0;
+          }
+          break;
+          default:
+            marginValue = 0;
         }
-      } break;
+      }
+      break;
       case BOTTOM: {
         switch (targetAnchor.getType()) {
           case TOP:
           case BOTTOM: {
             marginValue = (int)(targetAnchor.getCenterY() - getCenterY());
-          } break;
-          default: marginValue = 0;
+          }
+          break;
+          default:
+            marginValue = 0;
         }
-      } break;
+      }
+      break;
       default:
         marginValue = 0;
     }
@@ -522,7 +547,7 @@ public class AnchorTarget extends ConstraintTarget {
     XmlFile file = nlModel.getFile();
     AttributesTransaction attributes = component.startAttributeTransaction();
     clearMe(attributes);
-    cleanup(attributes);
+    ConstraintComponentUtilities.cleanup(attributes, myComponent);
     attributes.apply();
     WriteCommandAction action = new WriteCommandAction(project, label, file) {
       @Override
@@ -563,24 +588,24 @@ public class AnchorTarget extends ConstraintTarget {
     }
     switch (myType) {
       case LEFT: {
-        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ourLeftAttributes);
+        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourLeftAttributes);
       }
       break;
       case RIGHT: {
-        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ourRightAttributes);
+        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourRightAttributes);
       }
       break;
       case TOP: {
-        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ourTopAttributes);
+        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourTopAttributes);
       }
       break;
       case BOTTOM: {
-        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ourBottomAttributes);
+        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBottomAttributes);
       }
       break;
       case BASELINE: {
-        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ourTopAttributes);
-        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ourBottomAttributes);
+        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourTopAttributes);
+        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBottomAttributes);
         mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
                                 component.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP));
         mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
@@ -635,7 +660,7 @@ public class AnchorTarget extends ConstraintTarget {
     if (myComponent.getParent() != null) {
       myComponent.getParent().setExpandTargetArea(false);
     }
-    if (closestTarget != null && closestTarget instanceof AnchorTarget && !(((AnchorTarget) closestTarget).isConnected(this))) {
+    if (closestTarget != null && closestTarget instanceof AnchorTarget && !(((AnchorTarget)closestTarget).isConnected(this))) {
       NlComponent component = myComponent.getNlComponent();
       if (closestTarget == this) {
         disconnectMe(component);
