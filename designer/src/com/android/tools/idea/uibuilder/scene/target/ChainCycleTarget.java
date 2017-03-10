@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.scene.target;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.graphics.NlIcon;
 import icons.AndroidIcons;
@@ -44,10 +45,10 @@ public class ChainCycleTarget extends ActionTarget {
   public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
     if (closestTarget == this && myIsVisible) {
       if (myIsInHorizontalChain) {
-        cycleChainStyle(myHorizontalChainHead, SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE);
+        ConstraintComponentUtilities.cycleChainStyle(myHorizontalChainHead, SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE, myComponent);
       }
       else if (myIsInVerticalChain) {
-        cycleChainStyle(myVerticalChainHead, SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE);
+        ConstraintComponentUtilities.cycleChainStyle(myVerticalChainHead, SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE, myComponent);
       }
     }
   }

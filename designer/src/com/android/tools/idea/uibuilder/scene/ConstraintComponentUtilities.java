@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -26,27 +25,26 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
-
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.Float;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.scene.draw.DrawGuidelineCycle.BEGIN;
-import static com.android.tools.idea.uibuilder.scene.draw.DrawGuidelineCycle.END;
-import static com.android.tools.idea.uibuilder.scene.draw.DrawGuidelineCycle.PERCENT;
+import static com.android.tools.idea.uibuilder.scene.draw.DrawGuidelineCycle.*;
 
 /**
  * Encapsulate basic querys on a ConstraintLayout component
  * TODO: use this class everywhere for this type of queries and replace/update ConstraintTarget
  */
-public class ConstraintComponentUtilities {
+@SuppressWarnings("ForLoopReplaceableByForEach")
+public final class ConstraintComponentUtilities {
 
-  protected static final HashMap<String, String> ourReciprocalAttributes;
-  protected static final HashMap<String, String> ourMapMarginAttributes;
-  protected static final HashMap<String, AnchorTarget.Type> ourMapSideToOriginAnchors;
-  protected static final HashMap<String, AnchorTarget.Type> ourMapSideToTargetAnchors;
+  public static final HashMap<String, String> ourReciprocalAttributes;
+  public static final HashMap<String, String> ourMapMarginAttributes;
+  public static final HashMap<String, AnchorTarget.Type> ourMapSideToOriginAnchors;
+  public static final HashMap<String, AnchorTarget.Type> ourMapSideToTargetAnchors;
   public static final ArrayList<String> ourLeftAttributes;
   public static final ArrayList<String> ourTopAttributes;
   public static final ArrayList<String> ourRightAttributes;
@@ -59,97 +57,97 @@ public class ConstraintComponentUtilities {
 
   static {
     ourReciprocalAttributes = new HashMap<>();
-    ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF);
-    ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF);
-    ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
-    ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
-    ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
-    ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF);
-    ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
-    ourReciprocalAttributes.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
+    ourReciprocalAttributes.put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_LEFT_TO_RIGHT_OF);
+    ourReciprocalAttributes.put(ATTR_LAYOUT_LEFT_TO_RIGHT_OF, ATTR_LAYOUT_LEFT_TO_LEFT_OF);
+    ourReciprocalAttributes.put(ATTR_LAYOUT_RIGHT_TO_LEFT_OF, ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
+    ourReciprocalAttributes.put(ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
+    ourReciprocalAttributes.put(ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
+    ourReciprocalAttributes.put(ATTR_LAYOUT_TOP_TO_BOTTOM_OF, ATTR_LAYOUT_TOP_TO_TOP_OF);
+    ourReciprocalAttributes.put(ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
+    ourReciprocalAttributes.put(ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
 
     ourMapMarginAttributes = new HashMap<>();
-    ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
-    ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
-    ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
-    ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
-    ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
-    ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
-    ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
-    ourMapMarginAttributes.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
+    ourMapMarginAttributes.put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_MARGIN_LEFT);
+    ourMapMarginAttributes.put(ATTR_LAYOUT_LEFT_TO_RIGHT_OF, ATTR_LAYOUT_MARGIN_LEFT);
+    ourMapMarginAttributes.put(ATTR_LAYOUT_RIGHT_TO_LEFT_OF, ATTR_LAYOUT_MARGIN_RIGHT);
+    ourMapMarginAttributes.put(ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, ATTR_LAYOUT_MARGIN_RIGHT);
+    ourMapMarginAttributes.put(ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_MARGIN_TOP);
+    ourMapMarginAttributes.put(ATTR_LAYOUT_TOP_TO_BOTTOM_OF, ATTR_LAYOUT_MARGIN_TOP);
+    ourMapMarginAttributes.put(ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_MARGIN_BOTTOM);
+    ourMapMarginAttributes.put(ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_MARGIN_BOTTOM);
 
     ourMapSideToOriginAnchors = new HashMap<>();
-    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, AnchorTarget.Type.LEFT);
-    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, AnchorTarget.Type.LEFT);
-    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, AnchorTarget.Type.RIGHT);
-    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, AnchorTarget.Type.RIGHT);
-    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, AnchorTarget.Type.TOP);
-    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, AnchorTarget.Type.TOP);
-    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, AnchorTarget.Type.BOTTOM);
-    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
-    ourMapSideToOriginAnchors.put(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, AnchorTarget.Type.BASELINE);
+    ourMapSideToOriginAnchors.put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, AnchorTarget.Type.LEFT);
+    ourMapSideToOriginAnchors.put(ATTR_LAYOUT_LEFT_TO_RIGHT_OF, AnchorTarget.Type.LEFT);
+    ourMapSideToOriginAnchors.put(ATTR_LAYOUT_RIGHT_TO_LEFT_OF, AnchorTarget.Type.RIGHT);
+    ourMapSideToOriginAnchors.put(ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, AnchorTarget.Type.RIGHT);
+    ourMapSideToOriginAnchors.put(ATTR_LAYOUT_TOP_TO_TOP_OF, AnchorTarget.Type.TOP);
+    ourMapSideToOriginAnchors.put(ATTR_LAYOUT_TOP_TO_BOTTOM_OF, AnchorTarget.Type.TOP);
+    ourMapSideToOriginAnchors.put(ATTR_LAYOUT_BOTTOM_TO_TOP_OF, AnchorTarget.Type.BOTTOM);
+    ourMapSideToOriginAnchors.put(ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
+    ourMapSideToOriginAnchors.put(ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, AnchorTarget.Type.BASELINE);
 
     ourMapSideToTargetAnchors = new HashMap<>();
-    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, AnchorTarget.Type.LEFT);
-    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, AnchorTarget.Type.RIGHT);
-    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, AnchorTarget.Type.LEFT);
-    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, AnchorTarget.Type.RIGHT);
-    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, AnchorTarget.Type.TOP);
-    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
-    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, AnchorTarget.Type.TOP);
-    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
-    ourMapSideToTargetAnchors.put(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, AnchorTarget.Type.BASELINE);
+    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, AnchorTarget.Type.LEFT);
+    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_LEFT_TO_RIGHT_OF, AnchorTarget.Type.RIGHT);
+    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_RIGHT_TO_LEFT_OF, AnchorTarget.Type.LEFT);
+    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, AnchorTarget.Type.RIGHT);
+    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_TOP_TO_TOP_OF, AnchorTarget.Type.TOP);
+    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_TOP_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
+    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_BOTTOM_TO_TOP_OF, AnchorTarget.Type.TOP);
+    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
+    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, AnchorTarget.Type.BASELINE);
 
     ourLeftAttributes = new ArrayList<>();
-    ourLeftAttributes.add(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF);
-    ourLeftAttributes.add(SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF);
+    ourLeftAttributes.add(ATTR_LAYOUT_LEFT_TO_LEFT_OF);
+    ourLeftAttributes.add(ATTR_LAYOUT_LEFT_TO_RIGHT_OF);
 
     ourTopAttributes = new ArrayList<>();
-    ourTopAttributes.add(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF);
-    ourTopAttributes.add(SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
+    ourTopAttributes.add(ATTR_LAYOUT_TOP_TO_TOP_OF);
+    ourTopAttributes.add(ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
 
     ourRightAttributes = new ArrayList<>();
-    ourRightAttributes.add(SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
-    ourRightAttributes.add(SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
+    ourRightAttributes.add(ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
+    ourRightAttributes.add(ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
 
     ourBottomAttributes = new ArrayList<>();
-    ourBottomAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
-    ourBottomAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
+    ourBottomAttributes.add(ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
+    ourBottomAttributes.add(ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
 
     ourBaselineAttributes = new ArrayList<>();
-    ourBaselineAttributes.add(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
+    ourBaselineAttributes.add(ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
 
     ourMarginAttributes = new ArrayList<>();
-    ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN);
-    ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
+    ourMarginAttributes.add(ATTR_LAYOUT_MARGIN);
+    ourMarginAttributes.add(ATTR_LAYOUT_MARGIN_LEFT);
     // ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_START);
-    ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
+    ourMarginAttributes.add(ATTR_LAYOUT_MARGIN_RIGHT);
     // ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_END);
-    ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
-    ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
+    ourMarginAttributes.add(ATTR_LAYOUT_MARGIN_TOP);
+    ourMarginAttributes.add(ATTR_LAYOUT_MARGIN_BOTTOM);
 
     ourHorizontalAttributes = new ArrayList<>();
-    ourHorizontalAttributes.add(SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF);
-    ourHorizontalAttributes.add(SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF);
-    ourHorizontalAttributes.add(SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
-    ourHorizontalAttributes.add(SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
+    ourHorizontalAttributes.add(ATTR_LAYOUT_LEFT_TO_LEFT_OF);
+    ourHorizontalAttributes.add(ATTR_LAYOUT_LEFT_TO_RIGHT_OF);
+    ourHorizontalAttributes.add(ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
+    ourHorizontalAttributes.add(ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
 
     ourVerticalAttributes = new ArrayList<>();
-    ourVerticalAttributes.add(SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF);
-    ourVerticalAttributes.add(SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
-    ourVerticalAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
-    ourVerticalAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
-    ourVerticalAttributes.add(SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
+    ourVerticalAttributes.add(ATTR_LAYOUT_TOP_TO_TOP_OF);
+    ourVerticalAttributes.add(ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
+    ourVerticalAttributes.add(ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
+    ourVerticalAttributes.add(ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
+    ourVerticalAttributes.add(ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
 
     ourCreatorAttributes = new ArrayList<>();
-    ourCreatorAttributes.add(SdkConstants.ATTR_LAYOUT_LEFT_CREATOR);
-    ourCreatorAttributes.add(SdkConstants.ATTR_LAYOUT_TOP_CREATOR);
-    ourCreatorAttributes.add(SdkConstants.ATTR_LAYOUT_RIGHT_CREATOR);
-    ourCreatorAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_CREATOR);
-    ourCreatorAttributes.add(SdkConstants.ATTR_LAYOUT_BASELINE_CREATOR);
-    ourCreatorAttributes.add(SdkConstants.ATTR_LAYOUT_CENTER_CREATOR);
-    ourCreatorAttributes.add(SdkConstants.ATTR_LAYOUT_CENTER_X_CREATOR);
-    ourCreatorAttributes.add(SdkConstants.ATTR_LAYOUT_CENTER_Y_CREATOR);
+    ourCreatorAttributes.add(ATTR_LAYOUT_LEFT_CREATOR);
+    ourCreatorAttributes.add(ATTR_LAYOUT_TOP_CREATOR);
+    ourCreatorAttributes.add(ATTR_LAYOUT_RIGHT_CREATOR);
+    ourCreatorAttributes.add(ATTR_LAYOUT_BOTTOM_CREATOR);
+    ourCreatorAttributes.add(ATTR_LAYOUT_BASELINE_CREATOR);
+    ourCreatorAttributes.add(ATTR_LAYOUT_CENTER_CREATOR);
+    ourCreatorAttributes.add(ATTR_LAYOUT_CENTER_X_CREATOR);
+    ourCreatorAttributes.add(ATTR_LAYOUT_CENTER_Y_CREATOR);
   }
 
   /**
@@ -197,11 +195,11 @@ public class ConstraintComponentUtilities {
   }
 
   public static boolean hasHorizontalConstraints(NlComponent component) {
-    return hasConstraints(component, SdkConstants.SHERPA_URI, ourHorizontalAttributes);
+    return hasConstraints(component, SHERPA_URI, ourHorizontalAttributes);
   }
 
   public static boolean hasVerticalConstraints(NlComponent component) {
-    return hasConstraints(component, SdkConstants.SHERPA_URI, ourVerticalAttributes);
+    return hasConstraints(component, SHERPA_URI, ourVerticalAttributes);
   }
 
   /**
@@ -227,8 +225,8 @@ public class ConstraintComponentUtilities {
 
   public static int getGuidelineMode(SceneComponent component) {
     NlComponent nlComponent = component.getNlComponent();
-    String begin = nlComponent.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
-    String end = nlComponent.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
+    String begin = nlComponent.getLiveAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN);
+    String end = nlComponent.getLiveAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_END);
 
     if (begin != null) {
       return BEGIN;
@@ -261,7 +259,7 @@ public class ConstraintComponentUtilities {
   }
 
   public static void setDpAttribute(String uri, String attribute, AttributesTransaction transaction, int value) {
-    String position = String.format(SdkConstants.VALUE_N_DP, value);
+    String position = String.format(VALUE_N_DP, value);
     transaction.setAttribute(uri, attribute, position);
   }
 
@@ -277,25 +275,25 @@ public class ConstraintComponentUtilities {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
       String attribute = attributes.get(i);
-      transaction.setAttribute(SdkConstants.SHERPA_URI, attribute, null);
+      transaction.setAttribute(SHERPA_URI, attribute, null);
     }
     if (attributes == ourLeftAttributes) {
-      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, null);
+      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, null);
       // transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, null);
-      transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
+      transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
     }
     else if (attributes == ourRightAttributes) {
-      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, null);
+      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, null);
       // transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, null);
-      transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
+      transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
     }
     else if (attributes == ourTopAttributes) {
-      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, null);
-      transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
+      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, null);
+      transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS, null);
     }
     else if (attributes == ourBottomAttributes) {
-      transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, null);
-      transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
+      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, null);
+      transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS, null);
     }
     if (!hasHorizontalConstraints(component)) {
       int offsetX = 0;
@@ -306,7 +304,7 @@ public class ConstraintComponentUtilities {
         float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
         offsetX = (int)(0.5f + offsetX / dpiFactor);
       }
-      setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, offsetX);
+      setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, offsetX);
     }
     if (!hasVerticalConstraints(component)) {
       int offsetY = 0;
@@ -317,24 +315,24 @@ public class ConstraintComponentUtilities {
         float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
         offsetY = (int)(0.5f + offsetY / dpiFactor);
       }
-      setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, offsetY);
+      setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, offsetY);
     }
   }
 
   private static void clearAllAttributes(NlComponent component, AttributesTransaction transaction) {
-    clearAttributes(SdkConstants.SHERPA_URI, ourLeftAttributes, transaction);
-    clearAttributes(SdkConstants.SHERPA_URI, ourTopAttributes, transaction);
-    clearAttributes(SdkConstants.SHERPA_URI, ourRightAttributes, transaction);
-    clearAttributes(SdkConstants.SHERPA_URI, ourBottomAttributes, transaction);
-    clearAttributes(SdkConstants.TOOLS_URI, ourCreatorAttributes, transaction);
-    transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, null);
-    transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, null);
-    transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
-    clearAttributes(SdkConstants.ANDROID_URI, ourMarginAttributes, transaction);
+    clearAttributes(SHERPA_URI, ourLeftAttributes, transaction);
+    clearAttributes(SHERPA_URI, ourTopAttributes, transaction);
+    clearAttributes(SHERPA_URI, ourRightAttributes, transaction);
+    clearAttributes(SHERPA_URI, ourBottomAttributes, transaction);
+    clearAttributes(TOOLS_URI, ourCreatorAttributes, transaction);
+    transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
+    transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS, null);
+    transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
+    clearAttributes(ANDROID_URI, ourMarginAttributes, transaction);
     int offsetX = Coordinates.pxToDp(component.getModel(), component.x - (component.isRoot() ? 0 : component.getParent().x));
     int offsetY = Coordinates.pxToDp(component.getModel(), component.y - (component.isRoot() ? 0 : component.getParent().y));
-    setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, offsetX);
-    setDpAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, offsetY);
+    setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, offsetX);
+    setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, offsetY);
   }
 
   public static void updateOnDelete(NlComponent component, String targetId) {
@@ -380,7 +378,7 @@ public class ConstraintComponentUtilities {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
       String attribute = attributes.get(i);
-      String target = component.getLiveAttribute(SdkConstants.SHERPA_URI, attribute);
+      String target = component.getLiveAttribute(SHERPA_URI, attribute);
       target = NlComponent.extractId(target);
       if (target != null && target.equalsIgnoreCase(targetId)) {
         return true;
@@ -396,8 +394,8 @@ public class ConstraintComponentUtilities {
     int dx = component.x - (component.getParent() != null ? component.getParent().x : 0);
     if (dx > 0) {
       float dipValue = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-      String position = String.format(SdkConstants.VALUE_N_DP, ((int)(0.5f + dx / dipValue)));
-      transaction.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, position);
+      String position = String.format(VALUE_N_DP, ((int)(0.5f + dx / dipValue)));
+      transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, position);
     }
   }
 
@@ -408,8 +406,8 @@ public class ConstraintComponentUtilities {
     int dy = component.y - (component.getParent() != null ? component.getParent().y : 0);
     if (dy > 0) {
       float dipValue = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
-      String position = String.format(SdkConstants.VALUE_N_DP, ((int)(0.5f + dy / dipValue)));
-      transaction.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, position);
+      String position = String.format(VALUE_N_DP, ((int)(0.5f + dy / dipValue)));
+      transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, position);
     }
   }
 
@@ -421,6 +419,182 @@ public class ConstraintComponentUtilities {
     float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
     return (int)(0.5f + component.x / dpiFactor);
   }
+
+  public static boolean hasAttributes(@NotNull NlComponent component, String uri, ArrayList<String> attributes) {
+    int count = attributes.size();
+    for (int i = 0; i < count; i++) {
+      String attribute = attributes.get(i);
+      if (component.getLiveAttribute(uri, attribute) != null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static boolean hasAttributes(@NotNull AttributesTransaction transaction, String uri, ArrayList<String> attributes) {
+    int count = attributes.size();
+    for (int i = 0; i < count; i++) {
+      String attribute = attributes.get(i);
+      if (transaction.getAttribute(uri, attribute) != null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static String getConnectionId(@NotNull NlComponent component, String uri, ArrayList<String> attributes) {
+    int count = attributes.size();
+    for (int i = 0; i < count; i++) {
+      String attribute = component.getLiveAttribute(uri, attributes.get(i));
+      if (attribute != null) {
+        return NlComponent.extractId(attribute);
+      }
+    }
+    return null;
+  }
+
+  public static boolean hasLeft(@NotNull AttributesTransaction transaction) {
+    return hasAttributes(transaction, SHERPA_URI, ourLeftAttributes);
+  }
+
+  public static boolean hasTop(@NotNull AttributesTransaction transaction) {
+    return hasAttributes(transaction, SHERPA_URI, ourTopAttributes);
+  }
+
+  public static boolean hasRight(@NotNull AttributesTransaction transaction) {
+    return hasAttributes(transaction, SHERPA_URI, ourRightAttributes);
+  }
+
+  public static boolean hasBottom(@NotNull AttributesTransaction transaction) {
+    return hasAttributes(transaction, SHERPA_URI, ourBottomAttributes);
+  }
+
+  public static void cleanup(@NotNull AttributesTransaction transaction, @NotNull SceneComponent component) {
+    boolean hasLeft = hasLeft(transaction);
+    boolean hasRight = hasRight(transaction);
+    boolean hasTop = hasTop(transaction);
+    boolean hasBottom = hasBottom(transaction);
+    boolean hasBaseline = transaction.getAttribute(SHERPA_URI, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
+
+    if (!hasLeft) {
+      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, null);
+      // transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, null); // TODO: handles RTL correctly
+      transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
+    }
+    if (!hasRight) {
+      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, null);
+      // transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, null); // TODO: handles RTL correctly
+      transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
+    }
+    if (!hasLeft && !hasRight) {
+      if (transaction.getAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X) == null) {
+        setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, component.getOffsetParentX());
+      }
+    }
+    else {
+      transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, null);
+    }
+    if (!hasTop) {
+      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, null);
+      transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS, null);
+    }
+    if (!hasBottom) {
+      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, null);
+      transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS, null);
+    }
+    if (!hasTop && !hasBottom && !hasBaseline) {
+      if (transaction.getAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y) == null) {
+        setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, component.getOffsetParentY());
+      }
+    }
+    else {
+      transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
+    }
+    if (!component.allowsFixedPosition()) {
+      transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, null);
+      transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
+    }
+  }
+
+  public static SceneComponent findChainHead(SceneComponent component, ArrayList<String> sideA, ArrayList<String> sideB) {
+    while (true) {
+      NlComponent nlComponent = component.getNlComponent();
+      String attributeA = getConnectionId(nlComponent, SHERPA_URI, sideA);
+      if (attributeA == null) {
+        return component;
+      }
+      SceneComponent target = component.getScene().getSceneComponent(attributeA);
+      if (target == null) {
+        return component;
+      }
+      String attributeB = getConnectionId(target.getNlComponent(), SHERPA_URI, sideB);
+      if (attributeB == null) {
+        return component;
+      }
+      if (attributeB.equalsIgnoreCase(nlComponent.getId())) {
+        component = target;
+      }
+      else {
+        return component;
+      }
+    }
+  }
+
+  public static boolean isInChain(ArrayList<String> sideA, ArrayList<String> sideB, SceneComponent component) {
+    String attributeA = getConnectionId(component.getNlComponent(), SHERPA_URI, sideA);
+    if (attributeA != null) {
+      SceneComponent target = component.getScene().getSceneComponent(attributeA);
+      if (target != null) {
+        String attributeB = getConnectionId(target.getNlComponent(), SHERPA_URI, sideB);
+        if (attributeB != null) {
+          if (attributeB.equalsIgnoreCase(component.getNlComponent().getId())) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  public static void cycleChainStyle(@NotNull SceneComponent chainHeadComponent,
+                                     @NotNull String orientationStyle,
+                                     @NotNull SceneComponent component) {
+    NlComponent chainHead = chainHeadComponent.getNlComponent();
+    String chainStyle = chainHead.getLiveAttribute(SHERPA_URI, orientationStyle);
+    if (chainStyle != null) {
+      if (chainStyle.equalsIgnoreCase(ATTR_LAYOUT_CHAIN_SPREAD)) {
+        chainStyle = ATTR_LAYOUT_CHAIN_SPREAD_INSIDE;
+      }
+      else if (chainStyle.equalsIgnoreCase(ATTR_LAYOUT_CHAIN_SPREAD_INSIDE)) {
+        chainStyle = ATTR_LAYOUT_CHAIN_PACKED;
+      }
+      else if (chainStyle.equalsIgnoreCase(ATTR_LAYOUT_CHAIN_PACKED)) {
+        chainStyle = ATTR_LAYOUT_CHAIN_SPREAD;
+      }
+    }
+    else {
+      chainStyle = ATTR_LAYOUT_CHAIN_SPREAD;
+    }
+    AttributesTransaction transaction = chainHead.startAttributeTransaction();
+    transaction.setAttribute(SHERPA_URI, orientationStyle, chainStyle);
+    transaction.apply();
+
+    NlModel nlModel = chainHead.getModel();
+    Project project = nlModel.getProject();
+    XmlFile file = nlModel.getFile();
+
+    String label = "Cycle chain style";
+    WriteCommandAction action = new WriteCommandAction(project, label, file) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        transaction.commit();
+      }
+    };
+    action.execute();
+
+    component.getScene().needsRebuildList();
+  }
+
 
   public static int getDpY(@NotNull NlComponent component) {
     float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
@@ -447,13 +621,13 @@ public class ConstraintComponentUtilities {
   }
 
   public static boolean isGuideline(@NotNull NlComponent component) {
-    return component.viewInfo != null ? component.viewInfo.getClassName().equalsIgnoreCase(CONSTRAINT_LAYOUT_GUIDELINE) : false;
+    return component.viewInfo != null && component.viewInfo.getClassName().equalsIgnoreCase(CONSTRAINT_LAYOUT_GUIDELINE);
   }
 
   public static boolean isHorizontalGuideline(@NotNull NlComponent component) {
-    if (component.viewInfo != null ? component.viewInfo.getClassName().equalsIgnoreCase(CONSTRAINT_LAYOUT_GUIDELINE) : false) {
-      String orientation = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_ORIENTATION);
-      if (orientation != null && orientation.equalsIgnoreCase(SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL)) {
+    if (component.viewInfo != null && component.viewInfo.getClassName().equalsIgnoreCase(CONSTRAINT_LAYOUT_GUIDELINE)) {
+      String orientation = component.getAttribute(SHERPA_URI, ATTR_ORIENTATION);
+      if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_HORIZONTAL)) {
         return true;
       }
     }
@@ -461,9 +635,9 @@ public class ConstraintComponentUtilities {
   }
 
   public static boolean isVerticalGuideline(@NotNull NlComponent component) {
-    if (component.viewInfo != null ? component.viewInfo.getClassName().equalsIgnoreCase(CONSTRAINT_LAYOUT_GUIDELINE) : false) {
-      String orientation = component.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_ORIENTATION);
-      if (orientation != null && orientation.equalsIgnoreCase(SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
+    if (component.viewInfo != null && component.viewInfo.getClassName().equalsIgnoreCase(CONSTRAINT_LAYOUT_GUIDELINE)) {
+      String orientation = component.getAttribute(SHERPA_URI, ATTR_ORIENTATION);
+      if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
         return true;
       }
     }
@@ -471,33 +645,33 @@ public class ConstraintComponentUtilities {
   }
 
   public static boolean isHorizontalResizable(@NotNull NlComponent component) {
-    String dimension = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
+    String dimension = component.getAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH);
     if (dimension == null) {
       return false;
     }
-    if (dimension.equalsIgnoreCase(SdkConstants.VALUE_MATCH_CONSTRAINT)) {
+    if (dimension.equalsIgnoreCase(VALUE_MATCH_CONSTRAINT)) {
       return true;
     }
     return false;
   }
 
   public static boolean isVerticalResizable(@NotNull NlComponent component) {
-    String dimension = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
+    String dimension = component.getAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT);
     if (dimension == null) {
       return false;
     }
-    if (dimension.equalsIgnoreCase(SdkConstants.VALUE_MATCH_CONSTRAINT)) {
+    if (dimension.equalsIgnoreCase(VALUE_MATCH_CONSTRAINT)) {
       return true;
     }
     return false;
   }
 
   public static boolean hasUserResizedHorizontally(@NotNull NlComponent component) {
-    String dimension = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH);
+    String dimension = component.getAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH);
     if (dimension == null) {
       return false;
     }
-    if (dimension.equalsIgnoreCase(SdkConstants.VALUE_MATCH_CONSTRAINT)) {
+    if (dimension.equalsIgnoreCase(VALUE_MATCH_CONSTRAINT)) {
       return true;
     }
     // TODO: need to get the wrap_content size. If the wrap content size is less than the current size,
@@ -506,11 +680,11 @@ public class ConstraintComponentUtilities {
   }
 
   public static boolean hasUserResizedVertically(@NotNull NlComponent component) {
-    String dimension = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT);
+    String dimension = component.getAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT);
     if (dimension == null) {
       return false;
     }
-    if (dimension.equalsIgnoreCase(SdkConstants.VALUE_MATCH_CONSTRAINT)) {
+    if (dimension.equalsIgnoreCase(VALUE_MATCH_CONSTRAINT)) {
       return true;
     }
     // TODO: need to get the wrap_content size. If the wrap content size is less than the current size,
@@ -521,13 +695,13 @@ public class ConstraintComponentUtilities {
   public static int getMargin(@NotNull NlComponent component, String margin_attr) {
     int margin = 0;
 
-    String marginString = component.getLiveAttribute(SdkConstants.NS_RESOURCES, margin_attr);
+    String marginString = component.getLiveAttribute(NS_RESOURCES, margin_attr);
     if (marginString == null) {
-      if (SdkConstants.ATTR_LAYOUT_MARGIN_LEFT.equalsIgnoreCase(margin_attr)) { // left check if it is start
-        marginString = component.getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START);
+      if (ATTR_LAYOUT_MARGIN_LEFT.equalsIgnoreCase(margin_attr)) { // left check if it is start
+        marginString = component.getLiveAttribute(NS_RESOURCES, ATTR_LAYOUT_MARGIN_START);
       }
       else { // right check if it is end
-        marginString = component.getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END);
+        marginString = component.getLiveAttribute(NS_RESOURCES, ATTR_LAYOUT_MARGIN_END);
       }
     }
     if (marginString != null) {
@@ -540,27 +714,27 @@ public class ConstraintComponentUtilities {
   }
 
   public static void setAbsoluteDpX(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
-    setAttributeValue(component, SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, dp);
+    setAttributeValue(component, TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, dp);
   }
 
   public static void setAbsoluteDpY(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
-    setAttributeValue(component, SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, dp);
+    setAttributeValue(component, TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, dp);
   }
 
   public static void setAbsoluteDpWidth(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
-    setAttributeValue(component, SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH, dp);
+    setAttributeValue(component, ANDROID_URI, ATTR_LAYOUT_WIDTH, dp);
   }
 
   public static void setAbsoluteDpHeight(@NotNull NlComponent component, @AndroidDpCoordinate int dp) {
-    setAttributeValue(component, SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT, dp);
+    setAttributeValue(component, ANDROID_URI, ATTR_LAYOUT_HEIGHT, dp);
   }
 
   public static void setVerticalBiasPercent(@NotNull NlComponent component, @AndroidDpCoordinate float value) {
-    setAttributeValue(component, SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, Float.toString(value));
+    setAttributeValue(component, SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS, Float.toString(value));
   }
 
   public static void setHorizontalBiasPercent(@NotNull NlComponent component, @AndroidDpCoordinate float value) {
-    setAttributeValue(component, SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, Float.toString(value));
+    setAttributeValue(component, SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, Float.toString(value));
   }
 
   public static void setAttributeValue(@NotNull NlComponent component, @NotNull String uri,
@@ -568,7 +742,7 @@ public class ConstraintComponentUtilities {
     if (dp <= 0) {
       return;
     }
-    String position = String.format(SdkConstants.VALUE_N_DP, dp);
+    String position = String.format(VALUE_N_DP, dp);
     setAttributeValue(component, uri, attribute, position);
   }
 
@@ -614,31 +788,31 @@ public class ConstraintComponentUtilities {
   }
 
   public static boolean isConstraintLayout(@NotNull NlComponent component) {
-    return component.isOrHasSuperclass(SdkConstants.CONSTRAINT_LAYOUT)
-           || component.getTag().getName().equals(SdkConstants.CONSTRAINT_LAYOUT); // used during layout conversion
+    return component.isOrHasSuperclass(CONSTRAINT_LAYOUT)
+           || component.getTag().getName().equals(CONSTRAINT_LAYOUT); // used during layout conversion
   }
 
   // ordered the same as Direction enum
   public static String[][] ATTRIB_MATRIX = {
-    {SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, null, null, null},
-    {SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, null, null, null},
-    {null, null, SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF, null},
-    {null, null, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, null},
-    {null, null, null, null, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF}
+    {ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF, null, null, null},
+    {ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, null, null, null},
+    {null, null, ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_LEFT_TO_RIGHT_OF, null},
+    {null, null, ATTR_LAYOUT_RIGHT_TO_LEFT_OF, ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, null},
+    {null, null, null, null, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF}
   };
   public static String[][] ATTRIB_CLEAR = {
-    {SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF},
-    {SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF},
-    {SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF},
-    {SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_TO_START_OF},
-    {SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF}
+    {ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF},
+    {ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF},
+    {ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_LEFT_TO_RIGHT_OF},
+    {ATTR_LAYOUT_RIGHT_TO_LEFT_OF, ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, ATTR_LAYOUT_TO_START_OF},
+    {ATTR_LAYOUT_BASELINE_TO_BASELINE_OF}
   };
 
   public static String[] ATTRIB_MARGIN = {
-    SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
-    SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
-    SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
-    SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT
+    ATTR_LAYOUT_MARGIN_TOP,
+    ATTR_LAYOUT_MARGIN_BOTTOM,
+    ATTR_LAYOUT_MARGIN_LEFT,
+    ATTR_LAYOUT_MARGIN_RIGHT
   };
 
   public static void connect(NlComponent source, Direction sourceDirection, NlComponent target, Direction targetDirection, int margin) {
@@ -658,10 +832,10 @@ public class ConstraintComponentUtilities {
     clearAttributes(SHERPA_URI, list, transaction);
     String targetId = null;
     if (target == source.getParent()) {
-      targetId = SdkConstants.ATTR_PARENT;
+      targetId = ATTR_PARENT;
     }
     else {
-      targetId = SdkConstants.NEW_ID_PREFIX + target.ensureLiveId();
+      targetId = NEW_ID_PREFIX + target.ensureLiveId();
     }
     transaction.setAttribute(SHERPA_URI, attrib, targetId);
     if ((srcIndex <= Direction.BASELINE.ordinal()) && (margin > 0)) {
