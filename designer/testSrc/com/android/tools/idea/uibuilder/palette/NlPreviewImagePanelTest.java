@@ -71,7 +71,7 @@ public class NlPreviewImagePanelTest extends LayoutTestCase {
     when(iconPreviewFactory.renderDragImage(any(Palette.Item.class), any(ScreenView.class))).thenReturn(image);
     myPanel = new NlPreviewImagePanel(iconPreviewFactory, dependencyManager, closeToolWindowCallback);
     myPanel.setDesignSurface(mySurface);
-    myPanel.setItem(PaletteTestCase.findItem(NlPaletteModel.get(getProject()).getPalette(LAYOUT), BUTTON));
+    myPanel.setItem(PaletteTestCase.findItem(NlPaletteModel.get(myFacet).getPalette(LAYOUT), BUTTON));
     myPanel.setSize(WIDTH, HEIGHT);
     myPanel.doLayout();
     paint();
@@ -94,7 +94,7 @@ public class NlPreviewImagePanelTest extends LayoutTestCase {
   }
 
   public void testSetItemInvalidatesUI() {
-    myPanel.setItem(PaletteTestCase.findItem(NlPaletteModel.get(getProject()).getPalette(LAYOUT), TEXT_VIEW));
+    myPanel.setItem(PaletteTestCase.findItem(NlPaletteModel.get(myFacet).getPalette(LAYOUT), TEXT_VIEW));
     verify(myRepaintManager).addDirtyRegion(myPanel, 0, 0, WIDTH, HEIGHT);
   }
 

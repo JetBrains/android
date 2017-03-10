@@ -31,7 +31,7 @@ import java.util.Arrays;
 import static com.android.SdkConstants.*;
 import static com.android.SdkConstants.PreferenceAttributes.ATTR_KEY;
 
-abstract class PreferenceHandler extends ViewHandler {
+public abstract class PreferenceHandler extends ViewHandler {
   @Language("XML")
   @NotNull
   @Override
