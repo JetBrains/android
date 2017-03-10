@@ -36,7 +36,7 @@ import java.io.IOException;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
-@RunIn(TestGroup.EDITING)
+@RunIn(TestGroup.PROJECT_WIZARD)
 @RunWith(GuiTestRunner.class)
 public class NewActivityTest {
   private static final String PROVIDED_ACTIVITY = "app/src/main/java/google/simpleapplication/MyActivity.java";
