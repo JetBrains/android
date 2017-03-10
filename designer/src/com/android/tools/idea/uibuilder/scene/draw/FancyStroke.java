@@ -261,7 +261,9 @@ public class FancyStroke implements Stroke {
     for (int flip = -1; flip < 2; flip += 2) {
       PathIterator it = new FlatteningPathIterator(shape.getPathIterator(null), FLATNESS);
       float dist = 0;
-      float x1 = 0, x2, y1 = 0, y2;
+      float x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+      float dx = 0;
+      float dy = 0;
       boolean link = true;
 
       while (!it.isDone()) {
@@ -269,9 +271,7 @@ public class FancyStroke implements Stroke {
         switch (type) {
           case PathIterator.SEG_MOVETO:
             result.moveTo(x1 = mPoint[0], y1 = mPoint[1]);
-
             dist = 0;
-
             break;
           case PathIterator.SEG_CLOSE:
           case PathIterator.SEG_LINETO:
@@ -279,8 +279,8 @@ public class FancyStroke implements Stroke {
             y2 = y1;
             x1 = mPoint[0];
             y1 = mPoint[1];
-            float dx = (x1 - x2);
-            float dy = (y1 - y2);
+            dx = (x1 - x2);
+            dy = (y1 - y2);
             float dv = (float)Math.hypot(dx, dy);
             float rem = dist;
             dist += dv;
@@ -306,6 +306,20 @@ public class FancyStroke implements Stroke {
               dist -= space;
             }
             if (type == PathIterator.SEG_CLOSE) {
+              float lastX = px - dx * rem;
+              float lastY = py - dy * rem;
+              float space = dist;
+              px += dx * (space - rem);
+              py += dy * (space - rem);
+              rem = 0;
+              link = !link;
+              float sign = (link) ? 0.2f : 1f;
+              float cx = px - dy * mSize * sign * flip;
+              float cy = py + dx * mSize * sign * flip;
+              float cx1 = lastX + -dy * mSize * sign * flip;
+              float cy1 = lastY + dx * mSize * sign * flip;
+              result.curveTo(cx1, cy1, cx, cy, px, py);
+              dist -= space;
               result.closePath();
             }
             break;
@@ -314,6 +328,17 @@ public class FancyStroke implements Stroke {
           default:
         }
         it.next();
+      }
+      if (dist > .5) { // if you have more than half a pixel left
+        float lastX = x2 - dx * dist;
+        float lastY = y2 - dy * dist;
+        link = !link;
+        float sign = (link) ? 0.2f : 1f;
+        float cx = x2 - dy * mSize * sign * flip;
+        float cy = y2 + dx * mSize * sign * flip;
+        float cx1 = lastX + -dy * mSize * sign * flip;
+        float cy1 = lastY + dx * mSize * sign * flip;
+        result.curveTo(cx1, cy1, cx, cy, x1, y1);
       }
     }
     return myBasicStroke.createStrokedShape(result);

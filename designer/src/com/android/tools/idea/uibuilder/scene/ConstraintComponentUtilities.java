@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -54,6 +55,55 @@ public final class ConstraintComponentUtilities {
   public static final ArrayList<String> ourHorizontalAttributes;
   public static final ArrayList<String> ourVerticalAttributes;
   public static final ArrayList<String> ourCreatorAttributes;
+  public static final String[] ourConstraintLayoutAttributesToClear = {
+    SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF,
+    SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
+    SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
+    SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF,
+    SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
+    SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
+    SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
+    SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
+    SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF,
+    SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
+    SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
+    SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
+    SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
+    SdkConstants.ATTR_LAYOUT_GONE_MARGIN_LEFT,
+    SdkConstants.ATTR_LAYOUT_GONE_MARGIN_TOP,
+    SdkConstants.ATTR_LAYOUT_GONE_MARGIN_RIGHT,
+    SdkConstants.ATTR_LAYOUT_GONE_MARGIN_BOTTOM,
+    SdkConstants.ATTR_LAYOUT_GONE_MARGIN_START,
+    SdkConstants.ATTR_LAYOUT_GONE_MARGIN_END,
+    SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS,
+    SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS,
+    SdkConstants.ATTR_LAYOUT_WIDTH_DEFAULT,
+    SdkConstants.ATTR_LAYOUT_HEIGHT_DEFAULT,
+    SdkConstants.ATTR_LAYOUT_WIDTH_MIN,
+    SdkConstants.ATTR_LAYOUT_WIDTH_MAX,
+    SdkConstants.ATTR_LAYOUT_HEIGHT_MIN,
+    SdkConstants.ATTR_LAYOUT_HEIGHT_MAX,
+    SdkConstants.ATTR_LAYOUT_LEFT_CREATOR,
+    SdkConstants.ATTR_LAYOUT_TOP_CREATOR,
+    SdkConstants.ATTR_LAYOUT_RIGHT_CREATOR,
+    SdkConstants.ATTR_LAYOUT_BOTTOM_CREATOR,
+    SdkConstants.ATTR_LAYOUT_BASELINE_CREATOR,
+    SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO,
+    SdkConstants.ATTR_LAYOUT_HORIZONTAL_WEIGHT,
+    SdkConstants.ATTR_LAYOUT_VERTICAL_WEIGHT,
+    SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE,
+    SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE,
+  };
+  public static final String[] ourLayoutAttributesToClear = {
+    SdkConstants.ATTR_LAYOUT_MARGIN,
+    SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
+    SdkConstants.ATTR_LAYOUT_MARGIN_START,
+    SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
+    SdkConstants.ATTR_LAYOUT_MARGIN_END,
+    SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
+    SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
+    SdkConstants.ATTR_LAYOUT_MARGIN_START,
+  };
 
   static {
     ourReciprocalAttributes = new HashMap<>();
@@ -271,6 +321,11 @@ public final class ConstraintComponentUtilities {
     }
   }
 
+  public static void clearAttributes(String uri,  String[] attributes, AttributesTransaction transaction) {
+     for (int i = 0; i < attributes.length; i++) {
+      transaction.setAttribute(uri, attributes[i], null);
+    }
+  }
   public static void clearConnections(NlComponent component, ArrayList<String> attributes, AttributesTransaction transaction) {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
@@ -320,15 +375,8 @@ public final class ConstraintComponentUtilities {
   }
 
   private static void clearAllAttributes(NlComponent component, AttributesTransaction transaction) {
-    clearAttributes(SHERPA_URI, ourLeftAttributes, transaction);
-    clearAttributes(SHERPA_URI, ourTopAttributes, transaction);
-    clearAttributes(SHERPA_URI, ourRightAttributes, transaction);
-    clearAttributes(SHERPA_URI, ourBottomAttributes, transaction);
-    clearAttributes(TOOLS_URI, ourCreatorAttributes, transaction);
-    transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
-    transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS, null);
-    transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
-    clearAttributes(ANDROID_URI, ourMarginAttributes, transaction);
+    clearAttributes(SdkConstants.SHERPA_URI, ourConstraintLayoutAttributesToClear, transaction);
+    clearAttributes(SdkConstants.ANDROID_URI, ourLayoutAttributesToClear, transaction);
     int offsetX = Coordinates.pxToDp(component.getModel(), component.x - (component.isRoot() ? 0 : component.getParent().x));
     int offsetY = Coordinates.pxToDp(component.getModel(), component.y - (component.isRoot() ? 0 : component.getParent().y));
     setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, offsetX);
