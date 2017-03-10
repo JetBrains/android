@@ -27,12 +27,16 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManagerExtension;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Executes Gradle tasks.
  */
 public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
+  /**
+   * @deprecated use {@link #executeTasks(ExternalSystemTaskId, List, String, GradleExecutionSettings, String, ExternalSystemTaskNotificationListener)}
+   */
   @Override
   public boolean executeTasks(@NotNull ExternalSystemTaskId id,
                               @NotNull List<String> taskNames,
@@ -41,6 +45,20 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
                               @NotNull final List<String> vmOptions,
                               @NotNull final List<String> scriptParameters,
                               @Nullable String debuggerSetup,
+                              @NotNull ExternalSystemTaskNotificationListener listener) throws ExternalSystemException {
+    if (settings != null) {
+      settings.withVmOptions(vmOptions);
+      settings.withArguments(scriptParameters);
+    }
+    return executeTasks(id, taskNames, projectPath, settings, debuggerSetup, listener);
+  }
+
+  @Override
+  public boolean executeTasks(@NotNull ExternalSystemTaskId id,
+                              @NotNull List<String> taskNames,
+                              @NotNull String projectPath,
+                              @Nullable GradleExecutionSettings settings,
+                              @Nullable String debuggerSetup,
                               @NotNull ExternalSystemTaskNotificationListener listener) throws ExternalSystemException
   {
     GradleInvoker invoker = getInvoker();
@@ -48,7 +66,9 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
       // Returning false gives control back to the framework, and the task(s) will be invoked by IDEA.
       return false;
     }
-    invoker.executeTasks(taskNames, vmOptions, scriptParameters, id, listener, null, true, false);
+    List<String> vmOptions = settings != null ? new ArrayList<>(settings.getVmOptions()) : new ArrayList<>();
+    List<String> arguments = settings != null ? settings.getArguments() : new ArrayList<>();
+    invoker.executeTasks(taskNames, vmOptions, arguments, id, listener, null, true, false);
     return true;
   }
 

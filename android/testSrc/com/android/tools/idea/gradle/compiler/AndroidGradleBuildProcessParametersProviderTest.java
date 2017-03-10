@@ -28,6 +28,7 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Pair;
 import com.intellij.testFramework.IdeaTestCase;
+import org.fest.util.Sets;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
@@ -81,7 +82,7 @@ public class AndroidGradleBuildProcessParametersProviderTest extends IdeaTestCas
     expect(settings.getGradleHome()).andReturn("~/gradle-1.6");
     expect(settings.isVerboseProcessing()).andReturn(true);
     expect(settings.getServiceDirectory()).andReturn("~./gradle");
-    expect(settings.getDaemonVmOptions()).andReturn("-Xmx2048m -XX:MaxPermSize=512m");
+    expect(settings.getVmOptions()).andReturn(Sets.newLinkedHashSet("-Xmx2048m", "-XX:MaxPermSize=512m"));
 
     replay(settings);
 
