@@ -46,7 +46,11 @@ abstract public class SceneManager {
     assert myScene != null;
   }
 
-  abstract public TemporarySceneComponent createTemporaryComponent(NlComponent component);
+  /**
+   * Creates a {@link TemporarySceneComponent} in our Scene meant to be used temporarily for Drag and Drop
+   */
+  @NotNull
+  abstract public TemporarySceneComponent createTemporaryComponent(@NotNull NlComponent component);
 
   @NotNull
   protected SceneView getSceneView() {
