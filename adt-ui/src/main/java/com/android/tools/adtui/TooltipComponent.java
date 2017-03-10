@@ -39,13 +39,16 @@ public final class TooltipComponent extends AnimatedComponent {
   @NotNull
   private final Range myViewRange;
   @NotNull
+  private final Range myDataRange;
+  @NotNull
   private final Component myComponent;
   @Nullable
   private Point myLastPoint;
 
-  public TooltipComponent(@NotNull Range hightlight, @NotNull Range view, Component component) {
+  public TooltipComponent(@NotNull Range hightlight, @NotNull Range view, Range data, Component component) {
     myHighlightRange = hightlight;
     myViewRange = view;
+    myDataRange = data;
     myComponent = component;
     add(component);
 
@@ -98,7 +101,7 @@ public final class TooltipComponent extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
-    if (myLastPoint == null) {
+    if (myLastPoint == null || myHighlightRange.isEmpty() || myHighlightRange.getMin() < myDataRange.getMin()) {
       myComponent.setVisible(false);
       return;
     }
