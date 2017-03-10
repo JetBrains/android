@@ -45,6 +45,7 @@ public class AndroidInitialConfigurator {
   @NonNls private static final String CONFIG_V2 = "AndroidInitConfigurator.V2";
   @NonNls private static final String CONFIG_V3 = "AndroidInitConfigurator.V3";
   @NonNls private static final String CONFIG_V4 = "AndroidInitConfigurator.V4";
+  @NonNls private static final String CONFIG_V5 = "AndroidInitConfigurator.V5";
 
   @SuppressWarnings("SpellCheckingInspection")
   @NonNls private static final String TODO_TOOLWINDOW_ACTION_ID = "ActivateTODOToolWindow";
@@ -101,32 +102,34 @@ public class AndroidInitialConfigurator {
   }
 
   private static void customizeSettings(PropertiesComponent propertiesComponent) {
-    if (!propertiesComponent.getBoolean(CONFIG_V4)) {
-      propertiesComponent.setValue(CONFIG_V4, "true");
+    if (!propertiesComponent.getBoolean(CONFIG_V5)) {
+      propertiesComponent.setValue(CONFIG_V5, "true");
       UISettings.getInstance().HIDE_TOOL_STRIPES = false;
 
-      if (!propertiesComponent.getBoolean(CONFIG_V3)) {
-        propertiesComponent.setValue(CONFIG_V3, "true");
-        // See https://youtrack.jetbrains.com/issue/IDEA-113332
-        // It's not really fixed but worked around by turning off the =-quoting
-        WebEditorOptions.getInstance().setInsertQuotesForAttributeValue(false);
-      }
+      if (!propertiesComponent.getBoolean(CONFIG_V4)) {
+        propertiesComponent.setValue(CONFIG_V4, "true");
+        UISettings.getInstance().HIDE_TOOL_STRIPES = false;
 
-      if (!propertiesComponent.getBoolean(CONFIG_V1)) {
-        propertiesComponent.setValue(CONFIG_V1, "true");
-        CodeInsightSettings.getInstance().AUTO_POPUP_JAVADOC_INFO = true;
-        UISettings.getInstance().SCROLL_TAB_LAYOUT_IN_EDITOR = true;
-        EditorSettingsExternalizable.getInstance().setVirtualSpace(false);
-
-        // For Macs, use 10.5+ keymap as the default
-        if (SystemInfo.isMac) {
-          setDefaultMacKeymap();
+        if (!propertiesComponent.getBoolean(CONFIG_V3)) {
+          propertiesComponent.setValue(CONFIG_V3, "true");
+          // See https://youtrack.jetbrains.com/issue/IDEA-113332
+          // It's not really fixed but worked around by turning off the =-quoting
+          WebEditorOptions.getInstance().setInsertQuotesForAttributeValue(false);
         }
-      }
 
-      if (!propertiesComponent.getBoolean(CONFIG_V2)) {
-        propertiesComponent.setValue(CONFIG_V2, "true");
-        UISettings.getInstance().SHOW_MAIN_TOOLBAR = true;
+        if (!propertiesComponent.getBoolean(CONFIG_V1)) {
+          propertiesComponent.setValue(CONFIG_V1, "true");
+          CodeInsightSettings.getInstance().AUTO_POPUP_JAVADOC_INFO = true;
+          UISettings.getInstance().SCROLL_TAB_LAYOUT_IN_EDITOR = true;
+          EditorSettingsExternalizable.getInstance().setVirtualSpace(false);
+
+          // For Macs, use 10.5+ keymap as the default
+          if (SystemInfo.isMac) {
+            setDefaultMacKeymap();
+          }
+        }
+
+        // CONFIG_V2 no longer done: we used to force UISettings#SHOW_MAIN_TOOLBAR=true
       }
     }
   }
