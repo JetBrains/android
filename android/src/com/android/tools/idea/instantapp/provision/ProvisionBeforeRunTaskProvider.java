@@ -92,7 +92,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
   @Nullable
   @Override
   public ProvisionBeforeRunTask createTask(RunConfiguration runConfiguration) {
-    if (runConfiguration instanceof AndroidRunConfigurationBase) {
+    if (runConfiguration instanceof AndroidRunConfigurationBase && InstantApps.getAiaSdkLocation() != null) {
       ProvisionBeforeRunTask task = new ProvisionBeforeRunTask();
       task.setEnabled(true);
       return task;
