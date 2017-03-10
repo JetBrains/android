@@ -37,7 +37,6 @@ import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.actions.*;
 import com.intellij.codeInspection.*;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -2657,9 +2656,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                                                languageSlicing.createRootUsage(argument, params));
 
     @SuppressWarnings("unchecked")
-    Collection<? extends AbstractTreeNode> children = rootNode.getChildren().iterator().next().getChildren();
-    for (AbstractTreeNode child : children) {
-      SliceUsage usage = (SliceUsage)child.getValue();
+    Collection<SliceNode> children = rootNode.getChildren().iterator().next().getChildren();
+    for (SliceNode child : children) {
+      SliceUsage usage = child.getValue();
       if (usage == null) {
         continue;
       }
