@@ -37,6 +37,7 @@ import java.util.*;
 /**
  * Implements a target allowing dragging a widget for the ConstraintLayout viewgroup
  */
+@SuppressWarnings("ForLoopReplaceableByForEach")
 public class DragTarget extends ConstraintTarget {
 
   private static final boolean DEBUG_RENDERER = false;
@@ -86,6 +87,7 @@ public class DragTarget extends ConstraintTarget {
   //region Display
   /////////////////////////////////////////////////////////////////////////////
 
+  @SuppressWarnings("UseJBColor")
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
     if (DEBUG_RENDERER) {
@@ -109,7 +111,7 @@ public class DragTarget extends ConstraintTarget {
   @Nullable
   private SceneComponent getTargetComponent(@NotNull String uri, @NotNull ArrayList<String> attributes) {
     NlComponent nlComponent = myComponent.getNlComponent();
-    String target = null;
+    String target;
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
       target = nlComponent.getAttribute(uri, attributes.get(i));
@@ -169,9 +171,11 @@ public class DragTarget extends ConstraintTarget {
   }
 
   protected void updateAttributes(AttributesTransaction attributes, int x, int y) {
-    SceneComponent targetLeftComponent = getTargetComponent(SdkConstants.SHERPA_URI, ourLeftAttributes);
-    SceneComponent targetRightComponent = getTargetComponent(SdkConstants.SHERPA_URI, ourRightAttributes);
+    SceneComponent targetLeftComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourLeftAttributes);
+    SceneComponent targetRightComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourRightAttributes);
     checkIsInChain();
+    SceneComponent parent = myComponent.getParent();
+    assert parent != null;
     if (targetLeftComponent != null && targetRightComponent != null) {
       if (!myIsInHorizontalChain) {
         int dx1 = getLeftTargetOrigin(targetLeftComponent) + getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
@@ -225,13 +229,13 @@ public class DragTarget extends ConstraintTarget {
       */
     }
     else {
-      int dx = Math.max(0, x - myComponent.getParent().getDrawX());
+      int dx = Math.max(0, x - parent.getDrawX());
       String positionX = String.format(SdkConstants.VALUE_N_DP, dx);
       attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, positionX);
     }
 
-    SceneComponent targetTopComponent = getTargetComponent(SdkConstants.SHERPA_URI, ourTopAttributes);
-    SceneComponent targetBottomComponent = getTargetComponent(SdkConstants.SHERPA_URI, ourBottomAttributes);
+    SceneComponent targetTopComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourTopAttributes);
+    SceneComponent targetBottomComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBottomAttributes);
     if (targetTopComponent != null && targetBottomComponent != null) {
       if (!myIsInVerticalChain) {
         int dy1 = getTopTargetOrigin(targetTopComponent) + getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
@@ -265,7 +269,7 @@ public class DragTarget extends ConstraintTarget {
       applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, dy);
     }
     else {
-      int dy = Math.max(0, y - myComponent.getParent().getDrawY());
+      int dy = Math.max(0, y - parent.getDrawY());
       String positionY = String.format(SdkConstants.VALUE_N_DP, dy);
       attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, positionY);
     }
@@ -313,6 +317,7 @@ public class DragTarget extends ConstraintTarget {
     myHorizontalNotches.clear();
     myVerticalNotches.clear();
     SceneComponent parent = myComponent.getParent();
+    assert parent != null;
     Notch.Provider notchProvider = parent.getNotchProvider();
     if (notchProvider != null) {
       notchProvider.fill(parent, myComponent, myHorizontalNotches, myVerticalNotches);
@@ -343,7 +348,7 @@ public class DragTarget extends ConstraintTarget {
     dx = snapX(dx);
     dy = snapY(dy);
     updateAttributes(attributes, dx, dy);
-    cleanup(attributes);
+    ConstraintComponentUtilities.cleanup(attributes, myComponent);
     attributes.apply();
     component.fireLiveChangeEvent();
     myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
@@ -408,7 +413,7 @@ public class DragTarget extends ConstraintTarget {
         myCurrentNotchY = null;
       }
       updateAttributes(attributes, dx, dy);
-      cleanup(attributes);
+      ConstraintComponentUtilities.cleanup(attributes, myComponent);
       attributes.apply();
 
       if (commitChanges) {
