@@ -37,13 +37,13 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
 import static com.intellij.ide.BrowserUtil.browse;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ui.JBUI.Borders.empty;
 import static com.intellij.util.ui.JBUI.Borders.emptyTop;
 import static javax.swing.Action.MNEMONIC_KEY;
 import static javax.swing.Action.NAME;
-import static org.jetbrains.android.util.AndroidUiUtil.setUpAsHtmlLabel;
 
 public class RecommendedPluginVersionUpdateDialog extends DialogWrapper {
   private static final String SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME = "show.do.not.ask.upgrade.gradle.plugin";
