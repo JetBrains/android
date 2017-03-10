@@ -37,7 +37,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -49,13 +48,9 @@ import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_SAM
 /**
  * Tests for eventual conflicts between {@link AndroidTestRunConfiguration} and {@link AndroidJUnitConfiguration}
  */
-@Ignore("http://b/35787983")
 public class AndroidTestAndJUnitConfigurationConflictsTest extends AndroidGradleTestCase {
-  public void testFake() {
-  }
-
   // See http://b.android.com/215255
-  public void /*test*/ConfigurationsAreDifferent() throws Exception {
+  public void testConfigurationsAreDifferent() throws Exception {
     loadSimpleApplication();
     if (SystemInfo.isWindows) {
       // Do not run tests on Windows (see http://b.android.com/222904)
@@ -71,7 +66,7 @@ public class AndroidTestAndJUnitConfigurationConflictsTest extends AndroidGradle
     assertNotSame(androidTestRunConfiguration, jUnitConfiguration);
   }
 
-  public void /*test*/DoubleClickRedirection() throws Exception {
+  public void testDoubleClickRedirection() throws Exception {
     String commonTestClassName = "google.testartifacts.ExampleTest";
     loadProject(TEST_ARTIFACTS_SAME_NAME_CLASSES);
 
@@ -112,12 +107,12 @@ public class AndroidTestAndJUnitConfigurationConflictsTest extends AndroidGradle
     assertTrue(scopes.isUnitTestSource(myClasses.iterator().next().getContainingFile().getVirtualFile()));
   }
 
-  public void /*test*/CorrectJUnitConfigurationAllInPackageModule() throws Exception {
+  public void testCorrectJUnitConfigurationAllInPackageModule() throws Exception {
     loadSimpleApplication();
     checkClassesInAllInPackage(TestSearchScope.SINGLE_MODULE);
   }
 
-  public void /*test*/CorrectJUnitConfigurationAllInPackageProject() throws Exception {
+  public void testCorrectJUnitConfigurationAllInPackageProject() throws Exception {
     loadSimpleApplication();
     checkClassesInAllInPackage(TestSearchScope.WHOLE_PROJECT);
   }
