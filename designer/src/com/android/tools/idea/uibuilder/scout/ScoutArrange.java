@@ -98,16 +98,16 @@ public class ScoutArrange {
                         if (westConnect == parent) {
                             dir = Direction.LEFT;
                         }
-                        connect(widget,Direction.LEFT, westConnect, dir, 0);
+                        scoutConnect(widget, Direction.LEFT, westConnect, dir, 0);
                         dir = Direction.LEFT;
                         if (eastConnect == parent) {
                             dir = Direction.RIGHT;
                         }
-                        connect(widget,Direction.RIGHT, eastConnect, dir, 0);
-                        setHorizontalBiasPercent(widget, .5f);
+                        scoutConnect(widget, Direction.RIGHT, eastConnect, dir, 0);
+                        setScoutHorizontalBiasPercent(widget, .5f);
 
                     } else {
-                        setAbsoluteDpX(widget, x + (eastDistance - westDistance) / 2);
+                        setScoutAbsoluteDpX(widget, x + (eastDistance - westDistance) / 2);
                     }
                 }
             }
@@ -137,15 +137,15 @@ public class ScoutArrange {
                         if (northConnect == parent) {
                             dir = Direction.TOP;
                         }
-                        connect(widget,Direction.TOP, northConnect, dir, 0);
+                        scoutConnect(widget, Direction.TOP, northConnect, dir, 0);
                         dir = Direction.TOP;
                         if (southConnect == parent) {
                             dir = Direction.BOTTOM;
                         }
-                        connect(widget,Direction.BOTTOM, southConnect, dir, 0);
-                        setVerticalBiasPercent(widget, .5f);
+                        scoutConnect(widget, Direction.BOTTOM, southConnect, dir, 0);
+                        setScoutVerticalBiasPercent(widget, .5f);
                     } else {
-                        setAbsoluteDpY(widget, Y + (southDistance - northDistance) / 2);
+                        setScoutAbsoluteDpY(widget, Y + (southDistance - northDistance) / 2);
                     }
                 }
             }
@@ -154,11 +154,11 @@ public class ScoutArrange {
                 for (NlComponent widget : widgets) {
                     int parentWidth = getDpWidth(widget.getParent());
                     int width = getDpWidth(widget);
-                    setAbsoluteDpX(widget, (parentWidth - width) / 2);
+                    setScoutAbsoluteDpX(widget, (parentWidth - width) / 2);
                     if (applyConstraints) {
-                        connect(widget, Direction.LEFT, widget.getParent(), Direction.LEFT, 0);
-                        connect(widget, Direction.RIGHT, widget.getParent(), Direction.RIGHT, 0);
-                        setHorizontalBiasPercent(widget, .5f);
+                        scoutConnect(widget, Direction.LEFT, widget.getParent(), Direction.LEFT, 0);
+                        scoutConnect(widget, Direction.RIGHT, widget.getParent(), Direction.RIGHT, 0);
+                        setScoutHorizontalBiasPercent(widget, .5f);
                     }
                 }
             }
@@ -167,11 +167,11 @@ public class ScoutArrange {
                 for (NlComponent widget : widgets) {
                     int parentHeight = getDpHeight(widget.getParent());
                     int height = getDpHeight(widget);
-                    setAbsoluteDpY(widget, (parentHeight - height) / 2);
+                    setScoutAbsoluteDpY(widget, (parentHeight - height) / 2);
                     if (applyConstraints) {
-                        connect(widget, Direction.TOP, widget.getParent(), Direction.TOP, 0);
-                        connect(widget, Direction.BOTTOM, widget.getParent(), Direction.BOTTOM, 0);
-                        setVerticalBiasPercent(widget, .5f);
+                        scoutConnect(widget, Direction.TOP, widget.getParent(), Direction.TOP, 0);
+                        scoutConnect(widget, Direction.BOTTOM, widget.getParent(), Direction.BOTTOM, 0);
+                        setScoutVerticalBiasPercent(widget, .5f);
                     }
                 }
             }
@@ -188,11 +188,11 @@ public class ScoutArrange {
                 NlComponent previousWidget = null;
                 for (NlComponent widget : widgets) {
                     float current = getDpWidth(widget) / 2.0f;
-                    setAbsoluteDpX(widget, (int)(avg - current));
+                    setScoutAbsoluteDpX(widget, (int)(avg - current));
                     if (applyConstraints) {
                         if (previousWidget != null) {
-                            connect(widget, Direction.LEFT, previousWidget, Direction.LEFT, 0);
-                            connect(widget, Direction.RIGHT, previousWidget, Direction.RIGHT, 0);
+                            scoutConnect(widget, Direction.LEFT, previousWidget, Direction.LEFT, 0);
+                            scoutConnect(widget, Direction.RIGHT, previousWidget, Direction.RIGHT, 0);
                         }
                     }
                     previousWidget = widget;
@@ -206,12 +206,12 @@ public class ScoutArrange {
                 }
                 NlComponent previousWidget = null;
                 for (NlComponent widget : widgets) {
-                    setAbsoluteDpX(widget, min);
+                    setScoutAbsoluteDpX(widget, min);
                     if (applyConstraints) {
                         if (previousWidget != null) {
-                            clearAttributes(widget, ourRightAttributes);
-                            connect(widget,Direction.LEFT, previousWidget,
-                                    Direction.LEFT, 0);
+                            scoutClearAttributes(widget, ourRightAttributes);
+                            scoutConnect(widget, Direction.LEFT, previousWidget,
+                                         Direction.LEFT, 0);
                         }
                     }
                     previousWidget = widget;
@@ -226,12 +226,12 @@ public class ScoutArrange {
                 NlComponent previousWidget = null;
                 for (NlComponent widget : widgets) {
                     float current = getDpWidth(widget);
-                    setAbsoluteDpX(widget, (int) (max - current));
+                    setScoutAbsoluteDpX(widget, (int) (max - current));
                     if (applyConstraints) {
                         if (previousWidget != null) {
-                            clearAttributes(widget, ourLeftAttributes);
-                            connect(widget,Direction.RIGHT, previousWidget,
-                                    Direction.RIGHT, 0);
+                            scoutClearAttributes(widget, ourLeftAttributes);
+                            scoutConnect(widget, Direction.RIGHT, previousWidget,
+                                         Direction.RIGHT, 0);
                         }
                     }
                     previousWidget = widget;
@@ -245,12 +245,12 @@ public class ScoutArrange {
                 }
                 NlComponent previousWidget = null;
                 for (NlComponent widget : widgets) {
-                    setAbsoluteDpY(widget, min);
+                    setScoutAbsoluteDpY(widget, min);
                     if (applyConstraints) {
                         if (previousWidget != null) {
-                            clearAttributes(widget, ourBottomAttributes);
-                            connect(widget,Direction.TOP, previousWidget,
-                                    Direction.TOP, 0);
+                            scoutClearAttributes(widget, ourBottomAttributes);
+                            scoutConnect(widget, Direction.TOP, previousWidget,
+                                         Direction.TOP, 0);
                         }
                     }
                     previousWidget = widget;
@@ -268,11 +268,11 @@ public class ScoutArrange {
                 NlComponent previousWidget = null;
                 for (NlComponent widget : widgets) {
                     float current = getDpHeight(widget) / 2.0f;
-                    setAbsoluteDpY(widget, (int) (avg - current));
+                    setScoutAbsoluteDpY(widget, (int) (avg - current));
                     if (applyConstraints) {
                         if (previousWidget != null) {
-                            connect(widget, Direction.TOP, previousWidget, Direction.TOP, 0);
-                            connect(widget, Direction.BOTTOM, previousWidget, Direction.BOTTOM, 0);
+                            scoutConnect(widget, Direction.TOP, previousWidget, Direction.TOP, 0);
+                            scoutConnect(widget, Direction.BOTTOM, previousWidget, Direction.BOTTOM, 0);
                         }
                     }
                     previousWidget = widget;
@@ -301,11 +301,11 @@ public class ScoutArrange {
                 if (!applyConstraints || number_of_constrained == 0) {
                     for (NlComponent widget : widgets) {
                         float baseline = getDpBaseline(widget);
-                        setAbsoluteDpY(widget, (int) (avg - baseline));
+                        setScoutAbsoluteDpY(widget, (int) (avg - baseline));
                         if (applyConstraints) {
                             if (previousWidget != null) {
-                                connect(widget,Direction.BASELINE, previousWidget,
-                                        Direction.BASELINE, 0);
+                                scoutConnect(widget, Direction.BASELINE, previousWidget,
+                                             Direction.BASELINE, 0);
                             }
                         }
                         previousWidget = widget;
@@ -344,8 +344,8 @@ public class ScoutArrange {
                                 }
                             }
                         }
-                        connect(from,Direction.BASELINE, to,
-                                Direction.BASELINE, 0);
+                        scoutConnect(from, Direction.BASELINE, to,
+                                     Direction.BASELINE, 0);
                         constrained.add(from);
                         unconstrained.remove(from);
                     }
@@ -360,12 +360,12 @@ public class ScoutArrange {
                 NlComponent previousWidget = null;
                 for (NlComponent widget : widgets) {
                     float current = getDpHeight(widget);
-                    setAbsoluteDpY(widget, (int) (max - current));
+                    setScoutAbsoluteDpY(widget, (int) (max - current));
                     if (applyConstraints) {
                         if (previousWidget != null) {
-                            clearAttributes(widget, ourTopAttributes);
-                            connect(widget,Direction.BOTTOM, previousWidget,
-                                    Direction.BOTTOM, 0);
+                            scoutClearAttributes(widget, ourTopAttributes);
+                            scoutConnect(widget, Direction.BOTTOM, previousWidget,
+                                         Direction.BOTTOM, 0);
                         }
                     }
                     previousWidget = widget;
@@ -396,14 +396,14 @@ public class ScoutArrange {
                         int size  = getDpHeight( widgets[i - 1]);
                         min += size;
                         int pos = min + (totalGap * i) / gaps;
-                        setAbsoluteDpY(widgets[i],pos);
+                        setScoutAbsoluteDpY(widgets[i], pos);
                         if (applyConstraints) {
                             if (reverse) {
-                                connect(widgets[i - 1], Direction.BOTTOM, widgets[i],
-                                        Direction.TOP, pos - lastY - size);
+                                scoutConnect(widgets[i - 1], Direction.BOTTOM, widgets[i],
+                                             Direction.TOP, pos - lastY - size);
                             } else {
-                                connect(widgets[i],Direction.TOP, widgets[i - 1],
-                                        Direction.BOTTOM, pos - lastY - size);
+                                scoutConnect(widgets[i], Direction.TOP, widgets[i - 1],
+                                             Direction.BOTTOM, pos - lastY - size);
                             }
                             lastY = pos;
                         }
@@ -436,14 +436,14 @@ public class ScoutArrange {
                         int size = getDpWidth(widgets[i - 1]);
                         min += size;
                         int pos = min + (totalGap * i) / gaps;
-                        setAbsoluteDpX(widgets[i],pos);
+                        setScoutAbsoluteDpX(widgets[i], pos);
                         if (applyConstraints) {
                             if (reverse) {
-                                connect(widgets[i - 1], Direction.RIGHT, widgets[i],
-                                        Direction.LEFT, pos - lastX - size);
+                                scoutConnect(widgets[i - 1], Direction.RIGHT, widgets[i],
+                                             Direction.LEFT, pos - lastX - size);
                             } else {
-                                connect(widgets[i],Direction.LEFT, widgets[i - 1],
-                                        Direction.RIGHT, pos - lastX - size);
+                                scoutConnect(widgets[i], Direction.LEFT, widgets[i - 1],
+                                             Direction.RIGHT, pos - lastX - size);
                             }
                             lastX = pos;
                         }
@@ -545,9 +545,9 @@ public class ScoutArrange {
             for (int i = 0; i < colArray.length; i++) {
                 int y = margin * i + (i * (totalHeight)) / colArray.length;
                 NlComponent constraintWidget = colArray[i];
-                setAbsoluteDpY(constraintWidget, y + clip.y + margin);
+                setScoutAbsoluteDpY(constraintWidget, y + clip.y + margin);
                 int yend = margin * i + (totalHeight * (i + 1)) / colArray.length;
-                setAbsoluteDpHeight(constraintWidget,yend - y);
+                setScoutAbsoluteDpHeight(constraintWidget, yend - y);
             }
         }
     }
@@ -594,10 +594,10 @@ public class ScoutArrange {
             for (int i = 0; i < rowArray.length; i++) {
                 int x = margin * i + (i * (totalWidth)) / rowArray.length;
                 NlComponent constraintWidget = rowArray[i];
-                setAbsoluteDpX(constraintWidget,x + clip.x + margin);
+                setScoutAbsoluteDpX(constraintWidget, x + clip.x + margin);
                 int xend = margin * i + (totalWidth * (i + 1)) / rowArray.length;
 
-                setAbsoluteDpWidth(constraintWidget,xend - x);
+                setScoutAbsoluteDpWidth(constraintWidget, xend - x);
             }
         }
     }
