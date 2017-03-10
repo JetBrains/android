@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Component used during Drag and Drop
  */
-public abstract class TemporarySceneComponent extends SceneComponent {
+public class TemporarySceneComponent extends SceneComponent {
 
   public TemporarySceneComponent(@NotNull Scene scene, @NotNull NlComponent component) {
     super(scene, component);
-    addTarget(new DragDndTarget());
-    scene.setAnimated(false);
-    scene.getRoot().addChild(this);
-    init();
-    scene.setAnimated(true);
   }
-
-  abstract void init();
 }
