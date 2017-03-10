@@ -25,6 +25,7 @@ import com.intellij.openapi.editor.highlighter.EditorHighlighterFactory;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 public class IntellijFileViewer implements FileViewer {
   private static final Map<String, FileType> FILE_TYPE_MAP = new ImmutableMap.Builder<String, FileType>()
@@ -115,8 +117,15 @@ public class IntellijFileViewer implements FileViewer {
    */
   public static class ResizableImage extends JLabel {
 
+    private static final int[] LEFT_SHADOW_ALPHAS = {25, 15, 5};
+    private static final int[] RIGHT_SHADOW_ALPHAS = {40, 35, 25, 15, 5};
+    private static final JBColor CHECKERBOARD_COLOR_MAIN = new JBColor(new Color(201, 201, 201), new Color(51, 54, 55));
+    private static final JBColor CHECKERBOARD_COLOR_ALT = new JBColor(new Color(236, 236, 236), new Color(60, 63, 65));
+
+
     @NotNull private final BufferedImage myImage;
-    @Nullable private Dimension myLastSize;
+    @NotNull private Dimension myLastSize;
+    @NotNull private Rectangle myViewRectangle;
 
     /**
      * Check if two dimension objects are basically the same size, plus or minus a pixel. This
@@ -131,6 +140,8 @@ public class IntellijFileViewer implements FileViewer {
     public ResizableImage(@NotNull BufferedImage image) {
       super("", CENTER);
       myImage = image;
+      myLastSize = new Dimension();
+      myViewRectangle = new Rectangle();
 
       addComponentListener(new ComponentAdapter() {
         @Override
@@ -140,34 +151,44 @@ public class IntellijFileViewer implements FileViewer {
       });
     }
 
-    private void resize() {
-      Dimension d = calculateScaledSize();
+    private boolean hasIcon() {
+      Icon icon = getIcon();
+      return icon != null && icon.getIconWidth() > 0 && icon.getIconHeight() > 0;
+    }
 
-      if (d.width == 0 || d.height == 0) {
+    private void resize() {
+      myViewRectangle = getViewRectangle();
+      Dimension iconSize = calculateScaledSize();
+
+      if (iconSize.width == 0 || iconSize.height == 0) {
         setIcon(null);
-        myLastSize = null;
+        myLastSize = new Dimension();
       }
-      else if (myLastSize == null || !areSimilarSizes(myLastSize, d)) {
-        Image image = d.getWidth() == myImage.getWidth() ? myImage : myImage.getScaledInstance(d.width, d.height, Image.SCALE_SMOOTH);
+      else if (!areSimilarSizes(myLastSize, iconSize)) {
+        Image image = iconSize.getWidth() == myImage.getWidth()
+                      ? myImage
+                      : myImage.getScaledInstance(iconSize.width, iconSize.height, Image.SCALE_SMOOTH);
         setIcon(new ImageIcon(image));
-        myLastSize = d;
+        myLastSize = iconSize;
       }
     }
 
     @NotNull
     private Dimension calculateScaledSize() {
-      if (getWidth() == 0 || getHeight() == 0) {
+      int width = getWidth() - RIGHT_SHADOW_ALPHAS.length * 2;
+      int height = getHeight() - RIGHT_SHADOW_ALPHAS.length * 2;
+      if (width <= 0 || height <= 0) {
         return new Dimension();
       }
 
       float sourceRatio = (float)myImage.getWidth() / myImage.getHeight();
-      int finalWidth = getWidth();
+      int finalWidth = width;
       int finalHeight = (int) (finalWidth / sourceRatio);
 
       // Don't allow the final size to be larger than the original image, in order to prevent small
       // images from stretching into a blurry mess.
-      int maxWidth = Math.min(getWidth(), myImage.getWidth());
-      int maxHeight = Math.min(getHeight(), myImage.getHeight());
+      int maxWidth = Math.min(width, myImage.getWidth());
+      int maxHeight = Math.min(height, myImage.getHeight());
 
       if (finalWidth > maxWidth) {
         float scale = (float)maxWidth / finalWidth;
@@ -181,6 +202,79 @@ public class IntellijFileViewer implements FileViewer {
       }
 
       return new Dimension(finalWidth, finalHeight);
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+      paintShadow(g);
+      paintCheckerboard(g);
+      super.paintComponent(g);
+    }
+
+    private void paintCheckerboard(Graphics g) {
+      Rectangle rectangle = hasIcon() ? getIconRectangle() : myViewRectangle;
+      int squareSize = 15;
+      BiConsumer<Integer, Integer> fillRect = (x, y) -> {
+        g.fillRect(rectangle.x + x * squareSize, rectangle.y + y * squareSize,
+                   Math.min(squareSize, rectangle.width - x * squareSize),
+                   Math.min(squareSize, rectangle.height - y * squareSize));
+      };
+      int squareX = (int)Math.ceil(rectangle.width / squareSize);
+      int squareY = (int)Math.ceil(rectangle.height / squareSize);
+      for (int x = 0; x < squareX; x++) {
+        g.setColor(CHECKERBOARD_COLOR_MAIN);
+        for (int y = x % 2; y < squareY; y += 2) {
+          fillRect.accept(x, y);
+        }
+        g.setColor(CHECKERBOARD_COLOR_ALT);
+        for (int y = 1 - x % 2; y < squareY; y += 2) {
+          fillRect.accept(x, y);
+        }
+      }
+    }
+
+    private void paintShadow(Graphics g) {
+      Rectangle rectangle = hasIcon() ? getIconRectangle() : myViewRectangle;
+      if (rectangle.width == 0 || rectangle.height == 0) {
+        return;
+      }
+      // Avoid too much shadow on the left bottom.
+      int offset = 2;
+      rectangle.width -= offset;
+      rectangle.height -= offset;
+      for (int i = 0; i < LEFT_SHADOW_ALPHAS.length; i++) {
+        g.setColor(new Color(0, 0, 0, LEFT_SHADOW_ALPHAS[i]));
+        g.drawRoundRect(rectangle.x - i, rectangle.y - i, rectangle.width + i * 2, rectangle.height + i * 2, i * 2 + 2, i * 2 + 2);
+      }
+      rectangle.x += offset;
+      rectangle.y += offset;
+      for (int i = 0; i < RIGHT_SHADOW_ALPHAS.length; i++) {
+        g.setColor(new Color(0, 0, 0, RIGHT_SHADOW_ALPHAS[i]));
+        g.drawRoundRect(rectangle.x - i, rectangle.y - i, rectangle.width + i * 2, rectangle.height + i * 2, i * 2 + 2, i * 2 + 2);
+      }
+    }
+
+    @NotNull
+    private Rectangle getViewRectangle() {
+      Insets insets = getInsets(null);
+      Rectangle viewR = new Rectangle();
+      viewR.x = insets.left;
+      viewR.y = insets.top;
+      viewR.width = getWidth() - (insets.left + insets.right);
+      viewR.height = getHeight() - (insets.top + insets.bottom);
+      return viewR;
+    }
+
+    @NotNull
+    private Rectangle getIconRectangle() {
+      if (getIcon() == null || getIcon().getIconWidth() == 0 || getIcon().getIconHeight() == 0) {
+        return new Rectangle();
+      }
+      Rectangle iconR = new Rectangle();
+      SwingUtilities.layoutCompoundLabel(this, getFontMetrics(new Font(null, Font.PLAIN, 10)), getText(), getIcon(), getVerticalAlignment(),
+                                         getHorizontalAlignment(), getVerticalTextPosition(), getHorizontalTextPosition(), getViewRectangle(), iconR,
+                                         new Rectangle(), getIconTextGap());
+      return iconR;
     }
   }
 }
