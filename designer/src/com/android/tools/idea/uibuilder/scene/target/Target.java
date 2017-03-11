@@ -88,6 +88,13 @@ public interface Target {
 
   void setOver(boolean over);
 
+  /**
+   * Can be used by the target to expand its bounds
+   *
+   * @param expand true to expand
+   */
+  void setExpandSize(boolean expand);
+
   String getToolTipText();
 
   /**

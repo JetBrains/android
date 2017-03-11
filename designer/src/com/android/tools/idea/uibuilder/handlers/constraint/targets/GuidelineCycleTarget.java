@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.scene.target;
+package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.draw.DrawGuidelineCycle;
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle;
+import com.android.tools.idea.uibuilder.scene.target.BaseTarget;
+import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -33,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Implements the guideline cycle
  */
-public class GuidelineCycleTarget extends ConstraintTarget {
+public class GuidelineCycleTarget extends BaseTarget {
 
   private final boolean myIsHorizontal;
   private int mySize = 16;

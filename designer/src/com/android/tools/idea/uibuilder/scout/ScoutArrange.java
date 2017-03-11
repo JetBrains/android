@@ -17,12 +17,12 @@ package com.android.tools.idea.uibuilder.scout;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 
 import java.awt.Rectangle;
 import java.util.*;
 
-import static com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities.*;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.*;
 
 /**
  * This implements the standard arrange functions
