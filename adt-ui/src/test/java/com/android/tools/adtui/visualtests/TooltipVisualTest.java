@@ -33,7 +33,7 @@ public class TooltipVisualTest extends VisualTest {
   private TooltipComponent myTooltip;
 
   private Range myRange;
-
+  private Range myDataRange;
   private Range myHighlight;
   private JPanel myContent;
   private JLabel myLabel;
@@ -42,10 +42,11 @@ public class TooltipVisualTest extends VisualTest {
   protected List<Updatable> createModelList() {
 
     myRange = new Range(0, 1000);
+    myDataRange = new Range(250, 1000);
     myHighlight = new Range(500, 500);
 
     myContent = new JPanel(new BorderLayout());
-    myTooltip = new TooltipComponent(myHighlight, myRange, myContent);
+    myTooltip = new TooltipComponent(myHighlight, myRange, myDataRange, myContent);
 
     List<Updatable> componentsList = new ArrayList<>();
     componentsList.add(t -> myLabel.setText("" + System.nanoTime()));
