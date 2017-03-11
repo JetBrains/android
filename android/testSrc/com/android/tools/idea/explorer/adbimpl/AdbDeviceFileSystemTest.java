@@ -18,8 +18,10 @@ package com.android.tools.idea.explorer.adbimpl;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceState;
+import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.concurrency.BoundedTaskExecutor;
 import org.hamcrest.core.IsInstanceOf;
 import org.jetbrains.annotations.NotNull;
@@ -32,12 +34,15 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -48,6 +53,7 @@ public class AdbDeviceFileSystemTest {
   @Nullable private Disposable myParentDisposable;
   @Nullable private AdbDeviceFileSystem myFileSystem;
   @Nullable private MockDdmlibDevice myMockDevice;
+  @Nullable private BoundedTaskExecutor myCallbackExecutor;
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();
@@ -55,17 +61,17 @@ public class AdbDeviceFileSystemTest {
   @Before
   public void setUp() throws Exception {
     myParentDisposable = Disposer.newDisposable();
-    BoundedTaskExecutor callbackExecutor = new BoundedTaskExecutor("EDT simulation thread",
-                                                                   PooledThreadExecutor.INSTANCE,
-                                                                   1,
-                                                                   myParentDisposable);
+    myCallbackExecutor = new BoundedTaskExecutor("EDT simulation thread",
+                                                 PooledThreadExecutor.INSTANCE,
+                                                 1,
+                                                 myParentDisposable);
     ExecutorService taskExecutor = PooledThreadExecutor.INSTANCE;
     myMockDevice = new MockDdmlibDevice();
     TestDevices.addNexus7Api23Commands(myMockDevice.getShellCommands());
     Function<Void, File> adbRuntimeError = aVoid -> {
       throw new RuntimeException("No Adb for unit tests");
     };
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(adbRuntimeError, callbackExecutor, taskExecutor);
+    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(adbRuntimeError, myCallbackExecutor, taskExecutor);
     myFileSystem = new AdbDeviceFileSystem(service, myMockDevice.getIDevice());
   }
 
@@ -186,6 +192,23 @@ public class AdbDeviceFileSystemTest {
   }
 
   @Test
+  public void test_FileSystem_GetEntry_Returns_LinkInfo() throws Exception {
+    // Prepare
+    assert myFileSystem != null;
+
+    // Act
+    DeviceFileEntry result = waitForFuture(myFileSystem.getEntry("/charger"));
+
+    // Assert
+    assertThat(result).isNotNull();
+    assertThat(result.getName()).isEqualTo("charger");
+    assertThat(result.getSymbolicLinkTarget()).isEqualTo("/sbin/healthd");
+    assertThat(result.getPermissions().getText()).isEqualTo("lrwxrwxrwx");
+    assertThat(result.getSize()).isEqualTo(-1);
+    assertThat(result.getLastModifiedDate().getText()).isEqualTo("1969-12-31 16:00");
+  }
+
+  @Test
   public void test_FileSystem_GetEntry_Returns_DataDirectory() throws Exception {
     // Prepare
     assert myFileSystem != null;
@@ -212,6 +235,20 @@ public class AdbDeviceFileSystemTest {
   }
 
   @Test
+  public void test_FileSystem_GetEntries_Returns_AppDirectories() throws Exception {
+    // Prepare
+    assert myFileSystem != null;
+    DeviceFileEntry dataEntry = waitForFuture(myFileSystem.getEntry("/data/data"));
+
+    // Act
+    List<DeviceFileEntry> result = waitForFuture(dataEntry.getEntries());
+
+    // Assert
+    assertThat(result).isNotNull();
+    assertThat(result.stream().anyMatch(x -> Objects.equals(x.getName(), "com.example.rpaquay.myapplication"))).isTrue();
+  }
+
+  @Test
   public void test_FileSystem_GetEntry_Returns_DataLocalTempDirectory() throws Exception {
     // Prepare
     assert myFileSystem != null;
@@ -232,6 +269,70 @@ public class AdbDeviceFileSystemTest {
     // Act/Assert
     thrown.expect(ExecutionException.class);
     thrown.expectCause(IsInstanceOf.instanceOf(IllegalArgumentException.class));
-    /*DeviceFileEntry result = */waitForFuture(myFileSystem.getEntry("/data/invalid/path"));
+    /*DeviceFileEntry result = */
+    waitForFuture(myFileSystem.getEntry("/data/invalid/path"));
+  }
+
+  @Test
+  public void test_FileSystem_UploadLocalFile_Works() throws Exception {
+    // Prepare
+    assert myFileSystem != null;
+    DeviceFileEntry dataEntry = waitForFuture(myFileSystem.getEntry("/data/local/tmp"));
+    Path tempFile = FileUtil.createTempFile("localFile", "tmp").toPath();
+    Files.write(tempFile, new byte[1024]);
+
+
+    // Act
+    AtomicReference<Long> totalBytesRef = new AtomicReference<>();
+    Void result = waitForFuture(dataEntry.uploadFile(tempFile, new FileTransferProgress() {
+      @Override
+      public void progress(long currentBytes, long totalBytes) {
+        totalBytesRef.set(totalBytes);
+      }
+
+      @Override
+      public boolean isCancelled() {
+        return false;
+      }
+    }));
+    // Ensure all progress callbacks have been executed
+    myCallbackExecutor.waitAllTasksExecuted(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
+
+    // Assert
+    assertThat(result).isNull();
+    assertThat(totalBytesRef.get()).isEqualTo(1024);
+  }
+
+  @Test
+  public void test_FileSystem_DownloadRemoteFile_Works() throws Exception {
+    // Prepare
+    assert myFileSystem != null;
+    assert myMockDevice != null;
+    assert myCallbackExecutor != null;
+    DeviceFileEntry deviceEntry = waitForFuture(myFileSystem.getEntry("/default.prop"));
+    myMockDevice.addRemoteFile(deviceEntry.getFullPath(), deviceEntry.getSize());
+    Path tempFile = FileUtil.createTempFile("localFile", "tmp").toPath();
+
+    // Act
+    AtomicReference<Long> totalBytesRef = new AtomicReference<>();
+    Void result = waitForFuture(deviceEntry.downloadFile(tempFile, new FileTransferProgress() {
+      @Override
+      public void progress(long currentBytes, long totalBytes) {
+        totalBytesRef.set(totalBytes);
+      }
+
+      @Override
+      public boolean isCancelled() {
+        return false;
+      }
+    }));
+    // Ensure all progress callbacks have been executed
+    myCallbackExecutor.waitAllTasksExecuted(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
+
+    // Assert
+    assertThat(result).isNull();
+    assertThat(totalBytesRef.get()).isEqualTo(deviceEntry.getSize());
+    assertThat(Files.exists(tempFile)).isTrue();
+    assertThat(tempFile.toFile().length()).isEqualTo(deviceEntry.getSize());
   }
 }
