@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Implements an Action target
  */
-public class ActionTarget extends ConstraintTarget {
+public class ActionTarget extends BaseTarget {
 
   final static int mySize = 12;
   final static int myGap = 4;

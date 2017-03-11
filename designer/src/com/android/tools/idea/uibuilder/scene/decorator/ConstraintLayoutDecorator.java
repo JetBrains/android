@@ -20,8 +20,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.draw.DrawConnection;
-import com.android.tools.idea.uibuilder.surface.SceneView;
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnection;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -30,6 +29,7 @@ import java.util.List;
 
 /**
  * This defines the decorator
+ * TODO: move to the ConstraintLayout handler
  */
 public class ConstraintLayoutDecorator extends SceneDecorator {
   final static String[] LEFT_DIR = {

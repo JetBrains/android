@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.scene.target;
+package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.draw.DrawAnchor;
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor;
+import com.android.tools.idea.uibuilder.scene.target.BaseTarget;
+import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -40,7 +42,7 @@ import java.util.HashMap;
  * Implements a target anchor for the ConstraintLayout viewgroup
  */
 @SuppressWarnings("ForLoopReplaceableByForEach")
-public class AnchorTarget extends ConstraintTarget {
+public class AnchorTarget extends BaseTarget {
 
   private static final boolean DEBUG_RENDERER = false;
   private final boolean myVisibility;
@@ -61,6 +63,8 @@ public class AnchorTarget extends ConstraintTarget {
   private int myConnectedY = -1;
 
   private HashMap<String, String> mPreviousAttributes = new HashMap<>();
+
+  private ChainChecker myChainChecker = new ChainChecker();
 
   /////////////////////////////////////////////////////////////////////////////
   //region Constructor
@@ -85,6 +89,7 @@ public class AnchorTarget extends ConstraintTarget {
     return myType;
   }
 
+  @Override
   public void setExpandSize(boolean expand) {
     myExpandArea = expand;
   }

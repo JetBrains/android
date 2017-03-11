@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.scene.target;
+package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.graphics.NlIcon;
+import com.android.tools.idea.uibuilder.scene.target.ActionTarget;
+import com.android.tools.idea.uibuilder.scene.target.Target;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +31,8 @@ import org.jetbrains.annotations.Nullable;
 public class ChainCycleTarget extends ActionTarget {
   private static final NlIcon CHAIN_ICON = new NlIcon(AndroidIcons.SherpaIcons.Chain, AndroidIcons.SherpaIcons.ChainBlue);
 
+  private ChainChecker myChainChecker = new ChainChecker();
+
   public ChainCycleTarget(ActionTarget previous, Action action) {
     super(previous, CHAIN_ICON, action);
   }
@@ -36,19 +40,19 @@ public class ChainCycleTarget extends ActionTarget {
   @Override
   public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
     super.layout(sceneTransform, l, t, r, b);
-    checkIsInChain();
-    myIsVisible = myIsInHorizontalChain || myIsInVerticalChain;
+    myChainChecker.checkIsInChain(myComponent);
+    myIsVisible = myChainChecker.isInHorizontalChain() || myChainChecker.isInVerticalChain();
     return false;
   }
 
   @Override
   public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
     if (closestTarget == this && myIsVisible) {
-      if (myIsInHorizontalChain) {
-        ConstraintComponentUtilities.cycleChainStyle(myHorizontalChainHead, SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE, myComponent);
+      if (myChainChecker.isInHorizontalChain()) {
+        ConstraintComponentUtilities.cycleChainStyle(myChainChecker.getHorizontalChainHead(), SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE, myComponent);
       }
-      else if (myIsInVerticalChain) {
-        ConstraintComponentUtilities.cycleChainStyle(myVerticalChainHead, SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE, myComponent);
+      else if (myChainChecker.isInVerticalChain()) {
+        ConstraintComponentUtilities.cycleChainStyle(myChainChecker.getVerticalChainHead(), SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE, myComponent);
       }
     }
   }

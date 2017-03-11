@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.scene.draw;
 
 import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils; // TODO: remove
 import com.android.tools.sherpa.drawing.ColorSet;
 
 import java.awt.*;

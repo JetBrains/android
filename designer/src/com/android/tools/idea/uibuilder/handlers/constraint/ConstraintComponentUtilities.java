@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.scene;
+package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
+import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.scout.Direction;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -33,11 +36,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.scene.draw.DrawGuidelineCycle.*;
+import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.*;
 
 /**
  * Encapsulate basic querys on a ConstraintLayout component
- * TODO: use this class everywhere for this type of queries and replace/update ConstraintTarget
  */
 @SuppressWarnings("ForLoopReplaceableByForEach")
 public final class ConstraintComponentUtilities {
@@ -56,53 +58,53 @@ public final class ConstraintComponentUtilities {
   public static final ArrayList<String> ourVerticalAttributes;
   public static final ArrayList<String> ourCreatorAttributes;
   public static final String[] ourConstraintLayoutAttributesToClear = {
-    SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF,
-    SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
-    SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
-    SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF,
-    SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
-    SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
-    SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
-    SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
-    SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF,
-    SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
-    SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
-    SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
-    SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
-    SdkConstants.ATTR_LAYOUT_GONE_MARGIN_LEFT,
-    SdkConstants.ATTR_LAYOUT_GONE_MARGIN_TOP,
-    SdkConstants.ATTR_LAYOUT_GONE_MARGIN_RIGHT,
-    SdkConstants.ATTR_LAYOUT_GONE_MARGIN_BOTTOM,
-    SdkConstants.ATTR_LAYOUT_GONE_MARGIN_START,
-    SdkConstants.ATTR_LAYOUT_GONE_MARGIN_END,
-    SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS,
-    SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS,
-    SdkConstants.ATTR_LAYOUT_WIDTH_DEFAULT,
-    SdkConstants.ATTR_LAYOUT_HEIGHT_DEFAULT,
-    SdkConstants.ATTR_LAYOUT_WIDTH_MIN,
-    SdkConstants.ATTR_LAYOUT_WIDTH_MAX,
-    SdkConstants.ATTR_LAYOUT_HEIGHT_MIN,
-    SdkConstants.ATTR_LAYOUT_HEIGHT_MAX,
-    SdkConstants.ATTR_LAYOUT_LEFT_CREATOR,
-    SdkConstants.ATTR_LAYOUT_TOP_CREATOR,
-    SdkConstants.ATTR_LAYOUT_RIGHT_CREATOR,
-    SdkConstants.ATTR_LAYOUT_BOTTOM_CREATOR,
-    SdkConstants.ATTR_LAYOUT_BASELINE_CREATOR,
-    SdkConstants.ATTR_LAYOUT_DIMENSION_RATIO,
-    SdkConstants.ATTR_LAYOUT_HORIZONTAL_WEIGHT,
-    SdkConstants.ATTR_LAYOUT_VERTICAL_WEIGHT,
-    SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE,
-    SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE,
+    ATTR_LAYOUT_LEFT_TO_LEFT_OF,
+    ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
+    ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
+    ATTR_LAYOUT_RIGHT_TO_RIGHT_OF,
+    ATTR_LAYOUT_TOP_TO_TOP_OF,
+    ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
+    ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
+    ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
+    ATTR_LAYOUT_BASELINE_TO_BASELINE_OF,
+    ATTR_LAYOUT_START_TO_END_OF,
+    ATTR_LAYOUT_START_TO_START_OF,
+    ATTR_LAYOUT_END_TO_START_OF,
+    ATTR_LAYOUT_END_TO_END_OF,
+    ATTR_LAYOUT_GONE_MARGIN_LEFT,
+    ATTR_LAYOUT_GONE_MARGIN_TOP,
+    ATTR_LAYOUT_GONE_MARGIN_RIGHT,
+    ATTR_LAYOUT_GONE_MARGIN_BOTTOM,
+    ATTR_LAYOUT_GONE_MARGIN_START,
+    ATTR_LAYOUT_GONE_MARGIN_END,
+    ATTR_LAYOUT_HORIZONTAL_BIAS,
+    ATTR_LAYOUT_VERTICAL_BIAS,
+    ATTR_LAYOUT_WIDTH_DEFAULT,
+    ATTR_LAYOUT_HEIGHT_DEFAULT,
+    ATTR_LAYOUT_WIDTH_MIN,
+    ATTR_LAYOUT_WIDTH_MAX,
+    ATTR_LAYOUT_HEIGHT_MIN,
+    ATTR_LAYOUT_HEIGHT_MAX,
+    ATTR_LAYOUT_LEFT_CREATOR,
+    ATTR_LAYOUT_TOP_CREATOR,
+    ATTR_LAYOUT_RIGHT_CREATOR,
+    ATTR_LAYOUT_BOTTOM_CREATOR,
+    ATTR_LAYOUT_BASELINE_CREATOR,
+    ATTR_LAYOUT_DIMENSION_RATIO,
+    ATTR_LAYOUT_HORIZONTAL_WEIGHT,
+    ATTR_LAYOUT_VERTICAL_WEIGHT,
+    ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE,
+    ATTR_LAYOUT_VERTICAL_CHAIN_STYLE,
   };
   public static final String[] ourLayoutAttributesToClear = {
-    SdkConstants.ATTR_LAYOUT_MARGIN,
-    SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
-    SdkConstants.ATTR_LAYOUT_MARGIN_START,
-    SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
-    SdkConstants.ATTR_LAYOUT_MARGIN_END,
-    SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
-    SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
-    SdkConstants.ATTR_LAYOUT_MARGIN_START,
+    ATTR_LAYOUT_MARGIN,
+    ATTR_LAYOUT_MARGIN_LEFT,
+    ATTR_LAYOUT_MARGIN_START,
+    ATTR_LAYOUT_MARGIN_RIGHT,
+    ATTR_LAYOUT_MARGIN_END,
+    ATTR_LAYOUT_MARGIN_TOP,
+    ATTR_LAYOUT_MARGIN_BOTTOM,
+    ATTR_LAYOUT_MARGIN_START,
   };
 
   static {
@@ -212,7 +214,7 @@ public final class ConstraintComponentUtilities {
     AnchorTarget.Type type = ourMapSideToOriginAnchors.get(attribute);
     SceneComponent component = scene.getSceneComponent(targetComponent);
     if (component != null) {
-      return component.getAnchorTarget(type);
+      return getAnchorTarget(component, type);
     }
     return null;
   }
@@ -229,7 +231,18 @@ public final class ConstraintComponentUtilities {
     AnchorTarget.Type type = ourMapSideToTargetAnchors.get(attribute);
     SceneComponent component = scene.getSceneComponent(targetComponent);
     if (component != null) {
-      return component.getAnchorTarget(type);
+      return getAnchorTarget(component, type);
+    }
+    return null;
+  }
+
+  public static AnchorTarget getAnchorTarget(@NotNull SceneComponent component, @NotNull AnchorTarget.Type type) {
+    for (Target target : component.getTargets()) {
+      if (target instanceof AnchorTarget) {
+        if (((AnchorTarget) target).getType() == type) {
+          return (AnchorTarget) target;
+        }
+      }
     }
     return null;
   }

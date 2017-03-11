@@ -16,12 +16,11 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.scene.target.ChainCycleTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ChainCycleTarget;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.TEXT_VIEW;
 
 /**
  * Test cycling a chain

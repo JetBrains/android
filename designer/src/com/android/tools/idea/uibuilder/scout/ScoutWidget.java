@@ -20,7 +20,7 @@ import android.support.constraint.solver.widgets.ConstraintWidget;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.Rectangle;

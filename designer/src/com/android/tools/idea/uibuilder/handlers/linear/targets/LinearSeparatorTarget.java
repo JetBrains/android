@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.linear;
+package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
+import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearSeparator;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.ScenePicker;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.draw.linearlayout.DrawLinearSeparator;
 import com.android.tools.idea.uibuilder.scene.target.BaseTarget;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;

@@ -23,7 +23,6 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.Notch;
-import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.intellij.openapi.application.ApplicationManager;
@@ -536,29 +535,10 @@ public class SceneComponent {
   }
 
   public void setExpandTargetArea(boolean expandArea) {
-    int count = myTargets.size();
-    for (int i = 0; i < count; i++) {
-      Target target = myTargets.get(i);
-      if (target instanceof AnchorTarget) {
-        AnchorTarget anchor = (AnchorTarget)target;
-        anchor.setExpandSize(expandArea);
-      }
+    for (Target target : myTargets) {
+      target.setExpandSize(expandArea);
     }
     myScene.needsRebuildList();
-  }
-
-  @VisibleForTesting
-  AnchorTarget getAnchorTarget(@NotNull AnchorTarget.Type type) {
-    int count = myTargets.size();
-    for (int i = 0; i < count; i++) {
-      if (myTargets.get(i) instanceof AnchorTarget) {
-        AnchorTarget target = (AnchorTarget)myTargets.get(i);
-        if (target.getType() == type) {
-          return target;
-        }
-      }
-    }
-    return null;
   }
 
   @VisibleForTesting
