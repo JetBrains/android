@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.target.AnchorTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 
@@ -87,7 +88,7 @@ public class SceneMouseInteraction {
   public void mouseDown(String componentId, AnchorTarget.Type type) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
-      AnchorTarget target = component.getAnchorTarget(type);
+      AnchorTarget target = ConstraintComponentUtilities.getAnchorTarget(component, type);
       mouseDown(target.getCenterX(), target.getCenterY());
     }
   }
@@ -158,7 +159,7 @@ public class SceneMouseInteraction {
   public void mouseRelease(String componentId, AnchorTarget.Type type) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
-      AnchorTarget target = component.getAnchorTarget(type);
+      AnchorTarget target = ConstraintComponentUtilities.getAnchorTarget(component, type);
       float x = target.getCenterX();
       float y = target.getCenterY();
       mouseRelease(x, y);

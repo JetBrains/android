@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.scene.draw;
+package com.android.tools.idea.uibuilder.scene.draw.test;
+
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
+import com.android.tools.idea.uibuilder.scene.draw.FancyStroke;
 
 import javax.swing.*;
 import java.awt.*;
@@ -109,7 +112,7 @@ public class CheckFancyStroke extends JPanel {
       }
       p.reset();
       p.moveTo(xp[0], yp[0]);
-      DrawConnectionUtils.drawRound(p, xp, yp, CURVE, 4+r.nextInt(100));
+      DrawConnectionUtils.drawRound(p, xp, yp, CURVE, 4 + r.nextInt(100));
       g2d.draw(p);
     }
   }

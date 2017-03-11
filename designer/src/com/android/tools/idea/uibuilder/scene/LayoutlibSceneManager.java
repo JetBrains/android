@@ -26,7 +26,7 @@ import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.target.DragDndTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.DragDndTarget; // TODO: use a generic approach
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.util.PropertiesMap;

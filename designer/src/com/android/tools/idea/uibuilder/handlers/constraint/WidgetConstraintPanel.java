@@ -19,7 +19,6 @@ import android.support.constraint.solver.widgets.ConstraintAnchor;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.property.NlProperty;
-import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
 import com.android.tools.sherpa.drawing.ColorSet;
 import com.intellij.openapi.application.ApplicationManager;

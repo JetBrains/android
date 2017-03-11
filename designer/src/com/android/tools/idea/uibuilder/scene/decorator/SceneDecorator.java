@@ -18,13 +18,11 @@ package com.android.tools.idea.uibuilder.scene.decorator;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.draw.DrawComponentFrame;
 import com.android.tools.idea.uibuilder.scene.draw.DrawComponentBackground;
-import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;

@@ -32,7 +32,7 @@ import static com.android.SdkConstants.TABLE_ROW;
 public class TableRowHandler extends LinearLayoutHandler {
 
   @Override
-  protected boolean isVertical(@NotNull NlComponent component) {
+  public boolean isVertical(@NotNull NlComponent component) {
     // Rows are always horizontal
     return false;
   }
