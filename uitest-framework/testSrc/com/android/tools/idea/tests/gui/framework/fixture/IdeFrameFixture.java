@@ -40,9 +40,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.Result;
@@ -79,7 +76,6 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
-import javax.annotation.Nonnull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -466,16 +462,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   private void waitForGradleSyncAction() {
     GuiTests.waitForBackgroundTasks(robot());
-    GuiTests.waitUntilShowing(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull ActionButton button) {
-        AnAction action = button.getAction();
-        return action != null
-               && "Android.SyncProject".equals(ActionManager.getInstance().getId(action))
-               && action.getTemplatePresentation().isEnabledAndVisible()
-               && button.isEnabled();
-      }
-    });
   }
 
   @NotNull
