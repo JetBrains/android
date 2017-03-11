@@ -305,19 +305,19 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
 
   // TODO implement set
   public void setDpX(@AndroidDpCoordinate int value) {
-    ConstraintComponentUtilities.setAbsoluteDpX(mNlComponent, value);
+    ConstraintComponentUtilities.setScoutAbsoluteDpX(mNlComponent, value);
   }
 
   public void setDpY(@AndroidDpCoordinate int value) {
-    ConstraintComponentUtilities.setAbsoluteDpY(mNlComponent, value);
+    ConstraintComponentUtilities.setScoutAbsoluteDpY(mNlComponent, value);
   }
 
   public void setDpHeight(@AndroidDpCoordinate int value) {
-    ConstraintComponentUtilities.setAbsoluteDpHeight(mNlComponent, value);
+    ConstraintComponentUtilities.setScoutAbsoluteDpHeight(mNlComponent, value);
   }
 
   public void setDpWidth(@AndroidDpCoordinate int value) {
-    ConstraintComponentUtilities.setAbsoluteDpWidth(mNlComponent, value);
+    ConstraintComponentUtilities.setScoutAbsoluteDpWidth(mNlComponent, value);
   }
 
   public void setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour behaviour) {
@@ -327,18 +327,18 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
       }
       break;
       case MATCH_CONSTRAINT: {
-        ConstraintComponentUtilities.setAttributeValue(mNlComponent, SdkConstants.ANDROID_URI,
-                                                       SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_MATCH_CONSTRAINT);
+        ConstraintComponentUtilities.setScoutAttributeValue(mNlComponent, SdkConstants.ANDROID_URI,
+                                                            SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_MATCH_CONSTRAINT);
       }
       break;
       case WRAP_CONTENT: {
-        ConstraintComponentUtilities.setAttributeValue(mNlComponent, SdkConstants.ANDROID_URI,
-                                                       SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_WRAP_CONTENT);
+        ConstraintComponentUtilities.setScoutAttributeValue(mNlComponent, SdkConstants.ANDROID_URI,
+                                                            SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_WRAP_CONTENT);
       }
       break;
       case MATCH_PARENT: {
-        ConstraintComponentUtilities.setAttributeValue(mNlComponent, SdkConstants.ANDROID_URI,
-                                                       SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_MATCH_PARENT);
+        ConstraintComponentUtilities.setScoutAttributeValue(mNlComponent, SdkConstants.ANDROID_URI,
+                                                            SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_MATCH_PARENT);
       }
     }
   }
@@ -350,24 +350,24 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
       }
       break;
       case MATCH_CONSTRAINT: {
-        ConstraintComponentUtilities.setAttributeValue(mNlComponent, SdkConstants.ANDROID_URI,
-                                                       SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_MATCH_CONSTRAINT);
+        ConstraintComponentUtilities.setScoutAttributeValue(mNlComponent, SdkConstants.ANDROID_URI,
+                                                            SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_MATCH_CONSTRAINT);
       }
       break;
       case WRAP_CONTENT: {
-        ConstraintComponentUtilities.setAttributeValue(mNlComponent, SdkConstants.ANDROID_URI,
-                                                       SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_WRAP_CONTENT);
+        ConstraintComponentUtilities.setScoutAttributeValue(mNlComponent, SdkConstants.ANDROID_URI,
+                                                            SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_WRAP_CONTENT);
       }
       break;
       case MATCH_PARENT: {
-        ConstraintComponentUtilities.setAttributeValue(mNlComponent, SdkConstants.ANDROID_URI,
-                                                       SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_MATCH_PARENT);
+        ConstraintComponentUtilities.setScoutAttributeValue(mNlComponent, SdkConstants.ANDROID_URI,
+                                                            SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_MATCH_PARENT);
       }
     }
   }
 
   private void connect(Direction sourceDirection, ScoutWidget target, Direction targetDirection, int gap) {
-    ConstraintComponentUtilities.connect(mNlComponent, sourceDirection, target.mNlComponent, targetDirection, gap);
+    ConstraintComponentUtilities.scoutConnect(mNlComponent, sourceDirection, target.mNlComponent, targetDirection, gap);
   }
 
   private void connectWeak(Direction dir2, ScoutWidget to2, Direction dir21, int gap) {
