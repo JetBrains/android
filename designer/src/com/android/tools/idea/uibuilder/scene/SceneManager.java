@@ -18,13 +18,15 @@ package com.android.tools.idea.uibuilder.scene;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.SceneView;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A facility for creating and updating {@link Scene}s based on {@link NlModel}s.
  */
-abstract public class SceneManager {
+abstract public class SceneManager implements Disposable {
   private final NlModel myModel;
   final private SceneView mySceneView;
   private Scene myScene;
@@ -32,6 +34,12 @@ abstract public class SceneManager {
   public SceneManager(NlModel model, SceneView view) {
     myModel = model;
     mySceneView = view;
+    Disposer.register(model, this);
+  }
+
+  @Override
+  public void dispose() {
+
   }
 
   @NotNull
