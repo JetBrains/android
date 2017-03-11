@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.scene.target;
+package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.ConstraintComponentUtilities;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.target.BaseTarget;
+import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -38,7 +40,7 @@ import java.util.*;
  * Implements a target allowing dragging a widget for the ConstraintLayout viewgroup
  */
 @SuppressWarnings("ForLoopReplaceableByForEach")
-public class DragTarget extends ConstraintTarget {
+public class DragTarget extends BaseTarget {
 
   private static final boolean DEBUG_RENDERER = false;
   protected int myOffsetX;
@@ -51,6 +53,8 @@ public class DragTarget extends ConstraintTarget {
   ArrayList<Notch> myVerticalNotches = new ArrayList<>();
   Notch myCurrentNotchX = null;
   Notch myCurrentNotchY = null;
+
+  private ChainChecker myChainChecker = new ChainChecker();
 
   /////////////////////////////////////////////////////////////////////////////
   //region Layout
@@ -173,11 +177,11 @@ public class DragTarget extends ConstraintTarget {
   protected void updateAttributes(AttributesTransaction attributes, int x, int y) {
     SceneComponent targetLeftComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourLeftAttributes);
     SceneComponent targetRightComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourRightAttributes);
-    checkIsInChain();
+    myChainChecker.checkIsInChain(myComponent);
     SceneComponent parent = myComponent.getParent();
     assert parent != null;
     if (targetLeftComponent != null && targetRightComponent != null) {
-      if (!myIsInHorizontalChain) {
+      if (!myChainChecker.isInHorizontalChain()) {
         int dx1 = getLeftTargetOrigin(targetLeftComponent) + getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
         int dx2 = getRightTargetOrigin(targetRightComponent) - getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
         float dw = dx2 - dx1 - myComponent.getDrawWidth();
@@ -237,7 +241,7 @@ public class DragTarget extends ConstraintTarget {
     SceneComponent targetTopComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourTopAttributes);
     SceneComponent targetBottomComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBottomAttributes);
     if (targetTopComponent != null && targetBottomComponent != null) {
-      if (!myIsInVerticalChain) {
+      if (!myChainChecker.isInVerticalChain()) {
         int dy1 = getTopTargetOrigin(targetTopComponent) + getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
         int dy2 = getBottomTargetOrigin(targetBottomComponent) - getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
         float dh = dy2 - dy1 - myComponent.getDrawHeight();

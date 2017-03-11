@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.decorator;
 
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities; // TODO: remove
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;

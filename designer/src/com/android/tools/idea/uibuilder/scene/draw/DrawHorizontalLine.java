@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,29 +15,32 @@
  */
 package com.android.tools.idea.uibuilder.scene.draw;
 
-import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils; // TODO: remove
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.sherpa.drawing.ColorSet;
 
 import java.awt.*;
 
 /**
- * Horizontal notch
+ * Horizontal line
  */
-public class DrawHorizontalNotch extends DrawRegion {
+public class DrawHorizontalLine extends DrawRegion {
 
-  public DrawHorizontalNotch(String s) {
+  protected Font mFont = new Font("Helvetica", Font.PLAIN, 14);
+
+  public DrawHorizontalLine(String s) {
     super(s);
   }
-  public DrawHorizontalNotch(int x, int y, int width) {
+  public DrawHorizontalLine(int x,
+                            int y,
+                            int width) {
     super(x, y, width, x);
   }
 
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
     ColorSet colorSet = sceneContext.getColorSet();
-    Color background = colorSet.getFrames();
-    g.setColor(background);
+    g.setColor(colorSet.getFrames());
     Stroke stroke = g.getStroke();
     g.setStroke(DrawConnectionUtils.sDashedStroke);
     g.drawLine(x, y, x + width, y);
@@ -45,9 +48,15 @@ public class DrawHorizontalNotch extends DrawRegion {
   }
 
   public static void add(DisplayList list, SceneContext transform, float left, float top, float right) {
+    add(list, transform, left, top, right, -1, -1, -1, -1, -1, 1.0f, false);
+  }
+
+  public static void add(DisplayList list, SceneContext transform, float left, float top, float right,
+                         float originX, float originY, float originHeight,
+                         int begin, int end, float percent, boolean selected) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
     int w = transform.getSwingDimension(right - left);
-    list.add(new DrawHorizontalNotch(l, t, w));
+    list.add(new DrawHorizontalLine(l, t, w));
   }
 }

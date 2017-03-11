@@ -19,9 +19,9 @@ import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.draw.DrawHorizontalGuideline;
+import com.android.tools.idea.uibuilder.scene.draw.DrawHorizontalLine;
 import com.android.tools.idea.uibuilder.scene.draw.DrawResize;
-import com.android.tools.idea.uibuilder.scene.draw.DrawVerticalGuideline;
+import com.android.tools.idea.uibuilder.scene.draw.DrawVerticalLine;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +30,6 @@ import java.awt.*;
 import static com.android.SdkConstants.*;
 
 public abstract class ResizeWithSnapBaseTarget extends ResizeBaseTarget {
-
   /**
    * The maximum number of dp will be considered a "match" when snapping
    */
@@ -72,32 +71,32 @@ public abstract class ResizeWithSnapBaseTarget extends ResizeBaseTarget {
                                        @AndroidDpCoordinate int wrapY) {
     switch (myType) {
       case LEFT_TOP:
-        DrawVerticalGuideline.add(list, sceneContext, myStartX2 - wrapX, myStartY2 - wrapY, myStartY2);
-        DrawHorizontalGuideline.add(list, sceneContext, myStartX2 - wrapX, myStartY2 - wrapY, myStartX2);
+        DrawVerticalLine.add(list, sceneContext, myStartX2 - wrapX, myStartY2 - wrapY, myStartY2);
+        DrawHorizontalLine.add(list, sceneContext, myStartX2 - wrapX, myStartY2 - wrapY, myStartX2);
         break;
       case LEFT:
-        DrawVerticalGuideline.add(list, sceneContext, myStartX2 - wrapX, myStartY1, myStartY2);
+        DrawVerticalLine.add(list, sceneContext, myStartX2 - wrapX, myStartY1, myStartY2);
         break;
       case LEFT_BOTTOM:
-        DrawVerticalGuideline.add(list, sceneContext, myStartX2 - wrapX, myStartY1, myStartY1 + wrapY);
-        DrawHorizontalGuideline.add(list, sceneContext, myStartX2 - wrapX, myStartY2 - wrapY, myStartX2);
+        DrawVerticalLine.add(list, sceneContext, myStartX2 - wrapX, myStartY1, myStartY1 + wrapY);
+        DrawHorizontalLine.add(list, sceneContext, myStartX2 - wrapX, myStartY2 - wrapY, myStartX2);
         break;
       case TOP:
-        DrawHorizontalGuideline.add(list, sceneContext, myStartX1, myStartY2 - wrapY, myStartX2);
+        DrawHorizontalLine.add(list, sceneContext, myStartX1, myStartY2 - wrapY, myStartX2);
         break;
       case BOTTOM:
-        DrawHorizontalGuideline.add(list, sceneContext, myStartX1, myStartY1 + wrapY, myStartX2);
+        DrawHorizontalLine.add(list, sceneContext, myStartX1, myStartY1 + wrapY, myStartX2);
         break;
       case RIGHT_TOP:
-        DrawVerticalGuideline.add(list, sceneContext, myStartX1 + wrapX, myStartY2 - wrapY, myStartY2);
-        DrawHorizontalGuideline.add(list, sceneContext, myStartX1, myStartY2 - wrapY, myStartX1 + wrapX);
+        DrawVerticalLine.add(list, sceneContext, myStartX1 + wrapX, myStartY2 - wrapY, myStartY2);
+        DrawHorizontalLine.add(list, sceneContext, myStartX1, myStartY2 - wrapY, myStartX1 + wrapX);
         break;
       case RIGHT:
-        DrawVerticalGuideline.add(list, sceneContext, myStartX1 + wrapX, myStartY1, myStartY2);
+        DrawVerticalLine.add(list, sceneContext, myStartX1 + wrapX, myStartY1, myStartY2);
         break;
       case RIGHT_BOTTOM:
-        DrawVerticalGuideline.add(list, sceneContext, myStartX1 + wrapX, myStartY1, myStartY1 + wrapY);
-        DrawHorizontalGuideline.add(list, sceneContext, myStartX1, myStartY1 + wrapY, myStartX1 + wrapX);
+        DrawVerticalLine.add(list, sceneContext, myStartX1 + wrapX, myStartY1, myStartY1 + wrapY);
+        DrawHorizontalLine.add(list, sceneContext, myStartX1, myStartY1 + wrapY, myStartX1 + wrapX);
         break;
     }
   }
