@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
@@ -155,7 +155,7 @@ public class GradleSyncInvoker {
     }
     invokeLaterIfProjectAlive(project, () -> {
       String msg = String.format("The project '%s' is not a Gradle-based project", project.getName());
-      AndroidGradleNotification.getInstance(project).showBalloon("Project Sync", msg, ERROR, new OpenMigrationToGradleUrlHyperlink());
+      AndroidNotification.getInstance(project).showBalloon("Project Sync", msg, ERROR, new OpenMigrationToGradleUrlHyperlink());
 
       if (listener != null) {
         listener.syncFailed(project, msg);
