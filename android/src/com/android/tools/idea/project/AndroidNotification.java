@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.project;
 
 import com.android.tools.idea.gradle.project.sync.hyperlink.CustomNotificationListener;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
@@ -30,21 +30,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Creates balloon notifications related to Gradle-based Android projects.
+ * Creates balloon notifications related to Android projects.
  */
-public class AndroidGradleNotification {
-  private static final NotificationGroup BALLOON_GROUP = NotificationGroup.balloonGroup("Android/Gradle Notification Group");
-  private static final NotificationGroup LOG_ONLY_GROUP = NotificationGroup.logOnlyGroup("Android/Gradle Notification Log-Only Group");
+public class AndroidNotification {
+  private static final NotificationGroup BALLOON_GROUP = NotificationGroup.balloonGroup("Android Notification Group");
+  private static final NotificationGroup LOG_ONLY_GROUP = NotificationGroup.logOnlyGroup("Android Notification Log-Only Group");
 
   @Nullable private Notification myNotification;
   @NotNull private final Project myProject;
 
   @NotNull
-  public static AndroidGradleNotification getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, AndroidGradleNotification.class);
+  public static AndroidNotification getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, AndroidNotification.class);
   }
 
-  public AndroidGradleNotification(@NotNull Project project) {
+  public AndroidNotification(@NotNull Project project) {
     myProject = project;
   }
 

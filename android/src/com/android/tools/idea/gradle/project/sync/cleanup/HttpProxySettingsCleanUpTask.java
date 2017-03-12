@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.cleanup;
 
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.gradle.project.ProxySettingsDialog;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.ProxySettings;
@@ -71,7 +71,7 @@ class HttpProxySettingsCleanUpTask extends AndroidStudioCleanUpTask {
             errMsg += String.format("\nCause: %1$s", cause);
           }
 
-          AndroidGradleNotification notification = AndroidGradleNotification.getInstance(project);
+          AndroidNotification notification = AndroidNotification.getInstance(project);
           notification.showBalloon("Proxy Settings", errMsg, ERROR);
 
           getLogger().info("Failed to save changes to gradle.properties file", root);

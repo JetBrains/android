@@ -22,7 +22,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
@@ -165,13 +165,13 @@ public final class GradleUtil {
               err += String.format("<br>\nCause: %1$s", cause);
             }
 
-            AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", err, ERROR);
+            AndroidNotification.getInstance(project).showBalloon("Gradle Settings", err, ERROR);
           }
         }
         else {
           String text =
             String.format("JVM arguments<br>\n'%1$s'<br>\nwere not copied to the project's gradle.properties file.", existingJvmArgs);
-          AndroidGradleNotification.getInstance(project).showBalloon("Gradle Settings", text, WARNING);
+          AndroidNotification.getInstance(project).showBalloon("Gradle Settings", text, WARNING);
         }
       });
     }
