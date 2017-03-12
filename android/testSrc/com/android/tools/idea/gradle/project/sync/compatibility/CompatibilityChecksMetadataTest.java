@@ -27,7 +27,7 @@ import java.util.Map;
 import static com.android.tools.idea.gradle.project.sync.compatibility.version.VersionRangeSubject.versionRange;
 import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.ANDROID_GRADLE_PLUGIN;
 import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.GRADLE;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.JDOMUtil.loadDocument;

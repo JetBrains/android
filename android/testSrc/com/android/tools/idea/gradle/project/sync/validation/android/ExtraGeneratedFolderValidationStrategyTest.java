@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -26,8 +26,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.INFO;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WARNING;
+import static com.android.tools.idea.project.messages.MessageType.INFO;
+import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -74,7 +74,7 @@ public class ExtraGeneratedFolderValidationStrategyTest extends AndroidGradleTes
     paths.add(new File("z"));
     paths.add(new File("a"));
 
-    SyncMessagesStub syncMessages = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
 
     myStrategy.fixAndReportFoundIssues();
 
@@ -96,7 +96,7 @@ public class ExtraGeneratedFolderValidationStrategyTest extends AndroidGradleTes
   public void testFixAndReportFoundIssuesWithoutExtraFolders() {
     myStrategy.getExtraGeneratedSourceFolderPaths().clear();
 
-    SyncMessagesStub syncMessages = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
 
     myStrategy.fixAndReportFoundIssues();
 

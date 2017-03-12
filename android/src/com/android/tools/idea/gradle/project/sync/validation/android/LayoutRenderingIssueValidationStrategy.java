@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync.validation.android;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.google.common.annotations.VisibleForTesting;
@@ -29,8 +29,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WARNING;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessage.DEFAULT_GROUP;
+import static com.android.tools.idea.project.messages.MessageType.WARNING;
+import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
 public class LayoutRenderingIssueValidationStrategy extends AndroidProjectValidationStrategy {
   @Nullable private GradleVersion myModelVersion;
@@ -56,7 +56,7 @@ public class LayoutRenderingIssueValidationStrategy extends AndroidProjectValida
       message.add(Arrays.asList(new FixAndroidGradlePluginVersionHyperlink(),
                                 new OpenUrlHyperlink("https://code.google.com/p/android/issues/detail?id=170841", "More Info...")));
 
-      SyncMessages.getInstance(getProject()).report(message);
+      GradleSyncMessages.getInstance(getProject()).report(message);
     }
   }
 

@@ -20,8 +20,8 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallRepositoryHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ShowDependencyInProjectStructureHyperlink;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
@@ -48,14 +48,14 @@ public class UnresolvedDependenciesReporterTest extends AndroidGradleTestCase {
   private IdeInfo myOriginalIdeInfo;
 
   private SyncIssue mySyncIssue;
-  private SyncMessagesStub mySyncMessagesStub;
+  private GradleSyncMessagesStub mySyncMessagesStub;
   private UnresolvedDependenciesReporter myReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     mySyncIssue = mock(SyncIssue.class);
-    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myReporter = new UnresolvedDependenciesReporter();
   }
 
