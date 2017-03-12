@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.variant.conflict;
 import com.android.builder.model.AndroidLibrary;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.project.sync.messages.MessageType;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.project.messages.MessageType;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -158,7 +158,7 @@ public class ConflictSet {
    * Shows the "variant selection" conflicts in the "Build Variant" and "Messages" windows.
    */
   public void showSelectionConflicts() {
-    SyncMessages messages = SyncMessages.getInstance(myProject);
+    GradleSyncMessages messages = GradleSyncMessages.getInstance(myProject);
     String groupName = VARIANT_SELECTION_CONFLICTS;
     messages.removeMessages(groupName);
 

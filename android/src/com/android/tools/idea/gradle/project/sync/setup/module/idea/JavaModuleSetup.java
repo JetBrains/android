@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.project.sync.setup.module.idea;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -29,7 +29,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.PROJECT_STRUCTURE_ISSUES;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
 
 public class JavaModuleSetup {
@@ -47,7 +47,7 @@ public class JavaModuleSetup {
                           boolean syncSkipped) {
     if (javaModuleModel.isAndroidModuleWithoutVariants()) {
       // See https://code.google.com/p/android/issues/detail?id=170722
-      SyncMessages messages = SyncMessages.getInstance(module.getProject());
+      GradleSyncMessages messages = GradleSyncMessages.getInstance(module.getProject());
       String[] text =
         {String.format("The module '%1$s' is an Android project without build variants, and cannot be built.", module.getName()),
           "Please fix the module's configuration in the build.gradle file and sync the project again.",};

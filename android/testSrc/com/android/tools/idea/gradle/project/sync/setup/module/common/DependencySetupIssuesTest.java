@@ -17,16 +17,16 @@ package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WARNING;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -40,7 +40,7 @@ public class DependencySetupIssuesTest extends IdeaTestCase {
   @Mock private GradleSyncState mySyncState;
   @Mock private GradleSyncSummary mySyncSummary;
 
-  private SyncMessagesStub mySyncMessages;
+  private GradleSyncMessagesStub mySyncMessages;
   private DependencySetupIssues myIssues;
 
   @Override
@@ -50,7 +50,7 @@ public class DependencySetupIssuesTest extends IdeaTestCase {
     when(mySyncState.getSummary()).thenReturn(mySyncSummary);
 
     Project project = getProject();
-    mySyncMessages = SyncMessagesStub.replaceSyncMessagesService(project);
+    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
     myIssues = new DependencySetupIssues(project, mySyncState, mySyncMessages);
   }
 

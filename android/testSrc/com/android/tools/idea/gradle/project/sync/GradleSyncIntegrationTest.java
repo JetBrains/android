@@ -26,10 +26,10 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
-import com.android.tools.idea.gradle.project.sync.messages.MessageType;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.project.messages.MessageType;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Lists;
@@ -89,7 +89,7 @@ import static org.mockito.Mockito.*;
 public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   private IdeInfo myOriginalIdeInfo;
   private DataNodeCaches myOriginalDataNodeCaches;
-  private SyncMessages myOriginalSyncMessages;
+  private GradleSyncMessages myOriginalSyncMessages;
 
   @Override
   protected void tearDown() throws Exception {
@@ -102,7 +102,7 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
         IdeComponents.replaceService(project, DataNodeCaches.class, myOriginalDataNodeCaches);
       }
       if (myOriginalSyncMessages != null) {
-        IdeComponents.replaceService(project, SyncMessages.class, myOriginalSyncMessages);
+        IdeComponents.replaceService(project, GradleSyncMessages.class, myOriginalSyncMessages);
       }
     }
     finally {
@@ -340,9 +340,9 @@ public class GradleSyncIntegrationTest extends AndroidGradleTestCase {
   // See https://code.google.com/p/android/issues/detail?id=170722
   public void testWithAndroidProjectWithoutVariants() throws Exception {
     Project project = getProject();
-    myOriginalSyncMessages = SyncMessages.getInstance(project);
+    myOriginalSyncMessages = GradleSyncMessages.getInstance(project);
 
-    SyncMessagesStub syncMessages = SyncMessagesStub.replaceSyncMessagesService(project);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
     loadSimpleApplication();
     File appBuildFile = getBuildFilePath("app");
