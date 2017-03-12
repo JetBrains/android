@@ -1,4 +1,4 @@
-package org.jetbrains.jps.android;
+package org.jetbrains.android.jps;
 
 import com.android.SdkConstants;
 import com.intellij.openapi.application.PathManager;
@@ -14,6 +14,8 @@ import com.intellij.util.io.TestFileSystemItem;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.android.AndroidJpsUtil;
+import org.jetbrains.jps.android.AndroidManifestMergingTarget;
 import org.jetbrains.jps.android.builder.*;
 import org.jetbrains.jps.android.model.*;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleExtensionImpl;
