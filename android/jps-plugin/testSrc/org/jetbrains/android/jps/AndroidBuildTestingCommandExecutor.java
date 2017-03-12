@@ -1,4 +1,4 @@
-package org.jetbrains.jps.android;
+package org.jetbrains.android.jps;
 
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
