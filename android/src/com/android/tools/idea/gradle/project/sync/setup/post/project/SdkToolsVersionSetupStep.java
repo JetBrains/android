@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
 import com.android.repository.Revision;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep;
@@ -63,7 +63,7 @@ public class SdkToolsVersionSetupStep extends ProjectSetupStep {
     if (androidHome != null && !VersionCheck.isCompatibleVersion(androidHome)) {
       InstallSdkToolsHyperlink hyperlink = new InstallSdkToolsHyperlink(MIN_TOOLS_REV);
       String message = "Version " + MIN_TOOLS_REV + " or later is required.";
-      AndroidGradleNotification.getInstance(project).showBalloon("Android SDK Tools", message, INFORMATION, hyperlink);
+      AndroidNotification.getInstance(project).showBalloon("Android SDK Tools", message, INFORMATION, hyperlink);
       myNewSdkVersionToolsInfoAlreadyShown = true;
     }
   }

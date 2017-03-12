@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project;
+package com.android.tools.idea.project;
 
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.IdeComponents;
@@ -29,18 +29,18 @@ import java.util.List;
 
 import static org.junit.Assert.assertSame;
 
-public class AndroidGradleNotificationStub extends AndroidGradleNotification {
+public class AndroidNotificationStub extends AndroidNotification {
   @NotNull private final List<NotificationMessage> myMessages = new ArrayList<>();
 
-  public AndroidGradleNotificationStub(@NotNull Project project) {
+  public AndroidNotificationStub(@NotNull Project project) {
     super(project);
   }
 
   @NotNull
-  public static AndroidGradleNotificationStub replaceSyncMessagesService(@NotNull Project project) {
-    AndroidGradleNotificationStub notification = new AndroidGradleNotificationStub(project);
-    IdeComponents.replaceService(project, AndroidGradleNotification.class, notification);
-    assertSame(notification, AndroidGradleNotification.getInstance(project));
+  public static AndroidNotificationStub replaceSyncMessagesService(@NotNull Project project) {
+    AndroidNotificationStub notification = new AndroidNotificationStub(project);
+    IdeComponents.replaceService(project, AndroidNotification.class, notification);
+    assertSame(notification, AndroidNotification.getInstance(project));
     return notification;
   }
 

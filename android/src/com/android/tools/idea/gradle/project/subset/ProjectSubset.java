@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel.SourceFileContainerInfo;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
@@ -167,7 +167,7 @@ public class ProjectSubset {
             // Nothing found.
             invokeLaterIfNeeded(() -> {
               String text = String.format("Unable to find a module containing the file '%1$s' in a source directory.", file.getName());
-              AndroidGradleNotification notification = AndroidGradleNotification.getInstance(ProjectSubset.this.myProject);
+              AndroidNotification notification = AndroidNotification.getInstance(ProjectSubset.this.myProject);
               notification.showBalloon(MODULE_LOOKUP_MESSAGE_TITLE, text, ERROR);
             });
           }
@@ -252,7 +252,7 @@ public class ProjectSubset {
     }
 
     invokeLaterIfNeeded(() -> {
-      AndroidGradleNotification notification = AndroidGradleNotification.getInstance(myProject);
+      AndroidNotification notification = AndroidNotification.getInstance(myProject);
       notification.showBalloon(MODULE_LOOKUP_MESSAGE_TITLE, text, INFORMATION);
     });
 

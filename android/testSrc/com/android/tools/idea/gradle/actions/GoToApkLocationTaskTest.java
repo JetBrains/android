@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.actions.GoToApkLocationTask.OpenFolderNotificationListener;
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.actions.ShowFilePathAction;
@@ -47,8 +47,8 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
 
   @Mock ApkPathFinder myApkPathFinder;
 
-  private AndroidGradleNotification myMockNotification;
-  private AndroidGradleNotification myOriginalNotification;
+  private AndroidNotification myMockNotification;
+  private AndroidNotification myOriginalNotification;
   private GoToApkLocationTask myTask;
 
   @Override
@@ -58,15 +58,15 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
 
     myTask = new GoToApkLocationTask(getProject(), Collections.singletonList(Pair.create(getModule(), null)), myApkPathFinder,
                                      NOTIFICATION_TITLE);
-    myOriginalNotification = AndroidGradleNotification.getInstance(myProject);
-    myMockNotification = IdeComponents.replaceServiceWithMock(myProject, AndroidGradleNotification.class);
+    myOriginalNotification = AndroidNotification.getInstance(myProject);
+    myMockNotification = IdeComponents.replaceServiceWithMock(myProject, AndroidNotification.class);
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
       if (myOriginalNotification != null) {
-        IdeComponents.replaceService(myProject, AndroidGradleNotification.class, myOriginalNotification);
+        IdeComponents.replaceService(myProject, AndroidNotification.class, myOriginalNotification);
       }
     }
     finally {
