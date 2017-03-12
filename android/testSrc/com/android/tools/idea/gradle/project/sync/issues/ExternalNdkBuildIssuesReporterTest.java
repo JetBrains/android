@@ -21,8 +21,8 @@ import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
@@ -52,7 +52,7 @@ import static org.mockito.Mockito.when;
  */
 public class ExternalNdkBuildIssuesReporterTest extends AndroidGradleTestCase {
   private SyncIssue mySyncIssue;
-  private SyncMessagesStub mySyncMessagesStub;
+  private GradleSyncMessagesStub mySyncMessagesStub;
   private BuildOutputParser myOutputParser;
   private SyncErrorHandlerStub myErrorHandler;
   private ExternalNdkBuildIssuesReporter myReporter;
@@ -61,7 +61,7 @@ public class ExternalNdkBuildIssuesReporterTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     mySyncIssue = mock(SyncIssue.class);
-    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
     myOutputParser = mock(BuildOutputParser.class);
     myErrorHandler = new SyncErrorHandlerStub();
     SyncErrorHandler[] errorHandlers = {myErrorHandler};

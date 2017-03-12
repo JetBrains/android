@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea;
 
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -100,7 +100,7 @@ public class IdeaSyncPopulateProjectTask {
 
   public void populateProject(@NotNull Collection<DataNode<ModuleData>> activeModules,
                               @Nullable PostSyncProjectSetup.Request setupRequest) {
-    invokeAndWaitIfNeeded((Runnable)() -> SyncMessages.getInstance(myProject).removeProjectMessages());
+    invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(myProject).removeProjectMessages());
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       populate(activeModules, new EmptyProgressIndicator(), setupRequest);

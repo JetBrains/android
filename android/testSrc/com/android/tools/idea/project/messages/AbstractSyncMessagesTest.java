@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.messages;
+package com.android.tools.idea.project.messages;
 
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.intellij.openapi.externalSystem.model.ProjectSystemId.IDE;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
 import static org.mockito.Mockito.verify;
@@ -27,9 +30,9 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tests for {@link SyncMessages}.
+ * Tests for {@link AbstractSyncMessages}.
  */
-public class SyncMessagesTest extends IdeaTestCase {
+public class AbstractSyncMessagesTest extends IdeaTestCase {
   @Mock private ExternalSystemNotificationManager myNotificationManager;
 
   private SyncMessages mySyncMessages;
@@ -45,48 +48,51 @@ public class SyncMessagesTest extends IdeaTestCase {
 
   public void testGetErrorCount() {
     int expectedCount = 6;
-    when(myNotificationManager.getMessageCount(PROJECT_SYNC, ERROR, GRADLE_SYSTEM_ID)).thenReturn(expectedCount);
+    when(myNotificationManager.getMessageCount(PROJECT_SYNC, ERROR, IDE)).thenReturn(expectedCount);
 
     int actualCount = mySyncMessages.getErrorCount();
     assertEquals(expectedCount, actualCount);
 
-    verify(myNotificationManager).getMessageCount(PROJECT_SYNC, ERROR, GRADLE_SYSTEM_ID);
+    verify(myNotificationManager).getMessageCount(PROJECT_SYNC, ERROR, IDE);
   }
 
   public void testGetMessageCount() {
     String group = "Test";
 
     int expectedCount = 6;
-    when(myNotificationManager.getMessageCount(group, PROJECT_SYNC, null, GRADLE_SYSTEM_ID)).thenReturn(expectedCount);
+    when(myNotificationManager.getMessageCount(group, PROJECT_SYNC, null, IDE)).thenReturn(expectedCount);
 
     int actualCount = mySyncMessages.getMessageCount(group);
     assertEquals(expectedCount, actualCount);
 
-    verify(myNotificationManager).getMessageCount(group, PROJECT_SYNC, null, GRADLE_SYSTEM_ID);
+    verify(myNotificationManager).getMessageCount(group, PROJECT_SYNC, null, IDE);
   }
 
   public void testIsEmptyWithMessages() {
-    when(myNotificationManager.getMessageCount(PROJECT_SYNC, null, GRADLE_SYSTEM_ID)).thenReturn(6);
+    when(myNotificationManager.getMessageCount(PROJECT_SYNC, null, IDE)).thenReturn(6);
 
     assertFalse(mySyncMessages.isEmpty());
 
-    verify(myNotificationManager).getMessageCount(PROJECT_SYNC, null, GRADLE_SYSTEM_ID);
+    verify(myNotificationManager).getMessageCount(PROJECT_SYNC, null, IDE);
   }
 
   public void testIsEmptyWithoutMessages() {
-    when(myNotificationManager.getMessageCount(PROJECT_SYNC, null, GRADLE_SYSTEM_ID)).thenReturn(0);
+    when(myNotificationManager.getMessageCount(PROJECT_SYNC, null, IDE)).thenReturn(0);
 
     assertTrue(mySyncMessages.isEmpty());
 
-    verify(myNotificationManager).getMessageCount(PROJECT_SYNC, null, GRADLE_SYSTEM_ID);
+    verify(myNotificationManager).getMessageCount(PROJECT_SYNC, null, IDE);
   }
 
-  public void testRemoveProjectMessages() {
-    mySyncMessages.removeProjectMessages();
-    verify(myNotificationManager).clearNotifications("Project Structure Issues", PROJECT_SYNC, GRADLE_SYSTEM_ID);
-    verify(myNotificationManager).clearNotifications("Missing Dependencies", PROJECT_SYNC, GRADLE_SYSTEM_ID);
-    verify(myNotificationManager).clearNotifications("Variant Selection Conflicts", PROJECT_SYNC, GRADLE_SYSTEM_ID);
-    verify(myNotificationManager).clearNotifications("Generated Sources", PROJECT_SYNC, GRADLE_SYSTEM_ID);
-    verify(myNotificationManager).clearNotifications("Gradle Sync Issues", PROJECT_SYNC, GRADLE_SYSTEM_ID);
+  private static class SyncMessages extends AbstractSyncMessages {
+    SyncMessages(@NotNull Project project, @NotNull ExternalSystemNotificationManager manager) {
+      super(project, manager);
+    }
+
+    @Override
+    @NotNull
+    protected ProjectSystemId getProjectSystemId() {
+      return IDE;
+    }
   }
 }

@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync.validation.android;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
@@ -64,7 +64,7 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
   }
 
   public void testFixAndReportFoundIssues() {
-    SyncMessagesStub syncMessages = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
 
     String mismatchingEncoding = "UTF-8";
     myStrategy.setMismatchingEncoding(mismatchingEncoding);
@@ -83,7 +83,7 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
   }
 
   public void testFixAndReportFoundIssuesWithNoMismatch() {
-    SyncMessagesStub syncMessages = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
 
     myStrategy.setMismatchingEncoding(null);
     myStrategy.fixAndReportFoundIssues();
