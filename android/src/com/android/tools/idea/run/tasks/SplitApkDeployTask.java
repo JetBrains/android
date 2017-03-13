@@ -66,6 +66,7 @@ public class SplitApkDeployTask implements LaunchTask {
     List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
 
     List<String> installOptions = Lists.newArrayList(); // TODO: should we pass in pm install options?
+    installOptions.add("-t");
 
     if (buildInfo.isPatchBuild()) {
       installOptions.add("-p"); // partial install
