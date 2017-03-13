@@ -110,23 +110,6 @@ public class NewInstantAppTest {
       "        Menu namespace\n" +
       "            menu_main.xml\n" +
       "                Should use 'android:showAsAction' when not using the appcompat library\n" +
-      // These warnings currently appear when testing locally but not on the buildbot. They should go away properly when prebuilts are
-      // updated to the latest build tools.
-      //"        Obsolete Gradle Dependency\n" +
-      //"            build.gradle\n" +
-      //"                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
-      //"            build.gradle\n" +
-      //"                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
-      // This warning is unfortunate. We may want to get rid of it.
-      "    Android Lint: Security\n" +
-      "        AllowBackup/FullBackupContent Problems\n" +
-      "            AndroidManifest.xml\n" +
-      "                On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute 'android:fullBackupContent' to specify an '@xml' resource which configures which files to backup. More info: https://developer.android.com/training/backup/autosyncapi.html\n" +
-      // TODO: Not valid for instant apps - linting needs updating
-      "    Android Lint: Usability\n" +
-      "        Missing application icon\n" +
-      "            AndroidManifest.xml\n" +
-      "                Should explicitly set 'android:icon', there is no default\n" +
       // TODO: dependency is a packaging dependency - linting needs updating
       "    Declaration redundancy\n" +
       "        Unnecessary module dependency\n" +
