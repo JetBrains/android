@@ -27,6 +27,7 @@ import com.intellij.xdebugger.impl.ui.tree.nodes.XDebuggerTreeNode;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +37,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.regex.Pattern;
 
+@Ignore("https://code.google.com/p/android/issues/detail?id=246475")
 @RunIn(TestGroup.QA)
 @RunWith(GuiTestRunner.class)
 public class BasicNativeDebuggerTest extends TestWithEmulator {
