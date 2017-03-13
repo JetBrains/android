@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.messages;
 
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager;
@@ -30,21 +31,21 @@ import java.util.List;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
 
-public class SyncMessagesStub extends SyncMessages {
+public class GradleSyncMessagesStub extends GradleSyncMessages {
   @NotNull private final List<SyncMessage> myMessages = new ArrayList<>();
 
   @Nullable private NotificationData myNotification;
   @Nullable private NotificationUpdate myNotificationUpdate;
 
   @NotNull
-  public static SyncMessagesStub replaceSyncMessagesService(@NotNull Project project) {
-    SyncMessagesStub syncMessages = new SyncMessagesStub(project);
-    IdeComponents.replaceService(project, SyncMessages.class, syncMessages);
-    assertSame(syncMessages, SyncMessages.getInstance(project));
+  public static GradleSyncMessagesStub replaceSyncMessagesService(@NotNull Project project) {
+    GradleSyncMessagesStub syncMessages = new GradleSyncMessagesStub(project);
+    IdeComponents.replaceService(project, GradleSyncMessages.class, syncMessages);
+    assertSame(syncMessages, GradleSyncMessages.getInstance(project));
     return syncMessages;
   }
 
-  public SyncMessagesStub(@NotNull Project project) {
+  public GradleSyncMessagesStub(@NotNull Project project) {
     super(project, mock(ExternalSystemNotificationManager.class));
   }
 

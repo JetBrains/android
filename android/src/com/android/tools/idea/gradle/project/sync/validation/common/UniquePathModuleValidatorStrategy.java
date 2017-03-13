@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.project.sync.validation.common;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.*;
 import com.intellij.openapi.externalSystem.model.DataNode;
@@ -33,7 +33,7 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.PROJECT_STRUCTURE_ISSUES;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.util.Projects.findModuleRootFolderPath;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.MODULE;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
@@ -100,7 +100,7 @@ class UniquePathModuleValidatorStrategy extends CommonProjectValidationStrategy 
         message.add(new AddOrRemoveModulesHyperlink());
       }
 
-      SyncMessages.getInstance(project).report(message);
+      GradleSyncMessages.getInstance(project).report(message);
     }
   }
 

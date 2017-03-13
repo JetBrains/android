@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea.notification;
 
 import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
@@ -54,7 +54,7 @@ public class GradleNotificationExtension implements ExternalSystemNotificationEx
   @Override
   public void customize(@NotNull NotificationData notification, @NotNull Project project, @Nullable Throwable error) {
     // See https://code.google.com/p/android/issues/detail?id=226786
-    SyncMessages.getInstance(project).removeProjectMessages();
+    GradleSyncMessages.getInstance(project).removeProjectMessages();
 
     Throwable cause = error;
     if (error instanceof UndeclaredThrowableException) {
