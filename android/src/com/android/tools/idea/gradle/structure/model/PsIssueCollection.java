@@ -99,7 +99,11 @@ public class PsIssueCollection {
   public List<PsIssue> getValues(@NotNull Class<? extends PsPath> pathType) {
     Set<PsIssue> issues = Sets.newHashSet();
     synchronized (myLock) {
-      myIssues.keySet().stream().filter(pathType::isInstance).forEachOrdered(path -> issues.addAll(myIssues.get(path)));
+      for (PsPath path : myIssues.keySet()) {
+        if (pathType.isInstance(path)) {
+          issues.addAll(myIssues.get(path));
+        }
+      }
     }
     return issues.stream().collect(Collectors.toList());
   }
