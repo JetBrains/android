@@ -20,16 +20,16 @@ import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
+import com.android.tools.adtui.flat.FlatButton;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.DurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.stacktrace.LoadingPanel;
-import com.android.tools.adtui.flat.FlatButton;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
@@ -230,7 +230,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_STACK, memoryUsage.getStackSeries());
     configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_CODE, memoryUsage.getCodeSeries());
     configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_OTHERS, memoryUsage.getOtherSeries());
-    lineChart.configure(memoryUsage.getTotalMemorySeries(), new LineConfig(ProfilerColors.MEMORY_TOTAL));
+    lineChart.configure(memoryUsage.getTotalMemorySeries(), new LineConfig(ProfilerColors.MONITOR_BACKGROUND));
     lineChart.configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS)
       .setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
 
