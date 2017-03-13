@@ -17,8 +17,6 @@ package com.android.tools.idea.tests.gui.avdmanager;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.*;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,7 +28,6 @@ import static com.google.common.truth.Truth.assertWithMessage;
 /**
  * Tests exercising the UI for hardware profile management
  */
-@RunIn(TestGroup.UNRELIABLE)  // fails as of http://ag/1977257
 @RunWith(GuiTestRunner.class)
 public class HardwareProfileTest {
 
