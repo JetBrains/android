@@ -139,7 +139,7 @@ public class NewProjectTest {
       "    Android Lint: Security",
       "        AllowBackup/FullBackupContent Problems",
       "            AndroidManifest.xml",
-      "                On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute 'android:fullBackupContent' to specify an '@xml' resource which configures which files to backup. More info: https://developer.android.com/training/backup/autosyncapi.html",
+      "                On SDK version 23 and up, your app data will be automatically backed up and restored on app install. Consider adding the attribute 'android:fullBackupContent' to specify an '@xml' resource which configures which files to backup. More info: <a href=\"https://developer.android.com/training/backup/autosyncapi.html\">https://developer.android.com/training/backup/autosyncapi.html</a>",
 
       // This warning is wrong: http://b.android.com/192605
       "    Android Lint: Usability",
