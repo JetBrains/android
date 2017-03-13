@@ -31,6 +31,7 @@ import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.loadFile;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.util.SystemProperties.getLineSeparator;
 
@@ -69,7 +70,7 @@ public class GradleDslMethodNotFoundErrorHandlerTest extends AndroidGradleTestCa
 
     // Ensure the error message contains the location of the error.
     OpenFileHyperlink openFileQuickFix = (OpenFileHyperlink)quickFix;
-    assertEquals(settingsFile.getPath(), openFileQuickFix.getFilePath());
+    assertEquals(toSystemIndependentName(settingsFile.getPath()), openFileQuickFix.getFilePath());
     assertEquals(0, openFileQuickFix.getLineNumber());
   }
 
