@@ -60,6 +60,11 @@ public abstract class BaseTarget implements Target {
   }
 
   @Override
+  public void setExpandSize(boolean expand) {
+    //do nothing
+  }
+
+  @Override
   public float getCenterX() {
     return myLeft + (myRight - myLeft) / 2;
   }
