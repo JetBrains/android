@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -236,7 +237,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
     if (view == null) {
       return PropertiesMap.EMPTY_MAP;
     }
-    Map<Object, PropertiesMap> map = view.getModel().getDefaultProperties();
+    Map<Object, PropertiesMap> map = ((LayoutlibSceneManager)view.getSceneManager()).getDefaultProperties();
     List<PropertiesMap> propertiesMaps = new ArrayList<>(components.size());
     for (NlComponent component : components) {
       PropertiesMap propertiesMap = map.get(component.getSnapshot());
