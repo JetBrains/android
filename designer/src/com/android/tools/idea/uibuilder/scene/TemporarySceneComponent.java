@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.target.DragDndTarget;
 import org.jetbrains.annotations.NotNull;
 
 /**

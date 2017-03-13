@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.scene.draw;
 
-import android.support.constraint.solver.widgets.ConstraintWidget;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.sherpa.drawing.ColorSet;
-import com.android.tools.sherpa.drawing.ViewTransform;
 
 import javax.swing.*;
 import javax.swing.text.SimpleAttributeSet;

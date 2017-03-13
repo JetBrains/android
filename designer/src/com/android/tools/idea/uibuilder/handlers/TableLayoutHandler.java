@@ -31,7 +31,7 @@ import static com.android.SdkConstants.*;
  */
 public class TableLayoutHandler extends LinearLayoutHandler {
   @Override
-  protected boolean isVertical(@NotNull NlComponent component) {
+  public boolean isVertical(@NotNull NlComponent component) {
     // Tables are always vertical
     return true;
   }

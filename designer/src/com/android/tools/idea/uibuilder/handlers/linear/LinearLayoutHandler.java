@@ -20,6 +20,9 @@ import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
+import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearDragTarget;
+import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearResizeTarget;
+import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearSeparatorTarget;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
@@ -83,7 +86,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    * @param component the node to check layout orientation for
    * @return true if the layout is in vertical mode, otherwise false
    */
-  protected boolean isVertical(@NotNull NlComponent component) {
+  public boolean isVertical(@NotNull NlComponent component) {
     // Horizontal is the default, so if no value is specified it is horizontal.
     String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
     return VALUE_VERTICAL.equals(orientation);

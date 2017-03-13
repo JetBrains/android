@@ -18,6 +18,9 @@ package com.android.tools.idea.uibuilder.scene.draw;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.decorator.*;
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor; // TODO: remove
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnection; // TODO: remove
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils; // TODO: remove
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;

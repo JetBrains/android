@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,39 +15,50 @@
  */
 package com.android.tools.idea.uibuilder.scene.draw;
 
-import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils; // TODO: remove
+import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.sherpa.drawing.ColorSet;
 
 import java.awt.*;
 
 /**
- * Horizontal notch
+ * Vertical line
  */
-public class DrawHorizontalNotch extends DrawRegion {
+public class DrawVerticalLine extends DrawRegion {
 
-  public DrawHorizontalNotch(String s) {
+  protected Font mFont = new Font("Helvetica", Font.PLAIN, 14);
+
+  public DrawVerticalLine(String s) {
     super(s);
   }
-  public DrawHorizontalNotch(int x, int y, int width) {
-    super(x, y, width, x);
+
+  public DrawVerticalLine(int x,
+                          int y,
+                          int height) {
+    super(x, y, x, height);
   }
 
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
     ColorSet colorSet = sceneContext.getColorSet();
-    Color background = colorSet.getFrames();
-    g.setColor(background);
     Stroke stroke = g.getStroke();
+    g.setColor(colorSet.getFrames());
     g.setStroke(DrawConnectionUtils.sDashedStroke);
-    g.drawLine(x, y, x + width, y);
+    g.drawLine(x, y, x, y + height);
     g.setStroke(stroke);
   }
 
-  public static void add(DisplayList list, SceneContext transform, float left, float top, float right) {
+  public static void add(DisplayList list, SceneContext transform, float left, float top, float bottom) {
+    add(list, transform, left, top, bottom, -1, -1, -1, -1, -1, 1.0f, false);
+  }
+
+  public static void add(DisplayList list, SceneContext transform,
+                         float left, float top, float bottom,
+                         float originX, float originY, float originWidth,
+                         int begin, int end, float percent, boolean selected) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
-    int w = transform.getSwingDimension(right - left);
-    list.add(new DrawHorizontalNotch(l, t, w));
+    int h = transform.getSwingDimension(bottom - top);
+    list.add(new DrawVerticalLine(l, t, h));
   }
 }
