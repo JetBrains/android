@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 /**
  * Utils for creating mocks for testing {@link ProvisionPackage}s.
  */
-class ProvisionPackageTestUtil {
+class ProvisionPackageTests {
   @NotNull
   static File getInstantAppSdk() {
     File testData = new File(getTestDataPath());
@@ -76,6 +76,19 @@ class ProvisionPackageTestUtil {
       doAnswer(invocation -> {
         IShellOutputReceiver receiver = invocation.getArgument(1);
         byte[] output = ("versionName=" + version + "\n").getBytes(Charset.defaultCharset());
+        receiver.addOutput(output, 0, output.length);
+        receiver.flush();
+        return null;
+      }).when(myDevice).executeShellCommand(eq(shellCommand), notNull());
+      return this;
+    }
+
+    @NotNull
+    DeviceGenerator setGoogleAccountLogged() throws Throwable {
+      String shellCommand = "dumpsys account";
+      doAnswer(invocation -> {
+        IShellOutputReceiver receiver = invocation.getArgument(1);
+        byte[] output = ("Account {name=bla@google.com, type=com.google}\n").getBytes(Charset.defaultCharset());
         receiver.addOutput(output, 0, output.length);
         receiver.flush();
         return null;

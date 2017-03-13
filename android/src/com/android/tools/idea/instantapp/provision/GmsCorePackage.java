@@ -16,11 +16,13 @@
 package com.android.tools.idea.instantapp.provision;
 
 import com.android.ddmlib.IDevice;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 
 class GmsCorePackage extends ProvisionPackage {
+  @NotNull private static final String PKG_DESCRIPTION = "Gms Core";
   @NotNull private static final String APK_PREFIX = "GmsCore_prodmnc_xxhdpi";
   @NotNull private static final String PKG_NAME = "com.google.android.gms";
 
@@ -30,6 +32,8 @@ class GmsCorePackage extends ProvisionPackage {
 
   @Override
   void setFlags(@NotNull IDevice device, @NotNull String osBuildType) throws ProvisionException {
+    getLogger().info("Setting flags for build type \"" + osBuildType + "\"");
+
     if (osBuildType.compareTo(RELEASE_TYPE) == 0) {
       // For a release-keys build, we rely on OTA updates to set these flags
       return;
@@ -53,5 +57,11 @@ class GmsCorePackage extends ProvisionPackage {
   @Override
   String getPkgName() {
     return PKG_NAME;
+  }
+
+  @NotNull
+  @Override
+  String getDescription() {
+    return PKG_DESCRIPTION;
   }
 }

@@ -18,13 +18,14 @@ package com.android.tools.idea.instantapp.provision;
 import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +35,12 @@ import static com.android.tools.idea.instantapp.InstantApps.getInstantAppSdk;
 class ProvisionRunner {
   private static final int O_API_LEVEL = 26;
 
-  static void runProvision(@NotNull Collection<IDevice> devices) throws ProvisionException {
+  @NotNull private final ProgressIndicator myIndicator;
+  @NotNull private final List<ProvisionPackage> myPackages;
+
+  ProvisionRunner(@NotNull ProgressIndicator indicator) throws ProvisionException {
+    myIndicator = indicator;
+
     File instantAppSdk;
     try {
       instantAppSdk = getInstantAppSdk();
@@ -43,40 +49,74 @@ class ProvisionRunner {
       throw new ProvisionException(e);
     }
 
-    List<ProvisionPackage> packages = Lists.newArrayList(
+    myPackages = Lists.newArrayList(
       new SupervisorPackage(instantAppSdk),
       new GmsCorePackage(instantAppSdk),
       new PolicySetsPackage(instantAppSdk),
       new DevManPackage(instantAppSdk)
     );
-
-    for (IDevice device : devices) {
-        runProvision(device, packages);
-    }
   }
 
-  private static void runProvision(@NotNull IDevice device, @NotNull List<ProvisionPackage> packages) throws ProvisionException {
+  @VisibleForTesting
+  ProvisionRunner(@NotNull ProgressIndicator indicator, @NotNull List<ProvisionPackage> packages) {
+    myIndicator = indicator;
+    myPackages = packages;
+  }
+
+  void runProvision(@NotNull IDevice device) throws ProvisionException {
+    getLogger().info("Provisioning device " + device.getName());
+    myIndicator.setText("Provisioning device " + device.getName());
+    myIndicator.setIndeterminate(false);
+
     if (isPostO(device)) {
       // No need to provision the device
       return;
     }
 
-    for (ProvisionPackage pack : packages) {
+    double index = 1.0;
+    for (ProvisionPackage pack : myPackages) {
+      getLogger().info("Checking package " + pack.getDescription());
+      myIndicator.setText2("Checking package " + pack.getDescription());
+
+      myIndicator.setFraction(index / myPackages.size());
+      index++;
+
+      if (myIndicator.isCanceled()) {
+        getLogger().info("Provision cancelled by the user");
+        throw new ProvisionException("Provision cancelled by the user");
+      }
+
       if (pack.shouldInstall(device)) {
+        getLogger().info("Installing package " + pack.getDescription());
+        myIndicator.setText2("Installing package " + pack.getDescription());
+
         pack.install(device);
       }
     }
 
     checkSignedIn(device);
+
+    getLogger().info("Device " + device.getName() + " provisioned successfully");
+
+    myIndicator.setIndeterminate(true);
+    myIndicator.setText("");
+    myIndicator.setText2("");
   }
 
-  private static boolean isPostO(@NotNull IDevice device) {
+  private boolean isPostO(@NotNull IDevice device) {
+    myIndicator.setText2("Checking API level");
+
     AndroidVersion androidVersion = device.getVersion();
+    getLogger().info("API level detected: " + androidVersion.getApiLevel());
+
     return androidVersion.isGreaterOrEqualThan(O_API_LEVEL);
   }
 
-  private static void checkSignedIn(@NotNull IDevice device) throws ProvisionException {
+  private void checkSignedIn(@NotNull IDevice device) throws ProvisionException {
     // TODO: delete this when Google accounts are not needed anymore
+
+    myIndicator.setText2("Checking Google account");
+    getLogger().info("Checking Google account");
 
     CountDownLatch latch = new CountDownLatch(1);
     CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);

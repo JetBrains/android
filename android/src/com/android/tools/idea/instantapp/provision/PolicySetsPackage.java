@@ -17,12 +17,14 @@ package com.android.tools.idea.instantapp.provision;
 
 import com.android.ddmlib.IDevice;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
 
 class PolicySetsPackage extends ProvisionPackage {
+  @NotNull private static final String PKG_DESCRIPTION = "Policy sets";
   @NotNull private static final String APK_PREFIX = "instantapps";
   @NotNull private static final String PKG_NAME = "com.google.android.gms.policy_instantapps";
   @NotNull private static final String APK_SUB_FOLDER = "policy_sets";
@@ -47,6 +49,8 @@ class PolicySetsPackage extends ProvisionPackage {
 
   @Override
   void setFlags(@NotNull IDevice device, @NotNull String osBuildType) throws ProvisionException {
+    getLogger().info("Setting flags for build type \"" + osBuildType + "\"");
+
     // Set the GServices value for policy sets with the list constructed above
     executeShellCommand(device,
                         "CLASSPATH=/system/framework/am.jar su root app_process /system/bin " +
@@ -87,5 +91,11 @@ class PolicySetsPackage extends ProvisionPackage {
   @Override
   String getPkgName() {
     return PKG_NAME;
+  }
+
+  @NotNull
+  @Override
+  String getDescription() {
+    return PKG_DESCRIPTION;
   }
 }

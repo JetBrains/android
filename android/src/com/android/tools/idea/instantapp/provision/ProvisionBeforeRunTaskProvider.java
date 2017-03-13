@@ -28,16 +28,20 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.util.Key;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Provides a {@link ProvisionBeforeRunTask} which is executed before an Instant App is run.
@@ -119,25 +123,47 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
       return false;
     }
 
-    for (ListenableFuture<IDevice> deviceListenableFuture : deviceFutures.get()) {
-      IDevice device = waitForDevice(deviceListenableFuture);
-      if (device == null) {
-        return false;
-      }
+    ProgressManager progressManager = ProgressManager.getInstance();
 
-      try {
-        // TODO: show some UI indicating while the device is provisioning
-        ProvisionRunner.runProvision(Collections.singleton(device));
-      }
-      catch (ProvisionException e) {
-        getLogger().error("Error while provisioning devices", e);
+    CountDownLatch countDownLatch = new CountDownLatch(1);
+    AtomicBoolean result = new AtomicBoolean(true);
 
-        // If there was an error while provisioning, we stop running the RunConfiguration
-        return false;
+    progressManager.run(new Task.Backgroundable(configuration.getProject(), getDescription(task), true) {
+      @Override
+      public void run(@NotNull ProgressIndicator indicator) {
+        try {
+          indicator.setIndeterminate(true);
+          ProvisionRunner provisionRunner = new ProvisionRunner(indicator);
+
+          for (ListenableFuture<IDevice> deviceListenableFuture : deviceFutures.get()) {
+            IDevice device = waitForDevice(deviceListenableFuture, indicator);
+            if (device == null) {
+              result.set(false);
+              return;
+            }
+
+            provisionRunner.runProvision(device);
+          }
+        }
+        catch (ProvisionException e) {
+          getLogger().error("Error while provisioning devices", e);
+
+          // If there was an error while provisioning, we stop running the RunConfiguration
+          result.set(false);
+        }
+        finally {
+          countDownLatch.countDown();
+        }
       }
+    });
+
+    try {
+      return countDownLatch.await(deviceFutures.get().size() * 300, TimeUnit.SECONDS) && result.get();
     }
-
-    return true;
+    catch (InterruptedException e) {
+      getLogger().error("Background thread interrupted", e);
+      return false;
+    }
   }
 
   private static boolean isInstantAppContext(AndroidRunConfigurationBase runConfiguration) {
@@ -146,7 +172,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
   }
 
   @Nullable
-  private static IDevice waitForDevice(@NotNull ListenableFuture<IDevice> deviceFuture) {
+  private static IDevice waitForDevice(@NotNull ListenableFuture<IDevice> deviceFuture, ProgressIndicator indicator) {
     while (true) {
       try {
         return deviceFuture.get(1, TimeUnit.SECONDS);
@@ -155,6 +181,10 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
         return null;
       }
       catch (TimeoutException ignored) {
+      }
+
+      if (indicator.isCanceled()) {
+        return null;
       }
     }
   }
