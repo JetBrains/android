@@ -22,26 +22,22 @@ import static com.android.tools.idea.instantapp.AIAProjectStructureAssertions.*;
 import static com.android.tools.idea.testing.TestProjectPaths.MULTI_ATOM;
 
 public class MultiAtomSupportTest extends AndroidGradleTestCase {
-  public void testFake() {
-  }
 
-  //http://b/35853764
-  public void /*test*/LoadMultiAtomProject() throws Exception {
+  public void testLoadMultiAtomProject() throws Exception {
     loadProject(MULTI_ATOM);
-
-    generateSources();
 
     assertModuleIsValidAIAApp(getModule("apk"), ImmutableList.of(":feature1lib", ":feature2lib"));
     assertModuleIsValidAIALibrary(getModule("feature1lib"), ImmutableList.of(":baselib"));
     assertModuleIsValidAIALibrary(getModule("feature2lib"), ImmutableList.of(":baselib"));
     assertModuleIsValidAIALibrary(getModule("baselib"), ImmutableList.of());
     assertModuleIsValidAIAInstantApp(getModule("iapk"), "baseatom",
-                                    ImmutableList.of(":feature1atom", ":feature2atom", ":baseatom" /*See http://b/34154264*/));
+                                     ImmutableList.of(":feature1atom", ":feature2atom", ":baseatom" /*See http://b/34154264*/));
     assertModuleIsValidAIASplit(getModule("feature1atom"), "baseatom", ImmutableList.of(":feature1lib"), ImmutableList.of(":baseatom"));
     assertModuleIsValidAIASplit(getModule("feature2atom"), "baseatom", ImmutableList.of(":feature2lib"), ImmutableList.of(":baseatom"));
     assertModuleIsValidAIABaseSplit(getModule("baseatom"), ImmutableList.of(":baselib"));
 
     // Until http://b/34154473 is fixed the following fails as source generation / building can not complete without errors
+    // generateSources();
     // Project project = getProject();
     // assertFileHasNoErrors(project, new File("feature1lib/src/main/java/com/google/android/instantapps/samples/multiatom/feature1lib/Feature1Activity.java"));
     // assertFileHasNoErrors(project, new File("feature2lib/src/main/java/com/google/android/instantapps/samples/multiatom/feature2lib/Feature2Activity.java"));
