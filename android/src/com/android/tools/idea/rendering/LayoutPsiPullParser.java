@@ -30,6 +30,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -506,6 +507,12 @@ public class LayoutPsiPullParser extends LayoutPullParser {
       TagSnapshot currentNode = getCurrentNode();
       assert currentNode != null; // Should only be called when START_TAG
       String name = currentNode.tagName;
+
+      String viewHandlerTag = currentNode.getAttribute(ATTR_USE_HANDLER, TOOLS_URI);
+      if (StringUtil.isNotEmpty(viewHandlerTag)) {
+        name = viewHandlerTag;
+      }
+
       if (name.equals(VIEW_FRAGMENT)) {
         // Temporarily translate <fragment> to <include> (and in getAttribute
         // we will also provide a layout-attribute for the corresponding

@@ -20,10 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.util.xml.ResolvingConverter;
 import org.jetbrains.android.dom.AndroidDomUtil;
-import org.jetbrains.android.dom.converters.PackageClassConverter;
-import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
-import org.jetbrains.android.dom.converters.StaticEnumConverter;
-import org.jetbrains.android.dom.converters.TargetApiConverter;
+import org.jetbrains.android.dom.converters.*;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +42,8 @@ import static java.util.Collections.singletonList;
 public class ToolsAttributeUtil {
   private static final ResolvingConverter LAYOUT_REFERENCE_CONVERTER =
     new ResourceReferenceConverter(EnumSet.of(ResourceType.LAYOUT));
-  private static final ResolvingConverter ACTIVITY_CLASS_CONVERTER = new PackageClassConverter(true, AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
+  private static final ResolvingConverter ACTIVITY_CLASS_CONVERTER = new PackageClassConverter(true, false, AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
+  private static final ResolvingConverter VIEW_CONVERTER = new ViewClassConverter();
 
   private static final List<AttributeFormat> NO_FORMATS = Collections.emptyList();
 
@@ -85,6 +83,7 @@ public class ToolsAttributeUtil {
     .put(ATTR_SHRINK_MODE, singletonList(AttributeFormat.Enum))
     .put(ATTR_KEEP, NO_FORMATS)
     .put(ATTR_DISCARD, NO_FORMATS)
+    .put(ATTR_USE_HANDLER, singletonList(AttributeFormat.Reference))
     .build();
   /** List of converters to be applied to some of the attributes */
   private static final ImmutableMap<String, ResolvingConverter> CONVERTERS = ImmutableMap.<String, ResolvingConverter>builder()
@@ -99,6 +98,7 @@ public class ToolsAttributeUtil {
     .put(ATTR_NODE, new StaticEnumConverter("merge", "replace", "strict", "merge-only-attributes", "remove", "removeAll"))
     .put(ATTR_TARGET_API, new TargetApiConverter())
     .put(ATTR_SHRINK_MODE, new StaticEnumConverter(VALUE_STRICT, VALUE_SAFE))
+    .put(ATTR_USE_HANDLER, VIEW_CONVERTER)
     .build();
 
   /**
