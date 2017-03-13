@@ -262,16 +262,16 @@ public class DrawConnection implements DrawCommand {
 
     int[] xPoints = new int[3];
     int[] yPoints = new int[3];
-
     int dir = ((myDestType == DEST_PARENT) ^ flip_arrow) ? ourOppositeDirection[destDirection] : destDirection;
-
     ourPath.reset();
     ourPath.moveTo(startx, starty);
     switch (connectionType) {
       case TYPE_CHAIN:
         ourPath.moveTo(startx, starty);
-        ourPath.curveTo(startx - dx + scale_source * dirDeltaX[sourceDirection], starty - dy + scale_source * dirDeltaY[sourceDirection],
-                        endx + dx + scale_dest * dirDeltaX[destDirection], endy + dy + scale_dest * dirDeltaY[destDirection],
+        ourPath.curveTo(startx  + scale_source * dirDeltaX[sourceDirection],
+                        starty  + scale_source * dirDeltaY[sourceDirection],
+                        endx  + scale_dest * dirDeltaX[destDirection],
+                        endy  + scale_dest * dirDeltaY[destDirection],
                         endx, endy);
         Stroke defaultStroke = g.getStroke();
         g.setColor(constraintColor);
