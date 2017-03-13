@@ -32,10 +32,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -77,6 +80,88 @@ public final class PreviewIconsPanel extends JPanel {
     imageComponent.setPreferredSize(d);
     imageComponent.setMinimumSize(d);
     imageComponent.setIcon(icon);
+  }
+
+  /**
+   * Returns the list of generated preview images. This is a temporary method until the deprecated
+   * new image asset wizard ({@link com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep_Deprecated}) is
+   * replaced with the new one ({@link com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep}).
+   */
+  @NotNull
+  public List<IconPreviewInfo> getIconPreviewInfos() {
+    List<IconPreviewInfo> result = new ArrayList<>();
+
+    JPanel icons = myIconsPanel;
+    for (Component icon : icons.getComponents()) {
+      JPanel iconPanel = (JPanel)icon;
+      JBLabel label = (JBLabel)iconPanel.getComponent(0);
+      ImageComponent imageComponent = (ImageComponent)iconPanel.getComponent(1);
+
+      IconPreviewInfo previewInfo = new IconPreviewInfo();
+      previewInfo.setLabel(label.getText());
+      BufferedImage bufferedImage = imageComponent.getImage();
+      if (bufferedImage != null) {
+        previewInfo.setImageIcon(new ImageIcon(bufferedImage));
+      }
+      previewInfo.setImageBorder(imageComponent.getBorder());
+      previewInfo.setImageBackground(iconPanel.getBackground());
+      previewInfo.setImageOpaque(iconPanel.isOpaque());
+
+      result.add(previewInfo);
+    }
+    return result;
+  }
+
+  public static class IconPreviewInfo {
+    @Nullable private String myLabel;
+    @Nullable private ImageIcon myImageIcon;
+    @Nullable private Border myImageBorder;
+    private boolean myImageOpaque;
+    @Nullable private Color myImageBackground;
+
+    public void setLabel(@Nullable String label) {
+      myLabel = label;
+    }
+
+    @Nullable
+    public String getLabel() {
+      return myLabel;
+    }
+
+    public void setImageBackground(@Nullable Color imageBackground) {
+      myImageBackground = imageBackground;
+    }
+
+    @Nullable
+    public Color getImageBackground() {
+      return myImageBackground;
+    }
+
+    public void setImageOpaque(boolean imageOpaque) {
+      myImageOpaque = imageOpaque;
+    }
+
+    public boolean isImageOpaque() {
+      return myImageOpaque;
+    }
+
+    public void setImageIcon(@Nullable ImageIcon imageIcon) {
+      myImageIcon = imageIcon;
+    }
+
+    @Nullable
+    public ImageIcon getImageIcon() {
+      return myImageIcon;
+    }
+
+    public void setImageBorder(@Nullable Border imageBorder) {
+      myImageBorder = imageBorder;
+    }
+
+    @Nullable
+    public Border getImageBorder() {
+      return myImageBorder;
+    }
   }
 
   /**
