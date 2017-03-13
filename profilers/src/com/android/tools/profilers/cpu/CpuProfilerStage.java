@@ -461,7 +461,8 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
       super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
       myCpuLegend = new SeriesLegend(cpuUsage.getCpuSeries(), CPU_USAGE_FORMATTER, dataRange);
       myOthersLegend = new SeriesLegend(cpuUsage.getOtherCpuSeries(), CPU_USAGE_FORMATTER, dataRange);
-      myThreadsLegend = new SeriesLegend(cpuUsage.getThreadsCountSeries(), NUM_THREADS_AXIS, dataRange);
+      myThreadsLegend = new SeriesLegend(cpuUsage.getThreadsCountSeries(), NUM_THREADS_AXIS, dataRange,
+                                         Interpolatable.SteppedLineInterpolator);
       add(myCpuLegend);
       add(myOthersLegend);
       add(myThreadsLegend);
