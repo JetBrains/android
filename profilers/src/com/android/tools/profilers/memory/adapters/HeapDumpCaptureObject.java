@@ -24,11 +24,11 @@ import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.RelativeTimeConverter;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.proguard.ProguardMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
@@ -43,10 +43,14 @@ public final class HeapDumpCaptureObject implements CaptureObject {
 
   private final int myProcessId;
 
+  @Nullable
   private final Common.Session mySession;
 
   @NotNull
   private final String myLabel;
+
+  @NotNull
+  private final FeatureTracker myFeatureTracker;
 
   @NotNull
   private final HeapDumpInfo myHeapDumpInfo;
@@ -60,11 +64,12 @@ public final class HeapDumpCaptureObject implements CaptureObject {
   private volatile boolean myIsLoadingError = false;
 
   public HeapDumpCaptureObject(@NotNull MemoryServiceBlockingStub client,
-                               Common.Session session,
+                               @Nullable Common.Session session,
                                int appId,
                                @NotNull HeapDumpInfo heapDumpInfo,
                                @Nullable ProguardMap proguardMap,
-                               @NotNull RelativeTimeConverter converter) {
+                               @NotNull RelativeTimeConverter converter,
+                               @NotNull FeatureTracker featureTracker) {
     myClient = client;
     myProcessId = appId;
     mySession = session;
@@ -75,6 +80,7 @@ public final class HeapDumpCaptureObject implements CaptureObject {
       TimeAxisFormatter.DEFAULT
         .getFixedPointFormattedString(TimeUnit.MILLISECONDS.toMicros(1),
                                       TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myHeapDumpInfo.getStartTime())));
+    myFeatureTracker = featureTracker;
   }
 
   @Override
@@ -105,6 +111,7 @@ public final class HeapDumpCaptureObject implements CaptureObject {
       DumpDataRequest.newBuilder().setProcessId(myProcessId).setSession(mySession).setDumpTime(myHeapDumpInfo.getStartTime()).build());
     if (response.getStatus() == DumpDataResponse.Status.SUCCESS) {
       response.getData().writeTo(outputStream);
+      myFeatureTracker.trackExportHeap();
     }
     else {
       throw new IOException("Could not retrieve hprof dump.");
