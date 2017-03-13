@@ -35,7 +35,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.impl.source.PostprocessReformattingAspect;
 import org.jetbrains.annotations.NotNull;
@@ -224,22 +224,8 @@ public class Template {
   public boolean render(@NotNull final RenderingContext context) {
     final Project project = context.getProject();
 
-    boolean success = runWriteCommandAction(project, context.getCommandName(), new Computable<Boolean>() {
-      @Override
-      public Boolean compute() {
-        if (project.isInitialized()) {
-          return doRender(context);
-        }
-        else {
-          return PostprocessReformattingAspect.getInstance(project).disablePostprocessFormattingInside(new Computable<Boolean>() {
-            @Override
-            public Boolean compute() {
-              return doRender(context);
-            }
-          });
-        }
-      }
-    });
+    boolean success = project.isInitialized() ?
+      doRender(context) : PostprocessReformattingAspect.getInstance(project).disablePostprocessFormattingInside(() -> doRender(context));
 
     String title = myMetadata.getTitle();
     if (title != null) {
@@ -338,9 +324,9 @@ public class Template {
   /**
    * Version of runWriteCommandAction missing in {@link WriteCommandAction}.
    */
-  private static <T> T runWriteCommandAction(@NotNull Project project,
-                                             @NotNull String commandName,
-                                             @NotNull final Computable<T> computable) {
+  private static <T, E extends Throwable> T runWriteCommandAction(@NotNull Project project,
+                                                                  @NotNull String commandName,
+                                                                  @NotNull final ThrowableComputable<T, E> computable) throws E {
     RunResult<T> result = new WriteCommandAction<T>(project, commandName) {
       @Override
       protected void run(@NotNull Result<T> result) throws Throwable {
@@ -364,7 +350,11 @@ public class Template {
     enforceParameterTypes(metadata, context.getParamMap());
 
     try {
-      processFile(context, new File(TEMPLATE_XML_NAME));
+      runWriteCommandAction(context.getProject(), context.getCommandName(), () -> {
+        processFile(context, new File(TEMPLATE_XML_NAME));
+        return null;
+      });
+
       if (context.getWarnings().isEmpty()) {
         return true;
       }
