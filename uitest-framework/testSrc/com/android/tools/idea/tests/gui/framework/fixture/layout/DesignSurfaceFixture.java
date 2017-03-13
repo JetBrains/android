@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -51,20 +50,6 @@ public class DesignSurfaceFixture extends ComponentFixture<DesignSurfaceFixture,
 
   public void waitForRenderToFinish(@NotNull Wait waitForRender) {
     waitForRender.expecting("render to finish").until(() -> !myProgressPanel.isVisible());
-    waitForRender.expecting("render to finish").until(() -> {
-      ScreenView screenView = target().getCurrentSceneView();
-      if (screenView == null) {
-        return false;
-      }
-      RenderResult result = screenView.getResult();
-      if (result == null) {
-        return false;
-      }
-      if (result.getLogger().hasErrors()) {
-        return target().isShowing() && myRenderErrorPanel.isShowing();
-      }
-      return target().isShowing() && !myRenderErrorPanel.isShowing();
-    });
     // Wait for the animation to finish
     pause(SceneComponent.ANIMATION_DURATION);
   }
