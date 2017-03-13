@@ -132,6 +132,13 @@ public class LayoutTestUtilities {
     verify(dropEvent, times(1)).dropComplete(true);
   }
 
+  public static NlModel createModel(NlDesignSurface surface, AndroidFacet facet, XmlFile xmlFile) {
+    NlModel model = SyncNlModel.create(surface, xmlFile.getProject(), facet, xmlFile);
+    model.updateModel();
+    model.notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
+    return model;
+  }
+
   public static ScreenView createScreen(NlDesignSurface surface, NlModel model, SelectionModel selectionModel) {
     return createScreen(surface, model, selectionModel, 1, 0, 0);
   }

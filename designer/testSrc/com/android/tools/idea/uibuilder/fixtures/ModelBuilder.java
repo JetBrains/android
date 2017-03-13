@@ -16,13 +16,11 @@
 package com.android.tools.idea.uibuilder.fixtures;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -44,7 +42,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
@@ -135,7 +132,7 @@ public class ModelBuilder {
       XmlDocument document = xmlFile.getDocument();
       assertNotNull(document);
       NlModel model = SyncNlModel.create(createSurface(), myFixture.getProject(), myFacet, xmlFile);
-      LayoutlibSceneManager.updateHierarchy(buildViewInfos(model), model);
+      model.updateHierarchy(xmlFile.getRootTag(), buildViewInfos(model));
       assertSame(NlLayoutType.LAYOUT, model.getType());
       return model;
     });
@@ -155,7 +152,7 @@ public class ModelBuilder {
     assertThat(model).isNotNull();
     name("linear2.xml"); // temporary workaround: replacing contents not working
     NlModel newModel = preserveXmlTags ? model : build();
-    LayoutlibSceneManager.updateHierarchy(AndroidPsiUtils.getRootTagSafely(newModel.getFile()), buildViewInfos(newModel), model);
+    model.updateHierarchy(newModel.getFile().getRootTag(), buildViewInfos(newModel));
     for (NlComponent component : newModel.getComponents()) {
       checkStructure(component);
     }
