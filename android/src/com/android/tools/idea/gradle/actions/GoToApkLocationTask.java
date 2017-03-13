@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.actions;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.actions.ShowFilePathAction;
 import com.intellij.notification.EventLog;

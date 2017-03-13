@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.project.Project;
