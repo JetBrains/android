@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.google.common.truth.Truth.assertThat;
 
+@Ignore("https://code.google.com/p/android/issues/detail?id=246475")
 @RunWith(GuiTestRunner.class)
 public class LaunchAndroidApplicationTest extends TestWithEmulator {
 
