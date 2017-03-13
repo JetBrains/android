@@ -61,6 +61,14 @@ public class JavaModuleModelDataServiceTest extends IdeaTestCase {
     assertSame(JAVA_MODULE_MODEL, myService.getTargetDataKey());
   }
 
+  public void testImportDataWithoutModels() {
+    Module appModule = createModule("app");
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+
+    myService.importData(Collections.emptyList(), getProject(), modelsProvider, Collections.emptyMap());
+    verify(myCleanupStep).cleanUpModule(appModule, modelsProvider);
+  }
+
   public void testImportData() {
     String appModuleName = "app";
     Module appModule = createModule(appModuleName);
