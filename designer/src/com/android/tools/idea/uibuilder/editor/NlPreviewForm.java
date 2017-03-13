@@ -122,8 +122,8 @@ public class NlPreviewForm implements Disposable, CaretListener {
         ScreenView screenView = mySurface.getCurrentSceneView();
         NlModel model = screenView != null ? screenView.getModel() : null;
         if (model != null) {
-          screenView.getSceneManager().setElapsedFrameTimeMs(timeMs);
-          screenView.getSceneManager().requestRender();
+          model.setElapsedFrameTimeMs(timeMs);
+          mySurface.getCurrentSceneView().getSceneManager().requestRender();
         }
       }, 16);
       contentPanel.add(myAnimationToolbar, BorderLayout.SOUTH);
