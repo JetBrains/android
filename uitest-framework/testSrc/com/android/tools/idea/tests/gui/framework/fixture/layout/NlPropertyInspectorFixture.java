@@ -21,7 +21,6 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.components.JBLabel;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +46,22 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
 
   public static NlPropertiesPanel create(@NotNull Robot robot) {
     return waitUntilFound(robot, null, Matchers.byType(NlPropertiesPanel.class));
+  }
+
+  @NotNull
+  public NlPropertyInspectorFixture openAsInspector() {
+    if (myPanel.isAllPropertiesPanelVisible()) {
+      myPanel.setAllPropertiesPanelVisible(false);
+    }
+    return this;
+  }
+
+  @NotNull
+  public NlPropertyTableFixture openAsTable() {
+    if (!myPanel.isAllPropertiesPanelVisible()) {
+      myPanel.setAllPropertiesPanelVisible(true);
+    }
+    return NlPropertyTableFixture.create(robot());
   }
 
   @Nullable
