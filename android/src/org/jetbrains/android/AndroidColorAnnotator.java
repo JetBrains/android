@@ -17,6 +17,7 @@
 package org.jetbrains.android;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -85,9 +86,6 @@ import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
  * or references it from Java code (R.color.name). It also previews small icons.
  * <p>
  * TODO: Use {@link com.android.ide.common.resources.ResourceItemResolver} when possible!
- *
- * TODO: Add test. Unfortunately, it looks like none of the existing Annotator classes
- * in IntelliJ have unit tests, so there doesn't appear to be fixture support for this.
  */
 public class AndroidColorAnnotator implements Annotator {
   private static final int ICON_SIZE = 8;
@@ -196,7 +194,8 @@ public class AndroidColorAnnotator implements Annotator {
 
   /** Picks a suitable configuration to use for resource resolution */
   @Nullable
-  private static Configuration pickConfiguration(AndroidFacet facet, Module module, PsiFile file) {
+  @VisibleForTesting
+  static Configuration pickConfiguration(AndroidFacet facet, Module module, PsiFile file) {
     VirtualFile virtualFile = file.getVirtualFile();
     if (virtualFile == null) {
       return null;
@@ -316,7 +315,7 @@ public class AndroidColorAnnotator implements Annotator {
         }
         if (attribute != null && target.hasAttributeNS(ANDROID_URI, attribute)) {
           String src = target.getAttributeNS(ANDROID_URI, attribute);
-          ResourceValue value = resourceResolver.findResValue(src, false);
+          ResourceValue value = resourceResolver.findResValue(src, resourceValue.isFramework());
           if (value != null) {
             return ResourceHelper.resolveDrawable(resourceResolver, value, project);
 
