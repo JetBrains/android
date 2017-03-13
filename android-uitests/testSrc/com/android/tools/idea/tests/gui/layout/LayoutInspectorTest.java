@@ -23,13 +23,11 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProcessChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.LayoutInspectorFixture;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -38,9 +36,6 @@ public class LayoutInspectorTest extends TestWithEmulator {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  private static final String PROCESS_NAME = "google.simpleapplication";
-  private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(".*adb shell am start .*google\\.simpleapplication.*", Pattern.DOTALL);
-
   @Before
   public void setUp() throws Exception {
     guiTest.importSimpleApplication();
@@ -48,12 +43,12 @@ public class LayoutInspectorTest extends TestWithEmulator {
   }
 
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.QA)
   public void launchLayoutInspectorViaChooser() throws Exception {
     guiTest.ideFrame().runApp("app").selectDevice(AVD_NAME).clickOk();
     // wait for background tasks to finish before requesting run tool window. otherwise run tool window won't activate.
     guiTest.waitForBackgroundTasks();
-    guiTest.ideFrame().invokeMenuPath("Tools", "Android", "Layout Inspector");
+    guiTest.ideFrame().waitAndInvokeMenuPath("Tools", "Android", "Layout Inspector");
     // easier to select via index rather than by path string which changes depending on the api version
     AndroidProcessChooserDialogFixture.find(guiTest.robot()).selectProcess().clickOk();
     List<String> layoutElements = new LayoutInspectorFixture(guiTest.robot()).getLayoutElements();
