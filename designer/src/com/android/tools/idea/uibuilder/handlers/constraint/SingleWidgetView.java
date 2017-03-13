@@ -741,18 +741,9 @@ public class SingleWidgetView extends JPanel {
         try {
           float nominatorValue = Float.parseFloat(nominator);
           float denominatorValue = Float.parseFloat(denominator);
-          if (nominatorValue > 0 && denominatorValue > 0) {
-            if (dimensionRatioSide == ConstraintWidget.VERTICAL) {
-              dimensionRatio = Math.abs(denominatorValue / nominatorValue);
-              mRatioHeight = (int)denominatorValue;
-              mRatioWidth = (int)nominatorValue;
-            }
-            else {
-              dimensionRatio = Math.abs(nominatorValue / denominatorValue);
-              mRatioHeight = (int)nominatorValue;
-              mRatioWidth = (int)denominatorValue;
-            }
-          }
+          dimensionRatio = Math.abs(nominatorValue / denominatorValue);
+          mRatioHeight = (int)nominatorValue;
+          mRatioWidth = (int)denominatorValue;
         }
         catch (NumberFormatException e) {
           // Ignore
