@@ -60,7 +60,10 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.testFramework.fixtures.*;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
+import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
@@ -583,8 +586,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   // preferences in the platform
   public void ignored_testTemplateFormatting() throws Exception {
     Template template = Template.createFromPath(new File(getTestDataPath(), FileUtil.join("templates", "TestTemplate")).getCanonicalFile());
-    RenderingContext context = RenderingContext.Builder.newContext(template, myFixture.getProject())
-      .withOutputRoot(new File(myFixture.getTempDirPath())).withModuleRoot(new File("dummy")).build();
+    RenderingContext context = createRenderingContext(template,
+                                                      myFixture.getProject(),
+                                                      new File(myFixture.getTempDirPath()),
+                                                      new File("dummy"),
+                                                      null);
     template.render(context);
     FileDocumentManager.getInstance().saveAllDocuments();
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
@@ -669,7 +675,6 @@ public class TemplateTest extends AndroidGradleTestCase {
    *                          only be done for activities), or whether it should be added as as a separate template
    *                          into an existing project (which is created first, followed by the template)
    * @param customizer        An instance of {@link ProjectStateCustomizer} used for providing template and project overrides.
-   *
    * @throws Exception
    */
   private void checkCreateTemplate(String category, String name, boolean createWithProject,
@@ -723,6 +728,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     if (buildTool != null) {
       values.put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
     }
+
     return values;
   }
 
@@ -1042,25 +1048,23 @@ public class TemplateTest extends AndroidGradleTestCase {
     projectValues.put(ATTR_MANIFEST_OUT, null);
     projectValues.put(ATTR_TEST_OUT, null);
 
-    JavaCodeInsightTestFixture fixture = null;
+    assertNull(myFixture);
+
     File projectDir = null;
     try {
       projectValues.put(ATTR_MODULE_NAME, modifiedProjectName);
       IdeaTestFixtureFactory factory = IdeaTestFixtureFactory.getFixtureFactory();
       TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = factory.createFixtureBuilder(modifiedProjectName);
-      fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
-      fixture.setUp();
+      myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
+      myFixture.setUp();
 
-      Project project = fixture.getProject();
+      Project project = myFixture.getProject();
       setUpSdks(project);
       projectDir = Projects.getBaseDirPath(project);
       projectValues.put(ATTR_PROJECT_LOCATION, projectDir.getPath());
 
-      // We only need to sync the model if lint needs to look at the synced project afterwards
-      boolean syncModel = CHECK_LINT;
-
       //noinspection ConstantConditions
-      createProject(fixture, projectValues, syncModel);
+      createProject(projectValues);
 
       if (templateValues != null && !projectValues.getBoolean(ATTR_CREATE_ACTIVITY)) {
         templateValues.put(ATTR_PROJECT_LOCATION, projectDir.getPath());
@@ -1072,8 +1076,7 @@ public class TemplateTest extends AndroidGradleTestCase {
           templateValues.put(ATTR_MODULE_NAME, moduleRoot.getName());
           templateValues.put(ATTR_SOURCE_PROVIDER_NAME, "main");
           templateValues.populateDirectoryParameters();
-          RenderingContext context = RenderingContext.Builder.newContext(template, project).withOutputRoot(moduleRoot)
-            .withModuleRoot(moduleRoot).withParams(templateValues.getParameters()).build();
+          RenderingContext context = createRenderingContext(template, project, moduleRoot, moduleRoot, templateValues.getParameters());
           template.render(context);
           // Add in icons if necessary
           if (templateValues.getTemplateMetadata() != null && templateValues.getTemplateMetadata().getIconName() != null) {
@@ -1113,8 +1116,9 @@ public class TemplateTest extends AndroidGradleTestCase {
       }
     }
     finally {
-      if (fixture != null) {
-        fixture.tearDown();
+      if (myFixture != null) {
+        myFixture.tearDown();
+        myFixture = null;
       }
 
       Project[] openProjects = ProjectManagerEx.getInstanceEx().getOpenProjects();
@@ -1128,22 +1132,20 @@ public class TemplateTest extends AndroidGradleTestCase {
     }
   }
 
-  private void createProject(@NotNull IdeaProjectTestFixture myFixture,
-                             @NotNull NewProjectWizardState projectWizardState,
-                             boolean syncModel) throws Exception {
+  private void createProject(@NotNull NewProjectWizardState projectWizardState) throws Exception {
     ApplicationManager.getApplication().runWriteAction(() -> {
       AssetStudioAssetGenerator assetGenerator = new AssetStudioAssetGenerator(projectWizardState);
       createProject(projectWizardState, myFixture.getProject(), assetGenerator);
       FileDocumentManager.getInstance().saveAllDocuments();
     });
 
-    // Sync model
-    if (syncModel) {
-      String projectName = projectWizardState.getString(ATTR_MODULE_NAME);
-      File projectRoot = new File(projectWizardState.getString(ATTR_PROJECT_LOCATION));
-      assertEquals(projectRoot, virtualToIoFile(myFixture.getProject().getBaseDir()));
-      importProject(projectName, projectRoot, null);
-    }
+    // Update to latest plugin / gradle and sync model
+    File projectRoot = new File(projectWizardState.getString(ATTR_PROJECT_LOCATION));
+    assertEquals(projectRoot, virtualToIoFile(myFixture.getProject().getBaseDir()));
+    createGradleWrapper(projectRoot);
+    updateVersionAndDependencies(projectRoot);
+    String projectName = projectWizardState.getString(ATTR_MODULE_NAME);
+    importProject(projectName, projectRoot, null);
   }
 
   private static void createProject(@NotNull final NewModuleWizardState wizardState, @NotNull Project project,
@@ -1165,28 +1167,22 @@ public class TemplateTest extends AndroidGradleTestCase {
         // If this is a new project, instantiate the project-level files
         if (wizardState instanceof NewProjectWizardState) {
           Template projectTemplate = ((NewProjectWizardState)wizardState).getProjectTemplate();
-          final RenderingContext projectContext = RenderingContext.Builder.newContext(projectTemplate, project)
-            .withOutputRoot(projectRoot)
-            .withModuleRoot(moduleRoot)
-            .withParams(wizardState.myParameters)
-            .build();
+          final RenderingContext projectContext =
+            createRenderingContext(projectTemplate, project, projectRoot, moduleRoot, wizardState.myParameters);
           projectTemplate.render(projectContext);
           AndroidGradleModuleUtils.setGradleWrapperExecutable(projectRoot);
         }
 
-        final RenderingContext context = RenderingContext.Builder.newContext(wizardState.myTemplate, project)
-          .withOutputRoot(projectRoot).withModuleRoot(moduleRoot).withParams(wizardState.myParameters).build();
+        final RenderingContext context =
+          createRenderingContext(wizardState.myTemplate, project, projectRoot, moduleRoot, wizardState.myParameters);
         wizardState.myTemplate.render(context);
         if (wizardState.getBoolean(ATTR_CREATE_ACTIVITY)) {
           TemplateWizardState activityTemplateState = wizardState.getActivityTemplateState();
           activityTemplateState.populateRelativePackage(null);
           Template template = activityTemplateState.getTemplate();
           assert template != null;
-          final RenderingContext activityContext = RenderingContext.Builder.newContext(template, project)
-            .withOutputRoot(moduleRoot)
-            .withModuleRoot(moduleRoot)
-            .withParams(activityTemplateState.myParameters)
-            .build();
+          final RenderingContext activityContext =
+            createRenderingContext(template, project, moduleRoot, moduleRoot, activityTemplateState.myParameters);
           template.render(activityContext);
           context.getFilesToOpen().addAll(activityContext.getFilesToOpen());
         }
@@ -1199,6 +1195,24 @@ public class TemplateTest extends AndroidGradleTestCase {
       throw new RuntimeException(e);
     }
     assertEmpty(errors);
+  }
+
+  @NotNull
+  private static RenderingContext createRenderingContext(@NotNull Template projectTemplate,
+                                                         @NotNull Project project,
+                                                         @NotNull File projectRoot,
+                                                         @NotNull File moduleRoot,
+                                                         @Nullable Map<String, Object> parameters) {
+    RenderingContext.Builder builder = RenderingContext.Builder.newContext(projectTemplate, project)
+      .withOutputRoot(projectRoot)
+      .withModuleRoot(moduleRoot)
+      .withGradleSync(false);
+
+    if (parameters != null) {
+      builder.withParams(parameters);
+    }
+
+    return builder.build();
   }
 
   /**
