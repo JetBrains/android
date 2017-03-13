@@ -369,7 +369,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
     myOriginalSdCard = getModel().sdCardStorage().getValue();
 
-    mySelectedCoreCount = getModel().useQemu2().get() ? getModel().cpuCoreCount().getValueOr(1) : AvdOptionsModel.MAX_NUMBER_OF_CORES;
+    mySelectedCoreCount = getModel().useQemu2().get() ? getModel().cpuCoreCount().getValueOr(1)
+                                                      : AvdOptionsModel.RECOMMENDED_NUMBER_OF_CORES;
   }
 
   private void addListeners() {
@@ -754,7 +755,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
           getModel().cpuCoreCount().setValue(mySelectedCoreCount);
         }
         else {
-          mySelectedCoreCount = getModel().cpuCoreCount().getValueOr(AvdOptionsModel.MAX_NUMBER_OF_CORES);
+          mySelectedCoreCount = getModel().cpuCoreCount().getValueOr(AvdOptionsModel.RECOMMENDED_NUMBER_OF_CORES);
           getModel().cpuCoreCount().setValue(1);
         }
       }
