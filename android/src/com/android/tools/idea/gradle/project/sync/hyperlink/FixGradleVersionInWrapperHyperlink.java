@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.service.notification.EditableNotificationMessageElement;
 import com.intellij.openapi.project.Project;

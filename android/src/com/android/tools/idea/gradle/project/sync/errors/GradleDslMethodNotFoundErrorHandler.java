@@ -20,7 +20,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.project.messages;
 
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -96,11 +96,14 @@ public class SyncMessage {
   }
 
   public void add(@NotNull Collection<NotificationHyperlink> quickFixes) {
-    myQuickFixes.addAll(quickFixes);
+    for (NotificationHyperlink quickFix : quickFixes) {
+      add(quickFix);
+    }
   }
 
   public void add(@NotNull NotificationHyperlink quickFix) {
     myQuickFixes.add(quickFix);
+    quickFix.setContainer(this);
   }
 
   @NotNull

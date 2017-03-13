@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.find.FindManager;
 import com.intellij.find.FindModel;
 import com.intellij.find.FindSettings;

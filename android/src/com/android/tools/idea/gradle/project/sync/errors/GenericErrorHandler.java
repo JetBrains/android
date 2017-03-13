@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
