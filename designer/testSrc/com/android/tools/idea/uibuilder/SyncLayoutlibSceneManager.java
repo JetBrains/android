@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder;
 
-import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.SceneView;
@@ -24,7 +23,6 @@ import com.intellij.openapi.command.CommandAdapter;
 import com.intellij.openapi.command.CommandEvent;
 import com.intellij.openapi.command.CommandProcessor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link LayoutlibSceneManager} used for tests that performs all operations synchronously.
@@ -37,12 +35,12 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
 
   @Override
   public void requestRender() {
-    runAfterCommandIfNecessary(() -> render());
+    runAfterCommandIfNecessary(() -> getModel().render());
   }
 
   @Override
   protected void requestModelUpdate() {
-    runAfterCommandIfNecessary(() -> updateModel());
+    runAfterCommandIfNecessary(() -> getModel().updateModel());
   }
 
   private static void runAfterCommandIfNecessary(Runnable runnable) {
@@ -60,12 +58,5 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
     }
   }
 
-  @Override
-  protected void setupRenderTask(@Nullable RenderTask task) {
-    super.setupRenderTask(task);
 
-    if (task != null) {
-      task.disableSecurityManager();
-    }
-  }
 }
