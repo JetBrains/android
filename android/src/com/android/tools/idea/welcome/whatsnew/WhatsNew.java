@@ -33,6 +33,7 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ResourceUtil;
 import com.intellij.util.xmlb.annotations.Tag;
@@ -41,8 +42,9 @@ import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.net.JarURLConnection;
 import java.net.MalformedURLException;
@@ -78,20 +80,66 @@ public class WhatsNew implements StartupActivity, DumbAware {
 
     URL resourceUrl = ResourceUtil.getResource(WhatsNew.class, RESOURCE_DIR, "");
     if (resourceUrl == null) {
-      // There the dir doesn't exist (there aren't any images).
+      // The dir doesn't exist (there aren't any images).
       return;
     }
-    Path message = getMessageToShow(data, applicationRevision, resourceUrl);
-    if (message != null) {
-      disableTipOfTheDay();
-      ApplicationManager.getApplication().invokeLater(() -> {
+    String messagePath = null;
+    messagePath = getMessageToShow(data, applicationRevision, resourceUrl);
+    if (messagePath != null) {
+      try {
+        // We don't want to show two popups, so disable the normal tip of the day if we're showing what's new.
+        disableTipOfTheDay();
+        String text = getAccessibleText(messagePath, resourceUrl);
+        InputStream stream = WhatsNew.class.getResourceAsStream(messagePath);
+        if (stream == null) {
+          // In a developer build the path will be the path directly to the image
+          stream = new FileInputStream(messagePath);
+        }
         try {
-          new WhatsNewDialog(project, message).show();
+          ImageIcon image = new ImageIcon(ImageIO.read(stream));
+          ApplicationManager.getApplication().invokeLater(() -> {
+            new WhatsNewDialog(project, image, text).show();
+          });
         }
-        catch (MalformedURLException exception) {
-          // shouldn't happen, but if it does just give up.
+        finally {
+          stream.close();
         }
-      });
+      }
+      catch (IOException exception) {
+        // shouldn't happen, but if it does just give up.
+        return;
+      }
+    }
+  }
+
+  @Nullable
+  private static String getAccessibleText(@NotNull String imagePath, @NotNull URL resourceUrl) {
+    String base = FileUtil.getNameWithoutExtension(imagePath);
+    Path image = null;
+    try {
+      image = toPath(resourceUrl).resolve(imagePath);
+      Path textPath = image.getParent().resolve(base + SdkConstants.DOT_TXT);
+      if (Files.exists(textPath)) {
+        return new String(Files.readAllBytes(textPath), Charsets.UTF_8);
+      }
+    }
+    catch (URISyntaxException | IOException e) {
+      // give up
+    }
+    finally {
+      closeFilesystem(image);
+    }
+    return null;
+  }
+
+  private static void closeFilesystem(@Nullable Path path) {
+    if (path != null) {
+      try {
+        path.getFileSystem().close();
+      }
+      catch (IOException | UnsupportedOperationException e) {
+        // ignore
+      }
     }
   }
 
@@ -111,7 +159,7 @@ public class WhatsNew implements StartupActivity, DumbAware {
 
   @VisibleForTesting
   @Nullable
-  Path getMessageToShow(@NotNull WhatsNewData data, @NotNull Revision applicationRevision, @NotNull URL resourceDir) {
+  String getMessageToShow(@NotNull WhatsNewData data, @NotNull Revision applicationRevision, @NotNull URL resourceDir) {
     String seenRevisionStr = data.myRevision;
     Revision seenRevision = null;
     if (seenRevisionStr != null) {
@@ -133,7 +181,7 @@ public class WhatsNew implements StartupActivity, DumbAware {
         Revision truncatedApplicationRevision = new Revision(applicationRevision.getMajor(), applicationRevision.getMinor());
         if (truncatedApplicationRevision.compareTo(truncatedLatestMessageRevision) == 0 &&
             (seenRevision == null || seenRevision.compareTo(latestMessageRevision, Revision.PreviewComparison.ASCENDING) < 0)) {
-          return latestMessage;
+          return latestMessage.toString();
         }
       }
     }
@@ -154,35 +202,36 @@ public class WhatsNew implements StartupActivity, DumbAware {
 
   @Nullable
   private static Path getLatestMessage(@NotNull URL resourceDir) {
-    FileSystem filesystem = null;
+    Path dir = null;
     try {
-      Path dir = null;
-      try {
-        dir = Paths.get(resourceDir.toURI());
-      }
-      catch (FileSystemNotFoundException exception) {
-        // handled by "if" below
-      }
-      try {
-        if (dir == null) {
-          filesystem = FileSystems.newFileSystem(resourceDir.toURI(), ImmutableMap.of());
-          JarURLConnection connection = (JarURLConnection)resourceDir.openConnection();
-          dir = filesystem.getPath(connection.getEntryName());
-        }
-        return Files.list(dir)
-          .filter(p -> p.toString().endsWith(SdkConstants.DOT_PNG))
-          .max((p1, p2) -> toRevision(p1).compareTo(toRevision(p2), Revision.PreviewComparison.ASCENDING)).orElse(null);
-      }
-      finally {
-        if (filesystem != null) {
-          filesystem.close();
-        }
-      }
+      dir = toPath(resourceDir);
+      return Files.list(dir)
+        .filter(p -> p.toString().endsWith(SdkConstants.DOT_PNG))
+        .max((p1, p2) -> toRevision(p1).compareTo(toRevision(p2), Revision.PreviewComparison.ASCENDING)).orElse(null);
     }
     catch (URISyntaxException | IOException exception) {
       // Just give up.
     }
+    finally {
+      closeFilesystem(dir);
+    }
     return null;
+  }
+
+  private static Path toPath(@NotNull URL resourceDir) throws URISyntaxException, IOException {
+    Path dir = null;
+    try {
+      dir = Paths.get(resourceDir.toURI());
+    }
+    catch (FileSystemNotFoundException exception) {
+      // handled by "if" below
+    }
+    if (dir == null) {
+      FileSystem filesystem = FileSystems.newFileSystem(resourceDir.toURI(), ImmutableMap.of());
+      JarURLConnection connection = (JarURLConnection)resourceDir.openConnection();
+      dir = filesystem.getPath(connection.getEntryName());
+    }
+    return dir;
   }
 
   @State(name = "whatsNew", storages = @Storage("androidStudioFirstRun.xml"))
@@ -217,11 +266,11 @@ public class WhatsNew implements StartupActivity, DumbAware {
     private Icon myImage;
     private String myText;
 
-    public WhatsNewDialog(@NotNull Project project, @NotNull Path message) throws MalformedURLException {
+    public WhatsNewDialog(@NotNull Project project, @NotNull Icon image, @Nullable String text) {
       super(project, false);
       setModal(true);
-      myImage = new ImageIcon(message.toUri().toURL());
-      myText = getAccessibleText(message);
+      myImage = image;
+      myText = text;
       setTitle("What's New");
       init();
     }
@@ -240,36 +289,6 @@ public class WhatsNew implements StartupActivity, DumbAware {
         label.getAccessibleContext().setAccessibleDescription(myText);
       }
       return label;
-    }
-
-    private static String getAccessibleText(Path image) {
-      String base = com.google.common.io.Files.getNameWithoutExtension(image.getFileName().toString());
-      Path textPath = image.getParent().resolve(base + SdkConstants.DOT_TXT);
-      if (!textPath.getFileSystem().isOpen()) {
-        try (FileSystem fileSystem = FileSystems.newFileSystem(textPath.toUri(), ImmutableMap.of())) {
-          textPath = fileSystem.getPath(textPath.toString());
-          return readText(textPath);
-        }
-        catch (IOException e) {
-          return null;
-        }
-      }
-      else {
-        return readText(textPath);
-      }
-    }
-
-    @Nullable
-    private static String readText(Path textPath) {
-      if (Files.exists(textPath)) {
-        try {
-          return new String(Files.readAllBytes(textPath), Charsets.UTF_8);
-        }
-        catch (IOException e) {
-          // give up
-        }
-      }
-      return null;
     }
   }
 }
