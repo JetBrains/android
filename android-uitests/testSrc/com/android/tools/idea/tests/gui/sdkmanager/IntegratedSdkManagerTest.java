@@ -25,6 +25,7 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -70,6 +71,7 @@ public class IntegratedSdkManagerTest {
    */
   @RunIn(TestGroup.QA)
   @Test
+  @Ignore("http://wphx6.hot.corp.google.com:8600/builders/studio-sanity_master-dev/builds/121")
   public void installPackage() throws Exception {
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
