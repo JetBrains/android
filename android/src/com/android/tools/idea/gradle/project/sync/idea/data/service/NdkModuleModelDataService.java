@@ -56,13 +56,6 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
   }
 
   @Override
-  protected void onModelsNotFound(@NotNull IdeModifiableModelsProvider modelsProvider) {
-    for (Module module : modelsProvider.getModules()) {
-      myCleanupStep.cleanUpModule(module, modelsProvider);
-    }
-  }
-
-  @Override
   protected void importData(@NotNull Collection<DataNode<NdkModuleModel>> toImport,
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
@@ -71,7 +64,17 @@ public class NdkModuleModelDataService extends ModuleModelDataService<NdkModuleM
 
     for (Module module : modelsProvider.getModules()) {
       NdkModuleModel ndkModuleModel = modelsByName.get(module.getName());
-      myModuleSetup.setUpModule(module, modelsProvider, ndkModuleModel, null, null, syncSkipped);
+      if (ndkModuleModel != null) {
+        myModuleSetup.setUpModule(module, modelsProvider, ndkModuleModel, null, null, syncSkipped);
+      }
+      else {
+        onModelNotFound(module, modelsProvider);
+      }
     }
+  }
+
+  @Override
+  protected void onModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
+    myCleanupStep.cleanUpModule(module, modelsProvider);
   }
 }
