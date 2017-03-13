@@ -76,6 +76,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private Profiler.Device myDevice;
 
+  @Nullable
   private Common.Session mySessionData;
 
   @NotNull
@@ -400,6 +401,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myProcess != null ? myProcess.getPid() : INVALID_PROCESS_ID;
   }
 
+  @Nullable
   public Common.Session getSession() {
     return mySessionData;
   }

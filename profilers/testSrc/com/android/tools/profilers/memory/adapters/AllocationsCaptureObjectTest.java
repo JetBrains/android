@@ -21,6 +21,7 @@ import com.android.tools.profiler.proto.MemoryProfiler.AllocationEventsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
 import com.android.tools.profilers.FakeGrpcChannel;
+import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.FakeMemoryService;
@@ -42,6 +43,8 @@ public class AllocationsCaptureObjectTest {
 
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
 
+  @NotNull private final FakeIdeProfilerServices myIdeProfilerServices = new FakeIdeProfilerServices();
+
   @NotNull private final RelativeTimeConverter myRelativeTimeConverter = new RelativeTimeConverter(0);
 
   @Rule
@@ -55,14 +58,13 @@ public class AllocationsCaptureObjectTest {
   @Test
   public void testAllocationsObjectGeneration() throws Exception {
     int appId = -1;
-    int infoId = 1;
     long startTimeNs = TimeUnit.MILLISECONDS.toNanos(3);
     long endTimeNs = TimeUnit.MILLISECONDS.toNanos(8);
 
     AllocationsInfo testInfo = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     AllocationsCaptureObject capture =
-      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), appId, ProfilersTestData.SESSION_DATA, testInfo,
-                                   myRelativeTimeConverter);
+      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, appId, testInfo,
+                                   myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
 
     // Verify values associated with the AllocationsInfo object.
     assertEquals(startTimeNs, capture.getStartTimeNs());
@@ -127,8 +129,8 @@ public class AllocationsCaptureObjectTest {
 
     AllocationsInfo testInfo1 = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     AllocationsCaptureObject capture =
-      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -1, ProfilersTestData.SESSION_DATA, testInfo1,
-                                   myRelativeTimeConverter);
+      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, testInfo1,
+                                   myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
 
     assertFalse(capture.isDoneLoading());
     assertFalse(capture.isError());
@@ -160,27 +162,27 @@ public class AllocationsCaptureObjectTest {
     MemoryProfiler.AllocationsInfo testInfo2 =
       MemoryProfiler.AllocationsInfo.newBuilder().setStartTime(endTimeNs).setEndTime(endTimeNs2).build();
     AllocationsCaptureObject capture =
-      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -1, ProfilersTestData.SESSION_DATA, testInfo1,
-                                   myRelativeTimeConverter);
+      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, testInfo1,
+                                   myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
 
     // Test inequality with different object type
     assertNotEquals(mock(CaptureObject.class), capture);
 
     AllocationsCaptureObject captureWithDifferentAppId =
-      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -2, ProfilersTestData.SESSION_DATA, testInfo1,
-                                   myRelativeTimeConverter);
+      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -2, testInfo1,
+                                   myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
     // Test inequality with different app id
     assertNotEquals(captureWithDifferentAppId, capture);
 
     AllocationsCaptureObject captureWithDifferentTimes =
-      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -1, ProfilersTestData.SESSION_DATA, testInfo2,
-                                   myRelativeTimeConverter);
+      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, testInfo2,
+                                   myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
     // Test inequality with different start/end times
     assertNotEquals(captureWithDifferentTimes, capture);
 
     AllocationsCaptureObject captureWithDifferentStatus =
-      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), -1, ProfilersTestData.SESSION_DATA, testInfo1,
-                                   myRelativeTimeConverter);
+      new AllocationsCaptureObject(myGrpcChannel.getClient().getMemoryClient(), ProfilersTestData.SESSION_DATA, -1, testInfo1,
+                                   myRelativeTimeConverter, myIdeProfilerServices.getFeatureTracker());
     // Test equality as long as appId + times are equal
     assertEquals(captureWithDifferentStatus, capture);
 
