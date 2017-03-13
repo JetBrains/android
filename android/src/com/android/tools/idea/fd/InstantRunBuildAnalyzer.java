@@ -157,7 +157,7 @@ public class InstantRunBuildAnalyzer {
     InstantRunNotificationProvider notificationProvider =
       new InstantRunNotificationProvider(buildSelection, deployType, myBuildInfo.getVerifierStatus());
 
-    return new InstantRunNotificationTask(myProject, myContext, notificationProvider, buildSelection.brokenForSecondaryUser);
+    return new InstantRunNotificationTask(myProject, myContext, notificationProvider, buildSelection);
   }
 
   @NotNull
