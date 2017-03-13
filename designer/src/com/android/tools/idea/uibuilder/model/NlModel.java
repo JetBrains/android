@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceResolver;
@@ -23,6 +24,7 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.avdmanager.AvdScreenData;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
@@ -31,11 +33,13 @@ import com.android.tools.idea.configurations.ConfigurationMatcher;
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.rendering.RefreshRenderAction;
-import com.android.tools.idea.rendering.TagSnapshot;
+import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
+import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
 import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlEditorProvider;
@@ -45,9 +49,12 @@ import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
+import com.android.util.PropertiesMap;
 import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.*;
+import com.google.common.util.concurrent.Futures;
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -58,6 +65,8 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.util.ProgressIndicatorBase;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
@@ -71,36 +80,52 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.Alarm;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.update.MergingUpdateQueue;
+import com.intellij.util.ui.update.Update;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.concurrent.GuardedBy;
+import javax.swing.Timer;
+import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.InvalidDnDOperationException;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.IN_PLATFORM;
+import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
+import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
 /**
  * Model for an XML file
  */
 public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
   private static final Logger LOG = Logger.getInstance(NlModel.class);
+  @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 1;
   private static final boolean CHECK_MODEL_INTEGRITY = false;
+  private static final int RENDER_DELAY_MS = 10;
   private final Set<String> myPendingIds = Sets.newHashSet();
 
   @NotNull private final DesignSurface mySurface;
   @NotNull private final AndroidFacet myFacet;
   private final XmlFile myFile;
+  private final ReentrantReadWriteLock myRenderResultLock = new ReentrantReadWriteLock();
   private final ConfigurationListener myConfigurationListener = new ConfigurationListener() {
     @Override
     public boolean changed(int flags) {
@@ -111,6 +136,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       return true;
     }
   };
+  @GuardedBy("myRenderResultLock")
+  private RenderResult myRenderResult;
   private Configuration myConfiguration;
   private final List<ModelListener> myListeners = Lists.newArrayList();
   private List<NlComponent> myComponents = Lists.newArrayList();
@@ -118,12 +145,22 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
   private boolean myActive;
+  private ResourceVersion myRenderedVersion;
   private final ModelVersion myModelVersion = new ModelVersion();
+  private AndroidPreviewProgressIndicator myCurrentIndicator;
+  private static final Object PROGRESS_LOCK = new Object();
+  private RenderTask myRenderTask;
   private final NlLayoutType myType;
   private long myConfigurationModificationCount;
 
+  // Variables to track previous values of the configuration bar for tracking purposes
+  private String myPreviousDeviceName;
+  private Locale myPreviousLocale;
+  private String myPreviousVersion;
+  private String myPreviousTheme;
   // Variable to track what triggered the latest render (if known)
   private ChangeType myModificationTrigger;
+  private long myElapsedFrameTimeMs = -1;
 
   @NotNull
   public static NlModel create(@NotNull DesignSurface surface,
@@ -134,10 +171,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @VisibleForTesting
-  protected NlModel(@NotNull DesignSurface surface,
-                    @Nullable Disposable parent,
-                    @NotNull AndroidFacet facet,
-                    @NotNull XmlFile file) {
+  protected NlModel(@NotNull DesignSurface surface, @Nullable Disposable parent, @NotNull AndroidFacet facet, @NotNull XmlFile file) {
     mySurface = surface;
     myFacet = facet;
     myFile = file;
@@ -149,6 +183,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       Disposer.register(parent, this);
     }
     myType = NlLayoutType.typeOf(file);
+
+    updateTrackingConfiguration();
   }
 
   /**
@@ -159,26 +195,22 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       myActive = true;
 
       myConfiguration.addListener(myConfigurationListener);
+      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
+      ResourceVersion version = manager.addListener(this, myFacet, myFile, myConfiguration);
 
       // If the resources have changed or the configuration has been modified, request a model update
-      if (myConfiguration.getModificationCount() != myConfigurationModificationCount) {
-        updateTheme();
+      if (!version.equals(myRenderedVersion) || (myConfiguration.getModificationCount() != myConfigurationModificationCount)) {
+        String theme = myConfiguration.getTheme();
+        ResourceUrl themeUrl = theme != null ? ResourceUrl.parse(myConfiguration.getTheme()) : null;
+        if (themeUrl != null &&
+            themeUrl.type == ResourceType.STYLE) {
+          ResourceResolver resolver = myConfiguration.getResourceResolver();
+          if (resolver == null || resolver.getTheme(themeUrl.name, themeUrl.framework) == null) {
+            myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
+          }
+        }
+        myListeners.forEach(listener -> listener.modelActivated(this));
         myModelVersion.myResourceVersion.incrementAndGet();
-      }
-      ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
-      manager.addListener(this, myFacet, myFile, myConfiguration);
-      myListeners.forEach(listener -> listener.modelActivated(this));
-    }
-  }
-
-  public void updateTheme() {
-    String theme = myConfiguration.getTheme();
-    ResourceUrl themeUrl = theme != null ? ResourceUrl.parse(myConfiguration.getTheme()) : null;
-    if (themeUrl != null &&
-        themeUrl.type == ResourceType.STYLE) {
-      ResourceResolver resolver = myConfiguration.getResourceResolver();
-      if (resolver == null || resolver.getTheme(themeUrl.name, themeUrl.framework) == null) {
-        myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
       }
     }
   }
@@ -224,16 +256,212 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     // updated by a single repaint
   }
 
+  /**
+   * Asynchronously inflates the model and updates the view hierarchy
+   *
+   * @deprecated moving to LayoutlibSceneManager
+   */
+  public void requestModelUpdate() {
+    ApplicationManager.getApplication().assertIsDispatchThread();
+
+    synchronized (PROGRESS_LOCK) {
+      if (myCurrentIndicator == null) {
+        myCurrentIndicator = new AndroidPreviewProgressIndicator();
+        myCurrentIndicator.start();
+      }
+    }
+
+    getRenderingQueue().queue(new Update("model.update", HIGH_PRIORITY) {
+      @Override
+      public void run() {
+        DumbService.getInstance(myFacet.getModule().getProject()).waitForSmartMode();
+        if (!myFacet.isDisposed()) {
+          try {
+            if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() == null) {
+              // Try again later - model hasn't been synced yet (and for example we won't
+              // be able to resolve custom views coming from libraries like appcompat,
+              // resulting in a broken render)
+              ApplicationManager.getApplication().invokeLater(() -> requestModelUpdate());
+              return;
+            }
+            updateModel();
+          }
+          catch (Throwable e) {
+            Logger.getInstance(NlModel.class).error(e);
+          }
+        }
+
+        synchronized (PROGRESS_LOCK) {
+          if (myCurrentIndicator != null) {
+            myCurrentIndicator.stop();
+            myCurrentIndicator = null;
+          }
+        }
+      }
+
+      @Override
+      public boolean canEat(Update update) {
+        return equals(update);
+      }
+    });
+  }
+
+  /**
+   * @deprecated moving to LayoutlibSceneManager
+   */
+  @NotNull
+  public MergingUpdateQueue getRenderingQueue() {
+    synchronized (myRenderingQueueLock) {
+      if (myRenderingQueue == null) {
+        myRenderingQueue = new MergingUpdateQueue("android.layout.rendering", RENDER_DELAY_MS, true, null, this, null,
+                                                  Alarm.ThreadToUse.POOLED_THREAD);
+        myRenderingQueue.setRestartTimerOnAdd(true);
+      }
+      return myRenderingQueue;
+    }
+  }
+
+  private final Object myRenderingQueueLock = new Object();
+  private MergingUpdateQueue myRenderingQueue;
+  private static final Object RENDERING_LOCK = new Object();
+
+  /**
+   * Whether we should render just the viewport
+   * @deprecated moving to LayoutlibSceneManager
+   */
+  private static boolean ourRenderViewPort;
+
+  /**
+   * @deprecated moving to LayoutlibSceneManager
+   */
+  public static void setRenderViewPort(boolean state) {
+    ourRenderViewPort = state;
+  }
+
+  /**
+   * @deprecated moving to LayoutlibSceneManager
+   */
+  public static boolean isRenderViewPort() {
+    return ourRenderViewPort;
+  }
+
+  /**
+   * @deprecated moving to LayoutlibSceneManager
+   */
+  @VisibleForTesting
+  protected void setupRenderTask(@Nullable RenderTask task) {
+  }
+
+  /**
+   * Synchronously inflates the model and updates the view hierarchy
+   *
+   * @param force forces the model to be re-inflated even if a previous version was already inflated
+   * @returns whether the model was inflated in this call or not
+   *
+   * @deprecated moving to LayoutlibSceneManager
+   */
+  private boolean inflate(boolean force) {
+    Configuration configuration = myConfiguration;
+    if (configuration == null) {
+      return false;
+    }
+
+    Project project = myFile.getProject();
+    if (project.isDisposed()) {
+      return false;
+    }
+    ResourceNotificationManager resourceNotificationManager = ResourceNotificationManager.getInstance(project);
+
+    // Some types of files must be saved to disk first, because layoutlib doesn't
+    // delegate XML parsers for non-layout files (meaning layoutlib will read the
+    // disk contents, so we have to push any edits to disk before rendering)
+    LayoutPullParserFactory.saveFileIfNecessary(myFile);
+
+    RenderResult result = null;
+    synchronized (RENDERING_LOCK) {
+      if (myRenderTask != null && !force) {
+        // No need to inflate
+        return false;
+      }
+
+      // Record the current version we're rendering from; we'll use that in #activate to make sure we're picking up any
+      // external changes
+      myRenderedVersion = resourceNotificationManager.getCurrentVersion(myFacet, myFile, myConfiguration);
+
+      RenderService renderService = RenderService.getInstance(myFacet);
+      RenderLogger logger = renderService.createLogger();
+      if (myRenderTask != null && !myRenderTask.isDisposed()) {
+        myRenderTask.dispose();
+      }
+      myRenderTask = renderService.createTask(myFile, configuration, logger, mySurface);
+      setupRenderTask(myRenderTask);
+      if (myRenderTask != null) {
+        if (!isRenderViewPort()) {
+          myRenderTask.useDesignMode(myFile);
+        }
+        result = myRenderTask.inflate();
+        if (result == null || !result.getRenderResult().isSuccess()) {
+          myRenderTask.dispose();
+          myRenderTask = null;
+
+          if (result == null) {
+            result = RenderResult.createBlank(myFile);
+          }
+        }
+      }
+
+      updateHierarchy(result);
+      myRenderResultLock.writeLock().lock();
+      try {
+        myRenderResult = result;
+      }
+      finally {
+        myRenderResultLock.writeLock().unlock();
+      }
+
+      return myRenderTask != null;
+    }
+  }
+
   @NotNull
   Set<String> getPendingIds() {
     return myPendingIds;
   }
 
-  public void syncWithPsi(@NotNull XmlTag newRoot, @NotNull List<TagSnapshotTreeNode> roots) {
-    new ModelUpdater(this).update(newRoot, roots);
+  private void updateHierarchy(@Nullable RenderResult result) {
+    if (result == null || !result.getRenderResult().isSuccess()) {
+      myComponents = Collections.emptyList();
+    }
+    else {
+      XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(myFile);
+      List<ViewInfo> rootViews = myType == NlLayoutType.MENU ? result.getSystemRootViews() : result.getRootViews();
+      updateHierarchy(rootTag, rootViews);
+    }
+    myModelVersion.increase(ChangeType.UPDATE_HIERARCHY);
+
+    if (CHECK_MODEL_INTEGRITY) {
+      checkStructure();
+    }
   }
 
-  public void checkStructure() {
+  @VisibleForTesting
+  public void updateHierarchy(@Nullable XmlTag rootTag, @NotNull List<ViewInfo> rootViews) {
+    LayoutlibModelUpdater updater = new LayoutlibModelUpdater(this);
+    updater.update(rootTag, updater.makeNodeList(rootViews));
+  }
+
+  /**
+   * Synchronously update the model. This will inflate the layout and notify the listeners using
+   * {@link ModelListener#modelDerivedDataChanged(NlModel)}.
+   *
+   * @deprecated moving to LayoutlibSceneManager
+   */
+  public void updateModel() {
+    inflate(true);
+    notifyListenersModelUpdateComplete();
+  }
+
+  private void checkStructure() {
     if (CHECK_MODEL_INTEGRITY) {
       ApplicationManager.getApplication().runReadAction(() -> {
         Set<NlComponent> unique = Sets.newIdentityHashSet();
@@ -282,7 +510,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       if (component.w == -1) {
         assert false : component.w;
       }
-      if (component.getSnapshot() == null) {assert false;
+      if (component.getSnapshot() == null) {
+        assert false;
       }
       if (component.getTag() == null) {
         assert false;
@@ -325,6 +554,125 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   /**
+   * Renders the current model synchronously. Once the render is complete, the listeners {@link ModelListener#modelRendered(NlModel)}
+   * method will be called.
+   * <p/>
+   * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
+   * <p/>
+   * <b>Do not call this method from the dispatch thread!</b>
+   *
+   * @deprecated moving to LayoutlibSceneManager
+   */
+  public void render() {
+    try {
+      renderImpl();
+    }
+    catch (Throwable e) {
+      if (!myFacet.isDisposed()) {
+        throw e;
+      }
+    }
+  }
+
+  /**
+   * @deprecated moving to LayoutlibSceneManager
+   */
+  private void renderImpl() {
+    if (myConfigurationModificationCount != myConfiguration.getModificationCount()) {
+      // usage tracking (we only pay attention to individual changes where only one item is affected since those are likely to be triggered
+      // by the user
+      if (!StringUtil.equals(myConfiguration.getTheme(), myPreviousTheme)) {
+        myPreviousTheme = myConfiguration.getTheme();
+        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.THEME_CHANGE);
+      }
+      else if (myConfiguration.getTarget() != null && !StringUtil.equals(myConfiguration.getTarget().getVersionName(), myPreviousVersion)) {
+        myPreviousVersion = myConfiguration.getTarget().getVersionName();
+        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.API_LEVEL_CHANGE);
+      }
+      else if (!myConfiguration.getLocale().equals(myPreviousLocale)) {
+        myPreviousLocale = myConfiguration.getLocale();
+        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.LANGUAGE_CHANGE);
+      }
+      else if (myConfiguration.getDevice() != null && !StringUtil.equals(myConfiguration.getDevice().getDisplayName(), myPreviousDeviceName)) {
+        myPreviousDeviceName = myConfiguration.getDevice().getDisplayName();
+        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEVICE_CHANGE);
+      }
+    }
+
+    ChangeType changeType = myModificationTrigger;
+    myModificationTrigger = null;
+    long renderStartTimeMs = System.currentTimeMillis();
+    boolean inflated = inflate(false);
+
+    synchronized (RENDERING_LOCK) {
+      if (myRenderTask != null) {
+        if (myElapsedFrameTimeMs != -1) {
+          myRenderTask.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(myElapsedFrameTimeMs));
+        }
+        RenderResult result = Futures.getUnchecked(myRenderTask.render());
+        // When the layout was inflated in this same call, we do not have to update the hierarchy again
+        if (!inflated) {
+          updateHierarchy(result);
+        }
+        myRenderResultLock.writeLock().lock();
+        try {
+          myRenderResult = result;
+          // Downgrade the write lock to read lock
+          myRenderResultLock.readLock().lock();
+        }
+        finally {
+          myRenderResultLock.writeLock().unlock();
+        }
+        try {
+          NlUsageTrackerManager.getInstance(mySurface).logRenderResult(changeType,
+                                                                       myRenderResult,
+                                                                       System.currentTimeMillis() - renderStartTimeMs);
+        } finally {
+          myRenderResultLock.readLock().unlock();
+        }
+      }
+    }
+
+    notifyListenersRenderComplete();
+  }
+
+  public void setElapsedFrameTimeMs(long ms) {
+    myElapsedFrameTimeMs = ms;
+  }
+
+  /**
+   * Request a layout pass
+   *
+   * @param animate if true, the resulting layout should be animated
+   *
+   * @deprecated moving to LayoutlibSceneManager
+   */
+  public void requestLayout(boolean animate) {
+    getRenderingQueue().queue(new Update("model.layout", LOW_PRIORITY) {
+
+      @Override
+      public void run() {
+        if (myRenderTask != null) {
+          synchronized (RENDERING_LOCK) {
+            RenderResult result;
+            try {
+              result = myRenderTask.layout().get();
+
+              if (result != null) {
+                updateHierarchy(result);
+                notifyListenersModelLayoutComplete(animate);
+              }
+            }
+            catch (InterruptedException | ExecutionException e) {
+              LOG.warn("Unable to run layout()", e);
+            }
+          }
+        }
+      }
+    });
+  }
+
+  /**
    * Adds a new {@link ModelListener}. If the listener already exists, this method will make sure that the listener is only
    * added once.
    */
@@ -343,11 +691,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   /**
    * Calls all the listeners {@link ModelListener#modelDerivedDataChanged(NlModel)} method.
-   *
-   * // TODO: move this mechanism to LayoutlibSceneManager, or, ideally, remove the need for it entirely by
-   * // moving all the derived data into the Scene.
    */
-  public void notifyListenersModelUpdateComplete() {
+  private void notifyListenersModelUpdateComplete() {
     List<ModelListener> listeners;
     synchronized (myListeners) {
       listeners = ImmutableList.copyOf(myListeners);
@@ -358,10 +703,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   /**
    * Calls all the listeners {@link ModelListener#modelRendered(NlModel)} method.
-   *
-   * TODO: move these listeners out of NlModel, since the model shouldn't care about being rendered.
    */
-  public void notifyListenersRenderComplete() {
+  private void notifyListenersRenderComplete() {
     List<ModelListener> listeners;
     synchronized (myListeners) {
       listeners = ImmutableList.copyOf(myListeners);
@@ -373,17 +716,43 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   /**
    * Calls all the listeners {@link ModelListener#modelChangedOnLayout(NlModel, boolean)} method.
    *
-   * TODO: move these listeners out of NlModel, since the model shouldn't care about being layed out.
-   *
    * @param animate if true, warns the listeners to animate the layout update
    */
-  public void notifyListenersModelLayoutComplete(boolean animate) {
+  private void notifyListenersModelLayoutComplete(boolean animate) {
     List<ModelListener> listeners;
     synchronized (myListeners) {
       listeners = ImmutableList.copyOf(myListeners);
     }
 
     listeners.forEach(listener -> listener.modelChangedOnLayout(this, animate));
+  }
+
+  /**
+   * @deprecated moving to LayoutlibSceneManager
+   */
+  @Nullable
+  public RenderResult getRenderResult() {
+    myRenderResultLock.readLock().lock();
+    try {
+      return myRenderResult;
+    }
+    finally {
+      myRenderResultLock.readLock().unlock();
+    }
+  }
+
+  @NotNull
+  public Map<Object, PropertiesMap> getDefaultProperties() {
+    myRenderResultLock.readLock().lock();
+    try {
+      if (myRenderResult == null) {
+        return Collections.emptyMap();
+      }
+      return myRenderResult.getDefaultProperties();
+    }
+    finally {
+      myRenderResultLock.readLock().unlock();
+    }
   }
 
   @NotNull
@@ -525,7 +894,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   /**
    * A node in a tree structure where each node provides a {@link TagSnapshot}.
    */
-  public interface TagSnapshotTreeNode {
+  interface TagSnapshotTreeNode {
     @Nullable
     TagSnapshot getTagSnapshot();
 
@@ -541,9 +910,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * edits such that for example the selection (a set of {@link NlComponent} instances)
    * are preserved.
    */
-  private static class ModelUpdater {
-    private final NlModel myModel;
-    private final Map<XmlTag, NlComponent> myTagToComponentMap = Maps.newIdentityHashMap();
+  static class ModelUpdater {
+    protected final NlModel myModel;
+    protected final Map<XmlTag, NlComponent> myTagToComponentMap = Maps.newIdentityHashMap();
     private final Map<NlComponent, XmlTag> myComponentToTagMap = Maps.newIdentityHashMap();
     /**
      * Map from snapshots in the old component map to the corresponding components
@@ -614,6 +983,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       // Wipe out state in older components to make sure on reuse we don't accidentally inherit old
       // data
       for (NlComponent component : myTagToComponentMap.values()) {
+        clearDerivedData(component);
         component.setSnapshot(null);
       }
 
@@ -621,6 +991,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       for (TagSnapshotTreeNode root : roots) {
         updateHierarchy(root);
       }
+    }
+
+    protected void clearDerivedData(@NotNull NlComponent component) {
+      // Nothing
     }
 
     private void mapOldToNew(@NotNull XmlTag newRootTag) {
@@ -850,6 +1224,144 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       }
       for (TagSnapshotTreeNode child : node.getChildren()) {
         updateHierarchy(child);
+      }
+    }
+  }
+
+  /**
+   * A {@link ModelUpdater} that also updates the bounds of the components based on layoutlib information.
+   *
+   * TODO: move to LayoutlibSceneManager
+   * TODO: remove bounds from NlComponent and use Scene bounds instead.
+   */
+  private static class LayoutlibModelUpdater extends ModelUpdater {
+
+    private Map<TagSnapshotTreeNode, ViewInfo> mySnapshotToViewMap = new HashMap<>();
+
+    public LayoutlibModelUpdater(@NotNull NlModel model) {
+      super(model);
+    }
+
+    /**
+     * A TagSnapshot tree that mirrors the ViewInfo tree.
+     */
+    private static class ViewInfoTagSnapshotNode implements TagSnapshotTreeNode {
+
+      private final ViewInfo myViewInfo;
+      private Map<TagSnapshotTreeNode, ViewInfo> mySnapshotToViewMap = new HashMap<>();
+
+      private ViewInfoTagSnapshotNode(@NotNull ViewInfo info, Map<TagSnapshotTreeNode, ViewInfo> snapshotToViewMap) {
+        myViewInfo = info;
+        mySnapshotToViewMap = snapshotToViewMap;
+      }
+
+      @Nullable
+      @Override
+      public TagSnapshot getTagSnapshot() {
+        Object result = myViewInfo.getCookie();
+        return result instanceof TagSnapshot ? (TagSnapshot)result : null;
+      }
+
+      @NotNull
+      @Override
+      public List<TagSnapshotTreeNode> getChildren() {
+        return makeNodeList(myViewInfo.getChildren(), mySnapshotToViewMap);
+      }
+    }
+
+    @NotNull
+    List<TagSnapshotTreeNode> makeNodeList(@NotNull List<ViewInfo> views) {
+      return makeNodeList(views, mySnapshotToViewMap);
+    }
+
+    @NotNull
+    private static List<TagSnapshotTreeNode> makeNodeList(@NotNull List<ViewInfo> views, Map<TagSnapshotTreeNode, ViewInfo> snapshotToViewMap) {
+      List<TagSnapshotTreeNode> result = new ArrayList<>();
+      for (ViewInfo viewInfo : views) {
+        ViewInfoTagSnapshotNode node = new ViewInfoTagSnapshotNode(viewInfo, snapshotToViewMap);
+        result.add(node);
+        snapshotToViewMap.put(node, viewInfo);
+      }
+      return result;
+    }
+
+    @Override
+    protected void clearDerivedData(@NotNull NlComponent component) {
+      super.clearDerivedData(component);
+      component.setBounds(0, 0, -1, -1); // -1: not initialized
+      component.viewInfo = null;
+    }
+
+    @Override
+    public void update(@Nullable XmlTag newRoot, @NotNull List<TagSnapshotTreeNode> rootTags) {
+      super.update(newRoot, rootTags);
+
+      // Update the bounds. This is based on the ViewInfo instances.
+      rootTags.stream().map(mySnapshotToViewMap::get)
+        .forEach(view -> updateBounds(view, 0, 0));
+
+      // Finally, fix up bounds: ensure that all components not found in the view
+      // info hierarchy inherit position from parent
+      fixBounds(myModel.getComponents().get(0));
+    }
+
+    private static void fixBounds(@NotNull NlComponent root) {
+      boolean computeBounds = false;
+      if (root.w == -1 && root.h == -1) { // -1: not initialized
+        computeBounds = true;
+
+        // Look at parent instead
+        NlComponent parent = root.getParent();
+        if (parent != null && parent.w >= 0) {
+          root.setBounds(parent.x, parent.y, 0, 0);
+        }
+      }
+
+      List<NlComponent> children = root.children;
+      if (children != null && !children.isEmpty()) {
+        for (NlComponent child : children) {
+          fixBounds(child);
+        }
+
+        if (computeBounds) {
+          Rectangle rectangle = new Rectangle(root.x, root.y, root.w, root.h);
+          // Grow bounds to include child bounds
+          for (NlComponent child : children) {
+            rectangle = rectangle.union(new Rectangle(child.x, child.y, child.w, child.h));
+          }
+
+          root.setBounds(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+        }
+      }
+    }
+
+    private void updateBounds(@NotNull ViewInfo view, int parentX, int parentY) {
+      ViewInfo bounds = RenderService.getSafeBounds(view);
+      Object cookie = view.getCookie();
+      NlComponent component;
+      if (cookie != null) {
+        if (cookie instanceof TagSnapshot) {
+          TagSnapshot snapshot = (TagSnapshot)cookie;
+          component = mySnapshotToComponent.get(snapshot);
+          if (component == null) {
+            component = myTagToComponentMap.get(snapshot.tag);
+          }
+          if (component != null && component.viewInfo == null) {
+            component.viewInfo = view;
+            int left = parentX + bounds.getLeft();
+            int top = parentY + bounds.getTop();
+            int width = bounds.getRight() - bounds.getLeft();
+            int height = bounds.getBottom() - bounds.getTop();
+
+            component.setBounds(left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE), Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
+          }
+        }
+      }
+      parentX += bounds.getLeft();
+      parentY += bounds.getTop();
+
+      for (ViewInfo child : view.getChildren()) {
+        updateBounds(child, parentX, parentY);
       }
     }
   }
@@ -1450,6 +1962,22 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     synchronized (myListeners) {
       myListeners.clear();
     }
+
+    // dispose is called by the project close using the read lock. Invoke the render task dispose later without the lock.
+    ApplicationManager.getApplication().invokeLater(() -> {
+      synchronized (RENDERING_LOCK) {
+        if (myRenderTask != null) {
+          myRenderTask.dispose();
+          myRenderTask = null;
+        }
+      }
+      myRenderResultLock.writeLock().lock();
+      try {
+        myRenderResult = null;
+      } finally {
+        myRenderResultLock.writeLock().unlock();
+      }
+    });
   }
 
   @Override
@@ -1549,26 +2077,56 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return myModelVersion.getResourceVersion();
   }
 
-  public long getConfigurationModificationCount() {
-    return myConfigurationModificationCount;
-  }
-
   public void notifyModified(ChangeType reason) {
-    updateTheme();
-    increaseModelVersion(reason);
+    String theme = myConfiguration.getTheme();
+    ResourceUrl themeUrl = theme != null ? ResourceUrl.parse(myConfiguration.getTheme()) : null;
+    if (themeUrl != null &&
+        themeUrl.type == ResourceType.STYLE) {
+      ResourceResolver resolver = myConfiguration.getResourceResolver();
+      if (resolver == null || resolver.getTheme(themeUrl.name, themeUrl.framework) == null) {
+        myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
+      }
+    }
+    myModelVersion.increase(reason);
     myModificationTrigger = reason;
     new ArrayList<>(myListeners).forEach(listener -> listener.modelChanged(this));
   }
 
-  public void increaseModelVersion(ChangeType reason) {
-    myModelVersion.increase(reason);
+  /**
+   * Updates the saved values that are used to log user changes to the configuration toolbar.
+   */
+  private void updateTrackingConfiguration() {
+    myPreviousDeviceName = myConfiguration.getDevice() != null ? myConfiguration.getDevice().getDisplayName() : null;
+    myPreviousVersion = myConfiguration.getTarget() != null ? myConfiguration.getTarget().getVersionName() : null;
+    myPreviousLocale = myConfiguration.getLocale();
+    myPreviousTheme = myConfiguration.getTheme();
   }
 
-  public ChangeType getLastChangeType() {
-    return myModificationTrigger;
-  }
+  private class AndroidPreviewProgressIndicator extends ProgressIndicatorBase {
+    private final Object myLock = new Object();
 
-  public void resetLastChange() {
-    myModificationTrigger = null;
+    @Override
+    public void start() {
+      super.start();
+      UIUtil.invokeLaterIfNeeded(() -> {
+        final Timer timer = UIUtil.createNamedTimer("Android rendering progress timer", 0, event -> {
+          synchronized (myLock) {
+            if (isRunning()) {
+              mySurface.registerIndicator(this);
+            }
+          }
+        });
+        timer.setRepeats(false);
+        timer.start();
+      });
+    }
+
+    @Override
+    public void stop() {
+      synchronized (myLock) {
+        super.stop();
+        ApplicationManager.getApplication().invokeLater(() -> mySurface.unregisterIndicator(this));
+      }
+    }
   }
 }
