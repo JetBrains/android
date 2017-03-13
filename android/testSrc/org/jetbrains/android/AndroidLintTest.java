@@ -33,6 +33,7 @@ import com.intellij.testFramework.ProjectViewTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.util.PlatformUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.inspections.lint.AndroidAddStringResourceQuickFix;
@@ -324,7 +325,11 @@ public class AndroidLintTest extends AndroidTestCase {
     myFixture.copyFileToProject(getGlobalTestDir() + "/R.java", "src/p1/pkg/R.java");
     myFixture.copyFileToProject(getGlobalTestDir() + "/strings.xml", "res/values/strings.xml");
 
-    doTestWithFix(new AndroidLintAllowBackupInspection(),
+    // No highlighting test: the error markers are physically present in the PSI File
+    // and confuses the manifest merger, which sees them. (The <caret> tag on the
+    // other hand is extracted and removed by CodeInsightTextFixtureImpl#SelectionAndCaretMarkupLoader
+    doTestWithoutHighlightingWithFix(
+      new AndroidLintAllowBackupInspection(),
                   "Generate full-backup-content descriptor",
                   "AndroidManifest.xml", "xml");
     // also check the generated backup descriptor.
@@ -897,8 +902,37 @@ public class AndroidLintTest extends AndroidTestCase {
     assertNotNull(targetDescriptor);
     assertNotNull(targetFix);
 
+    // TODO: Consider using CodeInsightTestFixtureImpl#invokeIntention
     targetFix.applyFix(getProject(), targetDescriptor);
     myFixture.checkResultByFile(getGlobalTestDir() + "/strings_after.xml");
+  }
+
+  public void testMergeObsoleteFolders() throws Exception {
+    if (!PlatformUtils.isAndroidStudio()) {
+      // Only perform this check in Studio, not IntelliJ, until
+      //    https://youtrack.jetbrains.com/issue/IDEA-169345
+      // is fixed upstream.
+      return;
+    }
+
+    // Force minSdkVersion to v14:
+    deleteManifest();
+    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
+
+    VirtualFile mainFile = myFixture.copyFileToProject(getGlobalTestDir() + "/values-strings.xml", "res/values/strings.xml");
+    VirtualFile v8strings = myFixture.copyFileToProject(getGlobalTestDir() + "/values-v8-strings.xml", "res/values-v8/strings.xml");
+    VirtualFile v10strings = myFixture.copyFileToProject(getGlobalTestDir() + "/values-v10-strings.xml", "res/values-v10/strings.xml");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/layout-v11-activity_main.xml", "res/layout-v11/activity_main.xml");
+    myFixture.copyFileToProject(getGlobalTestDir() + "/layout-activity_main.xml", "res/layout/activity_main.xml");
+    myFixture.configureFromExistingVirtualFile(mainFile);
+    AndroidLintObsoleteSdkIntInspection inspection = new AndroidLintObsoleteSdkIntInspection();
+    String actionLabel = "Merge resources from -v8 and -v10 into values";
+    doGlobalInspectionWithFix(inspection, actionLabel);
+
+    myFixture.checkResultByFile(getGlobalTestDir() + "/values-strings_after.xml");
+    // check that the other folders don't exist
+    assertFalse(v8strings.isValid());
+    assertFalse(v10strings.isValid());
   }
 
   public void testImpliedTouchscreenHardware() throws Exception {
@@ -1094,6 +1128,31 @@ public class AndroidLintTest extends AndroidTestCase {
     return doGlobalInspectionTest(inspection, getGlobalTestDir(), new AnalysisScope(myModule));
   }
 
+  private void doGlobalInspectionWithFix(@NotNull AndroidLintInspectionBase inspection, @NotNull String actionLabel) {
+    Map<RefEntity, CommonProblemDescriptor[]> map = doGlobalInspectionTest(inspection);
+
+    // Ensure family names are unique; if not quickfixes get collapsed. Set.add only returns true if it wasn't already in the set.
+    for (Map.Entry<RefEntity, CommonProblemDescriptor[]> entry : map.entrySet()) {
+      for (CommonProblemDescriptor descriptor : entry.getValue()) {
+        QuickFix[] fixes = descriptor.getFixes();
+        if (fixes != null) {
+          //noinspection unchecked
+          for (QuickFix<CommonProblemDescriptor> fix : fixes) {
+            String name = fix.getName();
+            if (actionLabel.equals(name)) {
+              if (fix.startInWriteAction()) {
+                WriteCommandAction.runWriteCommandAction(getProject(), () -> fix.applyFix(getProject(), descriptor));
+              } else {
+                fix.applyFix(getProject(), descriptor);
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
   private String getGlobalTestDir() {
     return BASE_PATH_GLOBAL + getTestName(true);
   }
@@ -1122,6 +1181,16 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestWithAction(extension, action);
   }
 
+  private void doTestWithoutHighlightingWithFix(@NotNull AndroidLintInspectionBase inspection,
+                                                @NotNull String message,
+                                                @NotNull String copyTo,
+                                                @NotNull String extension)
+    throws IOException {
+    final IntentionAction action = getQuickfixWithoutHighlightingCheck(inspection, message, copyTo, extension);
+    assertNotNull(action);
+    doTestWithAction(extension, action);
+  }
+
   private void doTestWithAction(@NotNull String extension, @NotNull final IntentionAction action) {
     assertTrue(action.isAvailable(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile()));
 
@@ -1140,17 +1209,32 @@ public class AndroidLintTest extends AndroidTestCase {
                                                            @NotNull String message,
                                                            @NotNull String copyTo,
                                                            @NotNull String extension) throws IOException {
-    doTestHighlighting(inspection, copyTo, extension);
+    doTestHighlighting(inspection, copyTo, extension, false);
+    return AndroidTestUtils.getIntentionAction(myFixture, message);
+  }
+
+  @Nullable
+  private IntentionAction getQuickfixWithoutHighlightingCheck(@NotNull AndroidLintInspectionBase inspection,
+                                                              @NotNull String message,
+                                                              @NotNull String copyTo,
+                                                              @NotNull String extension) throws IOException {
+    doTestHighlighting(inspection, copyTo, extension, true);
     return AndroidTestUtils.getIntentionAction(myFixture, message);
   }
 
   private void doTestHighlighting(@NotNull AndroidLintInspectionBase inspection, @NotNull String copyTo, @NotNull String extension)
       throws IOException {
+    doTestHighlighting(inspection, copyTo, extension, false);
+  }
+  private void doTestHighlighting(@NotNull AndroidLintInspectionBase inspection, @NotNull String copyTo, @NotNull String extension,
+                                  boolean skipCheck) throws IOException {
     enableExactlyOneInspection(myFixture, inspection);
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + "." + extension, copyTo);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.doHighlighting();
-    myFixture.checkHighlighting(true, false, false);
+    if (!skipCheck) {
+      myFixture.checkHighlighting(true, false, false);
+    }
   }
 
   public static void enableExactlyOneInspection(@NotNull JavaCodeInsightTestFixture fixture, @NotNull AndroidLintInspectionBase inspection) {
