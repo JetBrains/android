@@ -179,7 +179,10 @@ class DomPsiConverter {
   /** Gets the {@link TextRange} for the value region of a {@link Node} created with this converter */
   @NotNull
   public static TextRange getTextValueRange(@NotNull Node node) {
-    assert node instanceof DomNode;
+    if (!(node instanceof DomNode)) {
+      return getTextRange(node);
+    }
+
     DomNode domNode = (DomNode)node;
     XmlElement element = domNode.myElement;
     TextRange textRange = element.getTextRange();
