@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.ToggleOfflineModeHyperlink;
