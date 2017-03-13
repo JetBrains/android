@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlH
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -196,7 +197,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       }
     };
 
-    AndroidGradleNotification notification = AndroidGradleNotification.getInstance(myProject);
+    AndroidNotification notification = AndroidNotification.getInstance(myProject);
     notification.showBalloon("Migrate Project to Gradle?", errMsg, NotificationType.WARNING, moreInfoHyperlink, doNotShowAgainHyperlink);
   }
 
@@ -276,7 +277,7 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       return;
     }
     String s = join(unsupportedModules, Module::getName, ", ");
-    AndroidGradleNotification.getInstance(myProject).showBalloon(
+    AndroidNotification.getInstance(myProject).showBalloon(
       "Unsupported Modules Detected",
       "Compilation is not supported for following modules: " + s +
       ". Unfortunately you can't have non-Gradle Java modules and Android-Gradle modules in one project.",

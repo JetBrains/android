@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.build;
 
 import com.android.ide.common.blame.Message;
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -294,7 +294,7 @@ public class PostProjectBuildTasksExecutor {
     };
     String title = "Unresolved Dependencies";
     String text = "Unresolved dependencies detected while building project in offline mode. Please disable offline mode and try again.";
-    AndroidGradleNotification.getInstance(myProject).showBalloon(title, text, NotificationType.ERROR, disableOfflineModeHyperlink);
+    AndroidNotification.getInstance(myProject).showBalloon(title, text, NotificationType.ERROR, disableOfflineModeHyperlink);
   }
 
   /**

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -24,23 +24,23 @@ import com.intellij.openapi.project.Project;
 import com.intellij.pom.NonNavigatable;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessage.DEFAULT_GROUP;
+import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.buildErrorMessage;
 
 public class SyncErrorHandlerManager {
-  @NotNull private final SyncMessages mySyncMessages;
+  @NotNull private final GradleSyncMessages mySyncMessages;
   @NotNull private final ErrorAndLocation.Factory myCauseAndLocationFactory;
   @NotNull private final SyncErrorHandler[] myErrorHandlers;
   @NotNull private final Project myProject;
 
   public SyncErrorHandlerManager(@NotNull Project project) {
-    this(project, SyncMessages.getInstance(project), new ErrorAndLocation.Factory(), SyncErrorHandler.getExtensions());
+    this(project, GradleSyncMessages.getInstance(project), new ErrorAndLocation.Factory(), SyncErrorHandler.getExtensions());
   }
 
   @VisibleForTesting
   SyncErrorHandlerManager(@NotNull Project project,
-                          @NotNull SyncMessages syncMessages,
+                          @NotNull GradleSyncMessages syncMessages,
                           @NotNull ErrorAndLocation.Factory causeAndLocationFactory,
                           @NotNull SyncErrorHandler... errorHandlers) {
     mySyncMessages = syncMessages;

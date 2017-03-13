@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
@@ -90,7 +90,7 @@ public class GoToApkLocationTask implements GradleBuildInvoker.AfterGradleInvoca
 
       Collections.sort(moduleNames);
 
-      AndroidGradleNotification notification = AndroidGradleNotification.getInstance(myProject);
+      AndroidNotification notification = AndroidNotification.getInstance(myProject);
       if (result.isBuildSuccessful()) {
         if (ShowFilePathAction.isSupported()) {
           StringBuilder buffer = new StringBuilder();

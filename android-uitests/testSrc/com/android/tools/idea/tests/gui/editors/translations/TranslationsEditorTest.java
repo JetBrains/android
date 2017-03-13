@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.editors.translations;
 
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
-import com.android.tools.idea.gradle.project.AndroidGradleNotification;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.AddKeyDialogFixture;
@@ -382,7 +382,7 @@ public final class TranslationsEditorTest {
     /* TODO Ideally, this would be good to have an option on the GuiTestRunner to avoid showing any notification for tests
      * because the notification prevent the robot to click on the multiline editor button */
     Notification notification =
-      ServiceManager.getService(myGuiTest.ideFrame().getProject(), AndroidGradleNotification.class).getNotification();
+      ServiceManager.getService(myGuiTest.ideFrame().getProject(), AndroidNotification.class).getNotification();
     if (notification != null) {
       notification.hideBalloon();
     }

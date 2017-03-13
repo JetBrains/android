@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors;
 
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.project.Project;
@@ -34,7 +34,7 @@ public abstract class BaseSyncErrorHandler extends SyncErrorHandler {
     String text = findErrorMessage(getRootCause(error), project);
     if (text != null) {
       List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(project, text);
-      SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
+      GradleSyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
       return true;
     }
     return false;

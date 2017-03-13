@@ -24,8 +24,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ng.SyncAction;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -50,7 +50,7 @@ import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 
 import java.util.List;
 
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
 
@@ -106,7 +106,7 @@ public class JdkModuleSetupStep extends AndroidModuleSetupStep {
           msg = reportWrongJdkError(project, text);
         }
 
-        SyncMessages.getInstance(project).report(msg);
+        GradleSyncMessages.getInstance(project).report(msg);
         GradleSyncState.getInstance(project).getSummary().setWrongJdkFound(true);
       }
     }

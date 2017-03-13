@@ -20,7 +20,7 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallPlatformHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink;
@@ -122,6 +122,6 @@ public class MissingPlatformErrorHandler extends SyncErrorHandler {
     if (isNotEmpty(loadError)) {
       text += "\nPossible cause: " + loadError;
     }
-    SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
+    GradleSyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
   }
 }
