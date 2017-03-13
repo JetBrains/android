@@ -21,6 +21,7 @@ import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.RelativeTimeConverter;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.ClassObject.ClassAttribute;
 import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
@@ -39,16 +40,18 @@ public final class AllocationsCaptureObject implements CaptureObject {
   private final Common.Session mySession;
   private long myStartTimeNs;
   private long myEndTimeNs;
+  private final FeatureTracker myFeatureTracker;
   private volatile List<ClassObject> myClassObjs;
   private volatile boolean myIsLoadingError;
   // Allocation records do not have heap information, but we create a fake HeapObject container anyway so that we have a consistent MemoryObject model.
   private final AllocationsHeapObject myFakeHeapObject;
 
   public AllocationsCaptureObject(@NotNull MemoryServiceBlockingStub client,
+                                  @Nullable Common.Session session,
                                   int processId,
-                                  Common.Session session,
                                   @NotNull MemoryProfiler.AllocationsInfo info,
-                                  @NotNull RelativeTimeConverter converter) {
+                                  @NotNull RelativeTimeConverter converter,
+                                  @NotNull FeatureTracker featureTracker) {
     myClient = client;
     myProcessId = processId;
     mySession = session;
@@ -64,6 +67,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
                " to " + TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
                  TimeUnit.MILLISECONDS.toMicros(1), TimeUnit.NANOSECONDS.toMicros(converter.convertToRelativeTime(myEndTimeNs))) :
                "");
+    myFeatureTracker = featureTracker;
   }
 
   @Override
@@ -95,6 +99,7 @@ public final class AllocationsCaptureObject implements CaptureObject {
       MemoryProfiler.DumpDataRequest.newBuilder().setProcessId(myProcessId).setSession(mySession).setDumpTime(myStartTimeNs).build());
     if (response.getStatus() == MemoryProfiler.DumpDataResponse.Status.SUCCESS) {
       response.getData().writeTo(outputStream);
+      myFeatureTracker.trackExportAllocation();
     }
     else {
       throw new IOException("Could not retrieve allocation dump.");
