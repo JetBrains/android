@@ -50,6 +50,7 @@ public class MemoryProfilerConfiguration {
   public void setClassGrouping(ClassGrouping classGrouping) {
     if (myClassGrouping != classGrouping) {
       myClassGrouping = classGrouping;
+      myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackChangeClassArrangment();
       myStage.getAspect().changed(MemoryProfilerAspect.CLASS_GROUPING);
     }
   }

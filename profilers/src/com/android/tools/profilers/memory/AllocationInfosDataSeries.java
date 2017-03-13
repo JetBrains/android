@@ -22,10 +22,10 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.RelativeTimeConverter;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.AllocationsCaptureObject;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,15 +37,17 @@ class AllocationInfosDataSeries implements DataSeries<CaptureDurationData<Alloca
   @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
   private final int myProcessId;
   @NotNull private final RelativeTimeConverter myConverter;
-  private final Common.Session mySession;
+  @Nullable private final Common.Session mySession;
+  @NotNull private final FeatureTracker myFeatureTracker;
 
   public AllocationInfosDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
-                                   Common.Session session, int processId,
-                                   @NotNull RelativeTimeConverter converter) {
+                                   @Nullable Common.Session session, int processId,
+                                   @NotNull RelativeTimeConverter converter, @NotNull FeatureTracker featureTracker) {
     myClient = client;
     myProcessId = processId;
     myConverter = converter;
     mySession = session;
+    myFeatureTracker = featureTracker;
   }
 
   @NotNull
@@ -75,7 +77,8 @@ class AllocationInfosDataSeries implements DataSeries<CaptureDurationData<Alloca
       seriesData.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(startTimeNs),
                                       new CaptureDurationData<>(
                                         durationUs,
-                                        new AllocationsCaptureObject(myClient, myProcessId, mySession, info, myConverter))));
+                                        new AllocationsCaptureObject(myClient, mySession, myProcessId, info, myConverter,
+                                                                     myFeatureTracker))));
     }
     return seriesData;
   }

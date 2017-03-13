@@ -22,8 +22,10 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.RelativeTimeConverter;
+import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,16 +37,19 @@ class HeapDumpSampleDataSeries implements DataSeries<CaptureDurationData<HeapDum
   @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myClient;
   private final int myProcessId;
   @NotNull private final RelativeTimeConverter myConverter;
-  private final Common.Session mySession;
+  @NotNull private final FeatureTracker myFeatureTracker;
+  @Nullable private final Common.Session mySession;
 
   public HeapDumpSampleDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
-                                  Common.Session session,
+                                  @Nullable Common.Session session,
                                   int processId,
-                                  @NotNull RelativeTimeConverter converter) {
+                                  @NotNull RelativeTimeConverter converter,
+                                  @NotNull FeatureTracker featureTracker) {
     myClient = client;
     myProcessId = processId;
     mySession = session;
     myConverter = converter;
+    myFeatureTracker = featureTracker;
   }
 
   @Override
@@ -60,7 +65,7 @@ class HeapDumpSampleDataSeries implements DataSeries<CaptureDurationData<HeapDum
       long endTime = TimeUnit.NANOSECONDS.toMicros(info.getEndTime());
       seriesData.add(new SeriesData<>(startTime, new CaptureDurationData<>(
         info.getEndTime() == UNSPECIFIED_DURATION ? UNSPECIFIED_DURATION : endTime - startTime,
-        new HeapDumpCaptureObject(myClient, mySession, myProcessId, info, null, myConverter))));
+        new HeapDumpCaptureObject(myClient, mySession, myProcessId, info, null, myConverter, myFeatureTracker))));
     }
 
     return seriesData;
