@@ -342,13 +342,13 @@ public class CpuProfilerStageTest extends AspectObserver {
     ProfilerTimeline timeline = myStage.getStudioProfilers().getTimeline();
     double eps = 0.00001;
     // In GLOBAL clock type, selection should be the main node range
-    assertEquals(timeline.getSelectionRange().getMin(), captureNode.getStartGlobal(), eps);
-    assertEquals(timeline.getSelectionRange().getMax(), captureNode.getEndGlobal(), eps);
-    assertEquals(capture.getRange().getMax(), timeline.getSelectionRange().getMax(), eps);
+    assertEquals(timeline.getSelectionRange().getMin(), capture.getRange().getMin(), eps);
+    assertEquals(timeline.getSelectionRange().getMax(), capture.getRange().getMax(), eps);
 
+    timeline.getSelectionRange().set(captureNode.getStartGlobal(), captureNode.getEndGlobal());
     myStage.setClockType(ClockType.THREAD);
     assertEquals(ClockType.THREAD, captureNode.getClockType());
-    myStage.setAndSelectCapture(capture);
+    myStage.setCapture(capture);
     // In THREAD clock type, selection should scale the interval based on thread-clock/wall-clock ratio [node's startTime, node's endTime].
     double threadToGlobal = 1 / captureNode.threadGlobalRatio();
     double threadSelectionStart = captureNode.getStartGlobal() +
