@@ -57,13 +57,6 @@ public class JavaModuleModelDataService extends ModuleModelDataService<JavaModul
   }
 
   @Override
-  protected void onModelsNotFound(@NotNull IdeModifiableModelsProvider modelsProvider) {
-    for (Module module : modelsProvider.getModules()) {
-      myCleanupStep.cleanUpModule(module, modelsProvider);
-    }
-  }
-
-  @Override
   protected void importData(@NotNull Collection<DataNode<JavaModuleModel>> toImport,
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
@@ -74,6 +67,14 @@ public class JavaModuleModelDataService extends ModuleModelDataService<JavaModul
       if (javaModuleModel != null) {
         myModuleSetup.setUpModule(module, modelsProvider, javaModuleModel, null, null, syncSkipped);
       }
+      else {
+        onModelNotFound(module, modelsProvider);
+      }
     }
+  }
+
+  @Override
+  protected void onModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
+    myCleanupStep.cleanUpModule(module, modelsProvider);
   }
 }
