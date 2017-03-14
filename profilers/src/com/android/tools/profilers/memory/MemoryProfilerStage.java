@@ -27,11 +27,11 @@ import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profilers.*;
+import com.android.tools.profilers.event.EventMonitor;
+import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
-import com.android.tools.profilers.event.EventMonitor;
-import com.android.tools.profilers.memory.adapters.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -60,6 +60,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   private final MemoryStageLegends myLegends;
 
   private final int myProcessId;
+  @Nullable
   private final Common.Session mySessionData;
   private DurationDataModel<GcDurationData> myGcCount;
 
@@ -90,10 +91,10 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     myClient = profilers.getClient().getMemoryClient();
     HeapDumpSampleDataSeries heapDumpSeries =
       new HeapDumpSampleDataSeries(profilers.getClient().getMemoryClient(), mySessionData, myProcessId,
-                                   profilers.getRelativeTimeConverter());
+                                   profilers.getRelativeTimeConverter(), getStudioProfilers().getIdeServices().getFeatureTracker());
     AllocationInfosDataSeries allocationSeries =
       new AllocationInfosDataSeries(profilers.getClient().getMemoryClient(), mySessionData, myProcessId,
-                                    profilers.getRelativeTimeConverter());
+                                    profilers.getRelativeTimeConverter(), getStudioProfilers().getIdeServices().getFeatureTracker());
     myLoader = loader;
 
     Range viewRange = profilers.getTimeline().getViewRange();
@@ -235,7 +236,8 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     switch (response.getStatus()) {
       case SUCCESS:
         selectCapture(new HeapDumpCaptureObject(myClient, mySessionData, myProcessId, response.getInfo(), null,
-                                                getStudioProfilers().getRelativeTimeConverter()), loadJoiner);
+                                                getStudioProfilers().getRelativeTimeConverter(),
+                                                getStudioProfilers().getIdeServices().getFeatureTracker()), loadJoiner);
         break;
       case IN_PROGRESS:
         getLogger().debug(String.format("A heap dump for %d is already in progress.", myProcessId));
@@ -277,8 +279,9 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       case SUCCESS:
         myTrackingAllocations = enabled;
         if (!myTrackingAllocations) {
-          selectCapture(new AllocationsCaptureObject(myClient, myProcessId, mySessionData, response.getInfo(),
-                                                     getStudioProfilers().getRelativeTimeConverter()), loadJoiner);
+          selectCapture(new AllocationsCaptureObject(myClient, mySessionData, myProcessId, response.getInfo(),
+                                                     getStudioProfilers().getRelativeTimeConverter(),
+                                                     getStudioProfilers().getIdeServices().getFeatureTracker()), loadJoiner);
         }
         break;
       case IN_PROGRESS:
