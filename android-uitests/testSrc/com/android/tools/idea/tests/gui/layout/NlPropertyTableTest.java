@@ -17,11 +17,30 @@ package com.android.tools.idea.tests.gui.layout;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPropertyTableFixture;
+import com.intellij.codeInsight.lookup.LookupManager;
+import com.intellij.openapi.project.Project;
+import org.fest.swing.data.TableCellInSelectedRow;
+import org.fest.swing.fixture.AbstractComponentFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
+import org.fest.swing.timing.Wait;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import javax.swing.text.JTextComponent;
+import java.awt.*;
+
+import static com.google.common.truth.Truth.assertThat;
+import static java.awt.event.KeyEvent.VK_DOWN;
+import static java.awt.event.KeyEvent.VK_ESCAPE;
 
 /**
  * UI test for the layout preview window
@@ -40,7 +59,8 @@ public class NlPropertyTableTest {
       .waitForRenderToFinish();
 
     layout.findView("TextView", 0).click();
-    layout.getPropertyInspector()
+    layout.getPropertiesPanel()
+      .openAsInspector()
       .adjustIdeFrameHeightFor(4, "ID")
       .focusAndWaitForFocusGainInProperty("ID", null)
       .assertPropertyShowing("text", null)
@@ -100,5 +120,74 @@ public class NlPropertyTableTest {
       .assertPropertyNotShowing("ID", null)
       .assertPropertyNotShowing("text", null)
       .assertPropertyShowing("visibility", null);
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)  // Until this test has proven itself reliable
+  @Test
+  public void testSimpleKeyboardEditingInTable() throws Exception {
+    // If this UI test should fail, this is the intention with the test.
+    //
+    // Test the following simple keyboard editing tasks in the property table:
+    //  - Navigate to the row with the text property
+    //  - Type a character 'a' which should bring up the editor for the text value
+    //  - Type a character 'b' in the editor
+    //  - Press ESC to dismiss the completion lookup hint list
+    //  - Press arrow down to commit the changes and navigate to the next property: accessibilityLiveRegion
+    // Verify that the text value is now "ab" and the selected row is indeed "accessibilityLiveRegion"
+
+    IdeFrameFixture frame = guiTest.importSimpleApplication();
+    Project project = frame.getProject();
+    NlEditorFixture layout = frame
+      .getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .getLayoutEditor(true)
+      .waitForRenderToFinish();
+
+    NlComponentFixture textView = layout.findView("TextView", 0).click();
+
+    NlPropertyTableFixture table = layout.getPropertiesPanel().openAsTable();
+    table.waitForMinimumRowCount(10, Wait.seconds(5));
+    table.pressAndReleaseKeys(VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN, VK_DOWN);
+    table.type('a');
+    JTextComponentFixture textEditor = waitForEditorToShow(Wait.seconds(3));
+    Thread.sleep(2000);
+    type(textEditor, "b");
+    waitForLookupToShow(project, Wait.seconds(3));
+    textEditor.pressAndReleaseKeys(VK_ESCAPE);
+    waitForLookupToHide(project, Wait.seconds(3));
+    textEditor.pressAndReleaseKeys(VK_DOWN);
+
+    assertThat(textView.getTextAttribute()).isEqualTo("ab");
+    assertThat(table.cell(new TableCellInSelectedRow.TableCellBuilder().column(0)).value()).isEqualTo(
+      "NlPropertyItem{name=accessibilityLiveRegion, namespace=@android:}");
+  }
+
+  private static void waitForLookupToShow(@NotNull Project project, @NotNull Wait waitForLookup) {
+    LookupManager manager = LookupManager.getInstance(project);
+    waitForLookup.expecting("lookup to show").until(() -> manager.getActiveLookup() != null);
+  }
+
+  private static void waitForLookupToHide(@NotNull Project project, @NotNull Wait waitForLookup) {
+    LookupManager manager = LookupManager.getInstance(project);
+    waitForLookup.expecting("lookup to hide").until(() -> manager.getActiveLookup() == null);
+  }
+
+  private JTextComponentFixture waitForEditorToShow(@NotNull Wait waitForEditor) {
+    waitForEditor.expecting("editor to show").until(() -> getFocusOwner() instanceof JTextComponent);
+    return new JTextComponentFixture(guiTest.robot(), (JTextComponent)getFocusOwner());
+  }
+
+  private static Component getFocusOwner() {
+    return KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+  }
+
+  // JTextComponentFixture.enterText doesn't work on some Mac platforms.
+  // This is a workaround that does work on all platforms.
+  private static void type(@NotNull AbstractComponentFixture fixture, @NotNull String value) {
+    Component source = fixture.target();
+    for (int index = 0; index < value.length(); index++) {
+      char character = value.charAt(index);
+      fixture.robot().type(character, source);
+    }
   }
 }

@@ -16,6 +16,9 @@
 package com.android.tools.idea.uibuilder.property.ptable;
 
 import com.android.annotations.VisibleForTesting;
+import com.intellij.codeInsight.completion.CompletionProcess;
+import com.intellij.codeInsight.completion.CompletionProgressIndicator;
+import com.intellij.codeInsight.completion.CompletionService;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
@@ -24,6 +27,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
@@ -33,7 +37,7 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ex.IdeFocusTraversalPolicy;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.ui.TableSpeedSearch;
+import com.intellij.ui.Hint;
 import com.intellij.ui.TableUtil;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.UIUtil;
@@ -42,23 +46,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
 import javax.swing.plaf.TableUI;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.IOException;
 import java.util.Objects;
 
 public class PTable extends JBTable implements DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
-  private final TableSpeedSearch mySpeedSearch;
   private PTableModel myModel;
   private CopyPasteManager myCopyPasteManager;
   private PTableCellRendererProvider myRendererProvider;
@@ -100,10 +102,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     addMouseMotionListener(hoverListener);
     addMouseListener(hoverListener);
 
-    mySpeedSearch = new TableSpeedSearch(this, (object, cell) -> {
-      if (cell.column != 0) return null; // only match property names, not values
-      return object instanceof PTableItem ? ((PTableItem)object).getName() : null;
-    });
+    addKeyListener(new PTableKeyListener(this));
   }
 
   @Override
@@ -134,6 +133,25 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     return false;
   }
 
+  // The method editingCanceled is called from IDEEventQueue.EditingCanceller when a child component
+  // of a JTable receives a KeyEvent for the VK_ESCAPE key.
+  // However we do NOT want to stop editing the cell if our editor currently is showing completion
+  // results. The completion lookup is supposed to consume the key event but it cannot do that here
+  // because of the preprocessing performed in IDEEventQueue.
+  @Override
+  @SuppressWarnings("deprecation")  // For CompletionProgressIndicator
+  public void editingCanceled(@Nullable ChangeEvent event) {
+    CompletionProcess process = CompletionService.getCompletionService().getCurrentCompletion();
+    if (process instanceof CompletionProgressIndicator) {
+      Hint hint = ((CompletionProgressIndicator)process).getLookup();
+      if (hint != null) {
+        hint.hide();
+        return;
+      }
+    }
+    super.editingCanceled(event);
+  }
+
   @Override
   public TableCellRenderer getCellRenderer(int row, int column) {
     PTableItem value = (PTableItem)getValueAt(row, column);
@@ -156,10 +174,6 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
       return myEditorProvider.getCellEditor(value, column);
     }
     return null;
-  }
-
-  public TableSpeedSearch getSpeedSearch() {
-    return mySpeedSearch;
   }
 
   public boolean isHover(int row, int col) {
@@ -242,11 +256,11 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     // only perform edit if we know the editor is capable of a quick toggle action.
     // We know that boolean editors switch their state and finish editing right away
     if (editor.isBooleanEditor()) {
-      startEditing(row);
+      startEditing(row, null);
     }
   }
 
-  private void startEditing(int row) {
+  private void startEditing(int row, @Nullable Runnable afterActivation) {
     PTableCellEditor editor = getCellEditor(row, 0);
     if (editor == null) {
       return;
@@ -265,6 +279,9 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
       preferredComponent.requestFocusInWindow();
       editor.activate();
+      if (afterActivation != null) {
+        afterActivation.run();
+      }
     });
   }
 
@@ -474,7 +491,7 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
         quickEdit(selectedRow);
       }
       else {
-        startEditing(selectedRow);
+        startEditing(selectedRow, null);
       }
     }
   }
@@ -585,6 +602,35 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
         myMouseHoverRow = myMouseHoverCol = -1;
         repaint(cellRect);
       }
+    }
+  }
+
+  /**
+   * PTableKeyListener is our own implementation of "JTable.autoStartsEdit"
+   */
+  private static class PTableKeyListener extends KeyAdapter {
+    private final PTable myTable;
+
+    private PTableKeyListener(@NotNull PTable table) {
+      myTable = table;
+    }
+
+    @Override
+    public void keyTyped(@NotNull KeyEvent event) {
+      int row = myTable.getSelectedRow();
+      if (myTable.isEditing() || row == -1) {
+        return;
+      }
+      myTable.startEditing(row, () ->
+        ApplicationManager.getApplication().invokeLater(() -> IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
+          Component textEditor = IdeFocusManager.findInstance().getFocusOwner();
+          if (!(textEditor instanceof JTextComponent)) {
+            return;
+          }
+          KeyEvent keyEvent =
+            new KeyEvent(textEditor, event.getID(), event.getWhen(), event.getModifiers(), event.getKeyCode(), event.getKeyChar());
+          textEditor.dispatchEvent(keyEvent);
+        })));
     }
   }
 }

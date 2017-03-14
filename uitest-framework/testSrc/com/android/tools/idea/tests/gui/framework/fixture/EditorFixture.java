@@ -331,7 +331,7 @@ public class EditorFixture {
       myFrame.requestFocusIfLost();
     }
     else {
-      Wait.seconds(5).expecting("the editor to have the focus").until(() -> {
+      Wait.seconds(10).expecting("the editor to have the focus").until(() -> {
         // Keep requesting focus until it is obtained. Since there is no guarantee that the request focus will be granted,
         // keep asking until it is.
         JComponent target = editor.getContentComponent();
