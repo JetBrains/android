@@ -120,7 +120,7 @@ public class FullApkInstaller {
     }
   }
 
-  private static final class ApkInstaller implements RetryingInstaller.Installer {
+  static final class ApkInstaller implements RetryingInstaller.Installer {
     private final String myRemotePath;
     private final ConsolePrinter myPrinter;
     private final String myPmInstallOptions;
@@ -149,8 +149,9 @@ public class FullApkInstaller {
       return InstallResult.forLaunchOutput(receiver);
     }
 
+    @VisibleForTesting
     @NotNull
-    private static String getPmInstallCommand(@NotNull String remotePath, @Nullable String pmInstallOptions) {
+    static String getPmInstallCommand(@NotNull String remotePath, @Nullable String pmInstallOptions) {
       StringBuilder sb = new StringBuilder(30);
       sb.append("pm install ");
 
@@ -159,7 +160,7 @@ public class FullApkInstaller {
         sb.append(' ');
       }
 
-      sb.append("-r \"");
+      sb.append("-t -r \"");
       sb.append(remotePath);
       sb.append("\"");
       return sb.toString();
