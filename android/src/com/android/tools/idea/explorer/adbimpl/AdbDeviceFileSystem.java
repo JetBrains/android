@@ -25,6 +25,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,10 +34,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executor;
 
 public class AdbDeviceFileSystem implements DeviceFileSystem {
+  @NotNull private static final Logger LOGGER = Logger.getInstance(AdbDeviceFileSystem.class);
   @NotNull private final AdbDeviceFileSystemService myService;
   @NotNull private final IDevice myDevice;
   @NotNull private final AdbFileListing myFileListing;
@@ -45,8 +46,9 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   public AdbDeviceFileSystem(@NotNull AdbDeviceFileSystemService service, @NotNull IDevice device) {
     myService = service;
     myDevice = device;
-    myFileListing = new AdbFileListing(myDevice, service.getTaskExecutor());
-    myFileOperations = new AdbFileOperations(myDevice, service.getTaskExecutor());
+    AdbDeviceCapabilities deviceCapabilities = new AdbDeviceCapabilities(myDevice);
+    myFileListing = new AdbFileListing(myDevice, deviceCapabilities, service.getTaskExecutor());
+    myFileOperations = new AdbFileOperations(myDevice, deviceCapabilities, service.getTaskExecutor());
   }
 
   boolean isDevice(@Nullable IDevice device) {
@@ -87,7 +89,7 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   @NotNull
   @Override
   public DeviceState getDeviceState() {
-    switch(myDevice.getState()) {
+    switch (myDevice.getState()) {
       case ONLINE:
         return DeviceState.ONLINE;
       case OFFLINE:
@@ -110,22 +112,10 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   @NotNull
   @Override
   public ListenableFuture<DeviceFileEntry> getRootDirectory() {
-    SettableFuture<DeviceFileEntry> futureResult = SettableFuture.create();
-
-    getTaskExecutor().addCallback(getAdbFileListing().getRoot(), new FutureCallback<AdbFileListingEntry>() {
-      @Override
-      public void onSuccess(@Nullable AdbFileListingEntry result) {
-        assert result != null;
-        futureResult.set(new AdbDeviceFileEntry(AdbDeviceFileSystem.this, result, null));
-      }
-
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        futureResult.setException(t);
-      }
+    return getTaskExecutor().transform(getAdbFileListing().getRoot(), entry -> {
+      assert entry != null;
+      return new AdbDeviceFileEntry(this, entry, null);
     });
-
-    return futureResult;
   }
 
   @NotNull
@@ -235,109 +225,76 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   private ListenableFuture<Void> downloadFileWorker(@NotNull AdbDeviceFileEntry entry,
                                                     @NotNull Path localPath,
                                                     @NotNull FileTransferProgress progress) {
-    SettableFuture<Void> futureResult = SettableFuture.create();
 
     ListenableFuture<SyncService> futureSyncService = getSyncService();
-    getTaskExecutor().addCallback(futureSyncService, new FutureCallback<SyncService>() {
-      @Override
-      public void onSuccess(@Nullable SyncService syncService) {
-        assert syncService != null;
 
-        try {
-          long size = entry.getSize();
-          syncService.pullFile(entry.myEntry.getFullPath(),
-                               localPath.toString(),
-                               new SingleFileProgressMonitor(getEdtExecutor(), progress, size));
-          futureResult.set(null);
-        }
-        catch (SyncException e) {
-          if (e.wasCanceled()) {
-            futureResult.setException(new CancellationException());
-          }
-          else {
-            futureResult.setException(e);
-          }
-        }
-        catch (Throwable t) {
-          futureResult.setException(t);
-        }
-        finally {
-          syncService.close();
-        }
+    ListenableFuture<Void> futurePull = getTaskExecutor().transform(futureSyncService, syncService -> {
+      assert syncService != null;
+      try {
+        long size = entry.getSize();
+        syncService.pullFile(entry.myEntry.getFullPath(),
+                             localPath.toString(),
+                             new SingleFileProgressMonitor(getEdtExecutor(), progress, size));
+        return null;
       }
-
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        futureResult.setException(t);
+      finally {
+        syncService.close();
       }
     });
 
-    return futureResult;
+    return getTaskExecutor().catchingAsync(futurePull, SyncException.class, syncError -> {
+      assert syncError != null;
+      if (syncError.wasCanceled()) {
+        // Simply forward cancellation as the cancelled exception
+        return Futures.immediateCancelledFuture();
+      }
+      LOGGER.info(String.format("Error pulling file \"%s\" from \"%s\"", localPath, entry.getFullPath()), syncError);
+      return Futures.immediateFailedFuture(syncError);
+    });
   }
 
   @NotNull
   private ListenableFuture<Void> uploadFileWorker(@NotNull Path localPath,
                                                   @NotNull AdbDeviceFileEntry remoteDirectory,
                                                   @NotNull FileTransferProgress progress) {
-    SettableFuture<Void> futureResult = SettableFuture.create();
 
     ListenableFuture<SyncService> futureSyncService = getSyncService();
-    getTaskExecutor().addCallback(futureSyncService, new FutureCallback<SyncService>() {
-      @Override
-      public void onSuccess(@Nullable SyncService syncService) {
-        assert syncService != null;
 
-        try {
-          long fileLength = localPath.toFile().length();
-          String remotePath = AdbPathUtil.resolve(remoteDirectory.getFullPath(), localPath.getFileName().toString());
-          syncService.pushFile(localPath.toString(),
-                               remotePath,
-                               new SingleFileProgressMonitor(getEdtExecutor(), progress, fileLength));
-          futureResult.set(null);
-        }
-        catch (SyncException e) {
-          if (e.wasCanceled()) {
-            futureResult.setException(new CancellationException());
-          }
-          else {
-            futureResult.setException(e);
-          }
-        }
-        catch (Throwable t) {
-          futureResult.setException(t);
-        }
-        finally {
-          syncService.close();
-        }
+    ListenableFuture<Void> futurePush = getTaskExecutor().transform(futureSyncService, syncService -> {
+      assert syncService != null;
+      try {
+        long fileLength = localPath.toFile().length();
+        String remotePath = AdbPathUtil.resolve(remoteDirectory.getFullPath(), localPath.getFileName().toString());
+        syncService.pushFile(localPath.toString(),
+                             remotePath,
+                             new SingleFileProgressMonitor(getEdtExecutor(), progress, fileLength));
+        return null;
       }
-
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        futureResult.setException(t);
+      finally {
+        syncService.close();
       }
     });
 
-    return futureResult;
+    return getTaskExecutor().catchingAsync(futurePush, SyncException.class, syncError -> {
+      assert syncError != null;
+      if (syncError.wasCanceled()) {
+        // Simply forward cancellation as the cancelled exception
+        return Futures.immediateCancelledFuture();
+      }
+      LOGGER.info(String.format("Error pushing file \"%s\" to \"%s\"", localPath, remoteDirectory.getFullPath()), syncError);
+      return Futures.immediateFailedFuture(syncError);
+    });
   }
 
   @NotNull
   private ListenableFuture<SyncService> getSyncService() {
-    SettableFuture<SyncService> futureResult = SettableFuture.create();
-    getTaskExecutor().execute(() -> {
-      try {
-        SyncService sync = myDevice.getSyncService();
-        if (sync == null) {
-          futureResult.setException(new IOException("Unable to open synchronization service to device"));
-          return;
-        }
-
-        futureResult.set(sync);
+    return getTaskExecutor().executeAsync(() -> {
+      SyncService sync = myDevice.getSyncService();
+      if (sync == null) {
+        throw new IOException("Unable to open synchronization service to device");
       }
-      catch (Throwable t) {
-        futureResult.setException(new IOException("Unable to open synchronization service to device", t));
-      }
+      return sync;
     });
-    return futureResult;
   }
 
   /**
