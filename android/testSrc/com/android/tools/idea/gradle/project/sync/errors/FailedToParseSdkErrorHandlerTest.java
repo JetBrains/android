@@ -28,6 +28,7 @@ import static com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors.reg
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.SystemProperties.getUserName;
+import static java.io.File.separatorChar;
 import static org.mockito.Mockito.when;
 
 /**
@@ -91,9 +92,8 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
     assertNotNull(notificationUpdate);
 
     assertThat(notificationUpdate.getText()).isEqualTo(
-      "The directory 'add-ons', in the Android SDK at '/path/to/sdk/home', is either missing or empty\n\nCurrent user (" +
-      getUserName() +
-      ") does not have write access to the SDK directory.");
+      "The directory 'add-ons', in the Android SDK at '/path/to/sdk/home', is either missing or empty\n\nCurrent user ("
+        .replace('/', separatorChar) + getUserName() + ") does not have write access to the SDK directory.");
 
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
@@ -116,8 +116,8 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
     GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
 
-    assertThat(notificationUpdate.getText())
-      .isEqualTo("The directory 'add-ons', in the Android SDK at '/path/to/sdk/home', is either missing or empty");
+    assertThat(notificationUpdate.getText()).isEqualTo(
+      "The directory 'add-ons', in the Android SDK at '/path/to/sdk/home', is either missing or empty".replace('/', separatorChar));
 
     // Verify hyperlinks are correct.
     List<NotificationHyperlink> quickFixes = notificationUpdate.getFixes();
