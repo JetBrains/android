@@ -27,6 +27,7 @@ import com.google.common.base.Strings;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +37,7 @@ import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
 
+@Ignore("https://code.google.com/p/android/issues/detail?id=246475")
 @RunWith(GuiTestRunner.class)
 public class InstantRunTest extends TestWithEmulator {
 

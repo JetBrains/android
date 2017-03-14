@@ -29,6 +29,7 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +38,7 @@ import javax.swing.*;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+@Ignore("https://code.google.com/p/android/issues/detail?id=246475")
 @RunIn(TestGroup.QA)
 @RunWith(GuiTestRunner.class)
 public class NativeOptimizedWarningTest extends TestWithEmulator {
