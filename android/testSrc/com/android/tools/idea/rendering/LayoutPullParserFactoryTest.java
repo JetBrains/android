@@ -61,4 +61,30 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
 
     checkRendering(task, "drawable/progress_horizontal.png");
   }
+
+  public void testRenderAdaptiveIcon() throws Exception {
+    // TODO: Replace the drawable with an actual adaptive-icon (see TODO below)
+    VirtualFile file = myFixture.copyFileToProject("drawables/progress_horizontal.xml", "res/mipmap/adaptive.xml");
+    assertNotNull(file);
+    RenderTask task = createRenderTask(file);
+    assertNotNull(task);
+    ILayoutPullParser parser = LayoutPullParserFactory.create(task);
+    assertTrue(parser instanceof DomPullParser);
+    Element root = ((DomPullParser)parser).getRoot();
+
+    String actualLayout = XmlPrettyPrinter.prettyPrint(root, true);
+    String expectedLayout = Joiner.on(SdkUtils.getLineSeparator()).join(
+      "<ImageView",
+      "xmlns:android=\"http://schemas.android.com/apk/res/android\"",
+      "layout_width=\"fill_parent\"",
+      "layout_height=\"fill_parent\"",
+      "src=\"@mipmap/adaptive\" />",
+      ""
+    );
+
+    assertEquals(expectedLayout, actualLayout);
+
+    // TODO: Create the golden image once layoutlib adaptive-icon rendering is merged
+    //checkRendering(task, "mipmap/adaptive.png");
+  }
 }
