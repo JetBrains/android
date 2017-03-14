@@ -94,23 +94,26 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull private final ProjectImportErrorHandler myErrorHandler;
   @NotNull private final ProjectFinder myProjectFinder;
   @NotNull private final VariantSelector myVariantSelector;
+  @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
 
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
   public AndroidGradleProjectResolver() {
     this(new CommandLineArgs(false /* do not generate classpath init script */), new ProjectImportErrorHandler(), new ProjectFinder(),
-         new VariantSelector());
+         new VariantSelector(), new IdeaJavaModuleModelFactory());
   }
 
   @VisibleForTesting
   AndroidGradleProjectResolver(@NotNull CommandLineArgs commandLineArgs,
                                @NotNull ProjectImportErrorHandler errorHandler,
                                @NotNull ProjectFinder projectFinder,
-                               @NotNull VariantSelector variantSelector) {
+                               @NotNull VariantSelector variantSelector,
+                               @NotNull IdeaJavaModuleModelFactory ideaJavaModuleModelFactory) {
     myCommandLineArgs = commandLineArgs;
     myErrorHandler = errorHandler;
     myProjectFinder = projectFinder;
     myVariantSelector = variantSelector;
+    myIdeaJavaModuleModelFactory = ideaJavaModuleModelFactory;
   }
 
   @Override
@@ -246,7 +249,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                  boolean androidProjectWithoutVariants) {
     //noinspection deprecation
     ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
-    JavaModuleModel javaModuleModel = new IdeaJavaModuleModel(gradleModule, model, androidProjectWithoutVariants);
+    JavaModuleModel javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, model, androidProjectWithoutVariants);
     ideModule.createChild(JAVA_MODULE_MODEL, javaModuleModel);
   }
 

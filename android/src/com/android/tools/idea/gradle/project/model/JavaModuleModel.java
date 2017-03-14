@@ -34,9 +34,9 @@ import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 /**
  * Base model for Java library modules
  */
-public abstract class JavaModuleModel implements ModuleModel {
+public class JavaModuleModel implements ModuleModel {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   @NotNull private final String myModuleName;
   @NotNull private final Collection<JavaModuleContentRoot> myContentRoots;
@@ -52,16 +52,16 @@ public abstract class JavaModuleModel implements ModuleModel {
   private final boolean myBuildable;
   private final boolean myAndroidModuleWithoutVariants;
 
-  protected JavaModuleModel(@NotNull String moduleName,
-                            @NotNull Collection<JavaModuleContentRoot> contentRoots,
-                            @NotNull Collection<JavaModuleDependency> javaModuleDependencies,
-                            @NotNull Collection<JarLibraryDependency> jarLibraryDependencies,
-                            @NotNull Map<String, Set<File>> artifactsByConfiguration,
-                            @Nullable ExtIdeaCompilerOutput compilerOutput,
-                            @Nullable File buildFolderPath,
-                            @Nullable String languageLevel,
-                            boolean buildable,
-                            boolean androidModuleWithoutVariants) {
+  public JavaModuleModel(@NotNull String moduleName,
+                         @NotNull Collection<JavaModuleContentRoot> contentRoots,
+                         @NotNull Collection<JavaModuleDependency> javaModuleDependencies,
+                         @NotNull Collection<JarLibraryDependency> jarLibraryDependencies,
+                         @NotNull Map<String, Set<File>> artifactsByConfiguration,
+                         @Nullable ExtIdeaCompilerOutput compilerOutput,
+                         @Nullable File buildFolderPath,
+                         @Nullable String languageLevel,
+                         boolean buildable,
+                         boolean androidModuleWithoutVariants) {
     myModuleName = moduleName;
     myContentRoots = contentRoots;
     myJavaModuleDependencies = javaModuleDependencies;
@@ -165,7 +165,7 @@ public abstract class JavaModuleModel implements ModuleModel {
     return myConfigurations;
   }
 
-  protected static boolean isBuildable(@NotNull GradleProject gradleProject) {
+  public static boolean isBuildable(@NotNull GradleProject gradleProject) {
     for (GradleTask task : gradleProject.getTasks()) {
       if (COMPILE_JAVA_TASK_NAME.equals(task.getName())) {
         return true;
