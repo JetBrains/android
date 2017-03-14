@@ -362,6 +362,7 @@
 
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
     <statisticsService   implementationClass="com.android.tools.idea.stats.AndroidStatisticsService" key="android-studio" />
+    <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.AdaptiveIconDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.DrawableStateListDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.BitmapDomFileDescription"/>
     <dom.fileDescription implementation="org.jetbrains.android.dom.drawable.fileDescriptions.NinePatchDomFileDescription"/>

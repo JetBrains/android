@@ -24,6 +24,8 @@ import com.intellij.util.xml.DomElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.EnumSet;
+
 /**
  * Base class for creating {@link com.intellij.util.xml.DomFileDescription} classes describing
  * Android XML resources with several possible root tags. Subclasses should provide no-arguments
@@ -37,14 +39,17 @@ import org.jetbrains.annotations.Nullable;
 public abstract class AbstractMultiRootFileDescription<T extends DomElement> extends AndroidResourceDomFileDescription<T> {
   private final ImmutableSet<String> myTagNames;
 
-  public AbstractMultiRootFileDescription(@NotNull Class<T> aClass, @NotNull ResourceFolderType resourceFolderType, @NotNull ImmutableSet<String> tagNames) {
-    super(aClass, tagNames.iterator().next(), resourceFolderType);
+  public AbstractMultiRootFileDescription(@NotNull Class<T> aClass, @NotNull EnumSet<ResourceFolderType> resourceFolderTypes, @NotNull ImmutableSet<String> tagNames) {
+    super(aClass, tagNames.iterator().next(), resourceFolderTypes);
     myTagNames = tagNames;
   }
 
+  public AbstractMultiRootFileDescription(@NotNull Class<T> aClass, @NotNull ResourceFolderType resourceFolderType, @NotNull ImmutableSet<String> tagNames) {
+    this(aClass, EnumSet.of(resourceFolderType), tagNames);
+  }
+
   public AbstractMultiRootFileDescription(@NotNull Class<T> aClass, @NotNull ResourceFolderType resourceFolderType, @NotNull String... tagNames) {
-    super(aClass, tagNames[0], resourceFolderType);
-    myTagNames = ImmutableSet.copyOf(tagNames);
+    this(aClass, resourceFolderType, ImmutableSet.copyOf(tagNames));
   }
 
   @Override
