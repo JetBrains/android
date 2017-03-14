@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
-import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.setup.module.SyncLibraryRegistry;
 import com.intellij.openapi.application.ApplicationManager;
@@ -27,7 +26,6 @@ import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Pair;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
@@ -95,9 +93,8 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     Map<String, Set<File>> artifactsByConfiguration = new HashMap<>();
     artifactsByConfiguration.put("default", Collections.singleton(jarFilePath));
 
-    JavaModuleModel model =
-      new IdeaJavaModuleModel(module.getName(), Collections.emptyList(), Pair.create(Collections.emptyList(), Collections.emptyList()),
-                              artifactsByConfiguration, null, null, null, true, false);
+    JavaModuleModel model = new JavaModuleModel(module.getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
+                                                artifactsByConfiguration, null, null, null, true, false);
     mySetupStep.doSetUpModule(module, modelsProvider, model, null, null);
 
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
@@ -122,9 +119,8 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
 
     Module module = getModule();
 
-    JavaModuleModel model =
-      new IdeaJavaModuleModel(module.getName(), Collections.emptyList(), Pair.create(Collections.emptyList(), Collections.emptyList()),
-                              artifactsByConfiguration, null, null, null, true, false);
+    JavaModuleModel model = new JavaModuleModel(module.getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
+                                                artifactsByConfiguration, null, null, null, true, false);
     mySetupStep.doSetUpModule(module, modelsProvider, model, null, null);
 
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
@@ -184,8 +180,8 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends IdeaTestCase {
     artifactsByConfiguration.put("default", Collections.singleton(jarFilePath));
 
     JavaModuleModel model =
-      new IdeaJavaModuleModel(moduleName, Collections.emptyList(), Pair.create(Collections.emptyList(), Collections.emptyList()),
-                              artifactsByConfiguration, null, buildFolderPath, null, true, false);
+      new JavaModuleModel(moduleName, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), artifactsByConfiguration,
+                          null, buildFolderPath, null, true, false);
     mySetupStep.doSetUpModule(module, modelsProvider, model, null, null);
 
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
