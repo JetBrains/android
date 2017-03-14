@@ -19,6 +19,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
+import com.android.tools.idea.rendering.TestRenderingUtils;
 import com.google.common.collect.Iterables;
 import com.intellij.codeInsight.daemon.impl.AnnotationHolderImpl;
 import com.intellij.lang.annotation.Annotation;
@@ -34,7 +35,6 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.ColorIcon;
 import org.jetbrains.annotations.NotNull;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -125,28 +125,15 @@ public class AndroidColorAnnotatorTest extends AndroidTestCase {
     GutterIconRenderer renderer = first.getGutterIconRenderer();
     assertThat(renderer).isNotNull();
     Icon icon = renderer.getIcon();
-    BufferedImage image = getImageFromIcon(icon);
+    BufferedImage image = TestRenderingUtils.getImageFromIcon(icon);
 
-    BufferedImage baselineImage;
-    if (new File(imagePath).isAbsolute()) {
-      // Go through the same process as the real annotator, to handle retina correctly.
-      baselineImage = getImageFromIcon(GutterIconCache.getInstance().getIcon(imagePath, null));
+    File expected = new File(imagePath);
+    if (!expected.isAbsolute()) {
+      expected = new File(getTestDataPath(), imagePath);
     }
-    else {
-      // The testData images are already exactly what should end up in the gutter.
-      baselineImage = ImageIO.read(new File(getTestDataPath(), imagePath));
-    }
+    // Go through the same process as the real annotator, to handle retina correctly.
+    BufferedImage baselineImage = TestRenderingUtils.getImageFromIcon(GutterIconCache.getInstance().getIcon(expected.getPath(), null));
     ImageDiffUtil.assertImageSimilar(getName(), ImageDiffUtil.convertToARGB(baselineImage), image, 5.0); // 5% difference allowed
-  }
-
-  @NotNull
-  private static BufferedImage getImageFromIcon(Icon icon) {
-    @SuppressWarnings("UndesirableClassUsage")
-    BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
-    Graphics2D graphics = image.createGraphics();
-    icon.paintIcon(null, graphics, 0, 0);
-    graphics.dispose();
-    return image;
   }
 
   private static void checkAnnotationColor(Annotation annotation, Color expectedColor) {

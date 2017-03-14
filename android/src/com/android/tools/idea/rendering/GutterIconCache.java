@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceUrl;
@@ -26,7 +27,6 @@ import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.Gray;
-import com.intellij.util.RetinaImage;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -48,15 +48,15 @@ import static com.android.SdkConstants.*;
 
 public class GutterIconCache {
   private static final Logger LOG = Logger.getInstance(GutterIconCache.class);
-  private static final int MAX_WIDTH = JBUI.scale(16);
-  private static final int MAX_HEIGHT = JBUI.scale(16);
   private static final Icon NONE = AndroidIcons.Android; // placeholder
+
+  @VisibleForTesting static final int MAX_WIDTH = JBUI.scale(16);
+  @VisibleForTesting static final int MAX_HEIGHT = JBUI.scale(16);
 
   private static final GutterIconCache ourInstance = new GutterIconCache();
   // TODO: Timestamps?
   private Map<String,Icon> myThumbnailCache = Maps.newHashMap();
   private boolean myRetina;
-  private static boolean ourRetinaEnabled = true;
 
   public GutterIconCache() {
   }
@@ -100,8 +100,8 @@ public class GutterIconCache {
   @Nullable
   private static Icon createXmlIcon(@NotNull String path, @Nullable ResourceResolver resolver) {
     try {
-      boolean isRetina = ourRetinaEnabled && UIUtil.isRetina();
-      VdPreview.TargetSize imageTargetSize = VdPreview.TargetSize.createSizeFromWidth(isRetina ? 2 * MAX_WIDTH : MAX_WIDTH);
+      VdPreview.TargetSize imageTargetSize =
+        VdPreview.TargetSize.createSizeFromWidth(isRetinaEnabled() ? ImageUtils.RETINA_SCALE * MAX_WIDTH : MAX_WIDTH);
 
       String xml = Files.toString(new File(path), Charsets.UTF_8);
       // See if this drawable is a vector; we can't render other drawables yet.
@@ -124,21 +124,10 @@ public class GutterIconCache {
           LOG.warn("Problems rendering " + path + ": " + builder);
         }
         if (image != null) {
-          if (isRetina) {
-            // The Retina image uses a scale of 2, and the RetinaImage class creates an
-            // image of size w/scale, h/scale. If the width or height is less than the scale,
-            // this rounds to width or height 0, which will cause exceptions to be thrown.
-            // Don't attempt to create a Retina image for images like that. See issue 65676.
-            final int scale = 2;
-            if (image.getWidth() >= scale && image.getHeight() >= scale) {
-              try {
-                @SuppressWarnings("ConstantConditions") Image hdpiImage = RetinaImage.createFrom(image, scale, null);
-                return new RetinaImageIcon(hdpiImage);
-              }
-              catch (Throwable t) {
-                // Can't always create Retina images (see issue 65609); fall through to non-Retina code path
-                ourRetinaEnabled = false;
-              }
+          if (isRetinaEnabled()) {
+            RetinaImageIcon retinaIcon = getRetinaIcon(image);
+            if (retinaIcon != null) {
+              return retinaIcon;
             }
           }
           return new ImageIcon(image);
@@ -149,6 +138,10 @@ public class GutterIconCache {
     }
 
     return null;
+  }
+
+  private static boolean isRetinaEnabled() {
+    return UIUtil.isRetina();
   }
 
   private static void replaceResourceReferences(@NonNull Node node, @NonNull ResourceResolver resolver) {
@@ -201,55 +194,8 @@ public class GutterIconCache {
   @Nullable
   private static Icon createBitmapIcon(@NotNull String path) {
     try {
-      BufferedImage image = ImageIO.read(new File(path));
-      if (image != null) {
-        int imageWidth = image.getWidth();
-        int imageHeight = image.getHeight();
-        if (ourRetinaEnabled && UIUtil.isRetina()) {
-          BufferedImage scaled = image;
-          if (imageWidth > 2 * MAX_WIDTH || imageHeight > 2 * MAX_HEIGHT) {
-            double scale = 2 * Math.min(MAX_WIDTH / (double)imageWidth, MAX_HEIGHT / (double)imageHeight);
-            scaled = ImageUtils.scale(image, scale, scale);
-          }
-
-          // The Retina image uses a scale of 2, and the RetinaImage class creates an
-          // image of size w/scale, h/scale. If the width or height is less than the scale,
-          // this rounds to width or height 0, which will cause exceptions to be thrown.
-          // Don't attempt to create a Retina image for images like that. See issue 65676.
-          final int scale = 2;
-          if (scaled.getWidth() >= scale && scaled.getHeight() >= scale) {
-            try {
-              @SuppressWarnings("ConstantConditions")
-              Image hdpiImage = RetinaImage.createFrom(scaled, scale, null);
-              return new RetinaImageIcon(hdpiImage);
-            } catch (Throwable t) {
-              // Can't always create Retina images (see issue 65609); fall through to non-Retina code path
-              ourRetinaEnabled = false;
-            }
-          }
-        }
-
-        if (imageWidth > MAX_WIDTH || imageHeight > MAX_HEIGHT) {
-          double scale = Math.min(MAX_WIDTH / (double)imageWidth, MAX_HEIGHT / (double)imageHeight);
-
-          if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
-            // Indexed images look terrible if they are scaled directly; instead, paint into an ARGB blank image
-            BufferedImage bg = UIUtil.createImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
-            Graphics g = bg.getGraphics();
-            //noinspection UseJBColor
-            g.setColor(Gray.TRANSPARENT);
-            g.fillRect(0, 0, bg.getWidth(), bg.getHeight());
-            //noinspection ConstantConditions
-            UIUtil.drawImage(g, image, 0, 0, null);
-            g.dispose();
-            image = bg;
-          }
-
-          image = ImageUtils.scale(image, scale, scale);
-        }
-
-        return new ImageIcon(image);
-      }
+      Icon icon = createBitmapIcon(ImageIO.read(new File(path)));
+      if (icon != null) return icon;
     }
     catch (Throwable e) {
       // Not just IOExceptions here; for example, we've seen
@@ -257,6 +203,59 @@ public class GutterIconCache {
       LOG.warn(String.format("Could not read icon image %1$s", path), e);
     }
 
+    return null;
+  }
+
+  @Nullable
+  @VisibleForTesting
+  static Icon createBitmapIcon(BufferedImage image) {
+    if (image != null) {
+      int imageWidth = image.getWidth();
+      int imageHeight = image.getHeight();
+      if (isRetinaEnabled() && (imageWidth > ImageUtils.RETINA_SCALE * MAX_WIDTH || imageHeight > ImageUtils.RETINA_SCALE * MAX_HEIGHT)) {
+        double scale = ImageUtils.RETINA_SCALE * Math.min(MAX_WIDTH / (double)imageWidth, MAX_HEIGHT / (double)imageHeight);
+        BufferedImage scaled = ImageUtils.scale(image, scale, scale);
+        RetinaImageIcon retinaIcon = getRetinaIcon(scaled);
+        if (retinaIcon != null) {
+          return retinaIcon;
+        }
+      }
+
+      if (imageWidth > MAX_WIDTH || imageHeight > MAX_HEIGHT) {
+        double scale = Math.min(MAX_WIDTH / (double)imageWidth, MAX_HEIGHT / (double)imageHeight);
+
+        if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+          // Indexed images look terrible if they are scaled directly; instead, paint into an ARGB blank image
+          BufferedImage bg = UIUtil.createImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+          Graphics g = bg.getGraphics();
+          //noinspection UseJBColor
+          g.setColor(Gray.TRANSPARENT);
+          g.fillRect(0, 0, bg.getWidth(), bg.getHeight());
+          //noinspection ConstantConditions
+          UIUtil.drawImage(g, image, 0, 0, null);
+          g.dispose();
+          image = bg;
+        }
+
+        image = ImageUtils.scale(image, scale, scale);
+      }
+
+      return new ImageIcon(image);
+    }
+    return null;
+  }
+
+  /**
+   * Returns a {@link RetinaImageIcon} for the given {@link BufferedImage}, if possible. Returns null otherwise.
+   */
+  @Nullable
+  private static RetinaImageIcon getRetinaIcon(@NonNull BufferedImage image) {
+    if (isRetinaEnabled()) {
+        Image hdpiImage = ImageUtils.convertToRetina(image);
+        if (hdpiImage != null) {
+          return new RetinaImageIcon(hdpiImage);
+        }
+    }
     return null;
   }
 
