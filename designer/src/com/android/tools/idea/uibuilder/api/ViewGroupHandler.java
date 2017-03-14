@@ -149,7 +149,6 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
     return null;
   }
 
-
   @Nullable
   public ScrollHandler createScrollHandler(@NotNull ViewEditor editor, @NotNull NlComponent component) {
     return null;
