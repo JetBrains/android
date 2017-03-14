@@ -45,11 +45,13 @@ import org.jetbrains.ide.PooledThreadExecutor;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class DexFileViewer implements ApkFileEditorComponent {
@@ -105,17 +107,34 @@ public class DexFileViewer implements ApkFileEditorComponent {
                    .setName("Class")
                    .setPreferredWidth(500)
                    .setHeaderAlignment(SwingConstants.LEFT)
+                   .setComparator(Comparator.comparing(PackageTreeNode::getName).reversed())
                    .setRenderer(new PackageTreeNodeRenderer()))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Defined Methods")
                    .setPreferredWidth(100)
                    .setHeaderAlignment(SwingConstants.LEFT)
+                   .setComparator(Comparator.comparing(PackageTreeNode::getDefinedMethodsCount))
                    .setRenderer(new MethodCountRenderer(true)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Referenced Methods")
                    .setPreferredWidth(100)
                    .setHeaderAlignment(SwingConstants.LEFT)
+                   .setComparator(Comparator.comparing(PackageTreeNode::getMethodRefCount))
                    .setRenderer(new MethodCountRenderer(false)));
+
+    builder.setTreeSorter((Comparator<PackageTreeNode> comparator, SortOrder order) -> {
+      if (comparator != null){
+        comparator = comparator.reversed();
+        Object root = myFilteredTreeModel.getRoot();
+        if (root instanceof PackageTreeNode) {
+          TreePath selectionPath = myTree.getSelectionPath();
+          ((PackageTreeNode)root).sort(comparator);
+          myFilteredTreeModel.reload();
+          myTree.setSelectionPath(selectionPath);
+          myTree.scrollPathToVisible(selectionPath);
+        }
+      }
+    });
 
     JComponent columnTree = builder.build();
     myLoadingPanel.add(columnTree, BorderLayout.CENTER);
