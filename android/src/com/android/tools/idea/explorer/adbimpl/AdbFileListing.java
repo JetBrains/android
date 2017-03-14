@@ -48,15 +48,7 @@ public class AdbFileListing {
     myDevice = device;
     myDeviceCapabilities = deviceCapabilities;
     myExecutor = FutureCallbackExecutor.wrap(taskExecutor);
-    myRoot = new AdbFileListingEntry("/",
-                                     AdbFileListingEntry.EntryKind.DIRECTORY,
-                                     null,
-                                     null,
-                                     null,
-                                     null,
-                                     null,
-                                     null,
-                                     null);
+    myRoot = new AdbFileListingEntryBuilder().setPath("/").setKind(AdbFileListingEntry.EntryKind.DIRECTORY).build();
   }
 
   @NotNull
@@ -66,9 +58,16 @@ public class AdbFileListing {
 
   @NotNull
   public ListenableFuture<List<AdbFileListingEntry>> getChildren(@NotNull AdbFileListingEntry parentEntry) {
+    return getChildrenRunAs(parentEntry, null);
+  }
+
+  @NotNull
+  public ListenableFuture<List<AdbFileListingEntry>> getChildrenRunAs(@NotNull AdbFileListingEntry parentEntry,
+                                                                      @Nullable String runAs) {
     return myExecutor.executeAsync(() -> {
       // Run "ls -l" command and process matching output lines
-      String command = getCommand("ls -l ").withDirectoryEscapedPath(parentEntry.getFullPath()).build(); //$NON-NLS-1$
+      String command = getCommand(runAs, "ls -l ").withDirectoryEscapedPath(parentEntry.getFullPath()).build(); //$NON-NLS-1$
+
       AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
 
       List<AdbFileListingEntry> entries = commandResult.getOutput()
@@ -91,6 +90,12 @@ public class AdbFileListing {
    */
   @NotNull
   public ListenableFuture<Boolean> isDirectoryLink(@NotNull AdbFileListingEntry entry) {
+    return isDirectoryLinkRunAs(entry, null);
+  }
+
+  @NotNull
+  public ListenableFuture<Boolean> isDirectoryLinkRunAs(@NotNull AdbFileListingEntry entry,
+                                                        @Nullable String runAs) {
     if (!entry.isSymbolicLink()) {
       return Futures.immediateFuture(false);
     }
@@ -100,7 +105,7 @@ public class AdbFileListing {
       // We do this by running `ls -ld ${link}/`.  If the referent exists and is a
       // directory, we'll see the normal directory listing.  Otherwise, we'll see an
       // error of some sort.
-      String command = getCommand("ls -l -d ").withDirectoryEscapedPath(entry.getFullPath()).build();
+      String command = getCommand(runAs, "ls -l -d ").withDirectoryEscapedPath(entry.getFullPath()).build();
       AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommandNoErrorCheck(myDevice, command);
 
       // Look for at least one line matching the expected output
@@ -204,10 +209,13 @@ public class AdbFileListing {
   }
 
   @NotNull
-  private AdbShellCommandBuilder getCommand(@NotNull String text)
+  private AdbShellCommandBuilder getCommand(@Nullable String runAs, @NotNull String text)
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
     AdbShellCommandBuilder command = new AdbShellCommandBuilder();
-    if (myDeviceCapabilities.supportsSuRootCommand()) {
+    if (runAs != null) {
+      command.withRunAs(runAs);
+    }
+    else if (myDeviceCapabilities.supportsSuRootCommand()) {
       command.withSuRootPrefix();
     }
     return command.withText(text);

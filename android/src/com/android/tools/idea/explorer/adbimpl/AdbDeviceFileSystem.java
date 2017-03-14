@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 
@@ -40,15 +41,16 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   @NotNull private static final Logger LOGGER = Logger.getInstance(AdbDeviceFileSystem.class);
   @NotNull private final AdbDeviceFileSystemService myService;
   @NotNull private final IDevice myDevice;
+  @NotNull private final AdbDeviceCapabilities myDeviceCapabilities;
   @NotNull private final AdbFileListing myFileListing;
   @NotNull private final AdbFileOperations myFileOperations;
 
   public AdbDeviceFileSystem(@NotNull AdbDeviceFileSystemService service, @NotNull IDevice device) {
     myService = service;
     myDevice = device;
-    AdbDeviceCapabilities deviceCapabilities = new AdbDeviceCapabilities(myDevice);
-    myFileListing = new AdbFileListing(myDevice, deviceCapabilities, service.getTaskExecutor());
-    myFileOperations = new AdbFileOperations(myDevice, deviceCapabilities, service.getTaskExecutor());
+    myDeviceCapabilities = new AdbDeviceCapabilities(myDevice);
+    myFileListing = new AdbFileListing(myDevice, myDeviceCapabilities, service.getTaskExecutor());
+    myFileOperations = new AdbFileOperations(myDevice, myDeviceCapabilities, service.getTaskExecutor());
   }
 
   boolean isDevice(@Nullable IDevice device) {
@@ -114,7 +116,7 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   public ListenableFuture<DeviceFileEntry> getRootDirectory() {
     return getTaskExecutor().transform(getAdbFileListing().getRoot(), entry -> {
       assert entry != null;
-      return new AdbDeviceFileEntry(this, entry, null);
+      return new AdbDeviceDefaultFileEntry(this, entry, null);
     });
   }
 
@@ -210,18 +212,6 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   }
 
   @NotNull
-  @Override
-  public ListenableFuture<Void> createNewFile(@NotNull DeviceFileEntry parentEntry, @NotNull String fileName) {
-    return myFileOperations.createNewFile(parentEntry.getFullPath(), fileName);
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<Void> createNewDirectory(@NotNull DeviceFileEntry parentEntry, @NotNull String directoryName) {
-    return myFileOperations.createNewDirectory(parentEntry.getFullPath(), directoryName);
-  }
-
-  @NotNull
   private ListenableFuture<Void> downloadFileWorker(@NotNull AdbDeviceFileEntry entry,
                                                     @NotNull Path localPath,
                                                     @NotNull FileTransferProgress progress) {
@@ -295,6 +285,29 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
       }
       return sync;
     });
+  }
+
+  @NotNull
+  public ListenableFuture<AdbDeviceFileEntry> resolveMountPoint(@NotNull AdbDeviceFileEntry entry) {
+    return getTaskExecutor().executeAsync(() -> {
+      // Root devices or "su 0" devices don't need mount points
+      if (myDeviceCapabilities.supportsSuRootCommand() || myDevice.isRoot()) {
+        return createDirectFileEntry(entry);
+      }
+
+      // The "/data" folder has directories where we need to use "run-as"
+      if (Objects.equals(entry.getFullPath(), "/data")) {
+        return new AdbDeviceDataDirectoryEntry(entry);
+      }
+
+      // Default behavior
+      return createDirectFileEntry(entry);
+    });
+  }
+
+  @NotNull
+  private static AdbDeviceDirectFileEntry createDirectFileEntry(@NotNull AdbDeviceFileEntry entry) {
+    return new AdbDeviceDirectFileEntry(entry.myDevice, entry.myEntry, entry.myParent, null);
   }
 
   /**

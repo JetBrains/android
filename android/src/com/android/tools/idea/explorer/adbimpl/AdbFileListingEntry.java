@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AdbFileListingEntry {
   @NotNull private final String myPath;
-  @NotNull private EntryKind myKind;
+  @NotNull private final EntryKind myKind;
   @Nullable private final String myPermissions;
   @Nullable private final String myOwner;
   @Nullable private final String myGroup;
@@ -78,6 +78,11 @@ public class AdbFileListingEntry {
     myTime = time;
     mySize = size;
     myExtraInfo = extraInfo;
+  }
+
+  @Override
+  public String toString() {
+    return String.format("%s: %s", myKind, myPath);
   }
 
   @NotNull

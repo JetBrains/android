@@ -62,6 +62,22 @@ public interface DeviceFileEntry {
   ListenableFuture<Void> delete();
 
   /**
+   * Creates a new file "{@code fileName}" in this directory, and returns a future that
+   * completes when the file is created. If there is any error creating the file (including the path
+   * already exists), the future completes with an exception.
+   */
+  @NotNull
+  ListenableFuture<Void> createNewFile(@NotNull String fileName);
+
+  /**
+   * Creates a new directory "{@code directoryName}" in this directory, and returns a future that
+   * completes when the directory is created. If there is any error creating the directory
+   * (including the path already exists), the future completes with an exception.
+   */
+  @NotNull
+  ListenableFuture<Void> createNewDirectory(@NotNull String directoryName);
+
+  /**
    * Returns {@code true} if the entry is a symbolic link that points to a directory.
    * @see com.android.tools.idea.explorer.adbimpl.AdbFileListing#isDirectoryLink
    */
