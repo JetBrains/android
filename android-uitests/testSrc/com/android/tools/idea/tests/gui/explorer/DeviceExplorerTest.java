@@ -35,7 +35,7 @@ public class DeviceExplorerTest {
   public void buttonShows() throws IOException {
     DeviceExplorer.enableFeature(true);
     guiTest.importSimpleApplication()
-      .robot().finder().find(Matchers.byText(StripeButton.class, "Device Explorer"));
+      .robot().finder().find(Matchers.byText(StripeButton.class, "Device File Explorer"));
     DeviceExplorer.enableFeature(false);
   }
 }
