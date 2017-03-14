@@ -20,9 +20,10 @@ import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.google.common.base.Objects;
@@ -229,8 +230,13 @@ public class GradleDependencyManager {
   }
 
   private static void requestProjectSync(@NotNull Project project, @Nullable Runnable callback) {
+    if (callback != null) {
+      // Note: This callback mechanism fires after the Gradle build is done rather than the sync.
+      // This is needed since the designer cannot display correctly with source generation.
+      GradleBuildInvoker.getInstance(project).add(new GradleCompletionTask(project, callback));
+    }
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(true);
-    GradleSyncInvoker.getInstance().requestProjectSync(project, request, createSyncListener(callback));
+    GradleSyncInvoker.getInstance().requestProjectSync(project, request, null);
   }
 
   private static void updateDependencies(@NotNull GradleBuildModel buildModel,
@@ -253,21 +259,19 @@ public class GradleDependencyManager {
     });
   }
 
-  @Nullable
-  private static GradleSyncListener createSyncListener(@Nullable Runnable callback) {
-    if (callback == null) {
-      return null;
-    }
-    return new GradleSyncListener.Adapter() {
-      @Override
-      public void syncSucceeded(@NotNull Project project) {
-        callback.run();
-      }
+  private static class GradleCompletionTask implements GradleBuildInvoker.AfterGradleInvocationTask {
+    private final Project myProject;
+    private final Runnable myCallback;
 
-      @Override
-      public void syncSkipped(@NotNull Project project) {
-        callback.run();
-      }
-    };
+    private GradleCompletionTask(@NotNull Project project, @NotNull Runnable callback) {
+      myProject = project;
+      myCallback = callback;
+    }
+
+    @Override
+    public void execute(@NotNull GradleInvocationResult result) {
+      GradleBuildInvoker.getInstance(myProject).remove(this);
+      myCallback.run();
+    }
   }
 }
