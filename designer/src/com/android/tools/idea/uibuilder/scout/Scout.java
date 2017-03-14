@@ -25,6 +25,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,6 +57,49 @@ public class Scout {
   public static void arrangeWidgets(Arrange type, List<NlComponent> widgets,
                                     boolean applyConstraint) {
     ScoutArrange.align(type, widgets, applyConstraint);
+    commit(widgets, type.toString());
+  }
+
+
+  /**
+   * Detect if any component under the tree overlap.
+   * inference does not work if views overlap.
+   *
+   * @param root parent of views to be tested
+   * @return true if objects overlap
+   */
+  public static boolean containsOverlap(NlComponent root) {
+    if (root == null) {
+      return false;
+    }
+    if (root.getChildCount() == 0) {
+      return false;
+    }
+
+    List<NlComponent> list = root.getChildren();
+    int count = 0;
+    Rectangle[] rec = new Rectangle[list.size()];
+    for (NlComponent component : list) {
+      rec[count] = new Rectangle();
+      rec[count].x = ConstraintComponentUtilities.getDpX(component);
+      rec[count].y = ConstraintComponentUtilities.getDpY(component);
+      rec[count].width = ConstraintComponentUtilities.getDpWidth(component);
+      rec[count].height = ConstraintComponentUtilities.getDpHeight(component);
+      count++;
+    }
+    for (int i = 0; i < rec.length; i++) {
+      Rectangle rectangle1 = rec[i];
+      for (int j = i + 1; j < rec.length; j++) {
+        Rectangle rectangle2 = rec[j];
+        if (rectangle1.intersects(rectangle2)) {
+          Rectangle r = rectangle1.intersection(rectangle2);
+          if (r.width > 2 && r.height > 2) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   public static void inferConstraints(List<NlComponent> components) {
@@ -77,7 +121,12 @@ public class Scout {
     if (root == null) {
       return;
     }
+
     if (!ConstraintComponentUtilities.isConstraintLayout(root)) {
+      return;
+    }
+    if (containsOverlap(root)) {
+      System.err.println("containsOverlap!");
       return;
     }
     for (NlComponent constraintWidget : root.getChildren()) {
@@ -113,10 +162,17 @@ public class Scout {
     inferConstraints(component);
     ArrayList<NlComponent> list = new ArrayList<>(component.getChildren());
     list.add(0, component);
-    NlModel nlModel = component.getModel();
+    commit(list, "Infering constraints");
+  }
+
+  private static void commit(@NotNull List<NlComponent> list, String label) {
+    if (list.size() == 0) {
+      return;
+    }
+    NlModel nlModel = list.get(0).getModel();
     Project project = nlModel.getProject();
     XmlFile file = nlModel.getFile();
-    String label = "Infering constraints";
+
     WriteCommandAction action = new WriteCommandAction(project, label, file) {
       @Override
       protected void run(@NotNull Result result) throws Throwable {
