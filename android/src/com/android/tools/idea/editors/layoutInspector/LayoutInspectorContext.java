@@ -123,7 +123,6 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
     }
     else {
       TreePath path = ViewNode.getPath(node);
-      myNodeTree.scrollPathToVisible(path);
       myNodeTree.updateHoverPath(path);
     }
   }
