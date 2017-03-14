@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
@@ -25,9 +24,11 @@ import com.android.tools.idea.gradle.project.sync.idea.IdeaGradleSync;
 import com.android.tools.idea.gradle.project.sync.ng.NewGradleSync;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
@@ -62,7 +63,6 @@ import static com.intellij.openapi.externalSystem.service.execution.ProgressExec
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
 import static com.intellij.openapi.ui.Messages.showErrorDialog;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 public class GradleSyncInvoker {
   @NotNull private final FileDocumentManager myFileDocumentManager;
@@ -115,8 +115,9 @@ public class GradleSyncInvoker {
       }
     };
 
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      syncTask.run();
+    Application application = ApplicationManager.getApplication();
+    if (application.isUnitTestMode()) {
+      application.invokeAndWait(syncTask);
       return;
     }
     if (request.isRunInBackground()) {
