@@ -38,6 +38,9 @@ import static java.awt.RenderingHints.*;
 public class ImageUtils {
   public static final double EPSILON = 1e-5;
 
+  /** Default scale used by RetinaImage. */
+  static final int RETINA_SCALE = 2;
+
   /**
    * Rotates given image by given degrees which should be a multiple of 90
    * @param source image to be rotated
@@ -113,15 +116,13 @@ public class ImageUtils {
 
   @Nullable
   public static BufferedImage convertToRetina(@NotNull BufferedImage image) {
-    final int scale = 2;
-    if (image.getWidth() < scale || image.getHeight() < scale) {
+    if (image.getWidth() < RETINA_SCALE || image.getHeight() < RETINA_SCALE) {
       // Can't convert to Retina; see issue 65676
       return null;
     }
 
     try {
-      @SuppressWarnings("ConstantConditions")
-      Image retina = RetinaImage.createFrom(image, scale, null);
+      Image retina = RetinaImage.createFrom(image);
 
       if (!(retina instanceof BufferedImage)) {
         // Don't try this again
@@ -130,7 +131,7 @@ public class ImageUtils {
       }
 
       return (BufferedImage)retina;
-    } catch (Throwable t) {
+    } catch (Throwable ignored) {
       // Can't always create Retina images (see issue 65609); fall through to non-Retina code path
       ourRetinaCapable = false;
       return null;
