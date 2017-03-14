@@ -114,24 +114,6 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
     return new UploadWorker((MockDeviceFileEntry)remoteDirectory, localFilePath, progress).myFutureResult;
   }
 
-  @NotNull
-  @Override
-  public ListenableFuture<Void> createNewFile(@NotNull DeviceFileEntry parentEntry, @NotNull String fileName) {
-    return FutureUtils.delayedOperation(() -> {
-      ((MockDeviceFileEntry)parentEntry).addFile(fileName);
-      return null;
-    }, MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS);
-  }
-
-  @NotNull
-  @Override
-  public ListenableFuture<Void> createNewDirectory(@NotNull DeviceFileEntry parentEntry, @NotNull String directoryName) {
-    return FutureUtils.delayedOperation(() -> {
-      ((MockDeviceFileEntry)parentEntry).addDirectory(directoryName);
-      return null;
-    }, MockDeviceFileSystemService.OPERATION_TIMEOUT_MILLIS);
-  }
-
   public void setDownloadFileChunkSize(long size) {
     myDownloadChunkSize = size;
   }

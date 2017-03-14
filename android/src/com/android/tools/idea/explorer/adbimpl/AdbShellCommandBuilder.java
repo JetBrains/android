@@ -21,6 +21,7 @@ import static com.android.ddmlib.FileListingService.FILE_SEPARATOR;
 
 public class AdbShellCommandBuilder {
   @NotNull private final StringBuilder myCommand = new StringBuilder();
+  private boolean myNeedsTrailingQuote;
 
   @Override
   public String toString() {
@@ -29,6 +30,9 @@ public class AdbShellCommandBuilder {
 
   @NotNull
   public String build() {
+    if (myNeedsTrailingQuote) {
+      myCommand.append("'");
+    }
     return myCommand.toString();
   }
 
@@ -40,7 +44,21 @@ public class AdbShellCommandBuilder {
 
   @NotNull
   public AdbShellCommandBuilder withSuRootPrefix() {
-    myCommand.append("su 0 ");
+    if (myCommand.length() > 0) {
+      throw new IllegalStateException("\"su 0\" must be the first argument");
+    }
+    myCommand.append("su 0 sh -c '");
+    myNeedsTrailingQuote = true;
+    return this;
+  }
+
+
+  public AdbShellCommandBuilder withRunAs(@NotNull String packageName) {
+    if (myCommand.length() > 0) {
+      throw new IllegalStateException("\"run-as\" must be the first argument");
+    }
+    withText("run-as ").withText(packageName).withText(" sh -c '");
+    myNeedsTrailingQuote = true;
     return this;
   }
 
