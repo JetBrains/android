@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.hyperlink;
+package com.android.tools.idea.project.hyperlink;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.HyperlinkEvent;
 
 public abstract class NotificationHyperlink {
   @NotNull private final String myUrl;
   @NotNull private final String myValue;
+
+  @Nullable private Object myContainer;
   private boolean myCloseOnClick;
 
   protected NotificationHyperlink(@NotNull String url, @NotNull String text) {
@@ -50,6 +53,25 @@ public abstract class NotificationHyperlink {
     return this;
   }
 
+  @NotNull
+  public String getUrl() {
+    return myUrl;
+  }
+
+  @Nullable
+  public Object getContainer() {
+    return myContainer;
+  }
+
+  @Nullable
+  public <T> T getContainerOfType(@NotNull Class<T> containerType) {
+    return containerType.isInstance(myContainer) ? containerType.cast(myContainer) : null;
+  }
+
+  public void setContainer(@Nullable Object container) {
+    myContainer = container;
+  }
+
   @Override
   public String toString() {
     return toHtml();
@@ -58,10 +80,5 @@ public abstract class NotificationHyperlink {
   @NotNull
   public String toHtml() {
     return myValue;
-  }
-
-  @NotNull
-  public String getUrl() {
-    return myUrl;
   }
 }
