@@ -204,7 +204,7 @@ public class AdbFileListingTest {
     // Prepare
     TestShellCommands commands = new TestShellCommands();
     addEmulatorApi25Commands(commands);
-    commands.addError("su 0 ls -l /" + COMMAND_ERROR_CHECK_SUFFIX, new ShellCommandUnresponsiveException());
+    commands.addError("su 0 sh -c 'ls -l /'" + COMMAND_ERROR_CHECK_SUFFIX, new ShellCommandUnresponsiveException());
     IDevice device = commands.createMockDevice();
     Executor taskExecutor = PooledThreadExecutor.INSTANCE;
     AdbFileListing fileListing = new AdbFileListing(device, new AdbDeviceCapabilities(device), taskExecutor);
@@ -333,7 +333,7 @@ public class AdbFileListingTest {
 
   private static void addNexus7Api23Commands(@NotNull TestShellCommands shellCommands) {
     shellCommands.setDescription("Nexus 7, Android 6.0.1, API 23");
-    addFailedCommand(shellCommands, "su 0 id", "/system/bin/sh: su: not found\n");
+    addFailedCommand(shellCommands, "su 0 sh -c 'id'", "/system/bin/sh: su: not found\n");
     addCommand(shellCommands, "ls -l /", "drwxr-xr-x root     root              2016-11-21 12:09 acct\r\n" +
                                          "drwxrwx--- system   cache             2016-08-26 12:12 cache\r\n" +
                                          "lrwxrwxrwx root     root              1969-12-31 16:00 charger -> /sbin/healthd\r\n" +
@@ -387,10 +387,10 @@ public class AdbFileListingTest {
 
   private static void addEmulatorApi25Commands(@NotNull TestShellCommands shellCommands) {
     shellCommands.setDescription("Emulator Pixel, Android 7.1, API 25");
-    addCommand(shellCommands, "su 0 id",
+    addCommand(shellCommands, "su 0 sh -c 'id'",
                "uid=0(root) gid=0(root) groups=0(root),1004(input),1007(log),1011(adb),1015(sdcard_rw),1028(sdcard_r)," +
                "3001(net_bt_admin),3002(net_bt),3003(inet),3006(net_bw_stats),3009(readproc) context=u:r:su:s0\n");
-    addCommand(shellCommands, "su 0 ls -l /", "total 3688\n" +
+    addCommand(shellCommands, "su 0 sh -c 'ls -l /'", "total 3688\n" +
                                               "drwxr-xr-x  29 root   root         0 2017-03-06 21:15 acct\n" +
                                               "drwxrwx---   6 system cache     4096 2016-12-10 21:19 cache\n" +
                                               "lrwxrwxrwx   1 root   root        13 1969-12-31 16:00 charger -> /sbin/healthd\n" +
@@ -430,13 +430,13 @@ public class AdbFileListingTest {
                                               "-rw-r--r--   1 root   root      4853 1969-12-31 16:00 ueventd.rc\n" +
                                               "lrwxrwxrwx   1 root   root        14 1969-12-31 16:00 vendor -> /system/vendor\n");
 
-    shellCommands.add("su 0 ls -l -d /charger/", "ls: /charger/: Not a directory\n");
-    shellCommands.add("su 0 ls -l -d /d/", "drwx------ 14 root root 0 2017-03-06 21:15 /d/\n");
-    shellCommands.add("su 0 ls -l -d /etc/", "drwxr-xr-x 7 root root 4096 2016-11-14 14:08 /etc/\n");
-    shellCommands.add("su 0 ls -l -d /sdcard/", "drwxrwx--x 13 root sdcard_rw 4096 2017-03-06 23:30 /sdcard/\n");
-    shellCommands.add("su 0 ls -l -d /tombstones/", "ls: /tombstones/: No such file or directory\n");
-    shellCommands.add("su 0 ls -l -d /system/", "drwxr-xr-x 16 root root 4096 1969-12-31 16:00 /system/\n");
-    shellCommands.add("su 0 ls -l -d /vendor/", "drwxr-xr-x 3 root shell 4096 2016-11-14 14:01 /vendor/\n");
+    shellCommands.add("su 0 sh -c 'ls -l -d /charger/'", "ls: /charger/: Not a directory\n");
+    shellCommands.add("su 0 sh -c 'ls -l -d /d/'", "drwx------ 14 root root 0 2017-03-06 21:15 /d/\n");
+    shellCommands.add("su 0 sh -c 'ls -l -d /etc/'", "drwxr-xr-x 7 root root 4096 2016-11-14 14:08 /etc/\n");
+    shellCommands.add("su 0 sh -c 'ls -l -d /sdcard/'", "drwxrwx--x 13 root sdcard_rw 4096 2017-03-06 23:30 /sdcard/\n");
+    shellCommands.add("su 0 sh -c 'ls -l -d /tombstones/'", "ls: /tombstones/: No such file or directory\n");
+    shellCommands.add("su 0 sh -c 'ls -l -d /system/'", "drwxr-xr-x 16 root root 4096 1969-12-31 16:00 /system/\n");
+    shellCommands.add("su 0 sh -c 'ls -l -d /vendor/'", "drwxr-xr-x 3 root shell 4096 2016-11-14 14:01 /vendor/\n");
   }
 
   @SuppressWarnings("SameParameterValue")
