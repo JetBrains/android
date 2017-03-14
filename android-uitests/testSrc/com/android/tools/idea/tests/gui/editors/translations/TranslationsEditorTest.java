@@ -29,6 +29,8 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.core.Robot;
 import org.fest.swing.data.TableCell;
+import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.JTableCellFixture;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
@@ -46,10 +48,7 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.OptionalInt;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.*;
@@ -308,6 +307,22 @@ public final class TranslationsEditorTest {
     table.tableHeader().clickColumn(0);
     expected = Arrays.asList("app_name", "hello_world", "action_settings", "some_id", "cancel", "app_name");
     assertEquals(expected, myTranslationsEditor.keys());
+  }
+
+  @Test
+  public void keyColumnWidthDoesntResetWhenAddingKey() {
+    TableColumnModel model = myTranslationsEditor.getTable().target().getColumnModel();
+    int width = new Random().nextInt(700);
+
+    GuiTask.execute(() -> model.getColumn(KEY_COLUMN).setPreferredWidth(width));
+
+    myTranslationsEditor.getAddKeyButton().click();
+    AddKeyDialogFixture dialog = myTranslationsEditor.getAddKeyDialog();
+    dialog.getDefaultValueTextField().enterText("key_1");
+    dialog.getKeyTextField().enterText("key_1");
+    dialog.getOkButton().click();
+
+    assertEquals(width, (long)GuiQuery.getNonNull(() -> model.getColumn(KEY_COLUMN).getPreferredWidth()));
   }
 
   @Test
