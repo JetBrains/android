@@ -40,15 +40,19 @@ public class AdbShellCommandsUtil {
     return executeCommandImpl(device, command, false);
   }
 
-  private static AdbShellCommandResult executeCommandImpl(@NotNull IDevice device, @NotNull String command, boolean errorCheck)
+  public static void executeRawCommand(@NotNull IDevice device, @NotNull String command, IShellOutputReceiver receiver)
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
-    long startTime = System.nanoTime();
+    executeCommandImpl(device, command, receiver);
+  }
+
+    private static AdbShellCommandResult executeCommandImpl(@NotNull IDevice device, @NotNull String command, boolean errorCheck)
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
 
     List<String> commandOutput = new ArrayList<>();
     // Adding the " || echo xxx" command to the command allows us to detect non-zero status code
     // from the command by analysing the output and looking for the "xxx" marker.
     String fullCommand = errorCheck ? String.format("%s%s", command, COMMAND_ERROR_CHECK_SUFFIX) : command;
-    device.executeShellCommand(fullCommand, new MultiLineReceiver() {
+    executeCommandImpl(device, fullCommand, new MultiLineReceiver() {
       @Override
       public void processNewLines(@NotNull String[] lines) {
         Arrays.stream(lines).forEach(commandOutput::add);
@@ -71,11 +75,18 @@ public class AdbShellCommandsUtil {
       commandOutput.remove(commandOutput.get(commandOutput.size() - 1));
     }
 
+    return new AdbShellCommandResult(command, commandOutput, isError);
+  }
+
+  private static void executeCommandImpl(@NotNull IDevice device, @NotNull String command, IShellOutputReceiver receiver)
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+    long startTime = System.nanoTime();
+
+    device.executeShellCommand(command, receiver);
+
     if (LOGGER.isTraceEnabled()) {
       long endTime = System.nanoTime();
       LOGGER.trace(String.format("command took %,d ms to execute: %s", (endTime - startTime) / 1_000_000, command));
     }
-
-    return new AdbShellCommandResult(command, commandOutput, isError);
   }
 }
