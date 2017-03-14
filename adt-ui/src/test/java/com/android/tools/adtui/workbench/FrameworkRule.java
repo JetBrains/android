@@ -21,10 +21,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.application.TransactionGuard;
+import com.intellij.openapi.application.*;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -33,6 +30,7 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.impl.InternalDecorator;
+import com.intellij.testFramework.EdtTestUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -91,7 +89,7 @@ public class FrameworkRule implements TestRule {
     public void evaluate() throws Throwable {
       before();
       try {
-        myBase.evaluate();
+        EdtTestUtil.runInEdtAndWait(myBase::evaluate);
       }
       finally {
         after();
