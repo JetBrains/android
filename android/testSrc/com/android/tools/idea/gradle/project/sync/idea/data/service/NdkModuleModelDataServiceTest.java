@@ -80,4 +80,12 @@ public class NdkModuleModelDataServiceTest extends IdeaTestCase {
     myService.onModelsNotFound(modelsProvider);
     verify(myCleanupStep).cleanUpModule(myModule, modelsProvider);
   }
+
+  public void testImportDataWithoutModels() {
+    Module appModule = createModule("app");
+    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
+
+    myService.importData(Collections.emptyList(), getProject(), modelsProvider, Collections.emptyMap());
+    verify(myCleanupStep).cleanUpModule(appModule, modelsProvider);
+  }
 }
