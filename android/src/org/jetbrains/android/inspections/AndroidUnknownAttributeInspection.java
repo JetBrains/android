@@ -90,7 +90,8 @@ public class AndroidUnknownAttributeInspection extends LocalInspectionTool {
         ourSupportedResourceTypes = EnumSet.noneOf(ResourceFolderType.class);
         for (DomFileDescription description : DomFileDescription.EP_NAME.getExtensions()) {
           if (description instanceof AndroidResourceDomFileDescription) {
-            ourSupportedResourceTypes.add(((AndroidResourceDomFileDescription)description).getResourceType());
+            //noinspection unchecked
+            ourSupportedResourceTypes.addAll(((AndroidResourceDomFileDescription)description).getResourceTypes());
           }
         }
       }

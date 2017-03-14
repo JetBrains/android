@@ -22,10 +22,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
-import org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedStateListDomFileDescription;
-import org.jetbrains.android.dom.drawable.fileDescriptions.AnimatedVectorDomFileDescription;
-import org.jetbrains.android.dom.drawable.fileDescriptions.RippleDomFileDescription;
-import org.jetbrains.android.dom.drawable.fileDescriptions.VectorDomFileDescription;
+import org.jetbrains.android.dom.drawable.fileDescriptions.*;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,6 +40,8 @@ public class AndroidDrawableDomUtil {
       VectorDomFileDescription.TAG,
       AnimatedVectorDomFileDescription.TAG_NAME
     };
+  private static final String[] ADAPTIVE_ICON_ROOTS_V26 =
+    AdaptiveIconDomFileDescription.TAGS;
 
   private AndroidDrawableDomUtil() {
   }
@@ -51,15 +50,29 @@ public class AndroidDrawableDomUtil {
     return AndroidResourceDomFileDescription.doIsMyFile(file, ResourceFolderType.DRAWABLE);
   }
 
-  public static List<String> getPossibleRoots(AndroidFacet facet) {
+  @NotNull
+  public static List<String> getPossibleRoots(@NotNull AndroidFacet facet, @NotNull ResourceFolderType folderType) {
     AndroidVersion sdkVersion = AndroidModuleInfo.getInstance(facet).getBuildSdkVersion();
-    List<String> result = Lists.newArrayListWithExpectedSize(DRAWABLE_ROOTS_V1.length + DRAWABLE_ROOTS_V21.length);
-    Collections.addAll(result, DRAWABLE_ROOTS_V1);
-    if (sdkVersion == null || sdkVersion.getFeatureLevel() >= 21 ||
-        ApplicationManager.getApplication().isUnitTestMode()) {
-      Collections.addAll(result, DRAWABLE_ROOTS_V21);
+    List<String> result = Lists.newArrayListWithExpectedSize(DRAWABLE_ROOTS_V1.length + DRAWABLE_ROOTS_V21.length + ADAPTIVE_ICON_ROOTS_V26.length);
+
+    // In MIPMAP folders, we only support adaptive-icon
+    if (folderType != ResourceFolderType.MIPMAP) {
+      Collections.addAll(result, DRAWABLE_ROOTS_V1);
+      if (sdkVersion == null || sdkVersion.getFeatureLevel() >= 21 ||
+          ApplicationManager.getApplication().isUnitTestMode()) {
+        Collections.addAll(result, DRAWABLE_ROOTS_V21);
+      }
+    }
+
+    if (sdkVersion == null || sdkVersion.getFeatureLevel() >= 26 || ApplicationManager.getApplication().isUnitTestMode()) {
+      Collections.addAll(result, ADAPTIVE_ICON_ROOTS_V26);
     }
 
     return result;
+  }
+
+  @NotNull
+  public static List<String> getPossibleRoots(@NotNull AndroidFacet facet) {
+    return getPossibleRoots(facet, ResourceFolderType.DRAWABLE);
   }
 }
