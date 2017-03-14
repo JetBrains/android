@@ -256,7 +256,7 @@ final class MemoryInstanceDetailsView extends AspectObserver {
       root.sort(comparator);
       treeModel.nodeStructureChanged(root);
     });
-    builder.setBackground(ProfilerColors.MONITOR_BACKGROUND);
+    builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     return builder.build();
   }
 

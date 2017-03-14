@@ -191,7 +191,7 @@ final class ConnectionsView {
     });
 
     myConnectionsTable.setFont(AdtUiUtils.DEFAULT_FONT);
-    myConnectionsTable.setBackground(ProfilerColors.MONITOR_BACKGROUND);
+    myConnectionsTable.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myConnectionsTable.setShowVerticalLines(true);
     myConnectionsTable.setShowHorizontalLines(false);
     int defaultFontHeight = myConnectionsTable.getFontMetrics(AdtUiUtils.DEFAULT_FONT).getHeight();
