@@ -17,12 +17,14 @@ package com.android.tools.idea.instantapp.provision;
 
 import com.android.ddmlib.IDevice;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
 
 class DevManPackage extends ProvisionPackage {
+  @NotNull private static final String PKG_DESCRIPTION = "DevMan";
   @NotNull private static final String APK_PREFIX = "devman";
   @NotNull private static final String PKG_NAME = "com.google.android.instantapps.devman";
   // These are the variants of the apks contained in the SDK. Basically the names of the folders with apks
@@ -63,5 +65,11 @@ class DevManPackage extends ProvisionPackage {
   @Override
   boolean isArchSpecificApk() {
     return false;
+  }
+
+  @NotNull
+  @Override
+  String getDescription() {
+    return PKG_DESCRIPTION;
   }
 }

@@ -20,7 +20,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.testFramework.exceptionCases.AbstractExceptionCase;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.instantapp.provision.ProvisionPackageTestUtil.getMockDevice;
+import static com.android.tools.idea.instantapp.provision.ProvisionPackageTests.getMockDevice;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -63,7 +63,7 @@ abstract class ProvisionPackageTest<T extends ProvisionPackage> extends AndroidG
   }
 
   public void testGetInstalledApkVersion() throws Throwable {
-    IDevice device = new ProvisionPackageTestUtil.DeviceGenerator().setVersionOfPackage(myProvisionPackage.getPkgName(), "versionMock").getDevice();
+    IDevice device = new ProvisionPackageTests.DeviceGenerator().setVersionOfPackage(myProvisionPackage.getPkgName(), "versionMock").getDevice();
     assertEquals("versionMock", myProvisionPackage.getInstalledApkVersion(device));
   }
 
