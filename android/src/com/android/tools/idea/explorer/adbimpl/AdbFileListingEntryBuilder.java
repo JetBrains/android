@@ -26,7 +26,7 @@ public class AdbFileListingEntryBuilder {
   @Nullable private String myGroup;
   @Nullable private String myDate;
   @Nullable private String myTime;
-  @Nullable private String mySize;
+  @Nullable private long mySize;
   @Nullable private String myExtraInfo;
 
   public AdbFileListingEntryBuilder() {
@@ -51,7 +51,7 @@ public class AdbFileListingEntryBuilder {
     if (myKind == null) {
       throw new IllegalStateException("Entry kind must be set");
     }
-    return new AdbFileListingEntry(myPath, myKind, myPermissions, myOwner, myGroup, myDate, myTime, mySize, myExtraInfo);
+    return new AdbFileListingEntry(myPath, myKind, myPermissions, myOwner, myGroup, myDate, myTime, Long.toString(mySize), myExtraInfo);
   }
 
   public AdbFileListingEntryBuilder setPath(@NotNull String path) {
@@ -89,11 +89,12 @@ public class AdbFileListingEntryBuilder {
     return this;
   }
 
-  public AdbFileListingEntryBuilder setSize(@Nullable String size) {
+  public AdbFileListingEntryBuilder setSize(@Nullable long size) {
     mySize = size;
     return this;
   }
 
+  @SuppressWarnings("unused")
   public AdbFileListingEntryBuilder setExtraInfo(@Nullable String extraInfo) {
     myExtraInfo = extraInfo;
     return this;

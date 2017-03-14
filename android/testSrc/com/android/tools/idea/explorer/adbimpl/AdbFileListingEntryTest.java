@@ -73,7 +73,7 @@ public class AdbFileListingEntryTest {
     assertThat(entry.getGroup()).isEqualTo("group");
     assertThat(entry.getDate()).isEqualTo("2000-01-01");
     assertThat(entry.getTime()).isEqualTo("10:00:00");
-    assertThat(entry.getSize()).isEqualTo("4096");
+    assertThat(entry.getSize()).isEqualTo(4096);
     assertThat(entry.getInfo()).isEqualTo("/bar/blah");
   }
 }
