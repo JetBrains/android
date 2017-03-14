@@ -31,19 +31,33 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.EnumSet;
+
 public abstract class AndroidResourceDomFileDescription<T extends DomElement> extends DomFileDescription<T> {
-  protected final ResourceFolderType myResourceType;
+  protected final EnumSet<ResourceFolderType> myResourceType;
+
+  public AndroidResourceDomFileDescription(final Class<T> rootElementClass,
+                                           @NonNls final String rootTagName,
+                                           @NotNull EnumSet<ResourceFolderType> resourceTypes) {
+    super(rootElementClass, rootTagName);
+    myResourceType = EnumSet.copyOf(resourceTypes);
+  }
 
   public AndroidResourceDomFileDescription(final Class<T> rootElementClass,
                                            @NonNls final String rootTagName,
                                            @NotNull ResourceFolderType resourceType) {
-    super(rootElementClass, rootTagName);
-    myResourceType = resourceType;
+    this(rootElementClass, rootTagName, EnumSet.of(resourceType));
   }
 
   @Override
   public boolean isMyFile(@NotNull final XmlFile file, @Nullable Module module) {
-    return doIsMyFile(file, myResourceType);
+    for (ResourceFolderType folderType : myResourceType) {
+      if (doIsMyFile(file, folderType)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   public static boolean doIsMyFile(final XmlFile file, final ResourceFolderType resourceType) {
@@ -67,7 +81,7 @@ public abstract class AndroidResourceDomFileDescription<T extends DomElement> ex
   }
 
   @NotNull
-  public ResourceFolderType getResourceType() {
+  public EnumSet<ResourceFolderType> getResourceTypes() {
     return myResourceType;
   }
 }
