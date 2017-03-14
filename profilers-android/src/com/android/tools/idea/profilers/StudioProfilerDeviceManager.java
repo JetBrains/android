@@ -188,7 +188,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         myDevice.executeShellCommand(devicePath + "perfd", new IShellOutputReceiver() {
           @Override
           public void addOutput(byte[] data, int offset, int length) {
-            String s = new String(data, Charsets.UTF_8);
+            String s = new String(data, offset, length, Charsets.UTF_8);
             getLogger().info("[perfd]: " + s);
             if (s.contains("Server listening")) {
               try {
