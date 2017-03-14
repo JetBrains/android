@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.SdkConstants;
 import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
+import com.android.tools.adtui.workbench.StartFilteringListener;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
@@ -203,7 +204,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
     myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Widgets"), false);
     assertThat(myPanel.getComponentTree().getLists()).hasSize(1);
     assertThat(getVisibleTitles())
-      .containsExactly("Button", "ToggleButton", "RadioButton").inOrder();
+      .containsExactly("Button", "ToggleButton", "RadioButton", "ImageButton", "FloatingActionButton").inOrder();
   }
 
   public void testSetFilterWithExistingSelectedCategory() {
@@ -213,7 +214,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
     myPanel.setFilter("utt");
 
     assertThat(myPanel.getComponentTree().getLists()).hasSize(1);
-    assertThat(getVisibleTitles()).containsExactly("ImageButton");
+    assertThat(getVisibleTitles()).containsExactly("Button", "ToggleButton", "RadioButton", "ImageButton", "FloatingActionButton");
   }
 
   public void testRemoveFilterWithSelectedCategory() {
@@ -225,6 +226,16 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
     myPanel.setFilter("");
     assertThat(myPanel.getComponentTree().getLists()).hasSize(11);
     assertThat(getVisibleTitles()).containsExactly("ImageButton", "ImageView", "VideoView").inOrder();
+  }
+
+  public void testTypingInTreeStartsFiltering() {
+    StartFiltering filtering = new StartFiltering();
+    myPanel.setStartFiltering(filtering);
+    JComponent tree = myPanel.getComponentTree();
+    for (KeyListener listener : tree.getKeyListeners()) {
+      listener.keyTyped(new KeyEvent(tree, KeyEvent.KEY_TYPED, System.currentTimeMillis(), 0, KeyEvent.VK_UNDEFINED, 'u'));
+    }
+    assertThat(filtering.getChar()).isEqualTo('u');
   }
 
   public void testSelectAllCategoriesWithExistingFilter() {
@@ -434,6 +445,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
     }
     assertThat(model.getSize()).isEqualTo(items.size());
   }
+
   private static void fireComponentResize(@NotNull JComponent component) {
     ComponentEvent event = mock(ComponentEvent.class);
     for (ComponentListener listener : component.getComponentListeners()) {
@@ -447,5 +459,18 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
 
   private void setCategoryWidth(@SuppressWarnings("SameParameterValue") int width) {
     myPanel.getSplitter().setFirstSize(width);
+  }
+
+  private static class StartFiltering implements StartFilteringListener {
+    private char myChar;
+
+    @Override
+    public void startFiltering(char character) {
+      myChar = character;
+    }
+
+    public char getChar() {
+      return myChar;
+    }
   }
 }
