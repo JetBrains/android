@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.fileTypes;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileTypes.ExtensionFileNameMatcher;
 import com.intellij.openapi.fileTypes.FileNameMatcher;
 import com.intellij.openapi.fileTypes.FileType;
@@ -59,7 +60,7 @@ public class FontFileType implements FileType {
 
   @Override
   public Icon getIcon() {
-    return PlatformIcons.FILE_ICON;
+    return AllIcons.FileTypes.Any_type;
   }
 
   @Override
