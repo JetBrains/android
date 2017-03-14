@@ -32,9 +32,10 @@ import org.jetbrains.annotations.Nullable;
 public class SyncNlModel extends NlModel {
 
   Configuration myConfiguration; // for testing purposes
+  NlDesignSurface mySurface; // for testing purposes
 
   @NotNull
-  public static NlModel create(@NotNull NlDesignSurface surface,
+  public static SyncNlModel create(@NotNull NlDesignSurface surface,
                                @Nullable Disposable parent,
                                @NotNull AndroidFacet facet,
                                @NotNull XmlFile file) {
@@ -45,6 +46,11 @@ public class SyncNlModel extends NlModel {
                      @Nullable Disposable parent,
                      @NotNull AndroidFacet facet, @NotNull XmlFile file) {
     super(surface, parent, facet, file);
+    mySurface = surface;
+  }
+
+  public NlDesignSurface getSurface() {
+    return mySurface;
   }
 
   @Override

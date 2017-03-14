@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.relative;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import org.jetbrains.annotations.NotNull;
 
@@ -383,7 +383,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   @NotNull
-  private NlModel createModel() {
+  private SyncNlModel createModel() {
     ModelBuilder builder = model("relative.xml",
                                  component(RELATIVE_LAYOUT)
                                    .withBounds(0, 0, 1000, 1000)
@@ -424,7 +424,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
                                        .withAttribute("android:layout_marginLeft", "80dp")
                                        .withAttribute("android:layout_marginTop", "80dp")
                                    ));
-    NlModel model = builder.build();
+    SyncNlModel model = builder.build();
     assertEquals(1, model.getComponents().size());
     assertEquals("NlComponent{tag=<RelativeLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,100:100x100}\n" +

@@ -22,9 +22,9 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiFile;
@@ -57,7 +57,7 @@ public class IconPreviewFactoryTest extends LayoutTestCase {
     palette.accept(items::add);
     myItem = items.stream().filter(item -> item.getTagName().equals("TextView")).findFirst().orElse(null);
 
-    NlModel model = createModel();
+    SyncNlModel model = createModel();
     myScreenView = surface().screen(model).getScreen();
     myFactory = new IconPreviewFactory();
     myFactory.myRenderTimeoutSeconds = Long.MAX_VALUE;
@@ -101,7 +101,7 @@ public class IconPreviewFactoryTest extends LayoutTestCase {
   }
 
   @NotNull
-  private NlModel createModel() {
+  private SyncNlModel createModel() {
     ModelBuilder builder = model("relative.xml",
                                  component(RELATIVE_LAYOUT)
                                    .withBounds(0, 0, 1000, 1000)

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -99,7 +100,7 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
 
   @Override
   @NotNull
-  protected NlModel createModel() {
+  protected SyncNlModel createModel() {
     return model("relative.xml",
                  component(RELATIVE_LAYOUT)
                    .withBounds(0, 0, 1000, 1000)
