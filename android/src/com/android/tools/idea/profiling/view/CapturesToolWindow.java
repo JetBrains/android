@@ -54,8 +54,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-public class CapturesToolWindow extends BulkFileListener.Adapter
-  implements Disposable, HierarchyListener, CaptureService.CaptureListener, DataProvider, DeleteProvider {
+public class CapturesToolWindow
+  implements Disposable, HierarchyListener, CaptureService.CaptureListener, DataProvider, DeleteProvider, BulkFileListener {
   public static final String TREE_NAME = "CapturesPaneTree";
 
   @NotNull public static final DataKey<Capture[]> CAPTURE_ARRAY = DataKey.create("CaptureArray");
