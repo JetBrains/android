@@ -136,6 +136,10 @@ public class AndroidCompletionContributor extends CompletionContributor {
       resultSet.addElement(LookupElementBuilder.create(SdkConstants.TAG_RESOURCES));
       return false;
     }
+    else if (AndroidResourceDomFileDescription.doIsMyFile(xmlFile, ResourceFolderType.MIPMAP)) {
+      addAll(AndroidDrawableDomUtil.getPossibleRoots(facet, ResourceFolderType.MIPMAP), resultSet);
+      return false;
+    }
     return true;
   }
 

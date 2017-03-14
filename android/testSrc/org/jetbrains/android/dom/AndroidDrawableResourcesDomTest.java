@@ -310,11 +310,25 @@ public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
   }
   */
 
+  public void testAdaptiveIconCompletion() throws Throwable {
+    doTestCompletion();
+  }
+
+  public void testAdaptiveIconCompletion1() throws Throwable {
+    doTestCompletion();
+  }
+
+  public void testAdaptiveIconCompletionSubtags() throws Throwable {
+    doTestCompletion();
+  }
+
   public void testRootTagCompletion() throws Throwable {
     doTestCompletionVariants(getTestName(true) + ".xml", "selector", "bitmap", "nine-patch", "layer-list", "level-list", "transition",
                              "inset", "clip", "color", "scale", "shape", "animation-list", "animated-rotate", "rotate",
                              // API 21:
-                             "ripple", "vector", "animated-vector", "animated-selector");
+                             "ripple", "vector", "animated-vector", "animated-selector",
+                             // API 26:
+                             "adaptive-icon", "maskable-icon");
   }
 
   public void testInlineClip() throws Throwable {
