@@ -17,17 +17,14 @@ package com.android.tools.idea.profilers.perfd;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
+import com.android.ddmlib.*;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
 import com.android.tools.profiler.proto.Profiler;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.google.common.collect.ImmutableSet;
-import com.android.ddmlib.*;
-import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import io.grpc.ManagedChannel;
@@ -37,6 +34,8 @@ import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -48,6 +47,10 @@ import static com.android.ddmlib.Client.CHANGE_NAME;
  */
 public class ProfilerServiceProxy extends PerfdProxyService
   implements AndroidDebugBridge.IClientChangeListener, AndroidDebugBridge.IDeviceChangeListener {
+
+  private static Logger getLogger() { return Logger.getInstance(ProfilerServiceProxy.class); }
+
+  private static final String AGENT_NAME = "libagent.so";
 
   private ProfilerServiceGrpc.ProfilerServiceBlockingStub myServiceStub;
   private final IDevice myDevice;
@@ -115,6 +118,59 @@ public class ProfilerServiceProxy extends PerfdProxyService
     }
   }
 
+  public void attachAgent(Profiler.AgentAttachRequest request, StreamObserver observer) {
+    // Agent attaching is only available on post-O devices.
+    if (!myDevice.isOnline() || myDevice.getVersion().getFeatureLevel() < 26) {
+      observer.onNext(Profiler.AgentAttachResponse.getDefaultInstance());
+      observer.onCompleted();
+      return;
+    }
+
+    synchronized (myClients) {
+      Profiler.AgentAttachResponse.Status status = Profiler.AgentAttachResponse.Status.FAILURE_UNKNOWN;
+      for (Client client : myClients) {
+        if (client.getClientData().getPid() != request.getProcessId()) {
+          continue;
+        }
+
+        String packageName = client.getClientData().getPackageName();
+
+        // TODO handle non-development mode + switch over to bazel-built binaries.
+        File agentDir = new File(PathManager.getHomePath(), "../../out/studio/native/out/release");
+        File agent = null;
+        for (String abi : myDevice.getAbis()) {
+          File candidate = new File(agentDir, abi + "/" + AGENT_NAME);
+          if (candidate.exists()) {
+            agent = candidate;
+            break;
+          }
+        }
+
+        // TODO: Handle the case where we don't have agent built for the device's abi.
+        assert agent != null;
+
+        // TODO: Handle when agent is previously attached.
+        String appDataDir = client.getClientData().getDataDir();
+        String devicePath = "/data/local/tmp/perfd/";
+        try {
+          myDevice.pushFile(agent.getAbsolutePath(), devicePath + AGENT_NAME);
+          myDevice.executeShellCommand(String.format("run-as %s cp %s%s %s", packageName, devicePath, AGENT_NAME, appDataDir),
+                                       new NullOutputReceiver());
+          myDevice.executeShellCommand(String.format("cmd activity attach-agent %s %s/%s", packageName, appDataDir, AGENT_NAME),
+                                       new NullOutputReceiver());
+          status = Profiler.AgentAttachResponse.Status.SUCCESS;
+        }
+        catch (TimeoutException | AdbCommandRejectedException | IOException | SyncException  | ShellCommandUnresponsiveException e) {
+          getLogger().error("Failed to attach agent.", e);
+        }
+
+        break;
+      }
+      observer.onNext(Profiler.AgentAttachResponse.newBuilder().setStatus(status).build());
+      observer.onCompleted();
+    }
+  }
+
   @Override
   public void deviceConnected(@NonNull IDevice device) {
     // Don't care
@@ -151,6 +207,10 @@ public class ProfilerServiceProxy extends PerfdProxyService
     overrides.put(ProfilerServiceGrpc.METHOD_GET_PROCESSES,
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     getProcesses((Profiler.GetProcessesRequest)request, (StreamObserver)observer);
+                  }));
+    overrides.put(ProfilerServiceGrpc.METHOD_ATTACH_AGENT,
+                  ServerCalls.asyncUnaryCall((request, observer) -> {
+                    attachAgent((Profiler.AgentAttachRequest)request, (StreamObserver)observer);
                   }));
     return generatePassThroughDefinitions(overrides, myServiceStub);
   }
