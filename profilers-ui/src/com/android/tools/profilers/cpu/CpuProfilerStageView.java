@@ -88,7 +88,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     TabularLayout layout = new TabularLayout("*");
     JPanel details = new JPanel(layout);
-    details.setBackground(ProfilerColors.MONITOR_BACKGROUND);
+    details.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
 
     EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
     JComponent eventsComponent = eventsView.getComponent();
@@ -414,7 +414,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       JPanel panel = new JPanel(new TabularLayout("*"));
       myLabel.setText(value.getName());
 
-      Color cellBackground = ProfilerColors.MONITOR_BACKGROUND;
+      Color cellBackground = ProfilerColors.DEFAULT_BACKGROUND;
       if (isSelected) {
         cellBackground = ProfilerColors.THREAD_SELECTED_BACKGROUND;
       }

@@ -280,7 +280,7 @@ final class MemoryInstanceView extends AspectObserver {
       myTreeRoot.sort(comparator);
       myTreeModel.nodeStructureChanged(myTreeRoot);
     });
-    builder.setBackground(ProfilerColors.MONITOR_BACKGROUND);
+    builder.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myColumnTree = builder.build();
     myInstancesPanel.add(myColumnTree, BorderLayout.CENTER);
   }
