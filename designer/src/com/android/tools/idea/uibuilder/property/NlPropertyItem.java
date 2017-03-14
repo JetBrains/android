@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -241,14 +242,14 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
         }
         if (resource != null) {
           if (resource.getValue() != null) {
-            value = resource.getValue();
+            value = resource.getResourceType() == ResourceType.FONT ? resource.getName() : resource.getValue();
             if (resource.isFramework()) {
               value = addAndroidPrefix(value);
             }
           }
           ResourceValue resolved = resolver.resolveResValue(resource);
           if (resolved != null && resolved.getValue() != null) {
-            value = resolved.getValue();
+            value = resolved.getResourceType() == ResourceType.FONT ? resolved.getName() : resolved.getValue();
             if (resource.isFramework()) {
               value = addAndroidPrefix(value);
             }

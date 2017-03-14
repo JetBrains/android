@@ -80,7 +80,7 @@ public class EnumSupportFactory {
     }
     switch (property.getName()) {
       case ATTR_FONT_FAMILY:
-        return new SimpleEnumSupport(property, AndroidDomUtil.AVAILABLE_FAMILIES);
+        return new FontEnumSupport(property);
       case ATTR_TYPEFACE:
         return new SimpleEnumSupport(property, AVAILABLE_TYPEFACES);
       case ATTR_TEXT_SIZE:
