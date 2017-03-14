@@ -22,10 +22,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.*;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule;
@@ -249,7 +246,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
                                  boolean androidProjectWithoutVariants) {
     //noinspection deprecation
     ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
-    JavaModuleModel javaModuleModel = new JavaModuleModel(gradleModule, model, androidProjectWithoutVariants);
+    JavaModuleModel javaModuleModel = new IdeaJavaModuleModel(gradleModule, model, androidProjectWithoutVariants);
     ideModule.createChild(JAVA_MODULE_MODEL, javaModuleModel);
   }
 
