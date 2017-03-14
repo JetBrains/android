@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -32,6 +33,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.XmlElementFactory;
@@ -39,6 +41,7 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -132,10 +135,9 @@ public class AppBarConfigurationDialog extends JDialog {
     "<android.support.design.widget.FloatingActionButton\n" +       // 2 = Prefix for auto namespace
     "    %1$s:layout_height=\"wrap_content\"\n" +
     "    %1$s:layout_width=\"wrap_content\"\n" +
-    "    %2$s:layout_anchor=\"@id/appbar\"\n" +
-    "    %2$s:layout_anchorGravity=\"bottom|right|end\"\n" +
     "    %1$s:src=\"%3$s\"\n" +                                     // 3 = Image location
-    "    %1$s:layout_marginRight=\"16dp\"\n" +
+    "    %1$s:layout_gravity=\"bottom|end\"\n" +
+    "    %1$s:layout_margin=\"16dp\"\n" +
     "    %1$s:clickable=\"true\"\n" +
     "    %2$s:fabSize=\"mini\"/>\n";
 
@@ -177,6 +179,8 @@ public class AppBarConfigurationDialog extends JDialog {
   private static final int START_HEIGHT = 400;
 
   private final ViewEditor myEditor;
+  private final Disposable myDisposable;
+  private final JBLoadingPanel myLoadingPanel;
   private JPanel myContentPane;
   private JButton myButtonOK;
   private JButton myButtonCancel;
@@ -207,8 +211,12 @@ public class AppBarConfigurationDialog extends JDialog {
 
   public AppBarConfigurationDialog(@NotNull ViewEditor editor) {
     myEditor = editor;
+    myDisposable = Disposer.newDisposable();
+    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myDisposable, 20);
+    myLoadingPanel.add(myContentPane);
+    Disposer.register(editor.getModel(), myDisposable);
     setTitle(DIALOG_TITLE);
-    setContentPane(myContentPane);
+    setContentPane(myLoadingPanel);
     setModal(true);
     getRootPane().setDefaultButton(myButtonOK);
     myBackgroundImage = DEFAULT_BACKGROUND_IMAGE;
@@ -282,13 +290,8 @@ public class AppBarConfigurationDialog extends JDialog {
   public boolean open(@NotNull final XmlFile file) {
     Project project = file.getProject();
     GradleDependencyManager manager = GradleDependencyManager.getInstance(project);
-    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(DESIGN_LIB_ARTIFACT + ":+");
-    boolean added = manager.ensureLibraryIsIncluded(myEditor.getModel().getModule(), Collections.singletonList(coordinate), () -> {
-      if (isVisible()) {
-        generatePreviews();
-      }
-    });
-    if (!added) {
+    boolean syncNeeded = !manager.dependsOn(myEditor.getModel().getModule(), DESIGN_LIB_ARTIFACT);
+    if (syncNeeded && !addDesignLibrary(manager)) {
       return false;
     }
 
@@ -302,7 +305,9 @@ public class AppBarConfigurationDialog extends JDialog {
     setLocation(screen.x + (screen.width - size.width) / 2, screen.y + (screen.height - size.height) / 2);
     updateControls();
     myButtonOK.requestFocus();
-    generatePreviews();
+    if (!syncNeeded) {
+      generatePreviews();
+    }
 
     setVisible(true);
     if (myWasAccepted) {
@@ -317,6 +322,16 @@ public class AppBarConfigurationDialog extends JDialog {
     return myWasAccepted;
   }
 
+  private boolean addDesignLibrary(@NotNull GradleDependencyManager manager) {
+    myLoadingPanel.startLoading();
+    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(DESIGN_LIB_ARTIFACT + ":+");
+    return manager.ensureLibraryIsIncluded(myEditor.getModel().getModule(), Collections.singletonList(coordinate), () -> {
+      if (isVisible()) {
+        ApplicationManager.getApplication().invokeLater(this::generatePreviews);
+      }
+    });
+  }
+
   private void onOK() {
     myWasAccepted = true;
     dispose();
@@ -325,6 +340,13 @@ public class AppBarConfigurationDialog extends JDialog {
   private void onCancel() {
     dispose();
   }
+
+  @Override
+  public void dispose() {
+    super.dispose();
+    Disposer.dispose(myDisposable);
+  }
+
 
   private void updateControls() {
     myTabCount.setEnabled(myWithTabs.isSelected());
@@ -602,6 +624,7 @@ public class AppBarConfigurationDialog extends JDialog {
     if (image != null) {
       myExpandedImage = image;
     }
+    myLoadingPanel.stopLoading();
   }
 
   @Nullable
@@ -613,7 +636,7 @@ public class AppBarConfigurationDialog extends JDialog {
         return null;
       }
     }
-    catch (RuntimeInterruptedException ex) {
+    catch (@SuppressWarnings("deprecation") RuntimeInterruptedException ex) {
       // Will happen if several rendering calls are stacked.
       return null;
     }
