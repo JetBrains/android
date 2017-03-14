@@ -20,6 +20,9 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.codeInsight.completion.PrefixMatcher;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
+import com.intellij.codeInsight.lookup.Lookup;
+import com.intellij.codeInsight.lookup.LookupListener;
+import com.intellij.codeInsight.lookup.LookupManager;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaEditorTextFieldBorder;
 import com.intellij.openapi.command.undo.UndoConstants;
 import com.intellij.openapi.editor.Editor;
@@ -38,6 +41,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.plaf.InsetsUIResource;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -45,6 +51,8 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
   private final TextAttributes myTextAttributes;
   private final Insets myEditorInsets;
   private final CompletionProvider myCompletionProvider;
+  private final PropertyChangeListener myPropertyChangeListener;
+  private final List<LookupListener> myLookupListeners;
 
   public static TextEditorWithAutoCompletion create(@NotNull Project project, @NotNull Insets editorInsets) {
     CompletionProvider completionProvider = new CompletionProvider();
@@ -58,6 +66,8 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
     myCompletionProvider = completionProvider;
     myTextAttributes = new TextAttributes(null, null, null, null, Font.PLAIN);
     myEditorInsets = editorInsets;
+    myPropertyChangeListener = new LookupListenerHandler();
+    myLookupListeners = new ArrayList<>();
   }
 
   @Override
@@ -70,10 +80,17 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
     editor.getDocument().putUserData(UndoConstants.DONT_RECORD_UNDO, true);
     editor.setBorder(new DarculaEditorTextFieldBorder() {
       @Override
-      public Insets getBorderInsets(Component c) {
+      public Insets getBorderInsets(Component component) {
         return new InsetsUIResource(myEditorInsets.top, myEditorInsets.left, myEditorInsets.bottom, myEditorInsets.right);
       }
     });
+    LookupManager.getInstance(getProject()).addPropertyChangeListener(myPropertyChangeListener);
+  }
+
+  @Override
+  public void removeNotify() {
+    super.removeNotify();
+    LookupManager.getInstance(getProject()).removePropertyChangeListener(myPropertyChangeListener);
   }
 
   public void setTextColor(@NotNull Color color) {
@@ -94,6 +111,10 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
     }
   }
 
+  public void addLookupListener(@NotNull LookupListener listener) {
+    myLookupListeners.add(listener);
+  }
+
   public void updateCompletionsFromTypes(@NotNull AndroidFacet facet, @NotNull EnumSet<ResourceType> types) {
     myCompletionProvider.updateCompletionsFromTypes(facet, types);
   }
@@ -108,6 +129,19 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
     }
     Editor editor = getEditor();
     return editor != null && editor.getContentComponent().hasFocus();
+  }
+
+  private class LookupListenerHandler implements PropertyChangeListener {
+    @Override
+    public void propertyChange(@NotNull PropertyChangeEvent event) {
+      Object newValue = event.getNewValue();
+      if (newValue instanceof Lookup) {
+        Lookup lookup = (Lookup)newValue;
+        if (lookup.getTopLevelEditor() == getEditor()) {
+          myLookupListeners.forEach(lookup::addLookupListener);
+        }
+      }
+    }
   }
 
   private static class CompletionProvider extends TextFieldWithAutoCompletionListProvider<String> {
