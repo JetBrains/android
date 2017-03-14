@@ -42,7 +42,6 @@ import com.intellij.openapi.projectRoots.SdkTypeId;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.startup.StartupManager;
-import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.newProject.AndroidModuleBuilder;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -247,11 +246,6 @@ public class ImportWizardModuleBuilder extends ModuleBuilder
   @Override
   protected ProjectType getProjectType() {
     return AndroidModuleBuilder.ANDROID_PROJECT_TYPE;
-  }
-
-  @Override
-  public Icon getBigIcon() {
-    return AndroidIcons.Android24;
   }
 
   @Override

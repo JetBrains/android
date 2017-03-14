@@ -14,7 +14,6 @@ public class AndroidIcons {
   }
 
   public static final Icon Android = load("/icons/android.png"); // 16x16
-  public static final Icon Android24 = load("/icons/android24.png"); // 24x24
   public static final Icon AndroidLarge = load("/icons/androidLarge.png"); // 64x64
   public static final Icon AndroidPreview = load("/icons/androidPreview.png"); // 13x13
   public static final Icon AndroidToolWindow = load("/icons/androidToolWindow.png"); // 13x13
