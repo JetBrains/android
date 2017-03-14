@@ -820,7 +820,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     assertNotNull(platform);
     String location = platform.getSdkData().getLocation().getPath();
     location = FileUtil.toSystemIndependentName(location);
-    html = html.replace(location, "$SDK_HOME");
+    html = html.replace(location, "$SDK_HOME")
+      .replace("file:///", "file://"); // On Windows JavaDoc source may start with /
     return html;
   }
 
