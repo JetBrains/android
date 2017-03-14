@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
@@ -34,22 +34,22 @@ import static com.google.common.truth.Truth.assertThat;
  * Tests for {@link SdkBuildToolsTooLowErrorHandler}.
  */
 public class SdkBuildToolsTooLowErrorHandlerTest extends AndroidGradleTestCase {
-  private SyncMessages myOriginalSyncMessages;
-  private SyncMessagesStub mySyncMessagesStub;
+  private GradleSyncMessages myOriginalSyncMessages;
+  private GradleSyncMessagesStub mySyncMessagesStub;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     Project project = getProject();
-    myOriginalSyncMessages = SyncMessages.getInstance(project);
-    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(project);
+    myOriginalSyncMessages = GradleSyncMessages.getInstance(project);
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(project);
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
       if (myOriginalSyncMessages != null) {
-        IdeComponents.replaceService(getProject(), SyncMessages.class, myOriginalSyncMessages);
+        IdeComponents.replaceService(getProject(), GradleSyncMessages.class, myOriginalSyncMessages);
       }
     }
     finally {
@@ -69,7 +69,7 @@ public class SdkBuildToolsTooLowErrorHandlerTest extends AndroidGradleTestCase {
     registerSyncErrorToSimulate("The SDK Build Tools revision (1.0.0) is too low for project ':app'. Minimum required is 2.0.3");
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
-    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
 
     assertThat(notificationUpdate.getText())

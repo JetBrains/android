@@ -20,8 +20,8 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestMessagesDialog;
 import com.intellij.openapi.project.Project;
@@ -47,7 +47,7 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
 
   private GradleSyncState mySyncState;
   private AndroidPluginVersionUpdater myVersionUpdater;
-  private SyncMessagesStub mySyncMessages;
+  private GradleSyncMessagesStub mySyncMessages;
 
   private TestDialog myOriginalTestDialog;
 
@@ -62,7 +62,7 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends IdeaTestCase 
     Project project = getProject();
     mySyncState = IdeComponents.replaceServiceWithMock(project, GradleSyncState.class);
     myVersionUpdater = IdeComponents.replaceServiceWithMock(project, AndroidPluginVersionUpdater.class);
-    mySyncMessages = SyncMessagesStub.replaceSyncMessagesService(project);
+    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
     myVersionUpgrade = new ForcedPluginPreviewVersionUpgradeStep();
   }

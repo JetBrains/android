@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.messages;
 
 import com.android.ide.common.blame.Message;
+import com.android.tools.idea.project.messages.MessageType;
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
 import org.junit.Test;
 

@@ -18,19 +18,17 @@ package com.android.tools.idea.apk;
 import com.android.tools.idea.apk.debugging.ApkDebugging;
 import com.android.tools.idea.project.CustomProjectTypeImporter;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.externalSystem.ExternalSystemManager;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getManager;
 
 public class ImportApkAction extends DumbAwareAction {
   @NonNls private static final String LAST_IMPORTED_LOCATION = "last.apk.imported.location";
@@ -41,7 +39,9 @@ public class ImportApkAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    FileChooserDialog chooser = FileChooserFactory.getInstance().createFileChooser(createFileChooserDescriptor(), null, null);
+    ExternalSystemManager<?, ?, ?, ?, ?> manager = getManager(ApkDebugging.SYSTEM_ID);
+    assert manager != null;
+    FileChooserDialog chooser = FileChooserFactory.getInstance().createFileChooser(manager.getExternalProjectDescriptor(), null, null);
     VirtualFile toSelect = null;
     String lastLocation = PropertiesComponent.getInstance().getValue(LAST_IMPORTED_LOCATION);
     if (lastLocation != null) {
@@ -54,26 +54,6 @@ public class ImportApkAction extends DumbAwareAction {
     VirtualFile file = files[0];
     PropertiesComponent.getInstance().setValue(LAST_IMPORTED_LOCATION, file.getPath());
     CustomProjectTypeImporter.getMain().importFileAsProject(file);
-  }
-
-  @NotNull
-  private static FileChooserDescriptor createFileChooserDescriptor() {
-    FileChooserDescriptor descriptor = new FileChooserDescriptor(true /* choose files */, false /* do not choose folders */,
-                                                                 false /* do not choose jars */, false /* do not choose jars as files */,
-                                                                 false /* do not choose jar contents */,
-                                                                 false /* do not choose multiple */) {
-      FileChooserDescriptor myDelegate = new OpenProjectFileChooserDescriptor(true);
-      @Override
-      public Icon getIcon(VirtualFile file) {
-        Icon icon = myDelegate.getIcon(file);
-        return icon == null ? super.getIcon(file) : icon;
-      }
-    };
-    descriptor.setHideIgnored(false);
-    descriptor.setTitle("Select APK File");
-    descriptor.setDescription("Select the APK file to profile or debug");
-    descriptor.withFileFilter(file -> "apk".equals(file.getExtension()));
-    return descriptor;
   }
 
   @Override

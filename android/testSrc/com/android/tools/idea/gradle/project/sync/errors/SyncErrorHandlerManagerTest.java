@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.util.PositionInFile;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
@@ -24,7 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.mockito.Mock;
 
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessage.DEFAULT_GROUP;
+import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.ERROR;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -37,7 +37,7 @@ public class SyncErrorHandlerManagerTest extends IdeaTestCase {
   @Mock private SyncErrorHandler myErrorHandler1;
   @Mock private SyncErrorHandler myErrorHandler2;
   @Mock private ErrorAndLocation.Factory myCauseAndLocationFactory;
-  @Mock private SyncMessages mySyncMessages;
+  @Mock private GradleSyncMessages mySyncMessages;
 
   private SyncErrorHandlerManager myErrorHandlerManager;
 

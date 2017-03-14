@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.sync.setup.post.project;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -29,8 +29,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import org.mockito.Mock;
 
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessage.DEFAULT_GROUP;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static org.mockito.Mockito.*;
@@ -44,7 +44,7 @@ public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
   @Mock private Jdks myJdks;
   @Mock private IdeInfo myIdeInfo;
 
-  private SyncMessagesStub mySyncMessages;
+  private GradleSyncMessagesStub mySyncMessages;
   private ProgressIndicator myIndicator;
   private ProjectJdkSetupStep mySetupStep;
 
@@ -54,7 +54,7 @@ public class ProjectJdkSetupStepTest extends AndroidGradleTestCase {
     initMocks(this);
     mySetupStep = new ProjectJdkSetupStep(myIdeSdks, myJdks, myIdeInfo);
     myIndicator = new EmptyProgressIndicator();
-    mySyncMessages = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
   public void testDoSetUpProjectWithAndroidStudio() {
