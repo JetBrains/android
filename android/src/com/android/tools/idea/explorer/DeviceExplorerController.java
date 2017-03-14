@@ -754,7 +754,7 @@ public class DeviceExplorerController {
                          UIBundle.message("create.new.file.enter.new.file.name.prompt.text"),
                          UIBundle.message("create.new.file.file.name.cannot.be.empty.error.message"),
                          x -> UIBundle.message("create.new.file.could.not.create.file.error.message", x),
-                         x -> parentTreeNode.getEntry().getFileSystem().createNewFile(parentTreeNode.getEntry(), x));
+                         x -> parentTreeNode.getEntry().createNewFile(x));
     }
 
     @Override
@@ -910,7 +910,7 @@ public class DeviceExplorerController {
                          UIBundle.message("create.new.folder.enter.new.folder.name.prompt.text"),
                          UIBundle.message("create.new.folder.folder.name.cannot.be.empty.error.message"),
                          x -> UIBundle.message("create.new.folder.could.not.create.folder.error.message", x),
-                         x -> parentTreeNode.getEntry().getFileSystem().createNewDirectory(parentTreeNode.getEntry(), x));
+                         x -> parentTreeNode.getEntry().createNewDirectory(x));
     }
 
     private void newFileOrDirectory(@NotNull DeviceFileEntryNode parentTreeNode,
@@ -1071,7 +1071,7 @@ public class DeviceExplorerController {
       // Create directory in destination device
       DeviceFileEntry parentEntry = parentNode.getEntry();
       String directoryName = file.getName();
-      ListenableFuture<Void> futureDirectory = parentEntry.getFileSystem().createNewDirectory(parentEntry, directoryName);
+      ListenableFuture<Void> futureDirectory = parentEntry.createNewDirectory(directoryName);
       myEdtExecutor.addConsumer(futureDirectory, (aVoid, createDirectoryError) -> {
         // Refresh node entries
         parentNode.setLoaded(false);

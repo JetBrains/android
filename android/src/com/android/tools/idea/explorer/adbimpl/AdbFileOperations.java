@@ -19,10 +19,14 @@ import com.android.ddmlib.*;
 import com.android.tools.idea.explorer.FutureCallbackExecutor;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 
 public class AdbFileOperations {
   @NotNull private final IDevice myDevice;
@@ -37,6 +41,11 @@ public class AdbFileOperations {
 
   @NotNull
   public ListenableFuture<Void> createNewFile(@NotNull String parentPath, @NotNull String fileName) {
+    return createNewFileRunAs(parentPath, fileName, null);
+  }
+
+  @NotNull
+  public ListenableFuture<Void> createNewFileRunAs(@NotNull String parentPath, @NotNull String fileName, @Nullable String runAs) {
     SettableFuture<Void> futureResult = SettableFuture.create();
 
     if (fileName.contains(AdbPathUtil.FILE_SEPARATOR)) {
@@ -53,10 +62,10 @@ public class AdbFileOperations {
         // aim to guarantee strong atomicity for file system operations.
         String command;
         if (myDeviceCapabilities.supportsTestCommand()) {
-          command = getCommand("test -e ").withEscapedPath(remotePath).build();
+          command = getCommand(runAs, "test -e ").withEscapedPath(remotePath).build();
         }
         else {
-          command = getCommand("ls -d -a ").withEscapedPath(remotePath).build();
+          command = getCommand(runAs, "ls -d -a ").withEscapedPath(remotePath).build();
         }
         AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
         if (!commandResult.isError()) {
@@ -67,10 +76,10 @@ public class AdbFileOperations {
         if (myDeviceCapabilities.supportsTouchCommand()) {
           // Touch creates an empty file if the file does not exist.
           // Touch fails if there are permissions errors.
-          command = getCommand("touch ").withEscapedPath(remotePath).build();
+          command = getCommand(runAs, "touch ").withEscapedPath(remotePath).build();
         }
         else {
-          command = getCommand("cat </dev/null >").withEscapedPath(remotePath).build();
+          command = getCommand(runAs, "cat </dev/null >").withEscapedPath(remotePath).build();
         }
         commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
         commandResult.throwIfError();
@@ -88,6 +97,11 @@ public class AdbFileOperations {
 
   @NotNull
   public ListenableFuture<Void> createNewDirectory(@NotNull String parentPath, @NotNull String directoryName) {
+    return createNewDirectoryRunAs(parentPath, directoryName, null);
+  }
+
+  @NotNull
+  public ListenableFuture<Void> createNewDirectoryRunAs(@NotNull String parentPath, @NotNull String directoryName, @Nullable String runAs) {
     SettableFuture<Void> futureResult = SettableFuture.create();
 
     if (directoryName.contains(AdbPathUtil.FILE_SEPARATOR)) {
@@ -99,7 +113,7 @@ public class AdbFileOperations {
       try {
         // "mkdir" fails if the file/directory already exists
         String remotePath = AdbPathUtil.resolve(parentPath, directoryName);
-        String command = getCommand("mkdir ").withEscapedPath(remotePath).build();
+        String command = getCommand(runAs, "mkdir ").withEscapedPath(remotePath).build();
         AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
         commandResult.throwIfError();
 
@@ -114,13 +128,41 @@ public class AdbFileOperations {
     return futureResult;
   }
 
+  public ListenableFuture<List<String>> listPackages() {
+    return myExecutor.executeAsync(() -> {
+      String command = getCommand(null, "pm list packages").build();
+      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      commandResult.throwIfError();
+
+      return commandResult.getOutput().stream()
+        .map(AdbFileOperations::processPackageListLine)
+        .filter(x -> !StringUtil.isEmpty(x))
+        .collect(Collectors.toList());
+    });
+  }
+
+  @Nullable
+  private static String processPackageListLine(@NotNull String line) {
+    String prefix = "package:";
+    if (!line.startsWith(prefix)) {
+      return null;
+    }
+    return line.substring(prefix.length());
+  }
+
+
   @NotNull
   public ListenableFuture<Void> deleteFile(@NotNull String path) {
+    return deleteFileRunAs(path, null);
+  }
+
+  @NotNull
+  public ListenableFuture<Void> deleteFileRunAs(@NotNull String path, @Nullable String runAs) {
     SettableFuture<Void> futureResult = SettableFuture.create();
 
     myExecutor.execute(() -> {
       try {
-        String command = getRmCommand(path, false);
+        String command = getRmCommand(runAs, path, false);
         AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
         commandResult.throwIfError();
 
@@ -137,11 +179,16 @@ public class AdbFileOperations {
 
   @NotNull
   public ListenableFuture<Void> deleteRecursive(@NotNull String path) {
+    return deleteRecursiveRunAs(path, null);
+  }
+
+  @NotNull
+  public ListenableFuture<Void> deleteRecursiveRunAs(@NotNull String path, @Nullable String runAs) {
     SettableFuture<Void> futureResult = SettableFuture.create();
 
     myExecutor.execute(() -> {
       try {
-        String command = getRmCommand(path, true);
+        String command = getRmCommand(runAs, path, true);
         AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
         commandResult.throwIfError();
 
@@ -157,22 +204,25 @@ public class AdbFileOperations {
   }
 
   @NotNull
-  private String getRmCommand(@NotNull String path, boolean recursive)
+  private String getRmCommand(@Nullable String runAs, @NotNull String path, boolean recursive)
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, SyncException {
     if (myDeviceCapabilities.supportsRmForceFlag()) {
-      return getCommand(String.format("rm %s-f ", (recursive ? "-r " : ""))).withEscapedPath(path).build();
+      return getCommand(runAs, String.format("rm %s-f ", (recursive ? "-r " : ""))).withEscapedPath(path).build();
     }
     else {
-      return getCommand(String.format("rm %s", (recursive ? "-r " : ""))).withEscapedPath(path).build();
+      return getCommand(runAs, String.format("rm %s", (recursive ? "-r " : ""))).withEscapedPath(path).build();
     }
   }
 
   @NotNull
-  private AdbShellCommandBuilder getCommand(@NotNull String text)
+  private AdbShellCommandBuilder getCommand(@Nullable String runAs, @NotNull String text)
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
     AdbShellCommandBuilder command = new AdbShellCommandBuilder();
     if (myDeviceCapabilities.supportsSuRootCommand()) {
       command.withSuRootPrefix();
+    }
+    else if (runAs != null) {
+      command.withRunAs(runAs);
     }
     return command.withText(text);
   }

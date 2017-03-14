@@ -155,6 +155,24 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
 
   @NotNull
   @Override
+  public ListenableFuture<Void> createNewFile(@NotNull String fileName) {
+    return FutureUtils.delayedOperation(() -> {
+      addFile(fileName);
+      return null;
+    }, OPERATION_TIMEOUT_MILLIS);
+  }
+
+  @NotNull
+  @Override
+  public ListenableFuture<Void> createNewDirectory(@NotNull String directoryName) {
+    return FutureUtils.delayedOperation(() -> {
+      addDirectory(directoryName);
+      return null;
+    }, OPERATION_TIMEOUT_MILLIS);
+  }
+
+  @NotNull
+  @Override
   public ListenableFuture<Boolean> isSymbolicLinkToDirectory() {
     return FutureUtils.delayedValue(myIsSymbolicLinkToDirectory, OPERATION_TIMEOUT_MILLIS);
   }
