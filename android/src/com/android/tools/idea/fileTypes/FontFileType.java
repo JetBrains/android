@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.fileTypes;
 
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileTypes.ExtensionFileNameMatcher;
 import com.intellij.openapi.fileTypes.FileNameMatcher;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.PlatformIcons;
+import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +59,7 @@ public class FontFileType implements FileType {
 
   @Override
   public Icon getIcon() {
-    return AllIcons.FileTypes.Any_type;
+    return AndroidIcons.FontFile;
   }
 
   @Override
