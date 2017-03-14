@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.explorer.adbimpl;
 
+import com.android.ddmlib.FileListingService;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.PathUtilRt;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
+import java.util.stream.Collectors;
 
 /**
  * Utilities to manipulate paths of Android Device file system entries.
@@ -56,6 +58,20 @@ public class AdbPathUtil {
     }
 
     return basePath + FILE_SEPARATOR + other;
+  }
+
+  @NotNull
+  public static String getEscapedPath(@NotNull String path) {
+    // Special case for root
+    if (FILE_SEPARATOR.equals(path)) {
+      return path;
+    }
+
+    // Escape each segment, then re-join them by file separator
+    return StringUtil.split(path, FILE_SEPARATOR)
+      .stream()
+      .map(x -> FILE_SEPARATOR + FileListingService.FileEntry.escape(x))
+      .collect(Collectors.joining());
   }
 
   private static boolean isEmpty(@NotNull String path) {
