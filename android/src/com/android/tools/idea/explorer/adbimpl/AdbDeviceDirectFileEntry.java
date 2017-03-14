@@ -16,10 +16,13 @@
 package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
+import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,6 +33,7 @@ import java.util.stream.Collectors;
  * {@link AdbFileOperations} methods to use as a {@code "run-as package-name" prefix}.
  */
 public class AdbDeviceDirectFileEntry extends AdbDeviceFileEntry {
+  @NotNull private static final Logger LOGGER = Logger.getInstance(AdbDeviceDirectFileEntry.class);
   @Nullable private final String myRunAs;
 
   public AdbDeviceDirectFileEntry(@NotNull AdbDeviceFileSystem device,
@@ -79,5 +83,21 @@ public class AdbDeviceDirectFileEntry extends AdbDeviceFileEntry {
   @Override
   public ListenableFuture<Boolean> isSymbolicLinkToDirectory() {
     return myDevice.getAdbFileListing().isDirectoryLinkRunAs(myEntry, myRunAs);
+  }
+
+  @NotNull
+  @Override
+  public ListenableFuture<Void> downloadFile(@NotNull Path localPath,
+                                             @NotNull FileTransferProgress progress) {
+    return myDevice.getAdbFileTransfer().downloadFile(this.myEntry, localPath, progress);
+  }
+
+  @NotNull
+  @Override
+  public ListenableFuture<Void> uploadFile(@NotNull Path localPath,
+                                           @NotNull FileTransferProgress progress) {
+    return myDevice.getAdbFileTransfer().uploadFile(localPath,
+                                                    AdbPathUtil.resolve(myEntry.getFullPath(), localPath.getFileName().toString()),
+                                                    progress);
   }
 }

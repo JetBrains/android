@@ -83,24 +83,7 @@ public abstract class AdbDeviceFileEntry implements DeviceFileEntry {
 
   @Override
   public long getSize() {
-    String size = myEntry.getSize();
-    if (StringUtil.isEmpty(size)) {
-      return -1;
-    }
-
-    // For character devices, size is of the form "xxx, yyy".
-    int index = size.indexOf(",");
-    if (index >= 0) {
-      return -1;
-    }
-
-    try {
-      return Long.parseLong(size);
-    }
-    catch (NumberFormatException e) {
-      AdbDeviceFileSystemService.LOGGER.warn(String.format("Error paring size string \"%s\"", size), e);
-      return -1;
-    }
+    return myEntry.getSize();
   }
 
   @Override

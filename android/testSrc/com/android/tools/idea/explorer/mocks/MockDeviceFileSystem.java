@@ -92,7 +92,6 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
   }
 
   @NotNull
-  @Override
   public ListenableFuture<Void> downloadFile(@NotNull DeviceFileEntry entry,
                                              @NotNull Path localPath,
                                              @NotNull FileTransferProgress progress) {
@@ -103,7 +102,6 @@ public class MockDeviceFileSystem implements DeviceFileSystem {
   }
 
   @NotNull
-  @Override
   public ListenableFuture<Void> uploadFile(@NotNull Path localFilePath,
                                            @NotNull DeviceFileEntry remoteDirectory,
                                            @NotNull FileTransferProgress progress) {

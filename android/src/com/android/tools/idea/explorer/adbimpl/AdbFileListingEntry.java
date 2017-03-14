@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.explorer.adbimpl;
 
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,6 +26,8 @@ import org.jetbrains.annotations.Nullable;
  * and is not linked back to the originating device.
  */
 public class AdbFileListingEntry {
+  @NotNull private static Logger LOGGER = Logger.getInstance(AdbFileListingEntry.class);
+
   @NotNull private final String myPath;
   @NotNull private final EntryKind myKind;
   @Nullable private final String myPermissions;
@@ -125,9 +129,25 @@ public class AdbFileListingEntry {
     return myTime;
   }
 
-  @Nullable
-  public String getSize() {
-    return mySize;
+  public long getSize() {
+    String size = mySize;
+    if (StringUtil.isEmpty(size)) {
+      return -1;
+    }
+
+    // For character devices, size is of the form "xxx, yyy".
+    int index = size.indexOf(",");
+    if (index >= 0) {
+      return -1;
+    }
+
+    try {
+      return Long.parseLong(size);
+    }
+    catch (NumberFormatException e) {
+      LOGGER.warn(String.format("Error paring size string \"%s\"", size), e);
+      return -1;
+    }
   }
 
   @Nullable

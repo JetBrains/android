@@ -26,11 +26,11 @@ import java.util.stream.Collectors;
 /**
  * Utilities to manipulate paths of Android Device file system entries.
  *
- * Since paths on Android devices are posix-like, we can't use the {@link java.nio.file.Path}
+ * Since paths on Android devices are posix-like, we can't use the {@link Path}
  * or {@link java.io.File} class to manipulate them, as these classes are platform dependent.
  */
 public class AdbPathUtil {
-  public static final String FILE_SEPARATOR = com.android.ddmlib.FileListingService.FILE_SEPARATOR;
+  public static final String FILE_SEPARATOR = FileListingService.FILE_SEPARATOR;
 
   /**
    * Returns the file name part of a path, i.e. the last segment.
