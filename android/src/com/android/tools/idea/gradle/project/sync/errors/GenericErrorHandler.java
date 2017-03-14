@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
 import com.google.common.base.Splitter;
@@ -40,7 +40,7 @@ public class GenericErrorHandler extends SyncErrorHandler {
       List<NotificationHyperlink> hyperlinks = getQuickFixHyperlinks(notification, text);
       if (!hyperlinks.isEmpty()) {
         updateUsageTracker();
-        SyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
+        GradleSyncMessages.getInstance(project).updateNotification(notification, text, hyperlinks);
         return true;
       }
     }

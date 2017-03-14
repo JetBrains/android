@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.validation.common;
 
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Lists;
@@ -98,7 +98,7 @@ public class UniquePathModuleValidatorStrategyTest extends AndroidGradleTestCase
 
   public void testFixAndReportFoundIssues() throws Exception {
     Project project = getProject();
-    SyncMessagesStub syncMessages = SyncMessagesStub.replaceSyncMessagesService(project);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
     ProjectSubset projectSubset = IdeComponents.replaceServiceWithMock(project, ProjectSubset.class);
     when(projectSubset.isFeatureEnabled()).thenReturn(false);
@@ -118,7 +118,7 @@ public class UniquePathModuleValidatorStrategyTest extends AndroidGradleTestCase
 
   public void testFixAndReportFoundIssuesWithUniquePaths() throws Exception {
     Project project = getProject();
-    SyncMessagesStub syncMessages = SyncMessagesStub.replaceSyncMessagesService(project);
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
 
     ProjectSubset projectSubset = IdeComponents.replaceServiceWithMock(project, ProjectSubset.class);
     when(projectSubset.isFeatureEnabled()).thenReturn(false);

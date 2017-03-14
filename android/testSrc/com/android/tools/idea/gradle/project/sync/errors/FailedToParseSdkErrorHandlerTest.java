@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors;
 
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessagesStub;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
  */
 public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
 
-  private SyncMessagesStub mySyncMessagesStub;
+  private GradleSyncMessagesStub mySyncMessagesStub;
   private AndroidSdks myAndroidSdks;
   private AndroidSdks myOriginalAndroidSdks;
 
@@ -44,7 +44,7 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
     super.setUp();
     myOriginalAndroidSdks = AndroidSdks.getInstance();
     myAndroidSdks = IdeComponents.replaceServiceWithMock(AndroidSdks.class);
-    mySyncMessagesStub = SyncMessagesStub.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
   }
 
   @Override
@@ -65,7 +65,7 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
     registerSyncErrorToSimulate(cause);
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
-    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
     assertThat(notificationUpdate.getText()).isEqualTo("failed to parse SDK");
 
@@ -87,7 +87,7 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
     registerSyncErrorToSimulate(cause);
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
-    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
 
     assertThat(notificationUpdate.getText()).isEqualTo(
@@ -113,7 +113,7 @@ public class FailedToParseSdkErrorHandlerTest extends AndroidGradleTestCase {
     registerSyncErrorToSimulate(cause);
     loadProjectAndExpectSyncError(SIMPLE_APPLICATION);
 
-    SyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
+    GradleSyncMessagesStub.NotificationUpdate notificationUpdate = mySyncMessagesStub.getNotificationUpdate();
     assertNotNull(notificationUpdate);
 
     assertThat(notificationUpdate.getText())

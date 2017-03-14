@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.project.sync.setup.post.project;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
@@ -34,8 +34,8 @@ import com.intellij.pom.java.LanguageLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessage.DEFAULT_GROUP;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 import static com.intellij.openapi.application.TransactionGuard.submitTransaction;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 
@@ -81,7 +81,7 @@ public class ProjectJdkSetupStep extends ProjectSetupStep {
         message.add(myJdks.getWrongJdkQuickFixes(project));
       }
 
-      SyncMessages.getInstance(project).report(message);
+      GradleSyncMessages.getInstance(project).report(message);
       GradleSyncState.getInstance(project).getSummary().setSyncErrorsFound(true);
       return;
     }

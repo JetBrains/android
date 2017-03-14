@@ -20,8 +20,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallPlatformHyperlink;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -53,7 +53,7 @@ import java.util.Set;
 
 import static com.android.SdkConstants.FN_ANNOTATIONS_JAR;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
 import static com.intellij.openapi.application.ModalityState.NON_MODAL;
@@ -210,7 +210,7 @@ public class SdksCleanupStep extends ProjectCleanupStep {
       String text = "Missing Android platform(s) detected: " + Joiner.on(", ").join(missingPlatforms);
       SyncMessage msg = new SyncMessage(SyncMessage.DEFAULT_GROUP, ERROR, text);
       msg.add(new InstallPlatformHyperlink(versionsToInstall));
-      SyncMessages.getInstance(project).report(msg);
+      GradleSyncMessages.getInstance(project).report(msg);
     }
   }
 

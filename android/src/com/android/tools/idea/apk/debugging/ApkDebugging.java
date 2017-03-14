@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.apk.debugging;
 
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.util.SystemProperties;
+import org.jetbrains.annotations.NotNull;
 
 public final class ApkDebugging {
+  @NotNull public static final ProjectSystemId SYSTEM_ID = new ProjectSystemId("APK Import", "APK Project");
+
   private static final boolean APK_DEBUGGING_ENABLED = SystemProperties.getBooleanProperty("apk.importer.enabled", false);
 
   private ApkDebugging() {

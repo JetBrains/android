@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.compatibility;
 
-import com.android.tools.idea.gradle.project.sync.messages.MessageType;
+import com.android.tools.idea.project.messages.MessageType;
 import org.jetbrains.annotations.NotNull;
 
 /**

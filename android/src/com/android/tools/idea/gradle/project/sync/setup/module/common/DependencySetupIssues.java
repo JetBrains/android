@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.project.sync.setup.module.common;
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.gradle.project.sync.messages.MessageType;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.project.messages.MessageType;
+import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -36,8 +36,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.MISSING_DEPENDENCIES;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.ERROR;
-import static com.android.tools.idea.gradle.project.sync.messages.MessageType.WARNING;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -49,7 +49,7 @@ import static com.intellij.util.ArrayUtil.toStringArray;
 public class DependencySetupIssues {
   @NotNull private final Project myProject;
   @NotNull private final GradleSyncState mySyncState;
-  @NotNull private final SyncMessages mySyncMessages;
+  @NotNull private final GradleSyncMessages mySyncMessages;
 
   @NotNull private final Map<String, MissingModule> myMissingModules = new ConcurrentHashMap<>();
   @NotNull private final Map<String, MissingModule> myMissingModulesWithBackupLibraries = new ConcurrentHashMap<>();
@@ -62,7 +62,7 @@ public class DependencySetupIssues {
     return ServiceManager.getService(project, DependencySetupIssues.class);
   }
 
-  public DependencySetupIssues(@NotNull Project project, @NotNull GradleSyncState syncState, @NotNull SyncMessages syncMessages) {
+  public DependencySetupIssues(@NotNull Project project, @NotNull GradleSyncState syncState, @NotNull GradleSyncMessages syncMessages) {
     myProject = project;
     mySyncState = syncState;
     mySyncMessages = syncMessages;
