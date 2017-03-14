@@ -16,10 +16,12 @@
 package com.android.tools.idea.explorer.adbimpl;
 
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
+import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -73,5 +75,25 @@ public class AdbDeviceDefaultFileEntry extends AdbDeviceFileEntry {
   public ListenableFuture<Boolean> isSymbolicLinkToDirectory() {
     ListenableFuture<AdbDeviceFileEntry> futureMountPoint = myDevice.resolveMountPoint(this);
     return myDevice.getTaskExecutor().transformAsync(futureMountPoint, AdbDeviceFileEntry::isSymbolicLinkToDirectory);
+  }
+
+  @NotNull
+  @Override
+  public ListenableFuture<Void> downloadFile(@NotNull Path localPath, @NotNull FileTransferProgress progress) {
+    ListenableFuture<AdbDeviceFileEntry> futureMountPoint = myDevice.resolveMountPoint(this);
+    return myDevice.getTaskExecutor().transformAsync(futureMountPoint, x -> {
+      assert x != null;
+      return x.downloadFile(localPath, progress);
+    });
+  }
+
+  @NotNull
+  @Override
+  public ListenableFuture<Void> uploadFile(@NotNull Path localPath, @NotNull FileTransferProgress progress) {
+    ListenableFuture<AdbDeviceFileEntry> futureMountPoint = myDevice.resolveMountPoint(this);
+    return myDevice.getTaskExecutor().transformAsync(futureMountPoint, x -> {
+      assert x != null;
+      return x.uploadFile(localPath, progress);
+    });
   }
 }
