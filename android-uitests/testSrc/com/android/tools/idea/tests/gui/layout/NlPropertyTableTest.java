@@ -24,7 +24,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPropertyTableFixture;
+import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.intellij.codeInsight.lookup.LookupManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.fest.swing.data.TableCellInSelectedRow;
 import org.fest.swing.fixture.AbstractComponentFixture;
@@ -39,9 +41,7 @@ import javax.swing.text.JTextComponent;
 import java.awt.*;
 
 import static com.google.common.truth.Truth.assertThat;
-import static java.awt.event.KeyEvent.VK_DOWN;
-import static java.awt.event.KeyEvent.VK_ENTER;
-import static java.awt.event.KeyEvent.VK_ESCAPE;
+import static java.awt.event.KeyEvent.*;
 
 /**
  * UI test for the layout preview window
@@ -197,6 +197,68 @@ public class NlPropertyTableTest {
 
     assertThat(textView.getTextAttribute()).isEqualTo("@android:string/copy");
     assertThat(table.target()).isEqualTo(getFocusOwner());
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)  // Until this test has proven itself reliable
+  @Test
+  public void testSimpleKeyboardNavigationInTable() throws Exception {
+    IdeFrameFixture frame = guiTest.importSimpleApplication();
+    NlEditorFixture layout = frame
+      .getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .getLayoutEditor(true)
+      .waitForRenderToFinish();
+
+    layout.findView("TextView", 0).click();
+    NlPropertyTableFixture table = layout.getPropertiesPanel().openAsTable();
+    Wait.seconds(10).expecting("The table to render").until(() -> table.target().getVisibleRect().getHeight() > 0);
+
+    // Test original window size
+    int movement = (int) (table.target().getVisibleRect().getHeight() / table.target().getRowHeight());
+    testNavigationInTable(table, movement);
+
+    // Test if it still work with Filter
+    NlPropertiesPanel parentPanel = table.getParentPropertiesPanel();
+    // In our test case, the PropertyTable must contained by a NlPropertiesPanel.
+    assertThat(parentPanel).isNotNull();
+    parentPanel.setFilter("an");
+    movement = (int) (table.target().getVisibleRect().getHeight() / table.target().getRowHeight());
+    testNavigationInTable(table, movement);
+    parentPanel.setFilter("");
+
+    // Test another window size
+    final int newRowSize = 4;
+    table.adjustIdeFrameHeightToShowNumberOfRow(newRowSize);
+    Wait.seconds(10).expecting("The table to resize").until(
+      () -> table.target().getVisibleRect().getHeight() == table.target().getRowHeight() * newRowSize
+    );
+    testNavigationInTable(table, newRowSize);
+  }
+
+  private static void testNavigationInTable(NlPropertyTableFixture table, int expectedMovement) {
+    // Test page down
+    ApplicationManager.getApplication()
+      .invokeAndWait(() -> table.target().getSelectionModel().setSelectionInterval(0, 0));
+    table.pressAndReleaseKeys(VK_PAGE_DOWN);
+    table.requireSelectedRows(Math.min(expectedMovement, table.rowCount() - 1));
+
+    // Make sure page down will not effect when current selection is last one
+    ApplicationManager.getApplication()
+      .invokeAndWait(() -> table.target().getSelectionModel().setSelectionInterval(table.rowCount() - 1, table.rowCount() - 1));
+    table.pressAndReleaseKeys(VK_PAGE_DOWN);
+    table.requireSelectedRows(table.rowCount() - 1);
+
+    // Test page up
+    ApplicationManager.getApplication()
+      .invokeAndWait(() -> table.target().getSelectionModel().setSelectionInterval(table.rowCount() - 1, table.rowCount() - 1));;
+    table.pressAndReleaseKeys(VK_PAGE_UP);
+    table.requireSelectedRows(Math.max(0, table.rowCount() - 1 - expectedMovement));
+
+    // Make sure page up will not effect when current selection is first one
+    ApplicationManager.getApplication()
+      .invokeAndWait(() -> table.target().getSelectionModel().setSelectionInterval(0, 0));
+    table.pressAndReleaseKeys(VK_PAGE_UP);
+    table.requireSelectedRows(0);
   }
 
   private static void waitForLookupToShow(@NotNull Project project, @NotNull Wait waitForLookup) {
