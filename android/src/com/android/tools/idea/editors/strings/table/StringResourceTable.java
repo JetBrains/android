@@ -20,6 +20,7 @@ import com.android.tools.idea.editors.strings.StringsWriteUtils;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.ui.TableUtils;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Maps;
 import com.intellij.ide.PasteProvider;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -42,8 +43,10 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.OptionalInt;
 import java.util.stream.IntStream;
 
 import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.*;
@@ -54,6 +57,8 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
 
   @Nullable
   private StringResourceTableColumnFilter myColumnFilter;
+
+  private boolean myColumnPreferredWidthsSet;
 
   public StringResourceTable(@NotNull AndroidFacet facet) {
     super(new StringResourceTableModel());
@@ -171,42 +176,68 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
   public void setColumnFilter(@Nullable StringResourceTableColumnFilter filter) {
     myColumnFilter = filter;
     createDefaultColumnsFromModel();
-    setLocaleColumnHeaderRenderers();
   }
 
   @Override
   public void createDefaultColumnsFromModel() {
-    Map<Object, TableColumn> old = new HashMap<>();
-    // Remove any current columns
-    TableColumnModel columnModel = getColumnModel();
+    addColumns(removeAllColumns());
+  }
+
+  @NotNull
+  private Map<String, TableColumn> removeAllColumns() {
+    Map<String, TableColumn> map = Maps.newHashMapWithExpectedSize(columnModel.getColumnCount());
+
     while (columnModel.getColumnCount() != 0) {
-      TableColumn col = columnModel.getColumn(0);
-      old.put(col.getIdentifier(), col);
-      columnModel.removeColumn(col);
+      TableColumn column = columnModel.getColumn(0);
+
+      columnModel.removeColumn(column);
+      map.put((String)column.getHeaderValue(), column);
     }
 
-    StringResourceTableModel model = getModel();
-    // Create new columns from the data model info
-    for (int i = 0; i < model.getColumnCount(); i++) {
-      Locale locale = model.getLocale(i);
+    return map;
+  }
 
-      if (i < FIXED_COLUMN_COUNT || myColumnFilter == null || (locale != null && myColumnFilter.include(locale))) {
-        TableColumn newColumn = old.get(model.getColumnName(i));
-        if (newColumn == null) {
-          newColumn = new TableColumn(i);
-          if (i != KEY_COLUMN) {
-            OptionalInt optionalWidth = getDefaultValueAndLocaleColumnPreferredWidths();
-            if (optionalWidth.isPresent()) {
-              newColumn.setPreferredWidth(optionalWidth.getAsInt());
-            }
-          }
-        }
-        else {
-          newColumn.setModelIndex(i);
-        }
-        addColumn(newColumn);
+  private void addColumns(@NotNull Map<String, TableColumn> map) {
+    StringResourceTableModel model = getModel();
+    TableCellRenderer renderer = tableHeader == null ? null : new LocaleRenderer(tableHeader.getDefaultRenderer(), model);
+
+    IntStream.range(0, model.getColumnCount())
+      .filter(this::includeColumn)
+      .mapToObj(column -> getColumn(map, column, renderer))
+      .forEach(this::addColumn);
+  }
+
+  private boolean includeColumn(int column) {
+    if (column < FIXED_COLUMN_COUNT) {
+      return true;
+    }
+
+    if (myColumnFilter == null) {
+      return true;
+    }
+
+    Locale locale = getModel().getLocale(column);
+    assert locale != null;
+
+    return myColumnFilter.include(locale);
+  }
+
+  @NotNull
+  private TableColumn getColumn(@NotNull Map<String, TableColumn> map, int column, @Nullable TableCellRenderer renderer) {
+    TableColumn tableColumn = map.get(dataModel.getColumnName(column));
+
+    if (tableColumn == null) {
+      tableColumn = new TableColumn(column);
+
+      if (column >= FIXED_COLUMN_COUNT && renderer != null) {
+        tableColumn.setHeaderRenderer(renderer);
       }
     }
+    else {
+      tableColumn.setModelIndex(column);
+    }
+
+    return tableColumn;
   }
 
   public int getSelectedRowModelIndex() {
@@ -248,17 +279,21 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
     if (sorter != null) { // can be null when called from constructor
       sorter.setModel(getModel());
     }
+
+    if (tableHeader == null) {
+      return;
+    }
+
+    if (myColumnPreferredWidthsSet) {
+      return;
+    }
+
     OptionalInt optionalWidth = getKeyColumnPreferredWidth();
 
     if (optionalWidth.isPresent()) {
       columnModel.getColumn(KEY_COLUMN).setPreferredWidth(optionalWidth.getAsInt());
     }
 
-    if (tableHeader == null) {
-      return;
-    }
-
-    setLocaleColumnHeaderRenderers();
     optionalWidth = getDefaultValueAndLocaleColumnPreferredWidths();
 
     if (optionalWidth.isPresent()) {
@@ -268,6 +303,8 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
         .mapToObj(columnModel::getColumn)
         .forEach(column -> column.setPreferredWidth(width));
     }
+
+    myColumnPreferredWidthsSet = true;
   }
 
   @NotNull
@@ -276,14 +313,6 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
     return IntStream.range(0, getRowCount())
       .map(row -> getPreferredWidth(getCellRenderer(row, KEY_COLUMN), getValueAt(row, KEY_COLUMN), row, KEY_COLUMN))
       .max();
-  }
-
-  private void setLocaleColumnHeaderRenderers() {
-    TableCellRenderer renderer = new LocaleRenderer(tableHeader.getDefaultRenderer(), getModel());
-
-    IntStream.range(FIXED_COLUMN_COUNT, getColumnCount())
-      .mapToObj(columnModel::getColumn)
-      .forEach(column -> column.setHeaderRenderer(renderer));
   }
 
   @NotNull
