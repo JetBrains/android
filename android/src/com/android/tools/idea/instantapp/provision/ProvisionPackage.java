@@ -25,6 +25,7 @@ import com.android.tools.idea.apk.viewer.AndroidApplicationInfo;
 import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessOutput;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -55,6 +56,8 @@ abstract class ProvisionPackage {
     String apkVersion = getApkVersion(apk);
     String installedApkVersion = getInstalledApkVersion(device);
 
+    getLogger().info("SDK apk version is \"" + apkVersion + "\"");
+    getLogger().info("Installed apk version is \"" + (installedApkVersion.isEmpty() ? "not installed" : installedApkVersion) + "\"");
     // Checks if the apk version in the SDK is higher than the installed one. If no installed one, it should always be true.
     return installedApkVersion.isEmpty() || isHigherVersion(apkVersion, installedApkVersion);
     // TODO: should downgrade?
@@ -67,6 +70,7 @@ abstract class ProvisionPackage {
         device.installPackage(apk.getPath(), true /* allow reinstall */, "-d" /* allow downgrade */);
       }
       catch (InstallException e) {
+        getLogger().info("APK " + apk + "failed to install. Trying other variant if available", e);
         continue;
       }
       setFlags(device, getOsBuildType(device));
@@ -121,7 +125,6 @@ abstract class ProvisionPackage {
     return osBuildType;
   }
 
-  @NotNull
   private static void checkApiLevel(@NotNull IDevice device) throws ProvisionException {
     AndroidVersion androidVersion = device.getVersion();
     if (!androidVersion.isGreaterOrEqualThan(MIN_API_LEVEL)) {
@@ -204,4 +207,12 @@ abstract class ProvisionPackage {
 
   @NotNull
   abstract String getPkgName();
+
+  @NotNull
+  abstract String getDescription();
+
+  @NotNull
+  Logger getLogger() {
+    return Logger.getInstance(getClass());
+  }
 }
