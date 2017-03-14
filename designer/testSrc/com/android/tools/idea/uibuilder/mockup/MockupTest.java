@@ -22,7 +22,6 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.tools.idea.uibuilder.surface.SyncScreenView;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import org.mockito.Mock;
@@ -244,7 +243,7 @@ public class MockupTest extends MockupTestCase {
     assertNotNull(mockup);
     NlDesignSurface mockSurface = mock(NlDesignSurface.class);
     when(mockSurface.getScale()).thenReturn(1.0);
-    final ScreenView screenView = new SyncScreenView(mockSurface, ScreenView.ScreenViewType.BLUEPRINT, model);
+    final ScreenView screenView = new ScreenView(mockSurface, ScreenView.ScreenViewType.BLUEPRINT, model);
     final Rectangle componentSwingCoordinates = new Rectangle(0, 0,
                                                               Coordinates.getSwingDimension(screenView, 1000),
                                                               // See createModel for the 1000 value
@@ -261,7 +260,7 @@ public class MockupTest extends MockupTestCase {
     assertNotNull(mockup);
     NlDesignSurface mockSurface = mock(NlDesignSurface.class);
     when(mockSurface.getScale()).thenReturn(1.0);
-    final ScreenView screenView = new SyncScreenView(mockSurface, ScreenView.ScreenViewType.BLUEPRINT, model);
+    final ScreenView screenView = new ScreenView(mockSurface, ScreenView.ScreenViewType.BLUEPRINT, model);
     final Rectangle destinationRectangle = mockup.getScreenBounds(screenView);
     assertEquals(new Rectangle(0, 0, component.w, component.h), destinationRectangle);
   }

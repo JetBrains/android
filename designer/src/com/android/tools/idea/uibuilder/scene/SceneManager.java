@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
@@ -26,18 +27,18 @@ import org.jetbrains.annotations.NotNull;
  */
 abstract public class SceneManager {
   private final NlModel myModel;
-  final private SceneView mySceneView;
+  final private DesignSurface myDesignSurface;
   private Scene myScene;
 
-  public SceneManager(NlModel model, SceneView view) {
+  public SceneManager(NlModel model, DesignSurface surface) {
     myModel = model;
-    mySceneView = view;
+    myDesignSurface = surface;
   }
 
   @NotNull
   public Scene build() {
     assert myScene == null;
-    myScene = new Scene(mySceneView);
+    myScene = new Scene(myDesignSurface);
     return myScene;
   }
 
@@ -53,8 +54,8 @@ abstract public class SceneManager {
   abstract public TemporarySceneComponent createTemporaryComponent(@NotNull NlComponent component);
 
   @NotNull
-  protected SceneView getSceneView() {
-    return mySceneView;
+  protected DesignSurface getDesignSurface() {
+    return myDesignSurface;
   }
 
   @NotNull

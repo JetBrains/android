@@ -43,23 +43,16 @@ import java.util.List;
 public abstract class SceneView {
   protected final DesignSurface mySurface;
   protected final NlModel myModel;
-  protected final Scene myScene;
-  private final SceneManager mySceneManager;
 
   public SceneView(@NotNull DesignSurface surface, @NotNull NlModel model) {
     mySurface = surface;
     myModel = model;
-    mySceneManager = createSceneBuilder(model);
-    myScene = mySceneManager.build();
     myModel.getSelectionModel().addListener((m, selection) -> ApplicationManager.getApplication().invokeLater(mySurface::repaint));
   }
 
   @NotNull
-  protected abstract SceneManager createSceneBuilder(@NotNull NlModel model);
-
-  @NotNull
   public Scene getScene() {
-    return myScene;
+    return mySurface.getScene();
   }
 
   /**
@@ -196,12 +189,12 @@ public abstract class SceneView {
   }
 
   public void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
-    myScene.mouseHover(SceneContext.get(this), Coordinates.getAndroidXDip(this, x), Coordinates.getAndroidYDip(this, y));
-    mySurface.setCursor(myScene.getMouseCursor());
+    getScene().mouseHover(SceneContext.get(this), Coordinates.getAndroidXDip(this, x), Coordinates.getAndroidYDip(this, y));
+    mySurface.setCursor(getScene().getMouseCursor());
   }
 
   public SceneManager getSceneManager() {
-    return mySceneManager;
+    return mySurface.getSceneManager();
   }
 
   /**

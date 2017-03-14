@@ -21,7 +21,7 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.DragDndTarget; // TODO: use a generic approach
-import com.android.tools.idea.uibuilder.surface.SceneView;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.UIUtil;
@@ -44,8 +44,8 @@ public class LayoutlibSceneManager extends SceneManager {
   private int myDpi = 0;
   private final SelectionChangeListener mySelectionChangeListener = new SelectionChangeListener();
 
-  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull SceneView sceneView) {
-    super(model, sceneView);
+  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
+    super(model, designSurface);
   }
 
   /**
@@ -57,7 +57,7 @@ public class LayoutlibSceneManager extends SceneManager {
   @Override
   public Scene build() {
     Scene scene = super.build();
-    getSceneView().getSelectionModel().addListener(mySelectionChangeListener);
+    getDesignSurface().getSelectionModel().addListener(mySelectionChangeListener);
     NlModel model = getModel();
     ConfigurationListener listener = (flags) -> {
       if ((flags & CFG_DEVICE) != 0) {
@@ -83,7 +83,7 @@ public class LayoutlibSceneManager extends SceneManager {
     }
     model.addListener(new ModelChangeListener());
     // let's make sure the selection is correct
-    scene.selectionChanged(getSceneView().getSelectionModel(), getSceneView().getSelectionModel().getSelection());
+    scene.selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
 
     return scene;
   }
@@ -112,7 +112,7 @@ public class LayoutlibSceneManager extends SceneManager {
     oldComponents.removeAll(usedComponents);
     oldComponents.forEach(scene::removeComponent);
 
-    SelectionModel selectionModel = getSceneView().getSelectionModel();
+    SelectionModel selectionModel = getDesignSurface().getSelectionModel();
     scene.setRoot(root);
     if (root != null && selectionModel.isEmpty()) {
       addTargets(root);
@@ -122,7 +122,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
   @NotNull
   @Override
-  public TemporarySceneComponent createTemporaryComponent(NlComponent component) {
+  public TemporarySceneComponent createTemporaryComponent(@NotNull NlComponent component) {
     Scene scene = getScene();
 
     assert scene.getRoot() != null;
@@ -213,7 +213,7 @@ public class LayoutlibSceneManager extends SceneManager {
     public void modelChanged(@NotNull NlModel model) {
       requestModelUpdate();
       ApplicationManager.getApplication().invokeLater(() -> mySelectionChangeListener
-        .selectionChanged(getSceneView().getSelectionModel(), getSceneView().getSelectionModel().getSelection()));
+        .selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection()));
     }
 
     @Override

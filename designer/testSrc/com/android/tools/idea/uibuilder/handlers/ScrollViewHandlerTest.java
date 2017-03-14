@@ -16,8 +16,9 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +31,7 @@ import static org.mockito.Mockito.*;
 public class ScrollViewHandlerTest extends LayoutTestCase {
 
   public void testScrollNothing() throws Exception {
-    NlModel model = createModel();
+    SyncNlModel model = createModel();
     android.view.ViewGroup mockScrollView = (android.view.ViewGroup)model.getComponents().get(0).viewInfo.getViewObject();
 
     surface().screen(model)
@@ -46,7 +47,7 @@ public class ScrollViewHandlerTest extends LayoutTestCase {
   }
 
   public void testCancel() throws Exception {
-    NlModel model = createModel();
+    SyncNlModel model = createModel();
     android.view.ViewGroup mockScrollView = (android.view.ViewGroup)model.getComponents().get(0).viewInfo.getViewObject();
 
     AtomicInteger savedValue = new AtomicInteger(0);
@@ -57,7 +58,7 @@ public class ScrollViewHandlerTest extends LayoutTestCase {
     when(mockScrollView.getScrollY())
       .thenAnswer((invocation) -> savedValue.get());
 
-    surface().screen(model)
+    new ScreenFixture(model)
       .get("@id/myText1")
       .scroll()
       .scroll(50)
@@ -69,7 +70,7 @@ public class ScrollViewHandlerTest extends LayoutTestCase {
   }
 
   public void testScroll() throws Exception {
-    NlModel model = createModel();
+    SyncNlModel model = createModel();
     android.view.ViewGroup mockScrollView = (android.view.ViewGroup)model.getComponents().get(0).viewInfo.getViewObject();
 
     AtomicInteger savedValue = new AtomicInteger(0);
@@ -92,7 +93,7 @@ public class ScrollViewHandlerTest extends LayoutTestCase {
   }
 
   @NotNull
-  private NlModel createModel() {
+  private SyncNlModel createModel() {
     ModelBuilder builder = model("scroll.xml",
                                  component(SCROLL_VIEW)
                                    .withMockView()
@@ -125,7 +126,7 @@ public class ScrollViewHandlerTest extends LayoutTestCase {
                                                    .width("40dp")
                                                    .height("40dp")
                                        )));
-    final NlModel model = builder.build();
+    final SyncNlModel model = builder.build();
     assertEquals(1, model.getComponents().size());
     assertEquals("NlComponent{tag=<ScrollView>, bounds=[0,0:90x90}\n" +
                  "    NlComponent{tag=<LinearLayout>, bounds=[0,0:90x120}\n" +

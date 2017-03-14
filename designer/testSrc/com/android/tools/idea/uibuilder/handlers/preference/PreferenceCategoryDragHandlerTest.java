@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -24,7 +25,6 @@ import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -45,8 +45,8 @@ public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTes
   }
 
   public void testPaint() {
-    NlModel model = model("model.xml", preferenceCategory(0, 162, 768, 65).id("@+id/category")).build();
-    DragHandler handler = newPreferenceCategoryDragHandler(model.find("category"));
+    SyncNlModel model = model("model.xml", preferenceCategory(0, 162, 768, 65).id("@+id/category")).build();
+    DragHandler handler = newPreferenceCategoryDragHandler(model, model.find("category"));
 
     handler.update(180, 90, 0);
     handler.paint(myGraphics);
@@ -63,8 +63,8 @@ public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTes
   }
 
   public void testDrawDropRecipientLines() {
-    NlModel model = model("model.xml", preferenceCategory().id("@+id/category")).build();
-    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model.find("category"));
+    SyncNlModel model = model("model.xml", preferenceCategory().id("@+id/category")).build();
+    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model, model.find("category"));
 
     handler.update(180, 175, 0);
     handler.drawDropRecipientLines(myGraphics);
@@ -78,8 +78,8 @@ public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTes
   }
 
   public void testDrawDropZoneLinesPointerIsInSecondHalfOfFirstChild() {
-    NlModel model = model("model.xml", preferenceCategory().id("@+id/category")).build();
-    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model.find("category"));
+    SyncNlModel model = model("model.xml", preferenceCategory().id("@+id/category")).build();
+    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model, model.find("category"));
 
     handler.update(180, 240, 0);
     handler.drawDropZoneLines(myGraphics);
@@ -91,8 +91,8 @@ public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTes
   }
 
   public void testDrawDropZoneLinesPointerIsInFirstHalfOfSecondChild() {
-    NlModel model = model("model.xml", preferenceCategory().id("@+id/category")).build();
-    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model.find("category"));
+    SyncNlModel model = model("model.xml", preferenceCategory().id("@+id/category")).build();
+    PreferenceGroupDragHandler handler = newPreferenceCategoryDragHandler(model, model.find("category"));
 
     handler.update(180, 265, 0);
     handler.drawDropZoneLines(myGraphics);
@@ -104,9 +104,9 @@ public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTes
   }
 
   @NotNull
-  private PreferenceGroupDragHandler newPreferenceCategoryDragHandler(@NotNull NlComponent category) {
-    ScreenFixture screenFixture = surface().screen(category.getModel()).withScale(1);
-    Scene scene = new SyncLayoutlibSceneManager(category.getModel(), screenFixture.getScreen()).build();
+  private PreferenceGroupDragHandler newPreferenceCategoryDragHandler(@NotNull SyncNlModel model, @NotNull NlComponent category) {
+    ScreenFixture screenFixture = new ScreenFixture(model).withScale(1);
+    Scene scene = new SyncLayoutlibSceneManager(model).build();
     scene.buildDisplayList(new DisplayList(), 0);
 
     SceneComponent component = scene.getSceneComponent(category);

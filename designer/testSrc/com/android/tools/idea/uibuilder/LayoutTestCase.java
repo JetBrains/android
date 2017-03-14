@@ -34,6 +34,9 @@ import org.mockito.Mockito;
 import java.io.File;
 
 public abstract class LayoutTestCase extends AndroidTestCase {
+
+  SurfaceFixture mySurfaceFixture;
+
   public LayoutTestCase() {
   }
 
