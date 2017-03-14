@@ -40,6 +40,7 @@ import java.awt.*;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.awt.event.KeyEvent.VK_DOWN;
+import static java.awt.event.KeyEvent.VK_ENTER;
 import static java.awt.event.KeyEvent.VK_ESCAPE;
 
 /**
@@ -160,6 +161,42 @@ public class NlPropertyTableTest {
     assertThat(textView.getTextAttribute()).isEqualTo("ab");
     assertThat(table.cell(new TableCellInSelectedRow.TableCellBuilder().column(0)).value()).isEqualTo(
       "NlPropertyItem{name=accessibilityLiveRegion, namespace=@android:}");
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)  // Until this test has proven itself reliable
+  @Test
+  public void testSelectCompletionFinishesEditingOfCell() throws Exception {
+    // If this UI test should fail, this is the intention with the test.
+    //
+    // Test the following simple keyboard editing tasks in the property table:
+    //  - Navigate to the row with the text property
+    //  - Type a character 's' which should bring up the editor for the text value
+    //  - Type a characters "tring/copy" in the editor
+    //  - Press ENTER to accept the completion suggestion
+    // Verify that the text value is now the chosen value and the focus is back on the table (we are not editing anymore).
+
+    IdeFrameFixture frame = guiTest.importSimpleApplication();
+    Project project = frame.getProject();
+    NlEditorFixture layout = frame
+      .getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .getLayoutEditor(true)
+      .waitForRenderToFinish();
+
+    NlComponentFixture textView = layout.findView("TextView", 0).click();
+    NlPropertyTableFixture table = layout.getPropertiesPanel().openAsTable();
+    table.waitForMinimumRowCount(10, Wait.seconds(5));
+
+    table.selectRows(7);
+    table.type('s');
+    JTextComponentFixture textEditor = waitForEditorToShow(Wait.seconds(3));
+    type(textEditor, "tring/copy");
+    waitForLookupToShow(project, Wait.seconds(3));
+
+    textEditor.pressAndReleaseKeys(VK_ENTER);
+
+    assertThat(textView.getTextAttribute()).isEqualTo("@android:string/copy");
+    assertThat(table.target()).isEqualTo(getFocusOwner());
   }
 
   private static void waitForLookupToShow(@NotNull Project project, @NotNull Wait waitForLookup) {
