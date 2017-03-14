@@ -19,6 +19,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
@@ -67,6 +68,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
   @Mock private ProjectFinder myProjectFinder;
   @Mock private VariantSelector myVariantSelector;
 
+  private IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
   private IdeaProjectStub myProjectModel;
   private IdeaModuleStub myAndroidModuleModel;
   private IdeaModuleStub myNativeAndroidModuleModel;
@@ -83,6 +85,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     super.setUp();
     initMocks(this);
 
+    IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory = new IdeaJavaModuleModelFactory();
     myProjectModel = new IdeaProjectStub("multiProject");
     myAndroidProject = TestProjects.createBasicProject(myProjectModel.getRootDir());
     myNativeAndroidProject = TestProjects.createNativeProject(myProjectModel.getRootDir());
@@ -103,7 +106,8 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
     myResolverCtx = new DefaultProjectResolverContext(id, projectPath, null, mock(ProjectConnection.class), notificationListener, true);
     myResolverCtx.setModels(allModels);
 
-    myProjectResolver = new AndroidGradleProjectResolver(myCommandLineArgs, myErrorHandler, myProjectFinder, myVariantSelector);
+    myProjectResolver =
+      new AndroidGradleProjectResolver(myCommandLineArgs, myErrorHandler, myProjectFinder, myVariantSelector, myIdeaJavaModuleModelFactory);
     myProjectResolver.setProjectResolverContext(myResolverCtx);
 
     GradleProjectResolverExtension next = new BaseGradleProjectResolverExtension();

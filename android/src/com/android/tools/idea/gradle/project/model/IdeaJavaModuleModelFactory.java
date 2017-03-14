@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
@@ -29,32 +28,21 @@ import org.jetbrains.plugins.gradle.model.ModuleExtendedModel;
 import java.io.File;
 import java.util.*;
 
+import static com.android.tools.idea.gradle.project.model.JavaModuleModel.isBuildable;
+
 /**
- * Represents JavaModuleModel instance created from IdeaModule and ModuleExtendedModel.
+ * Factory class to create JavaModuleModel instance from IdeaModule and ModuleExtendedModel.
  */
 @SuppressWarnings("deprecation")
-public class IdeaJavaModuleModel extends JavaModuleModel {
-  public IdeaJavaModuleModel(@NotNull IdeaModule ideaModule,
-                             @Nullable ModuleExtendedModel javaModel,
-                             boolean androidModuleWithoutVariants) {
-    this(ideaModule.getName(), getContentRoots(ideaModule, javaModel), getDependencies(ideaModule),
-         getArtifactsByConfiguration(javaModel), getCompilerOutput(javaModel), ideaModule.getGradleProject().getBuildDirectory(),
-         getLanguageLevel(javaModel), !androidModuleWithoutVariants && isBuildable(ideaModule.getGradleProject()),
-         androidModuleWithoutVariants);
-  }
-
-  @VisibleForTesting
-  public IdeaJavaModuleModel(@NotNull String name,
-                             @NotNull Collection<JavaModuleContentRoot> contentRoots,
-                             @NotNull Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> dependencies,
-                             @NotNull Map<String, Set<File>> artifactsByConfiguration,
-                             @Nullable ExtIdeaCompilerOutput compilerOutput,
-                             @Nullable File buildFolderPath,
-                             @Nullable String languageLevel,
-                             boolean buildable,
-                             boolean androidModuleWithoutVariants) {
-    super(name, contentRoots, dependencies.first, dependencies.second, artifactsByConfiguration, compilerOutput, buildFolderPath,
-          languageLevel, buildable, androidModuleWithoutVariants);
+public class IdeaJavaModuleModelFactory {
+  public JavaModuleModel create(@NotNull IdeaModule ideaModule,
+                                @Nullable ModuleExtendedModel javaModel,
+                                boolean androidModuleWithoutVariants) {
+    Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> dependencies = getDependencies(ideaModule);
+    return new JavaModuleModel(ideaModule.getName(), getContentRoots(ideaModule, javaModel), dependencies.first, dependencies.second,
+                               getArtifactsByConfiguration(javaModel), getCompilerOutput(javaModel),
+                               ideaModule.getGradleProject().getBuildDirectory(), getLanguageLevel(javaModel),
+                               !androidModuleWithoutVariants && isBuildable(ideaModule.getGradleProject()), androidModuleWithoutVariants);
   }
 
   @Nullable
