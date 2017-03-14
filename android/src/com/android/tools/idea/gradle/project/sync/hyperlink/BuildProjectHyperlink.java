@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;

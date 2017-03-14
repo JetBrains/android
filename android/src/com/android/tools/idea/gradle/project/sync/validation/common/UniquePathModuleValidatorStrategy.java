@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.validation.common;
 
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
-import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
