@@ -795,11 +795,6 @@ public class AndroidModuleBuilder extends JavaModuleBuilder {
   }
 
   @Override
-  public Icon getBigIcon() {
-    return AndroidIcons.Android24;
-  }
-
-  @Override
   public Icon getNodeIcon() {
     return AndroidIcons.Android;
   }
