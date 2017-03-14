@@ -396,10 +396,12 @@ public class AndroidApkBuilder {
                                                                                                                                AndroidLocation.AndroidLocationException {
 
     return new DebugKeyProvider(path, null, new DebugKeyProvider.IKeyGenOutput() {
+      @Override
       public void err(String message) {
         result.get(ERROR).add("Error during key creation: " + message);
       }
 
+      @Override
       public void out(String message) {
         result.get(INFORMATION).add("Info message during key creation: " + message);
       }

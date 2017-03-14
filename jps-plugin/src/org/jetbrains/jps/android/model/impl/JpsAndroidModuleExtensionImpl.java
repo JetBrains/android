@@ -204,11 +204,13 @@ public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModu
     return manifestFile != null ? canonizeFilePath(manifestFile) : null;
   }
 
+  @Override
   public File getAaptGenDir() throws IOException {
     File aaptGenDir = findFileByRelativeModulePath(myProperties.GEN_FOLDER_RELATIVE_PATH_APT, true);
     return aaptGenDir != null ? canonizeFilePath(aaptGenDir) : null;
   }
 
+  @Override
   public File getAidlGenDir() throws IOException {
     File aidlGenDir = findFileByRelativeModulePath(myProperties.GEN_FOLDER_RELATIVE_PATH_AIDL, true);
     return aidlGenDir != null ? canonizeFilePath(aidlGenDir) : null;
