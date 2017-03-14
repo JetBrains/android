@@ -19,6 +19,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.*;
 import com.google.common.collect.Sets;
@@ -35,11 +36,13 @@ import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.IJSwingUtilities;
 import com.intellij.util.ui.JBInsets;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -69,7 +72,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.android.tools.idea.uibuilder.property.NlPropertiesManager.UPDATE_DELAY_MSECS;
-import static com.android.tools.idea.uibuilder.structure.NlComponentTree.InsertionPoint.INSERT_INTO;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
 public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
@@ -82,9 +84,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   private ScreenView myScreenView;
   private NlModel myModel;
-  private TreePath myInsertionPath;
-  private InsertionPoint myInsertionPoint;
   private boolean mySkipWait;
+  private int myInsertAfterRow = -1;
+  private int myRelativeDepthToInsertionRow = 0;
+  @Nullable private Rectangle myInsertionRowBounds;
+  @Nullable private Rectangle myInsertionReceiverBounds;
 
   public NlComponentTree(@NotNull Project project, @Nullable NlDesignSurface designSurface) {
     this(project, designSurface, CopyPasteManager.getInstance());
@@ -201,6 +205,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   // ---- Methods for updating hierarchy while attempting to keep expanded nodes expanded ----
 
   private void updateHierarchy() {
+    clearInsertionPoint();
     ApplicationManager.getApplication().assertIsDispatchThread();
     setPaintBusy(true);
     myUpdateQueue.queue(new Update("updateComponentStructure") {
@@ -314,54 +319,113 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @Override
   public void paint(Graphics g) {
     super.paint(g);
-    if (myInsertionPath != null) {
-      paintInsertionPoint(g);
+    if (myInsertAfterRow >= 0) {
+      paintInsertionPoint((Graphics2D)g);
     }
   }
 
-  public enum InsertionPoint {
-    INSERT_INTO,
-    INSERT_BEFORE,
-    INSERT_AFTER
-  }
+  private void paintInsertionPoint(@NotNull Graphics2D g2D) {
+    if (myInsertionReceiverBounds == null || myInsertionRowBounds == null) {
+      return;
+    }
+    RenderingHints savedHints = g2D.getRenderingHints();
+    Color savedColor = g2D.getColor();
+    try {
+      g2D.setColor(ColorUtil.softer(UIUtil.getTreeSelectionBackground()));
+      g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-  private void paintInsertionPoint(Graphics g) {
-    if (myInsertionPath != null) {
-      Rectangle pathBounds = getPathBounds(myInsertionPath);
-      if (pathBounds == null) {
-        return;
-      }
-      int y = pathBounds.y;
-      switch (myInsertionPoint) {
-        case INSERT_BEFORE:
-          break;
-        case INSERT_AFTER:
-          y += pathBounds.height;
-          break;
-        case INSERT_INTO:
-          y += pathBounds.height / 2;
-          break;
-      }
-      Rectangle bounds = getBounds();
-      Polygon triangle = new Polygon();
-      triangle.addPoint(bounds.x + 6, y);
-      triangle.addPoint(bounds.x, y + 3);
-      triangle.addPoint(bounds.x, y - 3);
-      g.setColor(UIUtil.getTreeForeground());
-      if (myInsertionPoint != INSERT_INTO) {
-        g.drawLine(bounds.x, y, bounds.x + bounds.width, y);
-      }
-      g.drawPolygon(triangle);
-      g.fillPolygon(triangle);
+      paintInsertionRectangle(g2D,
+                              getX(), myInsertionReceiverBounds.y,
+                              getWidth(), myInsertionReceiverBounds.height);
+      paintColumnLine(g2D,
+                      myInsertionReceiverBounds.x, myInsertionReceiverBounds.y + myInsertionReceiverBounds.height,
+                      myInsertionRowBounds.y + myInsertionRowBounds.height);
+      paintInsertionLine(g2D,
+                         myInsertionReceiverBounds.x, myInsertionRowBounds.y + myInsertionRowBounds.height,
+                         getWidth());
+    }
+    finally {
+      g2D.setRenderingHints(savedHints);
+      g2D.setColor(savedColor);
     }
   }
 
-  public void markInsertionPoint(@Nullable TreePath path, @NotNull InsertionPoint insertionPoint) {
-    if (myInsertionPath != path || myInsertionPoint != insertionPoint) {
-      myInsertionPath = path;
-      myInsertionPoint = insertionPoint;
-      repaint();
+  private static void paintInsertionLine(@NotNull Graphics2D g, int x, int y, int width) {
+    Polygon triangle = new Polygon();
+    int indicatorSize = JBUI.scale(6);
+    triangle.addPoint(x + indicatorSize, y);
+    triangle.addPoint(x, y + indicatorSize / 2);
+    triangle.addPoint(x, y - indicatorSize / 2);
+    Stroke stroke = g.getStroke();
+    g.setStroke(NlConstants.DOTTED_STROKE);
+    g.drawLine(x, y, x + width, y);
+    g.setStroke(stroke);
+    g.drawPolygon(triangle);
+    g.fillPolygon(triangle);
+  }
+
+  private static void paintColumnLine(@NotNull Graphics2D g, int x, int y1, int y2) {
+    int columnMargin = JBUI.scale(6);
+    x -= columnMargin;
+    Stroke stroke = g.getStroke();
+    g.setStroke(NlConstants.DOTTED_STROKE);
+    g.drawLine(x, y1, x, y2);
+    g.drawLine(x, y2, x + columnMargin, y2);
+    g.setStroke(stroke);
+  }
+
+  private static void paintInsertionRectangle(@NotNull Graphics2D g, int x, int y, int width, int height) {
+    x += JBUI.scale(2);
+    y += JBUI.scale(2);
+    width -= JBUI.scale(6);
+    height -= JBUI.scale(4);
+    int arc = JBUI.scale(6);
+    g.drawRoundRect(x, y, width, height, arc, arc);
+    Composite composite = g.getComposite();
+    g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+    g.fillRoundRect(x, y, width, height, arc, arc);
+    g.setComposite(composite);
+  }
+
+  /**
+   * @param row           The row after which the insertion line will be displayed
+   * @param relativeDepth The depth of the parent relative the row
+   * @see NlDropInsertionPicker#findInsertionPointAt(Point, List)
+   */
+  public void markInsertionPoint(int row, int relativeDepth) {
+    if (row == myInsertAfterRow && relativeDepth == myRelativeDepthToInsertionRow) {
+      return;
     }
+
+    if (row < 0) {
+      clearInsertionPoint();
+      return;
+    }
+
+    myInsertAfterRow = row;
+    myRelativeDepthToInsertionRow = relativeDepth;
+    myInsertionRowBounds = getRowBounds(myInsertAfterRow);
+
+    // Find the bounds of the parent if the insertion row is not the receiver row
+    myInsertionReceiverBounds = myInsertionRowBounds;
+    if (myRelativeDepthToInsertionRow < 1) {
+      TreePath receiverPath = getPathForRow(myInsertAfterRow);
+      for (int i = myRelativeDepthToInsertionRow; i < 1 && receiverPath != null; i++) {
+        receiverPath = receiverPath.getParentPath();
+      }
+      if (receiverPath != null) {
+        myInsertionReceiverBounds = getPathBounds(receiverPath);
+      }
+    }
+    repaint();
+  }
+
+  public void clearInsertionPoint() {
+    myInsertionReceiverBounds = null;
+    myInsertionRowBounds = null;
+    myInsertAfterRow = -1;
+    myRelativeDepthToInsertionRow = 0;
+    repaint();
   }
 
   @Override
