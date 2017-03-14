@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
+import com.intellij.debugger.impl.DebuggerUtilsEx;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jf.dexlib2.iface.reference.MethodReference;
 
 import javax.swing.tree.TreeNode;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class PackageTreeNode implements TreeNode {
 
@@ -32,6 +35,8 @@ public class PackageTreeNode implements TreeNode {
 
   private int myMethodReferencesCount = 0;
   private int myDefinedMethodsCount = 0;
+  private boolean seed;
+  private boolean removed = true;
   private boolean hasClassDefinition;
 
   public PackageTreeNode(@NotNull String name, @NotNull NodeType type, @Nullable PackageTreeNode parent) {
@@ -49,25 +54,33 @@ public class PackageTreeNode implements TreeNode {
     Collections.sort(myNodes, comparator);
   }
 
-  public void insertMethod(String qcn, @NotNull String methodSig, boolean hasClassDefinition) {
-    PackageTreeNode classNode = getOrInsertClass("", qcn, hasClassDefinition, true);
+  public void insertMethod(String qcn, @NotNull String methodSig, boolean hasClassDefinition,
+                           boolean isSeed, boolean isRemoved) {
+    PackageTreeNode classNode = getOrInsertClass("", qcn, hasClassDefinition, isSeed, false, !isRemoved);
     PackageTreeNode methodNode = classNode.getOrCreateChild(methodSig, NodeType.METHOD);
-    methodNode.myMethodReferencesCount++;
-    if (hasClassDefinition) {
-      methodNode.myDefinedMethodsCount++;
+    if (!isRemoved) {
+      methodNode.myMethodReferencesCount++;
+      if (hasClassDefinition) {
+        methodNode.myDefinedMethodsCount++;
+      }
     }
+    methodNode.seed = isSeed;
+    methodNode.removed = isRemoved;
     methodNode.hasClassDefinition = hasClassDefinition;
   }
 
-  public void insertField(String qcn, @NotNull String fieldSig, boolean hasClassDefinition) {
+  public void insertField(String qcn, @NotNull String fieldSig, boolean hasClassDefinition,
+                          boolean isSeed, boolean isRemoved) {
 
-    PackageTreeNode classNode = getOrInsertClass("", qcn, hasClassDefinition, false);
+    PackageTreeNode classNode = getOrInsertClass("", qcn, hasClassDefinition, isSeed, false, false);
     PackageTreeNode fieldNode = classNode.getOrCreateChild(fieldSig, NodeType.FIELD);
+    fieldNode.seed = isSeed;
+    fieldNode.removed = isRemoved;
     fieldNode.hasClassDefinition = fieldNode.hasClassDefinition || hasClassDefinition;
   }
 
   public PackageTreeNode getOrInsertClass(@NotNull String parentPackage, @NotNull String qcn, boolean hasClassDefinition,
-                                          boolean addMethodReference) {
+                                          boolean isSeed, boolean isRemoved, boolean addMethodReference) {
     if (addMethodReference){
       myMethodReferencesCount++;
       if (hasClassDefinition) {
@@ -77,6 +90,8 @@ public class PackageTreeNode implements TreeNode {
     int i = qcn.indexOf(".");
     if (i < 0) {
       PackageTreeNode classNode = getOrCreateChild(qcn, NodeType.CLASS);
+      classNode.removed = classNode.removed && isRemoved;
+      classNode.seed = classNode.seed || isSeed;
       classNode.hasClassDefinition = classNode.hasClassDefinition || hasClassDefinition;
       if (addMethodReference){
         classNode.myMethodReferencesCount++;
@@ -90,8 +105,10 @@ public class PackageTreeNode implements TreeNode {
       String segment = qcn.substring(0, i);
       String nextSegment = qcn.substring(i + 1);
       PackageTreeNode packageNode = getOrCreateChild(segment, NodeType.PACKAGE);
+      packageNode.seed = packageNode.seed || isSeed;
+      packageNode.removed = packageNode.removed && isRemoved;
       packageNode.hasClassDefinition = packageNode.hasClassDefinition || hasClassDefinition;
-      return packageNode.getOrInsertClass(combine(parentPackage, segment), nextSegment, hasClassDefinition, addMethodReference);
+      return packageNode.getOrInsertClass(combine(parentPackage, segment), nextSegment, hasClassDefinition, isSeed, isRemoved, addMethodReference);
     }
   }
 
@@ -108,7 +125,6 @@ public class PackageTreeNode implements TreeNode {
     }
 
     PackageTreeNode node = new PackageTreeNode(name, type, this);
-
     myNodes.add(node);
     return node;
   }
@@ -168,8 +184,15 @@ public class PackageTreeNode implements TreeNode {
     return myDefinedMethodsCount;
   }
 
+  public boolean isSeed() {
+    return seed;
+  }
+
+  public boolean isRemoved() {
+    return removed;
+  }
+
   public boolean hasClassDefinition() {
     return hasClassDefinition;
   }
-
 }

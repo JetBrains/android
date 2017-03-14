@@ -1,0 +1,18 @@
+com.example.BuildConfig
+com.example.MyAbstractClas:
+    public abstract void abstractMethod(int,java.lang.String)
+    public abstract com.example.MyAbstractClas anotherAbstract(com.example.MyClass)
+    27:28:private void privateMethod()
+com.example.MyAbstractClas$1:
+    14:14:public void abstractMethod(int,java.lang.String)
+    18:18:public com.example.MyAbstractClas anotherAbstract(com.example.MyClass)
+com.example.MyClass:
+    private java.lang.String privateString
+com.example.MyClass$NonStaticInnerClass
+com.example.MyClass$StaticClass
+com.example.MyClass$StaticClass$InnerClass
+com.example.R
+com.example.R$attr
+com.example.R$color
+com.example.R$mipmap
+com.example.R$string
