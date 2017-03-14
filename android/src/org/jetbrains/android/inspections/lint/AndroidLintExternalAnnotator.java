@@ -119,7 +119,9 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         PsiProjectListener.getInstance(project);
       }
     }
-    else if (fileType != StdFileTypes.JAVA && fileType != StdFileTypes.PROPERTIES) {
+    else if (fileType != StdFileTypes.JAVA
+             && !isKotlin(fileType)
+             && fileType != StdFileTypes.PROPERTIES) {
       return null;
     }
 
@@ -128,6 +130,11 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       return null;
     }
     return new State(module, vFile, file.getText(), issues);
+  }
+
+  private static boolean isKotlin(FileType fileType) {
+    // KotlinFileType.getName() is "Kotlin"; we don't have compile-time dependency on the Kotlin plugin and it's not in StdFileTypes
+    return fileType.getName().equals("Kotlin");
   }
 
   @Override
@@ -146,7 +153,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         } else {
           scope = Scope.RESOURCE_FILE_SCOPE;
         }
-      } else if (fileType == StdFileTypes.JAVA) {
+      } else if (fileType == StdFileTypes.JAVA || isKotlin(fileType)) {
         scope = Scope.JAVA_FILE_SCOPE;
       } else if (name.equals(OLD_PROGUARD_FILE) || name.equals(FN_PROJECT_PROGUARD_FILE)) {
         scope = EnumSet.of(Scope.PROGUARD_FILE);
