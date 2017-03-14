@@ -1132,7 +1132,7 @@ public class DeviceExplorerController {
       DeviceFileEntry parentEntry = parentNode.getEntry();
       Path localPath = Paths.get(file.getPath());
       UploadFileState uploadState = new UploadFileState();
-      ListenableFuture<Void> futureUpload = parentEntry.getFileSystem().uploadFile(localPath, parentEntry, new FileTransferProgress() {
+      ListenableFuture<Void> futureUpload = parentEntry.uploadFile(localPath, new FileTransferProgress() {
         private long previousBytes;
 
         @Override

@@ -94,6 +94,7 @@ public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager,
   }
 
   @Override
+  @NotNull
   public ListenableFuture<Void> openFileInEditor(@NotNull Path localPath, boolean focusEditor) {
     myOpenFileInEditorTracker.produce(localPath);
     if (myOpenFileInEditorError != null) {

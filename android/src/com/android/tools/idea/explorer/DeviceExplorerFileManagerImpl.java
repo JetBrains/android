@@ -27,12 +27,10 @@ import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.FileEditorManagerAdapter;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.ex.FileTypeChooser;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -108,7 +106,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     }
 
     // Download the local file
-    ListenableFuture<Void> result = entry.getFileSystem().downloadFile(entry, localPath, progress);
+    ListenableFuture<Void> result = entry.downloadFile(localPath, progress);
     myEdtExecutor.addCallback(result, new FutureCallback<Void>() {
       @Override
       public void onSuccess(@Nullable Void result) {
@@ -126,6 +124,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
   }
 
   @Override
+  @NotNull
   public ListenableFuture<Void> openFileInEditor(@NotNull Path localPath, boolean focusEditor) {
     return openFileInEditorWorker(localPath, focusEditor);
   }
@@ -217,7 +216,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     }
   }
 
-  private class MyFileEditorManagerAdapter extends FileEditorManagerAdapter {
+  private class MyFileEditorManagerAdapter implements FileEditorManagerListener {
     @Override
     public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
       if (myTemporaryEditorFiles.contains(file)) {
