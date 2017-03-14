@@ -17,12 +17,14 @@ package com.android.tools.idea.instantapp.provision;
 
 import com.android.ddmlib.IDevice;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
 
 class SupervisorPackage extends ProvisionPackage {
+  @NotNull private static final String PKG_DESCRIPTION = "Supervisor";
   @NotNull private static final String APK_PREFIX = "supervisor";
   @NotNull private static final String PKG_NAME = "com.google.android.instantapps.supervisor";
   @NotNull private static final String ARM_V8 = "arm64-v8a";
@@ -43,6 +45,8 @@ class SupervisorPackage extends ProvisionPackage {
 
   @Override
   void setFlags(@NotNull IDevice device, @NotNull String osBuildType) throws ProvisionException {
+    getLogger().info("Setting flags for build type \"" + osBuildType + "\"");
+
     if (osBuildType.compareTo(RELEASE_TYPE) == 0) {
       // We can't set any of these flags on a release-keys device, we rely on OTA updates for that
       return;
@@ -125,5 +129,11 @@ class SupervisorPackage extends ProvisionPackage {
   @Override
   String getPkgName() {
     return PKG_NAME;
+  }
+
+  @NotNull
+  @Override
+  String getDescription() {
+    return PKG_DESCRIPTION;
   }
 }
