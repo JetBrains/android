@@ -91,6 +91,7 @@ public class AndroidDomUtil {
                            ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF,
                            ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
     addSpecialResourceType(ResourceType.LAYOUT, ATTR_LISTITEM, ATTR_LAYOUT);
+    addSpecialResourceType(ResourceType.FONT, ATTR_FONT_FAMILY);
   }
 
   private AndroidDomUtil() {
