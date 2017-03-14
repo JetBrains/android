@@ -40,7 +40,7 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
     topPanel.setLayout(layout);
 
     topPanel.add(Box.createVerticalGlue());
-    topPanel.setBackground(ProfilerColors.MONITOR_BACKGROUND);
+    topPanel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
 
     JLabel picLabel = new JLabel(ProfilerIcons.ANDROID_PROFILERS);
     picLabel.setHorizontalAlignment(SwingConstants.CENTER);
