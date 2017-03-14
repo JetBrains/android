@@ -75,7 +75,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
     // timeline will always be at the bottom, even if no monitors are found (e.g. when the phone is
     // disconnected).
     JPanel topPanel = new JPanel(new TabularLayout("*", "*,Fit"));
-    topPanel.setBackground(ProfilerColors.MONITOR_BACKGROUND);
+    topPanel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
 
     TabularLayout layout = new TabularLayout("*");
     JPanel monitors = new JPanel(layout);

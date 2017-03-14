@@ -42,7 +42,7 @@ public class NetworkRadioView {
   private static final EnumMap<RadioState, Color> RADIO_STATE_COLOR = new EnumMap<>(RadioState.class);
 
   static {
-    RADIO_STATE_COLOR.put(RadioState.NONE, AdtUiUtils.DEFAULT_BACKGROUND_COLOR);
+    RADIO_STATE_COLOR.put(RadioState.NONE, ProfilerColors.DEFAULT_BACKGROUND);
     RADIO_STATE_COLOR.put(RadioState.WIFI, ProfilerColors.NETWORK_RADIO_WIFI);
     RADIO_STATE_COLOR.put(RadioState.HIGH, ProfilerColors.NETWORK_RADIO_HIGH);
     RADIO_STATE_COLOR.put(RadioState.LOW, ProfilerColors.NETWORK_RADIO_LOW);
@@ -58,7 +58,7 @@ public class NetworkRadioView {
     myRadioChart.setHeightGap(0.4f);
 
     myComponent = new JPanel();
-    myComponent.setBackground(ProfilerColors.MONITOR_BACKGROUND);
+    myComponent.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myComponent.setMinimumSize(new Dimension(0, MINIMUM_HEIGHT));
     myComponent.setPreferredSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     myComponent.setBorder(MONITOR_BORDER);

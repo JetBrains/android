@@ -58,7 +58,7 @@ public abstract class MonitorTooltipView<M extends ProfilerMonitor> extends Aspe
     myLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 12, 0));
     panel.add(myLabel, BorderLayout.NORTH);
     panel.add(tooltip, BorderLayout.CENTER);
-    panel.setBackground(ProfilerColors.MONITOR_BACKGROUND);
+    panel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
     timeChanged();
