@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 
 import static com.android.tools.idea.instantapp.provision.ProvisionPackage.getApkVersion;
-import static com.android.tools.idea.instantapp.provision.ProvisionPackageTestUtil.getInstantAppSdk;
+import static com.android.tools.idea.instantapp.provision.ProvisionPackageTests.getInstantAppSdk;
 
 /**
  * Tests for {@link PolicySetsPackage}.
