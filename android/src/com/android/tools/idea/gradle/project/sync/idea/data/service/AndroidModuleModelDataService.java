@@ -67,13 +67,6 @@ public class AndroidModuleModelDataService extends ModuleModelDataService<Androi
   }
 
   @Override
-  protected void onModelsNotFound(@NotNull IdeModifiableModelsProvider modelsProvider) {
-    for (Module module : modelsProvider.getModules()) {
-      myCleanupStep.cleanUpModule(module, modelsProvider);
-    }
-  }
-
-  @Override
   protected void importData(@NotNull Collection<DataNode<AndroidModuleModel>> toImport,
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
@@ -96,10 +89,18 @@ public class AndroidModuleModelDataService extends ModuleModelDataService<Androi
                            @NotNull IdeModifiableModelsProvider modelsProvider,
                            @Nullable AndroidModuleModel androidModel,
                            boolean syncSkipped) {
-    myModuleSetup.setUpModule(module, modelsProvider, androidModel, null, null, syncSkipped);
     if (androidModel != null) {
+      myModuleSetup.setUpModule(module, modelsProvider, androidModel, null, null, syncSkipped);
       moduleValidator.validate(module, androidModel);
     }
+    else {
+      onModelNotFound(module, modelsProvider);
+    }
+  }
+
+  @Override
+  protected void onModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
+    myCleanupStep.cleanUpModule(module, modelsProvider);
   }
 
   @TestOnly

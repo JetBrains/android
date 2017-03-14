@@ -24,6 +24,7 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,6 +57,12 @@ public abstract class ModuleModelDataService<T extends ModuleModel> extends Abst
   }
 
   protected void onModelsNotFound(@NotNull IdeModifiableModelsProvider modelsProvider) {
+    for (Module module : modelsProvider.getModules()) {
+      onModelNotFound(module, modelsProvider);
+    }
+  }
+
+  protected void onModelNotFound(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
   }
 
   private void importData(@NotNull Collection<DataNode<T>> toImport,
