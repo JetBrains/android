@@ -105,7 +105,7 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
 
   public void testRefilteringAfterEditingTranslationCells() {
     myTable.setRowFilter(new NeedsTranslationsRowFilter(false));
-    editCellAt("Key 3 en-rGB", 2, 5);
+    editCellAt("Key 3 en-rGB", 2, 6);
 
     assertEquals(6, myTable.getRowCount());
     assertEquals("key1", myTable.getValueAt(0, 0));

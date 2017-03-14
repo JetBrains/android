@@ -18,11 +18,7 @@ package com.android.tools.idea.editors.strings;
 import com.android.SdkConstants;
 import com.android.builder.model.ClassField;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.DynamicResourceValueRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ModuleResourceRepository;
-import com.android.tools.idea.res.MultiResourceRepository;
-import com.android.tools.idea.res.ResourceNotificationManager;
+import com.android.tools.idea.res.*;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Disposer;
@@ -91,7 +87,7 @@ public class StringResourceDataTest extends AndroidTestCase {
   }
 
   public void testParser() {
-    Object actual = data.getLocales().stream()
+    Object actual = data.getLocaleSet().stream()
       .map(Locale::toLocaleId)
       .collect(Collectors.toSet());
 

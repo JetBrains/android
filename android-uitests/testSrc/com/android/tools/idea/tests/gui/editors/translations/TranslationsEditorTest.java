@@ -59,9 +59,9 @@ import static org.junit.Assert.*;
 
 @RunWith(GuiTestRunner.class)
 public final class TranslationsEditorTest {
-  private static final int ENGLISH_COLUMN = 4;
-  private static final int HEBREW_COLUMN = 6;
-  private static final int CHINESE_IN_CHINA_COLUMN = 8;
+  private static final int CHINESE_IN_CHINA_COLUMN = 4;
+  private static final int ENGLISH_COLUMN = 5;
+  private static final int HEBREW_COLUMN = 7;
 
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
@@ -90,11 +90,11 @@ public final class TranslationsEditorTest {
   @Test
   public void basics() {
     Object expected = Arrays.asList(
+      "Chinese (zh) in China (CN)",
       "English (en)",
       "English (en) in United Kingdom (GB)",
       "Hebrew (iw)",
-      "Tamil (ta)",
-      "Chinese (zh) in China (CN)");
+      "Tamil (ta)");
     assertEquals(expected, myTranslationsEditor.locales());
 
     assertEquals(Arrays.asList("app_name", "hello_world", "action_settings", "some_id", "cancel", "app_name"), myTranslationsEditor.keys());
@@ -145,7 +145,12 @@ public final class TranslationsEditorTest {
 
     myTranslationsEditor.getTableHeader().showPopupMenuAt(ENGLISH_COLUMN).menuItem("removeLocaleMenuItem").click();
 
-    Object expected = Arrays.asList("English (en) in United Kingdom (GB)", "Hebrew (iw)", "Tamil (ta)", "Chinese (zh) in China (CN)");
+    Object expected = Arrays.asList(
+      "Chinese (zh) in China (CN)",
+      "English (en) in United Kingdom (GB)",
+      "Hebrew (iw)",
+      "Tamil (ta)");
+
     assertEquals(expected, myTranslationsEditor.locales());
 
     assertFalse(debugValuesEn.exists());
@@ -210,20 +215,20 @@ public final class TranslationsEditorTest {
   @Test
   public void paste() {
     JTableFixture table = myTranslationsEditor.getTable();
-    table.selectCell(TableCell.row(1).column(DEFAULT_VALUE_COLUMN));
+    table.selectCell(TableCell.row(0).column(DEFAULT_VALUE_COLUMN));
 
-    String data = "app_name\tapp_name_en\n" +
-                  "cancel\tcancel_en\n";
+    String data = "app_name\tapp_name_zh_rcn\n" +
+                  "hello_world\thello_world_zh_rcn\n";
 
     Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(data), EmptyClipboardOwner.INSTANCE);
 
     KeyStroke keyStroke = getKeyStroke(table.target().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT), "paste");
     table.pressAndReleaseKey(KeyPressInfo.keyCode(keyStroke.getKeyCode()).modifiers(keyStroke.getModifiers()));
 
-    assertEquals("app_name", table.valueAt(TableCell.row(1).column(DEFAULT_VALUE_COLUMN)));
-    assertEquals("app_name_en", table.valueAt(TableCell.row(1).column(ENGLISH_COLUMN)));
-    assertEquals("cancel", table.valueAt(TableCell.row(2).column(DEFAULT_VALUE_COLUMN)));
-    assertEquals("cancel_en", table.valueAt(TableCell.row(2).column(ENGLISH_COLUMN)));
+    assertEquals("app_name", table.valueAt(TableCell.row(0).column(DEFAULT_VALUE_COLUMN)));
+    assertEquals("app_name_zh_rcn", table.valueAt(TableCell.row(0).column(CHINESE_IN_CHINA_COLUMN)));
+    assertEquals("hello_world", table.valueAt(TableCell.row(1).column(DEFAULT_VALUE_COLUMN)));
+    assertEquals("hello_world_zh_rcn", table.valueAt(TableCell.row(1).column(CHINESE_IN_CHINA_COLUMN)));
   }
 
   @Test
