@@ -49,7 +49,7 @@ import java.util.*;
 
 import static org.jetbrains.android.util.AndroidUtils.findSourceRoot;
 
-public class AndroidResourceFilesListener extends BulkFileListener.Adapter implements Disposable {
+public class AndroidResourceFilesListener implements Disposable, BulkFileListener {
   private static final Key<String> CACHED_PACKAGE_KEY = Key.create("ANDROID_RESOURCE_LISTENER_CACHED_PACKAGE");
 
   private final MergingUpdateQueue myQueue;
