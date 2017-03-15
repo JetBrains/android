@@ -19,6 +19,7 @@ import com.android.tools.idea.editors.layoutInspector.model.ViewNode;
 import com.android.tools.idea.editors.strings.FontUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
+import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
 
 import javax.swing.*;
 import java.awt.*;
@@ -32,11 +33,11 @@ public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
       return;
     }
 
-    ViewNode node = (ViewNode) nodeValue;
+    ViewNode node = (ViewNode)nodeValue;
     String[] name = node.name.split("\\.");
     append(name[name.length - 1] + " ",
            node.isDrawn() ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAYED_ATTRIBUTES);
-
+    setIcon(AndroidDomElementDescriptorProvider.getIconForViewTag(name[name.length - 1]));
     if (node.displayInfo.contentDesc != null) {
       Font currentFont = getFont();
       Font f = FontUtil.getFontAbleToDisplay(node.displayInfo.contentDesc, currentFont);
