@@ -68,6 +68,7 @@ public class ConnectionDetailsView extends JPanel {
   private static final String TAB_TITLE_STACK = "Call Stack";
   private static final String TAB_TITLE_HEADERS = "Headers";
 
+  private static final int CLOSE_BUTTON_SIZE = JBUI.scale(24); // Icon is 16x16. This gives it some padding, so it doesn't touch the border.
   private static final int PAGE_VGAP = JBUI.scale(28);
   private static final int SECTION_VGAP = JBUI.scale(10);
   private static final int HGAP = JBUI.scale(22);
@@ -134,8 +135,9 @@ public class ConnectionDetailsView extends JPanel {
 
     myTabsPanel.setOnSelectionChange(this::trackActiveTab);
 
-    IconButton closeIcon = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
+    IconButton closeIcon = new IconButton("Close", AllIcons.Ide.Notification.Close, AllIcons.Ide.Notification.CloseHover);
     InplaceButton closeButton = new InplaceButton(closeIcon, e -> this.setHttpData(null));
+    closeButton.setPreferredSize(new Dimension(CLOSE_BUTTON_SIZE, CLOSE_BUTTON_SIZE));
     closeButton.setMinimumSize(closeButton.getPreferredSize()); // Prevent layout phase from squishing this button
 
     rootPanel.add(closeButton, new TabularLayout.Constraint(0, 1));
