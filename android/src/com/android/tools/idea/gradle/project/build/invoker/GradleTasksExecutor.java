@@ -34,7 +34,6 @@ import com.android.tools.idea.gradle.project.build.invoker.messages.GradleBuildT
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.annotations.VisibleForTesting;
@@ -100,7 +99,6 @@ import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAN
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.run.editor.ProfilerState.EXPERIMENTAL_PROFILING_FLAG_ENABLED;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.io.Closeables.close;
