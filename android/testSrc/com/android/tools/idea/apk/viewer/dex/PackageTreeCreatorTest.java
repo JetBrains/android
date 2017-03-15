@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
+import com.android.tools.idea.apk.viewer.dex.tree.AbstractDexTreeNode;
+import com.android.tools.idea.apk.viewer.dex.tree.PackageTreeNode;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
 import com.android.tools.proguard.ProguardUsagesMap;
@@ -233,7 +235,7 @@ public class PackageTreeCreatorTest {
     PackageTreeNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
 
     StringBuffer sb = new StringBuffer(100);
-    packageTreeNode.sort(Comparator.comparing(PackageTreeNode::getDefinedMethodsCount));
+    packageTreeNode.sort(Comparator.comparing(AbstractDexTreeNode::getDefinedMethodsCount));
     dumpTree(sb, packageTreeNode, 0);
     assertEquals("X-root: 27,33\n" +
                  "  ~java: 0,4\n" +
@@ -320,7 +322,7 @@ public class PackageTreeCreatorTest {
                  "        void publicMethod(): 1,1\n", sb.toString());
 
     sb.setLength(0);
-    packageTreeNode.sort(Comparator.comparing(PackageTreeNode::getName));
+    packageTreeNode.sort(Comparator.comparing(AbstractDexTreeNode::getName));
     dumpTree(sb, packageTreeNode, 0);
     assertEquals("X-root: 27,33\n" +
                  "  ~android: 0,2\n" +
@@ -406,7 +408,7 @@ public class PackageTreeCreatorTest {
                  "        ~java.io.PrintStream err: 0,0\n" +
                  "        ~java.io.PrintStream out: 0,0\n", sb.toString());
     sb.setLength(0);
-    packageTreeNode.sort(Comparator.comparing(PackageTreeNode::getMethodRefCount));
+    packageTreeNode.sort(Comparator.comparing(AbstractDexTreeNode::getMethodRefCount));
     dumpTree(sb, packageTreeNode, 0);
     assertEquals("X-root: 27,33\n" +
                  "  ~android: 0,2\n" +
@@ -499,7 +501,7 @@ public class PackageTreeCreatorTest {
     return getDexFile(Files.readAllBytes(dexPath));
   }
 
-  private static void dumpTree(StringBuffer sb, @NotNull PackageTreeNode node, int depth) {
+  private static void dumpTree(StringBuffer sb, @NotNull AbstractDexTreeNode node, int depth) {
     sb.append(StringUtil.repeatSymbol(' ', depth * 2));
     if (node.isRemoved()){
       sb.append("X-");
@@ -516,7 +518,7 @@ public class PackageTreeCreatorTest {
     sb.append('\n');
 
     for (int i = 0; i < node.getChildCount(); i++) {
-      dumpTree(sb, (PackageTreeNode)node.getChildAt(i), depth + 1);
+      dumpTree(sb, (AbstractDexTreeNode)node.getChildAt(i), depth + 1);
     }
   }
 }
