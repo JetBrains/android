@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ValueXmlHelper;
@@ -85,8 +84,7 @@ public final class StringResource {
   }
 
   @NotNull
-  @VisibleForTesting
-  static String toString(@NotNull ResourceItem item) {
+  private static String toString(@NotNull ResourceItem item) {
     // THIS GETTER WITH SIDE EFFECTS that registers we have taken an interest in this value
     // so that if the value changes we will get a resource changed event fire.
     ResourceValue value = item.getResourceValue(false);
