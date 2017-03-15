@@ -264,6 +264,9 @@ public class FancyStroke implements Stroke {
       float x1 = 0, x2 = 0, y1 = 0, y2 = 0;
       float dx = 0;
       float dy = 0;
+      float px = 0;
+      float py = 0;
+      float rem = 0;
       boolean link = true;
 
       while (!it.isDone()) {
@@ -282,12 +285,12 @@ public class FancyStroke implements Stroke {
             dx = (x1 - x2);
             dy = (y1 - y2);
             float dv = (float)Math.hypot(dx, dy);
-            float rem = dist;
+            rem = dist;
             dist += dv;
             dx /= dv;
             dy /= dv;
-            float px = x2;
-            float py = y2;
+            px = x2;
+            py = y2;
 
             while (dist > mSpacing) {
               float lastX = px - dx * rem;
@@ -330,14 +333,18 @@ public class FancyStroke implements Stroke {
         it.next();
       }
       if (dist > .5) { // if you have more than half a pixel left
-        float lastX = x2 - dx * dist;
-        float lastY = y2 - dy * dist;
+        float lastX = px - dx * rem;
+        float lastY = py - dy * rem;
+        float space = (link) ? mSpacing : mSpacing * CHAIN_RATIO;
+        px += dx * (space - rem);
+        py += dy * (space - rem);
         link = !link;
         float sign = (link) ? 0.2f : 1f;
-        float cx = x2 - dy * mSize * sign * flip;
-        float cy = y2 + dx * mSize * sign * flip;
+        float cx = px - dy * mSize * sign * flip;
+        float cy = py + dx * mSize * sign * flip;
         float cx1 = lastX + -dy * mSize * sign * flip;
         float cy1 = lastY + dx * mSize * sign * flip;
+
         result.curveTo(cx1, cy1, cx, cy, x1, y1);
       }
     }
