@@ -33,7 +33,7 @@ public class AvdListDialogTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testCreateAvd() throws Exception {
     guiTest.importSimpleApplication();
