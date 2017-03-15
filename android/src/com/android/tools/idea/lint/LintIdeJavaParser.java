@@ -186,7 +186,7 @@ public class LintIdeJavaParser extends JavaParser {
     LintJavaPosition start = new LintJavaPosition(containingFile, startOffset);
     LintJavaPosition end = new LintJavaPosition(containingFile, endOffset);
     File file = context.file;
-    if (containingFile != null && containingFile != context.getJavaFile()) {
+    if (containingFile != null && !containingFile.equals(context.getJavaFile())) {
       // Reporting an error in a different file.
       if (context.getDriver().getScope().size() == 1) {
         // Don't bother with this error if it's in a different file during single-file analysis
@@ -255,7 +255,7 @@ public class LintIdeJavaParser extends JavaParser {
   @Nullable
   @Override
   public PsiElement findElementAt(@NonNull JavaContext context, int offset) {
-    PsiJavaFile file = context.getJavaFile();
+    PsiFile file = context.getJavaFile();
     return file != null ? file.findElementAt(offset) : null;
   }
 
