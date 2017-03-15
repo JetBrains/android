@@ -35,6 +35,7 @@ import com.intellij.ui.content.MessageView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.List;
 
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
@@ -97,9 +98,11 @@ public abstract class AbstractSyncMessages {
       if (!content.isPinned()) {
         String displayName = content.getDisplayName();
         if (displayName != null && displayName.startsWith(getProjectSystemId().getReadableName())) {
-          assert content.getComponent() instanceof NewEditableErrorTreeViewPanel;
-          messagesView = (NewEditableErrorTreeViewPanel)content.getComponent();
-          break;
+          JComponent component = content.getComponent();
+          if (component instanceof NewEditableErrorTreeViewPanel) {
+            messagesView = (NewEditableErrorTreeViewPanel)component;
+            break;
+          }
         }
       }
     }
