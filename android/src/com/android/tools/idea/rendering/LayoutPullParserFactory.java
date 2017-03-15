@@ -48,6 +48,33 @@ import static com.android.ide.common.rendering.api.SessionParams.RenderingMode.V
 public class LayoutPullParserFactory {
   static final boolean DEBUG = false;
 
+  private static final String[] VALID_XML_TAGS = {TAG_APPWIDGET_PROVIDER, TAG_PREFERENCE_SCREEN};
+  private static final String[] ADAPTIVE_ICON_TAGS =  {TAG_ADAPTIVE_ICON, TAG_MASKABLE_ICON};
+
+  /**
+   * Returns whether the passed file is an {@link XmlFile} and starts with any of the given rootTags
+   */
+  private static boolean isXmlWithRootTag(@NotNull PsiFile file, @NotNull String[] rootTags) {
+    if (!(file instanceof XmlFile)) {
+      return false;
+    }
+
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+    XmlTag rootTag = ((XmlFile)file).getRootTag();
+    if (rootTag == null) {
+      return false;
+    }
+
+    String tag = rootTag.getName();
+    for (String validRootTags : rootTags) {
+      if (validRootTags.equals(tag)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   public static boolean isSupported(@NotNull PsiFile file) {
     ResourceFolderType folderType = ResourceHelper.getFolderType(file);
     if (folderType == null) {
@@ -58,16 +85,10 @@ public class LayoutPullParserFactory {
       case DRAWABLE:
       case MENU:
         return true;
+      case MIPMAP:
+        return isXmlWithRootTag(file, ADAPTIVE_ICON_TAGS);
       case XML:
-        if (file instanceof XmlFile) {
-          ApplicationManager.getApplication().assertReadAccessAllowed();
-          XmlTag rootTag = ((XmlFile)file).getRootTag();
-          if (rootTag != null) {
-            String tag = rootTag.getName();
-            return tag.equals(TAG_APPWIDGET_PROVIDER) || tag.equals(TAG_PREFERENCE_SCREEN);
-          }
-        }
-        return false;
+        return isXmlWithRootTag(file, VALID_XML_TAGS);
       default:
         return false;
     }
@@ -98,6 +119,7 @@ public class LayoutPullParserFactory {
         return LayoutPsiPullParser.create(file, logger, expandNodes, hardwareConfig.getDensity());
       }
       case DRAWABLE:
+      case MIPMAP:
         renderTask.setDecorations(false);
         return createDrawableParser(file);
       case MENU:
@@ -143,7 +165,9 @@ public class LayoutPullParserFactory {
     Element imageView = addRootElement(document, IMAGE_VIEW);
     setAndroidAttr(imageView, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT);
     setAndroidAttr(imageView, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT);
-    setAndroidAttr(imageView, ATTR_SRC, DRAWABLE_PREFIX + ResourceHelper.getResourceName(file));
+
+    setAndroidAttr(imageView, ATTR_SRC,
+                   PREFIX_RESOURCE_REF + ResourceHelper.getFolderType(file).getName() + "/" + ResourceHelper.getResourceName(file));
 
     if (DEBUG) {
       //noinspection UseOfSystemOutOrSystemErr
