@@ -26,8 +26,8 @@ import java.util.List;</fold>
 
 public class MyActivity2 extends Activity {
   @Override
-  public void onCreate(Bundle savedInstanceState) {
-  }
+  public void onCreate(Bundle savedInstanceState) <fold text='{}' expand='true'>{
+  }</fold>
 
   private List<String> mSuggestedTerms;
   View.OnClickListener mSearchTermClickListener;
