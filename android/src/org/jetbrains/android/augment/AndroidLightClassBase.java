@@ -97,6 +97,7 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
     return null;
   }
 
+  @NotNull
   @Override
   public PsiClass[] getInterfaces() {
     return PsiClass.EMPTY_ARRAY;

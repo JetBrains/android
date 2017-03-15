@@ -201,6 +201,7 @@ public class AndroidXmlTagDescriptor implements XmlElementDescriptor, PsiPresent
     myParentDescriptor.init(element);
   }
 
+  @NotNull
   @Override
   public Object[] getDependences() {
     return myParentDescriptor.getDependences();
