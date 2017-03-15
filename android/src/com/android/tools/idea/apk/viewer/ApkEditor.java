@@ -197,7 +197,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     }
 
     if (SdkConstants.EXT_DEX.equals(file.getExtension())) {
-      return new DexFileViewer(file);
+      return new DexFileViewer(myProject, file, myBaseFile.getParent());
     }
 
     Optional<FileEditorProvider> providers = getFileEditorProviders(file);
