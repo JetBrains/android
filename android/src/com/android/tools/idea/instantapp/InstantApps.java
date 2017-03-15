@@ -18,7 +18,6 @@ package com.android.tools.idea.instantapp;
 import com.android.builder.model.AndroidAtom;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.run.editor.InstallOption;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.module.Module;
@@ -33,13 +32,22 @@ import java.io.FileNotFoundException;
 
 import static com.android.SdkConstants.GRADLE_PLUGIN_AIA_VERSION;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 public class InstantApps {
   private static final String AIA_SDK_ENV_VAR = "WH_SDK";
-  private static String AIA_SDK_LOCATION = System.getenv(AIA_SDK_ENV_VAR);
+  private static final String INSTANT_APP_SDK_PROPERTY = "android.instant_app_sdk_location";
+  private static String AIA_SDK_LOCATION = findInstantAppSdkLocation();
   private static String AIA_PLUGIN_VERSION = GRADLE_PLUGIN_AIA_VERSION;
+
+  @Nullable
+  static String findInstantAppSdkLocation() {
+    String value = System.getenv(AIA_SDK_ENV_VAR);
+    if (isEmpty(value)) {
+      value = System.getProperty(INSTANT_APP_SDK_PROPERTY);
+    }
+    return value;
+  }
 
   @Nullable
   public static Module findInstantAppBaseSplit(@NotNull AndroidFacet facet) {
@@ -85,8 +93,9 @@ public class InstantApps {
     }
 
     File instantAppSdkFile = new File(path);
-    if (! instantAppSdkFile.exists() || ! instantAppSdkFile.isDirectory()) {
-      throw new FileNotFoundException("Directory " + instantAppSdkFile.getAbsolutePath() + "defined in environment variable " + AIA_SDK_ENV_VAR + " does not exist");
+    if (!instantAppSdkFile.exists() || !instantAppSdkFile.isDirectory()) {
+      throw new FileNotFoundException(
+        "Directory " + instantAppSdkFile.getAbsolutePath() + "defined in environment variable " + AIA_SDK_ENV_VAR + " does not exist");
     }
 
     return instantAppSdkFile;
