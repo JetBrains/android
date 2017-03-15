@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceValueMap;
+import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionListener;
@@ -188,6 +192,21 @@ public class NlPropertyItemTest extends PropertyTestCase {
     size.setDefaultValue(new PropertiesMap.Property("@dimen/text_size_small_material", "14sp"));
     UIUtil.dispatchAllInvocationEvents();
     assertThat(size.getResolvedValue()).isEqualTo("14sp");
+  }
+
+  public void testGetResolvedFontValue() {
+    NlPropertyItem font = createFrom(myTextView, ATTR_FONT_FAMILY);
+    font.setValue("@font/Lobster");
+    UIUtil.dispatchAllInvocationEvents();
+
+    ResourceValueMap fonts = ResourceValueMap.create();
+    fonts.put("Lobster", new ResourceValue(ResourceType.FONT, "Lobster", "/very/long/filename/do/not/use", false));
+    fonts.put("DancingScript", new ResourceValue(ResourceType.FONT, "DancingScript", "/very/long/filename/do/not/use", false));
+    ResourceResolver resolver = myModel.getConfiguration().getResourceResolver();
+    assertThat(resolver).isNotNull();
+    resolver.getProjectResources().put(ResourceType.FONT, fonts);
+
+    assertThat(font.getResolvedValue()).isEqualTo("Lobster");
   }
 
   public void testGetChildProperty() {

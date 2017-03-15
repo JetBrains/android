@@ -42,7 +42,7 @@ public class EnumSupportFactoryTest extends PropertyTestCase {
   }
 
   public void testFontFamily() {
-    EnumSupport support = checkSupported(myTextView, ATTR_FONT_FAMILY, SimpleEnumSupport.class);
+    EnumSupport support = checkSupported(myTextView, ATTR_FONT_FAMILY, FontEnumSupport.class);
     checkPossibleDisplayValues(support, AndroidDomUtil.AVAILABLE_FAMILIES);
   }
 
