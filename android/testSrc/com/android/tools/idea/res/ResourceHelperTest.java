@@ -30,7 +30,6 @@ import java.util.EnumSet;
 import java.util.List;
 
 import static com.android.tools.idea.res.ResourceHelper.getResourceName;
-import static com.android.tools.idea.res.ResourceHelper.getResourceUrl;
 import static com.android.tools.idea.res.ResourceHelper.resolveColor;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -87,9 +86,6 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertEquals("foo1", getResourceName(file1.getVirtualFile()));
     assertEquals("foo2", getResourceName(file2.getVirtualFile()));
     assertEquals("foo3", getResourceName(file3.getVirtualFile()));
-    assertEquals("@layout/foo1", getResourceUrl(file1.getVirtualFile()));
-    assertEquals("@menu/foo2", getResourceUrl(file2.getVirtualFile()));
-    assertEquals("@drawable/foo3", getResourceUrl(file3.getVirtualFile()));
   }
 
   @SuppressWarnings("ConstantConditions")

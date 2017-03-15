@@ -136,56 +136,6 @@ public class ResourceHelper {
   }
 
   /**
-   * Returns the resource name of the given file.
-   * <p>
-   * For example, {@code getResourceName(</res/layout-land/foo.xml, false) = "foo"}.
-   *
-   * @param file the file to compute a resource name for
-   * @return the resource name
-   */
-  @NotNull
-  public static String getResourceName(@NotNull VirtualFile file) {
-    // Note that we use getBaseName here rather than {@link VirtualFile#getNameWithoutExtension}
-    // because that method uses lastIndexOf('.') rather than indexOf('.') -- which means that
-    // for a nine patch drawable it would include ".9" in the resource name
-    return LintUtils.getBaseName(file.getName());
-  }
-
-  /**
-   * Returns the resource name of the given file.
-   * <p>
-   * For example, {@code getResourceName(</res/layout-land/foo.xml, false) = "foo"}.
-   *
-   * @param file the file to compute a resource name for
-   * @return the resource name
-   */
-  @NotNull
-  public static String getResourceName(@NotNull PsiFile file) {
-    // See getResourceName(VirtualFile)
-    // We're replicating that code here rather than just calling
-    // getResourceName(file.getVirtualFile());
-    // since file.getVirtualFile can return null
-    return LintUtils.getBaseName(file.getName());
-  }
-
-  /**
-   * Returns the resource URL of the given file. The file <b>must</b> be a valid resource
-   * file, meaning that it is in a proper resource folder, and it <b>must</b> be a
-   * file-based resource (e.g. layout, drawable, menu, etc) -- not a values file.
-   * <p>
-   * For example, {@code getResourceUrl(</res/layout-land/foo.xml, false) = "@layout/foo"}.
-   *
-   * @param file the file to compute a resource url for
-   * @return the resource url
-   */
-  @NotNull
-  public static String getResourceUrl(@NotNull VirtualFile file) {
-    ResourceFolderType type = ResourceFolderType.getFolderType(file.getParent().getName());
-    assert type != null && type != ResourceFolderType.VALUES;
-    return PREFIX_RESOURCE_REF + type.getName() + '/' + getResourceName(file);
-  }
-
-  /**
    * Is this a resource that is defined in a file named by the resource plus the XML
    * extension?
    * <p/>
@@ -217,6 +167,39 @@ public class ResourceHelper {
     }
 
     return false;
+  }
+
+  /**
+   * Returns the resource name of the given file.
+   * <p>
+   * For example, {@code getResourceName(</res/layout-land/foo.xml, false) = "foo"}.
+   *
+   * @param file the file to compute a resource name for
+   * @return the resource name
+   */
+  @NotNull
+  public static String getResourceName(@NotNull VirtualFile file) {
+    // Note that we use getBaseName here rather than {@link VirtualFile#getNameWithoutExtension}
+    // because that method uses lastIndexOf('.') rather than indexOf('.') -- which means that
+    // for a nine patch drawable it would include ".9" in the resource name
+    return LintUtils.getBaseName(file.getName());
+  }
+
+  /**
+   * Returns the resource name of the given file.
+   * <p>
+   * For example, {@code getResourceName(</res/layout-land/foo.xml, false) = "foo"}.
+   *
+   * @param file the file to compute a resource name for
+   * @return the resource name
+   */
+  @NotNull
+  public static String getResourceName(@NotNull PsiFile file) {
+    // See getResourceName(VirtualFile)
+    // We're replicating that code here rather than just calling
+    // getResourceName(file.getVirtualFile());
+    // since file.getVirtualFile can return null
+    return LintUtils.getBaseName(file.getName());
   }
 
   @Nullable

@@ -1,11 +1,11 @@
 # Resource Model
 
-This document describes the “model” of resources used in Android Studio: the Resource Repository hierarchy, the ResourceNotificationManager,
-and the ResourceResolver.
+This document describes the “model” of resources used in Android Studio: the Resource Repository hierarchy, the `ResourceNotificationManager`,
+and the `ResourceResolver`.
 
 [TOC]
 
-## The Old Resource Repository
+## The Old Resource Repository (`com.android.ide.common.resources.ResourceRepository`)
 
 A ResourceRepository is, as the name suggests, a class which holds a set of resources.
 
@@ -19,99 +19,57 @@ ResourceRepository was created, in the res2 package. However, the old one stays 
 resources (and for that specific purpose, it’s faster, which matters given that in a typical project, there are a lot of framework
 resources (the list grows for every SDK release.)
 
-The rest of this document deals strictly with res2.ResourceRepository.
+The way the old system is still used is through `org.jetbrains.android.sdk.FrameworkResourceLoader.IdeFrameworkResources`. These objects are
+created and cached through `ResourceResolverCache` (see below), keeping track of the API level. Usually the `FrameworkResourceLoader` is run
+on a special `IAndroidTarget` that uses layoutlib resources bundled with the IDE, not the ones in `$ANDROID_HOME/platforms`. See
+`StudioEmbeddedRenderTarget`.
 
 ## The New Resource Repository
 
-The new resource repository, res2.ResourceRepository, is used by the Gradle build system, and is used to implement Gradle’s model of
-resources around merging.
+The new resource repository system is based on  `com.android.ide.common.res2.AbstractResourceRepository` and
+`com.android.ide.common.res2.ResourceItem`. Currently there are two use cases for it:
 
-It is also the base class for the ResourceRepository used in AndroidStudio, but it has been subclassed in AndroidStudio, since some of the
-behaviors in the base ResourceRepository are not suitable for use in an IDE. For example, the Gradle version will throw exceptions if
-duplicate keys are found, since that’s a build error - but this is a normal state in the IDE where you for example might have duplicated a
-line and you’re about to edit the key to something new.
+- `com.android.ide.common.res2.ResourceRepository` which is used by Lint,
+- the whole hierarchy of different repositories used by the IDE.
+
+These classes are closely related to `com.android.ide.common.res2.ResourceMerger` which is used by Gradle for merging resources between
+source sets. `ResourceMerger` knows how to create `ResourceItems`. Some of the repositories used by the IDE are initialized by running
+the merger on one or more directories to get the initial set of items.
 
 ## Resource Repositories
 
 Whereas in non-Gradle projects, there is just a single resource repository modeling all non-framework resources, in a Studio Gradle project,
-there is a hierarchy of resource repositories.
+there is a hierarchy of resource repositories. The hierarchy computes the final set of resources taken from all sources sets, libraries
+and the Gradle model (obtained at sync time).
 
-Which one you should use depends on the context.
+Which one you should use depends on the context. Read the JavaDocs of the classes for details:
+- [AppResourceRepository](AppResourceRepository.java): most common, aggregates the others.
+- [ModuleResourceRepository](ModuleResourceRepository.java): resources defined in all resource folders of a given module.
+- [ProjectResourceRepository](ProjectResourceRepository.java): resources defined in a module and all local libraries.
 
-### AppResourceRepository
+You can get instances by calling static factory methods of the relevant classes.
 
-The most commonly used one is the [AppResourceRepository](AppResourceRepository.java): `AppResourceRepository.getAppResources(module, true)`
+None of the repositories listed above actually "contain" any resources, they just combine values from other repositories, forming a tree.
+The common superclass of all of them is [MultiResourceRepository](MultiResourceRepository.java).
 
-This repository gives you a merged view of all the resources available to the app, as seen from the given module, with the current variant.
-That includes not just the resources defined in this module, but in any other modules that this module depends on, as well as any libraries
-those modules may depend on (such as appcompat).
+All the values come from leaves in the tree, which are:
+- [ResourceFolderRepository](ResourceFolderRepository.java): resources from a single folder inside the project.
+- [FileResourceRepository](FileResourceRepository.java): resources from a single folder outside of the project (e.g. unzipped AAR).
+- [DynamicResourceValueRepository](DynamicResourceValueRepository.java): values defined in `build.gradle` and passed through the model.
 
-When a layout is rendered in the layout, it is fetching resources from the app resource repository: it should see all the resources just
-like the app does.
+Another feature of the repository hierarchy is that children can invalidate caches in the parents. Currently we end up caching values
+at multiple levels, because every `MultiResourceRepository` does caching of the final (merged) image of available resources.
 
-### ModuleResourceRepository
+See also the [`LocalResourceRepository` JavaDoc](LocalResourceRepository.java) for an additional description of how the system works.
 
-If you want just the resources defined in a specific module, you can look up the [ModuleResourceRepository](ModuleResourceRepository.java)
-for the given module: `ModuleResourceRepository.getModuleResources(module, true)`
+## Lifecycle
+Repositories from the first list above are singletons in the scope of a given module. The class responsible for this is `ResourceRepositories`
+which is stored as user data on the `AndroidFacet` and has fields for all three kinds of module repositories.
 
-Note that this does not include resources that this module depends on!
+`ResourceFolderRepositories` are unique per directory, managed by `ResourceFolderRegistry`. The registry uses 
+`ResourceFolderRepositoryFileCacheService` to quickly save and load state (see section about blob files below).
 
-### ProjectResourceRepository
-
-If you want all the resources defined in a module, as well as all the modules it depends on, but not external libraries, you can use the
-[ProjectResourceRepository](ProjectResourceRepository.java): `ProjectResourceRepository.getProjectResources(myModule, true)`
-
-This repository lets you look up all “local” resources defined by a user.
-
-An example of where this is useful is the layout editor; in its “Language” menu it lists all the relevant languages in the project and
-lets you choose between them. Here we don’t want to include resources from libraries; If you depend on Google Play Services, and it
-provides 40 translations for its UI, we don’t want to show all 40 languages in the language menu, only the languages actually locally in
-the user’s source code.
-
-## The Resource Repository Hierarchy
-
-The above repositories are the ones you’ll deal with as a developer on Android Studio; normally you’ll grab the `AppResourceRepository`,
-but as explained above there are cases where you want one of the others.
-
-### DynamicResourceValueRepository
-
-The Gradle plugin allows resources to be created on the fly (e.g. you can create a resource called build_time of type string with a value
-set to a Groovy variable computed at build time). These dynamically created resources are computed at Gradle sync time and provided via
-the Gradle model.
-
-Users expect the resources to “exist” too, when using code completion. The [DynamicResourceValueRepository](DynamicResourceValueRepository.java)
-makes this happen: the repository contents are fetched from the Gradle model rather than by analyzing XML files as is done by the other
-resource repositories.
-
-### MultiResourceRepository
-
-The [MultiResourceRepository](MultiResourceRepository.java) is a super class for several of the other repositories; it’s not really used on
-its own. Its only purpose is to be able to combine multiple resource repositories and expose it as a single one, applying the “override”
-semantics of resources: later children defining the same resource type+name combination will replace/hide any previous definitions of the
-same resource.
-
-In the resource repository hierarchy, the MultiResourceRepository is an internal node, never a leaf.
-
-### FileResourceRepository
-
-The [FileResourceRepository](FileResourceRepository.java) on the other hand is a “leaf node” in the resource repository hierarchy:
-it always represents a concrete `java.io.File` directory. This is used for resources that do not change, e.g. are not editable by the user.
-This currently means AAR resources such as the appcompat library’s res folder. This is more efficient than using IntelliJ's PSI based
-XML parsers (discussed next).
-
-The implementation of the FileResourceRepository is mostly directly using the same implementation as the Android Gradle plugin’s resource
-handler, so it’s fast & accurate.
-
-### ResourceFolderRepository
-
-The [ResourceFolderRepository](ResourceFolderRepository.java) is another leaf node, and is used for user editable resources (e.g. the
-resources in the project, typically the res/main source set.) Each ResourceFolderRepository contains the resources provided by a single res
-folder. This repository is built on top of IntelliJ’s PSI infrastructure. This allows it (along with PSI listeners) to be updated
-incrementally; for example, when it notices that the user is editing the value inside a <string> element in a value folder XML file, it will
-directly update the resource value for the given resource item, and so on.
-
-For efficiency, the ResourceFolderRepository is initialized via the same parsers as the FileResourceRepository and then lazily switches to
-PSI parsers after edits. This is discussed more in a [later section](#speeding_up_resource_repo_init).
+`FileResourceRepositories` are unique per directory, managed by a soft references cache in the class itself.
 
 ## ResourceManager
 
@@ -125,9 +83,53 @@ remove these.
 However, editor services need to be ready early after project startup, so it is important that ResourceRepositories initialize quickly.
 And to do that:
 
-##  Speeding Up ResourceRepository Initialization <a name="speeding_up_resource_repo_init"></a>
+## ResourceFolderManager
 
-All the project resources are currently held in ResourceFolderRepositories. These are slow to initialize because all XML files must be
+The ResourceFolderManager isn’t part of the resource repository hierarchy; however, it’s related so I’m describing it here.
+The ResourceFolderManager is responsible for knowing which folders are involved in resource computations (e.g. the set of all res/
+folders); it’s providing this set of folders to the resource repositories in a module, and it listens to things like root-change
+events (e.g., after a GradleSync) to know when the resource folders have changed.
+
+## ResourceNotificationManager
+
+The ResourceNotificationManager is responsible for “listening” for resource changes for UI editors that care about re-rendering when
+resources have changed. It is used by for example the new layout editor, and the theme editor. When these editors are made visible,
+they register with the resource notification manager, and when they are hidden/closed, they unregister.
+
+The ResourceNotificationManager watches for resource changes, figures out what changed, and then notifies clients. This allows for example
+the layout editor to be rendered only when a dependent resource has changed.
+
+## ResourceResolver
+
+The `ResourceResolver` sits on top of the app resource repository and provides information about which specific resource values a given
+resource reference should use. This means following all references until we end up with a "real" value.
+
+This requires you to pick an actual “device” to render to: a device is represented by a `Configuration` class. The information in the
+`Configuration` object picks a specific target API, density, screen orientation and so on, and based on that, the `ResourceResolver` will
+decide which specific value for a resource is chosen when there are multiple choices. 
+
+In the IDE, `ResourceResolver` instances are created and managed by `ResourceResolverCache`. Usually you get one by calling
+`Configuration.getResourceResolver()`.
+
+See also the class [JavaDoc](../../../../../../../../../base/sdk-common/src/main/java/com/android/ide/common/resources/ResourceResolver.java).
+
+## ResourceHelper
+
+Among other things, it can turn the final string value obtained from `ResourceResolver` into an awt `Image` or `Color`. It handles
+`ColorStateList` and `StateListDrawable`, which is a layer on top of what `ResourceResolver` provides.
+
+## AAPT2 Plans
+
+AAPT2 is almost done. AAPT will support per-project namespaces. This means that we will need to start keeping track what's the namespace
+name of some of its children.
+
+On the other hand, the build system may eventually stop producing merged resource directories: instead it will need to calculate which
+resources should be available in the APK and will just pass all the paths to aapt2. This is the same problem that the IDE solves already, so
+will need to converge.
+
+##  Speeding Up Resource Repository Initialization <a name="speeding_up_resource_repo_init"></a>
+
+All the project resources are currently held in `ResourceFolderRepositories`. These are slow to initialize because all XML files must be
 parsed into data structures. However, most of these are not used (e.g. all the non-picked translations of strings etc.)
 
 ### Lazy PSI Parsing
@@ -193,36 +195,4 @@ etc. XML files for `android:id=@+id/foo` attributes.
 
 Even with these optimizations, each ResourceFolderRepository initialization can still involve much I/O, especially on first run. For
 projects with many res/ folders, a `PopulateCachesTask` can be invoked on project startup to initialize separate res/ folders in parallel.
-
-## ResourceFolderManager
-
-The ResourceFolderManager isn’t part of the resource repository hierarchy; however, it’s related so I’m describing it here.
-The ResourceFolderManager is responsible for knowing which folders are involved in resource computations (e.g. the set of all res/
-folders); it’s providing this set of folders to the resource repositories in a module, and it listens to things like root-change
-events (e.g., after a GradleSync) to know when the resource folders have changed.
-
-## ResourceNotificationManager
-
-The ResourceNotificationManager is responsible for “listening” for resource changes for UI editors that care about re-rendering when
-resources have changed. It is used by for example the new layout editor, and the theme editor. When these editors are made visible,
-they register with the resource notification manager, and when they are hidden/closed, they unregister.
-
-The ResourceNotificationManager watches for resource changes, figures out what changed, and then notifies clients. This allows for example
-the layout editor to be rendered only when a dependent resource has changed.
-
-## ResourceResolver
-
-The ResourceResolver sits on top of the app resource repository and provides information about which specific resource values a given
-resource reference should use. This requires you to pick an actual “device” to render to: a device is represented by a Configuration class.
-The information in the Configuration object picks a specific target API, density, screen orientation and so on, and based on that,
-the ResourceResolver will decide which specific value for a resource is chosen when there are multiple choices.
-
-There is also a ResourceResolverCache which is used to allow resource resolvers to be reused such that they don’t have to be constructed
-over and over again for the same sets of configurations.
-
-## AAPT2 Plans
-
-AAPT2 is almost done. AAPT will support per-project namespaces. We’ll need to update the resource repository mechanism and lookup to deal
-with this (right now resources are handled in a binary way: framework or not). We’ll need to make the resource merging aware of
-namespaces etc.
 

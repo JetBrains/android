@@ -32,7 +32,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 /**
- * Resource repository for a single module (which can possibly have multiple resource folders)
+ * Resource repository for a single module (which can possibly have multiple resource folders). Does not include
+ * resources from any dependencies.
  */
 public final class ModuleResourceRepository extends MultiResourceRepository {
   private final AndroidFacet myFacet;
@@ -76,8 +77,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
    */
   @NotNull
   static LocalResourceRepository create(@NotNull AndroidFacet facet) {
-    boolean gradleProject = facet.requiresAndroidModel();
-    if (!gradleProject) {
+    if (!facet.requiresAndroidModel()) {
       // Always just a single resource folder: simple
       VirtualFile primaryResourceDir = facet.getPrimaryResourceDir();
       if (primaryResourceDir == null) {
@@ -88,7 +88,7 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
 
     ResourceFolderManager folderManager = facet.getResourceFolderManager();
     List<VirtualFile> resourceDirectories = folderManager.getFolders();
-    List<LocalResourceRepository> resources = Lists.newArrayListWithExpectedSize(resourceDirectories.size());
+    List<LocalResourceRepository> resources = Lists.newArrayListWithExpectedSize(resourceDirectories.size() + 1);
     for (VirtualFile resourceDirectory : resourceDirectories) {
       ResourceFolderRepository repository = ResourceFolderRegistry.get(facet, resourceDirectory);
       resources.add(repository);
