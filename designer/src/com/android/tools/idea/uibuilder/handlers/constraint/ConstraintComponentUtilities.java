@@ -16,8 +16,12 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
@@ -29,11 +33,16 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.lang.Float;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.*;
@@ -729,28 +738,21 @@ public final class ConstraintComponentUtilities {
 
   public static boolean hasUserResizedHorizontally(@NotNull NlComponent component) {
     String dimension = component.getAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH);
-    if (dimension == null) {
+    if (dimension.equalsIgnoreCase(VALUE_WRAP_CONTENT)) {
       return false;
     }
-    if (dimension.equalsIgnoreCase(VALUE_MATCH_CONSTRAINT)) {
-      return true;
-    }
-    // TODO: need to get the wrap_content size. If the wrap content size is less than the current size,
-    // return true as the widget is resizable.
-    return false;
+
+    return true;
   }
 
   public static boolean hasUserResizedVertically(@NotNull NlComponent component) {
     String dimension = component.getAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT);
-    if (dimension == null) {
+
+    if (dimension.equalsIgnoreCase(VALUE_WRAP_CONTENT)) {
       return false;
     }
-    if (dimension.equalsIgnoreCase(VALUE_MATCH_CONSTRAINT)) {
-      return true;
-    }
-    // TODO: need to get the wrap_content size. If the wrap content size is less than the current size,
-    // return true as the widget is resizable.
-    return false;
+
+    return true;
   }
 
   public static int getMargin(@NotNull NlComponent component, String margin_attr) {

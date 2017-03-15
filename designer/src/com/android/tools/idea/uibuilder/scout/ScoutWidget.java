@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import android.support.constraint.solver.widgets.ConstraintAnchor;
 import android.support.constraint.solver.widgets.ConstraintWidget;
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.Rectangle;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -83,11 +82,14 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     }
     if (parent != null) {
       parent.addChild(this);
+      mX -= parent.mX;
+      mY -= parent.mY;
+      mBaseLine -= parent.mY;
     }
   }
 
   void addChild(ScoutWidget widget) {
-    String id = widget.mNlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID);
+    String id = widget.mNlComponent.getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID);
     myChildMap.put(id, widget);
   }
 
@@ -167,28 +169,33 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
 
     //search for the root widget
     for (int i = 1; i < ret.length; i++) {
-      NlComponent component1 = array[i-1];
+      NlComponent component1 = array[i - 1];
       NlComponent component2 = array[i];
-     if(component1.getParent() != component2.getParent()) {
-       if (component2.getParent() == component1)
-         root = component1;
-       break;
-     }
-     if(component1.getParent() != component2.getParent()) {
-       if (component1.getParent() == component2)
-         root = component2;
-       break;
-     }
+      if (component1.getParent() != component2.getParent()) {
+        if (component2.getParent() == component1) {
+          root = component1;
+        }
+        break;
+      }
+      if (component1.getParent() != component2.getParent()) {
+        if (component1.getParent() == component2) {
+          root = component2;
+        }
+        break;
+      }
     }
-    ScoutWidget rootwidget = new ScoutWidget(root, null);
-    ret[0] = rootwidget;
+    ScoutWidget rootWidget = new ScoutWidget(root, null);
+    ret[0] = rootWidget;
     int count = 1;
     for (int i = 0; i < ret.length; i++) {
       if (array[i] != root) {
-        ret[count++] = new ScoutWidget(array[i], rootwidget);
+        ret[count++] = new ScoutWidget(array[i], rootWidget);
       }
     }
-     Arrays.sort(ret,1,ret.length);
+    rootWidget.mX = 0;
+    rootWidget.mY = 0;
+
+    Arrays.sort(ret, 1, ret.length);
 
     if (DEBUG) {
       for (int i = 0; i < ret.length; i++) {
@@ -197,10 +204,16 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
           ret[i].mRootDistance + " : " + ret[i]);
       }
     }
+    //getWrap(root, ret);
     return ret;
   }
 
-  // above = 0, below = 1, left = 2, right = 3
+  /**
+   * get location for a particular direction
+   *
+   * @param dir above = 0, below = 1, left = 2, right = 3
+   * @return
+   */
   float getLocation(Direction dir) {
     switch (dir) {
       case TOP:
@@ -222,13 +235,13 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
    *
    * @return the height of the widget
    */
+
   public float getHeight() {
     return mHeight;
   }
 
   public int getHeightInt() {
-    // TODO: check that...
-    return (int)mHeight;
+    return mHeight;
   }
 
   /**
@@ -241,8 +254,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   }
 
   public int getWidthInt() {
-    // TODO: check that...
-    return (int)mWidth;
+    return mWidth;
   }
 
   /**
@@ -265,7 +277,6 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
 
   /**
    * This calculates a constraint tables and applies them to the widgets
-   * TODO break up into creation of a constraint table and apply
    *
    * @param list ordered list of widgets root must be list[0]
    */
@@ -279,31 +290,8 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     return Direction.get(dir);
   }
 
-  /**
-   * map integer direction to ConstraintAnchor.Type
-   *
-   * @param dir integer direction
-   * @return
-   */
-  private static ConstraintAnchor.Type lookupType(Direction dir) {
-    switch (dir) {
-      case TOP:
-        return ConstraintAnchor.Type.TOP;
-      case BOTTOM:
-        return ConstraintAnchor.Type.BOTTOM;
-      case LEFT:
-        return ConstraintAnchor.Type.LEFT;
-      case RIGHT:
-        return ConstraintAnchor.Type.RIGHT;
-      case BASELINE:
-        return ConstraintAnchor.Type.BASELINE;
-    }
-    return ConstraintAnchor.Type.NONE;
-  }
-
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  // TODO implement set
   public void setDpX(@AndroidDpCoordinate int value) {
     ConstraintComponentUtilities.setScoutAbsoluteDpX(mNlComponent, value);
   }
@@ -323,7 +311,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   public void setHorizontalDimensionBehaviour(ConstraintWidget.DimensionBehaviour behaviour) {
     switch (behaviour) {
       case FIXED: {
-        setDpWidth((int)mWidth);
+        setDpWidth(mWidth);
       }
       break;
       case MATCH_CONSTRAINT: {
@@ -346,7 +334,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   public void setVerticalDimensionBehaviour(ConstraintWidget.DimensionBehaviour behaviour) {
     switch (behaviour) {
       case FIXED: {
-        setDpHeight((int)mHeight);
+        setDpHeight(mHeight);
       }
       break;
       case MATCH_CONSTRAINT: {
@@ -384,9 +372,8 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
 
   public static boolean isConnected(NlComponent component, Direction dir) {
     String[] attrs = ATTR_CONNECTIONS[dir.ordinal()];
-    for (int i = 0; i < attrs.length; i++) {
-      String attr = attrs[i];
-      String id = component.getAttribute(SdkConstants.SHERPA_URI, attr);
+    for (String attr : attrs) {
+      String id = component.getLiveAttribute(SdkConstants.SHERPA_URI, attr);
       if (id != null) {
         return true;
       }
@@ -406,9 +393,8 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
 
     public boolean isConnected() {
       String[] attrs = ATTR_CONNECTIONS[myDirection.ordinal()];
-      for (int i = 0; i < attrs.length; i++) {
-        String attr = attrs[i];
-        String id = mNlComponent.getAttribute(SdkConstants.SHERPA_URI, attr);
+      for (String attr : attrs) {
+        String id = mNlComponent.getLiveAttribute(SdkConstants.SHERPA_URI, attr);
         if (id != null) {
           return true;
         }
@@ -419,9 +405,8 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
     public ScoutWidget getTargetWidget() {
       int dir = myDirection.ordinal();
       String[] attrs = ATTR_CONNECTIONS[dir];
-      for (int i = 0; i < attrs.length; i++) {
-        String attr = attrs[i];
-        String id = mNlComponent.getAttribute(SdkConstants.SHERPA_URI, attr);
+      for (String attr : attrs) {
+        String id = mNlComponent.getLiveAttribute(SdkConstants.SHERPA_URI, attr);
         if (id != null) {
           return getParent().getChild(id);
         }
@@ -434,11 +419,11 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
       String[] attrs = ATTR_CONNECTIONS[dir];
       for (int i = 0; i < attrs.length; i++) {
         String attr = attrs[i];
-        String id = mNlComponent.getAttribute(SdkConstants.SHERPA_URI, attr);
+        String id = mNlComponent.getLiveAttribute(SdkConstants.SHERPA_URI, attr);
         if (id != null && id.equalsIgnoreCase("parent")) {
           return getParent().getAnchor(ATTR_DIR_CONNECT[dir][i]);
         }
-        if (id != null && getParent() != null && getParent().getChild(id) !=null) {
+        if (id != null && getParent() != null && getParent().getChild(id) != null) {
           return getParent().getChild(id).getAnchor(ATTR_DIR_CONNECT[dir][i]);
         }
       }
@@ -498,27 +483,22 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
 
   public int getDpX() {
     return mX;
-    //return ConstraintComponentUtilities.getDpX(mNlComponent);
   }
 
   public int getDpY() {
     return mY;
-    //return ConstraintComponentUtilities.getDpY(mNlComponent);
   }
 
   public int getDpWidth() {
     return mWidth;
-    //return ConstraintComponentUtilities.getDpWidth(mNlComponent);
   }
 
   public int getDpHeight() {
     return mHeight;
-    //return ConstraintComponentUtilities.getDpHeight(mNlComponent);
   }
 
   public int getDpBaseline() {
     return mY;
-    //return ConstraintComponentUtilities.getDpBaseline(mNlComponent);
   }
 
   public static boolean hasBaseline(@NotNull NlComponent component) {
@@ -626,8 +606,9 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
       case BOTTOM:
       case RIGHT:
         return getPos(widget2, direction2) - getPos(widget1, direction1);
+      default:
+        return 0;
     }
-    return 0;
   }
 
   /**
@@ -647,8 +628,9 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
         return widget.getDpX();
       case RIGHT:
         return widget.getDpX() + widget.getDpWidth();
+      default:
+        return 0;
     }
-    return 0;
   }
 
   /**
@@ -1152,6 +1134,8 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
         rect.height = getDpHeight() - 2;
       }
       break;
+      default:
+        break;
     }
     int min = Integer.MAX_VALUE;
     for (int i = 1; i < list.length; i++) {
@@ -1180,6 +1164,8 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
 
         case RIGHT:
           return rootWidth - (getDpX() + getDpWidth());
+        default:
+          break;
       }
     }
     return min;
