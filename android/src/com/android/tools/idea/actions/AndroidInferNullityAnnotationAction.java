@@ -23,8 +23,8 @@ import com.android.tools.idea.gradle.project.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.templates.SupportLibrary;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.analysis.BaseAnalysisActionDialog;
 import com.intellij.codeInsight.FileModificationService;
@@ -55,6 +55,7 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewUtil;
 import com.intellij.usages.*;
 import com.intellij.util.Consumer;
+import com.intellij.util.ObjectUtils;
 import com.intellij.util.Processor;
 import com.intellij.util.SequentialModalProgressTask;
 import com.intellij.util.containers.ContainerUtil;
@@ -304,9 +305,10 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       @Override
       public UsageSearcher create() {
         return new UsageInfoSearcherAdapter() {
+          @NotNull
           @Override
           protected UsageInfo[] findUsages() {
-            return action.findUsages(project, scope, scope.getFileCount());
+            return ObjectUtils.notNull(action.findUsages(project, scope, scope.getFileCount()),UsageInfo.EMPTY_ARRAY);
           }
 
           @Override
