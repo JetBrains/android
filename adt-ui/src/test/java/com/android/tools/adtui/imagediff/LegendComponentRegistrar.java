@@ -35,8 +35,7 @@ class LegendComponentRegistrar extends ImageDiffEntriesRegistrar {
   private static final BaseAxisFormatter NETWORK_AXIS_FORMATTER = new NetworkTrafficFormatter(1, 2, 5);
 
   public LegendComponentRegistrar() {
-    // Disabled http://b.android.com/238310
-    // registerSimpleLegendComponent();
+    registerSimpleLegendComponent();
   }
   private void registerSimpleLegendComponent() {
     // As a good portion of the legend component is composed by text, the similarity threshold needs to be increased.
