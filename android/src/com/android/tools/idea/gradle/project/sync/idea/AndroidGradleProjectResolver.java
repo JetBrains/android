@@ -179,11 +179,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     catch (UnsupportedOperationException ignore) {
     }
 
-    if (buildScript == null || !isAndroidGradleProject()) {
-      nextResolver.populateModuleContentRoots(gradleModule, ideModule);
-      return;
-    }
-
     // do not derive module root dir based on *.iml file location
     File moduleRootDirPath = toSystemDependentPath(ideModule.getData().getLinkedExternalProjectPath());
 
@@ -229,7 +224,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     BuildScriptClasspathModel buildScriptModel = resolverCtx.getExtraProject(BuildScriptClasspathModel.class);
     String gradleVersion = buildScriptModel != null ? buildScriptModel.getGradleVersion() : null;
 
-    File buildFilePath = buildScript.getSourceFile();
+    File buildFilePath = buildScript != null ? buildScript.getSourceFile() : null;
     GradleModuleModel gradleModuleModel = new GradleModuleModel(moduleName, gradleProject, buildFilePath, gradleVersion);
     ideModule.createChild(GRADLE_MODULE_MODEL, gradleModuleModel);
 
@@ -247,7 +242,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   private void createJavaProject(@NotNull IdeaModule gradleModule,
                                  @NotNull DataNode<ModuleData> ideModule,
                                  boolean androidProjectWithoutVariants) {
-    //noinspection deprecation
     ModuleExtendedModel model = resolverCtx.getExtraProject(gradleModule, ModuleExtendedModel.class);
     JavaModuleModel javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, model, androidProjectWithoutVariants);
     ideModule.createChild(JAVA_MODULE_MODEL, javaModuleModel);
