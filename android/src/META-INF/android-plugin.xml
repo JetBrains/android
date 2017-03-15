@@ -890,7 +890,7 @@
                 conditionClass="com.android.tools.idea.gradle.InternalAndroidModelViewCondition"
                 icon="AndroidIcons.AndroidToolWindow"
                 factoryClass="com.android.tools.idea.gradle.InternalAndroidModelToolWindowFactory"/>
-    <facet.toolWindow id="Device Explorer"
+    <facet.toolWindow id="Device File Explorer"
                       facetIdList="android"
                       anchor="right"
                       secondary="true"

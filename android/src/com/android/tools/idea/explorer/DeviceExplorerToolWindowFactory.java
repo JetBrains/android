@@ -30,7 +30,7 @@ import org.jetbrains.ide.PooledThreadExecutor;
 import java.util.concurrent.Executor;
 
 public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFactory {
-  public static final String TOOL_WINDOW_ID = "Device Explorer";
+  public static final String TOOL_WINDOW_ID = "Device File Explorer";
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
