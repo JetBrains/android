@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
+import com.android.tools.idea.apk.viewer.dex.tree.AbstractDexTreeNode;
+import com.android.tools.idea.apk.viewer.dex.tree.PackageTreeNode;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
 import com.android.tools.proguard.ProguardUsagesMap;
@@ -29,11 +31,15 @@ import org.jf.dexlib2.dexbacked.DexBackedField;
 import org.jf.dexlib2.dexbacked.DexBackedMethod;
 import org.jf.dexlib2.dexbacked.reference.DexBackedFieldReference;
 import org.jf.dexlib2.dexbacked.reference.DexBackedMethodReference;
+import org.jf.dexlib2.dexbacked.reference.DexBackedTypeReference;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.reference.TypeReference;
 import org.jf.dexlib2.util.ReferenceUtil;
 
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -74,12 +80,24 @@ public class PackageTreeCreator {
     return fieldsByClass;
   }
 
-  public PackageTreeNode constructPackageTree(@NotNull DexBackedDexFile dexFile) {
-    PackageTreeNode root = new PackageTreeNode("root", PackageTreeNode.NodeType.PACKAGE, null);
+  @NotNull
+  private static Map<String, TypeReference> getAllTypeReferencesByClassName(@NotNull DexBackedDexFile dexFile) {
+    HashMap<String, TypeReference> typesByName = new HashMap<>();
+    for (int i = 0, m = dexFile.getTypeCount(); i < m; i++) {
+      DexBackedTypeReference typeRef = new DexBackedTypeReference(dexFile, i);
+      typesByName.put(typeRef.getType(), typeRef);
+    }
 
-    //get all methods and fields referenced in this dex (includes defined)
+    return typesByName;
+  }
+
+  public PackageTreeNode constructPackageTree(@NotNull DexBackedDexFile dexFile) {
+    PackageTreeNode root = new PackageTreeNode("root");
+
+    //get all methods, fields and types referenced in this dex (includes defined)
     Multimap<String, MethodReference> methodRefsByClassName = getAllMethodReferencesByClassName(dexFile);
     Multimap<String, FieldReference> fieldRefsByClassName = getAllFieldReferencesByClassName(dexFile);
+    Map<String, TypeReference> typeRefsByName = getAllTypeReferencesByClassName(dexFile);
 
     //remove methods and fields that are defined in this dex from the maps
     for (DexBackedClassDef classDef : dexFile.getClasses()) {
@@ -93,53 +111,56 @@ public class PackageTreeCreator {
 
     //add classes (and their methods and fields) defined in this file to the tree
     for (DexBackedClassDef classDef : dexFile.getClasses()) {
+      TypeReference typeRef = typeRefsByName.get(classDef.getType());
       String className = decodeClassName(classDef.getType());
       boolean seed = mySeedsMap != null && mySeedsMap.hasClass(className);
-      root.getOrInsertClass("", className, true, seed, false, false);
-      addMethods(root, className, classDef.getMethods(), true);
-      addFields(root, className, classDef.getFields(), true);
+      root.getOrInsertClass(typeRef,"", className, true, seed, false, false);
+      addMethods(root, className, typeRef, classDef.getMethods(), true);
+      addFields(root, className, typeRef, classDef.getFields(), true);
     }
 
     //add method references which are not in a class defined in this dex file to the tree
     for (String className : methodRefsByClassName.keySet()) {
+      TypeReference typeRef = typeRefsByName.get(className);
       String cleanClassName = decodeClassName(className);
-      root.getOrInsertClass("", cleanClassName, false, false, false, false);
-      addMethods(root, cleanClassName, methodRefsByClassName.get(className), false);
+      root.getOrInsertClass(typeRef, "", cleanClassName, false, false, false, false);
+      addMethods(root, cleanClassName, typeRef, methodRefsByClassName.get(className), false);
     }
 
     //add field references which are not in a class defined in this dex file
     for (String className : fieldRefsByClassName.keySet()) {
+      TypeReference typeRef = typeRefsByName.get(className);
       String cleanClassName = decodeClassName(className);
-      root.getOrInsertClass("", cleanClassName, false, false, false, false);
-      addFields(root, cleanClassName, fieldRefsByClassName.get(className), false);
+      root.getOrInsertClass(typeRef, "", cleanClassName, false, false, false, false);
+      addFields(root, cleanClassName, typeRef, fieldRefsByClassName.get(className), false);
     }
 
-    //add classes, methods and fields that were removed by Proguard
+    //add classes, methods and fields removed by Proguard
     if (myUsagesMap != null) {
       for (String className : myUsagesMap.getClasses()) {
-        root.getOrInsertClass("", className, false, false, true, false);
+        root.getOrInsertClass(null, "", className, false, false, true, false);
       }
       Multimap<String, String> removedMethodsByClass = myUsagesMap.getMethodsByClass();
       for (String className : removedMethodsByClass.keySet()) {
         for (String removedMethodName : removedMethodsByClass.get(className)) {
-          root.insertMethod(className, removedMethodName, false, false, true);
+          root.insertMethod(null, null, className, removedMethodName, false, false, true);
         }
       }
       Multimap<String, String> removedFieldsByClass = myUsagesMap.getFieldsByClass();
       for (String className : removedFieldsByClass.keySet()) {
         for (String removedFieldName : removedFieldsByClass.get(className)) {
-          root.insertField(className, removedFieldName, false, false, true);
+          root.insertField(null, null, className, removedFieldName, false, false, true);
         }
       }
     }
 
-    root.sort(Comparator.comparing(PackageTreeNode::getMethodRefCount).reversed());
+    root.sort(Comparator.comparing(AbstractDexTreeNode::getMethodRefCount).reversed());
     return root;
   }
 
   private void addMethods(PackageTreeNode root,
                           String className,
-                          Iterable<? extends MethodReference> methodRefs,
+                          TypeReference typeRef, Iterable<? extends MethodReference> methodRefs,
                           boolean defined) {
     for (MethodReference methodRef : methodRefs) {
       String methodName = decodeMethodName(methodRef);
@@ -150,13 +171,13 @@ public class PackageTreeCreator {
                      && (mySeedsMap.hasMethod(className, methodSig)
                          || (methodName.equals("<init>")
                              && mySeedsMap.hasMethod(className, DebuggerUtilsEx.getSimpleName(className) + params)));
-      root.insertMethod(className, methodSig, defined, seed, false);
+      root.insertMethod(typeRef, methodRef, className, methodSig, defined, seed, false);
     }
   }
 
   private void addFields(PackageTreeNode root,
                          String className,
-                         Iterable<? extends FieldReference> fieldRefs,
+                         TypeReference typeRef, Iterable<? extends FieldReference> fieldRefs,
                          boolean defined) {
     for (FieldReference fieldRef : fieldRefs) {
       String fieldName = fieldRef.getName();
@@ -168,7 +189,8 @@ public class PackageTreeCreator {
 
       String fieldSig = fieldType + " " + fieldName;
       boolean seed = mySeedsMap != null && mySeedsMap.hasField(className, fieldSig);
-      root.insertField(className, fieldSig, defined, seed, false);
+
+      root.insertField(typeRef, fieldRef, className, fieldSig, defined, seed, false);
     }
   }
 
