@@ -1244,10 +1244,15 @@ public class AndroidLintTest extends AndroidTestCase {
       AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue);
       InspectionProfileImpl profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
       String shortName = AndroidLintInspectionBase.LINT_INSPECTION_PREFIX + issue.getId();
-      if (issue != inspection.getIssue()) {
-        profile.disableTool(shortName, project);
-      } else {
-        profile.enableTool(shortName, project);
+      try {
+        if (issue != inspection.getIssue()) {
+          profile.disableTool(shortName, project);
+        }
+        else {
+          profile.enableTool(shortName, project);
+        }
+      } catch (Throwable ignore) {
+        // Ignore potential third party issues picked up from the environment
       }
     }
 
