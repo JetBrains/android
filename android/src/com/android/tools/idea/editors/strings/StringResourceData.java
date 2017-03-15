@@ -37,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class StringResourceData {
   private final AndroidFacet myFacet;
@@ -239,7 +240,7 @@ public class StringResourceData {
   @VisibleForTesting
   Collection<Locale> getMissingTranslations(@NotNull StringResourceKey key) {
     Set<Locale> missingTranslations = Sets.newHashSet();
-    for (Locale locale : getLocales()) {
+    for (Locale locale : getLocaleSet()) {
       StringResource stringResource = getStringResource(key);
       if (stringResource.isTranslationMissing(locale)) {
         missingTranslations.add(locale);
@@ -315,11 +316,20 @@ public class StringResourceData {
   }
 
   @NotNull
-  public List<Locale> getLocales() {
-    Set<Locale> locales = new TreeSet<>(Locale.LANGUAGE_CODE_COMPARATOR);
-    for (StringResource stringResource : myKeyToResourceMap.values()) {
-      locales.addAll(stringResource.getTranslatedLocales());
-    }
-    return new ArrayList<>(locales);
+  public List<Locale> getLocaleList() {
+    return getTranslatedLocaleStream()
+      .distinct()
+      .sorted(Locale.LANGUAGE_NAME_COMPARATOR)
+      .collect(Collectors.toList());
+  }
+
+  @NotNull
+  Set<Locale> getLocaleSet() {
+    return getTranslatedLocaleStream().collect(Collectors.toSet());
+  }
+
+  @NotNull
+  private Stream<Locale> getTranslatedLocaleStream() {
+    return myKeyToResourceMap.values().stream().flatMap(resource -> resource.getTranslatedLocales().stream());
   }
 }

@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.tools.idea.configurations.LocaleMenuAction;
+import com.android.annotations.VisibleForTesting;
+import com.android.ide.common.resources.LocaleManager;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
-import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.ui.Icons;
 import com.intellij.icons.AllIcons;
@@ -32,8 +33,10 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 final class AddLocaleAction extends AnAction {
   private final StringResourceTable myTable;
@@ -60,18 +63,29 @@ final class AddLocaleAction extends AnAction {
     StringResourceData data = myTable.getData();
     assert data != null;
 
-    List<Locale> locales = LocaleMenuAction.getAllLocales();
-
-    locales.removeAll(data.getLocales());
-    locales.sort(Locale.LANGUAGE_NAME_COMPARATOR);
-
-    JList list = new LocaleList(locales);
+    JList list = new LocaleList(getLocales(data.getLocaleSet()));
 
     JBPopup popup = JBPopupFactory.getInstance().createListPopupBuilder(list)
       .setItemChoosenCallback(() -> createItem((Locale)list.getSelectedValue()))
       .createPopup();
 
     popup.showUnderneathOf(event.getInputEvent().getComponent());
+  }
+
+  @NotNull
+  @VisibleForTesting
+  static Collection<Locale> getLocales(@NotNull Collection<Locale> localesToRemove) {
+    return LocaleManager.getLanguageCodes(true).stream()
+      .flatMap(AddLocaleAction::getLocales)
+      .filter(locale -> !localesToRemove.contains(locale))
+      .sorted(Locale.LANGUAGE_NAME_COMPARATOR)
+      .collect(Collectors.toList());
+  }
+
+  @NotNull
+  private static Stream<Locale> getLocales(@NotNull String language) {
+    return LocaleManager.getRelevantRegions(language).stream()
+      .map(region -> Locale.create(new LocaleQualifier(null, language, region, null)));
   }
 
   private void createItem(@NotNull Locale locale) {
