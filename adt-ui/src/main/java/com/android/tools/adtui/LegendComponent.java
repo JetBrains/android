@@ -160,6 +160,8 @@ public class LegendComponent extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g2d, Dimension dim) {
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
     // TODO: revisit this method and try to simplify it using JBPanels and a LayoutManager.
     Stroke defaultStroke = g2d.getStroke();
     for (int i = 0; i < myModel.getLegends().size(); ++i) {
