@@ -554,8 +554,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "  android:src=\"@android:drawable/ic_input_add\"\n" +
     "  android:layout_width=\"wrap_content\"\n" +
     "  android:layout_height=\"wrap_content\"\n" +
-    "  android:clickable=\"true\"\n" +
-    "  app:fabSize=\"mini\" />\n";
+    "  android:clickable=\"true\" />\n";
 
   @Language("XML")
   private static final String FLOATING_ACTION_BUTTON_PREVIEW_XML =
