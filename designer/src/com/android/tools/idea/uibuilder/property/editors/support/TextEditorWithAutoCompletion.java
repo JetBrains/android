@@ -91,6 +91,11 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
   public void removeNotify() {
     super.removeNotify();
     LookupManager.getInstance(getProject()).removePropertyChangeListener(myPropertyChangeListener);
+
+    // Remove the editor from the component tree.
+    // The editor component is added in EditorTextField.addNotify but never removed by EditorTextField.
+    // This is causing paint problems when this component is reused in a different panel.
+    removeAll();
   }
 
   public void setTextColor(@NotNull Color color) {
