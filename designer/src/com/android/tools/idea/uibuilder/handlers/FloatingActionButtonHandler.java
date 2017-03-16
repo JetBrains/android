@@ -59,9 +59,6 @@ public class FloatingActionButtonHandler extends ImageViewHandler {
     if (xmlType.equals(XmlType.PREVIEW_ON_PALETTE)) {
       builder.attribute(APP_PREFIX, "elevation", "0dp");
     }
-    else {
-      builder.attribute(APP_PREFIX, "fabSize", "mini");
-    }
 
     return builder
       .endTag(tagName)
