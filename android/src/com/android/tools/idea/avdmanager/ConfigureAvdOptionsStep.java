@@ -745,6 +745,39 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     return myShowAdvancedSettingsButton.getText().equals(HIDE);
   }
 
+  /**
+   * Selectively enables or disables certain editing options <br>
+   * If the selected device and system image both support Google Play Store,
+   * restrict most of the configuration to ensure that the final AVD is
+   * Play Store compatible.
+   */
+  private void enforcePlayStore() {
+    boolean deviceIsPresent = getModel().device().isPresent().get();
+    // Enable if NOT Play Store
+    boolean enable = !(deviceIsPresent &&
+                         getModel().device().getValue().hasPlayStore() &&
+                         getModel().systemImage().isPresent().get() &&
+                         getModel().systemImage().getValue().getSystemImage().hasPlayStore());
+
+    // Enforce the restrictions
+    myChangeDeviceButton.setEnabled(enable);
+    myChangeSystemImageButton.setEnabled(enable && deviceIsPresent);
+
+    myHostGraphics.setEnabled(enable);
+    myQemu2CheckBox.setEnabled(enable);
+    myRamStorage.setEnabled(enable);
+    myVmHeapStorage.setEnabled(enable);
+    myInternalStorage.setEnabled(enable);
+    myBuiltInRadioButton.setEnabled(enable);
+    myExternalRadioButton.setEnabled(enable);
+    myBuiltInSdCardStorage.setEnabled(enable);
+    mySkinComboBox.setEnabled(enable);
+    if (!enable) {
+      // Selectively disable, but don't enable
+      myCoreCount.setEnabled(false);
+    }
+  }
+
   private void toggleSystemOptionals(boolean useQemu2Changed) {
     boolean showMultiCoreOption = isAdvancedPanel() && doesSystemImageSupportQemu2();
     myQemu2Panel.setVisible(showMultiCoreOption);
@@ -761,6 +794,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       }
       myCoreCount.setEnabled(showCores);
     }
+    enforcePlayStore();
   }
 
   private boolean doesSystemImageSupportQemu2() {
@@ -857,7 +891,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     boolean IsDevicePresent = device.isPresent();
     Hardware deviceDefaultHardware = IsDevicePresent ? device.get().getDefaultHardware() : null;
 
-    myChangeSystemImageButton.setEnabled(IsDevicePresent);
     myFrontCameraCombo.setEnabled(IsDevicePresent && deviceDefaultHardware.getCamera(CameraLocation.FRONT) != null);
     myBackCameraCombo.setEnabled(IsDevicePresent && deviceDefaultHardware.getCamera(CameraLocation.BACK) != null);
     myOrientationToggle.setEnabled(IsDevicePresent && device.get().getDefaultState().getOrientation() != ScreenOrientation.SQUARE);
@@ -898,6 +931,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       mySkinComboBox.getComboBox().setSelectedItem(customSkin);
       getModel().getAvdDeviceData().customSkinFile().setValue(customSkin);
     }
+    enforcePlayStore();
   }
 
   private ActionListener myChangeSystemImageButtonListener = new ActionListener() {
