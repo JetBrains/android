@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.android.sdklib.AndroidVersion;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_JVMTI_PROFILING;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.intellij.openapi.util.io.FileUtil.*;
 
@@ -77,15 +79,22 @@ public class EmbeddedDistributionPaths {
   }
 
   @NotNull
-  public File findEmbeddedProfilerTransform() {
+  public File findEmbeddedProfilerTransform(@NotNull AndroidVersion version) {
+    String transformName;
+    if (version.getFeatureLevel() >= 26 && ENABLE_JVMTI_PROFILING) {
+      transformName = "profilers-transform-slim.jar";
+    }
+    else {
+      transformName = "profilers-transform.jar";
+    }
 
-    File file = new File(PathManager.getHomePath(), "plugins/android/resources/profilers-transform.jar");
+    File file = new File(PathManager.getHomePath(), "plugins/android/resources/" + transformName);
     if (file.exists()) {
       return file;
     }
 
     // Development build
-    String relativePath = toSystemDependentName("/../../out/studio/transform/libs/profilers-transform.jar");
+    String relativePath = toSystemDependentName("/../../out/studio/transform/libs/" + transformName);
     return new File(PathManager.getHomePath() + relativePath);
   }
 

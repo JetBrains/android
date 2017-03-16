@@ -39,6 +39,7 @@ import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Ordering;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.configurations.ModuleRunProfile;
@@ -288,7 +289,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   private static List<String> getCommonArguments(@NotNull RunConfiguration configuration, @NotNull List<AndroidDevice> targetDevices) {
     List<String> cmdLineArgs = new ArrayList<>();
     cmdLineArgs.addAll(getDeviceSpecificArguments(targetDevices));
-    cmdLineArgs.addAll(getProfilingOptions(configuration));
+    cmdLineArgs.addAll(getProfilingOptions(configuration, targetDevices));
     return cmdLineArgs;
   }
 
@@ -301,13 +302,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     List<String> properties = new ArrayList<>(2);
 
     // Find the minimum value of the build API level and pass it to Gradle as a property
-    AndroidVersion minVersion = devices.get(0).getVersion();
-    for (int i = 1; i < devices.size(); i++) {
-      AndroidDevice androidDevice = devices.get(i);
-      if (androidDevice.getVersion().compareTo(minVersion) < 0) {
-        minVersion = androidDevice.getVersion();
-      }
-    }
+    List<AndroidVersion> versionLists = devices.stream().map(d -> d.getVersion()).collect(Collectors.toList());
+    AndroidVersion minVersion = Ordering.natural().min(versionLists);
     properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, Integer.toString(minVersion.getFeatureLevel())));
 
     // If we are building for only one device, pass the density and the ABI
@@ -329,14 +325,19 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
   }
 
   @NotNull
-  public static List<String> getProfilingOptions(@NotNull RunConfiguration configuration) {
-    if (!EXPERIMENTAL_PROFILING_FLAG_ENABLED || !(configuration instanceof AndroidRunConfigurationBase)) {
+  public static List<String> getProfilingOptions(@NotNull RunConfiguration configuration, @NotNull List<AndroidDevice> devices) {
+    if (!EXPERIMENTAL_PROFILING_FLAG_ENABLED || !(configuration instanceof AndroidRunConfigurationBase) || devices.isEmpty()) {
       return Collections.emptyList();
     }
+
+    // Find the minimum API version in case both a pre-O and post-O devices are selected. Even if a full transform is applied to post-O,
+    // the tracker code will not be triggered until an JVMTI agent initializes ProfilerService.
+    List<AndroidVersion> versionLists = devices.stream().map(d -> d.getVersion()).collect(Collectors.toList());
+    AndroidVersion minVersion = Ordering.natural().min(versionLists);
     List<String> arguments = new LinkedList<>();
     ProfilerState state = ((AndroidRunConfigurationBase)configuration).getProfilerState();
     if (state.ADVANCED_PROFILING_ENABLED) {
-      File file = EmbeddedDistributionPaths.getInstance().findEmbeddedProfilerTransform();
+      File file = EmbeddedDistributionPaths.getInstance().findEmbeddedProfilerTransform(minVersion);
       arguments.add(createProjectProperty(ANDROID_ADVANCED_PROFILING_TRANSFORMS, file.getAbsolutePath()));
 
       Properties profilerProperties = state.toProperties();
