@@ -69,6 +69,25 @@ public class SeriesLegendTest {
     assertEquals("22.2cm", legend.getValue());
   }
 
+  @Test
+  public void legendValueIsInterpolatedWhenNoExactMatch() {
+    TestDataSeries dataSeries = new TestDataSeries(ImmutableList.of(
+      new SeriesData<>(0L, 150L), new SeriesData<>(2, 50L)));
+    RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), dataSeries);
+    SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), new Range(1, 1));
+    assertEquals("10cm", legend.getValue());
+  }
+
+  @Test
+  public void legendValueForSteppedLine() {
+    TestDataSeries dataSeries = new TestDataSeries(ImmutableList.of(
+      new SeriesData<>(0L, 150L), new SeriesData<>(2, 50L)));
+    RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), dataSeries);
+    SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), new Range(1, 1),
+                                           Interpolatable.SteppedLineInterpolator);
+    assertEquals("15cm", legend.getValue());
+  }
+
   private static class TestDataSeries implements DataSeries<Long> {
 
     @NotNull List<SeriesData<Long>> myDataList;
