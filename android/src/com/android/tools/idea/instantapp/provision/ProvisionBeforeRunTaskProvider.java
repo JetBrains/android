@@ -96,7 +96,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
   @Nullable
   @Override
   public ProvisionBeforeRunTask createTask(RunConfiguration runConfiguration) {
-    if (runConfiguration instanceof AndroidRunConfigurationBase && InstantApps.getAiaSdkLocation() != null) {
+    if (runConfiguration instanceof AndroidRunConfigurationBase && InstantApps.getInstantAppSdkLocation() != null) {
       ProvisionBeforeRunTask task = new ProvisionBeforeRunTask();
       task.setEnabled(true);
       return task;
@@ -111,7 +111,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
 
   @Override
   public boolean canExecuteTask(RunConfiguration configuration, ProvisionBeforeRunTask task) {
-    return isInstantAppContext((AndroidRunConfigurationBase) configuration);
+    return isInstantAppContext((AndroidRunConfigurationBase)configuration);
   }
 
   @Override
@@ -168,7 +168,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
 
   private static boolean isInstantAppContext(AndroidRunConfigurationBase runConfiguration) {
     Module module = runConfiguration.getConfigurationModule().getModule();
-    return InstantApps.getAiaSdkLocation() != null && module != null && InstantApps.isInstantAppApplicationModule(module);
+    return InstantApps.getInstantAppSdkLocation() != null && module != null && InstantApps.isInstantAppApplicationModule(module);
   }
 
   @Nullable

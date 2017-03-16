@@ -67,6 +67,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
+import static com.android.tools.idea.instantapp.InstantApps.getContainingSplit;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
@@ -393,6 +394,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       additionalValues.put(ATTR_PACKAGE_NAME, myPackageName.get());
       ObjectProperty<AndroidSourceSet> sourceSet = getModel().getSourceSet();
       additionalValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.get().getName());
+      additionalValues.put(ATTR_IS_INSTANT_APP, myFacet != null && getContainingSplit(myFacet.getModule()) != null);
 
       Map<String, Object> allValues = Maps.newHashMap(additionalValues);
 

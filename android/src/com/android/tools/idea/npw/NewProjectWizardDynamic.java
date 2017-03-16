@@ -123,7 +123,6 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     state.put(THEME_EXISTS_KEY, true);
     state.put(TARGET_FILES_KEY, new HashSet<>());
     state.put(FILES_TO_OPEN_KEY, new ArrayList<>());
-    state.put(ALSO_CREATE_IAPK_KEY, true);
 
     // For now, our definition of low memory is running in a 32-bit JVM. In this case, we have to be careful about the amount of memory we
     // request for the Gradle build.

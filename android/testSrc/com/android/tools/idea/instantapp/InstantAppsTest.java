@@ -17,10 +17,11 @@ package com.android.tools.idea.instantapp;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 
-import static com.android.tools.idea.instantapp.InstantApps.findInstantAppBaseSplit;
-import static com.android.tools.idea.instantapp.InstantApps.getDefaultInstantAppUrl;
+import static com.android.tools.idea.instantapp.InstantApps.*;
 import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
+import static com.android.tools.idea.testing.TestProjectPaths.MULTI_ATOM;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.intellij.openapi.util.io.FileUtil.join;
 
 public class InstantAppsTest extends AndroidGradleTestCase {
 
@@ -34,6 +35,52 @@ public class InstantAppsTest extends AndroidGradleTestCase {
     assertNull(findInstantAppBaseSplit(myAndroidFacet));
   }
 
+  public void testGetBaseSplitInInstantAppWithInstantApp() throws Exception {
+    loadProject(INSTANT_APP, "baseatom");
+    assertEquals(myAndroidFacet.getModule(), getBaseSplitInInstantApp(getProject()));
+  }
+
+  public void testFindInstantAppModuleWithInstantApp() throws Exception {
+    loadProject(INSTANT_APP, "instant-app");
+    assertEquals(myAndroidFacet.getModule(), findInstantAppModule(getProject()));
+  }
+
+  public void testFindInstantAppModuleWithoutInstantApp() throws Exception {
+    loadProject(SIMPLE_APPLICATION);
+    assertNull(findInstantAppModule(getProject()));
+  }
+
+  public void testGetInstantAppPackage() throws Exception {
+    loadProject(INSTANT_APP, "baseatom");
+    assertEquals("com.example.instantapp", getInstantAppPackage(myAndroidFacet.getModule()));
+  }
+
+  public void testGetBaseSplitOutDirSimple() throws Exception {
+    loadProject(INSTANT_APP, "baseatom");
+    assertEquals(join(getProjectFolderPath().getAbsolutePath(), "baseatom"), getBaseSplitOutDir(myAndroidFacet.getModule()));
+  }
+
+  public void testGetBaseSplitOutDirMultiAtom() throws Exception {
+    loadProject(MULTI_ATOM, "baseatom");
+    assertEquals(join(getProjectFolderPath().getAbsolutePath(), "baselib"), getBaseSplitOutDir(myAndroidFacet.getModule()));
+  }
+
+  public void testGetContainingSplitWithSplit() throws Exception {
+    loadProject(INSTANT_APP, "baseatom");
+    assertEquals(myAndroidFacet.getModule(), getContainingSplit(myAndroidFacet.getModule()));
+  }
+
+  public void testGetContainingSplitWithLibrary() throws Exception {
+    loadProject(MULTI_ATOM, "baselib");
+    assertEquals(myModules.getModule("baseatom"), getContainingSplit(myAndroidFacet.getModule()));
+  }
+
+  public void testGetContainingSplitWithoutInstantApp() throws Exception {
+    loadProject(SIMPLE_APPLICATION, "app");
+    assertNull(getContainingSplit(myAndroidFacet.getModule()));
+  }
+
+
   public void testGetDefaultInstantAppUrlWithInstantApp() throws Exception {
     loadProject(INSTANT_APP, "instant-app");
     assertEquals("http://example.com/parameter", getDefaultInstantAppUrl(myAndroidFacet));
@@ -42,5 +89,20 @@ public class InstantAppsTest extends AndroidGradleTestCase {
   public void testGetDefaultInstantAppUrlWithoutInstantApp() throws Exception {
     loadProject(SIMPLE_APPLICATION, "app");
     assertEquals("<<ERROR - NO URL SET>>", getDefaultInstantAppUrl(myAndroidFacet));
+  }
+
+  public void testIsInstantAppSdkEnabledWithNullValue() throws Exception {
+    setInstantAppSdkLocation(null);
+    assertFalse(isInstantAppSdkEnabled());
+  }
+
+  public void testIsInstantAppSdkEnabledWithEmptyValue() throws Exception {
+    setInstantAppSdkLocation("");
+    assertFalse(isInstantAppSdkEnabled());
+  }
+
+  public void testIsInstantAppSdkEnabledWithValue() throws Exception {
+    setInstantAppSdkLocation("SOME_VALUE");
+    assertTrue(isInstantAppSdkEnabled());
   }
 }

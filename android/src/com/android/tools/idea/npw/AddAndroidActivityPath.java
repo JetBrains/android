@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.builder.model.Dependencies;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
@@ -36,6 +38,7 @@ import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -47,6 +50,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.RecentsManager;
 import com.intellij.util.ArrayUtil;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -61,6 +65,10 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_ATOM;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.instantapp.InstantApps.*;
+import static com.android.tools.idea.instantapp.InstantApps.getBaseSplitOutDir;
+import static com.android.tools.idea.instantapp.InstantApps.getInstantAppPackage;
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.WizardConstants.IS_INSTANT_APP_KEY;
@@ -68,6 +76,7 @@ import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.PATH;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
+import static com.intellij.util.ActionRunner.runInsideReadAction;
 
 /**
  * Wizard path for adding a new activity.
@@ -452,6 +461,15 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       return false;
     }
     Map<String, Object> parameterMap = getTemplateParameterMap(templateEntry.getMetadata());
+
+    Module splitModule = getContainingSplit(module);
+    if (splitModule != null) {
+      Module baseSplit = getBaseSplitInInstantApp(project);
+      parameterMap.put(ATTR_IS_INSTANT_APP, true);
+      parameterMap.put(ATTR_SPLIT_NAME, splitModule.getName());
+      parameterMap.put(ATTR_BASE_SPLIT_MANIFEST_OUT, getBaseSplitOutDir(baseSplit) + "/src/main");
+    }
+
     saveRecentValues(project, parameterMap);
     // @formatter:off
     final RenderingContext context = RenderingContext.Builder.newContext(template, project)
