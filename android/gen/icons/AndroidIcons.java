@@ -157,7 +157,7 @@ public class AndroidIcons {
     public static final Icon StartMethodProfiling = load("/icons/ddms/start_method_profiling.png"); // 16x16
     public static final Icon Threads = load("/icons/ddms/threads.png"); // 16x16
     public static final Icon SysInfo = load("/icons/ddms/sysinfo.png"); // 16x16 - this is a copy of AllIcons.Actions.Preview
-    public static final Icon HierarchyView = load("/icons/ddms/hierarchyview.png"); // 16x16
+    public static final Icon LayoutInspector = load("/icons/ddms/layoutinspector.png"); // 16x16
     public static final Icon ScreenRecorder = load("/icons/ddms/screen_recorder.png"); // 16x16
   }
 
