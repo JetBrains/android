@@ -18,6 +18,10 @@ package com.android.tools.idea.apk.viewer.dex;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.idea.apk.viewer.ApkFileEditorComponent;
 import com.android.tools.idea.ddms.EdtExecutor;
+import com.android.tools.proguard.ProguardMap;
+import com.android.tools.proguard.ProguardSeedsMap;
+import com.android.tools.proguard.ProguardUsagesMap;
+import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -26,12 +30,15 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.ui.EmptyIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
@@ -39,6 +46,11 @@ import org.jetbrains.ide.PooledThreadExecutor;
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DexFileViewer implements ApkFileEditorComponent {
   private final Disposable myDisposable;
@@ -50,13 +62,15 @@ public class DexFileViewer implements ApkFileEditorComponent {
   @NotNull private final VirtualFile myDexFile;
   @NotNull private final Project myProject;
   @NotNull private final VirtualFile myApkFolder;
-
   private final FilteredTreeModel myFilteredTreeModel;
+
+  @Nullable private ProguardMappings myProguardMappings;
+  private boolean myDeobfuscateNames;
 
 
   public DexFileViewer(@NotNull Project project, @NotNull VirtualFile dexFile, @NotNull VirtualFile apkFolder) {
-    myProject = project;
     myDexFile = dexFile;
+    myProject = project;
     myApkFolder = apkFolder;
 
     //noinspection Convert2Lambda // we need a new instance of this disposable every time, not just a lambda method
@@ -112,14 +126,90 @@ public class DexFileViewer implements ApkFileEditorComponent {
     actionGroup.add(new ShowFieldsAction(filterOptions));
     actionGroup.add(new ShowMethodsAction(filterOptions));
     actionGroup.add(new ShowReferencedAction(filterOptions));
+    actionGroup.addSeparator();
+    actionGroup.add(new ShowRemovedNodesAction(filterOptions));
+    actionGroup.add(new DeobfuscateNodesAction());
+    actionGroup.add(new LoadProguardAction());
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actionGroup, true);
     myTopPanel.add(toolbar.getComponent(), BorderLayout.WEST);
 
     initDex();
   }
 
-  public void initDex(){
-    DexParser dexParser = new DexParser(MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE), myDexFile);
+  public void selectProguardMapping() {
+    SelectProguardMapsDialog dialog = new SelectProguardMapsDialog(myProject, myApkFolder);
+    if (!dialog.showAndGet()) { // user cancelled
+      return;
+    }
+
+    ProguardMappingFiles mappingFiles = dialog.getMappingFiles();
+
+    List<String> loaded = new ArrayList<>(3);
+    List<String> errors = new ArrayList<>(3);
+
+    VirtualFile mappingFile = mappingFiles.mappingFile;
+    ProguardMap proguardMap = new ProguardMap();
+    if (mappingFile != null) {
+      try {
+        proguardMap.readFromReader(new InputStreamReader(mappingFile.getInputStream(), Charsets.UTF_8));
+        loaded.add(mappingFile.getName());
+      }
+      catch (IOException | ParseException e) {
+        errors.add(mappingFile.getName());
+        proguardMap = null;
+      }
+    }
+
+    VirtualFile seedsFile = mappingFiles.seedsFile;
+    ProguardSeedsMap seeds = null;
+    if (seedsFile != null) {
+      try {
+        seeds = ProguardSeedsMap.parse(new InputStreamReader(seedsFile.getInputStream(), Charsets.UTF_8));
+        loaded.add(seedsFile.getName());
+      }
+      catch (IOException e) {
+        errors.add(seedsFile.getName());
+      }
+    }
+
+    //automatically enable deobfuscation if loading mapping file for the first time
+    if ((myProguardMappings == null || myProguardMappings.map == null) && proguardMap != null) {
+      myDeobfuscateNames = true;
+    }
+
+    VirtualFile usageFile = mappingFiles.usageFile;
+    ProguardUsagesMap usage = null;
+    if (usageFile != null) {
+      try {
+        usage = ProguardUsagesMap.parse(new InputStreamReader(usageFile.getInputStream(), Charsets.UTF_8));
+        loaded.add(usageFile.getName());
+      }
+      catch (IOException e) {
+        errors.add(usageFile.getName());
+      }
+    }
+
+    myProguardMappings = loaded.isEmpty() ? null : new ProguardMappings(proguardMap, seeds, usage);
+    if (errors.isEmpty() && loaded.isEmpty()) {
+      Messages.showWarningDialog("No Proguard mapping files found. The filenames must match one of: mapping.txt, seeds.txt, usage.txt",
+                                 "Load Proguard Mappings...");
+    }
+    else if (errors.isEmpty()) {
+      Messages.showInfoMessage("Successfully loaded maps from: " + StringUtil.join(loaded, ", "),
+                               "Load Proguard Mappings...");
+    }
+    else {
+      Messages.showErrorDialog("Successfully loaded maps from: " + StringUtil.join(loaded, ",") + "\n"
+                               + "There were problems loading: " + StringUtil.join(errors, ", "),
+                               "Load Proguard Mappings...");
+    }
+
+    initDex();
+  }
+
+  public void initDex() {
+    DexParser dexParser =
+      new DexParser(MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE), myDexFile, myProguardMappings, myDeobfuscateNames);
     ListenableFuture<PackageTreeNode> future = dexParser.constructMethodRefCountTree();
     Futures.addCallback(future, new FutureCallback<PackageTreeNode>() {
       @Override
@@ -157,7 +247,6 @@ public class DexFileViewer implements ApkFileEditorComponent {
         myTopPanel.add(titleComponent, BorderLayout.EAST);
       }
     }, EdtExecutor.INSTANCE);
-
   }
 
   @NotNull
@@ -186,9 +275,16 @@ public class DexFileViewer implements ApkFileEditorComponent {
 
       PackageTreeNode node = (PackageTreeNode)value;
 
-      if (!node.hasClassDefinition()){
+      if (node.isSeed()) {
+        append(node.getName(), new SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, null));
+      }
+      else if (node.isRemoved()) {
+        append(node.getName(), new SimpleTextAttributes(SimpleTextAttributes.STYLE_STRIKEOUT | SimpleTextAttributes.STYLE_ITALIC, null));
+      }
+      else if (!node.hasClassDefinition()) {
         append(node.getName(), new SimpleTextAttributes(SimpleTextAttributes.STYLE_ITALIC, null));
-      } else {
+      }
+      else {
         append(node.getName());
       }
 
@@ -289,6 +385,86 @@ public class DexFileViewer implements ApkFileEditorComponent {
     @Override
     public void setSelected(AnActionEvent e, boolean state) {
       myFilterOptions.setShowReferencedNodes(state);
+    }
+  }
+
+  private class ShowRemovedNodesAction extends ToggleAction {
+
+    @NotNull private final FilteredTreeModel.FilterOptions myFilterOptions;
+
+    public ShowRemovedNodesAction(@NotNull
+                                    FilteredTreeModel.FilterOptions options) {
+      super("Show removed nodes", "Toggle between show/hide nodes removed by Proguard", AllIcons.ObjectBrowser.CompactEmptyPackages);
+      myFilterOptions = options;
+    }
+
+    @Override
+    public boolean isSelected(AnActionEvent e) {
+      return myFilterOptions.isShowRemovedNodes();
+    }
+
+    @Override
+    public void setSelected(AnActionEvent e, boolean state) {
+      myFilterOptions.setShowRemovedNodes(state);
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      super.update(e);
+      e.getPresentation().setEnabled(myProguardMappings != null && myProguardMappings.usage != null);
+    }
+  }
+
+  private class DeobfuscateNodesAction extends ToggleAction {
+
+    public DeobfuscateNodesAction() {
+      super("Deobfuscate names", "Deobfuscate names using Proguard mapping", AllIcons.ObjectBrowser.AbbreviatePackageNames);
+    }
+
+    @Override
+    public boolean isSelected(AnActionEvent e) {
+      return myDeobfuscateNames;
+    }
+
+    @Override
+    public void setSelected(AnActionEvent e, boolean state) {
+      myDeobfuscateNames = state;
+      initDex();
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      super.update(e);
+      e.getPresentation().setEnabled(myProguardMappings != null && myProguardMappings.map != null);
+    }
+  }
+
+  private class LoadProguardAction extends AnAction {
+    public LoadProguardAction() {
+      super("Load Proguard mappings...", null, EmptyIcon.ICON_0);
+    }
+
+    private boolean isLoaded;
+
+    @Override
+    public void actionPerformed(AnActionEvent e) {
+      selectProguardMapping();
+    }
+
+    @Override
+    public boolean displayTextInToolbar() {
+      return true;
+    }
+
+    @Override
+    public void update(AnActionEvent e) {
+      super.update(e);
+      if (myProguardMappings != null && !isLoaded) {
+        e.getPresentation().setText("Change Proguard mappings...");
+      }
+      else if (myProguardMappings == null && isLoaded) {
+        e.getPresentation().setText("Load Proguard mappings...");
+      }
     }
   }
 }
