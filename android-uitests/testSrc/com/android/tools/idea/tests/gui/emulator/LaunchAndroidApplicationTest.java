@@ -46,6 +46,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
 
   private static final String APP_NAME = "app";
   private static final String APPLICATION_STARTED = ".*Application started.*";
+  private static final String FATAL_SIGNAL_11 = ".*Fatal signal 11.*";
   private static final String PROCESS_NAME = "google.simpleapplication";
   private static final Pattern LOCAL_PATH_OUTPUT = Pattern.compile(
     ".*adb shell am start .*google\\.simpleapplication.*", Pattern.DOTALL);
@@ -124,6 +125,47 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
       .clickOk();
     ExecutionToolWindowFixture.ContentFixture contentWindow = ideFrameFixture.getRunToolWindow().findContent(APP_NAME);
     contentWindow.waitForOutput(new PatternTextMatcher(Pattern.compile(APPLICATION_STARTED, Pattern.DOTALL)), 120);
+    contentWindow.stop();
+  }
+
+  /**
+   * To verify app crashes if vulkan graphics is not supported.
+   * <p>
+   * The ideal test would launch the app on a real device (Nexus 5X or 6P). Since there
+   * if no current framework support to run the app on a real device, this test reverses
+   * the scenario and verifies the app will crash when the vulcan graphics card is not
+   * present on the emulator when running the app.
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TR ID: C14603476
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Open Android Studio
+   *   2. Import VulkanCrashes project.
+   *   3. Navigate to the downloaded vulkan directory.
+   *   3. Compile and run build.gradle file on the emulator.
+   *   Verify:
+   *   1. Application crashes in the emulator.
+   *   </pre>
+   * <p>
+   */
+  @RunIn(TestGroup.QA)
+  @Test
+  public void testVulkanCrashes() throws IOException, ClassNotFoundException {
+    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("VulkanCrashes");
+    // The app must run under the debugger, otherwise there is a race condition where
+    // the app may crash before Android Studio can connect to the console.
+    ideFrameFixture
+      .debugApp(APP_NAME)
+      .selectDevice(AVD_NAME)
+      .clickOk();
+
+    // Look for text indicating a crash. Full text looks something like:
+    // A/libc: Fatal signal 11 (SIGSEGV), code 1, fault addr 0x122 in tid 2462 (.tutorials.five)
+    ExecutionToolWindowFixture.ContentFixture contentWindow = ideFrameFixture.getDebugToolWindow().findContent(APP_NAME);
+    contentWindow.waitForOutput(new PatternTextMatcher(Pattern.compile(FATAL_SIGNAL_11, Pattern.DOTALL)), 120);
     contentWindow.stop();
   }
 
