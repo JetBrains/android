@@ -136,7 +136,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
    * @return
    */
   public boolean isGuideline() {
-    return ConstraintComponentUtilities.isGuideline(mNlComponent);
+    return ConstraintComponentUtilities.isLine(mNlComponent);
   }
 
   /**

@@ -231,7 +231,8 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         if (child.getParent().equals(sc)) { // flag a child connection
           destType = DrawConnection.DEST_PARENT;
         }
-        else if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.equalsIgnoreCase(sc.getComponentClassName())) {
+        else if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.equalsIgnoreCase(sc.getComponentClassName())
+          || SdkConstants.CONSTRAINT_LAYOUT_BARRIER.equalsIgnoreCase(sc.getComponentClassName())) {
           destType = DrawConnection.DEST_GUIDELINE;
         }
         int connectType = DrawConnection.TYPE_NORMAL;
