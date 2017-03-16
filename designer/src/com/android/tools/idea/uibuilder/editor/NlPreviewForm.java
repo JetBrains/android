@@ -281,35 +281,36 @@ public class NlPreviewForm implements Disposable, CaretListener {
       myAnimationToolbar.stop();
     }
 
+    XmlFile xmlFile = myManager.getBoundXmlFile(file);
+
     if (!isActive) {
       // The form is not active so we just save the file to show once activate() is called
-      myInactiveFile = (XmlFile)file;
+      myInactiveFile = xmlFile;
 
-      if (file != null) {
+      if (xmlFile != null) {
         return false;
       }
     }
 
     if (myPendingFile != null) {
-      if (file == myPendingFile.file) {
+      if (xmlFile == myPendingFile.file) {
         return false;
       }
       myPendingFile.invalidate();
       // Set the model to null so the progressbar is displayed
       mySurface.setModel(null);
     }
-    else if (file == myFile) {
+    else if (xmlFile == myFile) {
       return false;
     }
 
-    AndroidFacet facet = file instanceof XmlFile ? AndroidFacet.getInstance(file) : null;
-    if (facet == null || file.getVirtualFile() == null) {
+    AndroidFacet facet = file != null ? AndroidFacet.getInstance(file) : null;
+    if (facet == null || xmlFile == null || xmlFile.getVirtualFile() == null) {
       myPendingFile = null;
       myFile = null;
       setActiveModel(null);
     }
     else {
-      XmlFile xmlFile = (XmlFile)file;
       NlModel model = NlModel.create(mySurface, null, facet, xmlFile);
       mySurface.setModel(model);
       myPendingFile = new Pending(xmlFile, model);

@@ -36,6 +36,8 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Computable;
@@ -77,6 +79,8 @@ public class ViewLoader {
   private static final Logger LOG = Logger.getInstance(ViewLoader.class);
   /** Number of instances of a custom view that are allowed to nest inside itself. */
   private static final int ALLOWED_NESTED_VIEWS = 100;
+
+  private static final ViewLoaderExtension[] EMPTY_EXTENSION_LIST = new ViewLoaderExtension[0];
 
   @NotNull private final Module myModule;
   @NotNull private final Map<String, Class<?>> myLoadedClasses = Maps.newHashMap();
@@ -300,6 +304,15 @@ public class ViewLoader {
   }
 
   @NotNull
+  private ViewLoaderExtension[] getExtensions() {
+    ExtensionsArea area = Extensions.getArea(myModule.getProject());
+    if (!area.hasExtensionPoint(ViewLoaderExtension.EP_NAME.getName())) {
+      return EMPTY_EXTENSION_LIST;
+    }
+    return area.getExtensionPoint(ViewLoaderExtension.EP_NAME).getExtensions();
+  }
+
+  @NotNull
   private ModuleClassLoader getModuleClassLoader() {
     if (myModuleClassLoader == null) {
       // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
@@ -482,7 +495,16 @@ public class ViewLoader {
     }
 
     try {
-      return getModuleClassLoader().loadClass(className);
+      ModuleClassLoader moduleClassLoader = getModuleClassLoader();
+
+      for (ViewLoaderExtension extension : getExtensions()) {
+        Class<?> loadedClass = extension.loadClass(className, moduleClassLoader);
+        if (loadedClass != null) {
+          return loadedClass;
+        }
+      }
+
+      return moduleClassLoader.loadClass(className);
     }
     catch (ClassNotFoundException e) {
       if (logError && !className.equals(VIEW_FRAGMENT)) {
