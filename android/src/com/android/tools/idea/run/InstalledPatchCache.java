@@ -16,31 +16,11 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.resources.ResourceUrl;
-import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.res.AppResourceRepository;
-import com.android.utils.XmlUtils;
 import com.google.common.hash.HashCode;
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
-import com.google.common.io.Files;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.google.common.base.Charsets.UTF_8;
 
 public class InstalledPatchCache implements Disposable {
   private final DeviceStateCache<PatchState> myCache;
