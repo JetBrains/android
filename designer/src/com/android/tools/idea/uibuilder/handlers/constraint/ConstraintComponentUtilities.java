@@ -690,8 +690,20 @@ public final class ConstraintComponentUtilities {
     return component.getBaseline() > 0;
   }
 
-  public static boolean isGuideline(@NotNull NlComponent component) {
-    return component.viewInfo != null && component.viewInfo.getClassName().equalsIgnoreCase(CONSTRAINT_LAYOUT_GUIDELINE);
+  /**
+   * Test for guideline or BARRIER
+   * @param component
+   * @return
+   */
+  public static boolean isLine(@NotNull NlComponent component) {
+    ViewInfo viewInfo = component.viewInfo;
+    if (viewInfo == null) {
+      return false;
+    }
+    if (component.isOrHasSuperclass(CONSTRAINT_LAYOUT_GUIDELINE)) {
+      return true;
+    }
+    return component.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER);
   }
 
   public static boolean isHorizontalGuideline(@NotNull NlComponent component) {

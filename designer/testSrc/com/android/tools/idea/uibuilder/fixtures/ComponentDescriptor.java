@@ -185,6 +185,11 @@ public class ComponentDescriptor {
     return this;
   }
 
+  public ComponentDescriptor tags(@NotNull ComponentDescriptor... children) {
+    myChildren = children;
+    return this;
+  }
+
   public ComponentDescriptor unboundedChildren(@NotNull ComponentDescriptor... children) {
     myChildren = children;
     return this;
