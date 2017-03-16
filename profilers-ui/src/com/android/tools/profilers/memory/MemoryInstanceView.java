@@ -17,8 +17,7 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.android.tools.profilers.memory.adapters.ClassObject;
@@ -27,9 +26,6 @@ import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.ui.popup.IconButton;
-import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.containers.HashMap;
@@ -140,9 +136,7 @@ final class MemoryInstanceView extends AspectObserver {
     instanceViewLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
     headingPanel.add(instanceViewLabel, BorderLayout.WEST);
 
-    IconButton closeIcon = new IconButton("Close", AllIcons.Actions.Close, AllIcons.Actions.CloseHovered);
-    InplaceButton closeButton = new InplaceButton(closeIcon, e -> myStage.selectClass(null));
-    closeButton.setMinimumSize(closeButton.getPreferredSize()); // Prevent layout phase from squishing this button
+    CloseButton closeButton = new CloseButton(e -> myStage.selectClass(null));
     headingPanel.add(closeButton, BorderLayout.EAST);
 
     myInstancesPanel.add(headingPanel, BorderLayout.NORTH);
