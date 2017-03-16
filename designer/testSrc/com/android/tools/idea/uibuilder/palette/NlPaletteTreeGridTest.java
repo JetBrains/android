@@ -266,7 +266,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   public void testShiftHelpOnPaletteItem() throws Exception {
     Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
-    clickOnItem(0, 1);  // Select Button
+    clickOnItem(0, 0);  // Select Button
     AnAction action = findActionForKey(myPanel.getComponentTree(), KeyEvent.VK_F1, InputEvent.SHIFT_MASK);
     assertThat(action).isNotNull();
 
