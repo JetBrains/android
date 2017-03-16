@@ -90,13 +90,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
-    AndroidFacet facet = getInstance(module);
-    if (facet == null) {
-      // facet may be present, but not visible if ModifiableFacetModel has not been committed yet (e.g. in the case of a new project.)
-      ModifiableFacetModel facetModel = modelsProvider.getModifiableFacetModel(module);
-      facet = facetModel.getFacetByType(ID);
-    }
-    return facet;
+    return modelsProvider.getModifiableFacetModel(module).getFacetByType(ID);
   }
 
   @Nullable
