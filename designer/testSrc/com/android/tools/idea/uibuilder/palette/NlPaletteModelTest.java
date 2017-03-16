@@ -52,7 +52,6 @@ public class NlPaletteModelTest extends PaletteTestCase {
     assertFalse(iterator.hasNext());
 
     iterator = widgets.getItems().iterator();
-    assertTextViewItem(iterator.next());
     assertButton(iterator.next());
     assertToggleButton(iterator.next());
     assertCheckBox(iterator.next());
@@ -69,8 +68,10 @@ public class NlPaletteModelTest extends PaletteTestCase {
     assertSpace(iterator.next());
     assertFalse(iterator.hasNext());
 
-    assertPlainTextEditText(textFields.getItem(0));
-    assertEquals("Items in text fields group", 14, textFields.getItems().size());
+    iterator = textFields.getItems().iterator();
+    assertTextViewItem(iterator.next());
+    assertPlainTextEditText(iterator.next());
+    assertEquals("Items in text fields group", 15, textFields.getItems().size());
 
     iterator = layouts.getItems().iterator();
     assertConstraintLayout(iterator.next());
