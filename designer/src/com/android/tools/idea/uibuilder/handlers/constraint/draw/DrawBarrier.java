@@ -26,7 +26,7 @@ import java.awt.*;
  * Vertical Guideline
  */
 public class DrawBarrier extends DrawRegion {
-  private final static int GAP = 6;
+  private final static int GAP = 12;
   private int myDirection;
   private boolean myIsSelected;
   public static final int TOP = 1;
@@ -67,7 +67,9 @@ public class DrawBarrier extends DrawRegion {
     ColorSet colorSet = sceneContext.getColorSet();
     Color solid = (myIsSelected) ? colorSet.getSelectedFrames() : colorSet.getFrames();
     int baseRgb = solid.getRGB();
-    Color transparent = new Color(baseRgb & 0xFFFFFF, true);
+    int darkRgb = solid.darker().darker().getRGB();
+    Color transparent1 = new Color((darkRgb & 0xFFFFFF)|0x8F000000, true);
+    Color transparent2 = new Color(baseRgb & 0xFFFFFF, true);
     int dx = 0, dy = 0;
     int w = 0;
     int h = 0;
@@ -93,14 +95,9 @@ public class DrawBarrier extends DrawRegion {
     g.setStroke(DrawConnectionUtils.sDashedStroke);
     g.drawLine(x, y, x + width, y + height);
 
-    Paint p = new GradientPaint(x - dx, y - dy, solid, x + dx, y + dy, transparent);
+    Paint p = new GradientPaint(x - dx, y - dy, transparent1, x + dx, y + dy, transparent2);
     g.setPaint(p);
     g.fillRect(x + ((dx < 0) ? -GAP : 0), y + ((dy < 0) ? -GAP : 0), width + w, height + h);
-
-  }
-
-  public static void add(DisplayList list, SceneContext transform, float left, float top, float size, int direction) {
-    add(list, transform, left, top, size, direction, false);
   }
 
   public static void add(DisplayList list, SceneContext transform,

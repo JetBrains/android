@@ -842,7 +842,8 @@ public class Scene implements SelectionListener {
       myNewSelectedComponents.add(myHitComponent);
     }
     if (myHitTarget instanceof ActionTarget
-      || myHitTarget instanceof GuidelineTarget) {
+      || myHitTarget instanceof GuidelineTarget
+      || myHitTarget instanceof BarrierTarget) {
       // it will be outside the bounds of the component, so will likely have
       // selected a different one...
       myNewSelectedComponents.clear();
