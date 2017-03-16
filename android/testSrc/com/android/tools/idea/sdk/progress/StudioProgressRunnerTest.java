@@ -17,7 +17,6 @@ package com.android.tools.idea.sdk.progress;
 
 import com.android.repository.api.ProgressRunner;
 import com.android.tools.idea.util.FutureUtils;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -31,28 +30,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class StudioProgressRunnerTest extends AndroidTestCase {
   public void testSyncWithProgressNonUi() throws Exception {
-    StudioProgressRunner runner = new StudioProgressRunner(true, false, false, "test", false, null);
+    StudioProgressRunner runner = new StudioProgressRunner(true, false, false, "test", null);
     AtomicBoolean invoked = new AtomicBoolean(false);
     ProgressRunner.ProgressRunnable runnable = (indicator, runner1) -> {
       assertFalse(ApplicationManager.getApplication().isDispatchThread());
-      try {
-        Thread.sleep(100);
-      }
-      catch (InterruptedException e) {
-        fail();
-      }
-      invoked.set(true);
-    };
-
-    runner.runSyncWithProgress(runnable);
-    assertTrue(invoked.get());
-  }
-
-  public void testSyncWithProgressUi() throws Exception {
-    StudioProgressRunner runner = new StudioProgressRunner(true, false, false, "test", true, null);
-    AtomicBoolean invoked = new AtomicBoolean(false);
-    ProgressRunner.ProgressRunnable runnable = (indicator, runner1) -> {
-      assertTrue(ApplicationManager.getApplication().isDispatchThread());
       try {
         Thread.sleep(100);
       }
@@ -67,7 +48,7 @@ public class StudioProgressRunnerTest extends AndroidTestCase {
   }
 
   public void testAsyncWithProgressNonUi() throws Exception {
-    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "test", false, null);
+    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "test", null);
     Semaphore lock = new Semaphore(1);
     lock.acquire();
     ProgressRunner.ProgressRunnable runnable = (indicator, runner1) -> {
@@ -84,27 +65,9 @@ public class StudioProgressRunnerTest extends AndroidTestCase {
     lock.release();
   }
 
-  public void testAsyncWithProgressUi() throws Exception {
-    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "test", true, null);
-    Semaphore lock = new Semaphore(1);
-    lock.acquire();
-    ProgressRunner.ProgressRunnable runnable = (indicator, runner1) -> {
-      assertTrue(ApplicationManager.getApplication().isDispatchThread());
-      try {
-        lock.acquire();
-      }
-      catch (InterruptedException e) {
-        fail();
-      }
-    };
-
-    runner.runAsyncWithProgress(runnable, true);
-    lock.release();
-  }
-
   public void testSyncFromNonUi() throws Exception {
     Future f = ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      StudioProgressRunner runner = new StudioProgressRunner(true, false, false, "test", false, null);
+      StudioProgressRunner runner = new StudioProgressRunner(true, false, false, "test", null);
       AtomicBoolean invoked = new AtomicBoolean(false);
       ProgressRunner.ProgressRunnable runnable = (indicator, runner1) -> {
         assertFalse(ApplicationManager.getApplication().isDispatchThread());

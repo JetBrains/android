@@ -478,21 +478,23 @@ public final class FormFactorApiComboBox extends JComboBox<FormFactorApiComboBox
       }
     };
 
-    RepoManager.RepoLoadedCallback onComplete = packages -> {
-      addPackages(packages.getNewPkgs(), minSdkLevel);
-      addOfflineLevels();
-      loadSavedApi();
-      runCallbacks.run();
-    };
+    RepoManager.RepoLoadedCallback onComplete = packages ->
+      ApplicationManager.getApplication().invokeLater(() -> {
+        addPackages(packages.getNewPkgs(), minSdkLevel);
+        addOfflineLevels();
+        loadSavedApi();
+        runCallbacks.run();
+      }, ModalityState.any());
 
     // We need to pick up addons that don't have a target created due to the base platform not being installed.
-    RepoManager.RepoLoadedCallback onLocalComplete = packages -> addPackages(packages.getLocalPackages().values(), minSdkLevel);
+    RepoManager.RepoLoadedCallback onLocalComplete = packages ->
+      ApplicationManager.getApplication().invokeLater(() -> addPackages(packages.getLocalPackages().values(), minSdkLevel));
     Runnable onError = () -> ApplicationManager.getApplication().invokeLater(() -> {
       addOfflineLevels();
       runCallbacks.run();
     }, ModalityState.any());
 
-    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Refreshing Targets", true, null);
+    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Refreshing Targets", null);
     sdkHandler.getSdkManager(REPO_LOG).load(
       RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
       ImmutableList.of(onLocalComplete), ImmutableList.of(onComplete), ImmutableList.of(onError),
