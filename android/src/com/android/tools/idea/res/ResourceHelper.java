@@ -22,7 +22,7 @@ import com.android.ide.common.res2.DataFile;
 import com.android.ide.common.res2.ResourceFile;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.FrameworkResources;
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;

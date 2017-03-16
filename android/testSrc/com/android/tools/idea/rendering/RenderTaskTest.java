@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.CrashReport;
 import com.android.tools.idea.diagnostics.crash.CrashReporter;
@@ -64,7 +65,10 @@ public class RenderTaskTest extends RenderTestBase {
     RenderTask task = createRenderTask(drawableFile, configuration, logger);
     // Workaround for a bug in layoutlib that will only fully initialize the static state if a render() call is made.
     task.render().get();
-    BufferedImage result = task.renderDrawable(new ResourceValue(ResourceType.DRAWABLE, "test", "@drawable/test", false)).get();
+    ResourceValue resourceValue = new ResourceValue(ResourceUrl.create(null, ResourceType.DRAWABLE, "test"),
+                                                    "@drawable/test",
+                                                    null);
+    BufferedImage result = task.renderDrawable(resourceValue).get();
 
     assertNotNull(result);
     BufferedImage goldenImage = new BufferedImage(result.getWidth(), result.getHeight(), result.getType());

@@ -244,7 +244,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
 
   private ResourceMerger createFreshResourceMerger() {
     ResourceMerger merger = new ResourceMerger(0 /* minSdk */);
-    ResourceSet myData = new ResourceSet(myResourceDir.getName(), getLibraryName(), false /* validateEnabled */);
+    ResourceSet myData = new ResourceSet(myResourceDir.getName(), null, getLibraryName(), false /* validateEnabled */);
     File resourceDir = VfsUtilCore.virtualToIoFile(myResourceDir);
     myData.addSource(resourceDir);
     merger.addDataSet(myData);
@@ -551,7 +551,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       // We create the items without adding it to the resource set / resource merger.
       // No need to write these out to blob files, as the item is easily reconstructed from the filename.
       String name = ResourceHelper.getResourceName(file);
-      ResourceItem item = new ResourceItem(name, type, null, getLibraryName());
+      ResourceItem item = new ResourceItem(name, getNamespace(), type, null, getLibraryName());
       map.put(name, item);
       resourceFile = new ResourceFile(VfsUtilCore.virtualToIoFile(file), item, qualifiers, folderConfiguration);
       item.setIgnoredFromDiskMerge(true);
