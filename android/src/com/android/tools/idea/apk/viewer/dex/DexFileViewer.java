@@ -16,6 +16,7 @@
 package com.android.tools.idea.apk.viewer.dex;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.idea.apk.dex.DexFiles;
 import com.android.tools.idea.apk.viewer.ApkFileEditorComponent;
 import com.android.tools.idea.apk.viewer.dex.tree.AbstractDexTreeNode;
 import com.android.tools.idea.apk.viewer.dex.tree.FieldTreeNode;
@@ -25,10 +26,8 @@ import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
 import com.android.tools.proguard.ProguardUsagesMap;
 import com.google.common.base.Charsets;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.base.Function;
+import com.google.common.util.concurrent.*;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -45,6 +44,7 @@ import com.intellij.util.ui.EmptyIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
+import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
@@ -230,10 +230,20 @@ public class DexFileViewer implements ApkFileEditorComponent {
   }
 
   public void initDex() {
-    DexParser dexParser =
-      new DexParser(MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE), myDexFile, myProguardMappings, myDeobfuscateNames);
-    ListenableFuture<PackageTreeNode> future = dexParser.constructMethodRefCountTree();
-    Futures.addCallback(future, new FutureCallback<PackageTreeNode>() {
+    ListeningExecutorService pooledThreadExecutor = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
+    ListenableFuture<DexBackedDexFile> dexFileFuture = pooledThreadExecutor.submit(() -> DexFiles.getDexFile(myDexFile));
+
+    ListenableFuture<PackageTreeNode> treeNodeFuture = Futures.transform(dexFileFuture, new Function<DexBackedDexFile, PackageTreeNode>() {
+      @javax.annotation.Nullable
+      @Override
+      public PackageTreeNode apply(@javax.annotation.Nullable DexBackedDexFile input) {
+        assert input != null;
+        PackageTreeCreator treeCreator = new PackageTreeCreator(myProguardMappings, myDeobfuscateNames);
+        return treeCreator.constructPackageTree(input);
+      }
+    }, pooledThreadExecutor);
+
+    Futures.addCallback(treeNodeFuture, new FutureCallback<PackageTreeNode>() {
       @Override
       public void onSuccess(PackageTreeNode result) {
         myLoadingPanel.stopLoading();
@@ -247,8 +257,17 @@ public class DexFileViewer implements ApkFileEditorComponent {
       }
     }, EdtExecutor.INSTANCE);
 
+    ListenableFuture<DexFileStats> dexStatsFuture = Futures.transform(dexFileFuture, new Function<DexBackedDexFile, DexFileStats>() {
+      @javax.annotation.Nullable
+      @Override
+      public DexFileStats apply(@javax.annotation.Nullable DexBackedDexFile input) {
+        assert input != null;
+        return DexFileStats.create(input);
+      }
+    }, pooledThreadExecutor);
+
     SimpleColoredComponent titleComponent = new SimpleColoredComponent();
-    Futures.addCallback(dexParser.getDexFileStats(), new FutureCallback<DexFileStats>() {
+    Futures.addCallback(dexStatsFuture, new FutureCallback<DexFileStats>() {
       @Override
       public void onSuccess(DexFileStats result) {
         titleComponent.setIcon(AllIcons.General.Information);
