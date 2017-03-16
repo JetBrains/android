@@ -54,6 +54,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
@@ -444,6 +445,11 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   public void testNewAidlFile() throws Exception {
+    // See http://b.android.com/253296
+    if (SystemInfo.isWindows) {
+      return;
+    }
+
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "AidlFile");
   }
@@ -1041,7 +1047,8 @@ public class TemplateTest extends AndroidGradleTestCase {
   private void checkProjectNow(@NonNull String projectName,
                                @NonNull NewProjectWizardState projectValues,
                                @Nullable TemplateWizardState templateValues) throws Exception {
-    String modifiedProjectName = projectName + "!@#$^&()_+=-,.`~你所有的基地都属于我们";
+    // Do not add non-unicode characters on Windows
+    String modifiedProjectName = SystemInfo.isWindows ? "app" : (projectName + "!@#$^&()_+=-,.`~你所有的基地都属于我们");
     ourCount++;
     projectValues.put(ATTR_RES_OUT, null);
     projectValues.put(ATTR_SRC_OUT, null);
