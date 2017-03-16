@@ -2,6 +2,7 @@ package org.jetbrains.android.actions;
 
 import com.android.ddmlib.Client;
 import com.android.tools.idea.ddms.actions.LayoutInspectorAction;
+import com.android.tools.idea.fd.actions.RestartActivityAction;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -15,7 +16,20 @@ public class AndroidRunLayoutInspectorAction extends AnAction {
   public AndroidRunLayoutInspectorAction() {
     super(AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
           AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
-          AndroidIcons.Ddms.HierarchyView);
+          AndroidIcons.Ddms.LayoutInspector);
+  }
+
+  @Override
+  public void update(AnActionEvent e) {
+    super.update(e);
+    if (RestartActivityAction.isDebuggerPaused(e.getProject())) {
+      e.getPresentation().setDescription(AndroidBundle.message("android.ddms.actions.layoutinspector.description.disabled"));
+      e.getPresentation().setEnabled(false);
+    }
+    else {
+      e.getPresentation().setDescription(AndroidBundle.message("android.ddms.actions.layoutinspector.description"));
+      e.getPresentation().setEnabled(true);
+    }
   }
 
   @Override
