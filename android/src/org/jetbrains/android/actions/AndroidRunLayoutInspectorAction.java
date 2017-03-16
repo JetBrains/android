@@ -13,8 +13,8 @@ import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidRunLayoutInspectorAction extends AnAction {
   public AndroidRunLayoutInspectorAction() {
-    super(AndroidBundle.message("android.ddms.actions.hierarchyview"),
-          AndroidBundle.message("android.ddms.actions.hierarchyview.description"),
+    super(AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
+          AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
           AndroidIcons.Ddms.HierarchyView);
   }
 

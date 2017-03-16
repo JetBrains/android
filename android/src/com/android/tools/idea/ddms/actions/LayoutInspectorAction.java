@@ -37,8 +37,8 @@ public class LayoutInspectorAction extends AbstractClientAction {
 
   public LayoutInspectorAction(@NotNull Project project, @NotNull DeviceContext deviceContext) {
     super(deviceContext,
-          AndroidBundle.message("android.ddms.actions.hierarchyview"),
-          AndroidBundle.message("android.ddms.actions.hierarchyview.description"),
+          AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
+          AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
           AndroidIcons.Ddms.HierarchyView);
     myProject = project;
   }
