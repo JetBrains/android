@@ -57,7 +57,7 @@ public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
     int pointWidth = width + ROUND_ARC;
 
     // Offset the word by half width to ensure arrow is pointing at the exact time of the event.
-    transform.translate(-width / 2, 0);
+    transform.translate(-width / 2.0, 0);
     g2d.transform(transform);
 
     //Build and draw geometry used for background of string
@@ -69,7 +69,7 @@ public class KeyboardEventRenderer<E> implements SimpleEventRenderer<E> {
 
     // Draw String
     g2d.setColor(TEXT_COLOR);
-    g2d.drawString(textToDraw, 0, height);
+    g2d.drawString(textToDraw, PADDING / 2, height);
 
     //Reset g2d state
     g2d.setColor(currentColor);
