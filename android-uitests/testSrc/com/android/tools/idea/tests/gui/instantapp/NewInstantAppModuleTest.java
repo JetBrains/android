@@ -42,7 +42,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-import static com.android.tools.idea.instantapp.InstantApps.setAiaSdkLocation;
+import static com.android.tools.idea.instantapp.InstantApps.setInstantAppSdkLocation;
 import static com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
@@ -66,126 +66,54 @@ public class NewInstantAppModuleTest {
     PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
     myOldSavedCompanyDomain = propertiesComponent.getValue(SAVED_COMPANY_DOMAIN);
     propertiesComponent.setValue(SAVED_COMPANY_DOMAIN, "aia.example.com");
-    setAiaSdkLocation("TestValue");
+    setInstantAppSdkLocation("TestValue");
   }
 
   @After
   public void after() {
     PropertiesComponent.getInstance().setValue(SAVED_COMPANY_DOMAIN, myOldSavedCompanyDomain);
-    setAiaSdkLocation(getenv("WH_SDK"));
+    setInstantAppSdkLocation(getenv("WH_SDK"));
   }
 
   // TODO: add tests for warnings in code - requires way to separate warnings from SimpleApplication out from warnings in new module
 
   @Test
-  public void testCanBuildDefaultNewInstantAppApplicationModule() throws IOException {
+  public void testCanBuildDefaultNewInstantAppFeatureModules() throws IOException {
     guiTest.importSimpleApplication();
-    addNewInstantAppModule(true, false, null);
+    addNewInstantAppModule("feature1");
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
+    addNewInstantAppModule("feature2");
     assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
   }
 
   @Test
-  public void testCanBuildDefaultNewInstantAppLibraryModule() throws IOException {
+  public void testPackagesGeneratedCorrectly() throws IOException {
     guiTest.importSimpleApplication();
-    addNewInstantAppModule(false, false, null);
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
-  }
-
-  @Test
-  public void testCanBuildDefaultNewInstantAppBaseLibraryModule() throws IOException {
-    guiTest.importSimpleApplication();
-    addNewInstantAppModule(false, true, null);
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
-  }
-
-  @Test
-  public void testDefaultNewInstantAppApplicationModuleHasNoResources() throws IOException {
-    guiTest.importSimpleApplication();
-
-    addNewInstantAppModule(true, false, "instantapp");
-    addNewInstantAppModule(false, false, "atom");
-    addNewInstantAppModule(false, true, "baseatom");
-
-    File projectRoot = guiTest.ideFrame().getProjectPath();
-    assertAbout(file()).that(new File(projectRoot, join("instantapp", "src", "main", "res"))).doesNotExist();
-    assertAbout(file()).that(new File(projectRoot, join("atom", "src", "main", "res"))).doesNotExist();
-    assertAbout(file()).that(new File(projectRoot, join("baseatom", "src", "main", "res"))).isDirectory();
-  }
-
-  @Test
-  public void testCanBuildFullInstantApp() throws IOException {
-    guiTest.importSimpleApplication();
-
-    addNewInstantAppModule(true, false, "instantapp");
-    addNewInstantAppModule(false, false, "atom");
-    addNewInstantAppModule(false, true, "baseatom");
-
-    guiTest.ideFrame()
-      .openFromMenu(ProjectStructureDialogFixture::find, "File", "Project Structure...")
-      .selectConfigurable("instantapp")
-      .selectDependenciesTab()
-      .addModuleDependency(":atom")
-      .selectConfigurable("atom")
-      .selectDependenciesTab()
-      .addModuleDependency(":baseatom")
-      .clickOk();
-
-    guiTest.ideFrame()
-      .waitForGradleProjectSyncToFinish()
-      .waitForBuildToFinish(SOURCE_GEN);
-
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful()).isTrue();
-  }
-
-  @Test
-  public void testApplicationPackageGeneratedCorrectly() throws IOException {
-    guiTest.importSimpleApplication();
-    addNewInstantAppModule(true, false, "instantapp");
+    addNewInstantAppModule("feature");
     assertNull(getManifest("instantapp"));
+    assertCorrectPackageAndSplit("feature", "featuresplit", "featuresplit");
+    assertCorrectPackageAndSplit("feature","basesplit", null);
   }
 
-  @Test
-  public void testAtomPackageGeneratedCorrectly() throws IOException {
-    guiTest.importSimpleApplication();
-    addNewInstantAppModule(false, false, "atom");
-    assertCorrectPackageAndSplit("atom", "atom");
-  }
-
-  @Test
-  public void testBaseAtomPackageGeneratedCorrectly() throws IOException {
-    guiTest.importSimpleApplication();
-    addNewInstantAppModule(false, true, "baseatom");
-    assertCorrectPackageAndSplit("baseatom", null);
-  }
-
-  private void addNewInstantAppModule(boolean isApplication, boolean isBaseAtom, @Nullable String moduleName) {
+  private void addNewInstantAppModule(@Nullable String moduleName) {
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     NewModuleWizardFixture newModuleWizardFixture = ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...");
 
     ConfigureAndroidModuleStepFixture configureAndroidModuleStep = newModuleWizardFixture
-      .chooseModuleType(isApplication ? "Phone & Tablet Module" : "Android Library")
+      .chooseModuleType("Feature Module")
       .clickNext() // Selected App
       .getConfigureAndroidModuleStep()
-      .selectMinimumSdkApi("16")
-      .selectInstantAppSupport();
+      .selectMinimumSdkApi("16");
 
     if (moduleName != null) {
       configureAndroidModuleStep.enterModuleName(moduleName);
     }
 
-    if (isBaseAtom) {
-      configureAndroidModuleStep.selectBaseAtom();
-    }
-
-    if (isApplication) {
-      newModuleWizardFixture
-        .clickNext() // Default options
-        .chooseActivity("Add No Activity"); // No Activity (see http://b/34216139)
-    }
-
     newModuleWizardFixture
-      .clickFinish();
+      .clickNext() // Default options
+      .clickNext() // Default activity
+      .clickFinish(); // Default parameters
 
     ideFrame
       .waitForGradleProjectSyncToFinish()
@@ -200,7 +128,7 @@ public class NewInstantAppModuleTest {
     return facet.getManifest();
   }
 
-  private void assertCorrectPackageAndSplit(@NotNull String moduleName, @Nullable String splitName) {
+  private void assertCorrectPackageAndSplit(@NotNull String appName, @NotNull String moduleName, @Nullable String splitName) {
     Manifest manifest = getManifest(moduleName);
     assertNotNull(manifest);
 
@@ -208,7 +136,7 @@ public class NewInstantAppModuleTest {
       GenericAttributeValue<String> packageAttribute = manifest.getPackage();
       assertNotNull(packageAttribute);
       assertThat(packageAttribute.isValid()).isTrue();
-      assertThat(packageAttribute.getStringValue()).isEqualTo("com.example.aia");
+      assertThat(packageAttribute.getStringValue()).isEqualTo("com.example.aia." + appName + ".instantapp");
 
       if (splitName != null) {
         boolean splitNameFound = false;

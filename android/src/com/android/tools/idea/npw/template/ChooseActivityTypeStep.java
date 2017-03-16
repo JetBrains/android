@@ -116,9 +116,6 @@ public class ChooseActivityTypeStep extends SkippableWizardStep<NewModuleModel> 
       myTemplateRenderers.add(new TemplateRenderer(templateHandle));
     }
 
-    boolean isInstantAppModule = facet != null && facet.getProjectType() == PROJECT_TYPE_ATOM;
-    getModel().instantApp().set(isInstantAppModule);
-
     myActivityGallery = createGallery(getTitle());
     myValidatorPanel = new ValidatorPanel(this, new JBScrollPane(myActivityGallery));
     FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);

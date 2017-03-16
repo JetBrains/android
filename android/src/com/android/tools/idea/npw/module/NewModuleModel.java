@@ -22,24 +22,26 @@ import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.android.tools.idea.instantapp.InstantApps.*;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
-import static com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public final class NewModuleModel extends WizardModel {
   @NotNull private final StringProperty myModuleName = new StringValueProperty();
+  @NotNull private final StringProperty mySplitName = new StringValueProperty();
   @NotNull private final BoolProperty myIsLibrary = new BoolValueProperty();
   // A template that's associated with a user's request to create a new module. This may be null if the user skips creating a
   // module, or instead modifies an existing module (for example just adding a new Activity)
@@ -49,21 +51,22 @@ public final class NewModuleModel extends WizardModel {
 
   @NotNull private final StringProperty myApplicationName;
   @NotNull private final StringProperty myPackageName;
-  @NotNull private final StringProperty mySupportedRoutes = new StringValueProperty("/.*");
-  @NotNull private final BoolProperty myInstantApp = new BoolValueProperty();
-  @NotNull private final boolean myCreateIAPK;
+  @NotNull private final StringProperty myInstantAppPackageName = new StringValueProperty();
+  @NotNull private final BoolProperty myIsInstantApp = new BoolValueProperty();
+  @NotNull private final boolean myCreateInExistingProject;
   @NotNull private final BoolProperty myEnableCppSupport;
   @NotNull private final OptionalProperty<Project> myProject;
 
   { // Default init constructor
     myModuleName.addConstraint(String::trim);
-    mySupportedRoutes.addConstraint(String::trim);
+    mySplitName.addConstraint(String::trim);
+    myInstantAppPackageName.addConstraint(String::trim);
   }
 
   public NewModuleModel(@NotNull Project project) {
     myProject = new OptionalValueProperty<>(project);
     myPackageName = new StringValueProperty();
-    myCreateIAPK = false;
+    myCreateInExistingProject = true;
     myEnableCppSupport = new BoolValueProperty();
 
     myApplicationName = new StringValueProperty(message("android.wizard.module.config.new.application"));
@@ -75,7 +78,7 @@ public final class NewModuleModel extends WizardModel {
   public NewModuleModel(@NotNull NewProjectModel projectModel, @NotNull File templateFile) {
     myProject = projectModel.project();
     myPackageName = projectModel.packageName();
-    myCreateIAPK = true;
+    myCreateInExistingProject = false;
     myEnableCppSupport = projectModel.enableCppSupport();
     myApplicationName = projectModel.applicationName();
     myTemplateFile.setValue(templateFile);
@@ -97,8 +100,18 @@ public final class NewModuleModel extends WizardModel {
   }
 
   @NotNull
+  public StringProperty splitName() {
+    return mySplitName;
+  }
+
+  @NotNull
   public StringProperty packageName() {
     return myPackageName;
+  }
+
+  @NotNull
+  public StringProperty instantAppPackageName() {
+    return myInstantAppPackageName;
   }
 
   @NotNull
@@ -107,13 +120,8 @@ public final class NewModuleModel extends WizardModel {
   }
 
   @NotNull
-  public StringProperty supportedRoutes() {
-    return mySupportedRoutes;
-  }
-
-  @NotNull
   public BoolProperty instantApp() {
-    return myInstantApp;
+    return myIsInstantApp;
   }
 
   @NotNull
@@ -166,67 +174,56 @@ public final class NewModuleModel extends WizardModel {
 
     templateValues.put(ATTR_IS_LIBRARY_MODULE, myIsLibrary.get());
 
-    if (renderTemplateValues != null) {
-      // Instant Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
-      if (myInstantApp.get()) {
-        renderTemplateValues.put(ATTR_IS_INSTANT_APP, myInstantApp.get());
-        renderTemplateValues.put(ATTR_SPLIT_NAME, myModuleName.get());
-      }
+    Project project = myProject.getValue();
+    if (myIsInstantApp.get()) {
+      templateValues.put(ATTR_GRADLE_PLUGIN_VERSION, getInstantAppPluginVersion());
+      templateValues.put(ATTR_INSTANT_APP_SDK_DIR, getInstantAppSdkLocation());
+      templateValues.put(ATTR_BASE_SPLIT_MANIFEST_OUT, "./base/src/main");
+      templateValues.put(ATTR_IS_LIBRARY_MODULE, true);
+      templateValues.put(ATTR_HAS_SPLIT_WRAPPER, true);
+      templateValues.put(ATTR_SPLIT_NAME, myModuleName.get() + "split");
 
+      if (myCreateInExistingProject) {
+        ApplicationManager.getApplication().runReadAction(() -> {
+          // We are adding a feature module to an existing instant app. Find the appropriate package and base-module path to add things to.
+          if (findInstantAppModule(project) != null) {
+            Module baseSplit = getBaseSplitInInstantApp(project);
+            templateValues.put(ATTR_HAS_INSTANT_APP_WRAPPER, false);
+            templateValues.put(ATTR_INSTANT_APP_PACKAGE_NAME, getInstantAppPackage(baseSplit));
+            templateValues.put(ATTR_BASE_SPLIT_NAME, baseSplit.getName());
+            templateValues.put(ATTR_BASE_SPLIT_MANIFEST_OUT, getBaseSplitOutDir(baseSplit) + "/src/main");
+          }
+
+          // TODO: need better name-clash handling (http://b/35712205) but this handles the most common issue.
+          String monolithicApplicationModuleName = "app";
+          int count = 2;
+          while (ModuleManager.getInstance(project).findModuleByName(monolithicApplicationModuleName) != null && count < 100) {
+            monolithicApplicationModuleName = "app" + count;
+            templateValues.put(ATTR_MONOLITHIC_APP_PROJECT_NAME, monolithicApplicationModuleName);
+            templateValues.put(ATTR_MONOLITHIC_APP_DIR, "./" + monolithicApplicationModuleName);
+            count++;
+          }
+        });
+      }
+      else {
+        templateValues.put(ATTR_HAS_INSTANT_APP_WRAPPER, true);
+      }
+    }
+
+    if (renderTemplateValues != null) {
       templateValues.putAll(renderTemplateValues);
     }
 
-    //TODO - this code is a little messy. Once atom workflow is finalised refactor to avoid template parameter copying and overriding
-    boolean createIAPK = myInstantApp.get() && myCreateIAPK;
-    final Map<String, Object> moduleTemplateState = createIAPK ? new  HashMap<>(templateValues) : templateValues;
-    if (createIAPK) {
-      moduleTemplateState.put(ATTR_IS_LIBRARY_MODULE, Boolean.TRUE);
-      moduleTemplateState.put(ATTR_IS_BASE_ATOM, Boolean.TRUE);
-    }
-
-    Project project = myProject.getValue();
-
-    boolean canRender = renderModule(true, moduleTemplateState, project, myModuleName.get());
+    boolean canRender = renderModule(true, templateValues, project, myModuleName.get());
     if (!canRender) {
       // If here, there was a render conflict and the user chose to cancel creating the template
       return;
     }
 
-    // Note, this naming is provisional until the instant app workflow is better sorted out.
-    String iapkName = "instant-" + /*myModuleName.get()*/ "app"; // TODO
-    Map<String, Object> iapkTemplateState = createIAPK ? new  HashMap<>(templateValues) : templateValues;
-    if (createIAPK) {
-      iapkTemplateState.put(ATTR_ALSO_CREATE_IAPK, Boolean.TRUE);
-      iapkTemplateState.put(ATTR_ATOM_NAME, myModuleName.get());
-      iapkTemplateState.put(ATTR_MODULE_NAME, iapkName);
-      iapkTemplateState.put(ATTR_SPLIT_NAME, iapkName);
-
-      File iapkRoot = new File(project.getBasePath(), iapkName);
-      try {
-        checkedCreateDirectoryIfMissing(iapkRoot);
-      }
-      catch (IOException e) {
-        getLog().error(e);
-        return;
-      }
-      iapkTemplateState.put(ATTR_PROJECT_OUT, iapkRoot.getPath());
-      String relativeLocation = FileUtil.toSystemDependentName((String)iapkTemplateState.get(ATTR_MANIFEST_DIR));
-      iapkTemplateState.put(ATTR_MANIFEST_OUT, new File(iapkRoot, relativeLocation).getPath());
-
-      if (!renderModule(true, iapkTemplateState, project, iapkName)) {
-        // If here, there was a render conflict and the user chose to cancel creating the template
-        return;
-      }
-    }
-
     boolean success = new WriteCommandAction<Boolean>(project, "New Module") {
       @Override
       protected void run(@NotNull Result<Boolean> result) throws Throwable {
-        boolean success = renderModule(false, moduleTemplateState, project, myModuleName.get());
-        if (success && createIAPK) {
-          success = renderModule(false, iapkTemplateState, project, iapkName);
-        }
-        result.setResult(success);
+        result.setResult(renderModule(false, templateValues, project, myModuleName.get()));
       }
     }.execute().getResultObject();
 
@@ -236,7 +233,7 @@ public final class NewModuleModel extends WizardModel {
   }
 
   private boolean renderModule(boolean dryRun, @NotNull Map<String, Object> templateState, @NotNull Project project,
-                               @NotNull  String moduleName) {
+                               @NotNull String moduleName) {
     File projectRoot = new File(project.getBasePath());
     File moduleRoot = new File(projectRoot, moduleName);
     Template template = Template.createFromPath(myTemplateFile.getValue());
