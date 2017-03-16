@@ -36,6 +36,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import static com.android.SdkConstants.GRADLE_PLUGIN_AIA_VERSION;
 import static com.android.tools.idea.instantapp.InstantApps.setInstantAppPluginVersion;
@@ -110,103 +112,57 @@ public class NewInstantAppTest {
       .clickOk()
       .getResults();
 
-    //Eventually this will be empty (or almost empty) for now we are just checking that there are no unexpected errors...
-    assertThat(inspectionResults).isEqualTo(
-      "Project '" + guiTest.getProjectPath() + "' " + projectName + "\n" +
-      // TODO: Linting for Android Instant Apps needs to be updated as it isn't correctly picking up the dependencies or validating new
-      // constructs correctly
-      "    Android\n" +
-      "        Android Resources Validation\n" +
-      "            AndroidManifest.xml\n" +
-      "                Unresolved class 'MainActivity'\n" +
-      "        Unknown Android XML attribute\n" +
-      "            AndroidManifest.xml\n" +
-      "                Unknown attribute split\n" +
-      "            AndroidManifest.xml\n" +
-      "                Unknown attribute split\n" +
-      "    Android Lint: Correctness\n" +
-      "        Gradle Dynamic Version\n" +
-      "            build.gradle\n" +
-      "                Avoid using + in version numbers; can lead to unpredictable and unrepeatable builds (com.android.support:appcompat-v7:25.+)\n" +
-      "                Avoid using + in version numbers; can lead to unpredictable and unrepeatable builds (com.android.support:appcompat-v7:25.+)\n" +
-      "        Missing Android XML namespace\n" +
-      "            AndroidManifest.xml\n" +
-      "                Attribute is missing the Android namespace prefix\n" +
-      "            AndroidManifest.xml\n" +
-      "                Attribute is missing the Android namespace prefix\n" +
-      "                Attribute is missing the Android namespace prefix\n" +
-      // These warnings currently appear when testing locally but not on the buildbot. They should go away properly when prebuilts are
-      // updated to the latest build tools.
-      //"        Obsolete Gradle Dependency\n" +
-      //"            build.gradle\n" +
-      //"                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
-      //"            build.gradle\n" +
-      //"                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
-      //"            build.gradle\n" +
-      //"                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
-      //"                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
-      //"            build.gradle\n" +
-      //"                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
-      //"            build.gradle\n" +
-      //"                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
-      //"            build.gradle\n" +
-      //"                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
-      //"                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
-      // TODO: dependency is a packaging dependency - linting needs updating
-      "    Declaration redundancy\n" +
-      "        Unnecessary module dependency\n" +
-      "            app\n" +
-      "                Module 'app' sources do not depend on module 'base' sources\n" +
-      "                Module 'app' sources do not depend on module 'feature' sources\n" +
-      "            basesplit\n" +
-      "                Module 'basesplit' sources do not depend on module 'base' sources\n" +
-      "            feature\n" +
-      "                Module 'feature' sources do not depend on module 'base' sources\n" +
-      "            featuresplit\n" +
-      "                Module 'featuresplit' sources do not depend on module 'base' sources\n" +
-      "                Module 'featuresplit' sources do not depend on module 'basesplit' sources\n" +
-      "                Module 'featuresplit' sources do not depend on module 'feature' sources\n" +
-      "            instantapp\n" +
-      "                Module 'instantapp' sources do not depend on module 'basesplit' sources\n" +
-      "                Module 'instantapp' sources do not depend on module 'featuresplit' sources\n" +
-      // TODO: harmless spelling in namespace / module declaration - dictionary needs updating
-      "    Spelling\n" +
-      "        Typo\n" +
-      "            AndroidManifest.xml\n" +
-      "                Typo: In word 'featuresplit'\n" +
-      "                Typo: In word 'instantapp'\n" +
-      "                Typo: In word 'instantapps'\n" +
-      "            AndroidManifest.xml\n" +
-      "                Typo: In word 'instantapp'\n" +
-      "                Typo: In word 'instantapps'\n" +
-      "            AndroidManifest.xml\n" +
-      "                Typo: In word 'baselib'\n" +
-      "                Typo: In word 'featuresplit'\n" +
-      "                Typo: In word 'instantapp'\n" +
-      "                Typo: In word 'instantapps'\n" +
-      "                Typo: In word 'instantapps'\n" +
-      "            AndroidManifest.xml\n" +
-      "                Typo: In word 'instantapps'\n" +
-      // TODO: the XML schema has to be there for the build to work. Either linting needs updating or the build needs fixing to not
-      // need the namespace at every level in the AndroidManifest.xml hierarchy
-      "    XML\n" +
-      "        Unused XML schema declaration\n" +
-      "            AndroidManifest.xml\n" +
-      "                Namespace declaration is never used\n" +
-      "                Namespace declaration is never used\n" +
-      "            AndroidManifest.xml\n" +
-      "                Namespace declaration is never used\n" +
-      "                Namespace declaration is never used\n" +
-      "            AndroidManifest.xml\n" +
-      "                Namespace declaration is never used\n" +
-      "            AndroidManifest.xml\n" +
-      "                Namespace declaration is never used\n" +
-      "                Namespace declaration is never used\n" +
-      "            activity_main.xml\n" +
-      "                Namespace declaration is never used\n" +
-      "        XML tag empty body\n" +
-      "            strings.xml\n" +
-      "                XML tag has empty body\n");
+    verifyOnlyExpectedWarnings(inspectionResults,
+                               "    Android\n" +
+                               "        Android Resources Validation\n" +
+                               "            AndroidManifest.xml\n" +
+                               "                Unresolved class 'MainActivity'\n" +
+                               "        Unknown Android XML attribute\n" +
+                               "            AndroidManifest.xml\n" +
+                               "                Unknown attribute split\n" +
+                               "    Android Lint: Correctness\n" +
+                               "        Gradle Dynamic Version\n" +
+                               "            build.gradle\n" +
+                               "                Avoid using + in version numbers; can lead to unpredictable and unrepeatable builds (com.android.support:appcompat-v7:25.+)\n" +
+                               "        Missing Android XML namespace\n" +
+                               "            AndroidManifest.xml\n" +
+                               "                Attribute is missing the Android namespace prefix\n" +
+                               "        Obsolete Gradle Dependency\n" +
+                               "            build.gradle\n" +
+                               "                Old buildToolsVersion 25.0.1; recommended version is 25.0.2 or later\n" +
+                               "    Declaration redundancy\n" +
+                               "        Unnecessary module dependency\n" +
+                               "            app\n" +
+                               "                Module 'app' sources do not depend on module 'base' sources\n" +
+                               "                Module 'app' sources do not depend on module 'feature' sources\n" +
+                               "            basesplit\n" +
+                               "                Module 'basesplit' sources do not depend on module 'base' sources\n" +
+                               "            feature\n" +
+                               "                Module 'feature' sources do not depend on module 'base' sources\n" +
+                               "            featuresplit\n" +
+                               "                Module 'featuresplit' sources do not depend on module 'base' sources\n" +
+                               "                Module 'featuresplit' sources do not depend on module 'basesplit' sources\n" +
+                               "                Module 'featuresplit' sources do not depend on module 'feature' sources\n" +
+                               "            instantapp\n" +
+                               "                Module 'instantapp' sources do not depend on module 'basesplit' sources\n" +
+                               "                Module 'instantapp' sources do not depend on module 'featuresplit' sources\n" +
+                               "    Spelling\n" +
+                               "        Typo\n" +
+                               "            AndroidManifest.xml\n" +
+                               "                Typo: In word 'baselib'\n" +
+                               "                Typo: In word 'featuresplit'\n" +
+                               "                Typo: In word 'instantapp'\n" +
+                               "                Typo: In word 'instantapps'\n" +
+                               "                Typo: In word 'instantapps'\n" +
+                               "    XML\n" +
+                               "        Unused XML schema declaration\n" +
+                               "            AndroidManifest.xml\n" +
+                               "            activity_main.xml\n" +
+                               "                Namespace declaration is never used\n" +
+                               "        XML tag empty body\n" +
+                               "            strings.xml\n" +
+                               "                XML tag has empty body\n"
+    );
   }
 
   @Test
@@ -232,5 +188,17 @@ public class NewInstantAppTest {
 
     guiTest.ideFrame().getModule("testfeaturename");
     guiTest.ideFrame().getModule("testfeaturenamesplit");
+  }
+
+  // With warnings coming from multiple projects the order of warnings is not deterministic, also there are some warnings that show up only
+  // on local machines. This method allows us to check that the warnings in the actual result are a sub-set of the expected warnings.
+  // This is not a perfect solution, but this state where we have multiple warnings on a new project should only be temporary
+  private static void verifyOnlyExpectedWarnings(@NotNull String actualResults, @NotNull String acceptedWarnings) {
+    ArrayList<String> lines = new ArrayList<>(Arrays.asList(actualResults.split("\n")));
+
+    // Ignore the first line of the error report
+    for (String line : lines.subList(1, lines.size())) {
+      assertThat(acceptedWarnings.split("\n")).asList().contains(line);
+    }
   }
 }
