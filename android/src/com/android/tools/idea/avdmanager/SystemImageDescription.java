@@ -224,6 +224,11 @@ public final class SystemImageDescription {
     }
 
     @Override
+    public boolean hasPlayStore() {
+      return false; // Remote images don't comply
+    }
+
+    @Override
     public boolean obsolete() {
       return myRemotePackage.obsolete();
     }
