@@ -15,9 +15,14 @@
  */
 package org.jetbrains.android.facet;
 
+import com.intellij.facet.Facet;
+import com.intellij.facet.FacetManager;
+import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.android.AndroidTestCase;
 
+import static org.jetbrains.android.facet.AndroidFacet.ID;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,5 +39,23 @@ public class AndroidFacetTest extends AndroidTestCase {
 
   public void testDisposedModule() {
     assertNull(AndroidFacet.getInstance(myDisposedModule));
+  }
+
+  public void testWithEmptyModelsProvider() {
+    IdeModifiableModelsProvider modelsProvider = mock(IdeModifiableModelsProvider.class);
+    ModifiableFacetModel facetModel = mock(ModifiableFacetModel.class);
+    Module cachedModule = mock(Module.class);
+    FacetManager cachedFacetManger = mock(FacetManager.class);
+    AndroidFacet cachedFacet = mock(AndroidFacet.class);
+
+    // Simulate the case when there are no facets in modelsProvider, but there are cached facets in
+    // module's FacetManager component
+    when(modelsProvider.getModifiableFacetModel(cachedModule)).thenReturn(facetModel);
+    when(facetModel.getAllFacets()).thenReturn(Facet.EMPTY_ARRAY);
+
+    when(cachedModule.getComponent(FacetManager.class)).thenReturn(cachedFacetManger);
+    when(cachedFacetManger.getFacetByType(ID)).thenReturn(cachedFacet);
+
+    assertNull(AndroidFacet.getInstance(cachedModule, modelsProvider));
   }
 }
