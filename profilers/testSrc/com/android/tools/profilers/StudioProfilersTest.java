@@ -598,6 +598,44 @@ final public class StudioProfilersTest {
     assertEquals(Profiler.Device.State.DISCONNECTED, profilers.getDevice().getState());
   }
 
+  @Test
+  public void aliveProcessShouldReplaceDeadOne() {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+    Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").setState(Profiler.Device.State.ONLINE).build();
+    Profiler.Process process1 = Profiler.Process.newBuilder()
+      .setPid(10)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess")
+      .build();
+    Profiler.Process process2 = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess2")
+      .build();
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    myProfilerService.addDevice(device);
+    myProfilerService.addProcess(session, process1);
+    myProfilerService.addProcess(session, process2);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    assertEquals(process1, profilers.getProcess());
+    // Change process1 status to DEAD
+    Profiler.Process process1Dead = Profiler.Process.newBuilder()
+      .setPid(process1.getPid())
+      .setState(Profiler.Process.State.DEAD)
+      .setName(process1.getName())
+      .build();
+    myProfilerService.updateProcess(session, process1, process1Dead);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    // As process 1 is now dead, process 2 should be selected
+    assertEquals(process2, profilers.getProcess());
+  }
+
   private StudioProfilers getProfilersWithDeviceAndProcess() {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
