@@ -848,7 +848,7 @@ public class ScoutArrange {
         Rectangle all = null;
         Rectangle tmp = new Rectangle();
         for (NlComponent widget : widgets) {
-            if (isGuideline(widget)) {
+            if (isLine(widget)) {
                 continue;
             }
             tmp.x = getDpX(widget);
