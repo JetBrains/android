@@ -94,11 +94,15 @@ public class AndroidProjectComponent extends AbstractProjectComponent {
   }
 
   private void createAlarmForAutogeneration() {
-    DumbService service = DumbService.getInstance(myProject);
     final Alarm alarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, myDisposable);
     alarm.addRequest(new Runnable() {
       @Override
       public void run() {
+        if (!myProject.isOpen()) {
+          return; // When project is closing (but not disposed yet), runReadActionInSmartMode throws "Registering post-startup activity"
+        }
+
+        DumbService service = DumbService.getInstance(myProject);
         Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess = service.runReadActionInSmartMode(() -> checkGenerate());
         if (facetsToProcess.size() > 0) {
           generate(facetsToProcess);
