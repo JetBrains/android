@@ -121,13 +121,6 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
     myWizard.removeResultListener(this);
   }
 
-  @Override
-  public void show() {
-    // TODO: Why is this necessary? Why is DialogWrapper ignoring setSize unless I do this?
-    getContentPanel().setMinimumSize(getSize());
-    super.show();
-  }
-
   @NotNull
   @Override
   protected DialogStyle getStyle() {

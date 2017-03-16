@@ -49,6 +49,7 @@ public final class StudioWizardDialogBuilder {
   @Nullable URL myHelpUrl;
   @NotNull DialogWrapper.IdeModalityType myModalityType = DialogWrapper.IdeModalityType.IDE;
   @NotNull Dimension myMinimumSize = DEFAULT_MIN_SIZE;
+  @NotNull Dimension myPreferredSize = DEFAULT_MIN_SIZE;
   @NotNull ModelWizardDialog.CancellationPolicy myCancellationPolicy = ModelWizardDialog.CancellationPolicy.ALWAYS_CAN_CANCEL;
 
   public StudioWizardDialogBuilder(@NotNull ModelWizard wizard, @NotNull String title) {
@@ -116,6 +117,20 @@ public final class StudioWizardDialogBuilder {
   }
 
   /**
+   * Override the preferred size of this dialog.
+   *
+   * If {@code null}, this call will be ignored, although it is allowed as an argument to work well
+   * with {@code Nullable} APIs.
+   */
+  @NotNull
+  public StudioWizardDialogBuilder setPreferredSize(@Nullable Dimension preferredSize) {
+    if (preferredSize != null) {
+      myPreferredSize = preferredSize;
+    }
+    return this;
+  }
+
+  /**
    * Set a help link that the dialog's help button should browse to.
    *
    * If {@code null}, this call will be ignored, although it is allowed as an argument to work well
@@ -155,11 +170,15 @@ public final class StudioWizardDialogBuilder {
       dialog = new ModelWizardDialog(myWizard, myTitle, customLayout, myProject, myHelpUrl, myModalityType, myCancellationPolicy);
     }
 
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    Dimension clampedSize = new Dimension(Math.min(myMinimumSize.width, (int)(screenSize.width * SCREEN_PERCENT)),
-                                          Math.min(myMinimumSize.height, (int)(screenSize.height * SCREEN_PERCENT)));
-
-    dialog.setSize(clampedSize.width, clampedSize.height);
+    dialog.getContentPanel().setMinimumSize(getClampedSize(myMinimumSize));
+    dialog.getContentPanel().setPreferredSize(getClampedSize(myPreferredSize));
     return dialog;
+  }
+
+  @NotNull
+  private static Dimension getClampedSize(Dimension size) {
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    return new Dimension(Math.min(size.width, (int)(screenSize.width * SCREEN_PERCENT)),
+                         Math.min(size.height, (int)(screenSize.height * SCREEN_PERCENT)));
   }
 }
