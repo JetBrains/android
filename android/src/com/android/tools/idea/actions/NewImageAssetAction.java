@@ -54,12 +54,23 @@ public class NewImageAssetAction extends AndroidAssetStudioAction {
 
   @NotNull
   @Override
-  protected Dimension getWizardSize() {
+  protected Dimension getWizardMinimumSize() {
     if (NewImageAssetStep_Deprecated.isEnabled()) {
       return JBUI.size(800, 750);
     }
     else {
-      return JBUI.size(800, 620);
+      return JBUI.size(800, 600);
+    }
+  }
+
+  @NotNull
+  @Override
+  protected Dimension getWizardPreferredSize() {
+    if (NewImageAssetStep_Deprecated.isEnabled()) {
+      return getWizardMinimumSize();
+    }
+    else {
+      return JBUI.size(960, 680);
     }
   }
 
