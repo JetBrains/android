@@ -18,24 +18,24 @@ package com.android.tools.idea.apk.viewer.dex.tree;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jf.dexlib2.iface.reference.TypeReference;
+import org.jf.dexlib2.iface.reference.FieldReference;
 
 import javax.swing.*;
 
-public class ClassTreeNode extends AbstractDexTreeNode {
+public class DexFieldNode extends DexElementNode {
 
-  public ClassTreeNode(@NotNull String displayName, TypeReference reference) {
-    super(displayName, true, reference);
+  public DexFieldNode(@NotNull String displayName, FieldReference reference) {
+    super(displayName, false, reference);
   }
 
   @Override
   public Icon getIcon(){
-    return PlatformIcons.CLASS_ICON;
+    return PlatformIcons.FIELD_ICON;
   }
 
   @Nullable
   @Override
-  public TypeReference getReference() {
-    return (TypeReference) super.getReference();
+  public FieldReference getReference() {
+    return (FieldReference) super.getReference();
   }
 }

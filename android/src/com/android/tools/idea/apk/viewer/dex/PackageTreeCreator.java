@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.android.tools.idea.apk.viewer.dex.tree.AbstractDexTreeNode;
-import com.android.tools.idea.apk.viewer.dex.tree.PackageTreeNode;
+import com.android.tools.idea.apk.viewer.dex.tree.DexElementNode;
+import com.android.tools.idea.apk.viewer.dex.tree.DexPackageNode;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
 import com.android.tools.proguard.ProguardUsagesMap;
@@ -91,8 +91,8 @@ public class PackageTreeCreator {
     return typesByName;
   }
 
-  public PackageTreeNode constructPackageTree(@NotNull DexBackedDexFile dexFile) {
-    PackageTreeNode root = new PackageTreeNode("root");
+  public DexPackageNode constructPackageTree(@NotNull DexBackedDexFile dexFile) {
+    DexPackageNode root = new DexPackageNode("root");
 
     //get all methods, fields and types referenced in this dex (includes defined)
     Multimap<String, MethodReference> methodRefsByClassName = getAllMethodReferencesByClassName(dexFile);
@@ -154,11 +154,11 @@ public class PackageTreeCreator {
       }
     }
 
-    root.sort(Comparator.comparing(AbstractDexTreeNode::getMethodRefCount).reversed());
+    root.sort(Comparator.comparing(DexElementNode::getMethodRefCount).reversed());
     return root;
   }
 
-  private void addMethods(PackageTreeNode root,
+  private void addMethods(DexPackageNode root,
                           String className,
                           TypeReference typeRef, Iterable<? extends MethodReference> methodRefs,
                           boolean defined) {
@@ -175,7 +175,7 @@ public class PackageTreeCreator {
     }
   }
 
-  private void addFields(PackageTreeNode root,
+  private void addFields(DexPackageNode root,
                          String className,
                          TypeReference typeRef, Iterable<? extends FieldReference> fieldRefs,
                          boolean defined) {

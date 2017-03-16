@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.android.tools.idea.apk.viewer.dex.tree.AbstractDexTreeNode;
-import com.android.tools.idea.apk.viewer.dex.tree.PackageTreeNode;
+import com.android.tools.idea.apk.viewer.dex.tree.DexElementNode;
+import com.android.tools.idea.apk.viewer.dex.tree.DexPackageNode;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
 import com.android.tools.proguard.ProguardUsagesMap;
@@ -42,7 +42,7 @@ public class FilteredTreeModelTest {
   @Test
   public void fieldsAndMethodReferenceTree() throws IOException {
     DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
-    PackageTreeNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
+    DexPackageNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
     FilteredTreeModel filteredTreeModel = new FilteredTreeModel(new DefaultTreeModel(packageTreeNode));
     FilteredTreeModel.FilterOptions options = filteredTreeModel.getFilterOptions();
     options.setShowFields(true);
@@ -139,7 +139,7 @@ public class FilteredTreeModelTest {
   @Test
   public void fieldsOnlyReferenceTree() throws IOException {
     DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
-    PackageTreeNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
+    DexPackageNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
     FilteredTreeModel filteredTreeModel = new FilteredTreeModel(new DefaultTreeModel(packageTreeNode));
     FilteredTreeModel.FilterOptions options = filteredTreeModel.getFilterOptions();
     options.setShowFields(true);
@@ -203,7 +203,7 @@ public class FilteredTreeModelTest {
   @Test
   public void definedOnlyReferenceTree() throws IOException {
     DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
-    PackageTreeNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
+    DexPackageNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
     FilteredTreeModel filteredTreeModel = new FilteredTreeModel(new DefaultTreeModel(packageTreeNode));
     FilteredTreeModel.FilterOptions options = filteredTreeModel.getFilterOptions();
     options.setShowFields(true);
@@ -282,7 +282,7 @@ public class FilteredTreeModelTest {
   @Test
   public void methodsOnlyReferenceTree() throws IOException {
     DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
-    PackageTreeNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
+    DexPackageNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
     FilteredTreeModel filteredTreeModel = new FilteredTreeModel(new DefaultTreeModel(packageTreeNode));
     FilteredTreeModel.FilterOptions options = filteredTreeModel.getFilterOptions();
     options.setShowFields(false);
@@ -369,7 +369,7 @@ public class FilteredTreeModelTest {
 
 
     ProguardMappings proguardMappings = new ProguardMappings(map, seedsMap, usageMap);
-    PackageTreeNode packageTreeNode = new PackageTreeCreator(proguardMappings, true).constructPackageTree(dexFile);
+    DexPackageNode packageTreeNode = new PackageTreeCreator(proguardMappings, true).constructPackageTree(dexFile);
     FilteredTreeModel filteredTreeModel = new FilteredTreeModel(new DefaultTreeModel(packageTreeNode));
     FilteredTreeModel.FilterOptions options = filteredTreeModel.getFilterOptions();
     options.setShowFields(true);
@@ -484,7 +484,7 @@ public class FilteredTreeModelTest {
     return getDexFile(Files.readAllBytes(dexPath));
   }
 
-  private static void dumpTree(StringBuffer sb, @NotNull TreeModel model, AbstractDexTreeNode node, int depth) {
+  private static void dumpTree(StringBuffer sb, @NotNull TreeModel model, DexElementNode node, int depth) {
     sb.append(StringUtil.repeatSymbol(' ', depth * 2));
     sb.append(node.getName());
     sb.append(": ");
@@ -495,7 +495,7 @@ public class FilteredTreeModelTest {
 
     int count = model.getChildCount(node);
     for (int i = 0; i < count; i++) {
-      dumpTree(sb, model, (AbstractDexTreeNode)model.getChild(node, i), depth + 1);
+      dumpTree(sb, model, (DexElementNode)model.getChild(node, i), depth + 1);
     }
   }
 }
