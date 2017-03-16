@@ -15,7 +15,6 @@
   -->
 <palette>
   <group name="Widgets">
-    <item tag="TextView"/>
     <item tag="Button"/>
     <item tag="ToggleButton"/>
     <item tag="CheckBox"/>
@@ -73,6 +72,7 @@
   </group>
 
   <group name="Text">
+    <item tag="TextView"/>
     <item tag="EditText" title="Plain Text">
       <xml reuse="drag-preview">
         <![CDATA[
