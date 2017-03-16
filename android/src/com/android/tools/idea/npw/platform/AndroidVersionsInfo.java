@@ -201,22 +201,26 @@ public class AndroidVersionsInfo {
       }
     };
 
-    RepoManager.RepoLoadedCallback onComplete = packages -> {
-      addPackages(myFormFactor, versionItemList, packages.getNewPkgs(), minSdkLevel);
-      addOfflineLevels(myFormFactor, versionItemList);
-      runCallbacks.run();
-    };
+    RepoManager.RepoLoadedCallback onComplete = packages ->
+      ApplicationManager.getApplication().invokeLater(() -> {
+        addPackages(myFormFactor, versionItemList, packages.getNewPkgs(), minSdkLevel);
+        addOfflineLevels(myFormFactor, versionItemList);
+        runCallbacks.run();
+      }, ModalityState.any());
 
     // We need to pick up addons that don't have a target created due to the base platform not being installed.
     RepoManager.RepoLoadedCallback onLocalComplete =
-      packages -> addPackages(myFormFactor, versionItemList, packages.getLocalPackages().values(), minSdkLevel);
+      packages ->
+        ApplicationManager.getApplication().invokeLater(
+          () -> addPackages(myFormFactor, versionItemList, packages.getLocalPackages().values(), minSdkLevel),
+          ModalityState.any());
 
     Runnable onError = () -> ApplicationManager.getApplication().invokeLater(() -> {
       addOfflineLevels(myFormFactor, versionItemList);
       runCallbacks.run();
     }, ModalityState.any());
 
-    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Refreshing Targets", true, null);
+    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Refreshing Targets", null);
     sdkHandler.getSdkManager(REPO_LOG).load(
       RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
       ImmutableList.of(onLocalComplete), ImmutableList.of(onComplete), ImmutableList.of(onError),

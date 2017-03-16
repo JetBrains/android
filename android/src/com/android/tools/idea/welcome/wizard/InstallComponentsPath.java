@@ -101,10 +101,9 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     List<ComponentTreeNode> components = Lists.newArrayList();
     components.add(new AndroidSdk(stateStore, myInstallUpdates));
 
-    DynamicWizard wizard = getWizard();
     RepoManager sdkManager = myLocalHandler.getSdkManager(new StudioLoggerProgressIndicator(getClass()));
     sdkManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, null, null,
-                    new StudioProgressRunner(true, false, false, "Finding Available SDK Components", false, null),
+                    new StudioProgressRunner(true, false, false, "Finding Available SDK Components", null),
                     new StudioDownloader(null), StudioSettingsController.getInstance(), true);
     Map<String, RemotePackage> remotePackages = sdkManager.getPackages().getRemotePackages();
     ComponentTreeNode platforms = Platform.createSubtree(stateStore, remotePackages, myInstallUpdates);
