@@ -29,6 +29,7 @@ import com.android.tools.profilers.network.NetworkProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStageView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
@@ -148,28 +149,35 @@ public class StudioProfilersView extends AspectObserver {
 
     ProfilerTimeline timeline = myProfiler.getTimeline();
     FlatButton zoomOut = new FlatButton(ProfilerIcons.ZOOM_OUT);
+    zoomOut.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.ZOOM_OUT));
     zoomOut.addActionListener(event -> {
       timeline.zoomOut();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomOut();
     });
+    zoomOut.setToolTipText("zoom out");
     rightToolbar.add(zoomOut);
 
     FlatButton zoomIn = new FlatButton(ProfilerIcons.ZOOM_IN);
+    zoomIn.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.ZOOM_IN));
     zoomIn.addActionListener(event -> {
       timeline.zoomIn();
       myProfiler.getIdeServices().getFeatureTracker().trackZoomIn();
     });
+    zoomIn.setToolTipText("zoom in");
     rightToolbar.add(zoomIn);
 
     FlatButton resetZoom = new FlatButton(ProfilerIcons.RESET_ZOOM);
+    resetZoom.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.RESET_ZOOM));
     resetZoom.addActionListener(event -> {
       timeline.resetZoom();
       myProfiler.getIdeServices().getFeatureTracker().trackResetZoom();
     });
+    resetZoom.setToolTipText("reset zoom");
     rightToolbar.add(resetZoom);
     rightToolbar.add(new FlatSeparator());
 
     myGoLive = new FlatToggleButton("Go Live", ProfilerIcons.GOTO_LIVE);
+    myGoLive.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.GOTO_LIVE));
     myGoLive.addActionListener(event -> {
       timeline.toggleStreaming();
       myProfiler.getIdeServices().getFeatureTracker().trackToggleStreaming();
@@ -178,6 +186,15 @@ public class StudioProfilersView extends AspectObserver {
 
     myGoLive.setHorizontalTextPosition(SwingConstants.LEFT);
     rightToolbar.add(myGoLive);
+
+    Runnable toggleToolButtons = () -> {
+      zoomOut.setEnabled(myProfiler.isProcessAlive());
+      zoomIn.setEnabled(myProfiler.isProcessAlive());
+      resetZoom.setEnabled(myProfiler.isProcessAlive());
+      myGoLive.setEnabled(myProfiler.isProcessAlive());
+    };
+    myProfiler.addDependency(this).onChange(ProfilerAspect.PROCESSES, toggleToolButtons);
+    toggleToolButtons.run();
 
     myStageToolbar = new JPanel(new BorderLayout());
     toolbar.add(myStageToolbar, BorderLayout.CENTER);

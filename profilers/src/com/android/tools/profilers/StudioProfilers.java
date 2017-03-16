@@ -442,6 +442,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myProcess;
   }
 
+  public boolean isProcessAlive() {
+    return myProcess != null && myProcess.getState() == Profiler.Process.State.ALIVE;
+  }
+
   public boolean isAgentAttached() {
     return myAgentAttached;
   }
