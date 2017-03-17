@@ -255,6 +255,18 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
 
   @Override
   public void beforeChildrenChange(@NotNull PsiTreeChangeEvent event) {
+    PsiFile psiFile = event.getFile();
+    if (psiFile != null && isRelevantFile(psiFile)) {
+      VirtualFile file = psiFile.getVirtualFile();
+      dispatchBeforeChildrenChange(event, file);
+    }
+  }
+
+  private void dispatchBeforeChildrenChange(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
+    ResourceFolderRepository repository = findRepository(virtualFile);
+    if (repository != null) {
+      repository.getPsiListener().beforeChildrenChange(event);
+    }
   }
 
   @Override
@@ -275,6 +287,13 @@ public class PsiProjectListener extends AbstractProjectComponent implements PsiT
 
   @Override
   public void beforeChildMovement(@NotNull PsiTreeChangeEvent event) {
+  }
+
+  private void dispatchBeforeChildMovement(@NotNull PsiTreeChangeEvent event, @Nullable VirtualFile virtualFile) {
+    ResourceFolderRepository repository = findRepository(virtualFile);
+    if (repository != null) {
+      repository.getPsiListener().beforeChildrenChange(event);
+    }
   }
 
   @Override
