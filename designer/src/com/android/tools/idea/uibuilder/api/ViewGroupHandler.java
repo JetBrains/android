@@ -225,19 +225,12 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
 
   /**
    * Gives a chance to the ViewGroupHandler to handle drop on elements that are not ViewGroup.
-   *
-   * @param model
-   * @param event
-   * @param receiver
-   * @param dragged
-   * @param sibling
-   * @param type
    */
   public void performDrop(@NotNull NlModel model,
                           @NotNull DropTargetDropEvent event,
                           @NotNull NlComponent receiver,
                           @NotNull List<NlComponent> dragged,
-                          @Nullable NlComponent sibling,
+                          @Nullable NlComponent before,
                           @NotNull InsertType type) {
     // do nothing
   }

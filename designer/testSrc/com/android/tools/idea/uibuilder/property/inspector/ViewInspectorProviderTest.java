@@ -57,9 +57,6 @@ public class ViewInspectorProviderTest extends PropertyTestCase {
     // Component with no ViewHandler:
     assertThat(myProvider.isApplicable(ImmutableList.of(myUnknown), Collections.emptyMap(), myPropertiesManager)).isFalse();
 
-    // Component with ViewHandler but no inspector properties:
-    assertThat(myProvider.isApplicable(ImmutableList.of(myConstraintLayout), Collections.emptyMap(), myPropertiesManager)).isFalse();
-
     // Component with ViewHandler with inspector properties are applicable:
     assertThat(myProvider.isApplicable(ImmutableList.of(myCheckBox1), Collections.emptyMap(), myPropertiesManager)).isTrue();
   }

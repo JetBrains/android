@@ -19,7 +19,7 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.absolute.AbsoluteLayoutHandler;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.constraint.*;
 import com.android.tools.idea.uibuilder.handlers.flexbox.FlexboxLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.google.AdViewHandler;
 import com.android.tools.idea.uibuilder.handlers.google.MapViewHandler;
@@ -243,9 +243,13 @@ public class ViewHandlerManager implements ProjectComponent {
       case COLLAPSING_TOOLBAR_LAYOUT:
         return new CollapsingToolbarLayoutHandler();
       case CONSTRAINT_LAYOUT:
-      case CLASS_CONSTRAINT_LAYOUT_CHAIN:
-      case CLASS_CONSTRAINT_LAYOUT_BARRIER:
         return new ConstraintLayoutHandler();
+      case CLASS_CONSTRAINT_LAYOUT_CHAIN:
+        return new ConstraintLayoutChainHandler();
+      case CLASS_CONSTRAINT_LAYOUT_BARRIER:
+        return new ConstraintLayoutBarrierHandler();
+      case CLASS_CONSTRAINT_LAYOUT_LAYER:
+        return new ConstraintLayoutLayerHandler();
       case FLEXBOX_LAYOUT:
         if (FlexboxLayoutHandler.FLEXBOX_ENABLE_FLAG) {
           return new FlexboxLayoutHandler();
