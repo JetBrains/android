@@ -318,6 +318,29 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                    "        <Button>\n");
   }
 
+
+  public void testDropOnChain() {
+    myModel = createModelWithConstraintLayout();
+    when(myScreen.getModel()).thenReturn(myModel);
+    when(myScreen.getSelectionModel()).thenReturn(myModel.getSelectionModel());
+    when(mySurface.getCurrentSceneView()).thenReturn(myScreen);
+    when(mySurface.getProject()).thenReturn(getProject());
+    myTree = new NlComponentTree(getProject(), mySurface, myCopyPasteManager);
+    NlComponent chain = findFirst(CLASS_CONSTRAINT_LAYOUT_CHAIN);
+    copy(myButton);
+    DataContext context = mock(DataContext.class);
+    myModel.getSelectionModel().toggle(chain);
+    assertThat(myTree.isPasteEnabled(context)).isTrue();
+    assertThat(myTree.isPastePossible(context)).isTrue();
+    myTree.performPaste(context);
+    assertThat(toTree()).isEqualTo("<android.support.constraint.ConstraintLayout>  [expanded]\n" +
+                                   "    <Button>\n" +
+                                   "    <Button>\n" +
+                                   "    <Button>\n" +
+                                   "    <android.support.constraint.Chain>  [selected]\n" +
+                                   "        <Button>\n");
+  }
+
   public void testCutRemovesComponents() {
     DataContext context = mock(DataContext.class);
     myModel.getSelectionModel().toggle(myTextView);
@@ -485,6 +508,45 @@ public class NlComponentTreeTest extends LayoutTestCase {
                  "            NlComponent{tag=<android.support.v7.widget.Toolbar>, bounds=[0,0:1000x18}\n" +
                  "    NlComponent{tag=<android.support.v4.widget.NestedScrollView>, bounds=[0,192:1000x808}\n" +
                  "        NlComponent{tag=<TextView>, bounds=[0,192:1000x808}",
+                 NlTreeDumper.dumpTree(model.getComponents()));
+    return model;
+  }
+
+  @NotNull
+  private NlModel createModelWithConstraintLayout() {
+    ModelBuilder builder = model("constraint.xml",
+                                 component(CONSTRAINT_LAYOUT)
+                                   .withBounds(0, 0, 1000, 1000)
+                                   .matchParentWidth()
+                                   .matchParentHeight()
+                                   .children(
+                                     component(BUTTON)
+                                       .withBounds(0, 0, 200, 200)
+                                       .id("@+id/button2")
+                                       .wrapContentWidth()
+                                       .wrapContentHeight(),
+                                     component(BUTTON)
+                                       .withBounds(0, 0, 200, 200)
+                                       .id("@+id/button3")
+                                       .wrapContentWidth()
+                                       .wrapContentHeight(),
+                                     component(BUTTON)
+                                       .withBounds(0, 0, 200, 200)
+                                       .id("@+id/button1")
+                                       .wrapContentWidth()
+                                       .wrapContentHeight(),
+                                     component(CLASS_CONSTRAINT_LAYOUT_CHAIN)
+                                       .withBounds(0, 0, 200, 200)
+                                       .id("@+id/chain")
+                                       .wrapContentWidth()
+                                       .wrapContentHeight()));
+    final NlModel model = builder.build();
+    assertEquals(1, model.getComponents().size());
+    assertEquals("NlComponent{tag=<android.support.constraint.ConstraintLayout>, bounds=[0,0:1000x1000}\n" +
+                 "    NlComponent{tag=<Button>, bounds=[0,0:200x200}\n" +
+                 "    NlComponent{tag=<Button>, bounds=[0,0:200x200}\n" +
+                 "    NlComponent{tag=<Button>, bounds=[0,0:200x200}\n" +
+                 "    NlComponent{tag=<android.support.constraint.Chain>, bounds=[0,0:200x200}",
                  NlTreeDumper.dumpTree(model.getComponents()));
     return model;
   }
