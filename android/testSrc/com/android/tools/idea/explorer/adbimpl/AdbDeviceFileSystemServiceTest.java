@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 import java.util.List;
@@ -56,7 +57,9 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
 
   public void testStartService() throws InterruptedException, ExecutionException, TimeoutException {
     // Prepare
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(getProject(), EdtExecutor.INSTANCE, PooledThreadExecutor.INSTANCE);
+    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(aVoid -> AndroidSdkUtils.getAdb(getProject()),
+                                                                        EdtExecutor.INSTANCE,
+                                                                        PooledThreadExecutor.INSTANCE);
     disposeOnTearDown(service);
 
     // Act
@@ -71,7 +74,9 @@ public class AdbDeviceFileSystemServiceTest extends AndroidTestCase {
 
   public void testRestartService() throws InterruptedException, ExecutionException, TimeoutException {
     // Prepare
-    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(getProject(), EdtExecutor.INSTANCE, PooledThreadExecutor.INSTANCE);
+    AdbDeviceFileSystemService service = new AdbDeviceFileSystemService(aVoid -> AndroidSdkUtils.getAdb(getProject()),
+                                                                        EdtExecutor.INSTANCE,
+                                                                        PooledThreadExecutor.INSTANCE);
     disposeOnTearDown(service);
     pumpEventsAndWaitForFuture(service.start());
 

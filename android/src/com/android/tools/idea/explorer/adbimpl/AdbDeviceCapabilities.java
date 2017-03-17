@@ -26,18 +26,23 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.android.tools.idea.explorer.adbimpl.AdbPathUtil.DEVICE_TEMP_DIRECTORY;
+
 /**
  * Helper class used to detect various capabilities/features supported by a {@link IDevice}
  * so callers can make decisions about which adb commands to use.
  */
 public class AdbDeviceCapabilities {
   @NotNull private static final Logger LOGGER = Logger.getInstance(AdbDeviceCapabilities.class);
-  @NotNull private static final String PROBE_FILES_TEMP_PATH = "/data/local/tmp/device-explorer";
+  @NotNull private static final String PROBE_FILES_TEMP_PATH = AdbPathUtil.resolve(DEVICE_TEMP_DIRECTORY, "device-explorer");
   @NotNull private final IDevice myDevice;
   @Nullable private Boolean mySupportsTestCommand;
   @Nullable private Boolean mySupportsRmForceFlag;
   @Nullable private Boolean mySupportsTouchCommand;
   @Nullable private Boolean mySupportsSuRootCommand;
+  @Nullable private Boolean myIsRoot;
+  @Nullable private Boolean mySupportsCpCommand;
+  @Nullable private Boolean mySupportsMkTempCommand;
 
   public AdbDeviceCapabilities(@NotNull IDevice device) {
     myDevice = device;
@@ -75,6 +80,31 @@ public class AdbDeviceCapabilities {
     return mySupportsSuRootCommand;
   }
 
+  public synchronized boolean isRoot()
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+    if (myIsRoot == null) {
+      myIsRoot = isRootWorker();
+    }
+    return myIsRoot;
+  }
+
+  public synchronized boolean supportsCpCommand()
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, SyncException {
+    if (mySupportsCpCommand == null) {
+      mySupportsCpCommand = supportsCpCommandWorker();
+    }
+    return mySupportsCpCommand;
+  }
+
+  @SuppressWarnings("unused")
+  public synchronized boolean supportsMkTempCommand()
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, SyncException {
+    if (mySupportsMkTempCommand == null) {
+      mySupportsMkTempCommand = supportsMkTempCommandWorker();
+    }
+    return mySupportsMkTempCommand;
+  }
+
   @NotNull
   private static String getDeviceTraceInfo(@NotNull IDevice device) {
     return String.format("%s(%s)-%s", device.getName(), device.getSerialNumber(), device.getState());
@@ -86,7 +116,7 @@ public class AdbDeviceCapabilities {
     if (output.isEmpty()) {
       return "[command output is empty]";
     }
-    return output.stream().limit(5).collect(Collectors.joining("\n  ",  "\n  ", ""));
+    return output.stream().limit(5).collect(Collectors.joining("\n  ", "\n  ", ""));
   }
 
   private boolean supportsTestCommandWorker()
@@ -176,6 +206,74 @@ public class AdbDeviceCapabilities {
     }
     catch (AdbShellCommandException e) {
       LOGGER.info(String.format("Device \"%s\" does not seem to support the \"su 0\" command: %s",
+                                getDeviceTraceInfo(myDevice),
+                                getCommandOutputExtract(commandResult)),
+                  e);
+      return false;
+    }
+  }
+
+  private boolean isRootWorker() throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+    // Note: The "isRoot" method below does not cache its results in case of negative answer.
+    //       This means a round-trip to the device at each call when the device is not root.
+    //       By caching the value in this class, we avoid these extra round trips.
+    return myDevice.isRoot();
+  }
+
+  private boolean supportsCpCommandWorker()
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, SyncException {
+
+    try (ScopedRemoteFile srcFile = new ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_cp_test_file__.tmp"));
+          ScopedRemoteFile dstFile = new ScopedRemoteFile(AdbPathUtil.resolve(PROBE_FILES_TEMP_PATH, ".__temp_cp_test_file_dst__.tmp"))) {
+      // Create the remote file used for testing capability
+      srcFile.create();
+
+      // Copy source file to destination file
+      String command = new AdbShellCommandBuilder()
+        .withText("cp ")
+        .withEscapedPath(srcFile.getRemotePath())
+        .withText(" ")
+        .withEscapedPath(dstFile.getRemotePath())
+        .build();
+      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      try {
+        commandResult.throwIfError();
+
+        // If "cp" succeeded, we need to delete the destination file
+        dstFile.setDeleteOnClose(true);
+        return true;
+      }
+      catch (AdbShellCommandException e) {
+        LOGGER.info(String.format("Device \"%s\" does not seem to support the \"cp\" command: %s",
+                                  getDeviceTraceInfo(myDevice),
+                                  getCommandOutputExtract(commandResult)),
+                    e);
+        return false;
+      }
+    }
+  }
+
+  private boolean supportsMkTempCommandWorker()
+    throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, SyncException {
+
+    // Copy source file to destination file
+    String command = new AdbShellCommandBuilder().withText("mktemp -p ").withEscapedPath(DEVICE_TEMP_DIRECTORY).build();
+    AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+    try {
+      commandResult.throwIfError();
+      if (commandResult.getOutput().isEmpty()) {
+        throw new AdbShellCommandException("Unexpected output from mktemp, assuming not supported");
+      }
+
+      // If "mktemp" succeeded, we need to delete the destination file
+      String remotePath = commandResult.getOutput().get(0);
+      try (ScopedRemoteFile tempFile = new ScopedRemoteFile(remotePath)) {
+        tempFile.setDeleteOnClose(true);
+      }
+      return true;
+    }
+    catch (AdbShellCommandException e) {
+      LOGGER.info(String.format("Device \"%s\" does not seem to support the \"cp\" command: %s",
                                 getDeviceTraceInfo(myDevice),
                                 getCommandOutputExtract(commandResult)),
                   e);

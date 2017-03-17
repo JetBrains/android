@@ -80,6 +80,7 @@ public interface DeviceFileEntry {
 
   /**
    * Returns {@code true} if the entry is a symbolic link that points to a directory.
+   *
    * @see com.android.tools.idea.explorer.adbimpl.AdbFileListing#isDirectoryLink
    */
   @NotNull
@@ -96,7 +97,17 @@ public interface DeviceFileEntry {
    * Uploads the contents of a local file to a remote {@link DeviceFileEntry} directory.
    */
   @NotNull
+  default ListenableFuture<Void> uploadFile(@NotNull Path localPath,
+                                            @NotNull FileTransferProgress progress) {
+    return uploadFile(localPath, localPath.getFileName().toString(), progress);
+  }
+
+  /**
+   * Uploads the contents of a local file to a remote {@link DeviceFileEntry} directory.
+   */
+  @NotNull
   ListenableFuture<Void> uploadFile(@NotNull Path localPath,
+                                    @NotNull String fileName,
                                     @NotNull FileTransferProgress progress);
 
   /**
