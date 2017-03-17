@@ -19,6 +19,7 @@ import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.tools.idea.navigator.nodes.android.AndroidManifestsGroupNode;
 import com.android.tools.idea.navigator.nodes.apk.java.DexGroupNode;
+import com.android.tools.idea.navigator.nodes.apk.ndk.LibraryGroupNode;
 import com.android.tools.idea.navigator.nodes.apk.ndk.NdkGroupNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.projectView.ViewSettings;
@@ -102,18 +103,25 @@ public class ApkModuleNode extends ProjectViewModuleNode {
   public Collection<AbstractTreeNode> getChildren() {
     assert myProject != null;
 
+    ViewSettings settings = getSettings();
     List<AbstractTreeNode> children = new ArrayList<>();
     if (myApkPsiFile != null) {
-      children.add(new PsiFileNode(myProject, myApkPsiFile, getSettings()));
+      children.add(new PsiFileNode(myProject, myApkPsiFile, settings));
     }
     // "manifests" folder
     children.add(createManifestGroupNode());
 
     // "java" folder
     if (myDexGroupNode == null) {
-      myDexGroupNode = new DexGroupNode(myProject, getSettings(), myDexFile);
+      myDexGroupNode = new DexGroupNode(myProject, settings, myDexFile);
     }
     children.add(myDexGroupNode);
+
+    // "Native libraries" folder
+    VirtualFile found = myProject.getBaseDir().findChild("lib");
+    if (found != null && found.isDirectory()) {
+      children.add(new LibraryGroupNode(myProject, found, settings));
+    }
 
     // "cpp" folder
     NdkGroupNode ndkGroupNode = createNdkGroupNode();
