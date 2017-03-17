@@ -17,10 +17,7 @@ package com.android.tools.idea.uibuilder.api;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.XmlBuilder;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.FillPolicy;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.SegmentType;
+import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.TargetProvider;
 import com.android.tools.idea.uibuilder.scene.target.Target;
@@ -31,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.awt.dnd.DropTargetDropEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -222,6 +220,25 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
    * @param component
    */
   public void clearAttributes(@NotNull NlComponent component) {
+    // do nothing
+  }
+
+  /**
+   * Gives a chance to the ViewGroupHandler to handle drop on elements that are not ViewGroup.
+   *
+   * @param model
+   * @param event
+   * @param receiver
+   * @param dragged
+   * @param sibling
+   * @param type
+   */
+  public void performDrop(@NotNull NlModel model,
+                          @NotNull DropTargetDropEvent event,
+                          @NotNull NlComponent receiver,
+                          @NotNull List<NlComponent> dragged,
+                          @Nullable NlComponent sibling,
+                          @NotNull InsertType type) {
     // do nothing
   }
 }
