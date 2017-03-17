@@ -2,6 +2,7 @@ package com.android.tools.idea.gradle.eclipse;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.prefs.AndroidLocation;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -3346,11 +3347,17 @@ public class GradleImportTest extends AndroidTestCase {
     }
     File pwd = base.getAbsoluteFile();
     List<String> args = Lists.newArrayList();
-    args.add(gradlew.getPath());
+    args.add(gradlew.getAbsolutePath());
+    String customizedGradleHome = System.getProperty("gradle.user.home");
+    if (customizedGradleHome != null) {
+      args.add("-g");
+      args.add(customizedGradleHome);
+    }
     args.add("assembleDebug");
     GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArgTo(args);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
     cmdLine.withEnvironment("JAVA_HOME", EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getAbsolutePath());
+    cmdLine.withEnvironment("ANDROID_SDK_HOME", AndroidLocation.getFolder());
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
     // Building currently takes about 30s, so a 5min timeout should give a safe margin.
     int timeoutInMilliseconds = 5 * 60 * 1000;
