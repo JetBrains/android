@@ -28,6 +28,7 @@ import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.RunResult;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -242,7 +243,7 @@ public class Template {
         .runWhenProjectIsInitialized(() -> TemplateUtils.reformatAndRearrange(project, context.getTargetFiles()));
     }
 
-    PsiDocumentManager.getInstance(project).commitAllDocuments();
+    ApplicationManager.getApplication().invokeAndWait(PsiDocumentManager.getInstance(project)::commitAllDocuments);
 
     return success;
   }
