@@ -44,6 +44,7 @@ import org.jetbrains.android.dom.color.ColorDomFileDescription;
 import org.jetbrains.android.dom.converters.FlagConverter;
 import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
 import org.jetbrains.android.dom.drawable.fileDescriptions.DrawableStateListDomFileDescription;
+import org.jetbrains.android.dom.font.FontFamilyDomFileDescription;
 import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.dom.layout.Data;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
@@ -138,6 +139,10 @@ public class AndroidCompletionContributor extends CompletionContributor {
     }
     else if (AndroidResourceDomFileDescription.doIsMyFile(xmlFile, ResourceFolderType.MIPMAP)) {
       addAll(AndroidDrawableDomUtil.getPossibleRoots(facet, ResourceFolderType.MIPMAP), resultSet);
+      return false;
+    }
+    else if (FontFamilyDomFileDescription.isFontFamilyFile(xmlFile)) {
+      resultSet.addElement(LookupElementBuilder.create(FontFamilyDomFileDescription.TAG_NAME));
       return false;
     }
     return true;
