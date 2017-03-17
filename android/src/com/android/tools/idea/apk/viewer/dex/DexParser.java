@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 
 import java.util.concurrent.Future;
@@ -28,11 +29,17 @@ import static com.android.tools.idea.apk.dex.DexFiles.getDexFile;
 public class DexParser {
   private final ListeningExecutorService myExecutor;
   private final Future<DexBackedDexFile> myDexFileFuture;
+  @Nullable private final ProguardMappings myProguardMappings;
+  private final boolean myDeobfuscateNames;
 
   public DexParser(@NotNull ListeningExecutorService executorService,
-                   @NotNull VirtualFile file) {
+                   @NotNull VirtualFile file,
+                   @Nullable ProguardMappings proguardMappings,
+                   boolean deobfuscateNames) {
     myExecutor = executorService;
     myDexFileFuture = myExecutor.submit(() -> getDexFile(file));
+    myProguardMappings = proguardMappings;
+    myDeobfuscateNames = deobfuscateNames;
   }
 
   public ListenableFuture<PackageTreeNode> constructMethodRefCountTree() {
@@ -52,12 +59,7 @@ public class DexParser {
     catch (Exception e) {
       return new PackageTreeNode(e.toString(), PackageTreeNode.NodeType.PACKAGE, null);
     }
-    PackageTreeCreator treeCreator = new PackageTreeCreator();
+    PackageTreeCreator treeCreator = new PackageTreeCreator(myProguardMappings, myDeobfuscateNames);
     return treeCreator.constructPackageTree(dexFile);
   }
-
-
-
-
-
 }

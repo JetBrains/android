@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
+import com.android.tools.proguard.ProguardMap;
+import com.android.tools.proguard.ProguardSeedsMap;
+import com.android.tools.proguard.ProguardUsagesMap;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +30,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.ParseException;
 
 import static com.android.tools.idea.apk.dex.DexFiles.getDexFile;
 import static org.junit.Assert.assertEquals;
@@ -36,7 +40,7 @@ public class FilteredTreeModelTest {
   @Test
   public void fieldsAndMethodReferenceTree() throws IOException {
     DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
-    PackageTreeNode packageTreeNode = new PackageTreeCreator().constructPackageTree(dexFile);
+    PackageTreeNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
     FilteredTreeModel filteredTreeModel = new FilteredTreeModel(new DefaultTreeModel(packageTreeNode));
     FilteredTreeModel.FilterOptions options = filteredTreeModel.getFilterOptions();
     options.setShowFields(true);
@@ -133,7 +137,7 @@ public class FilteredTreeModelTest {
   @Test
   public void fieldsOnlyReferenceTree() throws IOException {
     DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
-    PackageTreeNode packageTreeNode = new PackageTreeCreator().constructPackageTree(dexFile);
+    PackageTreeNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
     FilteredTreeModel filteredTreeModel = new FilteredTreeModel(new DefaultTreeModel(packageTreeNode));
     FilteredTreeModel.FilterOptions options = filteredTreeModel.getFilterOptions();
     options.setShowFields(true);
@@ -197,7 +201,7 @@ public class FilteredTreeModelTest {
   @Test
   public void definedOnlyReferenceTree() throws IOException {
     DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
-    PackageTreeNode packageTreeNode = new PackageTreeCreator().constructPackageTree(dexFile);
+    PackageTreeNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
     FilteredTreeModel filteredTreeModel = new FilteredTreeModel(new DefaultTreeModel(packageTreeNode));
     FilteredTreeModel.FilterOptions options = filteredTreeModel.getFilterOptions();
     options.setShowFields(true);
@@ -276,7 +280,7 @@ public class FilteredTreeModelTest {
   @Test
   public void methodsOnlyReferenceTree() throws IOException {
     DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
-    PackageTreeNode packageTreeNode = new PackageTreeCreator().constructPackageTree(dexFile);
+    PackageTreeNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
     FilteredTreeModel filteredTreeModel = new FilteredTreeModel(new DefaultTreeModel(packageTreeNode));
     FilteredTreeModel.FilterOptions options = filteredTreeModel.getFilterOptions();
     options.setShowFields(false);
@@ -346,6 +350,130 @@ public class FilteredTreeModelTest {
                  "        void <init>(): 0,1\n" +
                  "        void onCreate(android.os.Bundle): 0,1\n", sb.toString());
   }
+
+  @Test
+  public void removedNodesReferenceTree() throws IOException, ParseException {
+    DexBackedDexFile dexFile = getTestDexFile("Test3.dex");
+
+    Path mapPath = Paths.get(AndroidTestBase.getTestDataPath(), "apk/Test3_mapping.txt");
+    ProguardMap map = new ProguardMap();
+    map.readFromReader(Files.newBufferedReader(mapPath));
+
+    mapPath = Paths.get(AndroidTestBase.getTestDataPath(), "apk/Test3_seeds.txt");
+    ProguardSeedsMap seedsMap = ProguardSeedsMap.parse(Files.newBufferedReader(mapPath));
+
+    mapPath = Paths.get(AndroidTestBase.getTestDataPath(), "apk/Test3_usage.txt");
+    ProguardUsagesMap usageMap = ProguardUsagesMap.parse(Files.newBufferedReader(mapPath));
+
+
+    ProguardMappings proguardMappings = new ProguardMappings(map, seedsMap, usageMap);
+    PackageTreeNode packageTreeNode = new PackageTreeCreator(proguardMappings, true).constructPackageTree(dexFile);
+    FilteredTreeModel filteredTreeModel = new FilteredTreeModel(new DefaultTreeModel(packageTreeNode));
+    FilteredTreeModel.FilterOptions options = filteredTreeModel.getFilterOptions();
+    options.setShowFields(true);
+    options.setShowMethods(true);
+    options.setShowReferencedNodes(true);
+    options.setShowRemovedNodes(false);
+
+    StringBuffer sb = new StringBuffer(100);
+    dumpTree(sb, filteredTreeModel, packageTreeNode, 0);
+    assertEquals("root: 9,14\n" +
+                 "  com: 9,9\n" +
+                 "    example: 9,9\n" +
+                 "      MyAbstractClas: 3,3\n" +
+                 "        void <init>(): 1,1\n" +
+                 "        com.example.MyAbstractClas getInstance(): 1,1\n" +
+                 "        void publicMethod(): 1,1\n" +
+                 "      MainActivity: 2,2\n" +
+                 "        void <init>(): 1,1\n" +
+                 "        void onCreate(android.os.Bundle): 1,1\n" +
+                 "      MyClass: 2,2\n" +
+                 "        void <init>(): 1,1\n" +
+                 "        void method(): 1,1\n" +
+                 "        int publicIntField: 0,0\n" +
+                 "        java.lang.String publicStringField: 0,0\n" +
+                 "        com.example.MyClass anon: 0,0\n" +
+                 "        int privateIntField: 0,0\n" +
+                 "        com.example.MyAbstractClas initializedField: 0,0\n" +
+                 "      MyClass$1: 1,1\n" +
+                 "        void <init>(com.example.MyClass): 1,1\n" +
+                 "        com.example.MyClass this$0: 0,0\n" +
+                 "      MyAbstractClas$1: 1,1\n" +
+                 "        void <init>(): 1,1\n" +
+                 "  java: 0,3\n" +
+                 "    io: 0,2\n" +
+                 "      PrintStream: 0,2\n" +
+                 "        void println(int): 0,1\n" +
+                 "        void println(java.lang.String): 0,1\n" +
+                 "    lang: 0,1\n" +
+                 "      Object: 0,1\n" +
+                 "        void <init>(): 0,1\n" +
+                 "      System: 0,0\n" +
+                 "        java.io.PrintStream out: 0,0\n" +
+                 "  android: 0,2\n" +
+                 "    app: 0,2\n" +
+                 "      Activity: 0,2\n" +
+                 "        void <init>(): 0,1\n" +
+                 "        void onCreate(android.os.Bundle): 0,1\n", sb.toString());
+
+    options.setShowRemovedNodes(true);
+    sb.setLength(0);
+    dumpTree(sb, filteredTreeModel, packageTreeNode, 0);
+    assertEquals("root: 9,14\n" +
+                 "  com: 9,9\n" +
+                 "    example: 9,9\n" +
+                 "      MyAbstractClas: 3,3\n" +
+                 "        void <init>(): 1,1\n" +
+                 "        com.example.MyAbstractClas getInstance(): 1,1\n" +
+                 "        void publicMethod(): 1,1\n" +
+                 "        void abstractMethod(int,java.lang.String): 0,0\n" +
+                 "        com.example.MyAbstractClas anotherAbstract(com.example.MyClass): 0,0\n" +
+                 "        void privateMethod(): 0,0\n" +
+                 "      MainActivity: 2,2\n" +
+                 "        void <init>(): 1,1\n" +
+                 "        void onCreate(android.os.Bundle): 1,1\n" +
+                 "      MyClass: 2,2\n" +
+                 "        void <init>(): 1,1\n" +
+                 "        void method(): 1,1\n" +
+                 "        int publicIntField: 0,0\n" +
+                 "        java.lang.String publicStringField: 0,0\n" +
+                 "        com.example.MyClass anon: 0,0\n" +
+                 "        int privateIntField: 0,0\n" +
+                 "        com.example.MyAbstractClas initializedField: 0,0\n" +
+                 "        privateString: 0,0\n" +
+                 "      MyClass$1: 1,1\n" +
+                 "        void <init>(com.example.MyClass): 1,1\n" +
+                 "        com.example.MyClass this$0: 0,0\n" +
+                 "      MyAbstractClas$1: 1,1\n" +
+                 "        void <init>(): 1,1\n" +
+                 "        void abstractMethod(int,java.lang.String): 0,0\n" +
+                 "        com.example.MyAbstractClas anotherAbstract(com.example.MyClass): 0,0\n" +
+                 "      MyClass$NonStaticInnerClass: 0,0\n" +
+                 "      R$color: 0,0\n" +
+                 "      R$mipmap: 0,0\n" +
+                 "      BuildConfig: 0,0\n" +
+                 "      R$attr: 0,0\n" +
+                 "      R$string: 0,0\n" +
+                 "      MyClass$StaticClass: 0,0\n" +
+                 "      R: 0,0\n" +
+                 "      MyClass$StaticClass$InnerClass: 0,0\n" +
+                 "  java: 0,3\n" +
+                 "    io: 0,2\n" +
+                 "      PrintStream: 0,2\n" +
+                 "        void println(int): 0,1\n" +
+                 "        void println(java.lang.String): 0,1\n" +
+                 "    lang: 0,1\n" +
+                 "      Object: 0,1\n" +
+                 "        void <init>(): 0,1\n" +
+                 "      System: 0,0\n" +
+                 "        java.io.PrintStream out: 0,0\n" +
+                 "  android: 0,2\n" +
+                 "    app: 0,2\n" +
+                 "      Activity: 0,2\n" +
+                 "        void <init>(): 0,1\n" +
+                 "        void onCreate(android.os.Bundle): 0,1\n", sb.toString());
+  }
+
 
 
   @NotNull

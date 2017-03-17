@@ -136,6 +136,7 @@ public class FilteredTreeModel implements TreeModel {
     private boolean myShowMethods = true;
     private boolean myShowFields = true;
     private boolean myShowReferencedNodes = true;
+    private boolean myShowRemovedNodes = false;
 
     private FilterOptions(){
     }
@@ -156,10 +157,16 @@ public class FilteredTreeModel implements TreeModel {
       FilteredTreeModel.this.reload();
     }
 
+    public void setShowRemovedNodes(boolean showRemovedNodes) {
+      myShowRemovedNodes = showRemovedNodes;
+      FilteredTreeModel.this.reload();
+    }
+
     public boolean matches(PackageTreeNode node){
       return (myFilterOptions.myShowFields || !node.getNodeType().equals(PackageTreeNode.NodeType.FIELD))
              && (myFilterOptions.myShowMethods || !node.getNodeType().equals(PackageTreeNode.NodeType.METHOD))
-             && (myFilterOptions.myShowReferencedNodes || node.hasClassDefinition());
+             && (myFilterOptions.myShowReferencedNodes || node.hasClassDefinition())
+             && (myFilterOptions.myShowRemovedNodes || !node.isRemoved());
     }
 
     public boolean isShowMethods() {
@@ -174,5 +181,8 @@ public class FilteredTreeModel implements TreeModel {
       return myShowReferencedNodes;
     }
 
+    public boolean isShowRemovedNodes() {
+      return myShowRemovedNodes;
+    }
   }
 }
