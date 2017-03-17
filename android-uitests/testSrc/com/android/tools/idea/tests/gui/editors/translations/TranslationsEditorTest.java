@@ -314,6 +314,7 @@ public final class TranslationsEditorTest {
     assertEquals(expected, myTranslationsEditor.keys());
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void keyColumnWidthDoesntResetWhenAddingKey() {
     TableColumnModel model = myTranslationsEditor.getTable().target().getColumnModel();
@@ -330,6 +331,7 @@ public final class TranslationsEditorTest {
     assertEquals(width, (long)GuiQuery.getNonNull(() -> model.getColumn(KEY_COLUMN).getPreferredWidth()));
   }
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void enteringTextInDefaultValueTextFieldUpdatesTableCell() {
     JTableFixture table = myTranslationsEditor.getTable();
