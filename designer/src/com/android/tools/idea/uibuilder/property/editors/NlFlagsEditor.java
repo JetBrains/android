@@ -24,6 +24,7 @@ import com.intellij.ide.ui.laf.darcula.ui.DarculaTextFieldUI;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,8 +61,8 @@ public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentE
     myValue = new CustomTextField();
     myValue.setEditable(false);
     myValue.setFocusable(true);
-    myPanel = new JPanel(new BorderLayout(HORIZONTAL_COMPONENT_GAP, 0));
-    myPanel.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, 0, VERTICAL_SPACING, 0));
+    myPanel = new JPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
+    myPanel.setBorder(JBUI.Borders.empty(VERTICAL_SPACING, HORIZONTAL_SPACING, VERTICAL_SPACING, 0));
     myPanel.add(myValue, BorderLayout.CENTER);
     myPanel.add(button, BorderLayout.LINE_END);
     myValue.addActionListener(event -> displayFlagEditor());
