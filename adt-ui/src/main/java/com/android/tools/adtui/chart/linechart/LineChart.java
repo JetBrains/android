@@ -155,11 +155,10 @@ public class LineChart extends AnimatedComponent {
 
   private void redraw() {
     long duration = System.nanoTime();
-    int p = 0;
 
-    // Store the Y coordinates of the last stacked series to use them to increment the Y values
+    // Store the last stacked series to use them to increment the Y values
     // of the current stacked series.
-    TDoubleArrayList lastStackedSeriesY = null;
+    List<SeriesData<Long>> lastStackedSeries = null;
 
     Deque<Path2D> orderedPaths = new ArrayDeque<>(myLinesConfig.size());
     Deque<LineConfig> orderedConfigs = new ArrayDeque<>(myLinesConfig.size());
@@ -169,10 +168,28 @@ public class LineChart extends AnimatedComponent {
           || ranged.getYRange().isEmpty() || ranged.getYRange().isPoint()) {
         continue;
       }
-
       final LineConfig config = getLineConfig(ranged);
-      // Stores the y coordinates of the current series in case it's used as a stacked series
-      final TDoubleArrayList currentSeriesY = new TDoubleArrayList();
+
+      List<SeriesData<Long>> seriesList = ranged.getSeries();
+      if (config.isStacked()) {
+        if (lastStackedSeries == null) {
+          lastStackedSeries = new ArrayList<>(seriesList);
+        } else {
+          // If the current series is stacked, increment its value by the value of the last stacked
+          // series.
+          // As the series are constantly populated, the current series might have one more
+          // point than the last stacked series (meaning that the last one was populated in a
+          // prior iteration). In this case, value of the current series shouldn't change.
+          for (int i = 0; i < seriesList.size(); ++i) {
+            if (i < lastStackedSeries.size()) {
+              lastStackedSeries.get(i).value += seriesList.get(i).value;
+            } else {
+              lastStackedSeries.add(seriesList.get(i));
+            }
+          }
+          seriesList = lastStackedSeries.subList(0, seriesList.size());
+        }
+      }
 
       Path2D path = new Path2D.Float();
       double xMin = ranged.getXRange().getMin();
@@ -182,31 +199,16 @@ public class LineChart extends AnimatedComponent {
 
       // X coordinate of the first point
       double firstXd = 0f;
-
-      List<SeriesData<Long>> seriesList = ranged.getSeries();
-      for (int i = 0; i < seriesList.size(); i++) {
+      for (SeriesData<Long> data: seriesList) {
         // TODO: refactor to allow different types (e.g. double)
-        SeriesData<Long> seriesData = seriesList.get(i);
-        long currX = seriesData.x;
-        long currY = seriesData.value;
+        long currX = data.x;
+        long currY = data.value;
         double xd = (currX - xMin) / xLength;
-        double yd = (currY - yMin) / yLength;
-
-        // If the current series is stacked, increment its yd by the yd of the last stacked
-        // series if it's not null.
-        // As the series are constantly populated, the current series might have one more
-        // point than the last stacked series (meaning that the last one was populated in a
-        // prior iteration). In this case, yd of the current series shouldn't change.
-        if (config.isStacked() && lastStackedSeriesY != null &&
-            i < lastStackedSeriesY.size()) {
-          yd += lastStackedSeriesY.get(i);
-        }
-        currentSeriesY.add(yd);
         // Swing's (0, 0) coordinate is in top-left. As we use bottom-left (0, 0), we need to adjust the y coordinate.
-        float adjustedYd = 1 - (float)yd;
+        double yd = 1 - (currY - yMin) / yLength;
 
-        if (i == 0) {
-          path.moveTo(xd, adjustedYd);
+        if (path.getCurrentPoint() == null) {
+          path.moveTo(xd, yd);
           firstXd = xd;
         }
         else {
@@ -217,19 +219,15 @@ public class LineChart extends AnimatedComponent {
             float y = (float)path.getCurrentPoint().getY();
             path.lineTo(xd, y);
           }
-          path.lineTo(xd, adjustedYd);
+          path.lineTo(xd, yd);
         }
       }
 
       if (config.isFilled() && path.getCurrentPoint() != null) {
-        // If the chart is filled, but not stacked, draw a line from the last point to X
+        // If the chart is filled, draw a line from the last point to X
         // axis and another one from this new point to the first destination point.
         path.lineTo(path.getCurrentPoint().getX(), 1f);
         path.lineTo(firstXd, 1f);
-      }
-
-      if (config.isStacked()) {
-        lastStackedSeriesY = currentSeriesY;
       }
 
       if (config.isFilled()) {
@@ -242,8 +240,6 @@ public class LineChart extends AnimatedComponent {
         orderedPaths.addLast(path);
         orderedConfigs.addLast(config);
       }
-
-      p++;
     }
 
     myLinePaths.clear();
