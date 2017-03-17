@@ -58,12 +58,13 @@ import static com.intellij.uiDesigner.core.GridConstraints.*;
 
 public class InspectorPanel extends JPanel implements KeyEventDispatcher {
   private static final int HORIZONTAL_SPACING = 6;
+  private static final int COLUMN_COUNT = 2;
 
   private final JComponent myAllPropertiesLink;
   private final NlInspectorProviders myProviders;
   private final NlDesignProperties myDesignProperties;
   private final Font myBoldLabelFont = UIUtil.getLabelFont().deriveFont(Font.BOLD);
-  private final JPanel myInspector;
+  private final GridInspectorPanel myInspector;
   private final SpeedSearchComparator myComparator;
   private final Map<Component, ExpandableGroup> mySource2GroupMap = new IdentityHashMap<>(4);
   private final Map<JLabel, ExpandableGroup> myLabel2GroupMap = new IdentityHashMap<>(4);
@@ -210,10 +211,11 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     return myComparator.matchingFragments(myFilter, text) != null;
   }
 
-  private static GridLayoutManager createLayoutManager(int rows, int columns) {
+  @NotNull
+  private static GridLayoutManager createLayoutManager(int rows) {
     Insets margin = new JBInsets(0, 0, 0, 0);
     // Hack: Use this constructor to get myMinCellSize = 0 which is not possible in the recommended constructor.
-    return new GridLayoutManager(rows, columns, margin, 0, 0);
+    return new GridLayoutManager(rows, COLUMN_COUNT, margin, 0, 0);
   }
 
   public void setComponent(@NotNull List<NlComponent> components,
@@ -251,7 +253,7 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
       rows += myInspectors.size(); // 1 row for each divider (including 1 after the last property)
       rows += 2; // 1 Line with a link to all properties + 1 row with a spacer on the bottom
 
-      myInspector.setLayout(createLayoutManager(rows, 2));
+      myInspector.setLayout(createLayoutManager(rows));
       for (InspectorComponent inspector : myInspectors) {
         addSeparator();
         inspector.attachToInspector(this);
@@ -267,7 +269,11 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
       addLineComponent(myAllPropertiesLink, myRow++);
     }
 
-    // These are both important to render the controls correctly the first time:
+    // Update the grid constraints after all components are added.
+    // This fixes a problem where the labels were rendered over the value fields.
+    // See http://b.android.com/235063
+    myInspector.updateGridConstraints();
+
     ApplicationManager.getApplication().invokeLater(() -> {
       if (!myFilter.isEmpty()) {
         applyFilter();
@@ -468,6 +474,12 @@ public class InspectorPanel extends JPanel implements KeyEventDispatcher {
     public void setLayout(LayoutManager layoutManager) {
       myWidth = -1;
       super.setLayout(layoutManager);
+    }
+
+    @Override
+    public void invalidate() {
+      myWidth = -1;
+      super.invalidate();
     }
 
     @Override
