@@ -109,7 +109,7 @@ iml_module(
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-integration/1.3:jar",
         "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
         "//tools/adt/idea/android/annotations",
-        "//tools/adt/idea/android/device-art-resources",
+        "//tools/adt/idea/android:device-art-resources",
         "//tools/adt/idea/android/lib/androidWidgets",
         "//tools/adt/idea/android/lib/libwebp",
         "//tools/adt/idea/android/testData",
@@ -176,4 +176,10 @@ iml_module(
         "//tools/adt/idea/wizard[module, test]",
         "//tools/idea/.idea/libraries:guava-testlib[test]",
     ],
+)
+
+filegroup(
+    name = "device-art-resources",
+    srcs = glob(["device-art-resources/**"]),
+    visibility = ["//visibility:public"],
 )
