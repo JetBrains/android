@@ -150,6 +150,11 @@ public class TemplateTest extends AndroidGradleTestCase {
     KNOWN_BROKEN.add("WatchFaceService");
     KNOWN_BROKEN.add("BlankWearActivity");
     KNOWN_BROKEN.add("GoogleMapsWearActivity");
+
+    // See http://b.android.com/253296
+    if (SystemInfo.isWindows) {
+      KNOWN_BROKEN.add("AidlFile");
+    }
   }
 
   /**
@@ -445,11 +450,6 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   public void testNewAidlFile() throws Exception {
-    // See http://b.android.com/253296
-    if (SystemInfo.isWindows) {
-      return;
-    }
-
     myApiSensitiveTemplate = false;
     checkCreateTemplate("other", "AidlFile");
   }
