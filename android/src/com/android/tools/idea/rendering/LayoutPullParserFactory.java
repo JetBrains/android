@@ -98,7 +98,9 @@ public class LayoutPullParserFactory {
       case XML:
         return isXmlWithRootTag(file, VALID_XML_TAGS);
       case FONT:
-        return isXmlWithRootTag(file, FONT_FAMILY_TAGS);
+        // Temporarily disabled until layoutlib font-family rendering is fixed http://b/36402602
+        //return isXmlWithRootTag(file, FONT_FAMILY_TAGS);
+        return false;
       default:
         return false;
     }
