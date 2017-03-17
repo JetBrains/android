@@ -20,8 +20,6 @@ import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.tools.idea.navigator.nodes.android.AndroidManifestsGroupNode;
 import com.android.tools.idea.navigator.nodes.apk.java.DexGroupNode;
 import com.android.tools.idea.navigator.nodes.apk.ndk.LibraryGroupNode;
-import com.android.tools.idea.navigator.nodes.apk.ndk.NdkGroupNode;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
@@ -29,7 +27,6 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -42,6 +39,7 @@ import java.util.*;
 
 import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
 import static com.android.SdkConstants.FN_APK_CLASSES_DEX;
+import static com.android.tools.idea.gradle.util.FilePaths.toSystemDependentPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -77,7 +75,7 @@ public class ApkModuleNode extends ProjectViewModuleNode {
 
   @Nullable
   private VirtualFile findModuleRootFolder() {
-    File moduleFilePath = new File(toSystemDependentName(getModule().getModuleFilePath()));
+    File moduleFilePath = toSystemDependentPath(getModule().getModuleFilePath());
     File modulePath = moduleFilePath.getParentFile();
     return findFileByIoFile(modulePath, false /* do not refresh file system */);
   }
@@ -123,12 +121,6 @@ public class ApkModuleNode extends ProjectViewModuleNode {
       children.add(new LibraryGroupNode(myProject, found, settings));
     }
 
-    // "cpp" folder
-    NdkGroupNode ndkGroupNode = createNdkGroupNode();
-    if (ndkGroupNode != null) {
-      children.add(ndkGroupNode);
-    }
-
     return children;
   }
 
@@ -137,27 +129,6 @@ public class ApkModuleNode extends ProjectViewModuleNode {
     assert myProject != null;
     Set<VirtualFile> manifestFiles = myManifestFile != null ? Collections.singleton(myManifestFile) : Collections.emptySet();
     return new AndroidManifestsGroupNode(myProject, myAndroidFacet, getSettings(), manifestFiles);
-  }
-
-  @VisibleForTesting
-  @Nullable
-  NdkGroupNode createNdkGroupNode() {
-    List<String> nativeSourcePaths = myApkFacet.getConfiguration().NATIVE_SOURCE_PATHS;
-    if (!nativeSourcePaths.isEmpty()) {
-      List<VirtualFile> nativeSources = new ArrayList<>();
-      LocalFileSystem fileSystem = LocalFileSystem.getInstance();
-      for (String path : nativeSourcePaths) {
-        VirtualFile nativeSource = fileSystem.findFileByPath(path);
-        if (nativeSource != null) {
-          nativeSources.add(nativeSource);
-        }
-      }
-
-      if (!nativeSources.isEmpty()) {
-        return new NdkGroupNode(myProject, nativeSources, getSettings());
-      }
-    }
-    return null;
   }
 
   @Override

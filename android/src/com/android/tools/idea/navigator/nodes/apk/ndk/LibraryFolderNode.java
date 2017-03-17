@@ -15,20 +15,23 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.ndk;
 
+import com.android.tools.idea.apk.ApkFacet;
+import com.android.tools.idea.apk.NativeLibrary;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
+import static com.android.SdkConstants.EXT_NATIVE_LIB;
 import static com.intellij.icons.AllIcons.Nodes.Folder;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
@@ -44,14 +47,28 @@ public class LibraryFolderNode extends ProjectViewNode<VirtualFile> {
   @NotNull
   public Collection<? extends AbstractTreeNode> getChildren() {
     assert myProject != null;
+    Map<String, NativeLibrary> librariesByPath = new HashMap<>();
+
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      ApkFacet facet = ApkFacet.getInstance(module);
+      if (facet != null) {
+        for (NativeLibrary library : facet.getConfiguration().NATIVE_LIBRARIES) {
+          librariesByPath.put(library.getFilePath(), library);
+        }
+      }
+    }
+
     List<AbstractTreeNode> children = new ArrayList<>();
     ViewSettings settings = getSettings();
     for (VirtualFile child : myFolder.getChildren()) {
       if (child.isDirectory()) {
         children.add(new LibraryFolderNode(myProject, child, settings));
       }
-      else if ("so".equals(child.getExtension())) {
-        children.add(new LibraryNode(myProject, child, settings));
+      else if (EXT_NATIVE_LIB.equals(child.getExtension())) {
+        NativeLibrary library = librariesByPath.get(child.getPath());
+        if (library != null) {
+          children.add(new LibraryNode(myProject, library, child.getName(), settings));
+        }
       }
     }
 
