@@ -22,10 +22,12 @@ import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.ResourceHelper;
+import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
@@ -36,9 +38,11 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import java.util.EnumSet;
 import java.util.Set;
 
 import static com.android.SdkConstants.*;
+import static com.android.ide.common.rendering.api.SessionParams.RenderingMode.FULL_EXPAND;
 import static com.android.ide.common.rendering.api.SessionParams.RenderingMode.V_SCROLL;
 
 /**
@@ -50,6 +54,10 @@ public class LayoutPullParserFactory {
 
   private static final String[] VALID_XML_TAGS = {TAG_APPWIDGET_PROVIDER, TAG_PREFERENCE_SCREEN};
   private static final String[] ADAPTIVE_ICON_TAGS =  {TAG_ADAPTIVE_ICON, TAG_MASKABLE_ICON};
+  private static final String[] FONT_FAMILY_TAGS = {TAG_FONT_FAMILY};
+
+  private static final EnumSet<ResourceFolderType> FOLDER_NEEDS_READ_ACCESS =
+    EnumSet.of(ResourceFolderType.DRAWABLE, ResourceFolderType.MENU, ResourceFolderType.XML, ResourceFolderType.FONT);
 
   /**
    * Returns whether the passed file is an {@link XmlFile} and starts with any of the given rootTags
@@ -89,6 +97,8 @@ public class LayoutPullParserFactory {
         return isXmlWithRootTag(file, ADAPTIVE_ICON_TAGS);
       case XML:
         return isXmlWithRootTag(file, VALID_XML_TAGS);
+      case FONT:
+        return isXmlWithRootTag(file, FONT_FAMILY_TAGS);
       default:
         return false;
     }
@@ -101,7 +111,7 @@ public class LayoutPullParserFactory {
       return null;
     }
 
-    if ((folderType == ResourceFolderType.DRAWABLE || folderType == ResourceFolderType.MENU || folderType == ResourceFolderType.XML)
+    if (FOLDER_NEEDS_READ_ACCESS.contains(folderType)
         && !ApplicationManager.getApplication().isReadAccessAllowed()) {
       return ApplicationManager.getApplication().runReadAction((Computable<ILayoutPullParser>)() -> create(renderTask));
     }
@@ -149,6 +159,10 @@ public class LayoutPullParserFactory {
         return null;
 
       }
+      case FONT:
+        renderTask.setDecorations(false);
+        renderTask.setRenderingMode(FULL_EXPAND);
+        return createFontFamilyParser(file);
       default:
         // Should have been prevented by isSupported(PsiFile)
         assert false : folderType;
@@ -222,6 +236,42 @@ public class LayoutPullParserFactory {
     if (DEBUG) {
       //noinspection UseOfSystemOutOrSystemErr
       System.out.println(XmlPrettyPrinter.prettyPrint(document, true));
+    }
+
+    return new DomPullParser(document.getDocumentElement());
+  }
+
+  @Nullable
+  private static ILayoutPullParser createFontFamilyParser(XmlFile file) {
+    XmlTag rootTag = file.getRootTag();
+
+    if (rootTag == null || !TAG_FONT_FAMILY.equals(rootTag.getName())) {
+      return null;
+    }
+
+    Document document = DomPullParser.createEmptyPlainDocument();
+    assert document != null;
+    Element rootLayout = addRootElement(document, LINEAR_LAYOUT);
+    setAndroidAttr(rootLayout, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT);
+    setAndroidAttr(rootLayout, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
+    setAndroidAttr(rootLayout, ATTR_ORIENTATION, VALUE_VERTICAL);
+
+    String loremText = new LoremGenerator().generate(5, true);
+    String fontRefName = PREFIX_RESOURCE_REF + ResourceHelper.getFolderType(file).getName() + "/" + ResourceHelper.getResourceName(file);
+    for (XmlTag fontTag : rootTag.getSubTags()) {
+      Element fontElement = document.createElement(TEXT_VIEW);
+      setAndroidAttr(fontElement, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
+      setAndroidAttr(fontElement, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
+      setAndroidAttr(fontElement, ATTR_TEXT, loremText);
+      setAndroidAttr(fontElement, ATTR_FONT_FAMILY, fontRefName);
+      setAndroidAttr(fontElement, ATTR_TEXT_SIZE, "40sp");
+
+      String fontStyle = fontTag.getAttributeValue("fontStyle",ANDROID_URI);
+      if (StringUtil.isNotEmpty(fontStyle)) {
+        setAndroidAttr(fontElement, ATTR_TEXT_STYLE, fontStyle);
+      }
+
+      rootLayout.appendChild(fontElement);
     }
 
     return new DomPullParser(document.getDocumentElement());
