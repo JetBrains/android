@@ -383,7 +383,10 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
             PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myModule.getProject(), file);
             if (psiFile instanceof XmlFile) {
               assert myLogger != null;
-              LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
+
+              // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
+              // layout so we already have a parent.
+              LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger, false);
               parser.setUseSrcCompat(myHasAppCompat);
               if (parentName.startsWith(FD_RES_LAYOUT)) {
                 // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
