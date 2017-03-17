@@ -164,7 +164,7 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
       }
     });
 
-    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Updating SDK", false, null);
+    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Updating SDK", null);
     sdkHandler.getSdkManager(repoProgress)
       .load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), null, runner, new StudioDownloader(),
             StudioSettingsController.getInstance(), false);

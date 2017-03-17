@@ -29,6 +29,8 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -70,22 +72,23 @@ public class InstallNdkHyperlink extends NotificationHyperlink {
     StudioLoggerProgressIndicator progressIndicator = new StudioLoggerProgressIndicator(getClass());
     RepoManager sdkManager = sdkHandler.getSdkManager(progressIndicator);
 
-    StudioProgressRunner progressRunner = new StudioProgressRunner(false /* non-modal */, true /* backgroundable */,
-                                                                   false /* cancellable */, "Loading Remote SDK", true /* in UI thread */,
-                                                                   project);
-    RepoManager.RepoLoadedCallback onComplete = packages -> {
-      Map<String, RemotePackage> remotePackages = packages.getRemotePackages();
-      RemotePackage ndkPackage = remotePackages.get(FD_NDK);
-      if (ndkPackage != null) {
-        ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(ndkPackage.getPath()));
-        if (dialog != null && dialog.showAndGet()) {
-          GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+    StudioProgressRunner progressRunner = new StudioProgressRunner(false, true, false, "Loading Remote SDK", project);
+    RepoManager.RepoLoadedCallback onComplete = packages ->
+      ApplicationManager.getApplication().invokeLater(() -> {
+        Map<String, RemotePackage> remotePackages = packages.getRemotePackages();
+        RemotePackage ndkPackage = remotePackages.get(FD_NDK);
+        if (ndkPackage != null) {
+          ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(ndkPackage.getPath()));
+          if (dialog != null && dialog.showAndGet()) {
+            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+          }
+          return;
         }
-        return;
-      }
-      notifyNdkPackageNotFound(project);
-    };
-    Runnable onError = () -> notifyNdkPackageNotFound(project);
+        notifyNdkPackageNotFound(project);
+      }, ModalityState.any());
+    Runnable onError = () -> ApplicationManager.getApplication().invokeLater(
+      () -> notifyNdkPackageNotFound(project),
+      ModalityState.any());
     sdkManager.load(DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), ImmutableList.of(onError), progressRunner,
                     new StudioDownloader(), StudioSettingsController.getInstance(), false);
   }
