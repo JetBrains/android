@@ -91,9 +91,9 @@ public class CpuCapture implements DurationData {
     myMainThreadId = main.getKey().getId();
 
     // Set clock type
-    HNode<MethodModel> mainNode = getCaptureNode(myMainThreadId);
-    assert mainNode != null && mainNode instanceof CaptureNode;
-    myClockType = ((CaptureNode)mainNode).getClockType();
+    CaptureNode mainNode = getCaptureNode(myMainThreadId);
+    assert mainNode != null;
+    myClockType = mainNode.getClockType();
   }
 
   public int getMainThreadId() {
@@ -106,7 +106,7 @@ public class CpuCapture implements DurationData {
   }
 
   @Nullable
-  public HNode<MethodModel> getCaptureNode(int threadId) {
+  public CaptureNode getCaptureNode(int threadId) {
     for (Map.Entry<ThreadInfo, CaptureNode> entry : myCaptureTrees.entrySet()) {
       if (entry.getKey().getId() == threadId) {
         return entry.getValue();

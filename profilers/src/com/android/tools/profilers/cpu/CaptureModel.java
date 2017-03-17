@@ -28,6 +28,9 @@ import java.util.function.BiFunction;
  * When a state changes, this class lets all view know about the changes they're interested in.
  */
 class CaptureModel {
+  // A negligible number. It is used for comparision.
+  private static final double EPSILON = 1e-5;
+
   @NotNull
   private final CpuProfilerStage myStage;
 
@@ -46,13 +49,6 @@ class CaptureModel {
    * Reference to a selection range converted to ClockType.THREAD.
    */
   private final Range myCaptureConvertedRange;
-
-  /**
-   * Whether selection range update was triggered by an update in the converted range.
-   * Converted range updates selection range and vice-versa. To avoid stack overflow,
-   * we avoid updating the converted range in a loop.
-   */
-  private boolean myIsConvertedRangeUpdatingSelection;
 
   CaptureModel(@NotNull CpuProfilerStage stage) {
     myStage = stage;
@@ -151,27 +147,20 @@ class CaptureModel {
    * Therefore, we scale the selection so we can provide relevant thread time data as the user changes selection.
    */
   private void updateCaptureConvertedRange() {
-    if (myIsConvertedRangeUpdatingSelection) {
-      myIsConvertedRangeUpdatingSelection = false;
-      return;
-    }
-    myIsConvertedRangeUpdatingSelection = true;
-
     // TODO: improve performance of select range conversion.
     Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
-    HNode<MethodModel> topLevelNode;
     ClockType clockType = getClockType();
     CpuCapture capture = getCapture();
-    if (clockType == ClockType.GLOBAL || capture == null || (topLevelNode = capture.getCaptureNode(getThread())) == null) {
-      myCaptureConvertedRange.set(selection);
+    CaptureNode node;
+    if (clockType == ClockType.GLOBAL || capture == null || (node = capture.getCaptureNode(getThread())) == null) {
+      setConvertedRange(selection.getMin(), selection.getMax());
       return;
     }
-    assert topLevelNode instanceof CaptureNode;
-    CaptureNode node = (CaptureNode)topLevelNode;
 
     double convertedMin = node.getStartThread() + node.threadGlobalRatio() * (selection.getMin() - node.getStartGlobal());
     double convertedMax = convertedMin + node.threadGlobalRatio() * selection.getLength();
-    myCaptureConvertedRange.set(convertedMin, convertedMax);
+
+    setConvertedRange(convertedMin, convertedMax);
   }
 
   /**
@@ -179,20 +168,42 @@ class CaptureModel {
    */
   private void updateSelectionRange() {
     // TODO: improve performance of range conversion.
-    HNode<MethodModel> topLevelNode;
     ClockType clockType = getClockType();
     CpuCapture capture = getCapture();
-    if (clockType == ClockType.GLOBAL || capture == null || (topLevelNode = capture.getCaptureNode(getThread())) == null) {
-      myStage.getStudioProfilers().getTimeline().getSelectionRange().set(myCaptureConvertedRange);
+    CaptureNode node;
+    if (clockType == ClockType.GLOBAL || capture == null || (node = capture.getCaptureNode(getThread())) == null) {
+      setSelectionRange(myCaptureConvertedRange.getMin(), myCaptureConvertedRange.getMax());
       return;
     }
-    assert topLevelNode instanceof CaptureNode;
-    CaptureNode node = (CaptureNode)topLevelNode;
-
     double threadToGlobal = 1 / node.threadGlobalRatio();
     double convertedMin = node.getStartGlobal() + threadToGlobal * (myCaptureConvertedRange.getMin() - node.getStartThread());
     double convertedMax = convertedMin + threadToGlobal * myCaptureConvertedRange.getLength();
-    myStage.getStudioProfilers().getTimeline().getSelectionRange().set(convertedMin, convertedMax);
+    setSelectionRange(convertedMin, convertedMax);
+  }
+
+  /**
+   * Converted range updates selection range and vice-versa.
+   *
+   * If it's almost identical to the selection range, don't update it.
+   * This prevents from updating each other in a loop.
+   */
+  private void setSelectionRange(double min, double max) {
+    Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    if (Math.abs(selection.getMin() - min) > EPSILON || Math.abs(selection.getMax() - max) > EPSILON) {
+      selection.set(min, max);
+    }
+  }
+
+  /**
+   * Converted range updates selection range and vice-versa.
+   *
+   * If it's almost identical to the range, don't update it.
+   * This prevents from updating each other in a loop.
+   */
+  private void setConvertedRange(double min, double max) {
+    if (Math.abs(myCaptureConvertedRange.getMin() - min) > EPSILON || Math.abs(myCaptureConvertedRange.getMax() - max) > EPSILON) {
+      myCaptureConvertedRange.set(min, max);
+    }
   }
 
   public interface Details {
