@@ -31,6 +31,7 @@ import com.intellij.codeInsight.lookup.LookupEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -50,6 +51,7 @@ import static com.android.tools.idea.uibuilder.api.ViewEditor.resolveDimensionPi
 
 public class NlReferenceEditor extends NlBaseComponentEditor implements NlComponentEditor {
   private static final int MIN_TEXT_WIDTH = 50;
+  private static final int HORIZONTAL_SPACE_AFTER_LABEL = 4;
 
   private final JPanel myPanel;
   private final JLabel myIconLabel;
@@ -98,7 +100,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
                               boolean includeBorder,
                               boolean includeSliderSupport) {
     super(listener);
-    myPanel = new JPanel(new BorderLayout(HORIZONTAL_COMPONENT_GAP, 0));
+    myPanel = new JPanel(new BorderLayout());
 
     myIconLabel = new JBLabel();
     myPanel.add(myIconLabel, BorderLayout.LINE_START);
@@ -108,6 +110,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
         displayResourcePicker();
       }
     });
+    myIconLabel.setBorder(JBUI.Borders.emptyRight(HORIZONTAL_SPACE_AFTER_LABEL));
 
     mySlider = new SliderWithTimeDelay();
     myPanel.add(mySlider, BorderLayout.LINE_START);
@@ -118,12 +121,13 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     mySlider.setVisible(includeSliderSupport);
 
     //noinspection UseDPIAwareInsets
-    myTextEditorWithAutoCompletion = TextEditorWithAutoCompletion.create(project, new Insets(VERTICAL_SPACING + VERTICAL_PADDING,
-                                                                                             HORIZONTAL_PADDING,
-                                                                                             VERTICAL_SPACING + VERTICAL_PADDING,
-                                                                                             HORIZONTAL_PADDING));
+    myTextEditorWithAutoCompletion = TextEditorWithAutoCompletion.create(project, JBUI.insets(VERTICAL_SPACING + VERTICAL_PADDING,
+                                                                                              HORIZONTAL_PADDING,
+                                                                                              VERTICAL_SPACING + VERTICAL_PADDING,
+                                                                                              HORIZONTAL_PADDING));
     if (includeBorder) {
-      myTextEditorWithAutoCompletion.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, 0, VERTICAL_SPACING, 0));
+      myTextEditorWithAutoCompletion.setBorder(JBUI.Borders.empty(VERTICAL_SPACING, 0));
+      myPanel.setBorder(JBUI.Borders.emptyLeft(HORIZONTAL_SPACING));
     }
 
     myTextEditorWithAutoCompletion.addLookupListener(new LookupAdapter() {
@@ -137,6 +141,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     myIsInspector = (browsePanel == null);
     myPanel.add(myTextEditorWithAutoCompletion, BorderLayout.CENTER);
     if (browsePanel != null) {
+      myBrowsePanel.setBorder(JBUI.Borders.emptyLeft(HORIZONTAL_COMPONENT_GAP));
       myPanel.add(myBrowsePanel, BorderLayout.LINE_END);
     }
     myPanel.addComponentListener(new ComponentAdapter() {
@@ -248,7 +253,8 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
       else {
         myPanel.remove(mySlider);
         myPanel.add(myIconLabel, BorderLayout.LINE_START);
-        Icon icon = NlDefaultRenderer.getIcon(myProperty);
+        int iconSize = myTextEditorWithAutoCompletion.getHeight() - 4 * JBUI.scale(VERTICAL_SPACING);
+        Icon icon = NlDefaultRenderer.getIcon(myProperty, iconSize);
         myIconLabel.setIcon(icon);
         myIconLabel.setVisible(icon != null);
         myIconLabel.setToolTipText("Pick a Resource");
@@ -272,7 +278,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
     if (myPropertyHasSlider) {
       int widthBrowsePanel = myBrowsePanel != null ? myBrowsePanel.getPreferredSize().width : 0;
       int widthForEditor = myPanel.getWidth() - mySlider.getPreferredSize().width - widthBrowsePanel;
-      mySlider.setVisible(widthForEditor >= MIN_TEXT_WIDTH);
+      mySlider.setVisible(widthForEditor >= JBUI.scale(MIN_TEXT_WIDTH));
     }
   }
 
