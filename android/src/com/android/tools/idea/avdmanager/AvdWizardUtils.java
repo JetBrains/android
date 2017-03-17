@@ -405,6 +405,7 @@ public class AvdWizardUtils {
     ModelWizard wizard = wizardBuilder.build();
     StudioWizardDialogBuilder builder = new StudioWizardDialogBuilder(wizard, "Virtual Device Configuration", parent);
     builder.setMinimumSize(AVD_WIZARD_SIZE);
+    builder.setPreferredSize(AVD_WIZARD_SIZE);
     return builder.setHelpUrl(WizardUtils.toUrl(AVD_WIZARD_HELP_URL)).build();
   }
 
