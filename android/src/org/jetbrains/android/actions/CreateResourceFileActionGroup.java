@@ -80,6 +80,8 @@ public class CreateResourceFileActionGroup extends DefaultActionGroup {
       }
     });
 
+    a.add(new CreateTypedResourceFileAction(ResourceType.FONT.getDisplayName(), ResourceFolderType.FONT, false, false));
+
     myMajorAction = a;
     add(a);
     for (CreateTypedResourceFileAction subaction : a.getSubactions()) {
