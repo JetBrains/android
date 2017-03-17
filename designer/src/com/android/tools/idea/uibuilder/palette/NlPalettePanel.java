@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.splitter.ComponentsSplitter;
+import com.android.tools.adtui.workbench.StartFilteringListener;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
@@ -144,7 +145,7 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
   }
 
   @Override
-  public void registerCloseAutoHideWindow(@NotNull Runnable runnable) {
+  public void setCloseAutoHideWindow(@NotNull Runnable runnable) {
     myCloseAutoHideCallback = runnable;
   }
 
@@ -156,6 +157,11 @@ public class NlPalettePanel extends JPanel implements Disposable, DataProvider, 
   @Override
   public void setFilter(@NotNull String filter) {
     myPalettePanel.setFilter(filter);
+  }
+
+  @Override
+  public void setStartFiltering(@NotNull StartFilteringListener listener) {
+    myPalettePanel.setStartFiltering(listener);
   }
 
   @Override
