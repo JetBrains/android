@@ -275,7 +275,13 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                              "Add Vertical Guideline"),
         new AddElementAction(AddElementAction.HORIZONTAL_GUIDELINE,
                              AndroidIcons.SherpaIcons.GuidelineHorizontal,
-                             "Add Horizontal Guideline")
+                             "Add Horizontal Guideline"),
+        new AddElementAction(AddElementAction.VERTICAL_BARRIER,
+                             AndroidIcons.SherpaIcons.BarrierVertical,
+                             "Add Vertical Barrier"),
+        new AddElementAction(AddElementAction.HORIZONTAL_BARRIER,
+                             AndroidIcons.SherpaIcons.BarrierHorizontal,
+                             "Add Horizontal Barrier")
       ))
     ));
   }
@@ -376,6 +382,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     str = "Add Horizontal Guideline";
     actions.add(action = new AddElementAction(AddElementAction.HORIZONTAL_GUIDELINE, AndroidIcons.SherpaIcons.GuidelineHorizontal, str));
     myPopupActions.add(action);
+
+    str = "Add Vertical Barrier";
+    actions.add(action = new AddElementAction(AddElementAction.VERTICAL_BARRIER, AndroidIcons.SherpaIcons.BarrierVertical, str));
+    myPopupActions.add(action);
+
+    str = "Add Horizontal Barrier";
+    actions.add(action = new AddElementAction(AddElementAction.HORIZONTAL_BARRIER, AndroidIcons.SherpaIcons.BarrierHorizontal, str));
+    myPopupActions.add(action);
   }
 
   interface Enableable {
@@ -451,8 +465,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (nlComponent.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
         String side = nlComponent.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
         boolean isHorizontal = (side == null || ourHorizontalBarriers.contains(side.toLowerCase()));
-        result.add(new BarrierTarget(BarrierTarget.parseDirection(side)));
         result.add(new BarrierAnchorTarget(isHorizontal ? AnchorTarget.Type.TOP : AnchorTarget.Type.RIGHT, isHorizontal));
+        result.add(new BarrierTarget(BarrierTarget.parseDirection(side)));
         return result;
       }
     }
@@ -744,6 +758,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   private static class AddElementAction extends DirectViewAction {
     public static final int HORIZONTAL_GUIDELINE = 0;
     public static final int VERTICAL_GUIDELINE = 1;
+    public static final int HORIZONTAL_BARRIER = 2;
+    public static final int VERTICAL_BARRIER = 3;
 
     final int myType;
 
@@ -763,19 +779,50 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         parent = parent.getParent();
       }
       if (parent != null) {
-        NlComponent guideline = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
-        guideline.ensureId();
-        guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
-        NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
-        if (myType == HORIZONTAL_GUIDELINE) {
-          tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_GUIDELINE);
-          guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
-                                 SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
-        }
-        else {
-          tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_GUIDELINE);
-          guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
-                                 SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL);
+
+        switch (myType) {
+          case HORIZONTAL_GUIDELINE: {
+            NlComponent guideline = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
+            guideline.ensureId();
+            guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
+            NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
+            tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_GUIDELINE);
+            guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
+                                   SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
+          }
+          break;
+          case VERTICAL_GUIDELINE: {
+            NlComponent guideline = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
+            guideline.ensureId();
+            guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
+            NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
+
+            tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_GUIDELINE);
+            guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
+                                   SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL);
+          }
+            break;
+          case HORIZONTAL_BARRIER: {
+            NlComponent guideline = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
+            guideline.ensureId();
+            guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_BARRIER_DIRECTION, "top");
+            NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
+
+           // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_BARRIER);
+            guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
+                                   SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL);
+          }
+            break;
+          case VERTICAL_BARRIER: {
+            NlComponent guideline = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
+            guideline.ensureId();
+            guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_BARRIER_DIRECTION, "left");
+            NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
+
+            // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_BARRIER);
+            guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
+                                   SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL);
+          }
         }
       }
     }
@@ -787,7 +834,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers) {
-      presentation.setVisible(true);
+      boolean show = true;
+      if (myType == VERTICAL_BARRIER || myType == HORIZONTAL_BARRIER) {
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(),1,0);
+      }
+      presentation.setVisible(show);
       presentation.setEnabled(true);
     }
   }

@@ -287,7 +287,9 @@ public class AndroidIcons {
     public static final Icon DeleteConstraintB = load("/icons/sherpa/delete-constraints_b.png");
     public static final Icon Margin = load("/icons/sherpa/margin.png");
     public static final Icon GuidelineVertical = load("/icons/sherpa/guideline_vertical.png");
+    public static final Icon BarrierVertical = load("/icons/sherpa/barrier_vertical.png");
     public static final Icon GuidelineHorizontal = load("/icons/sherpa/guideline_horizontal.png");
+    public static final Icon BarrierHorizontal = load("/icons/sherpa/barrier_horizontal.png");
     public static final Icon Hide = load("/icons/sherpa/hide.png");
     public static final Icon HorizontalCenterB = load("/icons/sherpa/center-constraint-horizontally.png");
     public static final Icon HorizontalCenter = load("/icons/sherpa/center-constraint-horizontally_b.png");

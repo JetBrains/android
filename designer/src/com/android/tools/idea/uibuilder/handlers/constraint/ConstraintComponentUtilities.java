@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderLogger;
@@ -481,6 +482,61 @@ public final class ConstraintComponentUtilities {
     }
   }
 
+
+  public static boolean isConstraintModelGreaterThan(NlModel model, int major, int ... version) {
+    String constraint_artifact = SdkConstants.CONSTRAINT_LAYOUT_LIB_GROUP_ID + ":" + SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT_ID;
+    GradleVersion v = model.getModuleDependencyVersion(constraint_artifact);
+    return (versionGreaterThan(v, major,
+                               (version.length>0)?version[0]:-1,
+                               (version.length>1)?version[1]:-1, 0, 0));
+  }
+
+  /**
+   * Are we past a version used to implement a conditional change for other releases
+   * results when alpha and beta both > 0 is undefined
+   *
+   * @param v
+   * @param major
+   * @param minor
+   * @param micro
+   * @param beta version of beta to check 0 if not a version of beta
+   * @param alpha version of alpha to check 0 if not a version of alpha
+   * @return
+   */
+  private static boolean versionGreaterThan(GradleVersion v, int major, int minor, int micro, int beta, int alpha) {
+    if (v == null) { // if you could not get the version assume it is the latest
+      return true;
+    }
+    if (v.getMajor() != major) {
+      return v.getMajor() > major;
+    }
+    if (v.getMinor() != minor) {
+      return (v.getMinor() > minor);
+    }
+    if (micro == -1) { // minor version needed to be bigger
+      return false;
+    }
+    if (v.getMicro() != micro) {
+      return (v.getMicro() > micro);
+    }
+    if (alpha > 0) {
+      if ("alpha".equals(v.getPreviewType())) {
+        return (v.getPreview() > alpha);
+      }
+      else { // expecting alpha but out of beta
+        return true;
+      }
+    }
+    if (beta > 0) {
+      if ("beta".equals(v.getPreviewType())) {
+        return (v.getPreview() > beta);
+      }
+      else { // expecting beta but out of beta
+        return true;
+      }
+    }
+    return false;
+  }
   /////////////////////////////////////////////////////////////////////////////
   // Utility methods for Scout
   /////////////////////////////////////////////////////////////////////////////
