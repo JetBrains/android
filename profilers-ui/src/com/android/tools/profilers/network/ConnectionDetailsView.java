@@ -23,6 +23,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
+import com.android.tools.profilers.CloseButton;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.FileViewer;
@@ -30,12 +31,9 @@ import com.android.tools.profilers.stacktrace.StackTraceView;
 import com.android.tools.profilers.stacktrace.TabsPanel;
 import com.android.tools.profilers.stacktrace.ThreadId;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.openapi.ui.popup.IconButton;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.labels.BoldLabel;
@@ -68,7 +66,6 @@ public class ConnectionDetailsView extends JPanel {
   private static final String TAB_TITLE_STACK = "Call Stack";
   private static final String TAB_TITLE_HEADERS = "Headers";
 
-  private static final int CLOSE_BUTTON_SIZE = JBUI.scale(24); // Icon is 16x16. This gives it some padding, so it doesn't touch the border.
   private static final int PAGE_VGAP = JBUI.scale(28);
   private static final int SECTION_VGAP = JBUI.scale(10);
   private static final int HGAP = JBUI.scale(22);
@@ -135,11 +132,7 @@ public class ConnectionDetailsView extends JPanel {
 
     myTabsPanel.setOnSelectionChange(this::trackActiveTab);
 
-    IconButton closeIcon = new IconButton("Close", AllIcons.Ide.Notification.Close, AllIcons.Ide.Notification.CloseHover);
-    InplaceButton closeButton = new InplaceButton(closeIcon, e -> this.setHttpData(null));
-    closeButton.setPreferredSize(new Dimension(CLOSE_BUTTON_SIZE, CLOSE_BUTTON_SIZE));
-    closeButton.setMinimumSize(closeButton.getPreferredSize()); // Prevent layout phase from squishing this button
-
+    CloseButton closeButton = new CloseButton(e -> setHttpData(null));
     rootPanel.add(closeButton, new TabularLayout.Constraint(0, 1));
     rootPanel.add(myTabsPanel.getComponent(), new TabularLayout.Constraint(0, 0, 2, 2));
 
