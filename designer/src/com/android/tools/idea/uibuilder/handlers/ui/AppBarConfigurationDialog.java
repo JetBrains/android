@@ -138,8 +138,7 @@ public class AppBarConfigurationDialog extends JDialog {
     "    %1$s:src=\"%3$s\"\n" +                                     // 3 = Image location
     "    %1$s:layout_gravity=\"bottom|end\"\n" +
     "    %1$s:layout_margin=\"16dp\"\n" +
-    "    %1$s:clickable=\"true\"\n" +
-    "    %2$s:fabSize=\"mini\"/>\n";
+    "    %1$s:clickable=\"true\"/>\n";
 
   private static final String TAG_IMAGE_VIEW =                      // 1 = Prefix for android namespace
     "<ImageView\n" +
