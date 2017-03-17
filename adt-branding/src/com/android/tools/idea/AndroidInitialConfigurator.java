@@ -50,7 +50,13 @@ public class AndroidInitialConfigurator {
   @SuppressWarnings("SpellCheckingInspection")
   @NonNls private static final String TODO_TOOLWINDOW_ACTION_ID = "ActivateTODOToolWindow";
   @SuppressWarnings("SpellCheckingInspection")
-  @NonNls private static final String ANDROID_TOOLWINDOW_ACTION_ID = "ActivateAndroidMonitorToolWindow";
+  @NonNls private static final String ANDROIDMONITOR_TOOLWINDOW_ACTION_ID = "ActivateAndroidMonitorToolWindow";
+  @SuppressWarnings("SpellCheckingInspection")
+  @NonNls private static final String LOGCAT_TOOLWINDOW_ACTION_ID = "ActivateLogcatToolWindow";
+
+  @NonNls private static final boolean EXPERIMENTAL_PROFILING_FLAG_ENABLED =
+    !"false".equals(System.getProperty("enable.experimental.profiling"));
+
 
   @SuppressWarnings("UnusedParameters")
   public AndroidInitialConfigurator(MessageBus bus,
@@ -178,7 +184,11 @@ public class AndroidInitialConfigurator {
   private static void setActivateAndroidToolWindowShortcut(Keymap keymap) {
     KeyboardShortcut shortcut = removeFirstKeyboardShortcut(keymap, TODO_TOOLWINDOW_ACTION_ID);
     if (shortcut != null) {
-      keymap.addShortcut(ANDROID_TOOLWINDOW_ACTION_ID, shortcut);
+      if (EXPERIMENTAL_PROFILING_FLAG_ENABLED) {
+        keymap.addShortcut(LOGCAT_TOOLWINDOW_ACTION_ID, shortcut);
+      } else {
+        keymap.addShortcut(ANDROIDMONITOR_TOOLWINDOW_ACTION_ID, shortcut);
+      }
     }
   }
 
