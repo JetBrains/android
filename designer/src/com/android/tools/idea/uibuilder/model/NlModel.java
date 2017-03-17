@@ -1734,6 +1734,44 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     notifyModified(ChangeType.ADD_COMPONENTS);
   }
 
+  /**
+   * Add tags component to the specified receiver before the given sibling.
+   */
+  public void addTags(@Nullable List<NlComponent> added,
+                            @NotNull NlComponent receiver,
+                            @Nullable NlComponent before,
+                            final @NotNull InsertType insertType) {
+    WriteCommandAction<Void> action = new WriteCommandAction<Void>(getProject(), insertType.getDragType().getDescription(), myFile) {
+      @Override
+      protected void run(@NotNull Result<Void> result) throws Throwable {
+        for (NlComponent component : added) {
+          NlComponent parent = component.getParent();
+          if (parent != null) {
+            parent.removeChild(component);
+          }
+          receiver.addChild(component, before);
+          if (receiver.getTag() != component.getTag()) {
+            XmlTag prev = component.getTag();
+            transferNamespaces(prev);
+            if (before != null) {
+              component.setTag((XmlTag)receiver.getTag().addBefore(component.getTag(), before.getTag()));
+            }
+            else {
+              component.setTag(receiver.getTag().addSubTag(component.getTag(), false));
+            }
+            if (insertType.isMove()) {
+              prev.delete();
+            }
+          }
+          removeNamespaceAttributes(component);
+          TemplateUtils.reformatAndRearrange(getProject(), component.getTag());
+        }
+      }
+    };
+    action.execute();
+    notifyModified(ChangeType.ADD_COMPONENTS);
+  }
+
   private void handleAddition(@NotNull List<NlComponent> added,
                               @NotNull NlComponent receiver,
                               @Nullable NlComponent before,
