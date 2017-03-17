@@ -28,8 +28,24 @@ import com.intellij.openapi.Disposable;
 public abstract class WizardModel implements Disposable {
   /**
    * Method which is executed when a wizard is completed because the user hit "Finish".
+   *
+   * Note that if this model is only associated with a step / steps that were skipped, this
+   * method will not be called. Instead, {@link #handleSkipped()} will be called, instead.
    */
   protected abstract void handleFinished();
+
+  /**
+   * Method which is executed on models that were skipped over by the wizard. This can happen if
+   * all steps this model was associated with returned {@link ModelWizardStep#shouldShow()} with
+   * {@code false}.
+   *
+   * In other words, either {@link #handleFinished()} will get called or this method will.
+   *
+   * Most models won't care about handling this event, but occasionally a model may want to resolve
+   * some logic set up in its constructor even if {@link #handleFinished()} doesn't get called.
+   */
+  protected void handleSkipped() {
+  }
 
   @Override
   public void dispose() {
