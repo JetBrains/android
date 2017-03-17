@@ -66,7 +66,7 @@ public class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
    */
   PaddingLayoutPsiPullParser(@NotNull XmlFile file, @NotNull RenderLogger logger, @NotNull Set<XmlTag> explodeNodes,
                              @NotNull Density density) {
-    super(file, logger);
+    super(file, logger, true);
     myExplodeNodes = explodeNodes;
     myDensity = density;
   }

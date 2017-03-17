@@ -250,10 +250,10 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertEmptyParser(LayoutPsiPullParser.create(emptyFile, logger));
 
     XmlTag emptyTag = mock(XmlTag.class);
-    assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger));
+    assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger, true));
 
     when(emptyTag.isValid()).thenReturn(true);
-    assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger));
+    assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger, true));
   }
 
   public void testAaptAttr() throws Exception {
@@ -277,6 +277,23 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
 
     assertEquals("21dp", parser.getAaptDeclaredAttrs().get(Long.toString(expectedId)).getAttribute("width", ANDROID_URI));
     assertEquals("22dp", parser.getAaptDeclaredAttrs().get(Long.toString(expectedId + 1)).getAttribute("width", ANDROID_URI));
+  }
+
+
+  public void testMergeTag() {
+    VirtualFile virtualFile = myFixture.copyFileToProject("xmlpull/merge.xml", "res/layout/merge.xml");
+    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile)psiFile;
+
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), true);
+    assertEquals("LinearLayout", parser.myRoot.tagName);
+    assertEquals("Button1", parser.myRoot.children.get(0).getAttribute("text"));
+
+    // Now, do not honor the parentTag. We should get the <merge> tag as root.
+    parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), false);
+    assertEquals("merge", parser.myRoot.tagName);
+    assertEquals("Button1", parser.myRoot.children.get(0).getAttribute("text"));
   }
 
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }
