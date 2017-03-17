@@ -15,177 +15,67 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.android.tools.idea.apk.viewer.dex.tree.DexElementNode;
-import com.android.tools.idea.apk.viewer.dex.tree.DexFieldNode;
-import com.android.tools.idea.apk.viewer.dex.tree.DexMethodNode;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeNode;
+import java.util.Locale;
+import java.util.function.Predicate;
 
-public class FilteredTreeModel implements TreeModel {
+public class FilteredTreeModel<T> extends DefaultTreeModel {
+  private final Predicate<T> myPredicate;
 
-  @NotNull private final FilterOptions myFilterOptions;
-  @NotNull private final DefaultTreeModel myModel;
-
-  public FilteredTreeModel(@NotNull DefaultTreeModel model) {
-    myFilterOptions = new FilterOptions();
-    myModel = model;
-  }
-
-  public void reload(){
-    myModel.reload();
-  }
-
-  @NotNull
-  public FilterOptions getFilterOptions() {
-    return myFilterOptions;
-  }
-
-  public void setRoot(DexElementNode node){
-    myModel.setRoot(node);
-  }
-
-  @Override
-  public Object getRoot() {
-    return myModel.getRoot();
+  public FilteredTreeModel(@NotNull TreeNode treeNode, @NotNull Predicate<T> predicate) {
+    super(treeNode);
+    myPredicate = predicate;
   }
 
   @Override
   public Object getChild(Object parent, int index) {
-    if (parent instanceof DexElementNode) {
-      DexElementNode result;
-      for (int i = 0, n = myModel.getChildCount(parent); i < n; i++) {
-        result = (DexElementNode)myModel.getChild(parent, i);
-        if (myFilterOptions.matches(result)) {
-          if (index == 0) {
-            return result;
-          }
-          else {
-            index--;
-          }
+    for (int i = 0, n = super.getChildCount(parent); i < n; i++) {
+      T result = (T)super.getChild(parent, i);
+      if (myPredicate.test(result)) {
+        if (index == 0) {
+          return result;
+        }
+        else {
+          index--;
         }
       }
-    } else {
-      return myModel.getChild(parent, index);
     }
 
-    return null;
+    String msg = String.format(Locale.US, "Child index %1$d is higher than # of children %2$d", index, getChildCount(parent));
+    throw new IllegalStateException(msg);
   }
 
   @Override
   public int getChildCount(Object parent) {
-    if (parent instanceof DexElementNode) {
-      int count = 0;
-      DexElementNode result;
-      for (int i = 0, n = myModel.getChildCount(parent); i < n; i++) {
-        result = (DexElementNode)myModel.getChild(parent, i);
-        if (myFilterOptions.matches(result)) {
-          count++;
-        }
+    int count = 0;
+    for (int i = 0, n = super.getChildCount(parent); i < n; i++) {
+      T result = (T)super.getChild(parent, i);
+      if (myPredicate.test(result)) {
+        count++;
       }
-      return count;
-    } else {
-      return myModel.getChildCount(parent);
     }
-  }
 
-  @Override
-  public boolean isLeaf(Object node) {
-    return getChildCount(node) == 0;
-  }
-
-  @Override
-  public void valueForPathChanged(TreePath path, Object newValue) {
-    myModel.valueForPathChanged(path, newValue);
+    return count;
   }
 
   @Override
   public int getIndexOfChild(Object parent, Object child) {
-    if (parent instanceof DexElementNode && child instanceof DexElementNode) {
-      int index = 0;
-      DexElementNode result;
-      for (int i = 0, n = myModel.getChildCount(parent); i < n; i++) {
-        result = (DexElementNode)myModel.getChild(parent, i);
-        if (myFilterOptions.matches(result)) {
-          if (result.equals(child)) {
-            return index;
-          }
-          else {
-            index++;
-          }
+    int index = 0;
+    for (int i = 0, n = super.getChildCount(parent); i < n; i++) {
+      T result = (T)super.getChild(parent, i);
+      if (myPredicate.test(result)) {
+        if (result.equals(child)) {
+          return index;
+        }
+        else {
+          index++;
         }
       }
-    } else {
-      return myModel.getIndexOfChild(parent, child);
     }
 
     return -1;
-  }
-
-  @Override
-  public void addTreeModelListener(TreeModelListener l) {
-    myModel.addTreeModelListener(l);
-  }
-
-  @Override
-  public void removeTreeModelListener(TreeModelListener l) {
-    myModel.removeTreeModelListener(l);
-  }
-
-  public class FilterOptions {
-    private boolean myShowMethods = true;
-    private boolean myShowFields = true;
-    private boolean myShowReferencedNodes = true;
-    private boolean myShowRemovedNodes = false;
-
-    private FilterOptions(){
-    }
-
-    public void setShowMethods(boolean showMethods) {
-
-      myShowMethods = showMethods;
-      FilteredTreeModel.this.reload();
-    }
-
-    public void setShowFields(boolean showFields) {
-      myShowFields = showFields;
-      FilteredTreeModel.this.reload();
-    }
-
-    public void setShowReferencedNodes(boolean showReferencedNodes) {
-      myShowReferencedNodes = showReferencedNodes;
-      FilteredTreeModel.this.reload();
-    }
-
-    public void setShowRemovedNodes(boolean showRemovedNodes) {
-      myShowRemovedNodes = showRemovedNodes;
-      FilteredTreeModel.this.reload();
-    }
-
-    public boolean matches(DexElementNode node){
-      return ((myFilterOptions.myShowFields || !(node instanceof DexFieldNode))
-             && (myFilterOptions.myShowMethods || !(node instanceof DexMethodNode))
-             && (myFilterOptions.myShowReferencedNodes || node.hasClassDefinition())
-             && (myFilterOptions.myShowRemovedNodes || !node.isRemoved()));
-    }
-
-    public boolean isShowMethods() {
-      return myShowMethods;
-    }
-
-    public boolean isShowFields() {
-      return myShowFields;
-    }
-
-    public boolean isShowReferencedNodes() {
-      return myShowReferencedNodes;
-    }
-
-    public boolean isShowRemovedNodes() {
-      return myShowRemovedNodes;
-    }
   }
 }

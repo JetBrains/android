@@ -71,6 +71,7 @@ public abstract class DexElementNode extends DefaultMutableTreeNode {
     if (children != null) {
       Collections.sort(children, comparator);
     }
+    
   }
 
   @Nullable protected <T extends DexElementNode> T getChildByType(@NotNull String name, Class<T> type) {
