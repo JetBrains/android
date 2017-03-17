@@ -20,6 +20,7 @@ import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.npw.template.MultiTemplateRender;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.Template;
@@ -73,6 +74,7 @@ public class NewProjectModel extends WizardModel {
   private final OptionalProperty<Project> myProject = new OptionalValueProperty<>();
   private final Map<String, Object> myTemplateValues = Maps.newHashMap();
   private final Set<NewModuleModel> myNewModels = new HashSet<>();
+  private final MultiTemplateRender myMultiTemplateRender = new MultiTemplateRender();
 
   private static Logger getLogger() {
     return Logger.getInstance(NewProjectModel.class);
@@ -133,6 +135,10 @@ public class NewProjectModel extends WizardModel {
     return myNewModels;
   }
 
+  public MultiTemplateRender getMultiTemplateRender() {
+    return myMultiTemplateRender;
+  }
+
   /**
    * Loads saved company domain, or generates a dummy one if no domain has been saved
    * @param includeUserName This is used to implement legacy behaviour. When creating a new project the package name includes the user name
@@ -167,78 +173,91 @@ public class NewProjectModel extends WizardModel {
 
   @Override
   protected void handleFinished() {
-    final String projectLocation = projectLocation().get();
-    final String projectName = applicationName().get();
+    myMultiTemplateRender.requestRender(new ProjectTemplateRenderer());
+  }
 
-    boolean couldEnsureLocationExists = WriteCommandAction.runWriteCommandAction(null, new Computable<Boolean>() {
-      @Override
-      public Boolean compute() {
-        // We generally assume that the path has passed a fair amount of prevalidation checks
-        // at the project configuration step before. Write permissions check can be tricky though in some cases,
-        // e.g., consider an unmounted device in the middle of wizard execution or changed permissions.
-        // Anyway, it seems better to check that we were really able to create the target location and are able to
-        // write to it right here when the wizard is about to close, than running into some internal IDE errors
-        // caused by these problems downstream
-        // Note: this change was originally caused by http://b.android.com/219851, but then
-        // during further discussions that a more important bug was in path validation in the old wizards,
-        // where File.canWrite() always returned true as opposed to the correct Files.isWritable(), which is
-        // already used in new wizard's PathValidator.
-        // So the change below is therefore a more narrow case than initially supposed (however it still needs to be handled)
-        try {
-          if (VfsUtil.createDirectoryIfMissing(projectLocation) != null && FileOpUtils.create().canWrite(new File(projectLocation))) {
-            return true;
+  private class ProjectTemplateRenderer implements MultiTemplateRender.TemplateRenderer {
+
+    @Override
+    public boolean doDryRun() {
+      final String projectLocation = projectLocation().get();
+      final String projectName = applicationName().get();
+
+      boolean couldEnsureLocationExists = WriteCommandAction.runWriteCommandAction(null, new Computable<Boolean>() {
+        @Override
+        public Boolean compute() {
+          // We generally assume that the path has passed a fair amount of prevalidation checks
+          // at the project configuration step before. Write permissions check can be tricky though in some cases,
+          // e.g., consider an unmounted device in the middle of wizard execution or changed permissions.
+          // Anyway, it seems better to check that we were really able to create the target location and are able to
+          // write to it right here when the wizard is about to close, than running into some internal IDE errors
+          // caused by these problems downstream
+          // Note: this change was originally caused by http://b.android.com/219851, but then
+          // during further discussions that a more important bug was in path validation in the old wizards,
+          // where File.canWrite() always returned true as opposed to the correct Files.isWritable(), which is
+          // already used in new wizard's PathValidator.
+          // So the change below is therefore a more narrow case than initially supposed (however it still needs to be handled)
+          try {
+            if (VfsUtil.createDirectoryIfMissing(projectLocation) != null && FileOpUtils.create().canWrite(new File(projectLocation))) {
+              return true;
+            }
+          } catch (Exception e) {
+            getLogger().error(String.format("Exception thrown when creating target project location: %1$s", projectLocation), e);
           }
-        } catch (Exception e) {
-          getLogger().error(String.format("Exception thrown when creating target project location: %1$s", projectLocation), e);
+          return false;
         }
+      });
+      if(!couldEnsureLocationExists) {
+        String msg = "Could not ensure the target project location exists and is accessible:\n\n%1$s\n\nPlease try to specify another path.";
+        Messages.showErrorDialog(String.format(msg, projectLocation), "Error Creating Project");
+        // TODO: Is this available on the New Wizard?
+        //navigateToNamedStep(com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.STEP_NAME, true);
+        //myHost.shakeWindow();
         return false;
       }
-    });
-    if(!couldEnsureLocationExists) {
-      String msg = "Could not ensure the target project location exists and is accessible:\n\n%1$s\n\nPlease try to specify another path.";
-      Messages.showErrorDialog(String.format(msg, projectLocation), "Error Creating Project");
-      // TODO: Is this available on the New Wizard?
-      //navigateToNamedStep(com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.STEP_NAME, true);
-      //myHost.shakeWindow();
-      return;
+
+      Project project = UIUtil.invokeAndWaitIfNeeded(() -> ProjectManager.getInstance().createProject(projectName, projectLocation));
+      project().setValue(project);
+
+      performCreateProject(true);
+      return true;
     }
 
-    Project project = UIUtil.invokeAndWaitIfNeeded(() -> ProjectManager.getInstance().createProject(projectName, projectLocation));
-    project().setValue(project);
+    @Override
+    public void render() {
+      performCreateProject(false);
 
-    // Cpp Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
-    myTemplateValues.put(ATTR_CPP_SUPPORT, myEnableCppSupport.get());
-    myTemplateValues.put(ATTR_CPP_FLAGS, myCppFlags.get());
-    myTemplateValues.put(ATTR_TOP_OUT, project.getBasePath());
-
-    Map<String, Object> params = Maps.newHashMap(myTemplateValues);
-    boolean hasInstantApp = false;
-    for (NewModuleModel newModuleModel : getNewModuleModels()) {
-      params.putAll(newModuleModel.getTemplateValues());
-      hasInstantApp |= newModuleModel.instantApp().get();
-
-      // Set global parameters
-      newModuleModel.getRenderTemplateValues().getValue().putAll(myTemplateValues);
-      newModuleModel.getTemplateValues().putAll(myTemplateValues);
+      // Allow all other Wizard models to run handleFinished() (and the Wizard to close), before starting the (slow) import process.
+      ApplicationManager.getApplication().invokeLater(this::performGradleImport);
     }
 
-    // TODO: May we should not reuse ATTR_IS_INSTANT_APP. A new ATTR_IS_INSTANT_PROJECT?
-    params.put(ATTR_IS_INSTANT_APP, hasInstantApp);
+    private boolean performCreateProject(boolean dryRun) {
+      Project project = project().getValue();
+
+      // Cpp Apps attributes are needed to generate the Module and to generate the Render Template files (activity and layout)
+      myTemplateValues.put(ATTR_CPP_SUPPORT, myEnableCppSupport.get());
+      myTemplateValues.put(ATTR_CPP_FLAGS, myCppFlags.get());
+      myTemplateValues.put(ATTR_TOP_OUT, project.getBasePath());
+
+      Map<String, Object> params = Maps.newHashMap(myTemplateValues);
+      boolean hasInstantApp = false;
+      for (NewModuleModel newModuleModel : getNewModuleModels()) {
+        params.putAll(newModuleModel.getTemplateValues());
+        hasInstantApp |= newModuleModel.instantApp().get();
+
+        // Set global parameters
+        newModuleModel.getRenderTemplateValues().getValue().putAll(myTemplateValues);
+        newModuleModel.getTemplateValues().putAll(myTemplateValues);
+      }
+
+      // TODO: Maybe we should not reuse ATTR_IS_INSTANT_APP. A new ATTR_IS_INSTANT_PROJECT?
+      params.put(ATTR_IS_INSTANT_APP, hasInstantApp);
     if (hasInstantApp) {
       params.put(ATTR_INSTANT_APP_SDK_DIR, getInstantAppSdkLocation());
     }
 
-    performCreateProject(false, params);
-
-    // Allow all other Wizard models to run handleFinished() (and the Wizard to close), before starting the (slow) import process.
-   ApplicationManager.getApplication().invokeLater(this::performGradleImport);
-  }
-
-  private boolean performCreateProject(boolean dryRun, @NotNull Map<String, Object> params) {
-    Project project = project().getValue();
-
-    Template projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
-    // @formatter:off
+      Template projectTemplate = Template.createFromName(Template.CATEGORY_PROJECTS, WizardConstants.PROJECT_TEMPLATE_NAME);
+      // @formatter:off
       final RenderingContext context = RenderingContext.Builder.newContext(projectTemplate, project)
         .withCommandName("New Project")
         .withDryRun(dryRun)
@@ -246,61 +265,62 @@ public class NewProjectModel extends WizardModel {
         .withParams(params)
         .build();
       // @formatter:on
-    return projectTemplate.render(context);
-  }
-
-  private void performGradleImport() {
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      return;
+      return projectTemplate.render(context);
     }
 
-    GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
-    File rootLocation = new File(projectLocation().get());
-    File wrapperPropertiesFilePath = GradleWrapper.getDefaultPropertiesFilePath(rootLocation);
-    try {
-      GradleWrapper.get(wrapperPropertiesFilePath).updateDistributionUrl(SdkConstants.GRADLE_LATEST_VERSION);
-    }
-    catch (IOException e) {
-      // Unlikely to happen. Continue with import, the worst-case scenario is that sync fails and the error message has a "quick fix".
-      getLogger().warn("Failed to update Gradle wrapper file", e);
-    }
-
-    // Pick the highest language level of all the modules/form factors.
-    // We have to pick the language level up front while creating the project rather than
-    // just reacting to it during sync, because otherwise the user gets prompted with
-    // a changing-language-level-requires-reopening modal dialog box and have to reload
-    // the project
-    // TODO: We don't have a way at the moment of getting the language level of each module.
-    // Possible solutions:
-    // 1 - We have already a Set of <NewModuleModel>, and from there we can get templateFile, but maybe what we should get is a formFactor
-    // 2 - Add a new field to NewModuleModel with the FormFactor or something similar... we may need this anyway when we check if we need
-    // to install a new API (That step is missing at the moment)
-    LanguageLevel initialLanguageLevel = null;
-    //for (FormFactor factor : FormFactor.values()) {
-    //  Object version = getState().get(FormFactorUtils.getLanguageLevelKey(factor));
-    //  if (version != null) {
-    //    LanguageLevel level = LanguageLevel.parse(version.toString());
-    //    if (level != null && (initialLanguageLevel == null || level.isAtLeast(initialLanguageLevel))) {
-    //      initialLanguageLevel = level;
-    //    }
-    //  }
-    //}
-
-    // This is required for Android plugin in IDEA
-    if (!IdeInfo.getInstance().isAndroidStudio()) {
-      final Sdk jdk = IdeSdks.getInstance().getJdk();
-      if (jdk != null) {
-        ApplicationManager.getApplication().runWriteAction(() -> ProjectRootManager.getInstance(project().getValue()).setProjectSdk(jdk));
+    private void performGradleImport() {
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        return;
       }
-    }
-    try {
-      GradleProjectImporter.Request request = new GradleProjectImporter.Request();
-      request.setLanguageLevel(initialLanguageLevel).setProject(project().getValue());
-      projectImporter.importProject(applicationName().get(), rootLocation, request, null);
-    }
-    catch (IOException | ConfigurationException e) {
-      Messages.showErrorDialog(e.getMessage(), message("android.wizard.project.create.error"));
-      getLogger().error(e);
+
+      GradleProjectImporter projectImporter = GradleProjectImporter.getInstance();
+      File rootLocation = new File(projectLocation().get());
+      File wrapperPropertiesFilePath = GradleWrapper.getDefaultPropertiesFilePath(rootLocation);
+      try {
+        GradleWrapper.get(wrapperPropertiesFilePath).updateDistributionUrl(SdkConstants.GRADLE_LATEST_VERSION);
+      }
+      catch (IOException e) {
+        // Unlikely to happen. Continue with import, the worst-case scenario is that sync fails and the error message has a "quick fix".
+        getLogger().warn("Failed to update Gradle wrapper file", e);
+      }
+
+      // Pick the highest language level of all the modules/form factors.
+      // We have to pick the language level up front while creating the project rather than
+      // just reacting to it during sync, because otherwise the user gets prompted with
+      // a changing-language-level-requires-reopening modal dialog box and have to reload
+      // the project
+      // TODO: We don't have a way at the moment of getting the language level of each module.
+      // Possible solutions:
+      // 1 - We have already a Set of <NewModuleModel>, and from there we can get templateFile, but maybe what we should get is a formFactor
+      // 2 - Add a new field to NewModuleModel with the FormFactor or something similar... we may need this anyway when we check if we need
+      // to install a new API (That step is missing at the moment)
+      LanguageLevel initialLanguageLevel = null;
+      //for (FormFactor factor : FormFactor.values()) {
+      //  Object version = getState().get(FormFactorUtils.getLanguageLevelKey(factor));
+      //  if (version != null) {
+      //    LanguageLevel level = LanguageLevel.parse(version.toString());
+      //    if (level != null && (initialLanguageLevel == null || level.isAtLeast(initialLanguageLevel))) {
+      //      initialLanguageLevel = level;
+      //    }
+      //  }
+      //}
+
+      // This is required for Android plugin in IDEA
+      if (!IdeInfo.getInstance().isAndroidStudio()) {
+        final Sdk jdk = IdeSdks.getInstance().getJdk();
+        if (jdk != null) {
+          ApplicationManager.getApplication().runWriteAction(() -> ProjectRootManager.getInstance(project().getValue()).setProjectSdk(jdk));
+        }
+      }
+      try {
+        GradleProjectImporter.Request request = new GradleProjectImporter.Request();
+        request.setLanguageLevel(initialLanguageLevel).setProject(project().getValue());
+        projectImporter.importProject(applicationName().get(), rootLocation, request, null);
+      }
+      catch (IOException | ConfigurationException e) {
+        Messages.showErrorDialog(e.getMessage(), message("android.wizard.project.create.error"));
+        getLogger().error(e);
+      }
     }
   }
 }
