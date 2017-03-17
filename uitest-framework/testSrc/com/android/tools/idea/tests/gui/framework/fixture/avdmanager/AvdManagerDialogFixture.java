@@ -76,7 +76,7 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
     final TableView tableView = robot().finder().findByType(target(), TableView.class, true);
     JTableFixture tableFixture = new JTableFixture(robot(), tableView);
     JTableCellFixture cell = tableFixture.cell(name);
-    final TableCell actionCell = TableCell.row(cell.row()).column(7);
+    final TableCell actionCell = TableCell.row(cell.row()).column(8);
 
     JTableCellFixture actionCellFixture = tableFixture.cell(actionCell);
 
