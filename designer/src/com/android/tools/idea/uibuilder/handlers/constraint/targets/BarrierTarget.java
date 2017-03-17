@@ -28,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class BarrierTarget extends DragTarget {
   int myDirection;
+  private static int GAP = 6;
   public static final int TOP = 1;
   public static final int BOTTOM = 2;
   public static final int LEFT = 3;
@@ -55,6 +56,11 @@ public class BarrierTarget extends DragTarget {
     return TOP;
   }
 
+  @Override
+  public boolean canChangeSelection() {
+    return true;
+  }
+
   private boolean isHorizontal() {
     return myDirection == DrawBarrier.TOP || myDirection == DrawBarrier.BOTTOM;
   }
@@ -68,26 +74,30 @@ public class BarrierTarget extends DragTarget {
     myDirection = direction;
   }
 
-
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
-    DrawBarrier.add(list, sceneContext, myLeft, myTop, isHorizontal() ? (myRight - myLeft) : (myBottom - myTop), myDirection);
+    if (isHorizontal() ) {
+      DrawBarrier.add(list, sceneContext, myLeft, myTop + GAP,   (myRight - myLeft) , myDirection, myComponent.isSelected());
+    } else {
+      DrawBarrier.add(list, sceneContext, myLeft + GAP, myTop,   (myBottom - myTop), myDirection, myComponent.isSelected());
+
+    }
   }
 
   @Override
   public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
-
+    int dist = 6;
     SceneComponent parent = myComponent.getParent();
     if (parent != null) {
       if (isHorizontal()) {
         myLeft = parent.getDrawX();
         myRight = parent.getDrawX() + parent.getDrawWidth();
-        myTop = t;
-        myBottom = t;
+        myTop = t - GAP;
+        myBottom = t + GAP;
       }
       else {
-        myLeft = l;
-        myRight = l;
+        myLeft = l - GAP;
+        myRight = l+ GAP;
         myTop = parent.getDrawY();
         myBottom = parent.getDrawY() + parent.getDrawHeight();
       }
@@ -96,6 +106,10 @@ public class BarrierTarget extends DragTarget {
     return false;
   }
 
+  @Override
+  public void mouseDown(int x, int y) {
+    myComponent.setSelected(true);
+  }
   @Override
   protected void updateAttributes(AttributesTransaction attributes, int x, int y) {
 
