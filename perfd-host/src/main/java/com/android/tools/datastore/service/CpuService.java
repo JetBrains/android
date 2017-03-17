@@ -190,7 +190,11 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   public void checkAppProfilingState(CpuProfiler.ProfilingStateRequest request,
                                      StreamObserver<CpuProfiler.ProfilingStateResponse> observer) {
     CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession());
-    observer.onNext(client.checkAppProfilingState(request));
+    if (client != null) {
+      observer.onNext(client.checkAppProfilingState(request));
+    } else {
+      observer.onNext(CpuProfiler.ProfilingStateResponse.getDefaultInstance());
+    }
     observer.onCompleted();
   }
 
