@@ -15,60 +15,83 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.intellij.debugger.impl.DebuggerUtilsEx;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jf.dexlib2.iface.reference.MethodReference;
 
 import javax.swing.tree.TreeNode;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class PackageTreeNode implements TreeNode {
-  public enum NodeType { PACKAGE, CLASS, METHOD };
 
-  @NotNull private final String myPackageName;
+  public enum NodeType { PACKAGE, CLASS, METHOD, FIELD };
+
   @NotNull private final String myName;
   @NotNull private final NodeType myNodeType;
-  @Nullable private final PackageTreeNode myParent;
   @NotNull private final List<PackageTreeNode> myNodes;
+  @Nullable private final PackageTreeNode myParent;
 
   private int myMethodReferencesCount = 0;
   private int myDefinedMethodsCount = 0;
+  private boolean hasClassDefinition;
 
-  public PackageTreeNode(@NotNull String packageName, @NotNull String name, @NotNull NodeType type, @Nullable PackageTreeNode parent) {
-    myPackageName = packageName;
+  public PackageTreeNode(@NotNull String name, @NotNull NodeType type, @Nullable PackageTreeNode parent) {
     myName = name;
     myNodeType = type;
     myParent = parent;
     myNodes = new ArrayList<>();
   }
 
-  public void sortByCount() {
+  public void sort(Comparator<PackageTreeNode> comparator) {
     for (PackageTreeNode node : myNodes) {
-      node.sortByCount();
+      node.sort(comparator);
     }
 
-    Collections.sort(myNodes, (o1, o2) -> o2.getMethodRefCount() - o1.getMethodRefCount());
+    Collections.sort(myNodes, comparator);
   }
 
-  public void insert(@NotNull String parentPackage, @NotNull String qcn, @NotNull MethodReference ref, boolean hasClassDefinition) {
-    int i = qcn.indexOf(".");
-    if (i < 0) {
-      insertClass(parentPackage, qcn, ref, hasClassDefinition);
+  public void insertMethod(String qcn, @NotNull String methodSig, boolean hasClassDefinition) {
+    PackageTreeNode classNode = getOrInsertClass("", qcn, hasClassDefinition, true);
+    PackageTreeNode methodNode = classNode.getOrCreateChild(methodSig, NodeType.METHOD);
+    methodNode.myMethodReferencesCount++;
+    if (hasClassDefinition) {
+      methodNode.myDefinedMethodsCount++;
     }
-    else {
-      String segment = qcn.substring(0, i);
-      String nextSegment = qcn.substring(i + 1);
-      PackageTreeNode node = getOrCreateChild(parentPackage, segment, NodeType.PACKAGE);
-      node.insert(combine(parentPackage, segment), nextSegment, ref, hasClassDefinition);
+    methodNode.hasClassDefinition = hasClassDefinition;
+  }
+
+  public void insertField(String qcn, @NotNull String fieldSig, boolean hasClassDefinition) {
+
+    PackageTreeNode classNode = getOrInsertClass("", qcn, hasClassDefinition, false);
+    PackageTreeNode fieldNode = classNode.getOrCreateChild(fieldSig, NodeType.FIELD);
+    fieldNode.hasClassDefinition = fieldNode.hasClassDefinition || hasClassDefinition;
+  }
+
+  public PackageTreeNode getOrInsertClass(@NotNull String parentPackage, @NotNull String qcn, boolean hasClassDefinition,
+                                          boolean addMethodReference) {
+    if (addMethodReference){
       myMethodReferencesCount++;
       if (hasClassDefinition) {
         myDefinedMethodsCount++;
       }
+    }
+    int i = qcn.indexOf(".");
+    if (i < 0) {
+      PackageTreeNode classNode = getOrCreateChild(qcn, NodeType.CLASS);
+      classNode.hasClassDefinition = classNode.hasClassDefinition || hasClassDefinition;
+      if (addMethodReference){
+        classNode.myMethodReferencesCount++;
+        if (hasClassDefinition) {
+          classNode.myDefinedMethodsCount++;
+        }
+      }
+      return classNode;
+    }
+    else {
+      String segment = qcn.substring(0, i);
+      String nextSegment = qcn.substring(i + 1);
+      PackageTreeNode packageNode = getOrCreateChild(segment, NodeType.PACKAGE);
+      packageNode.hasClassDefinition = packageNode.hasClassDefinition || hasClassDefinition;
+      return packageNode.getOrInsertClass(combine(parentPackage, segment), nextSegment, hasClassDefinition, addMethodReference);
     }
   }
 
@@ -76,65 +99,18 @@ public class PackageTreeNode implements TreeNode {
     return parentPackage.isEmpty() ? childName : parentPackage + "." + childName;
   }
 
-  private void insertClass(@NotNull String parentPackage,
-                           @NotNull String className,
-                           @NotNull MethodReference ref,
-                           boolean hasClassDefinition) {
-    myMethodReferencesCount++;
-    if (hasClassDefinition) {
-      myDefinedMethodsCount++;
-    }
 
-    PackageTreeNode classNode = getOrCreateChild(parentPackage, className, NodeType.CLASS);
-    classNode.insertMethod(ref, hasClassDefinition);
-  }
-
-  private void insertMethod(@NotNull MethodReference ref, boolean hasClassDefinition) {
-    myMethodReferencesCount++;
-    if (hasClassDefinition) {
-      myDefinedMethodsCount++;
-    }
-
-    PackageTreeNode methodNode = new PackageTreeNode(ref.getDefiningClass(), formatMethod(ref), NodeType.METHOD, this);
-    methodNode.myMethodReferencesCount++;
-    if (hasClassDefinition) {
-      methodNode.myDefinedMethodsCount++;
-    }
-    myNodes.add(methodNode);
-  }
-
-  private PackageTreeNode getOrCreateChild(String parentPackage, @NotNull String name, @NotNull NodeType type) {
+  protected PackageTreeNode getOrCreateChild(@NotNull String name, @NotNull NodeType type) {
     for (PackageTreeNode node : myNodes) {
-      if (name.equals(node.getName())) {
+      if (name.equals(node.getName()) && type.equals(node.getNodeType())) {
         return node;
       }
     }
 
-    PackageTreeNode node = new PackageTreeNode(parentPackage, name, type, this);
+    PackageTreeNode node = new PackageTreeNode(name, type, this);
+
     myNodes.add(node);
-
     return node;
-  }
-
-  @NotNull
-  private static String formatMethod(@NotNull MethodReference ref) {
-    StringBuilder sb = new StringBuilder();
-
-    sb.append(DebuggerUtilsEx.signatureToName(ref.getReturnType()));
-    sb.append(' ');
-
-    sb.append(ref.getName());
-
-    String paramList = ref.getParameterTypes()
-      .stream()
-      .map(typeDesc -> DebuggerUtilsEx.signatureToName(typeDesc.toString()))
-      .collect(Collectors.joining(", "));
-
-    sb.append('(');
-    sb.append(paramList);
-    sb.append(')');
-
-    return sb.toString();
   }
 
   @NotNull
@@ -147,13 +123,8 @@ public class PackageTreeNode implements TreeNode {
     return myName;
   }
 
-  @NotNull
-  public String getQualifiedName() {
-    return combine(myPackageName, myName);
-  }
-
   @Override
-  public TreeNode getChildAt(int i) {
+  public PackageTreeNode getChildAt(int i) {
     return myNodes.get(i);
   }
 
@@ -162,8 +133,9 @@ public class PackageTreeNode implements TreeNode {
     return myNodes.size();
   }
 
+  @Nullable
   @Override
-  public TreeNode getParent() {
+  public PackageTreeNode getParent() {
     return myParent;
   }
 
@@ -195,4 +167,9 @@ public class PackageTreeNode implements TreeNode {
   public int getDefinedMethodsCount() {
     return myDefinedMethodsCount;
   }
+
+  public boolean hasClassDefinition() {
+    return hasClassDefinition;
+  }
+
 }
