@@ -335,6 +335,16 @@ public class NlPreviewManager implements ProjectComponent {
     return isInResourceFolder(psiFile);
   }
 
+  @Nullable
+  protected XmlFile getBoundXmlFile(@Nullable PsiFile file) {
+    return (XmlFile) file;
+  }
+
+  @Nullable
+  protected ToolWindow getToolWindow() {
+    return myToolWindow;
+  }
+
   @NotNull
   public NlPreviewForm getPreviewForm() {
     if (myToolWindow == null) {

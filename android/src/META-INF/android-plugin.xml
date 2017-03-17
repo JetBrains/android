@@ -1155,6 +1155,9 @@
                     interface="com.android.tools.idea.project.FeatureEnableService" />
     <extensionPoint qualifiedName="com.android.rendering.renderErrorContributor"
                     interface="com.android.tools.idea.rendering.RenderErrorContributor$Provider" />
+    <extensionPoint qualifiedName="org.jetbrains.android.uipreview.viewLoaderExtension"
+                    interface="org.jetbrains.android.uipreview.ViewLoaderExtension"
+                    area="IDEA_PROJECT"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
