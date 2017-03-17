@@ -335,6 +335,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         // Attach agent for advanced profiling if one is available.
         myClient.getProfilerClient()
           .attachAgent(Profiler.AgentAttachRequest.newBuilder().setSession(getSession()).setProcessId(myProcess.getPid()).build());
+        myIdeServices.getFeatureTracker().trackProfilingStarted();
       }
       else {
         myTimeline.setIsPaused(true);
@@ -347,7 +348,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         else {
           setStage(new StudioMonitorStage(this));
         }
-        myIdeServices.getFeatureTracker().trackProfilingStarted();
       }
     }
   }
@@ -382,6 +382,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return processes.get(0);
   }
 
+  /**
+   * @return true if the processes are the same, false otherwise. The reason Objects.equals is not used here is because the states could
+   * have changed between process1 and process2, but they should be considered the same as long as we have matching pids and names, so we
+   * don't reset the stage.
+   */
   private boolean isSameProcess(@Nullable Profiler.Process process1, @Nullable Profiler.Process process2) {
     return process1 != null &&
            process2 != null &&
