@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.options.BaseConfigurable;
@@ -150,16 +151,19 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
 
     ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
     RepoManager repoManager = AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(logger);
-    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Loading Remote SDK", false, project);
-    RepoManager.RepoLoadedCallback onComplete = packages -> {
-      if (packages.getRemotePackages().get(FD_NDK) != null) {
-        layout.show(myNdkDownloadPanel, "link");
-      }
-      else {
-        myNdkDownloadPanel.setVisible(false);
-      }
-    };
-    Runnable onError = () -> myNdkDownloadPanel.setVisible(false);
+    StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Loading Remote SDK", project);
+    RepoManager.RepoLoadedCallback onComplete = packages ->
+      ApplicationManager.getApplication().invokeLater(() -> {
+        if (packages.getRemotePackages().get(FD_NDK) != null) {
+          layout.show(myNdkDownloadPanel, "link");
+        }
+        else {
+          myNdkDownloadPanel.setVisible(false);
+        }
+      }, ModalityState.any());
+    Runnable onError = () -> ApplicationManager.getApplication().invokeLater(
+      () -> myNdkDownloadPanel.setVisible(false),
+      ModalityState.any());
     repoManager.load(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), ImmutableList.of(onError), runner,
                      new StudioDownloader(), StudioSettingsController.getInstance(), false);
 
