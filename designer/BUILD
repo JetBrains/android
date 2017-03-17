@@ -47,7 +47,7 @@ iml_module(
         "//prebuilts/studio/sdk:support_latest",
         "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
         "//tools/adt/idea/android/annotations",
-        "//tools/adt/idea/android/lib/androidWidgets",
+        "//tools/adt/idea/android/lib:androidWidgets",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
         "//tools/base/build-system:gradle-distrib",
