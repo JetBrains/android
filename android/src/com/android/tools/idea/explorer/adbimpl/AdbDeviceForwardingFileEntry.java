@@ -81,7 +81,7 @@ public abstract class AdbDeviceForwardingFileEntry extends AdbDeviceFileEntry {
 
   @NotNull
   @Override
-  public ListenableFuture<Void> uploadFile(@NotNull Path localPath, @NotNull FileTransferProgress progress) {
-    return getForwardedFileEntry().uploadFile(localPath, progress);
+  public ListenableFuture<Void> uploadFile(@NotNull Path localPath, @NotNull String fileName, @NotNull FileTransferProgress progress) {
+    return getForwardedFileEntry().uploadFile(localPath, fileName, progress);
   }
 }
