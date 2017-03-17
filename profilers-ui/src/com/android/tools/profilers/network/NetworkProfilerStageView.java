@@ -139,7 +139,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     LineConfig sentConfig = new LineConfig(ProfilerColors.NETWORK_SENDING_COLOR).setLegendIconType(LegendConfig.IconType.LINE);
     lineChart.configure(usage.getTxSeries(), sentConfig);
     LineConfig connectionConfig = new LineConfig(ProfilerColors.NETWORK_CONNECTIONS_COLOR)
-      .setLegendIconType(LegendConfig.IconType.DASHED_LINE).setStroke(LineConfig.DEFAULT_DASH_STROKE);
+      .setLegendIconType(LegendConfig.IconType.DASHED_LINE).setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE);
     lineChart.configure(usage.getConnectionSeries(), connectionConfig);
 
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
