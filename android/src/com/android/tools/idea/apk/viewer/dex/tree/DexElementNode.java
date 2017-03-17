@@ -24,7 +24,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Collections;
 import java.util.Comparator;
 
-public abstract class AbstractDexTreeNode extends DefaultMutableTreeNode {
+public abstract class DexElementNode extends DefaultMutableTreeNode {
 
   @NotNull private final String myName;
   @Nullable private final Reference myReference;
@@ -36,11 +36,11 @@ public abstract class AbstractDexTreeNode extends DefaultMutableTreeNode {
   protected boolean hasClassDefinition;
 
 
-  AbstractDexTreeNode(@NotNull String name, boolean allowsChildren) {
+  DexElementNode(@NotNull String name, boolean allowsChildren) {
     this(name, allowsChildren, null);
   }
 
-  AbstractDexTreeNode(@NotNull String name, boolean allowsChildren, @Nullable Reference reference) {
+  DexElementNode(@NotNull String name, boolean allowsChildren, @Nullable Reference reference) {
     super(null, allowsChildren);
     myName = name;
     myReference = reference;
@@ -59,13 +59,13 @@ public abstract class AbstractDexTreeNode extends DefaultMutableTreeNode {
   }
 
   @Override
-  public AbstractDexTreeNode getChildAt(int i) {
-    return (AbstractDexTreeNode)super.getChildAt(i);
+  public DexElementNode getChildAt(int i) {
+    return (DexElementNode)super.getChildAt(i);
   }
 
-  public void sort(Comparator<AbstractDexTreeNode> comparator) {
+  public void sort(Comparator<DexElementNode> comparator) {
     for (int i = 0; i < getChildCount(); i++) {
-      AbstractDexTreeNode node = getChildAt(i);
+      DexElementNode node = getChildAt(i);
       node.sort(comparator);
     }
     if (children != null) {
@@ -73,9 +73,9 @@ public abstract class AbstractDexTreeNode extends DefaultMutableTreeNode {
     }
   }
 
-  @Nullable protected <T extends AbstractDexTreeNode> T getChildByType(@NotNull String name, Class<T> type) {
+  @Nullable protected <T extends DexElementNode> T getChildByType(@NotNull String name, Class<T> type) {
     for (int i = 0; i < getChildCount(); i++) {
-      AbstractDexTreeNode node = getChildAt(i);
+      DexElementNode node = getChildAt(i);
       if (name.equals(node.getName()) && type.equals(node.getClass())) {
         return (T)node;
       }
@@ -106,7 +106,7 @@ public abstract class AbstractDexTreeNode extends DefaultMutableTreeNode {
 
   @Nullable
   @Override
-  public AbstractDexTreeNode getParent() {
-    return (AbstractDexTreeNode)super.getParent();
+  public DexElementNode getParent() {
+    return (DexElementNode)super.getParent();
   }
 }
