@@ -18,9 +18,21 @@
     <facet.toolWindow id="Android Profiler"
                       facetIdList="android"
                       anchor="bottom"
-                      icon="AndroidIcons.AndroidToolWindow"
+                      icon="AndroidIcons.Profiler.ToolWindow"
                       conditionClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"
                       factoryClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"/>
     <applicationService serviceImplementation="com.android.tools.idea.profilers.ProfilerService"/>
   </extensions>
+  <actions>
+    <action id="Android.AndroidProfiler" class="com.android.tools.idea.profilers.AndroidProfilerAction"
+            icon="AndroidIcons.Profiler.Toolbar" >
+      <add-to-group group-id="AndroidToolsGroup" anchor="after" relative-to-action="Android.RunAndroidSdkManager" />
+    </action>
+    <group id="Android.AndroidProfilerGroup">
+      <separator/>
+      <reference id="Android.AndroidProfiler" />
+      <separator/>
+      <add-to-group group-id="MainToolBar" anchor="before" relative-to-action="HelpTopics" />
+    </group>
+  </actions>
 </idea-plugin>
