@@ -18,7 +18,10 @@ package com.android.tools.idea.gradle.util;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.List;
+import java.util.stream.Stream;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -44,5 +47,47 @@ public class FilePathsTest {
     File path = new File("Users/foo/myFolder/file.zip");
     String url = FilePaths.pathToIdeaUrl(path);
     assertEquals("jar://Users/foo/myFolder/file.zip!/", url);
+  }
+
+  @Test
+  public void computeRootPathsForFilesMergesDuplicateRoots() {
+    List<String> roots = FilePaths.computeRootPathsForFiles(Stream.of("/a/x.c", "/a/x.c"));
+    assertThat(roots).containsExactly("/a");
+
+    roots = FilePaths.computeRootPathsForFiles(Stream.of("/a/x.c", "/a/x.h"));
+    assertThat(roots).containsExactly("/a");
+
+    roots = FilePaths.computeRootPathsForFiles(Stream.of("/a/b/x.c", "/a/b/x.h"));
+    assertThat(roots).containsExactly("/a/b");
+
+    roots = FilePaths.computeRootPathsForFiles(Stream.of("c:\\a\\x.c", "c:\\a\\x.h"));
+    assertThat(roots).containsExactly("c:\\a");
+  }
+
+  @Test
+  public void computeRootPathsForFilesMergesWithParents() {
+    List<String> roots = FilePaths.computeRootPathsForFiles(Stream.of("/a/b/x.c", "/a/y.c"));
+    assertThat(roots).containsExactly("/a");
+
+    roots = FilePaths.computeRootPathsForFiles(Stream.of("/a/b/c/x.c", "/a/x.h"));
+    assertThat(roots).containsExactly("/a");
+
+    roots = FilePaths.computeRootPathsForFiles(Stream.of("/a/b/c/x.c", "/a/b/y.c", "/a/z.c"));
+    assertThat(roots).containsExactly("/a");
+
+    roots = FilePaths.computeRootPathsForFiles(Stream.of("/a/b/c/x.c", "/b/c/y.c", "/a/b/z.c"));
+    assertThat(roots).containsExactly("/a/b", "/b/c");
+
+    roots = FilePaths.computeRootPathsForFiles(Stream.of("/a/b/c/x.c", "/b/c/y.c", "/a/b/z.c", "/b/u.c"));
+    assertThat(roots).containsExactly("/a/b", "/b");
+
+    roots = FilePaths.computeRootPathsForFiles(Stream.of("/a/b/c/x.c", "/a/x.h", "c:\\a\\b\\x.c", "c:\\a\\x.h"));
+    assertThat(roots).containsExactly("/a", "c:\\a");
+  }
+
+  @Test
+  public void computeRootPathsForFilesRelativePath() {
+    List<String> roots = FilePaths.computeRootPathsForFiles(Stream.of("a/x.c", "b/y.c"));
+    assertThat(roots).containsExactly("a", "b");
   }
 }
