@@ -36,6 +36,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import java.awt.event.WindowEvent;
+
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 
 /**
@@ -120,8 +122,12 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
   }
 
   public void close() {
-    robot().close(target());
+    // HACK: There is no button to close the dialog (eg a "Cancel)
+    // On the build bot the window manager doesn't allow "click to close";
+    // ESC is not reliable
+    // robot().close(target()) sends a WINDOW_CLOSING event, but it may be intercepted by other Components
+    // We send WINDOW_CLOSING directly to the Windows JFrame
+    GuiTask.execute(() -> target().dispatchEvent(new WindowEvent(target(), WindowEvent.WINDOW_CLOSING)));
     Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
-    myIdeFrame.requestFocusIfLost();
   }
 }
