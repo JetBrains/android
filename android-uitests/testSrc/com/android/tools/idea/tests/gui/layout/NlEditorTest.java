@@ -82,7 +82,7 @@ public class NlEditorTest {
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)
-      .dragComponentToSurface("Widgets", "TextView")
+      .dragComponentToSurface("Text", "TextView")
       .dragComponentToSurface("Widgets", "Button");
     String layoutFileContents = guiTest.ideFrame()
       .getEditor()
