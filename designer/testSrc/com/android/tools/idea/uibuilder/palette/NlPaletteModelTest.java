@@ -15,12 +15,36 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.flexbox.FlexboxLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
+import com.google.common.collect.ImmutableList;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.search.GlobalSearchScope;
+import icons.AndroidIcons;
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
+
+import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class NlPaletteModelTest extends PaletteTestCase {
   private NlPaletteModel model;
@@ -28,7 +52,7 @@ public class NlPaletteModelTest extends PaletteTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    model = NlPaletteModel.get(getProject());
+    model = NlPaletteModel.get(myFacet);
 
     try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlLayoutType.LAYOUT.getPaletteFileName()))) {
       model.loadPalette(reader, NlLayoutType.LAYOUT);
@@ -155,5 +179,108 @@ public class NlPaletteModelTest extends PaletteTestCase {
     assertRecyclerView(iterator.next());
     assertToolbarV7(iterator.next());
     assertFalse(iterator.hasNext());
+  }
+
+  public void testAddIllegalThirdPartyComponent() {
+    Palette palette = model.getPalette(NlLayoutType.LAYOUT);
+    boolean added = model.addThirdPartyComponent(NlLayoutType.LAYOUT, palette, null, null, LINEAR_LAYOUT, null, null,
+                                 SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT, null, Collections.emptyList(), Collections.emptyList());
+    assertThat(added).isFalse();
+    assertThat(getThirdPartyGroup()).isNull();
+
+    ViewHandler handler = ViewHandlerManager.get(myFacet).getHandler(LINEAR_LAYOUT);
+    assertThat(handler).isInstanceOf(LinearLayoutHandler.class);
+  }
+
+  public void testAddThirdPartyComponent() {
+    registerJavaClasses();
+    registerFakeBaseViewHandler();
+    Palette palette = model.getPalette(NlLayoutType.LAYOUT);
+    String tag = "com.example.FakeCustomView";
+    boolean added = model
+      .addThirdPartyComponent(NlLayoutType.LAYOUT, palette, AndroidIcons.Android, AndroidIcons.Android24, tag,
+                              getXml(tag), getPreviewXml(tag), SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT,
+                              "family", ImmutableList.of("family", "size"), Collections.emptyList());
+    Palette.Group thirdParty = getThirdPartyGroup();
+    assertThat(added).isTrue();
+    assertThat(thirdParty).isNotNull();
+    assertThat(thirdParty.getItems().size()).isEqualTo(1);
+
+    Palette.Item item = (Palette.Item)thirdParty.getItem(0);
+    assertThat(item.getTagName()).isEqualTo(tag);
+    assertThat(item.getIcon()).isEqualTo(AndroidIcons.Android);
+    assertThat(item.getLargeIcon()).isEqualTo(AndroidIcons.Android24);
+    assertThat(item.getTitle()).isEqualTo("FakeCustomView");
+    assertThat(item.getGradleCoordinateId()).isEqualTo(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT);
+    assertThat(item.getXml()).isEqualTo(getXml(tag));
+    assertThat(item.getPreviewXml()).isEqualTo(getPreviewXml(tag));
+
+    ViewHandler handler = ViewHandlerManager.get(myFacet).getHandler(tag);
+    assertThat(handler).isNotNull();
+    assertThat(handler.getTitle(tag)).isEqualTo("FakeCustomView");
+    assertThat(handler.getIcon(tag)).isEqualTo(AndroidIcons.Android);
+    assertThat(handler.getLargeIcon(tag)).isEqualTo(AndroidIcons.Android24);
+    assertThat(handler.getGradleCoordinateId(tag)).isEqualTo(SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT);
+    assertThat(handler.getPreviewScale(tag)).isWithin(0.0).of(1.0);
+    assertThat(handler.getInspectorProperties()).containsExactly("family", "size");
+    assertThat(handler.getLayoutInspectorProperties()).isEmpty();
+    assertThat(handler.getPreferredProperty()).isEqualTo("family");
+  }
+
+  @Nullable
+  private Palette.Group getThirdPartyGroup() {
+    Palette palette = model.getPalette(NlLayoutType.LAYOUT);
+    List<Palette.BaseItem> groups = palette.getItems();
+    Palette.Group group = (Palette.Group)groups.get(groups.size() - 1);
+    return group.getName().equals(NlPaletteModel.THIRD_PARTY_GROUP) ? group : null;
+  }
+
+  private void registerFakeBaseViewHandler() {
+    ViewHandlerManager manager = ViewHandlerManager.get(myFacet);
+    ViewHandler handler = manager.getHandler(SdkConstants.VIEW);
+    assertThat(handler).isNotNull();
+    manager.registerHandler("com.example.FakeView", handler);
+  }
+
+  private void registerJavaClasses() {
+    // Workaround: Adding the following classes should make the PsiClasses available to JavaPsiFacade.
+    // That does not work for some reason. For now: install a fake JavaPsiFacade.
+    PsiClass fakeView = myFixture.addClass(getFakeView());
+    PsiClass fakeCustomView = spy(myFixture.addClass(getFakeCustomViewView()));
+    JavaPsiFacade facade = mock(JavaPsiFacade.class);
+    registerProjectComponent(JavaPsiFacade.class, facade);
+    when(facade.findClasses(anyString(), any(GlobalSearchScope.class))).thenReturn(PsiClass.EMPTY_ARRAY);
+    when(facade.findClasses(eq("com.example.FakeView"), any(GlobalSearchScope.class))).thenReturn(new PsiClass[]{fakeView});
+    when(facade.findClasses(eq("com.example.FakeCustomView"), any(GlobalSearchScope.class))).thenReturn(new PsiClass[]{fakeCustomView});
+    when(facade.getElementFactory()).thenReturn(PsiElementFactory.SERVICE.getInstance(getProject()));
+    when(fakeCustomView.getSuperClass()).thenReturn(fakeView);
+  }
+
+  @Language("JAVA")
+  @NotNull
+  private static String getFakeView() {
+    return "package com.example;\n" +
+           "public class FakeView {\n" +
+           "}\n";
+  }
+
+  @Language("JAVA")
+  @NotNull
+  private static String getFakeCustomViewView() {
+    return "package com.example;\n" +
+           "public class FakeCustomView extends FakeView {\n" +
+           "}\n";
+  }
+
+  @Language("XML")
+  @NotNull
+  private static String getXml(@NotNull String tag) {
+    return String.format("<%1$s></%1$s>", tag);
+  }
+
+  @Language("XML")
+  @NotNull
+  private static String getPreviewXml(@NotNull String tag) {
+    return String.format("<%1$s><TextView text=\"2\"/></%1$s>", tag);
   }
 }
