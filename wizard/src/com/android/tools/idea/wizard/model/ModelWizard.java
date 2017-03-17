@@ -381,6 +381,14 @@ public final class ModelWizard implements Disposable {
           seenModels.add(model);
           model.handleFinished();
         }
+        for (ModelWizardStep step : mySteps) {
+          WizardModel model = step.getModel();
+          if (seenModels.contains(model)) {
+            continue;
+          }
+          seenModels.add(model);
+          model.handleSkipped();;
+        }
       }
     }
     finally {
