@@ -46,7 +46,7 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
     myDeviceCapabilities = new AdbDeviceCapabilities(myDevice);
     myFileListing = new AdbFileListing(myDevice, myDeviceCapabilities, service.getTaskExecutor());
     myFileOperations = new AdbFileOperations(myDevice, myDeviceCapabilities, service.getTaskExecutor());
-    myFileTransfer = new AdbFileTransfer(myDevice, service.getEdtExecutor(), service.getTaskExecutor());
+    myFileTransfer = new AdbFileTransfer(myDevice, myFileOperations, service.getEdtExecutor(), service.getTaskExecutor());
   }
 
   boolean isDevice(@Nullable IDevice device) {
@@ -56,6 +56,11 @@ public class AdbDeviceFileSystem implements DeviceFileSystem {
   @NotNull
   IDevice getDevice() {
     return myDevice;
+  }
+
+  @NotNull
+  public AdbDeviceCapabilities getCapabilities() {
+    return myDeviceCapabilities;
   }
 
   @NotNull
