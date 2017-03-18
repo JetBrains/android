@@ -49,12 +49,6 @@ public class ScreenView extends SceneView {
     myType = type;
   }
 
-  @NotNull
-  @Override
-  protected SceneManager createSceneBuilder(@NotNull NlModel model) {
-    return new LayoutlibSceneManager(model, this);
-  }
-
   /**
    * Returns the current type of this ScreenView
    */

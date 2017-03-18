@@ -17,21 +17,25 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.util.Disposer;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.Arrays;
 
+import static org.mockito.Mockito.when;
+
 /**
  * Base class for Scene tests
  */
 public abstract class SceneTest extends LayoutTestCase {
 
-  protected NlModel myModel;
+  protected SyncNlModel myModel;
   protected Scene myScene;
   protected SceneManager mySceneManager;
   protected ScreenFixture myScreen;
@@ -41,14 +45,14 @@ public abstract class SceneTest extends LayoutTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myModel = createModel().build();
-    myScreen = surface().screen(myModel);
+    myScreen = new ScreenFixture(myModel);
     myScreen.withScale(1);
     buildScene();
   }
 
   protected void buildScene() {
-    mySceneManager = new SyncLayoutlibSceneManager(myModel, myScreen.getScreen());
-    myScene = mySceneManager.build();
+    mySceneManager = myModel.getSurface().getSceneManager();
+    myScene = mySceneManager.getScene();
     myScene.setShowAllConstraints(true);
     myScene.setAnimated(false);
     mySceneManager.update();

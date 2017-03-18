@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
@@ -51,8 +52,8 @@ public class SceneCreationTest extends SceneTest {
 
   public void testSceneCreation() {
     ModelBuilder builder = createModel();
-    NlModel model = builder.build();
-    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model, myScreen.getScreen());
+    SyncNlModel model = builder.build();
+    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model);
     Scene scene = sceneBuilder.build();
     scene.setAnimated(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
@@ -89,8 +90,8 @@ public class SceneCreationTest extends SceneTest {
 
   public void testSceneReparenting() {
     ModelBuilder builder = createModel();
-    NlModel model = builder.build();
-    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model, myScreen.getScreen());
+    SyncNlModel model = builder.build();
+    LayoutlibSceneManager sceneBuilder = new SyncLayoutlibSceneManager(model);
     Scene scene = sceneBuilder.build();
     scene.setAnimated(false);
     assertEquals(scene.getRoot().getChildren().size(), 1);
@@ -120,11 +121,11 @@ public class SceneCreationTest extends SceneTest {
 
   public void testDeviceChange() {
     ModelBuilder builder = createModel();
-    NlModel model = builder.build();
+    SyncNlModel model = builder.build();
     Configuration config = model.getConfiguration();
     config.setDevice(config.getConfigurationManager().getDeviceById("Nexus 6P"), false);
 
-    Scene scene = new SyncLayoutlibSceneManager(model, myScreen.getScreen()).build();
+    Scene scene = new SyncLayoutlibSceneManager(model).build();
     scene.setAnimated(false);
 
     ComponentDescriptor parent = builder.findByPath(CONSTRAINT_LAYOUT);

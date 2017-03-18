@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
@@ -62,7 +63,7 @@ public class SceneContext {
     return (int) y;
   }
 
-  public int getSwingDimension(float x) {
+  public int getSwingDimension(@AndroidDpCoordinate float x) {
     return (int) x;
   }
 
@@ -171,7 +172,7 @@ public class SceneContext {
     }
 
     @Override
-    public int getSwingDimension(float v) {
+    public int getSwingDimension(@AndroidDpCoordinate float v) {
       return Coordinates.getSwingDimension(mySceneView, Coordinates.dpToPx(mySceneView, v));
     }
   }
