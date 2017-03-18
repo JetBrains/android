@@ -88,31 +88,22 @@ public class AvdManagerConnectionTest extends TestCase {
 
     assertNotNull("Could not create AVD", avd);
 
-    // Make a different userdata-qemu.img so we can see if 'wipe-data'
-    // recreates it correctly.
+    // Make a userdata-qemu.img so we can see if 'wipe-data' deletes it
     File userQemu = new File(mAvdFolder, AvdManager.USERDATA_QEMU_IMG);
-    assertTrue("Expected " + AvdManager.USERDATA_QEMU_IMG + " in " + mAvdFolder + " after creation",
-               mFileOp.exists(userQemu));
-    mFileOp.delete(userQemu);
-    assertFalse(AvdManager.USERDATA_QEMU_IMG + " exists in " + mAvdFolder + " after attempted deletion",
-               mFileOp.exists(userQemu));
     mFileOp.createNewFile(userQemu);
-    assertTrue("Could not create dummy " + AvdManager.USERDATA_QEMU_IMG + " in " + mAvdFolder,
+    assertTrue("Could not create " + AvdManager.USERDATA_QEMU_IMG + " in " + mAvdFolder,
                mFileOp.exists(userQemu));
 
     // Do the "wipe-data"
     assertTrue("Could not wipe data from AVD", mAvdManagerConnection.wipeUserData(avd));
 
-    assertTrue("Expected " + AvdManager.USERDATA_QEMU_IMG + " in " + mAvdFolder + " after wipe-data",
+    assertFalse("Expected NO " + AvdManager.USERDATA_QEMU_IMG + " in " + mAvdFolder + " after wipe-data",
                mFileOp.exists(userQemu));
 
     File userData = new File(mAvdFolder, AvdManager.USERDATA_IMG);
     assertTrue("Expected " + AvdManager.USERDATA_IMG + " in " + mAvdFolder + " after wipe-data",
                mFileOp.exists(userData));
 
-    // If the file sizes match, assume that we have a good copy.
-    assertEquals("Size of " + AvdManager.USERDATA_QEMU_IMG + " is wrong after wipe-data",
-                 mFileOp.length(userData), mFileOp.length(userQemu));
   }
 
 
