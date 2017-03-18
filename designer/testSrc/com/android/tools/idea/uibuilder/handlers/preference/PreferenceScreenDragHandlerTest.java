@@ -16,12 +16,12 @@
 package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -50,7 +50,7 @@ public final class PreferenceScreenDragHandlerTest extends PreferenceScreenTestC
   }
 
   public void testUpdateAdjacentCategories() {
-    NlModel model = model("model.xml", preferenceScreen(0, 162, 768, 548).children(
+    SyncNlModel model = model("model.xml", preferenceScreen(0, 162, 768, 548).children(
       checkBoxPreference(0, 162, 768, 102),
       preferenceCategory(0, 266, 768, 65)
         .id("@+id/category1")
@@ -125,7 +125,7 @@ public final class PreferenceScreenDragHandlerTest extends PreferenceScreenTestC
   }
 
   @NotNull
-  private NlModel newPreferenceScreen() {
+  private SyncNlModel newPreferenceScreen() {
     return model("model.xml",
                  preferenceScreen(0, 162, 768, 755).children(
                    checkBoxPreference(0, 162, 768, 168),
@@ -135,9 +135,9 @@ public final class PreferenceScreenDragHandlerTest extends PreferenceScreenTestC
   }
 
   @NotNull
-  private PreferenceGroupDragHandler newPreferenceScreenDragHandler(@NotNull NlModel model) {
-    ScreenFixture screenFixture = surface().screen(model).withScale(1);
-    Scene scene = new SyncLayoutlibSceneManager(model, screenFixture.getScreen()).build();
+  private PreferenceGroupDragHandler newPreferenceScreenDragHandler(@NotNull SyncNlModel model) {
+    ScreenFixture screenFixture = new ScreenFixture(model).withScale(1);
+    Scene scene = new SyncLayoutlibSceneManager(model).build();
     scene.buildDisplayList(new DisplayList(), 0);
 
     ViewEditor editor = editor(screenFixture.getScreen());

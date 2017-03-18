@@ -16,11 +16,13 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
@@ -33,6 +35,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 
 import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.*;
 
@@ -41,21 +44,11 @@ public class InteractionManagerTest extends LayoutTestCase {
   public void testDragAndDrop() throws Exception {
     // Drops a fragment (xmlFragment below) into the design surface (via drag & drop events) and verifies that
     // the resulting document ends up modified as expected.
+    SyncNlModel model = model("linear.xml", component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 1000, 1000)
+      .withAttribute("android:orientation", "vertical")).build();
 
-    @Language("XML")
-    String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                    "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                    "    android:layout_width=\"0dp\"\n" +
-                    "    android:layout_height=\"0dp\"\n" +
-                    "    android:orientation=\"vertical\">\n" +
-                    "\n" +
-                    "</LinearLayout>\n";
-    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
-
-    NlDesignSurface surface = createSurface();
-    NlModel model = createModel(surface, myFacet, xmlFile);
-
-    ScreenView screenView = createScreen(surface, model, new SelectionModel());
+    ScreenView screenView = createScreen(model);
     DesignSurface designSurface = screenView.getSurface();
     InteractionManager manager = createManager(designSurface);
 
@@ -70,20 +63,9 @@ public class InteractionManagerTest extends LayoutTestCase {
     dragDrop(manager, 0, 0, 100, 100, transferable);
     Disposer.dispose(model);
 
-    @Language("XML")
-    String expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                      "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                      "    android:layout_width=\"0dp\"\n" +
-                      "    android:layout_height=\"0dp\"\n" +
-                      "    android:orientation=\"vertical\">\n" +
-                      "\n" +
-                      "    <TextView\n" +
-                      "        android:id=\"@+id/textView\"\n" +
-                      "        android:layout_width=\"match_parent\"\n" +
-                      "        android:layout_height=\"wrap_content\"\n" +
-                      "        android:text=\"Hello World\" />\n" +
-                      "</LinearLayout>\n";
-    assertEquals(expected, xmlFile.getText());
+    String expected = "NlComponent{tag=<LinearLayout>, bounds=[0,150:2x2, instance=0}\n" +
+                      "    NlComponent{tag=<TextView>, bounds=[0,150:2x2, instance=1}";
+    assertEquals(expected, new NlTreeDumper().toTree(model.getComponents()));
   }
 
   public void testLinearLayoutCursorHoverComponent() throws Exception {
@@ -129,30 +111,23 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   private InteractionManager setupLinearLayoutCursorTest() {
-    @Language("XML")
-    String source = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                    "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                    "    android:id=\"@+id/linearLayout\"\n" +
-                    "    android:layout_width=\"100dp\"\n" +
-                    "    android:layout_height=\"100dp\"\n" +
-                    "    android:orientation=\"vertical\">\n" +
-                    "<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                    "    android:id=\"@+id/textView\"\n" +
-                    "     android:layout_width=\"wrap_content\"\n" +
-                    "     android:layout_height=\"wrap_content\"\n" +
-                    "     android:text=\"Hello World\"\n" +
-                    "/>" +
-                    "</LinearLayout>\n";
-    XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", source);
+    SyncNlModel model = model("linear.xml", component(LINEAR_LAYOUT)
+      .withBounds(0, 0, 100, 100)
+      .withAttribute("android:orientation", "vertical")
+      .children(
+        component(TEXT_VIEW)
+          .id("@+id/textView")
+          .withBounds(0, 0, 100, 100)
+          .wrapContentWidth()
+          .wrapContentHeight())).build();
 
-    NlDesignSurface surface = createSurface();
+    NlDesignSurface surface = model.getSurface();
     Mockito.when(surface.getScale()).thenReturn(1.0);
-    NlModel model = createModel(surface, myFacet, xmlFile);
 
-    ScreenView screenView = new SyncScreenView(surface, ScreenView.ScreenViewType.NORMAL, model);
+    ScreenView screenView = new ScreenView(surface, ScreenView.ScreenViewType.NORMAL, model);
     Mockito.when(surface.getSceneView(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenReturn(screenView);
     InteractionManager manager = createManager(surface);
-    screenView.getScene().buildDisplayList(new DisplayList(), 0);
+    surface.getScene().buildDisplayList(new DisplayList(), 0);
     return manager;
   }
 
@@ -199,21 +174,21 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   private InteractionManager setupConstraintLayoutCursorTest() {
-      NlModel model = model("constraint.xml", component(CONSTRAINT_LAYOUT)
-        .withBounds(0, 0, 1000, 1000)
-        .matchParentWidth()
-        .matchParentHeight()
-        .children(
-          component(TEXT_VIEW)
-            .id("@+id/textView")
-            .withBounds(0, 0, 100, 100)
-            .wrapContentWidth()
-            .wrapContentHeight())).build();
+    SyncNlModel model = model("constraint.xml", component(CONSTRAINT_LAYOUT)
+      .withBounds(0, 0, 1000, 1000)
+      .matchParentWidth()
+      .matchParentHeight()
+      .children(
+        component(TEXT_VIEW)
+          .id("@+id/textView")
+          .withBounds(0, 0, 100, 100)
+          .wrapContentWidth()
+          .wrapContentHeight())).build();
 
-    NlDesignSurface surface = createSurface();
+    NlDesignSurface surface = model.getSurface();
     Mockito.when(surface.getScale()).thenReturn(1.0);
 
-    ScreenView screenView = new SyncScreenView(surface, ScreenView.ScreenViewType.NORMAL, model);
+    ScreenView screenView = new ScreenView(surface, ScreenView.ScreenViewType.NORMAL, model);
     Mockito.when(surface.getSceneView(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt())).thenReturn(screenView);
     InteractionManager manager = createManager(surface);
     screenView.getScene().buildDisplayList(new DisplayList(), 0);

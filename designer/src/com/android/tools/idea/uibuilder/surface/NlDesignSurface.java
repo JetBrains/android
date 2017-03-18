@@ -27,7 +27,9 @@ import com.android.tools.idea.uibuilder.editor.ActionManager;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DataManager;
@@ -188,6 +190,12 @@ public class NlDesignSurface extends DesignSurface {
         }
       }
     }
+  }
+
+  @NotNull
+  @Override
+  protected SceneManager createSceneManager(@NotNull NlModel model) {
+    return new LayoutlibSceneManager(model, this);
   }
 
   private void addLayers(@NotNull NlModel model) {

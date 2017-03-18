@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.menu;
 import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
@@ -125,9 +126,10 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
 
   @NotNull
   private DragHandler newGroupDragHandler(@NotNull NlComponent menu, @NotNull NlComponent item) {
-    ScreenFixture screenFixture = surface().screen(menu.getModel()).withScale(1);
+    SyncNlModel model = (SyncNlModel)menu.getModel();
+    ScreenFixture screenFixture = new ScreenFixture(model).withScale(1);
     ViewEditor editor = editor(screenFixture.getScreen());
-    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(editor.getModel(), screenFixture.getScreen());
+    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model);
     Scene scene = builder.build();
     scene.buildDisplayList(new DisplayList(), 0);
 

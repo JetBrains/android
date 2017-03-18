@@ -27,30 +27,31 @@ import java.awt.*;
 public class Display {
   private long mTime;
   private DisplayList myDisplayList = new DisplayList();
-  private boolean myNeedsDisplayListRebuild;
+  private long myDisplayListVersion = 0;
   double myScale = 0;
 
   void reLayout() {
-    myNeedsDisplayListRebuild = true;
+    myDisplayListVersion = 0;
   }
 
   public void draw(@NotNull SceneContext sceneContext, @NotNull Graphics2D g, @NotNull Scene scene) {
     mTime = System.currentTimeMillis();
-    if (scene.getNeedsDisplayListRebuilt()) {
-      myNeedsDisplayListRebuild = true;
+    boolean needsRebuild = false;
+    if (scene.getDisplayListVersion() > myDisplayListVersion) {
+      needsRebuild = true;
     }
     if (sceneContext.getScale() != myScale) {
       myScale = sceneContext.getScale();
-      myNeedsDisplayListRebuild = true;
+      needsRebuild = true;
     }
-    myNeedsDisplayListRebuild |= myDisplayList.getCommands().size() == 0;
-    if (myNeedsDisplayListRebuild) {
+    needsRebuild |= myDisplayList.getCommands().size() == 0;
+    if (needsRebuild) {
       myDisplayList.clear();
-      myNeedsDisplayListRebuild = scene.buildDisplayList(myDisplayList, mTime, sceneContext);
-      scene.clearNeedsRebuildList();
+      needsRebuild = scene.buildDisplayList(myDisplayList, mTime, sceneContext);
+      myDisplayListVersion = scene.getDisplayListVersion();
     }
     draw(sceneContext, g, myDisplayList);
-    if (myNeedsDisplayListRebuild) {
+    if (needsRebuild) {
       DesignSurface designSurface = sceneContext.getSurface();
       if (designSurface != null) {
         designSurface.repaint();
