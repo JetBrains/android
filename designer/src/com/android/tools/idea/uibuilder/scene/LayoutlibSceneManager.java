@@ -75,11 +75,12 @@ public class LayoutlibSceneManager extends SceneManager {
     List<NlComponent> components = model.getComponents();
     if (components.size() != 0) {
       NlComponent rootComponent = components.get(0).getRoot();
+      boolean previous = getScene().isAnimated();
       scene.setAnimated(false);
       SceneComponent root = updateFromComponent(rootComponent, new HashSet<>());
       scene.setRoot(root);
       addTargets(root);
-      scene.setAnimated(true);
+      scene.setAnimated(previous);
     }
     model.addListener(new ModelChangeListener());
     // let's make sure the selection is correct
@@ -224,8 +225,8 @@ public class LayoutlibSceneManager extends SceneManager {
 
     @Override
     public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
-      boolean previous = getScene().isAnimated();
       UIUtil.invokeLaterIfNeeded(() -> {
+        boolean previous = getScene().isAnimated();
         getScene().setAnimated(animate);
         update();
         getScene().setAnimated(previous);
