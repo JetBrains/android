@@ -44,13 +44,13 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
                               @Nullable GradleExecutionSettings settings,
                               @NotNull final List<String> vmOptions,
                               @NotNull final List<String> scriptParameters,
-                              @Nullable String debuggerSetup,
+                              @Nullable String jvmAgentSetup,
                               @NotNull ExternalSystemTaskNotificationListener listener) throws ExternalSystemException {
     if (settings != null) {
       settings.withVmOptions(vmOptions);
       settings.withArguments(scriptParameters);
     }
-    return executeTasks(id, taskNames, projectPath, settings, debuggerSetup, listener);
+    return executeTasks(id, taskNames, projectPath, settings, jvmAgentSetup, listener);
   }
 
   @Override
@@ -58,7 +58,7 @@ public class AndroidGradleTaskManager implements GradleTaskManagerExtension {
                               @NotNull List<String> taskNames,
                               @NotNull String projectPath,
                               @Nullable GradleExecutionSettings settings,
-                              @Nullable String debuggerSetup,
+                              @Nullable String jvmAgentSetup,
                               @NotNull ExternalSystemTaskNotificationListener listener) throws ExternalSystemException
   {
     GradleInvoker invoker = getInvoker();
