@@ -19,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collection;
+import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -50,5 +51,46 @@ public class ApkFacetConfigurationTest {
 
     Collection<String> paths = myConfiguration.getDebugSymbolFolderPaths();
     assertThat(paths).containsExactly("/a");
+  }
+
+  @Test
+  public void getLibrariesWithoutDebugSymbolsWithEmptyLibraries() {
+    List<NativeLibrary> libraries = myConfiguration.getLibrariesWithoutDebugSymbols();
+    assertThat(libraries).isEmpty();
+  }
+
+  @Test
+  public void getLibrariesWithoutDebugSymbolsWithLibrariesMissingDebugSymbols() {
+    NativeLibrary library1 = new NativeLibrary("x.c");
+    library1.hasDebugSymbols = true;
+
+    NativeLibrary library2 = new NativeLibrary("x.h");
+    NativeLibrary library3 = new NativeLibrary("y.c");
+
+    myConfiguration.NATIVE_LIBRARIES.add(library1);
+    myConfiguration.NATIVE_LIBRARIES.add(library2);
+    myConfiguration.NATIVE_LIBRARIES.add(library3);
+
+    List<NativeLibrary> libraries = myConfiguration.getLibrariesWithoutDebugSymbols();
+    assertThat(libraries).containsAllOf(library2, library3);
+  }
+
+  @Test
+  public void getLibrariesWithoutDebugSymbolsWithLibrariesHavingDebugSymbols() {
+    NativeLibrary library1 = new NativeLibrary("x.c");
+    library1.hasDebugSymbols = true;
+
+    NativeLibrary library2 = new NativeLibrary("x.h");
+    library2.hasDebugSymbols = true;
+
+    NativeLibrary library3 = new NativeLibrary("y.c");
+    library3.hasDebugSymbols = true;
+
+    myConfiguration.NATIVE_LIBRARIES.add(library1);
+    myConfiguration.NATIVE_LIBRARIES.add(library2);
+    myConfiguration.NATIVE_LIBRARIES.add(library3);
+
+    List<NativeLibrary> libraries = myConfiguration.getLibrariesWithoutDebugSymbols();
+    assertThat(libraries).isEmpty();
   }
 }

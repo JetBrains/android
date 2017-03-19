@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.android.tools.idea.gradle.util.FilePaths.computeRootPathsForFiles;
@@ -60,5 +61,13 @@ public class ApkFacetConfiguration implements FacetConfiguration {
   @Override
   public void writeExternal(@NotNull Element element) throws WriteExternalException {
     XmlSerializer.serializeInto(this, element);
+  }
+
+  @NotNull
+  public List<NativeLibrary> getLibrariesWithoutDebugSymbols() {
+    if (NATIVE_LIBRARIES.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return NATIVE_LIBRARIES.stream().filter(library -> !library.hasDebugSymbols).collect(Collectors.toList());
   }
 }
