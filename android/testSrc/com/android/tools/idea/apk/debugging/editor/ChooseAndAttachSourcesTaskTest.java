@@ -17,6 +17,7 @@ package com.android.tools.idea.apk.debugging.editor;
 
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.util.FileOrFolderChooser;
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.module.JavaModuleType;
 import com.intellij.openapi.module.Module;
@@ -45,7 +46,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class ChooseAndAttachSourcesTaskTest extends AndroidGradleTestCase {
   @Mock private EditorNotifications myEditorNotifications;
   @Mock private DexSourceFiles myDexSourceFiles;
-  @Mock private ChooseAndAttachSourcesTask.FolderChooser myFolderChooser;
+  @Mock private FileOrFolderChooser myFileOrFolderChooser;
 
   @Override
   public void setUp() throws Exception {
@@ -61,11 +62,11 @@ public class ChooseAndAttachSourcesTaskTest extends AndroidGradleTestCase {
     Module appModule = createModule(appModulePath, JavaModuleType.getModuleType());
 
     VirtualFile javaSourceFolder = findJavaSourceFolder(appModulePath);
-    when(myFolderChooser.chooseFolders()).thenReturn(new VirtualFile[]{javaSourceFolder});
+    when(myFileOrFolderChooser.choose(getProject())).thenReturn(new VirtualFile[]{javaSourceFolder});
 
     String classFqn = "a.b.c";
     ChooseAndAttachSourcesTask task = new ChooseAndAttachSourcesTask(classFqn, appModule, new MockDumbService(getProject()),
-                                                                     myEditorNotifications, myDexSourceFiles, myFolderChooser);
+                                                                     myEditorNotifications, myDexSourceFiles, myFileOrFolderChooser);
     task.run();
 
     ContentEntry[] contentEntries = ModuleRootManager.getInstance(appModule).getContentEntries();
