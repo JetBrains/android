@@ -32,6 +32,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
 
   public LineChartEntriesRegistrar() {
     registerStackedLineChart();
+    registerStackedLineChartWithNonZeroMinValue();
     registerSimpleLineChart();
     registerSteppedLineChart();
     registerSimpleEventLineChart();
@@ -47,7 +48,29 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       protected void generateComponent() {
         // Create a filled, stacked line chart and register the components to the choreographer
         addLine(0.0, 100.0, "Left Series", new LineConfig(Color.BLUE).setFilled(true).setStacked(true));
-        addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setFilled(true).setStacked(true));
+        addLine(0.0, 100.0, "Right Series", new LineConfig(Color.RED).setFilled(true).setStacked(true));
+      }
+    });
+  }
+
+  // Ensures that the stacked lines works correctly with a y range that's min value is not zero.
+  private void registerStackedLineChartWithNonZeroMinValue() {
+    register(new LineChartImageDiffEntry("stacked_line_chart_with_non_zero_min_value_baseline.png") {
+      @Override
+      protected void generateComponent() {
+        // Create a filled, stacked line chart and register the components to the choreographer
+        addLine(50.0, 100.0, "Left Series", new LineConfig(Color.BLUE).setFilled(true).setStacked(true));
+        addLine(50.0, 100.0, "Right Series", new LineConfig(Color.RED).setFilled(true).setStacked(true));
+      }
+
+      @Override
+      protected void generateTestData() {
+        myXRange.set(0, 6);
+        myData.get(0).add(1, 51L);
+        myData.get(0).add(5, 61L);
+
+        myData.get(1).add(1, 20L);
+        myData.get(1).add(5, 5L);
       }
     });
   }
