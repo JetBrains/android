@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
@@ -30,20 +26,16 @@ import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.scout.Direction;
+import com.android.utils.Pair;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.lang.Float;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle.*;
@@ -57,16 +49,102 @@ public final class ConstraintComponentUtilities {
   public static final HashMap<String, String> ourReciprocalAttributes;
   public static final HashMap<String, String> ourMapMarginAttributes;
   public static final HashMap<String, AnchorTarget.Type> ourMapSideToOriginAnchors;
-  public static final HashMap<String, AnchorTarget.Type> ourMapSideToTargetAnchors;
   public static final ArrayList<String> ourLeftAttributes;
   public static final ArrayList<String> ourTopAttributes;
   public static final ArrayList<String> ourRightAttributes;
   public static final ArrayList<String> ourBottomAttributes;
+  public static final ArrayList<String> ourStartAttributes;
+  public static final ArrayList<String> ourEndAttributes;
   public static final ArrayList<String> ourBaselineAttributes;
-  public static final ArrayList<String> ourMarginAttributes;
   public static final ArrayList<String> ourHorizontalAttributes;
   public static final ArrayList<String> ourVerticalAttributes;
   public static final ArrayList<String> ourCreatorAttributes;
+
+  private static final HashMap<Pair<AnchorTarget.Type, AnchorTarget.Type>, String> ourConstraintAttributes = new HashMap<>();
+  static {
+    ourConstraintAttributes.put(Pair.of(AnchorTarget.Type.LEFT, AnchorTarget.Type.LEFT), ATTR_LAYOUT_LEFT_TO_LEFT_OF);
+    ourConstraintAttributes.put(Pair.of(AnchorTarget.Type.LEFT, AnchorTarget.Type.RIGHT), ATTR_LAYOUT_LEFT_TO_RIGHT_OF);
+    ourConstraintAttributes.put(Pair.of(AnchorTarget.Type.RIGHT, AnchorTarget.Type.LEFT), ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
+    ourConstraintAttributes.put(Pair.of(AnchorTarget.Type.RIGHT, AnchorTarget.Type.RIGHT), ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
+    ourConstraintAttributes.put(Pair.of(AnchorTarget.Type.TOP, AnchorTarget.Type.TOP), ATTR_LAYOUT_TOP_TO_TOP_OF);
+    ourConstraintAttributes.put(Pair.of(AnchorTarget.Type.TOP, AnchorTarget.Type.BOTTOM), ATTR_LAYOUT_TOP_TO_BOTTOM_OF);
+    ourConstraintAttributes.put(Pair.of(AnchorTarget.Type.BOTTOM, AnchorTarget.Type.TOP), ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
+    ourConstraintAttributes.put(Pair.of(AnchorTarget.Type.BOTTOM, AnchorTarget.Type.BOTTOM), ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
+  }
+
+  private static final HashMap<String, String> ourLTRConvertedAttributes = new HashMap<>();
+  private static final HashMap<Pair<AnchorTarget.Type, AnchorTarget.Type>, String> ourLTRConstraintAnchorsToMargin = new HashMap<>();
+  public static final HashMap<String, AnchorTarget.Type> ourLTRMapSideToTargetAnchors = new HashMap<>();
+  static {
+    ourLTRConvertedAttributes.put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_START_TO_START_OF);
+    ourLTRConvertedAttributes.put(ATTR_LAYOUT_LEFT_TO_RIGHT_OF, ATTR_LAYOUT_START_TO_END_OF);
+    ourLTRConvertedAttributes.put(ATTR_LAYOUT_RIGHT_TO_LEFT_OF, ATTR_LAYOUT_END_TO_START_OF);
+    ourLTRConvertedAttributes.put(ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, ATTR_LAYOUT_END_TO_END_OF);
+    ourLTRConstraintAnchorsToMargin.put(Pair.of(AnchorTarget.Type.LEFT, AnchorTarget.Type.LEFT), ATTR_LAYOUT_MARGIN_START);
+    ourLTRConstraintAnchorsToMargin.put(Pair.of(AnchorTarget.Type.LEFT, AnchorTarget.Type.RIGHT), ATTR_LAYOUT_MARGIN_START);
+    ourLTRConstraintAnchorsToMargin.put(Pair.of(AnchorTarget.Type.RIGHT, AnchorTarget.Type.LEFT), ATTR_LAYOUT_MARGIN_END);
+    ourLTRConstraintAnchorsToMargin.put(Pair.of(AnchorTarget.Type.RIGHT, AnchorTarget.Type.RIGHT), ATTR_LAYOUT_MARGIN_END);
+    ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, AnchorTarget.Type.LEFT);
+    ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_LEFT_TO_RIGHT_OF, AnchorTarget.Type.RIGHT);
+    ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_RIGHT_TO_LEFT_OF, AnchorTarget.Type.LEFT);
+    ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, AnchorTarget.Type.RIGHT);
+    ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_TOP_TO_TOP_OF, AnchorTarget.Type.TOP);
+    ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_TOP_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
+    ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_BOTTOM_TO_TOP_OF, AnchorTarget.Type.TOP);
+    ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
+    ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, AnchorTarget.Type.BASELINE);
+    ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_START_TO_START_OF, AnchorTarget.Type.LEFT);
+    ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_START_TO_END_OF, AnchorTarget.Type.LEFT);
+    ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_END_TO_START_OF, AnchorTarget.Type.RIGHT);
+    ourLTRMapSideToTargetAnchors.put(ATTR_LAYOUT_END_TO_END_OF, AnchorTarget.Type.RIGHT);
+  }
+
+  private static final HashMap<String, String> ourRTLConvertedAttributes = new HashMap<>();
+  private static final HashMap<Pair<AnchorTarget.Type, AnchorTarget.Type>, String> ourRTLConstraintAnchorsToMargin = new HashMap<>();
+  public static final HashMap<String, AnchorTarget.Type> ourRTLMapSideToTargetAnchors = new HashMap<>();
+  static {
+    ourRTLConvertedAttributes.put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_END_TO_END_OF);
+    ourRTLConvertedAttributes.put(ATTR_LAYOUT_LEFT_TO_RIGHT_OF, ATTR_LAYOUT_END_TO_START_OF);
+    ourRTLConvertedAttributes.put(ATTR_LAYOUT_RIGHT_TO_LEFT_OF, ATTR_LAYOUT_START_TO_END_OF);
+    ourRTLConvertedAttributes.put(ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, ATTR_LAYOUT_START_TO_START_OF);
+    ourRTLConstraintAnchorsToMargin.put(Pair.of(AnchorTarget.Type.LEFT, AnchorTarget.Type.LEFT), ATTR_LAYOUT_MARGIN_END);
+    ourRTLConstraintAnchorsToMargin.put(Pair.of(AnchorTarget.Type.LEFT, AnchorTarget.Type.RIGHT), ATTR_LAYOUT_MARGIN_END);
+    ourRTLConstraintAnchorsToMargin.put(Pair.of(AnchorTarget.Type.RIGHT, AnchorTarget.Type.LEFT), ATTR_LAYOUT_MARGIN_START);
+    ourRTLConstraintAnchorsToMargin.put(Pair.of(AnchorTarget.Type.RIGHT, AnchorTarget.Type.RIGHT), ATTR_LAYOUT_MARGIN_START);
+    ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, AnchorTarget.Type.LEFT);
+    ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_LEFT_TO_RIGHT_OF, AnchorTarget.Type.RIGHT);
+    ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_RIGHT_TO_LEFT_OF, AnchorTarget.Type.LEFT);
+    ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, AnchorTarget.Type.RIGHT);
+    ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_TOP_TO_TOP_OF, AnchorTarget.Type.TOP);
+    ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_TOP_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
+    ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_BOTTOM_TO_TOP_OF, AnchorTarget.Type.TOP);
+    ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
+    ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, AnchorTarget.Type.BASELINE);
+    ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_START_TO_START_OF, AnchorTarget.Type.RIGHT);
+    ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_START_TO_END_OF, AnchorTarget.Type.RIGHT);
+    ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_END_TO_START_OF, AnchorTarget.Type.LEFT);
+    ourRTLMapSideToTargetAnchors.put(ATTR_LAYOUT_END_TO_END_OF, AnchorTarget.Type.LEFT);  }
+
+  private static final HashMap<AnchorTarget.Type, Pair<String, String>> ourPotentialAttributes = new HashMap<>();
+  static {
+    ourPotentialAttributes.put(AnchorTarget.Type.LEFT, Pair.of(ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_LEFT_TO_RIGHT_OF));
+    ourPotentialAttributes.put(AnchorTarget.Type.RIGHT, Pair.of(ATTR_LAYOUT_RIGHT_TO_LEFT_OF, ATTR_LAYOUT_RIGHT_TO_RIGHT_OF));
+    ourPotentialAttributes.put(AnchorTarget.Type.TOP, Pair.of(ATTR_LAYOUT_TOP_TO_TOP_OF, ATTR_LAYOUT_TOP_TO_BOTTOM_OF));
+    ourPotentialAttributes.put(AnchorTarget.Type.BOTTOM, Pair.of(ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF));
+  }
+
+  private static final HashMap<AnchorTarget.Type, Pair<String, String>> ourPotentialLTRAttributes = new HashMap<>();
+  static {
+    ourPotentialLTRAttributes.put(AnchorTarget.Type.LEFT, Pair.of(ATTR_LAYOUT_START_TO_START_OF, ATTR_LAYOUT_START_TO_END_OF));
+    ourPotentialLTRAttributes.put(AnchorTarget.Type.RIGHT, Pair.of(ATTR_LAYOUT_END_TO_START_OF, ATTR_LAYOUT_END_TO_END_OF));
+  }
+
+  private static final HashMap<AnchorTarget.Type, Pair<String, String>> ourPotentialRTLAttributes = new HashMap<>();
+  static {
+    ourPotentialRTLAttributes.put(AnchorTarget.Type.LEFT, Pair.of(ATTR_LAYOUT_END_TO_END_OF, ATTR_LAYOUT_END_TO_START_OF));
+    ourPotentialRTLAttributes.put(AnchorTarget.Type.RIGHT, Pair.of(ATTR_LAYOUT_START_TO_END_OF, ATTR_LAYOUT_START_TO_START_OF));
+  }
+
   public static final String[] ourConstraintLayoutAttributesToClear = {
     ATTR_LAYOUT_LEFT_TO_LEFT_OF,
     ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
@@ -127,6 +205,10 @@ public final class ConstraintComponentUtilities {
     ourReciprocalAttributes.put(ATTR_LAYOUT_TOP_TO_BOTTOM_OF, ATTR_LAYOUT_TOP_TO_TOP_OF);
     ourReciprocalAttributes.put(ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
     ourReciprocalAttributes.put(ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_BOTTOM_TO_TOP_OF);
+    ourReciprocalAttributes.put(ATTR_LAYOUT_START_TO_START_OF, ATTR_LAYOUT_START_TO_END_OF);
+    ourReciprocalAttributes.put(ATTR_LAYOUT_START_TO_END_OF, ATTR_LAYOUT_START_TO_START_OF);
+    ourReciprocalAttributes.put(ATTR_LAYOUT_END_TO_START_OF, ATTR_LAYOUT_END_TO_END_OF);
+    ourReciprocalAttributes.put(ATTR_LAYOUT_END_TO_END_OF, ATTR_LAYOUT_END_TO_START_OF);
 
     ourMapMarginAttributes = new HashMap<>();
     ourMapMarginAttributes.put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, ATTR_LAYOUT_MARGIN_LEFT);
@@ -137,6 +219,10 @@ public final class ConstraintComponentUtilities {
     ourMapMarginAttributes.put(ATTR_LAYOUT_TOP_TO_BOTTOM_OF, ATTR_LAYOUT_MARGIN_TOP);
     ourMapMarginAttributes.put(ATTR_LAYOUT_BOTTOM_TO_TOP_OF, ATTR_LAYOUT_MARGIN_BOTTOM);
     ourMapMarginAttributes.put(ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, ATTR_LAYOUT_MARGIN_BOTTOM);
+    ourMapMarginAttributes.put(ATTR_LAYOUT_START_TO_START_OF, ATTR_LAYOUT_MARGIN_START);
+    ourMapMarginAttributes.put(ATTR_LAYOUT_START_TO_END_OF, ATTR_LAYOUT_MARGIN_START);
+    ourMapMarginAttributes.put(ATTR_LAYOUT_END_TO_START_OF, ATTR_LAYOUT_MARGIN_END);
+    ourMapMarginAttributes.put(ATTR_LAYOUT_END_TO_END_OF, ATTR_LAYOUT_MARGIN_END);
 
     ourMapSideToOriginAnchors = new HashMap<>();
     ourMapSideToOriginAnchors.put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, AnchorTarget.Type.LEFT);
@@ -148,17 +234,6 @@ public final class ConstraintComponentUtilities {
     ourMapSideToOriginAnchors.put(ATTR_LAYOUT_BOTTOM_TO_TOP_OF, AnchorTarget.Type.BOTTOM);
     ourMapSideToOriginAnchors.put(ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
     ourMapSideToOriginAnchors.put(ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, AnchorTarget.Type.BASELINE);
-
-    ourMapSideToTargetAnchors = new HashMap<>();
-    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_LEFT_TO_LEFT_OF, AnchorTarget.Type.LEFT);
-    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_LEFT_TO_RIGHT_OF, AnchorTarget.Type.RIGHT);
-    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_RIGHT_TO_LEFT_OF, AnchorTarget.Type.LEFT);
-    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, AnchorTarget.Type.RIGHT);
-    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_TOP_TO_TOP_OF, AnchorTarget.Type.TOP);
-    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_TOP_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
-    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_BOTTOM_TO_TOP_OF, AnchorTarget.Type.TOP);
-    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, AnchorTarget.Type.BOTTOM);
-    ourMapSideToTargetAnchors.put(ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, AnchorTarget.Type.BASELINE);
 
     ourLeftAttributes = new ArrayList<>();
     ourLeftAttributes.add(ATTR_LAYOUT_LEFT_TO_LEFT_OF);
@@ -179,20 +254,23 @@ public final class ConstraintComponentUtilities {
     ourBaselineAttributes = new ArrayList<>();
     ourBaselineAttributes.add(ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
 
-    ourMarginAttributes = new ArrayList<>();
-    ourMarginAttributes.add(ATTR_LAYOUT_MARGIN);
-    ourMarginAttributes.add(ATTR_LAYOUT_MARGIN_LEFT);
-    // ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_START);
-    ourMarginAttributes.add(ATTR_LAYOUT_MARGIN_RIGHT);
-    // ourMarginAttributes.add(SdkConstants.ATTR_LAYOUT_MARGIN_END);
-    ourMarginAttributes.add(ATTR_LAYOUT_MARGIN_TOP);
-    ourMarginAttributes.add(ATTR_LAYOUT_MARGIN_BOTTOM);
+    ourStartAttributes = new ArrayList<>();
+    ourStartAttributes.add(ATTR_LAYOUT_START_TO_START_OF);
+    ourStartAttributes.add(ATTR_LAYOUT_START_TO_END_OF);
+
+    ourEndAttributes = new ArrayList<>();
+    ourEndAttributes.add(ATTR_LAYOUT_END_TO_START_OF);
+    ourEndAttributes.add(ATTR_LAYOUT_END_TO_END_OF);
 
     ourHorizontalAttributes = new ArrayList<>();
     ourHorizontalAttributes.add(ATTR_LAYOUT_LEFT_TO_LEFT_OF);
     ourHorizontalAttributes.add(ATTR_LAYOUT_LEFT_TO_RIGHT_OF);
     ourHorizontalAttributes.add(ATTR_LAYOUT_RIGHT_TO_LEFT_OF);
     ourHorizontalAttributes.add(ATTR_LAYOUT_RIGHT_TO_RIGHT_OF);
+    ourHorizontalAttributes.add(ATTR_LAYOUT_START_TO_START_OF);
+    ourHorizontalAttributes.add(ATTR_LAYOUT_START_TO_END_OF);
+    ourHorizontalAttributes.add(ATTR_LAYOUT_END_TO_START_OF);
+    ourHorizontalAttributes.add(ATTR_LAYOUT_END_TO_END_OF);
 
     ourVerticalAttributes = new ArrayList<>();
     ourVerticalAttributes.add(ATTR_LAYOUT_TOP_TO_TOP_OF);
@@ -210,6 +288,113 @@ public final class ConstraintComponentUtilities {
     ourCreatorAttributes.add(ATTR_LAYOUT_CENTER_CREATOR);
     ourCreatorAttributes.add(ATTR_LAYOUT_CENTER_X_CREATOR);
     ourCreatorAttributes.add(ATTR_LAYOUT_CENTER_Y_CREATOR);
+  }
+
+  /**
+   * Returns the attribute for the given source and destination anchor
+   *
+   * @param source            the source anchor
+   * @param destination       the destination anchor
+   * @param useRtlAttributes  if true, we should use start/end
+   * @param isRtl             if true, we are in RTL, otherwise in LTR
+   * @return                  the corresponding attribute
+   */
+  public static String getAttribute(AnchorTarget.Type source, AnchorTarget.Type destination, boolean useRtlAttributes, boolean isRtl) {
+    if (source == AnchorTarget.Type.BASELINE && destination == AnchorTarget.Type.BASELINE) {
+      return ATTR_LAYOUT_BASELINE_TO_BASELINE_OF;
+    }
+    String attribute = ourConstraintAttributes.get(Pair.of(source, destination));
+    if (useRtlAttributes) {
+      String converted = null;
+      if (isRtl) {
+        converted = ourRTLConvertedAttributes.get(attribute);
+      } else {
+        converted = ourLTRConvertedAttributes.get(attribute);
+      }
+      if (converted != null) {
+        attribute = converted;
+      }
+    }
+    return attribute;
+  }
+
+  /**
+   * Clear the attribute of the given anchor type
+   *
+   * @param type              type of the anchor
+   * @param transaction       attributes transaction
+   * @param useRtlAttributes  if true, we should use start/end
+   * @param isRtl             if true, we are in RTL, otherwise in LTR
+   */
+  public static void clearAnchor(AnchorTarget.Type type, AttributesTransaction transaction, boolean useRtlAttributes, boolean isRtl) {
+    switch (type) {
+      case LEFT: {
+        clearAttributes(SHERPA_URI, ourPotentialAttributes.get(AnchorTarget.Type.LEFT), transaction);
+        if (useRtlAttributes) {
+          if (isRtl) {
+            clearAttributes(SHERPA_URI, ourPotentialRTLAttributes.get(AnchorTarget.Type.LEFT), transaction);
+          } else {
+            clearAttributes(SHERPA_URI, ourPotentialLTRAttributes.get(AnchorTarget.Type.LEFT), transaction);
+          }
+        }
+      } break;
+      case RIGHT: {
+        clearAttributes(SHERPA_URI, ourPotentialAttributes.get(AnchorTarget.Type.RIGHT), transaction);
+        if (useRtlAttributes) {
+          if (isRtl) {
+            clearAttributes(SHERPA_URI, ourPotentialRTLAttributes.get(AnchorTarget.Type.RIGHT), transaction);
+          } else {
+            clearAttributes(SHERPA_URI, ourPotentialLTRAttributes.get(AnchorTarget.Type.RIGHT), transaction);
+          }
+        }
+      } break;
+      case TOP: {
+        clearAttributes(SHERPA_URI, ourTopAttributes, transaction);
+      } break;
+      case BOTTOM: {
+        clearAttributes(SHERPA_URI, ourBottomAttributes, transaction);
+      } break;
+      case BASELINE: {
+        transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
+      }
+    }
+  }
+
+  /**
+   * is the given anchor type connected for this component
+   *
+   * @param type              type of the anchor
+   * @param component         the component of the anchor
+   * @param useRtlAttributes  if true, we should use start/end
+   * @param isRtl             if true, we are in RTL, otherwise in LTR
+   * @return                  true if the component has an attribute indicated it's connected
+   */
+  public static boolean isAnchorConnected(AnchorTarget.Type type, NlComponent component, boolean useRtlAttributes, boolean isRtl) {
+    if (type == AnchorTarget.Type.BASELINE) {
+      return component.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
+    }
+    boolean isConnected = false;
+    Pair pair = ourPotentialAttributes.get(type);
+    if (pair != null) {
+      isConnected |= component.getLiveAttribute(SHERPA_URI, (String)pair.getFirst()) != null;
+      isConnected |= component.getLiveAttribute(SHERPA_URI, (String)pair.getSecond()) != null;
+    }
+    if (useRtlAttributes) {
+      if (isRtl) {
+        pair = ourPotentialRTLAttributes.get(type);
+        if (pair != null) {
+          isConnected |= component.getLiveAttribute(SHERPA_URI, (String)pair.getFirst()) != null;
+          isConnected |= component.getLiveAttribute(SHERPA_URI, (String)pair.getSecond()) != null;
+        }
+      } else {
+        pair = ourPotentialLTRAttributes.get(type);
+        if (pair != null) {
+          isConnected |= component.getLiveAttribute(SHERPA_URI, (String)pair.getFirst()) != null;
+          isConnected |= component.getLiveAttribute(SHERPA_URI, (String)pair.getSecond()) != null;
+        }
+      }
+    }
+    return isConnected;
   }
 
   /**
@@ -235,15 +420,22 @@ public final class ConstraintComponentUtilities {
    * @param scene
    * @param targetComponent
    * @param attribute
-   * @return
+   * @param b
+   *@param rtl @return
    */
-  public static AnchorTarget getTargetAnchor(Scene scene, NlComponent targetComponent, String attribute) {
-    AnchorTarget.Type type = ourMapSideToTargetAnchors.get(attribute);
+  public static AnchorTarget getTargetAnchor(Scene scene, NlComponent targetComponent, String attribute, boolean supportsRtl, boolean isInRtl) {
     SceneComponent component = scene.getSceneComponent(targetComponent);
-    if (component != null) {
-      return getAnchorTarget(component, type);
+    if (component == null) {
+      return null;
     }
-    return null;
+    if (supportsRtl) {
+      if (isInRtl) {
+        return getAnchorTarget(component, ourRTLMapSideToTargetAnchors.get(attribute));
+      } else {
+        return getAnchorTarget(component, ourLTRMapSideToTargetAnchors.get(attribute));
+      }
+    }
+    return getAnchorTarget(component, ourLTRMapSideToTargetAnchors.get(attribute));
   }
 
   public static AnchorTarget getAnchorTarget(@NotNull SceneComponent component, @NotNull AnchorTarget.Type type) {
@@ -349,6 +541,12 @@ public final class ConstraintComponentUtilities {
       transaction.setAttribute(uri, attributes[i], null);
     }
   }
+
+  public static void clearAttributes(String uri, Pair<String, String> attributes, AttributesTransaction transaction) {
+    transaction.setAttribute(uri, attributes.getFirst(), null);
+    transaction.setAttribute(uri, attributes.getSecond(), null);
+  }
+
   public static void clearConnections(NlComponent component, ArrayList<String> attributes, AttributesTransaction transaction) {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
@@ -357,12 +555,18 @@ public final class ConstraintComponentUtilities {
     }
     if (attributes == ourLeftAttributes) {
       transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, null);
-      // transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, null);
       transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
     }
     else if (attributes == ourRightAttributes) {
       transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, null);
-      // transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, null);
+      transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
+    }
+    else if (attributes == ourStartAttributes) {
+      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, null);
+      transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
+    }
+    else if (attributes == ourEndAttributes) {
+      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_END, null);
       transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
     }
     else if (attributes == ourTopAttributes) {
@@ -398,8 +602,8 @@ public final class ConstraintComponentUtilities {
   }
 
   private static void clearAllAttributes(NlComponent component, AttributesTransaction transaction) {
-    clearAttributes(SdkConstants.SHERPA_URI, ourConstraintLayoutAttributesToClear, transaction);
-    clearAttributes(SdkConstants.ANDROID_URI, ourLayoutAttributesToClear, transaction);
+    clearAttributes(SHERPA_URI, ourConstraintLayoutAttributesToClear, transaction);
+    clearAttributes(ANDROID_URI, ourLayoutAttributesToClear, transaction);
     int offsetX = Coordinates.pxToDp(component.getModel(), component.x - (component.isRoot() ? 0 : component.getParent().x));
     int offsetY = Coordinates.pxToDp(component.getModel(), component.y - (component.isRoot() ? 0 : component.getParent().y));
     setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, offsetX);
@@ -413,6 +617,8 @@ public final class ConstraintComponentUtilities {
     transaction = updateOnDelete(component, ourRightAttributes, transaction, targetId);
     transaction = updateOnDelete(component, ourBottomAttributes, transaction, targetId);
     transaction = updateOnDelete(component, ourBaselineAttributes, transaction, targetId);
+    transaction = updateOnDelete(component, ourStartAttributes, transaction, targetId);
+    transaction = updateOnDelete(component, ourEndAttributes, transaction, targetId);
 
     if (transaction != null) {
       transaction.apply();
@@ -484,7 +690,7 @@ public final class ConstraintComponentUtilities {
 
 
   public static boolean isConstraintModelGreaterThan(NlModel model, int major, int ... version) {
-    String constraint_artifact = SdkConstants.CONSTRAINT_LAYOUT_LIB_GROUP_ID + ":" + SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT_ID;
+    String constraint_artifact = CONSTRAINT_LAYOUT_LIB_GROUP_ID + ":" + CONSTRAINT_LAYOUT_LIB_ARTIFACT_ID;
     GradleVersion v = model.getModuleDependencyVersion(constraint_artifact);
     return (versionGreaterThan(v, major,
                                (version.length>0)?version[0]:-1,
@@ -546,17 +752,6 @@ public final class ConstraintComponentUtilities {
     return (int)(0.5f + component.x / dpiFactor);
   }
 
-  public static boolean hasAttributes(@NotNull NlComponent component, String uri, ArrayList<String> attributes) {
-    int count = attributes.size();
-    for (int i = 0; i < count; i++) {
-      String attribute = attributes.get(i);
-      if (component.getLiveAttribute(uri, attribute) != null) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   private static boolean hasAttributes(@NotNull AttributesTransaction transaction, String uri, ArrayList<String> attributes) {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
@@ -579,63 +774,125 @@ public final class ConstraintComponentUtilities {
     return null;
   }
 
-  public static boolean hasLeft(@NotNull AttributesTransaction transaction) {
+  private static boolean hasLeft(@NotNull AttributesTransaction transaction) {
     return hasAttributes(transaction, SHERPA_URI, ourLeftAttributes);
   }
 
-  public static boolean hasTop(@NotNull AttributesTransaction transaction) {
+  private static boolean hasTop(@NotNull AttributesTransaction transaction) {
     return hasAttributes(transaction, SHERPA_URI, ourTopAttributes);
   }
 
-  public static boolean hasRight(@NotNull AttributesTransaction transaction) {
+  private static boolean hasRight(@NotNull AttributesTransaction transaction) {
     return hasAttributes(transaction, SHERPA_URI, ourRightAttributes);
   }
 
-  public static boolean hasBottom(@NotNull AttributesTransaction transaction) {
+  private static boolean hasBottom(@NotNull AttributesTransaction transaction) {
     return hasAttributes(transaction, SHERPA_URI, ourBottomAttributes);
   }
 
+  private static boolean hasStart(@NotNull AttributesTransaction transaction) {
+    return hasAttributes(transaction, SHERPA_URI, ourStartAttributes);
+  }
+
+  private static boolean hasEnd(@NotNull AttributesTransaction transaction) {
+    return hasAttributes(transaction, SHERPA_URI, ourEndAttributes);
+  }
+
+  /**
+   * This clean up any left over attributes (margins, chain style, bias..) when
+   * they are not applicable anymore.
+   *
+   * @param transaction
+   * @param component
+   */
   public static void cleanup(@NotNull AttributesTransaction transaction, @NotNull SceneComponent component) {
+    boolean supportsRTL = component.getScene().supportsRTL();
     boolean hasLeft = hasLeft(transaction);
     boolean hasRight = hasRight(transaction);
     boolean hasTop = hasTop(transaction);
     boolean hasBottom = hasBottom(transaction);
     boolean hasBaseline = transaction.getAttribute(SHERPA_URI, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
+    boolean hasStart = supportsRTL && hasStart(transaction);
+    boolean hasEnd = supportsRTL && hasEnd(transaction);
+
+    // Horizontal attributes
 
     if (!hasLeft) {
       transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, null);
-      // transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, null); // TODO: handles RTL correctly
       transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
+    } else {
+      String margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT);
+      if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
+        transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, null);
+      }
     }
     if (!hasRight) {
       transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, null);
-      // transaction.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, null); // TODO: handles RTL correctly
       transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
-    }
-    if (!hasLeft && !hasRight) {
-      if (transaction.getAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X) == null) {
-        setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, component.getOffsetParentX());
+    } else {
+      String margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT);
+      if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
+        transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, null);
       }
     }
-    else {
+    if (!hasStart) {
+      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, null);
+      transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
+    } else {
+      String margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_START);
+      if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
+        transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, null);
+      }
+    }
+    if (!hasEnd) {
+      transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_END, null);
+      transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
+    } else {
+      String margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_END);
+      if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
+        transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_END, null);
+      }
+    }
+
+    // Vertical attributes
+
+    if (!hasLeft && !hasRight && !hasStart && !hasEnd) {
+      if (transaction.getAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X) == null) {
+        setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, transaction, component.getOffsetParentX());
+        transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE, null);
+      }
+    } else {
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, null);
     }
+
     if (!hasTop) {
       transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, null);
       transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS, null);
+    } else {
+      String margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP);
+      if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
+        transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, null);
+      }
     }
     if (!hasBottom) {
       transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, null);
       transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS, null);
+    } else {
+      String margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM);
+      if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
+        transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM, null);
+      }
     }
     if (!hasTop && !hasBottom && !hasBaseline) {
       if (transaction.getAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y) == null) {
         setDpAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, transaction, component.getOffsetParentY());
+        transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_VERTICAL_CHAIN_STYLE, null);
       }
     }
     else {
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
     }
+
     if (!component.allowsFixedPosition()) {
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, null);
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
@@ -720,7 +977,6 @@ public final class ConstraintComponentUtilities {
 
     component.getScene().needsRebuildList();
   }
-
 
   public static int getDpY(@NotNull NlComponent component) {
     float dpiFactor = component.getModel().getConfiguration().getDensity().getDpiValue() / 160f;
@@ -823,6 +1079,7 @@ public final class ConstraintComponentUtilities {
     return true;
   }
 
+  // TODO: add support for RTL in Scout
   public static int getMargin(@NotNull NlComponent component, String margin_attr) {
     int margin = 0;
 

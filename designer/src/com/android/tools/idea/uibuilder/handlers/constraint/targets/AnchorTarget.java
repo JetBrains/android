@@ -64,8 +64,6 @@ public class AnchorTarget extends BaseTarget {
 
   private HashMap<String, String> mPreviousAttributes = new HashMap<>();
 
-  private ChainChecker myChainChecker = new ChainChecker();
-
   /////////////////////////////////////////////////////////////////////////////
   //region Constructor
   /////////////////////////////////////////////////////////////////////////////
@@ -248,20 +246,7 @@ public class AnchorTarget extends BaseTarget {
   }
 
   private boolean isConnected() {
-    NlComponent component = myComponent.getNlComponent();
-    switch (myType) {
-      case LEFT:
-        return ConstraintComponentUtilities.hasAttributes(component, SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourLeftAttributes);
-      case TOP:
-        return ConstraintComponentUtilities.hasAttributes(component, SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourTopAttributes);
-      case RIGHT:
-        return ConstraintComponentUtilities.hasAttributes(component, SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourRightAttributes);
-      case BOTTOM:
-        return ConstraintComponentUtilities.hasAttributes(component, SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBottomAttributes);
-      case BASELINE:
-        return component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
-    }
-    return false;
+    return ConstraintComponentUtilities.isAnchorConnected(myType, myComponent.getNlComponent(), useRtlAttributes(), isRtl());
   }
 
   @SuppressWarnings("UseJBColor")
@@ -302,28 +287,7 @@ public class AnchorTarget extends BaseTarget {
    * @param transaction
    */
   private void clearMe(@NotNull AttributesTransaction transaction) {
-    switch (myType) {
-      case LEFT: {
-        ConstraintComponentUtilities.clearAttributes(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourLeftAttributes, transaction);
-      }
-      break;
-      case RIGHT: {
-        ConstraintComponentUtilities.clearAttributes(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourRightAttributes, transaction);
-      }
-      break;
-      case TOP: {
-        ConstraintComponentUtilities.clearAttributes(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourTopAttributes, transaction);
-      }
-      break;
-      case BOTTOM: {
-        ConstraintComponentUtilities.clearAttributes(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBottomAttributes, transaction);
-      }
-      break;
-      case BASELINE: {
-        transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
-      }
-      break;
-    }
+    ConstraintComponentUtilities.clearAnchor(myType, transaction, useRtlAttributes(), isRtl());
   }
 
   /**
@@ -341,6 +305,14 @@ public class AnchorTarget extends BaseTarget {
     }
   }
 
+  private boolean useRtlAttributes() {
+    return myComponent.useRtlAttributes();
+  }
+
+  private boolean isRtl() {
+    return myComponent.getScene().isInRTL();
+  }
+
   /**
    * Return the correct attribute string given our type and the target type
    *
@@ -352,48 +324,7 @@ public class AnchorTarget extends BaseTarget {
       return null;
     }
     AnchorTarget anchorTarget = (AnchorTarget)target;
-    switch (myType) {
-      case LEFT: {
-        if (anchorTarget.myType == Type.LEFT) {
-          return SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF;
-        }
-        if (anchorTarget.myType == Type.RIGHT) {
-          return SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF;
-        }
-      }
-      break;
-      case RIGHT: {
-        if (anchorTarget.myType == Type.LEFT) {
-          return SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF;
-        }
-        if (anchorTarget.myType == Type.RIGHT) {
-          return SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF;
-        }
-      }
-      break;
-      case TOP: {
-        if (anchorTarget.myType == Type.TOP) {
-          return SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF;
-        }
-        if (anchorTarget.myType == Type.BOTTOM) {
-          return SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF;
-        }
-      }
-      break;
-      case BOTTOM: {
-        if (anchorTarget.myType == Type.TOP) {
-          return SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF;
-        }
-        if (anchorTarget.myType == Type.BOTTOM) {
-          return SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF;
-        }
-      }
-      break;
-      case BASELINE: {
-        return SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF;
-      }
-    }
-    return null;
+    return ConstraintComponentUtilities.getAttribute(myType, anchorTarget.myType, useRtlAttributes(), isRtl());
   }
 
   /**
@@ -410,10 +341,12 @@ public class AnchorTarget extends BaseTarget {
       else if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)) {
         attributes.setAttribute(SdkConstants.TOOLS_URI, key, mPreviousAttributes.get(key));
       }
-      else if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_TOP)) {
-        attributes.setAttribute(SdkConstants.ANDROID_URI, key, mPreviousAttributes.get(key));
-      }
-      else if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM)) {
+      else if (key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_TOP)
+            || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM)
+            || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_LEFT)
+            || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT)
+            || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_START)
+            || key.equalsIgnoreCase(SdkConstants.ATTR_LAYOUT_MARGIN_END)) {
         attributes.setAttribute(SdkConstants.ANDROID_URI, key, mPreviousAttributes.get(key));
       }
       else {
@@ -481,7 +414,7 @@ public class AnchorTarget extends BaseTarget {
 
   private int getDistance(String attribute, NlComponent targetComponent, Scene scene) {
     int marginValue;
-    AnchorTarget targetAnchor = ConstraintComponentUtilities.getTargetAnchor(scene, targetComponent, attribute);
+    AnchorTarget targetAnchor = ConstraintComponentUtilities.getTargetAnchor(scene, targetComponent, attribute, useRtlAttributes(), isRtl());
     if (targetAnchor == null) {
       return 0;
     }
@@ -592,12 +525,12 @@ public class AnchorTarget extends BaseTarget {
       myComponent.getParent().setExpandTargetArea(true);
     }
     switch (myType) {
-      case LEFT: {
-        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourLeftAttributes);
-      }
-      break;
+      case LEFT:
       case RIGHT: {
+        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourLeftAttributes);
         rememberPreviousAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourRightAttributes);
+        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourStartAttributes);
+        rememberPreviousAttribute(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourEndAttributes);
       }
       break;
       case TOP: {

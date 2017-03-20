@@ -170,8 +170,6 @@ public enum Direction {
                 return SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
             case LEFT:
                 return SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
-            case BASELINE:
-                return SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
         }
         return "?";
     }
