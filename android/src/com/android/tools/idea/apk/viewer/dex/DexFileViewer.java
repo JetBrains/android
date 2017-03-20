@@ -48,6 +48,7 @@ import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.io.IOException;
@@ -67,7 +68,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
   @NotNull private final VirtualFile myDexFile;
   @NotNull private final Project myProject;
   @NotNull private final VirtualFile myApkFolder;
-  private final FilteredTreeModel myFilteredTreeModel;
+  @NotNull private final DexViewFilters myDexFilters;
 
   @Nullable private ProguardMappings myProguardMappings;
   private boolean myDeobfuscateNames;
@@ -88,10 +89,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myDisposable);
     myLoadingPanel.startLoading();
 
-    myFilteredTreeModel = new FilteredTreeModel(new DefaultTreeModel(new LoadingNode()));
-    FilteredTreeModel.FilterOptions filterOptions = myFilteredTreeModel.getFilterOptions();
-
-    myTree = new Tree(myFilteredTreeModel);
+    myTree = new Tree(new DefaultTreeModel(new LoadingNode()));
     myTree.setRootVisible(true);
     myTree.setShowsRootHandles(true);
 
@@ -126,16 +124,21 @@ public class DexFileViewer implements ApkFileEditorComponent {
                    .setRenderer(new MethodCountRenderer(false)));
 
     builder.setTreeSorter((Comparator<DexElementNode> comparator, SortOrder order) -> {
-      if (comparator != null){
-        comparator = comparator.reversed();
-        Object root = myFilteredTreeModel.getRoot();
+      if (comparator != null) {
+        TreeModel model = myTree.getModel();
+        TreePath selectionPath = myTree.getSelectionPath();
+
+        Object root = model.getRoot();
         if (root instanceof DexElementNode) {
-          TreePath selectionPath = myTree.getSelectionPath();
-          ((DexElementNode)root).sort(comparator);
-          myFilteredTreeModel.reload();
-          myTree.setSelectionPath(selectionPath);
-          myTree.scrollPathToVisible(selectionPath);
+          ((DexElementNode)root).sort(comparator.reversed());
         }
+
+        if (model instanceof DefaultTreeModel) {
+          ((DefaultTreeModel)model).reload();
+        }
+
+        myTree.setSelectionPath(selectionPath);
+        myTree.scrollPathToVisible(selectionPath);
       }
     });
 
@@ -144,12 +147,14 @@ public class DexFileViewer implements ApkFileEditorComponent {
     myTopPanel = new JPanel(new BorderLayout());
     myLoadingPanel.add(myTopPanel, BorderLayout.NORTH);
 
+    myDexFilters = new DexViewFilters();
+
     DefaultActionGroup actionGroup = new DefaultActionGroup();
-    actionGroup.add(new ShowFieldsAction(filterOptions));
-    actionGroup.add(new ShowMethodsAction(filterOptions));
-    actionGroup.add(new ShowReferencedAction(filterOptions));
+    actionGroup.add(new ShowFieldsAction(myTree, myDexFilters));
+    actionGroup.add(new ShowMethodsAction(myTree, myDexFilters));
+    actionGroup.add(new ShowReferencedAction(myTree, myDexFilters));
     actionGroup.addSeparator();
-    actionGroup.add(new ShowRemovedNodesAction(filterOptions));
+    actionGroup.add(new ShowRemovedNodesAction(myTree, myDexFilters));
     actionGroup.add(new DeobfuscateNodesAction());
     actionGroup.add(new LoadProguardAction());
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actionGroup, true);
@@ -248,7 +253,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
       public void onSuccess(DexPackageNode result) {
         myLoadingPanel.stopLoading();
         myTree.setRootVisible(false);
-        myFilteredTreeModel.setRoot(result);
+        myTree.setModel(new FilteredTreeModel<>(result, myDexFilters));
       }
 
       @Override
@@ -357,83 +362,98 @@ public class DexFileViewer implements ApkFileEditorComponent {
   }
 
   private static class ShowFieldsAction extends ToggleAction {
+    private final Tree myTree;
+    private final DexViewFilters myDexViewFilters;
 
-    @NotNull private final FilteredTreeModel.FilterOptions myFilterOptions;
-
-    public ShowFieldsAction(@NotNull FilteredTreeModel.FilterOptions options) {
+    public ShowFieldsAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
       super("Show fields", "Toggle between show/hide fields", PlatformIcons.FIELD_ICON);
-      myFilterOptions = options;
+      myTree = tree;
+      myDexViewFilters = options;
     }
 
     @Override
     public boolean isSelected(AnActionEvent e) {
-      return myFilterOptions.isShowFields();
+      return myDexViewFilters.isShowFields();
     }
 
     @Override
     public void setSelected(AnActionEvent e, boolean state) {
-      myFilterOptions.setShowFields(state);
+      myDexViewFilters.setShowFields(state);
+      ((DefaultTreeModel)myTree.getModel()).reload();
     }
   }
 
   private static class ShowMethodsAction extends ToggleAction {
+    private final Tree myTree;
+    private final DexViewFilters myDexViewFilters;
 
-    @NotNull private final FilteredTreeModel.FilterOptions myFilterOptions;
-
-    public ShowMethodsAction(@NotNull FilteredTreeModel.FilterOptions options) {
+    public ShowMethodsAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
       super("Show methods", "Toggle between show/hide methods", PlatformIcons.METHOD_ICON);
-      myFilterOptions = options;
+      myTree = tree;
+      myDexViewFilters = options;
     }
 
     @Override
     public boolean isSelected(AnActionEvent e) {
-      return myFilterOptions.isShowMethods();
+      return myDexViewFilters.isShowMethods();
     }
 
     @Override
     public void setSelected(AnActionEvent e, boolean state) {
-      myFilterOptions.setShowMethods(state);
+      myDexViewFilters.setShowMethods(state);
+      ((DefaultTreeModel)myTree.getModel()).reload();
     }
   }
 
   private static class ShowReferencedAction extends ToggleAction {
+    private final Tree myTree;
+    private final DexViewFilters myDexViewFilters;
 
-    @NotNull private final FilteredTreeModel.FilterOptions myFilterOptions;
-
-    public ShowReferencedAction(@NotNull FilteredTreeModel.FilterOptions options) {
+    public ShowReferencedAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
       super("Show referenced-only nodes", "Toggle between show/hide referenced-only nodes", AllIcons.ObjectBrowser.ShowMembers);
-      myFilterOptions = options;
+      myTree = tree;
+      myDexViewFilters = options;
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      super.update(e);
+      String text =
+        myDexViewFilters.isShowReferencedNodes() ? "Show all referenced methods and fields" : "Show defined methods and fields";
+      e.getPresentation().setText(text);
     }
 
     @Override
     public boolean isSelected(AnActionEvent e) {
-      return myFilterOptions.isShowReferencedNodes();
+      return myDexViewFilters.isShowReferencedNodes();
     }
 
     @Override
     public void setSelected(AnActionEvent e, boolean state) {
-      myFilterOptions.setShowReferencedNodes(state);
+      myDexViewFilters.setShowReferencedNodes(state);
+      ((DefaultTreeModel)myTree.getModel()).reload();
     }
   }
 
   private class ShowRemovedNodesAction extends ToggleAction {
+    private final Tree myTree;
+    private final DexViewFilters myDexViewFilters;
 
-    @NotNull private final FilteredTreeModel.FilterOptions myFilterOptions;
-
-    public ShowRemovedNodesAction(@NotNull
-                                    FilteredTreeModel.FilterOptions options) {
+    public ShowRemovedNodesAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
       super("Show removed nodes", "Toggle between show/hide nodes removed by Proguard", AllIcons.ObjectBrowser.CompactEmptyPackages);
-      myFilterOptions = options;
+      myTree = tree;
+      myDexViewFilters = options;
     }
 
     @Override
     public boolean isSelected(AnActionEvent e) {
-      return myFilterOptions.isShowRemovedNodes();
+      return myDexViewFilters.isShowRemovedNodes();
     }
 
     @Override
     public void setSelected(AnActionEvent e, boolean state) {
-      myFilterOptions.setShowRemovedNodes(state);
+      myDexViewFilters.setShowRemovedNodes(state);
+      ((DefaultTreeModel)myTree.getModel()).reload();
     }
 
     @Override
@@ -444,7 +464,6 @@ public class DexFileViewer implements ApkFileEditorComponent {
   }
 
   private class DeobfuscateNodesAction extends ToggleAction {
-
     public DeobfuscateNodesAction() {
       super("Deobfuscate names", "Deobfuscate names using Proguard mapping", AllIcons.ObjectBrowser.AbbreviatePackageNames);
     }
