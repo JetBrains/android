@@ -49,7 +49,7 @@ public class DependencyManagerTest extends AndroidTestCase {
     registerProjectComponent(GradleDependencyManager.class, gradleDependencyManager);
     myPanel = mock(JComponent.class);
     myDisposable = mock(Disposable.class);
-    myPalette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    myPalette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     //noinspection ConstantConditions
     when(gradleDependencyManager.findMissingDependencies(any(Module.class), any()))
       .thenReturn(createDependencies(DESIGN_LIB_ARTIFACT, RECYCLER_VIEW_LIB_ARTIFACT, CARD_VIEW_LIB_ARTIFACT))

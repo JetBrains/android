@@ -258,6 +258,15 @@ public class Palette {
 
     private PaletteComponentHandler myHandler;
 
+    // Needed for JAXB
+    private Item() {
+    }
+
+    public Item(@NotNull String tagName, @NotNull PaletteComponentHandler handler) {
+      myTagName = tagName;
+      myHandler = handler;
+    }
+
     @NotNull
     public String getTagName() {
       return myTagName;
