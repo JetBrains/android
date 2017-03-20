@@ -24,9 +24,9 @@ import java.util.Comparator;
 
 import static org.junit.Assert.assertEquals;
 
-public class AbstractDexTreeNodeTest {
+public class DexElementNodeTest {
 
-  private static class ConcreteNode extends AbstractDexTreeNode {
+  private static class ConcreteNode extends DexElementNode {
     ConcreteNode(@NotNull String name, boolean allowsChildren) {
       super(name, allowsChildren);
     }
@@ -37,7 +37,7 @@ public class AbstractDexTreeNodeTest {
     }
   }
 
-  private static class AnotherNode extends AbstractDexTreeNode {
+  private static class AnotherNode extends DexElementNode {
     AnotherNode(@NotNull String name, boolean allowsChildren) {
       super(name, allowsChildren);
     }
@@ -50,7 +50,7 @@ public class AbstractDexTreeNodeTest {
 
   @Test
   public void getChildByTypeTest() throws IOException {
-    AbstractDexTreeNode node = new AbstractDexTreeNode("root", true) {
+    DexElementNode node = new DexElementNode("root", true) {
       @Override
       public Icon getIcon() {
         return null;
@@ -78,7 +78,7 @@ public class AbstractDexTreeNodeTest {
 
   @Test
   public void sortTest() throws IOException {
-    AbstractDexTreeNode node = new AbstractDexTreeNode("root", true) {
+    DexElementNode node = new DexElementNode("root", true) {
       @Override
       public Icon getIcon() {
         return null;
@@ -94,7 +94,7 @@ public class AbstractDexTreeNodeTest {
     node.add(childNode2);
     node.add(childNode3);
     node.add(childNode4);
-    node.sort(Comparator.comparing(AbstractDexTreeNode::getName));
+    node.sort(Comparator.comparing(DexElementNode::getName));
 
     assertEquals(childNode2, node.getChildAt(0));
     assertEquals(childNode, node.getChildAt(1));
