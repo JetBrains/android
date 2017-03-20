@@ -17,6 +17,7 @@ package com.android.tools.idea.actions;
 
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateImageIconsModel;
+import com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep_Deprecated;
 import com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -33,7 +34,6 @@ import java.net.URL;
  * assets. See also {@link BaseAsset}.
  */
 public class NewImageAssetAction extends AndroidAssetStudioAction {
-
   public NewImageAssetAction() {
     super("Image Asset", "Open Asset Studio to create an image asset");
   }
@@ -42,7 +42,12 @@ public class NewImageAssetAction extends AndroidAssetStudioAction {
   @Override
   protected ModelWizard createWizard(@NotNull AndroidFacet facet) {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new NewImageAssetStep(new GenerateImageIconsModel(facet), facet));
+    if (NewImageAssetStep_Deprecated.isEnabled()) {
+      wizardBuilder.addStep(new NewImageAssetStep_Deprecated(new GenerateImageIconsModel(facet), facet));
+    }
+    else {
+      wizardBuilder.addStep(new NewImageAssetStep(new GenerateImageIconsModel(facet), facet));
+    }
 
     return wizardBuilder.build();
   }
@@ -50,7 +55,12 @@ public class NewImageAssetAction extends AndroidAssetStudioAction {
   @NotNull
   @Override
   protected Dimension getWizardSize() {
-    return JBUI.size(800, 750);
+    if (NewImageAssetStep_Deprecated.isEnabled()) {
+      return JBUI.size(800, 750);
+    }
+    else {
+      return JBUI.size(800, 620);
+    }
   }
 
   @Nullable
