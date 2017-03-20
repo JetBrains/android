@@ -1,6 +1,7 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.lint.AndroidLintNewApiInspection;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -9,6 +10,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import org.jetbrains.android.AndroidLintTest;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.inspections.AndroidUnknownAttributeInspection;
 import org.jetbrains.annotations.NotNull;
@@ -103,7 +105,8 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
 
   public void testTagNameCompletion1() throws Throwable {
-    doTestCompletionVariants("tn1.xml", "uses-permission",  "uses-permission-sdk-23", "uses-sdk", "uses-configuration", "uses-feature");
+    doTestCompletionVariants("tn1.xml", "uses-permission",  "uses-permission-sdk-23", "uses-sdk", "uses-configuration",
+                             "uses-feature", "uses-split");
   }
 
   public void testSoftTagsAndAttrs() throws Throwable {
@@ -176,6 +179,10 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   public void testBackupAgentCompletion() throws Throwable {
     copyFileToProject("MyBackupAgent.java", "src/p1/p2/MyBackupAgent.java");
     doTestCompletionVariants(getTestName(false) + ".xml", ".MyBackupAgent");
+  }
+
+  public void testUsesSplits() throws Throwable {
+    doTestHighlighting();
   }
 
   public void testUsesPermissionCompletion() throws Throwable {
@@ -444,6 +451,9 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
 
   public void testSpellchecker1() throws Throwable {
+    // Prevent other lint checks from polluting output
+    AndroidLintTest.enableExactlyOneInspection(myFixture, new AndroidLintNewApiInspection());
+
     myFixture.enableInspections(SpellCheckingInspection.class);
     doTestHighlighting();
   }
