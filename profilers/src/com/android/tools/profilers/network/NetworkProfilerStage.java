@@ -246,7 +246,8 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
       super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
       myRxLegend = new SeriesLegend(usage.getRxSeries(), TRAFFIC_AXIS_FORMATTER, range);
       myTxLegend = new SeriesLegend(usage.getTxSeries(), TRAFFIC_AXIS_FORMATTER, range);
-      myConnectionLegend = new SeriesLegend(usage.getConnectionSeries(), CONNECTIONS_AXIS_FORMATTER, range);
+      myConnectionLegend = new SeriesLegend(usage.getConnectionSeries(), CONNECTIONS_AXIS_FORMATTER, range,
+                                            Interpolatable.SteppedLineInterpolator);
 
       add(myRxLegend);
       add(myTxLegend);
