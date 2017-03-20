@@ -26,7 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.android.tools.idea.instantapp.InstantApps.setAiaSdkLocation;
+import static com.android.tools.idea.instantapp.InstantApps.setInstantAppSdkLocation;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static java.lang.System.getenv;
 
@@ -40,12 +40,12 @@ public class MinSdkForInstantAppTest {
 
   @Before
   public void before() {
-    setAiaSdkLocation("TestValue");
+    setInstantAppSdkLocation("TestValue");
   }
 
   @After
   public void after() {
-    setAiaSdkLocation(getenv("WH_SDK"));
+    setInstantAppSdkLocation(getenv("WH_SDK"));
   }
 
   @Test
