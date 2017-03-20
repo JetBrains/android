@@ -33,7 +33,6 @@ import java.util.concurrent.ExecutionException;
  * Invokes all tasks on the UI thread.
  */
 public class StudioProgressRunner implements ProgressRunner {
-  private final boolean myInvokeInUiThread;
   private boolean myModal;
   private final boolean myBackgroundable;
   private final boolean myCancellable;
@@ -44,14 +43,12 @@ public class StudioProgressRunner implements ProgressRunner {
                               boolean backgroundable,
                               boolean cancellable,
                               String progressTitle,
-                              boolean invokeInUiThread,
                               @Nullable Project project) {
     myModal = modal;
     myBackgroundable = backgroundable;
     myCancellable = cancellable;
     myProject = project;
     myProgressTitle = progressTitle;
-    myInvokeInUiThread = invokeInUiThread;
   }
 
   @Override
@@ -77,14 +74,8 @@ public class StudioProgressRunner implements ProgressRunner {
         }) {
           @Override
           public void run(@NotNull ProgressIndicator indicator) {
-            if (myInvokeInUiThread) {
-              ApplicationManager.getApplication()
-                .invokeAndWait(() -> r.run(new RepoProgressIndicatorAdapter(indicator), StudioProgressRunner.this), ModalityState.any());
-            }
-            else {
-              ApplicationManager.getApplication().executeOnPooledThread(
-                () -> r.run(new RepoProgressIndicatorAdapter(indicator), StudioProgressRunner.this));
-            }
+            ApplicationManager.getApplication().executeOnPooledThread(
+              () -> r.run(new RepoProgressIndicatorAdapter(indicator), StudioProgressRunner.this));
           }
 
           @Override
@@ -126,26 +117,16 @@ public class StudioProgressRunner implements ProgressRunner {
 
   private void doRunSync(@NotNull ProgressIndicator indicator, @NotNull ProgressRunnable progressRunnable) {
     RepoProgressIndicatorAdapter repoProgress = new RepoProgressIndicatorAdapter(indicator);
-    if (myInvokeInUiThread) {
-      UIUtil.invokeAndWaitIfNeeded((Runnable)() -> progressRunnable.run(repoProgress, this));
+    try {
+      ApplicationManager.getApplication().executeOnPooledThread(() -> progressRunnable.run(repoProgress, this)).get();
     }
-    else {
-      try {
-        ApplicationManager.getApplication().executeOnPooledThread(() -> progressRunnable.run(repoProgress, this)).get();
-      }
-      catch (InterruptedException | ExecutionException e) {
-        // shouldn't happen
-      }
+    catch (InterruptedException | ExecutionException e) {
+      // shouldn't happen
     }
   }
 
   @Override
   public void runSyncWithoutProgress(@NotNull Runnable r) {
-    if (myInvokeInUiThread) {
-      ApplicationManager.getApplication().invokeAndWait(r, ModalityState.any());
-    }
-    else {
-      r.run();
-    }
+    r.run();
   }
 }
