@@ -18,9 +18,9 @@ package com.android.tools.idea.apk.viewer.dex;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.idea.apk.dex.DexFiles;
 import com.android.tools.idea.apk.viewer.ApkFileEditorComponent;
-import com.android.tools.idea.apk.viewer.dex.tree.AbstractDexTreeNode;
-import com.android.tools.idea.apk.viewer.dex.tree.FieldTreeNode;
-import com.android.tools.idea.apk.viewer.dex.tree.PackageTreeNode;
+import com.android.tools.idea.apk.viewer.dex.tree.DexElementNode;
+import com.android.tools.idea.apk.viewer.dex.tree.DexFieldNode;
+import com.android.tools.idea.apk.viewer.dex.tree.DexPackageNode;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
@@ -97,11 +97,11 @@ public class DexFileViewer implements ApkFileEditorComponent {
 
     new TreeSpeedSearch(myTree, path -> {
       Object o = path.getLastPathComponent();
-      if (!(o instanceof AbstractDexTreeNode)) {
+      if (!(o instanceof DexElementNode)) {
         return "";
       }
 
-      AbstractDexTreeNode node = (AbstractDexTreeNode)o;
+      DexElementNode node = (DexElementNode)o;
       return node.getName();
     }, true);
 
@@ -110,28 +110,28 @@ public class DexFileViewer implements ApkFileEditorComponent {
                    .setName("Class")
                    .setPreferredWidth(500)
                    .setHeaderAlignment(SwingConstants.LEFT)
-                   .setComparator(Comparator.comparing(AbstractDexTreeNode::getName).reversed())
+                   .setComparator(Comparator.comparing(DexElementNode::getName).reversed())
                    .setRenderer(new DexTreeNodeRenderer()))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Defined Methods")
                    .setPreferredWidth(100)
                    .setHeaderAlignment(SwingConstants.LEFT)
-                   .setComparator(Comparator.comparing(AbstractDexTreeNode::getDefinedMethodsCount))
+                   .setComparator(Comparator.comparing(DexElementNode::getDefinedMethodsCount))
                    .setRenderer(new MethodCountRenderer(true)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Referenced Methods")
                    .setPreferredWidth(100)
                    .setHeaderAlignment(SwingConstants.LEFT)
-                   .setComparator(Comparator.comparing(AbstractDexTreeNode::getMethodRefCount))
+                   .setComparator(Comparator.comparing(DexElementNode::getMethodRefCount))
                    .setRenderer(new MethodCountRenderer(false)));
 
-    builder.setTreeSorter((Comparator<AbstractDexTreeNode> comparator, SortOrder order) -> {
+    builder.setTreeSorter((Comparator<DexElementNode> comparator, SortOrder order) -> {
       if (comparator != null){
         comparator = comparator.reversed();
         Object root = myFilteredTreeModel.getRoot();
-        if (root instanceof AbstractDexTreeNode) {
+        if (root instanceof DexElementNode) {
           TreePath selectionPath = myTree.getSelectionPath();
-          ((AbstractDexTreeNode)root).sort(comparator);
+          ((DexElementNode)root).sort(comparator);
           myFilteredTreeModel.reload();
           myTree.setSelectionPath(selectionPath);
           myTree.scrollPathToVisible(selectionPath);
@@ -233,19 +233,19 @@ public class DexFileViewer implements ApkFileEditorComponent {
     ListeningExecutorService pooledThreadExecutor = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
     ListenableFuture<DexBackedDexFile> dexFileFuture = pooledThreadExecutor.submit(() -> DexFiles.getDexFile(myDexFile));
 
-    ListenableFuture<PackageTreeNode> treeNodeFuture = Futures.transform(dexFileFuture, new Function<DexBackedDexFile, PackageTreeNode>() {
+    ListenableFuture<DexPackageNode> treeNodeFuture = Futures.transform(dexFileFuture, new Function<DexBackedDexFile, DexPackageNode>() {
       @javax.annotation.Nullable
       @Override
-      public PackageTreeNode apply(@javax.annotation.Nullable DexBackedDexFile input) {
+      public DexPackageNode apply(@javax.annotation.Nullable DexBackedDexFile input) {
         assert input != null;
         PackageTreeCreator treeCreator = new PackageTreeCreator(myProguardMappings, myDeobfuscateNames);
         return treeCreator.constructPackageTree(input);
       }
     }, pooledThreadExecutor);
 
-    Futures.addCallback(treeNodeFuture, new FutureCallback<PackageTreeNode>() {
+    Futures.addCallback(treeNodeFuture, new FutureCallback<DexPackageNode>() {
       @Override
-      public void onSuccess(PackageTreeNode result) {
+      public void onSuccess(DexPackageNode result) {
         myLoadingPanel.stopLoading();
         myTree.setRootVisible(false);
         myFilteredTreeModel.setRoot(result);
@@ -310,11 +310,11 @@ public class DexFileViewer implements ApkFileEditorComponent {
                                       boolean leaf,
                                       int row,
                                       boolean hasFocus) {
-      if (!(value instanceof AbstractDexTreeNode)) {
+      if (!(value instanceof DexElementNode)) {
         return;
       }
 
-      AbstractDexTreeNode node = (AbstractDexTreeNode)value;
+      DexElementNode node = (DexElementNode)value;
 
       if (node.isSeed()) {
         append(node.getName(), new SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, null));
@@ -348,8 +348,8 @@ public class DexFileViewer implements ApkFileEditorComponent {
                                       boolean leaf,
                                       int row,
                                       boolean hasFocus) {
-      if (value instanceof AbstractDexTreeNode && !(value instanceof FieldTreeNode)) {
-        AbstractDexTreeNode node = (AbstractDexTreeNode)value;
+      if (value instanceof DexElementNode && !(value instanceof DexFieldNode)) {
+        DexElementNode node = (DexElementNode)value;
         int count = myShowDefinedCount ? node.getDefinedMethodsCount() : node.getMethodRefCount();
         append(Integer.toString(count));
       }

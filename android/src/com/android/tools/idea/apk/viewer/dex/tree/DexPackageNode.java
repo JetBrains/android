@@ -23,9 +23,9 @@ import org.jf.dexlib2.iface.reference.TypeReference;
 
 import javax.swing.*;
 
-public class PackageTreeNode extends AbstractDexTreeNode {
+public class DexPackageNode extends DexElementNode {
 
-  public PackageTreeNode(@NotNull String name) {
+  public DexPackageNode(@NotNull String name) {
     super(name, true);
   }
 
@@ -36,10 +36,10 @@ public class PackageTreeNode extends AbstractDexTreeNode {
 
   public void insertMethod(TypeReference typeRef, MethodReference methodRef, String qcn, @NotNull String methodSig, boolean hasClassDefinition,
                            boolean isSeed, boolean isRemoved) {
-    ClassTreeNode classNode = getOrInsertClass(typeRef, "", qcn, hasClassDefinition, isSeed, false, !isRemoved);
-    MethodTreeNode methodNode = classNode.getChildByType(methodSig, MethodTreeNode.class);
+    DexClassNode classNode = getOrInsertClass(typeRef, "", qcn, hasClassDefinition, isSeed, false, !isRemoved);
+    DexMethodNode methodNode = classNode.getChildByType(methodSig, DexMethodNode.class);
     if (methodNode == null){
-      methodNode = new MethodTreeNode(methodSig, methodRef);
+      methodNode = new DexMethodNode(methodSig, methodRef);
       classNode.add(methodNode);
     }
     if (!isRemoved) {
@@ -56,10 +56,10 @@ public class PackageTreeNode extends AbstractDexTreeNode {
   public void insertField(TypeReference typeRef, FieldReference fieldRef, String qcn, @NotNull String fieldSig, boolean hasClassDefinition,
                           boolean isSeed, boolean isRemoved) {
 
-    ClassTreeNode classNode = getOrInsertClass(typeRef, "", qcn, hasClassDefinition, isSeed, false, false);
-    FieldTreeNode fieldNode = classNode.getChildByType(fieldSig, FieldTreeNode.class);
+    DexClassNode classNode = getOrInsertClass(typeRef, "", qcn, hasClassDefinition, isSeed, false, false);
+    DexFieldNode fieldNode = classNode.getChildByType(fieldSig, DexFieldNode.class);
     if (fieldNode == null){
-      fieldNode = new FieldTreeNode(fieldSig, fieldRef);
+      fieldNode = new DexFieldNode(fieldSig, fieldRef);
       classNode.add(fieldNode);
     }
     fieldNode.seed = isSeed;
@@ -67,8 +67,8 @@ public class PackageTreeNode extends AbstractDexTreeNode {
     fieldNode.hasClassDefinition = fieldNode.hasClassDefinition || hasClassDefinition;
   }
 
-  public ClassTreeNode getOrInsertClass(TypeReference typeRef, @NotNull String parentPackage, @NotNull String qcn, boolean hasClassDefinition,
-                                          boolean isSeed, boolean isRemoved, boolean addMethodReference) {
+  public DexClassNode getOrInsertClass(TypeReference typeRef, @NotNull String parentPackage, @NotNull String qcn, boolean hasClassDefinition,
+                                       boolean isSeed, boolean isRemoved, boolean addMethodReference) {
     if (addMethodReference){
       myMethodReferencesCount++;
       if (hasClassDefinition) {
@@ -77,9 +77,9 @@ public class PackageTreeNode extends AbstractDexTreeNode {
     }
     int i = qcn.indexOf(".");
     if (i < 0) {
-      ClassTreeNode classNode = getChildByType(qcn, ClassTreeNode.class);
+      DexClassNode classNode = getChildByType(qcn, DexClassNode.class);
       if (classNode == null){
-        classNode = new ClassTreeNode(qcn, typeRef);
+        classNode = new DexClassNode(qcn, typeRef);
         add(classNode);
       }
       classNode.removed = classNode.removed && isRemoved;
@@ -96,9 +96,9 @@ public class PackageTreeNode extends AbstractDexTreeNode {
     else {
       String segment = qcn.substring(0, i);
       String nextSegment = qcn.substring(i + 1);
-      PackageTreeNode packageNode = getChildByType(segment, PackageTreeNode.class);
+      DexPackageNode packageNode = getChildByType(segment, DexPackageNode.class);
       if (packageNode == null){
-        packageNode = new PackageTreeNode(segment);
+        packageNode = new DexPackageNode(segment);
         add(packageNode);
       }
       packageNode.seed = packageNode.seed || isSeed;
