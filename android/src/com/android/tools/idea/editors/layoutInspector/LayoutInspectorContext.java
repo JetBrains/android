@@ -15,11 +15,20 @@
  */
 package com.android.tools.idea.editors.layoutInspector;
 
+import com.android.annotations.NonNull;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.Client;
+import com.android.ddmlib.HandleViewDebug;
+import com.android.ddmlib.IDevice;
+import com.android.tools.idea.editors.layoutInspector.model.ClientWindow;
 import com.android.tools.idea.editors.layoutInspector.model.ViewNode;
 import com.android.tools.idea.editors.layoutInspector.ui.RollOverTree;
 import com.android.tools.idea.editors.layoutInspector.ui.ViewNodeActiveDisplay;
 import com.android.tools.idea.editors.layoutInspector.ui.ViewNodeTableModel;
 import com.android.tools.idea.editors.layoutInspector.ui.ViewNodeTreeRenderer;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.ui.JBCheckboxMenuItem;
@@ -28,10 +37,12 @@ import com.intellij.openapi.util.Key;
 import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.table.JBTable;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
@@ -40,10 +51,20 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 
 public class LayoutInspectorContext implements Disposable, DataProvider, ViewNodeActiveDisplay.ViewNodeActiveDisplayListener,
-                                               TreeSelectionListener, RollOverTree.TreeHoverListener {
+                                               TreeSelectionListener, RollOverTree.TreeHoverListener,
+                                               AndroidDebugBridge.IDeviceChangeListener {
   private static final Key<ViewNode> KEY_VIEW_NODE = Key.create(ViewNode.class.getName());
+
+  // Hidden from public usage until we get UX/PM input on displaying display list output.
+  private static final boolean DUMP_DISPLAYLIST_ENABLED = Boolean.getBoolean("dump.displaylist.enabled");
+
+  private
+  @Nullable Client myClient;
+  private
+  @Nullable ClientWindow myWindow;
 
   private ViewNode myRoot;
   private BufferedImage myBufferedImage;
@@ -60,6 +81,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
   // Node popup menu
   private final JBPopupMenu myNodePopup;
   private final JBCheckboxMenuItem myNodeVisibleMenuItem;
+  private final JMenuItem myDumpDisplayListMenuItem;
 
   public LayoutInspectorContext(@NotNull LayoutFileData layoutParser) {
     myRoot = layoutParser.myNode;
@@ -101,6 +123,18 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
     myNodeVisibleMenuItem = new JBCheckboxMenuItem("Show in preview");
     myNodeVisibleMenuItem.addActionListener(new LayoutInspectorContext.ShowHidePreviewActionListener());
     myNodePopup.add(myNodeVisibleMenuItem);
+
+    if (isDumpDisplayListEnabled()) {
+      myDumpDisplayListMenuItem = new JMenuItem("Dump DisplayList");
+      myDumpDisplayListMenuItem.addActionListener(new LayoutInspectorContext.DumpDisplayListActionListener());
+      myDumpDisplayListMenuItem.setEnabled(myClient != null && myWindow != null);
+      myNodePopup.add(myDumpDisplayListMenuItem);
+
+      AndroidDebugBridge.addDeviceChangeListener(this);
+    }
+    else {
+      myDumpDisplayListMenuItem = null;
+    }
     myNodeTree.addMouseListener(new LayoutInspectorContext.NodeRightClickAdapter());
   }
 
@@ -154,7 +188,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
 
   @Override
   public void dispose() {
-
+    AndroidDebugBridge.removeDeviceChangeListener(this);
   }
 
   @Nullable
@@ -173,6 +207,34 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
 
   public void setPreview(ViewNodeActiveDisplay preview) {
     myPreview = preview;
+  }
+
+  public void setSources(@Nullable Client client, @Nullable ClientWindow window) {
+    myClient = client;
+    myWindow = window;
+    myDumpDisplayListMenuItem.setEnabled(myClient != null && myWindow != null);
+  }
+
+  public static boolean isDumpDisplayListEnabled() {
+    return DUMP_DISPLAYLIST_ENABLED;
+  }
+
+  @Override
+  public void deviceConnected(@NonNull IDevice device) {
+  }
+
+  @Override
+  public void deviceDisconnected(@NonNull IDevice device) {
+    if (myClient == null) return;
+
+    IDevice currentDevice = myClient.getDevice();
+    if (device.equals(currentDevice)) {
+      setSources(null, null);
+    }
+  }
+
+  @Override
+  public void deviceChanged(@NonNull IDevice device, int changeMask) {
   }
 
   private class NodeRightClickAdapter extends MouseAdapter {
@@ -225,5 +287,33 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
       }
       myNodeTree.repaint();
     }
+  }
+
+  private class DumpDisplayListActionListener implements ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      ViewNode node = (ViewNode)myNodePopup.getClientProperty(KEY_VIEW_NODE);
+      if (node == null) {
+        createNotification(AndroidBundle.message("android.ddms.actions.layoutinspector.dumpdisplay.notification.nonode"), NotificationType.ERROR);
+        return;
+      }
+
+      try {
+        HandleViewDebug.dumpDisplayList(myClient, myWindow.title, node.toString());
+      }
+      catch (IOException e1) {
+        createNotification(AndroidBundle.message("android.ddms.actions.layoutinspector.dumpdisplay.notification.failure", e1.getMessage()), NotificationType.ERROR);
+        return;
+      }
+
+      // TODO figure out better way to output, for now it outputs to logcat
+      createNotification(AndroidBundle.message("android.ddms.actions.layoutinspector.dumpdisplay.notification.success"), NotificationType.INFORMATION);
+    }
+  }
+
+  private void createNotification(@NotNull String message, @NotNull NotificationType type) {
+    Notifications.Bus.notify(new Notification(AndroidBundle.message("android.ddms.actions.layoutinspector.notification.group"),
+                                              AndroidBundle.message("android.ddms.actions.layoutinspector.notification.title"),
+                                              message, type,null));
   }
 }

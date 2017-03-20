@@ -42,7 +42,7 @@ public class WindowPickerDialog extends DialogWrapper {
 
   public WindowPickerDialog(@NotNull Project project, @NotNull final Client client, @NotNull List<ClientWindow> windows) {
     super(project, true);
-    setTitle(AndroidBundle.message("android.ddms.actions.hierarchyview.windowpicker"));
+    setTitle(AndroidBundle.message("android.ddms.actions.layoutinspector.windowpicker"));
 
     myPanel = new JPanel(new BorderLayout());
 

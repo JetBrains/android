@@ -20,6 +20,7 @@ import com.android.tools.idea.editors.layoutInspector.model.ClientWindow;
 import com.android.tools.idea.editors.layoutInspector.model.ViewNode;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureService;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -34,6 +35,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class LayoutInspectorCaptureTask extends Task.Backgroundable {
@@ -121,18 +124,17 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
     try {
       Capture capture = service.createCapture(LayoutInspectorCaptureType.class, myData, service.getSuggestedName(myClient));
       final VirtualFile file = capture.getFile();
-      file.refresh(true, false, new Runnable() {
-        @Override
-        public void run() {
-          UIUtil.invokeLaterIfNeeded(new Runnable() {
-            @Override
-            public void run() {
-              OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, file);
-              FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
-            }
-          });
+      file.refresh(true, false, () -> UIUtil.invokeLaterIfNeeded(() -> {
+        OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, file);
+        List<FileEditor> editors = FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
+
+        if (LayoutInspectorContext.isDumpDisplayListEnabled()) {
+          Optional<FileEditor> optionalEditor = editors.stream().filter(e -> e instanceof LayoutInspectorEditor).findFirst();
+          if (optionalEditor.isPresent()) {
+            ((LayoutInspectorEditor) optionalEditor.get()).setSources(myClient, myWindow);
+          }
         }
-      });
+      }));
     }
     catch (IOException e) {
       Messages.showErrorDialog("Error creating hierarchy view capture: " + e, TITLE);

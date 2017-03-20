@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors.layoutInspector;
 
+import com.android.ddmlib.Client;
+import com.android.tools.idea.editors.layoutInspector.model.ClientWindow;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -34,6 +36,7 @@ public class LayoutInspectorEditor extends UserDataHolderBase implements FileEdi
   private final VirtualFile myVirtualFile;
   private final Project myProject;
   private LayoutInspectorEditorPanel myPanel;
+  private LayoutInspectorContext myContext;
 
   public LayoutInspectorEditor(@NotNull Project project, @NotNull VirtualFile file) {
     myVirtualFile = file;
@@ -44,14 +47,14 @@ public class LayoutInspectorEditor extends UserDataHolderBase implements FileEdi
   @Override
   public JComponent getComponent() {
     if (myPanel == null) {
-      LayoutInspectorContext context;
       try {
-        context = new LayoutInspectorContext(new LayoutFileData(myVirtualFile));
+        myContext = new LayoutInspectorContext(new LayoutFileData(myVirtualFile));
       }
       catch (IOException e) {
         return new JLabel(e.getLocalizedMessage(), SwingConstants.CENTER);
       }
-      myPanel = new LayoutInspectorEditorPanel(this, myProject, context);
+
+      myPanel = new LayoutInspectorEditorPanel(this, myProject, myContext);
     }
 
     return myPanel;
@@ -119,5 +122,9 @@ public class LayoutInspectorEditor extends UserDataHolderBase implements FileEdi
   @Override
   public boolean isValid() {
     return myVirtualFile.isValid();
+  }
+
+  public void setSources(@Nullable Client client, @Nullable ClientWindow window) {
+    myContext.setSources(client, window);
   }
 }
