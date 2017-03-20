@@ -1064,9 +1064,6 @@ public class DeviceExplorerController {
       tracker.getSummary().addDirectoryCount(1);
 
       SettableFuture<Void> futureResult = SettableFuture.create();
-      logFuture(futureResult, String.format("Uploading local directory \"%s\" to remote path \"%s\"",
-                                            file.getPath(),
-                                            parentNode.getEntry().getFullPath()));
 
       // Create directory in destination device
       DeviceFileEntry parentEntry = parentNode.getEntry();
@@ -1125,9 +1122,10 @@ public class DeviceExplorerController {
       tracker.setUploadFileText(file, 0, 0);
 
       SettableFuture<Void> futureResult = SettableFuture.create();
-      logFuture(futureResult, String.format("Uploading local file \"%s\" to remote path \"%s\"",
-                                            file.getPath(),
-                                            parentNode.getEntry().getFullPath()));
+      logFuture(futureResult, millis -> String.format("Uploaded file in %,d msec: %s",
+                                                      millis,
+                                                      AdbPathUtil.resolve(parentNode.getEntry().getFullPath(),
+                                                                          file.getName())));
 
       DeviceFileEntry parentEntry = parentNode.getEntry();
       Path localPath = Paths.get(file.getPath());
@@ -1279,12 +1277,11 @@ public class DeviceExplorerController {
       return result;
     }
 
-    private <V> void logFuture(@NotNull ListenableFuture<V> future, @NotNull String message) {
+    private <V> void logFuture(@NotNull ListenableFuture<V> future, @NotNull Function<Long, String> message) {
       long startNano = System.nanoTime();
-      LOGGER.trace(String.format(">>> %s", message));
       myEdtExecutor.addListener(future, () -> {
         long endNano = System.nanoTime();
-        LOGGER.trace(String.format("<<< %s: %,d ms", message, (endNano - startNano) / 1_000_000));
+        LOGGER.trace(message.apply((endNano - startNano) / 1_000_000));
       });
     }
 
@@ -1386,6 +1383,7 @@ public class DeviceExplorerController {
         }
       });
       myEdtExecutor.addListener(futureDownload, () -> stopNodeDownload(treeNode));
+      logFuture(futureDownload, millis -> String.format("Downloaded file in %,d msec: %s", millis, entry.getFullPath()));
       return myEdtExecutor.transform(futureDownload, aVoid -> sizeRef.get());
     }
 

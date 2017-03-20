@@ -154,6 +154,43 @@ public class FutureCallbackExecutor implements Executor {
   }
 
   /**
+   * Similar to {@link Futures#transform(ListenableFuture, com.google.common.base.Function, Executor)},
+   * using this instance as the executor, but executes the async function in both success and error
+   * completion. If the {@code finallyBlock} itself fails, the returned future fails too.
+   */
+  public <I> ListenableFuture<I> finallyAsync(@NotNull ListenableFuture<I> input,
+                                              @NotNull Callable<ListenableFuture<Void>> finallyBlock) {
+    SettableFuture<I> futureResult = SettableFuture.create();
+    addConsumer(input, (i, throwable) -> {
+      try {
+        ListenableFuture<Void> futureFinallyBlock = finallyBlock.call();
+        addConsumer(futureFinallyBlock, (aVoid, finallyError) -> {
+          // Prefer original error over error from finally block
+          if (throwable != null) {
+            futureResult.setException(throwable);
+          }
+          else if (finallyError != null){
+            futureResult.setException(finallyError);
+          }
+          else {
+            futureResult.set(i);
+          }
+        });
+      }
+      catch (Exception e) {
+        // Prefer original error over error from finally block
+        if (throwable != null) {
+          futureResult.setException(throwable);
+        }
+        else {
+          futureResult.setException(e);
+        }
+      }
+    });
+    return futureResult;
+  }
+
+  /**
    * Execute a task from the {@code taskFactory} for each element of the {@code iterator},
    * waiting for the {@link ListenableFuture} returned by each task before executing the next one.
    *
