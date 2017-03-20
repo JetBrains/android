@@ -227,7 +227,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
         IdDisplay tag = systemImage.getTag();
         String name = systemImage.getName();
         return String.format("%1$s%2$s", name, tag.equals(SystemImage.DEFAULT_TAG) ? "" :
-                                               String.format(" (with %s)", tag.getDisplay()));
+                                               String.format(" (%s)", tag.getDisplay()));
       }
     },
   };

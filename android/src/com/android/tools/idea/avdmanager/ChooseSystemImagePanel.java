@@ -106,11 +106,27 @@ public class ChooseSystemImagePanel extends JPanel
   }
 
   @NotNull
-  private static SystemImageClassification getClassification(@NotNull SystemImageDescription image) {
+  private static SystemImageClassification getClassification(@NotNull SystemImageDescription image, @Nullable Device device) {
 
-    return getClassificationFromParts(Abi.getEnum(image.getAbiType()),
-                                      image.getVersion().getApiLevel(),
-                                      image.getTag());
+    SystemImageClassification classification = getClassificationFromParts(Abi.getEnum(image.getAbiType()),
+                                                                          image.getVersion().getApiLevel(),
+                                                                          image.getTag());
+
+    if (device != null) {
+      if (device.hasPlayStore()) {
+        // The device supports Google Play Store. Recommend only system images that also support Play Store.
+        if (classification == SystemImageClassification.RECOMMENDED && !image.getSystemImage().hasPlayStore()) {
+          classification = SystemImageClassification.X86;
+        }
+      }
+      else {
+        // The device does not support Google Play Store. Hide Play Store system images.
+        if (image.getSystemImage().hasPlayStore()) {
+          classification = SystemImageClassification.FORBIDDEN;
+        }
+      }
+    }
+    return classification;
   }
 
   @NotNull
@@ -186,7 +202,7 @@ public class ChooseSystemImagePanel extends JPanel
 
   private void setSelectedImage(@Nullable SystemImageDescription systemImage) {
     if (systemImage != null) {
-      SystemImageClassification classification = getClassification(systemImage);
+      SystemImageClassification classification = getClassification(systemImage, null);
       switch (classification) {
         case RECOMMENDED:
           myRecommendedImageList.setSelectedImage(systemImage);
@@ -266,7 +282,8 @@ public class ChooseSystemImagePanel extends JPanel
   enum SystemImageClassification {
     RECOMMENDED,
     X86,
-    OTHER
+    OTHER,
+    FORBIDDEN
   }
 
   private class ClassificationRowFilter extends RowFilter<ListTableModel<SystemImageDescription>, Integer> {
@@ -279,7 +296,7 @@ public class ChooseSystemImagePanel extends JPanel
     @Override
     public boolean include(Entry<? extends ListTableModel<SystemImageDescription>, ? extends Integer> entry) {
       SystemImageDescription image = myListModel.getRowValue(entry.getIdentifier());
-      return getClassification(image) == myClassification &&
+      return getClassification(image, myDevice) == myClassification &&
              systemImageMatchesDevice(image, myDevice) &&
              versionSupported(image);
     }

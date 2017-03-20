@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.annotations.Nullable;
+import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.sdklib.internal.avd.AvdInfo;
@@ -190,7 +191,7 @@ public class DeviceMenuAction extends FlatComboAction {
       }
       for (List<Device> devices : manufacturers.values()) {
         for (Device device : devices) {
-          if (isNexus(device) && !device.getManufacturer().equals(MANUFACTURER_GENERIC)
+          if (isNexus(device) && !device.getManufacturer().equals(HardwareConfig.MANUFACTURER_GENERIC)
               && !isWear(device) && !isTv(device)) {
             nexus.add(device);
           } else {
