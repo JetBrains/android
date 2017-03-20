@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,10 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.ui.properties.core.ObservableBool;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.intellij.util.SystemProperties;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.util.Collection;
@@ -30,15 +32,23 @@ import java.util.Collections;
 /**
  * Step for generating Android icons from some image asset source.
  */
-public final class NewImageAssetStep extends ModelWizardStep<GenerateIconsModel> {
+public final class NewImageAssetStep_Deprecated extends ModelWizardStep<GenerateIconsModel> {
+  @NotNull
+  private static final String NEW_IMAGE_ASSET_STEP_DEPRECATED_ENABLED = "android.studio.new-image-asset-step-deprecated.enabled";
+  private static boolean myEnabled = true;
 
-  private final GenerateImageAssetPanel myGenerateImageAssetPanel;
+  public static boolean isEnabled() {
+    // Enabled by default (until the new image asset is in a good enough state)
+    return myEnabled && SystemProperties.getBooleanProperty(NEW_IMAGE_ASSET_STEP_DEPRECATED_ENABLED, true);
+  }
+
+  @NotNull private final GenerateIconsPanel myGenerateIconsPanel;
   @NotNull private final AndroidFacet myFacet;
 
-  public NewImageAssetStep(@NotNull GenerateIconsModel model, @NotNull AndroidFacet facet) {
+  public NewImageAssetStep_Deprecated(@NotNull GenerateIconsModel model, @NotNull AndroidFacet facet) {
     super(model, "Configure Image Asset");
     int minSdkVersion = AndroidModuleInfo.getInstance(facet).getMinSdkVersion().getApiLevel();
-    myGenerateImageAssetPanel = new GenerateImageAssetPanel(this, model.getPaths(), minSdkVersion);
+    myGenerateIconsPanel = new GenerateIconsPanel(this, model.getPaths(), minSdkVersion);
     myFacet = facet;
   }
 
@@ -51,17 +61,17 @@ public final class NewImageAssetStep extends ModelWizardStep<GenerateIconsModel>
   @NotNull
   @Override
   protected JComponent getComponent() {
-    return myGenerateImageAssetPanel;
+    return myGenerateIconsPanel;
   }
 
   @NotNull
   @Override
   protected ObservableBool canGoForward() {
-    return myGenerateImageAssetPanel.hasErrors().not();
+    return myGenerateIconsPanel.hasErrors().not();
   }
 
   @Override
   protected void onProceeding() {
-    getModel().setIconGenerator(myGenerateImageAssetPanel.getIconGenerator());
+    getModel().setIconGenerator(myGenerateIconsPanel.getIconGenerator());
   }
 }
