@@ -243,6 +243,8 @@ public class ViewHandlerManager implements ProjectComponent {
       case COLLAPSING_TOOLBAR_LAYOUT:
         return new CollapsingToolbarLayoutHandler();
       case CONSTRAINT_LAYOUT:
+      case CLASS_CONSTRAINT_LAYOUT_CHAIN:
+      case CLASS_CONSTRAINT_LAYOUT_BARRIER:
         return new ConstraintLayoutHandler();
       case FLEXBOX_LAYOUT:
         if (FlexboxLayoutHandler.FLEXBOX_ENABLE_FLAG) {

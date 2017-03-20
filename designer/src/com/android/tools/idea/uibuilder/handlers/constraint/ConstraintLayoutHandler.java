@@ -29,10 +29,12 @@ import com.android.tools.idea.uibuilder.graphics.NlIcon;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.*;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
 import com.android.tools.idea.uibuilder.scene.target.*;
+import com.android.tools.idea.uibuilder.structure.NlDropListener;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -56,6 +58,7 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -65,6 +68,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -1140,6 +1145,70 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       NlComponent deletedComponent = deleted.get(i);
       String id = deletedComponent.getId();
       ConstraintComponentUtilities.updateOnDelete(component, id);
+    }
+  }
+
+
+  @Override
+  @NotNull
+  public String getTitle(@NotNull NlComponent component) {
+    String title = getSimpleTagName(component.getTagName());
+    if (component.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_HELPER)) {
+      if (component.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_CHAIN)) {
+        boolean horizontal = true;
+        String orientation = component.getLiveAttribute(ANDROID_URI, ATTR_ORIENTATION);
+        if (orientation != null && orientation.equals(VALUE_VERTICAL)) {
+          horizontal = false;
+        }
+        if (horizontal) {
+          title = "Horizontal Chain";
+        } else {
+          title = "Vertical Chain";
+        }
+      }
+    }
+    return title;
+  }
+
+  /**
+   * Gives a chance to the ViewGroupHandler to handle drop on elements that are not ViewGroup.
+   * For ConstraintHelper instances, we'll insert tags elements referencing the dropped components.
+   *
+   * @param model
+   * @param event
+   * @param receiver
+   * @param dragged
+   * @param sibling
+   * @param type
+   */
+  @Override
+  public void performDrop(@NotNull NlModel model,
+                          @NotNull DropTargetDropEvent event,
+                          @NotNull NlComponent receiver,
+                          @NotNull List<NlComponent> dragged,
+                          @Nullable NlComponent sibling,
+                          @NotNull InsertType insertType) {
+    if (receiver.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_HELPER)) {
+      try {
+        for (NlComponent toDrag : dragged) {
+          InsertType insert = insertType;
+          NlComponent component = toDrag;
+          if (insertType.isMove() && toDrag.getParent() != receiver) {
+            insert = InsertType.CREATE;
+            XmlTag tag = receiver.getTag().createChildTag(TAG, null, null, false);
+            tag.setAttribute(PREFIX_ANDROID + ATTR_ID, toDrag.getAttribute(ANDROID_URI, ATTR_ID));
+            component = new NlComponent(model, tag);
+          }
+          model.addTags(Arrays.asList(component), receiver, sibling, insert);
+        }
+        event.acceptDrop(insertType == InsertType.COPY ? event.getDropAction() : DnDConstants.ACTION_COPY);
+        event.dropComplete(true);
+        model.notifyModified(NlModel.ChangeType.DROP);
+      }
+      catch (Exception exception) {
+        Logger.getInstance(NlDropListener.class).warn(exception);
+        event.rejectDrop();
+      }
     }
   }
 }
