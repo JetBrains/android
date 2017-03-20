@@ -17,7 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.adtui.model.HNode;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
@@ -31,7 +31,6 @@ import java.io.IOException;
 import static org.junit.Assert.*;
 
 public class CpuProfilerStageTest extends AspectObserver {
-
   private final FakeCpuService myCpuService = new FakeCpuService();
   @Rule
   public FakeGrpcChannel myGrpcChannel =
@@ -334,10 +333,8 @@ public class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void setAndSelectCaptureDifferentClockType() throws IOException {
     CpuCapture capture = new CpuCapture(CpuCaptureTest.readValidTrace());
-    HNode<MethodModel> mainHNode = capture.getCaptureNode(capture.getMainThreadId());
-    assertNotNull(mainHNode);
-    assertTrue(mainHNode instanceof CaptureNode);
-    CaptureNode captureNode = (CaptureNode)mainHNode;
+    CaptureNode captureNode = capture.getCaptureNode(capture.getMainThreadId());
+    assertNotNull(captureNode);
     myStage.setSelectedThread(capture.getMainThreadId());
 
     assertEquals(ClockType.GLOBAL, captureNode.getClockType());
@@ -366,6 +363,37 @@ public class CpuProfilerStageTest extends AspectObserver {
     // Just setting the clock type shouldn't change the selection range
     assertEquals(timeline.getSelectionRange().getMin(), threadSelectionStart, eps);
     assertEquals(timeline.getSelectionRange().getMax(), threadSelectionEnd, eps);
+  }
+
+  @Test
+  public void testCaptureRangeConversion() throws Exception {
+    captureSuccessfully();
+
+    myStage.setSelectedThread(myStage.getCapture().getMainThreadId());
+    myStage.setCaptureDetails(CaptureModel.Details.Type.BOTTOM_UP);
+
+    Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
+    double eps = 1e-5;
+    assertEquals(myStage.getCapture().getRange().getMin(), selection.getMin(), eps);
+    assertEquals(myStage.getCapture().getRange().getMax(), selection.getMax(), eps);
+
+    assertTrue(myStage.getCaptureDetails() instanceof CaptureModel.BottomUp);
+    CaptureModel.BottomUp details = (CaptureModel.BottomUp)myStage.getCaptureDetails();
+
+    Range detailsRange = details.getModel().getRange();
+
+    // When ClockType.Global is used, the range of a capture details should the same as the selection range
+    assertEquals(ClockType.GLOBAL, myStage.getClockType());
+    assertEquals(detailsRange.getMin(), selection.getMin(), eps);
+    assertEquals(detailsRange.getMax(), selection.getMax(), eps);
+
+    detailsRange.set(0, 10);
+    assertEquals(selection.getMin(), 0, eps);
+    assertEquals(selection.getMax(), 10, eps);
+
+    selection.set(1, 5);
+    assertEquals(detailsRange.getMin(), 1, eps);
+    assertEquals(detailsRange.getMax(), 5, eps);
   }
 
   private void captureSuccessfully() throws InterruptedException {
