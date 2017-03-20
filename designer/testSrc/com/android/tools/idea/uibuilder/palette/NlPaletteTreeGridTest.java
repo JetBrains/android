@@ -105,7 +105,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   }
 
   public void testIconAndName() {
-    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.setMode(PaletteMode.ICON_AND_NAME);
     myPanel.populateUiModel(palette, mySurface);
     TreeGrid<Palette.Item> grid = myPanel.getComponentTree();
@@ -118,7 +118,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   }
 
   public void testLargeIcons() {
-    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.setMode(PaletteMode.LARGE_ICONS);
     myPanel.populateUiModel(palette, mySurface);
     TreeGrid<Palette.Item> grid = myPanel.getComponentTree();
@@ -131,7 +131,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   }
 
   public void testSmallIcons() {
-    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.setMode(PaletteMode.SMALL_ICONS);
     myPanel.populateUiModel(palette, mySurface);
     TreeGrid<Palette.Item> grid = myPanel.getComponentTree();
@@ -144,7 +144,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   }
 
   public void testSelectionChangeNotifications() {
-    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
     Holder<Palette.Item> lastSelectedItem = new Holder<>();
     myPanel.setSelectionListener(item -> lastSelectedItem.value = item);
@@ -154,7 +154,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   }
 
   public void testClickOnItemMissingFromProject() {
-    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     Palette.Item coordinatorLayout = findItem(palette, SdkConstants.COORDINATOR_LAYOUT);
 
     myPanel.populateUiModel(palette, mySurface);
@@ -169,7 +169,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   }
 
   public void testFocusTraversalPolicy() {
-    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
     JList<Palette.Item> list = myPanel.getComponentTree().getLists().get(3);
 
@@ -185,7 +185,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   }
 
   public void testSetFilter() {
-    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
     assertThat(myPanel.getComponentTree().getLists()).hasSize(11);
     assertThat(getVisibleItems().size()).isGreaterThan(30);
@@ -197,7 +197,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   }
 
   public void testSelectCategoryWithExistingFilter() {
-    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
     myPanel.setFilter("utt");
 
@@ -208,7 +208,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   }
 
   public void testSetFilterWithExistingSelectedCategory() {
-    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
     myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Images"), false);
     myPanel.setFilter("utt");
@@ -218,7 +218,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   }
 
   public void testRemoveFilterWithSelectedCategory() {
-    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
     myPanel.setFilter("utt");
     myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Images"), false);
@@ -239,7 +239,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   }
 
   public void testSelectAllCategoriesWithExistingFilter() {
-    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
     myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Images"), false);
     myPanel.setFilter("utt");
@@ -251,7 +251,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   }
 
   public void testRemoveFilterAfterClearingCategorySelection() {
-    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
     myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Images"), false);
     myPanel.setFilter("utt");
@@ -263,7 +263,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   }
 
   public void testClearCategoryAfterRemovingFilter() {
-    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
     myPanel.setFilter("utt");
     myPanel.getCategoryList().setSelectedValue(getGroup(palette, "Images"), false);
@@ -275,7 +275,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   }
 
   public void testShiftHelpOnPaletteItem() throws Exception {
-    Palette palette = NlPaletteModel.get(getProject()).getPalette(NlLayoutType.LAYOUT);
+    Palette palette = NlPaletteModel.get(myFacet).getPalette(NlLayoutType.LAYOUT);
     myPanel.populateUiModel(palette, mySurface);
     clickOnItem(0, 0);  // Select Button
     AnAction action = findActionForKey(myPanel.getComponentTree(), KeyEvent.VK_F1, InputEvent.SHIFT_MASK);
@@ -404,7 +404,7 @@ public class NlPaletteTreeGridTest extends AndroidTestCase {
   }
 
   private void checkPaletteGroupsAndItems(@NotNull NlLayoutType type) {
-    Palette palette = NlPaletteModel.get(getProject()).getPalette(type);
+    Palette palette = NlPaletteModel.get(myFacet).getPalette(type);
     myPanel.populateUiModel(palette, mySurface);
 
     JList<Palette.Group> categoryList = myPanel.getCategoryList();

@@ -91,7 +91,7 @@ public class IconPreviewFactoryTest extends LayoutTestCase {
   }
 
   private Palette loadPalette() throws Exception {
-    NlPaletteModel model = NlPaletteModel.get(getProject());
+    NlPaletteModel model = NlPaletteModel.get(myFacet);
 
     try (Reader reader = new InputStreamReader(NlPaletteModel.class.getResourceAsStream(NlLayoutType.LAYOUT.getPaletteFileName()))) {
       model.loadPalette(reader, NlLayoutType.LAYOUT);
