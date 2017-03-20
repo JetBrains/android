@@ -83,6 +83,7 @@ public class AvdManagerConnectionTest extends TestCase {
       false,
       false,
       false,
+      false,
       log);
 
     assertNotNull("Could not create AVD", avd);

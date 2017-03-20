@@ -36,6 +36,7 @@ import com.intellij.ui.table.TableView;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
+import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +46,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
@@ -141,6 +143,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
           }
         };
       }
+    }, new PlayStoreColumnInfo("Play Store") {
     }, new DeviceColumnInfo("Size") {
 
       @Nullable
@@ -608,6 +611,49 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     @Override
     public int getWidth(JTable table) {
       return myWidth;
+    }
+  }
+
+  private static class PlayStoreColumnInfo extends ColumnInfo<Device, Icon> {
+
+    private static final TableCellRenderer ourIconRenderer = new DefaultTableCellRenderer() {
+      @Override
+      public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        JBLabel label = new JBLabel((Icon)value);
+        if (table.getSelectedRow() == row) {
+          label.setBackground(table.getSelectionBackground());
+          label.setForeground(table.getSelectionForeground());
+          label.setOpaque(true);
+        }
+        return label;
+      }
+    };
+
+    public PlayStoreColumnInfo(String name) {
+      super(name);
+    }
+
+    @NotNull
+    @Override
+    public TableCellRenderer getRenderer(Device device) {
+      return ourIconRenderer;
+    }
+
+    @Override
+    public int getWidth(JTable table) {
+      return -1; // Re-sizable
+    }
+
+    @Nullable
+    @Override
+    public Icon valueOf(@NonNull Device device) {
+      return (device.hasPlayStore() ? AndroidIcons.PlayStore : null);
+    }
+
+    @NotNull
+    @Override
+    public Comparator<Device> getComparator() {
+      return (o1, o2) -> Boolean.compare(o2.hasPlayStore(), o1.hasPlayStore());
     }
   }
 
