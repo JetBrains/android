@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.splitter.ComponentsSplitter;
 import com.android.tools.adtui.treegrid.TreeGrid;
-import com.android.tools.adtui.treegrid.TreeGridSpeedSearch;
+import com.android.tools.adtui.workbench.StartFilteringListener;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -71,6 +71,7 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
   private SelectionListener myListener;
   private NlDesignSurface mySurface;
   private Palette myPalette;
+  private StartFilteringListener myStartFilteringCallback;
 
   public NlPaletteTreeGrid(@NotNull Project project,
                            @NotNull PaletteMode initialMode,
@@ -86,6 +87,12 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     myIconPreviewFactory = iconFactory;
     myTree = createItemTreeGrid(project);
     myTree.addListSelectionListener(event -> fireSelectionChanged(myTree.getSelectedElement()));
+    myTree.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyTyped(@NotNull KeyEvent event) {
+        handleKeyEvent(event);
+      }
+    });
 
     //noinspection unchecked
     myCategoryList = new JBList();
@@ -93,7 +100,7 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     myCategoryList.setForeground(UIManager.getColor("Panel.foreground"));
     myCategoryList.addListSelectionListener(this::categorySelectionChanged);
     myCategoryList.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
-    myFilter = new MyFilter(myCategoryList);
+    myFilter = new MyFilter();
 
     JScrollPane categoryPane = ScrollPaneFactory.createScrollPane(myCategoryList, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     categoryPane.setBorder(BorderFactory.createEmptyBorder());
@@ -128,7 +135,6 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
       return item != null ? item.getTagName() : null;
     });
     help.registerCustomShortcutSet(KeyEvent.VK_F1, InputEvent.SHIFT_MASK, grid);
-    new TreeGridSpeedSearch<>(grid, Palette.Item::getTitle);
     return grid;
   }
 
@@ -167,6 +173,10 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     myTree.setCellRenderer(new MyCellRenderer(myDependencyManager, mode));
   }
 
+  public void setStartFiltering(@NotNull StartFilteringListener listener) {
+    myStartFilteringCallback = listener;
+  }
+
   public void populateUiModel(@NotNull Palette palette, @NotNull NlDesignSurface designSurface) {
     mySurface = designSurface;
     myPalette = palette;
@@ -193,12 +203,14 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
     if (pattern.isEmpty()) {
       if (!oldPattern.isEmpty()) {
         updateTreeModel();
+        myTree.setVisibleSection(myCategoryList.getSelectedValue());
       }
       myTree.setFilter(null);
     }
     else {
       if (oldPattern.isEmpty()) {
         updateTreeModel();
+        myTree.setVisibleSection(ALL.getName());
       }
       myTree.setFilter(myFilter);
       myTree.selectIfUnique();
@@ -211,9 +223,8 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
   }
 
   private void categorySelectionChanged(@Nullable @SuppressWarnings("unused") ListSelectionEvent event) {
-    myTree.setVisibleSection(myCategoryList.getSelectedValue());
-    if (!myFilter.getPattern().isEmpty()) {
-      setFilter(myFilter.getPattern());
+    if (myFilter.getPattern().isEmpty()) {
+      myTree.setVisibleSection(myCategoryList.getSelectedValue());
     }
   }
 
@@ -224,6 +235,12 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
   public void fireSelectionChanged(@Nullable Palette.Item item) {
     if (myListener != null) {
       myListener.selectionChanged(item);
+    }
+  }
+
+  public void handleKeyEvent(@NotNull KeyEvent event) {
+    if (myStartFilteringCallback != null) {
+      myStartFilteringCallback.startFiltering(event.getKeyChar());
     }
   }
 
@@ -380,11 +397,9 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
 
   private static class MyFilter implements Condition<Palette.Item> {
     private final SpeedSearchComparator myComparator;
-    private final JList<Palette.Group> myCategoryList;
     private String myPattern;
 
-    public MyFilter(@NotNull JList<Palette.Group> categoryList) {
-      myCategoryList = categoryList;
+    public MyFilter() {
       myComparator = new SpeedSearchComparator(false);
       myPattern = "";
     }
@@ -400,10 +415,6 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
 
     @Override
     public boolean value(@NotNull Palette.Item item) {
-      Palette.Group group = myCategoryList.getSelectedValue();
-      if (group != null && group != ALL && group != item.getParent()) {
-        return false;
-      }
       return myComparator.matchingFragments(myPattern, item.getTitle()) != null;
     }
   }

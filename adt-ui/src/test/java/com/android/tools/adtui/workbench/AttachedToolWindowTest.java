@@ -20,14 +20,16 @@ import com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.SearchTextField;
 import org.jetbrains.annotations.NotNull;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
@@ -45,7 +47,6 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 @RunWith(JUnit4.class)
-@Ignore
 public class AttachedToolWindowTest {
   @Rule
   public FrameworkRule myFrameworkRule = new FrameworkRule();
@@ -53,8 +54,7 @@ public class AttachedToolWindowTest {
   private AttachedToolWindow.ButtonDragListener<String> myDragListener;
   @Mock
   private SideModel<String> myModel;
-  @Mock
-  private DumbService myDumbService;
+
   private ActionManager myActionManager;
   private PropertiesComponent myPropertiesComponent;
   private ToolWindowDefinition<String> myDefinition;
@@ -522,6 +522,7 @@ public class AttachedToolWindowTest {
     PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
     assertThat(panel).isNotNull();
     findRequiredButtonByName(myToolWindow.getComponent(), "Search").click();
+
     SearchTextField searchField = findHeaderSearchField(myToolWindow.getComponent());
     searchField.setText("el");
 
@@ -552,6 +553,26 @@ public class AttachedToolWindowTest {
   }
 
   @Test
+  public void startSearching() {
+    PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
+    assert panel != null;
+    panel.startFiltering('b');
+
+    SearchTextField searchField = findHeaderSearchField(myToolWindow.getComponent());
+    assertThat(searchField.isVisible()).isTrue();
+    assertThat(searchField.getText()).isEqualTo("b");
+  }
+
+  @Test
+  public void testEscapeClosesSearchFieldIfTextIsEmpty() {
+    findRequiredButtonByName(myToolWindow.getComponent(), "Search").click();
+    SearchTextField searchField = findHeaderSearchField(myToolWindow.getComponent());
+    searchField.setText("");
+    fireKey(searchField.getTextEditor(), KeyEvent.VK_ESCAPE);
+    assertThat(searchField.isVisible()).isFalse();
+  }
+
+  @Test
   public void testContentIsDisposed() {
     PalettePanelToolContent panel = (PalettePanelToolContent)myToolWindow.getContent();
     assert panel != null;
@@ -579,7 +600,11 @@ public class AttachedToolWindowTest {
   }
 
   private static void fireEnterKey(@NotNull JComponent component) {
-    KeyEvent event = new KeyEvent(component, 0, 0, 0, KeyEvent.VK_ENTER, '\0');
+    fireKey(component, KeyEvent.VK_ENTER);
+  }
+
+  private static void fireKey(@NotNull JComponent component, int keyCode) {
+    KeyEvent event = new KeyEvent(component, 0, 0, 0, keyCode, '\0');
     for (KeyListener listener : component.getKeyListeners()) {
       listener.keyPressed(event);
     }
@@ -643,8 +668,7 @@ public class AttachedToolWindowTest {
   }
 
   private DefaultActionGroup getPopupMenuFromGearButtonInHeader() {
-    ActionButton button = findButtonByName(myToolWindow.getComponent(), "Gear");
-    assertThat(button).isNotNull();
+    ActionButton button = findRequiredButtonByName(myToolWindow.getComponent(), "More Options");
     button.click();
 
     ArgumentCaptor<ActionGroup> menuCaptor = ArgumentCaptor.forClass(ActionGroup.class);

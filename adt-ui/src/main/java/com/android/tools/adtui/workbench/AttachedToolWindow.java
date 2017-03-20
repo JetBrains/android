@@ -268,7 +268,8 @@ class AttachedToolWindow<T> implements Disposable {
       myContent = myDefinition.getFactory().create();
       assert myContent != null;
       myContent.setToolContext(myModel.getContext());
-      myContent.registerCloseAutoHideWindow(this::closeAutoHideWindow);
+      myContent.setCloseAutoHideWindow(this::closeAutoHideWindow);
+      myContent.setStartFiltering(this::startFiltering);
       myPanel.add(createHeader(myContent.supportsFiltering(), myContent.getAdditionalActions()), BorderLayout.NORTH);
       myPanel.add(myContent.getComponent(), BorderLayout.CENTER);
     }
@@ -317,6 +318,14 @@ class AttachedToolWindow<T> implements Disposable {
       layout.show(parent, LABEL_HEADER);
     }
     mySearchActionButton.setVisible(!show);
+  }
+
+  private void startFiltering(char character) {
+    if (myContent == null || !myContent.supportsFiltering()) {
+      return;
+    }
+    mySearchField.setText(String.valueOf(character));
+    showSearchField(true);
   }
 
   @NotNull
@@ -540,7 +549,7 @@ class AttachedToolWindow<T> implements Disposable {
 
     public void update() {
       AnActionEvent event = new AnActionEvent(null, getDataContext(), myPlace, myPresentation, ActionManager.getInstance(), 0);
-      ActionUtil.performDumbAwareUpdate(myAction, event, false);
+      ActionUtil.performDumbAwareUpdate(false, myAction, event, false);
     }
   }
 
@@ -702,6 +711,9 @@ class AttachedToolWindow<T> implements Disposable {
         if (event.isConsumed()) {
           addCurrentTextToHistory();
         }
+      }
+      if (event.getKeyCode() == KeyEvent.VK_ESCAPE && getText().isEmpty()) {
+        showSearchField(false);
       }
     }
 
