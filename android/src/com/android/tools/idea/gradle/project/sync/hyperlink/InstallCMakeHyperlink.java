@@ -27,6 +27,8 @@ import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
@@ -52,30 +54,31 @@ public class InstallCMakeHyperlink extends NotificationHyperlink {
     StudioLoggerProgressIndicator progressIndicator = new StudioLoggerProgressIndicator(getClass());
     RepoManager sdkManager = sdkHandler.getSdkManager(progressIndicator);
 
-    StudioProgressRunner progressRunner = new StudioProgressRunner(false /* non-modal */, true /* backgroundable */,
-                                                                   false /* cancellable */, "Loading Remote SDK", true /* in UI thread */,
-                                                                   project);
-    RepoManager.RepoLoadedCallback onComplete = packages -> {
-      Collection<RemotePackage> cmakePackages = packages.getRemotePackagesForPrefix(FD_CMAKE);
-      if (!cmakePackages.isEmpty()) {
-        RemotePackage cmakePackage;
-        if (cmakePackages.size() == 1) {
-          cmakePackage = getFirstItem(cmakePackages);
-        }
-        else {
-          cmakePackage = sdkHandler.getLatestRemotePackageForPrefix(FD_CMAKE, false /* do not allow preview */, progressIndicator);
-        }
-        if (cmakePackage != null) {
-          ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(cmakePackage.getPath()));
-          if (dialog != null && dialog.showAndGet()) {
-            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+    StudioProgressRunner progressRunner = new StudioProgressRunner(false, true, false, "Loading Remote SDK", project);
+    RepoManager.RepoLoadedCallback onComplete = packages ->
+      ApplicationManager.getApplication().invokeLater(() -> {
+        Collection<RemotePackage> cmakePackages = packages.getRemotePackagesForPrefix(FD_CMAKE);
+        if (!cmakePackages.isEmpty()) {
+          RemotePackage cmakePackage;
+          if (cmakePackages.size() == 1) {
+            cmakePackage = getFirstItem(cmakePackages);
           }
-          return;
+          else {
+            cmakePackage = sdkHandler.getLatestRemotePackageForPrefix(FD_CMAKE, false /* do not allow preview */, progressIndicator);
+          }
+          if (cmakePackage != null) {
+            ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(cmakePackage.getPath()));
+            if (dialog != null && dialog.showAndGet()) {
+              GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+            }
+            return;
+          }
+          notifyCMakePackageNotFound(project);
         }
-        notifyCMakePackageNotFound(project);
-      }
-    };
-    Runnable onError = () -> notifyCMakePackageNotFound(project);
+      }, ModalityState.any());
+    Runnable onError = () -> ApplicationManager.getApplication().invokeLater(
+      () -> notifyCMakePackageNotFound(project),
+      ModalityState.any());
     sdkManager.load(DEFAULT_EXPIRATION_PERIOD_MS, null, ImmutableList.of(onComplete), ImmutableList.of(onError), progressRunner,
                     new StudioDownloader(), StudioSettingsController.getInstance(), false);
   }
