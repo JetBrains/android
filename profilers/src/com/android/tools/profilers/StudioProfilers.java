@@ -304,7 +304,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   public void setProcess(@Nullable Profiler.Process process) {
     List<Profiler.Process> processes = myProcesses.get(myDevice);
     if (process == null || processes == null || !processes.contains(process)) {
-      process = getPreferredProcess();
+      process = getPreferredProcess(processes);
     }
     if (!Objects.equals(process, myProcess)) {
       if (myDevice != null && myProcess != null &&
@@ -358,8 +358,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    * process.
    */
   @Nullable
-  private Profiler.Process getPreferredProcess() {
-    List<Profiler.Process> processes = myProcesses.get(myDevice);
+  private Profiler.Process getPreferredProcess(List<Profiler.Process> processes) {
     if (processes == null || processes.isEmpty()) {
       return null;
     }
@@ -371,13 +370,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         }
       }
     }
-    // Next, try to select an alive process
-    Profiler.Process aliveProcess =
-      processes.stream().filter(process -> process.getState().equals(Profiler.Process.State.ALIVE)).findAny().orElse(null);
-    if (aliveProcess != null) {
-      return aliveProcess;
-    }
-
     // Next, prefer the one previously used, either selected by user or automatically (even if the process has switched states)
     if (myProcess != null) {
       for (Profiler.Process process : processes) {
@@ -386,11 +378,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         }
       }
     }
-    // No preferred candidate. Choose any process.
+    // No preferred candidate. Choose a new process.
     return processes.get(0);
   }
 
-  private static boolean isSameProcess(@Nullable Profiler.Process process1, @Nullable Profiler.Process process2) {
+  private boolean isSameProcess(@Nullable Profiler.Process process1, @Nullable Profiler.Process process2) {
     return process1 != null &&
            process2 != null &&
            process1.getPid() == process2.getPid() && process1.getName().equals(process2.getName());
