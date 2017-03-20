@@ -142,7 +142,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private Configuration myConfiguration;
   private final List<ModelListener> myListeners = Lists.newArrayList();
   private List<NlComponent> myComponents = Lists.newArrayList();
-  private final SelectionModel mySelectionModel;
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
   private boolean myActive;
@@ -178,7 +177,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     myFile = file;
     myConfiguration = ConfigurationManager.getOrCreateInstance(facet.getModule()).getConfiguration(myFile.getVirtualFile());
     myConfigurationModificationCount = myConfiguration.getModificationCount();
-    mySelectionModel = new SelectionModel();
     myId = System.nanoTime() ^ file.getName().hashCode();
     if (parent != null) {
       Disposer.register(parent, this);
@@ -242,7 +240,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @NotNull
   public SelectionModel getSelectionModel() {
-    return mySelectionModel;
+    return mySurface.getSelectionModel();
   }
 
   @Nullable
@@ -1493,9 +1491,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     };
     action.execute();
 
-    List<NlComponent> remaining = Lists.newArrayList(mySelectionModel.getSelection());
+    List<NlComponent> remaining = Lists.newArrayList(getSelectionModel().getSelection());
     remaining.removeAll(components);
-    mySelectionModel.setSelection(remaining);
+    getSelectionModel().setSelection(remaining);
     notifyModified(ChangeType.DELETE);
   }
 
@@ -1650,7 +1648,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   @NotNull
   public Transferable getSelectionAsTransferable() {
-    return mySelectionModel.getTransferable(myId);
+    return getSelectionModel().getTransferable(myId);
   }
 
   /**
