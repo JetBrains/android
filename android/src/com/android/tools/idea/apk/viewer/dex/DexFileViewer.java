@@ -17,6 +17,9 @@ package com.android.tools.idea.apk.viewer.dex;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.idea.apk.viewer.ApkFileEditorComponent;
+import com.android.tools.idea.apk.viewer.dex.tree.AbstractDexTreeNode;
+import com.android.tools.idea.apk.viewer.dex.tree.FieldTreeNode;
+import com.android.tools.idea.apk.viewer.dex.tree.PackageTreeNode;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
@@ -94,41 +97,41 @@ public class DexFileViewer implements ApkFileEditorComponent {
 
     new TreeSpeedSearch(myTree, path -> {
       Object o = path.getLastPathComponent();
-      if (!(o instanceof PackageTreeNode)) {
+      if (!(o instanceof AbstractDexTreeNode)) {
         return "";
       }
 
-      PackageTreeNode node = (PackageTreeNode)o;
+      AbstractDexTreeNode node = (AbstractDexTreeNode)o;
       return node.getName();
-    });
+    }, true);
 
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Class")
                    .setPreferredWidth(500)
                    .setHeaderAlignment(SwingConstants.LEFT)
-                   .setComparator(Comparator.comparing(PackageTreeNode::getName).reversed())
-                   .setRenderer(new PackageTreeNodeRenderer()))
+                   .setComparator(Comparator.comparing(AbstractDexTreeNode::getName).reversed())
+                   .setRenderer(new DexTreeNodeRenderer()))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Defined Methods")
                    .setPreferredWidth(100)
                    .setHeaderAlignment(SwingConstants.LEFT)
-                   .setComparator(Comparator.comparing(PackageTreeNode::getDefinedMethodsCount))
+                   .setComparator(Comparator.comparing(AbstractDexTreeNode::getDefinedMethodsCount))
                    .setRenderer(new MethodCountRenderer(true)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Referenced Methods")
                    .setPreferredWidth(100)
                    .setHeaderAlignment(SwingConstants.LEFT)
-                   .setComparator(Comparator.comparing(PackageTreeNode::getMethodRefCount))
+                   .setComparator(Comparator.comparing(AbstractDexTreeNode::getMethodRefCount))
                    .setRenderer(new MethodCountRenderer(false)));
 
-    builder.setTreeSorter((Comparator<PackageTreeNode> comparator, SortOrder order) -> {
+    builder.setTreeSorter((Comparator<AbstractDexTreeNode> comparator, SortOrder order) -> {
       if (comparator != null){
         comparator = comparator.reversed();
         Object root = myFilteredTreeModel.getRoot();
-        if (root instanceof PackageTreeNode) {
+        if (root instanceof AbstractDexTreeNode) {
           TreePath selectionPath = myTree.getSelectionPath();
-          ((PackageTreeNode)root).sort(comparator);
+          ((AbstractDexTreeNode)root).sort(comparator);
           myFilteredTreeModel.reload();
           myTree.setSelectionPath(selectionPath);
           myTree.scrollPathToVisible(selectionPath);
@@ -279,7 +282,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
     Disposer.dispose(myDisposable);
   }
 
-  private static class PackageTreeNodeRenderer extends ColoredTreeCellRenderer {
+  private static class DexTreeNodeRenderer extends ColoredTreeCellRenderer {
     @Override
     public void customizeCellRenderer(@NotNull JTree tree,
                                       Object value,
@@ -288,11 +291,11 @@ public class DexFileViewer implements ApkFileEditorComponent {
                                       boolean leaf,
                                       int row,
                                       boolean hasFocus) {
-      if (!(value instanceof PackageTreeNode)) {
+      if (!(value instanceof AbstractDexTreeNode)) {
         return;
       }
 
-      PackageTreeNode node = (PackageTreeNode)value;
+      AbstractDexTreeNode node = (AbstractDexTreeNode)value;
 
       if (node.isSeed()) {
         append(node.getName(), new SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, null));
@@ -307,20 +310,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
         append(node.getName());
       }
 
-      switch (node.getNodeType()) {
-        case PACKAGE:
-          setIcon(PlatformIcons.PACKAGE_ICON);
-          break;
-        case CLASS:
-          setIcon(PlatformIcons.CLASS_ICON);
-          break;
-        case METHOD:
-          setIcon(PlatformIcons.METHOD_ICON);
-          break;
-        case FIELD:
-          setIcon(PlatformIcons.FIELD_ICON);
-          break;
-      }
+      setIcon(node.getIcon());
     }
   }
 
@@ -339,8 +329,8 @@ public class DexFileViewer implements ApkFileEditorComponent {
                                       boolean leaf,
                                       int row,
                                       boolean hasFocus) {
-      if (value instanceof PackageTreeNode && !((PackageTreeNode)value).getNodeType().equals(PackageTreeNode.NodeType.FIELD)) {
-        PackageTreeNode node = (PackageTreeNode)value;
+      if (value instanceof AbstractDexTreeNode && !(value instanceof FieldTreeNode)) {
+        AbstractDexTreeNode node = (AbstractDexTreeNode)value;
         int count = myShowDefinedCount ? node.getDefinedMethodsCount() : node.getMethodRefCount();
         append(Integer.toString(count));
       }
@@ -463,8 +453,6 @@ public class DexFileViewer implements ApkFileEditorComponent {
       super("Load Proguard mappings...", null, EmptyIcon.ICON_0);
     }
 
-    private boolean isLoaded;
-
     @Override
     public void actionPerformed(AnActionEvent e) {
       selectProguardMapping();
@@ -478,10 +466,10 @@ public class DexFileViewer implements ApkFileEditorComponent {
     @Override
     public void update(AnActionEvent e) {
       super.update(e);
-      if (myProguardMappings != null && !isLoaded) {
+      if (myProguardMappings != null) {
         e.getPresentation().setText("Change Proguard mappings...");
       }
-      else if (myProguardMappings == null && isLoaded) {
+      else {
         e.getPresentation().setText("Load Proguard mappings...");
       }
     }

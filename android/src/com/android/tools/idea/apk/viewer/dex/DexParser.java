@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
+import com.android.tools.idea.apk.viewer.dex.tree.PackageTreeNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -57,7 +58,7 @@ public class DexParser {
       dexFile = myDexFileFuture.get();
     }
     catch (Exception e) {
-      return new PackageTreeNode(e.toString(), PackageTreeNode.NodeType.PACKAGE, null);
+      return new PackageTreeNode(e.toString());
     }
     PackageTreeCreator treeCreator = new PackageTreeCreator(myProguardMappings, myDeobfuscateNames);
     return treeCreator.constructPackageTree(dexFile);

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
+import com.android.tools.idea.apk.viewer.dex.tree.AbstractDexTreeNode;
+import com.android.tools.idea.apk.viewer.dex.tree.FieldTreeNode;
+import com.android.tools.idea.apk.viewer.dex.tree.MethodTreeNode;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.TreeModelListener;
@@ -41,7 +44,7 @@ public class FilteredTreeModel implements TreeModel {
     return myFilterOptions;
   }
 
-  public void setRoot(PackageTreeNode node){
+  public void setRoot(AbstractDexTreeNode node){
     myModel.setRoot(node);
   }
 
@@ -52,10 +55,10 @@ public class FilteredTreeModel implements TreeModel {
 
   @Override
   public Object getChild(Object parent, int index) {
-    if (parent instanceof PackageTreeNode) {
-      PackageTreeNode result;
+    if (parent instanceof AbstractDexTreeNode) {
+      AbstractDexTreeNode result;
       for (int i = 0, n = myModel.getChildCount(parent); i < n; i++) {
-        result = (PackageTreeNode)myModel.getChild(parent, i);
+        result = (AbstractDexTreeNode)myModel.getChild(parent, i);
         if (myFilterOptions.matches(result)) {
           if (index == 0) {
             return result;
@@ -74,11 +77,11 @@ public class FilteredTreeModel implements TreeModel {
 
   @Override
   public int getChildCount(Object parent) {
-    if (parent instanceof PackageTreeNode) {
+    if (parent instanceof AbstractDexTreeNode) {
       int count = 0;
-      PackageTreeNode result;
+      AbstractDexTreeNode result;
       for (int i = 0, n = myModel.getChildCount(parent); i < n; i++) {
-        result = (PackageTreeNode)myModel.getChild(parent, i);
+        result = (AbstractDexTreeNode)myModel.getChild(parent, i);
         if (myFilterOptions.matches(result)) {
           count++;
         }
@@ -101,11 +104,11 @@ public class FilteredTreeModel implements TreeModel {
 
   @Override
   public int getIndexOfChild(Object parent, Object child) {
-    if (parent instanceof PackageTreeNode && child instanceof PackageTreeNode) {
+    if (parent instanceof AbstractDexTreeNode && child instanceof AbstractDexTreeNode) {
       int index = 0;
-      PackageTreeNode result;
+      AbstractDexTreeNode result;
       for (int i = 0, n = myModel.getChildCount(parent); i < n; i++) {
-        result = (PackageTreeNode)myModel.getChild(parent, i);
+        result = (AbstractDexTreeNode)myModel.getChild(parent, i);
         if (myFilterOptions.matches(result)) {
           if (result.equals(child)) {
             return index;
@@ -162,11 +165,11 @@ public class FilteredTreeModel implements TreeModel {
       FilteredTreeModel.this.reload();
     }
 
-    public boolean matches(PackageTreeNode node){
-      return (myFilterOptions.myShowFields || !node.getNodeType().equals(PackageTreeNode.NodeType.FIELD))
-             && (myFilterOptions.myShowMethods || !node.getNodeType().equals(PackageTreeNode.NodeType.METHOD))
+    public boolean matches(AbstractDexTreeNode node){
+      return ((myFilterOptions.myShowFields || !(node instanceof FieldTreeNode))
+             && (myFilterOptions.myShowMethods || !(node instanceof MethodTreeNode))
              && (myFilterOptions.myShowReferencedNodes || node.hasClassDefinition())
-             && (myFilterOptions.myShowRemovedNodes || !node.isRemoved());
+             && (myFilterOptions.myShowRemovedNodes || !node.isRemoved()));
     }
 
     public boolean isShowMethods() {
