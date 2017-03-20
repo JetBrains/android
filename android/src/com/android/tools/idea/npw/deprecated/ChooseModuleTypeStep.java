@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
@@ -47,6 +48,8 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.tools.idea.instantapp.InstantApps.findInstantAppModule;
+import static com.android.tools.idea.instantapp.InstantApps.isInstantAppSdkEnabled;
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
 import static com.android.tools.idea.wizard.WizardConstants.SELECTED_MODULE_TYPE_KEY;
 
@@ -110,6 +113,7 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
     ImmutableList.Builder<ModuleTemplate> deviceTemplates = ImmutableList.builder();
     ImmutableList.Builder<ModuleTemplate> extrasTemplates = ImmutableList.builder();
     Set<FormFactor> formFactorSet = Sets.newHashSet();
+
     // Android device templates are shown first, with less important templates following
     for (ModuleTemplateProvider provider : myModuleTypesProviders) {
       for (ModuleTemplate moduleTemplate : provider.getModuleTemplates()) {
@@ -119,6 +123,11 @@ public final class ChooseModuleTypeStep extends DynamicWizardStepWithDescription
             // Hidden if not installed
             continue;
           }
+
+          if (moduleTemplate.getName().equals("Feature Module") && !isInstantAppSdkEnabled()){
+            continue;
+          }
+
           if (formFactor != FormFactor.CAR) {
             // Auto is not a standalone module (but rather a modification to a mobile module):
             deviceTemplates.add(moduleTemplate);

@@ -37,10 +37,9 @@ import java.awt.event.ItemEvent;
 import java.util.List;
 import java.util.Locale;
 
+import static com.android.tools.idea.instantapp.InstantApps.isInstantAppSdkEnabled;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static org.jetbrains.android.util.AndroidBundle.message;
-import static com.android.tools.idea.instantapp.InstantApps.getAiaSdkLocation;
 
 /**
  * Collection of controls for selecting whether a form factor should be selected, what the minimum api version should be, and
@@ -70,7 +69,7 @@ final class FormFactorSdkControls {
    * @param disposable The parent Disposable for this component.
    * @param formFactor The FormFactor these controls govern.
    */
-  public FormFactorSdkControls(@NotNull  Disposable disposable, @NotNull FormFactor formFactor) {
+  public FormFactorSdkControls(@NotNull Disposable disposable, @NotNull FormFactor formFactor) {
     myDisposable = disposable;
     myFormFactor = formFactor;
     myInclusionCheckBox.setText(formFactor.toString());
@@ -89,14 +88,14 @@ final class FormFactorSdkControls {
 
     myMinSdkCombobox.setName(myFormFactor.id + ".minSdk");
     myInstantAppCheckbox.setName(myFormFactor.id + ".instantApp");
-    myInstantAppCheckbox.setVisible((myFormFactor.equals(MOBILE) && isNotEmpty(getAiaSdkLocation())));
+    myInstantAppCheckbox.setVisible((myFormFactor.equals(MOBILE) && isInstantAppSdkEnabled()));
     myStatsLoadFailedLabel.setForeground(JBColor.GRAY);
   }
 
   /**
-   * @param state The ScopedStateStore in which to store our selections
+   * @param state           The ScopedStateStore in which to store our selections
    * @param downloadSuccess A Runnable that will be run if any valid items were found for this form factor.
-   * @param downloadFailed A Runnable that will be run if no valid items were found for this form factor.
+   * @param downloadFailed  A Runnable that will be run if no valid items were found for this form factor.
    */
   public void init(@NotNull List<AndroidVersionsInfo.VersionItem> items) {
     myHelpMeChooseLink.addHyperlinkListener(new HyperlinkAdapter() {
@@ -170,9 +169,9 @@ final class FormFactorSdkControls {
 
   private static String getApiHelpText(int selectedApi, @NotNull String selectedApiName) {
     double percentage = DistributionService.getInstance().getSupportedDistributionForApiLevel(selectedApi) * 100;
-    String percentageStr =  percentage < 1 ? "&lt; 1%" : String.format(Locale.getDefault(), "approximately <b>%.1f%%</b>", percentage);
+    String percentageStr = percentage < 1 ? "&lt; 1%" : String.format(Locale.getDefault(), "approximately <b>%.1f%%</b>", percentage);
     return String.format(Locale.getDefault(), "<html>By targeting API %1$s and later, your app will run on %2$s of the devices<br>" +
-                         "that are active on the Google Play Store.</html>", selectedApiName, percentageStr);
+                                              "that are active on the Google Play Store.</html>", selectedApiName, percentageStr);
   }
 
   private void createUIComponents() {

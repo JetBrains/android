@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.android.tools.idea.npw.deprecated.ConfigureAndroidModuleStepDynamic">
-  <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="6" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="4" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="5" bottom="0" right="0"/>
     <constraints>
       <xy x="20" y="20" width="486" height="382"/>
@@ -37,7 +37,7 @@
       </component>
       <vspacer id="aeb98">
         <constraints>
-          <grid row="5" column="2" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="2" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
       </vspacer>
       <component id="6c8a2" class="com.android.tools.adtui.LabelWithEditLink" binding="myPackageName">
@@ -67,7 +67,7 @@
       </component>
       <component id="10724" class="javax.swing.JLabel">
         <constraints>
-          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value="Minimum SDK"/>
@@ -75,31 +75,10 @@
       </component>
       <component id="9427e" class="com.android.tools.idea.npw.FormFactorApiComboBox" binding="mySdkControls" custom-create="true">
         <constraints>
-          <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <model/>
-        </properties>
-      </component>
-      <component id="3244c" class="javax.swing.JCheckBox" binding="myInstantAppCheckbox">
-        <constraints>
-          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <name value="instantApp"/>
-          <text value="Include Instant App support (preview)"/>
-          <visible value="false"/>
-        </properties>
-      </component>
-      <component id="5b4ac" class="javax.swing.JCheckBox" binding="myBaseAtomCheckbox">
-        <constraints>
-          <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="1" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <enabled value="false"/>
-          <name value="baseAtom"/>
-          <text value="Create Base Atom"/>
-          <visible value="false"/>
         </properties>
       </component>
     </children>

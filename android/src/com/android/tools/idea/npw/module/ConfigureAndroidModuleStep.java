@@ -62,6 +62,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   private final ListenerManager myListeners = new ListenerManager();
   private final int myMinSdkLevel;
   private final boolean myIsLibrary;
+  private final boolean myIsInstantApp;
 
   private FormFactorApiComboBox mySdkControls;
   private JTextField myModuleName;
@@ -72,12 +73,13 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   protected RenderTemplateModel myRenderModel;
 
   public ConfigureAndroidModuleStep(@NotNull NewModuleModel model, @NotNull FormFactor formFactor, int minSdkLevel,
-                                    boolean isLibrary, @NotNull String title) {
+                                    boolean isLibrary, boolean isInstantApp, @NotNull String title) {
     super(model, title);
 
     myFormFactor = formFactor;
     myMinSdkLevel = minSdkLevel;
     myIsLibrary = isLibrary;
+    myIsInstantApp = isInstantApp;
 
     StringProperty companyDomain = new StringValueProperty(NewProjectModel.getInitialDomain(false));
     TextProperty packageNameText = new TextProperty(myPackageName);
@@ -140,7 +142,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
-    if (myIsLibrary) {
+    if (myIsLibrary && !myIsInstantApp) {
       // No dependent steps for libraries (no need to choose an activity)
       return Lists.newArrayList();
     }

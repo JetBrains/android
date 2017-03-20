@@ -31,6 +31,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import static com.android.tools.idea.instantapp.InstantApps.isInstantAppSdkEnabled;
+
 /**
  * Provides basic new module templates.
  */
@@ -52,7 +54,16 @@ public final class AndroidModuleTemplatesProvider implements ModuleTemplateProvi
       CreateModuleTemplate androidLibrary =
         new CreateModuleTemplate(metadata, formFactor, "Android Library", AndroidIcons.ModuleTemplates.Android);
       androidLibrary.setCustomValue(WizardConstants.IS_LIBRARY_KEY, true);
-      return ImmutableSet.of(androidApplication, androidLibrary);
+      if (isInstantAppSdkEnabled()) {
+        CreateModuleTemplate androidFeatureModule =
+          new CreateModuleTemplate(metadata, formFactor, "Feature Module", AndroidIcons.ModuleTemplates.Android);
+        androidFeatureModule.setCustomValue(WizardConstants.IS_LIBRARY_KEY, true);
+        androidFeatureModule.setCustomValue(WizardConstants.IS_INSTANT_APP_KEY, true);
+        return ImmutableSet.of(androidApplication, androidLibrary, androidFeatureModule);
+      }
+      else {
+        return ImmutableSet.of(androidApplication, androidLibrary);
+      }
     }
     else {
       return ImmutableSet.of(new CreateModuleTemplate(metadata, formFactor, metadata.getTitle(),
