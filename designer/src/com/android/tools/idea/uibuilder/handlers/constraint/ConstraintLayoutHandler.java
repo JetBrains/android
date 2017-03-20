@@ -95,6 +95,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
   private boolean myShowAllConstraints = true;
   private static boolean ourAutoConnect;
+  private final static String ADD_VERTICAL_BARRIER = "Add Vertical barrier";
+  private final static String ADD_HORIZONTAL_BARRIER = "Add Horizontal Barrier";
+  private final static String ADD_TO_BARRIER = "Add to Barrier";
+
   static {
     ourAutoConnect = PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, false);
   }
@@ -278,10 +282,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                              "Add Horizontal Guideline"),
         new AddElementAction(AddElementAction.VERTICAL_BARRIER,
                              AndroidIcons.SherpaIcons.BarrierVertical,
-                             "Add Vertical Barrier"),
+                             ADD_VERTICAL_BARRIER),
         new AddElementAction(AddElementAction.HORIZONTAL_BARRIER,
                              AndroidIcons.SherpaIcons.BarrierHorizontal,
-                             "Add Horizontal Barrier")
+                             ADD_HORIZONTAL_BARRIER)
       ))
     ));
   }
@@ -383,11 +387,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     actions.add(action = new AddElementAction(AddElementAction.HORIZONTAL_GUIDELINE, AndroidIcons.SherpaIcons.GuidelineHorizontal, str));
     myPopupActions.add(action);
 
-    str = "Add Vertical Barrier";
+    str = ADD_VERTICAL_BARRIER;
     actions.add(action = new AddElementAction(AddElementAction.VERTICAL_BARRIER, AndroidIcons.SherpaIcons.BarrierVertical, str));
     myPopupActions.add(action);
 
-    str = "Add Horizontal Barrier";
+    str = ADD_HORIZONTAL_BARRIER;
     actions.add(action = new AddElementAction(AddElementAction.HORIZONTAL_BARRIER, AndroidIcons.SherpaIcons.BarrierHorizontal, str));
     myPopupActions.add(action);
   }
@@ -803,25 +807,111 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
           }
             break;
           case HORIZONTAL_BARRIER: {
-            NlComponent guideline = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
-            guideline.ensureId();
-            guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_BARRIER_DIRECTION, "top");
+            int barriers = 0;
+            int other = 0;
+            for (NlComponent child : selectedChildren) {
+              if (child.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
+                barriers++;
+              }
+              if (!ConstraintComponentUtilities.isLine(child)) {
+                other++;
+              }
+            }
+            if (barriers == 1 && other > 0) {
+              NlComponent barrier = null;
+              for (NlComponent child : selectedChildren) {
+                if (child.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
+                  barrier = child;
+                  break;
+                }
+              }
+              if (barrier != null) {
+                for (NlComponent child : selectedChildren) {
+                  if (ConstraintComponentUtilities.isLine(child)) {
+                    continue;
+                  }
+                  NlComponent tag = barrier.createChild(editor, SdkConstants.TAG, null, InsertType.CREATE);
+                  tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+                  tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+                  tag.setAttribute(ANDROID_URI, SdkConstants.ATTR_ID, ID_PREFIX + child.getId());
+                  tag.setAttribute(ANDROID_URI,ATTR_VALUE,SdkConstants.VALUE_TRUE);
+                }
+              }
+              return;
+            }
+            NlComponent barrier = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
+            barrier.ensureId();
+            barrier.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_BARRIER_DIRECTION, "top");
             NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
 
-           // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_BARRIER);
-            guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
-                                   SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL);
+            // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_BARRIER);
+
+            if (selectedChildren.size() > 0) {
+              NlComponent tag = barrier.createChild(editor, SdkConstants.TAG, null, InsertType.CREATE);
+              tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+              tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+              for (NlComponent child : selectedChildren) {
+                if (ConstraintComponentUtilities.isLine(child)) {
+                  continue;
+                }
+                tag.setAttribute(ANDROID_URI, SdkConstants.ATTR_ID, ID_PREFIX + child.getId());
+                tag.setAttribute(ANDROID_URI, ATTR_VALUE, SdkConstants.VALUE_TRUE);
+              }
+            }
           }
-            break;
+          break;
           case VERTICAL_BARRIER: {
-            NlComponent guideline = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
-            guideline.ensureId();
-            guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_BARRIER_DIRECTION, "left");
+            int barriers = 0;
+            int other = 0;
+            for (NlComponent child : selectedChildren) {
+              if (child.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
+                barriers++;
+              }
+              if (!ConstraintComponentUtilities.isLine(child)) {
+                other++;
+              }
+            }
+            if (barriers == 1 && other > 0) {
+              NlComponent barrier = null;
+              for (NlComponent child : selectedChildren) {
+                if (child.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
+                  barrier = child;
+                  break;
+                }
+              }
+              if (barrier != null) {
+                for (NlComponent child : selectedChildren) {
+                  if (ConstraintComponentUtilities.isLine(child)) {
+                    continue;
+                  }
+                  NlComponent tag = barrier.createChild(editor, SdkConstants.TAG, null, InsertType.CREATE);
+                  tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+                  tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+                  tag.setAttribute(ANDROID_URI, SdkConstants.ATTR_ID, ID_PREFIX + child.getId());
+                  tag.setAttribute(ANDROID_URI, ATTR_VALUE, SdkConstants.VALUE_TRUE);
+                }
+              }
+              return;
+            }
+            NlComponent barrier = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
+            barrier.ensureId();
+            barrier.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_BARRIER_DIRECTION, "left");
             NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
-
             // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_BARRIER);
-            guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
-                                   SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL);
+
+            if (selectedChildren.size() > 0) {
+
+              for (NlComponent child : selectedChildren) {
+                if (ConstraintComponentUtilities.isLine(child)) {
+                  continue;
+                }
+                NlComponent tag = barrier.createChild(editor, SdkConstants.TAG, null, InsertType.CREATE);
+                tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
+                tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
+                tag.setAttribute(ANDROID_URI, SdkConstants.ATTR_ID, ID_PREFIX + child.getId());
+                tag.setAttribute(ANDROID_URI, ATTR_VALUE, SdkConstants.VALUE_TRUE);
+              }
+            }
           }
         }
       }
@@ -836,8 +926,27 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @InputEventMask int modifiers) {
       boolean show = true;
       if (myType == VERTICAL_BARRIER || myType == HORIZONTAL_BARRIER) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(),1,0);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 0);
+        if (show) {
+          int barriers = 0;
+          int other = 0;
+          for (NlComponent child : selectedChildren) {
+            if (child.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
+              barriers++;
+            }
+            if (!ConstraintComponentUtilities.isLine(child)) {
+              other++;
+            }
+          }
+          if (barriers == 1 && other > 0) {
+            presentation.setLabel(ADD_TO_BARRIER);
+          }
+          else {
+            presentation.setLabel(myType == VERTICAL_BARRIER ? ADD_VERTICAL_BARRIER : ADD_HORIZONTAL_BARRIER);
+          }
+        }
       }
+
       presentation.setVisible(show);
       presentation.setEnabled(true);
     }
