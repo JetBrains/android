@@ -43,11 +43,13 @@ public class FilteredTreeModelTest {
   public void fieldsAndMethodReferenceTree() throws IOException {
     DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
     DexPackageNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
-    FilteredTreeModel filteredTreeModel = new FilteredTreeModel(new DefaultTreeModel(packageTreeNode));
-    FilteredTreeModel.FilterOptions options = filteredTreeModel.getFilterOptions();
+
+    DexViewFilters options = new DexViewFilters();
     options.setShowFields(true);
     options.setShowMethods(true);
     options.setShowReferencedNodes(true);
+
+    FilteredTreeModel filteredTreeModel = new FilteredTreeModel<>(packageTreeNode, options);
 
     StringBuffer sb = new StringBuffer(100);
     dumpTree(sb, filteredTreeModel, packageTreeNode, 0);
@@ -140,11 +142,11 @@ public class FilteredTreeModelTest {
   public void fieldsOnlyReferenceTree() throws IOException {
     DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
     DexPackageNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
-    FilteredTreeModel filteredTreeModel = new FilteredTreeModel(new DefaultTreeModel(packageTreeNode));
-    FilteredTreeModel.FilterOptions options = filteredTreeModel.getFilterOptions();
+    DexViewFilters options = new DexViewFilters();
     options.setShowFields(true);
     options.setShowMethods(false);
     options.setShowReferencedNodes(true);
+    FilteredTreeModel filteredTreeModel = new FilteredTreeModel<>(packageTreeNode, options);
 
     StringBuffer sb = new StringBuffer(100);
     dumpTree(sb, filteredTreeModel, packageTreeNode, 0);
@@ -204,11 +206,11 @@ public class FilteredTreeModelTest {
   public void definedOnlyReferenceTree() throws IOException {
     DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
     DexPackageNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
-    FilteredTreeModel filteredTreeModel = new FilteredTreeModel(new DefaultTreeModel(packageTreeNode));
-    FilteredTreeModel.FilterOptions options = filteredTreeModel.getFilterOptions();
+    DexViewFilters options = new DexViewFilters();
     options.setShowFields(true);
     options.setShowMethods(true);
     options.setShowReferencedNodes(false);
+    FilteredTreeModel filteredTreeModel = new FilteredTreeModel<>(packageTreeNode, options);
 
     StringBuffer sb = new StringBuffer(100);
     dumpTree(sb, filteredTreeModel, packageTreeNode, 0);
@@ -283,11 +285,11 @@ public class FilteredTreeModelTest {
   public void methodsOnlyReferenceTree() throws IOException {
     DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
     DexPackageNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
-    FilteredTreeModel filteredTreeModel = new FilteredTreeModel(new DefaultTreeModel(packageTreeNode));
-    FilteredTreeModel.FilterOptions options = filteredTreeModel.getFilterOptions();
+    DexViewFilters options = new DexViewFilters();
     options.setShowFields(false);
     options.setShowMethods(true);
     options.setShowReferencedNodes(true);
+    FilteredTreeModel filteredTreeModel = new FilteredTreeModel<>(packageTreeNode, options);
 
     StringBuffer sb = new StringBuffer(100);
     dumpTree(sb, filteredTreeModel, packageTreeNode, 0);
@@ -370,12 +372,12 @@ public class FilteredTreeModelTest {
 
     ProguardMappings proguardMappings = new ProguardMappings(map, seedsMap, usageMap);
     DexPackageNode packageTreeNode = new PackageTreeCreator(proguardMappings, true).constructPackageTree(dexFile);
-    FilteredTreeModel filteredTreeModel = new FilteredTreeModel(new DefaultTreeModel(packageTreeNode));
-    FilteredTreeModel.FilterOptions options = filteredTreeModel.getFilterOptions();
+    DexViewFilters options = new DexViewFilters();
     options.setShowFields(true);
     options.setShowMethods(true);
     options.setShowReferencedNodes(true);
     options.setShowRemovedNodes(false);
+    FilteredTreeModel filteredTreeModel = new FilteredTreeModel(packageTreeNode, options);
 
     StringBuffer sb = new StringBuffer(100);
     dumpTree(sb, filteredTreeModel, packageTreeNode, 0);
