@@ -73,15 +73,19 @@ public class PackageTreeCreatorTest {
                  "    example: 27,27\n" +
                  "      MyAbstractClas: 6,6\n" +
                  "        void <init>(): 1,1\n" +
-                 "        com.example.MyAbstractClas getInstance(): 1,1\n" +
-                 "        void privateMethod(): 1,1\n" +
                  "        void abstractMethod(int,java.lang.String): 1,1\n" +
                  "        com.example.MyAbstractClas anotherAbstract(com.example.MyClass): 1,1\n" +
+                 "        com.example.MyAbstractClas getInstance(): 1,1\n" +
+                 "        void privateMethod(): 1,1\n" +
                  "        void publicMethod(): 1,1\n" +
                  "      MyAbstractClas$1: 3,3\n" +
                  "        void <init>(): 1,1\n" +
                  "        void abstractMethod(int,java.lang.String): 1,1\n" +
                  "        com.example.MyAbstractClas anotherAbstract(com.example.MyClass): 1,1\n" +
+                 "      MyClass$NonStaticInnerClass: 2,2\n" +
+                 "        void <init>(com.example.MyClass): 1,1\n" +
+                 "        com.example.MyClass methodMethod(): 1,1\n" +
+                 "        com.example.MyClass this$0: 0,0\n" +
                  "      BuildConfig: 2,2\n" +
                  "        void <clinit>(): 1,1\n" +
                  "        void <init>(): 1,1\n" +
@@ -91,9 +95,9 @@ public class PackageTreeCreatorTest {
                  "        java.lang.String FLAVOR: 0,0\n" +
                  "        int VERSION_CODE: 0,0\n" +
                  "        java.lang.String VERSION_NAME: 0,0\n" +
-                 "      MainActivity: 2,2\n" +
+                 "      MyClass$StaticClass: 2,2\n" +
                  "        void <init>(): 1,1\n" +
-                 "        void onCreate(android.os.Bundle): 1,1\n" +
+                 "        com.example.MyClass method(): 1,1\n" +
                  "      MyClass: 2,2\n" +
                  "        void <init>(): 1,1\n" +
                  "        void method(): 1,1\n" +
@@ -103,34 +107,30 @@ public class PackageTreeCreatorTest {
                  "        java.lang.String privateString: 0,0\n" +
                  "        int publicIntField: 0,0\n" +
                  "        java.lang.String publicStringField: 0,0\n" +
-                 "      MyClass$NonStaticInnerClass: 2,2\n" +
-                 "        void <init>(com.example.MyClass): 1,1\n" +
-                 "        com.example.MyClass methodMethod(): 1,1\n" +
-                 "        com.example.MyClass this$0: 0,0\n" +
                  "      MyClass$StaticClass$InnerClass: 2,2\n" +
                  "        void <init>(com.example.MyClass$StaticClass): 1,1\n" +
                  "        com.example.MyClass methodMethod(): 1,1\n" +
                  "        com.example.MyClass$StaticClass this$0: 0,0\n" +
-                 "      MyClass$StaticClass: 2,2\n" +
+                 "      MainActivity: 2,2\n" +
                  "        void <init>(): 1,1\n" +
-                 "        com.example.MyClass method(): 1,1\n" +
+                 "        void onCreate(android.os.Bundle): 1,1\n" +
+                 "      R$string: 1,1\n" +
+                 "        void <init>(): 1,1\n" +
+                 "        int app_name: 0,0\n" +
                  "      MyClass$1: 1,1\n" +
                  "        void <init>(com.example.MyClass): 1,1\n" +
                  "        com.example.MyClass this$0: 0,0\n" +
-                 "      R$attr: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
                  "      R$color: 1,1\n" +
                  "        void <init>(): 1,1\n" +
                  "        int colorAccent: 0,0\n" +
                  "        int colorPrimary: 0,0\n" +
                  "        int colorPrimaryDark: 0,0\n" +
+                 "      R$attr: 1,1\n" +
+                 "        void <init>(): 1,1\n" +
                  "      R$mipmap: 1,1\n" +
                  "        void <init>(): 1,1\n" +
                  "        int ic_launcher: 0,0\n" +
                  "        int ic_launcher_round: 0,0\n" +
-                 "      R$string: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        int app_name: 0,0\n" +
                  "      R: 1,1\n" +
                  "        void <init>(): 1,1\n" +
                  "  ~java: 0,4\n" +
@@ -183,9 +183,6 @@ public class PackageTreeCreatorTest {
                  "        X-void abstractMethod(int,java.lang.String): 0,0\n" +
                  "        X-com.example.MyAbstractClas anotherAbstract(com.example.MyClass): 0,0\n" +
                  "        X-void privateMethod(): 0,0\n" +
-                 "      O-MainActivity: 2,2\n" +
-                 "        O-void <init>(): 1,1\n" +
-                 "        void onCreate(android.os.Bundle): 1,1\n" +
                  "      O-MyClass: 2,2\n" +
                  "        O-void <init>(): 1,1\n" +
                  "        O-void method(): 1,1\n" +
@@ -195,6 +192,9 @@ public class PackageTreeCreatorTest {
                  "        int privateIntField: 0,0\n" +
                  "        com.example.MyAbstractClas initializedField: 0,0\n" +
                  "        X-privateString: 0,0\n" +
+                 "      O-MainActivity: 2,2\n" +
+                 "        O-void <init>(): 1,1\n" +
+                 "        void onCreate(android.os.Bundle): 1,1\n" +
                  "      MyClass$1: 1,1\n" +
                  "        void <init>(com.example.MyClass): 1,1\n" +
                  "        com.example.MyClass this$0: 0,0\n" +
@@ -258,25 +258,29 @@ public class PackageTreeCreatorTest {
                  "        ~void onCreate(android.os.Bundle): 0,1\n" +
                  "  com: 27,27\n" +
                  "    example: 27,27\n" +
+                 "      R$string: 1,1\n" +
+                 "        int app_name: 0,0\n" +
+                 "        void <init>(): 1,1\n" +
                  "      MyClass$1: 1,1\n" +
                  "        com.example.MyClass this$0: 0,0\n" +
                  "        void <init>(com.example.MyClass): 1,1\n" +
-                 "      R$attr: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
                  "      R$color: 1,1\n" +
                  "        int colorAccent: 0,0\n" +
                  "        int colorPrimary: 0,0\n" +
                  "        int colorPrimaryDark: 0,0\n" +
                  "        void <init>(): 1,1\n" +
+                 "      R$attr: 1,1\n" +
+                 "        void <init>(): 1,1\n" +
                  "      R$mipmap: 1,1\n" +
                  "        int ic_launcher: 0,0\n" +
                  "        int ic_launcher_round: 0,0\n" +
                  "        void <init>(): 1,1\n" +
-                 "      R$string: 1,1\n" +
-                 "        int app_name: 0,0\n" +
-                 "        void <init>(): 1,1\n" +
                  "      R: 1,1\n" +
                  "        void <init>(): 1,1\n" +
+                 "      MyClass$NonStaticInnerClass: 2,2\n" +
+                 "        com.example.MyClass this$0: 0,0\n" +
+                 "        void <init>(com.example.MyClass): 1,1\n" +
+                 "        com.example.MyClass methodMethod(): 1,1\n" +
                  "      BuildConfig: 2,2\n" +
                  "        java.lang.String APPLICATION_ID: 0,0\n" +
                  "        java.lang.String BUILD_TYPE: 0,0\n" +
@@ -286,9 +290,9 @@ public class PackageTreeCreatorTest {
                  "        java.lang.String VERSION_NAME: 0,0\n" +
                  "        void <clinit>(): 1,1\n" +
                  "        void <init>(): 1,1\n" +
-                 "      MainActivity: 2,2\n" +
+                 "      MyClass$StaticClass: 2,2\n" +
                  "        void <init>(): 1,1\n" +
-                 "        void onCreate(android.os.Bundle): 1,1\n" +
+                 "        com.example.MyClass method(): 1,1\n" +
                  "      MyClass: 2,2\n" +
                  "        com.example.MyClass anon: 0,0\n" +
                  "        com.example.MyAbstractClas initializedField: 0,0\n" +
@@ -298,27 +302,23 @@ public class PackageTreeCreatorTest {
                  "        java.lang.String publicStringField: 0,0\n" +
                  "        void <init>(): 1,1\n" +
                  "        void method(): 1,1\n" +
-                 "      MyClass$NonStaticInnerClass: 2,2\n" +
-                 "        com.example.MyClass this$0: 0,0\n" +
-                 "        void <init>(com.example.MyClass): 1,1\n" +
-                 "        com.example.MyClass methodMethod(): 1,1\n" +
                  "      MyClass$StaticClass$InnerClass: 2,2\n" +
                  "        com.example.MyClass$StaticClass this$0: 0,0\n" +
                  "        void <init>(com.example.MyClass$StaticClass): 1,1\n" +
                  "        com.example.MyClass methodMethod(): 1,1\n" +
-                 "      MyClass$StaticClass: 2,2\n" +
+                 "      MainActivity: 2,2\n" +
                  "        void <init>(): 1,1\n" +
-                 "        com.example.MyClass method(): 1,1\n" +
+                 "        void onCreate(android.os.Bundle): 1,1\n" +
                  "      MyAbstractClas$1: 3,3\n" +
                  "        void <init>(): 1,1\n" +
                  "        void abstractMethod(int,java.lang.String): 1,1\n" +
                  "        com.example.MyAbstractClas anotherAbstract(com.example.MyClass): 1,1\n" +
                  "      MyAbstractClas: 6,6\n" +
                  "        void <init>(): 1,1\n" +
-                 "        com.example.MyAbstractClas getInstance(): 1,1\n" +
-                 "        void privateMethod(): 1,1\n" +
                  "        void abstractMethod(int,java.lang.String): 1,1\n" +
                  "        com.example.MyAbstractClas anotherAbstract(com.example.MyClass): 1,1\n" +
+                 "        com.example.MyAbstractClas getInstance(): 1,1\n" +
+                 "        void privateMethod(): 1,1\n" +
                  "        void publicMethod(): 1,1\n", sb.toString());
 
     sb.setLength(0);
