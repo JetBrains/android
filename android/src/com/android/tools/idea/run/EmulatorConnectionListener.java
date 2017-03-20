@@ -157,6 +157,12 @@ public class EmulatorConnectionListener {
         return true;
       }
 
+      // API 26 systems images have a user build, so we can't check if there are any processes are online
+      // https://code.google.com/p/android/issues/detail?id=258545
+      if (device.getVersion().getFeatureLevel() > 25) {
+        return true;
+      }
+
       // Emulators may be reported as online, but may not have services running yet. Attempting to install at this time
       // will result in an error like "Could not access the Package Manager". We use the following heuristic to check
       // that the system is in a reasonable state to install apps.
