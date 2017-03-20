@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.apk;
 
+import com.android.tools.idea.apk.debugging.NativeLibrary;
+import com.android.tools.idea.apk.debugging.SetupIssue;
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
@@ -36,8 +38,9 @@ import static com.android.tools.idea.gradle.util.FilePaths.computeRootPathsForFi
 
 public class ApkFacetConfiguration implements FacetConfiguration {
   @NonNls public String APK_PATH;
-  public List<NativeLibrary> NATIVE_LIBRARIES = new ArrayList<>();
-  public Map<String, String> SOURCE_MAP = new HashMap<>();
+  @NotNull public List<SetupIssue> SETUP_ISSUES = new ArrayList<>();
+  @NotNull public List<NativeLibrary> NATIVE_LIBRARIES = new ArrayList<>();
+  @NotNull public Map<String, String> SOURCE_MAP = new HashMap<>();
 
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext, FacetValidatorsManager validatorsManager) {
@@ -69,5 +72,17 @@ public class ApkFacetConfiguration implements FacetConfiguration {
       return Collections.emptyList();
     }
     return NATIVE_LIBRARIES.stream().filter(library -> !library.hasDebugSymbols).collect(Collectors.toList());
+  }
+
+  public void removeIssues(@NotNull String category) {
+    List<SetupIssue> forRemoval = new ArrayList<>();
+    for (SetupIssue issue : SETUP_ISSUES) {
+      if (category.equals(issue.category)) {
+        forRemoval.add(issue);
+      }
+    }
+    if (!forRemoval.isEmpty()) {
+      SETUP_ISSUES.removeAll(forRemoval);
+    }
   }
 }

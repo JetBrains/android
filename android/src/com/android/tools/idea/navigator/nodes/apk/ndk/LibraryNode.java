@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.ndk;
 
-import com.android.tools.idea.apk.NativeLibrary;
+import com.android.tools.idea.apk.debugging.NativeLibrary;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
