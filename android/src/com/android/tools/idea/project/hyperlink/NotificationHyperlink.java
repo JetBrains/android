@@ -18,7 +18,6 @@ package com.android.tools.idea.project.hyperlink;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.event.HyperlinkEvent;
 
@@ -26,7 +25,6 @@ public abstract class NotificationHyperlink {
   @NotNull private final String myUrl;
   @NotNull private final String myValue;
 
-  @Nullable private Object myContainer;
   private boolean myCloseOnClick;
 
   protected NotificationHyperlink(@NotNull String url, @NotNull String text) {
@@ -48,6 +46,7 @@ public abstract class NotificationHyperlink {
     return myCloseOnClick;
   }
 
+  @NotNull
   public NotificationHyperlink setCloseOnClick(boolean closeOnClick) {
     myCloseOnClick = closeOnClick;
     return this;
@@ -56,20 +55,6 @@ public abstract class NotificationHyperlink {
   @NotNull
   public String getUrl() {
     return myUrl;
-  }
-
-  @Nullable
-  public Object getContainer() {
-    return myContainer;
-  }
-
-  @Nullable
-  public <T> T getContainerOfType(@NotNull Class<T> containerType) {
-    return containerType.isInstance(myContainer) ? containerType.cast(myContainer) : null;
-  }
-
-  public void setContainer(@Nullable Object container) {
-    myContainer = container;
   }
 
   @Override
