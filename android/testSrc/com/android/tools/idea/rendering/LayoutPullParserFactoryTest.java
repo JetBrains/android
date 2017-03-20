@@ -87,4 +87,46 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
     // TODO: Create the golden image once layoutlib adaptive-icon rendering is merged
     //checkRendering(task, "mipmap/adaptive.png");
   }
+
+
+  public void testFontFamily() throws Exception {
+    myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/fonta.ttf");
+    myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/fontb.ttf");
+    myFixture.copyFileToProject("fonts/my_font_family.xml", "res/font/my_font_family.xml");
+    VirtualFile file = myFixture.copyFileToProject("fonts/my_font_family.xml", "res/font/my_font_family.xml");
+    assertNotNull(file);
+    RenderTask task = createRenderTask(file);
+    assertNotNull(task);
+    ILayoutPullParser parser = LayoutPullParserFactory.create(task);
+    assertTrue(parser instanceof DomPullParser);
+    Element root = ((DomPullParser)parser).getRoot();
+
+    String actualLayout = XmlPrettyPrinter.prettyPrint(root, true);
+    String expectedLayout = Joiner.on(SdkUtils.getLineSeparator()).join(
+      "<LinearLayout",
+      "xmlns:android=\"http://schemas.android.com/apk/res/android\"",
+      "layout_width=\"fill_parent\"",
+      "layout_height=\"wrap_content\"",
+      "orientation=\"vertical\" >",
+      "<TextView",
+      "    layout_width=\"wrap_content\"",
+      "    layout_height=\"wrap_content\"",
+      "    fontFamily=\"@font/my_font_family\"",
+      "    text=\"Lorem ipsum dolor sit amet.\"",
+      "    textSize=\"40sp\"",
+      "    textStyle=\"normal\" />",
+      "<TextView",
+      "    layout_width=\"wrap_content\"",
+      "    layout_height=\"wrap_content\"",
+      "    fontFamily=\"@font/my_font_family\"",
+      "    text=\"Lorem ipsum dolor sit amet.\"",
+      "    textSize=\"40sp\"",
+      "    textStyle=\"italic\" />",
+      "</LinearLayout>",
+      "");
+
+    assertEquals(expectedLayout, actualLayout);
+
+    checkRendering(task, "fonts/fontFamily.png");
+  }
 }
