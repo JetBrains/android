@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
+import com.android.tools.idea.apk.viewer.dex.tree.AbstractDexTreeNode;
+import com.android.tools.idea.apk.viewer.dex.tree.PackageTreeNode;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
 import com.android.tools.proguard.ProguardUsagesMap;
@@ -482,7 +484,7 @@ public class FilteredTreeModelTest {
     return getDexFile(Files.readAllBytes(dexPath));
   }
 
-  private static void dumpTree(StringBuffer sb, @NotNull TreeModel model, PackageTreeNode node, int depth) {
+  private static void dumpTree(StringBuffer sb, @NotNull TreeModel model, AbstractDexTreeNode node, int depth) {
     sb.append(StringUtil.repeatSymbol(' ', depth * 2));
     sb.append(node.getName());
     sb.append(": ");
@@ -493,7 +495,7 @@ public class FilteredTreeModelTest {
 
     int count = model.getChildCount(node);
     for (int i = 0; i < count; i++) {
-      dumpTree(sb, model, (PackageTreeNode)model.getChild(node, i), depth + 1);
+      dumpTree(sb, model, (AbstractDexTreeNode)model.getChild(node, i), depth + 1);
     }
   }
 }
