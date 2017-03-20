@@ -45,6 +45,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.PsiTreeChangeEventImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.*;
 import com.intellij.util.ArrayUtil;
@@ -2113,12 +2114,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
           return;
         }
       }
-      else if (event.getNewChild() == null &&
-               event.getOldChild() == null &&
-               event.getOldParent() == null &&
-               event.getNewParent() == null &&
-               parent instanceof PsiFile) {
-        return;
+      else if (event instanceof PsiTreeChangeEventImpl && (((PsiTreeChangeEventImpl)event).isGenericChange())) {
+          return;
       }
 
       if (parent != null && parent.getChildren().length == 1 && parent.getChildren()[0] instanceof PsiWhiteSpace) {
