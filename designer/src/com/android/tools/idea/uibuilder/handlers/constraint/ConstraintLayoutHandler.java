@@ -17,6 +17,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.uibuilder.Features;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
@@ -66,9 +67,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.editor.NlEditorProvider.DESIGNER_ID;
@@ -99,6 +99,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     ourAutoConnect = PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, false);
   }
 
+  // This is used to efficiently test if they are horizontal or vertical.
+  static HashSet<String> ourHorizontalBarriers = new HashSet<String>(Arrays.asList(GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM));
   ArrayList<ViewAction> myActions = new ArrayList<>();
   ArrayList<ViewAction> myPopupActions = new ArrayList<>();
   ArrayList<ViewAction> myControlActions = new ArrayList<>();
@@ -425,23 +427,36 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     List<Target> result = new ArrayList<>();
     boolean showAnchors = !isParent;
     NlComponent nlComponent = component.getNlComponent();
-    if (nlComponent.viewInfo != null
-        && nlComponent.viewInfo.getClassName().equalsIgnoreCase(CONSTRAINT_LAYOUT_GUIDELINE)) {
-      String orientation = nlComponent.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
-      boolean isHorizontal = true;
-      if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
-        isHorizontal = false;
+    ViewInfo vi = nlComponent.viewInfo;
+    if (vi != null) {
+
+      if (nlComponent.isOrHasSuperclass(CONSTRAINT_LAYOUT_GUIDELINE)) {
+        String orientation = nlComponent.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
+
+        boolean isHorizontal = true;
+        if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
+          isHorizontal = false;
+        }
+        result.add(new GuidelineTarget(isHorizontal));
+        if (isHorizontal) {
+          result.add(new GuidelineAnchorTarget(AnchorTarget.Type.TOP, true));
+        }
+        else {
+          result.add(new GuidelineAnchorTarget(AnchorTarget.Type.LEFT, false));
+        }
+        result.add(new GuidelineCycleTarget(isHorizontal));
+        return result;
       }
-      result.add(new GuidelineTarget(isHorizontal));
-      if (isHorizontal) {
-        result.add(new GuidelineAnchorTarget(AnchorTarget.Type.TOP, true));
+
+      if (nlComponent.isOrHasSuperclass(CONSTRAINT_LAYOUT_BARRIER)) {
+        String side = nlComponent.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
+        boolean isHorizontal = (side == null || ourHorizontalBarriers.contains(side.toLowerCase()));
+        result.add(new BarrierTarget(BarrierTarget.parseDirection(side)));
+        result.add(new BarrierAnchorTarget(isHorizontal ? AnchorTarget.Type.TOP : AnchorTarget.Type.RIGHT, isHorizontal));
+        return result;
       }
-      else {
-        result.add(new GuidelineAnchorTarget(AnchorTarget.Type.LEFT, false));
-      }
-      result.add(new GuidelineCycleTarget(isHorizontal));
-      return result;
     }
+
     if (showAnchors) {
       DragTarget dragTarget = new DragTarget();
       result.add(dragTarget);
