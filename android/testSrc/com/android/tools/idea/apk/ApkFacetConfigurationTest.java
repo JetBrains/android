@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.apk;
 
+import com.android.tools.idea.apk.debugging.NativeLibrary;
+import com.android.tools.idea.apk.debugging.SetupIssue;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -92,5 +94,25 @@ public class ApkFacetConfigurationTest {
 
     List<NativeLibrary> libraries = myConfiguration.getLibrariesWithoutDebugSymbols();
     assertThat(libraries).isEmpty();
+  }
+
+  @Test
+  public void removeIssues() {
+    SetupIssue issue1 = new SetupIssue();
+    issue1.category = "category1";
+
+    SetupIssue issue2 = new SetupIssue();
+    issue2.category = "category1";
+
+    SetupIssue issue3 = new SetupIssue();
+    issue3.category = "category2";
+
+    myConfiguration.SETUP_ISSUES.add(issue1);
+    myConfiguration.SETUP_ISSUES.add(issue2);
+    myConfiguration.SETUP_ISSUES.add(issue3);
+
+    myConfiguration.removeIssues("category1");
+
+    assertThat(myConfiguration.SETUP_ISSUES).containsExactly(issue3);
   }
 }
