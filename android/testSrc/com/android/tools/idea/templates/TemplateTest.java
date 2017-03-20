@@ -158,11 +158,21 @@ public class TemplateTest extends AndroidGradleTestCase {
   }
 
   /**
+   * The following templates parameters are not very interesting (change only one small bit of text etc). We can skip them when not running
+   * in comprehensive mode.
+   */
+  private static final Set<String> SKIPPABLE_PARAMETERS = new HashSet<>();
+
+  static {
+    SKIPPABLE_PARAMETERS.add("instantAppActivityRouteType");
+  }
+
+  /**
    * Flags used to quickly check each template once (for one version), to get
    * quicker feedback on whether something is broken instead of waiting for
    * all the versions for each template first
    */
-  private static final boolean TEST_VARIABLE_COMBINATIONS = true;
+  private static final boolean TEST_VARIABLE_COMBINATIONS = COMPREHENSIVE;
   private static final boolean TEST_FEWER_API_VERSIONS = !COMPREHENSIVE;
   private static final boolean TEST_JUST_ONE_MIN_SDK = !COMPREHENSIVE;
   private static final boolean TEST_JUST_ONE_BUILD_TARGET = !COMPREHENSIVE;
@@ -766,7 +776,7 @@ public class TemplateTest extends AndroidGradleTestCase {
 
     NewProjectWizardState values = createNewProjectState(createWithProject, sdkData);
 
-    String projectNameBase = "TestProject" + templateFile.getName();
+    String projectNameBase = templateFile.getName();
 
     TemplateWizardState state = values.getActivityTemplateState();
     state.setTemplateLocation(templateFile);
@@ -918,6 +928,11 @@ public class TemplateTest extends AndroidGradleTestCase {
     for (Parameter parameter : parameters) {
       if (parameter.type == Parameter.Type.SEPARATOR || parameter.type == Parameter.Type.STRING) {
         // TODO: Consider whether we should attempt some strings here
+        continue;
+      }
+
+      // Skip parameters that don't do much
+      if (!COMPREHENSIVE && SKIPPABLE_PARAMETERS.contains(parameter.id)) {
         continue;
       }
 
