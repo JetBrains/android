@@ -93,6 +93,11 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
     myDevices.put(session, newDevice);
   }
 
+  public void updateProcess(Common.Session session, Profiler.Process oldProcess, Profiler.Process newProcess) {
+   removeProcess(session, oldProcess);
+   addProcess(session, newProcess);
+  }
+
   public void addFile(String id, ByteString contents) {
     myCache.put(id, contents);
   }
