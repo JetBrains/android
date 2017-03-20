@@ -55,7 +55,7 @@ public class IconPreviewFactoryTest extends LayoutTestCase {
     Palette palette = loadPalette();
     List<Palette.Item> items = new ArrayList<>();
     palette.accept(items::add);
-    myItem = items.get(0);
+    myItem = items.stream().filter(item -> item.getTagName().equals("TextView")).findFirst().orElse(null);
 
     NlModel model = createModel();
     myScreenView = surface().screen(model).getScreen();
