@@ -149,7 +149,8 @@ public class LayoutTestUtilities {
     when(screenView.getConfiguration()).thenReturn(model.getConfiguration());
     when(screenView.getModel()).thenReturn(model);
     when(screenView.getScale()).thenReturn(scale);
-    when(screenView.getSelectionModel()).thenReturn(model.getSelectionModel());
+    SelectionModel selectionModel = model.getSelectionModel();  // Mockito requires this to be a separate variable
+    when(screenView.getSelectionModel()).thenReturn(selectionModel);
     when(screenView.getSize()).thenReturn(new Dimension());
     NlDesignSurface surface = model.getSurface();
     when(screenView.getSurface()).thenReturn(surface);
@@ -161,6 +162,7 @@ public class LayoutTestUtilities {
     LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model);
     Scene scene = builder.build();
     scene.buildDisplayList(new DisplayList(), 0);
+
     when(screenView.getScene()).thenReturn(scene);
     when(screenView.getSceneManager()).thenReturn(builder);
     return screenView;
@@ -170,6 +172,7 @@ public class LayoutTestUtilities {
     JComponent layeredPane = new JPanel();
     NlDesignSurface surface = mock(NlDesignSurface.class);
     when(surface.getLayeredPane()).thenReturn(layeredPane);
+    when(surface.getSelectionModel()).thenReturn(new SelectionModel());
     return surface;
   }
 
