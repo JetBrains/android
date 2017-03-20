@@ -83,7 +83,10 @@ public abstract class AndroidAssetStudioAction extends AnAction {
     ModelWizard wizard = createWizard(facet);
     if (wizard != null) {
       StudioWizardDialogBuilder dialogBuilder = new StudioWizardDialogBuilder(wizard, "Asset Studio");
-      dialogBuilder.setProject(facet.getModule().getProject()).setMinimumSize(getWizardSize()).setHelpUrl(getHelpUrl());
+      dialogBuilder.setProject(facet.getModule().getProject())
+        .setMinimumSize(getWizardMinimumSize())
+        .setPreferredSize(getWizardPreferredSize())
+        .setHelpUrl(getHelpUrl());
       dialogBuilder.build().show();
     }
   }
@@ -97,7 +100,10 @@ public abstract class AndroidAssetStudioAction extends AnAction {
   protected abstract ModelWizard createWizard(@NotNull AndroidFacet facet);
 
   @NotNull
-  protected abstract Dimension getWizardSize();
+  protected abstract Dimension getWizardMinimumSize();
+
+  @NotNull
+  protected abstract Dimension getWizardPreferredSize();
 
   @Nullable
   protected URL getHelpUrl() {
