@@ -129,5 +129,6 @@ public class AvdManagerDialogFixture extends ComponentFixture<AvdManagerDialogFi
     // We send WINDOW_CLOSING directly to the Windows JFrame
     GuiTask.execute(() -> target().dispatchEvent(new WindowEvent(target(), WindowEvent.WINDOW_CLOSING)));
     Wait.seconds(5).expecting("dialog to disappear").until(() -> !target().isShowing());
+    myIdeFrame.requestFocusIfLost();
   }
 }
