@@ -51,6 +51,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
   private static Logger getLogger() { return Logger.getInstance(ProfilerServiceProxy.class); }
 
   private static final String AGENT_NAME = "libagent.so";
+  private static final String EMULATOR = "Emulator";
 
   private ProfilerServiceGrpc.ProfilerServiceBlockingStub myServiceStub;
   private final IDevice myDevice;
@@ -69,10 +70,10 @@ public class ProfilerServiceProxy extends PerfdProxyService
     assert devices.getDeviceList().size() == 1;
     myProfilerDevice = devices.getDevice(0).toBuilder()
       .setSerial(device.getSerialNumber())
-      .setModel(DevicePropertyUtil.getModel(device, ""))
+      .setModel(device.isEmulator() ? device.getAvdName() : DevicePropertyUtil.getModel(device, ""))
       .setVersion(StringUtil.notNullize(device.getProperty(IDevice.PROP_BUILD_VERSION)))
       .setApi(Integer.toString(device.getVersion().getApiLevel()))
-      .setManufacturer(DevicePropertyUtil.getManufacturer(device, ""))
+      .setManufacturer(DevicePropertyUtil.getManufacturer(device,  device.isEmulator() ? EMULATOR : ""))
       .setIsEmulator(device.isEmulator())
       .setState(convertState(device.getState()))
       .build();
