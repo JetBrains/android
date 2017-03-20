@@ -15,18 +15,14 @@
  */
 package com.android.tools.adtui.chart.linechart;
 
+import com.android.tools.adtui.model.SeriesData;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * Implementation of {@link LineChartReducer}.
- * The basic idea behind this algorithm is to reduce number of points to available pixels.
- * For every pixel it draws 4 points: the first point, the last point,
- * the points with minimum and maximum Y coordinates within a pixel.
- * It draws similar shape with the original, because of the fact that width of a line is 1px.
- */
 class DefaultLineChartReducer implements LineChartReducer {
   private static final float EPS  = 1e-6f;
 
@@ -35,9 +31,43 @@ class DefaultLineChartReducer implements LineChartReducer {
    */
   private static int PATH_ITERATOR_COORDS_COUNT = 6;
 
+  /**
+   * A simple reducer which reduces when,
+   * 1. When the data is for a stepped line and if two consecutive values are equal (except for the last two points),
+   *    the later of them is unnecessary to represent the stepped line.
+   *    For example, if it has data [(1, 2) (5, 2) (10, 5)] and the assumption of the stepped line is: values in range [1, 10) is 2,
+   *    so (5, 2) is redundant.
+   * 2. When the data is not for a stepped line and if three consecutive value are equal, the middle of them is unnecessary.
+   */
+  @Override
+  public List<SeriesData<Long>> reduceData(@NotNull List<SeriesData<Long>> dataList, @NotNull LineConfig config) {
+    List<SeriesData<Long>> reduced = new ArrayList<>();
+    for (SeriesData<Long> data: dataList) {
+      while (reduced.size() >= 2) {
+        SeriesData<Long> preLast = reduced.get(reduced.size() - 2);
+        SeriesData<Long> last = reduced.get(reduced.size() - 1);
+
+        if (preLast.value.equals(last.value) &&
+            (config.isStepped() || last.value.equals(data.value))) {
+          reduced.remove(reduced.size() - 1);
+        } else {
+          break;
+        }
+      }
+      reduced.add(data);
+    }
+    return reduced;
+  }
+
+  /**
+  * The basic idea behind this algorithm is to reduce number of points to available pixels.
+  * For every pixel it draws 4 points: the first point, the last point,
+  * the points with minimum and maximum Y coordinates within a pixel.
+  * It draws similar shape with the original, because of the fact that width of a line is 1px.
+  */
   @NotNull
   @Override
-  public Path2D reduce(@NotNull Path2D path, @NotNull LineConfig config) {
+  public Path2D reducePath(@NotNull Path2D path, @NotNull LineConfig config) {
     if (path.getCurrentPoint() == null) {
       return path;
     }

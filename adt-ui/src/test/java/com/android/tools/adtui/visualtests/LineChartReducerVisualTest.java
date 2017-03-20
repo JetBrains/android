@@ -17,6 +17,7 @@ package com.android.tools.adtui.visualtests;
 
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
+import com.android.tools.adtui.chart.linechart.LineChartReducer;
 import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.common.AdtUiUtils;
@@ -32,6 +33,7 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ItemEvent;
+import java.awt.geom.Path2D;
 import java.util.Arrays;
 import java.util.List;
 
@@ -63,7 +65,17 @@ public class LineChartReducerVisualTest extends VisualTest {
     mySelectionXRange = new Range();
 
     myLineChartModel = new LineChartModel();
-    myLineChart = new LineChart(myLineChartModel, (path, config) -> path);
+    myLineChart = new LineChart(myLineChartModel, new LineChartReducer() {
+      @Override
+      public List<SeriesData<Long>> reduceData(List<SeriesData<Long>> data, LineConfig config) {
+        return data;
+      }
+
+      @Override
+      public Path2D reducePath(Path2D path, LineConfig config) {
+        return path;
+      }
+    });
     myOptimizedLineChartModel = new LineChartModel();
     myOptimizedLineChart = new LineChart(myOptimizedLineChartModel);
 
