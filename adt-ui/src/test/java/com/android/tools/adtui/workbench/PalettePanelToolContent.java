@@ -37,6 +37,7 @@ class PalettePanelToolContent implements ToolContent<String> {
   private final KeyListener myKeyListener;
   private String myContext;
   private Runnable myAutoClose;
+  private StartFilteringListener myStartFilteringListener;
   private boolean myDisposed;
   private boolean myGearActionPerformed;
   private boolean myAdditionalActionPerformed;
@@ -117,7 +118,7 @@ class PalettePanelToolContent implements ToolContent<String> {
   }
 
   @Override
-  public void registerCloseAutoHideWindow(@NotNull Runnable runnable) {
+  public void setCloseAutoHideWindow(@NotNull Runnable runnable) {
     myAutoClose = runnable;
   }
 
@@ -151,6 +152,17 @@ class PalettePanelToolContent implements ToolContent<String> {
   @NotNull
   public String getFilter() {
     return myFilter;
+  }
+
+  @Override
+  public void setStartFiltering(@NotNull StartFilteringListener listener) {
+    myStartFilteringListener = listener;
+  }
+
+  public void startFiltering(char character) {
+    if (myStartFilteringListener != null) {
+      myStartFilteringListener.startFiltering(character);
+    }
   }
 
   @Override
