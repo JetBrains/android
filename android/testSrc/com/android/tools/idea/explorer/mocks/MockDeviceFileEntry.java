@@ -187,8 +187,8 @@ public class MockDeviceFileEntry implements DeviceFileEntry {
 
   @NotNull
   @Override
-  public ListenableFuture<Void> uploadFile(@NotNull Path localPath, @NotNull FileTransferProgress progress) {
-    return myFileSystem.uploadFile(localPath, this, progress);
+  public ListenableFuture<Void> uploadFile(@NotNull Path localPath, @NotNull String fileName, @NotNull FileTransferProgress progress) {
+    return myFileSystem.uploadFile(localPath, this, fileName, progress);
   }
 
   @NotNull

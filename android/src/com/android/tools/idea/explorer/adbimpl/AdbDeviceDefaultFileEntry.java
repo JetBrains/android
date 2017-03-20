@@ -89,11 +89,11 @@ public class AdbDeviceDefaultFileEntry extends AdbDeviceFileEntry {
 
   @NotNull
   @Override
-  public ListenableFuture<Void> uploadFile(@NotNull Path localPath, @NotNull FileTransferProgress progress) {
+  public ListenableFuture<Void> uploadFile(@NotNull Path localPath, @NotNull String fileName, @NotNull FileTransferProgress progress) {
     ListenableFuture<AdbDeviceFileEntry> futureMountPoint = myDevice.resolveMountPoint(this);
     return myDevice.getTaskExecutor().transformAsync(futureMountPoint, x -> {
       assert x != null;
-      return x.uploadFile(localPath, progress);
+      return x.uploadFile(localPath, fileName, progress);
     });
   }
 }

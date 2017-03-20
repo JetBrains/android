@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.function.Function;
 
 /**
  * Abstraction over ADB devices and their file system.
@@ -48,19 +49,21 @@ import java.util.concurrent.Executor;
 public class AdbDeviceFileSystemService implements DeviceFileSystemService {
   public static Logger LOGGER = Logger.getInstance(AdbDeviceFileSystemService.class);
 
-  @NotNull private final Project myProject;
+  @NotNull private final Function<Void, File> myAdbProvider;
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
   @NotNull private final FutureCallbackExecutor myTaskExecutor;
   @NotNull private final List<DeviceFileSystem> myDevices = new ArrayList<>();
   @NotNull private final List<DeviceFileSystemServiceListener> myListeners = new ArrayList<>();
-  private State myState = State.Initial;
+  @NotNull private State myState = State.Initial;
   @Nullable private AndroidDebugBridge myBridge;
   @Nullable private DeviceChangeListener myDeviceChangeListener;
   @Nullable private DebugBridgeChangeListener myDebugBridgeChangeListener;
   @Nullable private File myAdb;
 
-  public AdbDeviceFileSystemService(@NotNull Project project, @NotNull Executor edtExecutor, @NotNull Executor taskExecutor) {
-    myProject = project;
+  public AdbDeviceFileSystemService(@NotNull Function<Void, File> adbProvider,
+                                    @NotNull Executor edtExecutor,
+                                    @NotNull Executor taskExecutor) {
+    myAdbProvider = adbProvider;
     myEdtExecutor = new FutureCallbackExecutor(edtExecutor);
     myTaskExecutor = new FutureCallbackExecutor(taskExecutor);
   }
@@ -101,7 +104,7 @@ public class AdbDeviceFileSystemService implements DeviceFileSystemService {
   public ListenableFuture<Void> start() {
     checkState(State.Initial);
 
-    final File adb = AndroidSdkUtils.getAdb(myProject);
+    final File adb = myAdbProvider.apply(null);
     if (adb == null) {
       LOGGER.error("ADB not found");
       return Futures.immediateFailedFuture(new FileNotFoundException("Android Debug Bridge not found."));
