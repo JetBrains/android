@@ -95,3 +95,9 @@ java_import(
     tags = ["managed"],
     visibility = ["//visibility:public"],
 )
+
+filegroup(
+    name = "androidWidgets",
+    srcs = glob(["androidWidgets/**"]),
+    visibility = ["//visibility:public"],
+)
