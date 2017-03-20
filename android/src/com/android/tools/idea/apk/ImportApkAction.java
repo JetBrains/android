@@ -22,8 +22,9 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.externalSystem.ExternalSystemManager;
 import com.intellij.openapi.fileChooser.FileChooserDialog;
-import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.fileChooser.ex.FileChooserDialogImpl;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NonNls;
@@ -41,7 +42,7 @@ public class ImportApkAction extends DumbAwareAction {
   public void actionPerformed(AnActionEvent e) {
     ExternalSystemManager<?, ?, ?, ?, ?> manager = getManager(ApkDebugging.SYSTEM_ID);
     assert manager != null;
-    FileChooserDialog chooser = FileChooserFactory.getInstance().createFileChooser(manager.getExternalProjectDescriptor(), null, null);
+    FileChooserDialog chooser = new FileChooserDialogImpl(manager.getExternalProjectDescriptor(), (Project)null);
     VirtualFile toSelect = null;
     String lastLocation = PropertiesComponent.getInstance().getValue(LAST_IMPORTED_LOCATION);
     if (lastLocation != null) {
@@ -49,6 +50,7 @@ public class ImportApkAction extends DumbAwareAction {
     }
     VirtualFile[] files = chooser.choose(null, toSelect);
     if (files.length == 0) {
+      // User canceled.
       return;
     }
     VirtualFile file = files[0];
