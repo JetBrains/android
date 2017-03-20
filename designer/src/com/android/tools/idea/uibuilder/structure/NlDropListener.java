@@ -267,6 +267,13 @@ public class NlDropListener extends DropTargetAdapter {
              && isMorphableToViewGroup(myDragReceiver)) {
       morphReceiverIntoViewGroup(model);
       performNormalDrop(event, insertType, model);
+    } else {
+      // Not a viewgroup, but let's give a chance to the handler to do something with the drop event
+      ViewHandler handler = myDragReceiver.getViewHandler();
+      if (handler instanceof ViewGroupHandler) {
+        ViewGroupHandler groupHandler = (ViewGroupHandler) handler;
+        groupHandler.performDrop(model, event, myDragReceiver, myDragged, myNextDragSibling, insertType);
+      }
     }
   }
 
