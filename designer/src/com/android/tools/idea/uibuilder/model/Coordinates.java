@@ -19,6 +19,7 @@ import com.android.resources.Density;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +57,15 @@ public class Coordinates {
   @SwingCoordinate
   public static int getSwingDimension(@NotNull SceneView view, @AndroidCoordinate int androidDimension) {
     return (int)(view.getScale() * androidDimension);
+  }
+
+  /**
+   * Returns the Swing dimension (in the {@link NlDesignSurface} coordinate
+   * system) of the given dimension in the Android screen coordinate system
+   */
+  @SwingCoordinate
+  public static int getSwingDimension(@NotNull DesignSurface surface, @AndroidCoordinate int androidDimension) {
+    return (int)(surface.getScale() * androidDimension);
   }
 
   // DPI
@@ -177,6 +187,15 @@ public class Coordinates {
   @AndroidCoordinate
   public static int getAndroidDimensionDip(@NotNull SceneView view, @SwingCoordinate int swingDimension) {
     return pxToDp(view, getSwingDimension(view, swingDimension));
+  }
+
+  /**
+   * Returns the Android dimension for the given Swing dimension coordinate (in
+   * the {@link NlDesignSurface} coordinate system.)
+   */
+  @AndroidCoordinate
+  public static int getAndroidDimensionDip(@NotNull DesignSurface surface, @SwingCoordinate int swingDimension) {
+    return pxToDp(surface.getModel(), getSwingDimension(surface, swingDimension));
   }
 
   /**

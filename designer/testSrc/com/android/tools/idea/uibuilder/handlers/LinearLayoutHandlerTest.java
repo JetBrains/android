@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
@@ -85,7 +85,7 @@ public class LinearLayoutHandlerTest extends LayoutTestCase {
   }
 
   @NotNull
-  private NlModel createModel() {
+  private SyncNlModel createModel() {
     ModelBuilder builder = model("linear.xml",
                      component(LINEAR_LAYOUT)
                        .withBounds(0, 0, 1000, 1000)
@@ -104,7 +104,7 @@ public class LinearLayoutHandlerTest extends LayoutTestCase {
                            .height("100dp")
                            .withAttribute("android:layout_weight", "1.0")
                      ));
-    final NlModel model = builder.build();
+    final SyncNlModel model = builder.build();
     assertEquals(1, model.getComponents().size());
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100}\n" +

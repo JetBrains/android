@@ -16,11 +16,11 @@
 package com.android.tools.idea.uibuilder.fixtures;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.SyncNlModel;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlLayoutType;
-import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.utils.XmlUtils;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -47,6 +47,7 @@ import static com.android.SdkConstants.DOT_XML;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
 import static com.google.common.truth.Truth.assertThat;
 import static junit.framework.Assert.*;
+import static org.mockito.Mockito.when;
 
 /** Fixture for building up models for tests */
 public class ModelBuilder {
@@ -101,10 +102,10 @@ public class ModelBuilder {
     return myRoot.findByBounds(x, y, width, height);
   }
 
-  public NlModel build() {
+  public SyncNlModel build() {
     // Creates a design-time version of a model
     final Project project = myFacet.getModule().getProject();
-    return WriteCommandAction.runWriteCommandAction(project, (Computable<NlModel>)() -> {
+    return WriteCommandAction.runWriteCommandAction(project, (Computable<SyncNlModel>)() -> {
       String xml = toXml();
       try {
         assertNotNull(xml, XmlUtils.parseDocument(xml, true));
@@ -131,8 +132,16 @@ public class ModelBuilder {
       assertNotNull(xml, rootTag);
       XmlDocument document = xmlFile.getDocument();
       assertNotNull(document);
-      NlModel model = SyncNlModel.create(createSurface(), myFixture.getProject(), myFacet, xmlFile);
+      SyncNlModel model = SyncNlModel.create(createSurface(), myFixture.getProject(), myFacet, xmlFile);
       model.updateHierarchy(xmlFile.getRootTag(), buildViewInfos(model));
+      NlDesignSurface surface = model.getSurface();
+      when(surface.getSelectionModel()).thenReturn(model.getSelectionModel());
+      when(surface.getModel()).thenReturn(model);
+      SyncLayoutlibSceneManager sceneManager = new SyncLayoutlibSceneManager(model);
+      when(surface.getSceneManager()).thenReturn(sceneManager);
+      Scene scene = sceneManager.build();
+      when(surface.getScene()).thenReturn(scene);
+
       assertSame(NlLayoutType.LAYOUT, model.getType());
       return model;
     });

@@ -26,7 +26,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.target.*;
-import com.android.tools.idea.uibuilder.surface.SceneView;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
@@ -61,7 +61,7 @@ public class Scene implements SelectionListener {
   @SwingCoordinate
   private static final int DRAG_THRESHOLD = JBUI.scale(10);
 
-  private final SceneView mySceneView;
+  private final DesignSurface myDesignSurface;
   private static final boolean DEBUG = false;
   private final HashMap<NlComponent, SceneComponent> mySceneComponents = new HashMap<>();
   private SceneComponent myRoot;
@@ -70,7 +70,7 @@ public class Scene implements SelectionListener {
   public static final int NO_LAYOUT = 0;
   public static final int IMMEDIATE_LAYOUT = 1;
   public static final int ANIMATED_LAYOUT = 2;
-  private boolean myNeedsDisplayListRebuilt = true;
+  private long myDisplayListVersion = 1;
   private Target myOverTarget;
   private SceneComponent myCurrentComponent;
   private SceneComponent myDnDComponent;
@@ -107,9 +107,9 @@ public class Scene implements SelectionListener {
    *
    * @param sceneView
    */
-  public Scene(@NotNull SceneView sceneView) {
-    mySceneView = sceneView;
-    mySceneView.getSelectionModel().addListener(this);
+  public Scene(@NotNull DesignSurface surface) {
+    myDesignSurface = surface;
+    myDesignSurface.getSelectionModel().addListener(this);
   }
 
   //endregion
@@ -164,7 +164,7 @@ public class Scene implements SelectionListener {
   }
 
   public List<NlComponent> getSelection() {
-    return mySceneView.getSelectionModel().getSelection();
+    return myDesignSurface.getSelectionModel().getSelection();
   }
 
   /**
@@ -321,7 +321,7 @@ public class Scene implements SelectionListener {
   }
 
   public void repaint() {
-    mySceneView.getSurface().repaint();
+    myDesignSurface.repaint();
   }
 
   /**
@@ -358,10 +358,10 @@ public class Scene implements SelectionListener {
    * @param components The components to select
    */
   public void select(List<SceneComponent> components) {
-    if (mySceneView != null) {
+    if (myDesignSurface != null) {
       ArrayList<NlComponent> nlComponents = new ArrayList<>();
       if (myIsShiftDown) {
-        List<NlComponent> selection = mySceneView.getSelectionModel().getSelection();
+        List<NlComponent> selection = myDesignSurface.getSelectionModel().getSelection();
         nlComponents.addAll(selection);
       }
       for (SceneComponent sceneComponent : components) {
@@ -374,7 +374,7 @@ public class Scene implements SelectionListener {
           nlComponents.add(nlComponent);
         }
       }
-      mySceneView.getSelectionModel().setSelection(nlComponents);
+      myDesignSurface.getSelectionModel().setSelection(nlComponents);
     }
   }
 
@@ -523,7 +523,7 @@ public class Scene implements SelectionListener {
       if (count == 1) {
         return myHitTargets.get(0);
       }
-      List<NlComponent> selection = mySceneView.getSelectionModel().getSelection();
+      List<NlComponent> selection = myDesignSurface.getSelectionModel().getSelection();
       if (selection.isEmpty()) {
         Target candidate = myHitTargets.get(count - 1);
         for (int i = count - 2; i >= 0; i--) {
@@ -590,7 +590,7 @@ public class Scene implements SelectionListener {
       if (count == 1) {
         return myHitComponents.get(0);
       }
-      List<NlComponent> selection = mySceneView.getSelectionModel().getSelection();
+      List<NlComponent> selection = myDesignSurface.getSelectionModel().getSelection();
       if (selection.isEmpty()) {
         return myHitComponents.get(count - 1);
       }
@@ -672,10 +672,10 @@ public class Scene implements SelectionListener {
       return;
     }
 
-    SelectionModel selectionModel = mySceneView.getSelectionModel();
+    SelectionModel selectionModel = myDesignSurface.getSelectionModel();
 
     if (!selectionModel.isEmpty()) {
-      int max = Coordinates.getAndroidDimensionDip(mySceneView, PIXEL_RADIUS + PIXEL_MARGIN);
+      int max = Coordinates.getAndroidDimensionDip(myDesignSurface, PIXEL_RADIUS + PIXEL_MARGIN);
       SelectionHandle handle = selectionModel.findHandle(x, y, max);
       if (handle != null) {
         myMouseCursor = handle.getCursor();
@@ -796,9 +796,9 @@ public class Scene implements SelectionListener {
     if (myHitTarget != null) {
       // if component is not yet being dragged, is not selected and is only moved a tiny bit, then dont do anything as the user is just trying to select it.
       if (!myHitTarget.getComponent().isDragging() &&
-          !mySceneView.getSelectionModel().isSelected(myHitTarget.getComponent().getNlComponent()) &&
-          isWithinThreshold(myPressedMouseX, x) &&
-          isWithinThreshold(myPressedMouseY, y)) {
+          !myDesignSurface.getSelectionModel().isSelected(myHitTarget.getComponent().getNlComponent()) &&
+          isWithinThreshold(myPressedMouseX, x, transform) &&
+          isWithinThreshold(myPressedMouseY, y, transform)) {
         return;
       }
 
@@ -813,15 +813,15 @@ public class Scene implements SelectionListener {
     checkRequestLayoutStatus();
   }
 
-  private boolean isWithinThreshold(@AndroidDpCoordinate int pos1, @AndroidDpCoordinate int pos2) {
-    @SwingCoordinate int pos3 = Coordinates.getSwingYDip(mySceneView, pos1);
-    @SwingCoordinate int pos4 = Coordinates.getSwingYDip(mySceneView, pos2);
+  private static boolean isWithinThreshold(@AndroidDpCoordinate int pos1, @AndroidDpCoordinate int pos2, SceneContext transform) {
+    @SwingCoordinate int pos3 = transform.getSwingDimension(pos1);
+    @SwingCoordinate int pos4 = transform.getSwingDimension(pos2);
     return Math.abs(pos3 - pos4) < DRAG_THRESHOLD;
   }
 
   void checkRequestLayoutStatus() {
     if (mNeedsLayout != NO_LAYOUT) {
-      mySceneView.getSceneManager().requestLayout(mNeedsLayout == ANIMATED_LAYOUT);
+      myDesignSurface.getSceneManager().requestLayout(mNeedsLayout == ANIMATED_LAYOUT);
     }
   }
 
@@ -871,7 +871,7 @@ public class Scene implements SelectionListener {
   }
 
   private boolean sameSelection() {
-    List<NlComponent> currentSelection = mySceneView.getSelectionModel().getSelection();
+    List<NlComponent> currentSelection = myDesignSurface.getSelectionModel().getSelection();
     if (myNewSelectedComponents.size() == currentSelection.size()) {
       int count = currentSelection.size();
       for (int i = 0; i < count; i++) {
@@ -897,18 +897,16 @@ public class Scene implements SelectionListener {
     }
   }
 
-  public boolean getNeedsDisplayListRebuilt() {
-    return myNeedsDisplayListRebuilt;
+  public long getDisplayListVersion() {
+    return myDisplayListVersion;
   }
 
-  void clearNeedsRebuildList() {
-    myNeedsDisplayListRebuilt = false;
-  }
-
-  // TODO: reduce visibility?
+  // TODO: reduce visibility? Probably the modified SceneComponents should do this rather than
+  // requiring it to be done explicitly by the code that's modifying them.
   public void needsRebuildList() {
-    myNeedsDisplayListRebuilt = true;
+    myDisplayListVersion++;
   }
+
   //endregion
   /////////////////////////////////////////////////////////////////////////////
 
@@ -968,7 +966,7 @@ public class Scene implements SelectionListener {
       return null;
     }
     viewInfo = RenderService.getSafeBounds(viewInfo);
-    return new Dimension(Coordinates.pxToDp(mySceneView, viewInfo.getRight() - viewInfo.getLeft()),
-                         Coordinates.pxToDp(mySceneView, viewInfo.getBottom() - viewInfo.getTop()));
+    return new Dimension(Coordinates.pxToDp(myDesignSurface.getModel(), viewInfo.getRight() - viewInfo.getLeft()),
+                         Coordinates.pxToDp(myDesignSurface.getModel(), viewInfo.getBottom() - viewInfo.getTop()));
   }
 }

@@ -25,6 +25,8 @@ import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.lint.LintNotificationPanel;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
@@ -97,6 +99,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   private final ActionManager myActionManager;
   private float mySavedErrorPanelProportion;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
+  protected NlModel myModel;
+  protected Scene myScene;
+  private SceneManager mySceneManager;
 
   public DesignSurface(@NotNull Project project) {
     super(new BorderLayout());
@@ -192,6 +197,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   protected abstract ActionManager createActionManager();
 
+  @NotNull
+  protected abstract SceneManager createSceneManager(@NotNull NlModel model);
+
   protected abstract void layoutContent();
 
   private void updateErrorPanelSplitterUi(boolean isMinimized) {
@@ -223,9 +231,19 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myActionManager;
   }
 
+  public SelectionModel getSelectionModel() {
+    return myModel.getSelectionModel();
+  }
+
   protected abstract void doSetModel(@Nullable NlModel model);
 
+  @Nullable
+  public NlModel getModel() {
+    return myModel;
+  }
+
   public void setModel(@Nullable NlModel model) {
+    myModel = model;
     SceneView sceneView = getCurrentSceneView();
     if (model == null && sceneView == null) {
       return;
@@ -244,6 +262,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     if (model != null) {
       model.addListener(myModelListener);
+      mySceneManager = createSceneManager(model);
+      myScene = mySceneManager.build();
+    }
+    else {
+      myScene = null;
+      mySceneManager = null;
     }
 
     doSetModel(model);
@@ -793,6 +817,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     myDeviceFrames = !myDeviceFrames;
     layoutContent();
     repaint();
+  }
+
+  public Scene getScene() {
+    return myScene;
+  }
+
+  public SceneManager getSceneManager() {
+    return mySceneManager;
   }
 
   private static class MyScrollPane extends JBScrollPane {
