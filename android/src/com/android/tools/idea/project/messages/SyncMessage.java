@@ -103,7 +103,6 @@ public class SyncMessage {
 
   public void add(@NotNull NotificationHyperlink quickFix) {
     myQuickFixes.add(quickFix);
-    quickFix.setContainer(this);
   }
 
   @NotNull
