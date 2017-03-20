@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.icons.AllIcons.Modules.SourceRoot;
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
 public class LibraryGroupNode extends LibraryFolderNode {
@@ -36,6 +37,7 @@ public class LibraryGroupNode extends LibraryFolderNode {
   protected void update(PresentationData presentation) {
     presentation.setIcon(SourceRoot);
     presentation.addText(getSourceType().getName(), REGULAR_ATTRIBUTES);
+    presentation.addText(" (lib)", GRAY_ATTRIBUTES);
   }
 
   @Override

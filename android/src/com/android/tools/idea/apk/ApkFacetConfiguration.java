@@ -15,31 +15,45 @@
  */
 package com.android.tools.idea.apk;
 
+import com.android.tools.idea.apk.debugging.NativeLibrary;
+import com.android.tools.idea.apk.debugging.SetupIssue;
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.facet.ui.FacetValidatorsManager;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.android.tools.idea.gradle.util.FilePaths.computeRootPathsForFiles;
 
 public class ApkFacetConfiguration implements FacetConfiguration {
   @NonNls public String APK_PATH;
-  @NonNls public List<String> SYMBOL_PATHS = new ArrayList<>();
-  @NonNls public List<String> NATIVE_SOURCE_PATHS = new ArrayList<>();
-  public Map<String, String> SOURCE_MAP = new HashMap<>();
+  @NotNull public List<SetupIssue> SETUP_ISSUES = new ArrayList<>();
+  @NotNull public List<NativeLibrary> NATIVE_LIBRARIES = new ArrayList<>();
+  @NotNull public Map<String, String> SOURCE_MAP = new HashMap<>();
 
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext, FacetValidatorsManager validatorsManager) {
     return new FacetEditorTab[0];
+  }
+
+  @NotNull
+  public Collection<String> getDebugSymbolFolderPaths() {
+    if (NATIVE_LIBRARIES.isEmpty()) {
+      return Collections.emptyList();
+    }
+    Stream<String> filePaths = NATIVE_LIBRARIES.stream().map(library -> library.debuggableFilePath).filter(StringUtil::isNotEmpty);
+    return computeRootPathsForFiles(filePaths);
   }
 
   @Override
@@ -50,5 +64,25 @@ public class ApkFacetConfiguration implements FacetConfiguration {
   @Override
   public void writeExternal(@NotNull Element element) throws WriteExternalException {
     XmlSerializer.serializeInto(this, element);
+  }
+
+  @NotNull
+  public List<NativeLibrary> getLibrariesWithoutDebugSymbols() {
+    if (NATIVE_LIBRARIES.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return NATIVE_LIBRARIES.stream().filter(library -> !library.hasDebugSymbols).collect(Collectors.toList());
+  }
+
+  public void removeIssues(@NotNull String category) {
+    List<SetupIssue> forRemoval = new ArrayList<>();
+    for (SetupIssue issue : SETUP_ISSUES) {
+      if (category.equals(issue.category)) {
+        forRemoval.add(issue);
+      }
+    }
+    if (!forRemoval.isEmpty()) {
+      SETUP_ISSUES.removeAll(forRemoval);
+    }
   }
 }
