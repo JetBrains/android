@@ -580,10 +580,8 @@ public class AndroidIcons {
   }
 
   public static class Profiler {
-    public static final Icon Touch = load("/icons/profiler/touch.png"); // 14x21
-    public static final Icon TouchHold = load("/icons/profiler/hold.png"); // 13x22
-    public static final Icon DoubleTap = load("/icons/profiler/double_tap.png"); //19x21
-    public static final Icon Rotation = load("/icons/nele/rotate.png"); //16x16
+    public static final Icon Toolbar = load("/icons/profiler/android-profiler.png"); //16x16
+    public static final Icon ToolWindow = load("/icons/profiler/tool-window-android-profiler.png"); //13x13
   }
 
   public static class Mockup {
