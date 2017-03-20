@@ -221,6 +221,12 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "collapseCurrentLeft");
     focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_KP_LEFT, 0), "collapseCurrentLeft");
     actionMap.put("collapseCurrentLeft", new MyExpandCurrentAction(false));
+
+    // Page Up & Page Down
+    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0), "pageUp");
+    actionMap.put("pageUp", new MyPageUpAction());
+    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), "pageDown");
+    actionMap.put("pageDown", new MyPageDownAction());
   }
 
   private void toggleTreeNode(int row) {
@@ -528,6 +534,50 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
           selectRow(myModel.getParent(index));
         }
       }
+    }
+  }
+
+  /**
+   * Scroll the selected row when pressing Page Up key
+   */
+  private class MyPageUpAction extends AbstractAction {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      int selectedRow = getSelectedRow();
+      if (isEditing() || selectedRow == -1) {
+        return;
+      }
+
+      // PTable may in a scrollable component, so we need to use visible height instead of getHeight();
+      int visibleHeight = (int) (getVisibleRect().getHeight());
+      int rowHeight = getRowHeight();
+      if (visibleHeight <= 0 || rowHeight <= 0) {
+        return;
+      }
+      int movement = visibleHeight / rowHeight;
+      selectRow(Math.max(0, selectedRow - movement));
+    }
+  }
+
+  /**
+   * Scroll the selected row when pressing Page Down key
+   */
+  private class MyPageDownAction extends AbstractAction {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      int selectedRow = getSelectedRow();
+      if (isEditing() || selectedRow == -1) {
+        return;
+      }
+
+      // PTable may in a scrollable component, so we need to use visible height instead of getHeight();
+      int visibleHeight = (int) (getVisibleRect().getHeight());
+      int rowHeight = getRowHeight();
+      if (visibleHeight <= 0 || rowHeight <= 0) {
+        return;
+      }
+      int movement = visibleHeight / rowHeight;
+      selectRow(Math.min(selectedRow + movement, getRowCount() - 1));
     }
   }
 

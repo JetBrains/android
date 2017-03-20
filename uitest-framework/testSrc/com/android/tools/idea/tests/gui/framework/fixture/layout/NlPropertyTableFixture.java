@@ -16,12 +16,14 @@
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
 import com.intellij.openapi.wm.IdeFocusManager;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JTableFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
@@ -51,5 +53,40 @@ public class NlPropertyTableFixture extends JTableFixture {
   public NlPropertyTableFixture type(char character) {
     robot().type(character, target());
     return this;
+  }
+
+  @NotNull
+  public NlPropertyTableFixture adjustIdeFrameHeightToShowNumberOfRow(int rowCount) {
+    Component table = target();
+    assertThat(table).isNotNull();
+    int height = target().getRowHeight();
+    Container previousParent = null;
+    Container parent = table.getParent();
+    int adjustment = 0;
+    while (parent != null) {
+      if (adjustment == 0 && parent instanceof JScrollPane) {
+        adjustment = rowCount * height - parent.getHeight();
+      }
+      previousParent = parent;
+      parent = parent.getParent();
+    }
+    assertThat(previousParent).isNotNull();
+    Dimension size = previousParent.getSize();
+    size.height += adjustment;
+    previousParent.setSize(size);
+    return this;
+  }
+
+  @Nullable
+  public NlPropertiesPanel getParentPropertiesPanel() {
+    Component c = target().getParent();
+    while (c != null) {
+      Component parent = c.getParent();
+      if (parent instanceof NlPropertiesPanel) {
+        return (NlPropertiesPanel)parent;
+      }
+      c = parent;
+    }
+    return null;
   }
 }
