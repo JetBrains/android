@@ -97,8 +97,10 @@ public class NetworkMonitor extends ProfilerMonitor {
 
     public NetworkLegends(@NotNull NetworkUsage usage, @NotNull Range range, boolean hightlight) {
       super(hightlight ? 0 : LEGEND_UPDATE_FREQUENCY_MS);
-      myTxLegend = new SeriesLegend(usage.getTxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, range, BYTES_SENT.getLabel(hightlight));
-      myRxLegend = new SeriesLegend(usage.getRxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, range, BYTES_RECEIVED.getLabel(hightlight));
+      myTxLegend = new SeriesLegend(usage.getTxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, range, BYTES_SENT.getLabel(hightlight),
+                                    Interpolatable.SegmentInterpolator);
+      myRxLegend = new SeriesLegend(usage.getRxSeries(), BANDWIDTH_AXIS_FORMATTER_L1, range, BYTES_RECEIVED.getLabel(hightlight),
+                                    Interpolatable.SegmentInterpolator);
       add(myTxLegend);
       add(myRxLegend);
     }
