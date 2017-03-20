@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
 public class HorizontalScrollViewHandlerTest extends LayoutTestCase {
 
   public void testScrollNothing() throws Exception {
-    NlModel model = createModel();
+    SyncNlModel model = createModel();
     android.view.ViewGroup mockScrollView = (android.view.ViewGroup)model.getComponents().get(0).viewInfo.getViewObject();
 
     surface().screen(model)
@@ -46,7 +46,7 @@ public class HorizontalScrollViewHandlerTest extends LayoutTestCase {
   }
 
   public void testCancel() throws Exception {
-    NlModel model = createModel();
+    SyncNlModel model = createModel();
     android.view.ViewGroup mockScrollView = (android.view.ViewGroup)model.getComponents().get(0).viewInfo.getViewObject();
 
     AtomicInteger savedValue = new AtomicInteger(0);
@@ -69,7 +69,7 @@ public class HorizontalScrollViewHandlerTest extends LayoutTestCase {
   }
 
   public void testScroll() throws Exception {
-    NlModel model = createModel();
+    SyncNlModel model = createModel();
     android.view.ViewGroup mockScrollView = (android.view.ViewGroup)model.getComponents().get(0).viewInfo.getViewObject();
 
     AtomicInteger savedValue = new AtomicInteger(0);
@@ -92,7 +92,7 @@ public class HorizontalScrollViewHandlerTest extends LayoutTestCase {
   }
 
   @NotNull
-  private NlModel createModel() {
+  private SyncNlModel createModel() {
     ModelBuilder builder = model("scroll.xml",
                                  component(HORIZONTAL_SCROLL_VIEW)
                                    .withMockView()
@@ -125,7 +125,7 @@ public class HorizontalScrollViewHandlerTest extends LayoutTestCase {
                                                    .width("40dp")
                                                    .height("40dp")
                                        )));
-    final NlModel model = builder.build();
+    final SyncNlModel model = builder.build();
     assertEquals(1, model.getComponents().size());
     assertEquals("NlComponent{tag=<HorizontalScrollView>, bounds=[0,0:90x90}\n" +
                  "    NlComponent{tag=<LinearLayout>, bounds=[0,0:120x90}\n" +

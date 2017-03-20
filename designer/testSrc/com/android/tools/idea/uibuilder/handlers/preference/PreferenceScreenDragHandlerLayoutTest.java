@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.SdkConstants.PreferenceTags;
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
@@ -36,9 +37,9 @@ import java.util.List;
 
 public final class PreferenceScreenDragHandlerLayoutTest extends PreferenceScreenTestCase {
   public void testCommit() {
-    NlModel model = buildModel();
-    ScreenFixture screenFixture = surface().screen(model).withScale(1);
-    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model, screenFixture.getScreen());
+    SyncNlModel model = buildModel();
+    ScreenFixture screenFixture = new ScreenFixture(model).withScale(1);
+    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model);
     Scene scene = builder.build();
     scene.buildDisplayList(new DisplayList(), 0);
 
@@ -63,7 +64,7 @@ public final class PreferenceScreenDragHandlerLayoutTest extends PreferenceScree
   }
 
   @NotNull
-  private NlModel buildModel() {
+  private SyncNlModel buildModel() {
     ComponentDescriptor screen = component(PreferenceTags.PREFERENCE_SCREEN)
       .withBounds(0, 162, 768, 755)
       .children(

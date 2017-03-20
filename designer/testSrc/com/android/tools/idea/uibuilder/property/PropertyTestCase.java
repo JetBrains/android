@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -70,7 +71,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlComponent myImageViewInCollapsingToolbarLayout;
   protected NlComponent myTabLayout;
   protected NlComponent myRelativeLayout;
-  protected NlModel myModel;
+  protected SyncNlModel myModel;
   protected NlDesignSurface myDesignSurface;
   protected ScreenView myScreenView;
   protected NlPropertiesManager myPropertiesManager;
@@ -102,8 +103,8 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myImageViewInCollapsingToolbarLayout = myComponentMap.get("imgv");
     myTabLayout = myComponentMap.get("tabLayout");
     myRelativeLayout = myComponentMap.get("relativeLayout");
-    myDesignSurface = surface().getSurface();
-    myScreenView = createScreen(myDesignSurface, myModel, myModel.getSelectionModel());
+    myDesignSurface = myModel.getSurface();
+    myScreenView = createScreen(myModel);
     myPropertiesManager = new NlPropertiesManager(getProject(), myDesignSurface);
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myPropertiesComponent = new PropertiesComponentMock();
@@ -138,7 +139,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   }
 
   @NotNull
-  protected NlModel createModel() {
+  protected SyncNlModel createModel() {
     ModelBuilder builder = model("merge.xml",
                                  component(VIEW_MERGE)
                                    .withBounds(0, 0, 1000, 1500)

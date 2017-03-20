@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.menu;
 import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
@@ -39,7 +40,7 @@ import static org.mockito.Mockito.mock;
 public final class GroupDragHandlerTest extends LayoutTestCase {
 
   public void testUpdateUsingActionBarGroup() {
-    NlModel model = model("model.xml", menu(572, 58, 196, 96)
+    SyncNlModel model = model("model.xml", menu(572, 58, 196, 96)
       .children(
         menuItem(572, 58, 98, 96),
         group(670, 58, 98, 96).children(
@@ -53,7 +54,7 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
   }
 
   public void testUpdateUsingOverflowGroup() {
-    NlModel model = model("model.xml", menu(366, 162, 392, 288)
+    SyncNlModel model = model("model.xml", menu(366, 162, 392, 288)
       .children(
         overflowItem(366, 162, 392, 96),
         overflowItem(366, 258, 392, 96),
@@ -96,7 +97,7 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
   }
 
   public void testUpdateUsingOverflowGroupEmptyGroupInFront() {
-    NlModel model = model("model.xml", menu(366, 162, 392, 192)
+    SyncNlModel model = model("model.xml", menu(366, 162, 392, 192)
       .children(
         group(368, 164, 1, 1).id("@+id/group"),
         overflowItem(366, 162, 392, 96),
@@ -134,7 +135,7 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
   }
 
   public void testUpdateUsingOverflowGroupEmptyGroupInMiddle() {
-    NlModel model = model("model.xml", menu(366, 162, 392, 192)
+    SyncNlModel model = model("model.xml", menu(366, 162, 392, 192)
       .children(
         overflowItem(366, 162, 392, 96),
         group(368, 164, 1, 1).id("@+id/group"),
@@ -172,7 +173,7 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
   }
 
   public void testUpdateUsingOverflowGroupEmptyGroupInBack() {
-    NlModel model = model("model.xml", menu(366, 162, 392, 192)
+    SyncNlModel model = model("model.xml", menu(366, 162, 392, 192)
       .children(
         overflowItem(366, 162, 392, 96),
         overflowItem(366, 258, 392, 96),
@@ -240,9 +241,9 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
   }
 
   @NotNull
-  private GroupDragHandler getMenuHandler(NlModel model) {
-    ScreenFixture screenFixture = surface().screen(model).withScale(1);
-    Scene scene = new SyncLayoutlibSceneManager(model, screenFixture.getScreen()).build();
+  private GroupDragHandler getMenuHandler(SyncNlModel model) {
+    ScreenFixture screenFixture = new ScreenFixture(model).withScale(1);
+    Scene scene = new SyncLayoutlibSceneManager(model).build();
     scene.buildDisplayList(new DisplayList(), 0);
 
     List<SceneComponent> items = Collections.singletonList(mock(SceneComponent.class));

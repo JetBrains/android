@@ -334,7 +334,7 @@ public class NlModelTest extends LayoutTestCase {
   }
 
   public void testCreateComponentWithDependencyCheck() {
-    NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
+    SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()
       .matchParentHeight()
@@ -375,7 +375,7 @@ public class NlModelTest extends LayoutTestCase {
   }
 
   public void testAddComponentsWithDependencyCheck() {
-    NlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
+    SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
       .matchParentWidth()
       .matchParentHeight()
@@ -437,9 +437,9 @@ public class NlModelTest extends LayoutTestCase {
     model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE_INTO);
     verifyZeroInteractions(gradleDependencyManager);
 
-    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
-                 "    NlComponent{tag=<FrameLayout>, bounds=[100,100:100x100, instance=1}\n" +
-                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[100,200:100x100, instance=2}",
+    assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,150:768x1034, instance=0}\n" +
+                 "    NlComponent{tag=<FrameLayout>, bounds=[0,150:200x200, instance=1}\n" +
+                 "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,150:200x200, instance=2}",
                  myTreeDumper.toTree(model.getComponents()));
   }
 

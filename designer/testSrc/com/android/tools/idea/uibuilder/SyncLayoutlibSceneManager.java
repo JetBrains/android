@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder;
 
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandAdapter;
@@ -28,9 +29,8 @@ import org.jetbrains.annotations.NotNull;
  * {@link LayoutlibSceneManager} used for tests that performs all operations synchronously.
  */
 public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
-  public SyncLayoutlibSceneManager(@NotNull NlModel model,
-                                   @NotNull SceneView sceneView) {
-    super(model, sceneView);
+  public SyncLayoutlibSceneManager(@NotNull SyncNlModel model) {
+    super(model, model.getSurface());
   }
 
   @Override

@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.grid;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -28,6 +29,7 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.intellij.openapi.command.WriteCommandAction;
 
 import java.util.Collections;
@@ -64,16 +66,16 @@ public final class GridDragHandlerTest extends LayoutTestCase {
       .viewObject(viewObject)
       .children(button1, button2);
 
-    NlModel model = model("grid_layout.xml", layout)
+    SyncNlModel model = model("grid_layout.xml", layout)
       .build();
     // @formatter:on
 
-    ScreenFixture screenFixture = surface().screen(model).withScale(1);
-    Scene scene = new SyncLayoutlibSceneManager(model, screenFixture.getScreen()).build();
+    Scene scene = new SyncLayoutlibSceneManager(model).build();
     scene.buildDisplayList(new DisplayList(), 0);
 
     List<SceneComponent> components = Collections.emptyList();
-    handler = new GridDragHandler(editor(screenFixture.getScreen()), new ViewGroupHandler(), scene.getRoot(), components, DragType.CREATE);
+    ScreenView screen = new ScreenFixture(model).getScreen();
+    handler = new GridDragHandler(editor(screen), new ViewGroupHandler(), scene.getRoot(), components, DragType.CREATE);
   }
 
   public void testCommitCellHasChild() {

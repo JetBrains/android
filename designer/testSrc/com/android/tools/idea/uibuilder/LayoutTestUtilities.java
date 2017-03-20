@@ -132,32 +132,33 @@ public class LayoutTestUtilities {
     verify(dropEvent, times(1)).dropComplete(true);
   }
 
-  public static NlModel createModel(NlDesignSurface surface, AndroidFacet facet, XmlFile xmlFile) {
-    NlModel model = SyncNlModel.create(surface, xmlFile.getProject(), facet, xmlFile);
+  public static SyncNlModel createModel(NlDesignSurface surface, AndroidFacet facet, XmlFile xmlFile) {
+    SyncNlModel model = SyncNlModel.create(surface, xmlFile.getProject(), facet, xmlFile);
     model.updateModel();
     model.notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
     return model;
   }
 
-  public static ScreenView createScreen(NlDesignSurface surface, NlModel model, SelectionModel selectionModel) {
-    return createScreen(surface, model, selectionModel, 1, 0, 0);
+  public static ScreenView createScreen(SyncNlModel model) {
+    return createScreen(model, 1, 0, 0);
   }
 
-  public static ScreenView createScreen(NlDesignSurface surface, NlModel model, SelectionModel selectionModel, double scale,
+  public static ScreenView createScreen(SyncNlModel model, double scale,
                                         @SwingCoordinate int x, @SwingCoordinate int y) {
     ScreenView screenView = mock(ScreenView.class);
     when(screenView.getConfiguration()).thenReturn(model.getConfiguration());
     when(screenView.getModel()).thenReturn(model);
     when(screenView.getScale()).thenReturn(scale);
-    when(screenView.getSelectionModel()).thenReturn(selectionModel);
+    when(screenView.getSelectionModel()).thenReturn(model.getSelectionModel());
     when(screenView.getSize()).thenReturn(new Dimension());
+    NlDesignSurface surface = model.getSurface();
     when(screenView.getSurface()).thenReturn(surface);
     when(screenView.getX()).thenReturn(x);
     when(screenView.getY()).thenReturn(y);
 
     when(surface.getSceneView(anyInt(), anyInt())).thenReturn(screenView);
     when(surface.getCurrentSceneView()).thenReturn(screenView);
-    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model, screenView);
+    LayoutlibSceneManager builder = new SyncLayoutlibSceneManager(model);
     Scene scene = builder.build();
     scene.buildDisplayList(new DisplayList(), 0);
     when(screenView.getScene()).thenReturn(scene);
