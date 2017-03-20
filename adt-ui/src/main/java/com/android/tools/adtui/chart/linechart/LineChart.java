@@ -22,7 +22,6 @@ import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
-import gnu.trove.TDoubleArrayList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -199,13 +198,12 @@ public class LineChart extends AnimatedComponent {
 
       // X coordinate of the first point
       double firstXd = 0f;
-      for (SeriesData<Long> data: seriesList) {
+      seriesList = myReducer.reduceData(seriesList, config);
+      for (SeriesData<Long> data : seriesList) {
         // TODO: refactor to allow different types (e.g. double)
-        long currX = data.x;
-        long currY = data.value;
-        double xd = (currX - xMin) / xLength;
+        double xd = (data.x - xMin) / xLength;
         // Swing's (0, 0) coordinate is in top-left. As we use bottom-left (0, 0), we need to adjust the y coordinate.
-        double yd = 1 - (currY - yMin) / yLength;
+        double yd = 1 - (data.value - yMin) / yLength;
 
         if (path.getCurrentPoint() == null) {
           path.moveTo(xd, yd);
@@ -288,7 +286,7 @@ public class LineChart extends AnimatedComponent {
     List<Path2D> transformedPaths = new ArrayList<>(myLinePaths.size());
     for (int i = 0; i < myLinePaths.size(); ++i) {
       Path2D scaledPath = new Path2D.Float(myLinePaths.get(i), scale);
-      scaledPath = myReducer.reduce(scaledPath, myLinePathConfigs.get(i));
+      scaledPath = myReducer.reducePath(scaledPath, myLinePathConfigs.get(i));
       transformedPaths.add(scaledPath);
 
       if (isDrawDebugInfo()) {
