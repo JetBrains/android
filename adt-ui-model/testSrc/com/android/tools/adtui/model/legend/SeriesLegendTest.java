@@ -17,6 +17,7 @@ package com.android.tools.adtui.model.legend;
 
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.formatter.MockAxisFormatter;
+import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -45,7 +46,7 @@ public class SeriesLegendTest {
   @Test
   public void legendValueGotFromMatchedTime() {
     TestDataSeries dataSeries = new TestDataSeries(ImmutableList.of(
-        new SeriesData<>(100, 123L)));
+      new SeriesData<>(100, 123L)));
     RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), dataSeries);
     SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), new Range(0, 100));
     assertEquals("12.3cm", legend.getValue());
@@ -54,7 +55,7 @@ public class SeriesLegendTest {
   @Test
   public void legendValueIsClosestRightGivenNoPreviousData() {
     TestDataSeries dataSeries = new TestDataSeries(ImmutableList.of(
-        new SeriesData<>(100, 333L), new SeriesData<>(110, 444L)));
+      new SeriesData<>(100, 333L), new SeriesData<>(110, 444L)));
     RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), dataSeries);
     SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), new Range(0, 99));
     assertEquals("33.3cm", legend.getValue());
@@ -63,7 +64,7 @@ public class SeriesLegendTest {
   @Test
   public void legendValueIsClosestLeftGivenNoLaterData() {
     TestDataSeries dataSeries = new TestDataSeries(ImmutableList.of(
-        new SeriesData<>(0L, 111L), new SeriesData<>(10, 222L)));
+      new SeriesData<>(0L, 111L), new SeriesData<>(10, 222L)));
     RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), dataSeries);
     SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), new Range(1, 100));
     assertEquals("22.2cm", legend.getValue());
@@ -83,9 +84,19 @@ public class SeriesLegendTest {
     TestDataSeries dataSeries = new TestDataSeries(ImmutableList.of(
       new SeriesData<>(0L, 150L), new SeriesData<>(2, 50L)));
     RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), dataSeries);
-    SeriesLegend legend = new SeriesLegend(series, new MockAxisFormatter(1, 1, 1), new Range(1, 1),
+    SeriesLegend legend = new SeriesLegend(series, new SingleUnitAxisFormatter(1, 5, 1, ""), new Range(1, 1),
                                            Interpolatable.SteppedLineInterpolator);
-    assertEquals("15cm", legend.getValue());
+    assertEquals("150", legend.getValue());
+  }
+
+  @Test
+  public void legendValueForRoundedSegmentInterpolation() {
+    TestDataSeries dataSeries = new TestDataSeries(ImmutableList.of(
+      new SeriesData<>(0L, 150L), new SeriesData<>(3, 50L)));
+    RangedContinuousSeries series = new RangedContinuousSeries("test", new Range(0, 100), new Range(0, 100), dataSeries);
+    SeriesLegend legend = new SeriesLegend(series, new SingleUnitAxisFormatter(1, 5, 1, ""), new Range(1, 1),
+                                           Interpolatable.RoundedSegmentInterpolator);
+    assertEquals("117", legend.getValue());
   }
 
   private static class TestDataSeries implements DataSeries<Long> {
