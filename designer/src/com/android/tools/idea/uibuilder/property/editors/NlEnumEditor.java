@@ -94,7 +94,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     super(listener);
     myAddedValueIndex = -1; // nothing added
     myPanel = new JPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
-
+    myPanel.setFocusable(false);
     myBrowsePanel = browsePanel;
 
     myCombo = comboBox;
