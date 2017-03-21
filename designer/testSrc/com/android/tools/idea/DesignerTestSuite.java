@@ -39,8 +39,6 @@ import java.nio.file.Paths;
 @JarTestSuiteRunner.ExcludeClasses({
   DesignerTestSuite.class,
   NlDesignSurfaceTest.class, // flaky in bazel
-  NlComponentTreeTest.class,
-  InteractionManagerTest.class,
 })
 public class DesignerTestSuite {
 
