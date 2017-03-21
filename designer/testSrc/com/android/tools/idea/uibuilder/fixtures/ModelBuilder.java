@@ -132,10 +132,9 @@ public class ModelBuilder {
       assertNotNull(xml, rootTag);
       XmlDocument document = xmlFile.getDocument();
       assertNotNull(document);
-      SyncNlModel model = SyncNlModel.create(createSurface(), myFixture.getProject(), myFacet, xmlFile);
+      NlDesignSurface surface = createSurface();
+      SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myFacet, xmlFile);
       model.updateHierarchy(xmlFile.getRootTag(), buildViewInfos(model));
-      NlDesignSurface surface = model.getSurface();
-      when(surface.getSelectionModel()).thenReturn(model.getSelectionModel());
       when(surface.getModel()).thenReturn(model);
       SyncLayoutlibSceneManager sceneManager = new SyncLayoutlibSceneManager(model);
       when(surface.getSceneManager()).thenReturn(sceneManager);

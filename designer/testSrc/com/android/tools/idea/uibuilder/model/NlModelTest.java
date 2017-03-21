@@ -360,7 +360,7 @@ public class NlModelTest extends LayoutTestCase {
 
     WriteCommandAction.runWriteCommandAction(
       model.getProject(), null, null,
-      () -> model.createComponent(surface().screen(model).getScreen(), recyclerViewTag, frameLayout, null, InsertType.CREATE),
+      () -> model.createComponent(screen(model).getScreen(), recyclerViewTag, frameLayout, null, InsertType.CREATE),
       model.getFile());
     model.notifyModified(NlModel.ChangeType.ADD_COMPONENTS);
     when(gradleDependencyManager.ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))
@@ -397,7 +397,7 @@ public class NlModelTest extends LayoutTestCase {
       XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW + " xmlns:android=\"" + NS_RESOURCES + "\"/>");
 
     NlComponent recyclerView = model.createComponent(
-      surface().screen(model).getScreen(), recyclerViewTag, null, null, InsertType.CREATE);
+      screen(model).getScreen(), recyclerViewTag, null, null, InsertType.CREATE);
     List<GradleCoordinate> expectedDependencies =
       Collections.singletonList(GradleCoordinate.parseCoordinateString(RECYCLER_VIEW_LIB_ARTIFACT + ":+"));
     when(gradleDependencyManager.ensureLibraryIsIncluded(eq(myModule), eq(expectedDependencies), isNull(Runnable.class)))

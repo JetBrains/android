@@ -102,6 +102,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected NlModel myModel;
   protected Scene myScene;
   private SceneManager mySceneManager;
+  private final SelectionModel mySelectionModel;
 
   public DesignSurface(@NotNull Project project) {
     super(new BorderLayout());
@@ -112,6 +113,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     setRequestFocusEnabled(true);
     setBackground(UIUtil.TRANSPARENT_COLOR);
 
+    mySelectionModel = new SelectionModel();
     myInteractionManager = new InteractionManager(this);
 
     myLayeredPane = new MyLayeredPane();
@@ -232,7 +234,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   public SelectionModel getSelectionModel() {
-    return myModel.getSelectionModel();
+    return mySelectionModel;
   }
 
   protected abstract void doSetModel(@Nullable NlModel model);
