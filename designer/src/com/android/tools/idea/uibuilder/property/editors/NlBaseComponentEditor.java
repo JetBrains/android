@@ -32,6 +32,9 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor, Browse
   /** Horizontal gap between editor control and {@link BrowsePanel} */
   protected static final int HORIZONTAL_COMPONENT_GAP = SystemInfo.isMac ? 0 : 2;
 
+  /** Horizontal spacing between label and editor in inspector */
+  protected static final int HORIZONTAL_SPACING = 4;
+
   /** Vertical spacing between editors in inspector */
   protected static final int VERTICAL_SPACING = 2;
 

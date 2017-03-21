@@ -93,7 +93,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
                        boolean includeBorder) {
     super(listener);
     myAddedValueIndex = -1; // nothing added
-    myPanel = new JPanel(new BorderLayout(HORIZONTAL_COMPONENT_GAP, 0));
+    myPanel = new JPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
 
     myBrowsePanel = browsePanel;
 
@@ -344,11 +344,11 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
     }
 
     private void setBorders() {
-      int horizontalSpacing = myUseDarculaUI ? 0 : 1;
+      int horizontalSpacing = HORIZONTAL_SPACING + (myUseDarculaUI ? 0 : 1);
       if (myBorderPanel != null) {
-        myBorderPanel.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, horizontalSpacing, VERTICAL_SPACING, 0));
+        myBorderPanel.setBorder(JBUI.Borders.empty(VERTICAL_SPACING, horizontalSpacing, VERTICAL_SPACING, 0));
       }
-      setBorder(myUseDarculaUI && myBorderPanel != null ? null : BorderFactory.createEmptyBorder(1, 4, 1, 4));
+      setBorder(myUseDarculaUI && myBorderPanel != null ? null : JBUI.Borders.empty(1, 4, 1, 4));
     }
 
     @Override
