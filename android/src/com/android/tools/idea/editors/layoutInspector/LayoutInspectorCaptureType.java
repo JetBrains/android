@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class LayoutInspectorCaptureType extends FileCaptureType {
   protected LayoutInspectorCaptureType() {
-    super("Layout Inspector Snapshot", AndroidIcons.Ddms.HierarchyView, LayoutInspectorFileType.DOT_EXT_LAYOUT_INSPECTOR);
+    super("Layout Inspector Snapshot", AndroidIcons.Ddms.LayoutInspector, LayoutInspectorFileType.DOT_EXT_LAYOUT_INSPECTOR);
   }
 
   @NotNull
