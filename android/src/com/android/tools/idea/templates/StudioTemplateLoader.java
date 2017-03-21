@@ -168,7 +168,7 @@ public final class StudioTemplateLoader implements TemplateLoader {
     else {
       file = new File(myTemplateRootFolder, name);
     }
-    return file.getCanonicalFile();
+    return file;
   }
 
   @NotNull
