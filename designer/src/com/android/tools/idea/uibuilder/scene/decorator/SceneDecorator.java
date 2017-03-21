@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.scene.decorator;
 
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;

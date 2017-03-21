@@ -40,6 +40,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.RasterFormatException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -150,10 +151,15 @@ public class IconPreviewFactory implements Disposable {
     if (imageCopy == null) {
       return null;
     }
-    return imageCopy.getSubimage(view.getLeft(),
-                             view.getTop(),
-                             Math.min(view.getRight() + shadowIncrement, image.getWidth()),
-                             Math.min(view.getBottom() + shadowIncrement, image.getHeight()));
+    try {
+      return imageCopy.getSubimage(view.getLeft(),
+                                   view.getTop(),
+                                   Math.min(view.getRight() + shadowIncrement, image.getWidth()),
+                                   Math.min(view.getBottom() + shadowIncrement, image.getHeight()));
+    } catch (RasterFormatException e) {
+      // catch exception
+    }
+    return null;
   }
 
   @Nullable
