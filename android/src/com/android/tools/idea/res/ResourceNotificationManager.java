@@ -627,13 +627,16 @@ public class ResourceNotificationManager implements ProjectComponent {
     }
 
     private boolean isIgnorable(PsiTreeChangeEvent event) {
-      // We can ignore edits in whitespace, and in XML error nodes, and in comments
+      // We can ignore edits in whitespace, XML error nodes, and modification in comments.
       // (Note that editing text in an attribute value, including whitespace characters,
       // is not a PsiWhiteSpace element; it's an XmlToken of token type XML_ATTRIBUTE_VALUE_TOKEN
+      // Moreover, We only ignore the modification of commented texts (in such case the type of
+      // parent is XmlComment), because the user may *mark* some components/attributes as comments
+      // for debugging purpose. In that case the child is instance of XmlComment but parent isn't,
+      // so we will NOT ignore the event.
       PsiElement child = event.getChild();
       PsiElement parent = event.getParent();
       if (child instanceof PsiErrorElement ||
-          child instanceof XmlComment ||
           parent instanceof XmlComment) {
         return true;
       }
