@@ -16,5 +16,5 @@
 package com.android.tools.profilers.network;
 
 public enum NetworkState {
-  SENDING, RECEIVING, WAITING, NONE;
+  SENDING, RECEIVING, WAITING, NONE
 }

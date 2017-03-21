@@ -268,9 +268,9 @@ public class ConnectionDetailsView extends JPanel {
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     Range range = new Range(httpData.getStartTimeUs(),
                             httpData.getEndTimeUs() > 0 ? httpData.getEndTimeUs() : httpData.getStartTimeUs() + 1);
-    RequestTimeline timeline = new RequestTimeline(httpData, range);
-    timeline.getComponent().setMinimumSize(new Dimension(0, 28));
-    panel.add(timeline.getComponent());
+    ConnectionsStateChart connectionsChart = new ConnectionsStateChart(httpData, range);
+    connectionsChart.getComponent().setMinimumSize(new Dimension(0, 28));
+    panel.add(connectionsChart.getComponent());
 
     long sentTime = -1;
     long receivedTime = -1;
@@ -289,9 +289,9 @@ public class ConnectionDetailsView extends JPanel {
     // TODO: Add waiting time in (currently hidden because it's always 0)
     LegendComponent legend = new LegendComponent(legendModel);
     legend.configure(sentLegend,
-                     new LegendConfig(LegendConfig.IconType.BOX, timeline.getColors().getColor(NetworkState.SENDING)));
+                     new LegendConfig(LegendConfig.IconType.BOX, connectionsChart.getColors().getColor(NetworkState.SENDING)));
     legend.configure(receivedLegend,
-                     new LegendConfig(LegendConfig.IconType.BOX, timeline.getColors().getColor(NetworkState.RECEIVING)));
+                     new LegendConfig(LegendConfig.IconType.BOX, connectionsChart.getColors().getColor(NetworkState.RECEIVING)));
     legendModel.update(1);
     panel.add(legend);
 
