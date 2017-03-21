@@ -158,7 +158,7 @@ public class PackageTreeCreator {
       String params = decodeMethodParams(methodRef);
       String methodSig = returnType + " " + methodName + params;
       boolean seed = mySeedsMap != null
-                     && (mySeedsMap.hasMethod(className, methodSig)
+                     && (mySeedsMap.hasMethod(className, methodName + params)
                          || (methodName.equals("<init>")
                              && mySeedsMap.hasMethod(className, DebuggerUtilsEx.getSimpleName(className) + params)));
       root.insertMethod(typeRef, methodRef, className, methodSig, defined, seed, false);
