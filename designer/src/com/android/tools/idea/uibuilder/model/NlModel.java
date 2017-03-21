@@ -103,6 +103,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -654,20 +655,29 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       public void run() {
         if (myRenderTask != null) {
           synchronized (RENDERING_LOCK) {
-            RenderResult result;
-            try {
-              result = myRenderTask.layout().get();
+            AtomicReference<RenderResult> resultRef = new AtomicReference<>();
 
-              if (result != null) {
-                updateHierarchy(result);
-                notifyListenersModelLayoutComplete(animate);
+            ApplicationManager.getApplication().invokeAndWait(() -> {
+              try {
+                resultRef.set(myRenderTask.layout().get());
               }
-            }
-            catch (InterruptedException | ExecutionException e) {
-              LOG.warn("Unable to run layout()", e);
+              catch (InterruptedException | ExecutionException e) {
+                LOG.warn("Unable to run layout()", e);
+              }
+            });
+
+            RenderResult result = resultRef.get();
+            if (result != null) {
+              updateHierarchy(result);
+              notifyListenersModelLayoutComplete(animate);
             }
           }
         }
+      }
+
+      @Override
+      public boolean canEat(Update update) {
+        return equals(update);
       }
     });
   }
