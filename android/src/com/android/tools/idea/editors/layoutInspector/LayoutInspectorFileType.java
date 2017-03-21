@@ -49,7 +49,7 @@ public class LayoutInspectorFileType implements FileType {
   @Nullable
   @Override
   public Icon getIcon() {
-    return AndroidIcons.Ddms.HierarchyView;
+    return AndroidIcons.Ddms.LayoutInspector;
   }
 
   @Override
