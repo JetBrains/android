@@ -69,7 +69,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   private void appendValue(@NotNull NlProperty property) {
     String value = property.getValue();
     String text = StringUtil.notNullize(value);
-    Icon icon = getIcon(property);
+    Icon icon = getIcon(property, ICON_SIZE);
     if (icon != null) {
       myLabel.setIcon(icon);
     }
@@ -82,14 +82,14 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   }
 
   @Nullable
-  public static Icon getIcon(@NotNull NlProperty property) {
+  public static Icon getIcon(@NotNull NlProperty property, int iconSize) {
     String text = property.getResolvedValue();
     if (text == null) {
       return null;
     }
 
     if (isColorValue(text)) {
-      return getColorIcon(text);
+      return getColorIcon(text, iconSize);
     }
 
     Configuration configuration = property.getModel().getConfiguration();
@@ -105,7 +105,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
 
     if (text.startsWith(SdkConstants.COLOR_RESOURCE_PREFIX)
       || text.startsWith(SdkConstants.ANDROID_COLOR_RESOURCE_PREFIX)) {
-      return getColorIcon(resolver, property, text);
+      return getColorIcon(resolver, property, text, iconSize);
     }
 
     if (text.startsWith(SdkConstants.DRAWABLE_PREFIX) ||
@@ -131,7 +131,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   }
 
   @Nullable
-  private static Icon getColorIcon(@NotNull ResourceResolver resolver, @NotNull NlProperty property, @NotNull String value) {
+  private static Icon getColorIcon(@NotNull ResourceResolver resolver, @NotNull NlProperty property, @NotNull String value, int iconSize) {
     boolean isFrameworkRes = value.startsWith(SdkConstants.ANDROID_COLOR_RESOURCE_PREFIX);
     ResourceValue resourceValue = resolver.resolveValue(ResourceType.COLOR, property.getName(), value, isFrameworkRes);
     if (resourceValue == null) {
@@ -140,7 +140,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
 
     String resolvedValue = resourceValue.getValue();
     if (isColorValue(resolvedValue)) {
-      return getColorIcon(resolvedValue);
+      return getColorIcon(resolvedValue, iconSize);
     }
 
     return null;
@@ -151,9 +151,9 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   }
 
   @Nullable
-  private static Icon getColorIcon(@NotNull String hexColor) {
+  private static Icon getColorIcon(@NotNull String hexColor, int iconSize) {
     Color color = ResourceHelper.parseColor(hexColor);
-    return color == null ? null : JBUI.scale(new ColorIcon(ICON_SIZE, color, true));
+    return color == null ? null : JBUI.scale(new ColorIcon(iconSize, color, true));
   }
 
   private void appendName(@NotNull NlProperty property) {
