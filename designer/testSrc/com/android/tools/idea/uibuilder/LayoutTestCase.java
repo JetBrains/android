@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
-import com.android.tools.idea.uibuilder.fixtures.SurfaceFixture;
+import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -34,8 +34,6 @@ import org.mockito.Mockito;
 import java.io.File;
 
 public abstract class LayoutTestCase extends AndroidTestCase {
-
-  SurfaceFixture mySurfaceFixture;
 
   public LayoutTestCase() {
   }
@@ -69,8 +67,8 @@ public abstract class LayoutTestCase extends AndroidTestCase {
     return new ComponentDescriptor(tag);
   }
 
-  protected SurfaceFixture surface() {
-    return new SurfaceFixture();
+  protected ScreenFixture screen(@NotNull SyncNlModel model) {
+    return new ScreenFixture(model);
   }
 
   // Format the XML using AndroidStudio formatting

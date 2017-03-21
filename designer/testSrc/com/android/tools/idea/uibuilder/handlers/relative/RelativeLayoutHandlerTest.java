@@ -29,7 +29,7 @@ import static java.awt.event.InputEvent.SHIFT_MASK;
 public class RelativeLayoutHandlerTest extends LayoutTestCase {
 
   public void testResizeToNowhereWithModifierKeepsPosition() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .resize(TOP, LEFT)
       .drag(0, 0)
@@ -46,7 +46,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testResizeTopRemovesVerticalConstraint() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .resize(TOP)
       .drag(10, 10)
@@ -60,7 +60,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testResizeLeftRemovesHorizontalConstraint() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .resize(LEFT)
       .drag(10, 10)
@@ -74,7 +74,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testResizeTopLeftSnapToLeftOfButton() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .resize(TOP, LEFT)
       .drag(-195, 10)
@@ -88,7 +88,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
 
   // Resize left, top: snap to top edge of button
   public void testResizeTopLeftSnapToTopOfButton() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .resize(TOP, LEFT)
       .drag(100, -195)
@@ -101,7 +101,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testResizeTopLeftWithModifierSnapToBottomLeftOfButton() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .resize(TOP, LEFT)
       .modifiers(SHIFT_MASK)
@@ -116,7 +116,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testResizeTopLeftWithModifierCloseToBottomLeftOfButton() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .resize(TOP, LEFT)
       .modifiers(SHIFT_MASK)
@@ -133,7 +133,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testResizeBottomRightWithModifier() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .resize(BOTTOM, RIGHT)
       .modifiers(SHIFT_MASK)
@@ -154,7 +154,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testResizeBottomRightWithModifierSnapToBottomOfLayout() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .resize(BOTTOM, RIGHT)
       .modifiers(SHIFT_MASK)
@@ -173,7 +173,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testResizeBottomRightWithModifierToBottomOfLayout() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .resize(BOTTOM, RIGHT)
       .modifiers(SHIFT_MASK)
@@ -194,7 +194,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testMoveToNowhere() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .drag()
       .drag(0, 0)
@@ -211,7 +211,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testMoveSnapToTopOfButton() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .drag()
       .drag(30, -200)
@@ -227,7 +227,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testMoveCloseToTopOfButton() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .drag()
       .drag(30, -179)
@@ -244,7 +244,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testMoveSnapToBottomOfButton() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .drag()
       .drag(150, -120)
@@ -260,7 +260,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testMoveCloseToBottomOfButton() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .drag()
       .drag(150, -150)
@@ -277,7 +277,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testMoveSnapToMiddleOfLayout() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .drag()
       .drag(200, 200)
@@ -292,7 +292,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testMoveWithModifier() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .drag()
       .modifiers(SHIFT_MASK)
@@ -308,7 +308,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testMoveSnapToBaseline() {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/textView")
       .drag()
       .drag(0, -153)
@@ -326,7 +326,7 @@ public class RelativeLayoutHandlerTest extends LayoutTestCase {
 
   public void testMoveDoesNotReorderComponents() throws Exception {
     //noinspection XmlUnusedNamespaceDeclaration
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/checkbox")
       .drag()
       .drag(10, 10)
