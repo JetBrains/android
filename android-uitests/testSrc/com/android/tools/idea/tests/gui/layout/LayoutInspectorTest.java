@@ -34,7 +34,6 @@ import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@Ignore("https://code.google.com/p/android/issues/detail?id=246475")
 @RunWith(GuiTestRunner.class)
 public class LayoutInspectorTest extends TestWithEmulator {
 
@@ -62,6 +61,7 @@ public class LayoutInspectorTest extends TestWithEmulator {
    *   1. Verify for Layout elements in Hierarchy View of Layout Inspector
    * </pre>
    */
+  @Ignore("Deprecated. TODO: remove the test case and the related fixture code.")
   @Test
   @RunIn(TestGroup.QA)
   public void launchLayoutInspector() throws Exception {
