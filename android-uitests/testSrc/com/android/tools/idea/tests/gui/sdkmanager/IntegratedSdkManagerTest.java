@@ -71,7 +71,6 @@ public class IntegratedSdkManagerTest {
    */
   @RunIn(TestGroup.QA)
   @Test
-  @Ignore("http://wphx6.hot.corp.google.com:8600/builders/studio-sanity_master-dev/builds/121")
   public void installPackage() throws Exception {
     guiTest.importSimpleApplication();
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
@@ -100,7 +99,7 @@ public class IntegratedSdkManagerTest {
     ideSettingsDialogFixture.clickOK();
     MessagesFixture.findByTitle(guiTest.robot(), "Confirm Change").clickOk();
     DialogFixture downloadDialog =
-      findDialog(withTitle("SDK Quickfix Installation")).withTimeout(SECONDS.toMillis(5)).using(guiTest.robot());
+      findDialog(withTitle("SDK Quickfix Installation")).withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
     JButtonFixture finish = downloadDialog.button(withText("Finish"));
     Wait.seconds(120).expecting("Android source to be installed").until(finish::isEnabled);
     finish.click();
