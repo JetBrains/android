@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.layoutInspector.ui;
 
 import com.android.annotations.Nullable;
+import com.android.layoutinspector.model.ViewNodeTableModel;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;
 import com.intellij.ui.table.JBTable;

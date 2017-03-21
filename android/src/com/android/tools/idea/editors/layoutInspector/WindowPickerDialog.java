@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.layoutInspector;
 
 import com.android.ddmlib.Client;
-import com.android.tools.idea.editors.layoutInspector.model.ClientWindow;
+import com.android.layoutinspector.model.ClientWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -70,7 +70,7 @@ public class WindowPickerDialog extends DialogWrapper {
   protected void doOKAction() {
     Object selection = myWindowsCombo.getSelectedItem();
     if (selection instanceof ClientWindow) {
-      mySelectedWindow = (ClientWindow) selection;
+      mySelectedWindow = (ClientWindow)selection;
     }
     super.doOKAction();
   }

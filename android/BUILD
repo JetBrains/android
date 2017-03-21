@@ -76,6 +76,7 @@ iml_module(
         "//tools/idea/.idea/libraries:commons-io-2.4",
         "//tools/adt/idea/smali[module]",
         "//tools/base/build-system/java-lib-plugin/java-lib-model:studio.java-lib-model[module]",
+        "//tools/base/layoutinspector:studio.layoutinspector[module]",
     ],
 )
 
@@ -172,6 +173,7 @@ iml_module(
         "//tools/adt/idea/sdk-updates[module, test]",
         "//tools/base/build-system/java-lib-plugin/java-lib-model:studio.java-lib-model[module, test]",
         "//tools/base/third_party:nl.jqno.equalsverifier_equalsverifier[test]",
+        "//tools/base/layoutinspector:studio.layoutinspector[module]",
     ],
 )
 

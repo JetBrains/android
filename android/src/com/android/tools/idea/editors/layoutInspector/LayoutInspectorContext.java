@@ -20,11 +20,11 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.HandleViewDebug;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.editors.layoutInspector.model.ClientWindow;
-import com.android.tools.idea.editors.layoutInspector.model.ViewNode;
+import com.android.layoutinspector.model.ViewNodeTableModel;
+import com.android.layoutinspector.model.ViewNode;
+import com.android.layoutinspector.model.ClientWindow;
 import com.android.tools.idea.editors.layoutInspector.ui.RollOverTree;
 import com.android.tools.idea.editors.layoutInspector.ui.ViewNodeActiveDisplay;
-import com.android.tools.idea.editors.layoutInspector.ui.ViewNodeTableModel;
 import com.android.tools.idea.editors.layoutInspector.ui.ViewNodeTreeRenderer;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -294,7 +294,8 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
     public void actionPerformed(ActionEvent e) {
       ViewNode node = (ViewNode)myNodePopup.getClientProperty(KEY_VIEW_NODE);
       if (node == null) {
-        createNotification(AndroidBundle.message("android.ddms.actions.layoutinspector.dumpdisplay.notification.nonode"), NotificationType.ERROR);
+        createNotification(AndroidBundle.message("android.ddms.actions.layoutinspector.dumpdisplay.notification.nonode"),
+                           NotificationType.ERROR);
         return;
       }
 
@@ -302,18 +303,20 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
         HandleViewDebug.dumpDisplayList(myClient, myWindow.title, node.toString());
       }
       catch (IOException e1) {
-        createNotification(AndroidBundle.message("android.ddms.actions.layoutinspector.dumpdisplay.notification.failure", e1.getMessage()), NotificationType.ERROR);
+        createNotification(AndroidBundle.message("android.ddms.actions.layoutinspector.dumpdisplay.notification.failure", e1.getMessage()),
+                           NotificationType.ERROR);
         return;
       }
 
       // TODO figure out better way to output, for now it outputs to logcat
-      createNotification(AndroidBundle.message("android.ddms.actions.layoutinspector.dumpdisplay.notification.success"), NotificationType.INFORMATION);
+      createNotification(AndroidBundle.message("android.ddms.actions.layoutinspector.dumpdisplay.notification.success"),
+                         NotificationType.INFORMATION);
     }
   }
 
   private void createNotification(@NotNull String message, @NotNull NotificationType type) {
     Notifications.Bus.notify(new Notification(AndroidBundle.message("android.ddms.actions.layoutinspector.notification.group"),
                                               AndroidBundle.message("android.ddms.actions.layoutinspector.notification.title"),
-                                              message, type,null));
+                                              message, type, null));
   }
 }
