@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
-import com.android.annotations.Nullable;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.property.NlPropertiesPanel;
@@ -24,6 +23,7 @@ import com.intellij.ui.components.JBLabel;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -94,7 +94,7 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
 
   @NotNull
   public NlPropertyInspectorFixture focusAndWaitForFocusGainInProperty(@NotNull String name, @Nullable Icon icon) {
-    Component component = findPropertyComponent(name, icon);
+    Component component = findFocusablePropertyComponent(name, icon);
     assertThat(component).isNotNull();
     driver().focusAndWaitForFocusGain(component);
     return this;
@@ -134,7 +134,7 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
 
   @NotNull
   public NlPropertyInspectorFixture assertFocusInProperty(@NotNull String name, @Nullable Icon icon) {
-    Component propertyComponent = findPropertyComponent(name, icon);
+    Component propertyComponent = findFocusablePropertyComponent(name, icon);
     Component focusComponent = FocusManager.getCurrentManager().getFocusOwner();
     assertThat(propertyComponent != null).named("property: " + name + " found").isTrue();
     assertThat(SwingUtilities.isDescendingFrom(focusComponent, propertyComponent)).named("property: " + name + " has focus").isTrue();
@@ -178,5 +178,21 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
     catch (WaitTimedOutError ex) {
       return null;
     }
+  }
+
+  @Nullable
+  private Component findFocusablePropertyComponent(@NotNull String name, @Nullable Icon icon) {
+    Component component = findPropertyComponent(name, icon);
+    if (component == null || component.isFocusable()) {
+      return component;
+    }
+    if (component instanceof Container) {
+      for (Component inner : ((Container)component).getComponents()) {
+        if (inner.isFocusable()) {
+          return inner;
+        }
+      }
+    }
+    return null;
   }
 }
