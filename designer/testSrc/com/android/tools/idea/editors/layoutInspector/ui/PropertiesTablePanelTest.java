@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ui;
 
+import com.android.layoutinspector.model.ViewNode;
+import com.android.layoutinspector.model.ViewNodeTableModel;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;
-import com.android.tools.idea.editors.layoutInspector.model.ViewNode;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.table.JBTable;
 import org.junit.After;

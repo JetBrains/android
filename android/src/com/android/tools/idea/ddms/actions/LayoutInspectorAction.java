@@ -19,7 +19,7 @@ import com.android.ddmlib.Client;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorCaptureTask;
 import com.android.tools.idea.editors.layoutInspector.WindowPickerDialog;
-import com.android.tools.idea.editors.layoutInspector.model.ClientWindow;
+import com.android.layoutinspector.model.ClientWindow;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;

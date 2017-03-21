@@ -16,8 +16,10 @@
 package com.android.tools.idea.editors.layoutInspector;
 
 import com.android.ddmlib.Client;
-import com.android.tools.idea.editors.layoutInspector.model.ClientWindow;
-import com.android.tools.idea.editors.layoutInspector.model.ViewNode;
+import com.android.layoutinspector.model.ClientWindow;
+import com.android.layoutinspector.LayoutInspectorBridge;
+import com.android.layoutinspector.LayoutInspectorCaptureOptions;
+import com.android.layoutinspector.LayoutInspectorResult;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureService;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -32,12 +34,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 public class LayoutInspectorCaptureTask extends Task.Backgroundable {
   private static final String TITLE = "Capture View Hierarchy";
@@ -62,55 +61,14 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
     // Capture view hierarchy
     indicator.setText("Capturing View Hierarchy");
     indicator.setIndeterminate(false);
-    byte[] hierarchy = myWindow.loadWindowData(20, TimeUnit.SECONDS);
-    if (hierarchy == null) {
-      myError = "Unexpected error: empty view hierarchy";
+
+    LayoutInspectorResult result = LayoutInspectorBridge.captureView(myWindow, options);
+    if (!result.getError().isEmpty()) {
+      myError = result.getError();
       return;
     }
 
-    // Parse the root node
-    indicator.setText("Capturing preview");
-    indicator.setFraction(0.5);
-    ViewNode root = ViewNode.parseFlatString(hierarchy);
-    if (root == null) {
-      myError = "Unable to parse view hierarchy";
-      return;
-    }
-
-    //  Get the preview of the root node
-    byte[] preview = myWindow.loadViewImage(root, 10, TimeUnit.SECONDS);
-    if (preview == null) {
-      myError = "Unable to obtain preview image";
-      return;
-    }
-
-    ByteArrayOutputStream bytes = new ByteArrayOutputStream(4096);
-    ObjectOutputStream output = null;
-
-    try {
-      output = new ObjectOutputStream(bytes);
-      output.writeUTF(options.toString());
-
-      output.writeInt(hierarchy.length);
-      output.write(hierarchy);
-
-      output.writeInt(preview.length);
-      output.write(preview);
-    } catch (IOException e) {
-      myError = "Unexpected error while saving hierarchy snapshot: " + e;
-      return;
-    } finally {
-      try {
-        if (output != null) {
-          output.close();
-        }
-      }
-      catch (IOException e) {
-        myError = "Unexpected error while closing hierarchy snapshot: " + e;
-      }
-    }
-
-    myData = bytes.toByteArray();
+    myData = result.getData();
   }
 
   @Override
@@ -131,7 +89,7 @@ public class LayoutInspectorCaptureTask extends Task.Backgroundable {
         if (LayoutInspectorContext.isDumpDisplayListEnabled()) {
           Optional<FileEditor> optionalEditor = editors.stream().filter(e -> e instanceof LayoutInspectorEditor).findFirst();
           if (optionalEditor.isPresent()) {
-            ((LayoutInspectorEditor) optionalEditor.get()).setSources(myClient, myWindow);
+            ((LayoutInspectorEditor)optionalEditor.get()).setSources(myClient, myWindow);
           }
         }
       }));
