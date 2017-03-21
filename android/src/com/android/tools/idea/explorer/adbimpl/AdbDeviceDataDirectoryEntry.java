@@ -25,8 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.android.tools.idea.explorer.adbimpl.AdbPathUtil.DEVICE_TEMP_DIRECTORY;
-
 /**
  * A custom {@link AdbDeviceFileEntry} implementation for the the "/data" directory of a device.
  *
@@ -172,21 +170,7 @@ public class AdbDeviceDataDirectoryEntry extends AdbDeviceForwardingFileEntry {
       // Note: We should reach this code only if the device is not root, in which case
       // trying a "pullFile" would fail because of permission error (reading from the /data/data/
       // directory), so we copy the file to a temp. location, then pull from that temp location.
-      ListenableFuture<String> futureTempFile = myDevice.getAdbFileOperations().createTempFile(DEVICE_TEMP_DIRECTORY);
-      return myDevice.getTaskExecutor().transformAsync(futureTempFile, tempFile -> {
-        assert tempFile != null;
-
-        // Copy the remote file to the temporary remote location
-        ListenableFuture<Void> futureCopy = myDevice.getAdbFileOperations().copyFileRunAs(getFullPath(), tempFile, myPackageName);
-        ListenableFuture<Void> futureDownload = myDevice.getTaskExecutor().transformAsync(futureCopy, aVoid -> {
-          // Download the temporary remote file to local disk
-          return myDevice.getAdbFileTransfer().downloadFile(tempFile, getSize(), localPath, progress);
-        });
-
-        // Ensure temporary remote file is deleted in all cases (after download success *or* error)
-        return myDevice.getTaskExecutor().finallyAsync(futureDownload,
-                                                       () -> myDevice.getAdbFileOperations().deleteFile(tempFile));
-      });
+      return myDevice.getAdbFileTransfer().downloadFileViaTempLocation(getFullPath(), getSize(), localPath, progress, myPackageName);
     }
 
     @NotNull
@@ -198,21 +182,10 @@ public class AdbDeviceDataDirectoryEntry extends AdbDeviceForwardingFileEntry {
       //
       // We do this directly instead of doing it as a fallback to attempting a regular push
       // because of https://code.google.com/p/android/issues/detail?id=241157.
-      ListenableFuture<String> futureTempFile = myDevice.getAdbFileOperations().createTempFile(DEVICE_TEMP_DIRECTORY);
-      return myDevice.getTaskExecutor().transformAsync(futureTempFile, tempFile -> {
-        assert tempFile != null;
-
-        // Upload to temporary location
-        ListenableFuture<Void> futureUpload = myDevice.getAdbFileTransfer().uploadFile(localPath, tempFile, progress);
-        ListenableFuture<Void> futureCopy = myDevice.getTaskExecutor().transformAsync(futureUpload, aVoid -> {
-          // Copy file from temporary location to package location (using "run-as")
-          return myDevice.getAdbFileOperations().copyFileRunAs(tempFile, AdbPathUtil.resolve(getFullPath(), fileName), myPackageName);
-        });
-
-        // Ensure temporary remote file is deleted in all cases (after upload success *or* error)
-        return myDevice.getTaskExecutor().finallyAsync(futureCopy,
-                                                       () -> myDevice.getAdbFileOperations().deleteFile(tempFile));
-      });
+      return myDevice.getAdbFileTransfer().uploadFileViaTempLocation(localPath,
+                                                                     AdbPathUtil.resolve(getFullPath(), fileName),
+                                                                     progress,
+                                                                     myPackageName);
     }
   }
 }
