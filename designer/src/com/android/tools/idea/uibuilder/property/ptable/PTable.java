@@ -227,6 +227,12 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
     actionMap.put("pageUp", new MyPageUpAction());
     focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), "pageDown");
     actionMap.put("pageDown", new MyPageDownAction());
+
+    // Home and End key
+    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0), "home");
+    actionMap.put("home", new MyHomeAction());
+    focusedInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0), "end");
+    actionMap.put("end", new MyEndAction());
   }
 
   private void toggleTreeNode(int row) {
@@ -578,6 +584,36 @@ public class PTable extends JBTable implements DataProvider, DeleteProvider, Cut
       }
       int movement = visibleHeight / rowHeight;
       selectRow(Math.min(selectedRow + movement, getRowCount() - 1));
+    }
+  }
+
+  /**
+   * Scroll the selected row when pressing Page Up key
+   */
+  private class MyHomeAction extends AbstractAction {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      int selectedRow = getSelectedRow();
+      if (isEditing() || selectedRow == -1) {
+        return;
+      }
+
+      selectRow(0);
+    }
+  }
+
+  /**
+   * Scroll the selected row when pressing Page Down key
+   */
+  private class MyEndAction extends AbstractAction {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      int selectedRow = getSelectedRow();
+      if (isEditing() || selectedRow == -1) {
+        return;
+      }
+
+      selectRow(getRowCount() - 1);
     }
   }
 

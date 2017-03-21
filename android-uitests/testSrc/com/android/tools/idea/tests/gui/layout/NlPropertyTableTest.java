@@ -235,12 +235,12 @@ public class NlPropertyTableTest {
     testNavigationInTable(table, newRowSize);
   }
 
-  private static void testNavigationInTable(NlPropertyTableFixture table, int expectedMovement) {
+  private static void testNavigationInTable(NlPropertyTableFixture table, int expectedPageMovement) {
     // Test page down
     ApplicationManager.getApplication()
       .invokeAndWait(() -> table.target().getSelectionModel().setSelectionInterval(0, 0));
     table.pressAndReleaseKeys(VK_PAGE_DOWN);
-    table.requireSelectedRows(Math.min(expectedMovement, table.rowCount() - 1));
+    table.requireSelectedRows(Math.min(expectedPageMovement, table.rowCount() - 1));
 
     // Make sure page down will not effect when current selection is last one
     ApplicationManager.getApplication()
@@ -252,12 +252,48 @@ public class NlPropertyTableTest {
     ApplicationManager.getApplication()
       .invokeAndWait(() -> table.target().getSelectionModel().setSelectionInterval(table.rowCount() - 1, table.rowCount() - 1));;
     table.pressAndReleaseKeys(VK_PAGE_UP);
-    table.requireSelectedRows(Math.max(0, table.rowCount() - 1 - expectedMovement));
+    table.requireSelectedRows(Math.max(0, table.rowCount() - 1 - expectedPageMovement));
 
     // Make sure page up will not effect when current selection is first one
     ApplicationManager.getApplication()
       .invokeAndWait(() -> table.target().getSelectionModel().setSelectionInterval(0, 0));
     table.pressAndReleaseKeys(VK_PAGE_UP);
+    table.requireSelectedRows(0);
+
+    // Test End key
+    ApplicationManager.getApplication()
+      .invokeAndWait(() -> table.target().getSelectionModel().setSelectionInterval(0, 0));
+    table.pressAndReleaseKeys(VK_END);
+    table.requireSelectedRows(table.rowCount() - 1);
+
+    // Make sure End key work well when the current selection is not at first and last row.
+    ApplicationManager.getApplication()
+      .invokeAndWait(() -> table.target().getSelectionModel().setSelectionInterval(table.rowCount() / 2, table.rowCount() / 2));
+    table.pressAndReleaseKeys(VK_END);
+    table.requireSelectedRows(table.rowCount() - 1);
+
+    // Make sure End key will not effect when current selection is the last row
+    ApplicationManager.getApplication()
+      .invokeAndWait(() -> table.target().getSelectionModel().setSelectionInterval(table.rowCount() - 1, table.rowCount() - 1));
+    table.pressAndReleaseKeys(VK_END);
+    table.requireSelectedRows(table.rowCount() - 1);
+
+    // Test Home key
+    ApplicationManager.getApplication()
+      .invokeAndWait(() -> table.target().getSelectionModel().setSelectionInterval(table.rowCount() - 1, table.rowCount() - 1));
+    table.pressAndReleaseKeys(VK_HOME);
+    table.requireSelectedRows(0);
+
+    // Make sure Home key work well when the current selection is not at first and last row.
+    ApplicationManager.getApplication()
+      .invokeAndWait(() -> table.target().getSelectionModel().setSelectionInterval(table.rowCount() / 2, table.rowCount() / 2));
+    table.pressAndReleaseKeys(VK_HOME);
+    table.requireSelectedRows(0);
+
+    // Make sure Home key will not effect when current selection is the first row
+    ApplicationManager.getApplication()
+      .invokeAndWait(() -> table.target().getSelectionModel().setSelectionInterval(0, 0));
+    table.pressAndReleaseKeys(VK_HOME);
     table.requireSelectedRows(0);
   }
 
