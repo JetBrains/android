@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.ddmlib.Client.CHANGE_NAME;
+import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_JVMTI_PROFILING;
 
 /**
  * A proxy ProfilerService on host that intercepts grpc requests from perfd-host to device perfd.
@@ -48,7 +49,9 @@ import static com.android.ddmlib.Client.CHANGE_NAME;
 public class ProfilerServiceProxy extends PerfdProxyService
   implements AndroidDebugBridge.IClientChangeListener, AndroidDebugBridge.IDeviceChangeListener {
 
-  private static Logger getLogger() { return Logger.getInstance(ProfilerServiceProxy.class); }
+  private static Logger getLogger() {
+    return Logger.getInstance(ProfilerServiceProxy.class);
+  }
 
   private static final String AGENT_NAME = "libagent.so";
   private static final String EMULATOR = "Emulator";
@@ -73,7 +76,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
       .setModel(device.isEmulator() ? device.getAvdName() : DevicePropertyUtil.getModel(device, ""))
       .setVersion(StringUtil.notNullize(device.getProperty(IDevice.PROP_BUILD_VERSION)))
       .setApi(Integer.toString(device.getVersion().getApiLevel()))
-      .setManufacturer(DevicePropertyUtil.getManufacturer(device,  device.isEmulator() ? EMULATOR : ""))
+      .setManufacturer(DevicePropertyUtil.getManufacturer(device, device.isEmulator() ? EMULATOR : ""))
       .setIsEmulator(device.isEmulator())
       .setState(convertState(device.getState()))
       .build();
@@ -121,7 +124,9 @@ public class ProfilerServiceProxy extends PerfdProxyService
 
   public void attachAgent(Profiler.AgentAttachRequest request, StreamObserver observer) {
     // Agent attaching is only available on post-O devices.
-    if (!myDevice.isOnline() || myDevice.getVersion().getFeatureLevel() < 26) {
+    if (!ENABLE_JVMTI_PROFILING ||
+        !myDevice.isOnline() ||
+        myDevice.getVersion().getFeatureLevel() < 26) {
       observer.onNext(Profiler.AgentAttachResponse.getDefaultInstance());
       observer.onCompleted();
       return;
@@ -161,7 +166,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
                                        new NullOutputReceiver());
           status = Profiler.AgentAttachResponse.Status.SUCCESS;
         }
-        catch (TimeoutException | AdbCommandRejectedException | IOException | SyncException  | ShellCommandUnresponsiveException e) {
+        catch (TimeoutException | AdbCommandRejectedException | IOException | SyncException | ShellCommandUnresponsiveException e) {
           getLogger().error("Failed to attach agent.", e);
         }
 
@@ -247,7 +252,8 @@ public class ProfilerServiceProxy extends PerfdProxyService
       try {
         // TODO: getTimes should take the device
         times = myServiceStub.getCurrentTime(Profiler.TimeRequest.getDefaultInstance());
-      } catch (Exception e) {
+      }
+      catch (Exception e) {
         // Most likely the destination server went down, and we're in shut down/disconnect mode.
         getLog().info(e);
         return;
