@@ -58,7 +58,7 @@ public class IconPreviewFactoryTest extends LayoutTestCase {
     myItem = items.stream().filter(item -> item.getTagName().equals("TextView")).findFirst().orElse(null);
 
     SyncNlModel model = createModel();
-    myScreenView = surface().screen(model).getScreen();
+    myScreenView = screen(model).getScreen();
     myFactory = new IconPreviewFactory();
     myFactory.myRenderTimeoutSeconds = Long.MAX_VALUE;
     RenderService.setForTesting(myFacet, new MyRenderService(myFacet));
