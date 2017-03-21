@@ -18,11 +18,11 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.chart.statechart.StateChart;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
@@ -73,6 +73,7 @@ public class NetworkRadioView {
 
   private void populateUI(@NotNull JComponent panel) {
     JLabel label = new JLabel(LABEL);
+    label.setBorder(BorderFactory.createEmptyBorder(0, ProfilerLayout.MARKER_LENGTH, 0, 0));
     label.setVerticalAlignment(SwingConstants.TOP);
 
     LegendComponentModel legendModel = new LegendComponentModel(LEGEND_UPDATE_FREQUENCY_MS);
