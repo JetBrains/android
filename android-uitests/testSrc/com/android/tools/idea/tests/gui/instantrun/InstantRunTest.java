@@ -37,7 +37,6 @@ import java.util.regex.Pattern;
 
 import static com.google.common.truth.Truth.assertThat;
 
-@Ignore("https://code.google.com/p/android/issues/detail?id=246475")
 @RunWith(GuiTestRunner.class)
 public class InstantRunTest extends TestWithEmulator {
 
@@ -128,6 +127,7 @@ public class InstantRunTest extends TestWithEmulator {
    */
   @RunIn(TestGroup.QA)
   @Test
+  @Ignore
   public void coldSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
@@ -186,6 +186,7 @@ public class InstantRunTest extends TestWithEmulator {
    */
   @RunIn(TestGroup.QA)
   @Test
+  @Ignore
   public void changeManifest() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());

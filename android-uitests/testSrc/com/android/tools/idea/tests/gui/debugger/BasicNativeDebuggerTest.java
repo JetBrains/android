@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.regex.Pattern;
 
-@Ignore("https://code.google.com/p/android/issues/detail?id=246475")
 @RunIn(TestGroup.QA)
 @RunWith(GuiTestRunner.class)
 public class BasicNativeDebuggerTest extends TestWithEmulator {
@@ -160,6 +159,7 @@ public class BasicNativeDebuggerTest extends TestWithEmulator {
    *   </pre>
    */
   @Test
+  @Ignore
   public void testCAndJavaBreakAndResume() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicJniApp");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
