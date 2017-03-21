@@ -63,6 +63,7 @@ public class CpuCapture implements DurationData {
 
       CpuTraceArt traceArt = new CpuTraceArt();
       traceArt.parse(data);
+      myRange = new Range(data.getStartTimeUs(), data.getStartTimeUs() + data.getElapsedTimeUs());
       myCaptureTrees = traceArt.getThreadsGraph();
     }
     catch (IOException | BufferUnderflowException e) {
@@ -73,7 +74,6 @@ public class CpuCapture implements DurationData {
     // to find it we will fall back to the thread with the most information.
     Map.Entry<ThreadInfo, CaptureNode> main = null;
     boolean foundMainThread = false;
-    myRange = new Range();
     for (Map.Entry<ThreadInfo, CaptureNode> entry : myCaptureTrees.entrySet()) {
       if (entry.getKey().getName().equals(MAIN_THREAD_NAME)) {
         main = entry;
@@ -82,7 +82,6 @@ public class CpuCapture implements DurationData {
       if (!foundMainThread && (main == null || main.getValue().duration() < entry.getValue().duration())) {
         main = entry;
       }
-      myRange.expand(entry.getValue().getStart(), entry.getValue().getEnd());
     }
     // If there is no thread named "main", the trace file is not valid.
     // In this case, we would have caught a BufferUnderflowException from VmTraceParser above and rethrown it as IllegalStateException.
