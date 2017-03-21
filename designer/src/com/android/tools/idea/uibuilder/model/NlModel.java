@@ -324,6 +324,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   private final Object myRenderingQueueLock = new Object();
   private MergingUpdateQueue myRenderingQueue;
+  private final Object myLayoutQueueLock = new Object();
+  /** Similar to {@link #myRenderingQueue} but only for layout events */
+  private MergingUpdateQueue myLayoutQueue;
   private static final Object RENDERING_LOCK = new Object();
 
   /**
@@ -649,7 +652,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * @deprecated moving to LayoutlibSceneManager
    */
   public void requestLayout(boolean animate) {
-    getRenderingQueue().queue(new Update("model.layout", LOW_PRIORITY) {
+    synchronized (myLayoutQueueLock) {
+      if (myLayoutQueue == null) {
+        myLayoutQueue = new MergingUpdateQueue("android.layout.layout", RENDER_DELAY_MS, true, null, this, null,
+                                               Alarm.ThreadToUse.POOLED_THREAD);
+      }
+    }
+    myLayoutQueue.queue(new Update("model.layout", LOW_PRIORITY) {
 
       @Override
       public void run() {
