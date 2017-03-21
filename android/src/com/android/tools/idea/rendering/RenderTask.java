@@ -973,7 +973,7 @@ public class RenderTask implements IImageFactory {
   public boolean isNonRectangular() {
     // Drawable images can have non-rectangular shapes; we need to ensure that we blank out the
     // background with full alpha
-    return getFolderType() == ResourceFolderType.DRAWABLE;
+    return getFolderType() == ResourceFolderType.DRAWABLE || getFolderType() == ResourceFolderType.MIPMAP;
   }
 
   /** Returns true if this service requires rendering into a transparent/alpha channel image */
