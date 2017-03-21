@@ -45,12 +45,14 @@ public class Display {
       needsRebuild = true;
     }
     needsRebuild |= myDisplayList.getCommands().size() == 0;
+    needsRebuild |= scene.layout(mTime, sceneContext);
     if (needsRebuild) {
       myDisplayList.clear();
-      needsRebuild = scene.buildDisplayList(myDisplayList, mTime, sceneContext);
+      scene.buildDisplayList(myDisplayList, mTime, sceneContext);
       myDisplayListVersion = scene.getDisplayListVersion();
     }
     draw(sceneContext, g, myDisplayList);
+
     if (needsRebuild) {
       DesignSurface designSurface = sceneContext.getSurface();
       if (designSurface != null) {
