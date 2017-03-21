@@ -70,6 +70,9 @@ public class NlPreviewForm implements Disposable, CaretListener {
    * On {@link #activate()} the file will be restored to {@link #myFile} and the preview will be rendered again.
    */
   private XmlFile myInactiveFile;
+
+  private NlModel myModel;
+
   /**
    * Contains the file that is currently being loaded (it might take a while to get a preview rendered).
    * Once the file is loaded, myPendingFile will be null.
@@ -229,6 +232,11 @@ public class NlPreviewForm implements Disposable, CaretListener {
   public void dispose() {
     deactivate();
     myInactiveFile = null;
+
+    if (myModel != null) {
+      Disposer.dispose(myModel);
+      myModel = null;
+    }
   }
 
   public void setUseInteractiveSelector(boolean useInteractiveSelector) {
@@ -311,9 +319,14 @@ public class NlPreviewForm implements Disposable, CaretListener {
       setActiveModel(null);
     }
     else {
-      NlModel model = NlModel.create(mySurface, null, facet, xmlFile);
-      mySurface.setModel(model);
-      myPendingFile = new Pending(xmlFile, model);
+      if (myModel != null) {
+        Disposer.dispose(myModel);
+      }
+
+      myModel = NlModel.create(mySurface, null, facet, xmlFile);
+
+      mySurface.setModel(myModel);
+      myPendingFile = new Pending(xmlFile, myModel);
     }
     return true;
   }
