@@ -33,7 +33,7 @@ public class HorizontalScrollViewHandlerTest extends LayoutTestCase {
     SyncNlModel model = createModel();
     android.view.ViewGroup mockScrollView = (android.view.ViewGroup)model.getComponents().get(0).viewInfo.getViewObject();
 
-    surface().screen(model)
+    screen(model)
       .get("@id/myText1")
       .scroll()
       .scroll(0)
@@ -57,7 +57,7 @@ public class HorizontalScrollViewHandlerTest extends LayoutTestCase {
     when(mockScrollView.getScrollX())
       .thenAnswer((invocation) -> savedValue.get());
 
-    surface().screen(model)
+    screen(model)
       .get("@id/myText1")
       .scroll()
       .scroll(50)
@@ -80,7 +80,7 @@ public class HorizontalScrollViewHandlerTest extends LayoutTestCase {
     when(mockScrollView.getScrollX())
       .thenAnswer((invocation) -> savedValue.get());
 
-    surface().screen(model)
+    screen(model)
       .get("@id/myText1")
       .scroll()
       .scroll(50)

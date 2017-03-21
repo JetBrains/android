@@ -28,7 +28,7 @@ import static com.android.tools.idea.uibuilder.model.SegmentType.*;
 public class LinearLayoutHandlerTest extends LayoutTestCase {
 
   public void testDragNothing() throws Exception {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/myText1")
       .resize(TOP, RIGHT)
       .drag(0, 0)
@@ -38,7 +38,7 @@ public class LinearLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testCancel() throws Exception {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/myText1")
       .resize(TOP)
       .drag(20, 30)
@@ -49,7 +49,7 @@ public class LinearLayoutHandlerTest extends LayoutTestCase {
 
   @Ignore("The test needs to be rewritten for the Target architecture")
   public void ignore_testDragBottomRight() throws Exception {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/myText1")
       .resize(BOTTOM, RIGHT)
       .drag(20, 30)
@@ -60,7 +60,7 @@ public class LinearLayoutHandlerTest extends LayoutTestCase {
 
   @Ignore("The test needs to be rewritten for the Target architecture")
   public void ignore_testResizeTopLeft() throws Exception {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/myText1")
       .resize(TOP, LEFT)
       .drag(-20, -30)
@@ -70,7 +70,7 @@ public class LinearLayoutHandlerTest extends LayoutTestCase {
   }
 
   public void testDrag() throws Exception {
-    surface().screen(createModel())
+    screen(createModel())
       .get("@id/myText1")
       .drag()
       .drag(20, 30)
