@@ -17,6 +17,7 @@ package com.android.tools.idea.apk.debugging.editor;
 
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.apk.debugging.ExternalSourceFolders;
+import com.android.tools.idea.util.FileOrFolderChooser;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -37,11 +38,11 @@ class ChooseAndAttachSourcesTask implements Runnable {
   @NotNull private final EditorNotifications myEditorNotifications;
   @NotNull private final DumbService myDumbService;
   @NotNull private final DexSourceFiles myDexSourceFiles;
-  @NotNull private final FolderChooser myFolderChooser;
+  @NotNull private final FileOrFolderChooser myFileOrFolderChooser;
 
   ChooseAndAttachSourcesTask(@NotNull String classFqn, @NotNull Module module, @NotNull DexSourceFiles dexSourceFiles) {
     this(classFqn, module, DumbService.getInstance(module.getProject()), EditorNotifications.getInstance(module.getProject()),
-         dexSourceFiles, () -> {
+         dexSourceFiles, project -> {
         FileChooserDescriptor descriptor = createMultipleJavaPathDescriptor();
         descriptor.setTitle("Attach Sources");
         //noinspection DialogTitleCapitalization
@@ -56,18 +57,18 @@ class ChooseAndAttachSourcesTask implements Runnable {
                              @NotNull DumbService dumbService,
                              @NotNull EditorNotifications editorNotifications,
                              @NotNull DexSourceFiles dexSourceFiles,
-                             @NotNull FolderChooser folderChooser) {
+                             @NotNull FileOrFolderChooser fileOrFolderChooser) {
     myClassFqn = classFqn;
     myModule = module;
     myDumbService = dumbService;
     myEditorNotifications = editorNotifications;
     myDexSourceFiles = dexSourceFiles;
-    myFolderChooser = folderChooser;
+    myFileOrFolderChooser = fileOrFolderChooser;
   }
 
   @Override
   public void run() {
-    VirtualFile[] chosenFiles = myFolderChooser.chooseFolders();
+    VirtualFile[] chosenFiles = myFileOrFolderChooser.choose(myModule.getProject());
     if (chosenFiles.length > 0) {
       ModifiableRootModel moduleModel = ModuleRootManager.getInstance(myModule).getModifiableModel();
       ExternalSourceFolders sourceFolders = new ExternalSourceFolders(moduleModel);
@@ -78,11 +79,5 @@ class ChooseAndAttachSourcesTask implements Runnable {
         myEditorNotifications.updateAllNotifications();
       });
     }
-  }
-
-  @VisibleForTesting
-  interface FolderChooser {
-    @NotNull
-    VirtualFile[] chooseFolders();
   }
 }
