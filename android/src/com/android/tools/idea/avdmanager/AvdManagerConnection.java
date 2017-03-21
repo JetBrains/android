@@ -728,16 +728,6 @@ public class AvdManagerConnection {
         return false;
       }
     }
-    // Re-create the user data file from the static copy.
-    // Do this now so the AVD's first launch happens faster.
-    File userdataImageSrc = new File(avdInfo.getDataFolderPath(), AvdManager.USERDATA_IMG);
-    try {
-      myFileOp.copyFile(userdataImageSrc, userdataImage);
-    }
-    catch (IOException ex) {
-      // The copy failed, but this is not critical. The Emulator
-      // will try the copy again when it boots.
-    }
     return true;
   }
 
