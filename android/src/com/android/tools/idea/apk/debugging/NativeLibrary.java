@@ -23,7 +23,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
@@ -34,6 +36,7 @@ public class NativeLibrary {
 
   // This class is serialized to XML in APKFacet. For this serialization, classes must have either getters/setters or public fields.
   @NotNull public List<String> sourceFolderPaths = new ArrayList<>();
+  @NotNull public Map<String, String> pathMappings = new HashMap<>();
   @Nullable public String debuggableFilePath;
   public boolean hasDebugSymbols;
 
