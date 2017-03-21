@@ -41,6 +41,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.WidgetDraw;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
 import com.android.tools.idea.uibuilder.scout.Scout;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
@@ -103,6 +104,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   private final static String ADD_VERTICAL_BARRIER = "Add Vertical barrier";
   private final static String ADD_HORIZONTAL_BARRIER = "Add Horizontal Barrier";
   private final static String ADD_TO_BARRIER = "Add to Barrier";
+  private final static String ADD_LAYER = "Add Layer";
 
   static {
     ourAutoConnect = PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, false);
@@ -290,7 +292,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                              ADD_VERTICAL_BARRIER),
         new AddElementAction(AddElementAction.HORIZONTAL_BARRIER,
                              AndroidIcons.SherpaIcons.BarrierHorizontal,
-                             ADD_HORIZONTAL_BARRIER)
+                             ADD_HORIZONTAL_BARRIER),
+        new AddElementAction(AddElementAction.LAYER,
+                             AndroidIcons.SherpaIcons.Layer,
+                             ADD_LAYER)
       ))
     ));
   }
@@ -398,6 +403,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
     str = ADD_HORIZONTAL_BARRIER;
     actions.add(action = new AddElementAction(AddElementAction.HORIZONTAL_BARRIER, AndroidIcons.SherpaIcons.BarrierHorizontal, str));
+    myPopupActions.add(action);
+
+    str = ADD_LAYER;
+    actions.add(action = new AddElementAction(AddElementAction.LAYER, AndroidIcons.SherpaIcons.Layer, str));
     myPopupActions.add(action);
   }
 
@@ -769,6 +778,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     public static final int VERTICAL_GUIDELINE = 1;
     public static final int HORIZONTAL_BARRIER = 2;
     public static final int VERTICAL_BARRIER = 3;
+    public static final int LAYER = 4;
 
     final int myType;
 
@@ -810,7 +820,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
             guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
                                    SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL);
           }
-            break;
+          break;
+          case LAYER: {
+            NlComponent layer = parent.createChild(editor, CLASS_CONSTRAINT_LAYOUT_LAYER, null, InsertType.CREATE);
+            layer.ensureId();
+          }
+          break;
           case HORIZONTAL_BARRIER: {
             int barriers = 0;
             int other = 0;
@@ -950,6 +965,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
             presentation.setLabel(myType == VERTICAL_BARRIER ? ADD_VERTICAL_BARRIER : ADD_HORIZONTAL_BARRIER);
           }
         }
+      }
+      if (myType == LAYER) {
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 0);
       }
 
       presentation.setVisible(show);
@@ -1148,67 +1166,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     }
   }
 
-
   @Override
   @NotNull
-  public String getTitle(@NotNull NlComponent component) {
-    String title = getSimpleTagName(component.getTagName());
-    if (component.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_HELPER)) {
-      if (component.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_CHAIN)) {
-        boolean horizontal = true;
-        String orientation = component.getLiveAttribute(ANDROID_URI, ATTR_ORIENTATION);
-        if (orientation != null && orientation.equals(VALUE_VERTICAL)) {
-          horizontal = false;
-        }
-        if (horizontal) {
-          title = "Horizontal Chain";
-        } else {
-          title = "Vertical Chain";
-        }
-      }
-    }
-    return title;
-  }
-
-  /**
-   * Gives a chance to the ViewGroupHandler to handle drop on elements that are not ViewGroup.
-   * For ConstraintHelper instances, we'll insert tags elements referencing the dropped components.
-   *
-   * @param model
-   * @param event
-   * @param receiver
-   * @param dragged
-   * @param sibling
-   * @param type
-   */
-  @Override
-  public void performDrop(@NotNull NlModel model,
-                          @NotNull DropTargetDropEvent event,
-                          @NotNull NlComponent receiver,
-                          @NotNull List<NlComponent> dragged,
-                          @Nullable NlComponent sibling,
-                          @NotNull InsertType insertType) {
-    if (receiver.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_HELPER)) {
-      try {
-        for (NlComponent toDrag : dragged) {
-          InsertType insert = insertType;
-          NlComponent component = toDrag;
-          if (insertType.isMove() && toDrag.getParent() != receiver) {
-            insert = InsertType.CREATE;
-            XmlTag tag = receiver.getTag().createChildTag(TAG, null, null, false);
-            tag.setAttribute(PREFIX_ANDROID + ATTR_ID, toDrag.getAttribute(ANDROID_URI, ATTR_ID));
-            component = new NlComponent(model, tag);
-          }
-          model.addTags(Arrays.asList(component), receiver, sibling, insert);
-        }
-        event.acceptDrop(insertType == InsertType.COPY ? event.getDropAction() : DnDConstants.ACTION_COPY);
-        event.dropComplete(true);
-        model.notifyModified(NlModel.ChangeType.DROP);
-      }
-      catch (Exception exception) {
-        Logger.getInstance(NlDropListener.class).warn(exception);
-        event.rejectDrop();
-      }
-    }
+  public List<String> getInspectorProperties() {
+    return ImmutableList.of(ATTR_MIN_WIDTH, ATTR_MAX_WIDTH, ATTR_MIN_HEIGHT, ATTR_MAX_HEIGHT, ATTR_LAYOUT_CONSTRAINTSET);
   }
 }
