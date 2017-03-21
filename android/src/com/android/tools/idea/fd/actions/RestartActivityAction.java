@@ -108,7 +108,7 @@ public class RestartActivityAction extends AnAction {
     return activeHandlers;
   }
 
-  private static boolean isDebuggerPaused(@Nullable Project project) {
+  public static boolean isDebuggerPaused(@Nullable Project project) {
     if (project == null) {
       return false;
     }
