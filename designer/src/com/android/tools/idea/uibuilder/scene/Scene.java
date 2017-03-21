@@ -305,8 +305,8 @@ public class Scene implements SelectionListener {
    * @param time
    * @return true if we need to repaint the screen
    */
-  public boolean buildDisplayList(@NotNull DisplayList displayList, long time, ScreenView screenView) {
-    return buildDisplayList(displayList, time, SceneContext.get(screenView));
+  public void buildDisplayList(@NotNull DisplayList displayList, long time, ScreenView screenView) {
+    buildDisplayList(displayList, time, SceneContext.get(screenView));
   }
 
   /**
@@ -316,8 +316,9 @@ public class Scene implements SelectionListener {
    * @param time
    * @return true if we need to repaint the screen
    */
-  public boolean buildDisplayList(@NotNull DisplayList displayList, long time) {
-    return buildDisplayList(displayList, time, SceneContext.get());
+  public void buildDisplayList(@NotNull DisplayList displayList, long time) {
+     layout(time, SceneContext.get());
+     buildDisplayList(displayList, time, SceneContext.get());
   }
 
   public void repaint() {
@@ -329,12 +330,9 @@ public class Scene implements SelectionListener {
    *
    * @param displayList
    * @param time
-   * @return true if we need to repaint the screen
    */
-  public boolean buildDisplayList(@NotNull DisplayList displayList, long time, SceneContext sceneContext) {
-    boolean needsRepaint = false;
+  public void buildDisplayList(@NotNull DisplayList displayList, long time, SceneContext sceneContext) {
     if (myRoot != null) {
-      needsRepaint = myRoot.layout(sceneContext, time);
       myRoot.buildDisplayList(time, displayList, sceneContext);
       if (DEBUG) {
         System.out.println("========= DISPLAY LIST ======== \n" + displayList.serialize());
@@ -345,12 +343,28 @@ public class Scene implements SelectionListener {
         System.out.println("Scene:Paint() - NO ROOT ");
       }
     }
+  }
+
+  /**
+   * Layout targets
+   *
+   * @param time
+   * @param sceneContext
+   * @return true if we need to repaint the screen
+   */
+  public boolean layout(long time, SceneContext sceneContext) {
+    boolean needsRepaint = false;
+    if (myRoot != null) {
+      needsRepaint = myRoot.layout(sceneContext, time);
+    }
     if (myDidPreviousRepaint) {
       myDidPreviousRepaint = needsRepaint;
       needsRepaint = true;
     }
     return needsRepaint;
   }
+
+  public boolean didPreviousRepaint() { return myDidPreviousRepaint; }
 
   /**
    * Select the given components
