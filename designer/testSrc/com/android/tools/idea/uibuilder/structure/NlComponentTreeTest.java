@@ -16,9 +16,9 @@
 package com.android.tools.idea.uibuilder.structure;
 
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.util.JavaDocViewer;
@@ -45,6 +45,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createScreen;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.findActionForKey;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
@@ -59,7 +60,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
   private CopyPasteManager myCopyPasteManager;
   @Mock
   private JavaDocViewer myJavaDocViewer;
-  private NlModel myModel;
+  private SyncNlModel myModel;
   private NlComponentTree myTree;
   private NlComponent myRelativeLayout;
   private NlComponent myLinearLayout;
@@ -72,8 +73,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     super.setUp();
     initMocks(this);
     myModel = createModel();
-    when(myScreen.getModel()).thenReturn(myModel);
-    when(myScreen.getSelectionModel()).thenReturn(myModel.getSelectionModel());
+    myScreen = createScreen(myModel);
     when(mySurface.getCurrentSceneView()).thenReturn(myScreen);
     when(mySurface.getProject()).thenReturn(getProject());
     myTree = new NlComponentTree(getProject(), mySurface, myCopyPasteManager);
@@ -126,9 +126,9 @@ public class NlComponentTreeTest extends LayoutTestCase {
   }
 
   public void testTreeStructureOfAppBar() {
-    NlModel model = createModelWithAppBar();
-    when(myScreen.getModel()).thenReturn(model);
-    when(myScreen.getSelectionModel()).thenReturn(model.getSelectionModel());
+    SyncNlModel model = createModelWithAppBar();
+    myScreen = createScreen(model);
+    when(mySurface.getCurrentSceneView()).thenReturn(myScreen);
     myTree.setDesignSurface(mySurface);
     UIUtil.dispatchAllInvocationEvents();
     assertEquals("<android.support.design.widget.CoordinatorLayout>  [expanded]\n" +
@@ -321,8 +321,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
   public void testDropOnChain() {
     myModel = createModelWithConstraintLayout();
-    when(myScreen.getModel()).thenReturn(myModel);
-    when(myScreen.getSelectionModel()).thenReturn(myModel.getSelectionModel());
+    myScreen = createScreen(myModel);
     when(mySurface.getCurrentSceneView()).thenReturn(myScreen);
     when(mySurface.getProject()).thenReturn(getProject());
     myTree = new NlComponentTree(getProject(), mySurface, myCopyPasteManager);
@@ -400,14 +399,16 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
   private void copy(@NotNull NlComponent... components) {
     myModel.getSelectionModel().setSelection(Arrays.asList(components));
-    when(myCopyPasteManager.getContents()).thenReturn(myModel.getSelectionAsTransferable());
+    Transferable selection = myModel.getSelectionAsTransferable();
+    when(myCopyPasteManager.getContents()).thenReturn(selection);
     myModel.getSelectionModel().clear();
   }
 
   private void cut(@NotNull NlComponent... components) {
     List<NlComponent> list = Arrays.asList(components);
     myModel.getSelectionModel().setSelection(list);
-    when(myCopyPasteManager.getContents()).thenReturn(myModel.getSelectionAsTransferable());
+    Transferable selection = myModel.getSelectionAsTransferable();
+    when(myCopyPasteManager.getContents()).thenReturn(selection);
     myModel.delete(list);
     myModel.getSelectionModel().clear();
   }
@@ -441,7 +442,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
   }
 
   @NotNull
-  private NlModel createModel() {
+  private SyncNlModel createModel() {
     ModelBuilder builder = model("relative.xml",
                                  component(RELATIVE_LAYOUT)
                                    .withBounds(0, 0, 1000, 1000)
@@ -467,7 +468,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        .withBounds(0, 300, 400, 500)
                                        .width("400dp")
                                        .height("500dp")));
-    final NlModel model = builder.build();
+    final SyncNlModel model = builder.build();
     assertEquals(1, model.getComponents().size());
     assertEquals("NlComponent{tag=<RelativeLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<LinearLayout>, bounds=[0,0:200x200}\n" +
@@ -479,7 +480,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
   }
 
   @NotNull
-  private NlModel createModelWithAppBar() {
+  private SyncNlModel createModelWithAppBar() {
     ModelBuilder builder = model("coordinator.xml",
                                  component(COORDINATOR_LAYOUT)
                                    .withBounds(0, 0, 1000, 1000)
@@ -499,7 +500,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        .children(component(TEXT_VIEW).withBounds(0, 192, 1000, 808).matchParentWidth().wrapContentHeight()
                                                    .text("@string/stuff"))));
 
-    final NlModel model = builder.build();
+    final SyncNlModel model = builder.build();
     assertEquals(1, model.getComponents().size());
     assertEquals("NlComponent{tag=<android.support.design.widget.CoordinatorLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<android.support.design.widget.AppBarLayout>, bounds=[0,0:1000x192}\n" +
@@ -513,7 +514,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
   }
 
   @NotNull
-  private NlModel createModelWithConstraintLayout() {
+  private SyncNlModel createModelWithConstraintLayout() {
     ModelBuilder builder = model("constraint.xml",
                                  component(CONSTRAINT_LAYOUT)
                                    .withBounds(0, 0, 1000, 1000)
@@ -540,7 +541,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        .id("@+id/chain")
                                        .wrapContentWidth()
                                        .wrapContentHeight()));
-    final NlModel model = builder.build();
+    final SyncNlModel model = builder.build();
     assertEquals(1, model.getComponents().size());
     assertEquals("NlComponent{tag=<android.support.constraint.ConstraintLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<Button>, bounds=[0,0:200x200}\n" +
