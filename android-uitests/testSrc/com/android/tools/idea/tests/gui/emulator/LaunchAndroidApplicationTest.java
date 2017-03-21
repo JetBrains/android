@@ -43,7 +43,6 @@ import java.util.regex.Pattern;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.google.common.truth.Truth.assertThat;
 
-@Ignore("https://code.google.com/p/android/issues/detail?id=246475")
 @RunWith(GuiTestRunner.class)
 public class LaunchAndroidApplicationTest extends TestWithEmulator {
 
@@ -65,6 +64,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
 
   @RunIn(TestGroup.QA)
   @Test
+  @Ignore
   public void testRunOnEmulator() throws Exception, ClassNotFoundException {
     InstantRunSettings.setShowStatusNotifications(false);
     guiTest.importSimpleApplication();
@@ -86,6 +86,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
 
   @RunIn(TestGroup.QA)
   @Test
+  @Ignore
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
     guiTest.importSimpleApplication();
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
@@ -126,6 +127,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
    */
   @RunIn(TestGroup.QA)
   @Test
+  @Ignore
   public void testNdkHandlesDupeFilename() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("NdkDupeFilename");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
@@ -163,6 +165,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
    */
   @RunIn(TestGroup.QA)
   @Test
+  @Ignore
   public void testVulkanCrashes() throws IOException, ClassNotFoundException {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("VulkanCrashes");
     // The app must run under the debugger, otherwise there is a race condition where
