@@ -25,22 +25,28 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.Executor;
 
+import static com.android.tools.idea.explorer.adbimpl.AdbPathUtil.DEVICE_TEMP_DIRECTORY;
+
 public class AdbFileTransfer {
   @NotNull private static Logger LOGGER = Logger.getInstance(AdbFileTransfer.class);
 
   @NotNull private final IDevice myDevice;
+  @NotNull private final AdbFileOperations myFileOperations;
   @NotNull private final FutureCallbackExecutor myProgressExecutor;
   @NotNull private final FutureCallbackExecutor myTaskExecutor;
 
   public AdbFileTransfer(@NotNull IDevice device,
+                         @NotNull AdbFileOperations fileOperations,
                          @NotNull Executor progressExecutor,
                          @NotNull Executor taskExecutor) {
     myDevice = device;
+    myFileOperations = fileOperations;
     myProgressExecutor = FutureCallbackExecutor.wrap(progressExecutor);
     myTaskExecutor = FutureCallbackExecutor.wrap(taskExecutor);
   }
@@ -61,10 +67,58 @@ public class AdbFileTransfer {
   }
 
   @NotNull
+  public ListenableFuture<Void> downloadFileViaTempLocation(@NotNull String remotePath,
+                                                            long remotePathSize,
+                                                            @NotNull Path localPath,
+                                                            @NotNull FileTransferProgress progress,
+                                                            @Nullable String runAs) {
+    // Note: We should reach this code only if the device is not root, in which case
+    // trying a "pullFile" would fail because of permission error (reading from the /data/data/
+    // directory), so we copy the file to a temp. location, then pull from that temp location.
+    ListenableFuture<String> futureTempFile = myFileOperations.createTempFile(DEVICE_TEMP_DIRECTORY);
+    return myTaskExecutor.transformAsync(futureTempFile, tempFile -> {
+      assert tempFile != null;
+
+      // Copy the remote file to the temporary remote location
+      ListenableFuture<Void> futureCopy = myFileOperations.copyFileRunAs(remotePath, tempFile, runAs);
+      ListenableFuture<Void> futureDownload = myTaskExecutor.transformAsync(futureCopy, aVoid -> {
+        // Download the temporary remote file to local disk
+        return downloadFile(tempFile, remotePathSize, localPath, progress);
+      });
+
+      // Ensure temporary remote file is deleted in all cases (after download success *or* error)
+      return myTaskExecutor.finallyAsync(futureDownload,
+                                         () -> myFileOperations.deleteFile(tempFile));
+    });
+  }
+
+
+  @NotNull
   public ListenableFuture<Void> uploadFile(@NotNull Path localPath,
                                            @NotNull String remotePath,
                                            @NotNull FileTransferProgress progress) {
     return uploadFileWorker(localPath, remotePath, progress);
+  }
+
+  public ListenableFuture<Void> uploadFileViaTempLocation(@NotNull Path localPath,
+                                                          @NotNull String remotePath,
+                                                          @NotNull FileTransferProgress progress,
+                                                          @Nullable String runAs) {
+    ListenableFuture<String> futureTempFile = myFileOperations.createTempFile(DEVICE_TEMP_DIRECTORY);
+    return myTaskExecutor.transformAsync(futureTempFile, tempFile -> {
+      assert tempFile != null;
+
+      // Upload to temporary location
+      ListenableFuture<Void> futureUpload = uploadFile(localPath, tempFile, progress);
+      ListenableFuture<Void> futureCopy = myTaskExecutor.transformAsync(futureUpload, aVoid -> {
+        // Copy file from temporary location to package location (using "run-as")
+        return myFileOperations.copyFileRunAs(tempFile, remotePath, runAs);
+      });
+
+      // Ensure temporary remote file is deleted in all cases (after upload success *or* error)
+      return myTaskExecutor.finallyAsync(futureCopy,
+                                         () -> myFileOperations.deleteFile(tempFile));
+    });
   }
 
   @NotNull
@@ -78,10 +132,9 @@ public class AdbFileTransfer {
     ListenableFuture<Void> futurePull = myTaskExecutor.transform(futureSyncService, syncService -> {
       assert syncService != null;
       try {
-        long size = remotePathSize;
         syncService.pullFile(remotePath,
                              localPath.toString(),
-                             new SingleFileProgressMonitor(myProgressExecutor, progress, size));
+                             new SingleFileProgressMonitor(myProgressExecutor, progress, remotePathSize));
         return null;
       }
       finally {

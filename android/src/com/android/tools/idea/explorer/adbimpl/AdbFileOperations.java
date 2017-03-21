@@ -200,7 +200,25 @@ public class AdbFileOperations {
     });
   }
 
-  private void touchFileRunAs(String remotePath, @Nullable String runAs)
+  @NotNull
+  public ListenableFuture<Void> touchFileAsDefaultUser(@NotNull String remotePath) {
+    return myExecutor.executeAsync(() -> {
+      String command;
+      if (myDeviceCapabilities.supportsTouchCommand()) {
+        // Touch creates an empty file if the file does not exist.
+        // Touch fails if there are permissions errors.
+        command = new AdbShellCommandBuilder().withText("touch ").withEscapedPath(remotePath).build();
+      }
+      else {
+        command = new AdbShellCommandBuilder().withText("echo -n >").withEscapedPath(remotePath).build();
+      }
+      AdbShellCommandResult commandResult = AdbShellCommandsUtil.executeCommand(myDevice, command);
+      commandResult.throwIfError();
+      return null;
+    });
+  }
+
+  private void touchFileRunAs(@NotNull String remotePath, @Nullable String runAs)
     throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, AdbShellCommandException {
     String command;
     if (myDeviceCapabilities.supportsTouchCommand()) {
