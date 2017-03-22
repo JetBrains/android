@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.template;
 
-import com.intellij.openapi.application.ApplicationManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -25,7 +24,7 @@ import java.util.List;
  * Sometimes, there are several separate classes which want to render templates, in some order, but the whole process should be aborted if
  * any of them fail a validation pass. This class acts as a central way to coordinate such render request.
  */
-public final class MultiTemplateRender {
+public final class MultiTemplateRenderer {
 
   public interface TemplateRenderer {
     /**
@@ -40,47 +39,46 @@ public final class MultiTemplateRender {
     void render();
   }
 
-  private final List<TemplateRenderer> myTemplateRenders = new ArrayList<>();
-  private boolean myIsCancelled;
+  private final List<TemplateRenderer> myTemplateRenderers = new ArrayList<>();
+  private int myRequestCount = 1;
+
+  // DO NOT SUBMIT AS IS: IF THIS WORKS MAKE THE API NICER OR ADD BETTER COMMENTS
+  public void increment() {
+    myRequestCount++;
+  }
+  // DO NOT SUBMIT AS IS: IF THIS WORKS MAKE THE API NICER OR ADD BETTER COMMENTS
+  private void countDown() {
+    if (myRequestCount == 0) {
+      throw new IllegalStateException("Invalid extra call to MultiTemplateRenderer#countDown");
+    }
+    myRequestCount--;
+
+    if (myRequestCount == 0) {
+      for (TemplateRenderer renderer : myTemplateRenderers) {
+        if (!renderer.doDryRun()) {
+          return;
+        }
+      }
+
+      for (TemplateRenderer renderer : myTemplateRenderers) {
+        renderer.render();
+      }
+    }
+  }
 
   /**
    * Enqueue a template render request, batching it into a collection that will all be validated and, if all valid, rendered, at some
    * later time.
-   * Note: This class works by invoking the logic using invokeLater, when we get our first renderer. Any additional renders that are
-   * enqueued between now and that later time will be batched. Therefore, if you have any logic that, itself, calls invokeLater between
-   * renderer requests, it may break this classes' logic.
-   * Note #2: This class is intended to be used once and discarded. If you enqueue renderers after the previous renderers have executed, t
+   * Note: This class is intended to be used once and discarded. If you enqueue renderers after the previous renderers have executed, t
    * his method's behavior may not work as expected.
    */
   public void requestRender(@NotNull TemplateRenderer templateRenderer) {
-    if (myIsCancelled) {
-      return;
-    }
+    myTemplateRenderers.add(templateRenderer);
+    countDown();
+  }
 
-    try {
-      myIsCancelled = !templateRenderer.doDryRun();
-    }
-    catch (Throwable e) {
-      myIsCancelled = true;
-      throw e;
-    }
-
-    if (myIsCancelled) {
-      return;
-    }
-
-    myTemplateRenders.add(templateRenderer);
-
-    if (myTemplateRenders.size() == 1) {
-      ApplicationManager.getApplication().invokeLater(() -> {
-        if (myIsCancelled) {
-          return;
-        }
-
-        for (TemplateRenderer tr : myTemplateRenders) {
-          tr.render();
-        }
-      });
-    }
+  // DO NOT SUBMIT AS IS: IF THIS WORKS MAKE THE API NICER OR ADD BETTER COMMENTS
+  public void skipRender() {
+    countDown();
   }
 }
