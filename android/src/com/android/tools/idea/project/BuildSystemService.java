@@ -52,5 +52,16 @@ public abstract class BuildSystemService {
 
   public abstract void addDependency(@NotNull Module module, @NotNull String dependency);
 
+  /**
+   * Merge new dependencies into a (potentially existing) build file.
+   * @param dependencies new dependencies.
+   * @param destinationContents original content of the build file.
+   * @return new content of the build file.
+   */
+  public abstract String mergeBuildFiles(@NotNull String dependencies,
+                                         @NotNull String destinationContents,
+                                         @NotNull Project project,
+                                         @Nullable String supportLibVersionFilter);
+
   public abstract List<AndroidSourceSet> getSourceSets(@NotNull AndroidFacet facet, @Nullable VirtualFile targetDirectory);
 }

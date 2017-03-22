@@ -14,8 +14,8 @@
  */
 package com.android.tools.idea.npw.module;
 
-import com.android.tools.idea.npw.template.MultiTemplateRenderer;
 import com.android.tools.idea.npw.project.NewProjectModel;
+import com.android.tools.idea.npw.template.MultiTemplateRenderer;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.templates.Template;
@@ -270,7 +270,7 @@ public final class NewModuleModel extends WizardModel {
         .withOutputRoot(projectRoot)
         .withModuleRoot(moduleRoot)
         .withParams(templateState)
-        //.withGradleSync(myGradleSyncIfNecessary) // TODO: Check that we still need this
+        //.withPerformSync(myPerformSyncIfNecessary) // TODO: Check that we still need this
         //.intoTargetFiles(myState.get(TARGET_FILES_KEY))
         //.intoOpenFiles(myState.get(FILES_TO_OPEN_KEY))
         //.intoDependencies(myState.get(DEPENDENCIES_KEY))
