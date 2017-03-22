@@ -477,7 +477,7 @@ public class RenderErrorContributor {
     builder.newline();
 
     addIssue()
-      .setSeverity(HighlightSeverity.WARNING)
+      .setSeverity(HighlightSeverity.WEAK_WARNING)
       .setSummary("Layout fidelity warning")
       .setHtmlContent(builder)
       .build();
