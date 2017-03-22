@@ -50,7 +50,6 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.Magnificator;
 import com.intellij.util.Alarm;
 import com.intellij.util.ui.AsyncProcessIcon;
-import com.intellij.util.ui.ButtonlessScrollBarUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import org.intellij.lang.annotations.JdkConstants;
@@ -97,7 +96,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected List<DesignSurfaceListener> myListeners;
   private List<PanZoomListener> myZoomListeners;
   private final ActionManager myActionManager;
-  private float mySavedErrorPanelProportion;
+  @SuppressWarnings("CanBeFinal") private float mySavedErrorPanelProportion;
   @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
   protected NlModel myModel;
   protected Scene myScene;
@@ -440,7 +439,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return false;
   }
 
-  protected abstract Point translateCoordinate(@NotNull Point coord);
+  protected abstract Point translateCoordinate(@NotNull Point coordinate);
 
   public void resetHover() {
     if (hasProblems()) {
@@ -737,15 +736,12 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  private final SelectionListener mySelectionListener = new SelectionListener() {
-    @Override
-    public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-      if (getCurrentSceneView() != null) {
-        notifySelectionListeners(selection);
-      }
-      else {
-        notifySelectionListeners(Collections.emptyList());
-      }
+  private final SelectionListener mySelectionListener = (model, selection) -> {
+    if (getCurrentSceneView() != null) {
+      notifySelectionListeners(selection);
+    }
+    else {
+      notifySelectionListeners(Collections.emptyList());
     }
   };
 
@@ -847,12 +843,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @Override
     public JScrollBar createHorizontalScrollBar() {
       return new MyScrollBar(Adjustable.HORIZONTAL);
-    }
-
-    @Override
-    protected boolean isOverlaidScrollbar(@Nullable JScrollBar scrollbar) {
-      ScrollBarUI vsbUI = scrollbar == null ? null : scrollbar.getUI();
-      return vsbUI instanceof ButtonlessScrollBarUI && !((ButtonlessScrollBarUI)vsbUI).alwaysShowTrack();
     }
   }
 
