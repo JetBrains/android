@@ -23,15 +23,18 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.project.BuildSystemService;
+import com.android.tools.idea.templates.GradleFilePsiMerger;
+import com.android.tools.idea.templates.GradleFileSimpleMerger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import java.util.Collections;
-import java.util.List;
-
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.List;
 
 public class GradleBuildSystemService extends BuildSystemService {
   @Override
@@ -46,8 +49,14 @@ public class GradleBuildSystemService extends BuildSystemService {
 
   @Override
   public void syncProject(@NotNull Project project) {
-    BuildVariantView.getInstance(project).projectImportStarted();
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+    if (project.isInitialized()) {
+      BuildVariantView.getInstance(project).projectImportStarted();
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
+    }
+    else {
+      StartupManager.getInstance(project)
+        .runWhenProjectIsInitialized(() -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null));
+    }
   }
 
   /**
@@ -62,6 +71,19 @@ public class GradleBuildSystemService extends BuildSystemService {
     GradleDependencyManager manager = GradleDependencyManager.getInstance(module.getProject());
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(artifact + ":+");
     manager.ensureLibraryIsIncluded(module, Collections.singletonList(coordinate), null);
+  }
+
+  @Override
+  public String mergeBuildFiles(@NotNull String dependencies,
+                                @NotNull String destinationContents,
+                                @NotNull Project project,
+                                @Nullable String supportLibVersionFilter) {
+    if (project.isInitialized()) {
+      return GradleFilePsiMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter);
+    }
+    else {
+      return GradleFileSimpleMerger.mergeGradleFiles(dependencies, destinationContents, project, supportLibVersionFilter);
+    }
   }
 
   @Override

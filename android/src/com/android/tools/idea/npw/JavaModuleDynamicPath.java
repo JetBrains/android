@@ -178,7 +178,7 @@ public class JavaModuleDynamicPath extends DynamicWizardPath implements NewModul
       .withShowErrors(true)
       .withModuleRoot(new File(FileUtil.toSystemDependentName(modulePath)))
       .withParams(parameterValueMap)
-      .withGradleSync(false)
+      .withPerformSync(false)
       .build();
     // @formatter:on
     return myTemplate.render(context);
