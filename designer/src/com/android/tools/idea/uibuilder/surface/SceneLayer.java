@@ -30,7 +30,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.BLUEPRINT_BG
  */
 public class SceneLayer extends Layer {
   private final DesignSurface myDesignSurface;
-  private final SceneView myScreenView;
+  private final SceneView mySceneView;
   private final Dimension myScreenViewSize = new Dimension();
   private final Rectangle mySizeRectangle = new Rectangle();
   private final Display myDisplay = new Display();
@@ -45,18 +45,18 @@ public class SceneLayer extends Layer {
    */
   public SceneLayer(@NotNull DesignSurface surface, @NotNull SceneView view, boolean showAlways) {
     myDesignSurface = surface;
-    myScreenView = view;
+    mySceneView = view;
     myShowAlways = showAlways;
   }
 
   /**
    * Paint function for the layer. Delegate the painting of the Scene to a Display instance.
    *
-   * @param g the graphics context
+   * @param g2 the graphics context
    */
   @Override
   public void paint(@NotNull Graphics2D g2) {
-    SceneContext sceneContext = SceneContext.get(myScreenView);
+    SceneContext sceneContext = SceneContext.get(mySceneView);
     if (!myShowOnHover && !myShowAlways && !myAlwaysShowSelection) {
       return;
     }
@@ -64,9 +64,9 @@ public class SceneLayer extends Layer {
     Graphics2D g = (Graphics2D)g2.create();
     try {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      myScreenView.getSize(myScreenViewSize);
+      mySceneView.getSize(myScreenViewSize);
 
-      mySizeRectangle.setBounds(myScreenView.getX(), myScreenView.getY(), myScreenViewSize.width, myScreenViewSize.height);
+      mySizeRectangle.setBounds(mySceneView.getX(), mySceneView.getY(), myScreenViewSize.width, myScreenViewSize.height);
       Rectangle2D.intersect(mySizeRectangle, g.getClipBounds(), mySizeRectangle);
       if (mySizeRectangle.isEmpty()) {
         return;
@@ -78,7 +78,7 @@ public class SceneLayer extends Layer {
       }
 
       // Draw the components
-      myDisplay.draw(sceneContext, g, myScreenView.getScene());
+      myDisplay.draw(sceneContext, g, mySceneView.getScene());
     }
     finally {
       g.dispose();
@@ -93,14 +93,14 @@ public class SceneLayer extends Layer {
     myShowOnHover = value;
   }
 
-  public SceneView getScreenView() {
-    return myScreenView;
+  public SceneView getSceneView() {
+    return mySceneView;
   }
 
   @Override
   public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
     boolean show = false;
-    if (getScreenView() == myDesignSurface.getHoverSceneView(x, y)) {
+    if (getSceneView() == myDesignSurface.getHoverSceneView(x, y)) {
       show = true;
     }
     if (isShowOnHover() != show) {
