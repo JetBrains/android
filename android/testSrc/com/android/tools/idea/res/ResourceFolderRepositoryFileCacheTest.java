@@ -125,7 +125,7 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     // Try adding some over the limit.
     int numOverLimit = 0;
     for (int i = 0; i < lruLimit + 1; ++i) {
-      Project mockProject = new MockProjectWithName(getTestRootDisposable(), "p" + i);
+      Project mockProject = new MockProjectWithName(getProject(), "p" + i);
       File mockProjectCacheDir = cache.getProjectDir(mockProject);
       assertNotNull(mockProjectCacheDir);
       curProjectFiles.add(Pair.create(mockProject, mockProjectCacheDir));
@@ -220,7 +220,7 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
     List<File> projectDirList = Lists.newArrayList();
     // Fill the cache directory with a bunch of mock project directories.
     for (int i = 0; i < lruLimit + overLimit; ++i) {
-      Project mockProject = new MockProjectWithName(getTestRootDisposable(), "p" + i);
+      Project mockProject = new MockProjectWithName(getProject(), "p" + i);
       File mockProjectCacheDir = cache.getProjectDir(mockProject);
       assertNotNull(mockProjectCacheDir);
       FileUtil.ensureExists(mockProjectCacheDir);
