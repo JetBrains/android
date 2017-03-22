@@ -21,12 +21,16 @@ import com.android.tools.adtui.treegrid.TreeGrid;
 import com.android.tools.adtui.workbench.StartFilteringListener;
 import com.android.tools.idea.uibuilder.actions.ComponentHelpAction;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.uibuilder.model.DnDTransferComponent;
+import com.android.tools.idea.uibuilder.model.DnDTransferItem;
+import com.android.tools.idea.uibuilder.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
@@ -46,6 +50,12 @@ import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.util.List;
 import java.util.function.Supplier;
 
 import static com.android.tools.adtui.splitter.SplitterUtil.setMinimumWidth;
@@ -305,6 +315,40 @@ public class NlPaletteTreeGrid extends JPanel implements Disposable {
       Transferable transferable = super.createTransferable(component);
       myCloseAutoHideCallback.run();
       return transferable;
+    }
+
+    @Override
+    protected void exportDone(@NotNull JComponent source, @Nullable Transferable data, int action) {
+      if (action != DnDConstants.ACTION_NONE && data != null) {
+        DnDTransferComponent component = getDndComponent(data);
+        if (component != null) {
+          NlUsageTrackerManager.getInstance(mySurface)
+            .logDropFromPalette(component.getTag(), component.getRepresentation(), myMode, getGroupName(), myTree.getFilterMatchCount());
+        }
+      }
+    }
+
+    @NotNull
+    private String getGroupName() {
+      Palette.Group group = myCategoryList.getSelectedValue();
+      return group != null ? group.getName() : "";
+    }
+
+    @Nullable
+    private DnDTransferComponent getDndComponent(@NotNull Transferable data) {
+      try {
+        DnDTransferItem item = (DnDTransferItem)data.getTransferData(ItemTransferable.DESIGNER_FLAVOR);
+        if (item != null) {
+          List<DnDTransferComponent> components = item.getComponents();
+          if (components.size() == 1) {
+            return components.get(0);
+          }
+        }
+      }
+      catch (UnsupportedFlavorException | IOException ex) {
+        Logger.getInstance(NlPaletteTreeGrid.class).warn("Could not un-serialize a transferable", ex);
+      }
+      return null;
     }
   }
 

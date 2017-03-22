@@ -146,7 +146,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Override
   public void setStarState(@NotNull StarState starState) {
     myStarState = starState;
-    NlProperties.saveStarState(myNamespace, myName, starState == StarState.STARRED);
+    NlProperties.saveStarState(myNamespace, myName, starState == StarState.STARRED, myPropertiesManager);
     myPropertiesManager.starStateChanged();
   }
 
@@ -359,6 +359,8 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
         }
       }
     }.execute());
+
+    myPropertiesManager.logPropertyChange(this);
   }
 
   @NotNull

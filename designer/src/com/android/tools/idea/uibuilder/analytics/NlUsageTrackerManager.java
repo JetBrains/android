@@ -22,7 +22,11 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.palette.PaletteMode;
+import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
+import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.cache.Cache;
@@ -31,14 +35,19 @@ import com.google.wireless.android.sdk.stats.*;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
+import static com.android.tools.idea.uibuilder.analytics.UsageTrackerUtil.*;
 
 /**
  * Class to manage anonymous stats logging for the layout editor. If global stats logging is disabled, no stats will be logged
@@ -98,6 +107,25 @@ public class NlUsageTrackerManager implements NlUsageTracker {
   @NotNull
   public static NlUsageTracker getInstance(@Nullable DesignSurface surface) {
     return UsageTracker.getInstance().getAnalyticsSettings().hasOptedIn() ? getInstanceInner(surface) : NOP_TRACKER;
+  }
+
+  /**
+   * Sets {@link NlUsageTracker} for a {@link DesignSurface} in tests.
+   */
+  @TestOnly
+  public static void setInstanceForTest(@NotNull DesignSurface surface, @NotNull NlUsageTracker tracker) {
+    sTrackersCache.put(surface, tracker);
+  }
+
+  /**
+   * Clears the cached instances to clean state in tests.
+   */
+  @TestOnly
+  public static void cleanAfterTesting(@NotNull DesignSurface surface) {
+    // The previous tracker may be a mock with recorded data that may show up as leaks.
+    // Replace the tracker first since invalidation may be delayed.
+    sTrackersCache.put(surface, NOP_TRACKER);
+    sTrackersCache.invalidate(surface);
   }
 
   /**
@@ -217,10 +245,15 @@ public class NlUsageTrackerManager implements NlUsageTracker {
   @Override
   public void logAction(@NotNull LayoutEditorEvent.LayoutEditorEventType eventType) {
     assert !LayoutEditorEvent.LayoutEditorEventType.RENDER.equals(eventType) : "RENDER actions should be logged through logRenderResult";
+    assert !LayoutEditorEvent.LayoutEditorEventType.DROP_VIEW_FROM_PALETTE.equals(eventType)
+      : "DROP_VIEW_FROM_PALETTE actions should be logged through logDropFromPalette";
+    assert !LayoutEditorEvent.LayoutEditorEventType.ATTRIBUTE_CHANGE.equals(eventType)
+      : "DROP_VIEW_FROM_PALETTE actions should be logged through logPropertyChange";
+    assert !LayoutEditorEvent.LayoutEditorEventType.FAVORITE_CHANGE.equals(eventType)
+      : "FAVORITE_CHANGE actions should be logged through logFavoritesChange";
 
     logStudioEvent(eventType, null);
   }
-
 
   @Override
   public void logRenderResult(@Nullable NlModel.ChangeType trigger, @NotNull RenderResult result, long totalRenderTimeMs) {
@@ -287,5 +320,52 @@ public class NlUsageTrackerManager implements NlUsageTracker {
 
       event.setRenderResult(builder.build());
     });
+  }
+
+  @Override
+  public void logDropFromPalette(@NotNull String viewTagName,
+                                 @NotNull String representation,
+                                 @NotNull PaletteMode paletteMode,
+                                 @NotNull String selectedGroup,
+                                 int filterMatches) {
+    LayoutPaletteEvent.Builder builder = LayoutPaletteEvent.newBuilder()
+      .setView(convertTagName(viewTagName))
+      .setViewOption(convertViewOption(viewTagName, representation))
+      .setSelectedGroup(convertGroupName(selectedGroup))
+      .setSearchOption(convertFilterMatches(filterMatches))
+      .setViewType(convertPaletteMode(paletteMode));
+    logStudioEvent(LayoutEditorEvent.LayoutEditorEventType.DROP_VIEW_FROM_PALETTE, (event) -> event.setPaletteEvent(builder));
+  }
+
+  @Override
+  public void logPropertyChange(@NotNull NlProperty property,
+                                @NotNull PropertiesViewMode propertiesMode,
+                                int filterMatches) {
+    LayoutAttributeChangeEvent.Builder builder = LayoutAttributeChangeEvent.newBuilder()
+      .setAttribute(convertAttribute(property))
+      .setSearchOption(convertFilterMatches(filterMatches))
+      .setViewType(convertPropertiesMode(propertiesMode));
+    for (NlComponent component : property.getComponents()) {
+      builder.addView(convertTagName(component.getTagName()));
+    }
+    logStudioEvent(LayoutEditorEvent.LayoutEditorEventType.ATTRIBUTE_CHANGE, (event) -> event.setAttributeChangeEvent(builder));
+  }
+
+  @Override
+  public void logFavoritesChange(@NotNull String addedPropertyName,
+                                 @NotNull String removedPropertyName,
+                                 @NotNull List<String> currentFavorites,
+                                 @NotNull AndroidFacet facet) {
+    LayoutFavoriteAttributeChangeEvent.Builder builder = LayoutFavoriteAttributeChangeEvent.newBuilder();
+    if (!addedPropertyName.isEmpty()) {
+      builder.setAdded(convertAttribute(addedPropertyName, facet));
+    }
+    if (!removedPropertyName.isEmpty()) {
+      builder.setRemoved(convertAttribute(removedPropertyName, facet));
+    }
+    for (String propertyName : currentFavorites) {
+      builder.addActive(convertAttribute(propertyName, facet));
+    }
+    logStudioEvent(LayoutEditorEvent.LayoutEditorEventType.FAVORITE_CHANGE, (event) -> event.setFavoriteChangeEvent(builder));
   }
 }

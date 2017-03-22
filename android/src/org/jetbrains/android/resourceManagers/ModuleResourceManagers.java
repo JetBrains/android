@@ -16,6 +16,7 @@
 package org.jetbrains.android.resourceManagers;
 
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.Key;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -27,7 +28,8 @@ import org.jetbrains.annotations.Nullable;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 public class ModuleResourceManagers extends AndroidFacetScopedService {
-  private static final Key<ModuleResourceManagers> KEY = Key.create(ModuleResourceManagers.class.getName());
+  @VisibleForTesting
+  public static final Key<ModuleResourceManagers> KEY = Key.create(ModuleResourceManagers.class.getName());
 
   private SystemResourceManager myPublicSystemResourceManager;
   private SystemResourceManager myFullSystemResourceManager;
