@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.regex.Pattern;
 
-@RunIn(TestGroup.QA)
 @RunWith(GuiTestRunner.class)
 public class BasicNativeDebuggerTest extends TestWithEmulator {
 
@@ -47,6 +46,7 @@ public class BasicNativeDebuggerTest extends TestWithEmulator {
   private static final Pattern DEBUGGER_ATTACHED_PATTERN = Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL);
 
   @Test
+  @RunIn(TestGroup.QA)
   public void testSessionRestart() throws IOException, ClassNotFoundException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicJniApp");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
@@ -76,7 +76,7 @@ public class BasicNativeDebuggerTest extends TestWithEmulator {
   }
 
   @Test
-  @Ignore
+  @RunIn(TestGroup.QA_UNRELIABLE)
   public void testMultiBreakAndResume() throws IOException, ClassNotFoundException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicJniApp");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
@@ -160,7 +160,7 @@ public class BasicNativeDebuggerTest extends TestWithEmulator {
    *   </pre>
    */
   @Test
-  @Ignore
+  @RunIn(TestGroup.QA_UNRELIABLE)
   public void testCAndJavaBreakAndResume() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicJniApp");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
