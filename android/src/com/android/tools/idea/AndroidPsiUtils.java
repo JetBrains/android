@@ -19,7 +19,6 @@ package com.android.tools.idea;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.MergedManifest;
-import com.android.tools.idea.res.ResourceHelper;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -323,21 +322,6 @@ public class AndroidPsiUtils {
     } else {
       return ApplicationManager.getApplication().runReadAction((Computable<String>)psiClass::getQualifiedName);
     }
-  }
-
-  /**
-   * Locates the given class by fully qualified name visible from the given module
-   *
-   * @param module    the module scope to search
-   * @param className the class to find
-   * @return the class, if found
-   */
-  @Nullable
-  public static PsiClass getPsiClass(@NotNull Module module, @NotNull String className) {
-    Project project = module.getProject();
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-    GlobalSearchScope scope = module.getModuleWithLibrariesScope();
-    return facade.findClass(className, scope);
   }
 
   /**
