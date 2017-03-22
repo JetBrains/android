@@ -62,9 +62,8 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
   private static final Pattern DEBUG_OUTPUT = Pattern.compile(".*Connected to the target VM.*", Pattern.DOTALL);
   private static final String MIN_SDK = "18";
 
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
-  @Ignore
   public void testRunOnEmulator() throws Exception, ClassNotFoundException {
     InstantRunSettings.setShowStatusNotifications(false);
     guiTest.importSimpleApplication();
