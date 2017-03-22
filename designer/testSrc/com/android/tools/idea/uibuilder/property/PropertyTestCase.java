@@ -18,9 +18,9 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.SyncNlModel;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorProvider;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -75,6 +75,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlDesignSurface myDesignSurface;
   protected ScreenView myScreenView;
   protected NlPropertiesManager myPropertiesManager;
+  protected NlUsageTracker myUsageTracker;
   protected AndroidDomElementDescriptorProvider myDescriptorProvider;
   protected Map<String, NlComponent> myComponentMap;
   protected PropertiesComponent myPropertiesComponent;
@@ -108,15 +109,18 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myPropertiesManager = new NlPropertiesManager(getProject(), myDesignSurface);
     myDescriptorProvider = new AndroidDomElementDescriptorProvider();
     myPropertiesComponent = new PropertiesComponentMock();
+    myUsageTracker = mockNlUsageTracker(myDesignSurface);
     registerApplicationComponent(PropertiesComponent.class, myPropertiesComponent);
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
+      cleanUsageTrackerAfterTesting(myDesignSurface);
       Disposer.dispose(myModel);
       Disposer.dispose(myPropertiesManager);
-      Disposer.dispose(myDesignSurface);    }
+      Disposer.dispose(myDesignSurface);
+    }
     finally {
       super.tearDown();
     }

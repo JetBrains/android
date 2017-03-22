@@ -81,5 +81,6 @@ iml_module(
         "//tools/adt/idea/android-test-framework[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/analytics-library/protos:analytics-protos[module, test]",
+        "//tools/analytics-library/shared:analytics-shared[module, test]",
     ],
 )

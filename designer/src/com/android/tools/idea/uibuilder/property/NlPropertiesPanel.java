@@ -160,6 +160,13 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(myPropertyChangeListener);
   }
 
+  public int getFilterMatchCount() {
+    if (myTable.getRowSorter() == null) {
+      return -1;
+    }
+    return myTable.getRowCount();
+  }
+
   public void setFilter(@NotNull String filter) {
     int selectedRow = myTable.getSelectedRow();
     PTableItem selectedItem = myTable.getSelectedItem();
@@ -324,6 +331,11 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   }
 
   @NotNull
+  public PropertiesViewMode getPropertiesViewMode() {
+    return myPropertiesViewMode;
+  }
+
+  @NotNull
   private static PropertiesViewMode getPropertiesViewModeInitially() {
     String name = PropertiesComponent.getInstance().getValue(PROPERTY_MODE, PropertiesViewMode.INSPECTOR.name());
 
@@ -473,7 +485,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     return myTable;
   }
 
-  enum PropertiesViewMode {
+  public enum PropertiesViewMode {
     TABLE,
     INSPECTOR
   }
