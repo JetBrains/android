@@ -56,35 +56,57 @@ public class ProfilerServiceProxy extends PerfdProxyService
   private static final String AGENT_NAME = "libagent.so";
   private static final String AGENTLIB_NAME = "agentlib.jar";
   private static final String EMULATOR = "Emulator";
+  private static final int MINIMUM_SUPPORTED_API = 21;
 
-  private ProfilerServiceGrpc.ProfilerServiceBlockingStub myServiceStub;
-  private final IDevice myDevice;
-  private final Profiler.Device myProfilerDevice;
+  private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myServiceStub;
+  @NotNull private final IDevice myDevice;
+  @NotNull private final Profiler.Device myProfilerDevice;
   private final Set<Client> myClients = new HashSet<>();
   @GuardedBy("myClients")
   private final Map<Client, Profiler.Process> myCachedProcesses = new HashMap<>();
+  private boolean myIsDeviceApiSupported;
 
   public ProfilerServiceProxy(@NotNull IDevice device, @NotNull ManagedChannel channel) {
     super(ProfilerServiceGrpc.getServiceDescriptor());
+    myIsDeviceApiSupported = device.getVersion().getApiLevel() >= MINIMUM_SUPPORTED_API;
     myDevice = device;
     myServiceStub = ProfilerServiceGrpc.newBlockingStub(channel);
-    Profiler.GetDevicesResponse devices = myServiceStub.getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
 
-    //TODO Remove set functions when we move functionality over to perfd.
-    assert devices.getDeviceList().size() == 1;
-    myProfilerDevice = devices.getDevice(0).toBuilder()
-      .setSerial(device.getSerialNumber())
-      .setModel(device.isEmulator() ? device.getAvdName() : DevicePropertyUtil.getModel(device, ""))
+    if (myIsDeviceApiSupported) {
+      // if device API is supported, use grpc to obtain the device
+      Profiler.GetDevicesResponse devices = myServiceStub.getDevices(Profiler.GetDevicesRequest.getDefaultInstance());
+
+      //TODO Remove set functions when we move functionality over to perfd.
+      assert devices.getDeviceList().size() == 1;
+      myProfilerDevice = profilerDeviceFromIDevice(device, devices.getDevice(0).toBuilder());
+    }
+    else {
+      // if device API level is not supported, sets an arbitrary boot id to be used in the device session
+      myProfilerDevice =
+        profilerDeviceFromIDevice(device, Profiler.Device.newBuilder().setBootId(String.valueOf(device.getSerialNumber().hashCode())));
+    }
+
+    updateProcesses();
+
+    AndroidDebugBridge.addDeviceChangeListener(this);
+    AndroidDebugBridge.addClientChangeListener(this);
+  }
+
+  /**
+   * Receives a {@link Profiler.Device.Builder} and sets
+   * @param device
+   * @param builder
+   * @return
+   */
+  private static Profiler.Device profilerDeviceFromIDevice(IDevice device, Profiler.Device.Builder builder) {
+    return builder.setSerial(device.getSerialNumber())
+      .setModel(getDeviceModel(device))
       .setVersion(StringUtil.notNullize(device.getProperty(IDevice.PROP_BUILD_VERSION)))
       .setApi(Integer.toString(device.getVersion().getApiLevel()))
       .setManufacturer(DevicePropertyUtil.getManufacturer(device, device.isEmulator() ? EMULATOR : ""))
       .setIsEmulator(device.isEmulator())
       .setState(convertState(device.getState()))
       .build();
-    updateProcesses();
-
-    AndroidDebugBridge.addDeviceChangeListener(this);
-    AndroidDebugBridge.addClientChangeListener(this);
   }
 
   private static Profiler.Device.State convertState(IDevice.DeviceState state) {
@@ -103,6 +125,10 @@ public class ProfilerServiceProxy extends PerfdProxyService
     }
   }
 
+  private static String getDeviceModel(@NotNull IDevice device) {
+    return device.isEmulator() ? device.getAvdName() : DevicePropertyUtil.getModel(device, "");
+  }
+
   @Override
   public void disconnect() {
     AndroidDebugBridge.removeDeviceChangeListener(this);
@@ -115,6 +141,19 @@ public class ProfilerServiceProxy extends PerfdProxyService
     responseObserver.onCompleted();
   }
 
+  public void getCurrentTime(Profiler.TimeRequest request, StreamObserver<Profiler.TimeResponse> responseObserver) {
+    Profiler.TimeResponse response;
+    if (myIsDeviceApiSupported) {
+      // if device API is supported, use grpc to get the current time
+      response = myServiceStub.getCurrentTime(request);
+    } else {
+      // otherwise, return a default (any) instance of TimeResponse
+      response = Profiler.TimeResponse.getDefaultInstance();
+    }
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
+
   public void getProcesses(Profiler.GetProcessesRequest request, StreamObserver<Profiler.GetProcessesResponse> responseObserver) {
     synchronized (myClients) {
       Profiler.GetProcessesResponse response = Profiler.GetProcessesResponse.newBuilder().addAllProcess(myCachedProcesses.values()).build();
@@ -123,7 +162,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
     }
   }
 
-  public void attachAgent(Profiler.AgentAttachRequest request, StreamObserver observer) {
+  public void attachAgent(Profiler.AgentAttachRequest request, StreamObserver<Profiler.AgentAttachResponse> observer) {
     // Agent attaching is only available on post-O devices.
     if (!ENABLE_JVMTI_PROFILING ||
         !myDevice.isOnline() ||
@@ -225,6 +264,10 @@ public class ProfilerServiceProxy extends PerfdProxyService
                   ServerCalls.asyncUnaryCall((request, observer) -> {
                     attachAgent((Profiler.AgentAttachRequest)request, (StreamObserver)observer);
                   }));
+    overrides.put(ProfilerServiceGrpc.METHOD_GET_CURRENT_TIME,
+                  ServerCalls.asyncUnaryCall((request, observer) -> {
+                    getCurrentTime((Profiler.TimeRequest)request, (StreamObserver)observer);
+                  }));
     return generatePassThroughDefinitions(overrides, myServiceStub);
   }
 
@@ -233,6 +276,9 @@ public class ProfilerServiceProxy extends PerfdProxyService
   }
 
   private void updateProcesses() {
+    if (!myIsDeviceApiSupported) {
+      return; // Device not supported. Do nothing.
+    }
     synchronized (myClients) {
       Set<Client> updatedClients = Sets.newHashSet(myDevice.getClients());
       ImmutableSet<Client> removedClients = Sets.difference(myClients, updatedClients).immutableCopy();
@@ -252,6 +298,9 @@ public class ProfilerServiceProxy extends PerfdProxyService
   }
 
   private void updateProcesses(@NotNull Collection<Client> clients) {
+    if (!myIsDeviceApiSupported) {
+      return; // Device not supported. Do nothing.
+    }
     synchronized (myClients) {
       assert myDevice.isOnline();
 

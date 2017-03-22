@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
-final public class StudioProfilersTest {
+public final class StudioProfilersTest {
   private final FakeProfilerService myProfilerService = new FakeProfilerService(false);
   @Rule public FakeGrpcServer myGrpcServer = new FakeGrpcServer("StudioProfilerTestChannel", myProfilerService);
 
