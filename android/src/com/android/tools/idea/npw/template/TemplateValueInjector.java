@@ -21,6 +21,7 @@ import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -194,7 +195,6 @@ public final class TemplateValueInjector {
    * {@link com.android.tools.idea.templates.TemplateMetadata#ATTR_APP_TITLE},
    * {@link com.android.tools.idea.templates.TemplateMetadata#ATTR_GRADLE_PLUGIN_VERSION},
    * {@link com.android.tools.idea.templates.TemplateMetadata#ATTR_GRADLE_VERSION}, etc.
-   * @param templateValues Values will be added to this Map.
    */
   public TemplateValueInjector setProjectDefaults(@Nullable Project project, @NotNull String moduleTitle) {
     myTemplateValues.put(ATTR_APP_TITLE, moduleTitle);
@@ -221,10 +221,9 @@ public final class TemplateValueInjector {
 
     final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(ConfigureAndroidModuleStep.class), false);
-    if (buildTool != null) {
-      // If buildTool is null, the template will use buildApi instead, which might be good enough.
-      myTemplateValues.put(ATTR_BUILD_TOOLS_VERSION, buildTool.getRevision().toString());
-    }
+    // If buildTool is null, the template will use buildApi (18.0.1) and that may be to old.
+    String buildToolVersion = buildTool == null ? GradleImport.CURRENT_BUILD_TOOLS_VERSION : buildTool.getRevision().toString();
+    myTemplateValues.put(ATTR_BUILD_TOOLS_VERSION, buildToolVersion);
 
     File sdkLocation = sdkHandler.getLocation();
     if (sdkLocation != null) {
