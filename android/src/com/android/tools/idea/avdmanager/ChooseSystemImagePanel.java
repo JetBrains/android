@@ -106,14 +106,14 @@ public class ChooseSystemImagePanel extends JPanel
   }
 
   @NotNull
-  private static SystemImageClassification getClassification(@NotNull SystemImageDescription image, @Nullable Device device) {
+  private SystemImageClassification getClassification(@NotNull SystemImageDescription image) {
 
     SystemImageClassification classification = getClassificationFromParts(Abi.getEnum(image.getAbiType()),
                                                                           image.getVersion().getApiLevel(),
                                                                           image.getTag());
 
-    if (device != null) {
-      if (device.hasPlayStore()) {
+    if (myDevice != null) {
+      if (myDevice.hasPlayStore()) {
         // The device supports Google Play Store. Recommend only system images that also support Play Store.
         if (classification == SystemImageClassification.RECOMMENDED && !image.getSystemImage().hasPlayStore()) {
           classification = SystemImageClassification.X86;
@@ -202,7 +202,7 @@ public class ChooseSystemImagePanel extends JPanel
 
   private void setSelectedImage(@Nullable SystemImageDescription systemImage) {
     if (systemImage != null) {
-      SystemImageClassification classification = getClassification(systemImage, null);
+      SystemImageClassification classification = getClassification(systemImage);
       switch (classification) {
         case RECOMMENDED:
           myRecommendedImageList.setSelectedImage(systemImage);
@@ -296,7 +296,7 @@ public class ChooseSystemImagePanel extends JPanel
     @Override
     public boolean include(Entry<? extends ListTableModel<SystemImageDescription>, ? extends Integer> entry) {
       SystemImageDescription image = myListModel.getRowValue(entry.getIdentifier());
-      return getClassification(image, myDevice) == myClassification &&
+      return getClassification(image) == myClassification &&
              systemImageMatchesDevice(image, myDevice) &&
              versionSupported(image);
     }
