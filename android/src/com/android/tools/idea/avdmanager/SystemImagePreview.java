@@ -64,6 +64,11 @@ public class SystemImagePreview {
   private static final String MAIN_CONTENT = "main";
   private static final String NO_IMAGE_CONTENT = "none";
 
+  private static final String PS_RECOMMENDATION = "<html>We recommend these Google Play "
+    + "images because this device is compatible with Google Play.<br><br></html>";
+  private static final String NON_PS_RECOMMENDATION = "<html>We recommend these images "
+    + "because they run fastest and support Google APIs.<br><br></html>";
+
   public SystemImagePreview(@Nullable Disposable disposable) {
     myDisposable = disposable;
     myRootPanel.setLayout(new CardLayout());
@@ -126,7 +131,8 @@ public class SystemImagePreview {
     }
   }
 
-  public void showExplanationForRecommended(boolean show) {
+  public void showExplanationForRecommended(boolean show, boolean recommendPlayStore) {
+    myRecommendedExplanation.setText(recommendPlayStore ? PS_RECOMMENDATION : NON_PS_RECOMMENDATION);
     myRecommendedExplanation.setVisible(show);
   }
 
