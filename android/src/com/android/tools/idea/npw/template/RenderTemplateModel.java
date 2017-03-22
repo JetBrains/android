@@ -50,7 +50,7 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private final ObjectProperty<AndroidSourceSet> mySourceSet;
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
   @NotNull private final StringProperty myPackageName;
-  @Nullable private final MultiTemplateRender myMultiTemplateRender;
+  @NotNull private final MultiTemplateRenderer myMultiTemplateRenderer;
 
   /**
    * The target template we want to render. If null, the user is skipping steps that would instantiate a template and this model shouldn't
@@ -70,7 +70,7 @@ public final class RenderTemplateModel extends WizardModel {
     mySourceSet = new ObjectValueProperty<>(sourceSet);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
-    myMultiTemplateRender = new MultiTemplateRender();
+    myMultiTemplateRenderer = new MultiTemplateRenderer();
   }
 
   public RenderTemplateModel(@NotNull NewModuleModel moduleModel,
@@ -82,7 +82,8 @@ public final class RenderTemplateModel extends WizardModel {
     mySourceSet = new ObjectValueProperty<>(sourceSet);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
-    myMultiTemplateRender = moduleModel.getMultiTemplateRender();
+    myMultiTemplateRenderer = moduleModel.getMultiTemplateRenderer();
+    myMultiTemplateRenderer.increment();
   }
 
   private static Logger getLog() {
@@ -143,10 +144,15 @@ public final class RenderTemplateModel extends WizardModel {
       return;
     }
 
-    myMultiTemplateRender.requestRender(new FreeMarkerTemplateRenderer());
+    myMultiTemplateRenderer.requestRender(new FreeMarkerTemplateRenderer());
   }
 
-  private class FreeMarkerTemplateRenderer implements MultiTemplateRender.TemplateRenderer {
+  @Override
+  protected void handleSkipped() {
+    myMultiTemplateRenderer.skipRender();
+  }
+
+  private class FreeMarkerTemplateRenderer implements MultiTemplateRenderer.TemplateRenderer {
 
     @Override
     public boolean doDryRun() {

@@ -20,7 +20,7 @@ import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.npw.template.MultiTemplateRender;
+import com.android.tools.idea.npw.template.MultiTemplateRenderer;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.Template;
@@ -74,7 +74,7 @@ public class NewProjectModel extends WizardModel {
   private final OptionalProperty<Project> myProject = new OptionalValueProperty<>();
   private final Map<String, Object> myTemplateValues = Maps.newHashMap();
   private final Set<NewModuleModel> myNewModels = new HashSet<>();
-  private final MultiTemplateRender myMultiTemplateRender = new MultiTemplateRender();
+  private final MultiTemplateRenderer myMultiTemplateRenderer = new MultiTemplateRenderer();
 
   private static Logger getLogger() {
     return Logger.getInstance(NewProjectModel.class);
@@ -135,8 +135,8 @@ public class NewProjectModel extends WizardModel {
     return myNewModels;
   }
 
-  public MultiTemplateRender getMultiTemplateRender() {
-    return myMultiTemplateRender;
+  public MultiTemplateRenderer getMultiTemplateRenderer() {
+    return myMultiTemplateRenderer;
   }
 
   /**
@@ -173,10 +173,10 @@ public class NewProjectModel extends WizardModel {
 
   @Override
   protected void handleFinished() {
-    myMultiTemplateRender.requestRender(new ProjectTemplateRenderer());
+    myMultiTemplateRenderer.requestRender(new ProjectTemplateRenderer());
   }
 
-  private class ProjectTemplateRenderer implements MultiTemplateRender.TemplateRenderer {
+  private class ProjectTemplateRenderer implements MultiTemplateRenderer.TemplateRenderer {
 
     @Override
     public boolean doDryRun() {
