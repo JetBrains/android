@@ -15,7 +15,7 @@
  */
 package com.android.tools.swing.ui;
 
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.swing.util.GraphicsUtil;

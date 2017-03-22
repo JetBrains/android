@@ -175,6 +175,11 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     return null;
   }
 
+  @Nullable
+  String getNamespace() {
+    return null;
+  }
+
   @Override
   public void dispose() {
   }

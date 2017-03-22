@@ -17,7 +17,7 @@ package com.android.tools.idea.databinding;
 
 
 import com.android.SdkConstants;
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.databinding.config.DataBindingConfiguration;
 import com.android.tools.idea.lang.databinding.DbFile;
