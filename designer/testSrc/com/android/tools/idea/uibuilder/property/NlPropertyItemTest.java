@@ -22,6 +22,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionListener;
+import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
 import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
 import com.android.tools.idea.uibuilder.property.ptable.StarState;
 import com.android.util.PropertiesMap;
@@ -38,6 +39,8 @@ import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PRO
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 public class NlPropertyItemTest extends PropertyTestCase {
 
@@ -238,10 +241,13 @@ public class NlPropertyItemTest extends PropertyTestCase {
     text.setValue("Hello World");
     UIUtil.dispatchAllInvocationEvents();
     assertThat(myTextView.getAttribute(ANDROID_URI, ATTR_TEXT)).isEqualTo("Hello World");
+    verify(myUsageTracker).logPropertyChange(text, PropertiesViewMode.INSPECTOR, -1);
 
   }
 
   public void testSetValueParentTagOnMergeTagAddsOrientationProperty() {
+    int originalUpdateCount = myPropertiesManager.getUpdateCount();
+
     // Make sure the orientation property does not exist initially
     assertThat(getDescriptor(myMerge, ATTR_ORIENTATION)).isNull();
 
@@ -253,6 +259,8 @@ public class NlPropertyItemTest extends PropertyTestCase {
     UIUtil.dispatchAllInvocationEvents();
 
     assertThat(myMerge.getAttribute(TOOLS_URI, ATTR_PARENT_TAG)).isEqualTo(LINEAR_LAYOUT);
+    verify(myUsageTracker).logPropertyChange(parentTag, PropertiesViewMode.INSPECTOR, -1);
+    assertThat(myPropertiesManager.getUpdateCount()).isEqualTo(originalUpdateCount + 1);
     assertThat(getDescriptor(myMerge, ATTR_ORIENTATION)).isNotNull();
   }
 
@@ -296,7 +304,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
     text.setStarState(StarState.STARRED);
     UIUtil.dispatchAllInvocationEvents();
     assertThat(text.getStarState()).isEqualTo(StarState.STARRED);
-    assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(ATTR_VISIBILITY + ";" + ATTR_ELEVATION + ";");
+    assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(ATTR_VISIBILITY + ";" + ATTR_ELEVATION);
     assertThat(myPropertiesManager.getUpdateCount()).isEqualTo(originalUpdateCount + 1);
   }
 
