@@ -28,7 +28,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.BrowseSamplesWizardFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import org.fest.swing.util.PatternTextMatcher;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -78,9 +77,8 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
     ideFrameFixture.getAndroidToolWindow().selectDevicesTab().selectProcess(PROCESS_NAME).clickTerminateApplication();
   }
 
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
-  @Ignore
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
     guiTest.importSimpleApplication();
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
@@ -119,9 +117,8 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
-  @Ignore
   public void testNdkHandlesDupeFilename() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("NdkDupeFilename");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
@@ -157,9 +154,8 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
-  @Ignore
   public void testVulkanCrashes() throws IOException, ClassNotFoundException {
     IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("VulkanCrashes");
     // The app must run under the debugger, otherwise there is a race condition where
@@ -199,8 +195,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
    *   </pre>
    * <p>
    */
-  @Ignore("http://b/30795134")
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void testCppDebugOnEmulatorWithBreakpoint() throws Exception {
     BrowseSamplesWizardFixture samplesWizard = guiTest.welcomeFrame()
