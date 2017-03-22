@@ -17,17 +17,21 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.swing.ui.NavigationComponent;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.WeakHashMap;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 import static com.android.tools.idea.uibuilder.editor.NlEditorProvider.DESIGNER_ID;
 
 public class LayoutNavigationManager implements Disposable {
+  private static final WeakHashMap<FileEditor, NavigationComponent<LayoutNavigationItem>> ourNavigationBarCache = new WeakHashMap<>();
+
   private final Project myProject;
 
   private static class LayoutNavigationItem extends NavigationComponent.Item {
@@ -44,8 +48,6 @@ public class LayoutNavigationManager implements Disposable {
     }
   }
 
-  private static WeakHashMap<FileEditor, NavigationComponent<LayoutNavigationItem>> ourNavigationBarCache = new WeakHashMap<>();
-
   private LayoutNavigationManager(@NotNull Project project) {
     myProject = project;
 
@@ -60,34 +62,84 @@ public class LayoutNavigationManager implements Disposable {
     return project.getComponent(LayoutNavigationManager.class);
   }
 
-  public void updateNavigation(@NotNull FileEditor sourceEditor, VirtualFile source, FileEditor destinationEditor, VirtualFile destination) {
+  /**
+   * Open the given destination file and add it to the file stack after source
+   *
+   * @param source      The file below destination on the stack.
+   * @param destination The file to open
+   * @return true if the editor for destination file has been open
+   */
+  public boolean pushFile(@NotNull VirtualFile source, @NotNull VirtualFile destination) {
     FileEditorManager manager = FileEditorManager.getInstance(myProject);
-
-    NavigationComponent<LayoutNavigationItem> sourceNavigationComponent = ourNavigationBarCache.get(sourceEditor);
-
-    if (sourceNavigationComponent == null) {
-      sourceNavigationComponent = new NavigationComponent<>();
-      sourceNavigationComponent.push(new LayoutNavigationItem(source));
-      NavigationComponent<LayoutNavigationItem> finalNavigationComponent = sourceNavigationComponent;
-      sourceNavigationComponent.addItemListener((item) -> {
-        OpenFileDescriptor openFileDescriptor =
-          new OpenFileDescriptor(myProject, item.myFile);
-        manager.openEditor(openFileDescriptor, true);
-        finalNavigationComponent.goTo(item);
-        finalNavigationComponent.pop();
-        manager.removeTopComponent(destinationEditor, finalNavigationComponent);
-        ourNavigationBarCache.remove(destinationEditor);
-      });
+    FileEditor sourceEditor = manager.getSelectedEditor(source);
+    FileEditor destinationEditor = manager.getSelectedEditor(destination);
+    if (destinationEditor == null) {
+      FileEditor[] editors = manager.openFile(destination, true);
+      if (editors.length == 0) {
+        return false;
+      }
+      destinationEditor = editors[0];
     }
-    NavigationComponent<LayoutNavigationItem> previousComponent = ourNavigationBarCache.put(destinationEditor, sourceNavigationComponent);
+    else {
+      OpenFileDescriptor openFileDescriptor = new OpenFileDescriptor(myProject, destination);
+      List<FileEditor> editors = manager.openEditor(openFileDescriptor, true);
+      if (!editors.contains(destinationEditor)) {
+        Logger.getInstance(LayoutNavigationManager.class).error("The editor was supposed to be already open");
+        return false;
+      }
+    }
+    boolean isInDesignerMode = sourceEditor instanceof NlEditor;
+    manager.setSelectedEditor(destination, isInDesignerMode ? DESIGNER_ID : TextEditorProvider.getInstance().getEditorTypeId());
+
+    NavigationComponent<LayoutNavigationItem> navigationComponent = ourNavigationBarCache.get(sourceEditor);
+    if (navigationComponent == null) {
+      navigationComponent = createNavigationComponent(source, destinationEditor);
+    }
+    NavigationComponent<LayoutNavigationItem> previousComponent = ourNavigationBarCache.put(destinationEditor, navigationComponent);
     if (previousComponent != null) {
       manager.removeTopComponent(destinationEditor, previousComponent);
     }
-    NavigationComponent<LayoutNavigationItem> navigationComponent = sourceNavigationComponent;
 
-    String sourceProviderId = sourceEditor instanceof NlEditor ? DESIGNER_ID : TextEditorProvider.getInstance().getEditorTypeId();
     navigationComponent.push(new LayoutNavigationItem(destination));
     manager.addTopComponent(destinationEditor, navigationComponent);
+    return true;
+  }
+
+  /**
+   * Go back to the previous editor from editorToPop and unstack editorToPop from navigation component
+   *
+   * @param editorToPop            The editor to pop from navigation component
+   * @param navigationComponent    The navigation component owning the editor to pop
+   * @param previousNavigationItem The navigation item to go back to
+   */
+  private void popFile(@NotNull FileEditor editorToPop,
+                       @NotNull NavigationComponent<LayoutNavigationItem> navigationComponent,
+                       @NotNull LayoutNavigationItem previousNavigationItem) {
+    FileEditorManager manager = FileEditorManager.getInstance(myProject);
+    OpenFileDescriptor previousOpenFileDescriptor = new OpenFileDescriptor(myProject, previousNavigationItem.myFile);
+    manager.openEditor(previousOpenFileDescriptor, true);
+    navigationComponent.goTo(previousNavigationItem);
+    navigationComponent.pop();
+    manager.removeTopComponent(editorToPop, navigationComponent);
+    ourNavigationBarCache.remove(editorToPop);
+  }
+
+  /**
+   * Create a new {@link NavigationComponent<LayoutNavigationItem>} with a new {@link LayoutNavigationItem}
+   * to go back to rootFile from childEditor.
+   *
+   * @param rootFile    The file showing at the root of the navigation component
+   * @param childEditor The editor that will display this {@link NavigationComponent}.
+   *                    It is normally the one opened from the editor of rootFile
+   * @return The newly created {@link NavigationComponent<LayoutNavigationItem>}
+   */
+  @NotNull
+  private NavigationComponent<LayoutNavigationItem> createNavigationComponent(@NotNull VirtualFile rootFile,
+                                                                              @NotNull FileEditor childEditor) {
+    NavigationComponent<LayoutNavigationItem> navigationComponent = new NavigationComponent<>();
+    navigationComponent.push(new LayoutNavigationItem(rootFile));
+    navigationComponent.addItemListener((item) -> popFile(childEditor, navigationComponent, item));
+    return navigationComponent;
   }
 
   @Override
