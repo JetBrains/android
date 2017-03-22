@@ -138,7 +138,7 @@ public class ConstraintsLayer extends Layer {
   public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
     // For constraint layer, set show on hover if they are above their screen view
     boolean show = false;
-    if (getScreenView() == myDesignSurface.getHoverScreenView(x, y)) {
+    if (getScreenView() == myDesignSurface.getHoverSceneView(x, y)) {
       show = true;
     }
     if (isShowOnHover() != show) {
