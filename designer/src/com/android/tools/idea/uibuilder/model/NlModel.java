@@ -2010,6 +2010,31 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
   }
 
+  /**
+   * @return true if the receiver can be safely morphed into a view group
+   */
+  public static boolean isMorphableToViewGroup(@NotNull NlComponent receiver) {
+    return VIEW.equals(receiver.getTagName()) && receiver.getAttribute(TOOLS_URI, ATTR_MOCKUP) != null;
+  }
+
+  /**
+   * Check if the provided potential descendant component has an ancestor in the list
+   *
+   * @return true if potentialAncestor element have potentialDescendant as child or grand-child
+   */
+  public static boolean isDescendant(@NotNull NlComponent potentialAncestor, @NotNull List<NlComponent> potentialDescendant) {
+    NlComponent same = potentialAncestor;
+    for (NlComponent component : potentialDescendant) {
+      while (same != null) {
+        if (same == component) {
+          return true;
+        }
+        same = same.getParent();
+      }
+    }
+    return false;
+  }
+
   @Override
   public void dispose() {
     deactivate(); // ensure listeners are unregistered if necessary
