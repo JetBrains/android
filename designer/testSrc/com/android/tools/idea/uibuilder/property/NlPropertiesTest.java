@@ -37,6 +37,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class NlPropertiesTest extends PropertyTestCase {
@@ -276,28 +277,36 @@ public class NlPropertiesTest extends PropertyTestCase {
 
   public void testAddStarredProperty() {
     myPropertiesComponent.setValue(STARRED_PROP, propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION));
-    NlProperties.saveStarState(null, ATTR_NAME, true);
-    assertThat(myPropertiesComponent.getValue(STARRED_PROP))
-      .isEqualTo(propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION, ATTR_NAME));
+    NlProperties.saveStarState(null, ATTR_NAME, true, myPropertiesManager);
+    List<String> expected = ImmutableList.of(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION, ATTR_NAME);
+    assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(propertyList(expected));
+    verify(myUsageTracker).logFavoritesChange(ATTR_NAME, "", expected, myFacet);
   }
 
   public void testAddStarredToolsProperty() {
     myPropertiesComponent.setValue(STARRED_PROP, propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION));
-    NlProperties.saveStarState(TOOLS_URI, ATTR_TEXT, true);
-    assertThat(myPropertiesComponent.getValue(STARRED_PROP))
-      .isEqualTo(propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, TOOLS_NS_NAME_PREFIX + ATTR_TEXT));
+    NlProperties.saveStarState(TOOLS_URI, ATTR_TEXT, true, myPropertiesManager);
+    List<String> expected = ImmutableList.of(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, TOOLS_NS_NAME_PREFIX + ATTR_TEXT);
+    assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(propertyList(expected));
+    verify(myUsageTracker).logFavoritesChange(TOOLS_NS_NAME_PREFIX + ATTR_TEXT, "", expected, myFacet);
   }
 
   public void testRemoveStarredProperty() {
     myPropertiesComponent.setValue(STARRED_PROP, propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK, ATTR_CARD_ELEVATION));
-    NlProperties.saveStarState(ANDROID_URI, ATTR_CARD_ELEVATION, false);
-    assertThat(myPropertiesComponent.getValue(STARRED_PROP))
-      .isEqualTo(propertyList(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK));
+    NlProperties.saveStarState(ANDROID_URI, ATTR_CARD_ELEVATION, false, myPropertiesManager);
+    List<String> expected = ImmutableList.of(ATTR_PADDING_BOTTOM, ATTR_ELEVATION, ATTR_ON_CLICK);
+    assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(propertyList(expected));
+    verify(myUsageTracker).logFavoritesChange("", ATTR_CARD_ELEVATION, expected, myFacet);
   }
 
   @NotNull
   private static String propertyList(@NotNull String... propertyNames) {
-    return Joiner.on(";").join(propertyNames) + ";";
+    return Joiner.on(";").join(propertyNames);
+  }
+
+  @NotNull
+  private static String propertyList(@NotNull List<String> propertyNames) {
+    return Joiner.on(";").join(propertyNames);
   }
 
   private void setupImageViewNeedsSrcCompat(boolean useSrcCompat) {

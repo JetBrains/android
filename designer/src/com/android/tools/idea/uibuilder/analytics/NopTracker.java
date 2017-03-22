@@ -17,17 +17,46 @@ package com.android.tools.idea.uibuilder.analytics;
 
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.palette.PaletteMode;
+import com.android.tools.idea.uibuilder.property.NlPropertiesPanel.PropertiesViewMode;
+import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * No-op tracker used when stats tracking is disabled
  */
 class NopTracker implements NlUsageTracker {
   @Override
-  public void logAction(@NotNull LayoutEditorEvent.LayoutEditorEventType eventType) {}
+  public void logAction(@NotNull LayoutEditorEvent.LayoutEditorEventType eventType) {
+  }
 
   @Override
-  public void logRenderResult(@Nullable NlModel.ChangeType trigger, @NotNull RenderResult result, long totalRenderTimeMs) {}
+  public void logRenderResult(@Nullable NlModel.ChangeType trigger, @NotNull RenderResult result, long totalRenderTimeMs) {
+  }
+
+  @Override
+  public void logDropFromPalette(@NotNull String viewTagName,
+                                 @NotNull String representation,
+                                 @NotNull PaletteMode paletteMode,
+                                 @NotNull String selectedGroup,
+                                 int filterMatches) {
+  }
+
+  @Override
+  public void logPropertyChange(@NotNull NlProperty property,
+                                @NotNull PropertiesViewMode propertiesMode,
+                                int filterMatches) {
+  }
+
+  @Override
+  public void logFavoritesChange(@NotNull String addedPropertyName,
+                                 @NotNull String removedPropertyName,
+                                 @NotNull List<String> currentFavorites,
+                                 @NotNull AndroidFacet facet) {
+  }
 }

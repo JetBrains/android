@@ -16,6 +16,10 @@
 package com.android.tools.idea.uibuilder;
 
 import android.view.View;
+import com.android.tools.analytics.AnalyticsSettings;
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDropEventBuilder;
 import com.android.tools.idea.uibuilder.fixtures.MouseEventBuilder;
@@ -214,5 +218,23 @@ public class LayoutTestUtilities {
       }
     }
     return null;
+  }
+
+  public static NlUsageTracker mockNlUsageTracker(@NotNull DesignSurface surface) {
+    AnalyticsSettings settings = mock(AnalyticsSettings.class);
+    when(settings.hasOptedIn()).thenReturn(true);
+
+    UsageTracker tracker = mock(UsageTracker.class);
+    when(tracker.getAnalyticsSettings()).thenReturn(settings);
+    UsageTracker.setInstanceForTest(tracker);
+
+    NlUsageTracker usageTracker = mock(NlUsageTracker.class);
+    NlUsageTrackerManager.setInstanceForTest(surface, usageTracker);
+    return usageTracker;
+  }
+
+  public static void cleanUsageTrackerAfterTesting(@NotNull DesignSurface surface) {
+    NlUsageTrackerManager.cleanAfterTesting(surface);
+    UsageTracker.cleanAfterTesting();
   }
 }
