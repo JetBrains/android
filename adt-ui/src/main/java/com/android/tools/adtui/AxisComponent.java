@@ -21,6 +21,7 @@ import com.android.tools.adtui.common.RotatedLabel;
 import com.android.tools.adtui.model.AxisComponentModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import gnu.trove.TFloatArrayList;
 import org.jetbrains.annotations.NotNull;
@@ -50,6 +51,8 @@ public final class AxisComponent extends AnimatedComponent {
   private static final int MAXIMUM_LABEL_WIDTH = 50;
   private static final int DEFAULT_MAJOR_MARKER_LENGTH = 10;
   private static final int DEFAULT_MINOR_MARKER_LENGTH = 4;
+  private static final JBColor TICK_COLOR = new JBColor(new Color(0,0,0,127), new Color(255,255,255,65));
+
 
   @Nullable private JLabel myLabel;
 
@@ -268,7 +271,7 @@ public final class AxisComponent extends AnimatedComponent {
 
     if (myAxisLength > 0) {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      g.setColor(getForeground());
+      g.setColor(TICK_COLOR);
       g.setStroke(DEFAULT_AXIS_STROKE);
 
       if (myShowAxisLine) {
@@ -298,7 +301,6 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     Line2D.Float line = new Line2D.Float();
-
     // Draw minor ticks.
     for (int i = 0; i < myMinorMarkerPositions.size(); i++) {
       float scaledPosition = myMinorMarkerPositions.get(i) * myAxisLength;
@@ -344,6 +346,7 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     line.setLine(markerStartX, markerStartY, markerEndX, markerEndY);
+    g2d.setColor(TICK_COLOR);
     g2d.draw(line);
   }
 
@@ -383,7 +386,7 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     if (alwaysRender || (markerOffset - reserved > 0 && markerOffset + reserved < myAxisLength)) {
-      g2d.setColor(getForeground());
+      g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
       g2d.drawString(value, labelX, labelY);
     }
   }
