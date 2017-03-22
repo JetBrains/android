@@ -27,7 +27,6 @@ import org.junit.runner.RunWith;
 
 import java.util.regex.Pattern;
 
-@Ignore("https://code.google.com/p/android/issues/detail?id=246475")
 @RunWith(GuiTestRunner.class)
 public class EspressoRecorderTest extends TestWithEmulator {
 
@@ -60,6 +59,7 @@ public class EspressoRecorderTest extends TestWithEmulator {
    */
   @RunIn(TestGroup.QA)
   @Test
+  @Ignore
   public void addDependencyOnFly() throws Exception {
     guiTest.importSimpleApplication();
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());

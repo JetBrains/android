@@ -30,7 +30,6 @@ import org.junit.runner.RunWith;
 
 import java.util.regex.Pattern;
 
-@Ignore("https://code.google.com/p/android/issues/detail?id=246475")
 @RunWith(GuiTestRunner.class)
 public class FlavorsExecutionTest extends TestWithEmulator {
 
@@ -72,6 +71,7 @@ public class FlavorsExecutionTest extends TestWithEmulator {
    */
   @RunIn(TestGroup.QA)
   @Test
+  @Ignore
   public void runBuildFlavors() throws Exception {
     InstantRunSettings.setShowStatusNotifications(false);
     guiTest.ideFrame()
