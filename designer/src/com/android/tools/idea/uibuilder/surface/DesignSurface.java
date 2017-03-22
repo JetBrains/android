@@ -20,8 +20,11 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.editor.ActionManager;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.lint.LintNotificationPanel;
 import com.android.tools.idea.uibuilder.model.*;
@@ -103,6 +106,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   protected Scene myScene;
   private SceneManager mySceneManager;
   private final SelectionModel mySelectionModel;
+  private ViewEditorImpl myViewEditor;
 
   public DesignSurface(@NotNull Project project) {
     super(new BorderLayout());
@@ -710,7 +714,13 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   }
 
-  void notifyActivateComponent(@NotNull NlComponent component) {
+  public void notifyActivateComponent(@NotNull NlComponent component) {
+    ViewHandler handler = component.getViewHandler();
+    ViewEditor viewEditor = getViewEditor();
+    if (handler != null && viewEditor != null) {
+      handler.onActivate(viewEditor, component);
+    }
+
     List<DesignSurfaceListener> listeners = Lists.newArrayList(myListeners);
     for (DesignSurfaceListener listener : listeners) {
       if (listener.activatePreferredEditor(this, component)) {
@@ -1241,4 +1251,17 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * Returns true we shouldn't currently try to relayout our content (e.g. if some other operations is in progress).
    */
   public abstract boolean isLayoutDisabled();
+
+  @Nullable
+  public ViewEditor getViewEditor() {
+    SceneView currentSceneView = getCurrentSceneView();
+    if (currentSceneView == null) {
+      return null;
+    }
+
+    if (myViewEditor == null || myViewEditor.getSceneView() != currentSceneView) {
+      myViewEditor = new ViewEditorImpl(currentSceneView);
+    }
+    return myViewEditor;
+  }
 }

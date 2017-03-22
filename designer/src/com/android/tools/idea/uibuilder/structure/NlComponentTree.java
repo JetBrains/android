@@ -497,7 +497,12 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private class StructurePaneMouseListener extends MouseAdapter {
     @Override
     public void mouseClicked(MouseEvent e) {
-      handlePopup(e);
+      if (e.getClickCount() == 2) {
+        handleDoubleClick(e);
+      }
+      else {
+        handlePopup(e);
+      }
     }
 
     @Override
@@ -520,6 +525,16 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
             // TODO: Ensure the node is selected first
             myScreenView.getSurface().getActionManager().showPopup(e, (NlComponent)component);
           }
+        }
+      }
+    }
+
+    private void handleDoubleClick(@NotNull MouseEvent e) {
+      TreePath path = getPathForLocation(e.getX(), e.getY());
+      if (path != null) {
+        Object component = path.getLastPathComponent();
+        if (component instanceof NlComponent) {
+          myScreenView.getSurface().notifyActivateComponent(((NlComponent)component));
         }
       }
     }
