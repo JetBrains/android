@@ -21,9 +21,7 @@ import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.structure.NlComponentTree.InsertionPoint;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.utils.Pair;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -35,7 +33,6 @@ import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.*;
@@ -44,7 +41,6 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.structure.NlComponentTree.InsertionPoint.*;
 
 /**
  * Enable drop of components dragged onto the component tree.
@@ -64,10 +60,12 @@ public class NlDropListener extends DropTargetAdapter {
   private DnDTransferItem myTransferItem;
   protected NlComponent myDragReceiver;
   protected NlComponent myNextDragSibling;
+  private final NlDropInsertionPicker myInsertionPicker;
 
   public NlDropListener(@NotNull NlComponentTree tree) {
     myDragged = new ArrayList<>();
     myTree = tree;
+    myInsertionPicker = new NlDropInsertionPicker(tree);
   }
 
   @Override
@@ -85,7 +83,7 @@ public class NlDropListener extends DropTargetAdapter {
 
   @Override
   public void dragExit(@NotNull DropTargetEvent event) {
-    clearInsertionPoint();
+    myTree.clearInsertionPoint();
     clearDraggedComponents();
   }
 
@@ -93,10 +91,14 @@ public class NlDropListener extends DropTargetAdapter {
   public void drop(@NotNull DropTargetDropEvent dropEvent) {
     NlDropEvent event = new NlDropEvent(dropEvent);
     InsertType insertType = captureDraggedComponents(event, false /* not as preview */);
-    if (findInsertionPoint(event) != null) {
+    NlDropInsertionPicker.Result finderResult = myInsertionPicker.findInsertionPointAt(event.getLocation(), myDragged);
+
+    if (finderResult != null) {
+      myDragReceiver = finderResult.receiver;
+      myNextDragSibling = finderResult.nextComponent;
       performDrop(dropEvent, insertType);
     }
-    clearInsertionPoint();
+    myTree.clearInsertionPoint();
     clearDraggedComponents();
   }
 
@@ -146,14 +148,19 @@ public class NlDropListener extends DropTargetAdapter {
     myDragged.clear();
   }
 
+  /**
+   * @see NlDropInsertionPicker#findInsertionPointAt(Point, List)
+   */
   private void updateInsertionPoint(@NotNull NlDropEvent event) {
-    Pair<TreePath, InsertionPoint> point = findInsertionPoint(event);
-    if (point == null) {
-      clearInsertionPoint();
+    NlDropInsertionPicker.Result result = myInsertionPicker.findInsertionPointAt(event.getLocation(), myDragged);
+    if (result == null) {
+      myTree.clearInsertionPoint();
       event.reject();
     }
     else {
-      myTree.markInsertionPoint(point.getFirst(), point.getSecond());
+      myDragReceiver = result.receiver;
+      myNextDragSibling = result.nextComponent;
+      myTree.markInsertionPoint(result.row, result.depth);
 
       // This determines how the DnD source acts to a completed drop.
       // If we set the accepted drop action to DndConstants.ACTION_MOVE then the source should delete the source component.
@@ -161,97 +168,6 @@ public class NlDropListener extends DropTargetAdapter {
       // Only when we move a component from a different designer (handled as a InsertType.COPY) would we mark this as a ACTION_MOVE.
       event.accept(determineInsertType(event, true) == InsertType.COPY ? event.getDropAction() : DnDConstants.ACTION_COPY);
     }
-  }
-
-  protected boolean shouldInsert(@NotNull NlComponent receiver, @Nullable InsertionPoint insertionPoint) {
-    ViewHandler handler = receiver.getViewHandler();
-    return insertionPoint == INSERT_INTO &&
-           (handler instanceof ViewGroupHandler
-            || (isMorphableToViewGroup(receiver) && !isReceiverChild(receiver, myDragged)));
-  }
-
-  protected boolean canAddComponent(@NotNull NlModel model, @NotNull NlComponent receiver) {
-    return model.canAddComponents(myDragged, receiver, receiver.getChild(0))
-           || (isMorphableToViewGroup(receiver) && !isReceiverChild(receiver, myDragged));
-  }
-
-  /**
-   * @return true if the receiver can be safely morphed into a view group
-   */
-  private static boolean isMorphableToViewGroup(@NotNull NlComponent receiver) {
-    return VIEW.equals(receiver.getTagName()) && receiver.getAttribute(TOOLS_URI, ATTR_MOCKUP) != null;
-  }
-
-  @Nullable
-  private Pair<TreePath, InsertionPoint> findInsertionPoint(@NotNull NlDropEvent event) {
-    myDragReceiver = null;
-    myNextDragSibling = null;
-    TreePath path = myTree.getClosestPathForLocation(event.getLocation().x, event.getLocation().y);
-    if (path == null) {
-      return null;
-    }
-    ScreenView screenView = myTree.getScreenView();
-    if (screenView == null) {
-      return null;
-    }
-    NlModel model = screenView.getModel();
-    NlComponent component = (NlComponent)path.getLastPathComponent();
-
-    if (component == null) {
-      return null;
-    }
-
-    Rectangle bounds = myTree.getPathBounds(path);
-    if (bounds == null) {
-      return null;
-    }
-    InsertionPoint insertionPoint = findTreeStateInsertionPoint(event.getLocation().y, bounds);
-
-    if (shouldInsert(component, insertionPoint)) {
-      if (!canAddComponent(model, component)) {
-        return null;
-      }
-      myDragReceiver = component;
-      myNextDragSibling = component.getChild(0);
-    }
-    else {
-      NlComponent parent = component.getParent();
-
-      if (parent == null) {
-        return null;
-      }
-      else {
-        if (parent.getViewHandler() == null || !model.canAddComponents(myDragged, parent, component)) {
-          return null;
-        }
-        insertionPoint = event.getLocation().y > bounds.getCenterY() ? INSERT_AFTER : INSERT_BEFORE;
-        myDragReceiver = parent;
-
-        if (insertionPoint == INSERT_BEFORE) {
-          myNextDragSibling = component;
-        }
-        else {
-          myNextDragSibling = component.getNextSibling();
-        }
-      }
-    }
-    return Pair.of(path, insertionPoint);
-  }
-
-  @NotNull
-  protected static InsertionPoint findTreeStateInsertionPoint(@SwingCoordinate int y, @SwingCoordinate @NotNull Rectangle bounds) {
-    int delta = bounds.height / 9;
-    if (bounds.y + delta > y) {
-      return INSERT_BEFORE;
-    }
-    if (bounds.y + bounds.height - delta < y) {
-      return INSERT_AFTER;
-    }
-    return INSERT_INTO;
-  }
-
-  private void clearInsertionPoint() {
-    myTree.markInsertionPoint(null, INSERT_BEFORE);
   }
 
   protected void performDrop(@NotNull final DropTargetDropEvent event, final InsertType insertType) {
@@ -263,8 +179,8 @@ public class NlDropListener extends DropTargetAdapter {
       performNormalDrop(event, insertType, model);
     }
     else if (!myDragReceiver.isRoot()
-             && !isReceiverChild(myDragReceiver, myDragged)
-             && isMorphableToViewGroup(myDragReceiver)) {
+             && !NlModel.isDescendant(myDragReceiver, myDragged)
+             && NlModel.isMorphableToViewGroup(myDragReceiver)) {
       morphReceiverIntoViewGroup(model);
       performNormalDrop(event, insertType, model);
     } else {
@@ -351,25 +267,5 @@ public class NlDropListener extends DropTargetAdapter {
       }
     }
     return selection;
-  }
-
-  /**
-   * Check if receiver is a child of an element from to Add
-   *
-   * @param receiver
-   * @param toAdd
-   * @return true if toAdd element have receiver as child or grand-child
-   */
-  private static boolean isReceiverChild(@NotNull NlComponent receiver, @NotNull List<NlComponent> toAdd) {
-    NlComponent same = receiver;
-    for (NlComponent component : toAdd) {
-      while (same != null) {
-        if (same == component) {
-          return true;
-        }
-        same = same.getParent();
-      }
-    }
-    return false;
   }
 }
