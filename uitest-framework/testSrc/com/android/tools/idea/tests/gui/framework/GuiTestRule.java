@@ -125,7 +125,11 @@ public class GuiTestRule implements TestRule {
             errors.add(e);
           } finally {
             try {
+              boolean hasTestPassed = errors.isEmpty();
               errors.addAll(tearDown());  // shouldn't throw, but called inside a try-finally for defense in depth
+              if (hasTestPassed && !errors.isEmpty()) { // If we get a problem during tearDown, take a snapshot.
+                new ScreenshotOnFailure().failed(errors.get(0), description);
+              }
             } finally {
               //noinspection ThrowFromFinallyBlock; assertEmpty is intended to throw here
               MultipleFailureException.assertEmpty(errors);
