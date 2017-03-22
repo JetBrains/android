@@ -30,6 +30,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewPr
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -118,6 +119,7 @@ public class NewCppProjectTest extends TestWithEmulator {
    */
   @RunIn(TestGroup.QA)
   @Test
+  @Ignore("https://android-jenkins.corp.google.com/builders/studio-sanity_master-dev/builds/4083")
   public void testAddRemoveCppDependency() throws Exception {
     createCppProject(false, false);
 
