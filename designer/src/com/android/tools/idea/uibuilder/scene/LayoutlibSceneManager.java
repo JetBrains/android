@@ -20,12 +20,10 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.rendering.*;
-import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.DragDndTarget;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.util.PropertiesMap;
@@ -48,10 +46,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
-import javax.swing.Timer;
+import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -155,81 +155,8 @@ public class LayoutlibSceneManager extends SceneManager {
     });
   }
 
-  /**
-   * Update the Scene with the components in the given NlModel. This method needs to be called in the dispatch thread.
-   * {@link #build()} must have been invoked already.
-   */
   @Override
-  public void update() {
-    super.update();
-
-    List<NlComponent> components = getModel().getComponents();
-    Scene scene = getScene();
-    if (components.size() == 0) {
-      scene.removeAllComponents();
-      scene.setRoot(null);
-      return;
-    }
-    Set<SceneComponent> usedComponents = new HashSet<>();
-    Set<SceneComponent> oldComponents = new HashSet<>(scene.getSceneComponents());
-
-    NlComponent rootComponent = components.get(0).getRoot();
-
-    SceneComponent root = updateFromComponent(rootComponent, usedComponents);
-    oldComponents.removeAll(usedComponents);
-    oldComponents.forEach(scene::removeComponent);
-
-    SelectionModel selectionModel = getDesignSurface().getSelectionModel();
-    scene.setRoot(root);
-    if (root != null && selectionModel.isEmpty()) {
-      addTargets(root);
-    }
-    scene.needsRebuildList();
-  }
-
-  @NotNull
-  @Override
-  public TemporarySceneComponent createTemporaryComponent(@NotNull NlComponent component) {
-    Scene scene = getScene();
-
-    assert scene.getRoot() != null;
-
-    TemporarySceneComponent tempComponent = new TemporarySceneComponent(getScene(), component);
-    tempComponent.addTarget(new DragDndTarget());
-    scene.setAnimated(false);
-    scene.getRoot().addChild(tempComponent);
-    updateFromComponent(component, tempComponent);
-    scene.setAnimated(true);
-
-    return tempComponent;
-  }
-
-  /**
-   * Update (and if necessary, create) the SceneComponent paired to the given NlComponent
-   *
-   * @param component      a given NlComponent
-   * @param seenComponents Collector of components that were seen during NlComponent tree traversal.
-   * @return the SceneComponent paired with the given NlComponent
-   */
-  private SceneComponent updateFromComponent(@NotNull NlComponent component, Set<SceneComponent> seenComponents) {
-    SceneComponent sceneComponent = getScene().getSceneComponent(component);
-    if (sceneComponent == null) {
-      sceneComponent = new SceneComponent(getScene(), component);
-    }
-    seenComponents.add(sceneComponent);
-
-    updateFromComponent(component, sceneComponent);
-
-    for (NlComponent nlChild : component.getChildren()) {
-      SceneComponent child = updateFromComponent(nlChild, seenComponents);
-      if (child.getParent() != sceneComponent) {
-        sceneComponent.addChild(child);
-      }
-    }
-    return sceneComponent;
-  }
-
-  private void updateFromComponent(@NotNull NlComponent component, SceneComponent sceneComponent) {
+  protected void updateFromComponent(@NotNull NlComponent component, SceneComponent sceneComponent) {
     if (getScene().isAnimated()) {
       long time = System.currentTimeMillis();
       sceneComponent.setPositionTarget(Coordinates.pxToDp(component.getModel(), component.x),
@@ -252,7 +179,8 @@ public class LayoutlibSceneManager extends SceneManager {
    * Add targets to the given component (by asking the associated
    * {@linkplain ViewGroupHandler} to do it)
    */
-  private void addTargets(@NotNull SceneComponent component) {
+  @Override
+  protected void addTargets(@NotNull SceneComponent component) {
     SceneComponent parent = component.getParent();
     if (parent != null) {
       component = parent;
