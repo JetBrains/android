@@ -45,6 +45,9 @@ import static com.android.SdkConstants.FN_RESOURCE_TEXT;
  * in output folders such as build, where Studio will not create PsiDirectories, and
  * as a result cannot use the normal {@link ResourceFolderRepository}. This is the case
  * for example for the expanded {@code .aar} directories.
+ *
+ * <p>Most of the implementation is based on {@link ResourceMerger} which means the behavior is highly
+ * consistent with what will happen at build time.
  */
 public class FileResourceRepository extends LocalResourceRepository {
   private static final Logger LOG = Logger.getInstance(FileResourceRepository.class);

@@ -43,7 +43,15 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Resource repository which merges in dynamically registered resource items from the model
+ * Resource repository which contains dynamically registered resource items from the model.
+ *
+ * <p>The Gradle plugin allows resources to be created on the fly (e.g. you can create a resource called build_time of type string with a
+ * value set to a Groovy variable computed at build time). These dynamically created resources are computed at Gradle sync time and provided
+ * via the Gradle model.
+ *
+ * <p>Users expect the resources to "exist" too, when using code completion. The {@link DynamicResourceValueRepository} makes this happen:
+ * the repository contents are fetched from the Gradle model rather than by analyzing XML files as is done by the other resource
+ * repositories.
  */
 public class DynamicResourceValueRepository extends LocalResourceRepository
   implements GradleSyncListener, BuildVariantView.BuildVariantSelectionChangeListener {
