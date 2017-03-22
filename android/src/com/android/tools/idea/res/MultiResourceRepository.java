@@ -32,6 +32,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * The  is a super class for several of the other repositories; it’s not really used on its own. Its only purpose is to be able to combine
+ * multiple resource repositories and expose it as a single one, applying the “override” semantics of resources: later children defining the
+ * same resource type+name combination will replace/hide any previous definitions of the same resource.
+ *
+ * <p>In the resource repository hierarchy, the MultiResourceRepository is an internal node, never a leaf.
+ */
 @SuppressWarnings({
   "deprecation",  // Deprecated com.android.util.Pair is required by ProjectCallback interface
   "SynchronizeOnThis"})

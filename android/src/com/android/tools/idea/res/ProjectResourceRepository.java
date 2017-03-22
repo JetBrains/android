@@ -27,7 +27,16 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-/** Resource repository for a module along with all its module dependencies */
+/**
+ * Resource repository for a module along with all its (local) module dependencies.
+ *
+ * <p>It doesn't contain resources from AAR dependencies.
+ *
+ * <p>An example of where this is useful is the layout editor; in its “Language” menu it lists all the relevant languages in the project and
+ * lets you choose between them. Here we don’t want to include resources from libraries; If you depend on Google Play Services, and it
+ * provides 40 translations for its UI, we don’t want to show all 40 languages in the language menu, only the languages actually locally in
+ * the user’s source code.
+ */
 public final class ProjectResourceRepository extends MultiResourceRepository {
   private AndroidFacet myFacet;
 
