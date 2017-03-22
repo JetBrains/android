@@ -19,17 +19,20 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.*;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.idea.configurations.ThemeSelectionDialog;
+import com.android.tools.idea.configurations.ThemeSelectionPanel;
 import com.android.tools.idea.editors.theme.attributes.AttributesGrouper;
 import com.android.tools.idea.editors.theme.attributes.AttributesModelColorPaletteModel;
 import com.android.tools.idea.editors.theme.attributes.AttributesTableModel;
 import com.android.tools.idea.editors.theme.attributes.TableLabel;
 import com.android.tools.idea.editors.theme.attributes.editors.ParentRendererEditor;
 import com.android.tools.idea.editors.theme.attributes.editors.StyleListPaletteCellRenderer;
-import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
+import com.android.tools.idea.editors.theme.datamodels.EditedStyleItem;
 import com.android.tools.idea.editors.theme.preview.AndroidThemePreviewPanel;
+import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
@@ -47,11 +50,12 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.refactoring.rename.RenameDialog;
-import com.intellij.ui.*;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.MutableCollectionComboBoxModel;
+import com.intellij.ui.PopupMenuListenerAdapter;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.drawable.DrawableDomElement;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -240,9 +244,9 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
        */
       private void restoreOriginalTheme(@NotNull ConfiguredThemeEditorStyle modifiedTheme, @NotNull List<ItemResourceValue> originalItems) {
         StyleResourceValue modifiedResourceValue = modifiedTheme.getStyleResourceValue();
-        StyleResourceValue restoredResourceValue =
-          new StyleResourceValue(ResourceType.STYLE, modifiedResourceValue.getName(), modifiedResourceValue.getParentStyle(),
-                                 modifiedResourceValue.isFramework(), modifiedResourceValue.getLibraryName());
+        StyleResourceValue restoredResourceValue = new StyleResourceValue(modifiedResourceValue.getResourceUrl(),
+                                                                          modifiedResourceValue.getParentStyle(),
+                                                                          modifiedResourceValue.getLibraryName());
         for (ItemResourceValue item : originalItems) {
           restoredResourceValue.addItem(item);
         }
@@ -658,7 +662,8 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
 
   /**
    * Sets a new value to the passed attribute. It will also trigger the reload if a change happened.
-   * @param rv The attribute to set, including the current value.
+   *
+   * @param rv       The attribute to set, including the current value.
    * @param strValue The new value.
    */
   private void createNewThemeWithAttributeValue(@NotNull final EditedStyleItem rv, @NotNull final String strValue) {
@@ -746,7 +751,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
     // If the modified style was pointed by a theme attribute, we need to use that theme attribute value
     // as property. Otherwise, just update the original property name with the new style.
     final String sourcePropertyName = mySubStyleSourceAttribute.isAttr() ?
-                                      mySubStyleSourceAttribute.getAttrPropertyName():
+                                      mySubStyleSourceAttribute.getAttrPropertyName() :
                                       mySubStyleSourceAttribute.getQualifiedName();
 
     // We've modified a sub-style so we need to modify the attribute that was originally pointing to this.
@@ -786,6 +791,7 @@ public class ThemeEditorComponent extends Splitter implements Disposable {
 
   /**
    * Reloads the attributes editor.
+   *
    * @param defaultThemeName The name to select from the themes list.
    */
   public void reload(@Nullable final String defaultThemeName) {

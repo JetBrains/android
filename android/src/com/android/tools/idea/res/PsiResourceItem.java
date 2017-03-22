@@ -25,7 +25,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.google.common.base.Splitter;
+import com.android.resources.ResourceUrl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiDirectory;
@@ -42,7 +42,8 @@ class PsiResourceItem extends ResourceItem {
   private PsiFile myFile;
 
   PsiResourceItem(@NonNull String name, @NonNull ResourceType type, @Nullable XmlTag tag, @NonNull PsiFile file) {
-    super(name, type, null, null);
+    // TODO: Actually figure out the namespace.
+    super(name, null, type, null, null);
     myTag = tag;
     myFile = file;
   }
@@ -111,9 +112,14 @@ class PsiResourceItem extends ResourceItem {
         ResourceType type = getType();
         Density density = type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP ? getFolderDensity() : null;
         if (density != null) {
-          mResourceValue = new DensityBasedResourceValue(type, getName(), getSource().getFile().getAbsolutePath(), density, isFrameworks, null);
+          mResourceValue = new DensityBasedResourceValue(getResourceUrl(isFrameworks),
+                                                         getSource().getFile().getAbsolutePath(),
+                                                         density,
+                                                         null);
         } else {
-          mResourceValue = new ResourceValue(type, getName(), getSource().getFile().getAbsolutePath(), isFrameworks, null);
+          mResourceValue = new ResourceValue(getResourceUrl(isFrameworks),
+                                             getSource().getFile().getAbsolutePath(),
+                                             null);
         }
       } else {
         mResourceValue = parseXmlToResourceValue(isFrameworks);
@@ -150,16 +156,16 @@ class PsiResourceItem extends ResourceItem {
     switch (type) {
       case STYLE:
         String parent = getAttributeValue(myTag, ATTR_PARENT);
-        value = parseStyleValue(new StyleResourceValue(type, name, parent, isFrameworks, null));
+        value = parseStyleValue(new StyleResourceValue(getResourceUrl(isFrameworks), parent, null));
         break;
       case DECLARE_STYLEABLE:
-        value = parseDeclareStyleable(new DeclareStyleableResourceValue(type, name, isFrameworks, null));
+        value = parseDeclareStyleable(new DeclareStyleableResourceValue(getResourceUrl(isFrameworks), null, null));
         break;
       case ATTR:
-        value = parseAttrValue(new AttrResourceValue(type, name, isFrameworks, null));
+        value = parseAttrValue(new AttrResourceValue(getResourceUrl(isFrameworks), null));
         break;
       case ARRAY:
-        value = parseArrayValue(new ArrayResourceValue(name, isFrameworks, null) {
+          value = parseArrayValue(new ArrayResourceValue(getResourceUrl(isFrameworks), null) {
           // Allow the user to specify a specific element to use via tools:index
           @Override
           protected int getDefaultIndex() {
@@ -172,7 +178,7 @@ class PsiResourceItem extends ResourceItem {
         });
         break;
       case PLURALS:
-        value = parsePluralsValue(new PluralsResourceValue(name, isFrameworks, null) {
+        value = parsePluralsValue(new PluralsResourceValue(getResourceUrl(isFrameworks), null, null) {
           // Allow the user to specify a specific quantity to use via tools:quantity
           @Override
           public String getValue() {
@@ -188,10 +194,10 @@ class PsiResourceItem extends ResourceItem {
         });
         break;
       case STRING:
-        value = parseTextValue(new PsiTextResourceValue(type, name, isFrameworks, null));
+        value = parseTextValue(new PsiTextResourceValue(getResourceUrl(isFrameworks), null, null, null));
         break;
       default:
-        value = parseValue(new ResourceValue(type, name, isFrameworks, null));
+        value = parseValue(new ResourceValue(getResourceUrl(isFrameworks), null));
         break;
     }
 
@@ -216,7 +222,9 @@ class PsiResourceItem extends ResourceItem {
           isFrameworkAttr = true;
         }
 
-        AttrResourceValue attr = parseAttrValue(child, new AttrResourceValue(ResourceType.ATTR, name, isFrameworkAttr, null));
+        AttrResourceValue attr = parseAttrValue(child,
+                                                new AttrResourceValue(ResourceUrl.create(ResourceType.ATTR, name, isFrameworkAttr),
+                                                                      null));
         declareStyleable.addValue(attr);
       }
     }
@@ -237,8 +245,8 @@ class PsiResourceItem extends ResourceItem {
           isFrameworkAttr = true;
         }
 
-        ItemResourceValue resValue = new ItemResourceValue(name, isFrameworkAttr, styleValue.isFramework(), styleValue.getLibraryName());
-        resValue.setValue(ValueXmlHelper.unescapeResourceString(ResourceHelper.getTextContent(child), true, true));
+        String value = ValueXmlHelper.unescapeResourceString(ResourceHelper.getTextContent(child), true, true);
+        ItemResourceValue resValue = new ItemResourceValue(name, isFrameworkAttr, value, styleValue.isFramework(), styleValue.getLibraryName());
         styleValue.addItem(resValue);
       }
     }
@@ -353,8 +361,8 @@ class PsiResourceItem extends ResourceItem {
   }
 
   private class PsiTextResourceValue extends TextResourceValue {
-    public PsiTextResourceValue(ResourceType type, String name, boolean isFramework, String libraryName) {
-      super(type, name, isFramework, libraryName);
+    public PsiTextResourceValue(ResourceUrl url, String textValue, String rawXmlValue, String libraryName) {
+      super(url, textValue, rawXmlValue, libraryName);
     }
 
     @Override

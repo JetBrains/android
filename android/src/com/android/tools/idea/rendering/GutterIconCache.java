@@ -19,7 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;

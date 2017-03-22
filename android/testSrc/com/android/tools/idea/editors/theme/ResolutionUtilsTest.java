@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.editors.theme;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
@@ -30,10 +32,14 @@ public class ResolutionUtilsTest extends AndroidTestCase {
    */
 
   public void testGetQualifiedName() {
-    StyleResourceValue styleResourceValue = new StyleResourceValue(ResourceType.STYLE, "myStyle", true, null);
+    StyleResourceValue styleResourceValue = new StyleResourceValue(ResourceUrl.create(SdkConstants.ANDROID_NS_NAME,
+                                                                                      ResourceType.STYLE,
+                                                                                      "myStyle"),
+                                                                   null,
+                                                                   null);
     assertEquals("android:myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
 
-    styleResourceValue = new StyleResourceValue(ResourceType.STYLE, "myStyle", false, null);
+    styleResourceValue = new StyleResourceValue(ResourceUrl.create(null, ResourceType.STYLE, "myStyle"), null, null);
     assertEquals("myStyle", ResolutionUtils.getQualifiedStyleName(styleResourceValue));
   }
 

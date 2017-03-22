@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,8 +48,8 @@ public class FontEnumSupportTest {
   @Before
   public void setUp() {
     ResourceValueMap fonts = ResourceValueMap.create();
-    fonts.put("Lobster", new ResourceValue(ResourceType.FONT, "Lobster", "/very/long/filename/do/not/use", false));
-    fonts.put("DancingScript", new ResourceValue(ResourceType.FONT, "DancingScript", "/very/long/filename/do/not/use", false));
+    fonts.put("Lobster", new ResourceValue(ResourceUrl.create(null, ResourceType.FONT, "Lobster"), "/very/long/filename/do/not/use"));
+    fonts.put("DancingScript", new ResourceValue(ResourceUrl.create(null, ResourceType.FONT, "DancingScript"), "/very/long/filename/do/not/use"));
     Map<ResourceType, ResourceValueMap> projectResources = new HashMap<>();
     projectResources.put(ResourceType.FONT, fonts);
     initMocks(this);

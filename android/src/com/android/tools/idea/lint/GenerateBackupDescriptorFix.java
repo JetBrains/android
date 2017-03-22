@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.templates.TemplateUtils;
