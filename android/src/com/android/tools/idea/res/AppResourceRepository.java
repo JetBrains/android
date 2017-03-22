@@ -52,8 +52,14 @@ import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 import static org.jetbrains.android.facet.ResourceFolderManager.addAarsFromModuleLibraries;
 
 /**
- * Resource repository which merges in resources from the libraries and modules which are
- * transitive dependencies of the given AndroidFacet / module.
+ * This repository gives you a merged view of all the resources available to the app, as seen from the given module, with the current
+ * variant. That includes not just the resources defined in this module, but in any other modules that this module depends on, as well as
+ * any libraries those modules may depend on (such as appcompat).
+ *
+ * <p>When a layout is rendered in the layout, it is fetching resources from the app resource repository: it should see all the resources
+ * just like the app does.
+ *
+ * <p>This class also keeps track of IDs assigned to resources and can generate unused IDs.
  */
 public class AppResourceRepository extends MultiResourceRepository {
   private static final Logger LOG = Logger.getInstance(AppResourceRepository.class);
@@ -109,8 +115,8 @@ public class AppResourceRepository extends MultiResourceRepository {
 
   @NotNull
   static AppResourceRepository create(@NotNull AndroidFacet facet) {
-    AppResourceRepository repository = new AppResourceRepository(facet, computeRepositories(facet, computeLibraries(facet)),
-                                                                 computeLibraries(facet));
+    List<FileResourceRepository> libraries = computeLibraries(facet);
+    AppResourceRepository repository = new AppResourceRepository(facet, computeRepositories(facet, libraries), libraries);
     ProjectResourceRepositoryRootListener.ensureSubscribed(facet.getModule().getProject());
 
     return repository;

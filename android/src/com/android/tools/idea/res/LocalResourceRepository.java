@@ -140,6 +140,9 @@ import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
  * the current module's current flavor. This will allow us to for example preview the string translations
  * for a given resource name not just for the current flavor but for all other flavors as well.
  * </p>
+ * <p>
+ * See also the {@code README.md} file in this package.
+ * </p>
  */
 @SuppressWarnings("deprecation") // Deprecated com.android.util.Pair is required by ProjectCallback interface
 public abstract class LocalResourceRepository extends AbstractResourceRepository implements Disposable, ModificationTracker {

@@ -68,14 +68,23 @@ import static com.android.resources.ResourceFolderType.*;
 import static com.android.tools.lint.detector.api.LintUtils.stripIdPrefix;
 
 /**
- * Remaining work:
+ * The {@link ResourceFolderRepository} is leaf in the repository tree, and is used for user editable resources (e.g. the resources in the
+ * project, typically the res/main source set.) Each ResourceFolderRepository contains the resources provided by a single res folder. This
+ * repository is built on top of IntelliJ’s PSI infrastructure. This allows it (along with PSI listeners) to be updated incrementally; for
+ * example, when it notices that the user is editing the value inside a <string> element in a value folder XML file, it will directly update
+ * the resource value for the given resource item, and so on.
+ *
+ * <p>For efficiency, the ResourceFolderRepository is initialized via the same parsers as the FileResourceRepository and then lazily
+ * switches to PSI parsers after edits. See also {@code README.md} in this package.
+ *
+ * <p>Remaining work:
  * <ul>
- *   <li>Find some way to have event updates in this resource folder directly update parent repositories
- *   (typically {@link ModuleResourceRepository}</li>
- *   <li>Add defensive checks for non-read permission reads of resource values</li>
- *   <li>Idea: For {@link #rescan}; compare the removed items from the added items, and if they're the same, avoid
- *   creating a new generation.</li>
- *   <li>Register the psi project listener as a project service instead</li>
+ * <li>Find some way to have event updates in this resource folder directly update parent repositories
+ * (typically {@link ModuleResourceRepository}</li>
+ * <li>Add defensive checks for non-read permission reads of resource values</li>
+ * <li>Idea: For {@link #rescan}; compare the removed items from the added items, and if they're the same, avoid
+ * creating a new generation.</li>
+ * <li>Register the psi project listener as a project service instead</li>
  * </ul>
  */
 public final class ResourceFolderRepository extends LocalResourceRepository {
