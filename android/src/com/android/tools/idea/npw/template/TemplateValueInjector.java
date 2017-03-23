@@ -174,7 +174,7 @@ public final class TemplateValueInjector {
       myTemplateValues.put(ATTR_MANIFEST_OUT, FileUtil.toSystemIndependentName(manifestDir.getPath()));
     }
 
-    File aidlDir = paths.getAidlDirectory();
+    File aidlDir = paths.getAidlDirectory(packageName);
     if (aidlDir != null) {
       myTemplateValues.put(ATTR_AIDL_DIR, getRelativePath(moduleRoot, aidlDir));
       myTemplateValues.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));

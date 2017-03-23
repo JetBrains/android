@@ -101,7 +101,7 @@ public final class AndroidSourceSet {
       @NotNull
       @Override
       public Collection<File> getAidlDirectories() {
-        File aidlDirectory = myPaths.getAidlDirectory();
+        File aidlDirectory = myPaths.getAidlDirectory(null);
         return aidlDirectory == null ? Collections.emptyList() : Collections.singleton(aidlDirectory);
       }
 

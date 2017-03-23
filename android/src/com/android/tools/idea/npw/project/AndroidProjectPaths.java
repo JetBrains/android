@@ -46,8 +46,11 @@ public interface AndroidProjectPaths {
   @Nullable
   File getResDirectory();
 
+  /**
+   * Similar to {@link AndroidProjectPaths#getSrcDirectory(String)}, except for new aidl files.
+   */
   @Nullable
-  File getAidlDirectory();
+  File getAidlDirectory(@Nullable String packageName);
 
   @Nullable
   File getManifestDirectory();
