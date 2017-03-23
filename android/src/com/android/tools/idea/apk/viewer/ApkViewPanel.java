@@ -18,8 +18,15 @@ package com.android.tools.idea.apk.viewer;
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.apk.analyzer.Archive;
+import com.android.tools.apk.analyzer.ArchiveEntry;
+import com.android.tools.apk.analyzer.ArchiveNode;
+import com.android.tools.apk.analyzer.ArchiveTreeStructure;
+import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.google.common.base.Function;
+import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -27,27 +34,31 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ApkAnalyzerStats;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.ui.search.SearchUtil;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.*;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.Function;
 import com.intellij.util.ui.AnimatedIcon;
 import com.intellij.util.ui.AsyncProcessIcon;
 import icons.AndroidIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.ide.PooledThreadExecutor;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.List;
 
 public class ApkViewPanel implements TreeSelectionListener {
+  private Archive myArchive;
   private JPanel myContainer;
   @SuppressWarnings("unused") // added to the container in the form
   private JScrollPane myColumnTreePane;
@@ -62,37 +73,42 @@ public class ApkViewPanel implements TreeSelectionListener {
   private Listener myListener;
 
   public interface Listener {
-    void selectionChanged(@Nullable ApkEntry entry);
-
+    void selectionChanged(@NotNull Archive archive, @Nullable ArchiveTreeNode entry);
     void selectApkAndCompare();
   }
 
-  public ApkViewPanel(@NotNull ApkParser apkParser) {
+  public ApkViewPanel(@NotNull Archive archive, @NotNull ApkParser apkParser) {
+    myArchive = archive;
+
     // construct the main tree along with the uncompressed sizes
-    ListenableFuture<DefaultMutableTreeNode> treeStructureFuture = apkParser.constructTreeStructure();
-    FutureCallBackAdapter<DefaultMutableTreeNode> setRootNode = new FutureCallBackAdapter<DefaultMutableTreeNode>() {
+    ListenableFuture<ArchiveNode> treeStructureFuture = apkParser.constructTreeStructure();
+    FutureCallBackAdapter<ArchiveNode> setRootNode = new FutureCallBackAdapter<ArchiveNode>() {
       @Override
-      public void onSuccess(DefaultMutableTreeNode result) {
+      public void onSuccess(ArchiveNode result) {
         setRootNode(result);
       }
     };
     Futures.addCallback(treeStructureFuture, setRootNode, EdtExecutor.INSTANCE);
 
-    // in parallel, kick off computation of the compressed archive, and once its available, refresh the tree
-    ListenableFuture<DefaultMutableTreeNode> compressedTreeFuture = apkParser.constructTreeStructureWithCompressedSizes();
-    FutureCallBackAdapter<DefaultMutableTreeNode> refreshTree = new FutureCallBackAdapter<DefaultMutableTreeNode>() {
+    // once we have the tree, kick off computation of the compressed archive, and once its available, refresh the tree
+    ListenableFuture<ArchiveNode> compressedTreeFuture =
+      Futures.transform(treeStructureFuture, (Function<ArchiveNode, ArchiveNode>)input -> {
+        assert input != null;
+        return apkParser.updateTreeWithDownloadSizes(input);
+      }, PooledThreadExecutor.INSTANCE);
+    Futures.addCallback(compressedTreeFuture, new FutureCallBackAdapter<ArchiveNode>() {
       @Override
-      public void onSuccess(DefaultMutableTreeNode result) {
+      public void onSuccess(ArchiveNode result) {
+        ArchiveTreeStructure.sort(result, (o1, o2) -> Longs.compare(o2.getData().getDownloadFileSize(), o1.getData().getDownloadFileSize()));
         refreshTree();
       }
-    };
-    Futures.addCallback(compressedTreeFuture, refreshTree, EdtExecutor.INSTANCE);
+    }, EdtExecutor.INSTANCE);
 
     mySizeComponent.setToolTipText(AndroidBundle.message("apk.viewer.size.types.tooltip"));
     myContainer.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
 
     myCompareWithButton.addActionListener(e -> {
-      if(myListener != null) {
+      if (myListener != null) {
         myListener.selectApkAndCompare();
       }
     });
@@ -160,26 +176,27 @@ public class ApkViewPanel implements TreeSelectionListener {
     myTree.setPaintBusy(true);
 
     TreeSpeedSearch treeSpeedSearch = new TreeSpeedSearch(myTree, path -> {
-      ApkEntry e = ApkEntry.fromNode(path.getLastPathComponent());
-      if (e == null) {
+      Object lastPathComponent = path.getLastPathComponent();
+      if (!(lastPathComponent instanceof ArchiveTreeNode)) {
         return null;
       }
-
-      return e.getPath();
+      return ((ArchiveTreeNode)lastPathComponent).getData().getPath().toString();
     }, true);
 
     // Provides the percentage of the node size to the total size of the APK
     PercentRenderer.PercentProvider percentProvider = (jTree, value, row) -> {
-      ApkEntry entry = ApkEntry.fromNode(value);
-      ApkEntry rootEntry = ApkEntry.fromNode(jTree.getModel().getRoot());
-      if (entry == null || rootEntry == null) {
+      if (!(value instanceof ArchiveTreeNode)) {
         return 0;
       }
-      else if (!entry.isCompressedSizeKnown() || !rootEntry.isCompressedSizeKnown()) {
+
+      ArchiveTreeNode entry = (ArchiveTreeNode)value;
+      ArchiveTreeNode rootEntry = (ArchiveTreeNode)jTree.getModel().getRoot();
+
+      if (entry.getData().getDownloadFileSize() < 0) {
         return 0;
       }
       else {
-        return (double)entry.getCompressedSize() / rootEntry.getCompressedSize();
+        return (double)entry.getData().getDownloadFileSize() / rootEntry.getData().getDownloadFileSize();
       }
     };
 
@@ -213,13 +230,9 @@ public class ApkViewPanel implements TreeSelectionListener {
     myListener = listener;
   }
 
-  private void setRootNode(@NotNull DefaultMutableTreeNode root) {
+  private void setRootNode(@NotNull ArchiveNode root) {
     myTreeModel = new DefaultTreeModel(root);
-
-    ApkEntry entry = ApkEntry.fromNode(root);
-    assert entry != null;
-
-    myTree.setPaintBusy(!entry.isCompressedSizeKnown());
+    myTree.setPaintBusy(root.getData().getDownloadFileSize() < 0);
     myTree.setRootVisible(false);
     myTree.setModel(myTreeModel);
   }
@@ -273,9 +286,9 @@ public class ApkViewPanel implements TreeSelectionListener {
 
   @Override
   public void valueChanged(TreeSelectionEvent e) {
-    ApkEntry selectedEntry = ApkEntry.fromNode(e.getPath().getLastPathComponent());
     if (myListener != null) {
-      myListener.selectionChanged(selectedEntry);
+      Object component = e.getPath().getLastPathComponent();
+      myListener.selectionChanged(myArchive, component instanceof ArchiveTreeNode ? (ArchiveTreeNode)component : null);
     }
   }
 
@@ -290,10 +303,10 @@ public class ApkViewPanel implements TreeSelectionListener {
     sizeInBytes = Math.abs(sizeInBytes);
 
     if (sizeInBytes > mega) {
-      return formatter.format((sign * sizeInBytes) / (double) mega) + " MB";
+      return formatter.format((sign * sizeInBytes) / (double)mega) + " MB";
     }
     else if (sizeInBytes > kilo) {
-      return formatter.format((sign * sizeInBytes) / (double) kilo) + " KB";
+      return formatter.format((sign * sizeInBytes) / (double)kilo) + " KB";
     }
     else {
       return (sign * sizeInBytes) + " B";
@@ -325,37 +338,44 @@ public class ApkViewPanel implements TreeSelectionListener {
                                       boolean leaf,
                                       int row,
                                       boolean hasFocus) {
-      ApkEntry entry = ApkEntry.fromNode(value);
-      if (entry == null) {
-        if (value instanceof LoadingNode) {
-          append(value.toString());
-        }
+      if (!(value instanceof ArchiveNode)) {
+        append(value.toString());
         return;
       }
 
-      VirtualFile file = entry.getFile();
-      setIcon(getIconFor(file));
+      ArchiveEntry entry = ((ArchiveNode)value).getData();
+
+      Path path = entry.getPath();
+      setIcon(getIconFor(path));
+
+      Path base = path.getFileName();
+      String name = base == null ? "" : base.toString();
+      name = StringUtil.trimEnd(name, "/");
 
       SimpleTextAttributes attr = SimpleTextAttributes.REGULAR_ATTRIBUTES;
-      SearchUtil.appendFragments(mySpeedSearch.getEnteredPrefix(), entry.getName(), attr.getStyle(), attr.getFgColor(),
+      SearchUtil.appendFragments(mySpeedSearch.getEnteredPrefix(), name, attr.getStyle(), attr.getFgColor(),
                                  attr.getBgColor(), this);
     }
 
     @NotNull
-    private static Icon getIconFor(@NotNull VirtualFile file) {
-      String fileName = file.getName();
+    private static Icon getIconFor(@NotNull Path path) {
+      Path base = path.getFileName();
+      String fileName = base == null ? "" : base.toString();
 
-      if (!file.isDirectory()) {
+      if (!Files.isDirectory(path)) {
         if (fileName == SdkConstants.FN_ANDROID_MANIFEST_XML) {
           return AndroidIcons.ManifestFile;
         }
         else if (fileName.endsWith(SdkConstants.DOT_DEX)) {
           return AllIcons.FileTypes.JavaClass;
         }
-        Icon ftIcon = file.getFileType().getIcon();
+
+        FileType fileType = FileTypeRegistry.getInstance().getFileTypeByFileName(fileName);
+        Icon ftIcon = fileType.getIcon();
         return ftIcon == null ? AllIcons.FileTypes.Any_type : ftIcon;
       }
       else {
+        fileName = StringUtil.trimEnd(fileName, "/");
         if (fileName.equals(SdkConstants.FD_RES)) {
           return AllIcons.Modules.ResourcesRoot;
         }
@@ -364,28 +384,12 @@ public class ApkViewPanel implements TreeSelectionListener {
     }
   }
 
-  public static class SizeRenderer extends ColoredTreeCellRenderer {
-    private Function<ApkEntry, Long> mySizeMapper;
+  private static class SizeRenderer extends ColoredTreeCellRenderer {
+    private final boolean myUseDownloadSize;
 
-    public SizeRenderer(boolean useCompressedSize) {
-      this(entry -> {
-        if (useCompressedSize) {
-          if (entry.isCompressedSizeKnown()) {
-            return entry.getCompressedSize();
-          }
-          else {
-            return 0L;
-          }
-        }
-        else {
-          return entry.getSize();
-        }
-      });
-    }
-
-
-    public SizeRenderer(Function<ApkEntry, Long> sizeMapper) {
-      mySizeMapper = sizeMapper;
+    public SizeRenderer(boolean useDownloadSize) {
+      myUseDownloadSize = useDownloadSize;
+      setTextAlign(SwingConstants.RIGHT);
     }
 
     @Override
@@ -396,16 +400,15 @@ public class ApkViewPanel implements TreeSelectionListener {
                                       boolean leaf,
                                       int row,
                                       boolean hasFocus) {
-      ApkEntry entry = ApkEntry.fromNode(value);
-      ApkEntry root = ApkEntry.fromNode(tree.getModel().getRoot());
-
-      if (entry == null || root == null) {
+      if (!(value instanceof ArchiveTreeNode)) {
         return;
       }
 
-      setTextAlign(SwingConstants.RIGHT);
-
-      append(getHumanizedSize(mySizeMapper.fun(entry)));
+      ArchiveEntry data = ((ArchiveTreeNode)value).getData();
+      long size = myUseDownloadSize ? data.getDownloadFileSize() : data.getRawFileSize();
+      if (size > 0) {
+        append(getHumanizedSize(size));
+      }
     }
   }
 }

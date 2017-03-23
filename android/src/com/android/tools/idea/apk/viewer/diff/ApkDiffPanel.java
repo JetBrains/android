@@ -19,13 +19,14 @@ import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.idea.apk.viewer.ApkEntry;
 import com.android.tools.idea.apk.viewer.ApkViewPanel.FutureCallBackAdapter;
 import com.android.tools.idea.apk.viewer.ApkViewPanel.NameRenderer;
-import com.android.tools.idea.apk.viewer.ApkViewPanel.SizeRenderer;
 import com.android.tools.idea.ddms.EdtExecutor;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.LoadingNode;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.Function;
 import com.intellij.util.containers.Convertor;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,6 +34,8 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+
+import static com.android.tools.idea.apk.viewer.ApkViewPanel.getHumanizedSize;
 
 public class ApkDiffPanel {
   private JPanel myContainer;
@@ -119,4 +122,31 @@ public class ApkDiffPanel {
     myTree.setModel(myTreeModel);
   }
 
+  // Duplicated from ApkViewPanel.SizeRenderer until the diff entries are unified into the ArchiveEntry data class.
+  public static class SizeRenderer extends ColoredTreeCellRenderer {
+    private Function<ApkEntry, Long> mySizeMapper;
+
+    public SizeRenderer(Function<ApkEntry, Long> sizeMapper) {
+      mySizeMapper = sizeMapper;
+      setTextAlign(SwingConstants.RIGHT);
+    }
+
+    @Override
+    public void customizeCellRenderer(@NotNull JTree tree,
+                                      Object value,
+                                      boolean selected,
+                                      boolean expanded,
+                                      boolean leaf,
+                                      int row,
+                                      boolean hasFocus) {
+      ApkEntry entry = ApkEntry.fromNode(value);
+      ApkEntry root = ApkEntry.fromNode(tree.getModel().getRoot());
+
+      if (entry == null || root == null) {
+        return;
+      }
+
+      append(getHumanizedSize(mySizeMapper.fun(entry)));
+    }
+  }
 }

@@ -17,6 +17,10 @@ package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.apk.analyzer.ApkSizeCalculator;
+import com.android.tools.apk.analyzer.Archive;
+import com.android.tools.apk.analyzer.ArchiveNode;
+import com.android.tools.apk.analyzer.ArchiveTreeStructure;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -26,9 +30,6 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
 
@@ -38,53 +39,37 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.zip.*;
 
 public class ApkParser {
   private static final ListeningExecutorService ourExecutorService = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
 
-  private final VirtualFile myApkRoot;
-  private final File myApk;
+  private final Archive myArchive;
+  private final ApkSizeCalculator myApkSizeCalculator;
 
-  private ListenableFuture<DefaultMutableTreeNode> myTreeStructure;
-  private ListenableFuture<DefaultMutableTreeNode> myTreeStructureWithCompressedSizes;
+  private ListenableFuture<ArchiveNode> myTreeStructure;
 
   private ListenableFuture<AndroidApplicationInfo> myApplicationInfo;
   private ListenableFuture<Long> myCompressedFullApkSize;
 
-  public ApkParser(@NotNull VirtualFile baseFile, @NotNull VirtualFile apkRoot) {
-    if (!apkRoot.getFileSystem().equals(ApkFileSystem.getInstance())) {
-      throw new IllegalArgumentException("Invalid APK");
-    }
-
-    myApkRoot = apkRoot;
-    myApk = VfsUtilCore.virtualToIoFile(baseFile);
+  public ApkParser(@NotNull Archive archive, @NotNull ApkSizeCalculator sizeCalculator) {
+    myArchive = archive;
+    myApkSizeCalculator = sizeCalculator;
   }
 
   @NotNull
-  public synchronized ListenableFuture<DefaultMutableTreeNode> constructTreeStructure() {
+  public synchronized ListenableFuture<ArchiveNode> constructTreeStructure() {
     if (myTreeStructure == null) {
-      myTreeStructure = ourExecutorService.submit(() -> createTreeNode(myApkRoot));
+      myTreeStructure = ourExecutorService.submit(this::createTreeNode);
     }
 
     return myTreeStructure;
   }
 
-  @NotNull
-  public synchronized ListenableFuture<DefaultMutableTreeNode> constructTreeStructureWithCompressedSizes() {
-    if (myTreeStructureWithCompressedSizes == null) {
-      myTreeStructureWithCompressedSizes = ourExecutorService.submit(() -> {
-        // first obtain the compressed apk
-        File compressedApk = getZipCompressedApk(myApk);
-
-        // then update the existing tree structure with info about size of each file in the apk when it is compressed
-        try (ZipFile zip = new ZipFile(compressedApk)) {
-          return updateTreeStructure(constructTreeStructure().get(), zip);
-        }
-      });
-    }
-
-    return myTreeStructureWithCompressedSizes;
+  public ArchiveNode updateTreeWithDownloadSizes(@NotNull ArchiveNode root) {
+    ArchiveTreeStructure.updateDownloadFileSizes(root, myApkSizeCalculator);
+    return root;
   }
 
   @NotNull
@@ -98,93 +83,23 @@ public class ApkParser {
 
   @NotNull
   public synchronized ListenableFuture<Long> getUncompressedApkSize() {
-    return Futures.transform(constructTreeStructure(), (Function<DefaultMutableTreeNode, Long>)input -> {
-      ApkEntry entry = ApkEntry.fromNode(input);
-      assert entry != null;
-
-      return entry.getSize();
-    });
+    return ourExecutorService.submit(myApkSizeCalculator::getFullApkRawSize);
   }
 
   @NotNull
   public synchronized ListenableFuture<Long> getCompressedFullApkSize() {
     if (myCompressedFullApkSize == null) {
-      myCompressedFullApkSize = ourExecutorService.submit(() -> getSizeOfApkServedByPlay(myApk));
+      myCompressedFullApkSize = ourExecutorService.submit(myApkSizeCalculator::getFullApkDownloadSize);
     }
 
     return myCompressedFullApkSize;
   }
 
-  @VisibleForTesting
   @NotNull
-  static DefaultMutableTreeNode createTreeNode(@NotNull VirtualFile file) {
-    String originalName = null;
-    DefaultMutableTreeNode node = new DefaultMutableTreeNode();
-
-    long size = 0;
-
-    if (StringUtil.equals(file.getExtension(), SdkConstants.EXT_ZIP)) {
-      VirtualFile zipRoot = ApkFileSystem.getInstance().extractAndGetContentRoot(file);
-      if (zipRoot != null) {
-        originalName = file.getName();
-        file = zipRoot;
-      }
-    }
-
-    if (file.isDirectory()) {
-      //noinspection UnsafeVfsRecursion (no symlinks inside an APK)
-      for (VirtualFile child : file.getChildren()) {
-        DefaultMutableTreeNode childNode = createTreeNode(child);
-        node.add(childNode);
-
-        size += ((ApkEntry)childNode.getUserObject()).getSize();
-      }
-
-      if (file.getLength() > 0) {
-        // This is probably a zip inside the apk, and we should use it's size
-        size = file.getLength();
-      }
-    }
-    else {
-      size = file.getLength();
-    }
-
-    node.setUserObject(new ApkEntryImpl(file, originalName, size));
-
-    sort(node);
-
+  private ArchiveNode createTreeNode() throws IOException {
+    ArchiveNode node = ArchiveTreeStructure.create(myArchive);
+    ArchiveTreeStructure.updateRawFileSizes(node, myApkSizeCalculator);
     return node;
-  }
-
-  /**
-   * Updates and returns the given tree structure with info about the compressed size of each node.
-   */
-  @NotNull
-  private static DefaultMutableTreeNode updateTreeStructure(@NotNull DefaultMutableTreeNode treeNode, @NotNull ZipFile compressedApk) {
-    long compressedSize = 0;
-
-    ApkEntry entry = ApkEntry.fromNode(treeNode);
-    assert entry != null;
-
-    if (treeNode.getChildCount() > 0) {
-      for (int i = 0; i < treeNode.getChildCount(); i++) {
-        DefaultMutableTreeNode childNode = updateTreeStructure((DefaultMutableTreeNode)treeNode.getChildAt(i), compressedApk);
-        compressedSize += ((ApkEntry)childNode.getUserObject()).getCompressedSize();
-      }
-    }
-    else {
-      ZipEntry ze = compressedApk.getEntry(ApkFileSystem.getInstance().getRelativePath(entry.getFile()));
-      if (ze == null) {
-        // happens if such a relative path is not present inside the apk (e.g. zip files such as instant-run.zip are unzipped to a tempfile)
-        compressedSize = -1;
-      }
-      else {
-        compressedSize = ze.getCompressedSize();
-      }
-    }
-
-    entry.setCompressedSize(compressedSize);
-    return treeNode;
   }
 
   public static void sort(@NotNull DefaultMutableTreeNode node) {
@@ -220,114 +135,12 @@ public class ApkParser {
         return AndroidApplicationInfo.UNKNOWN;
       }
 
-      ProcessOutput xmlTree = invoker.getXmlTree(myApk, SdkConstants.FN_ANDROID_MANIFEST_XML);
+      ProcessOutput xmlTree = invoker.getXmlTree(myArchive.getPath().toFile(), SdkConstants.FN_ANDROID_MANIFEST_XML);
       return AndroidApplicationInfo.fromXmlTree(xmlTree);
     }
     catch (ExecutionException e) {
       Logger.getInstance(ApkViewPanel.class).warn("Unable to run aapt", e);
       return AndroidApplicationInfo.UNKNOWN;
-    }
-  }
-
-  /**
-   * @return the size of the APK compressed using "gzip -9"
-   */
-  private static long getSizeOfApkServedByPlay(@NotNull File apk) {
-    ByteCountingOutputStream out = new ByteCountingOutputStream();
-
-    // There is a difference between uncompressing the apk, and then compressing again using gzip -9, versus just compressing the apk
-    // itself using gzip -9. But the difference seems to be negligible, and we are only aiming at an estimate of what Play provides, so
-    // this should suffice. This also seems to be the same approach taken by https://github.com/googlesamples/apk-patch-size-estimator
-
-    try (GZIPOutputStream zos = new MaxGzipOutputStream(out)) {
-      Files.copy(apk.toPath(), zos);
-      zos.flush();
-    }
-    catch (IOException e) {
-      Logger.getInstance(ApkParser.class).warn(e);
-      return apk.length();
-    }
-
-    return out.getLength();
-  }
-
-  /**
-   * Provides a zip archive that is compressed at level 9, but still maintains archive information. This implies that it will be slightly
-   * larger than compressing using gzip (which only compresses a single file, not an archive). But having compression information per file
-   * is sometimes useful to get an approximate idea of how well each file compresses.
-   *
-   * @return the input file compressed using "zip -9" and saved in a temporary location.
-   */
-  static File getZipCompressedApk(@NotNull File apk) {
-    File compressedFile;
-    try {
-      compressedFile =
-        FileUtil.createTempFile(FileUtil.getNameWithoutExtension(apk), SdkConstants.DOT_ANDROID_PACKAGE, true);
-    }
-    catch (IOException e) {
-      return apk;
-    }
-
-    // copy entire contents of one zip file to another, where the destination zip is written to with the maximum compression level
-    try (
-      ZipInputStream zis = new ZipInputStream(new FileInputStream(apk));
-      ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(compressedFile))) {
-
-      ZipEntry ze;
-      while ((ze = zis.getNextEntry()) != null) {
-        ZipEntry compressedZe = new ZipEntry(ze.getName());
-        compressedZe.setMethod(ZipEntry.DEFLATED);
-        compressedZe.setTime(ze.getTime());
-        zos.putNextEntry(compressedZe);
-
-        byte[] buf = new byte[4096];
-        int n;
-        while ((n = zis.read(buf)) > 0) {
-          zos.write(buf, 0, n);
-        }
-      }
-    }
-    catch (IOException e) {
-      return apk;
-    }
-
-    return compressedFile;
-  }
-
-  private static final class MaxGzipOutputStream extends GZIPOutputStream {
-    public MaxGzipOutputStream(OutputStream out) throws IOException {
-      super(out);
-      def.setLevel(Deflater.BEST_COMPRESSION); // Currently, Google Play serves an APK that is compressed using gzip -9
-    }
-  }
-
-  private static final class MaxZipOutputStream extends ZipOutputStream {
-    public MaxZipOutputStream(OutputStream out) throws IOException {
-      super(out);
-      def.setLevel(Deflater.BEST_COMPRESSION);
-    }
-  }
-
-  private static class ByteCountingOutputStream extends OutputStream {
-    private long myLength;
-
-    public long getLength() {
-      return myLength;
-    }
-
-    @Override
-    public void write(int b) throws IOException {
-      myLength++;
-    }
-
-    @Override
-    public void write(@NotNull byte[] b) throws IOException {
-      myLength += b.length;
-    }
-
-    @Override
-    public void write(@NotNull byte[] b, int off, int len) throws IOException {
-      myLength += len;
     }
   }
 }

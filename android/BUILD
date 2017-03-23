@@ -64,6 +64,7 @@ iml_module(
         "//tools/idea/.idea/libraries:baksmali",
         "//tools/idea/.idea/libraries:dexlib2-2.2b4",
         "//tools/base/apkparser:studio.binary-resources[module]",
+        "//tools/base/apkparser/analyzer:studio.analyzer[module]",
         "//tools/base/pixelprobe:studio.pixelprobe[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/analytics-library/protos:analytics-protos[module]",

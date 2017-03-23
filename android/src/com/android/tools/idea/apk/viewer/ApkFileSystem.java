@@ -203,12 +203,4 @@ public class ApkFileSystem extends ArchiveFileSystem {
     short code = Shorts.fromBytes(bytes[1], bytes[0]);
     return code == Chunk.Type.XML.code();
   }
-
-  public boolean isArsc(@NotNull VirtualFile file) {
-    return isArsc(getRelativePath(file));
-  }
-
-  public static boolean isArsc(@NotNull String relativePath) {
-    return "resources.arsc".equals(relativePath);
-  }
 }
