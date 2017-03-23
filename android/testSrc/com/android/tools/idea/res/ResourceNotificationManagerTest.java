@@ -178,6 +178,30 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
                                             Collections.singletonList("values"), "#ff2300");
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
 
+    // Next check: Mark the lines between <TextView .... /> as comments
+    // and verify that our listeners are called.
+    clear(called1, calledValue1, called2, calledValue2);
+    ResourceVersion version5 = manager.getCurrentVersion(myFacet, layout1, configuration1);
+    replaceText(layout1, "^<TextView",  9, "<!--<TextView-->");
+    replaceText(layout1, "        ^android:layout_width", 35, "<!--android:layout_width=\"match_parent\"-->");
+    replaceText(layout1, "        ^android:layout_height", 36, "<!--android:layout_height=\"match_parent\"-->");
+    replaceText(layout1, "^android:text=", 37,"<!--android:text=\"@string/hello_world\" />-->");
+    ensureCalled(called1, calledValue1, called2, calledValue2, Reason.EDIT);
+    ResourceVersion version6 = manager.getCurrentVersion(myFacet, layout1, configuration1);
+    assertFalse(version6.toString(), version5.equals(version6));
+
+    // Next check: Un-mark the comments of the lines between <!--<TextView ... />--> (which we just commented in previous check)
+    // and verify that our listeners are called.
+    clear(called1, calledValue1, called2, calledValue2);
+    ResourceVersion version7 = manager.getCurrentVersion(myFacet, layout1, configuration1);
+    replaceText(layout1, "^<!--<TextView-->",  15, "<TextView");
+    replaceText(layout1, "^<!--android:layout_width=\"match_parent\"-->", 42, "android:layout_width=\"match_parent\"");
+    replaceText(layout1, "^<!--android:layout_height=\"match_parent\"-->", 43, "android:layout_height=\"match_parent\"");
+    replaceText(layout1, "^<!--android:text=\"@string/hello_world\" />-->", 44, "android:text=\"@string/hello_world\" />");
+    ensureCalled(called1, calledValue1, called2, calledValue2, Reason.EDIT);
+    ResourceVersion version8 = manager.getCurrentVersion(myFacet, layout1, configuration1);
+    assertFalse(version8.toString(), version7.equals(version8));
+
     // Finally check that once we remove the listeners there are no more notifications
     manager.removeListener(listener1, myFacet, layout1, configuration1);
     manager.removeListener(listener2, myFacet, layout2, configuration1);
