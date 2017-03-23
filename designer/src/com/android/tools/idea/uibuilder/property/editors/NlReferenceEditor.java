@@ -104,6 +104,7 @@ public class NlReferenceEditor extends NlBaseComponentEditor implements NlCompon
 
     myIconLabel = new JBLabel();
     myPanel.add(myIconLabel, BorderLayout.LINE_START);
+    myPanel.setFocusable(false);
     myIconLabel.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent mouseEvent) {
