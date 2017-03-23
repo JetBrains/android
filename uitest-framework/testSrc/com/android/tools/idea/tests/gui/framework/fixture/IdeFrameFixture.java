@@ -704,9 +704,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public void requestFocusIfLost() {
     KeyboardFocusManager keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
     Wait.seconds(5).expecting("a component to have the focus").until(() -> {
-      // Keep requesting focus until it is obtained. Since there is no guarantee that the request focus will be granted,
-      // keep asking until it is. This problem has appeared at least when not using a window manager when running tests.
-      if (keyboardFocusManager.getFocusOwner() == null) {
+      // Keep requesting focus until it is obtained by a component which is showing. Since there is no guarantee that the request focus will
+      // be granted keep asking until it is. This problem has appeared at least when not using a window manager when running tests. The focus
+      // can sometimes temporarily be held by a component that is not showing, when closing a dialog for example. This is a transition state
+      // and we want to make sure to keep going until the focus is held by a stable component.
+      Component focusOwner = keyboardFocusManager.getFocusOwner();
+      if (focusOwner == null || !focusOwner.isShowing()) {
         if (SystemInfo.isMac) {
           robot().click(target(), new Point(1, 1)); // Simulate title bar click
         }
