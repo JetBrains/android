@@ -50,7 +50,7 @@ public class GradleSyncSummary {
     return mySyncTimestamp;
   }
 
-  public void setSyncTimestamp(long syncTimestamp) {
+  void setSyncTimestamp(long syncTimestamp) {
     mySyncTimestamp = syncTimestamp;
   }
 
