@@ -358,10 +358,12 @@ public class NlPreviewForm implements Disposable, CaretListener {
     if (model == null) {
       setEditor(null);
 
-      myContentPanel.remove(myActionsToolbar.getToolbarComponent());
+      if (myActionsToolbar != null) {
+        myContentPanel.remove(myActionsToolbar.getToolbarComponent());
 
-      Disposer.dispose(myActionsToolbar);
-      myActionsToolbar = null;
+        Disposer.dispose(myActionsToolbar);
+        myActionsToolbar = null;
+      }
 
       myWorkBench.setToolContext(null);
     }
