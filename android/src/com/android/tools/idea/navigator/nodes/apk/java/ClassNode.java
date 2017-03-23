@@ -33,11 +33,13 @@ import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.smali.SmaliIcons.SmaliFile;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
@@ -60,7 +62,11 @@ class ClassNode extends ProjectViewNode<ApkClass> {
 
   @Override
   protected void update(@NotNull PresentationData presentation) {
-    presentation.setIcon(PlatformIcons.CLASS_ICON);
+    Icon icon = SmaliFile;
+    if (myDexSourceFiles.findJavaPsiClass(myClass.getFqn()) != null) {
+      icon = PlatformIcons.CLASS_ICON;
+    }
+    presentation.setIcon(icon);
     presentation.setPresentableText(getText());
   }
 
