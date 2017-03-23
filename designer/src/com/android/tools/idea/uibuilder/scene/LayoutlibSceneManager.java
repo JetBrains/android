@@ -306,8 +306,8 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   @Override
-  public void requestLayout(boolean animate) {
-    getModel().requestLayout(animate);
+  public void layout(boolean animate) {
+    getModel().layout(animate);
   }
 
   @Nullable
