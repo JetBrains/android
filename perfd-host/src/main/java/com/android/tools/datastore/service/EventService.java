@@ -61,6 +61,7 @@ public class EventService extends EventServiceGrpc.EventServiceImplBase implemen
       builder.setName(data.getName());
       builder.setProcessId(data.getProcessId());
       builder.setHash(data.getHash());
+      builder.setFragmentData(data.getFragmentData());
 
       // Loop through each state change event an activity has gone through and add
       // 1) the first state change before the current start time.
