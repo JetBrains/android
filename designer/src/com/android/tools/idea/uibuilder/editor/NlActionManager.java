@@ -61,7 +61,7 @@ public class NlActionManager extends ActionManager {
   private AnAction mySelectAllAction;
   private AnAction mySelectParent;
   private GotoComponentAction myGotoComponentAction;
-  private final NlDesignSurface mySurface;
+  private NlDesignSurface mySurface;
 
   public NlActionManager(@NotNull NlDesignSurface surface) {
     super(surface);
@@ -83,7 +83,7 @@ public class NlActionManager extends ActionManager {
 
   @Override
   protected ActionsToolbar createActionsToolbar() {
-    return new ActionsToolbar(mySurface);
+    return new NlActionsToolbar(mySurface);
   }
 
   @NotNull
@@ -140,7 +140,7 @@ public class NlActionManager extends ActionManager {
   @Override
   @NotNull
   protected DefaultActionGroup createPopupMenu(@NotNull com.intellij.openapi.actionSystem.ActionManager actionManager,
-                                               @Nullable NlComponent leafComponent) {
+                                             @Nullable NlComponent leafComponent) {
     DefaultActionGroup group = new DefaultActionGroup();
 
     ScreenView screenView = mySurface.getCurrentSceneView();
@@ -154,7 +154,7 @@ public class NlActionManager extends ActionManager {
     }
 
     group.add(new MockupEditAction(mySurface));
-    if (leafComponent != null && Mockup.hasMockupAttribute(leafComponent)) {
+    if(leafComponent != null && Mockup.hasMockupAttribute(leafComponent)) {
       group.add(new MockupDeleteAction(leafComponent));
     }
     group.addSeparator();
@@ -209,7 +209,7 @@ public class NlActionManager extends ActionManager {
 
   @Override
   public void addActions(@NotNull DefaultActionGroup group, @Nullable NlComponent component, @Nullable NlComponent parent,
-                         @NotNull List<NlComponent> newSelection, boolean toolbar) {
+                             @NotNull List<NlComponent> newSelection, boolean toolbar) {
     ScreenView screenView = mySurface.getCurrentSceneView();
     if (screenView == null || (parent == null && component == null)) {
       return;
@@ -247,8 +247,7 @@ public class NlActionManager extends ActionManager {
     List<ViewAction> viewActions = createViewActionList();
     if (toolbar) {
       viewActions.addAll(ViewHandlerManager.get(mySurface.getProject()).getToolbarActions(handler));
-    }
-    else {
+    } else {
       viewActions.addAll(ViewHandlerManager.get(mySurface.getProject()).getPopupMenuActions(handler));
     }
     Collections.sort(viewActions);
@@ -677,8 +676,7 @@ public class NlActionManager extends ActionManager {
           addActions(actions, false, viewAction, mySurface.getProject(), myEditor, myHandler, myComponent, mySelectedChildren);
         }
         return new DefaultActionGroup(actions);
-      }
-      else {
+      } else {
         return new DefaultActionGroup();
       }
     }
