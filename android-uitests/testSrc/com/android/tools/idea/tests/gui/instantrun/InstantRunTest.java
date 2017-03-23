@@ -27,7 +27,6 @@ import com.google.common.base.Strings;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -125,9 +124,8 @@ public class InstantRunTest extends TestWithEmulator {
    *   2. Make sure the instant run cold swap is applied in Run tool window.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
-  @Ignore
   public void coldSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
@@ -184,9 +182,8 @@ public class InstantRunTest extends TestWithEmulator {
    *   2. Make sure the instant run is applied in EventLog tool window.
    *   </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
-  @Ignore
   public void changeManifest() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());

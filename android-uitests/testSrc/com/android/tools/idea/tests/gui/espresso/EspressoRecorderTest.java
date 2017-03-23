@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.util.PatternTextMatcher;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,9 +56,8 @@ public class EspressoRecorderTest extends TestWithEmulator {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
-  @Ignore
   public void addDependencyOnFly() throws Exception {
     guiTest.importSimpleApplication();
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
