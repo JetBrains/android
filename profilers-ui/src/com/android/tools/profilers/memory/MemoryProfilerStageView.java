@@ -33,6 +33,7 @@ import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.PlatformIcons;
@@ -77,6 +78,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     getComponent().add(myMainSplitter, BorderLayout.CENTER);
 
     myHeapDumpButton = new FlatButton(ProfilerIcons.HEAP_DUMP);
+    myHeapDumpButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.HEAP_DUMP));
     myHeapDumpButton.setToolTipText("Takes an Hprof snapshot of the application memory");
     myHeapDumpButton.addActionListener(e -> {
       getStage().requestHeapDump(SwingUtilities::invokeLater);
@@ -105,6 +107,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   public JComponent getToolbar() {
     JPanel toolBar = new JPanel(TOOLBAR_LAYOUT);
     JButton forceGarbageCollectionButton = new FlatButton(ProfilerIcons.FORCE_GARBAGE_COLLECTION);
+    forceGarbageCollectionButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.FORCE_GARBAGE_COLLECTION));
     forceGarbageCollectionButton.setToolTipText("Force garbage collection");
     forceGarbageCollectionButton.addActionListener(e -> {
       getStage().forceGarbageCollection(SwingUtilities::invokeLater);
@@ -114,6 +117,15 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
     toolBar.add(myHeapDumpButton);
     toolBar.add(myAllocationButton);
+
+    StudioProfilers profilers = getStage().getStudioProfilers();
+    Runnable toggleButtons = () -> {
+      forceGarbageCollectionButton.setEnabled(profilers.isProcessAlive());
+      myHeapDumpButton.setEnabled(profilers.isProcessAlive());
+      myAllocationButton.setEnabled(profilers.isProcessAlive());
+    };
+    profilers.addDependency(this).onChange(ProfilerAspect.PROCESSES, toggleButtons);
+    toggleButtons.run();
 
     JPanel panel = new JPanel(new BorderLayout());
     panel.add(toolBar, BorderLayout.WEST);
@@ -179,11 +191,13 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     if (getStage().isTrackingAllocations()) {
       myAllocationButton.setText("Stop Recording");
       myAllocationButton.setIcon(ProfilerIcons.STOP_RECORDING);
+      myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.STOP_RECORDING));
       myAllocationButton.setToolTipText("Stops recording of memory allocations");
     }
     else {
       myAllocationButton.setText("Record");
       myAllocationButton.setIcon(ProfilerIcons.RECORD);
+      myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.RECORD));
       myAllocationButton.setToolTipText("Starts recording of memory allocation");
     }
 

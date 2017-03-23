@@ -33,6 +33,7 @@ import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Splitter;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.components.JBList;
@@ -256,6 +257,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     toolbar.add(myProfilingModesCombo);
     toolbar.add(myCaptureButton);
 
+    StudioProfilers profilers = getStage().getStudioProfilers();
+    profilers.addDependency(this).onChange(ProfilerAspect.PROCESSES, () -> myCaptureButton.setEnabled(profilers.isProcessAlive()));
+    myCaptureButton.setEnabled(profilers.isProcessAlive());
+
     panel.add(toolbar, BorderLayout.WEST);
     return panel;
   }
@@ -275,11 +280,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myCaptureButton.setEnabled(true);
         myCaptureButton.setText("Record");
         myCaptureButton.setIcon(ProfilerIcons.RECORD);
+        myCaptureButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.RECORD));
         break;
       case CAPTURING:
         myCaptureButton.setEnabled(true);
         myCaptureButton.setText("Stop Recording");
         myCaptureButton.setIcon(ProfilerIcons.STOP_RECORDING);
+        myCaptureButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.STOP_RECORDING));
         break;
       case PARSING:
         myCaptureViewLoading.startLoading();
