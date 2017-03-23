@@ -95,7 +95,8 @@ public class ExportProjectZip extends AnAction implements DumbAware {
     excludes.add(zipFile);
 
     assert project.getBasePath() != null;
-    File basePath = new File(project.getBasePath());
+    File basePath = VfsUtilCore.virtualToIoFile(project.getBaseDir());
+    allRoots.add(basePath);
 
     excludes.add(new File(basePath, SdkConstants.FN_LOCAL_PROPERTIES));
 
@@ -110,7 +111,10 @@ public class ExportProjectZip extends AnAction implements DumbAware {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       if (gradle) {
         // if this is a gradle project, exclude .iml file
-        excludes.add(new File(module.getModuleFilePath()));
+        VirtualFile moduleFile = module.getModuleFile();
+        if (moduleFile != null) {
+          excludes.add(VfsUtilCore.virtualToIoFile(moduleFile));
+        }
       }
 
       ModuleRootManager roots = ModuleRootManager.getInstance(module);
