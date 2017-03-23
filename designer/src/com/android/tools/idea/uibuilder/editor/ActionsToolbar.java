@@ -15,16 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.tools.idea.assistant.view.UIUtils;
+import com.android.tools.idea.configurations.ConfigurationHolder;
 import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.surface.*;
-import com.intellij.openapi.Disposable;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
+import com.android.tools.idea.uibuilder.surface.PanZoomListener;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.ui.UIUtil;
@@ -41,77 +46,80 @@ import java.util.List;
  * The actions toolbar updates dynamically based on the component selection, their
  * parents (and if no selection, the root layout)
  */
-final class ActionsToolbar implements DesignSurfaceListener, Disposable, ModelListener, PanZoomListener {
-  private final DesignSurface mySurface;
+abstract public class ActionsToolbar implements DesignSurfaceListener, ModelListener {
+  protected final DesignSurface mySurface;
   private NlModel myModel;
   private JComponent myToolbarComponent;
-  private ActionToolbar myNorthToolbar;
-  private ActionToolbar myEastToolbar;
+  protected ActionToolbar myActionToolbar;
   private final DefaultActionGroup myDynamicGroup = new DefaultActionGroup();
 
   public ActionsToolbar(DesignSurface surface) {
     mySurface = surface;
   }
 
-  @Override
-  public void dispose() {
-    myModel.removeListener(this);
-
-    mySurface.removePanZoomListener(this);
-    mySurface.removeListener(this);
-  }
-
   @NotNull
   public JComponent getToolbarComponent() {
     if (myToolbarComponent == null) {
       myToolbarComponent = createToolbarComponent();
-
-      mySurface.addListener(this);
-      mySurface.addPanZoomListener(this);
-
-      updateActions();
     }
 
     return myToolbarComponent;
   }
 
-  @NotNull
   private JComponent createToolbarComponent() {
-    ToolbarActionGroups groups = mySurface.getLayoutType().getToolbarActionGroups((NlDesignSurface)mySurface);
-
-    myNorthToolbar = createActionToolbar("NlConfigToolbar", groups.getNorthGroup());
-
-    JComponent northToolbarComponent = myNorthToolbar.getComponent();
-    northToolbarComponent.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
-    northToolbarComponent.setName("NlConfigToolbar");
-
-    ActionToolbar centerToolbar = createActionToolbar("NlLayoutToolbar", myDynamicGroup);
-
-    JComponent centerToolbarComponent = centerToolbar.getComponent();
-    centerToolbarComponent.setName("NlLayoutToolbar");
-
-    myEastToolbar = createActionToolbar("NlRhsToolbar", groups.getEastGroup());
-
-    JComponent eastToolbarComponent = myEastToolbar.getComponent();
-    eastToolbarComponent.setName("NlRhsToolbar");
-
-    JComponent panel = new JPanel(new BorderLayout());
+    JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
 
-    panel.add(northToolbarComponent, BorderLayout.NORTH);
-    panel.add(centerToolbarComponent, BorderLayout.CENTER);
-    panel.add(eastToolbarComponent, BorderLayout.EAST);
+    // Create a layout where there are three toolbars:
+    // +----------------------------------------------------------------------------+
+    // | Normal toolbar, minus dynamic actions                                      |
+    // +---------------------------------------------+------------------------------+
+    // | Dynamic layout actions                      | Zoom actions and file status |
+    // +---------------------------------------------+------------------------------+
+    ConfigurationHolder context = new NlEditorPanel.NlConfigurationHolder(mySurface);
+    ActionGroup configGroup = createConfigActions(context, mySurface);
+
+    ActionManager actionManager = ActionManager.getInstance();
+    myActionToolbar = actionManager.createActionToolbar("NlConfigToolbar", configGroup, true);
+    myActionToolbar.getComponent().setName("NlConfigToolbar");
+    myActionToolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
+    JComponent actionToolbarComponent = myActionToolbar.getComponent();
+    actionToolbarComponent.setBorder(IdeBorderFactory.createBorder(SideBorder.BOTTOM));
+    panel.add(actionToolbarComponent, BorderLayout.NORTH);
+
+    final ActionToolbar layoutToolBar = actionManager.createActionToolbar("NlLayoutToolbar", myDynamicGroup, true);
+    layoutToolBar.getComponent().setName("NlLayoutToolbar");
+    layoutToolBar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
+
+    JPanel bottom = new JPanel(new BorderLayout());
+    bottom.add(layoutToolBar.getComponent(), BorderLayout.CENTER);
+
+    ActionToolbar zoomToolBar = actionManager.createActionToolbar("NlRhsToolbar", getRhsActions(mySurface), true);
+    zoomToolBar.getComponent().setName("NlRhsToolbar");
+    bottom.add(zoomToolBar.getComponent(), BorderLayout.EAST);
+
+    panel.add(bottom, BorderLayout.SOUTH);
+
+    mySurface.addListener(this);
+    mySurface.addPanZoomListener(new PanZoomListener() {
+      @Override
+      public void zoomChanged(DesignSurface designSurface) {
+        zoomToolBar.updateActionsImmediately();
+      }
+
+      @Override
+      public void panningChanged(AdjustmentEvent adjustmentEvent) {
+
+      }
+    });
+
+    updateActions();
 
     return panel;
   }
 
-  @NotNull
-  private static ActionToolbar createActionToolbar(@NotNull String place, @NotNull ActionGroup group) {
-    ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(place, group, true);
-    toolbar.setLayoutPolicy(ActionToolbar.WRAP_LAYOUT_POLICY);
-
-    return toolbar;
-  }
+  abstract protected DefaultActionGroup createConfigActions(ConfigurationHolder configurationHolder, DesignSurface surface);
+  abstract protected ActionGroup getRhsActions(DesignSurface surface);
 
   public void updateActions() {
     SceneView view = mySurface.getCurrentSceneView();
@@ -122,8 +130,7 @@ final class ActionsToolbar implements DesignSurfaceListener, Disposable, ModelLi
         List<NlComponent> roots = view.getModel().getComponents();
         if (roots.size() == 1) {
           selection = Collections.singletonList(roots.get(0));
-        }
-        else {
+        } else {
           // Model not yet rendered: when it's done, update. Listener is removed as soon as palette fires from listener callback.
           myModel.addListener(this);
           return;
@@ -147,8 +154,7 @@ final class ActionsToolbar implements DesignSurfaceListener, Disposable, ModelLi
           // If you select a root layout, offer selection actions on it as well
           return selected;
         }
-      }
-      else if (parent != selected.getParent()) {
+      } else if (parent != selected.getParent()) {
         parent = null;
         break;
       }
@@ -156,14 +162,14 @@ final class ActionsToolbar implements DesignSurfaceListener, Disposable, ModelLi
     return parent;
   }
 
-  private void updateActions(@NotNull List<NlComponent> newSelection) {
+  protected void updateActions(@NotNull List<NlComponent> newSelection) {
     SceneView screenView = mySurface.getCurrentSceneView();
     if (screenView == null) {
       return;
     }
 
     boolean isSupportedByDesigner = mySurface.getLayoutType().isSupportedByDesigner();
-    UIUtil.invokeLaterIfNeeded(() -> myNorthToolbar.getComponent().setVisible(isSupportedByDesigner));
+    UIUtil.invokeLaterIfNeeded(() -> myActionToolbar.getComponent().setVisible(isSupportedByDesigner));
 
     // TODO: Perform caching
     myDynamicGroup.removeAll();
@@ -180,8 +186,7 @@ final class ActionsToolbar implements DesignSurfaceListener, Disposable, ModelLi
     assert surface == mySurface;
     if (!newSelection.isEmpty()) {
       updateActions(newSelection);
-    }
-    else {
+    } else {
       updateActions();
     }
   }
@@ -190,7 +195,7 @@ final class ActionsToolbar implements DesignSurfaceListener, Disposable, ModelLi
   public void sceneChanged(@NotNull DesignSurface surface, @Nullable SceneView sceneView) {
     // The toolbar depends on the current ScreenView for its content,
     // so reload when the ScreenView changes.
-    myNorthToolbar.updateActionsImmediately();
+    myActionToolbar.updateActionsImmediately();
     updateActions();
   }
 
@@ -221,12 +226,4 @@ final class ActionsToolbar implements DesignSurfaceListener, Disposable, ModelLi
     // Do nothing
   }
 
-  @Override
-  public void zoomChanged(@NotNull DesignSurface surface) {
-    myEastToolbar.updateActionsImmediately();
-  }
-
-  @Override
-  public void panningChanged(@NotNull AdjustmentEvent event) {
-  }
 }
