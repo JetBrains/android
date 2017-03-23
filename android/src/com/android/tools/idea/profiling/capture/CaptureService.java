@@ -105,14 +105,24 @@ public class CaptureService {
    */
   @NotNull
   public String getSuggestedName(@Nullable Client client) {
-    String timestamp = new SimpleDateFormat("yyyy.MM.dd_HH.mm").format(new Date());
+    return getSuggestedName(client, "yyyy.MM.dd_HH.mm");
+  }
+
+  public String getSuggestedName(@Nullable Client client, @NotNull String format) {
+    String timestamp = new SimpleDateFormat(format).format(new Date());
+    String suggestedName = null;
     if (client != null) {
       String name = client.getClientData().getClientDescription();
       if (name != null && name.length() > 0) {
-        return name + "_" + timestamp;
+        suggestedName = name + "_" + timestamp;
       }
     }
-    return myProject.getName() + "_" + timestamp;
+
+    if (suggestedName == null) {
+      suggestedName = myProject.getName() + "_" + timestamp;
+    }
+
+    return suggestedName.replaceAll("[^._A-Za-z0-9]", "");
   }
 
   public void update() {
