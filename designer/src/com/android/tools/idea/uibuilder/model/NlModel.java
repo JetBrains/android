@@ -164,7 +164,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       }
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(getProject());
       manager.addListener(this, myFacet, myFile, myConfiguration);
-      myListeners.forEach(listener -> listener.modelActivated(this));
+      listenersCopy().forEach(listener -> listener.modelActivated(this));
     }
   }
 
@@ -185,7 +185,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    */
   public void deactivate() {
     if (myActive) {
-      myListeners.forEach(listener -> listener.modelDeactivated(this));
+      listenersCopy().forEach(listener -> listener.modelDeactivated(this));
       ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
       manager.removeListener(this, myFacet, myFile, myConfiguration);
       myConfigurationModificationCount = myConfiguration.getModificationCount();
@@ -345,12 +345,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * // moving all the derived data into the Scene.
    */
   public void notifyListenersModelUpdateComplete() {
-    List<ModelListener> listeners;
-    synchronized (myListeners) {
-      listeners = ImmutableList.copyOf(myListeners);
-    }
-
-    listeners.forEach(listener -> listener.modelDerivedDataChanged(this));
+    listenersCopy().forEach(listener -> listener.modelDerivedDataChanged(this));
   }
 
   /**
@@ -359,12 +354,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * TODO: move these listeners out of NlModel, since the model shouldn't care about being rendered.
    */
   public void notifyListenersRenderComplete() {
-    List<ModelListener> listeners;
-    synchronized (myListeners) {
-      listeners = ImmutableList.copyOf(myListeners);
-    }
-
-    listeners.forEach(listener -> listener.modelRendered(this));
+    listenersCopy().forEach(listener -> listener.modelRendered(this));
   }
 
   /**
@@ -375,12 +365,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * @param animate if true, warns the listeners to animate the layout update
    */
   public void notifyListenersModelLayoutComplete(boolean animate) {
-    List<ModelListener> listeners;
-    synchronized (myListeners) {
-      listeners = ImmutableList.copyOf(myListeners);
-    }
-
-    listeners.forEach(listener -> listener.modelChangedOnLayout(this, animate));
+    listenersCopy().forEach(listener -> listener.modelChangedOnLayout(this, animate));
   }
 
   @NotNull
@@ -1592,7 +1577,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   public void notifyModified(ChangeType reason) {
     updateTheme();
     myModificationTrigger = reason;
-    new ArrayList<>(myListeners).forEach(listener -> listener.modelChanged(this));
+    listenersCopy().forEach(listener -> listener.modelChanged(this));
   }
 
   public ChangeType getLastChangeType() {
@@ -1601,5 +1586,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   public void resetLastChange() {
     myModificationTrigger = null;
+  }
+
+  private List<ModelListener> listenersCopy() {
+    synchronized (myListeners) {
+      return ImmutableList.copyOf(myListeners);
+    }
   }
 }
