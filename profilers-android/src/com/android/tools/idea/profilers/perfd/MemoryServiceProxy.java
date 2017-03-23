@@ -40,6 +40,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 
+import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_JVMTI_PROFILING;
 import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.*;
 
 public class MemoryServiceProxy extends PerfdProxyService {
@@ -77,7 +78,7 @@ public class MemoryServiceProxy extends PerfdProxyService {
     myTrackerSupplier = legacyTrackerSupplier;
     myUpdatingDataLock = new Object();
 
-    if (myDevice.getVersion().getFeatureLevel() < 26) {
+    if (!ENABLE_JVMTI_PROFILING || myDevice.getVersion().getFeatureLevel() < 26) {
       myUseLegacyTracking = true;
       myLegacyTrackers = new TIntObjectHashMap<>();
       myTrackingData = new TIntObjectHashMap<>();
