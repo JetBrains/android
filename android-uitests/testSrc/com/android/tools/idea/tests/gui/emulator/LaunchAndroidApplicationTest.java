@@ -16,10 +16,7 @@
 package com.android.tools.idea.tests.gui.emulator;
 
 import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -56,7 +53,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
   private static final Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
   private static final Pattern DEBUG_OUTPUT = Pattern.compile(".*Connected to the target VM.*", Pattern.DOTALL);
 
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.QA)
   @Test
   public void testRunOnEmulator() throws Exception, ClassNotFoundException {
     InstantRunSettings.setShowStatusNotifications(false);
@@ -69,15 +66,15 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
       .runApp(APP_NAME)
       .selectDevice(AVD_NAME)
       .clickOk();
-
     // Make sure the right app is being used. This also serves as the sync point for the package to get uploaded to the device/emulator.
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
     ideFrameFixture.getRunToolWindow().findContent(APP_NAME).waitForOutput(new PatternTextMatcher(RUN_OUTPUT), 120);
 
-    ideFrameFixture.getAndroidToolWindow().selectDevicesTab().selectProcess(PROCESS_NAME).clickTerminateApplication();
+    ideFrameFixture.getAndroidToolWindow().selectDevicesTab().selectProcess(PROCESS_NAME);
+    ideFrameFixture.stopApp();
   }
 
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.QA)
   @Test
   public void testDebugOnEmulator() throws IOException, ClassNotFoundException, EvaluateException {
     guiTest.importSimpleApplication();
@@ -96,8 +93,8 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
 
     ideFrameFixture.getAndroidToolWindow()
       .selectDevicesTab()
-      .selectProcess(PROCESS_NAME)
-      .clickTerminateApplication();
+      .selectProcess(PROCESS_NAME);
+    ideFrameFixture.stopApp();
   }
 
   /**
