@@ -304,7 +304,10 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     // Find the minimum value of the build API level and pass it to Gradle as a property
     List<AndroidVersion> versionLists = devices.stream().map(d -> d.getVersion()).collect(Collectors.toList());
     AndroidVersion minVersion = Ordering.natural().min(versionLists);
-    properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, Integer.toString(minVersion.getFeatureLevel())));
+    properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, Integer.toString(minVersion.getApiLevel())));
+    if(minVersion.getCodename() != null) {
+      properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API_CODENAME, minVersion.getCodename()));
+    }
 
     // If we are building for only one device, pass the density and the ABI
     if (devices.size() == 1) {
