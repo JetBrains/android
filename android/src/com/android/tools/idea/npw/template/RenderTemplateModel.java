@@ -139,11 +139,6 @@ public final class RenderTemplateModel extends WizardModel {
 
   @Override
   protected void handleFinished() {
-    if (!myProject.get().isPresent() || myTemplateHandle == null) {
-      getLog().error("RenderTemplateModel did not collect expected information and will not complete. Please report this error.");
-      return;
-    }
-
     myMultiTemplateRenderer.requestRender(new FreeMarkerTemplateRenderer());
   }
 
@@ -156,6 +151,11 @@ public final class RenderTemplateModel extends WizardModel {
 
     @Override
     public boolean doDryRun() {
+      if (!myProject.get().isPresent() || myTemplateHandle == null) {
+        getLog().error("RenderTemplateModel did not collect expected information and will not complete. Please report this error.");
+        return false;
+      }
+
       AndroidProjectPaths paths = mySourceSet.get().getPaths();
       final Project project = myProject.getValue();
 
