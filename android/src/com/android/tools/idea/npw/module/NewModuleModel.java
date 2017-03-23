@@ -14,7 +14,7 @@
  */
 package com.android.tools.idea.npw.module;
 
-import com.android.tools.idea.npw.template.MultiTemplateRender;
+import com.android.tools.idea.npw.template.MultiTemplateRenderer;
 import com.android.tools.idea.npw.project.NewProjectModel;
 import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
@@ -56,7 +56,7 @@ public final class NewModuleModel extends WizardModel {
   @NotNull private final BoolProperty myIsInstantApp = new BoolValueProperty();
   @NotNull private final BoolProperty myEnableCppSupport;
   @NotNull private final OptionalProperty<Project> myProject;
-  @NotNull private final MultiTemplateRender myMultiTemplateRender;
+  @NotNull private final MultiTemplateRenderer myMultiTemplateRenderer;
   private final boolean myCreateInExistingProject;
 
   { // Default init constructor
@@ -76,7 +76,7 @@ public final class NewModuleModel extends WizardModel {
     myIsLibrary.addListener(sender -> myApplicationName.set(
       message(myIsLibrary.get() ? "android.wizard.module.config.new.library" : "android.wizard.module.config.new.application")));
 
-    myMultiTemplateRender = new MultiTemplateRender();
+    myMultiTemplateRenderer = new MultiTemplateRenderer();
   }
 
   public NewModuleModel(@NotNull NewProjectModel projectModel, @NotNull File templateFile) {
@@ -86,7 +86,8 @@ public final class NewModuleModel extends WizardModel {
     myEnableCppSupport = projectModel.enableCppSupport();
     myApplicationName = projectModel.applicationName();
     myTemplateFile.setValue(templateFile);
-    myMultiTemplateRender = projectModel.getMultiTemplateRender();
+    myMultiTemplateRenderer = projectModel.getMultiTemplateRenderer();
+    myMultiTemplateRenderer.increment();
   }
 
   @NotNull
@@ -150,8 +151,8 @@ public final class NewModuleModel extends WizardModel {
   }
 
   @NotNull
-  public MultiTemplateRender getMultiTemplateRender() {
-    return myMultiTemplateRender;
+  public MultiTemplateRenderer getMultiTemplateRenderer() {
+    return myMultiTemplateRenderer;
   }
 
   /**
@@ -169,10 +170,15 @@ public final class NewModuleModel extends WizardModel {
 
   @Override
   protected void handleFinished() {
-    myMultiTemplateRender.requestRender(new ModuleTemplateRenderer());
+    myMultiTemplateRenderer.requestRender(new ModuleTemplateRenderer());
   }
 
-  private class ModuleTemplateRenderer implements MultiTemplateRender.TemplateRenderer {
+  @Override
+  protected void handleSkipped() {
+    myMultiTemplateRenderer.skipRender();
+  }
+
+  private class ModuleTemplateRenderer implements MultiTemplateRenderer.TemplateRenderer {
     Map<String, Object> myTemplateValues;
 
     @Override
