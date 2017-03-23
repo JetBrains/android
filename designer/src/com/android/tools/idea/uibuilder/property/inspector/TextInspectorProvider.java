@@ -152,11 +152,13 @@ public class TextInspectorProvider implements InspectorProvider {
       myColorEditor = NlReferenceEditor.createForInspectorWithBrowseButton(propertiesManager.getProject(), DEFAULT_LISTENER);
 
       myTextStylePanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+      myTextStylePanel.setFocusable(false);
       myTextStylePanel.add(myBoldEditor.getComponent());
       myTextStylePanel.add(myItalicsEditor.getComponent());
       myTextStylePanel.add(myAllCapsEditor.getComponent());
 
       myAlignmentPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+      myAlignmentPanel.setFocusable(false);
       myAlignmentPanel.add(myStartEditor.getComponent());
       myAlignmentPanel.add(myLeftEditor.getComponent());
       myAlignmentPanel.add(myCenterEditor.getComponent());
