@@ -184,6 +184,49 @@ public class ModelWizardTest {
   }
 
   @Test
+  public void wizardInformsModelsTheyWereSkipped() throws Exception {
+    DummyModel modelFinished1 = new DummyModel();
+    DummyModel modelFinished2 = new DummyModel();
+    DummyModel modelFinished3 = new DummyModel();
+    DummyModel modelSkipped1 = new DummyModel();
+    DummyModel modelSkipped2 = new DummyModel();
+
+    DummyStep step1 = new DummyStep(modelFinished1);
+    ShouldSkipStep step2 = new ShouldSkipStep(modelSkipped1);
+    DummyStep step3 = new DummyStep(modelFinished2);
+    ShouldSkipStep step4 = new ShouldSkipStep(modelSkipped2);
+    ShouldSkipStep step5 = new ShouldSkipStep(modelSkipped2);
+
+    // If a model is associated with two steps, one which is skipped and one which isn't, it will
+    // still be marked as finished.
+    ShouldSkipStep step6 = new ShouldSkipStep(modelFinished3);
+    DummyStep step7 = new DummyStep(modelFinished3);
+
+    ModelWizard wizard = new ModelWizard.Builder(step1, step2, step3, step4, step5, step6, step7).build();
+
+    wizard.goForward(); // Step1
+    // Step 2 skipped
+    wizard.goForward(); // Step3
+    // Step 4 - 6 skipped
+    wizard.goForward(); // Step6
+
+    assertThat(wizard.isFinished()).isTrue();
+    assertThat(modelFinished1.myIsFinished).isTrue();
+    assertThat(modelFinished1.myIsSkipped).isFalse();
+    assertThat(modelFinished2.myIsFinished).isTrue();
+    assertThat(modelFinished2.myIsSkipped).isFalse();
+    assertThat(modelFinished3.myIsFinished).isTrue();
+    assertThat(modelFinished3.myIsSkipped).isFalse();
+
+    assertThat(modelSkipped1.myIsSkipped).isTrue();
+    assertThat(modelSkipped1.myIsFinished).isFalse();
+    assertThat(modelSkipped2.myIsSkipped).isTrue();
+    assertThat(modelSkipped2.myIsFinished).isFalse();
+
+    Disposer.dispose(wizard);
+  }
+
+  @Test
   public void cantCreateWizardWithoutSteps() throws Exception {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     try {
@@ -566,11 +609,21 @@ public class ModelWizardTest {
 
   private static class DummyModel extends WizardModel {
     private boolean myIsFinished;
+    private boolean myIsSkipped;
     private boolean myIsDisposed;
 
     @Override
     public void handleFinished() {
+      assertThat(myIsFinished).isFalse(); // This is only ever called once
+      assertThat(myIsSkipped).isFalse(); // Skipped and finished are mutually exclusive
       myIsFinished = true;
+    }
+
+    @Override
+    protected void handleSkipped() {
+      assertThat(myIsSkipped).isFalse(); // This is only ever called once
+      assertThat(myIsFinished).isFalse(); // Skipped and finished are mutually exclusive
+      myIsSkipped = true;
     }
 
     @Override
