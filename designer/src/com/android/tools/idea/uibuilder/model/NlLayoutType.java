@@ -16,15 +16,12 @@
 package com.android.tools.idea.uibuilder.model;
 
 import com.android.SdkConstants;
-import com.android.resources.ResourceConstants;
-import com.android.tools.idea.uibuilder.editor.DefaultToolbarActionGroups;
-import com.android.tools.idea.uibuilder.editor.ToolbarActionGroups;
-import com.android.tools.idea.uibuilder.editor.VectorToolbarActionGroups;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.menu.MenuDomFileDescription;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -42,50 +39,37 @@ public enum NlLayoutType {
       return LayoutDomFileDescription.isLayoutFile(file);
     }
   },
-
   MENU(true) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
       return MenuDomFileDescription.isMenuFile(file);
     }
   },
-
   PREFERENCE_SCREEN(true) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return isResourceTypeOf(file, ResourceConstants.FD_RES_XML, SdkConstants.TAG_PREFERENCE_SCREEN);
+      return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
+        if (file.getProject().isDisposed()) {
+          return false;
+        }
+        if (AndroidResourceUtil.isInResourceSubdirectory(file, ResourceFolderType.XML.getName())) {
+          XmlTag tag = file.getRootTag();
+          return tag != null && tag.getName().equals(SdkConstants.TAG_PREFERENCE_SCREEN);
+        }
+        return false;
+      });
     }
   },
-
-  VECTOR(false) {
+  DRAWABLE(false) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return isResourceTypeOf(file, ResourceConstants.FD_RES_DRAWABLE, SdkConstants.TAG_VECTOR);
-    }
-
-    @NotNull
-    @Override
-    public ToolbarActionGroups getToolbarActionGroups(@NotNull NlDesignSurface surface) {
-      return new VectorToolbarActionGroups(surface);
+      return AndroidDrawableDomUtil.isDrawableResourceFile(file);
     }
   },
-
   UNKNOWN(false) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
       return false;
-    }
-
-    @NotNull
-    @Override
-    public String getPaletteFileName() {
-      throw new UnsupportedOperationException();
-    }
-
-    @NotNull
-    @Override
-    public ToolbarActionGroups getToolbarActionGroups(@NotNull NlDesignSurface surface) {
-      throw new UnsupportedOperationException();
     }
   };
 
@@ -96,26 +80,6 @@ public enum NlLayoutType {
   }
 
   public abstract boolean isResourceTypeOf(@NotNull XmlFile file);
-
-  static boolean isResourceTypeOf(@NotNull XmlFile file, @NotNull String directoryName, @NotNull String tagName) {
-    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
-      if (file.getProject().isDisposed()) {
-        return false;
-      }
-
-      if (!AndroidResourceUtil.isInResourceSubdirectory(file, directoryName)) {
-        return false;
-      }
-
-      XmlTag tag = file.getRootTag();
-
-      if (tag == null) {
-        return false;
-      }
-
-      return tag.getName().equals(tagName);
-    });
-  }
 
   public boolean isLayout() {
     return this == LAYOUT;
@@ -141,12 +105,8 @@ public enum NlLayoutType {
   }
 
   @NotNull
-  public String getPaletteFileName() {
+  public final String getPaletteFileName() {
+    assert isSupportedByDesigner();
     return toString().toLowerCase(Locale.ROOT) + "_palette.xml";
-  }
-
-  @NotNull
-  public ToolbarActionGroups getToolbarActionGroups(@NotNull NlDesignSurface surface) {
-    return new DefaultToolbarActionGroups(surface);
   }
 }
