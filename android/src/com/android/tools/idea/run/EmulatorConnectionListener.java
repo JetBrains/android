@@ -150,25 +150,7 @@ public class EmulatorConnectionListener {
         return false;
       }
 
-      // Ideally, we'd also check if some known processes have come online, but this is not a strict requirement, and we skip that check
-      // if adb integration is turned off
-      if (!AndroidEnableAdbServiceAction.isAdbServiceEnabled()) {
-        Logger.getInstance(EmulatorConnectionListener.class).warn("ADB Integration is turned off, we cannot check the number of clients.");
-        return true;
-      }
-
-      // API 26 systems images have a user build, so we can't check if there are any processes are online
-      // https://code.google.com/p/android/issues/detail?id=258545
-      if (device.getVersion().getFeatureLevel() > 25) {
-        return true;
-      }
-
-      // Emulators may be reported as online, but may not have services running yet. Attempting to install at this time
-      // will result in an error like "Could not access the Package Manager". We use the following heuristic to check
-      // that the system is in a reasonable state to install apps.
-      return device.getClients().length > 5 ||
-             device.getClient("android.process.acore") != null ||
-             device.getClient("com.google.android.wearable.app") != null;
+      return true;
     }
   }
 }
