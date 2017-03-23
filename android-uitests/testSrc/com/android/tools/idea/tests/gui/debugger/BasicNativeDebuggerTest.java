@@ -46,7 +46,7 @@ public class BasicNativeDebuggerTest extends TestWithEmulator {
   private static final Pattern DEBUGGER_ATTACHED_PATTERN = Pattern.compile(".*Debugger attached to process.*", Pattern.DOTALL);
 
   @Test
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE)
   public void testSessionRestart() throws IOException, ClassNotFoundException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicJniApp");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
