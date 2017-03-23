@@ -51,7 +51,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
           "    android:layout_width=\"match_parent\"\n" +
           "    android:layout_height=\"match_parent\">\n" +
           "    <!-- My comment -->\n" +
-          "    <TextView " +
+          "    <TextView\n" +
           "        android:layout_width=\"match_parent\"\n" +
           "        android:layout_height=\"match_parent\"\n" +
           "        android:text=\"@string/hello\" />\n" +
