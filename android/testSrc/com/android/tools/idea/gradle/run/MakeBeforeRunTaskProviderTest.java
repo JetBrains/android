@@ -48,6 +48,10 @@ public class MakeBeforeRunTaskProviderTest {
 
     assertTrue(arguments.contains("-Pandroid.injected.build.api=20"));
     assertTrue(arguments.contains("-Pandroid.injected.build.abi=armeabi,x86"));
+    for (String argument : arguments) {
+      assertFalse("codename should not be set for a released version",
+                  argument.startsWith("-Pandroid.injected.build.codename"));
+    }
   }
 
   @Test
@@ -58,7 +62,8 @@ public class MakeBeforeRunTaskProviderTest {
 
     List<String> arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(Collections.singletonList(myDevice));
 
-    assertTrue(arguments.contains("-Pandroid.injected.build.api=24"));
+    assertTrue(arguments.contains("-Pandroid.injected.build.api=23"));
+    assertTrue(arguments.contains("-Pandroid.injected.build.codename=N"));
   }
 
   @Test
