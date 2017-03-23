@@ -363,6 +363,8 @@
                         overrides="true"/>
     <applicationService serviceInterface="com.android.tools.idea.diagnostics.crash.CrashReporter"
                         serviceImplementation="com.android.tools.idea.diagnostics.crash.GoogleCrash" />
+    <applicationService serviceInterface="com.android.tools.idea.fonts.DownloadableFontCacheService"
+                        serviceImplementation="com.android.tools.idea.fonts.DownloadableFontCacheServiceImpl" />
 
     <errorHandler        implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
     <statisticsService   implementationClass="com.android.tools.idea.stats.AndroidStatisticsService" key="android-studio" />

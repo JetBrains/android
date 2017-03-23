@@ -191,7 +191,17 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
         }
         if (object instanceof ValueWithDisplayString) {
           ValueWithDisplayString value = (ValueWithDisplayString)object;
+          ValueWithDisplayString.ValueSelector selector = value.getValueSelector();
+          if (selector != null) {
+            value = selector.selectValue(myProperty.getValue());
+            if (value == null) {
+              return;
+            }
+            String selectedValue = value.getValue();
+            ApplicationManager.getApplication().invokeLater(() -> stopEditing(selectedValue));
+          }
           value.setUseValueForToString(myDisplayRealValue);
+          object = value;
         }
         super.setSelectedItem(object);
       }
@@ -426,6 +436,7 @@ public class NlEnumEditor extends NlBaseComponentEditor implements NlComponentEd
         else if (actualValue != null) {
           append(actualValue);
         }
+        setIcon(value.getDisplayIcon());
       }
     }
   }
