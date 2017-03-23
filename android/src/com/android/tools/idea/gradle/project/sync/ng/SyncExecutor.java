@@ -70,7 +70,7 @@ class SyncExecutor {
 
     // TODO: Handle sync cancellation.
 
-    GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(myProject, useEmbeddedGradle());
+    GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(myProject);
 
     Function<ProjectConnection, Void> syncFunction = connection -> {
       BuildActionExecuter<SyncAction.ProjectModels> executor = connection.action(new SyncAction());

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
+import com.android.tools.idea.gradle.project.build.BuildContext;
+import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.gradle.project.build.GradleBuildListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.BuildMode;
@@ -22,28 +24,33 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.concurrent.GuardedBy;
+
 public class GradleProjectEventListener extends GradleSyncListener.Adapter implements GradleBuildListener {
   private boolean mySyncStarted;
   private boolean mySyncFinished;
   private boolean mySyncSkipped;
   @Nullable private RuntimeException mySyncError;
 
+  @GuardedBy("myLock")
   private BuildMode myBuildMode;
+
+  @GuardedBy("myLock")
   private boolean myBuildFinished;
 
-  private final Object lock = new Object();
+  private final Object myLock = new Object();
 
   @Override
   public void syncStarted(@NotNull Project project) {
     reset();
-    synchronized (lock) {
+    synchronized (myLock) {
       mySyncStarted = true;
     }
   }
 
   @Override
   public void syncSucceeded(@NotNull Project project) {
-    synchronized (lock) {
+    synchronized (myLock) {
       mySyncStarted = false;
       mySyncFinished = true;
     }
@@ -51,7 +58,7 @@ public class GradleProjectEventListener extends GradleSyncListener.Adapter imple
 
   @Override
   public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
-    synchronized (lock) {
+    synchronized (myLock) {
       mySyncStarted = false;
       mySyncFinished = true;
       mySyncError = new RuntimeException(errorMessage);
@@ -60,22 +67,28 @@ public class GradleProjectEventListener extends GradleSyncListener.Adapter imple
 
   @Override
   public void syncSkipped(@NotNull Project project) {
-    synchronized (lock) {
+    synchronized (myLock) {
       mySyncStarted = false;
       mySyncSkipped = mySyncFinished = true;
     }
   }
 
   @Override
-  public void buildFinished(@NotNull Project project, @Nullable BuildMode mode) {
-    synchronized (lock) {
-      myBuildMode = mode;
-      myBuildFinished = true;
+  public void buildStarted(@NotNull BuildContext context) {
+  }
+
+  @Override
+  public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
+    if (status == BuildStatus.SUCCESS) {
+      synchronized (myLock) {
+        myBuildMode = context != null ? context.getBuildMode() : null;
+        myBuildFinished = true;
+      }
     }
   }
 
   public void reset() {
-    synchronized (lock) {
+    synchronized (myLock) {
       mySyncError = null;
       mySyncStarted = mySyncSkipped = mySyncFinished = false;
       myBuildMode = null;
@@ -84,38 +97,38 @@ public class GradleProjectEventListener extends GradleSyncListener.Adapter imple
   }
 
   public boolean isSyncStarted() {
-    synchronized (lock) {
+    synchronized (myLock) {
       return mySyncStarted;
     }
   }
 
   public boolean isSyncFinished() {
-    synchronized (lock) {
+    synchronized (myLock) {
       return mySyncFinished;
     }
   }
 
   public boolean isSyncSkipped() {
-    synchronized (lock) {
+    synchronized (myLock) {
       return mySyncSkipped;
     }
   }
 
   public boolean hasSyncError() {
-    synchronized (lock) {
+    synchronized (myLock) {
       return mySyncError != null;
     }
   }
 
   @Nullable
   public RuntimeException getSyncError() {
-    synchronized (lock) {
+    synchronized (myLock) {
       return mySyncError;
     }
   }
 
   public boolean isBuildFinished(@NotNull BuildMode mode) {
-    synchronized (lock) {
+    synchronized (myLock) {
       return myBuildFinished && myBuildMode == mode;
     }
   }

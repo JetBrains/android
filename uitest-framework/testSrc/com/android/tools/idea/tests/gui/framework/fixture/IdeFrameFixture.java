@@ -19,6 +19,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.build.GradleBuildContext;
+import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
@@ -140,7 +141,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     myGradleProjectEventListener = new GradleProjectEventListener();
 
     GradleSyncState.subscribe(project, myGradleProjectEventListener);
-    PostProjectBuildTasksExecutor.subscribe(project, myGradleProjectEventListener);
+    GradleBuildState.subscribe(project, myGradleProjectEventListener);
   }
 
   @NotNull
