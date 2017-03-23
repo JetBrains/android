@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProcessChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.LayoutInspectorFixture;
-import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -46,40 +45,6 @@ public class LayoutInspectorTest extends TestWithEmulator {
   public void setUp() throws Exception {
     guiTest.importSimpleApplication();
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
-  }
-
-  /**
-   * <p>This is run to qualify releases. Please involve the test team in substantial changes.
-   * <p>TR ID: C14581570
-   * <pre>
-   *   Verifies that the layout inspector launches successfully and shows relevant layout elements
-   *   Test Steps
-   *   1. Import a project
-   *   2. Run the Project to Emulator
-   *   3. Click on Layout Inspector
-   *   Verification
-   *   1. Verify for Layout elements in Hierarchy View of Layout Inspector
-   * </pre>
-   */
-  @Ignore("Deprecated. TODO: remove the test case and the related fixture code.")
-  @Test
-  @RunIn(TestGroup.QA)
-  public void launchLayoutInspector() throws Exception {
-    guiTest.ideFrame().runApp("app").selectDevice(AVD_NAME).clickOk();
-    // wait for background tasks to finish before requesting run tool window. otherwise run tool window won't activate.
-    guiTest.waitForBackgroundTasks();
-    // look at the run tool window to determine when the app has started so we can select the process in android tool window
-    guiTest.ideFrame()
-      .getRunToolWindow()
-      .findContent("app")
-      .waitForOutput(new PatternTextMatcher(LOCAL_PATH_OUTPUT), 120);
-    List<String> layoutElements = guiTest.ideFrame()
-      .getAndroidToolWindow()
-      .selectDevicesTab()
-      .selectProcess(PROCESS_NAME)
-      .clickLayoutInspector()
-      .getLayoutElements();
-    checkLayout(layoutElements);
   }
 
   @Test
