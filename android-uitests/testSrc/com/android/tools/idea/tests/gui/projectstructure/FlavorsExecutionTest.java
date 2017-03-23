@@ -23,7 +23,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardF
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,9 +68,8 @@ public class FlavorsExecutionTest extends TestWithEmulator {
    *   2. Verify in Android Run tool window for the launch of F2_Main_Activity
    * </pre>
    */
-  @RunIn(TestGroup.QA)
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
-  @Ignore
   public void runBuildFlavors() throws Exception {
     InstantRunSettings.setShowStatusNotifications(false);
     guiTest.ideFrame()
