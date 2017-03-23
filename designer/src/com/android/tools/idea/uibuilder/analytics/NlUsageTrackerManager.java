@@ -32,7 +32,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.wireless.android.sdk.stats.*;
-import com.google.wireless.android.sdk.stats.LayoutEditorState.Mode;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
@@ -65,7 +64,9 @@ public class NlUsageTrackerManager implements NlUsageTracker {
     .weakKeys()
     .expireAfterAccess(5, TimeUnit.MINUTES)
     .build();
-  private static final Executor ourExecutorService = new ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(10));
+  private static ExecutorService ourExecutorService = new ThreadPoolExecutor(0, 1,
+                                                                             1L, TimeUnit.MINUTES,
+                                                                             new LinkedBlockingQueue<>(10));
 
   private static final Random sRandom = new Random();
 
@@ -138,6 +139,9 @@ public class NlUsageTrackerManager implements NlUsageTracker {
     }
 
     switch (surface.getLayoutType()) {
+      case DRAWABLE:
+        builder.setType(LayoutEditorState.Type.DRAWABLE);
+        break;
       case LAYOUT:
         builder.setType(LayoutEditorState.Type.LAYOUT);
         break;
@@ -147,11 +151,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
       case PREFERENCE_SCREEN:
         builder.setType(LayoutEditorState.Type.PREFERENCE_SCREEN);
         break;
-      case VECTOR:
-        // TODO
-        break;
-      default:
-        break;
+      case UNKNOWN:
     }
 
     double scale = surface.getScale();
@@ -186,8 +186,7 @@ public class NlUsageTrackerManager implements NlUsageTracker {
 
     // TODO: better handling of layout vs. nav editor?
     if (surface instanceof NlDesignSurface) {
-      builder.setMode(((NlDesignSurface)surface).isPreviewSurface() ? Mode.PREVIEW_MODE : Mode.DESIGN_MODE);
-
+      builder.setMode(((NlDesignSurface)surface).isPreviewSurface() ? LayoutEditorState.Mode.PREVIEW_MODE : LayoutEditorState.Mode.DESIGN_MODE);
       switch (((NlDesignSurface)surface).getScreenMode()) {
         case SCREEN_ONLY:
           builder.setSurfaces(LayoutEditorState.Surfaces.SCREEN_SURFACE);
