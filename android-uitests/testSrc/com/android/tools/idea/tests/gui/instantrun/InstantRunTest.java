@@ -124,7 +124,7 @@ public class InstantRunTest extends TestWithEmulator {
    *   2. Make sure the instant run cold swap is applied in Run tool window.
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.QA)
   @Test
   public void coldSwap() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
@@ -144,7 +144,7 @@ public class InstantRunTest extends TestWithEmulator {
       .getEditor()
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor(false)
-      .dragComponentToSurface("Widgets", "TextView")
+      .dragComponentToSurface("Text", "TextView")
       .waitForRenderToFinish();
 
     ideFrameFixture
