@@ -32,6 +32,13 @@ public interface Interpolatable<T, R> {
   });
 
   /**
+   * Similar to {@link #SegmentInterpolator}, but the value is rounded to the nearest integer.
+   */
+  Interpolatable<Long, Double> RoundedSegmentInterpolator = ((start, end, x) ->
+    (double)Math.round(SegmentInterpolator.interpolate(start, end, x))
+  );
+
+  /**
    * SteppedLineInterpolator is used when values of data is always integer.
    * Thus, values of all points in [start.x..end.x) is start.value.
    */
