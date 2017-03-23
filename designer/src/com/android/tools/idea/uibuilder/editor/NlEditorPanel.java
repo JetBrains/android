@@ -17,8 +17,6 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationHolder;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
@@ -45,19 +43,18 @@ import static com.android.tools.idea.rendering.RenderService.MOCKUP_EDITOR_ENABL
  * Assembles a designer editor from various components
  */
 public class NlEditorPanel extends WorkBench<DesignSurface> {
-  private final XmlFile myFile;
   private final DesignSurface mySurface;
 
   public NlEditorPanel(@NotNull NlEditor editor, @NotNull Project project, @NotNull AndroidFacet facet, @NotNull VirtualFile file) {
     super(project, "NELE_EDITOR", editor);
     setOpaque(true);
 
-    myFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, file);
-    assert myFile != null : file;
+    XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, file);
+    assert xmlFile != null : file;
 
     mySurface = new NlDesignSurface(project, false);
     Disposer.register(editor, mySurface);
-    NlModel model = NlModel.create(mySurface, editor, facet, myFile);
+    NlModel model = NlModel.create(mySurface, editor, facet, xmlFile);
     mySurface.setModel(model);
 
     JPanel contentPanel = new JPanel(new BorderLayout());
@@ -90,31 +87,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
   }
 
   @NotNull
-  public XmlFile getFile() {
-    return myFile;
-  }
-
-  @NotNull
   public DesignSurface getSurface() {
     return mySurface;
-  }
-
-  /**
-   * <b>Temporary</b> bridge to older Configuration actions. When we can ditch the old layout preview
-   * and old layout editors, we no longer needs this level of indirection to let the configuration actions
-   * talk to multiple different editor implementations, and the render actions can directly address DesignSurface.
-   */
-  public static class NlConfigurationHolder implements ConfigurationHolder {
-    @NotNull private final DesignSurface mySurface;
-
-    public NlConfigurationHolder(@NotNull DesignSurface surface) {
-      mySurface = surface;
-    }
-
-    @Nullable
-    @Override
-    public Configuration getConfiguration() {
-      return mySurface.getConfiguration();
-    }
   }
 }
