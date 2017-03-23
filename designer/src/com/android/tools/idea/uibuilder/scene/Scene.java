@@ -835,7 +835,7 @@ public class Scene implements SelectionListener {
 
   void checkRequestLayoutStatus() {
     if (mNeedsLayout != NO_LAYOUT) {
-      myDesignSurface.getSceneManager().requestLayout(mNeedsLayout == ANIMATED_LAYOUT);
+      myDesignSurface.getSceneManager().layout(mNeedsLayout == ANIMATED_LAYOUT);
     }
   }
 

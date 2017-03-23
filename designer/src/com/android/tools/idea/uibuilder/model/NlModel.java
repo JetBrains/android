@@ -103,7 +103,6 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -111,7 +110,6 @@ import java.util.stream.Stream;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.IN_PLATFORM;
 import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
-import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
 /**
  * Model for an XML file
@@ -322,9 +320,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   private final Object myRenderingQueueLock = new Object();
   private MergingUpdateQueue myRenderingQueue;
-  private final Object myLayoutQueueLock = new Object();
-  /** Similar to {@link #myRenderingQueue} but only for layout events */
-  private MergingUpdateQueue myLayoutQueue;
   private static final Object RENDERING_LOCK = new Object();
 
   /**
@@ -649,44 +644,22 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    *
    * @deprecated moving to LayoutlibSceneManager
    */
-  public void requestLayout(boolean animate) {
-    synchronized (myLayoutQueueLock) {
-      if (myLayoutQueue == null) {
-        myLayoutQueue = new MergingUpdateQueue("android.layout.layout", RENDER_DELAY_MS, true, null, this, null,
-                                               Alarm.ThreadToUse.POOLED_THREAD);
-      }
-    }
-    myLayoutQueue.queue(new Update("model.layout", LOW_PRIORITY) {
-
-      @Override
-      public void run() {
-        if (myRenderTask != null) {
-          synchronized (RENDERING_LOCK) {
-            AtomicReference<RenderResult> resultRef = new AtomicReference<>();
-
-            ApplicationManager.getApplication().invokeAndWait(() -> {
-              try {
-                resultRef.set(myRenderTask.layout().get());
-              }
-              catch (InterruptedException | ExecutionException e) {
-                LOG.warn("Unable to run layout()", e);
-              }
-            });
-
-            RenderResult result = resultRef.get();
-            if (result != null) {
-              updateHierarchy(result);
-              notifyListenersModelLayoutComplete(animate);
-            }
-          }
+  public void layout(boolean animate) {
+    if (myRenderTask != null) {
+      synchronized (RENDERING_LOCK) {
+        RenderResult result = null;
+        try {
+          result = myRenderTask.layout().get();
+        }
+        catch (InterruptedException | ExecutionException e) {
+          LOG.warn("Unable to run layout()", e);
+        }
+        if (result != null) {
+          updateHierarchy(result);
+          notifyListenersModelLayoutComplete(animate);
         }
       }
-
-      @Override
-      public boolean canEat(Update update) {
-        return equals(update);
-      }
-    });
+    }
   }
 
   /**
