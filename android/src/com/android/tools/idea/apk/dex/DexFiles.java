@@ -21,6 +21,8 @@ import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public final class DexFiles {
   private DexFiles() {
@@ -28,8 +30,12 @@ public final class DexFiles {
 
   @NotNull
   public static DexBackedDexFile getDexFile(@NotNull VirtualFile file) throws IOException {
-    byte[] contents = file.contentsToByteArray();
-    return getDexFile(contents);
+    return getDexFile(file.contentsToByteArray());
+  }
+
+  @NotNull
+  public static DexBackedDexFile getDexFile(@NotNull Path p) throws IOException {
+    return getDexFile(Files.readAllBytes(p));
   }
 
   @NotNull
