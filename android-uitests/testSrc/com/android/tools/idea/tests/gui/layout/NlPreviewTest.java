@@ -24,7 +24,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FileFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.layout.NlConfigurationToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlPreviewFixture;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import org.fest.swing.timing.Wait;
@@ -52,40 +51,40 @@ public class NlPreviewTest {
     EditorFixture editor = ideFrame.getEditor();
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     NlPreviewFixture preview = editor.getLayoutPreview(true);
-    NlConfigurationToolbarFixture toolbar = preview.getConfigToolbar();
-    toolbar.chooseDevice("Nexus 5");
     preview.waitForRenderToFinish();
-    toolbar.requireDevice("Nexus 5");
+    preview.getConfigToolbar().chooseDevice("Nexus 5");
+    preview.waitForRenderToFinish();
+    preview.getConfigToolbar().requireDevice("Nexus 5");
     assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout");
-    toolbar.requireOrientation("Portrait");
+    preview.getConfigToolbar().requireOrientation("Portrait");
 
-    toolbar.chooseDevice("Nexus 7");
+    preview.getConfigToolbar().chooseDevice("Nexus 7");
     preview.waitForRenderToFinish();
-    toolbar.requireDevice("Nexus 7 2013");
+    preview.getConfigToolbar().requireDevice("Nexus 7 2013");
     assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout-sw600dp");
 
-    toolbar.chooseDevice("Nexus 10");
+    preview.getConfigToolbar().chooseDevice("Nexus 10");
     preview.waitForRenderToFinish();
-    toolbar.requireDevice("Nexus 10");
+    preview.getConfigToolbar().requireDevice("Nexus 10");
     assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout-sw600dp");
-    toolbar.requireOrientation("Landscape"); // Default orientation for Nexus 10
+    preview.getConfigToolbar().requireOrientation("Landscape"); // Default orientation for Nexus 10
 
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
     preview.waitForRenderToFinish();
-    toolbar.requireDevice("Nexus 10"); // Since we switched to it most recently
-    toolbar.requireOrientation("Portrait");
+    preview.getConfigToolbar().requireDevice("Nexus 10"); // Since we switched to it most recently
+    preview.getConfigToolbar().requireOrientation("Portrait");
 
-    toolbar.chooseDevice("Nexus 7");
+    preview.getConfigToolbar().chooseDevice("Nexus 7");
     preview.waitForRenderToFinish();
-    toolbar.chooseDevice("Nexus 4");
+    preview.getConfigToolbar().chooseDevice("Nexus 4");
     preview.waitForRenderToFinish();
     editor.open("app/src/main/res/layout-sw600dp/layout2.xml", EditorFixture.Tab.EDITOR);
     preview.waitForRenderToFinish();
     assertThat(editor.getCurrentFile().getParent().getName()).isEqualTo("layout-sw600dp");
-    toolbar.requireDevice("Nexus 7 2013"); // because it's the most recently configured sw600-dp compatible device
+    preview.getConfigToolbar().requireDevice("Nexus 7 2013"); // because it's the most recently configured sw600-dp compatible device
     editor.open("app/src/main/res/layout/layout2.xml", EditorFixture.Tab.EDITOR);
     preview.waitForRenderToFinish();
-    toolbar.requireDevice("Nexus 4"); // because it's the most recently configured small screen compatible device
+    preview.getConfigToolbar().requireDevice("Nexus 4"); // because it's the most recently configured small screen compatible device
   }
 
   @RunIn(TestGroup.UNRELIABLE)
@@ -145,7 +144,10 @@ public class NlPreviewTest {
     editor.open("app/src/main/res/layout/layout1.xml", EditorFixture.Tab.EDITOR);
     preview.waitForRenderToFinish();
     preview.waitForErrorPanelToContain("The MyButton custom view has been edited more recently than the last build");
-    result = guiTest.ideFrame().invokeProjectMake(); // this build won't do anything this time, since Gradle notices checksum has not changed
+
+    // this build won't do anything this time, since Gradle notices checksum has not changed
+    result = guiTest.ideFrame().invokeProjectMake();
+
     assertTrue(result.isBuildSuccessful());
     preview.waitForRenderToFinish();
     assertFalse(preview.hasRenderErrors()); // but our build timestamp check this time will mask the out of date warning

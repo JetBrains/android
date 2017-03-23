@@ -62,7 +62,8 @@ public class NlPreviewForm implements Disposable, CaretListener {
   private RenderResult myRenderResult;
   private XmlFile myFile;
   private boolean isActive = true;
-  private final NlActionsToolbar myActionsToolbar;
+  private ActionsToolbar myActionsToolbar;
+  private JComponent myContentPanel;
   private final AnimationToolbar myAnimationToolbar;
 
   /**
@@ -114,12 +115,6 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
     myRenderingQueue.setRestartTimerOnAdd(true);
 
-
-    myActionsToolbar = new NlActionsToolbar(mySurface);
-    JPanel contentPanel = new JPanel(new BorderLayout());
-    contentPanel.add(myActionsToolbar.getToolbarComponent(), BorderLayout.NORTH);
-    contentPanel.add(mySurface, BorderLayout.CENTER);
-
     if (Features.ANIMATIONS_PREVIEW_ENABLED) {
       myAnimationToolbar = new AnimationToolbar(this, (timeMs) -> {
         ScreenView screenView = mySurface.getCurrentSceneView();
@@ -129,15 +124,25 @@ public class NlPreviewForm implements Disposable, CaretListener {
           mySurface.getCurrentSceneView().getSceneManager().requestRender();
         }
       }, 16);
-      contentPanel.add(myAnimationToolbar, BorderLayout.SOUTH);
     }
     else {
       myAnimationToolbar = null;
     }
 
+    createContentPanel();
+
     myWorkBench = new WorkBench<>(project, "Preview", null);
-    myWorkBench.init(contentPanel, mySurface, Collections.singletonList(
-      new NlPaletteDefinition(project, Side.LEFT, Split.TOP, AutoHide.AUTO_HIDE)));
+    myWorkBench.init(myContentPanel, mySurface,
+                     Collections.singletonList(new NlPaletteDefinition(project, Side.LEFT, Split.TOP, AutoHide.AUTO_HIDE)));
+  }
+
+  private void createContentPanel() {
+    myContentPanel = new JPanel(new BorderLayout());
+    myContentPanel.add(mySurface, BorderLayout.CENTER);
+
+    if (myAnimationToolbar != null) {
+      myContentPanel.add(myAnimationToolbar, BorderLayout.SOUTH);
+    }
   }
 
   private void setEditor(@Nullable TextEditor editor) {
@@ -231,6 +236,8 @@ public class NlPreviewForm implements Disposable, CaretListener {
   @Override
   public void dispose() {
     deactivate();
+    disposeActionsToolbar();
+
     myInactiveFile = null;
 
     if (myModel != null) {
@@ -344,6 +351,8 @@ public class NlPreviewForm implements Disposable, CaretListener {
 
     if (model == null) {
       setEditor(null);
+      disposeActionsToolbar();
+
       myWorkBench.setToolContext(null);
     }
     else {
@@ -360,7 +369,14 @@ public class NlPreviewForm implements Disposable, CaretListener {
       model.activate();
       myWorkBench.setToolContext(mySurface);
       myWorkBench.setFileEditor(myEditor);
+
+      disposeActionsToolbar();
+
+      myActionsToolbar = new ActionsToolbar(mySurface);
       myActionsToolbar.setModel(model);
+
+      myContentPanel.add(myActionsToolbar.getToolbarComponent(), BorderLayout.NORTH);
+
       if (!model.getType().isSupportedByDesigner()) {
         myScreenMode = mySurface.getScreenMode();
         mySurface.setScreenMode(NlDesignSurface.ScreenMode.SCREEN_ONLY, false);
@@ -371,6 +387,17 @@ public class NlPreviewForm implements Disposable, CaretListener {
         myWorkBench.setMinimizePanelsVisible(true);
       }
     }
+  }
+
+  private void disposeActionsToolbar() {
+    if (myActionsToolbar == null) {
+      return;
+    }
+
+    myContentPanel.remove(myActionsToolbar.getToolbarComponent());
+
+    Disposer.dispose(myActionsToolbar);
+    myActionsToolbar = null;
   }
 
   @Nullable
