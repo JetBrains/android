@@ -273,6 +273,37 @@ public class MemoryServiceProxyTest {
     verify(observer2, times(1)).onCompleted();
   }
 
+  /**
+   * TODO: to be removed when agent allocation tracking is ready.
+   * For now, calling trackAllocation should trigger the legacy workflow instead of reaching the fake memory service at all.
+   */
+  @Test
+  public void testPostOLegacyAllocationTracking() throws Exception {
+    IDevice mockDevice = mock(IDevice.class);
+    when(mockDevice.getSerialNumber()).thenReturn("Serial");
+    when(mockDevice.getName()).thenReturn("Device");
+    when(mockDevice.getVersion()).thenReturn(new AndroidVersion(26, "Version"));
+    when(mockDevice.isOnline()).thenReturn(true);
+    ManagedChannel mockChannel = InProcessChannelBuilder.forName("MemoryServiceProxyTest").build();
+    MemoryServiceProxy proxy =
+      new MemoryServiceProxy(mockDevice, mockChannel, Runnable::run, (device, process) -> getTracker(device, process));
+    proxy.startMonitoringApp(
+      MemoryStartRequest.newBuilder().setSession(ProfilersTestData.SESSION_DATA).setProcessId(MONITOR_PROCESS_1).build(),
+      mock(StreamObserver.class));
+
+    // Explicitly set the fake memory service to fail. The legacy tracking should still go through.
+    myService.setExplicitAllocationsStatus(TrackAllocationsResponse.Status.FAILURE_UNKNOWN);
+
+    TrackAllocationsResponse expected = TrackAllocationsResponse.newBuilder().setStatus(TrackAllocationsResponse.Status.SUCCESS)
+      .setInfo(AllocationsInfo.newBuilder().setEndTime(DurationData.UNSPECIFIED_DURATION).setStatus(IN_PROGRESS).setLegacy(true).build())
+      .build();
+    StreamObserver<TrackAllocationsResponse> observer = mock(StreamObserver.class);
+    proxy.trackAllocations(TrackAllocationsRequest.newBuilder().setProcessId(MONITOR_PROCESS_1).setEnabled(true).build(), observer);
+    assertTrue(myAllocationTrackingState);
+    verify(observer, times(1)).onNext(expected);
+    verify(observer, times(1)).onCompleted();
+  }
+
   @Test
   public void testForceGarbageCollection() {
     Client client = mock(Client.class);
