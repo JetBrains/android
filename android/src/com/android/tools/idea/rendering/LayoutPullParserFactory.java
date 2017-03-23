@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.api.Features;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
+import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -32,6 +33,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.ui.ColorUtil;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Attr;
@@ -98,9 +101,7 @@ public class LayoutPullParserFactory {
       case XML:
         return isXmlWithRootTag(file, VALID_XML_TAGS);
       case FONT:
-        // Temporarily disabled until layoutlib font-family rendering is fixed http://b/36402602
-        //return isXmlWithRootTag(file, FONT_FAMILY_TAGS);
-        return false;
+        return isXmlWithRootTag(file, FONT_FAMILY_TAGS);
       default:
         return false;
     }
@@ -138,7 +139,7 @@ public class LayoutPullParserFactory {
         if (renderTask.supportsCapability(Features.ACTION_BAR)) {
           return new MenuLayoutParserFactory(renderTask).render();
         }
-        renderTask.setRenderingMode(V_SCROLL);
+        renderTask.setRenderingMode(FULL_EXPAND);
         renderTask.setDecorations(false);
         return new MenuPreviewRenderer(renderTask, file).render();
       case XML: {
@@ -162,8 +163,9 @@ public class LayoutPullParserFactory {
 
       }
       case FONT:
+        renderTask.setOverrideBgColor(UIUtil.TRANSPARENT_COLOR.getRGB());
         renderTask.setDecorations(false);
-        renderTask.setRenderingMode(FULL_EXPAND);
+        renderTask.setRenderingMode(V_SCROLL);
         return createFontFamilyParser(file);
       default:
         // Should have been prevented by isSupported(PsiFile)
@@ -258,7 +260,7 @@ public class LayoutPullParserFactory {
     setAndroidAttr(rootLayout, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
     setAndroidAttr(rootLayout, ATTR_ORIENTATION, VALUE_VERTICAL);
 
-    String loremText = new LoremGenerator().generate(5, true);
+    String loremText = new LoremGenerator().generate(8, true);
     String fontRefName = PREFIX_RESOURCE_REF + ResourceHelper.getFolderType(file).getName() + "/" + ResourceHelper.getResourceName(file);
     for (XmlTag fontTag : rootTag.getSubTags()) {
       Element fontElement = document.createElement(TEXT_VIEW);
@@ -266,7 +268,9 @@ public class LayoutPullParserFactory {
       setAndroidAttr(fontElement, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
       setAndroidAttr(fontElement, ATTR_TEXT, loremText);
       setAndroidAttr(fontElement, ATTR_FONT_FAMILY, fontRefName);
-      setAndroidAttr(fontElement, ATTR_TEXT_SIZE, "40sp");
+      setAndroidAttr(fontElement, ATTR_TEXT_SIZE, "30sp");
+      setAndroidAttr(fontElement, ATTR_TEXT_COLOR, '#' + ColorUtil.toHex(UIUtil.getLabelForeground()));
+      setAndroidAttr(fontElement, ATTR_PADDING_BOTTOM, "20dp");
 
       String fontStyle = fontTag.getAttributeValue("fontStyle",ANDROID_URI);
       if (StringUtil.isNotEmpty(fontStyle)) {

@@ -21,6 +21,8 @@ import com.android.utils.SdkUtils;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.ui.ColorUtil;
+import com.intellij.util.ui.UIUtil;
 import org.w3c.dom.Element;
 
 @SuppressWarnings("SpellCheckingInspection")
@@ -102,6 +104,7 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
     Element root = ((DomPullParser)parser).getRoot();
 
     String actualLayout = XmlPrettyPrinter.prettyPrint(root, true);
+    String labelColor = "#" + ColorUtil.toHex(UIUtil.getLabelForeground());
     String expectedLayout = Joiner.on(SdkUtils.getLineSeparator()).join(
       "<LinearLayout",
       "xmlns:android=\"http://schemas.android.com/apk/res/android\"",
@@ -112,15 +115,19 @@ public class LayoutPullParserFactoryTest extends RenderTestBase {
       "    layout_width=\"wrap_content\"",
       "    layout_height=\"wrap_content\"",
       "    fontFamily=\"@font/my_font_family\"",
-      "    text=\"Lorem ipsum dolor sit amet.\"",
-      "    textSize=\"40sp\"",
+      "    paddingBottom=\"20dp\"",
+      "    text=\"Lorem ipsum dolor sit amet, consectetur adipisicing elit.\"",
+      "    textColor=\"" + labelColor + "\"",
+      "    textSize=\"30sp\"",
       "    textStyle=\"normal\" />",
       "<TextView",
       "    layout_width=\"wrap_content\"",
       "    layout_height=\"wrap_content\"",
       "    fontFamily=\"@font/my_font_family\"",
-      "    text=\"Lorem ipsum dolor sit amet.\"",
-      "    textSize=\"40sp\"",
+      "    paddingBottom=\"20dp\"",
+      "    text=\"Lorem ipsum dolor sit amet, consectetur adipisicing elit.\"",
+      "    textColor=\"" + labelColor + "\"",
+      "    textSize=\"30sp\"",
       "    textStyle=\"italic\" />",
       "</LinearLayout>",
       "");
