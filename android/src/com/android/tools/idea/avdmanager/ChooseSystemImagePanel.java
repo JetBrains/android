@@ -242,15 +242,15 @@ public class ChooseSystemImagePanel extends JPanel
     switch (myTabPane.getSelectedIndex()) {
       case 0:
         myRecommendedImageList.makeListCurrent();
-        mySystemImagePreview.showExplanationForRecommended(true);
+        mySystemImagePreview.showExplanationForRecommended(true, myDevice != null && myDevice.hasPlayStore());
         break;
       case 1:
         myX86ImageList.makeListCurrent();
-        mySystemImagePreview.showExplanationForRecommended(false);
+        mySystemImagePreview.showExplanationForRecommended(false, false);
         break;
       default:
         myOtherImageList.makeListCurrent();
-        mySystemImagePreview.showExplanationForRecommended(false);
+        mySystemImagePreview.showExplanationForRecommended(false, false);
         break;
     }
   }
