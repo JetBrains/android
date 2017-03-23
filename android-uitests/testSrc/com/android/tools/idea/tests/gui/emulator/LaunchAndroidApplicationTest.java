@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.emulator;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.fixture.DeployTargetPickerDialogFixture;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
@@ -27,8 +26,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.BrowseSamplesWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Ignore;
@@ -40,7 +37,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRunner.class)
@@ -60,7 +56,6 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
     ".*adb shell am instrument .*AndroidJUnitRunner.*Tests ran to completion.*", Pattern.DOTALL);
   private static final Pattern RUN_OUTPUT = Pattern.compile(".*Connected to process.*", Pattern.DOTALL);
   private static final Pattern DEBUG_OUTPUT = Pattern.compile(".*Connected to the target VM.*", Pattern.DOTALL);
-  private static final String MIN_SDK = "18";
 
   @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
@@ -277,7 +272,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
   @RunIn(TestGroup.QA)
   @Test
   public void testRunInstrumentationTest() throws Exception {
-    createNewProject();
+    guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
 
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
@@ -287,7 +282,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
         .clickAddNewConfigurationButton()
         .selectConfigurationType(ANDROID_INSTRUMENTED_TESTS)
         .enterAndroidInstrumentedTestConfigurationName(INSTRUMENTED_TEST_CONF_NAME)
-        .selectModuleForAndroidInstrumentedTestsConfiguration(APP_NAME + "-" + APP_NAME)
+        .selectModuleForAndroidInstrumentedTestsConfiguration(APP_NAME)
         .clickOk();
 
     ideFrameFixture.runApp(INSTRUMENTED_TEST_CONF_NAME).selectDevice(AVD_NAME).clickOk();
@@ -311,27 +306,5 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
       .invokeAction(EditorFixture.EditorAction.TOGGLE_LINE_BREAKPOINT);
 
     debugToolWindow.pressResumeProgram();
-  }
-
-  private void createNewProject() {
-    NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame().createNewProject();
-
-    ConfigureAndroidProjectStepFixture configureAndroidProjectStep = newProjectWizard
-        .getConfigureAndroidProjectStep();
-    configureAndroidProjectStep.enterApplicationName(APP_NAME)
-        .enterCompanyDomain("com.android")
-        .enterPackageName("com.android.test.app");
-    guiTest.setProjectPath(configureAndroidProjectStep.getLocationInFileSystem());
-    newProjectWizard.clickNext();
-
-    newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(MOBILE, MIN_SDK);
-    newProjectWizard.clickNext();
-
-    // Skip "Add Activity" step
-    newProjectWizard.clickNext();
-
-    newProjectWizard.clickFinish();
-
-    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
   }
 }
