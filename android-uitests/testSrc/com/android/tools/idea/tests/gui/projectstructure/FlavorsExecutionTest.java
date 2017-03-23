@@ -121,8 +121,7 @@ public class FlavorsExecutionTest extends TestWithEmulator {
     guiTest.ideFrame()
       .getAndroidToolWindow()
       .selectDevicesTab()
-      .selectProcess(PROCESS_NAME)
-      .clickTerminateApplication();
+      .selectProcess(PROCESS_NAME);
 
     guiTest.ideFrame()
       .getBuildVariantsWindow()
@@ -137,7 +136,6 @@ public class FlavorsExecutionTest extends TestWithEmulator {
     guiTest.ideFrame()
       .getAndroidToolWindow()
       .selectDevicesTab()
-      .selectProcess(PROCESS_NAME)
-      .clickTerminateApplication();
+      .selectProcess(PROCESS_NAME);
   }
 }
