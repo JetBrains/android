@@ -71,5 +71,5 @@ abstract public class SceneManager {
 
   public abstract void requestRender();
 
-  public abstract void requestLayout(boolean animate);
+  public abstract void layout(boolean animate);
 }
