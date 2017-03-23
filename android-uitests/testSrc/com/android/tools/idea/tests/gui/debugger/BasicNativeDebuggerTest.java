@@ -76,6 +76,7 @@ public class BasicNativeDebuggerTest extends TestWithEmulator {
   }
 
   @Test
+  @Ignore
   public void testMultiBreakAndResume() throws IOException, ClassNotFoundException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("BasicJniApp");
     createDefaultAVD(guiTest.ideFrame().invokeAvdManager());
