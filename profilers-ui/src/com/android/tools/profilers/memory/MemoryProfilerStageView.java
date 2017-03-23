@@ -246,7 +246,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_OTHERS, memoryUsage.getOtherSeries());
     lineChart.configure(memoryUsage.getTotalMemorySeries(), new LineConfig(ProfilerColors.DEFAULT_BACKGROUND));
     lineChart.configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS)
-      .setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
+      .setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
 
     // TODO set proper colors / icons
     DurationDataRenderer<CaptureDurationData<HeapDumpCaptureObject>> heapDumpRenderer =
