@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.theme.datamodels;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ItemResourceValue;
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;

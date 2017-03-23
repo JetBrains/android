@@ -23,7 +23,7 @@ import com.android.ide.common.rendering.api.ItemResourceValue;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;

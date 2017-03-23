@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.util.Pair;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -38,6 +39,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import java.io.IOException;
 import java.util.*;
 
+import static com.android.SdkConstants.ANDROID_NS_NAME;
 import static org.junit.Assert.assertNotEquals;
 
 public class AppResourceRepositoryTest extends AndroidTestCase {
@@ -157,24 +159,25 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     final AppResourceRepository appResources = createTestAppResourceRepository(myFacet);
     ImmutableList.Builder<AttrResourceValue> builder = ImmutableList.builder();
     // simple styleable test.
-    ImmutableList<AttrResourceValue> attrList = builder.add(new AttrResourceValue(ResourceType.ATTR, "some-attr", false, null)).build();
+    ImmutableList<AttrResourceValue> attrList = builder.add(
+      new AttrResourceValue(ResourceUrl.create(null, ResourceType.ATTR, "some-attr"), null)).build();
     Integer[] foundValues = appResources.getDeclaredArrayValues(attrList, "Styleable1");
     assertOrderedEquals(foundValues, 0x7f010000);
 
     // Declared styleables mismatch
     attrList = builder.add(
-      new AttrResourceValue(ResourceType.ATTR, "some-attr", false, null),
-      new AttrResourceValue(ResourceType.ATTR, "other-attr", false, null)).build();
+      new AttrResourceValue(ResourceUrl.create(null, ResourceType.ATTR, "some-attr"), null),
+      new AttrResourceValue(ResourceUrl.create(null, ResourceType.ATTR, "other-attr"), null)).build();
     assertNull(appResources.getDeclaredArrayValues(attrList, "Styleable1"));
 
     // slightly complex test.
     builder = ImmutableList.builder();
     attrList = builder
-      .add(new AttrResourceValue(ResourceType.ATTR, "app_attr1", false, null),
-           new AttrResourceValue(ResourceType.ATTR, "app_attr2", false, null),
-           new AttrResourceValue(ResourceType.ATTR, "framework-attr1", true, null),
-           new AttrResourceValue(ResourceType.ATTR, "app_attr3", false, null),
-           new AttrResourceValue(ResourceType.ATTR, "framework_attr2", true, null)).build();
+      .add(new AttrResourceValue(ResourceUrl.create(null, ResourceType.ATTR, "app_attr1"), null),
+           new AttrResourceValue(ResourceUrl.create(null, ResourceType.ATTR, "app_attr2"), null),
+           new AttrResourceValue(ResourceUrl.create(ANDROID_NS_NAME, ResourceType.ATTR, "framework-attr1"), null),
+           new AttrResourceValue(ResourceUrl.create(null, ResourceType.ATTR, "app_attr3"), null),
+           new AttrResourceValue(ResourceUrl.create(ANDROID_NS_NAME, ResourceType.ATTR, "framework_attr2"), null)).build();
     foundValues = appResources.getDeclaredArrayValues(attrList, "Styleable_with_underscore");
     assertOrderedEquals(foundValues, 0x7f010000, 0x7f010068, 0x01010125, 0x7f010069, 0x01010142);
   }

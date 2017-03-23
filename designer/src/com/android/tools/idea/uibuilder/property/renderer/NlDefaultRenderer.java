@@ -20,6 +20,7 @@ import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.ResourceHelper;
@@ -119,9 +120,8 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
 
   @Nullable
   private static Icon getDrawableIcon(@NotNull ResourceResolver resolver, @NotNull NlProperty property, @NotNull String value) {
-    boolean isFrameworkRes = value.startsWith(SdkConstants.ANDROID_PREFIX);
     ResourceType type = value.startsWith(SdkConstants.MIPMAP_PREFIX) ? ResourceType.MIPMAP : ResourceType.DRAWABLE;
-    ResourceValue drawable = resolver.resolveValue(type, property.getName(), value, isFrameworkRes);
+    ResourceValue drawable = resolver.resolveResValue(new ResourceValue(ResourceUrl.create(type, property.getName(), false), value));
     if (drawable == null) {
       return null;
     }
@@ -132,8 +132,10 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
 
   @Nullable
   private static Icon getColorIcon(@NotNull ResourceResolver resolver, @NotNull NlProperty property, @NotNull String value, int iconSize) {
-    boolean isFrameworkRes = value.startsWith(SdkConstants.ANDROID_COLOR_RESOURCE_PREFIX);
-    ResourceValue resourceValue = resolver.resolveValue(ResourceType.COLOR, property.getName(), value, isFrameworkRes);
+    ResourceValue resourceValue = resolver.resolveResValue(new ResourceValue(ResourceUrl.create(ResourceType.COLOR,
+                                                                                                property.getName(),
+                                                                                                false),
+                                                                             value));
     if (resourceValue == null) {
       return null;
     }

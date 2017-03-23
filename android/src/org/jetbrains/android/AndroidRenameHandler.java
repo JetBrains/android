@@ -1,6 +1,6 @@
 package org.jetbrains.android;
 
-import com.android.ide.common.resources.ResourceUrl;
+import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceFolderType;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.TitledHandler;
