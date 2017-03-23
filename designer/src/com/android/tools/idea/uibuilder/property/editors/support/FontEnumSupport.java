@@ -17,13 +17,21 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.fonts.MoreFontsDialog;
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.editors.support.ValueWithDisplayString.ValueSelector;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.util.text.StringUtil;
+import icons.AndroidIcons;
 import org.jetbrains.android.dom.AndroidDomUtil;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.android.tools.idea.uibuilder.property.ToggleDownloadableFontsAction.ENABLE_DOWNLOADABLE_FONTS;
 
 public class FontEnumSupport extends EnumSupport {
 
@@ -38,10 +46,15 @@ public class FontEnumSupport extends EnumSupport {
     for (String stringValue : AndroidDomUtil.AVAILABLE_FAMILIES) {
       values.add(new ValueWithDisplayString(stringValue, stringValue));
     }
+    AndroidFacet facet = myProperty.getModel().getFacet();
     ResourceResolver resolver = myProperty.getResolver();
     if (resolver != null) {
       for (String font : resolver.getProjectResources().get(ResourceType.FONT).keySet()) {
         values.add(new ValueWithDisplayString(font, "@font/" + font));
+      }
+      if (PropertiesComponent.getInstance().getBoolean(ENABLE_DOWNLOADABLE_FONTS)) {
+        values.add(new ValueWithDisplayString("More Fonts...", AndroidIcons.NeleIcons.TextAllCaps, null, null,
+                                              new MoreFontSelector(facet, resolver)));
       }
     }
     return values;
@@ -51,5 +64,27 @@ public class FontEnumSupport extends EnumSupport {
   @Override
   protected ValueWithDisplayString createFromResolvedValue(@NotNull String resolvedValue, @Nullable String value, @Nullable String hint) {
     return new ValueWithDisplayString(resolvedValue, value);
+  }
+
+  private static class MoreFontSelector implements ValueSelector {
+    private final AndroidFacet myFacet;
+    private final ResourceResolver myResolver;
+
+    MoreFontSelector(@NotNull AndroidFacet facet, @NotNull ResourceResolver resolver) {
+      myFacet = facet;
+      myResolver = resolver;
+    }
+
+    @Nullable
+    @Override
+    public ValueWithDisplayString selectValue(@Nullable String currentValue) {
+      MoreFontsDialog dialog = new MoreFontsDialog(myFacet, myResolver, currentValue);
+      dialog.show();
+      String font = dialog.isOK() ? dialog.getResultingFont() : null;
+      if (font == null) {
+        return null;
+      }
+      return new ValueWithDisplayString(StringUtil.trimStart(font, "@font/"), font);
+    }
   }
 }
