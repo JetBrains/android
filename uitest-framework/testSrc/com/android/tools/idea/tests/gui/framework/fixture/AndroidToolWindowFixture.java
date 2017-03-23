@@ -70,11 +70,6 @@ public class AndroidToolWindowFixture extends ToolWindowFixture {
     return this;
   }
 
-  public void clickTerminateApplication() {
-    ActionButtonFixture action = findAction("Terminate Application");
-    action.waitUntilEnabledAndShowing().click();
-  }
-
   private void selectTab(@NotNull final String tabName) {
     JBRunnerTabs tabs = myRobot.finder().findByType(getContentPanel(), JBRunnerTabs.class);
     TabLabel tabLabel = myRobot.finder().find(tabs, new GenericTypeMatcher<TabLabel>(TabLabel.class) {

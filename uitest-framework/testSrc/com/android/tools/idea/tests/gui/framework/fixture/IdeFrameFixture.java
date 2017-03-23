@@ -338,6 +338,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public IdeFrameFixture stopApp() {
+    return invokeMenuPath("Run", "Stop \'app\'");
+  }
+
+  @NotNull
   public RunToolWindowFixture getRunToolWindow() {
     return new RunToolWindowFixture(this);
   }
