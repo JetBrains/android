@@ -120,10 +120,6 @@ public class NlPropertiesWindowManager extends NlAbstractWindowManager {
                                getVisibilityKeyName(designer), 320, properties.getActions());
   }
 
-  @Override
-  public void disposeComponent() {
-  }
-
   @NotNull
   @Override
   public String getComponentName() {

@@ -28,7 +28,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -59,7 +58,7 @@ import static com.android.tools.lint.checks.PermissionRequirement.VALUE_DANGEROU
  * A database which records (and responds to queries about) which permissions
  * a given module or library depends on.
  */
-public class DeclaredPermissionsLookup implements ProjectComponent {
+public class DeclaredPermissionsLookup {
   /** Number of milliseconds we'll wait before checking file stamps again */
   private static final int CACHE_MS = 1000;
 
@@ -143,29 +142,7 @@ public class DeclaredPermissionsLookup implements ProjectComponent {
 
     return manifestPermissions;
   }
-
-  @Override
-  public void projectOpened() {
-  }
-
-  @Override
-  public void projectClosed() {
-  }
-
-  @Override
-  public void initComponent() {
-  }
-
-  @Override
-  public void disposeComponent() {
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return "PermissionsLookup";
-  }
-
+  
   private static class PermissionStrings {
     @NotNull public final Set<String> granted;
     @NotNull public final Set<String> revocable;
