@@ -23,34 +23,37 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
-public abstract class MonitorTooltipView<M extends ProfilerMonitor> extends AspectObserver {
+public abstract class ProfilerTooltipView extends AspectObserver {
+  @NotNull
+  private final ProfilerTimeline myTimeline;
 
   @NotNull
-  protected final M myMonitor;
+  private final String myTitle;
 
   @NotNull
   private JLabel myLabel;
 
-  protected MonitorTooltipView(@NotNull M monitor) {
-    myMonitor = monitor;
+  protected ProfilerTooltipView(@NotNull ProfilerTimeline timeline, @NotNull String title) {
+    myTimeline = timeline;
+    myTitle = title;
+
     myLabel = new JLabel();
     myLabel.setFont(myLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
-    monitor.getProfilers().getTimeline().getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
+    timeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
   }
 
   protected void timeChanged() {
-    ProfilerTimeline timeline = myMonitor.getProfilers().getTimeline();
-    Range range = timeline.getTooltipRange();
+    Range range = myTimeline.getTooltipRange();
     if (!range.isEmpty()) {
       String time = TimeAxisFormatter.DEFAULT
-        .getFormattedString(timeline.getDataRange().getLength(), range.getMin() - timeline.getDataRange().getMin(), true);
-      myLabel.setText(myMonitor.getName() + " at " + time);
+        .getFormattedString(myTimeline.getDataRange().getLength(), range.getMin() - myTimeline.getDataRange().getMin(), true);
+      myLabel.setText(myTitle + " at " + time);
     }
   }
 
-  public abstract Component createTooltip();
+  protected abstract Component createTooltip();
 
-  final protected Component createComponent() {
+  final public Component createComponent() {
 
     Component tooltip = createTooltip();
 
@@ -66,6 +69,6 @@ public abstract class MonitorTooltipView<M extends ProfilerMonitor> extends Aspe
   }
 
   public void dispose() {
-    myMonitor.getProfilers().getTimeline().getTooltipRange().removeDependencies(this);
+    myTimeline.getTooltipRange().removeDependencies(this);
   }
 }

@@ -43,7 +43,9 @@ public class NetworkProfilerStageTest {
   private static final ImmutableList<NetworkProfilerData> FAKE_DATA =
     new ImmutableList.Builder<NetworkProfilerData>()
       .add(FakeNetworkService.newSpeedData(0, 1, 2))
+      .add(FakeNetworkService.newSpeedData(10, 3, 4))
       .add(FakeNetworkService.newConnectionData(0, 4))
+      .add(FakeNetworkService.newConnectionData(10, 6))
       .add(FakeNetworkService.newRadioData(5, ConnectivityData.NetworkType.MOBILE, ConnectivityData.RadioState.ACTIVE))
       .build();
 
@@ -67,7 +69,7 @@ public class NetworkProfilerStageTest {
     myTimer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), myTimer);
     myStage = new NetworkProfilerStage(profilers);
-    myStage.getStudioProfilers().getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(10));
+    myStage.getStudioProfilers().getTimeline().getViewRange().set(TimeUnit.SECONDS.toMicros(0), TimeUnit.SECONDS.toMicros(5));
     myStage.getStudioProfilers().setStage(myStage);
   }
 
@@ -130,6 +132,23 @@ public class NetworkProfilerStageTest {
   }
 
   @Test
+  public void getTooltipLegends() {
+    NetworkProfilerStage.NetworkStageLegends networkLegends = myStage.getTooltipLegends();
+
+    double tooltipTime = TimeUnit.SECONDS.toMicros(10);
+    myStage.getStudioProfilers().getTimeline().getTooltipRange().set(tooltipTime, tooltipTime);
+
+    assertEquals("Received", networkLegends.getRxLegend().getName());
+    assertEquals("Sent", networkLegends.getTxLegend().getName());
+    assertEquals("Connections", networkLegends.getConnectionLegend().getName());
+    assertEquals("4B/S", networkLegends.getRxLegend().getValue());
+    assertEquals("3B/S", networkLegends.getTxLegend().getValue());
+    assertEquals("6", networkLegends.getConnectionLegend().getValue());
+
+    assertEquals(3, networkLegends.getLegends().size());
+  }
+
+  @Test
   public void getDetailedNetworkUsage() {
     List<RangedContinuousSeries> series = myStage.getDetailedNetworkUsage().getSeries();
     assertEquals(3, series.size());
@@ -182,12 +201,18 @@ public class NetworkProfilerStageTest {
     myStage.getLegends().addDependency(observer).onChange(
       LegendComponentModel.Aspect.LEGEND, () -> legendsUpdated[0] = true);
 
+    final boolean[] tooltipLegendsUpdated = {false};
+    myStage.getTooltipLegends().addDependency(observer).onChange(
+      LegendComponentModel.Aspect.LEGEND, () -> tooltipLegendsUpdated[0] = true
+    );
+
     myTimer.tick(1);
     assertTrue(radioStateUpdated[0]);
     assertTrue(networkUsageUpdated[0]);
     assertTrue(trafficAxisUpdated[0]);
     assertTrue(connectionAxisUpdated[0]);
     assertTrue(legendsUpdated[0]);
+    assertTrue(tooltipLegendsUpdated[0]);
   }
 
   @Test
@@ -215,12 +240,17 @@ public class NetworkProfilerStageTest {
     myStage.getLegends().addDependency(observer).onChange(
       LegendComponentModel.Aspect.LEGEND, () -> legendsUpdated[0] = true);
 
+    final boolean[] tooltipLegendsUpdated = {false};
+    myStage.getTooltipLegends().addDependency(observer).onChange(
+      LegendComponentModel.Aspect.LEGEND, () -> tooltipLegendsUpdated[0] = true);
+
     myTimer.tick(1);
     assertFalse(radioStateUpdated[0]);
     assertFalse(networkUsageUpdated[0]);
     assertFalse(trafficAxisUpdated[0]);
     assertFalse(connectionAxisUpdated[0]);
     assertFalse(legendsUpdated[0]);
+    assertFalse(tooltipLegendsUpdated[0]);
   }
 
   @Test
