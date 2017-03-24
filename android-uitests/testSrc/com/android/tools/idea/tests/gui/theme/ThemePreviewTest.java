@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -94,7 +93,7 @@ public class ThemePreviewTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
 
     editor.open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR);
-    int savedApiLevel = editor.getLayoutPreview(true).getConfigToolbar().getApiLevel();
+    String savedApiLevel = editor.getLayoutPreview(true).getConfigToolbar().getApiLevel();
 
     editor.open("app/src/main/res/values-v19/styles.xml", EditorFixture.Tab.EDITOR);
     editor.moveBetween("PreviewTheme", "");

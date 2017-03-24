@@ -21,7 +21,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
-import com.android.tools.idea.uibuilder.surface.PanZoomPanel;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -31,11 +30,9 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.Locale;
 import java.util.function.Predicate;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
-import static com.android.tools.idea.uibuilder.surface.PanZoomPanel.TITLE;
 
 /**
  * Fixture representing the configuration toolbar above an associated layout editor
@@ -69,9 +66,9 @@ public class NlConfigurationToolbarFixture {
     return this;
   }
 
-  /** Returns the current API level of the toolbar's configuration */
-  public int getApiLevel() {
-    return Integer.parseInt(new JButtonFixture(myRobot, findToolbarButton("API Version in Editor")).text());
+  /** Returns the current API level of the toolbar's configuration as a String */
+  public String getApiLevel() {
+    return new JButtonFixture(myRobot, findToolbarButton("API Version in Editor")).text();
   }
 
   /**
