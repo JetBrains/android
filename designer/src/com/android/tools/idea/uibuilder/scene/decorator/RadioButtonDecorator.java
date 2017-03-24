@@ -30,7 +30,6 @@ import java.awt.*;
  */
 public class RadioButtonDecorator extends SceneDecorator {
   public static class DrawRadioButton extends DrawTextRegion {
-    private float mScale;
     int[] xp = new int[3];
     int[] yp = new int[3];
 
@@ -41,9 +40,7 @@ public class RadioButtonDecorator extends SceneDecorator {
 
     DrawRadioButton(int x, int y, int width, int height, int baselineOffset, float scale, String text) {
       super(x, y, width, height, baselineOffset, text, true, false, DrawTextRegion.TEXT_ALIGNMENT_VIEW_START,
-            DrawTextRegion.TEXT_ALIGNMENT_CENTER, 32);
-      mScale = scale;
-      mFont = mFont.deriveFont(32 * mScale);
+            DrawTextRegion.TEXT_ALIGNMENT_CENTER, 32, scale);
     }
 
     public DrawRadioButton(String s) {

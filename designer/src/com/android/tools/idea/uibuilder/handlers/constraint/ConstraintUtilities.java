@@ -32,19 +32,28 @@ import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
  */
 public class ConstraintUtilities {
 
-  private static HashMap<String, Integer> alignmentMap = new HashMap<>();
+  private static HashMap<String, Integer> alignmentMap_ltr = new HashMap<>();
+  private static HashMap<String, Integer> alignmentMap_rtl = new HashMap<>();
+  static String[]mode = {"0","1","2","3","center","START","END"};
 
   static {
-    alignmentMap.put(SdkConstants.TextAlignment.CENTER, TextWidget.TEXT_ALIGNMENT_CENTER);
-    alignmentMap.put(SdkConstants.TextAlignment.TEXT_START, TextWidget.TEXT_ALIGNMENT_VIEW_START);
-    alignmentMap.put(SdkConstants.TextAlignment.TEXT_END, TextWidget.TEXT_ALIGNMENT_VIEW_END);
-    alignmentMap.put(SdkConstants.TextAlignment.VIEW_START, TextWidget.TEXT_ALIGNMENT_VIEW_START);
-    alignmentMap.put(SdkConstants.TextAlignment.VIEW_END, TextWidget.TEXT_ALIGNMENT_VIEW_END);
+    alignmentMap_rtl.put(SdkConstants.TextAlignment.CENTER, TextWidget.TEXT_ALIGNMENT_CENTER);
+    alignmentMap_rtl.put(SdkConstants.TextAlignment.TEXT_START, TextWidget.TEXT_ALIGNMENT_TEXT_START);
+    alignmentMap_rtl.put(SdkConstants.TextAlignment.TEXT_END, TextWidget.TEXT_ALIGNMENT_TEXT_END);
+    alignmentMap_rtl.put(SdkConstants.TextAlignment.VIEW_START, TextWidget.TEXT_ALIGNMENT_VIEW_END);
+    alignmentMap_rtl.put(SdkConstants.TextAlignment.VIEW_END,  TextWidget.TEXT_ALIGNMENT_VIEW_START);
+
+    alignmentMap_ltr.put(SdkConstants.TextAlignment.CENTER, TextWidget.TEXT_ALIGNMENT_CENTER);
+    alignmentMap_ltr.put(SdkConstants.TextAlignment.TEXT_START,  TextWidget.TEXT_ALIGNMENT_TEXT_START);
+    alignmentMap_ltr.put(SdkConstants.TextAlignment.TEXT_END,  TextWidget.TEXT_ALIGNMENT_TEXT_END);
+    alignmentMap_ltr.put(SdkConstants.TextAlignment.VIEW_START, TextWidget.TEXT_ALIGNMENT_VIEW_START);
+    alignmentMap_ltr.put(SdkConstants.TextAlignment.VIEW_END, TextWidget.TEXT_ALIGNMENT_VIEW_END);
   }
 
-  public static int getAlignment(String s) {
+  public static int getAlignment(String s, boolean rtl) {
+    HashMap<String, Integer> alignmentMap = (rtl) ? alignmentMap_rtl : alignmentMap_ltr;
     if (alignmentMap.containsKey(s)) {
-      return alignmentMap.get(s).intValue();
+       return alignmentMap.get(s).intValue();
     }
     return TextWidget.TEXT_ALIGNMENT_VIEW_START;
   }

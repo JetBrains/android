@@ -59,7 +59,7 @@ public class SceneDisplayListTest extends SceneTest {
     String simpleList = "DrawComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                         "Clip,0,0,1000,1000\n" +
                         "DrawComponentBackground,100,200,100,20,1\n" +
-                        "DrawTextRegion,100,200,100,20,0,false,false,5,5,\"\"\n" +
+                        "DrawTextRegion,100,200,100,20,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawComponentFrame,100,200,100,20,1,20,20\n" +
                         "UNClip\n";
 
