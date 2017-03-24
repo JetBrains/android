@@ -36,10 +36,12 @@ public class PropertiesTablePanel extends JScrollPane implements ToolContent<Lay
 
   @Override
   public void setToolContext(@Nullable LayoutInspectorContext toolContext) {
-    myTable = toolContext.getPropertiesTable();
-    mySorter = new TableRowSorter<>((ViewNodeTableModel)myTable.getModel());
-    myTable.setRowSorter(mySorter);
-    setViewportView(myTable);
+    if (toolContext != null) {
+      myTable = toolContext.getPropertiesTable();
+      mySorter = new TableRowSorter<>((ViewNodeTableModel)myTable.getModel());
+      myTable.setRowSorter(mySorter);
+      setViewportView(myTable);
+    }
   }
 
   @NotNull
