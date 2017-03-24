@@ -15,12 +15,25 @@
  */
 package com.android.tools.adtui.chart.linechart;
 
+import com.android.tools.adtui.model.SeriesData;
+
 import java.awt.geom.Path2D;
+import java.util.List;
 
 /**
  * This interface is used by {@link LineChart} component to be able
  * to render faster by reducing its data before drawing.
  */
 public interface LineChartReducer {
-  Path2D reduce(Path2D path, LineConfig config);
+  /**
+   * Reduces data used to represent a line.
+   * The result shouldn't affect the looking of the line when it's drawn.
+   */
+  List<SeriesData<Long>> reduceData(List<SeriesData<Long>> data, LineConfig config);
+
+  /**
+   * Reduces the given path in a pixel level, i.e when dimensions are available.
+   * The result shouldn't affect the looking of the line when it's drawn.
+   */
+  Path2D reducePath(Path2D path, LineConfig config);
 }
