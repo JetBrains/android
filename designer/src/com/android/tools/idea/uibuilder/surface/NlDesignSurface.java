@@ -687,7 +687,6 @@ public class NlDesignSurface extends DesignSurface {
                                  ? RenderErrorModel.STILL_BUILDING_ERROR_MODEL
                                  : RenderErrorModelFactory.createErrorModel(result, DataManager.getInstance().getDataContext(getIssuePanel()));
         getIssueModel().setRenderErrorModel(model);
-        setShowIssuePanel(!getIssuePanel().isMinimized() || getIssueModel().hasRenderError());
       }
 
       @Override
