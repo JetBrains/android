@@ -37,6 +37,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 
+import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_RECEIVED;
+import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_SENT;
+
 public class NetworkProfilerStage extends Stage implements CodeNavigator.Listener {
 
   private static final BaseAxisFormatter TRAFFIC_AXIS_FORMATTER = new NetworkTrafficFormatter(1, 5, 5);
@@ -59,6 +62,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
 
   private final DetailedNetworkUsage myDetailedNetworkUsage;
   private final NetworkStageLegends myLegends;
+  private final NetworkStageLegends myTooltipLegends;
   private final AxisComponentModel myTrafficAxis;
   private final AxisComponentModel myConnectionsAxis;
   private final EventMonitor myEventMonitor;
@@ -82,7 +86,8 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     myConnectionsAxis = new AxisComponentModel(myDetailedNetworkUsage.getConnectionsRange(), CONNECTIONS_AXIS_FORMATTER);
     myConnectionsAxis.setClampToMajorTicks(true);
 
-    myLegends = new NetworkStageLegends(myDetailedNetworkUsage, timeline.getDataRange());
+    myLegends = new NetworkStageLegends(myDetailedNetworkUsage, timeline.getDataRange(), false);
+    myTooltipLegends = new NetworkStageLegends(myDetailedNetworkUsage, timeline.getTooltipRange(), true);
 
     myEventMonitor = new EventMonitor(profilers);
 
@@ -181,6 +186,8 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     getStudioProfilers().getUpdater().register(myTrafficAxis);
     getStudioProfilers().getUpdater().register(myConnectionsAxis);
     getStudioProfilers().getUpdater().register(myLegends);
+    getStudioProfilers().getUpdater().register(myTooltipLegends);
+
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
@@ -195,6 +202,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     getStudioProfilers().getUpdater().unregister(myTrafficAxis);
     getStudioProfilers().getUpdater().unregister(myConnectionsAxis);
     getStudioProfilers().getUpdater().unregister(myLegends);
+    getStudioProfilers().getUpdater().unregister(myTooltipLegends);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
 
@@ -227,6 +235,11 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   }
 
   @NotNull
+  public NetworkStageLegends getTooltipLegends() {
+    return myTooltipLegends;
+  }
+
+  @NotNull
   public EventMonitor getEventMonitor() {
     return myEventMonitor;
   }
@@ -242,10 +255,13 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
     private final SeriesLegend myTxLegend;
     private final SeriesLegend myConnectionLegend;
 
-    public NetworkStageLegends(DetailedNetworkUsage usage, Range range) {
+    public NetworkStageLegends(DetailedNetworkUsage usage, Range range, boolean tooltip) {
       super(ProfilerMonitor.LEGEND_UPDATE_FREQUENCY_MS);
-      myRxLegend = new SeriesLegend(usage.getRxSeries(), TRAFFIC_AXIS_FORMATTER, range);
-      myTxLegend = new SeriesLegend(usage.getTxSeries(), TRAFFIC_AXIS_FORMATTER, range);
+      myRxLegend = new SeriesLegend(usage.getRxSeries(), TRAFFIC_AXIS_FORMATTER, range, BYTES_RECEIVED.getLabel(tooltip),
+                                    Interpolatable.SegmentInterpolator);
+
+      myTxLegend = new SeriesLegend(usage.getTxSeries(), TRAFFIC_AXIS_FORMATTER, range, BYTES_SENT.getLabel(tooltip),
+                                    Interpolatable.SegmentInterpolator);
       myConnectionLegend = new SeriesLegend(usage.getConnectionSeries(), CONNECTIONS_AXIS_FORMATTER, range,
                                             Interpolatable.SteppedLineInterpolator);
 
