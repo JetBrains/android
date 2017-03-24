@@ -19,7 +19,6 @@ import com.android.io.FileWrapper;
 import com.android.tools.idea.gradle.AndroidGradleModel;
 import com.android.xml.AndroidManifest;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -37,7 +36,7 @@ import static com.android.SdkConstants.DOT_AAR;
 /**
  * A registry for class lookup of resource classes (R classes) in AAR libraries.
  */
-public class AarResourceClassRegistry implements ProjectComponent {
+public class AarResourceClassRegistry {
 
   private final Map<AppResourceRepository, AarResourceClassGenerator> myGeneratorMap = Maps.newHashMap();
   private final Project myProject;
@@ -56,7 +55,7 @@ public class AarResourceClassRegistry implements ProjectComponent {
         String pkg = getAarPackage(aarDir);
         if (pkg != null) {
           if (myPackages == null) {
-            myPackages = new HashSet<String>();
+            myPackages = new HashSet<>();
           }
           myPackages.add(pkg);
         }
@@ -126,29 +125,5 @@ public class AarResourceClassRegistry implements ProjectComponent {
    */
   public static AarResourceClassRegistry get(@NotNull Project project) {
     return project.getComponent(AarResourceClassRegistry.class);
-  }
-
-  // ProjectComponent methods.
-
-  @Override
-  public void projectOpened() {
-  }
-
-  @Override
-  public void projectClosed() {
-  }
-
-  @Override
-  public void initComponent() {
-  }
-
-  @Override
-  public void disposeComponent() {
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return AarResourceClassRegistry.class.getName();
   }
 }
