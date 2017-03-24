@@ -307,7 +307,7 @@ public class NewProjectTest {
 
     if (layoutEditor.hasRenderErrors()) {
       layoutEditor.waitForErrorPanelToContain("still building");
-      assertThat(layoutEditor.getErrorText()).doesNotContain("Missing styles");
+      assertFalse(layoutEditor.getIssuePanel().containsText("Missing styles"));
       guiTest.ideFrame().waitForGradleProjectSyncToFinish();
       layoutEditor.waitForRenderToFinish();
       assertThat(layoutEditor.hasRenderErrors()).isFalse();

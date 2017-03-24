@@ -38,7 +38,6 @@ import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTreeFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -87,11 +86,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
 
   public void waitForErrorPanelToContain(@NotNull String errorText) {
     myDesignSurfaceFixture.waitForErrorPanelToContain(errorText);
-  }
-
-  @Nullable
-  public String getErrorText() {
-    return myDesignSurfaceFixture.getErrorText();
   }
 
   @NotNull
@@ -255,7 +249,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, NlEditorP
     return myDesignSurfaceFixture.target().getScrollPosition();
   }
 
-  public IssuePanelFixture getErrorPanel() {
+  public IssuePanelFixture getIssuePanel() {
     return myDesignSurfaceFixture.getIssuePanelFixture();
   }
 }

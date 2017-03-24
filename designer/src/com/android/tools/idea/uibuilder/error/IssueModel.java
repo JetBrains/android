@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.error;
 
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.intellij.lang.annotation.HighlightSeverity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,6 +111,16 @@ public class IssueModel {
 
   public boolean hasIssues() {
     return !myIssues.isEmpty();
+  }
+
+  @Nullable
+  public NlIssue findIssue(@NotNull NlComponent component) {
+    for (NlIssue issue : myIssues) {
+      if (component.equals(issue.getSource())) {
+        return issue;
+      }
+    }
+    return null;
   }
 
   public interface IssueModelListener {

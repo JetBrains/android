@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.layout;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.actions.IssueNotificationAction;
+import com.android.tools.idea.uibuilder.error.IssuePanel;
 import com.android.tools.idea.uibuilder.surface.PanZoomPanel;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
@@ -54,7 +55,7 @@ public class NlRhsToolbarFixture {
     waitUntilShowing(robot, Matchers.byType(PanZoomPanel.class)); // don't return a fixture; just make sure this shows
   }
 
-  public void openErrorPanel() {
+  public void openIssuePanel() {
     Robot robot = myNlEditorFixture.robot();
     ActionButton button = waitUntilShowing(
       robot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
@@ -66,5 +67,6 @@ public class NlRhsToolbarFixture {
         }
       });
     new ActionButtonFixture(robot, button).click();
+    waitUntilShowing(robot, Matchers.byType(IssuePanel.class));
   }
 }
