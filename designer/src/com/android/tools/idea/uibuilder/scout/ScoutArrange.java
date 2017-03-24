@@ -978,10 +978,6 @@ public class ScoutArrange {
             return false;
         }
 
-        public int getMargin() {
-            return ConstraintComponentUtilities.getMargin(mNlComponent,myDirection.getMarginString());
-        }
-
         public  Direction getType() {
             return myDirection;
         }
