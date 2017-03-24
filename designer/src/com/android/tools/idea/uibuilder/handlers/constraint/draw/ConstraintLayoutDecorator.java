@@ -34,10 +34,12 @@ import java.util.List;
  */
 public class ConstraintLayoutDecorator extends SceneDecorator {
   final static String[] LEFT_DIR = {
-    SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF
+    SdkConstants.ATTR_LAYOUT_START_TO_START_OF, SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
+    SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
   };
   final static String[] RIGHT_DIR = {
-    SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF
+    SdkConstants.ATTR_LAYOUT_END_TO_END_OF, SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
+    SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
   };
   final static String[] TOP_DIR = {
     SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF
@@ -45,17 +47,33 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
   final static String[] BOTTOM_DIR = {
     SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF
   };
+  final static String[] LEFT_DIR_RTL = {
+    SdkConstants.ATTR_LAYOUT_END_TO_END_OF, SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
+    SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF,
+  };
+  final static String[] RIGHT_DIR_RTL = {
+    SdkConstants.ATTR_LAYOUT_START_TO_START_OF, SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
+    SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
+  };
+
   final static String[][] ourConnections = {LEFT_DIR, RIGHT_DIR, TOP_DIR, BOTTOM_DIR};
+  final static String[][] ourConnections_rtl = {LEFT_DIR_RTL, RIGHT_DIR_RTL, TOP_DIR, BOTTOM_DIR};
 
   final static String BASELINE = "BASELINE";
   final static String[] BASELINE_DIR = new String[]{SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF};
   final static String BASELINE_TYPE = "BASELINE_TYPE";
 
-  final static String[] MARGIN_ATTR = {
-    SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
-    SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
-    SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
-    SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
+  final static String[][] MARGIN_ATTR_LTR = {
+    {SdkConstants.ATTR_LAYOUT_MARGIN_START, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT},
+      {SdkConstants.ATTR_LAYOUT_MARGIN_END, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT},
+        {SdkConstants.ATTR_LAYOUT_MARGIN_TOP},
+          { SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM},
+  };
+  final static String[][] MARGIN_ATTR_RTL = {
+    {SdkConstants.ATTR_LAYOUT_MARGIN_END , SdkConstants.ATTR_LAYOUT_MARGIN_LEFT},
+    {SdkConstants.ATTR_LAYOUT_MARGIN_START, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT},
+    {SdkConstants.ATTR_LAYOUT_MARGIN_TOP},
+    { SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM},
   };
   final static String[] BIAS_ATTR = {
     SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS,
@@ -71,7 +89,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     SAME, BACKWARD
   }
 
-  final static ConnectionType[] DIR_TABLE = {ConnectionType.SAME, ConnectionType.BACKWARD};
+  final static ConnectionType[] DIR_TABLE = {ConnectionType.SAME, ConnectionType.BACKWARD, ConnectionType.SAME, ConnectionType.BACKWARD};
   final static String[] ourDirections = {"LEFT", "RIGHT", "TOP", "BOTTOM"};
   final static String[] ourChainDirections = {"CHAIN_LEFT", "CHAIN_RIGHT", "CHAIN_TOP", "CHAIN_BOTTOM"};
   final static String[] ourDirectionsType = {"LEFT_TYPE", "RIGHT_TYPE", "TOP_TYPE", "BOTTOM_TYPE"};
@@ -86,8 +104,10 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
 
   private void gatherProperties(@NotNull SceneComponent component,
                                 @NotNull SceneComponent child) {
+    boolean rtl = component.getScene().isInRTL();
+    String[][] connections = ((rtl) ? ourConnections_rtl : ourConnections);
     for (int i = 0; i < ourDirections.length; i++) {
-      getConnection(component, child, ourConnections[i], ourDirections[i], ourDirectionsType[i]);
+      getConnection(component, child, connections[i], ourDirections[i], ourDirectionsType[i]);
     }
     getConnection(component, child, BASELINE_DIR, BASELINE, BASELINE_TYPE);
   }
@@ -270,7 +290,12 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         int marginDistance = 0;
         boolean isMarginReference = false;
         float bias = 0.5f;
-        String marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, MARGIN_ATTR[i]);
+        boolean rtl = component.getScene().isInRTL();
+        String []margin_attr = (rtl)?MARGIN_ATTR_RTL[i]:MARGIN_ATTR_LTR[i];
+        String marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, margin_attr[0]);
+        if (marginString == null && margin_attr.length>1) {
+          marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, margin_attr[1]);
+        }
         if (marginString == null) {
           if (i == 0) { // left check if it is start
             marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START);
