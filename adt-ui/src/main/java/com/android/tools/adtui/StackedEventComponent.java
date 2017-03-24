@@ -119,6 +119,8 @@ public class StackedEventComponent extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g2d, Dimension dim) {
+    // Set Antialiasing, before we draw anything.
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     if (myRender) {
       render();
       myRender = false;
