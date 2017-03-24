@@ -39,8 +39,8 @@ public class SceneBasicConnectionsTest extends SceneTest {
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"20dp\"\n" +
                  "      tools:layout_editor_absoluteY=\"200dp\"\n" +
-                 "      android:layout_marginLeft=\"8dp\"\n" +
-                 "      app:layout_constraintLeft_toLeftOf=\"parent\" />");
+                 "      app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                 "      android:layout_marginStart=\"8dp\" />");
   }
 
   public void testConnectTop() {
@@ -56,8 +56,8 @@ public class SceneBasicConnectionsTest extends SceneTest {
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"20dp\"\n" +
                  "    tools:layout_editor_absoluteX=\"100dp\"\n" +
-                 "      app:layout_constraintTop_toTopOf=\"parent\"\n" +
-                 "      android:layout_marginTop=\"8dp\" />");
+                 "      android:layout_marginTop=\"8dp\"\n" +
+                 "      app:layout_constraintTop_toTopOf=\"parent\" />");
     assertEquals(button, myScreen.getScreen().getSelectionModel().getPrimary());
     assertEquals(1, myScreen.getScreen().getSelectionModel().getSelection().size());
   }
@@ -72,8 +72,8 @@ public class SceneBasicConnectionsTest extends SceneTest {
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"20dp\"\n" +
                  "      tools:layout_editor_absoluteY=\"200dp\"\n" +
-                 "      android:layout_marginRight=\"8dp\"\n" +
-                 "      app:layout_constraintRight_toRightOf=\"parent\" />");
+                 "      app:layout_constraintEnd_toEndOf=\"parent\"\n" +
+                 "      android:layout_marginEnd=\"8dp\" />");
   }
 
   public void testConnectBottom() {
@@ -86,8 +86,8 @@ public class SceneBasicConnectionsTest extends SceneTest {
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"20dp\"\n" +
                  "    tools:layout_editor_absoluteX=\"100dp\"\n" +
-                 "      app:layout_constraintBottom_toBottomOf=\"parent\"\n" +
-                 "      android:layout_marginBottom=\"8dp\" />");
+                 "      android:layout_marginBottom=\"8dp\"\n" +
+                 "      app:layout_constraintBottom_toBottomOf=\"parent\" />");
   }
 
   public void testConnectBaseline() {
@@ -113,8 +113,8 @@ public class SceneBasicConnectionsTest extends SceneTest {
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"20dp\"\n" +
                  "      app:layout_constraintBaseline_toBaselineOf=\"@+id/button\"\n" +
-                 "      app:layout_constraintLeft_toRightOf=\"@+id/button\"\n" +
-                 "      android:layout_marginLeft=\"8dp\" />");
+                 "      app:layout_constraintStart_toEndOf=\"@+id/button\"\n" +
+                 "      android:layout_marginStart=\"8dp\" />");
   }
 
   @Override
