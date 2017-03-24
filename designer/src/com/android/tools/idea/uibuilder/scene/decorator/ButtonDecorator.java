@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.scene.decorator;
 
+import com.android.SdkConstants;
+import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities; // TODO: remove
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -30,22 +35,24 @@ import java.awt.*;
  */
 public class ButtonDecorator extends SceneDecorator {
   public static class DrawButton extends DrawTextRegion {
-    String myString;
-    float mScale;
+
+    public static int androidToSwingFontSize(float fontSize) {
+      return Math.round((fontSize * 2f + 4.5f) / 2.41f);
+    }
 
     @Override
     public int getLevel() {
       return COMPONENT_LEVEL;
     }
 
-    DrawButton(int x, int y, int width, int height, int baseLineOffset, float scale, String string) {
-      super(x, y, width, height, baseLineOffset, string);
+    DrawButton(int x, int y, int width, int height, int baseLineOffset, float scale, int fontSize, String string) {
+      super(x, y, width, height, baseLineOffset, string, true, true,
+            TEXT_ALIGNMENT_VIEW_START, TEXT_ALIGNMENT_VIEW_START, fontSize, scale);
       mHorizontalPadding = (int)(4 * scale);
       mVerticalPadding = (int)(8 * scale);
       mHorizontalMargin = (int)(8 * scale);
       mVerticalMargin = (int)(12 * scale);
-      mScale = scale;
-      mFont = mFont.deriveFont(mFont.getSize() * mScale);
+
       mToUpperCase = true;
       mAlignmentX = TEXT_ALIGNMENT_CENTER;
       mAlignmentY = TEXT_ALIGNMENT_CENTER;
@@ -60,7 +67,8 @@ public class ButtonDecorator extends SceneDecorator {
       height = Integer.parseInt(sp[c++]);
       myBaseLineOffset = Integer.parseInt(sp[c++]);
       mScale = java.lang.Float.parseFloat(sp[c++]);
-      mFont = mFont.deriveFont(mFont.getSize() * mScale);
+      mFontSize = java.lang.Integer.parseInt(sp[c++]);
+      mFont = mFont.deriveFont(mFontSize * mScale);
       mText = s.substring(s.indexOf('\"') + 1, s.lastIndexOf('\"'));
     }
 
@@ -79,6 +87,8 @@ public class ButtonDecorator extends SceneDecorator {
              myBaseLineOffset +
              "," +
              mScale +
+             "," +
+             mFontSize +
              ",\"" +
              mText +
              "\"";
@@ -111,8 +121,9 @@ public class ButtonDecorator extends SceneDecorator {
     int w = sceneContext.getSwingDimension(rect.width);
     int h = sceneContext.getSwingDimension(rect.height);
     String text = ConstraintUtilities.getResolvedText(component.getNlComponent());
+    int fontSize = DrawTextRegion.getFont(component.getNlComponent(), "14sp");
     float scale = (float)sceneContext.getScale();
     int baseLineOffset = sceneContext.getSwingDimension(component.getBaseline());
-    list.add(new DrawButton(l, t, w, h, baseLineOffset, scale, text));
+    list.add(new DrawButton(l, t, w, h, baseLineOffset, scale, fontSize, text));
   }
 }
