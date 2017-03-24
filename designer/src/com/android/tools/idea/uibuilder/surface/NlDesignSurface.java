@@ -21,6 +21,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
@@ -38,11 +39,8 @@ import com.android.tools.idea.uibuilder.property.inspector.NlInspectorProviders;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneManager;
-import com.android.utils.HtmlBuilder;
-import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -103,20 +101,6 @@ public class NlDesignSurface extends DesignSurface {
   }
 
   @NotNull private static ScreenMode ourDefaultScreenMode = ScreenMode.loadDefault();
-  /**
-   * {@link RenderErrorModel} with one issue that is displayed while the project is still building. This avoids displaying an error
-   * panel full of errors.
-   */
-  private static final RenderErrorModel STILL_BUILDING_ERROR_MODEL = new RenderErrorModel(ImmutableList.of(
-    RenderErrorModel.Issue.builder()
-      .setSeverity(HighlightSeverity.INFORMATION)
-      .setSummary("The project is still building")
-      .setHtmlContent(new HtmlBuilder()
-                        .add("The project is still building and the current preview might be inaccurate.")
-                        .newline()
-                        .add("The preview will automatically refresh once the build finishes."))
-      .build()
-  ));
 
   @NotNull private ScreenMode myScreenMode = ourDefaultScreenMode;
   @Nullable private ScreenView myBlueprintView;
@@ -130,7 +114,6 @@ public class NlDesignSurface extends DesignSurface {
   @Nullable private ScreenView myScreenView;
   private final boolean myInPreview;
   private WeakReference<PanZoomPanel> myPanZoomPanel = new WeakReference<>(null);
-  private boolean myRenderHasProblems;
 
   public NlDesignSurface(@NotNull Project project, boolean inPreview, @NotNull Disposable parentDisposable) {
     super(project, parentDisposable);
@@ -250,8 +233,8 @@ public class NlDesignSurface extends DesignSurface {
 
     SceneLayer sceneLayer = new SceneLayer(this, myScreenView, false);
     sceneLayer.setAlwaysShowSelection(true);
-    myLayers.add(sceneLayer);
     myLayers.add(new WarningLayer(myScreenView));
+    myLayers.add(sceneLayer);
     if (getLayoutType().isSupportedByDesigner()) {
       myLayers.add(new CanvasResizeLayer(this, myScreenView));
     }
@@ -711,8 +694,7 @@ public class NlDesignSurface extends DesignSurface {
    * When we have render errors for a given result, kick off a background computation
    * of the error panel HTML, which when done will update the UI thread
    */
-  private void updateErrors(@Nullable final RenderResult result) {
-    assert result != null && result.getLogger().hasProblems();
+  private void updateErrors() {
 
     getErrorQueue().cancelAllUpdates();
     getErrorQueue().queue(new Update("errors") {
@@ -724,12 +706,12 @@ public class NlDesignSurface extends DesignSurface {
           return;
         }
 
-        RenderErrorModel model =
-          BuildSettings.getInstance(getProject()).getBuildMode() != null && result.getLogger().hasErrors() ?
-          STILL_BUILDING_ERROR_MODEL :
-          RenderErrorModelFactory.createErrorModel(result, DataManager.getInstance().getDataContext(myErrorPanel));
-        myErrorPanel.setModel(model);
-        setShowErrorPanel(model.getSize() != 0);
+        BuildMode gradleBuildMode = BuildSettings.getInstance(getProject()).getBuildMode();
+        RenderErrorModel model = gradleBuildMode != null && result.getLogger().hasErrors()
+                                 ? RenderErrorModel.STILL_BUILDING_ERROR_MODEL
+                                 : RenderErrorModelFactory.createErrorModel(result, DataManager.getInstance().getDataContext(getIssuePanel()));
+        getIssueModel().setRenderErrorModel(model);
+        setShowIssuePanel(!getIssuePanel().isMinimized() || getIssueModel().hasRenderError());
       }
 
       @Override
@@ -749,18 +731,10 @@ public class NlDesignSurface extends DesignSurface {
            !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock when calling updateErrorDisplay!";
 
     getErrorQueue().cancelAllUpdates();
-    myRenderHasProblems = result != null && result.getLogger().hasProblems();
-    if (myRenderHasProblems) {
-      updateErrors(result);
+    boolean hasProblems = result != null && result.getLogger().hasProblems();
+    if (hasProblems) {
+      updateErrors();
     }
-    else {
-      setShowErrorPanel(false);
-    }
-  }
-
-  @Override
-  protected boolean hasProblems() {
-    return myRenderHasProblems;
   }
 
   @Override
