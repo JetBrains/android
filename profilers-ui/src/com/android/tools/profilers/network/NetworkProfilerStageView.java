@@ -48,6 +48,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private final ConnectionDetailsView myConnectionDetails;
   private final JBScrollPane myConnectionsScroller;
   private final JPanel myConnectionsPanel;
+  private final NetworkStageTooltipView myTooltipView;
 
   public NetworkProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull NetworkProfilerStage stage) {
     super(profilersView, stage);
@@ -59,7 +60,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     myConnectionDetails.setMinimumSize(new Dimension(JBUI.scale(450), (int)myConnectionDetails.getMinimumSize().getHeight()));
     myConnectionsView = new ConnectionsView(this, stage::setSelectedConnection);
     myConnectionsScroller = new JBScrollPane(myConnectionsView.getComponent());
-
+    myTooltipView = new NetworkStageTooltipView(stage);
     Splitter leftSplitter = new Splitter(true);
     leftSplitter.setFirstComponent(buildMonitorUi());
 
@@ -188,6 +189,12 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
         myConnectionDetails.setHttpData(null);
       }
     });
+
+    TooltipComponent tooltip = new TooltipComponent(timeline.getTooltipRange(), timeline.getViewRange(), timeline.getDataRange(),
+                                                    myTooltipView.createComponent());
+    tooltip.registerListenersOn(selection);
+
+    monitorPanel.add(tooltip, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(selection, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(legendPanel, new TabularLayout.Constraint(0, 0));
     monitorPanel.add(axisPanel, new TabularLayout.Constraint(0, 0));

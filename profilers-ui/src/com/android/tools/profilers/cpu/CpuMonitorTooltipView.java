@@ -17,16 +17,18 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
-import com.android.tools.profilers.MonitorTooltipView;
+import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StudioMonitorStageView;
 
 import java.awt.*;
 
-public class CpuMonitorTooltipView extends MonitorTooltipView<CpuMonitor> {
+public class CpuMonitorTooltipView extends ProfilerTooltipView {
+  private final CpuMonitor myMonitor;
 
   public CpuMonitorTooltipView(StudioMonitorStageView parent, CpuMonitor monitor) {
-    super(monitor);
+    super(monitor.getTimeline(), monitor.getName());
+    myMonitor = monitor;
   }
 
   @Override

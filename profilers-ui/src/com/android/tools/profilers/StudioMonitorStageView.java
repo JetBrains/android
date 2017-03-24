@@ -18,7 +18,6 @@ package com.android.tools.profilers;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipComponent;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuMonitorTooltipView;
 import com.android.tools.profilers.cpu.CpuMonitorView;
@@ -47,9 +46,9 @@ import java.util.List;
 public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
 
   @Nullable
-  private MonitorTooltipView myMonitorTooltipView;
+  private ProfilerTooltipView myMonitorTooltipView;
   @NotNull
-  private final ViewBinder<StudioMonitorStageView, ProfilerMonitor, MonitorTooltipView> myTooltipBinder;
+  private final ViewBinder<StudioMonitorStageView, ProfilerMonitor, ProfilerTooltipView> myTooltipBinder;
   @NotNull
   private final JPanel myTooltip;
 
