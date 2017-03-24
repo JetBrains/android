@@ -18,6 +18,9 @@ package com.android.tools.idea.uibuilder.scene;
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
+import com.android.resources.LayoutDirection;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
@@ -110,6 +113,22 @@ public class Scene implements SelectionListener {
   public Scene(@NotNull DesignSurface surface) {
     myDesignSurface = surface;
     myDesignSurface.getSelectionModel().addListener(this);
+  }
+
+  public boolean supportsRTL() {
+    return true;
+  }
+
+  public boolean isInRTL() {
+    Configuration configuration = myDesignSurface.getConfiguration();
+    if (configuration == null) {
+      return false;
+    }
+    LayoutDirectionQualifier qualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
+    if (qualifier == null) {
+      return false;
+    }
+    return qualifier.getValue() != LayoutDirection.RTL ? false : true;
   }
 
   //endregion
