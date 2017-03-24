@@ -88,7 +88,7 @@ public class InstantRunNotificationTask implements LaunchTask {
 
     if (shouldShowIRAd(myBuildSelection.why, myContext.getInstantRunBuildInfo().getBuildInstantRunEligibility())) {
       ourShouldShowIRAd = false;
-      new InstantRunAdvertisement(myProject).show();
+      new InstantRunPrompt(myProject).show();
     }
 
     if (myShowBrokenForSecondaryUserMessage) {
