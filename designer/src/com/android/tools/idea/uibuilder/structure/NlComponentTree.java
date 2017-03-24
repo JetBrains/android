@@ -81,9 +81,10 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private final AtomicBoolean mySelectionIsUpdating;
   private final MergingUpdateQueue myUpdateQueue;
   private final CopyPasteManager myCopyPasteManager;
+  private final NlTreeBadgeHandler myBadgeHandler;
 
   private ScreenView myScreenView;
-  private NlModel myModel;
+  @Nullable private NlModel myModel;
   private boolean mySkipWait;
   private int myInsertAfterRow = -1;
   private int myRelativeDepthToInsertionRow = 0;
@@ -102,6 +103,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     myCopyPasteManager = copyPasteManager;
     myUpdateQueue = new MergingUpdateQueue(
       "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, null, null, SWING_THREAD);
+    myBadgeHandler = new NlTreeBadgeHandler();
 
     setModel(new NlComponentTreeModel());
 
@@ -111,11 +113,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     setRootVisible(true);
     setShowsRootHandles(false);
     setToggleClickCount(2);
+    setCellRenderer(createCellRenderer());
 
     getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
     ToolTipManager.sharedInstance().registerComponent(this);
     TreeUtil.installActions(this);
-    createCellRenderer();
     addTreeSelectionListener(new StructurePaneSelectionListener());
     new StructureSpeedSearch(this);
     enableDnD();
@@ -156,6 +158,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       myModel.getSelectionModel().removeListener(this);
     }
     myModel = model;
+    myBadgeHandler.setNlModel(myModel);
     if (myModel != null) {
       myModel.addListener(this);
       myModel.getSelectionModel().addListener(this);
@@ -179,7 +182,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     Disposer.dispose(myUpdateQueue);
   }
 
-  private void createCellRenderer() {
+  private ColoredTreeCellRenderer createCellRenderer() {
     ColoredTreeCellRenderer renderer = new ColoredTreeCellRenderer() {
       @Override
       public void customizeCellRenderer(@NotNull JTree tree,
@@ -195,7 +198,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
       }
     };
     renderer.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-    setCellRenderer(renderer);
+    return renderer;
   }
 
   private void invalidateUI() {
@@ -322,6 +325,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     if (myInsertAfterRow >= 0) {
       paintInsertionPoint((Graphics2D)g);
     }
+    myBadgeHandler.paintBadges((Graphics2D)g, this);
   }
 
   private void paintInsertionPoint(@NotNull Graphics2D g2D) {
