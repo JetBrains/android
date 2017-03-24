@@ -13,30 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.memory;
+package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
-import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.StudioMonitorStageView;
+import com.android.tools.profilers.ProfilerTooltipView;
 
 import java.awt.*;
 
-public class MemoryMonitorTooltipView extends ProfilerTooltipView {
-  private final MemoryMonitor myMonitor;
+class NetworkStageTooltipView extends ProfilerTooltipView {
+  private final NetworkProfilerStage myStage;
 
-  public MemoryMonitorTooltipView(StudioMonitorStageView parent, MemoryMonitor monitor) {
-    super(monitor.getTimeline(), monitor.getName());
-    myMonitor = monitor;
+  NetworkStageTooltipView(NetworkProfilerStage stage) {
+    super(stage.getStudioProfilers().getTimeline(), "Network Traffic");
+    myStage = stage;
   }
 
   @Override
-  public Component createTooltip() {
-    MemoryMonitor.MemoryLegend legends = myMonitor.getTooltipLegend();
-
+  protected Component createTooltip() {
+    NetworkProfilerStage.NetworkStageLegends legends = myStage.getTooltipLegends();
     LegendComponent legend = new LegendComponent(legends, 0);
-    legend.configure(legends.getTotalLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.MEMORY_TOTAL));
+    legend.configure(legends.getRxLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.NETWORK_RECEIVING_COLOR));
+    legend.configure(legends.getTxLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.NETWORK_SENDING_COLOR));
+    legend.configure(legends.getConnectionLegend(),
+                     new LegendConfig(LegendConfig.IconType.DASHED_LINE, ProfilerColors.NETWORK_CONNECTIONS_COLOR));
     legend.setOrientation(LegendComponent.Orientation.VERTICAL);
 
     return legend;

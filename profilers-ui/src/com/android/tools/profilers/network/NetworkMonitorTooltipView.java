@@ -17,16 +17,20 @@ package com.android.tools.profilers.network;
 
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
-import com.android.tools.profilers.MonitorTooltipView;
+import com.android.tools.profilers.ProfilerTooltipView;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.StudioMonitorStageView;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
-public class NetworkMonitorTooltipView extends MonitorTooltipView<NetworkMonitor> {
+public class NetworkMonitorTooltipView extends ProfilerTooltipView {
+  @NotNull
+  private final NetworkMonitor myMonitor;
 
   public NetworkMonitorTooltipView(StudioMonitorStageView parent, NetworkMonitor monitor) {
-    super(monitor);
+    super(monitor.getTimeline(), monitor.getName());
+    myMonitor = monitor;
   }
 
   @Override
