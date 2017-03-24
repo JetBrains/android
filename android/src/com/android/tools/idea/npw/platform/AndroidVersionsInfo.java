@@ -50,6 +50,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_API;
+import static com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
+
 /**
  * Lists the available Android Versions from local, remote, and statically-defined sources.
  * The list can be filtered by min sdk level and a callback mechanism allows information to be provided asynchronously.
@@ -131,7 +134,7 @@ public class AndroidVersionsInfo {
              !myInstalledVersions.contains(androidVersion))) {
 
           // Let us install the HIGHEST_KNOWN_STABLE_API.
-          res.add(DetailsTypes.getPlatformPath(new AndroidVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, null)));
+          res.add(DetailsTypes.getPlatformPath(new AndroidVersion(HIGHEST_KNOWN_STABLE_API, null)));
         }
       }
     }
@@ -388,13 +391,13 @@ public class AndroidVersionsInfo {
         apiLevel = myApiLevel;
       }
       else if (myAndroidTarget == null) {
-        apiLevel = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
+        apiLevel = HIGHEST_KNOWN_STABLE_API;
       }
       else if (myAndroidTarget.getVersion().isPreview() || !myAndroidTarget.isPlatform()) {
         apiLevel = myApiLevel;
       }
       else  {
-        apiLevel = getHighestInstalledVersion() == null ? 0 : getHighestInstalledVersion().getFeatureLevel();
+        apiLevel = getHighestInstalledVersion() == null ? HIGHEST_KNOWN_STABLE_API : getHighestInstalledVersion().getFeatureLevel();
       }
       return apiLevel;
     }
@@ -412,21 +415,21 @@ public class AndroidVersionsInfo {
 
     public int getTargetApiLevel() {
       int buildApiLevel = getBuildApiLevel();
-      if (buildApiLevel >= SdkVersionInfo.HIGHEST_KNOWN_API || (myAndroidTarget != null && myAndroidTarget.getVersion().isPreview())) {
+      if (buildApiLevel >= HIGHEST_KNOWN_API || (myAndroidTarget != null && myAndroidTarget.getVersion().isPreview())) {
         return buildApiLevel;
       }
 
-      return getHighestInstalledVersion() == null ? 0 : getHighestInstalledVersion().getApiLevel();
+      return getHighestInstalledVersion() == null ? HIGHEST_KNOWN_API  : getHighestInstalledVersion().getApiLevel();
     }
 
     @NotNull
     public String getTargetApiLevelStr() {
       int buildApiLevel = getBuildApiLevel();
-      if (buildApiLevel >= SdkVersionInfo.HIGHEST_KNOWN_API || (myAndroidTarget != null && myAndroidTarget.getVersion().isPreview())) {
+      if (buildApiLevel >= HIGHEST_KNOWN_API || (myAndroidTarget != null && myAndroidTarget.getVersion().isPreview())) {
         return myAndroidTarget == null ? Integer.toString(buildApiLevel) : myAndroidTarget.getVersion().getApiString();
       }
 
-      return getHighestInstalledVersion() == null ? "" : getHighestInstalledVersion().getApiString();
+      return getHighestInstalledVersion() == null ? Integer.toString(HIGHEST_KNOWN_API) : getHighestInstalledVersion().getApiString();
     }
 
     @NotNull
@@ -440,7 +443,7 @@ public class AndroidVersionsInfo {
       if (SystemImage.GLASS_TAG.equals(tag)) {
         return String.format("Glass Development Kit Preview (API %1$d)", featureLevel);
       }
-      if (featureLevel <= SdkVersionInfo.HIGHEST_KNOWN_API) {
+      if (featureLevel <= HIGHEST_KNOWN_API) {
         if (version.isPreview()) {
           return String.format("API %1$s: Android %2$s (%3$s preview)",
                                SdkVersionInfo.getCodeName(featureLevel),

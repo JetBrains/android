@@ -455,6 +455,10 @@ public final class FormFactorApiComboBox extends JComboBox<FormFactorApiComboBox
         state.put(myTargetApiLevelKey, ourHighestInstalledApiTarget.getVersion().getApiLevel());
         state.put(myTargetApiStringKey, ourHighestInstalledApiTarget.getVersion().getApiString());
       }
+      else {
+        state.put(myTargetApiLevelKey, SdkVersionInfo.HIGHEST_KNOWN_API);
+        state.put(myTargetApiStringKey, Integer.toString(apiLevel));
+      }
     }
   }
 
