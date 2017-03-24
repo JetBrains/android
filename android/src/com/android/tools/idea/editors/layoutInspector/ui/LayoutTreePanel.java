@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ui;
 
+import com.android.annotations.Nullable;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.idea.editors.layoutInspector.LayoutInspectorContext;
 import com.intellij.ui.JBColor;
@@ -29,9 +30,11 @@ public class LayoutTreePanel extends JScrollPane implements ToolContent<LayoutIn
   }
 
   @Override
-  public void setToolContext(@NotNull LayoutInspectorContext toolContext) {
-    this.viewport.setBackground(JBColor.background());
-    this.setViewportView(toolContext.getNodeTree());
+  public void setToolContext(@Nullable LayoutInspectorContext toolContext) {
+    if (toolContext != null) {
+      this.viewport.setBackground(JBColor.background());
+      this.setViewportView(toolContext.getNodeTree());
+    }
   }
 
   @NotNull
