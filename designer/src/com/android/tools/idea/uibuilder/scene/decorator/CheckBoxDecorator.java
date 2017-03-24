@@ -41,9 +41,7 @@ public class CheckBoxDecorator extends SceneDecorator {
 
     DrawCheckbox(int x, int y, int width, int height, int baselineOffset, float scale, String text) {
       super(x, y, width, height, baselineOffset, text, true, false, DrawTextRegion.TEXT_ALIGNMENT_VIEW_START,
-            DrawTextRegion.TEXT_ALIGNMENT_CENTER, 32);
-      mScale = scale;
-      mFont = mFont.deriveFont(32 * mScale);
+            DrawTextRegion.TEXT_ALIGNMENT_CENTER, 32,scale);
     }
 
     public DrawCheckbox(String s) {
