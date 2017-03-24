@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.profilers.perfd;
 
+import com.android.annotations.NonNull;
+import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.profilers.StudioLegacyAllocationTracker;
 import com.android.tools.idea.profilers.StudioLegacyCpuTraceProfiler;
@@ -33,14 +35,17 @@ import java.util.concurrent.Executors;
 /**
  * Manages the start/stop of a proxy layer that run services bridging between the perfd-host and device perfd.
  */
-final public class PerfdProxy {
+public final class PerfdProxy implements AndroidDebugBridge.IDeviceChangeListener {
 
   @NotNull private static final String MEMORY_PROXY_EXECUTOR_NAME = "MemoryServiceProxy";
 
   @NotNull private Server myProxyServer;
   @NotNull private final List<PerfdProxyService> myProxyServices;
+  @NotNull private IDevice myDevice;
 
-  public PerfdProxy(@NotNull IDevice device, @NotNull ManagedChannel perfdChannel, @NotNull String proxyServerName) {
+  public PerfdProxy(@NotNull IDevice device, @NotNull ManagedChannel perfdChannel, String channelName) {
+    myDevice = device;
+
     myProxyServices = new LinkedList<>();
     myProxyServices.add(new ProfilerServiceProxy(device, perfdChannel));
     myProxyServices.add(new EventServiceProxy(device, perfdChannel));
@@ -54,17 +59,37 @@ final public class PerfdProxy {
                                                (d, p) -> new StudioLegacyAllocationTracker(d, p)));
     myProxyServices.add(new NetworkServiceProxy(device, perfdChannel));
 
-    ServerBuilder builder = InProcessServerBuilder.forName(proxyServerName);
+    ServerBuilder builder = InProcessServerBuilder.forName(channelName);
     myProxyServices.forEach(service -> builder.addService(service.getServiceDefinition()));
     myProxyServer = builder.build();
   }
 
   public void connect() throws IOException {
     myProxyServer.start();
+    AndroidDebugBridge.addDeviceChangeListener(this);
   }
 
   public void disconnect() {
-    myProxyServices.forEach(service -> service.disconnect());
+    myProxyServices.forEach(PerfdProxyService::disconnect);
     myProxyServer.shutdownNow();
+    AndroidDebugBridge.removeDeviceChangeListener(this);
+  }
+
+  @Override
+  public void deviceDisconnected(@NonNull IDevice device) {
+    // Disconnect the proxy if device is disconnected.
+    if (device == myDevice) {
+      disconnect();
+    }
+  }
+
+  @Override
+  public void deviceConnected(@NonNull IDevice device) {
+    // Do nothing.
+  }
+
+  @Override
+  public void deviceChanged(@NonNull IDevice device, int changeMask) {
+    // Do nothing.
   }
 }

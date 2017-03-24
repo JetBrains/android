@@ -268,6 +268,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   public void setDevice(Profiler.Device device) {
     if (!Objects.equals(device, myDevice)) {
+      Profiler.Device previousDevice = myDevice;
       myDevice = device;
       changed(ProfilerAspect.DEVICES);
 
@@ -285,7 +286,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         mySessionData = null;
       }
 
-      // The device has changed, reset the process
+      // The device has changed and we need to reset the process.
+      // First, stop profiling the current process.
+      if (previousDevice != null && myProcess != null &&
+          previousDevice.getState() == Profiler.Device.State.ONLINE &&
+          myProcess.getState() == Profiler.Process.State.ALIVE) {
+        Common.Session previousSession = Common.Session.newBuilder()
+          .setDeviceSerial(previousDevice.getSerial())
+          .setBootId(previousDevice.getBootId())
+          .build();
+        myProfilers.forEach(profiler -> profiler.stopProfiling(previousSession, myProcess));
+      }
+      // Then set a new process.
       setProcess(null);
     }
   }
@@ -307,12 +319,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       process = getPreferredProcess(processes);
     }
     if (!Objects.equals(process, myProcess)) {
-      if (myDevice != null && myProcess != null &&
-          myDevice.getState() == Profiler.Device.State.ONLINE &&
-          myProcess.getState() == Profiler.Process.State.ALIVE) {
-        myProfilers.forEach(profiler -> profiler.stopProfiling(getSession(), myProcess));
-      }
-
       boolean onlyStateChanged = isSameProcess(myProcess, process);
       myProcess = process;
       changed(ProfilerAspect.PROCESSES);
@@ -387,7 +393,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    * have changed between process1 and process2, but they should be considered the same as long as we have matching pids and names, so we
    * don't reset the stage.
    */
-  private boolean isSameProcess(@Nullable Profiler.Process process1, @Nullable Profiler.Process process2) {
+  private static boolean isSameProcess(@Nullable Profiler.Process process1, @Nullable Profiler.Process process2) {
     return process1 != null &&
            process2 != null &&
            process1.getPid() == process2.getPid() && process1.getName().equals(process2.getName());
