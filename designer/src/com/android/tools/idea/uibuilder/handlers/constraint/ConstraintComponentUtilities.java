@@ -819,7 +819,6 @@ public final class ConstraintComponentUtilities {
 
     if (!hasLeft) {
       transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, null);
-      transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
     } else {
       String margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT);
       if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
@@ -828,7 +827,6 @@ public final class ConstraintComponentUtilities {
     }
     if (!hasRight) {
       transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, null);
-      transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
     } else {
       String margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT);
       if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
@@ -837,7 +835,6 @@ public final class ConstraintComponentUtilities {
     }
     if (!hasStart) {
       transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_START, null);
-      transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
     } else {
       String margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_START);
       if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
@@ -846,7 +843,6 @@ public final class ConstraintComponentUtilities {
     }
     if (!hasEnd) {
       transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_END, null);
-      transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
     } else {
       String margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_END);
       if (margin != null && margin.equalsIgnoreCase(VALUE_ZERO_DP)) {
@@ -854,7 +850,9 @@ public final class ConstraintComponentUtilities {
       }
     }
 
-    // Vertical attributes
+    if (!(hasLeft && hasRight) && !(hasStart && hasEnd)) {
+      transaction.setAttribute(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS, null);
+    }
 
     if (!hasLeft && !hasRight && !hasStart && !hasEnd) {
       if (transaction.getAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X) == null) {
@@ -864,6 +862,8 @@ public final class ConstraintComponentUtilities {
     } else {
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, null);
     }
+
+    // Vertical attributes
 
     if (!hasTop) {
       transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP, null);
