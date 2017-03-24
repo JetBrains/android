@@ -147,7 +147,7 @@ public class LintAnnotationsModel {
     return myIssueList != null ? myIssueList : Collections.emptyList();
   }
 
-  static class IssueData implements Comparable<IssueData> {
+  public static class IssueData implements Comparable<IssueData> {
     @NotNull public final AndroidLintInspectionBase inspection;
     @NotNull public final HighlightDisplayLevel level;
     @NotNull public final String message;

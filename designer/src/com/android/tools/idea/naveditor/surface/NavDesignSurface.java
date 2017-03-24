@@ -102,7 +102,7 @@ public class NavDesignSurface extends DesignSurface {
 
       layoutContent();
     }
-    setShowErrorPanel(false);
+    setShowIssuePanel(false);
   }
 
   @Nullable

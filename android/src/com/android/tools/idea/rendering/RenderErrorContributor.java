@@ -23,7 +23,6 @@ import com.android.resources.Density;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
-import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.utils.HtmlBuilder;
@@ -110,7 +109,7 @@ public class RenderErrorContributor {
   @SuppressWarnings("unused") protected static final int MEDIUM_PRIORITY = 10;
   @SuppressWarnings("unused") protected static final int LOW_PRIORITY = 10;
 
-  protected static final Logger LOG = Logger.getInstance(RenderErrorPanel.class);
+  protected static final Logger LOG = Logger.getInstance(RenderErrorContributor.class);
   private static final String APP_COMPAT_REQUIRED_MSG = "You need to use a Theme.AppCompat";
 
   private final List<RenderErrorModel.Issue> myIssues = new ArrayList<>();
@@ -690,7 +689,7 @@ public class RenderErrorContributor {
       String text = Throwables.getStackTraceAsString(throwable);
       try {
         CopyPasteManager.getInstance().setContents(new StringSelection(text));
-        RenderErrorPanel.showNotification("Stack trace copied to clipboard");
+        HtmlLinkManager.showNotification("Stack trace copied to clipboard");
       }
       catch (Exception ignore) {
       }
