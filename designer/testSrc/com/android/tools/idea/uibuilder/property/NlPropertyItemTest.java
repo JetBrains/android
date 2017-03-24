@@ -38,9 +38,6 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class NlPropertyItemTest extends PropertyTestCase {
@@ -182,7 +179,8 @@ public class NlPropertyItemTest extends PropertyTestCase {
     assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Medium");
 
     textAppearance.setValue(null);
-    textAppearance.setDefaultValue(new PropertiesMap.Property("?android:attr/textAppearanceMedium", "@android:style/TextAppearance.Medium"));
+    textAppearance
+      .setDefaultValue(new PropertiesMap.Property("?android:attr/textAppearanceMedium", "@android:style/TextAppearance.Medium"));
     UIUtil.dispatchAllInvocationEvents();
     assertThat(textAppearance.getResolvedValue()).isEqualTo("@android:style/TextAppearance.Medium");
 
@@ -205,7 +203,8 @@ public class NlPropertyItemTest extends PropertyTestCase {
 
     ResourceValueMap fonts = ResourceValueMap.create();
     fonts.put("Lobster", new ResourceValue(ResourceUrl.create(null, ResourceType.FONT, "Lobster"), "/very/long/filename/do/not/use"));
-    fonts.put("DancingScript", new ResourceValue(ResourceUrl.create(null, ResourceType.FONT, "DancingScript"), "/very/long/filename/do/not/use"));
+    fonts.put("DancingScript",
+              new ResourceValue(ResourceUrl.create(null, ResourceType.FONT, "DancingScript"), "/very/long/filename/do/not/use"));
     ResourceResolver resolver = myModel.getConfiguration().getResourceResolver();
     assertThat(resolver).isNotNull();
     resolver.getProjectResources().put(ResourceType.FONT, fonts);
@@ -243,7 +242,6 @@ public class NlPropertyItemTest extends PropertyTestCase {
     UIUtil.dispatchAllInvocationEvents();
     assertThat(myTextView.getAttribute(ANDROID_URI, ATTR_TEXT)).isEqualTo("Hello World");
     verify(myUsageTracker).logPropertyChange(text, PropertiesViewMode.INSPECTOR, -1);
-
   }
 
   public void testSetValueParentTagOnMergeTagAddsOrientationProperty() {
@@ -284,7 +282,7 @@ public class NlPropertyItemTest extends PropertyTestCase {
   public void testMisc() {
     NlPropertyItem text = createFrom(myTextView, ATTR_TEXT);
 
-    assertThat(text.toString()).isEqualTo("NlPropertyItem{name=text, namespace=@android:}");
+    assertThat(text.toString()).isEqualTo("@android:text");
     assertThat(text.getTooltipText()).startsWith("@android:text:  Text to display.");
     assertThat(text.isEditable(1)).isTrue();
   }
@@ -307,6 +305,12 @@ public class NlPropertyItemTest extends PropertyTestCase {
     assertThat(text.getStarState()).isEqualTo(StarState.STARRED);
     assertThat(myPropertiesComponent.getValue(STARRED_PROP)).isEqualTo(ATTR_VISIBILITY + ";" + ATTR_ELEVATION);
     assertThat(myPropertiesManager.getUpdateCount()).isEqualTo(originalUpdateCount + 1);
+  }
+
+  public void testNamespaceToPrefix() {
+    assertThat(NlPropertyItem.namespaceToPrefix(null)).isEqualTo("");
+    assertThat(NlPropertyItem.namespaceToPrefix("http://schemas.android.com/apk/res/android")).isEqualTo("@android:");
+    assertThat(NlPropertyItem.namespaceToPrefix("http://schemas.android.com/apk/res-auto")).isEqualTo("@app:");
   }
 
   private static class SimpleGroupItem extends PTableGroupItem {
