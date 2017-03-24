@@ -16,7 +16,6 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.HtmlLabel;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,12 +27,15 @@ import java.awt.*;
  */
 public class NullMonitorStageView extends StageView<NullMonitorStage> {
 
-  public static final String NO_DEVICE_MESSAGE = "No device detected. Please plug in a device,<br/>or launch the emulator.";
-  public static final String NO_DEBUGGABLE_PROCESS_MESSAGE = "No debuggable processes detected for<br/>the selected device.";
+  @NotNull
+  private NullMonitorStage myStage;
+
   private HtmlLabel myDisabledMessage;
+  private JLabel myTitle;
 
   public NullMonitorStageView(@NotNull StudioProfilersView profilersView, @NotNull NullMonitorStage stage) {
     super(profilersView, stage);
+    myStage = stage;
 
     JPanel topPanel = new JPanel();
     BoxLayout layout = new BoxLayout(topPanel, BoxLayout.Y_AXIS);
@@ -48,40 +50,30 @@ public class NullMonitorStageView extends StageView<NullMonitorStage> {
     picLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
     topPanel.add(picLabel);
 
-    JLabel title = new JLabel("Android Profiler");
-    title.setHorizontalAlignment(SwingConstants.CENTER);
-    title.setVerticalAlignment(SwingConstants.TOP);
-    title.setAlignmentX(Component.CENTER_ALIGNMENT);
-    title.setFont(title.getFont().deriveFont(21.0f));
-    title.setForeground(new JBColor(0x000000, 0xFFFFFF));
-    topPanel.add(title);
+    myTitle = new JLabel();
+    myTitle.setHorizontalAlignment(SwingConstants.CENTER);
+    myTitle.setVerticalAlignment(SwingConstants.TOP);
+    myTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+    myTitle.setFont(myTitle.getFont().deriveFont(21.0f));
+    myTitle.setForeground(new JBColor(0x000000, 0xFFFFFF));
+    topPanel.add(myTitle);
     topPanel.add(Box.createRigidArea(new Dimension(1, 15)));
 
     myDisabledMessage = new HtmlLabel();
-    Font font = title.getFont().deriveFont(11.0f);
+    Font font = myTitle.getFont().deriveFont(11.0f);
     HtmlLabel.setUpAsHtmlLabel(myDisabledMessage, font, ProfilerColors.MESSAGE_COLOR);
     topPanel.add(myDisabledMessage);
     topPanel.add(Box.createVerticalGlue());
 
     getComponent().add(topPanel, BorderLayout.CENTER);
-    stage.getStudioProfilers().addDependency(this).onChange(ProfilerAspect.DEVICES, this::changed);
-    changed();
+
+    stage.getAspect().addDependency(this).onChange(NullMonitorStage.Aspect.NULL_MONITOR_TYPE, this::updateTitleAndMessage);
+    updateTitleAndMessage();
   }
 
-  @VisibleForTesting
-  public String getMessage() {
-    if (getStage().getStudioProfilers().getDevice() == null) {
-      return NO_DEVICE_MESSAGE;
-    }
-    return NO_DEBUGGABLE_PROCESS_MESSAGE;
-  }
-
-  private void changed() {
-    setMessageText(getMessage());
-  }
-
-  private void setMessageText(String message) {
-    myDisabledMessage.setText("<html><body><div style='text-align: center;'>" + message +
+  private void updateTitleAndMessage() {
+    myTitle.setText(myStage.getTitle());
+    myDisabledMessage.setText("<html><body><div style='text-align: center;'>" + myStage.getMessage() +
                               " <a href=\"https://developer.android.com/r/studio-ui/about-profilers.html\">Learn More</a></div></body></html>");
   }
 

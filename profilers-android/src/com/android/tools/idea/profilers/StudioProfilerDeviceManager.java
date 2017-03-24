@@ -23,7 +23,6 @@ import com.android.tools.idea.ddms.EdtExecutor;
 import com.android.tools.idea.ddms.adb.AdbService;
 import com.android.tools.idea.profilers.perfd.PerfdProxy;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.profiler.proto.Common;
 import com.google.common.base.Charsets;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -166,8 +165,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
           }
         }
 
-        ManagedChannel proxyChannel = null;
-
         // TODO: Handle the case where we don't have perfd for this platform.
         assert perfd != null;
         // TODO: Add debug support for development
@@ -175,7 +172,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         myDevice.executeShellCommand("mkdir -p " + devicePath, new NullOutputReceiver());
         myDevice.pushFile(perfd.getAbsolutePath(), devicePath + "/perfd");
 
-        /**
+        /*
          * In older devices, chmod letter usage isn't fully supported but CTS tests have been added for it since.
          * Hence we first try the letter scheme which is guaranteed in newer devices, and fall back to the octal scheme only if necessary.
          */
@@ -190,40 +187,41 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
           public void addOutput(byte[] data, int offset, int length) {
             String s = new String(data, offset, length, Charsets.UTF_8);
             getLogger().info("[perfd]: " + s);
-            if (s.contains("Server listening")) {
-              try {
-                myLocalPort = NetUtils.findAvailableSocketPort();
-                myDevice.createForward(myLocalPort, DEVICE_PORT);
-                if (myLocalPort < 0) {
-                  return;
-                }
-
-                /**
-                 * Creates the channel that is used to connect to the device perfd.
-                 *
-                 * TODO: investigate why ant build fails to find the ManagedChannel-related classes
-                 * The temporary fix is to stash the currently set context class loader so ManagedChannelProvider can find an appropriate implementation.
-                 */
-                ClassLoader stashedContextClassLoader = Thread.currentThread().getContextClassLoader();
-                Thread.currentThread().setContextClassLoader(NettyChannelBuilder.class.getClassLoader());
-                ManagedChannel perfdChannel = NettyChannelBuilder
-                  .forAddress("localhost", myLocalPort)
-                  .usePlaintext(true)
-                  .maxMessageSize(MAX_MESSAGE_SIZE)
-                  .build();
-                Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
-
-                // Creates a proxy server that the datastore connects to.
-                myPerfdProxy = new PerfdProxy(myDevice, perfdChannel, myDevice.getSerialNumber());
-                myPerfdProxy.connect();
-                // TODO using directexecutor for this channel freezes up grpc calls that are redirected to the device (e.g. GetTimes)
-                // We should otherwise do it for performance reasons, so we should investigate why.
-                ManagedChannel proxyChannel = InProcessChannelBuilder.forName(myDevice.getSerialNumber()).build();
-                myDataStore.connect(proxyChannel);
+            try {
+              myLocalPort = NetUtils.findAvailableSocketPort();
+              myDevice.createForward(myLocalPort, DEVICE_PORT);
+              if (myLocalPort < 0) {
+                return;
               }
-              catch (TimeoutException | AdbCommandRejectedException | IOException e) {
-                throw new RuntimeException(e);
-              }
+
+              /*
+                Creates the channel that is used to connect to the device perfd.
+
+                TODO: investigate why ant build fails to find the ManagedChannel-related classes
+                The temporary fix is to stash the currently set context class loader,
+                so ManagedChannelProvider can find an appropriate implementation.
+               */
+              ClassLoader stashedContextClassLoader = Thread.currentThread().getContextClassLoader();
+              Thread.currentThread().setContextClassLoader(NettyChannelBuilder.class.getClassLoader());
+              ManagedChannel perfdChannel = NettyChannelBuilder
+                .forAddress("localhost", myLocalPort)
+                .usePlaintext(true)
+                .maxMessageSize(MAX_MESSAGE_SIZE)
+                .build();
+              Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
+
+              // Creates a proxy server that the datastore connects to.
+              String channelName = myDevice.getSerialNumber();
+              myPerfdProxy = new PerfdProxy(myDevice, perfdChannel, channelName);
+              myPerfdProxy.connect();
+
+              // TODO using directexecutor for this channel freezes up grpc calls that are redirected to the device (e.g. GetTimes)
+              // We should otherwise do it for performance reasons, so we should investigate why.
+              ManagedChannel proxyChannel = InProcessChannelBuilder.forName(channelName).build();
+              myDataStore.connect(proxyChannel);
+            }
+            catch (TimeoutException | AdbCommandRejectedException | IOException e) {
+              throw new RuntimeException(e);
             }
           }
 
@@ -237,19 +235,6 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
             return false;
           }
         }, 0, null);
-
-        if (proxyChannel != null) {
-          Common.Session session = Common.Session.newBuilder()
-            .setDeviceSerial(myDevice.getSerialNumber())
-            .setBootId(Integer.toString(myDevice.getSerialNumber().hashCode()))
-            .build();
-          myDataStore.disconnect(session);
-        }
-
-        if (myPerfdProxy != null) {
-          myPerfdProxy.disconnect();
-          myPerfdProxy = null;
-        }
 
         getLogger().info("Terminating perfd thread");
       }
