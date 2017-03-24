@@ -34,6 +34,7 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
     registerStackedLineChart();
     registerStackedLineChartWithNonZeroMinValue();
     registerSimpleLineChart();
+    registerRepeatedValuesLineChart();
     registerSteppedLineChart();
     registerSimpleEventLineChart();
     registerAttachedEventLineChart();
@@ -82,6 +83,32 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
         // Create a simple line chart and register the components to the choreographer. Add thick lines to generate relevant images.
         addLine(0.0, 50.0, "Left Series", new LineConfig(Color.BLUE).setStroke(new BasicStroke(25)));
         addLine(0.0, 200.0, "Right Series", new LineConfig(Color.RED).setStroke(new BasicStroke(25)));
+      }
+    });
+  }
+
+  private void registerRepeatedValuesLineChart() {
+    register(new LineChartImageDiffEntry("repeated_values_line_chart_baseline.png") {
+      @Override
+      protected void generateComponent() {
+        addLine(0.0, 50.0, "Left Series", new LineConfig(Color.BLUE).setStroke(new BasicStroke(25)));
+      }
+
+      @Override
+      protected void generateTestData() {
+        myXRange.set(0, 12);
+        myData.get(0).add(0, 0L);
+        myData.get(0).add(1, 51L);
+        myData.get(0).add(2, 51L);
+        myData.get(0).add(3, 51L);
+        myData.get(0).add(4, 51L);
+        myData.get(0).add(5, 61L);
+        myData.get(0).add(6, 61L);
+        myData.get(0).add(7, 61L);
+        myData.get(0).add(8, 0L);
+        myData.get(0).add(9, 0L);
+        myData.get(0).add(10, 0L);
+        myData.get(0).add(11, 32L);
       }
     });
   }
