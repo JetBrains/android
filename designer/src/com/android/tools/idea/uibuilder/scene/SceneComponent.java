@@ -217,6 +217,11 @@ public class SceneComponent {
     return myScene.isAutoconnectOn() && myAllowsAutoconnect;
   }
 
+  public boolean useRtlAttributes() {
+    // TODO: add a check for a tool attribute on the component overwriting this
+    return myScene.supportsRTL();
+  }
+
   /**
    * Returns the index of the first instance of the given class in the list of targets
    *

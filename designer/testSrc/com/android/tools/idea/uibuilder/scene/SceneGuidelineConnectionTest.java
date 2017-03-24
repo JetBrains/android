@@ -76,7 +76,7 @@ public class SceneGuidelineConnectionTest extends SceneTest {
                  "    android:layout_width=\"100dp\"\n" +
                  "    android:layout_height=\"20dp\"\n" +
                  "      tools:layout_editor_absoluteY=\"200dp\"\n" +
-                 "      android:layout_marginLeft=\"8dp\"\n" +
-                 "      app:layout_constraintLeft_toLeftOf=\"@+id/guideline\" />");
+                 "      app:layout_constraintStart_toStartOf=\"@+id/guideline\"\n" +
+                 "      android:layout_marginStart=\"8dp\" />");
   }
 }
