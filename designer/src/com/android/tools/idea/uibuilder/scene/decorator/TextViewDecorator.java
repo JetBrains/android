@@ -35,8 +35,7 @@ import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
  * Support Progress Bar
  */
 public class TextViewDecorator extends SceneDecorator {
-  private static final String DEFAULT_DIM = "15sp";
-
+  private static final String DEFAULT_DIM = "14sp";
   @Override
   public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     Rectangle rect = new Rectangle();
@@ -47,31 +46,16 @@ public class TextViewDecorator extends SceneDecorator {
     int h = sceneContext.getSwingDimension(rect.height);
     String text = ConstraintUtilities.getResolvedText(component.getNlComponent());
     NlComponent nlc = component.getNlComponent();
-    Configuration configuration = nlc.getModel().getConfiguration();
-    ResourceResolver resourceResolver = configuration.getResourceResolver();
 
-    Integer size = null;
-
-    if (resourceResolver != null) {
-      String textSize = nlc.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_SIZE);
-      if (textSize != null) {
-        size = ViewEditor.resolveDimensionPixelSize(resourceResolver, textSize, configuration);
-      }
-    }
-
-    if (size == null) {
-      // With the specified string, this method cannot return null
-      //noinspection ConstantConditions
-      size = ViewEditor.resolveDimensionPixelSize(resourceResolver, DEFAULT_DIM, configuration);
-      size = (int) (0.8 * size); // temporary
-    }
+    int size = DrawTextRegion.getFont(nlc, DEFAULT_DIM);
 
     String alignment = nlc.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_ALIGNMENT);
-    int align = ConstraintUtilities.getAlignment(alignment);
+    boolean rtl = component.getScene().isInRTL();
+    int align = ConstraintUtilities.getAlignment(alignment, rtl);
     String single = nlc.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_SINGLE_LINE);
     boolean singleLine = Boolean.parseBoolean(single);
     int baseLineOffset = sceneContext.getSwingDimension(component.getBaseline());
-    int scaleSize =  sceneContext.getSwingDimension(size);
-    list.add(new DrawTextRegion(l, t, w, h, baseLineOffset, text, singleLine, false, align, DrawTextRegion.TEXT_ALIGNMENT_VIEW_START, scaleSize));
+    list.add(new DrawTextRegion(l, t, w, h, baseLineOffset, text, singleLine, false, align, DrawTextRegion.TEXT_ALIGNMENT_VIEW_START, size,
+                                (float)sceneContext.getScale()));
   }
 }
