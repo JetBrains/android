@@ -132,6 +132,38 @@ public class DragTarget extends BaseTarget {
     return null;
   }
 
+  private int getStartTargetOrigin(SceneComponent target, boolean isInRtl) {
+    int origin = target.getDrawX();
+    if (isInRtl) {
+      origin += target.getDrawWidth();
+    }
+    NlComponent nlComponent = myComponent.getNlComponent();
+    if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_END_OF) != null) {
+      if (isInRtl) {
+        origin = target.getDrawX();
+      } else {
+        origin += target.getDrawWidth();
+      }
+    }
+    return origin;
+  }
+
+  private int getEndTargetOrigin(SceneComponent target, boolean isInRtl) {
+    int origin = target.getDrawX();
+    if (isInRtl) {
+      origin += target.getDrawWidth();
+    }
+    NlComponent nlComponent = myComponent.getNlComponent();
+    if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF) != null) {
+      if (isInRtl) {
+        origin = target.getDrawX();
+      } else {
+        origin += target.getDrawWidth();
+      }
+    }
+    return origin;
+  }
+
   private int getLeftTargetOrigin(SceneComponent target) {
     int origin = target.getDrawX();
     NlComponent nlComponent = myComponent.getNlComponent();
@@ -175,17 +207,63 @@ public class DragTarget extends BaseTarget {
   }
 
   protected void updateAttributes(AttributesTransaction attributes, int x, int y) {
+    SceneComponent targetStartComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourStartAttributes);
+    SceneComponent targetEndComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourEndAttributes);
     SceneComponent targetLeftComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourLeftAttributes);
     SceneComponent targetRightComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourRightAttributes);
+    String targetStartMargin = SdkConstants.ATTR_LAYOUT_MARGIN_START;
+    String targetEndMargin = SdkConstants.ATTR_LAYOUT_MARGIN_END;
+    boolean useStartEnd = myComponent.useRtlAttributes();
+    boolean isInRTL = myComponent.getScene().isInRTL();
+
+    int dx1 = 0;
+    int dx2 = 0;
+
+    if (targetStartComponent == null && targetEndComponent == null) {
+      // No start/end, let's use left/right
+      targetStartComponent = targetLeftComponent;
+      targetEndComponent = targetRightComponent;
+      targetStartMargin = SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
+      targetEndMargin = SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
+      useStartEnd = false;
+      isInRTL = false;
+      if (targetStartComponent != null) {
+        dx1 = getLeftTargetOrigin(targetStartComponent) + getMarginValue(targetStartMargin);
+      }
+      if (targetEndComponent != null) {
+        dx2 = getRightTargetOrigin(targetEndComponent) - getMarginValue(targetEndMargin);
+      }
+    } else {
+      if (targetStartComponent != null) {
+        dx1 = getStartTargetOrigin(targetStartComponent, isInRTL);
+        int margin = getMarginValue(targetStartMargin);
+        if (isInRTL) {
+          dx1 -= margin;
+        } else {
+          dx1 += margin;
+        }
+      }
+      if (targetEndComponent != null) {
+        dx2 = getEndTargetOrigin(targetEndComponent, isInRTL);
+        int margin = getMarginValue(targetEndMargin);
+        if (isInRTL) {
+          dx2 += margin;
+        } else {
+          dx2 -= margin;
+        }
+      }
+    }
     myChainChecker.checkIsInChain(myComponent);
     SceneComponent parent = myComponent.getParent();
     assert parent != null;
-    if (targetLeftComponent != null && targetRightComponent != null) {
+    if (targetStartComponent != null && targetEndComponent != null) {
       if (!myChainChecker.isInHorizontalChain()) {
-        int dx1 = getLeftTargetOrigin(targetLeftComponent) + getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_LEFT);
-        int dx2 = getRightTargetOrigin(targetRightComponent) - getMarginValue(SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT);
         float dw = dx2 - dx1 - myComponent.getDrawWidth();
         float bias = (x - dx1) / dw;
+        if (useStartEnd && isInRTL) {
+          dw = dx1 - dx2 - myComponent.getDrawWidth();
+          bias = (dw - (x - dx2)) / dw;
+        }
         if (bias < 0) {
           bias = 0;
         }
@@ -204,33 +282,27 @@ public class DragTarget extends BaseTarget {
                                 SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS, biasValue);
       }
     }
-    else if (targetLeftComponent != null) {
-      int dx = x - getLeftTargetOrigin(targetLeftComponent);
-      applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, dx);
-      /*
-      // TODO: handles RTL correctly
-      if (myComponent.getNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START) == null) {
-        // if start isn't defined, create it based on the margin left
-        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START,
-                                myComponent.getNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT));
-      } else {
-        applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_START, dx);
+    else if (targetStartComponent != null) {
+      int dx = x - getLeftTargetOrigin(targetStartComponent);
+      if (useStartEnd) {
+        if (isInRTL) {
+          dx = getStartTargetOrigin(targetStartComponent, isInRTL) - (x + myComponent.getDrawWidth());
+        } else {
+          dx = x - getStartTargetOrigin(targetStartComponent, isInRTL);
+        }
       }
-      */
+      applyMargin(attributes, targetStartMargin, dx);
     }
-    else if (targetRightComponent != null) {
-      int dx = getRightTargetOrigin(targetRightComponent) - (x + myComponent.getDrawWidth());
-      applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, dx);
-      /*
-      // TODO: handles RTL correctly
-      if (myComponent.getNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END) == null) {
-        // if end isn't defined, create it based on the margin right
-        attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END,
-                                myComponent.getNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT));
-      } else {
-        applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_END, dx);
+    else if (targetEndComponent != null) {
+      int dx = getRightTargetOrigin(targetEndComponent) - (x + myComponent.getDrawWidth());
+      if (useStartEnd) {
+        if (isInRTL) {
+          dx = x - getEndTargetOrigin(targetEndComponent, isInRTL);
+        } else {
+          dx = getEndTargetOrigin(targetEndComponent, isInRTL) - (x + myComponent.getDrawWidth());
+        }
       }
-      */
+      applyMargin(attributes, targetEndMargin, dx);
     }
     else {
       int dx = Math.max(0, x - parent.getDrawX());
