@@ -302,7 +302,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
   @Override
   public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
-    actions.add(new ClearConstraintsAction());
     // Just dumps all the toolbar actions in the context menu under a menu item called "Constraint Layout"
     String str;
     ViewAction action;
