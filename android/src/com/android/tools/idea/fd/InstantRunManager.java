@@ -38,7 +38,6 @@ import com.intellij.debugger.ui.breakpoints.Breakpoint;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -55,7 +54,7 @@ import java.util.List;
  * The {@linkplain InstantRunManager} is responsible for handling Instant Run related functionality
  * in the IDE: determining if an app is running with the fast deploy runtime, whether it's up to date, communicating with it, etc.
  */
-public final class InstantRunManager implements ProjectComponent {
+public final class InstantRunManager {
   public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
   public static final GradleVersion MINIMUM_GRADLE_PLUGIN_VERSION = GradleVersion.parse(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
   public static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
@@ -125,29 +124,7 @@ public final class InstantRunManager implements ProjectComponent {
     InstalledPatchCache cache = context.getInstalledPatchCache();
     return cache.getInstalledManifestResourcesHash(device, context.getApplicationId()) != null;
   }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return "InstantRunManager";
-  }
-
-  @Override
-  public void projectOpened() {
-  }
-
-  @Override
-  public void projectClosed() {
-  }
-
-  @Override
-  public void initComponent() {
-  }
-
-  @Override
-  public void disposeComponent() {
-  }
-
+  
   public FileChangeListener.Changes getChangesAndReset() {
     return myFileChangeListener.getChangesAndReset();
   }
