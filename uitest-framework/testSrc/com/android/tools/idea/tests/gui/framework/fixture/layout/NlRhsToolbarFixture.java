@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.layout;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.uibuilder.actions.IssueNotificationAction;
 import com.android.tools.idea.uibuilder.surface.PanZoomPanel;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 
 /**
  * Fixture representing the configuration toolbar above an associated layout editor
@@ -40,7 +42,7 @@ public class NlRhsToolbarFixture {
 
   public void openPanZoomPanel() {
     Robot robot = myNlEditorFixture.robot();
-    ActionButton button = GuiTests.waitUntilShowing(
+    ActionButton button = waitUntilShowing(
       robot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
         @Override
         protected boolean isMatching(@NotNull ActionButton component) {
@@ -49,6 +51,20 @@ public class NlRhsToolbarFixture {
         }
       });
     new ActionButtonFixture(robot, button).click();
-    GuiTests.waitUntilShowing(robot, Matchers.byType(PanZoomPanel.class)); // don't return a fixture; just make sure this shows
+    waitUntilShowing(robot, Matchers.byType(PanZoomPanel.class)); // don't return a fixture; just make sure this shows
+  }
+
+  public void openErrorPanel() {
+    Robot robot = myNlEditorFixture.robot();
+    ActionButton button = waitUntilShowing(
+      robot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+        @Override
+        protected boolean isMatching(@NotNull ActionButton component) {
+          String text = component.getAction().getTemplatePresentation().getText();
+          return text != null && (text.equals(IssueNotificationAction.SHOW_ISSUE)
+                                  || text.equals(IssueNotificationAction.NO_ISSUE));
+        }
+      });
+    new ActionButtonFixture(robot, button).click();
   }
 }

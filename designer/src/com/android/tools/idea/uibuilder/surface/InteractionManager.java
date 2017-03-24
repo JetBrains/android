@@ -536,13 +536,11 @@ public class InteractionManager {
     @Override
     public void mouseEntered(@NotNull MouseEvent event) {
       myHoverTimer.restart();
-      mySurface.resetHover();
     }
 
     @Override
     public void mouseExited(@NotNull MouseEvent event) {
       myHoverTimer.stop();
-      mySurface.resetHover();
     }
 
     // --- Implements MouseMotionListener ----
@@ -654,7 +652,6 @@ public class InteractionManager {
       }
 
       myHoverTimer.restart();
-      mySurface.resetHover();
     }
 
     @Override
@@ -678,7 +675,6 @@ public class InteractionManager {
       }
 
       myHoverTimer.restart();
-      mySurface.resetHover();
     }
 
     // --- Implements KeyListener ----
