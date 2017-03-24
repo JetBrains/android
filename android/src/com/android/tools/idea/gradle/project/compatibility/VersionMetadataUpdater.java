@@ -40,7 +40,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 /**
  * Checks if there are component version metadata updates from a remote server. The check is perform on IDE startup, once, every day.
  */
-public class VersionMetadataUpdater extends ApplicationComponent.Adapter {
+public class VersionMetadataUpdater implements ApplicationComponent {
   private static final Logger LOG = Logger.getInstance(VersionMetadataUpdater.class);
 
   private static final String LAST_CHECK_TIMESTAMP_PROPERTY_NAME = "android-component-compatibility-check";

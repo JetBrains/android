@@ -26,8 +26,8 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.editors.theme.preview.ThemePreviewComponent;
 import com.android.tools.idea.editors.theme.qualifiers.RestrictedConfiguration;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
+import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.intellij.openapi.application.ApplicationManager;
@@ -322,15 +322,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
 
     return ThemeEditorProvider.isAndroidTheme(psiFile);
   }
-
-  @Override
-  public void initComponent() {
-  }
-
-  @Override
-  public void disposeComponent() {
-  }
-
+  
   private void updatePreview() {
     myToolWindowUpdateQueue.queue(myPreviewUpdate);
   }
