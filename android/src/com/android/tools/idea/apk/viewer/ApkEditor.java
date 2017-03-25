@@ -26,7 +26,6 @@ import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel;
 import com.android.tools.idea.apk.viewer.diff.ApkDiffParser;
 import com.android.tools.idea.editors.NinePatchEditorProvider;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
-import com.intellij.ide.file.BatchFileChangeListener;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
@@ -42,20 +41,25 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileListener;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.testFramework.BinaryLightVirtualFile;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkViewPanel.Listener {
@@ -76,19 +80,50 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     mySplitter = new JBSplitter(true, "android.apk.viewer", 0.62f);
     mySplitter.setName("apkViwerContainer");
 
-    Path apk = VfsUtilCore.virtualToIoFile(baseFile).toPath();
+    // The APK Analyzer uses a copy of the APK to open it as an Archive. It does so far two reasons:
+    // 1. We don't want the editor holding a lock on an APK (applies only to Windows)
+    // 2. Since an Archive creates a FileSystem under the hood, we don't want the zip file's contents
+    // to change while the FileSystem is open, since this may lead to JVM crashes
+    // But if we do a copy, we need to update it whenever the real file changes. So we listen to changes
+    // in the VFS as long as this editor is open.
+    MessageBusConnection connection = project.getMessageBus().connect(this);
+    connection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener.Adapter() {
+      @Override
+      public void after(@NotNull List<? extends VFileEvent> events) {
+        for (VFileEvent event : events) {
+          if (myBaseFile.equals(event.getFile())) {
+            if (myBaseFile.isValid()) {
+              refreshApk(baseFile);
+            } else {
+              // if the file is deleted, the editor is automatically closed..
+            }
+          }
+        }
+      }
+    });
+
+    refreshApk(myBaseFile);
+    mySplitter.setSecondComponent(new JPanel());
+  }
+
+  private void refreshApk(@NotNull VirtualFile apkVirtualFile) {
+    disposeArchive();
+
     try {
-      myArchive = Archives.open(apk);
-      myApkViewPanel = new ApkViewPanel(myArchive, new ApkParser(myArchive, ApkSizeCalculator.getDefault(apk)));
+      // this temporary copy is destroyed while disposing the archive, see #disposeArchive
+      Path copyOfApk = Files.createTempFile(apkVirtualFile.getNameWithoutExtension(), apkVirtualFile.getExtension());
+      Files.copy(VfsUtilCore.virtualToIoFile(apkVirtualFile).toPath(), copyOfApk, StandardCopyOption.REPLACE_EXISTING);
+      myArchive = Archives.open(copyOfApk);
+      myApkViewPanel = new ApkViewPanel(myArchive, new ApkParser(myArchive, ApkSizeCalculator.getDefault(copyOfApk)));
       myApkViewPanel.setListener(this);
       mySplitter.setFirstComponent(myApkViewPanel.getContainer());
+      selectionChanged(myArchive, null);
     }
     catch (IOException e) {
+      Logger.getInstance(ApkEditor.class).error(e);
       myArchive = null;
       mySplitter.setFirstComponent(new JBLabel(e.toString()));
     }
-
-    mySplitter.setSecondComponent(new JPanel());
   }
 
   /**
@@ -198,10 +233,15 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       Disposer.dispose(myCurrentEditor);
       myCurrentEditor = null;
     }
+    disposeArchive();
+  }
 
+  private void disposeArchive() {
     if (myArchive != null) {
       try {
         myArchive.close();
+        // the archive was constructed out of a temporary file
+        Files.deleteIfExists(myArchive.getPath());
       }
       catch (IOException e) {
         Logger.getInstance(ApkEditor.class).warn(e);
