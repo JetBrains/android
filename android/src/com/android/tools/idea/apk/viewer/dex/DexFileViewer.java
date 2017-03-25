@@ -53,6 +53,7 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -65,7 +66,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
   private final Tree myTree;
   private final JPanel myTopPanel;
 
-  @NotNull private final VirtualFile myDexFile;
+  @NotNull private final Path myDexFile;
   @NotNull private final Project myProject;
   @NotNull private final VirtualFile myApkFolder;
   @NotNull private final DexViewFilters myDexFilters;
@@ -74,7 +75,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
   private boolean myDeobfuscateNames;
 
 
-  public DexFileViewer(@NotNull Project project, @NotNull VirtualFile dexFile, @NotNull VirtualFile apkFolder) {
+  public DexFileViewer(@NotNull Project project, @NotNull Path dexFile, @NotNull VirtualFile apkFolder) {
     myDexFile = dexFile;
     myProject = project;
     myApkFolder = apkFolder;
