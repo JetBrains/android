@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
@@ -73,7 +74,11 @@ public class GuidelineTarget extends DragTarget {
   }
 
   @Override
-  public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
+  public boolean layout(@NotNull SceneContext sceneTransform,
+                        @AndroidDpCoordinate int l,
+                        @AndroidDpCoordinate int t,
+                        @AndroidDpCoordinate int r,
+                        @AndroidDpCoordinate int b) {
     int dist = 6;
     SceneComponent parent = myComponent.getParent();
     if (parent != null) {
@@ -117,7 +122,7 @@ public class GuidelineTarget extends DragTarget {
   }
 
   @Override
-  protected void updateAttributes(AttributesTransaction attributes, int x, int y) {
+  protected void updateAttributes(AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     String begin = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
     String end = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
     String percent = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);

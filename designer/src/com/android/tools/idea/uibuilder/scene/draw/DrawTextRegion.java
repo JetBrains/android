@@ -20,6 +20,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.sherpa.drawing.ColorSet;
 
@@ -38,10 +39,10 @@ public class DrawTextRegion extends DrawRegion {
   protected int mFontSize = 14;
   protected float mScale = 1.0f;
   protected int myBaseLineOffset = 0;
-  protected int mHorizontalPadding = 0;
-  protected int mVerticalPadding = 0;
-  protected int mVerticalMargin = 0;
-  protected int mHorizontalMargin = 0;
+  @SwingCoordinate protected int mHorizontalPadding = 0;
+  @SwingCoordinate protected int mVerticalPadding = 0;
+  @SwingCoordinate protected int mVerticalMargin = 0;
+  @SwingCoordinate protected int mHorizontalMargin = 0;
   protected boolean mToUpperCase = false;
   public static final int TEXT_ALIGNMENT_TEXT_START = 2;
   public static final int TEXT_ALIGNMENT_TEXT_END = 3;
@@ -52,7 +53,7 @@ public class DrawTextRegion extends DrawRegion {
   protected int mAlignmentY = TEXT_ALIGNMENT_VIEW_START;
   protected String mText;
   public static final float SCALE_ADJUST = .88f; // a factor to scale funts from android to Java2d
-  protected Font mFont = new Font("Helvetica", Font.PLAIN, (int)mFontSize)
+  protected Font mFont = new Font("Helvetica", Font.PLAIN, mFontSize)
     .deriveFont(AffineTransform.getScaleInstance(mScale * SCALE_ADJUST, mScale * SCALE_ADJUST));
   protected boolean mSingleLine = false;
   JTextPane mTextPane = new JTextPane();
@@ -118,13 +119,22 @@ public class DrawTextRegion extends DrawRegion {
 
   }
 
-  public DrawTextRegion(int x, int y, int width, int height, int baseLineOffset, String text) {
+  public DrawTextRegion(@SwingCoordinate int x,
+                        @SwingCoordinate int y,
+                        @SwingCoordinate int width,
+                        @SwingCoordinate int height,
+                        int baseLineOffset,
+                        String text) {
     super(x, y, width, height);
     myBaseLineOffset = baseLineOffset;
     mText = text;
   }
 
-  public DrawTextRegion(int x, int y, int width, int height, int baseLineOffset,
+  public DrawTextRegion(@SwingCoordinate int x,
+                        @SwingCoordinate int y,
+                        @SwingCoordinate int width,
+                        @SwingCoordinate int height,
+                        int baseLineOffset,
                         String text,
                         boolean singleLine,
                         boolean toUpperCase,
@@ -141,7 +151,7 @@ public class DrawTextRegion extends DrawRegion {
     mFontSize = fontSize;
     mScale = scale;
 
-    mFont = new Font("Helvetica", Font.PLAIN, (int)(mFontSize))
+    mFont = new Font("Helvetica", Font.PLAIN, mFontSize)
       .deriveFont(AffineTransform.getScaleInstance(mScale * SCALE_ADJUST, mScale * SCALE_ADJUST)); // Convert to swing size font
   }
 
@@ -189,13 +199,13 @@ public class DrawTextRegion extends DrawRegion {
       }
       switch (mAlignmentY) {
         case TEXT_ALIGNMENT_VIEW_START:
-          mTextPane.setAlignmentY(JTextArea.TOP_ALIGNMENT);
+          mTextPane.setAlignmentY(Component.TOP_ALIGNMENT);
           break;
         case TEXT_ALIGNMENT_CENTER:
-          mTextPane.setAlignmentY(JTextArea.CENTER_ALIGNMENT);
+          mTextPane.setAlignmentY(Component.CENTER_ALIGNMENT);
           break;
         case TEXT_ALIGNMENT_VIEW_END:
-          mTextPane.setAlignmentY(JTextArea.BOTTOM_ALIGNMENT);
+          mTextPane.setAlignmentY(Component.BOTTOM_ALIGNMENT);
           break;
       }
       doc.setParagraphAttributes(0, doc.getLength(), attributeSet, false);
@@ -272,6 +282,9 @@ public class DrawTextRegion extends DrawRegion {
       //noinspection ConstantConditions
       size = ViewEditor.resolveDimensionPixelSize(resourceResolver, default_dim, configuration);
     }
-    return size;
+    if (size != null) {
+      return size;
+    }
+    return -1;
   }
 }

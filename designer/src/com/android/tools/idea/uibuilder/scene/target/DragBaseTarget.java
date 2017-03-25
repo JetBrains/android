@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -39,10 +40,10 @@ public abstract class DragBaseTarget extends BaseTarget {
 
   private static final boolean DEBUG_RENDERER = false;
 
-  protected int myOffsetX;
-  protected int myOffsetY;
-  protected int myFirstMouseX;
-  protected int myFirstMouseY;
+  @AndroidDpCoordinate protected int myOffsetX;
+  @AndroidDpCoordinate protected int myOffsetY;
+  @AndroidDpCoordinate protected int myFirstMouseX;
+  @AndroidDpCoordinate protected int myFirstMouseY;
   protected boolean myChangedComponent;
 
   /////////////////////////////////////////////////////////////////////////////
@@ -55,7 +56,11 @@ public abstract class DragBaseTarget extends BaseTarget {
   }
 
   @Override
-  public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
+  public boolean layout(@NotNull SceneContext sceneTransform,
+                        @AndroidDpCoordinate int l,
+                        @AndroidDpCoordinate int t,
+                        @AndroidDpCoordinate int r,
+                        @AndroidDpCoordinate int b) {
     int minWidth = 16;
     int minHeight = 16;
     if (r - l < minWidth) {
@@ -89,7 +94,9 @@ public abstract class DragBaseTarget extends BaseTarget {
     }
   }
 
-  protected abstract void updateAttributes(@NotNull AttributesTransaction attributes, int x, int y);
+  protected abstract void updateAttributes(@NotNull AttributesTransaction attributes,
+                                           @AndroidDpCoordinate int x,
+                                           @AndroidDpCoordinate int y);
 
   //endregion
   /////////////////////////////////////////////////////////////////////////////
@@ -100,7 +107,7 @@ public abstract class DragBaseTarget extends BaseTarget {
   public int getPreferenceLevel() { return Target.DRAG_LEVEL; }
 
   @Override
-  public void mouseDown(int x, int y) {
+  public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     if (myComponent.getParent() == null) {
       return;
     }
@@ -112,7 +119,7 @@ public abstract class DragBaseTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseDrag(int x, int y, @Nullable Target closestTarget) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
     if (myComponent.getParent() == null) {
       return;
     }
@@ -127,7 +134,7 @@ public abstract class DragBaseTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
     myComponent.setDragging(false);
     if (myComponent.getParent() != null) {
       boolean commitChanges = true;

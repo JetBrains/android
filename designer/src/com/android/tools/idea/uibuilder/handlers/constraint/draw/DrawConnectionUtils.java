@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
+
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
@@ -62,7 +64,7 @@ public class DrawConnectionUtils {
    * @param x    x coordinate
    * @param y    y coordinate
    */
-  public static void drawCircledText(Graphics2D g, Font font, String text, int x, int y) {
+  public static void drawCircledText(Graphics2D g, Font font, String text, @SwingCoordinate int x, @SwingCoordinate int y) {
     Graphics2D g2 = (Graphics2D)g.create();
     g2.setFont(font);
     FontMetrics fm = g2.getFontMetrics();
@@ -94,7 +96,12 @@ public class DrawConnectionUtils {
    * @param x         x coordinate
    * @param y         y coordinate
    */
-  public static void drawRoundRectText(Graphics2D g, Font font, Color textColor, String text, int x, int y) {
+  public static void drawRoundRectText(Graphics2D g,
+                                       Font font,
+                                       Color textColor,
+                                       String text,
+                                       @SwingCoordinate int x,
+                                       @SwingCoordinate int y) {
     Graphics2D g2 = (Graphics2D)g.create();
     g2.setFont(font);
     FontMetrics fm = g2.getFontMetrics();
@@ -123,7 +130,7 @@ public class DrawConnectionUtils {
    * @param x    x coordinate
    * @param y    y coordinate
    */
-  public static void drawCircledText(Graphics2D g, String text, int x, int y) {
+  public static void drawCircledText(Graphics2D g, String text, @SwingCoordinate int x, @SwingCoordinate int y) {
     drawCircledText(g, sSmallFont, text, x, y);
   }
 
@@ -136,8 +143,12 @@ public class DrawConnectionUtils {
    * @param x2   x2 coordinate
    * @param y    y coordinate
    */
-  public static void drawHorizontalMarginIndicator(Graphics2D g, String text, boolean isMarginReference, int x1, int x2,
-                                                   int y) {
+  public static void drawHorizontalMarginIndicator(Graphics2D g,
+                                                   String text,
+                                                   boolean isMarginReference,
+                                                   @SwingCoordinate int x1,
+                                                   @SwingCoordinate int x2,
+                                                   @SwingCoordinate int y) {
     if (x1 > x2) {
       int temp = x1;
       x1 = x2;
@@ -193,7 +204,12 @@ public class DrawConnectionUtils {
    * @param y1   y1 coordinate
    * @param y2   y2 coordinate
    */
-  public static void drawVerticalMarginIndicator(Graphics2D g, String text, boolean isMarginReference, int x, int y1, int y2) {
+  public static void drawVerticalMarginIndicator(Graphics2D g,
+                                                 String text,
+                                                 boolean isMarginReference,
+                                                 @SwingCoordinate int x,
+                                                 @SwingCoordinate int y1,
+                                                 @SwingCoordinate int y2) {
     if (y1 > y2) {
       int temp = y1;
       y1 = y2;
@@ -245,14 +261,18 @@ public class DrawConnectionUtils {
    * @param x     x coordinate
    * @param y     y coordinate
    */
-  public static void drawArrow(Graphics2D g, Polygon arrow, int x, int y) {
+  public static void drawArrow(Graphics2D g, Polygon arrow, @SwingCoordinate int x, @SwingCoordinate int y) {
     arrow.translate(x, y);
     g.draw(arrow);
     g.fill(arrow);
     arrow.translate(-x, -y);
   }
 
-  public static void getArrow(int direction, int x, int y, int[] xPoints, int[] yPoints) {
+  public static void getArrow(int direction,
+                              @SwingCoordinate int x,
+                              @SwingCoordinate int y,
+                              @SwingCoordinate int[] xPoints,
+                              @SwingCoordinate int[] yPoints) {
     xPoints[0] = x;
     yPoints[0] = y;
     switch (direction) {
@@ -292,7 +312,7 @@ public class DrawConnectionUtils {
    * @param length
    * @param archLen
    */
-  static void drawLines(GeneralPath path, int[] xPoints, int[] yPoints, int length, int archLen) {
+  static void drawLines(GeneralPath path, @SwingCoordinate int[] xPoints, @SwingCoordinate int[] yPoints, int length, int archLen) {
     for (int i = 1; i < length; i++) {
       path.lineTo(xPoints[i], yPoints[i]);
     }
@@ -308,7 +328,7 @@ public class DrawConnectionUtils {
    * @param distance maximum distance to be considered a zigzag
    * @return the new length
    */
-  static int removeZigZag(int[] xPoints, int[] yPoints, int length, int distance) {
+  static int removeZigZag(@SwingCoordinate int[] xPoints, @SwingCoordinate int[] yPoints, int length, @SwingCoordinate int distance) {
     int dir1 = -1;
     int dir2 = -1;
     int dir3 = -1;
@@ -362,7 +382,7 @@ public class DrawConnectionUtils {
    * @param length
    * @param archLen
    */
-  public static void drawRound(GeneralPath path, int[] xPoints, int[] yPoints, int length, int archLen) {
+  public static void drawRound(GeneralPath path, @SwingCoordinate int[] xPoints, @SwingCoordinate int[] yPoints, int length, int archLen) {
     int lastx = xPoints[0];
     int lasty = yPoints[0];
     int p = 1;
@@ -537,7 +557,7 @@ public class DrawConnectionUtils {
    * @param y1   the y start coordinate
    * @param y2   the y end coordiante
    */
-  public static void addVerticalSmallSpring(Path2D.Float path, int x0, int y1, int y2) {
+  public static void addVerticalSmallSpring(Path2D.Float path, @SwingCoordinate int x0, @SwingCoordinate int y1, @SwingCoordinate int y2) {
     int springHeight = 2;
     int springWidth = 2;
     int distance = Math.abs(y2 - y1);
@@ -572,7 +592,10 @@ public class DrawConnectionUtils {
    * @param x1   the x start coordinate
    * @param x2   the x end coordiante
    */
-  public static void addHorizontalSmallSpring(Path2D.Float path, int y0, int x1, int x2) {
+  public static void addHorizontalSmallSpring(Path2D.Float path,
+                                              @SwingCoordinate int y0,
+                                              @SwingCoordinate int x1,
+                                              @SwingCoordinate int x2) {
     int springHeight = 2;
     int springWidth = 2;
     int distance = Math.abs(x2 - x1);
@@ -608,7 +631,7 @@ public class DrawConnectionUtils {
    * @param x2   end x point
    * @param y    y point
    */
-  public static void drawHorizontalZigZagLine(Path2D.Float path, int x1, int x2, int y) {
+  public static void drawHorizontalZigZagLine(Path2D.Float path, @SwingCoordinate int x1, @SwingCoordinate int x2, @SwingCoordinate int y) {
     drawHorizontalZigZagLine(path, x1, x2, y, CENTER_ZIGZAG, CENTER_ZIGZAG);
   }
 
@@ -623,7 +646,12 @@ public class DrawConnectionUtils {
    * @param dY1  positive height of the zig-zag
    * @param dY2  negative height of the zig-zag
    */
-  static void drawHorizontalZigZagLine(Path2D.Float path, int x1, int x2, int y, int dY1, int dY2) {
+  static void drawHorizontalZigZagLine(Path2D.Float path,
+                                       @SwingCoordinate int x1,
+                                       @SwingCoordinate int x2,
+                                       @SwingCoordinate int y,
+                                       @SwingCoordinate int dY1,
+                                       @SwingCoordinate int dY2) {
     if (x2 < x1) {
       int temp = x1;
       x1 = x2;
@@ -656,7 +684,7 @@ public class DrawConnectionUtils {
    * @param y1   start y point
    * @param y2   end y point
    */
-  public static void drawVerticalZigZagLine(Path2D.Float path, int x, int y1, int y2) {
+  public static void drawVerticalZigZagLine(Path2D.Float path, @SwingCoordinate int x, @SwingCoordinate int y1, @SwingCoordinate int y2) {
     drawVerticalZigZagLine(path, x, y1, y2, CENTER_ZIGZAG, CENTER_ZIGZAG);
   }
 
@@ -671,7 +699,12 @@ public class DrawConnectionUtils {
    * @param dX1  positive width of the zig-zag
    * @param dX2  negative width of the zig-zag
    */
-  static void drawVerticalZigZagLine(Path2D.Float path, int x, int y1, int y2, int dX1, int dX2) {
+  static void drawVerticalZigZagLine(Path2D.Float path,
+                                     @SwingCoordinate int x,
+                                     @SwingCoordinate int y1,
+                                     @SwingCoordinate int y2,
+                                     @SwingCoordinate int dX1,
+                                     @SwingCoordinate int dX2) {
     if (y2 < y1) {
       int temp = y1;
       y1 = y2;
@@ -717,7 +750,12 @@ public class DrawConnectionUtils {
    * @param x2
    * @param y
    */
-  public static void drawHorizontalMargin(Graphics2D g, String string, boolean isReference, int x1, int x2, int y) {
+  public static void drawHorizontalMargin(Graphics2D g,
+                                          String string,
+                                          boolean isReference,
+                                          @SwingCoordinate int x1,
+                                          @SwingCoordinate int x2,
+                                          int y) {
     Font previousFont = g.getFont();
     FontMetrics metrics = g.getFontMetrics();
     Rectangle2D rect = metrics.getStringBounds(string, g);
@@ -739,7 +777,12 @@ public class DrawConnectionUtils {
    * @param y1
    * @param y2
    */
-  public static void drawVerticalMargin(Graphics2D g, String string, boolean isReference, int x, int y1, int y2) {
+  public static void drawVerticalMargin(Graphics2D g,
+                                        String string,
+                                        boolean isReference,
+                                        @SwingCoordinate int x,
+                                        @SwingCoordinate int y1,
+                                        @SwingCoordinate int y2) {
     Font previousFont = g.getFont();
     FontMetrics metrics = g.getFontMetrics();
     Rectangle2D rect = metrics.getStringBounds(string, g);

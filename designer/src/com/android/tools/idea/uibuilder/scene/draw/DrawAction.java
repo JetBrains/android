@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.scene.draw;
 
 import com.android.tools.idea.uibuilder.graphics.NlIcon;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.sherpa.drawing.ColorSet;
 
@@ -38,7 +40,12 @@ public class DrawAction extends DrawRegion {
     return POST_CLIP_LEVEL;
   }
 
-  public DrawAction(int x, int y, int width, int height, NlIcon icon, boolean isOver) {
+  public DrawAction(@SwingCoordinate int x,
+                    @SwingCoordinate int y,
+                    @SwingCoordinate int width,
+                    @SwingCoordinate int height,
+                    NlIcon icon,
+                    boolean isOver) {
     super(x, y, width, height);
     myIcon = icon;
     myIsOver = isOver;
@@ -91,10 +98,10 @@ public class DrawAction extends DrawRegion {
 
   public static void add(DisplayList list,
                          SceneContext transform,
-                         float left,
-                         float top,
-                         float right,
-                         float bottom,
+                         @AndroidDpCoordinate float left,
+                         @AndroidDpCoordinate float top,
+                         @AndroidDpCoordinate float right,
+                         @AndroidDpCoordinate float bottom,
                          NlIcon icon,
                          boolean isOver) {
     int l = transform.getSwingX(left);

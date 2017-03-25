@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,7 @@ public class ConstraintResizeTarget extends ResizeBaseTarget {
     super(type);
   }
 
-  private static void updateWidth(@NotNull AttributesTransaction attributes, int w) {
+  private static void updateWidth(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int w) {
     if (w < 0) {
       w = 0;
     }
@@ -34,7 +35,7 @@ public class ConstraintResizeTarget extends ResizeBaseTarget {
     attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH, position);
   }
 
-  private static void updateHeight(@NotNull AttributesTransaction attributes, int h) {
+  private static void updateHeight(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int h) {
     if (h < 0) {
       h = 0;
     }
@@ -42,18 +43,18 @@ public class ConstraintResizeTarget extends ResizeBaseTarget {
     attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT, position);
   }
 
-  private static void updatePositionX(@NotNull AttributesTransaction attributes, int x) {
+  private static void updatePositionX(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int x) {
     String positionX = String.format(SdkConstants.VALUE_N_DP, x);
     attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, positionX);
   }
 
-  private static void updatePositionY(@NotNull AttributesTransaction attributes, int y) {
+  private static void updatePositionY(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int y) {
     String positionY = String.format(SdkConstants.VALUE_N_DP, y);
     attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, positionY);
   }
 
   @Override
-  protected void updateAttributes(@NotNull AttributesTransaction attributes, int x, int y) {
+  protected void updateAttributes(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     //noinspection EnumSwitchStatementWhichMissesCases
     switch (myType) {
       case RIGHT_TOP: {
