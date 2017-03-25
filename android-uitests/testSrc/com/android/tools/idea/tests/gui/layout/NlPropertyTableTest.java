@@ -145,8 +145,7 @@ public class NlPropertyTableTest {
     textEditor.pressAndReleaseKeys(VK_DOWN);
 
     assertThat(textView.getTextAttribute()).isEqualTo("ab");
-    assertThat(table.cell(new TableCellInSelectedRow.TableCellBuilder().column(0)).value()).isEqualTo(
-      "NlPropertyItem{name=accessibilityLiveRegion, namespace=@android:}");
+    assertThat(table.cell(new TableCellInSelectedRow.TableCellBuilder().column(0)).value()).isEqualTo("@android:accessibilityLiveRegion");
   }
 
   @RunIn(TestGroup.UNRELIABLE)  // Until this test has proven itself reliable
@@ -200,7 +199,7 @@ public class NlPropertyTableTest {
     Wait.seconds(10).expecting("The table to render").until(() -> table.target().getVisibleRect().getHeight() > 0);
 
     // Test original window size
-    int movement = (int) (table.target().getVisibleRect().getHeight() / table.target().getRowHeight());
+    int movement = (int)(table.target().getVisibleRect().getHeight() / table.target().getRowHeight());
     testNavigationInTable(table, movement);
 
     // Test if it still work with Filter
@@ -208,7 +207,7 @@ public class NlPropertyTableTest {
     // In our test case, the PropertyTable must contained by a NlPropertiesPanel.
     assertThat(parentPanel).isNotNull();
     parentPanel.setFilter("an");
-    movement = (int) (table.target().getVisibleRect().getHeight() / table.target().getRowHeight());
+    movement = (int)(table.target().getVisibleRect().getHeight() / table.target().getRowHeight());
     testNavigationInTable(table, movement);
     parentPanel.setFilter("");
 
@@ -236,7 +235,7 @@ public class NlPropertyTableTest {
 
     // Test page up
     ApplicationManager.getApplication()
-      .invokeAndWait(() -> table.target().getSelectionModel().setSelectionInterval(table.rowCount() - 1, table.rowCount() - 1));;
+      .invokeAndWait(() -> table.target().getSelectionModel().setSelectionInterval(table.rowCount() - 1, table.rowCount() - 1));
     table.pressAndReleaseKeys(VK_PAGE_UP);
     table.requireSelectedRows(Math.max(0, table.rowCount() - 1 - expectedMovement));
 

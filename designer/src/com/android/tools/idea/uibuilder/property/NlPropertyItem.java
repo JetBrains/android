@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -27,7 +28,6 @@ import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.ptable.StarState;
 import com.android.util.PropertiesMap;
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
@@ -164,11 +164,6 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
 
   public void setDefaultValue(@Nullable PropertiesMap.Property defaultValue) {
     myDefaultValue = defaultValue;
-  }
-
-  @Nullable
-  public PropertiesMap.Property getDefaultValue() {
-    return myDefaultValue;
   }
 
   @Override
@@ -381,10 +376,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-      .add("name", myName)
-      .add("namespace", namespaceToPrefix(myNamespace))
-      .toString();
+    return namespaceToPrefix(myNamespace) + myName;
   }
 
   @Override
@@ -405,12 +397,20 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   }
 
   @NotNull
-  private static String namespaceToPrefix(@Nullable String namespace) {
-    if (namespace != null && SdkConstants.NS_RESOURCES.equalsIgnoreCase(namespace)) {
-      return SdkConstants.ANDROID_PREFIX;
-    }
-    else {
+  @VisibleForTesting
+  static String namespaceToPrefix(@Nullable String namespace) {
+    if (namespace == null) {
       return "";
     }
+
+    if (namespace.equalsIgnoreCase(SdkConstants.ANDROID_URI)) {
+      return SdkConstants.ANDROID_PREFIX;
+    }
+
+    if (namespace.equalsIgnoreCase(SdkConstants.AUTO_URI)) {
+      return "@app:";
+    }
+
+    return "";
   }
 }
