@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawRegion;
@@ -36,8 +38,8 @@ public class DrawGuidelineCycle extends DrawRegion {
 
   protected Font mFont = new Font("Helvetica", Font.PLAIN, 14);
 
-  int[] xPoints = new int[3];
-  int[] yPoints = new int[3];
+  @SwingCoordinate int[] xPoints = new int[3];
+  @SwingCoordinate int[] yPoints = new int[3];
 
   @Override
   public int getLevel() {
@@ -54,7 +56,13 @@ public class DrawGuidelineCycle extends DrawRegion {
     myIsSelected = Boolean.parseBoolean(sp[c++]);
   }
 
-  public DrawGuidelineCycle(boolean isHorizontal, int x, int y, int width, int height, int mode, boolean selected) {
+  public DrawGuidelineCycle(boolean isHorizontal,
+                            @SwingCoordinate int x,
+                            @SwingCoordinate int y,
+                            @SwingCoordinate int width,
+                            @SwingCoordinate int height,
+                            int mode,
+                            boolean selected) {
     super(x, y, width, height);
     myIsHorizontal = isHorizontal;
     myMode = mode;
@@ -106,9 +114,9 @@ public class DrawGuidelineCycle extends DrawRegion {
   public static void add(DisplayList list,
                          SceneContext transform,
                          boolean isHorizontal, float left,
-                         float top,
-                         float right,
-                         float bottom,
+                         @AndroidDpCoordinate float top,
+                         @AndroidDpCoordinate float right,
+                         @AndroidDpCoordinate float bottom,
                          int mode,
                          boolean selected) {
     int l = transform.getSwingX(left);

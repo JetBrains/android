@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.graphics.NlIcon;
 import com.android.tools.idea.uibuilder.scene.target.ActionTarget;
@@ -38,7 +39,11 @@ public class ChainCycleTarget extends ActionTarget {
   }
 
   @Override
-  public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
+  public boolean layout(@NotNull SceneContext sceneTransform,
+                        @AndroidDpCoordinate int l,
+                        @AndroidDpCoordinate int t,
+                        @AndroidDpCoordinate int r,
+                        @AndroidDpCoordinate int b) {
     super.layout(sceneTransform, l, t, r, b);
     myChainChecker.checkIsInChain(myComponent);
     myIsVisible = myChainChecker.isInHorizontalChain() || myChainChecker.isInVerticalChain();
@@ -46,13 +51,15 @@ public class ChainCycleTarget extends ActionTarget {
   }
 
   @Override
-  public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
     if (closestTarget == this && myIsVisible) {
       if (myChainChecker.isInHorizontalChain()) {
-        ConstraintComponentUtilities.cycleChainStyle(myChainChecker.getHorizontalChainHead(), SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE, myComponent);
+        ConstraintComponentUtilities.cycleChainStyle(myChainChecker.getHorizontalChainHead(),
+                                                     SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE, myComponent);
       }
       else if (myChainChecker.isInVerticalChain()) {
-        ConstraintComponentUtilities.cycleChainStyle(myChainChecker.getVerticalChainHead(), SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE, myComponent);
+        ConstraintComponentUtilities.cycleChainStyle(myChainChecker.getVerticalChainHead(),
+                                                     SdkConstants.ATTR_LAYOUT_VERTICAL_CHAIN_STYLE, myComponent);
       }
     }
   }

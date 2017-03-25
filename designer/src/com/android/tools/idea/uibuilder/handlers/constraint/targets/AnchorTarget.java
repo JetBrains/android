@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -57,10 +58,10 @@ public class AnchorTarget extends BaseTarget {
   private final AnchorTarget.Type myType;
   private boolean myExpandArea = false;
 
-  private int myLastX = -1;
-  private int myLastY = -1;
-  private int myConnectedX = -1;
-  private int myConnectedY = -1;
+  @AndroidDpCoordinate private int myLastX = -1;
+  @AndroidDpCoordinate private int myLastY = -1;
+  @AndroidDpCoordinate private int myConnectedX = -1;
+  @AndroidDpCoordinate private int myConnectedY = -1;
 
   private HashMap<String, String> mPreviousAttributes = new HashMap<>();
 
@@ -114,7 +115,11 @@ public class AnchorTarget extends BaseTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
+  public boolean layout(@NotNull SceneContext sceneTransform,
+                        @AndroidDpCoordinate int l,
+                        @AndroidDpCoordinate int t,
+                        @AndroidDpCoordinate int r,
+                        @AndroidDpCoordinate int b) {
     float ratio = 1f / (float)sceneTransform.getScale();
     if (ratio > 2) {
       ratio = 2;
@@ -508,7 +513,7 @@ public class AnchorTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseDown(int x, int y) {
+  public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myLastX = -1;
     myLastY = -1;
     myConnectedX = -1;
@@ -564,7 +569,7 @@ public class AnchorTarget extends BaseTarget {
    * @param closestTarget
    */
   @Override
-  public void mouseDrag(int x, int y, @Nullable Target closestTarget) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
     myLastX = x;
     myLastY = y;
     if (closestTarget != null && closestTarget instanceof AnchorTarget) {
@@ -592,7 +597,7 @@ public class AnchorTarget extends BaseTarget {
    * @param closestTarget
    */
   @Override
-  public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
     myLastX = -1;
     myLastY = -1;
     if (myComponent.getParent() != null) {

@@ -22,7 +22,8 @@ import com.android.tools.idea.uibuilder.scene.target.ActionTarget;
 import icons.AndroidIcons;
 
 public class ClearConstraintsTarget extends ActionTarget implements ActionTarget.Action {
-  private static final NlIcon CLEAR_ICON = new NlIcon(AndroidIcons.SherpaIcons.DeleteConstraint, AndroidIcons.SherpaIcons.DeleteConstraintB);
+  private static final NlIcon CLEAR_ICON =
+    new NlIcon(AndroidIcons.SherpaIcons.DeleteConstraint, AndroidIcons.SherpaIcons.DeleteConstraintB);
 
   public ClearConstraintsTarget(ActionTarget previous) {
     super(previous, CLEAR_ICON,null);

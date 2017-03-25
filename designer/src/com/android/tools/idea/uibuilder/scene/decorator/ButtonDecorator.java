@@ -20,7 +20,9 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities; // TODO: remove
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -45,7 +47,14 @@ public class ButtonDecorator extends SceneDecorator {
       return COMPONENT_LEVEL;
     }
 
-    DrawButton(int x, int y, int width, int height, int baseLineOffset, float scale, int fontSize, String string) {
+    DrawButton(@SwingCoordinate int x,
+               @SwingCoordinate int y,
+               @SwingCoordinate int width,
+               @SwingCoordinate int height,
+               int baseLineOffset,
+               float scale,
+               int fontSize,
+               String string) {
       super(x, y, width, height, baseLineOffset, string, true, true,
             TEXT_ALIGNMENT_VIEW_START, TEXT_ALIGNMENT_VIEW_START, fontSize, scale);
       mHorizontalPadding = (int)(4 * scale);
@@ -114,12 +123,12 @@ public class ButtonDecorator extends SceneDecorator {
   @Override
   public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     super.addContent(list, time, sceneContext, component);
-    Rectangle rect = new Rectangle();
+    @AndroidDpCoordinate Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
-    int l = sceneContext.getSwingX(rect.x);
-    int t = sceneContext.getSwingY(rect.y);
-    int w = sceneContext.getSwingDimension(rect.width);
-    int h = sceneContext.getSwingDimension(rect.height);
+    @SwingCoordinate int l = sceneContext.getSwingX(rect.x);
+    @SwingCoordinate int t = sceneContext.getSwingY(rect.y);
+    @SwingCoordinate int w = sceneContext.getSwingDimension(rect.width);
+    @SwingCoordinate int h = sceneContext.getSwingDimension(rect.height);
     String text = ConstraintUtilities.getResolvedText(component.getNlComponent());
     int fontSize = DrawTextRegion.getFont(component.getNlComponent(), "14sp");
     float scale = (float)sceneContext.getScale();

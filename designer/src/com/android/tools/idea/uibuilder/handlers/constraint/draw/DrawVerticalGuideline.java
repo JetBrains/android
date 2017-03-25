@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawRegion;
@@ -27,14 +29,14 @@ import java.awt.*;
  */
 public class DrawVerticalGuideline extends DrawRegion {
 
-  private final static int GAP = 40;
+  @SwingCoordinate private final static int GAP = 40;
 
-  private int myBegin;
-  private int myEnd;
+  @SwingCoordinate private int myBegin;
+  @SwingCoordinate private int myEnd;
   private float myPercent;
-  private int myOriginX;
-  private int myOriginY;
-  private int myOriginWidth;
+  @SwingCoordinate private int myOriginX;
+  @SwingCoordinate private int myOriginY;
+  @SwingCoordinate private int myOriginWidth;
   private boolean myIsSelected;
 
   protected Font mFont = new Font("Helvetica", Font.PLAIN, 14);
@@ -46,12 +48,12 @@ public class DrawVerticalGuideline extends DrawRegion {
     myPercent = 0.5f;
   }
 
-  public DrawVerticalGuideline(int x,
-                               int y,
-                               int height,
-                               int originX,
-                               int originY,
-                               int originWidth,
+  public DrawVerticalGuideline(@SwingCoordinate int x,
+                               @SwingCoordinate int y,
+                               @SwingCoordinate int height,
+                               @SwingCoordinate int originX,
+                               @SwingCoordinate int originY,
+                               @SwingCoordinate int originWidth,
                                int begin,
                                int end,
                                float percent,
@@ -94,13 +96,17 @@ public class DrawVerticalGuideline extends DrawRegion {
     }
   }
 
-  public static void add(DisplayList list, SceneContext transform, float left, float top, float bottom) {
+  public static void add(DisplayList list,
+                         SceneContext transform,
+                         @AndroidDpCoordinate float left,
+                         @AndroidDpCoordinate float top,
+                         @AndroidDpCoordinate float bottom) {
     add(list, transform, left, top, bottom, -1, -1, -1, -1, -1, 1.0f, false);
   }
 
   public static void add(DisplayList list, SceneContext transform,
-                         float left, float top, float bottom,
-                         float originX, float originY, float originWidth,
+                         @AndroidDpCoordinate float left, @AndroidDpCoordinate float top, @AndroidDpCoordinate float bottom,
+                         @AndroidDpCoordinate float originX, @AndroidDpCoordinate float originY, @AndroidDpCoordinate float originWidth,
                          int begin, int end, float percent, boolean selected) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);

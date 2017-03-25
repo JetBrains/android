@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -60,16 +62,19 @@ public class SceneContext {
 
   }
 
-  public int getSwingX(float x) {
+  @SwingCoordinate
+  public int getSwingX(@AndroidDpCoordinate float x) {
     return (int) x;
   }
 
-  public int getSwingY(float y) {
+  @SwingCoordinate
+  public int getSwingY(@AndroidDpCoordinate float y) {
     return (int) y;
   }
 
-  public int getSwingDimension(@AndroidDpCoordinate float x) {
-    return (int) x;
+  @SwingCoordinate
+  public int getSwingDimension(@AndroidDpCoordinate float dim) {
+    return (int) dim;
   }
 
   public ColorSet getColorSet() {
@@ -161,17 +166,20 @@ public class SceneContext {
     public double getScale() { return mySceneView.getScale(); }
 
     @Override
-    public int getSwingX(float x) {
+    @SwingCoordinate
+    public int getSwingX(@AndroidDpCoordinate float x) {
       return Coordinates.getSwingX(mySceneView, Coordinates.dpToPx(mySceneView, x));
     }
 
     @Override
-    public int getSwingY(float y) {
+    @SwingCoordinate
+    public int getSwingY(@AndroidDpCoordinate float y) {
       return Coordinates.getSwingY(mySceneView, Coordinates.dpToPx(mySceneView, y));
     }
 
     @Override
-    public float pxToDp(int px) {
+    @AndroidDpCoordinate
+    public float pxToDp(@AndroidCoordinate int px) {
       return Coordinates.pxToDp(mySceneView, px);
     }
 
@@ -181,8 +189,9 @@ public class SceneContext {
     }
 
     @Override
-    public int getSwingDimension(@AndroidDpCoordinate float v) {
-      return Coordinates.getSwingDimension(mySceneView, Coordinates.dpToPx(mySceneView, v));
+    @SwingCoordinate
+    public int getSwingDimension(@AndroidDpCoordinate float dim) {
+      return Coordinates.getSwingDimension(mySceneView, Coordinates.dpToPx(mySceneView, dim));
     }
   }
 }

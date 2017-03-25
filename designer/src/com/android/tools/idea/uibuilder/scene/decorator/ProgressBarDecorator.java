@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.decorator;
 
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -35,7 +36,7 @@ public class ProgressBarDecorator extends SceneDecorator {
       return COMPONENT_LEVEL;
     }
 
-    DrawProgressBar(int x, int y, int width, int height) {
+    DrawProgressBar(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height) {
       super(x, y, width, height);
     }
     public DrawProgressBar(String s) {

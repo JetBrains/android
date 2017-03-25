@@ -226,10 +226,6 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     Rectangle source_rect = new Rectangle();
     child.fillDrawRect(time, source_rect);
     convert(sceneContext, source_rect);
-    int x = source_rect.x;
-    int y = source_rect.y;
-    int w = source_rect.width;
-    int h = source_rect.height;
 
     List<NlComponent> selection = component.getScene().getSelection();
     boolean selected = selection.contains(child.getNlComponent());

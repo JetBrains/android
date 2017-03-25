@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawBarrier;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
@@ -85,7 +86,11 @@ public class BarrierTarget extends DragTarget {
   }
 
   @Override
-  public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
+  public boolean layout(@NotNull SceneContext sceneTransform,
+                        @AndroidDpCoordinate int l,
+                        @AndroidDpCoordinate int t,
+                        @AndroidDpCoordinate int r,
+                        @AndroidDpCoordinate int b) {
     int dist = 6;
     SceneComponent parent = myComponent.getParent();
     if (parent != null) {
@@ -107,11 +112,11 @@ public class BarrierTarget extends DragTarget {
   }
 
   @Override
-  public void mouseDown(int x, int y) {
+  public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myComponent.setSelected(true);
   }
   @Override
-  protected void updateAttributes(AttributesTransaction attributes, int x, int y) {
+  protected void updateAttributes(AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
 
 
   }
