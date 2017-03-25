@@ -86,6 +86,7 @@
     <orderEntry type="library" name="baksmali" level="project" />
     <orderEntry type="library" name="dexlib2-2.2b4" level="project" />
     <orderEntry type="module" module-name="binary-resources" />
+    <orderEntry type="module" module-name="analyzer" />
     <orderEntry type="module" module-name="pixelprobe" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="analytics-protos" />
