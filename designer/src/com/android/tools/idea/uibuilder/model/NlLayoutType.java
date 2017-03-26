@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.model;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceConstants;
-import com.android.tools.idea.uibuilder.editor.DefaultToolbarActionGroups;
+import com.android.tools.idea.uibuilder.editor.DefaultNlToolbarActionGroups;
 import com.android.tools.idea.uibuilder.editor.ToolbarActionGroups;
 import com.android.tools.idea.uibuilder.editor.VectorToolbarActionGroups;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
@@ -70,7 +70,7 @@ public enum NlLayoutType {
     @NotNull
     @Override
     public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
-      return new VectorToolbarActionGroups((NlDesignSurface)surface);
+      return new VectorToolbarActionGroups(surface);
     }
   },
 
@@ -158,6 +158,6 @@ public enum NlLayoutType {
 
   @NotNull
   public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
-    return new DefaultToolbarActionGroups((NlDesignSurface)surface);
+    return new DefaultNlToolbarActionGroups((NlDesignSurface)surface);
   }
 }
