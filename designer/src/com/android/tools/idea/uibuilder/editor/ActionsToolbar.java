@@ -77,7 +77,7 @@ final class ActionsToolbar implements DesignSurfaceListener, Disposable, ModelLi
 
   @NotNull
   private JComponent createToolbarComponent() {
-    ToolbarActionGroups groups = mySurface.getLayoutType().getToolbarActionGroups((NlDesignSurface)mySurface);
+    ToolbarActionGroups groups = mySurface.getLayoutType().getToolbarActionGroups(mySurface);
 
     myNorthToolbar = createActionToolbar("NlConfigToolbar", groups.getNorthGroup());
 

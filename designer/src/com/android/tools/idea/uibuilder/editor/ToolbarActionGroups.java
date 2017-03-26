@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import org.jetbrains.annotations.NotNull;
 
 public class ToolbarActionGroups {
-  final NlDesignSurface mySurface;
+  final DesignSurface mySurface;
 
-  public ToolbarActionGroups(@NotNull NlDesignSurface surface) {
+  public ToolbarActionGroups(@NotNull DesignSurface surface) {
     mySurface = surface;
   }
 
