@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.compatibility;
 
 import com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader;
-import com.intellij.util.JdomKt;
+import com.intellij.openapi.util.JDOMUtil;
 import org.intellij.lang.annotations.Language;
-import org.jdom.Document;
+import org.jdom.Element;
 import org.junit.Test;
 
 import java.util.List;
@@ -53,8 +53,8 @@ public class CompatibilityChecksMetadataTest {
                           "    </component>\n" +
                           "  </check>\n" +
                           "</compatibility>";
-    Document document = JdomKt.loadElement(metadataText).getDocument();
-    CompatibilityChecksMetadata metadata = CompatibilityChecksMetadata.load(document.getRootElement());
+    Element root = JDOMUtil.load(metadataText);
+    CompatibilityChecksMetadata metadata = CompatibilityChecksMetadata.load(root);
 
     List<CompatibilityCheck> compatibilityChecks = metadata.getCompatibilityChecks();
     assertThat(compatibilityChecks).hasSize(1);

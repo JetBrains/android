@@ -17,11 +17,8 @@ package com.android.tools.idea.gradle.structure.model.pom;
 
 import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
-import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.JdomKt;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +45,7 @@ public class MavenPoms {
     }
     List<PsArtifactDependencySpec> dependencies = Lists.newArrayList();
     try {
-      Document document = JdomKt.loadElement(Files.toString(pomFilePath, Charsets.UTF_8)).getDocument();
+      Document document = loadDocument(pomFilePath);
       Element rootElement = document.getRootElement();
       if (rootElement != null) {
         Element dependenciesElement = null;
