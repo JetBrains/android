@@ -24,19 +24,20 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.ide.wizard.Step;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.EdtTestUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
 import javax.swing.*;
 
 import static com.google.common.truth.Truth.assertThat;
 
 public class IdeaWizardAdapterTest {
+  private Disposable myTestRootDisposable;
 
   private static TestInvokeStrategy ourInvokeStrategy;
 
@@ -70,7 +71,7 @@ public class IdeaWizardAdapterTest {
     }
   }
 
-  private static class DummyHost extends AbstractWizard<Step> {
+  private class DummyHost extends AbstractWizard<Step> {
     boolean updateButtonsCalled;
     boolean lastStepValue;
     boolean canGoNextValue;
@@ -79,6 +80,7 @@ public class IdeaWizardAdapterTest {
     public DummyHost(String title, @Nullable Project project) {
       super(title, project);
       Reset();
+      Disposer.register(myTestRootDisposable, getDisposable());
     }
 
     void Reset() {
@@ -112,6 +114,16 @@ public class IdeaWizardAdapterTest {
   @AfterClass
   public static void restoreBatchInvoker() {
     BatchInvoker.clearOverrideStrategy();
+  }
+
+  @Before
+  public void setUp() {
+    myTestRootDisposable = Disposer.newDisposable("IdeaWizardAdapterTest");
+  }
+
+  @After
+  public void disposeDialogs() {
+    EdtTestUtil.runInEdtAndWait(() -> Disposer.dispose(myTestRootDisposable));
   }
 
   @Test

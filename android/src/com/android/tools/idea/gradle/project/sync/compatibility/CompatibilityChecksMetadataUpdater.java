@@ -24,6 +24,7 @@ import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Ref;
+import com.intellij.util.JdomKt;
 import com.intellij.util.io.HttpRequests;
 import org.jdom.Document;
 import org.jdom.JDOMException;
@@ -32,7 +33,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
-import static com.intellij.openapi.util.JDOMUtil.loadDocument;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -82,7 +82,7 @@ public class CompatibilityChecksMetadataUpdater extends ApplicationComponent.Ada
       try {
         Document metadata = HttpRequests.request(url).connect(request -> {
           try {
-            return loadDocument(request.getReader());
+            return JdomKt.loadElement(request.getReader()).getDocument();
           }
           catch (JDOMException e) {
             LOG.info("Failed to parse XML metadata", e);

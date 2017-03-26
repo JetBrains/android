@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import com.intellij.openapi.externalSystem.service.execution.NotSupportedException;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.impl.ModuleEx;
 import com.intellij.openapi.module.impl.ModuleManagerImpl;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.messages.MessageBus;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -45,7 +44,7 @@ public class ModuleManagerStub extends ModuleManagerImpl {
 
   @NotNull
   @Override
-  protected ModuleEx createAndLoadModule(@NotNull String filePath) throws IOException {
+  protected ModuleEx createAndLoadModule(@NotNull String filePath, @NotNull VirtualFile file) throws IOException {
     throw new UnsupportedOperationException();
   }
 

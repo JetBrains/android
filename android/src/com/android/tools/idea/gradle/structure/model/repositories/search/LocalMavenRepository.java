@@ -16,8 +16,11 @@
 package com.android.tools.idea.gradle.structure.model.repositories.search;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.JdomKt;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +36,6 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.google.common.base.Strings.nullToEmpty;
-import static com.intellij.openapi.util.JDOMUtil.loadDocument;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
@@ -105,7 +107,7 @@ public class LocalMavenRepository extends ArtifactRepository {
     String artifactName = request.getArtifactName();
 
     try {
-      Document document = loadDocument(mavenMetadataFile);
+      Document document = JdomKt.loadElement(Files.toString(mavenMetadataFile, Charsets.UTF_8)).getDocument();
       Element rootElement = document.getRootElement();
       if (rootElement != null) {
         Element groupIdElement = rootElement.getChild("groupId");

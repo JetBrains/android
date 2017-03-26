@@ -29,6 +29,7 @@ import com.intellij.codeInsight.template.*;
 import com.intellij.codeInsight.template.impl.*;
 import com.intellij.codeInsight.template.macro.VariableOfTypeMacro;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.undo.UndoUtil;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.RangeMarker;
@@ -51,7 +52,6 @@ import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
-import org.jetbrains.android.actions.NewResourceCreationHandler;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.ResourceValue;
@@ -223,18 +223,29 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       }
     }
 
-    if (file instanceof PsiJavaFile) {
-      createJavaResourceReference(facet.getModule(), editor, file, element, aPackage, resName, type);
-    }
-    else {
-      final XmlAttribute attribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class);
-      if (attribute != null) {
-        attribute.setValue(ResourceValue.referenceTo('@', null, type.getName(), resName).toString());
-      }
-    }
+    doAddStringResource(editor, file, resName, element, type, facet, aPackage);
 
     PsiDocumentManager.getInstance(project).commitAllDocuments();
     UndoUtil.markPsiFileForUndo(file);
+  }
+
+  private static void doAddStringResource(Editor editor,
+                                          PsiFile file,
+                                          @Nullable String resName,
+                                          PsiElement element,
+                                          ResourceType type,
+                                          AndroidFacet facet, String aPackage) {
+    WriteAction.run(() -> {
+      if (file instanceof PsiJavaFile) {
+        createJavaResourceReference(facet.getModule(), editor, file, element, aPackage, resName, type);
+      }
+      else {
+        final XmlAttribute attribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class);
+        if (attribute != null) {
+          attribute.setValue(ResourceValue.referenceTo('@', null, type.getName(), resName).toString());
+        }
+      }
+    });
   }
 
   private static final String STRING_RES_ANNOTATION = SUPPORT_ANNOTATIONS_PREFIX + "StringRes";

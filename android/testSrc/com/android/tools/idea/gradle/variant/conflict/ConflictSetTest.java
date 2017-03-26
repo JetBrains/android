@@ -63,6 +63,14 @@ public class ConflictSetTest extends IdeaTestCase {
     });
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    myLibModule = null;
+    myApp = null;
+    myLib = null;
+    super.tearDown();
+  }
+
   private void setUpApp() {
     File rootDirPath = getBaseDirPath(myProject);
 

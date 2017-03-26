@@ -5,7 +5,6 @@ import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.jps.android.AndroidJpsProjectUtil;
 import org.jetbrains.jps.android.AndroidJpsUtil;
 import org.jetbrains.jps.android.AndroidPlatform;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
@@ -193,7 +192,7 @@ public class AndroidPreDexBuildTarget extends BuildTarget<AndroidPreDexBuildTarg
     @NotNull
     @Override
     public List<AndroidPreDexBuildTarget> computeAllTargets(@NotNull JpsModel model) {
-      if (!AndroidJpsProjectUtil.isAndroidProjectWithoutGradleFacet(model.getProject())) {
+      if (!AndroidJpsUtil.isAndroidProjectWithoutGradleFacet(model.getProject())) {
         return Collections.emptyList();
       }
       return Collections.singletonList(new AndroidPreDexBuildTarget(model.getProject()));
@@ -208,7 +207,7 @@ public class AndroidPreDexBuildTarget extends BuildTarget<AndroidPreDexBuildTarg
         @Nullable
         @Override
         public AndroidPreDexBuildTarget createTarget(@NotNull String targetId) {
-          return ID.equals(targetId) && AndroidJpsProjectUtil.isAndroidProjectWithoutGradleFacet(project) ? new AndroidPreDexBuildTarget(project) : null;
+          return ID.equals(targetId) && AndroidJpsUtil.isAndroidProjectWithoutGradleFacet(project) ? new AndroidPreDexBuildTarget(project) : null;
         }
       };
     }
