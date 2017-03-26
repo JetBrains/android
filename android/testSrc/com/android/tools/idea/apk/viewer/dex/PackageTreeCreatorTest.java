@@ -496,7 +496,7 @@ public class PackageTreeCreatorTest {
   }
 
   @NotNull
-  private static DexBackedDexFile getTestDexFile(String filename) throws IOException {
+  public static DexBackedDexFile getTestDexFile(@NotNull String filename) throws IOException {
     Path dexPath = Paths.get(AndroidTestBase.getTestDataPath(), "apk/" + filename);
     return getDexFile(Files.readAllBytes(dexPath));
   }

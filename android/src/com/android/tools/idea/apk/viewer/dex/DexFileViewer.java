@@ -161,7 +161,18 @@ public class DexFileViewer implements ApkFileEditorComponent {
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, actionGroup, true);
     myTopPanel.add(toolbar.getComponent(), BorderLayout.WEST);
 
+    ActionGroup group = createPopupActionGroup(myTree, myDexFile);
+    PopupHandler
+      .installPopupHandler(myTree, group, ActionPlaces.UNKNOWN, ActionManager.getInstance());
+
     initDex();
+  }
+
+  @NotNull
+  private static ActionGroup createPopupActionGroup(@NotNull Tree tree, @NotNull Path dexFile) {
+    final DefaultActionGroup group = new DefaultActionGroup();
+    group.add(new ShowDisassemblyAction(tree, dexFile));
+    return group;
   }
 
   public void selectProguardMapping() {
