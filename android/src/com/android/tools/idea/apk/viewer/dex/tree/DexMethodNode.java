@@ -35,6 +35,12 @@ public class DexMethodNode extends DexElementNode {
 
   @Nullable
   @Override
+  public DexClassNode getParent() {
+    return (DexClassNode) super.getParent();
+  }
+
+  @Nullable
+  @Override
   public MethodReference getReference() {
     return (MethodReference) super.getReference();
   }
