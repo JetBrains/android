@@ -99,7 +99,7 @@ public class AndroidTestAndJUnitConfigurationConflictsTest extends AndroidGradle
     AndroidTestPackage testPackage = new AndroidTestPackage(configuration, ExecutionEnvironmentBuilder.create(
       DefaultRunExecutor.getRunExecutorInstance(), configuration).build());
     Set<PsiClass> myClasses = new HashSet<>();
-    ConfigurationUtil.findAllTestClasses(testPackage.getClassFilter(configuration.getPersistentData()), myClasses);
+    ConfigurationUtil.findAllTestClasses(testPackage.getClassFilter(configuration.getPersistentData()), module, myClasses);
 
     assertSize(1, myClasses);
     TestArtifactSearchScopes scopes = TestArtifactSearchScopes.get(module);
