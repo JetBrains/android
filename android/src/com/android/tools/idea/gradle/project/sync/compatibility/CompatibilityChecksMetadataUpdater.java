@@ -23,8 +23,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.ActionCallback;
+import com.intellij.openapi.util.JDOMUtil;
 import com.intellij.openapi.util.Ref;
-import com.intellij.util.JdomKt;
 import com.intellij.util.io.HttpRequests;
 import org.jdom.Document;
 import org.jdom.JDOMException;
@@ -82,7 +82,7 @@ public class CompatibilityChecksMetadataUpdater extends ApplicationComponent.Ada
       try {
         Document metadata = HttpRequests.request(url).connect(request -> {
           try {
-            return JdomKt.loadElement(request.getReader()).getDocument();
+            return JDOMUtil.loadDocument(request.getInputStream());
           }
           catch (JDOMException e) {
             LOG.info("Failed to parse XML metadata", e);
