@@ -119,6 +119,7 @@ public class TemplateTest extends AndroidGradleTestCase {
    * Whether we should run these tests or not.
    */
   private static final boolean DISABLED =
+    true || // This test is *possibly* the culprit for the hanging builds; temporarily trying this
     Boolean.parseBoolean(System.getProperty("DISABLE_STUDIO_TEMPLATE_TESTS")) ||
     Boolean.TRUE.toString().equals(System.getenv("DISABLE_STUDIO_TEMPLATE_TESTS"));
 
