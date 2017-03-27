@@ -39,7 +39,7 @@ public class AndroidSourceSetTest {
       @Nullable @Override public File getSrcDirectory(@Nullable String packageName) { return javaDirectory; }
       @Nullable @Override public File getTestDirectory(@Nullable String packageName) { return null; }
       @Nullable @Override public File getResDirectory() { return resDirectory; }
-      @Nullable @Override public File getAidlDirectory() { return aidlDirectory; }
+      @Nullable @Override public File getAidlDirectory(@Nullable String packageName) { return aidlDirectory; }
       @Nullable @Override public File getManifestDirectory() { return null; }
     };
 
@@ -66,7 +66,7 @@ public class AndroidSourceSetTest {
       @Nullable @Override public File getSrcDirectory(@Nullable String packageName) { return null; }
       @Nullable @Override public File getTestDirectory(@Nullable String packageName) { return null; }
       @Nullable @Override public File getResDirectory() { return null; }
-      @Nullable @Override public File getAidlDirectory() { return null; }
+      @Nullable @Override public File getAidlDirectory(@Nullable String packageName) { return null; }
       @Nullable @Override public File getManifestDirectory() { return null; }
     };
 
