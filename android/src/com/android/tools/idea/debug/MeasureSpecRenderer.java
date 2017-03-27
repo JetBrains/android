@@ -16,20 +16,14 @@
 package com.android.tools.idea.debug;
 
 
-import com.intellij.debugger.DebuggerContext;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.debugger.engine.evaluation.EvaluationContext;
-import com.intellij.debugger.ui.tree.DebuggerTreeNode;
-import com.intellij.debugger.ui.tree.NodeDescriptor;
 import com.intellij.debugger.ui.tree.ValueDescriptor;
-import com.intellij.debugger.ui.tree.render.ChildrenBuilder;
 import com.intellij.debugger.ui.tree.render.DescriptorLabelListener;
 import com.intellij.debugger.ui.tree.render.NodeRendererImpl;
-import com.intellij.psi.PsiElement;
 import com.sun.jdi.IntegerType;
 import com.sun.jdi.IntegerValue;
 import com.sun.jdi.Type;
-import com.sun.jdi.Value;
 
 public class MeasureSpecRenderer extends NodeRendererImpl{
 
@@ -47,21 +41,6 @@ public class MeasureSpecRenderer extends NodeRendererImpl{
     throws EvaluateException {
     IntegerValue value = (IntegerValue)descriptor.getValue();
     return MeasureSpec.toString(value.value());
-  }
-
-  @Override
-  public void buildChildren(Value value, ChildrenBuilder builder, EvaluationContext evaluationContext) {
-
-  }
-
-  @Override
-  public PsiElement getChildValueExpression(DebuggerTreeNode node, DebuggerContext context) throws EvaluateException {
-    return null;
-  }
-
-  @Override
-  public boolean isExpandable(Value value, EvaluationContext evaluationContext, NodeDescriptor parentDescriptor) {
-    return false;
   }
 
   @Override

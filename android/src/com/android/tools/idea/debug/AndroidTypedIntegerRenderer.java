@@ -15,17 +15,12 @@
  */
 package com.android.tools.idea.debug;
 
-import com.intellij.debugger.DebuggerContext;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.debugger.engine.evaluation.EvaluationContext;
-import com.intellij.debugger.ui.tree.DebuggerTreeNode;
-import com.intellij.debugger.ui.tree.NodeDescriptor;
 import com.intellij.debugger.ui.tree.ValueDescriptor;
 import com.intellij.debugger.ui.tree.render.BatchEvaluator;
-import com.intellij.debugger.ui.tree.render.ChildrenBuilder;
 import com.intellij.debugger.ui.tree.render.DescriptorLabelListener;
 import com.intellij.debugger.ui.tree.render.NodeRendererImpl;
-import com.intellij.psi.PsiExpression;
 import com.sun.jdi.IntegerType;
 import com.sun.jdi.Type;
 import com.sun.jdi.Value;
@@ -72,19 +67,4 @@ public class AndroidTypedIntegerRenderer extends NodeRendererImpl {
 
     return value.toString();
   }
-
-  @Override
-  public boolean isExpandable(Value value, EvaluationContext evaluationContext, NodeDescriptor parentDescriptor) {
-    return false;
-  }
-
-  @Override
-  public void buildChildren(Value value, ChildrenBuilder builder, EvaluationContext evaluationContext) {
-  }
-
-  @Override
-  public PsiExpression getChildValueExpression(DebuggerTreeNode node, DebuggerContext context) throws EvaluateException {
-    return null;
-  }
-
 }
