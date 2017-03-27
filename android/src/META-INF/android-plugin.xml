@@ -1065,6 +1065,9 @@
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.SupportArrayMapRenderer" />
     <debugger.nodeRenderer implementation="com.android.tools.idea.debug.MeasureSpecRenderer" />
 
+    <xdebugger.configurableProvider implementation="com.android.tools.idea.ddms.adb.AdbConfigurableProvider" />
+    <applicationService serviceImplementation="com.android.tools.idea.ddms.adb.AdbOptionsService" />
+
     <virtualFileSystem key="android-dummy" implementationClass="com.android.tools.idea.editors.AndroidFakeFileSystem"/>
     <generatedSourcesFilter implementation="com.android.tools.idea.gradle.roots.AndroidGeneratedSourcesFilter"/>
     <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
