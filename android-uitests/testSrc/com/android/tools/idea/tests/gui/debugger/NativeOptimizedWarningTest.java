@@ -37,7 +37,6 @@ import javax.swing.*;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-@RunIn(TestGroup.QA)
 @RunWith(GuiTestRunner.class)
 public class NativeOptimizedWarningTest extends TestWithEmulator {
 
@@ -55,6 +54,7 @@ public class NativeOptimizedWarningTest extends TestWithEmulator {
     }
   };
 
+  @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void test() throws IOException, ClassNotFoundException, InterruptedException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("NativeOptimizedWarning");
