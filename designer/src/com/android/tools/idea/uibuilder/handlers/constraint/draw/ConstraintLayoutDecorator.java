@@ -196,6 +196,9 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       List<NlComponent> selection = scene.getSelection();
       for (SceneComponent child : children) {
         child.buildDisplayList(time, list, sceneContext);
+        if (sceneContext.showOnlySelection()) {
+          continue;
+        }
         if (showAllConstraints || selection.contains(child.getNlComponent())) {
           buildListConnections(list, time, sceneContext, component, child); // draw child connections
         }
