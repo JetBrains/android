@@ -49,7 +49,7 @@ import static java.lang.System.getenv;
 /**
  * Test that newly created Instant App projects do not have errors in them
  */
-@RunIn(TestGroup.PROJECT_WIZARD)
+@RunIn(TestGroup.UNRELIABLE)
 @RunWith(GuiTestRunner.class)
 public class NewInstantAppTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
