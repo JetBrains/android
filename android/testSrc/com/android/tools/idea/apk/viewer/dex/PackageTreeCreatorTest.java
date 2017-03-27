@@ -43,7 +43,7 @@ public class PackageTreeCreatorTest {
     DexPackageNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
 
     StringBuffer sb = new StringBuffer(100);
-    dumpTree(sb, packageTreeNode, 0);
+    dumpTree(sb, packageTreeNode, 0, null, null);
     assertEquals("X-root: 3,6\n" +
                  "  Test: 3,3\n" +
                  "    void <init>(): 1,1\n" +
@@ -67,7 +67,7 @@ public class PackageTreeCreatorTest {
     DexPackageNode packageTreeNode = new PackageTreeCreator(null, false).constructPackageTree(dexFile);
 
     StringBuffer sb = new StringBuffer(100);
-    dumpTree(sb, packageTreeNode, 0);
+    dumpTree(sb, packageTreeNode, 0, null, null);
     assertEquals("X-root: 27,33\n" +
                  "  com: 27,27\n" +
                  "    example: 27,27\n" +
@@ -172,7 +172,7 @@ public class PackageTreeCreatorTest {
     DexPackageNode packageTreeNode = new PackageTreeCreator(proguardMappings, true).constructPackageTree(dexFile);
 
     StringBuffer sb = new StringBuffer(100);
-    dumpTree(sb, packageTreeNode, 0);
+    dumpTree(sb, packageTreeNode, 0, seedsMap, map);
     assertEquals("X-root: 9,14\n" +
                  "  O-com: 9,9\n" +
                  "    O-example: 9,9\n" +
@@ -236,7 +236,7 @@ public class PackageTreeCreatorTest {
 
     StringBuffer sb = new StringBuffer(100);
     packageTreeNode.sort(Comparator.comparing(DexElementNode::getDefinedMethodsCount));
-    dumpTree(sb, packageTreeNode, 0);
+    dumpTree(sb, packageTreeNode, 0,null, null);
     assertEquals("X-root: 27,33\n" +
                  "  ~java: 0,4\n" +
                  "    ~lang: 0,2\n" +
@@ -323,7 +323,7 @@ public class PackageTreeCreatorTest {
 
     sb.setLength(0);
     packageTreeNode.sort(Comparator.comparing(DexElementNode::getName));
-    dumpTree(sb, packageTreeNode, 0);
+    dumpTree(sb, packageTreeNode, 0, null, null);
     assertEquals("X-root: 27,33\n" +
                  "  ~android: 0,2\n" +
                  "    ~app: 0,2\n" +
@@ -409,7 +409,7 @@ public class PackageTreeCreatorTest {
                  "        ~java.io.PrintStream out: 0,0\n", sb.toString());
     sb.setLength(0);
     packageTreeNode.sort(Comparator.comparing(DexElementNode::getMethodRefCount));
-    dumpTree(sb, packageTreeNode, 0);
+    dumpTree(sb, packageTreeNode, 0, null, null);
     assertEquals("X-root: 27,33\n" +
                  "  ~android: 0,2\n" +
                  "    ~app: 0,2\n" +
@@ -501,11 +501,11 @@ public class PackageTreeCreatorTest {
     return getDexFile(Files.readAllBytes(dexPath));
   }
 
-  private static void dumpTree(StringBuffer sb, @NotNull DexElementNode node, int depth) {
+  private static void dumpTree(StringBuffer sb, @NotNull DexElementNode node, int depth, ProguardSeedsMap seeds, ProguardMap map) {
     sb.append(StringUtil.repeatSymbol(' ', depth * 2));
     if (node.isRemoved()){
       sb.append("X-");
-    } else if (node.isSeed()){
+    } else if (node.isSeed(seeds, map)){
       sb.append("O-");
     } else if (!node.hasClassDefinition()){
       sb.append("~");
@@ -518,7 +518,7 @@ public class PackageTreeCreatorTest {
     sb.append('\n');
 
     for (int i = 0; i < node.getChildCount(); i++) {
-      dumpTree(sb, (DexElementNode)node.getChildAt(i), depth + 1);
+      dumpTree(sb, (DexElementNode)node.getChildAt(i), depth + 1, seeds, map);
     }
   }
 }
