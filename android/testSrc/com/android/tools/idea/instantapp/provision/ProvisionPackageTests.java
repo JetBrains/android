@@ -41,7 +41,7 @@ class ProvisionPackageTests {
   }
 
   @NotNull
-  static IDevice getMockDevice(@NotNull String arch, int apiLevel, @NotNull String osBuildType, @NotNull String pkgName, @NotNull String pkgVersion)
+  static IDevice getMockDevice(@NotNull String arch, int apiLevel, @NotNull String osBuildType, @NotNull String pkgName, long pkgVersion)
     throws Throwable {
     return new DeviceGenerator()
       .setArchitectures(arch)
@@ -71,11 +71,11 @@ class ProvisionPackageTests {
     }
 
     @NotNull
-    DeviceGenerator setVersionOfPackage(@NotNull String pkgName, @NotNull String version) throws Throwable {
+    DeviceGenerator setVersionOfPackage(@NotNull String pkgName, long version) throws Throwable {
       String shellCommand = "dumpsys package " + pkgName;
       doAnswer(invocation -> {
         IShellOutputReceiver receiver = invocation.getArgument(1);
-        byte[] output = ("versionName=" + version + "\n").getBytes(Charset.defaultCharset());
+        byte[] output = ("versionCode=" + version + " \n").getBytes(Charset.defaultCharset());
         receiver.addOutput(output, 0, output.length);
         receiver.flush();
         return null;

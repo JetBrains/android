@@ -41,6 +41,6 @@ public class GmsCorePackageTest extends ProvisionPackageTest<GmsCorePackage> {
   }
 
   public void testGetApkVersion() throws Throwable {
-    assertEquals("10.5.34 (440-147160465)", getApkVersion(myProvisionPackage.getApk("arm64-v8a", "debug")));
+    assertEquals(10534440, getApkVersion(myProvisionPackage.getApk("arm64-v8a", "debug")));
   }
 }
