@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.apk.viewer.dex.tree;
 
+import com.android.tools.idea.apk.viewer.dex.PackageTreeCreator;
+import com.android.tools.proguard.ProguardMap;
+import com.android.tools.proguard.ProguardSeedsMap;
+import com.intellij.debugger.impl.DebuggerUtilsEx;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +28,7 @@ import javax.swing.*;
 
 public class DexMethodNode extends DexElementNode {
 
-  public DexMethodNode(@NotNull String displayName, MethodReference reference) {
+  public DexMethodNode(@NotNull String displayName, @Nullable MethodReference reference) {
     super(displayName, false, reference);
   }
 
@@ -35,13 +39,24 @@ public class DexMethodNode extends DexElementNode {
 
   @Nullable
   @Override
-  public DexClassNode getParent() {
-    return (DexClassNode) super.getParent();
-  }
-
-  @Nullable
-  @Override
   public MethodReference getReference() {
     return (MethodReference) super.getReference();
+  }
+
+  @Override
+  public boolean isSeed(@Nullable ProguardSeedsMap seedsMap, @Nullable ProguardMap map) {
+    if (seedsMap != null){
+      MethodReference reference = getReference();
+      if (reference != null) {
+        String className = PackageTreeCreator.decodeClassName(reference.getDefiningClass(), map);
+        String methodName = PackageTreeCreator.decodeMethodName(reference, map);
+        String params = PackageTreeCreator.decodeMethodParams(reference, map);
+        if ("<init>".equals(methodName)) {
+          methodName = DebuggerUtilsEx.getSimpleName(className);
+        }
+        return seedsMap.hasMethod(className, methodName + params);
+      }
+    }
+    return false;
   }
 }

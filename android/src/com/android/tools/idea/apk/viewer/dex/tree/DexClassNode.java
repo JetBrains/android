@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.apk.viewer.dex.tree;
 
+import com.android.tools.idea.apk.viewer.dex.PackageTreeCreator;
+import com.android.tools.proguard.ProguardMap;
+import com.android.tools.proguard.ProguardSeedsMap;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,13 +27,26 @@ import javax.swing.*;
 
 public class DexClassNode extends DexElementNode {
 
-  public DexClassNode(@NotNull String displayName, TypeReference reference) {
+  public DexClassNode(@NotNull String displayName, @Nullable TypeReference reference) {
     super(displayName, true, reference);
   }
 
   @Override
   public Icon getIcon(){
     return PlatformIcons.CLASS_ICON;
+  }
+
+  @Override
+  public boolean isSeed(@Nullable ProguardSeedsMap seedsMap, @Nullable ProguardMap map) {
+    if (seedsMap != null){
+      TypeReference reference = getReference();
+      if (reference != null) {
+        if (seedsMap.hasClass(PackageTreeCreator.decodeClassName(reference.getType(), map))) {
+          return true;
+        }
+      }
+    }
+    return super.isSeed(seedsMap, map);
   }
 
   @Nullable
