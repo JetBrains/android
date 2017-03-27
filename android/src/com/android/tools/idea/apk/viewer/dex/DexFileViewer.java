@@ -70,9 +70,11 @@ public class DexFileViewer implements ApkFileEditorComponent {
   @NotNull private final Project myProject;
   @NotNull private final VirtualFile myApkFolder;
   @NotNull private final DexViewFilters myDexFilters;
+  private final DexTreeNodeRenderer myDexTreeRenderer;
 
   @Nullable private ProguardMappings myProguardMappings;
   private boolean myDeobfuscateNames;
+  private ListenableFuture<DexReferences> myDexReferences;
 
 
   public DexFileViewer(@NotNull Project project, @NotNull Path dexFile, @NotNull VirtualFile apkFolder) {
@@ -104,13 +106,15 @@ public class DexFileViewer implements ApkFileEditorComponent {
       return node.getName();
     }, true);
 
+    myDexTreeRenderer = new DexTreeNodeRenderer();
+
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Class")
                    .setPreferredWidth(500)
                    .setHeaderAlignment(SwingConstants.LEFT)
                    .setComparator(Comparator.comparing(DexElementNode::getName).reversed())
-                   .setRenderer(new DexTreeNodeRenderer()))
+                   .setRenderer(myDexTreeRenderer))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Defined Methods")
                    .setPreferredWidth(100)
@@ -169,9 +173,10 @@ public class DexFileViewer implements ApkFileEditorComponent {
   }
 
   @NotNull
-  private static ActionGroup createPopupActionGroup(@NotNull Tree tree, @NotNull Path dexFile) {
+  private ActionGroup createPopupActionGroup(@NotNull Tree tree, @NotNull Path dexFile) {
     final DefaultActionGroup group = new DefaultActionGroup();
     group.add(new ShowDisassemblyAction(tree, dexFile));
+    group.add(new ShowReferencesAction(tree, this));
     return group;
   }
 
@@ -243,6 +248,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
                                "Load Proguard Mappings...");
     }
 
+    myDexTreeRenderer.setMappings(myProguardMappings);
     initDex();
   }
 
@@ -251,9 +257,9 @@ public class DexFileViewer implements ApkFileEditorComponent {
     ListenableFuture<DexBackedDexFile> dexFileFuture = pooledThreadExecutor.submit(() -> DexFiles.getDexFile(myDexFile));
 
     ListenableFuture<DexPackageNode> treeNodeFuture = Futures.transform(dexFileFuture, new Function<DexBackedDexFile, DexPackageNode>() {
-      @javax.annotation.Nullable
+      @Nullable
       @Override
-      public DexPackageNode apply(@javax.annotation.Nullable DexBackedDexFile input) {
+      public DexPackageNode apply(@Nullable DexBackedDexFile input) {
         assert input != null;
         PackageTreeCreator treeCreator = new PackageTreeCreator(myProguardMappings, myDeobfuscateNames);
         return treeCreator.constructPackageTree(input);
@@ -275,36 +281,40 @@ public class DexFileViewer implements ApkFileEditorComponent {
     }, EdtExecutor.INSTANCE);
 
     ListenableFuture<DexFileStats> dexStatsFuture = Futures.transform(dexFileFuture, new Function<DexBackedDexFile, DexFileStats>() {
-      @javax.annotation.Nullable
+      @Nullable
       @Override
-      public DexFileStats apply(@javax.annotation.Nullable DexBackedDexFile input) {
+      public DexFileStats apply(@Nullable DexBackedDexFile input) {
         assert input != null;
         return DexFileStats.create(input);
       }
     }, pooledThreadExecutor);
 
-    SimpleColoredComponent titleComponent = new SimpleColoredComponent();
-    Futures.addCallback(dexStatsFuture, new FutureCallback<DexFileStats>() {
-      @Override
-      public void onSuccess(DexFileStats result) {
-        titleComponent.setIcon(AllIcons.General.Information);
-        titleComponent.append("This dex file defines ");
-        titleComponent.append(Integer.toString(result.classCount), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-        titleComponent.append(" classes with ");
-        titleComponent.append(Integer.toString(result.definedMethodCount), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-        titleComponent.append(" methods, and references ");
-        titleComponent.append(Integer.toString(result.referencedMethodCount), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-        titleComponent.append(" methods.");
-        myTopPanel.add(titleComponent, BorderLayout.EAST);
-      }
+    //this will never change for a given dex file, regardless of proguard mappings
+    //so it doesn't make sense to recompute every time
+    if (((BorderLayout)myTopPanel.getLayout()).getLayoutComponent(BorderLayout.EAST) == null) {
+      SimpleColoredComponent titleComponent = new SimpleColoredComponent();
+      Futures.addCallback(dexStatsFuture, new FutureCallback<DexFileStats>() {
+        @Override
+        public void onSuccess(DexFileStats result) {
+          titleComponent.setIcon(AllIcons.General.Information);
+          titleComponent.append("This dex file defines ");
+          titleComponent.append(Integer.toString(result.classCount), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+          titleComponent.append(" classes with ");
+          titleComponent.append(Integer.toString(result.definedMethodCount), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+          titleComponent.append(" methods, and references ");
+          titleComponent.append(Integer.toString(result.referencedMethodCount), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
+          titleComponent.append(" methods.");
+          myTopPanel.add(titleComponent, BorderLayout.EAST);
+        }
 
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        titleComponent.setIcon(AllIcons.General.Error);
-        titleComponent.append("Error parsing dex file: " + t.getMessage());
-        myTopPanel.add(titleComponent, BorderLayout.EAST);
-      }
-    }, EdtExecutor.INSTANCE);
+        @Override
+        public void onFailure(@NotNull Throwable t) {
+          titleComponent.setIcon(AllIcons.General.Error);
+          titleComponent.append("Error parsing dex file: " + t.getMessage());
+          myTopPanel.add(titleComponent, BorderLayout.EAST);
+        }
+      }, EdtExecutor.INSTANCE);
+    }
   }
 
   @NotNull
@@ -318,7 +328,39 @@ public class DexFileViewer implements ApkFileEditorComponent {
     Disposer.dispose(myDisposable);
   }
 
+  @Nullable
+  public ProguardMappings getProguardMappings() {
+    return myProguardMappings;
+  }
+
+  public boolean isDeobfuscateNames() {
+    return myDeobfuscateNames;
+  }
+
+  @Nullable ListenableFuture<DexReferences> getDexReferences(){
+    if (myDexReferences == null) {
+      ListeningExecutorService pooledThreadExecutor = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE);
+      ListenableFuture<DexBackedDexFile> dexFileFuture = pooledThreadExecutor.submit(() -> DexFiles.getDexFile(myDexFile));
+      myDexReferences = Futures.transform(dexFileFuture, new Function<DexBackedDexFile, DexReferences>() {
+        @Override
+        public DexReferences apply(@Nullable DexBackedDexFile input) {
+          assert input != null;
+          return new DexReferences(input);
+        }
+      }, pooledThreadExecutor);
+    }
+
+    return myDexReferences;
+  }
+
   private static class DexTreeNodeRenderer extends ColoredTreeCellRenderer {
+
+    @Nullable private ProguardMappings myMappings;
+
+    public void setMappings(@Nullable ProguardMappings mappings) {
+      myMappings = mappings;
+    }
+
     @Override
     public void customizeCellRenderer(@NotNull JTree tree,
                                       Object value,
@@ -333,7 +375,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
 
       DexElementNode node = (DexElementNode)value;
 
-      if (node.isSeed()) {
+      if (myMappings != null && node.isSeed(myMappings.seeds, myMappings.map)) {
         append(node.getName(), new SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, null));
       }
       else if (node.isRemoved()) {

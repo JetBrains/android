@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.apk.viewer.dex.tree;
 
+import com.android.tools.proguard.ProguardMap;
+import com.android.tools.proguard.ProguardSeedsMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jf.dexlib2.iface.reference.Reference;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
 import java.util.Collections;
 import java.util.Comparator;
 
@@ -31,10 +34,8 @@ public abstract class DexElementNode extends DefaultMutableTreeNode {
 
   protected int myMethodReferencesCount = 0;
   protected int myDefinedMethodsCount = 0;
-  protected boolean seed;
   protected boolean removed = true;
   protected boolean hasClassDefinition;
-
 
   DexElementNode(@NotNull String name, boolean allowsChildren) {
     this(name, allowsChildren, null);
@@ -93,10 +94,6 @@ public abstract class DexElementNode extends DefaultMutableTreeNode {
     return myDefinedMethodsCount;
   }
 
-  public boolean isSeed() {
-    return seed;
-  }
-
   public boolean isRemoved() {
     return removed;
   }
@@ -105,9 +102,22 @@ public abstract class DexElementNode extends DefaultMutableTreeNode {
     return hasClassDefinition;
   }
 
-  @Nullable
+  //TODO: does this belong here?
+  //Or should it be ProguardSeedsMap::isSeed(Reference reference, ProguardMap map)
+  public boolean isSeed(@Nullable ProguardSeedsMap seedsMap, @Nullable ProguardMap map) {
+    if (seedsMap != null) {
+      for (int i = 0, n = getChildCount(); i < n; i++) {
+        DexElementNode node = getChildAt(i);
+        if (node.isSeed(seedsMap, map)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   @Override
   public DexElementNode getParent() {
-    return (DexElementNode)super.getParent();
+    return (DexElementNode) super.getParent();
   }
 }
