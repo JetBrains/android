@@ -51,14 +51,12 @@ public class PackageTreeCreator {
   public static final String PARAMS_DELIMITER = ",";
 
   @Nullable private final ProguardMap myProguardMap;
-  @Nullable private final ProguardSeedsMap mySeedsMap;
   @Nullable private final ProguardUsagesMap myUsagesMap;
   private final boolean myDeobfuscateNames;
 
   public PackageTreeCreator(@Nullable ProguardMappings proguardMappings, boolean deobfuscateNames) {
     myProguardMap = proguardMappings == null ? null : proguardMappings.map;
     myUsagesMap = proguardMappings == null ? null : proguardMappings.usage;
-    mySeedsMap = proguardMappings == null ? null : proguardMappings.seeds;
     myDeobfuscateNames = deobfuscateNames;
   }
 
@@ -108,37 +106,35 @@ public class PackageTreeCreator {
 
     for (String className : methodRefsByClassName.keySet()) {
       TypeReference typeRef = typeRefsByName.get(className);
-      String cleanClassName = decodeClassName(className);
+      String cleanClassName = decodeClassName(className, myDeobfuscateNames ? myProguardMap : null);
       boolean isClassDefined = classes.contains(typeRef.getType());
-      boolean isSeed = mySeedsMap != null && mySeedsMap.hasClass(className);
-      root.getOrInsertClass(typeRef, "", cleanClassName, isClassDefined, isSeed, false, false);
+      root.getOrInsertClass(typeRef, "", cleanClassName, isClassDefined, false, false);
       addMethods(root, cleanClassName, typeRef, methodRefsByClassName.get(className), isClassDefined);
     }
 
     for (String className : fieldRefsByClassName.keySet()) {
       TypeReference typeRef = typeRefsByName.get(className);
-      String cleanClassName = decodeClassName(className);
+      String cleanClassName = decodeClassName(className, myDeobfuscateNames ? myProguardMap : null);
       boolean isClassDefined = classes.contains(typeRef.getType());
-      boolean isSeed = mySeedsMap != null && mySeedsMap.hasClass(className);
-      root.getOrInsertClass(typeRef, "", cleanClassName, isClassDefined, isSeed,false, false);
+      root.getOrInsertClass(typeRef, "", cleanClassName, isClassDefined, false, false);
       addFields(root, cleanClassName, typeRef, fieldRefsByClassName.get(className), isClassDefined);
     }
 
     //add classes, methods and fields removed by Proguard
     if (myUsagesMap != null) {
       for (String className : myUsagesMap.getClasses()) {
-        root.getOrInsertClass(null, "", className, false, false, true, false);
+        root.getOrInsertClass(null, "", className, false, true, false);
       }
       Multimap<String, String> removedMethodsByClass = myUsagesMap.getMethodsByClass();
       for (String className : removedMethodsByClass.keySet()) {
         for (String removedMethodName : removedMethodsByClass.get(className)) {
-          root.insertMethod(null, null, className, removedMethodName, false, false, true);
+          root.insertMethod(null, null, className, removedMethodName, false, true);
         }
       }
       Multimap<String, String> removedFieldsByClass = myUsagesMap.getFieldsByClass();
       for (String className : removedFieldsByClass.keySet()) {
         for (String removedFieldName : removedFieldsByClass.get(className)) {
-          root.insertField(null, null, className, removedFieldName, false, false, true);
+          root.insertField(null, null, className, removedFieldName, false, true);
         }
       }
     }
@@ -153,15 +149,11 @@ public class PackageTreeCreator {
                           Iterable<? extends MethodReference> methodRefs,
                           boolean defined) {
     for (MethodReference methodRef : methodRefs) {
-      String methodName = decodeMethodName(methodRef);
-      String returnType = decodeClassName(methodRef.getReturnType());
-      String params = decodeMethodParams(methodRef);
+      String methodName = decodeMethodName(methodRef, myDeobfuscateNames ? myProguardMap : null);
+      String returnType = decodeClassName(methodRef.getReturnType(), myDeobfuscateNames ? myProguardMap : null);
+      String params = decodeMethodParams(methodRef, myDeobfuscateNames ? myProguardMap : null);
       String methodSig = returnType + " " + methodName + params;
-      boolean seed = mySeedsMap != null
-                     && (mySeedsMap.hasMethod(className, methodName + params)
-                         || (methodName.equals("<init>")
-                             && mySeedsMap.hasMethod(className, DebuggerUtilsEx.getSimpleName(className) + params)));
-      root.insertMethod(typeRef, methodRef, className, methodSig, defined, seed, false);
+      root.insertMethod(typeRef, methodRef, className, methodSig, defined, false);
     }
   }
 
@@ -171,36 +163,39 @@ public class PackageTreeCreator {
                          Iterable<? extends FieldReference> fieldRefs,
                          boolean defined) {
     for (FieldReference fieldRef : fieldRefs) {
-      String fieldName = fieldRef.getName();
-      String fieldType = decodeClassName(fieldRef.getType());
-
-      if (myProguardMap != null && myDeobfuscateNames) {
-        fieldName = myProguardMap.getFieldName(className, fieldName);
-      }
-
+      String fieldName = decodeFieldName(fieldRef, myDeobfuscateNames ? myProguardMap : null);
+      String fieldType = decodeClassName(fieldRef.getType(), myDeobfuscateNames ? myProguardMap : null);
       String fieldSig = fieldType + " " + fieldName;
-      boolean seed = mySeedsMap != null && mySeedsMap.hasField(className, fieldSig);
-      root.insertField(typeRef, fieldRef, className, fieldSig, defined, seed, false);
+      root.insertField(typeRef, fieldRef, className, fieldSig, defined, false);
     }
   }
 
-  public String decodeMethodParams(@NotNull MethodReference methodRef) {
+  public static String decodeFieldName(@NotNull FieldReference fieldRef, @Nullable ProguardMap proguardMap) {
+    String fieldName = fieldRef.getName();
+    if (proguardMap != null) {
+      String className = decodeClassName(fieldRef.getDefiningClass(), proguardMap);
+      fieldName = proguardMap.getFieldName(className, fieldName);
+    }
+    return fieldName;
+  }
+
+  public static String decodeMethodParams(@NotNull MethodReference methodRef, @Nullable ProguardMap proguardMap) {
     Stream<String> params = methodRef.getParameterTypes().stream()
       .map(String::valueOf)
       .map(DebuggerUtilsEx::signatureToName);
-    if (myProguardMap != null && myDeobfuscateNames) {
-      params = params.map(myProguardMap::getClassName);
+    if (proguardMap != null) {
+      params = params.map(proguardMap::getClassName);
     }
     return "(" + params.collect(Collectors.joining(PARAMS_DELIMITER)) + ")";
   }
 
 
-  private String decodeMethodName(@NotNull MethodReference methodRef) {
-    if (myProguardMap != null && myDeobfuscateNames) {
-      String className = myProguardMap.getClassName(DebuggerUtilsEx.signatureToName(methodRef.getDefiningClass()));
+  public static String decodeMethodName(@NotNull MethodReference methodRef, @Nullable ProguardMap proguardMap) {
+    if (proguardMap != null) {
+      String className = proguardMap.getClassName(DebuggerUtilsEx.signatureToName(methodRef.getDefiningClass()));
       String methodName = methodRef.getName();
       String sigWithoutName = ReferenceUtil.getMethodDescriptor(methodRef, true).substring(methodName.length());
-      ProguardMap.Frame frame = myProguardMap.getFrame(className, methodName, sigWithoutName, null, -1);
+      ProguardMap.Frame frame = proguardMap.getFrame(className, methodName, sigWithoutName, null, -1);
       return frame.methodName;
     }
     else {
@@ -208,10 +203,10 @@ public class PackageTreeCreator {
     }
   }
 
-  private String decodeClassName(@NotNull String className) {
+  public static String decodeClassName(@NotNull String className, @Nullable ProguardMap proguardMap) {
     className = DebuggerUtilsEx.signatureToName(className);
-    if (myProguardMap != null && myDeobfuscateNames) {
-      className = myProguardMap.getClassName(className);
+    if (proguardMap != null) {
+      className = proguardMap.getClassName(className);
     }
     return className;
   }

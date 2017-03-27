@@ -17,6 +17,7 @@ package com.android.tools.idea.apk.viewer.dex.tree;
 
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.reference.TypeReference;
@@ -34,9 +35,13 @@ public class DexPackageNode extends DexElementNode {
     return PlatformIcons.PACKAGE_ICON;
   }
 
-  public void insertMethod(TypeReference typeRef, MethodReference methodRef, String qcn, @NotNull String methodSig, boolean hasClassDefinition,
-                           boolean isSeed, boolean isRemoved) {
-    DexClassNode classNode = getOrInsertClass(typeRef, "", qcn, hasClassDefinition, isSeed, false, !isRemoved);
+  public void insertMethod(TypeReference typeRef,
+                           MethodReference methodRef,
+                           String qcn,
+                           @NotNull String methodSig,
+                           boolean hasClassDefinition,
+                           boolean isRemoved) {
+    DexClassNode classNode = getOrInsertClass(typeRef, "", qcn, hasClassDefinition, false, !isRemoved);
     DexMethodNode methodNode = classNode.getChildByType(methodSig, DexMethodNode.class);
     if (methodNode == null){
       methodNode = new DexMethodNode(methodSig, methodRef);
@@ -48,27 +53,29 @@ public class DexPackageNode extends DexElementNode {
         methodNode.myDefinedMethodsCount++;
       }
     }
-    methodNode.seed = isSeed;
     methodNode.removed = isRemoved;
     methodNode.hasClassDefinition = hasClassDefinition;
   }
 
   public void insertField(TypeReference typeRef, FieldReference fieldRef, String qcn, @NotNull String fieldSig, boolean hasClassDefinition,
-                          boolean isSeed, boolean isRemoved) {
+                          boolean isRemoved) {
 
-    DexClassNode classNode = getOrInsertClass(typeRef, "", qcn, hasClassDefinition, isSeed, false, false);
+    DexClassNode classNode = getOrInsertClass(typeRef, "", qcn, hasClassDefinition, false, false);
     DexFieldNode fieldNode = classNode.getChildByType(fieldSig, DexFieldNode.class);
     if (fieldNode == null){
       fieldNode = new DexFieldNode(fieldSig, fieldRef);
       classNode.add(fieldNode);
     }
-    fieldNode.seed = isSeed;
     fieldNode.removed = isRemoved;
     fieldNode.hasClassDefinition = fieldNode.hasClassDefinition || hasClassDefinition;
   }
 
-  public DexClassNode getOrInsertClass(TypeReference typeRef, @NotNull String parentPackage, @NotNull String qcn, boolean hasClassDefinition,
-                                       boolean isSeed, boolean isRemoved, boolean addMethodReference) {
+  public DexClassNode getOrInsertClass(@Nullable TypeReference typeRef,
+                                       @NotNull String parentPackage,
+                                       @NotNull String qcn,
+                                       boolean hasClassDefinition,
+                                       boolean isRemoved,
+                                       boolean addMethodReference) {
     if (addMethodReference){
       myMethodReferencesCount++;
       if (hasClassDefinition) {
@@ -83,7 +90,6 @@ public class DexPackageNode extends DexElementNode {
         add(classNode);
       }
       classNode.removed = classNode.removed && isRemoved;
-      classNode.seed = classNode.seed || isSeed;
       classNode.hasClassDefinition = classNode.hasClassDefinition || hasClassDefinition;
       if (addMethodReference){
         classNode.myMethodReferencesCount++;
@@ -101,15 +107,13 @@ public class DexPackageNode extends DexElementNode {
         packageNode = new DexPackageNode(segment);
         add(packageNode);
       }
-      packageNode.seed = packageNode.seed || isSeed;
       packageNode.removed = packageNode.removed && isRemoved;
       packageNode.hasClassDefinition = packageNode.hasClassDefinition || hasClassDefinition;
-      return packageNode.getOrInsertClass(typeRef, combine(parentPackage, segment), nextSegment, hasClassDefinition, isSeed, isRemoved, addMethodReference);
+      return packageNode.getOrInsertClass(typeRef, combine(parentPackage, segment), nextSegment, hasClassDefinition, isRemoved, addMethodReference);
     }
   }
 
   private static String combine(@NotNull String parentPackage, @NotNull String childName) {
     return parentPackage.isEmpty() ? childName : parentPackage + "." + childName;
   }
-
 }

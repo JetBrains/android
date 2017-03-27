@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.apk.viewer.dex.tree;
 
+import com.android.tools.idea.apk.viewer.dex.PackageTreeCreator;
+import com.android.tools.proguard.ProguardMap;
+import com.android.tools.proguard.ProguardSeedsMap;
 import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +27,7 @@ import javax.swing.*;
 
 public class DexFieldNode extends DexElementNode {
 
-  public DexFieldNode(@NotNull String displayName, FieldReference reference) {
+  public DexFieldNode(@NotNull String displayName, @Nullable FieldReference reference) {
     super(displayName, false, reference);
   }
 
@@ -37,5 +40,18 @@ public class DexFieldNode extends DexElementNode {
   @Override
   public FieldReference getReference() {
     return (FieldReference) super.getReference();
+  }
+
+  @Override
+  public boolean isSeed(@Nullable ProguardSeedsMap seedsMap, @Nullable ProguardMap map) {
+    if (seedsMap != null) {
+      FieldReference reference = getReference();
+      if (reference != null) {
+        String fieldName = PackageTreeCreator.decodeFieldName(reference, map);
+        String className = PackageTreeCreator.decodeClassName(reference.getDefiningClass(), map);
+        return seedsMap.hasField(className, fieldName);
+      }
+    }
+    return false;
   }
 }
