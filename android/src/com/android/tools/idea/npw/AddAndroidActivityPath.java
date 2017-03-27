@@ -223,7 +223,6 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     if (aidlDir != null) {
       String aidlPath = FileUtil.getRelativePath(moduleDirPath, aidlDir);
       paths.put(ATTR_AIDL_DIR, aidlPath);
-      paths.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
     }
     if (testDir == null) {
       @SuppressWarnings("deprecation") VirtualFile rootDir = androidModel.getRootDir();
@@ -245,6 +244,10 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
     paths.put(ATTR_TEST_OUT, FileUtil.toSystemIndependentName(testOut.getAbsolutePath()));
     paths.put(ATTR_APPLICATION_PACKAGE, MergedManifest.get(module).getPackage());
     paths.put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(srcOut.getAbsolutePath()));
+    if (aidlDir != null) {
+      File aidlOut = new File(aidlDir, relativePackageDir);
+      paths.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlOut.getPath()));
+    }
     return paths;
   }
 
