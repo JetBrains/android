@@ -1,0 +1,11 @@
+AnotherClass -> a:
+    void <init>() -> <init>
+Test2 -> Test2:
+    int aField -> aField
+    AnotherClass aClassField -> aClassField
+    void <init>() -> <init>
+    java.lang.Integer get() -> get
+    java.util.List getList() -> getList
+TestSubclass -> TestSubclass:
+    void <init>() -> <init>
+    java.util.List getAnotherList() -> getAnotherList

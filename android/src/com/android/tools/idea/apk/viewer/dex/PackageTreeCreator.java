@@ -37,6 +37,7 @@ import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.reference.TypeReference;
 import org.jf.dexlib2.immutable.reference.ImmutableFieldReference;
 import org.jf.dexlib2.immutable.reference.ImmutableMethodReference;
+import org.jf.dexlib2.immutable.reference.ImmutableReference;
 import org.jf.dexlib2.immutable.reference.ImmutableTypeReference;
 import org.jf.dexlib2.util.ReferenceUtil;
 
@@ -44,6 +45,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -101,21 +103,33 @@ public class PackageTreeCreator {
     Multimap<String, FieldReference> fieldRefsByClassName = getAllFieldReferencesByClassName(dexFile);
     Map<String, TypeReference> typeRefsByName = getAllTypeReferencesByClassName(dexFile);
 
-    //get only defined class names
-    Collection<String> classes = dexFile.getClasses().stream().map(DexBackedClassDef::getType).collect(Collectors.toList());
+    Collection<String> definedClasses = new ArrayList<>();
+    Collection<MethodReference> definedMethods = new ArrayList<>();
+
+    for (DexBackedClassDef def : dexFile.getClasses()) {
+      definedClasses.add(def.getType());
+      for (DexBackedMethod method : def.getMethods()) {
+        definedMethods.add(ImmutableMethodReference.of(method));
+      }
+    }
 
     for (String className : methodRefsByClassName.keySet()) {
       TypeReference typeRef = typeRefsByName.get(className);
       String cleanClassName = decodeClassName(className, myDeobfuscateNames ? myProguardMap : null);
-      boolean isClassDefined = classes.contains(typeRef.getType());
-      root.getOrInsertClass(typeRef, "", cleanClassName, isClassDefined, false, false);
-      addMethods(root, cleanClassName, typeRef, methodRefsByClassName.get(className), isClassDefined);
+      root.getOrInsertClass(typeRef, "", cleanClassName, definedClasses.contains(typeRef.getType()), false, false);
+      for (MethodReference methodRef : methodRefsByClassName.get(className)) {
+        String methodName = decodeMethodName(methodRef, myDeobfuscateNames ? myProguardMap : null);
+        String returnType = decodeClassName(methodRef.getReturnType(), myDeobfuscateNames ? myProguardMap : null);
+        String params = decodeMethodParams(methodRef, myDeobfuscateNames ? myProguardMap : null);
+        String methodSig = returnType + " " + methodName + params;
+        root.insertMethod(typeRef, methodRef, cleanClassName, methodSig, definedMethods.contains(methodRef), false);
+      }
     }
 
     for (String className : fieldRefsByClassName.keySet()) {
       TypeReference typeRef = typeRefsByName.get(className);
       String cleanClassName = decodeClassName(className, myDeobfuscateNames ? myProguardMap : null);
-      boolean isClassDefined = classes.contains(typeRef.getType());
+      boolean isClassDefined = definedClasses.contains(typeRef.getType());
       root.getOrInsertClass(typeRef, "", cleanClassName, isClassDefined, false, false);
       addFields(root, cleanClassName, typeRef, fieldRefsByClassName.get(className), isClassDefined);
     }
@@ -141,20 +155,6 @@ public class PackageTreeCreator {
 
     root.sort(Comparator.comparing(DexElementNode::getMethodRefCount).reversed());
     return root;
-  }
-
-  private void addMethods(DexPackageNode root,
-                          String className,
-                          TypeReference typeRef,
-                          Iterable<? extends MethodReference> methodRefs,
-                          boolean defined) {
-    for (MethodReference methodRef : methodRefs) {
-      String methodName = decodeMethodName(methodRef, myDeobfuscateNames ? myProguardMap : null);
-      String returnType = decodeClassName(methodRef.getReturnType(), myDeobfuscateNames ? myProguardMap : null);
-      String params = decodeMethodParams(methodRef, myDeobfuscateNames ? myProguardMap : null);
-      String methodSig = returnType + " " + methodName + params;
-      root.insertMethod(typeRef, methodRef, className, methodSig, defined, false);
-    }
   }
 
   private void addFields(DexPackageNode root,

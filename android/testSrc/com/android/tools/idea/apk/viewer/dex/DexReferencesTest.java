@@ -19,10 +19,13 @@ import com.android.tools.idea.apk.viewer.dex.tree.DexElementNode;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.immutable.reference.ImmutableMethodReference;
 import org.jf.dexlib2.immutable.reference.ImmutableTypeReference;
+import org.jf.dexlib2.util.ReferenceUtil;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import static com.android.tools.idea.apk.viewer.dex.PackageTreeCreatorTest.getTestDexFile;
 import static org.junit.Assert.assertEquals;
@@ -33,22 +36,21 @@ public class DexReferencesTest {
     DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
     DexReferences references = new DexReferences(dexFile);
     DexElementNode root = references.getReferenceTreeFor(
-      new ImmutableTypeReference("Ljava/io/PrintStream;"));
+      new ImmutableTypeReference("La;"));
     StringBuffer sb = new StringBuffer();
     dumpTree(sb, root, 0);
-    assertEquals("java.io.PrintStream: \n" +
-                 "  err: \n" +
-                 "    privateMethod: \n" +
-                 "  out: \n" +
-                 "    publicMethod: \n" +
-                 "      method: \n" +
-                 "    method: \n", sb.toString());
+    assertEquals("La;: \n" +
+                 "  LTest2;-><init>()V: \n" +
+                 "    LTestSubclass;-><init>()V: \n" +
+                 "  LTest2;->aClassField:La;: \n" +
+                 "    LTest2;-><init>()V: \n" +
+                 "      LTestSubclass;-><init>()V: \n", sb.toString());
   }
 
 
   private static void dumpTree(StringBuffer sb, @NotNull DexElementNode node, int depth) {
     sb.append(StringUtil.repeatSymbol(' ', depth * 2));
-    sb.append(node.getName());
+    sb.append(ReferenceUtil.getReferenceString(node.getReference()));
     sb.append(": ");
     sb.append('\n');
 
