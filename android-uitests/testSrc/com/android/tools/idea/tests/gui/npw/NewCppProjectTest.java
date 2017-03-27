@@ -116,7 +116,7 @@ public class NewCppProjectTest extends TestWithEmulator {
    *   3) Verify that the project builds and runs on an emulator
    *   </pre>
    */
-  @RunIn(TestGroup.QA_UNRELIABLE)
+  @RunIn(TestGroup.QA)
   @Test
   public void testAddRemoveCppDependency() throws Exception {
     createCppProject(false, false);
