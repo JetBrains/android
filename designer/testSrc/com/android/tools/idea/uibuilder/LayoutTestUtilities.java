@@ -25,7 +25,7 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Maps;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -252,7 +252,7 @@ public class LayoutTestUtilities {
   }
 
   private static String describe(@NotNull NlComponent root, boolean includeIdentity) {
-    Objects.ToStringHelper helper = Objects.toStringHelper(root).omitNullValues()
+    MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(root).omitNullValues()
       .add("tag", describe(root.getTag()))
       .add("bounds", "[" + root.x + "," + root.y + ":" + root.w + "x" + root.h);
     if (includeIdentity) {

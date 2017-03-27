@@ -25,8 +25,8 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.google.common.base.Objects;
-import com.google.common.base.Objects.ToStringHelper;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.lang.LanguageNamesValidation;
@@ -629,7 +629,7 @@ public class NlComponent implements NlAttributesHolder {
 
   @Override
   public String toString() {
-    ToStringHelper helper = Objects.toStringHelper(this).omitNullValues()
+    ToStringHelper helper = MoreObjects.toStringHelper(this).omitNullValues()
       .add("tag", "<" + myTag.getName() + ">")
       .add("bounds", "[" + x + "," + y + ":" + w + "x" + h);
     return helper.toString();
