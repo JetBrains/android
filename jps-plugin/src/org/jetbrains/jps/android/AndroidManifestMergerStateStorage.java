@@ -22,7 +22,7 @@ public class AndroidManifestMergerStateStorage implements StorageOwner {
     @NotNull
     @Override
     public AndroidManifestMergerStateStorage createStorage(File targetDataDir) throws IOException {
-      return new AndroidManifestMergerStateStorage(AndroidJpsProjectUtil.getStorageFile(targetDataDir, "manifest_merger"));
+      return new AndroidManifestMergerStateStorage(AndroidJpsUtil.getStorageFile(targetDataDir, "manifest_merger"));
     }
   };
 
