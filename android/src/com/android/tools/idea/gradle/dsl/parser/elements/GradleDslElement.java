@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.impl.PsiElementBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
@@ -328,9 +329,14 @@ public abstract class GradleDslElement {
     }
     else if (element instanceof GrMethodCallExpression) {
       GrMethodCallExpression call = ((GrMethodCallExpression)element);
-      GrArgumentList argumentList;
+      GrArgumentList argumentList = null;
       try {
-        argumentList = call.getArgumentList();
+        for (PsiElement curr = call.getFirstChild(); curr != null; curr = curr.getNextSibling()) {
+          if (curr instanceof GrArgumentList) {
+            argumentList = (GrArgumentList)curr;
+            break;
+          }
+        }
       } catch (AssertionError e) {
         // We will get this exception if the argument list is already deleted.
         argumentList = null;

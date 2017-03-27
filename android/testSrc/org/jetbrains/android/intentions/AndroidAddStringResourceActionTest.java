@@ -4,7 +4,6 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -222,16 +221,11 @@ public class AndroidAddStringResourceActionTest extends AndroidTestCase {
     CommandProcessor.getInstance().executeCommand(getProject(), new Runnable() {
       @Override
       public void run() {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            AndroidAddStringResourceAction.doInvoke(myFixture.getProject(), myFixture.getEditor(), javaPsiFile, "hello",
-                                                    ResourceType.STRING);
-            if (invokeAfterTemplate != null) {
-              invokeAfterTemplate.run();
-            }
-          }
-        });
+        AndroidAddStringResourceAction.doInvoke(myFixture.getProject(), myFixture.getEditor(), javaPsiFile, "hello",
+                                                ResourceType.STRING);
+        if (invokeAfterTemplate != null) {
+          invokeAfterTemplate.run();
+        }
         if (closePopup) {
           myFixture.performEditorAction(IdeActions.ACTION_EDITOR_ESCAPE);
         }

@@ -218,7 +218,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   @NotNull
   private JComponent createSouthPanel() {
     Action[] actions = createActions();
-    List<JButton> buttons = new ArrayList<JButton>();
+    List<JButton> buttons = new ArrayList<>();
 
     JPanel panel = new JPanel(new BorderLayout());
     final JPanel lrButtonsPanel = new JPanel(new GridBagLayout());
@@ -254,8 +254,8 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
 
   @NotNull
   private JPanel createButtons(@NotNull Action[] actions, @NotNull List<JButton> buttons) {
-    if (!UISettings.getShadowInstance().ALLOW_MERGE_BUTTONS) {
-      final List<Action> actionList = new ArrayList<Action>();
+    if (!UISettings.getShadowInstance().getAllowMergeButtons()) {
+      final List<Action> actionList = new ArrayList<>();
       for (Action action : actions) {
         actionList.add(action);
         if (action instanceof OptionAction) {

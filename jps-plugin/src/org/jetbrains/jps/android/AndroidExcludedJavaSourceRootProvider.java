@@ -18,7 +18,7 @@ public class AndroidExcludedJavaSourceRootProvider extends ExcludedJavaSourceRoo
 
   @Override
   public boolean isExcludedFromCompilation(@NotNull JpsModule module, @NotNull JpsModuleSourceRoot root) {
-    final JpsAndroidModuleExtension extension = AndroidJpsProjectUtil.getExtension(module);
+    final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
 
     if (extension == null) {
       return false;

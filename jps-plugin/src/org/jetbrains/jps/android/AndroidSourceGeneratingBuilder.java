@@ -106,7 +106,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
                                            ModuleChunk chunk,
                                            DirtyFilesHolder<JavaSourceRootDescriptor, ModuleBuildTarget> dirtyFilesHolder,
                                            OutputConsumer outputConsumer) throws ProjectBuildException {
-    if (!IS_ENABLED.get(context, Boolean.TRUE) || chunk.containsTests() || !AndroidJpsProjectUtil.isAndroidProjectWithoutGradleFacet(chunk)) {
+    if (!IS_ENABLED.get(context, Boolean.TRUE) || chunk.containsTests() || !AndroidJpsUtil.isAndroidProjectWithoutGradleFacet(chunk)) {
       return ExitCode.NOTHING_DONE;
     }
 
@@ -181,7 +181,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
           success = false;
         }
 
-        final File generatedResourcesStorage = AndroidJpsProjectUtil.getGeneratedResourcesStorage(module, dataManager);
+        final File generatedResourcesStorage = AndroidJpsUtil.getGeneratedResourcesStorage(module, dataManager);
         if (generatedResourcesStorage.exists() &&
             !deleteAndMarkRecursively(generatedResourcesStorage, context, BUILDER_NAME)) {
           success = false;
@@ -321,7 +321,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
       if (currentState.equalsTo(savedState)) {
         continue;
       }
-      final File outDir = AndroidJpsProjectUtil.getCopiedSourcesStorage(module, dataManager.getDataPaths());
+      final File outDir = AndroidJpsUtil.getCopiedSourcesStorage(module, dataManager.getDataPaths());
       clearDirectoryIfNotEmpty(outDir, context, ANDROID_GENERATED_SOURCES_PROCESSOR);
       final List<Pair<String, String>> copiedFiles = new ArrayList<Pair<String, String>>();
 
@@ -360,7 +360,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
           });
         }
       }
-      final File generatedSourcesDir = AndroidJpsProjectUtil.getGeneratedSourcesStorage(
+      final File generatedSourcesDir = AndroidJpsUtil.getGeneratedSourcesStorage(
         module, dataManager.getDataPaths());
       final List<String> deletedFiles = new ArrayList<String>();
 
@@ -785,7 +785,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
         continue;
       }
 
-      final File generatedResourcesDir = AndroidJpsProjectUtil.getGeneratedResourcesStorage(buildTarget.getModule(), dataManager);
+      final File generatedResourcesDir = AndroidJpsUtil.getGeneratedResourcesStorage(buildTarget.getModule(), dataManager);
       final File rawDir = new File(generatedResourcesDir, "raw");
 
       if (!rawDir.exists() && !rawDir.mkdirs()) {
