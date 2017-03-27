@@ -30,12 +30,6 @@ public final class VectorToolbarActionGroups extends ToolbarActionGroups {
 
   @NotNull
   @Override
-  ActionGroup getNorthGroup() {
-    return ActionGroup.EMPTY_GROUP;
-  }
-
-  @NotNull
-  @Override
   ActionGroup getEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
 
