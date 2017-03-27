@@ -1077,7 +1077,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
             String m = Integer.toString(margin);
             FontMetrics metrics = g.getFontMetrics();
             int strWidth = metrics.stringWidth(m);
-
+            ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             int stringY = (getIconHeight() - metrics.getHeight()) / 2 + metrics.getAscent();
             g.drawString(m, x + (getIconWidth() - strWidth) / 2, y + stringY);
           }
