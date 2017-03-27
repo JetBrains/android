@@ -104,6 +104,11 @@ public class SceneDecorator {
    * @param component
    */
   public void buildList(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
+    if (sceneContext.showOnlySelection()) {
+      addFrame(list, sceneContext, component);
+      buildListChildren(list, time, sceneContext, component);
+      return;
+    }
     buildListComponent(list, time, sceneContext, component);
     buildListTargets(list, time, sceneContext, component);
     buildListChildren(list, time, sceneContext, component);
@@ -143,7 +148,11 @@ public class SceneDecorator {
 
     int layout_width = layoutDimToMode(component.getNlComponent(), SdkConstants.ATTR_LAYOUT_WIDTH);
     int layout_height = layoutDimToMode(component.getNlComponent(), SdkConstants.ATTR_LAYOUT_HEIGHT);
-    DrawComponentFrame.add(list, sceneContext, rect, component.getDrawState().ordinal(), layout_width, layout_height ); // add to the list
+    SceneComponent.DrawState mode = component.getDrawState();
+    boolean paint = sceneContext.showOnlySelection() ? mode == SceneComponent.DrawState.SELECTED : true;
+    if (paint) {
+      DrawComponentFrame.add(list, sceneContext, rect, mode.ordinal(), layout_width, layout_height); // add to the list
+    }
   }
 
   private  int layoutDimToMode(NlComponent component,String attr) {
