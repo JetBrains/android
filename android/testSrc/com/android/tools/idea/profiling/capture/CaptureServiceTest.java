@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.profiling.capture;
 
+import com.android.ddmlib.Client;
+import com.android.ddmlib.ClientData;
 import com.android.tools.idea.editors.hprof.HprofCaptureType;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.ProfilerCaptureType;
 import com.intellij.icons.AllIcons;
@@ -37,10 +39,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class CaptureServiceTest extends IdeaTestCase {
 
@@ -137,6 +143,35 @@ public class CaptureServiceTest extends IdeaTestCase {
     String capturePath = handle.getFile().getCanonicalPath();
     assertNotNull(capturePath);
     assertFalse(handle.getFile().exists());
+  }
+
+  public void testSuggestedNameWithColon() {
+    CaptureService service = CaptureService.getInstance(myProject);
+    String timestamp = new SimpleDateFormat("yyyy.MM.dd_HH").format(new Date());
+    Client client = mockClientWithDescription("com.test.application:foo");
+    assertEquals("com.test.applicationfoo_" + timestamp, service.getSuggestedName(client, "yyyy.MM.dd_HH"));
+  }
+
+  public void testSuggestedName() {
+    CaptureService service = CaptureService.getInstance(myProject);
+    String timestamp = new SimpleDateFormat("yyyy.MM.dd_HH").format(new Date());
+    Client client = mockClientWithDescription("com.test.application");
+    assertEquals("com.test.application_" + timestamp,
+                 service.getSuggestedName(client, "yyyy.MM.dd_HH"));
+  }
+
+  public void testSuggestedNameEmptyClient() {
+    CaptureService service = CaptureService.getInstance(myProject);
+    String timestamp = new SimpleDateFormat("yyyy.MM.dd_HH").format(new Date());
+    assertEquals(myProject.getName() + "_" + timestamp, service.getSuggestedName(null, "yyyy.MM.dd_HH"));
+  }
+
+  private Client mockClientWithDescription(@NotNull String description) {
+    ClientData data = mock(ClientData.class);
+    when(data.getClientDescription()).thenReturn(description);
+    Client client = mock(Client.class);
+    when(client.getClientData()).thenReturn(data);
+    return client;
   }
 
   private static byte[] readFully(@NotNull File file) throws IOException {
