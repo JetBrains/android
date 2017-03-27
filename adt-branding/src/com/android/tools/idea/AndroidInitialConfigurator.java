@@ -110,7 +110,7 @@ public class AndroidInitialConfigurator {
   private static void customizeSettings(PropertiesComponent propertiesComponent) {
     if (!propertiesComponent.getBoolean(CONFIG_V5)) {
       propertiesComponent.setValue(CONFIG_V5, "true");
-      UISettings.getInstance().HIDE_TOOL_STRIPES = false;
+      UISettings.getInstance().setHideToolStripes(false);
 
       if (!propertiesComponent.getBoolean(CONFIG_V4)) {
         propertiesComponent.setValue(CONFIG_V4, "true");
@@ -126,7 +126,7 @@ public class AndroidInitialConfigurator {
         if (!propertiesComponent.getBoolean(CONFIG_V1)) {
           propertiesComponent.setValue(CONFIG_V1, "true");
           CodeInsightSettings.getInstance().AUTO_POPUP_JAVADOC_INFO = true;
-          UISettings.getInstance().SCROLL_TAB_LAYOUT_IN_EDITOR = true;
+          UISettings.getInstance().setScrollTabLayoutInEditor(true);
           EditorSettingsExternalizable.getInstance().setVirtualSpace(false);
 
           // For Macs, use 10.5+ keymap as the default

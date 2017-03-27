@@ -122,7 +122,7 @@ public class AndroidManifestMergingTarget extends ModuleBasedTarget<AndroidManif
     @NotNull
     @Override
     public List<AndroidManifestMergingTarget> computeAllTargets(@NotNull JpsModel model) {
-      if (!AndroidJpsProjectUtil.isAndroidProjectWithoutGradleFacet(model.getProject())) {
+      if (!AndroidJpsUtil.isAndroidProjectWithoutGradleFacet(model.getProject())) {
         return Collections.emptyList();
       }
       final List<AndroidManifestMergingTarget> targets = new ArrayList<AndroidManifestMergingTarget>();

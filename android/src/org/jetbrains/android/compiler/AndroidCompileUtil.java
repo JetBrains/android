@@ -16,6 +16,7 @@
 package org.jetbrains.android.compiler;
 
 import com.android.tools.idea.fileTypes.AndroidRenderscriptFileType;
+import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.intellij.CommonBundle;
 import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.compiler.CompilerConfigurationImpl;
@@ -69,7 +70,6 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import com.android.tools.idea.lang.aidl.AidlFileType;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.*;
 import org.jetbrains.annotations.NonNls;
@@ -957,7 +957,7 @@ public class AndroidCompileUtil {
           return;
         }
 
-        ModifiableModelCommitter.multiCommit(modelsToCommit.toArray(new ModifiableRootModel[modelsToCommit.size()]), moduleModel);
+        ModifiableModelCommitter.multiCommit(modelsToCommit, moduleModel);
       }
     });
   }
