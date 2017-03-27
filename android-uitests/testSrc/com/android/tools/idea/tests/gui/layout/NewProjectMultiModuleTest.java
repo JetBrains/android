@@ -20,7 +20,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
 import org.jetbrains.annotations.NotNull;
@@ -63,7 +62,7 @@ public class NewProjectMultiModuleTest {
   /**
    * Creates a new project for the specified {@link FormFactor}
    */
-  IdeFrameFixture create(@NotNull FormFactor... formFactors) {
+  private void create(@NotNull FormFactor... formFactors) {
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject();
 
@@ -76,13 +75,12 @@ public class NewProjectMultiModuleTest {
         newProjectWizard.getConfigureFormFactorStep().selectMinimumSdkApi(formFactor, "23");
     }
 
-    for (int i = 0; i < formFactors.length; i++) {
+    for (FormFactor ignored : formFactors) {
       newProjectWizard.clickNext(); // Skip "Add Activity" step
       newProjectWizard.clickNext(); // Skip "Configure Activity" step
     }
 
     newProjectWizard.clickFinish();
-
-    return guiTest.ideFrame();
+    guiTest.ideFrame().waitForGradleProjectSyncToStart();
   }
 }
