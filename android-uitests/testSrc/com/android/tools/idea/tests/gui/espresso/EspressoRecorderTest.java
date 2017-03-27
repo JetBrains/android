@@ -18,7 +18,9 @@ package com.android.tools.idea.tests.gui.espresso;
 import com.android.tools.idea.tests.gui.emulator.TestWithEmulator;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
+import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Rule;
 import org.junit.Test;
@@ -77,9 +79,17 @@ public class EspressoRecorderTest extends TestWithEmulator {
     MessagesFixture.findByTitle(guiTest.robot(), "Missing Espresso dependencies").clickYes();
 
     // Run Android test.
-    ideFrameFixture.waitForGradleProjectSyncToFinish()
-      .invokeMenuPath("Run", "Run...");
-    new JListFixture(guiTest.robot(), GuiTests.waitForPopup(guiTest.robot())).clickItem("Wrapper[MyActivityTest]");
+    Wait.seconds(5).expecting("The instrumentation test is ready").until(() -> {
+      try {
+        ideFrameFixture.waitForGradleProjectSyncToFinish()
+          .invokeMenuPath("Run", "Run...");
+        new JListFixture(guiTest.robot(), GuiTests.waitForPopup(guiTest.robot())).clickItem("Wrapper[MyActivityTest]");
+        return true;
+      } catch (LocationUnavailableException e) {
+        return false;
+      }
+    });
+
     DeployTargetPickerDialogFixture.find(guiTest.robot())
       .selectDevice(AVD_NAME)
       .clickOk();
