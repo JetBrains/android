@@ -31,6 +31,7 @@ import com.google.common.util.concurrent.*;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
@@ -40,13 +41,16 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.ui.EdtInvocationManager;
 import com.intellij.util.ui.EmptyIcon;
+import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 
 import javax.swing.*;
+import javax.swing.event.TreeModelEvent;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
@@ -55,8 +59,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
 
 public class DexFileViewer implements ApkFileEditorComponent {
@@ -271,7 +274,27 @@ public class DexFileViewer implements ApkFileEditorComponent {
       public void onSuccess(DexPackageNode result) {
         myLoadingPanel.stopLoading();
         myTree.setRootVisible(false);
-        myTree.setModel(new FilteredTreeModel<>(result, myDexFilters));
+        TreeModel treeModel = new FilteredTreeModel<>(result, myDexFilters);
+        myTree.setModel(treeModel);
+
+        //this has to be added AFTER the Model is added to the Tree because change events are sent to listeners in order from last to first
+        //otherwise, any root change event would wipe out the expandedDescendants list before we have a chance to read it
+        treeModel.addTreeModelListener(new TreeModelAdapter() {
+          @Override
+          protected void process(TreeModelEvent event, EventType type) {
+            Enumeration<TreePath> expanded = myTree.getExpandedDescendants(new TreePath(myTree.getModel().getRoot()));
+            if (expanded == null){
+              return;
+            }
+            // Schedule a runnable to expand the gathered paths later,
+            // so that all the other listeners get a chance to process the tree changes first.
+            ApplicationManager.getApplication().invokeLater(() -> {
+              for (TreePath path : Collections.list(expanded)) {
+                myTree.expandPath(path);
+              }
+            });
+          }
+        });
       }
 
       @Override
