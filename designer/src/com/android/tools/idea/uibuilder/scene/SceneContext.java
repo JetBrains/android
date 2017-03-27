@@ -35,9 +35,14 @@ import java.util.WeakHashMap;
 public class SceneContext {
   ColorSet myColorSet;
   Long myTime;
+  private boolean myShowOnlySelection = false;
 
   private SceneContext() {
     myTime = System.currentTimeMillis();
+  }
+
+  public void setShowOnlySelection(boolean value) {
+    myShowOnlySelection = value;
   }
 
   public long getTime() {
@@ -127,6 +132,10 @@ public class SceneContext {
 
   public float pxToDp(int px) {
     return px * Coordinates.DEFAULT_DENSITY;
+  }
+
+  public boolean showOnlySelection() {
+    return myShowOnlySelection;
   }
 
   /**

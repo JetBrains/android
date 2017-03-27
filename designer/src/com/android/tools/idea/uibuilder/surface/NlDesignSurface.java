@@ -234,7 +234,9 @@ public class NlDesignSurface extends DesignSurface {
       myLayers.add(new ConstraintsLayer(this, myScreenView, true));
     }
 
-    myLayers.add(new SceneLayer(this, myScreenView, false));
+    SceneLayer sceneLayer = new SceneLayer(this, myScreenView, false);
+    sceneLayer.setAlwaysShowSelection(true);
+    myLayers.add(sceneLayer);
     myLayers.add(new WarningLayer(myScreenView));
     if (getLayoutType().isSupportedByDesigner()) {
       myLayers.add(new CanvasResizeLayer(this, myScreenView));
