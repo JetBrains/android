@@ -40,7 +40,6 @@ public class ApkFacetConfiguration implements FacetConfiguration {
   @NonNls public String APK_PATH;
   @NotNull public List<SetupIssue> SETUP_ISSUES = new ArrayList<>();
   @NotNull public List<NativeLibrary> NATIVE_LIBRARIES = new ArrayList<>();
-  @NotNull public Map<String, String> SOURCE_MAP = new HashMap<>();
 
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext, FacetValidatorsManager validatorsManager) {
@@ -54,6 +53,18 @@ public class ApkFacetConfiguration implements FacetConfiguration {
     }
     Stream<String> filePaths = NATIVE_LIBRARIES.stream().map(library -> library.debuggableFilePath).filter(StringUtil::isNotEmpty);
     return computeRootPathsForFiles(filePaths);
+  }
+
+  @NotNull
+  public Map<String, String> getSymbolFolderPathMappings() {
+    if (NATIVE_LIBRARIES.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    Map<String, String> mappings = new HashMap<>();
+    for (NativeLibrary library : NATIVE_LIBRARIES) {
+      mappings.putAll(library.pathMappings);
+    }
+    return mappings;
   }
 
   @Override
