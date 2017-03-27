@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.properties;
 
-import com.intellij.util.GCUtil;
+import com.intellij.util.ref.GCUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 

@@ -36,20 +36,22 @@ public class AndroidEditorTitleProviderTest extends AndroidTestCase {
     checkTitle("res/wrong/path.xml", null);
     checkTitle("res/layout/file.xml", null);
 
-    boolean prev = UISettings.getInstance().HIDE_KNOWN_EXTENSION_IN_TABS;
+    UISettings uiSettings = UISettings.getInstance();
+    boolean prev = uiSettings.getHdeKnownExtensionInTabs();
     try {
-      UISettings.getInstance().HIDE_KNOWN_EXTENSION_IN_TABS = false;
+      uiSettings.setHdeKnownExtensionInTabs(false);
       checkTitle("res/layout-land/file.xml", "land/file.xml");
       checkTitle("res/layout-xlarge/file.xml", "xlarge/file.xml");
       checkTitle("res/values-large-hdpi/strings.xml", "large-hdpi/strings.xml");
 
-      UISettings.getInstance().HIDE_KNOWN_EXTENSION_IN_TABS = true;
+      uiSettings.setHdeKnownExtensionInTabs(true);
       checkTitle("res/layout-land/file.xml", "land/file");
       checkTitle("res/layout-xlarge/file.xml", "xlarge/file");
       checkTitle("res/values-large-hdpi/strings.xml", "large-hdpi/strings");
-    } finally {
+    }
+    finally {
       // For later chained tests
-      UISettings.getInstance().HIDE_KNOWN_EXTENSION_IN_TABS = prev;
+      uiSettings.setHdeKnownExtensionInTabs(prev);
     }
   }
 
@@ -60,7 +62,8 @@ public class AndroidEditorTitleProviderTest extends AndroidTestCase {
     String title = provider.getEditorTabTitle(project, file);
     if (expected == null) {
       assertNull(title);
-    } else {
+    }
+    else {
       assertEquals(expected, title != null ? FileUtil.toSystemIndependentName(title) : null);
     }
   }

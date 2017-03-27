@@ -31,6 +31,7 @@ import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.FileTemplateUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -834,11 +835,11 @@ public class AndroidResourceUtil {
     final VirtualFile[] resFiles = new VirtualFile[dirNames.size()];
 
     for (int i = 0, n = dirNames.size(); i < n; i++) {
-      final VirtualFile resFile = findOrCreateResourceFile(project, resDir, fileName, dirNames.get(i));
-      if (resFile == null) {
+      String dirName = dirNames.get(i);
+      resFiles[i] = WriteAction.compute(() -> findOrCreateResourceFile(project, resDir, fileName, dirName));
+      if (resFiles[i] == null) {
         return false;
       }
-      resFiles[i] = resFile;
     }
 
     if (!ReadonlyStatusHandler.ensureFilesWritable(project, resFiles)) {
