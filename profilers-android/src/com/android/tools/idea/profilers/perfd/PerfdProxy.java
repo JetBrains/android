@@ -26,6 +26,7 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -42,6 +43,7 @@ public final class PerfdProxy implements AndroidDebugBridge.IDeviceChangeListene
   @NotNull private Server myProxyServer;
   @NotNull private final List<PerfdProxyService> myProxyServices;
   @NotNull private IDevice myDevice;
+  @Nullable private Runnable myOnDisconnect;
 
   public PerfdProxy(@NotNull IDevice device, @NotNull ManagedChannel perfdChannel, String channelName) {
     myDevice = device;
@@ -73,6 +75,18 @@ public final class PerfdProxy implements AndroidDebugBridge.IDeviceChangeListene
     myProxyServices.forEach(PerfdProxyService::disconnect);
     myProxyServer.shutdownNow();
     AndroidDebugBridge.removeDeviceChangeListener(this);
+    if (myOnDisconnect != null) {
+      myOnDisconnect.run();
+    }
+  }
+
+  /**
+   * Sets a callback to be executed when the proxy is disconnected.
+   * As the proxy is usually associated with a device, services that create the proxy can use this callback
+   * for instance to remove references to the proxy when the device is disconnected or when the references to it are lost.
+   */
+  public void setOnDisconnectCallback(Runnable onDisconnect) {
+    myOnDisconnect = onDisconnect;
   }
 
   @Override
