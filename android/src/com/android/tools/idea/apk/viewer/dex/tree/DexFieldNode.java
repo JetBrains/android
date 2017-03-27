@@ -43,7 +43,7 @@ public class DexFieldNode extends DexElementNode {
   }
 
   @Override
-  public boolean isSeed(@Nullable ProguardSeedsMap seedsMap, @Nullable ProguardMap map) {
+  public boolean isSeed(@Nullable ProguardSeedsMap seedsMap, @Nullable ProguardMap map, boolean checkChildren) {
     if (seedsMap != null) {
       FieldReference reference = getReference();
       if (reference != null) {

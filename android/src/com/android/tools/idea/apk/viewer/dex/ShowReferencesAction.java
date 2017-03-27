@@ -114,7 +114,7 @@ public class ShowReferencesAction extends AnAction {
         DexElementNode node = (DexElementNode)value;
         Reference ref = node.getReference();
 
-        boolean isSeed = node.isSeed(seedsMap, proguardMap);
+        boolean isSeed = node.isSeed(seedsMap, proguardMap, false);
         SimpleTextAttributes attr = new SimpleTextAttributes(
           isSeed ? SimpleTextAttributes.STYLE_BOLD : SimpleTextAttributes.STYLE_PLAIN,
           null);
