@@ -37,7 +37,7 @@ public class DexClassNode extends DexElementNode {
   }
 
   @Override
-  public boolean isSeed(@Nullable ProguardSeedsMap seedsMap, @Nullable ProguardMap map) {
+  public boolean isSeed(@Nullable ProguardSeedsMap seedsMap, @Nullable ProguardMap map, boolean checkChildren) {
     if (seedsMap != null){
       TypeReference reference = getReference();
       if (reference != null) {
@@ -46,7 +46,7 @@ public class DexClassNode extends DexElementNode {
         }
       }
     }
-    return super.isSeed(seedsMap, map);
+    return super.isSeed(seedsMap, map, checkChildren);
   }
 
   @Nullable

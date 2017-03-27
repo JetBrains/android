@@ -41,7 +41,6 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
-import com.intellij.util.ui.EdtInvocationManager;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -398,7 +397,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
 
       DexElementNode node = (DexElementNode)value;
 
-      if (myMappings != null && node.isSeed(myMappings.seeds, myMappings.map)) {
+      if (myMappings != null && node.isSeed(myMappings.seeds, myMappings.map, true)) {
         append(node.getName(), new SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, null));
       }
       else if (node.isRemoved()) {

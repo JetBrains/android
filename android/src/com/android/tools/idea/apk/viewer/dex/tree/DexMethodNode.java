@@ -44,7 +44,7 @@ public class DexMethodNode extends DexElementNode {
   }
 
   @Override
-  public boolean isSeed(@Nullable ProguardSeedsMap seedsMap, @Nullable ProguardMap map) {
+  public boolean isSeed(@Nullable ProguardSeedsMap seedsMap, @Nullable ProguardMap map, boolean checkChildren) {
     if (seedsMap != null){
       MethodReference reference = getReference();
       if (reference != null) {
