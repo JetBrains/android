@@ -15,7 +15,6 @@
  */
 package org.jetbrains.jps.android.model.impl;
 
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -50,10 +49,7 @@ public class JpsAndroidModelSerializerExtension extends JpsModelSerializerExtens
       public JpsAndroidModuleExtension loadExtension(@NotNull Element facetConfigurationElement,
                                                      String name,
                                                      JpsElement parent, JpsModule module) {
-        if (SystemInfo.isJavaVersionAtLeast("1.8")) {
-          return new JpsAndroidModuleExtensionImpl(XmlSerializer.deserialize(facetConfigurationElement, JpsAndroidModuleProperties.class));
-        }
-        throw new RuntimeException("Build process needs to be started under Java 8 to build Android projects.");
+        return new JpsAndroidModuleExtensionImpl(XmlSerializer.deserialize(facetConfigurationElement, JpsAndroidModuleProperties.class));
       }
 
       @Override

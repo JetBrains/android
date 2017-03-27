@@ -55,7 +55,6 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
-    test_resources = ["testData"],
     test_runtime_deps = ["//tools/adt/idea/adt-branding"],
     test_srcs = ["testSrc"],
     test_tags = [
