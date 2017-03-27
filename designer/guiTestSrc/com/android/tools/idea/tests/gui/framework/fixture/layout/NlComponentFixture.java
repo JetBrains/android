@@ -21,7 +21,7 @@ import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.intellij.psi.xml.XmlTag;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.MouseButton;
@@ -157,7 +157,7 @@ public class NlComponentFixture {
 
   @NotNull
   private static String describe(@NotNull NlComponent root) {
-    return Objects.toStringHelper(root).omitNullValues()
+    return MoreObjects.toStringHelper(root).omitNullValues()
       .add("tag", describe(root.getTag()))
       .add("id", root.getId())
       .add("bounds", "[" + root.x + "," + root.y + ":" + root.w + "x" + root.h)

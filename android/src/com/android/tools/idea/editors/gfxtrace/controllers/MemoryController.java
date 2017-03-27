@@ -52,6 +52,7 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.reference.SoftReference;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Range;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.EmptyIterator;
 import com.intellij.util.ui.StatusText;
 import org.jetbrains.annotations.NonNls;
@@ -1322,7 +1323,7 @@ public class MemoryController extends Controller {
      */
     private void scan() {
       ListenableFuture<List<String>> lines =
-        Futures.transform(myMemory.get(0, Math.min(myMemory.getByteCount(), SCAN_SIZE)), new AsyncFunction<MemorySegment, List<String>>() {
+        Futures.transformAsync(myMemory.get(0, Math.min(myMemory.getByteCount(), SCAN_SIZE)), new AsyncFunction<MemorySegment, List<String>>() {
           private List<String> result = Lists.newArrayList();
           private int done = 0;
           private boolean prevWasCarriageRet = false;
@@ -1381,7 +1382,7 @@ public class MemoryController extends Controller {
             done += data.myLength;
             if (done < myMemory.getByteCount()) {
               // Fetch the next chunk of memory and process with this function.
-              return Futures.transform(myMemory.get(done, Math.min(myMemory.getByteCount() - done, SCAN_SIZE)), this);
+              return Futures.transformAsync(myMemory.get(done, Math.min(myMemory.getByteCount() - done, SCAN_SIZE)), this);
             }
 
             // All memory has been scanned, add any remaining characters as a line and finish up.
@@ -1443,7 +1444,7 @@ public class MemoryController extends Controller {
       // chain multiple listeners.
       if (myLines.isEmpty()) {
         myListener = onChange;
-        return Iterators.emptyIterator();
+        return ContainerUtil.emptyIterator();
       }
 
       return Iterators.transform(myLines.subList(start, end).iterator(), new Function<String, Segment>() {

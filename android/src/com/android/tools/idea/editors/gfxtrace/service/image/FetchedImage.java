@@ -35,7 +35,7 @@ public class FetchedImage implements MultiLevelImage {
   @NotNull private final Level[] myLevels;
 
   public static ListenableFuture<FetchedImage> load(final ServiceClient client, ListenableFuture<ImageInfoPath> imageInfo) {
-    return Futures.transform(imageInfo, new AsyncFunction<ImageInfoPath, FetchedImage>() {
+    return Futures.transformAsync(imageInfo, new AsyncFunction<ImageInfoPath, FetchedImage>() {
       @Override
       public ListenableFuture<FetchedImage> apply(ImageInfoPath imageInfoPath) throws Exception {
         return load(client, imageInfoPath);
@@ -93,7 +93,7 @@ public class FetchedImage implements MultiLevelImage {
   }
 
   public static ListenableFuture<BufferedImage> loadLevel(ListenableFuture<FetchedImage> futureImage, final int level) {
-    return Futures.transform(futureImage, new AsyncFunction<FetchedImage, BufferedImage>() {
+    return Futures.transformAsync(futureImage, new AsyncFunction<FetchedImage, BufferedImage>() {
       @Override
       public ListenableFuture<BufferedImage> apply(FetchedImage image) throws Exception {
         return image.getLevel(Math.min(level, image.getLevelCount()));

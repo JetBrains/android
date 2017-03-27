@@ -21,6 +21,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Abi;
 import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
@@ -70,7 +71,7 @@ public class LaunchCompatibility {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("compatible", myCompatible).add("reason", myReason).toString();
+    return MoreObjects.toStringHelper(this).add("compatible", myCompatible).add("reason", myReason).toString();
   }
 
   @Override

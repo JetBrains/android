@@ -85,7 +85,7 @@ public abstract class ImageCellController<T extends ImageCellList.Data> extends 
   }
 
   protected void loadCellImage(final T cell, final ServiceClient client, final Path imagePath, final Runnable onLoad) {
-    Rpc.listen(Futures.transform(FetchedImage.load(client, imagePath), new AsyncFunction<FetchedImage, BufferedImage>() {
+    Rpc.listen(Futures.transformAsync(FetchedImage.load(client, imagePath), new AsyncFunction<FetchedImage, BufferedImage>() {
       @Override
       public ListenableFuture<BufferedImage> apply(FetchedImage image) throws Exception {
         return getLevelToShow(image);

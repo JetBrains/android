@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.AbstractIterator;
-import com.google.common.collect.Iterators;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompilerMessage;
@@ -47,6 +46,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.ui.AppUIUtil;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -107,7 +107,7 @@ public class PostProjectBuildTasksExecutor {
   }
 
   public void onBuildCompletion(@NotNull CompileContext context) {
-    Iterator<String> errors = Iterators.emptyIterator();
+    Iterator<String> errors = ContainerUtil.emptyIterator();
     CompilerMessage[] errorMessages = context.getMessages(CompilerMessageCategory.ERROR);
     if (errorMessages.length > 0) {
       errors = new CompilerMessageIterator(errorMessages);
@@ -158,7 +158,7 @@ public class PostProjectBuildTasksExecutor {
   }
 
   public void onBuildCompletion(@NotNull GradleInvocationResult result) {
-    Iterator<String> errors = Iterators.emptyIterator();
+    Iterator<String> errors = ContainerUtil.emptyIterator();
     List<Message> errorMessages = result.getCompilerMessages(Message.Kind.ERROR);
     if (!errorMessages.isEmpty()) {
       errors = new MessageIterator(errorMessages);

@@ -23,8 +23,12 @@ import com.android.tools.idea.editors.gfxtrace.service.path.AtomPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.AtomRangePath;
 import com.android.tools.idea.editors.gfxtrace.service.path.MeshPath;
 import com.android.tools.idea.editors.gfxtrace.service.path.MeshPathOptions;
-import com.android.tools.idea.editors.gfxtrace.service.vertex.*;
-import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexProtos.*;
+import com.android.tools.idea.editors.gfxtrace.service.vertex.FmtFloat32;
+import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexBuffer;
+import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexProtos.SemanticType;
+import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexProtos.VectorElement;
+import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexStream;
+import com.android.tools.idea.editors.gfxtrace.service.vertex.VertexStreamData;
 import com.android.tools.idea.editors.gfxtrace.viewer.Geometry;
 import com.android.tools.idea.editors.gfxtrace.viewer.Viewer;
 import com.android.tools.idea.editors.gfxtrace.viewer.camera.CylindricalCameraModel;
@@ -223,7 +227,7 @@ public class GeometryController extends Controller implements AtomStream.Listene
 
   private ListenableFuture<Model> fetchModel(MeshPath path) {
     ListenableFuture<Mesh> meshFuture = myEditor.getClient().get(path);
-    return Futures.transform(meshFuture, new AsyncFunction<Mesh, Model>() {
+    return Futures.transformAsync(meshFuture, new AsyncFunction<Mesh, Model>() {
       @Override
       public ListenableFuture<Model> apply(Mesh mesh) throws Exception {
         VertexBuffer vb = mesh.getVertexBuffer();

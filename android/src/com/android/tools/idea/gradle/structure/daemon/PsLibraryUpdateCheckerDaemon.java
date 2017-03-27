@@ -37,7 +37,10 @@ import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.EventListener;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -132,7 +135,7 @@ public class PsLibraryUpdateCheckerDaemon extends PsDaemon {
 
       for (Future<SearchResult> job : jobs) {
         try {
-          SearchResult result = Futures.get(job, Exception.class);
+          SearchResult result = Futures.getChecked(job, Exception.class);
           List<FoundArtifact> artifacts = result.getArtifacts();
           if (artifacts.size() == 1) {
             FoundArtifact artifact = artifacts.get(0);

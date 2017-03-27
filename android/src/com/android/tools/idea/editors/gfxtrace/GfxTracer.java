@@ -183,7 +183,7 @@ public class GfxTracer {
               public void onFailure(Throwable t) {
                 LOG.error(t.getMessage());
               }
-            }, MoreExecutors.sameThreadExecutor());
+            }, MoreExecutors.directExecutor());
           }
         });
       }

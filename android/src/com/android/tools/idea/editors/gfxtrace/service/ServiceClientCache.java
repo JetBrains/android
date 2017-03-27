@@ -89,7 +89,7 @@ public class ServiceClientCache extends ServiceClientWrapper {
           return myCache.getIfPresent(key);
         }
       });
-      return Futures.transform(cacheLookUp, new AsyncFunction<V, V>() {
+      return Futures.transformAsync(cacheLookUp, new AsyncFunction<V, V>() {
         private boolean alreadyFetching = false;
 
         @Override
@@ -101,7 +101,7 @@ public class ServiceClientCache extends ServiceClientWrapper {
           }
           // ... otherwise go ahead and try to fetch it.
           alreadyFetching = true;
-          return Futures.transform(fetch(key), this);
+          return Futures.transformAsync(fetch(key), this);
         }
       });
     }

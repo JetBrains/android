@@ -3,7 +3,7 @@ package org.jetbrains.android.util;
 import com.android.io.IAbstractFile;
 import com.android.io.IAbstractFolder;
 import com.android.io.StreamException;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -119,6 +119,6 @@ public class BufferingFileWrapper implements IAbstractFile {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this.getClass()).add("file", myFile).toString();
+    return MoreObjects.toStringHelper(this.getClass()).add("file", myFile).toString();
   }
 }

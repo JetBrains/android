@@ -50,7 +50,7 @@ public class ArtifactRepositorySearch {
 
       for (Future<SearchResult> job : jobs) {
         try {
-          results.add(Futures.get(job, Exception.class));
+          results.add(Futures.getChecked(job, Exception.class));
         }
         catch (Exception e) {
           errors.add(e);
