@@ -53,89 +53,30 @@ public class FilteredTreeModelTest {
 
     StringBuffer sb = new StringBuffer(100);
     dumpTree(sb, filteredTreeModel, packageTreeNode, 0);
-    assertEquals("root: 27,33\n" +
-                 "  com: 27,27\n" +
-                 "    example: 27,27\n" +
-                 "      MyAbstractClas: 6,6\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        void abstractMethod(int,java.lang.String): 1,1\n" +
-                 "        com.example.MyAbstractClas anotherAbstract(com.example.MyClass): 1,1\n" +
-                 "        com.example.MyAbstractClas getInstance(): 1,1\n" +
-                 "        void privateMethod(): 1,1\n" +
-                 "        void publicMethod(): 1,1\n" +
-                 "      MyAbstractClas$1: 3,3\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        void abstractMethod(int,java.lang.String): 1,1\n" +
-                 "        com.example.MyAbstractClas anotherAbstract(com.example.MyClass): 1,1\n" +
-                 "      MyClass$NonStaticInnerClass: 2,2\n" +
-                 "        void <init>(com.example.MyClass): 1,1\n" +
-                 "        com.example.MyClass methodMethod(): 1,1\n" +
-                 "        com.example.MyClass this$0: 0,0\n" +
-                 "      BuildConfig: 2,2\n" +
-                 "        void <clinit>(): 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        java.lang.String APPLICATION_ID: 0,0\n" +
-                 "        java.lang.String BUILD_TYPE: 0,0\n" +
-                 "        boolean DEBUG: 0,0\n" +
-                 "        java.lang.String FLAVOR: 0,0\n" +
-                 "        int VERSION_CODE: 0,0\n" +
-                 "        java.lang.String VERSION_NAME: 0,0\n" +
-                 "      MyClass$StaticClass: 2,2\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        com.example.MyClass method(): 1,1\n" +
-                 "      MyClass: 2,2\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        void method(): 1,1\n" +
-                 "        com.example.MyClass anon: 0,0\n" +
-                 "        com.example.MyAbstractClas initializedField: 0,0\n" +
-                 "        int privateIntField: 0,0\n" +
-                 "        java.lang.String privateString: 0,0\n" +
-                 "        int publicIntField: 0,0\n" +
-                 "        java.lang.String publicStringField: 0,0\n" +
-                 "      MyClass$StaticClass$InnerClass: 2,2\n" +
-                 "        void <init>(com.example.MyClass$StaticClass): 1,1\n" +
-                 "        com.example.MyClass methodMethod(): 1,1\n" +
-                 "        com.example.MyClass$StaticClass this$0: 0,0\n" +
-                 "      MainActivity: 2,2\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        void onCreate(android.os.Bundle): 1,1\n" +
-                 "      R$string: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        int app_name: 0,0\n" +
-                 "      MyClass$1: 1,1\n" +
-                 "        void <init>(com.example.MyClass): 1,1\n" +
-                 "        com.example.MyClass this$0: 0,0\n" +
-                 "      R$color: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        int colorAccent: 0,0\n" +
-                 "        int colorPrimary: 0,0\n" +
-                 "        int colorPrimaryDark: 0,0\n" +
-                 "      R$attr: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "      R$mipmap: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        int ic_launcher: 0,0\n" +
-                 "        int ic_launcher_round: 0,0\n" +
-                 "      R: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
+    assertEquals("root: 6,11\n" +
                  "  java: 0,4\n" +
-                 "    lang: 0,2\n" +
+                 "    lang: 0,3\n" +
+                 "      Integer: 0,1\n" +
+                 "        java.lang.Integer valueOf(int): 0,1\n" +
                  "      Object: 0,1\n" +
                  "        void <init>(): 0,1\n" +
                  "      Boolean: 0,1\n" +
-                 "        boolean parseBoolean(java.lang.String): 0,1\n" +
-                 "      System: 0,0\n" +
-                 "        java.io.PrintStream err: 0,0\n" +
-                 "        java.io.PrintStream out: 0,0\n" +
-                 "    io: 0,2\n" +
-                 "      PrintStream: 0,2\n" +
-                 "        void println(int): 0,1\n" +
-                 "        void println(java.lang.String): 0,1\n" +
-                 "  android: 0,2\n" +
-                 "    app: 0,2\n" +
-                 "      Activity: 0,2\n" +
-                 "        void <init>(): 0,1\n" +
-                 "        void onCreate(android.os.Bundle): 0,1\n", sb.toString());
+                 "        java.lang.Boolean valueOf(boolean): 0,1\n" +
+                 "    util: 0,1\n" +
+                 "      Collections: 0,1\n" +
+                 "        java.util.List emptyList(): 0,1\n" +
+                 "  Test2: 3,3\n" +
+                 "    void <init>(): 1,1\n" +
+                 "    java.lang.Integer get(): 1,1\n" +
+                 "    java.util.List getList(): 1,1\n" +
+                 "    a aClassField: 0,0\n" +
+                 "    int aField: 0,0\n" +
+                 "  TestSubclass: 2,3\n" +
+                 "    void <init>(): 1,1\n" +
+                 "    java.util.List getAnotherList(): 1,1\n" +
+                 "    java.util.List getList(): 0,1\n" +
+                 "  a: 1,1\n" +
+                 "    void <init>(): 1,1\n", sb.toString());
   }
 
   @Test
@@ -150,56 +91,19 @@ public class FilteredTreeModelTest {
 
     StringBuffer sb = new StringBuffer(100);
     dumpTree(sb, filteredTreeModel, packageTreeNode, 0);
-    assertEquals("root: 27,33\n" +
-                 "  com: 27,27\n" +
-                 "    example: 27,27\n" +
-                 "      MyAbstractClas: 6,6\n" +
-                 "      MyAbstractClas$1: 3,3\n" +
-                 "      MyClass$NonStaticInnerClass: 2,2\n" +
-                 "        com.example.MyClass this$0: 0,0\n" +
-                 "      BuildConfig: 2,2\n" +
-                 "        java.lang.String APPLICATION_ID: 0,0\n" +
-                 "        java.lang.String BUILD_TYPE: 0,0\n" +
-                 "        boolean DEBUG: 0,0\n" +
-                 "        java.lang.String FLAVOR: 0,0\n" +
-                 "        int VERSION_CODE: 0,0\n" +
-                 "        java.lang.String VERSION_NAME: 0,0\n" +
-                 "      MyClass$StaticClass: 2,2\n" +
-                 "      MyClass: 2,2\n" +
-                 "        com.example.MyClass anon: 0,0\n" +
-                 "        com.example.MyAbstractClas initializedField: 0,0\n" +
-                 "        int privateIntField: 0,0\n" +
-                 "        java.lang.String privateString: 0,0\n" +
-                 "        int publicIntField: 0,0\n" +
-                 "        java.lang.String publicStringField: 0,0\n" +
-                 "      MyClass$StaticClass$InnerClass: 2,2\n" +
-                 "        com.example.MyClass$StaticClass this$0: 0,0\n" +
-                 "      MainActivity: 2,2\n" +
-                 "      R$string: 1,1\n" +
-                 "        int app_name: 0,0\n" +
-                 "      MyClass$1: 1,1\n" +
-                 "        com.example.MyClass this$0: 0,0\n" +
-                 "      R$color: 1,1\n" +
-                 "        int colorAccent: 0,0\n" +
-                 "        int colorPrimary: 0,0\n" +
-                 "        int colorPrimaryDark: 0,0\n" +
-                 "      R$attr: 1,1\n" +
-                 "      R$mipmap: 1,1\n" +
-                 "        int ic_launcher: 0,0\n" +
-                 "        int ic_launcher_round: 0,0\n" +
-                 "      R: 1,1\n" +
+    assertEquals("root: 6,11\n" +
                  "  java: 0,4\n" +
-                 "    lang: 0,2\n" +
+                 "    lang: 0,3\n" +
+                 "      Integer: 0,1\n" +
                  "      Object: 0,1\n" +
                  "      Boolean: 0,1\n" +
-                 "      System: 0,0\n" +
-                 "        java.io.PrintStream err: 0,0\n" +
-                 "        java.io.PrintStream out: 0,0\n" +
-                 "    io: 0,2\n" +
-                 "      PrintStream: 0,2\n" +
-                 "  android: 0,2\n" +
-                 "    app: 0,2\n" +
-                 "      Activity: 0,2\n", sb.toString());
+                 "    util: 0,1\n" +
+                 "      Collections: 0,1\n" +
+                 "  Test2: 3,3\n" +
+                 "    a aClassField: 0,0\n" +
+                 "    int aField: 0,0\n" +
+                 "  TestSubclass: 2,3\n" +
+                 "  a: 1,1\n", sb.toString());
   }
 
   @Test
@@ -214,71 +118,18 @@ public class FilteredTreeModelTest {
 
     StringBuffer sb = new StringBuffer(100);
     dumpTree(sb, filteredTreeModel, packageTreeNode, 0);
-    assertEquals("root: 27,33\n" +
-                 "  com: 27,27\n" +
-                 "    example: 27,27\n" +
-                 "      MyAbstractClas: 6,6\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        void abstractMethod(int,java.lang.String): 1,1\n" +
-                 "        com.example.MyAbstractClas anotherAbstract(com.example.MyClass): 1,1\n" +
-                 "        com.example.MyAbstractClas getInstance(): 1,1\n" +
-                 "        void privateMethod(): 1,1\n" +
-                 "        void publicMethod(): 1,1\n" +
-                 "      MyAbstractClas$1: 3,3\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        void abstractMethod(int,java.lang.String): 1,1\n" +
-                 "        com.example.MyAbstractClas anotherAbstract(com.example.MyClass): 1,1\n" +
-                 "      MyClass$NonStaticInnerClass: 2,2\n" +
-                 "        void <init>(com.example.MyClass): 1,1\n" +
-                 "        com.example.MyClass methodMethod(): 1,1\n" +
-                 "        com.example.MyClass this$0: 0,0\n" +
-                 "      BuildConfig: 2,2\n" +
-                 "        void <clinit>(): 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        java.lang.String APPLICATION_ID: 0,0\n" +
-                 "        java.lang.String BUILD_TYPE: 0,0\n" +
-                 "        boolean DEBUG: 0,0\n" +
-                 "        java.lang.String FLAVOR: 0,0\n" +
-                 "        int VERSION_CODE: 0,0\n" +
-                 "        java.lang.String VERSION_NAME: 0,0\n" +
-                 "      MyClass$StaticClass: 2,2\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        com.example.MyClass method(): 1,1\n" +
-                 "      MyClass: 2,2\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        void method(): 1,1\n" +
-                 "        com.example.MyClass anon: 0,0\n" +
-                 "        com.example.MyAbstractClas initializedField: 0,0\n" +
-                 "        int privateIntField: 0,0\n" +
-                 "        java.lang.String privateString: 0,0\n" +
-                 "        int publicIntField: 0,0\n" +
-                 "        java.lang.String publicStringField: 0,0\n" +
-                 "      MyClass$StaticClass$InnerClass: 2,2\n" +
-                 "        void <init>(com.example.MyClass$StaticClass): 1,1\n" +
-                 "        com.example.MyClass methodMethod(): 1,1\n" +
-                 "        com.example.MyClass$StaticClass this$0: 0,0\n" +
-                 "      MainActivity: 2,2\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        void onCreate(android.os.Bundle): 1,1\n" +
-                 "      R$string: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        int app_name: 0,0\n" +
-                 "      MyClass$1: 1,1\n" +
-                 "        void <init>(com.example.MyClass): 1,1\n" +
-                 "        com.example.MyClass this$0: 0,0\n" +
-                 "      R$color: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        int colorAccent: 0,0\n" +
-                 "        int colorPrimary: 0,0\n" +
-                 "        int colorPrimaryDark: 0,0\n" +
-                 "      R$attr: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "      R$mipmap: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        int ic_launcher: 0,0\n" +
-                 "        int ic_launcher_round: 0,0\n" +
-                 "      R: 1,1\n" +
-                 "        void <init>(): 1,1\n", sb.toString());
+    assertEquals("root: 6,11\n" +
+                 "  Test2: 3,3\n" +
+                 "    void <init>(): 1,1\n" +
+                 "    java.lang.Integer get(): 1,1\n" +
+                 "    java.util.List getList(): 1,1\n" +
+                 "    a aClassField: 0,0\n" +
+                 "    int aField: 0,0\n" +
+                 "  TestSubclass: 2,3\n" +
+                 "    void <init>(): 1,1\n" +
+                 "    java.util.List getAnotherList(): 1,1\n" +
+                 "  a: 1,1\n" +
+                 "    void <init>(): 1,1\n", sb.toString());
   }
 
   @Test
@@ -293,80 +144,42 @@ public class FilteredTreeModelTest {
 
     StringBuffer sb = new StringBuffer(100);
     dumpTree(sb, filteredTreeModel, packageTreeNode, 0);
-    assertEquals("root: 27,33\n" +
-                 "  com: 27,27\n" +
-                 "    example: 27,27\n" +
-                 "      MyAbstractClas: 6,6\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        void abstractMethod(int,java.lang.String): 1,1\n" +
-                 "        com.example.MyAbstractClas anotherAbstract(com.example.MyClass): 1,1\n" +
-                 "        com.example.MyAbstractClas getInstance(): 1,1\n" +
-                 "        void privateMethod(): 1,1\n" +
-                 "        void publicMethod(): 1,1\n" +
-                 "      MyAbstractClas$1: 3,3\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        void abstractMethod(int,java.lang.String): 1,1\n" +
-                 "        com.example.MyAbstractClas anotherAbstract(com.example.MyClass): 1,1\n" +
-                 "      MyClass$NonStaticInnerClass: 2,2\n" +
-                 "        void <init>(com.example.MyClass): 1,1\n" +
-                 "        com.example.MyClass methodMethod(): 1,1\n" +
-                 "      BuildConfig: 2,2\n" +
-                 "        void <clinit>(): 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "      MyClass$StaticClass: 2,2\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        com.example.MyClass method(): 1,1\n" +
-                 "      MyClass: 2,2\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        void method(): 1,1\n" +
-                 "      MyClass$StaticClass$InnerClass: 2,2\n" +
-                 "        void <init>(com.example.MyClass$StaticClass): 1,1\n" +
-                 "        com.example.MyClass methodMethod(): 1,1\n" +
-                 "      MainActivity: 2,2\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        void onCreate(android.os.Bundle): 1,1\n" +
-                 "      R$string: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "      MyClass$1: 1,1\n" +
-                 "        void <init>(com.example.MyClass): 1,1\n" +
-                 "      R$color: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "      R$attr: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "      R$mipmap: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "      R: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
+    assertEquals("root: 6,11\n" +
                  "  java: 0,4\n" +
-                 "    lang: 0,2\n" +
+                 "    lang: 0,3\n" +
+                 "      Integer: 0,1\n" +
+                 "        java.lang.Integer valueOf(int): 0,1\n" +
                  "      Object: 0,1\n" +
                  "        void <init>(): 0,1\n" +
                  "      Boolean: 0,1\n" +
-                 "        boolean parseBoolean(java.lang.String): 0,1\n" +
-                 "      System: 0,0\n" +
-                 "    io: 0,2\n" +
-                 "      PrintStream: 0,2\n" +
-                 "        void println(int): 0,1\n" +
-                 "        void println(java.lang.String): 0,1\n" +
-                 "  android: 0,2\n" +
-                 "    app: 0,2\n" +
-                 "      Activity: 0,2\n" +
-                 "        void <init>(): 0,1\n" +
-                 "        void onCreate(android.os.Bundle): 0,1\n", sb.toString());
+                 "        java.lang.Boolean valueOf(boolean): 0,1\n" +
+                 "    util: 0,1\n" +
+                 "      Collections: 0,1\n" +
+                 "        java.util.List emptyList(): 0,1\n" +
+                 "  Test2: 3,3\n" +
+                 "    void <init>(): 1,1\n" +
+                 "    java.lang.Integer get(): 1,1\n" +
+                 "    java.util.List getList(): 1,1\n" +
+                 "  TestSubclass: 2,3\n" +
+                 "    void <init>(): 1,1\n" +
+                 "    java.util.List getAnotherList(): 1,1\n" +
+                 "    java.util.List getList(): 0,1\n" +
+                 "  a: 1,1\n" +
+                 "    void <init>(): 1,1\n", sb.toString());
   }
 
   @Test
   public void removedNodesReferenceTree() throws IOException, ParseException {
-    DexBackedDexFile dexFile = getTestDexFile("Test3.dex");
+    DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
 
-    Path mapPath = Paths.get(AndroidTestBase.getTestDataPath(), "apk/Test3_mapping.txt");
+    Path mapPath = Paths.get(AndroidTestBase.getTestDataPath(), "apk/Test2_mapping.txt");
     ProguardMap map = new ProguardMap();
     map.readFromReader(Files.newBufferedReader(mapPath));
 
-    mapPath = Paths.get(AndroidTestBase.getTestDataPath(), "apk/Test3_seeds.txt");
+    mapPath = Paths.get(AndroidTestBase.getTestDataPath(), "apk/Test2_seeds.txt");
     ProguardSeedsMap seedsMap = ProguardSeedsMap.parse(Files.newBufferedReader(mapPath));
 
-    mapPath = Paths.get(AndroidTestBase.getTestDataPath(), "apk/Test3_usage.txt");
+    mapPath = Paths.get(AndroidTestBase.getTestDataPath(), "apk/Test2_usage.txt");
     ProguardUsagesMap usageMap = ProguardUsagesMap.parse(Files.newBufferedReader(mapPath));
 
 
@@ -381,101 +194,60 @@ public class FilteredTreeModelTest {
 
     StringBuffer sb = new StringBuffer(100);
     dumpTree(sb, filteredTreeModel, packageTreeNode, 0);
-    assertEquals("root: 9,14\n" +
-                 "  com: 9,9\n" +
-                 "    example: 9,9\n" +
-                 "      MyAbstractClas: 3,3\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        com.example.MyAbstractClas getInstance(): 1,1\n" +
-                 "        void publicMethod(): 1,1\n" +
-                 "      MyClass: 2,2\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        void method(): 1,1\n" +
-                 "        int publicIntField: 0,0\n" +
-                 "        java.lang.String publicStringField: 0,0\n" +
-                 "        com.example.MyClass anon: 0,0\n" +
-                 "        int privateIntField: 0,0\n" +
-                 "        com.example.MyAbstractClas initializedField: 0,0\n" +
-                 "      MainActivity: 2,2\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        void onCreate(android.os.Bundle): 1,1\n" +
-                 "      MyClass$1: 1,1\n" +
-                 "        void <init>(com.example.MyClass): 1,1\n" +
-                 "        com.example.MyClass this$0: 0,0\n" +
-                 "      MyAbstractClas$1: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "  java: 0,3\n" +
-                 "    io: 0,2\n" +
-                 "      PrintStream: 0,2\n" +
-                 "        void println(int): 0,1\n" +
-                 "        void println(java.lang.String): 0,1\n" +
-                 "    lang: 0,1\n" +
+    assertEquals("root: 6,11\n" +
+                 "  java: 0,4\n" +
+                 "    lang: 0,3\n" +
+                 "      Integer: 0,1\n" +
+                 "        java.lang.Integer valueOf(int): 0,1\n" +
                  "      Object: 0,1\n" +
                  "        void <init>(): 0,1\n" +
-                 "      System: 0,0\n" +
-                 "        java.io.PrintStream out: 0,0\n" +
-                 "  android: 0,2\n" +
-                 "    app: 0,2\n" +
-                 "      Activity: 0,2\n" +
-                 "        void <init>(): 0,1\n" +
-                 "        void onCreate(android.os.Bundle): 0,1\n", sb.toString());
+                 "      Boolean: 0,1\n" +
+                 "        java.lang.Boolean valueOf(boolean): 0,1\n" +
+                 "    util: 0,1\n" +
+                 "      Collections: 0,1\n" +
+                 "        java.util.List emptyList(): 0,1\n" +
+                 "  Test2: 3,3\n" +
+                 "    void <init>(): 1,1\n" +
+                 "    java.lang.Integer get(): 1,1\n" +
+                 "    java.util.List getList(): 1,1\n" +
+                 "    AnotherClass aClassField: 0,0\n" +
+                 "    int aField: 0,0\n" +
+                 "  TestSubclass: 2,3\n" +
+                 "    void <init>(): 1,1\n" +
+                 "    java.util.List getAnotherList(): 1,1\n" +
+                 "    java.util.List getList(): 0,1\n" +
+                 "  AnotherClass: 1,1\n" +
+                 "    void <init>(): 1,1\n", sb.toString());
 
     options.setShowRemovedNodes(true);
     sb.setLength(0);
     dumpTree(sb, filteredTreeModel, packageTreeNode, 0);
-    assertEquals("root: 9,14\n" +
-                 "  com: 9,9\n" +
-                 "    example: 9,9\n" +
-                 "      MyAbstractClas: 3,3\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        com.example.MyAbstractClas getInstance(): 1,1\n" +
-                 "        void publicMethod(): 1,1\n" +
-                 "        void abstractMethod(int,java.lang.String): 0,0\n" +
-                 "        com.example.MyAbstractClas anotherAbstract(com.example.MyClass): 0,0\n" +
-                 "        void privateMethod(): 0,0\n" +
-                 "      MyClass: 2,2\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        void method(): 1,1\n" +
-                 "        int publicIntField: 0,0\n" +
-                 "        java.lang.String publicStringField: 0,0\n" +
-                 "        com.example.MyClass anon: 0,0\n" +
-                 "        int privateIntField: 0,0\n" +
-                 "        com.example.MyAbstractClas initializedField: 0,0\n" +
-                 "        privateString: 0,0\n" +
-                 "      MainActivity: 2,2\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        void onCreate(android.os.Bundle): 1,1\n" +
-                 "      MyClass$1: 1,1\n" +
-                 "        void <init>(com.example.MyClass): 1,1\n" +
-                 "        com.example.MyClass this$0: 0,0\n" +
-                 "      MyAbstractClas$1: 1,1\n" +
-                 "        void <init>(): 1,1\n" +
-                 "        void abstractMethod(int,java.lang.String): 0,0\n" +
-                 "        com.example.MyAbstractClas anotherAbstract(com.example.MyClass): 0,0\n" +
-                 "      MyClass$NonStaticInnerClass: 0,0\n" +
-                 "      R$color: 0,0\n" +
-                 "      R$mipmap: 0,0\n" +
-                 "      BuildConfig: 0,0\n" +
-                 "      R$attr: 0,0\n" +
-                 "      R$string: 0,0\n" +
-                 "      MyClass$StaticClass: 0,0\n" +
-                 "      R: 0,0\n" +
-                 "      MyClass$StaticClass$InnerClass: 0,0\n" +
-                 "  java: 0,3\n" +
-                 "    io: 0,2\n" +
-                 "      PrintStream: 0,2\n" +
-                 "        void println(int): 0,1\n" +
-                 "        void println(java.lang.String): 0,1\n" +
-                 "    lang: 0,1\n" +
+    assertEquals("root: 6,11\n" +
+                 "  java: 0,4\n" +
+                 "    lang: 0,3\n" +
+                 "      Integer: 0,1\n" +
+                 "        java.lang.Integer valueOf(int): 0,1\n" +
                  "      Object: 0,1\n" +
                  "        void <init>(): 0,1\n" +
-                 "      System: 0,0\n" +
-                 "        java.io.PrintStream out: 0,0\n" +
-                 "  android: 0,2\n" +
-                 "    app: 0,2\n" +
-                 "      Activity: 0,2\n" +
-                 "        void <init>(): 0,1\n" +
-                 "        void onCreate(android.os.Bundle): 0,1\n", sb.toString());
+                 "      Boolean: 0,1\n" +
+                 "        java.lang.Boolean valueOf(boolean): 0,1\n" +
+                 "    util: 0,1\n" +
+                 "      Collections: 0,1\n" +
+                 "        java.util.List emptyList(): 0,1\n" +
+                 "  Test2: 3,3\n" +
+                 "    void <init>(): 1,1\n" +
+                 "    java.lang.Integer get(): 1,1\n" +
+                 "    java.util.List getList(): 1,1\n" +
+                 "    AnotherClass aClassField: 0,0\n" +
+                 "    int aField: 0,0\n" +
+                 "  TestSubclass: 2,3\n" +
+                 "    void <init>(): 1,1\n" +
+                 "    java.util.List getAnotherList(): 1,1\n" +
+                 "    java.util.List getList(): 0,1\n" +
+                 "  AnotherClass: 1,1\n" +
+                 "    void <init>(): 1,1\n" +
+                 "    AnotherClass(int,TestSubclass): 0,0\n" +
+                 "  RemovedSubclass: 0,0\n", sb.toString());
   }
 
 
