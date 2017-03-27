@@ -60,7 +60,7 @@ public class GradleAndroidProjectPaths implements AndroidProjectPaths {
   @Nullable private File mySrcRoot;
   @Nullable private File myTestRoot;
   @Nullable private File myResDirectory;
-  @Nullable private File myAidlDirectory;
+  @Nullable private File myAidlRoot;
   @Nullable private File myManifestDirectory;
 
   @Override
@@ -98,8 +98,8 @@ public class GradleAndroidProjectPaths implements AndroidProjectPaths {
 
   @Override
   @Nullable
-  public File getAidlDirectory() {
-    return myAidlDirectory;
+  public File getAidlDirectory(@Nullable String packageName) {
+    return appendPackageToRoot(myAidlRoot, packageName);
   }
 
   @Override
@@ -125,7 +125,7 @@ public class GradleAndroidProjectPaths implements AndroidProjectPaths {
     paths.mySrcRoot = new File(baseFlavourDir, FD_JAVA);
     paths.myTestRoot = Paths.get(baseSrcDir.getPath(), FD_TEST, FD_JAVA).toFile();
     paths.myResDirectory = new File(baseFlavourDir, FD_RESOURCES);
-    paths.myAidlDirectory = new File(baseFlavourDir, FD_AIDL);
+    paths.myAidlRoot = new File(baseFlavourDir, FD_AIDL);
     paths.myManifestDirectory = baseFlavourDir;
     return new AndroidSourceSet("main", paths);
   }
@@ -166,7 +166,7 @@ public class GradleAndroidProjectPaths implements AndroidProjectPaths {
         paths.myTestRoot = VfsUtilCore.virtualToIoFile(testsRoot.get(0));
       }
       paths.myResDirectory = Iterables.getFirst(sourceProvider.getResDirectories(), null);
-      paths.myAidlDirectory = Iterables.getFirst(sourceProvider.getAidlDirectories(), null);
+      paths.myAidlRoot = Iterables.getFirst(sourceProvider.getAidlDirectories(), null);
       paths.myManifestDirectory = sourceProvider.getManifestFile().getParentFile();
       sourceSets.add(new AndroidSourceSet(sourceProvider.getName(), paths));
     }
