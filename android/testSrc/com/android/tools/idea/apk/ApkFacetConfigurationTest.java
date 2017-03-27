@@ -22,6 +22,7 @@ import org.junit.Test;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -114,5 +115,22 @@ public class ApkFacetConfigurationTest {
     myConfiguration.removeIssues("category1");
 
     assertThat(myConfiguration.SETUP_ISSUES).containsExactly(issue3);
+  }
+
+  @Test
+  public void getSymbolFolderPathMappings() {
+    NativeLibrary library1 = new NativeLibrary("x.c");
+    library1.pathMappings.put("a1.so", "b1.so");
+
+    NativeLibrary library2 = new NativeLibrary("x.c");
+    library2.pathMappings.put("a2.so", "b2.so");
+
+    myConfiguration.NATIVE_LIBRARIES.add(library1);
+    myConfiguration.NATIVE_LIBRARIES.add(library2);
+
+    Map<String, String> mappings = myConfiguration.getSymbolFolderPathMappings();
+    assertThat(mappings).hasSize(2);
+    assertThat(mappings).containsEntry("a1.so", "b1.so");
+    assertThat(mappings).containsEntry("a2.so", "b2.so");
   }
 }
