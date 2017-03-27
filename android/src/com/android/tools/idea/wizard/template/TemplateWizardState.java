@@ -152,12 +152,6 @@ public class TemplateWizardState implements Function<String, Object> {
       put(ATTR_RES_OUT, FileUtil.toSystemIndependentName(resourceSourceRoot.getPath()));
     }
 
-    // Set AIDL directory if we don't have one
-    if (!myParameters.containsKey(ATTR_AIDL_OUT) || get(ATTR_AIDL_OUT) == null) {
-      File aidlRoot = new File(mainFlavorSourceRoot, TemplateWizard.AIDL_SOURCE_PATH);
-      put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlRoot.getPath()));
-    }
-
     String javaPackageDir = getString(ATTR_PACKAGE_NAME).replace('.', File.separatorChar);
     // Set Src directory if we don't have one
     if (!myParameters.containsKey(ATTR_SRC_OUT) || myParameters.get(ATTR_SRC_OUT) == null) {
@@ -173,6 +167,13 @@ public class TemplateWizardState implements Function<String, Object> {
         javaSourcePackageRoot = new File(javaSourceRoot, javaPackageDir);
       }
       put(ATTR_SRC_OUT, FileUtil.toSystemIndependentName(javaSourcePackageRoot.getPath()));
+    }
+
+    // Set AIDL directory if we don't have one
+    if (!myParameters.containsKey(ATTR_AIDL_OUT) || get(ATTR_AIDL_OUT) == null) {
+      File aidlRoot = new File(mainFlavorSourceRoot, TemplateWizard.AIDL_SOURCE_PATH);
+      File aidlOut = new File(aidlRoot, javaPackageDir);
+      put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlOut.getPath()));
     }
 
     // Set Manifest directory if we don't have one
