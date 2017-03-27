@@ -155,7 +155,7 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
     }
 
     try {
-      DexClassNode parent = node.getParent();
+      DexClassNode parent = (DexClassNode) node.getParent();
       assert parent != null : "Method node must have a parent class";
       return new DexDisassembler(dex).disassembleMethod(DebuggerUtilsEx.signatureToName(parent.getReference().getType()),
                                                         ReferenceUtil.getMethodDescriptor(desc));
