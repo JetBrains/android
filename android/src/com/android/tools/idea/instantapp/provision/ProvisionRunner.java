@@ -21,8 +21,10 @@ import com.android.sdklib.AndroidVersion;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -68,6 +70,8 @@ class ProvisionRunner {
     myIndicator.setText("Provisioning device " + device.getName());
     myIndicator.setIndeterminate(false);
 
+    checkSignedIn(device);
+
     if (isPostO(device)) {
       // No need to provision the device
       return;
@@ -93,8 +97,6 @@ class ProvisionRunner {
         pack.install(device);
       }
     }
-
-    checkSignedIn(device);
 
     getLogger().info("Device " + device.getName() + " provisioned successfully");
 
@@ -141,6 +143,9 @@ class ProvisionRunner {
     }
 
     getLogger().warn("Device not logged in a Google account");
+    ApplicationManager.getApplication().invokeLater(
+      () -> Messages.showMessageDialog("Device not logged in a Google account", "Instant App Provision", null));
+    throw new ProvisionException("Device not logged in a Google account");
   }
 
   @NotNull

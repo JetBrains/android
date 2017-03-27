@@ -44,7 +44,7 @@ public class ProvisionRunnerTest extends AndroidTestCase {
   }
 
   public void testExceptionWhenCancelled() throws Throwable {
-    IDevice device = new ProvisionPackageTests.DeviceGenerator().setApiLevel(23).getDevice();
+    IDevice device = new ProvisionPackageTests.DeviceGenerator().setApiLevel(23).setGoogleAccountLogged().getDevice();
     when(indicator.isCanceled()).thenReturn(true);
     assertExceptionInRunProvision(device);
     verify(indicator, times(1)).isCanceled();
