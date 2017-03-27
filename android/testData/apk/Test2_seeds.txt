@@ -1,0 +1,9 @@
+Test2
+Test2: int aField
+Test2: AnotherClass aClassField
+Test2: Test2()
+Test2: java.lang.Integer get()
+Test2: java.util.List getList()
+TestSubclass
+TestSubclass: TestSubclass()
+TestSubclass: java.util.List getAnotherList()
