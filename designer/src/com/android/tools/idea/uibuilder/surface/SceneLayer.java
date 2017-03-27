@@ -36,6 +36,7 @@ public class SceneLayer extends Layer {
   private final Display myDisplay = new Display();
   private boolean myShowOnHover = false;
   private boolean myShowAlways = true;
+  private boolean myAlwaysShowSelection;
 
   /**
    * Default constructor
@@ -55,9 +56,11 @@ public class SceneLayer extends Layer {
    */
   @Override
   public void paint(@NotNull Graphics2D g2) {
-    if (!myShowOnHover && !myShowAlways) {
+    SceneContext sceneContext = SceneContext.get(myScreenView);
+    if (!myShowOnHover && !myShowAlways && !myAlwaysShowSelection) {
       return;
     }
+    sceneContext.setShowOnlySelection(!myShowOnHover && myAlwaysShowSelection);
     Graphics2D g = (Graphics2D)g2.create();
     try {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -75,7 +78,7 @@ public class SceneLayer extends Layer {
       }
 
       // Draw the components
-      myDisplay.draw(SceneContext.get(myScreenView), g, myScreenView.getScene());
+      myDisplay.draw(sceneContext, g, myScreenView.getScene());
     }
     finally {
       g.dispose();
@@ -104,5 +107,9 @@ public class SceneLayer extends Layer {
       setShowOnHover(show);
       myDesignSurface.repaint();
     }
+  }
+
+  public void setAlwaysShowSelection(boolean alwaysShowSelection) {
+    myAlwaysShowSelection = alwaysShowSelection;
   }
 }
