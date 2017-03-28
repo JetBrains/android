@@ -44,6 +44,7 @@ public class ToolsAttributeUtil {
     new ResourceReferenceConverter(EnumSet.of(ResourceType.LAYOUT));
   private static final ResolvingConverter ACTIVITY_CLASS_CONVERTER = new PackageClassConverter(true, false, AndroidUtils.ACTIVITY_BASE_CLASS_NAME);
   private static final ResolvingConverter VIEW_CONVERTER = new ViewClassConverter();
+  private static final ResolvingConverter VIEW_GROUP_CONVERTER = new ViewGroupClassConverter();
 
   private static final List<AttributeFormat> NO_FORMATS = Collections.emptyList();
 
@@ -99,6 +100,7 @@ public class ToolsAttributeUtil {
     .put(ATTR_TARGET_API, new TargetApiConverter())
     .put(ATTR_SHRINK_MODE, new StaticEnumConverter(VALUE_STRICT, VALUE_SAFE))
     .put(ATTR_USE_HANDLER, VIEW_CONVERTER)
+    .put(ATTR_PARENT_TAG, VIEW_GROUP_CONVERTER)
     .build();
 
   /**
