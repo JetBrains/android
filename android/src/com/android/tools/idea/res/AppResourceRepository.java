@@ -24,6 +24,7 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
 import com.android.ide.common.resources.IntArrayWrapper;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.util.Pair;
 import com.google.common.collect.HashMultimap;
@@ -197,6 +198,9 @@ public class AppResourceRepository extends MultiResourceRepository {
       GradleVersion modelVersion = androidModuleModel.getModelVersion();
       assert modelVersion != null;
       return findAarLibrariesFromGradle(modelVersion, dependentFacets, libraries);
+    }
+    if (GradleProjectInfo.getInstance(facet.getModule().getProject()).isBuildWithGradle()) {
+      LOG.error(new RuntimeException("Resources not ready to load"));
     }
     return findAarLibrariesFromIntelliJ(facet, dependentFacets);
   }
