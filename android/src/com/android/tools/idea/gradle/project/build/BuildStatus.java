@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.build;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-public interface GradleBuildListener {
-  void buildStarted(@NotNull BuildContext context);
-
-  void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context);
-
-  abstract class Adapter implements GradleBuildListener {
-    @Override
-    public void buildStarted(@NotNull BuildContext context) {
-    }
-
-    @Override
-    public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
-    }
-  }
+public enum BuildStatus {
+  SKIPPED, SUCCESS, FAILED, CANCELED
 }
