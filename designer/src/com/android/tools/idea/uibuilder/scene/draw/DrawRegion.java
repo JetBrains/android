@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.draw;
 
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,7 +52,7 @@ public class DrawRegion extends Rectangle implements DrawCommand {
     return c;
   }
 
-  public DrawRegion(int x, int y, int width, int height) {
+  public DrawRegion(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height) {
     super(x, y, width, height);
   }
 

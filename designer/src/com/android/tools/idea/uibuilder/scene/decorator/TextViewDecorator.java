@@ -20,7 +20,9 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -38,12 +40,12 @@ public class TextViewDecorator extends SceneDecorator {
   private static final String DEFAULT_DIM = "14sp";
   @Override
   public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
-    Rectangle rect = new Rectangle();
+    @AndroidDpCoordinate Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
-    int l = sceneContext.getSwingX(rect.x);
-    int t = sceneContext.getSwingY(rect.y);
-    int w = sceneContext.getSwingDimension(rect.width);
-    int h = sceneContext.getSwingDimension(rect.height);
+    @SwingCoordinate int l = sceneContext.getSwingX(rect.x);
+    @SwingCoordinate int t = sceneContext.getSwingY(rect.y);
+    @SwingCoordinate int w = sceneContext.getSwingDimension(rect.width);
+    @SwingCoordinate int h = sceneContext.getSwingDimension(rect.height);
     String text = ConstraintUtilities.getResolvedText(component.getNlComponent());
     NlComponent nlc = component.getNlComponent();
 

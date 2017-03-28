@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawRegion;
@@ -44,16 +46,21 @@ public class DrawAnchor extends DrawRegion {
     myIsConnected = Boolean.parseBoolean(sp[c++]);
   }
 
-  public DrawAnchor(int x, int y, int width, int height, int type, boolean isConnected, int mode) {
+  public DrawAnchor(@SwingCoordinate int x,
+                    @SwingCoordinate int y,
+                    @SwingCoordinate int width,
+                    @SwingCoordinate int height,
+                    int type,
+                    boolean isConnected,
+                    int mode) {
     super(x, y, width, height);
     myMode = mode;
     myIsConnected = isConnected;
     myType = type;
   }
 
-  private int getPulseAlpha(int deltaT) {
-    int v = (int)Animation.EaseInOutinterpolator((deltaT % 1000) / 1000.0, 0, 255);
-    return v;
+  private static int getPulseAlpha(int deltaT) {
+    return (int)Animation.EaseInOutinterpolator((deltaT % 1000) / 1000.0, 0, 255);
   }
 
   @Override
@@ -153,17 +160,17 @@ public class DrawAnchor extends DrawRegion {
 
   public static void add(@NotNull DisplayList list,
                          @NotNull SceneContext transform,
-                         float left,
-                         float top,
-                         float right,
-                         float bottom,
+                         @AndroidDpCoordinate float left,
+                         @AndroidDpCoordinate float top,
+                         @AndroidDpCoordinate float right,
+                         @AndroidDpCoordinate float bottom,
                          int type,
                          boolean isConnected,
                          int mode) {
-    int l = transform.getSwingX(left);
-    int t = transform.getSwingY(top);
-    int w = transform.getSwingDimension(right - left);
-    int h = transform.getSwingDimension(bottom - top);
+    @SwingCoordinate int l = transform.getSwingX(left);
+    @SwingCoordinate int t = transform.getSwingY(top);
+    @SwingCoordinate int w = transform.getSwingDimension(right - left);
+    @SwingCoordinate int h = transform.getSwingDimension(bottom - top);
     list.add(new DrawAnchor(l, t, w, h, type, isConnected, mode));
   }
 }

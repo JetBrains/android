@@ -582,10 +582,8 @@ public class SceneComponent {
    * @param rectangle
    * @return true if intersecting with the rectangle
    */
-  public boolean intersects(Rectangle rectangle) {
-    Rectangle bounds = new Rectangle();
-    fillRect(bounds);
-    return rectangle.intersects(bounds);
+  public boolean intersects(@AndroidDpCoordinate Rectangle rectangle) {
+    return rectangle.intersects(fillRect(null));
   }
 
   //endregion
@@ -710,7 +708,7 @@ public class SceneComponent {
   //endregion
   /////////////////////////////////////////////////////////////////////////////
 
-  public void fillDrawRect(long time, Rectangle rec) {
+  public void fillDrawRect(long time, @AndroidDpCoordinate Rectangle rec) {
     rec.x = getDrawX(time);
     rec.y = getDrawY(time);
     rec.width = getDrawWidth(time);

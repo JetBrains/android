@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
 import com.android.tools.idea.uibuilder.handlers.absolute.AbsoluteResizeTarget;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +32,7 @@ public class LinearResizeTarget extends AbsoluteResizeTarget {
   }
 
   @Override
-  protected void updateAttributes(@NotNull AttributesTransaction attributes, int x, int y) {
+  protected void updateAttributes(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
 
     Type t = getType();
     if (TOP == t || LEFT_TOP == t || RIGHT_TOP == t) {
