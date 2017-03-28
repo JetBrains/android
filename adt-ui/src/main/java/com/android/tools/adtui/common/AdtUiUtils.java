@@ -15,6 +15,8 @@
  */
 package com.android.tools.adtui.common;
 
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.AppUIUtil;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
@@ -23,6 +25,9 @@ import com.intellij.util.ui.JBUI;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 
 import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
 
@@ -34,7 +39,11 @@ public final class AdtUiUtils {
   /**
    * Default font to be used in the profiler UI.
    */
-  public static final JBFont DEFAULT_FONT = JBFont.create(new Font(null, Font.PLAIN, 10));
+  /**
+   * Default font to be used in the profiler UI.
+   */
+  public static final JBFont ROBOTO_FONT_10 = load("/fonts/Roboto-Regular.ttf", 10f);
+  public static final JBFont DEFAULT_FONT = ROBOTO_FONT_10;
 
   /**
    * Default font color of charts, and component labels.
@@ -49,6 +58,16 @@ public final class AdtUiUtils {
     new GridBagConstraints(0, 0, 1, 1, 1, 1, GridBagConstraints.BASELINE, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
 
   private AdtUiUtils() {
+  }
+
+  private static JBFont load(String fontPath, float size) {
+    try (InputStream stream = AppUIUtil.class.getResource(fontPath).openStream()) {
+      return JBFont.create(Font.createFont(Font.TRUETYPE_FONT, stream).deriveFont(size));
+    } catch (FontFormatException | IOException ex) {
+      Logger.getInstance(AppUIUtil.class).warn("Cannot load font: " + fontPath, ex);
+    }
+
+    return JBFont.create(new Font(null, Font.PLAIN, (int)size));
   }
 
   /**
