@@ -122,6 +122,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     new StructureSpeedSearch(this);
     enableDnD();
     addMouseListener(new StructurePaneMouseListener());
+    addMouseListener(myBadgeHandler.getBadgeMouseAdapter());
+    addMouseMotionListener(myBadgeHandler.getBadgeMouseAdapter());
 
     ComponentHelpAction help = new ComponentHelpAction(project, () -> {
       List<NlComponent> components = getSelectedComponents();
@@ -210,7 +212,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private void updateHierarchy() {
     clearInsertionPoint();
     ApplicationManager.getApplication().assertIsDispatchThread();
-    setPaintBusy(true);
     myUpdateQueue.queue(new Update("updateComponentStructure") {
       @Override
       public void run() {
@@ -227,7 +228,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
           invalidateUI();
         }
         finally {
-          setPaintBusy(false);
           mySelectionIsUpdating.set(false);
         }
 
@@ -320,8 +320,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   @Override
-  public void paint(Graphics g) {
-    super.paint(g);
+  public void paintComponent(Graphics g) {
+    super.paintComponent(g);
     if (myInsertAfterRow >= 0) {
       paintInsertionPoint((Graphics2D)g);
     }
@@ -532,7 +532,9 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         return;
       }
       try {
-        myModel.getSelectionModel().setSelection(getSelectedComponents());
+        if (myModel != null) {
+          myModel.getSelectionModel().setSelection(getSelectedComponents());
+        }
       }
       finally {
         mySelectionIsUpdating.set(false);
@@ -573,7 +575,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   public boolean isCopyEnabled(@NotNull DataContext dataContext) {
-    return !myModel.getSelectionModel().isEmpty();
+    return myModel != null && !myModel.getSelectionModel().isEmpty();
   }
 
   @Override
@@ -583,7 +585,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   public void performCopy(@NotNull DataContext dataContext) {
-    if (myModel.getSelectionModel().isEmpty()) {
+    if (myModel == null || myModel.getSelectionModel().isEmpty()) {
       return;
     }
     myCopyPasteManager.setContents(myModel.getSelectionAsTransferable());
@@ -593,7 +595,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   public boolean isCutEnabled(@NotNull DataContext dataContext) {
-    return !myModel.getSelectionModel().isEmpty();
+    return myModel == null || !myModel.getSelectionModel().isEmpty();
   }
 
   @Override
@@ -637,7 +639,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   @Override
   public void performPaste(@NotNull DataContext dataContext) {
     InsertSpecification spec = getInsertSpecification();
-    if (spec == null) {
+    if (spec == null || myModel == null) {
       return;
     }
     Transferable transferable = myCopyPasteManager.getContents();
@@ -665,6 +667,9 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Nullable
   private InsertSpecification getInsertSpecification() {
+    if (myModel == null) {
+      return null;
+    }
     int selectionCount = myModel.getSelectionModel().getSelection().size();
     if (selectionCount > 1) {
       return null;
