@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.icon;
 
-import com.android.assetstudiolib.GraphicGenerator;
+import com.android.assetstudiolib.*;
 import com.android.tools.idea.npw.assetstudio.AssetStudioGraphicGeneratorContext;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
@@ -71,6 +71,19 @@ public abstract class AndroidIconGenerator {
     return myName;
   }
 
+
+  @NotNull
+  public IconGeneratorResult generateIcons() {
+    if (!mySourceAsset.get().isPresent()) {
+      throw new IllegalStateException("Can't generate icons without a source asset set first");
+    }
+
+    AssetStudioGraphicGeneratorContext context = new AssetStudioGraphicGeneratorContext();
+    GraphicGenerator graphicGenerator = createGenerator();
+    GraphicGenerator.Options options = createOptions(mySourceAsset.getValue());
+    return new IconGeneratorResult(graphicGenerator.generateIcons(context, options, myName.get()), options);
+  }
+
   /**
    * Generate icons into a map in memory. This is useful for generating previews.
    *
@@ -115,6 +128,35 @@ public abstract class AndroidIconGenerator {
   }
 
   /**
+   * Like {@link #generateIntoMemory()} but returned in a format where it's easy to see which files
+   * will be created / overwritten if {@link #generateImageIconsIntoPath(AndroidProjectPaths)} is called.
+   *
+   * {@link #sourceAsset()} and {@link #name()} must both be set prior to calling this method or
+   * an exception will be thrown.
+   */
+  @NotNull
+  public final Map<File, GeneratedIcon> generateIntoIconMap(@NotNull AndroidProjectPaths paths) {
+    if (myName.get().isEmpty()) {
+      throw new IllegalStateException("Can't save icons to disk if a filename isn't set first");
+    }
+
+    File resDirectory = paths.getResDirectory();
+    if (resDirectory == null || resDirectory.getParentFile() == null) {
+      throw new IllegalArgumentException("Invalid paths used when trying to generate an icon");
+    }
+
+    IconGeneratorResult icons = generateIcons();
+    Map<File, GeneratedIcon> outputMap = Maps.newHashMap();
+    icons.getIcons().getList().forEach(icon -> {
+      if (icon.getOutputPath() != null && icon.getCategory() != IconCategory.PREVIEW) {
+        File path = new File(resDirectory.getParentFile(), icon.getOutputPath().toString());
+        outputMap.put(path, icon);
+      }
+    });
+    return outputMap;
+  }
+
+  /**
    * Generate png icons into the target path.
    *
    * {@link #sourceAsset()} and {@link #name()} must both be set prior to calling this method or
@@ -124,14 +166,27 @@ public abstract class AndroidIconGenerator {
    */
   public final void generateImageIconsIntoPath(@NotNull AndroidProjectPaths paths) {
     ApplicationManager.getApplication().assertWriteAccessAllowed();
-    Map<File, BufferedImage> pathIconMap = generateIntoFileMap(paths);
+    Map<File, GeneratedIcon> pathIconMap = generateIntoIconMap(paths);
 
-    for (Map.Entry<File, BufferedImage> fileImageEntry : pathIconMap.entrySet()) {
+    for (Map.Entry<File, GeneratedIcon> fileImageEntry : pathIconMap.entrySet()) {
       File file = fileImageEntry.getKey();
-      BufferedImage image = fileImageEntry.getValue();
+      GeneratedIcon icon = fileImageEntry.getValue();
 
-      if (FileUtilRt.extensionEquals(file.getName(), "png")) {
-        writePngToDisk(file, image);
+      if (icon instanceof GeneratedImageIcon) {
+        if (FileUtilRt.extensionEquals(file.getName(), "png")) {
+          writePngToDisk(file, ((GeneratedImageIcon)icon).getImage());
+        }
+        else {
+          getLog().error("Please report this error. Unable to create icon for invalid file: " + file.getAbsolutePath());
+        }
+      }
+      else if (icon instanceof GeneratedXmlResource) {
+        if (FileUtilRt.extensionEquals(file.getName(), "xml")) {
+          writeTextToDisk(file, ((GeneratedXmlResource)icon).getXmlText());
+        }
+        else {
+          getLog().error("Please report this error. Unable to create icon for invalid file: " + file.getAbsolutePath());
+        }
       }
       else {
         getLog().error("Please report this error. Unable to create icon for invalid file: " + file.getAbsolutePath());
@@ -160,12 +215,25 @@ public abstract class AndroidIconGenerator {
       if (imageFile == null || !imageFile.exists()) {
         imageFile = directory.createChildData(this, file.getName());
       }
-      OutputStream outputStream = imageFile.getOutputStream(this);
-      try {
+      try (OutputStream outputStream = imageFile.getOutputStream(this)) {
         ImageIO.write(image, "PNG", outputStream);
       }
-      finally {
-        outputStream.close();
+    }
+    catch (IOException e) {
+      getLog().error(e);
+    }
+  }
+
+  private void writeTextToDisk(@NotNull File file, @NotNull String text) {
+    try {
+      VirtualFile directory = VfsUtil.createDirectories(file.getParentFile().getAbsolutePath());
+      VirtualFile imageFile = directory.findChild(file.getName());
+      if (imageFile == null || !imageFile.exists()) {
+        imageFile = directory.createChildData(this, file.getName());
+      }
+      try (OutputStream outputStream = imageFile.getOutputStream(this)) {
+        byte[] bytes = text.getBytes("UTF8");
+        outputStream.write(bytes);
       }
     }
     catch (IOException e) {

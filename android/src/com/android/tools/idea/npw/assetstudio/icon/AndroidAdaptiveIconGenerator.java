@@ -17,12 +17,10 @@ package com.android.tools.idea.npw.assetstudio.icon;
 
 import com.android.assetstudiolib.AdaptiveIconGenerator;
 import com.android.assetstudiolib.GraphicGenerator;
-import com.android.assetstudiolib.LauncherIconGenerator;
+import com.android.resources.Density;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
-import com.android.tools.idea.ui.properties.core.BoolProperty;
-import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.core.ObjectProperty;
-import com.android.tools.idea.ui.properties.core.ObjectValueProperty;
+import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
+import com.android.tools.idea.ui.properties.core.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -38,9 +36,15 @@ public final class AndroidAdaptiveIconGenerator extends AndroidIconGenerator {
   private final BoolProperty myUseForegroundColor = new BoolValueProperty(true);
   private final ObjectProperty<Color> myForegroundColor = new ObjectValueProperty<>(Color.BLACK);
   private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(Color.WHITE);
-  private final BoolProperty myCropped = new BoolValueProperty();
-  private final ObjectProperty<GraphicGenerator.Shape> myShape = new ObjectValueProperty<>(GraphicGenerator.Shape.SQUARE);
-  private final BoolProperty myDogEared = new BoolValueProperty();
+  private final BoolProperty myForegroundCropped = new BoolValueProperty();
+  private final BoolProperty myBackgroundCropped = new BoolValueProperty();
+  private final ObjectProperty<GraphicGenerator.Shape> myLegacyShape = new ObjectValueProperty<>(GraphicGenerator.Shape.SQUARE);
+  private final BoolProperty myShowGrid = new BoolValueProperty();
+  private final BoolProperty myShowSafeZone = new BoolValueProperty(true);
+  private final ObjectValueProperty<Density> myPreviewDensity = new ObjectValueProperty<>(Density.XHIGH);
+  private final OptionalProperty<ImageAsset> myBackgroundImageAsset = new OptionalValueProperty<>();
+  private final StringProperty myForegroundLayerName = new StringValueProperty();
+  private final StringProperty myBackgroundLayerName = new StringValueProperty();
 
   public AndroidAdaptiveIconGenerator(int minSdkVersion) {
     super(minSdkVersion);
@@ -76,25 +80,55 @@ public final class AndroidAdaptiveIconGenerator extends AndroidIconGenerator {
    * be cropped. Otherwise, the source asset will be shrunk to fit.
    */
   @NotNull
-  public BoolProperty cropped() {
-    return myCropped;
+  public BoolProperty foregroundCropped() {
+    return myForegroundCropped;
   }
 
   /**
-   * A shape which will be used as the icon's backdrop.
+   * If {@code true}, any extra part of the source asset that doesn't fit on the final icon will
+   * be cropped. Otherwise, the source asset will be shrunk to fit.
    */
   @NotNull
-  public ObjectProperty<GraphicGenerator.Shape> shape() {
-    return myShape;
+  public BoolProperty backgroundCropped() {
+    return myBackgroundCropped;
   }
 
   /**
-   * If true and the backdrop shape supports it, add a fold to the top-right corner of the
-   * backdrop shape.
+   * A shape which will be used as the legacy icon's backdrop.
    */
   @NotNull
-  public BoolProperty dogEared() {
-    return myDogEared;
+  public ObjectProperty<GraphicGenerator.Shape> legacyShape() {
+    return myLegacyShape;
+  }
+
+  @NotNull
+  public OptionalProperty<ImageAsset> backgroundImageAsset() {
+    return myBackgroundImageAsset;
+  }
+
+  @NotNull
+  public BoolProperty showGrid() {
+    return myShowGrid;
+  }
+
+  @NotNull
+  public BoolProperty showSafeZone() {
+    return myShowSafeZone;
+  }
+
+  @NotNull
+  public ObjectValueProperty<Density> previewDensity() {
+    return myPreviewDensity;
+  }
+
+  @NotNull
+  public StringProperty foregroundLayerName() {
+    return myForegroundLayerName;
+  }
+
+  @NotNull
+  public StringProperty backgroundLayerName() {
+    return myBackgroundLayerName;
   }
 
   @NotNull
@@ -106,15 +140,24 @@ public final class AndroidAdaptiveIconGenerator extends AndroidIconGenerator {
   @NotNull
   @Override
   protected GraphicGenerator.Options createOptions(@NotNull Class<? extends BaseAsset> assetType) {
-    AdaptiveIconGenerator.LauncherOptions launcherOptions = new AdaptiveIconGenerator.LauncherOptions();
-    launcherOptions.shape = myShape.get();
-    launcherOptions.crop = myCropped.get();
-    launcherOptions.style = GraphicGenerator.Style.SIMPLE;
+    AdaptiveIconGenerator.AdaptiveIconOptions launcherOptions = new AdaptiveIconGenerator.AdaptiveIconOptions();
+    launcherOptions.legacyShape = myLegacyShape.get();
+    launcherOptions.cropForeground = myForegroundCropped.get();
+    launcherOptions.cropBackground = myBackgroundCropped.get();
     launcherOptions.useForegroundColor = myUseForegroundColor.get();
     launcherOptions.foregroundColor = myForegroundColor.get().getRGB();
+    if (myBackgroundImageAsset.getValueOrNull() == null) {
+      launcherOptions.backgroundImage = null;
+    } else {
+      launcherOptions.backgroundImage = myBackgroundImageAsset.getValueOrNull().toImage();
+    }
     launcherOptions.backgroundColor = myBackgroundColor.get().getRGB();
     launcherOptions.isWebGraphic = true;
-    launcherOptions.isDogEar = myDogEared.get();
+    launcherOptions.showGrid = myShowGrid.get();
+    launcherOptions.showSafeZone = myShowSafeZone.get();
+    launcherOptions.previewDensity = myPreviewDensity.get();
+    launcherOptions.foregroundLayerName = myForegroundLayerName.get();
+    launcherOptions.backgroundLayerName = myBackgroundLayerName.get();
 
     return launcherOptions;
   }
