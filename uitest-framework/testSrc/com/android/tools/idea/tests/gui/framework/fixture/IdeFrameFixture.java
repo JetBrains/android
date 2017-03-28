@@ -524,6 +524,13 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return this;
   }
 
+  @NotNull
+  public IdeFrameFixture waitForGradleImportProjectSync() {
+    Wait.seconds(30).expecting("Project Import Sync to finish")
+      .until(() -> !GradleSyncState.getInstance(getProject()).isSyncInProgress());
+    return this;
+  }
+
   private void waitForGradleProjectSyncToFinish(@NotNull Wait waitForSync, boolean expectSyncFailure) {
     Project project = getProject();
 
