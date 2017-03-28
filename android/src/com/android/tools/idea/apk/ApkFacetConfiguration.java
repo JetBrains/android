@@ -38,6 +38,7 @@ import static com.android.tools.idea.gradle.util.FilePaths.computeRootPathsForFi
 
 public class ApkFacetConfiguration implements FacetConfiguration {
   @NonNls public String APK_PATH;
+  @NonNls public String APP_PACKAGE;
   @NotNull public List<SetupIssue> SETUP_ISSUES = new ArrayList<>();
   @NotNull public List<NativeLibrary> NATIVE_LIBRARIES = new ArrayList<>();
 
