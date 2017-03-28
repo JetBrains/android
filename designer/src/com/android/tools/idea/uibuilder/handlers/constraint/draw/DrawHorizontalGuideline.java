@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawRegion;
@@ -27,14 +29,14 @@ import java.awt.*;
  */
 public class DrawHorizontalGuideline extends DrawRegion {
 
-  private final static int GAP = 40;
+  @SwingCoordinate private final static int GAP = 40;
 
   private int myBegin;
   private int myEnd;
   private float myPercent;
-  private int myOriginX;
-  private int myOriginY;
-  private int myOriginHeight;
+  @SwingCoordinate private int myOriginX;
+  @SwingCoordinate private int myOriginY;
+  @SwingCoordinate private int myOriginHeight;
   private boolean myIsSelected;
 
   protected Font mFont = new Font("Helvetica", Font.PLAIN, 14);
@@ -42,16 +44,17 @@ public class DrawHorizontalGuideline extends DrawRegion {
   public DrawHorizontalGuideline(String s) {
     super(s);
   }
-  public DrawHorizontalGuideline(int x,
-                                 int y,
-                                 int width,
-                                 int originX,
-                                 int originY,
-                                 int originHeight,
+  public DrawHorizontalGuideline(@SwingCoordinate int x,
+                                 @SwingCoordinate int y,
+                                 @SwingCoordinate int width,
+                                 @SwingCoordinate int originX,
+                                 @SwingCoordinate int originY,
+                                 @SwingCoordinate int originHeight,
                                  int begin,
                                  int end,
                                  float percent,
                                  boolean selected) {
+    //noinspection SuspiciousNameCombination
     super(x, y, width, x);
     myBegin = begin;
     myEnd = end;
@@ -90,13 +93,26 @@ public class DrawHorizontalGuideline extends DrawRegion {
     }
   }
 
-  public static void add(DisplayList list, SceneContext transform, float left, float top, float right) {
+  public static void add(DisplayList list,
+                         SceneContext transform,
+                         @AndroidDpCoordinate float left,
+                         @AndroidDpCoordinate float top,
+                         @AndroidDpCoordinate float right) {
     add(list, transform, left, top, right, -1, -1, -1, -1, -1, 1.0f, false);
   }
 
-  public static void add(DisplayList list, SceneContext transform, float left, float top, float right,
-                         float originX, float originY, float originHeight,
-                         int begin, int end, float percent, boolean selected) {
+  public static void add(DisplayList list,
+                         SceneContext transform,
+                         @AndroidDpCoordinate float left,
+                         @AndroidDpCoordinate float top,
+                         @AndroidDpCoordinate float right,
+                         @AndroidDpCoordinate float originX,
+                         @AndroidDpCoordinate float originY,
+                         @AndroidDpCoordinate float originHeight,
+                         int begin,
+                         int end,
+                         float percent,
+                         boolean selected) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
     int w = transform.getSwingDimension(right - left);

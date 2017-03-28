@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.decorator;
 
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -98,7 +99,7 @@ public class ImageViewDecorator extends SceneDecorator {
       return COMPONENT_LEVEL;
     }
 
-    DrawImageView(int x, int y, int width, int height) {
+    DrawImageView(@SwingCoordinate int x, @SwingCoordinate int y, @SwingCoordinate int width, @SwingCoordinate int height) {
       super(x, y, width, height);
     }
 
