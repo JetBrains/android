@@ -32,25 +32,30 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class LintAnnotationsModel {
-  /** A map from a component to a list of issues for that component. */
-  private ListMultimap<NlComponent, IssueData> myIssues;
+  /**
+   * A map from a component to a list of issues for that component.
+   */
+  @Nullable private ListMultimap<NlComponent, IssueData> myIssues;
   private List<IssueData> myIssueList;
 
   @NotNull
   public Collection<NlComponent> getComponentsWithIssues() {
-    return myIssues == null ? Collections.<NlComponent>emptyList() : myIssues.keySet();
+    return myIssues == null ? Collections.emptyList() : myIssues.keySet();
   }
 
+  @Nullable
   public Icon getIssueIcon(@NotNull NlComponent component) {
-    return  getIssueIcon(component, true);
+    return getIssueIcon(component, true);
   }
 
   /**
    * Get the icon for the severity level of the issue associated with the
    * given component. If the component has no issue, the returned icon will be null
+   *
    * @param component The component the get the icon for
    * @param smallSize If true, will return an 8x8 icon, otherwise it will return a 16x16
    *                  (or scaled equivalent for HiDpi screen)
@@ -72,7 +77,25 @@ public class LintAnnotationsModel {
            : smallSize ? AndroidIcons.WarningBadge : AllIcons.General.BalloonWarning;
   }
 
+  /**
+   * Convenience method for {@link #getIssueMessage(NlComponent, boolean true)}
+   */
+  @Nullable
   public String getIssueMessage(@NotNull NlComponent component) {
+    return getIssueMessage(component, true);
+  }
+
+  /**
+   * If the provided component has an issue, return the message associated with the highest
+   * severity issue for the component.
+   *
+   * @param component                The component to get the issue from
+   * @param includeStaticDescription If true, the returned String will include the {@link AndroidLintInspectionBase#getStaticDescription()}
+   *                                 associated with this issue
+   * @return The issue message or null if the component has no issue.
+   */
+  @Nullable
+  public String getIssueMessage(@NotNull NlComponent component, boolean includeStaticDescription) {
     if (myIssues == null) {
       return null;
     }
@@ -82,11 +105,14 @@ public class LintAnnotationsModel {
     }
 
     IssueData max = findHighestSeverityIssue(issueData);
-    return max.message + "<br><br>\n" + max.inspection.getStaticDescription();
+    if (includeStaticDescription) {
+      return max.message + "<br><br>\n" + max.inspection.getStaticDescription();
+    }
+    return max.message;
   }
 
   private static IssueData findHighestSeverityIssue(List<IssueData> issueData) {
-    return Collections.max(issueData, (o1, o2) -> o1.level.getSeverity().compareTo(o2.level.getSeverity()));
+    return Collections.max(issueData, Comparator.comparing(o -> o.level.getSeverity()));
   }
 
   public void addIssue(@NotNull NlComponent component,
