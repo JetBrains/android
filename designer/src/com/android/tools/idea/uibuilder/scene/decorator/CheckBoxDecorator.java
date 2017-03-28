@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.scene.decorator;
 
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities; // TODO: remove
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -39,7 +41,13 @@ public class CheckBoxDecorator extends SceneDecorator {
       return COMPONENT_LEVEL;
     }
 
-    DrawCheckbox(int x, int y, int width, int height, int baselineOffset, float scale, String text) {
+    DrawCheckbox(@SwingCoordinate int x,
+                 @SwingCoordinate int y,
+                 @SwingCoordinate int width,
+                 @SwingCoordinate int height,
+                 int baselineOffset,
+                 float scale,
+                 String text) {
       super(x, y, width, height, baselineOffset, text, true, false, DrawTextRegion.TEXT_ALIGNMENT_VIEW_START,
             DrawTextRegion.TEXT_ALIGNMENT_CENTER, 32,scale);
     }
@@ -107,12 +115,12 @@ public class CheckBoxDecorator extends SceneDecorator {
   @Override
   public void addContent(@NotNull DisplayList list, long time, @NotNull SceneContext sceneContext, @NotNull SceneComponent component) {
     super.addContent(list, time, sceneContext, component);
-    Rectangle rect = new Rectangle();
+    @AndroidDpCoordinate Rectangle rect = new Rectangle();
     component.fillDrawRect(time, rect);
-    int l = sceneContext.getSwingX(rect.x);
-    int t = sceneContext.getSwingY(rect.y);
-    int w = sceneContext.getSwingDimension(rect.width);
-    int h = sceneContext.getSwingDimension(rect.height);
+    @SwingCoordinate int l = sceneContext.getSwingX(rect.x);
+    @SwingCoordinate int t = sceneContext.getSwingY(rect.y);
+    @SwingCoordinate int w = sceneContext.getSwingDimension(rect.width);
+    @SwingCoordinate int h = sceneContext.getSwingDimension(rect.height);
     String text = ConstraintUtilities.getResolvedText(component.getNlComponent());
     int baseLineOffset = sceneContext.getSwingDimension(component.getBaseline());
     float scale = (float)sceneContext.getScale();

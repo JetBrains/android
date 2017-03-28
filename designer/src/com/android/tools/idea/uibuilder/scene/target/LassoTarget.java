@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
@@ -31,10 +32,10 @@ import java.util.ArrayList;
 public class LassoTarget extends BaseTarget {
 
   private static final boolean DEBUG_RENDERER = false;
-  private float myOriginX;
-  private float myOriginY;
-  private float myLastX;
-  private float myLastY;
+  @AndroidDpCoordinate private float myOriginX;
+  @AndroidDpCoordinate private float myOriginY;
+  @AndroidDpCoordinate private float myLastX;
+  @AndroidDpCoordinate private float myLastY;
   private boolean myShowRect;
 
   /////////////////////////////////////////////////////////////////////////////
@@ -42,7 +43,11 @@ public class LassoTarget extends BaseTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
+  public boolean layout(@NotNull SceneContext sceneTransform,
+                        @AndroidDpCoordinate int l,
+                        @AndroidDpCoordinate int t,
+                        @AndroidDpCoordinate int r,
+                        @AndroidDpCoordinate int b) {
     myLeft = l;
     myTop = t;
     myRight = r;
@@ -82,7 +87,7 @@ public class LassoTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseDown(int x, int y) {
+  public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myOriginX = x;
     myOriginY = y;
     myLastX = x;
@@ -92,14 +97,14 @@ public class LassoTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseDrag(int x, int y, @Nullable Target closestTarget) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
     myLastX = x;
     myLastY = y;
     myComponent.getScene().needsRebuildList();
   }
 
   @Override
-  public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
     myShowRect = false;
     myComponent.getScene().needsRebuildList();
   }

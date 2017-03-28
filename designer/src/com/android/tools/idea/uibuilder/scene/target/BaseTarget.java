@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.ScenePicker;
@@ -28,10 +29,10 @@ import java.awt.*;
 public abstract class BaseTarget implements Target {
 
   protected SceneComponent myComponent;
-  protected float myLeft = 0;
-  protected float myTop = 0;
-  protected float myRight = 0;
-  protected float myBottom = 0;
+  @AndroidDpCoordinate protected float myLeft = 0;
+  @AndroidDpCoordinate protected float myTop = 0;
+  @AndroidDpCoordinate protected float myRight = 0;
+  @AndroidDpCoordinate protected float myBottom = 0;
   protected boolean mIsOver = false;
 
   /////////////////////////////////////////////////////////////////////////////
@@ -65,11 +66,13 @@ public abstract class BaseTarget implements Target {
   }
 
   @Override
+  @AndroidDpCoordinate
   public float getCenterX() {
     return myLeft + (myRight - myLeft) / 2;
   }
 
   @Override
+  @AndroidDpCoordinate
   public float getCenterY() {
     return myTop + (myBottom - myTop) / 2;
   }

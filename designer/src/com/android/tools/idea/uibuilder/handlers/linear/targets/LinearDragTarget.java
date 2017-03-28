@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -43,12 +44,12 @@ public class LinearDragTarget extends DragBaseTarget {
   }
 
   @Override
-  protected void updateAttributes(@NotNull AttributesTransaction attributes, int x, int y) {
+  protected void updateAttributes(@NotNull AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     //Do nothing
   }
 
   @Override
-  public void mouseDown(int x, int y) {
+  public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     super.mouseDown(x, y);
     myComponent.setModelUpdateAuthorized(false);
     SceneComponent parent = myComponent.getParent();
@@ -58,7 +59,7 @@ public class LinearDragTarget extends DragBaseTarget {
   }
 
   @Override
-  public void mouseDrag(int x, int y, @Nullable Target closestTarget) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
     myComponent.setDragging(true);
     SceneComponent sceneParent = myComponent.getParent();
     assert sceneParent != null;
@@ -87,7 +88,7 @@ public class LinearDragTarget extends DragBaseTarget {
   }
 
   @Override
-  public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
     super.mouseRelease(x, y, closestTarget);
     if (myClosest != null) {
       SceneComponent sceneParent = myComponent.getParent();

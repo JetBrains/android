@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.target;
 
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -40,10 +41,10 @@ public abstract class ResizeBaseTarget extends BaseTarget {
   protected final Type myType;
   protected final int mySize = 2;
 
-  protected int myStartX1;
-  protected int myStartY1;
-  protected int myStartX2;
-  protected int myStartY2;
+  @AndroidDpCoordinate protected int myStartX1;
+  @AndroidDpCoordinate protected int myStartY1;
+  @AndroidDpCoordinate protected int myStartX2;
+  @AndroidDpCoordinate protected int myStartY2;
 
   public Type getType() {
     return myType;
@@ -68,7 +69,11 @@ public abstract class ResizeBaseTarget extends BaseTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
+  public boolean layout(@NotNull SceneContext sceneTransform,
+                        @AndroidDpCoordinate int l,
+                        @AndroidDpCoordinate int t,
+                        @AndroidDpCoordinate int r,
+                        @AndroidDpCoordinate int b) {
     float ratio = 1f / (float)sceneTransform.getScale();
     if (ratio > 2) {
       ratio = 2;
@@ -189,7 +194,9 @@ public abstract class ResizeBaseTarget extends BaseTarget {
     DrawResize.add(list, sceneContext, myLeft, myTop, myRight, myBottom, mIsOver ? DrawResize.OVER : DrawResize.NORMAL);
   }
 
-  protected abstract void updateAttributes(@NotNull AttributesTransaction attributes, int x, int y);
+  protected abstract void updateAttributes(@NotNull AttributesTransaction attributes,
+                                           @AndroidDpCoordinate int x,
+                                           @AndroidDpCoordinate int y);
 
   //endregion
   /////////////////////////////////////////////////////////////////////////////
@@ -202,7 +209,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseDown(int x, int y) {
+  public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     myStartX1 = myComponent.getDrawX();
     myStartY1 = myComponent.getDrawY();
     myStartX2 = myComponent.getDrawX() + myComponent.getDrawWidth();
@@ -210,7 +217,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseDrag(int x, int y, @Nullable Target closestTarget) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
     NlComponent component = myComponent.getNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
     updateAttributes(attributes, x, y);
@@ -219,7 +226,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
     NlComponent component = myComponent.getNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
     updateAttributes(attributes, x, y);

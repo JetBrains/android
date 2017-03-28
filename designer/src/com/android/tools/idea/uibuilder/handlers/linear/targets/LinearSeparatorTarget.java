@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
 import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearSeparator;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
@@ -54,7 +55,11 @@ public class LinearSeparatorTarget extends BaseTarget {
   }
 
   @Override
-  public boolean layout(@NotNull SceneContext context, int l, int t, int r, int b) {
+  public boolean layout(@NotNull SceneContext context,
+                        @AndroidDpCoordinate int l,
+                        @AndroidDpCoordinate int t,
+                        @AndroidDpCoordinate int r,
+                        @AndroidDpCoordinate int b) {
     SceneComponent parent = myComponent.getParent();
     assert parent != null : "This target cannot be added to a root component";
     NlComponent nlComponent = myComponent.getNlComponent();

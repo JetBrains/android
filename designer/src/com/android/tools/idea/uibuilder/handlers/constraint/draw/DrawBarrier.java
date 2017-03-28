@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawRegion;
@@ -26,7 +28,7 @@ import java.awt.*;
  * Vertical Guideline
  */
 public class DrawBarrier extends DrawRegion {
-  private final static int GAP = 12;
+  @SwingCoordinate private final static int GAP = 12;
   private int myDirection;
   private boolean myIsSelected;
   public static final int TOP = 1;
@@ -51,9 +53,9 @@ public class DrawBarrier extends DrawRegion {
     return c;
   }
 
-  public DrawBarrier(int x,
-                     int y,
-                     int size,
+  public DrawBarrier(@SwingCoordinate int x,
+                     @SwingCoordinate int y,
+                     @SwingCoordinate int size,
                      int direction,
                      boolean selected) {
     super(x, y, (direction == TOP || direction == BOTTOM) ? size : 1,
@@ -70,9 +72,9 @@ public class DrawBarrier extends DrawRegion {
     int darkRgb = solid.darker().darker().getRGB();
     Color transparent1 = new Color((darkRgb & 0xFFFFFF)|0x8F000000, true);
     Color transparent2 = new Color(baseRgb & 0xFFFFFF, true);
-    int dx = 0, dy = 0;
-    int w = 0;
-    int h = 0;
+    @SwingCoordinate int dx = 0, dy = 0;
+    @SwingCoordinate int w = 0;
+    @SwingCoordinate int h = 0;
     switch (myDirection) {
       case TOP:
         dy = -GAP;
@@ -101,7 +103,7 @@ public class DrawBarrier extends DrawRegion {
   }
 
   public static void add(DisplayList list, SceneContext transform,
-                         float left, float top, float size,
+                         @AndroidDpCoordinate float left, @AndroidDpCoordinate float top, @AndroidDpCoordinate float size,
                          int direction, boolean selected) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
