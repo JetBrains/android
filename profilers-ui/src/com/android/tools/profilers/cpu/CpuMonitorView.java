@@ -21,6 +21,7 @@ import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.ProfilerMonitorView;
@@ -44,6 +45,7 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
     container.setLayout(new TabularLayout("*", "*"));
 
     final JLabel label = new JLabel(getMonitor().getName());
+    label.setFont(AdtUiUtils.DEFAULT_FONT);
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(JLabel.TOP);
 
