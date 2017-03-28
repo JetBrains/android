@@ -23,8 +23,9 @@ import java.util.*;
 public class AndroidGotoRelatedTest extends AndroidTestCase {
   private static final String BASE_PATH = "/gotoRelated/";
 
-  public AndroidGotoRelatedTest() {
-    super(false);
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override

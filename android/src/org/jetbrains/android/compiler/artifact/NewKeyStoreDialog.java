@@ -49,6 +49,15 @@ public class NewKeyStoreDialog extends DialogWrapper {
   }
 
   @Override
+  protected void init() {
+    super.init();
+
+    myPasswordField.setName("myPasswordField");
+    myConfirmedPassword.setName("myConfirmedPassword");
+    myNewKeyForm.init();
+  }
+
+  @Override
   protected JComponent createCenterPanel() {
     return myPanel;
   }

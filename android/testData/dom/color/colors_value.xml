@@ -1,3 +1,3 @@
 <resources>
-  <color name="myColor">#F0FFFF</color>
+  <info descr="null"><color name="myColor">#F0FFFF</color></info>
 </resources>

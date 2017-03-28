@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.Disposable;
@@ -27,6 +30,8 @@ import org.jetbrains.annotations.Nullable;
  * {@link NlModel} that runs all the operations synchronously for testing
  */
 public class SyncNlModel extends NlModel {
+
+  Configuration myConfiguration; // for testing purposes
 
   @NotNull
   public static NlModel create(@NotNull DesignSurface surface,
@@ -43,6 +48,15 @@ public class SyncNlModel extends NlModel {
   }
 
   @Override
+  protected void setupRenderTask(@Nullable RenderTask task) {
+    super.setupRenderTask(task);
+
+    if (task != null) {
+      task.disableSecurityManager();
+    }
+  }
+
+  @Override
   public void requestRender() {
     render();
   }
@@ -50,5 +64,18 @@ public class SyncNlModel extends NlModel {
   @Override
   protected void requestModelUpdate() {
     updateModel();
+  }
+
+  @VisibleForTesting
+  public void setConfiguration(Configuration configuration) {
+    myConfiguration =  configuration;
+  }
+
+  @Override
+  public Configuration getConfiguration() {
+    if (myConfiguration != null) {
+      return myConfiguration;
+    }
+    return super.getConfiguration();
   }
 }

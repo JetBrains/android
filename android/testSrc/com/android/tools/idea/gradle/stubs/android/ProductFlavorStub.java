@@ -160,6 +160,12 @@ public class ProductFlavorStub implements ProductFlavor {
   }
 
   @Override
+  @Nullable
+  public Boolean getWearAppUnbundled() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   @NotNull
   public Map<String, Object> getManifestPlaceholders() {
     throw new UnsupportedOperationException();

@@ -48,6 +48,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.google.common.base.Strings.nullToEmpty;
+
 /**
  * {@link WizardModel} containing useful configuration settings for defining an AVD image.
  *
@@ -73,7 +75,7 @@ public final class AvdOptionsModel extends WizardModel {
   private ObjectProperty<AvdCamera> mySelectedAvdBackCamera = new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_CAMERA);
 
   private BoolProperty myHasDeviceFrame = new BoolValueProperty(true);
-  private BoolProperty myUseExternalSdCard = new BoolValueProperty();
+  private BoolProperty myUseExternalSdCard = new BoolValueProperty(false);
   private BoolProperty myUseBuiltInSdCard = new BoolValueProperty(true);
   private ObjectProperty<AvdNetworkSpeed> mySelectedNetworkSpeed =
     new ObjectValueProperty<>(AvdWizardUtils.DEFAULT_NETWORK_SPEED);
@@ -204,7 +206,7 @@ public final class AvdOptionsModel extends WizardModel {
     if (avdInfo != null) {
       return avdInfo.getName();
     }
-    String candidateBase = hardwareProperties.get(AvdManagerConnection.AVD_INI_DISPLAY_NAME);
+    String candidateBase = hardwareProperties.get(AvdManager.AVD_INI_DISPLAY_NAME);
     if (candidateBase == null || candidateBase.isEmpty()) {
       String deviceName = device.getDisplayName().replace(' ', '_');
       String manufacturer = device.getManufacturer().replace(' ', '_');
@@ -390,7 +392,7 @@ public final class AvdOptionsModel extends WizardModel {
     else if (properties.get(AvdWizardUtils.SD_CARD_STORAGE_KEY) != null) {
       sdCardLocation = FileUtil.join(avdInfo.getDataFolderPath(), "sdcard.img");
     }
-    existingSdLocation = new StringValueProperty(sdCardLocation);
+    existingSdLocation = new StringValueProperty(nullToEmpty(sdCardLocation));
 
     String dataFolderPath = avdInfo.getDataFolderPath();
     File sdLocationFile = null;
@@ -462,29 +464,87 @@ public final class AvdOptionsModel extends WizardModel {
                                                      deviceData.screenDpi().get(),
                                                      deviceData.screenResolutionHeight().get());
     int vmHeapSize = 32;
-    boolean isScreenXLarge = size.equals(ScreenSize.XLARGE);
-    switch (density) {
-      case LOW:
-      case MEDIUM:
-        vmHeapSize = (isScreenXLarge) ? 32 : 16;
-        break;
-      case TV:
-      case HIGH:
-      case DPI_280:
-      case DPI_360:
-        vmHeapSize = (isScreenXLarge) ? 64 : 32;
-        break;
-      case XHIGH:
-      case DPI_400:
-      case DPI_420:
-      case XXHIGH:
-      case DPI_560:
-      case XXXHIGH:
-        vmHeapSize = (isScreenXLarge) ? 128 : 64;
-        break;
-      case NODPI:
-      case ANYDPI:
-        break;
+
+    // These values are taken from Android 6.0 Compatibility
+    // Definition (dated October 16, 2015), section 3.7,
+    // Runtime Compatibility (with ANYDPI and NODPI defaulting
+    // to MEDIUM).
+
+    if (deviceData.isWear().get()) {
+      switch(density) {
+        case LOW:
+        case ANYDPI:
+        case NODPI:
+        case MEDIUM:
+        case TV:        vmHeapSize =  32; break;
+        case HIGH:
+        case DPI_280:   vmHeapSize =  36; break;
+        case XHIGH:
+        case DPI_360:   vmHeapSize =  48; break;
+        case DPI_400:   vmHeapSize =  56; break;
+        case DPI_420:   vmHeapSize =  64; break;
+        case XXHIGH:    vmHeapSize =  88; break;
+        case DPI_560:   vmHeapSize = 112; break;
+        case XXXHIGH:   vmHeapSize = 154; break;
+      }
+    } else {
+      switch(size) {
+        case SMALL:
+        case NORMAL:
+          switch(density) {
+            case LOW:
+            case ANYDPI:
+            case NODPI:
+            case MEDIUM:    vmHeapSize =  32; break;
+            case TV:
+            case HIGH:
+            case DPI_280:   vmHeapSize =  48; break;
+            case XHIGH:
+            case DPI_360:   vmHeapSize =  80; break;
+            case DPI_400:   vmHeapSize =  96; break;
+            case DPI_420:   vmHeapSize = 112; break;
+            case XXHIGH:    vmHeapSize = 128; break;
+            case DPI_560:   vmHeapSize = 192; break;
+            case XXXHIGH:   vmHeapSize = 256; break;
+          }
+          break;
+        case LARGE:
+          switch(density) {
+            case LOW:       vmHeapSize =  32; break;
+            case ANYDPI:
+            case NODPI:
+            case MEDIUM:    vmHeapSize =  48; break;
+            case TV:
+            case HIGH:      vmHeapSize =  80; break;
+            case DPI_280:   vmHeapSize =  96; break;
+            case XHIGH:     vmHeapSize = 128; break;
+            case DPI_360:   vmHeapSize = 160; break;
+            case DPI_400:   vmHeapSize = 192; break;
+            case DPI_420:   vmHeapSize = 228; break;
+            case XXHIGH:    vmHeapSize = 256; break;
+            case DPI_560:   vmHeapSize = 384; break;
+            case XXXHIGH:   vmHeapSize = 512; break;
+          }
+          break;
+        case XLARGE:
+          switch(density) {
+            case LOW:       vmHeapSize =  48; break;
+            case ANYDPI:
+            case NODPI:
+            case MEDIUM:    vmHeapSize =  80; break;
+            case TV:
+            case HIGH:      vmHeapSize =  96; break;
+            case DPI_280:   vmHeapSize = 144; break;
+            case XHIGH:     vmHeapSize = 192; break;
+            case DPI_360:   vmHeapSize = 240; break;
+            case DPI_400:   vmHeapSize = 288; break;
+            case DPI_420:   vmHeapSize = 336; break;
+            case XXHIGH:    vmHeapSize = 384; break;
+            case DPI_560:   vmHeapSize = 576; break;
+            case XXXHIGH:   vmHeapSize = 768; break;
+          }
+          break;
+      }
     }
     return new Storage(vmHeapSize, Storage.Unit.MiB);
   }
@@ -573,7 +633,7 @@ public final class AvdOptionsModel extends WizardModel {
       }
     }
 
-    boolean hasSdCard;
+    boolean hasSdCard = false;
     if (!useExisting) {
 
       userEditedProperties.remove(AvdWizardUtils.EXISTING_SD_LOCATION);
@@ -585,7 +645,7 @@ public final class AvdOptionsModel extends WizardModel {
       }
       hasSdCard = storage != null && storage.getSize() > 0;
     }
-    else {
+    else if (!Strings.isNullOrEmpty(existingSdLocation.get())) {
       sdCard = existingSdLocation.get();
       userEditedProperties.remove(AvdWizardUtils.SD_CARD_STORAGE_KEY);
       hasSdCard = true;
@@ -679,6 +739,10 @@ public final class AvdOptionsModel extends WizardModel {
     AvdManagerConnection connection = AvdManagerConnection.getDefaultAvdManagerConnection();
     myCreatedAvd = connection.createOrUpdateAvd(
       myAvdInfo, avdName, device, systemImage, mySelectedAvdOrientation.get(), isCircular, sdCard, skinFile, hardwareProperties, false);
+    if (myCreatedAvd == null) {
+      ApplicationManager.getApplication().invokeAndWait(() -> Messages.showErrorDialog(
+        (Project)null, "An error occurred while creating the AVD. See idea.log for details.", "Error Creating AVD"), ModalityState.any());
+    }
   }
 
   @NotNull

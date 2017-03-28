@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.fd;
 
+import com.android.annotations.concurrency.Immutable;
 import org.jetbrains.annotations.NotNull;
 
-public class BuildSelection {
-  @NotNull public final BuildMode mode;
+@Immutable
+public final class BuildSelection {
   @NotNull public final BuildCause why;
   public final boolean brokenForSecondaryUser;
 
-  BuildSelection(@NotNull BuildMode mode, @NotNull BuildCause why) {
-    this(mode, why, false);
-  }
-
-  BuildSelection(@NotNull BuildMode mode, @NotNull BuildCause why, boolean brokenForSecondaryUser) {
-    this.mode = mode;
+  BuildSelection(@NotNull BuildCause why, boolean brokenForSecondaryUser) {
     this.why = why;
     this.brokenForSecondaryUser = brokenForSecondaryUser;
+  }
+
+  public BuildMode getBuildMode() {
+    return why.getBuildMode();
   }
 }

@@ -128,12 +128,12 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
       List<ProcessingItem> items = new ArrayList<ProcessingItem>();
       for (Module module : modules) {
         AndroidFacet facet = FacetManager.getInstance(module).getFacetByType(AndroidFacet.ID);
-        if (facet != null && !facet.isLibraryProject()) {
-          
+        if (facet != null && facet.isAppProject()) {
+
           final VirtualFile dexOutputDir = getOutputDirectoryForDex(module);
-          
+
           Collection<VirtualFile> files;
-            
+
           final boolean shouldRunProguard = AndroidCompileUtil.getProguardConfigFilePathIfShouldRun(facet, myContext) != null;
 
           if (shouldRunProguard) {
@@ -146,20 +146,20 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
                                                                         " doesn't exist", null, -1, -1);
               continue;
             }
-            
+
             files = Collections.singleton(obfuscatedSourcesJar);
           }
           else {
             CompilerModuleExtension extension = CompilerModuleExtension.getInstance(module);
             VirtualFile outputDir = extension.getCompilerOutputPath();
-            
+
             if (outputDir == null) {
               myContext.addMessage(CompilerMessageCategory.INFORMATION,
                                    "Dex won't be launched for module " + module.getName() + " because it doesn't contain compiled files",
                                    null, -1, -1);
               continue;
             }
-            
+
             files = new HashSet<VirtualFile>();
             addModuleOutputDir(files, outputDir);
             files.addAll(AndroidRootUtil.getExternalLibraries(module));
@@ -184,7 +184,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
 
           final AndroidFacetConfiguration configuration = facet.getConfiguration();
           final AndroidPlatform platform = configuration.getAndroidPlatform();
-          
+
           if (platform == null) {
             myContext.addMessage(CompilerMessageCategory.ERROR,
                                  AndroidBundle.message("android.compilation.error.specify.platform", module.getName()), null, -1, -1);

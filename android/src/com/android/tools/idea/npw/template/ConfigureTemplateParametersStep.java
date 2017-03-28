@@ -17,35 +17,32 @@ package com.android.tools.idea.npw.template;
 
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.npw.FormFactorUtils;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
+import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
+import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.npw.template.components.*;
 import com.android.tools.idea.templates.*;
-import com.android.tools.idea.ui.LabelWithEditLink;
-import com.android.tools.idea.ui.ProportionalLayout;
 import com.android.tools.idea.ui.TooltipLabel;
 import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.InvalidationListener;
 import com.android.tools.idea.ui.properties.ObservableValue;
+import com.android.tools.idea.ui.properties.adapters.OptionalToValuePropertyAdapter;
 import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.ui.properties.expressions.Expression;
 import com.android.tools.idea.ui.properties.swing.IconProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.ui.properties.swing.VisibleProperty;
-import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.validation.Validator;
 import com.android.tools.idea.ui.validation.ValidatorPanel;
+import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.ui.wizard.WizardUtils;
-import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Maps;
@@ -59,7 +56,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.ui.*;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.PopupHandler;
+import com.intellij.ui.RecentsManager;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -74,6 +73,7 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
+import static com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 /**
@@ -88,8 +88,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
   private static final String PROJECT_LOCATION_ID = "projectLocation";
 
-  private final List<SourceProvider> mySourceSets;
-  private final StringProperty myPackageName = new StringValueProperty();
+  private final List<AndroidSourceSet> mySourceSets;
+  private final StringProperty myPackageName;
 
   private final BindingsManager myBindings = new BindingsManager();
   private final LoadingCache<File, Optional<Icon>> myThumbnailsCache = IconLoader.createLoadingCache();
@@ -101,6 +101,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   private final StringProperty myThumbPath = new StringValueProperty();
 
   private final StudioWizardStepPanel myStudioPanel;
+
+  @Nullable private final AndroidFacet myFacet;
 
   /**
    * All parameters are calculated for validity every time any of them changes, and the first error
@@ -121,19 +123,21 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
 
   private EvaluationState myEvaluationState = EvaluationState.NOT_EVALUATING;
 
+  /**
+   * @param facet If present, affects some of the UI components (e.g. autocomplete by other
+   *              objects in the same scope/knowledge of android manifest details). Can be null if
+   *              your UI doesn't need the information provided by the module, for example creating
+   *              things at project creation time.
+   */
   public ConfigureTemplateParametersStep(@NotNull RenderTemplateModel model,
                                          @NotNull String title,
-                                         @NotNull String initialPackageName,
-                                         @NotNull List<SourceProvider> sourceSets) {
+                                         @NotNull List<AndroidSourceSet> sourceSets,
+                                         @Nullable AndroidFacet facet) {
     super(model, title);
 
+    myFacet = facet;
     mySourceSets = sourceSets;
-    myPackageName.set(initialPackageName);
-
-    if (mySourceSets.size() > 0) {
-      getModel().getSourceSet().setValue(mySourceSets.get(0));
-    }
-
+    myPackageName = model.packageName();
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
     myStudioPanel = new StudioWizardStepPanel(myValidatorPanel);
 
@@ -163,11 +167,9 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
    */
   @Nullable
   private static String getRelativePath(@NotNull File base, @NotNull File file) {
-    String finalPath = FileUtil.getRelativePath(base, file);
-    if (finalPath != null) {
-      finalPath = FileUtil.toSystemIndependentName(finalPath);
-    }
-    return finalPath;
+    // Note: FileUtil.getRelativePath(File, File) doesn't work, because 'file' may contain directories that are not yet created
+    return FileUtil.getRelativePath(FileUtil.toSystemIndependentName(base.getPath()),
+                                    FileUtil.toSystemIndependentName(file.getPath()), '/');
   }
 
   @NotNull
@@ -183,17 +185,17 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   }
 
   @Override
-  protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
+  protected void onEntering() {
+    // The Model TemplateHandle may have changed, rebuild the panel
+    resetPanel();
+
     final TemplateHandle templateHandle = getModel().getTemplateHandle();
 
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        // We want to set the label's text AFTER the wizard has been packed. Otherwise, its
-        // width calculation gets involved and can really stretch out some wizards if the label is
-        // particularly long (see Master/Detail Activity for example).
-        myTemplateDescriptionLabel.setText(WizardUtils.toHtmlString(Strings.nullToEmpty(templateHandle.getMetadata().getDescription())));
-      }
+    ApplicationManager.getApplication().invokeLater(() -> {
+      // We want to set the label's text AFTER the wizard has been packed. Otherwise, its
+      // width calculation gets involved and can really stretch out some wizards if the label is
+      // particularly long (see Master/Detail Activity for example).
+      myTemplateDescriptionLabel.setText(WizardUtils.toHtmlString(Strings.nullToEmpty(templateHandle.getMetadata().getDescription())));
     }, ModalityState.any());
 
     final IconProperty thumb = new IconProperty(myTemplateThumbLabel);
@@ -223,20 +225,18 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
     });
 
+    Module module = myFacet == null ? null : myFacet.getModule();
     final Collection<Parameter> parameters = templateHandle.getMetadata().getParameters();
     for (final Parameter parameter : parameters) {
-      RowEntry row = createRowForParameter(getModel().getModule(), parameter);
+      RowEntry row = createRowForParameter(module, parameter);
       final ObservableValue<?> property = row.getProperty();
       if (property != null) {
-        property.addListener(new InvalidationListener() {
-          @Override
-          public void onInvalidated(@NotNull ObservableValue<?> sender) {
-            // If not evaluating, change comes from the user
-            if (myEvaluationState != EvaluationState.EVALUATING) {
-              myUserValues.put(parameter, property.get());
-              // Evaluate later to prevent modifying Swing values that are locked during read
-              enqueueEvaluateParameters();
-            }
+        property.addListener(sender -> {
+          // If not evaluating, change comes from the user
+          if (myEvaluationState != EvaluationState.EVALUATING) {
+            myUserValues.put(parameter, property.get());
+            // Evaluate later to prevent modifying Swing values that are locked during read
+            enqueueEvaluateParameters();
           }
         });
 
@@ -264,25 +264,15 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       row.addToPanel(myParametersPanel);
 
       //noinspection unchecked
-      SelectedItemProperty<SourceProvider> sourceSet = (SelectedItemProperty<SourceProvider>)row.getProperty();
+      SelectedItemProperty<AndroidSourceSet> sourceSet = (SelectedItemProperty<AndroidSourceSet>)row.getProperty();
       assert sourceSet != null; // SourceSetComboProvider always sets this
-      myBindings.bind(getModel().getSourceSet(), sourceSet);
+      myBindings.bind(getModel().getSourceSet(), new OptionalToValuePropertyAdapter<>(sourceSet));
 
-      sourceSet.addListener(new InvalidationListener() {
-        @Override
-        public void onInvalidated(@NotNull ObservableValue<?> sender) {
-          enqueueEvaluateParameters();
-        }
-      });
+      sourceSet.addListener(sender -> enqueueEvaluateParameters());
     }
 
-    myValidatorPanel.registerValidator(myInvalidParameterMessage, new Validator<String>() {
-      @NotNull
-      @Override
-      public Result validate(@NotNull String message) {
-        return (message.isEmpty() ? Result.OK : new Result(Severity.ERROR, message));
-      }
-    });
+    myValidatorPanel.registerValidator(myInvalidParameterMessage, message ->
+      (message.isEmpty() ? Validator.Result.OK : new Validator.Result(Validator.Severity.ERROR, message)));
 
     // TODO: This code won't be needed until we migrate this enough to support
     // NewAndroidApplication/template.xml and NewAndroidLibrary/template.xml
@@ -317,9 +307,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
    */
   private RowEntry<?> createRowForParameter(@Nullable final Module module, @NotNull Parameter parameter) {
 
-    /**
-     * Handle custom parameter types first.
-     */
+    // Handle custom parameter types first.
     // TODO: Should we extract this logic into an extension point at some point, in order to be
     // more friendly to third-party plugins with templates? Do they need custom UI components?
     if (ATTR_PACKAGE_NAME.equals(parameter.id)) {
@@ -351,9 +339,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
     }
 
-    /**
-     * Handle standard parameter types
-     */
+    // Handle standard parameter types
     switch (parameter.type) {
       case STRING:
         assert parameter.name != null;
@@ -386,6 +372,19 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     ApplicationManager.getApplication().invokeLater(this::evaluateParameters, ModalityState.any());
   }
 
+  private boolean isNewModule() {
+    return myFacet == null;
+  }
+
+  /**
+   * If we are creating a new module, there are some fields that we need to hide.
+   */
+  private boolean isParameterVisible(Parameter parameter) {
+    return !isNewModule() ||
+           (!ATTR_PACKAGE_NAME.equals(parameter.id) &&
+            !ATTR_IS_LAUNCHER.equals(parameter.id));
+  }
+
   /**
    * Run through all parameters for our current template and update their values, including
    * visibility, enabled state, and actual values.
@@ -402,10 +401,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     try {
       Map<String, Object> additionalValues = Maps.newHashMap();
       additionalValues.put(ATTR_PACKAGE_NAME, myPackageName.get());
-      OptionalProperty<SourceProvider> sourceSet = getModel().getSourceSet();
-      if (sourceSet.get().isPresent()) {
-        additionalValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.getValue().getName());
-      }
+      ObjectProperty<AndroidSourceSet> sourceSet = getModel().getSourceSet();
+      additionalValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.get().getName());
 
       Map<String, Object> allValues = Maps.newHashMap(additionalValues);
 
@@ -423,6 +420,11 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
         if (!enabledStr.isEmpty()) {
           boolean enabled = myEvaluator.evaluateBooleanExpression(enabledStr, allValues, true);
           myParameterRows.get(parameter).setEnabled(enabled);
+        }
+
+        if (!isParameterVisible(parameter)) {
+          myParameterRows.get(parameter).setVisible(false);
+          continue;
         }
 
         String visibilityStr = Strings.nullToEmpty(parameter.visibility);
@@ -459,14 +461,10 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
    */
   @NotNull
   private String getCurrentThumbnailPath() {
-    return Strings.nullToEmpty(getModel().getTemplateHandle().getMetadata().getThumbnailPath(new Function<String, Object>() {
-      @Nullable
-      @Override
-      public Object apply(String parameterId) {
-        Parameter parameter = getModel().getTemplateHandle().getMetadata().getParameter(parameterId);
-        ObservableValue<?> property = myParameterRows.get(parameter).getProperty();
-        return property != null ? property.get() : null;
-      }
+    return Strings.nullToEmpty(getModel().getTemplateHandle().getMetadata().getThumbnailPath(parameterId -> {
+      Parameter parameter = getModel().getTemplateHandle().getMetadata().getParameter(parameterId);
+      ObservableValue<?> property = myParameterRows.get(parameter).getProperty();
+      return property != null ? property.get() : null;
     }));
   }
 
@@ -475,8 +473,9 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     String message = null;
 
     Collection<Parameter> parameters = getModel().getTemplateHandle().getMetadata().getParameters();
-    Module module = getModel().getModule();
-    SourceProvider sourceSet = getModel().getSourceSet().getValueOrNull();
+    Module module = myFacet == null ? null : myFacet.getModule();
+    Project project = getModel().getProject().getValueOrNull();
+    SourceProvider sourceProvider = getModel().getSourceSet().get().toSourceProvider();
 
     for (Parameter parameter : parameters) {
       ObservableValue<?> property = myParameterRows.get(parameter).getProperty();
@@ -485,7 +484,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
 
       Set<Object> relatedValues = getRelatedValues(parameter);
-      message = parameter.validate(module.getProject(), module, sourceSet, myPackageName.get(), property.get(), relatedValues);
+      message = parameter.validate(project, module, sourceProvider, myPackageName.get(), property.get(), relatedValues);
 
       if (message != null) {
         break;
@@ -520,11 +519,17 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
   @NotNull
   @Override
   protected ObservableBool canGoForward() {
-    return getModel().getSourceSet().isPresent().and(myValidatorPanel.hasErrors().not());
+    return myValidatorPanel.hasErrors().not();
   }
 
   private void createUIComponents() {
-    myParametersPanel = new JPanel(ProportionalLayout.fromString("Fit,*", 10));
+    myParametersPanel = new JPanel(new TabularLayout("Fit,*").setVGap(10));
+  }
+
+  private void resetPanel() {
+    myParametersPanel.removeAll();
+    myParameterRows.clear();
+    dispose();
   }
 
   @Override
@@ -539,16 +544,9 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
    */
   @Override
   protected void onProceeding() {
-
-    AndroidFacet facet = getModel().getFacet();
-    Module module = getModel().getModule();
-
     // canGoForward guarantees this optional value is present
-    SourceProvider sourceSet = getModel().getSourceSet().getValue();
-
-    // This is always non-null when a sourceSet is valid (see also docs for getModel().getPaths())
-    AndroidProjectPaths paths = getModel().getPaths();
-    assert paths != null;
+    AndroidSourceSet sourceSet = getModel().getSourceSet().get();
+    AndroidProjectPaths paths = sourceSet.getPaths();
 
     File moduleRoot = paths.getModuleRoot();
     if (moduleRoot == null) {
@@ -557,24 +555,14 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       return;
     }
 
-    /**
-     * Some parameter values should be saved for later runs through this wizard, so do that first.
-     */
+    // Some parameter values should be saved for later runs through this wizard, so do that first.
     for (RowEntry rowEntry : myParameterRows.values()) {
       rowEntry.accept();
     }
 
-    /**
-     * Prepare the template data-model, starting from scratch and filling in all values we know
-     */
+    // Prepare the template data-model, starting from scratch and filling in all values we know
     Map<String, Object> templateValues = getModel().getTemplateValues();
     templateValues.clear();
-
-    // TODO: Add support for new projects as the wizard migration grows to encompass them
-    templateValues.put(ATTR_IS_NEW_PROJECT, false);
-
-    templateValues.put(ATTR_PACKAGE_NAME, myPackageName.get());
-    templateValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.getName());
 
     for (Parameter parameter : myParameterRows.keySet()) {
       ObservableValue<?> property = myParameterRows.get(parameter).getProperty();
@@ -583,23 +571,58 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       }
     }
 
+    templateValues.put(ATTR_PACKAGE_NAME, myPackageName.get());
+    templateValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.getName());
+    templateValues.put(ATTR_IS_NEW_PROJECT, isNewModule()); // Android Modules are called Gradle Projects
+    if (isNewModule()) {
+      templateValues.put(ATTR_IS_LAUNCHER, true);
+    }
+
     try {
-      templateValues.put(ATTR_DEBUG_KEYSTORE_SHA1, KeystoreUtils.sha1(getDebugKeystore(facet)));
+      File sha1File = myFacet == null ? getOrCreateDefaultDebugKeystore() : getDebugKeystore(myFacet);
+      templateValues.put(ATTR_DEBUG_KEYSTORE_SHA1, KeystoreUtils.sha1(sha1File));
     }
     catch (Exception e) {
       getLog().info("Could not compute SHA1 hash of debug keystore.", e);
       templateValues.put(ATTR_DEBUG_KEYSTORE_SHA1, "");
     }
 
-    AndroidPlatform platform = AndroidPlatform.getInstance(getModel().getModule());
-    if (platform != null) {
-      templateValues.put(ATTR_BUILD_API, platform.getTarget().getVersion().getFeatureLevel());
-      templateValues.put(ATTR_BUILD_API_STRING, getBuildApiString(platform.getTarget().getVersion()));
+    if (myFacet == null) {
+      // If we don't have an AndroidFacet, we must have the Android Sdk info
+      AndroidVersionsInfo.VersionItem buildVersion = getModel().androidSdkInfo().getValue();
+
+      templateValues.put(ATTR_MIN_API_LEVEL, buildVersion.getApiLevel());
+      templateValues.put(ATTR_MIN_API, buildVersion.getApiLevelStr());
+      templateValues.put(ATTR_BUILD_API, buildVersion.getBuildApiLevel());
+      templateValues.put(ATTR_BUILD_API_STRING, buildVersion.getBuildApiLevelStr());
+      templateValues.put(ATTR_TARGET_API, buildVersion.getTargetApiLevel());
+      templateValues.put(ATTR_TARGET_API_STRING, buildVersion.getTargetApiLevelStr());
+    }
+    else {
+      AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
+      if (platform != null) {
+        templateValues.put(ATTR_BUILD_API, platform.getTarget().getVersion().getFeatureLevel());
+        templateValues.put(ATTR_BUILD_API_STRING, getBuildApiString(platform.getTarget().getVersion()));
+      }
+
+      AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(myFacet);
+      AndroidVersion minSdkVersion = moduleInfo.getMinSdkVersion();
+      String minSdkName = minSdkVersion.getApiString();
+
+      templateValues.put(ATTR_MIN_API, minSdkName);
+      templateValues.put(ATTR_TARGET_API, moduleInfo.getTargetSdkVersion().getApiLevel());
+      templateValues.put(ATTR_MIN_API_LEVEL, minSdkVersion.getFeatureLevel());
+
+      templateValues.put(ATTR_IS_LIBRARY_MODULE, myFacet.isLibraryProject());
+
+      // Register application-wide settings
+      String applicationPackage = AndroidPackageUtils.getPackageForApplication(myFacet);
+      if (!myPackageName.get().equals(applicationPackage)) {
+        templateValues.put(ATTR_APPLICATION_PACKAGE, AndroidPackageUtils.getPackageForApplication(myFacet));
+      }
     }
 
-    /**
-     * Register the resource directories associated with the active source provider
-     */
+    // Register the resource directories associated with the active source provider
     templateValues.put(ATTR_PROJECT_OUT, FileUtil.toSystemIndependentName(moduleRoot.getAbsolutePath()));
 
     String packageAsDir = myPackageName.get().replace('.', File.separatorChar);
@@ -637,30 +660,12 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       templateValues.put(ATTR_AIDL_OUT, FileUtil.toSystemIndependentName(aidlDir.getPath()));
     }
 
-    /**
-     * Register application-wide settings
-     */
-    String applicationPackage = AndroidPackageUtils.getPackageForApplication(getModel().getFacet());
-    if (!myPackageName.get().equals(applicationPackage)) {
-      templateValues.put(ATTR_APPLICATION_PACKAGE, AndroidPackageUtils.getPackageForApplication(facet));
-    }
-
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.get(facet);
-    AndroidVersion minSdkVersion = moduleInfo.getMinSdkVersion();
-    String minSdkName = minSdkVersion.getApiString();
-
-    templateValues.put(ATTR_MIN_API, minSdkName);
-    templateValues.put(ATTR_TARGET_API, moduleInfo.getTargetSdkVersion().getApiLevel());
-    templateValues.put(ATTR_MIN_API_LEVEL, minSdkVersion.getFeatureLevel());
-
-    templateValues.put(ATTR_IS_LIBRARY_MODULE, facet.isLibraryProject());
-
-    templateValues.put(PROJECT_LOCATION_ID, module.getProject().getBasePath());
+    templateValues.put(PROJECT_LOCATION_ID, moduleRoot.getParent());
 
     // We're really interested in the directory name on disk, not the module name. These will be different if you give a module the same
     // name as its containing project.
-    String moduleName = new File(module.getModuleFilePath()).getParentFile().getName();
-    templateValues.put(FormFactorUtils.ATTR_MODULE_NAME, moduleName);
+    String moduleName = moduleRoot.getName();
+    templateValues.put(ATTR_MODULE_NAME, moduleName);
   }
 
   /**
@@ -698,8 +703,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     @Nullable private final JPanel myHeader;
     @NotNull private final ComponentProvider<T> myComponentProvider;
     @NotNull private final T myComponent;
-    @Nullable private AbstractProperty<?> myProperty;
-    @NotNull private WantGrow myWantGrow;
+    @Nullable private final AbstractProperty<?> myProperty;
+    @NotNull private final WantGrow myWantGrow;
 
     public RowEntry(@NotNull String headerText, @NotNull ComponentProvider<T> componentProvider) {
       myHeader = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -728,16 +733,16 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
     }
 
     public void addToPanel(@NotNull JPanel panel) {
-      assert panel.getLayout().getClass().equals(ProportionalLayout.class);
+      assert panel.getLayout().getClass().equals(TabularLayout.class);
       int row = panel.getComponentCount();
 
       if (myHeader != null) {
-        panel.add(myHeader, new ProportionalLayout.Constraint(row, 0));
+        panel.add(myHeader, new TabularLayout.Constraint(row, 0));
         assert myWantGrow == WantGrow.NO;
       }
 
       int colspan = myWantGrow == WantGrow.YES ? 2 : 1;
-      panel.add(myComponent, new ProportionalLayout.Constraint(row, 1, colspan));
+      panel.add(myComponent, new TabularLayout.Constraint(row, 1, colspan));
     }
 
     public void setEnabled(boolean enabled) {
@@ -801,11 +806,11 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       Joiner filenameJoiner = Joiner.on('.').skipNulls();
 
       int suffix = 2;
-      Module module = getModel().getModule();
-      Project project = module.getProject();
+      Module module = myFacet != null ? myFacet.getModule() : null;
+      Project project = getModel().getProject().getValueOrNull();
       Set<Object> relatedValues = getRelatedValues(parameter);
-      SourceProvider sourceSet = getModel().getSourceSet().getValueOrNull();
-      while (!parameter.uniquenessSatisfied(project, module, sourceSet, myPackageName.get(), suggested, relatedValues)) {
+      SourceProvider sourceProvider = getModel().getSourceSet().get().toSourceProvider();
+      while (!parameter.uniquenessSatisfied(project, module, sourceProvider, myPackageName.get(), suggested, relatedValues)) {
         suggested = filenameJoiner.join(namePart + suffix, extPart);
         suffix++;
       }

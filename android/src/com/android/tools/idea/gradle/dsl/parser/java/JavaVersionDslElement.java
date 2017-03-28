@@ -48,7 +48,7 @@ public class JavaVersionDslElement extends GradleDslElement {
     myInternalVersionElement = dslElement;
   }
 
-  public JavaVersionDslElement(@Nullable GradleDslElement parent, @NotNull String name, @NotNull boolean useAssignment) {
+  public JavaVersionDslElement(@Nullable GradleDslElement parent, @NotNull String name, boolean useAssignment) {
     super(parent, null, name);
     myUseAssignment = useAssignment;
   }
@@ -177,10 +177,10 @@ public class JavaVersionDslElement extends GradleDslElement {
     JavaVersionDslElement anchor = null;
 
     if (SOURCE_COMPATIBILITY_ATTRIBUTE_NAME.equals(myName)) {
-      anchor = parent.getProperty(TARGET_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
+      anchor = parent.getPropertyElement(TARGET_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
     }
     else if (TARGET_COMPATIBILITY_ATTRIBUTE_NAME.equals(myName)) {
-      anchor = parent.getProperty(SOURCE_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
+      anchor = parent.getPropertyElement(SOURCE_COMPATIBILITY_ATTRIBUTE_NAME, JavaVersionDslElement.class);
     }
 
     PsiElement anchorPsiElement = null;
@@ -204,7 +204,8 @@ public class JavaVersionDslElement extends GradleDslElement {
       GrExpression expression = factory.createExpressionFromText(myName + " = " + anchorText);
       newExpressionPsi = (GrExpression)javaPsiElement.addBefore(expression, anchorPsiElement);
       valuePsi = ((GrAssignmentExpression)newExpressionPsi).getRValue();
-    } else {
+    }
+    else {
       GrExpression expression = factory.createExpressionFromText(myName + " " + anchorText);
       newExpressionPsi = (GrExpression)javaPsiElement.addBefore(expression, anchorPsiElement);
       valuePsi = ((GrApplicationStatement)newExpressionPsi).getExpressionArguments()[0];

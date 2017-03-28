@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.assistant;
 
-import com.android.tools.idea.structure.services.DeveloperServiceMap;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -27,23 +26,19 @@ import org.jetbrains.annotations.NotNull;
 public final class AssistToolWindowFactory implements ToolWindowFactory {
   private AssistSidePanel myAssistSidePanel;
   private String myActionId;
-  private DeveloperServiceMap myServiceMap;
 
-  public AssistToolWindowFactory(
-    @NotNull String actionId, @NotNull DeveloperServiceMap serviceMap) {
+  public AssistToolWindowFactory(@NotNull String actionId) {
     myActionId = actionId;
-    myServiceMap = serviceMap;
   }
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     if (myAssistSidePanel == null) {
-      myAssistSidePanel = new AssistSidePanel(myActionId, myServiceMap);
+      myAssistSidePanel = new AssistSidePanel(myActionId, project);
     }
 
     ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-    Content content = contentFactory.createContent(
-      myAssistSidePanel, null, false);
+    Content content = contentFactory.createContent(myAssistSidePanel, null, false);
     ContentManager contentManager = toolWindow.getContentManager();
     contentManager.removeAllContents(true);
     contentManager.addContent(content);

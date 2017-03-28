@@ -317,9 +317,7 @@ public final class TimelineComponent extends AnimatedComponent {
   }
 
   @Override
-  protected void draw(Graphics2D g2d) {
-    Dimension dim = getSize();
-
+  protected void draw(Graphics2D g2d, Dimension dim) {
     mBottom = Math.max(TOP_MARGIN, dim.height - BOTTOM_MARGIN);
     mRight = Math.max(LEFT_MARGIN, dim.width - RIGHT_MARGIN);
 

@@ -59,6 +59,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
 
   private final @Nullable Module myModule;
   private final @NotNull ResourceType myResourceType;
+  private final @NotNull ResourceFolderType myFolderType;
 
   private JPanel myDirectoriesPanel;
   private JBLabel myDirectoriesLabel;
@@ -80,9 +81,10 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     setChangeNameVisible(false);
     setChangeValueVisible(false);
     setChangeFileNameVisible(chooseFilename);
+    myFolderType = folderType;
     if (chooseName) {
       setChangeNameVisible(true);
-      resourceName = ResourceHelper.prependResourcePrefix(module, resourceName);
+      resourceName = ResourceHelper.prependResourcePrefix(module, resourceName, folderType);
     }
     if (!StringUtil.isEmpty(resourceName)) {
       myNameField.setText(resourceName);
@@ -236,7 +238,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     else if (directoryNames.isEmpty()) {
       return new ValidationInfo("choose directories", myDirectoriesPanel);
     }
-    else if (resourceName.equals(ResourceHelper.prependResourcePrefix(myModule, null))) {
+    else if (resourceName.equals(ResourceHelper.prependResourcePrefix(myModule, null, myFolderType))) {
       return new ValidationInfo("specify more than resource prefix", myNameField);
     }
 
@@ -256,7 +258,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
   @Override
   public JComponent getPreferredFocusedComponent() {
     String name = myNameField.getText();
-    if (name.isEmpty() || name.equals(ResourceHelper.prependResourcePrefix(myModule, null))) {
+    if (name.isEmpty() || name.equals(ResourceHelper.prependResourcePrefix(myModule, null, myFolderType))) {
       return myNameField;
     }
     else if (myValueField.isVisible()) {

@@ -34,7 +34,6 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.MAX_MATCH_DISTANCE;
 import static com.android.tools.idea.uibuilder.handlers.relative.ConstraintType.ALIGN_BASELINE;
 import static com.android.tools.idea.uibuilder.model.MarginType.*;
-import static java.lang.Math.abs;
 
 /**
  * The {@link GuidelineHandler} class keeps track of state related to a guideline operation
@@ -227,10 +226,10 @@ public class GuidelineHandler {
 
     myTextDirection = TextDirection.fromConfiguration(viewEditor.getConfiguration());
 
-    myHorizontalEdges = new ArrayList<Segment>();
-    myVerticalEdges = new ArrayList<Segment>();
-    myCenterVertEdges = new ArrayList<Segment>();
-    myCenterHorizEdges = new ArrayList<Segment>();
+    myHorizontalEdges = new ArrayList<>();
+    myVerticalEdges = new ArrayList<>();
+    myCenterVertEdges = new ArrayList<>();
+    myCenterHorizEdges = new ArrayList<>();
     myDependencyGraph = DependencyGraph.get(layout);
   }
 
@@ -442,7 +441,7 @@ public class GuidelineHandler {
    * dragged edge, and returns these as a list of matches
    */
   protected List<Match> findClosest(Segment draggedEdge, List<Segment> edges) {
-    List<Match> closest = new ArrayList<Match>();
+    List<Match> closest = new ArrayList<>();
     addClosest(draggedEdge, edges, closest);
     return closest;
   }
@@ -450,12 +449,12 @@ public class GuidelineHandler {
   protected void addClosest(Segment draggedEdge, List<Segment> edges, List<Match> closest) {
     int at = draggedEdge.at;
     int closestDelta = closest.size() > 0 ? closest.get(0).delta : Integer.MAX_VALUE;
-    int closestDistance = abs(closestDelta);
+    int closestDistance = Math.abs(closestDelta);
     for (Segment edge : edges) {
       assert draggedEdge.edgeType.isHorizontal() == edge.edgeType.isHorizontal();
 
       int delta = edge.at - at;
-      int distance = abs(delta);
+      int distance = Math.abs(delta);
       if (distance > closestDistance) {
         continue;
       }
@@ -474,15 +473,12 @@ public class GuidelineHandler {
       // Ensure that the edge match is compatible; for example, a "below"
       // constraint can only apply to the margin bounds and a "bottom"
       // constraint can only apply to the non-margin bounds.
-      if (type.relativeToMargin && edge.marginType == WITHOUT_MARGIN) {
-        continue;
-      }
-      else if (!type.relativeToMargin && edge.marginType == WITH_MARGIN) {
+      if (type.relativeToMargin && edge.marginType == WITHOUT_MARGIN ||
+          !type.relativeToMargin && edge.marginType == WITH_MARGIN) {
         continue;
       }
 
-      Match
-        match = new Match(edge, draggedEdge, type, delta);
+      Match match = new Match(edge, draggedEdge, type, delta);
 
       if (distance < closestDistance) {
         closest.clear();
@@ -752,7 +748,7 @@ public class GuidelineHandler {
     }
   }
 
-  private void removeCycles(Set<NlComponent> deps) {
+  private void removeCycles(@SuppressWarnings("UnusedParameters") Set<NlComponent> deps) {
     for (NlComponent node : myDraggedNodes) {
       ViewData view = myDependencyGraph.getView(node);
       if (view != null) {

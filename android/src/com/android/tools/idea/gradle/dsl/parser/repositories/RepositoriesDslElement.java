@@ -15,23 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.repositories;
 
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class RepositoriesDslElement extends GradlePropertiesDslElement {
+public class RepositoriesDslElement extends GradleDslBlockElement {
   @NonNls public static final String REPOSITORIES_BLOCK_NAME = "repositories";
 
   public RepositoriesDslElement(@Nullable GradleDslElement parent) {
-    super(parent, null, REPOSITORIES_BLOCK_NAME);
-  }
-
-  @Override
-  public boolean isBlockElement() {
-    return true;
+    super(parent, REPOSITORIES_BLOCK_NAME);
   }
 
   @Override
@@ -50,7 +45,7 @@ public class RepositoriesDslElement extends GradlePropertiesDslElement {
 
   @NotNull
   private GradleDslElementList getOrCreateRepositoriesElement() {
-    GradleDslElementList elementList = getProperty(REPOSITORIES_BLOCK_NAME, GradleDslElementList.class);
+    GradleDslElementList elementList = getPropertyElement(REPOSITORIES_BLOCK_NAME, GradleDslElementList.class);
     if (elementList == null) {
       elementList = new GradleDslElementList(this, REPOSITORIES_BLOCK_NAME);
       super.addParsedElement(REPOSITORIES_BLOCK_NAME, elementList);

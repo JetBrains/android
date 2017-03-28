@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.ext;
 
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,15 +27,10 @@ import org.jetbrains.annotations.Nullable;
  * <a href="https://docs.gradle.org/current/userguide/writing_build_scripts.html#sec:extra_properties">Extra Properties</a>.
  * </p>
  */
-public final class ExtDslElement extends GradlePropertiesDslElement {
+public final class ExtDslElement extends GradleDslBlockElement {
   @NonNls public static final String EXT_BLOCK_NAME = "ext";
 
   public ExtDslElement(@Nullable GradleDslElement parent) {
-    super(parent, null, EXT_BLOCK_NAME);
-  }
-
-  @Override
-  protected boolean isBlockElement() {
-    return true;
+    super(parent, EXT_BLOCK_NAME);
   }
 }

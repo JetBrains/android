@@ -54,7 +54,7 @@ public class ResourceTablePanel {
     myPackageCombo.setModel(new CollectionComboBoxModel<>(ImmutableList.copyOf(packages)));
     myPackageCombo.setRenderer(new ColoredListCellRenderer<PackageChunk>() {
       @Override
-      protected void customizeCellRenderer(JList list, PackageChunk value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, PackageChunk value, int index, boolean selected, boolean hasFocus) {
         append(value.getPackageName());
       }
     });
@@ -65,7 +65,7 @@ public class ResourceTablePanel {
     myTypesList.setModel(new CollectionListModel<>(packageChunk.getTypeSpecChunks()));
     myTypesList.setCellRenderer(new ColoredListCellRenderer<TypeSpecChunk>() {
       @Override
-      protected void customizeCellRenderer(JList list, TypeSpecChunk value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, TypeSpecChunk value, int index, boolean selected, boolean hasFocus) {
         append(value.getTypeName());
       }
     });

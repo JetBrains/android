@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.structure.dependencies.android.Configuration.*;
-import static org.fest.assertions.Assertions.assertThat;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -50,7 +50,7 @@ public class AndroidDependencyScopesPanelTest {
     List<PsProductFlavor> productFlavors = Collections.emptyList();
 
     List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, true, true);
-    assertThat(scopes).containsOnly("compile");
+    assertThat(scopes).containsExactly("compile");
   }
 
   @Test
@@ -60,7 +60,7 @@ public class AndroidDependencyScopesPanelTest {
     List<PsProductFlavor> productFlavors = Collections.emptyList();
 
     List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, true, true);
-    assertThat(scopes).containsOnly("androidTestCompile");
+    assertThat(scopes).containsExactly("androidTestCompile");
   }
 
   @Test
@@ -70,7 +70,7 @@ public class AndroidDependencyScopesPanelTest {
     List<PsProductFlavor> productFlavors = Collections.emptyList();
 
     List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, true, true);
-    assertThat(scopes).containsOnly("testCompile");
+    assertThat(scopes).containsExactly("testCompile");
   }
 
   @Test
@@ -80,7 +80,7 @@ public class AndroidDependencyScopesPanelTest {
     List<PsProductFlavor> productFlavors = Collections.emptyList();
 
     List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, true, true);
-    assertThat(scopes).containsOnly("androidTestCompile", "testCompile");
+    assertThat(scopes).containsExactly("androidTestCompile", "testCompile");
   }
 
   @Test
@@ -90,7 +90,7 @@ public class AndroidDependencyScopesPanelTest {
     List<PsProductFlavor> productFlavors = Lists.newArrayList(productFlavor("flavor1"));
 
     List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, true, false);
-    assertThat(scopes).containsOnly("flavor1Compile");
+    assertThat(scopes).containsExactly("flavor1Compile");
   }
 
   @Test
@@ -100,7 +100,7 @@ public class AndroidDependencyScopesPanelTest {
     List<PsProductFlavor> productFlavors = Lists.newArrayList(productFlavor("flavor1"));
 
     List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, true, false);
-    assertThat(scopes).containsOnly("androidTestFlavor1Compile");
+    assertThat(scopes).containsExactly("androidTestFlavor1Compile");
   }
 
   @Test
@@ -110,7 +110,7 @@ public class AndroidDependencyScopesPanelTest {
     List<PsProductFlavor> productFlavors = Lists.newArrayList(productFlavor("flavor1"));
 
     List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, true, false);
-    assertThat(scopes).containsOnly("testFlavor1Compile");
+    assertThat(scopes).containsExactly("testFlavor1Compile");
   }
 
   @Test
@@ -120,7 +120,7 @@ public class AndroidDependencyScopesPanelTest {
     List<PsProductFlavor> productFlavors = Lists.newArrayList(productFlavor("flavor1"));
 
     List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, false, false);
-    assertThat(scopes).containsOnly("androidTestFlavor1Compile");
+    assertThat(scopes).containsExactly("androidTestFlavor1Compile");
   }
 
   @Test
@@ -130,7 +130,7 @@ public class AndroidDependencyScopesPanelTest {
     List<PsProductFlavor> productFlavors = Lists.newArrayList(productFlavor("flavor1"));
 
     List<String> scopes = AndroidDependencyScopesPanel.deduceScopes(configurations, buildTypes, productFlavors, false, false);
-    assertThat(scopes).containsOnly("testDebugCompile", "testFlavor1Compile");
+    assertThat(scopes).containsExactly("testDebugCompile", "testFlavor1Compile");
   }
   @Test
   public void deduceScopes11() {

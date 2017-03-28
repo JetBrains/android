@@ -298,10 +298,10 @@ public class AndroidDomUtil {
     String namespace = attribute.getNamespace();
     boolean isFramework = namespace.equals(ANDROID_URI);
     if (!isFramework && TOOLS_URI.equals(namespace)) {
-      // Treat tools namespace attributes as aliases for Android namespaces: see http://tools.android.com/tips/layout-designtime-attributes
+      // Treat tools namespace attributes as aliases for Android namespaces: see https://developer.android.com/studio/write/tool-attributes.html#design-time_view_attributes
       isFramework = true;
 
-      // However, there are some attributes with other meanings: http://tools.android.com/tech-docs/tools-attributes
+      // However, there are some attributes with other meanings: https://developer.android.com/studio/write/tool-attributes.html
       // Filter some of these out such that they are not treated as the (unrelated but identically named) platform attributes
       AttributeDefinition toolsAttr = TOOLS_ATTRIBUTE_DEFINITIONS.getAttrDefByName(localName);
       if (toolsAttr != null) {

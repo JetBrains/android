@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.*;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
@@ -63,7 +63,7 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.ide.common.rendering.RenderParamsFlags.*;
-import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
 
 /**
@@ -129,7 +129,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myClassLoader = new ViewLoader(myLayoutLib, facet, logger, credential);
     myActionBarHandler = actionBarHandler;
 
-    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
     myHasAppCompat = androidModel != null && GradleUtil.dependsOn(androidModel, APPCOMPAT_LIB_ARTIFACT);
 
     String javaPackage = MergedManifest.get(myModule).getPackage();
@@ -607,9 +607,15 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Override
   public AdapterBinding getAdapterBinding(final ResourceReference adapterView, final Object adapterCookie, final Object viewObject) {
     // Look for user-recorded preference for layout to be used for previews
-    if (adapterCookie instanceof XmlTag) {
-      XmlTag uiNode = (XmlTag)adapterCookie;
-      AdapterBinding binding = LayoutMetadata.getNodeBinding(viewObject, uiNode);
+    if (adapterCookie instanceof TagSnapshot) {
+      AdapterBinding binding = LayoutMetadata.getNodeBinding(viewObject, (TagSnapshot)adapterCookie);
+      if (binding != null) {
+        return binding;
+      }
+    }
+    else if (adapterCookie instanceof XmlTag) {
+      AdapterBinding binding =
+        LayoutMetadata.getNodeBinding(viewObject, TagSnapshot.createTagSnapshotWithoutChildren((XmlTag)adapterCookie));
       if (binding != null) {
         return binding;
       }
@@ -744,9 +750,42 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private static class NamedParser extends KXmlParser {
     @Nullable
     private final String myName;
+    /**
+     * Attribute that caches whether the tools prefix has been defined or not. This allow us to save unnecessary checks in the most common
+     * case ("tools" is not defined).
+     */
+    private boolean hasToolsNamespace;
 
     public NamedParser(@Nullable String name) {
       myName = name;
+    }
+
+    @Override
+    public int next() throws XmlPullParserException, IOException {
+      int tagType = super.next();
+
+      // We check if the tools namespace is still defined in two cases:
+      // - If it's a start tag and it was defined by a previous tag
+      // - If it WAS defined by a previous tag, and we are closing a tag (going out of scope)
+      if ((!hasToolsNamespace && tagType == XmlPullParser.START_TAG) ||
+          (hasToolsNamespace && tagType == XmlPullParser.END_TAG)) {
+        hasToolsNamespace = getNamespace("tools") != null;
+      }
+
+      return tagType;
+    }
+
+    @Override
+    public String getAttributeValue(String namespace, String name) {
+      if (hasToolsNamespace && ANDROID_URI.equals(namespace)) {
+        // Only for "android:" attribute, we will check if there is a "tools:" version overriding the value
+        String toolsValue = super.getAttributeValue(TOOLS_URI, name);
+        if (toolsValue != null) {
+          return toolsValue;
+        }
+      }
+
+      return super.getAttributeValue(namespace, name);
     }
 
     @Override

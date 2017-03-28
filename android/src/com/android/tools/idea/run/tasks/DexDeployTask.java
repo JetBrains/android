@@ -56,7 +56,7 @@ public class DexDeployTask implements LaunchTask {
         manager.pushArtifacts(device, myInstantRunContext, UpdateMode.HOT_SWAP);
         printer.stdout("Cold swapped changes.");
 
-        InstantRunStatsService.get(myProject).notifyDeployType(DeployType.DEX, myInstantRunContext.getBuildSelection().why, device);
+        InstantRunStatsService.get(myProject).notifyDeployType(DeployType.DEX, myInstantRunContext, device);
 
         return true;
       }

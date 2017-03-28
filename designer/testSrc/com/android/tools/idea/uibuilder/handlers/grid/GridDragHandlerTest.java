@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.grid;
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.DragType;
+import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
@@ -35,7 +36,6 @@ public final class GridDragHandlerTest extends LayoutTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    ViewEditor editor = Mockito.mock(ViewEditor.class);
 
     GridLayout viewObject = new GridLayout();
     viewObject.setVerticalAxis(new Axis(new int[]{0, 1024}));
@@ -65,6 +65,9 @@ public final class GridDragHandlerTest extends LayoutTestCase {
       .build();
     // @formatter:on
 
+    ViewEditor editor = Mockito.mock(ViewEditor.class);
+    Mockito.when(editor.getModel()).thenReturn(model);
+
     List<NlComponent> components = Collections.emptyList();
     handler = new GridDragHandler(editor, new ViewGroupHandler(), model.getComponents().get(0), components, DragType.CREATE);
   }
@@ -72,11 +75,8 @@ public final class GridDragHandlerTest extends LayoutTestCase {
   public void testCommitCellHasChild() {
     handler.start(630, 210, 0);
 
-    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
-      @Override
-      public void run() {
-        handler.commit(630, 210, 0);
-      }
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      handler.commit(630, 210, 0, InsertType.MOVE_INTO);
     });
 
     NlComponent[][] children = handler.getInfo().getChildren();
@@ -90,11 +90,8 @@ public final class GridDragHandlerTest extends LayoutTestCase {
     handler.start(630, 210, 0);
     handler.update(470, 210, 0);
 
-    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
-      @Override
-      public void run() {
-        handler.commit(470, 210, 0);
-      }
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      handler.commit(470, 210, 0, InsertType.MOVE_INTO);
     });
 
     NlComponent[][] children = handler.getInfo().getChildren();

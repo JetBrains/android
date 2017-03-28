@@ -19,7 +19,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
-import static org.jetbrains.android.inspections.lint.ParcelableQuickFix.Operation.REMOVE;
+import static com.android.tools.idea.lint.ParcelableQuickFix.Operation.REMOVE;
 
 public class RemoveParcelableAction extends ImplementParcelableAction {
 

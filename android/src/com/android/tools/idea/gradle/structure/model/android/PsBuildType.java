@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.BuildType;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModel;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import org.jetbrains.annotations.NotNull;
@@ -66,7 +66,7 @@ public class PsBuildType extends PsChildModel implements PsAndroidModel {
 
   @Override
   @NotNull
-  public AndroidGradleModel getGradleModel() {
+  public AndroidModuleModel getGradleModel() {
     return getParent().getGradleModel();
   }
 }

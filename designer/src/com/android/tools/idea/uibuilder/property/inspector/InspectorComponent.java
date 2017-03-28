@@ -20,7 +20,6 @@ import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -29,6 +28,7 @@ import java.util.Map;
  * Interface for generating the UI components for a specific inspector.
  */
 public interface InspectorComponent {
+
   /**
    * Update the properties used
    * @param components the components selected
@@ -56,9 +56,8 @@ public interface InspectorComponent {
   void refresh();
 
   /**
-   * Get the editor for a given attribute.
-   * Return <code>null</code> if this component is not displaying this attribute.
+   * Get the editors created by this inspector.
    */
-  @Nullable
-  NlComponentEditor getEditorForProperty(@NotNull String propertyName);
+  @NotNull
+  List<NlComponentEditor> getEditors();
 }

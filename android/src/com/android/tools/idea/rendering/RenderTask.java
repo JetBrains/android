@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.LayoutLibrary;
 import com.android.ide.common.rendering.RenderParamsFlags;
@@ -29,7 +30,9 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.diagnostics.crash.CrashReport;
+import com.android.tools.idea.diagnostics.crash.CrashReporter;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifest;
@@ -39,10 +42,11 @@ import com.android.tools.idea.rendering.multi.RenderPreviewMode;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.AssetRepositoryImpl;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.swing.layoutlib.FakeImageFactory;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
@@ -68,7 +72,8 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT;
+import static com.android.SdkConstants.HORIZONTAL_SCROLL_VIEW;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 /**
@@ -76,6 +81,10 @@ import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
  * Android layouts. This is a wrapper around the layout library.
  */
 public class RenderTask implements IImageFactory {
+  private static final Logger LOG = Logger.getInstance(RenderTask.class);
+
+  private final ImagePool myImagePool = new ImagePool();
+
   @NotNull
   private final RenderService myRenderService;
 
@@ -121,7 +130,7 @@ public class RenderTask implements IImageFactory {
   private Set<XmlTag> myExpandNodes;
 
   @Nullable
-  private DesignSurface mySurface;
+  private EditorDesignSurface mySurface;
 
   @NotNull
   private final Locale myLocale;
@@ -137,6 +146,9 @@ public class RenderTask implements IImageFactory {
   /** Cached {@link BufferedImage} that will be returned when direct rendering is not used. See {@link #render(Graphics2D)} */
   private SoftReference<BufferedImage> myCachedImageReference;
 
+  private boolean isSecurityManagerEnabled = true;
+  private CrashReporter myCrashReporter;
+
   /**
    * Don't create this task directly; obtain via {@link com.android.tools.idea.rendering.RenderService}
    */
@@ -145,11 +157,13 @@ public class RenderTask implements IImageFactory {
              @NotNull RenderLogger logger,
              @NotNull LayoutLibrary layoutLib,
              @NotNull Device device,
-             @NotNull Object credential) {
+             @NotNull Object credential,
+             @NotNull CrashReporter crashReporter) {
     myRenderService = renderService;
     myLogger = logger;
     myCredential = credential;
     myConfiguration = configuration;
+    myCrashReporter = crashReporter;
 
     AndroidFacet facet = renderService.getFacet();
     Module module = facet.getModule();
@@ -240,6 +254,7 @@ public class RenderTask implements IImageFactory {
    * Disposes the RenderTask and releases the allocated resources. Do not call this method while holding the read lock.
    */
   public void dispose() {
+    myImagePool.dispose();
     myLayoutlibCallback.setLogger(null);
     myLayoutlibCallback.setResourceResolver(null);
     if (myRenderSession != null) {
@@ -345,7 +360,7 @@ public class RenderTask implements IImageFactory {
    * preview data
    */
   @Nullable
-  public DesignSurface getDesignSurface() {
+  public EditorDesignSurface getDesignSurface() {
     return mySurface;
   }
 
@@ -358,7 +373,7 @@ public class RenderTask implements IImageFactory {
    * @return this, for constructor chaining
    */
   @Nullable
-  public RenderTask setDesignSurface(@Nullable DesignSurface surface) {
+  public RenderTask setDesignSurface(@Nullable EditorDesignSurface surface) {
     mySurface = surface;
     return this;
   }
@@ -422,7 +437,7 @@ public class RenderTask implements IImageFactory {
       throw new IllegalStateException("createRenderSession shouldn't be called on RenderTask without PsiFile");
     }
 
-    ResourceResolver resolver = getResourceResolver();
+    ResourceResolver resolver = ResourceResolver.copy(getResourceResolver());
     if (resolver == null) {
       // Abort the rendering if the resources are not found.
       return null;
@@ -435,7 +450,7 @@ public class RenderTask implements IImageFactory {
 
     if (modelParser instanceof LayoutPsiPullParser) {
       // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour
-      AndroidGradleModel androidModel = AndroidGradleModel.get(myRenderService.getFacet());
+      AndroidModuleModel androidModel = AndroidModuleModel.get(myRenderService.getFacet());
       boolean useSrcCompat = androidModel != null && GradleUtil.dependsOn(androidModel, APPCOMPAT_LIB_ARTIFACT);
       ((LayoutPsiPullParser)modelParser).setUseSrcCompat(useSrcCompat);
     }
@@ -454,7 +469,8 @@ public class RenderTask implements IImageFactory {
     Module module = myRenderService.getModule();
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     final SessionParams params =
-      new SessionParams(modelParser, myRenderingMode, module /* projectKey */, hardwareConfig, resolver, myLayoutlibCallback,
+      new SessionParams(modelParser, myRenderingMode, module /* projectKey */, hardwareConfig, resolver,
+                        myLayoutlibCallback,
                         myMinSdkVersion.getApiLevel(), myTargetSdkVersion.getApiLevel(), myLogger, simulatedPlatform);
     params.setAssetRepository(myAssetRepository);
 
@@ -535,8 +551,11 @@ public class RenderTask implements IImageFactory {
         @Override
         public RenderResult compute() {
           Module module = myRenderService.getModule();
-          RenderSecurityManager securityManager = RenderSecurityManagerFactory.create(module, getPlatform());
-          securityManager.setActive(true, myCredential);
+          RenderSecurityManager securityManager =
+            isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, getPlatform()) : null;
+          if (securityManager != null) {
+            securityManager.setActive(true, myCredential);
+          }
 
           try {
             int retries = 0;
@@ -566,17 +585,19 @@ public class RenderTask implements IImageFactory {
               session.setSystemTimeNanos(now);
               session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
             }
-            RenderResult result = new RenderResult(RenderTask.this, session, myPsiFile, myLogger);
+            RenderResult result =
+              RenderResult.create(RenderTask.this, session, myPsiFile, myLogger, myImagePool.copyOf(session.getImage()));
             myRenderSession = session;
             return result;
           }
           finally {
-            securityManager.dispose(myCredential);
+            if (securityManager != null) {
+              securityManager.dispose(myCredential);
+            }
           }
         }
       });
       addDiagnostics(result.getRenderResult());
-      result.setIncludedWithin(myIncludedWithin);
       return result;
     }
     catch (RuntimeException t) {
@@ -670,8 +691,38 @@ public class RenderTask implements IImageFactory {
         message = e.toString();
       }
       myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myRenderService.getProject(), myLogger.getLinkManager(), e));
-      return new RenderResult(this, null, myPsiFile, myLogger);
+      return RenderResult.createSessionInitializationError(this, myPsiFile, myLogger);
     }
+  }
+
+  /**
+   * Only do a measure pass using the current render session
+   */
+  @Nullable
+  public RenderResult layout() {
+    if (myRenderSession == null) {
+      return null;
+    }
+    try {
+      return RenderService.runRenderAction(() -> {
+        myRenderSession.measure();
+        return RenderResult.create(this, myRenderSession, myPsiFile, myLogger, ImagePool.NULL_POOLED_IMAGE);
+      });
+    }
+    catch (final Exception e) {
+      // nothing
+    }
+    return null;
+  }
+
+  /**
+   * Method used to report unhandled layoutlib exceptions to the crash reporter
+   */
+  private void reportException(@NotNull Throwable e) {
+    // This in an unhandled layoutlib exception, pass it to the crash reporter
+    myCrashReporter.submit(
+      CrashReport.Builder.createForException(e)
+        .build());
   }
 
   /**
@@ -686,6 +737,9 @@ public class RenderTask implements IImageFactory {
       Result result = renderResult != null ? renderResult.getRenderResult() : null;
       if (result == null || !result.isSuccess()) {
         if (result != null) {
+          if (result.getException() != null) {
+            reportException(result.getException());
+          }
           myLogger.error(null, result.getErrorMessage(), result.getException(), null);
         }
         return renderResult;
@@ -696,16 +750,22 @@ public class RenderTask implements IImageFactory {
     try {
       return RenderService.runRenderAction(() -> {
         myRenderSession.render();
-        return new RenderResult(this, myRenderSession, myPsiFile, myLogger);
+        RenderResult result =
+          RenderResult.create(this, myRenderSession, myPsiFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()));
+        if (result.getRenderResult().getException() != null) {
+          reportException(result.getRenderResult().getException());
+        }
+        return result;
       });
     }
     catch (final Exception e) {
+      reportException(e);
       String message = e.getMessage();
       if (message == null) {
         message = e.toString();
       }
       myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myRenderService.getProject(), myLogger.getLinkManager(), e));
-      return new RenderResult(this, null, myPsiFile, myLogger);
+      return RenderResult.createSessionInitializationError(this, myPsiFile, myLogger);
     }
   }
 
@@ -905,10 +965,6 @@ public class RenderTask implements IImageFactory {
     BufferedImage cached = myCachedImageReference != null ? myCachedImageReference.get() : null;
 
     // This can cause flicker; see steps listed in http://b.android.com/208984
-    // Temporarily disable image cache.
-    // TODO: Reenable!
-    cached = null;
-
     if (cached == null || cached.getWidth() != width || cached.getHeight() != height) {
       cached = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
       myCachedImageReference = new SoftReference<>(cached);
@@ -1104,6 +1160,23 @@ public class RenderTask implements IImageFactory {
       myLogger.error(null, t.getLocalizedMessage(), t, null);
       throw t;
     }
+  }
+
+  @VisibleForTesting
+  void setCrashReporter(@NotNull CrashReporter crashReporter) {
+    myCrashReporter = crashReporter;
+  }
+
+  /**
+   * Bazel has its own security manager. We allow rendering tests to disable the security manager by calling this method.
+   */
+  @VisibleForTesting
+  public void disableSecurityManager() {
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      throw new IllegalStateException("This method can only be called in unit test mode");
+    }
+    LOG.warn("Security manager was disabled");
+    isSecurityManagerEnabled = false;
   }
 
   /**

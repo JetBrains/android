@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.resources.ResourceType;
+import com.android.tools.idea.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.ImmutableList;
@@ -42,6 +43,12 @@ public class ImageViewHandler extends ViewHandler {
       ATTR_SCALE_TYPE,
       ATTR_ADJUST_VIEW_BOUNDS,
       ATTR_CROP_TO_PADDING);
+  }
+
+  @Override
+  @NotNull
+  public String getPreferredProperty() {
+    return ATTR_SRC;
   }
 
   @Override

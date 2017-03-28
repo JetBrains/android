@@ -18,9 +18,14 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.palette.Palette.Group;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.StringReader;
 import java.util.Iterator;
+import java.util.List;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public class PaletteTest extends PaletteTestCase {
 
@@ -34,7 +39,6 @@ public class PaletteTest extends PaletteTestCase {
     iterator = group1.getItems().iterator();
     assertTextViewItem(iterator.next());
     assertLinearLayoutItem(iterator.next());
-    assertLargeProgressBarItem(iterator.next());
     assertNormalProgressBarItem(iterator.next());
     assertFalse(iterator.hasNext());
 
@@ -46,6 +50,20 @@ public class PaletteTest extends PaletteTestCase {
     assertIncludeItem(iterator.next());
     assertCoordinatorLayoutItem(iterator.next());
     assertFalse(iterator.hasNext());
+  }
+
+  public void testParent() throws Exception {
+    checkParents(null, loadPalette().getItems());
+  }
+
+  private static void checkParents(@Nullable Palette.Group parent, @NotNull List<Palette.BaseItem> items) {
+    for (Palette.BaseItem item : items) {
+      assertThat(item.getParent()).isSameAs(parent);
+      if (item instanceof Group) {
+        Group group = (Group)item;
+        checkParents(group, group.getItems());
+      }
+    }
   }
 
   @Language("XML")
@@ -63,19 +81,6 @@ public class PaletteTest extends PaletteTestCase {
     "              android:layout_height=\"match_parent\">\n" +
     "            </LinearLayout>\n" +
     "          ]]>\n" +
-    "      </xml>\n" +
-    "    </item>\n" +
-    "    <item tag=\"ProgressBar\"\n" +
-    "          id=\"LargeProgressBar\"\n" +
-    "          title=\"ProgressBar (Large)\">\n" +
-    "      <xml reuse=\"preview,drag-preview\">\n" +
-    "        <![CDATA[\n" +
-    "              <ProgressBar\n" +
-    "                style=\"?android:attr/progressBarStyleLarge\"\n" +
-    "                android:layout_width=\"wrap_content\"\n" +
-    "                android:layout_height=\"wrap_content\"\n" +
-    "              />\n" +
-    "            ]]>\n" +
     "      </xml>\n" +
     "    </item>\n" +
     "    <item tag=\"ProgressBar\"\n" +
@@ -103,5 +108,4 @@ public class PaletteTest extends PaletteTestCase {
     ViewHandlerManager manager = new ViewHandlerManager(getProject());
     return Palette.parse(new StringReader(PALETTE), manager);
   }
-
 }

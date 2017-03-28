@@ -75,18 +75,34 @@ public class BrowsePanel extends JPanel {
     }
   }
 
+  public static class ContextDelegate implements Context {
+    private NlComponentEditor myEditor;
+
+    @Nullable
+    @Override
+    public NlProperty getProperty() {
+      return myEditor != null ? myEditor.getProperty() : null;
+    }
+
+    public void setEditor(@NotNull NlComponentEditor editor) {
+      myEditor = editor;
+    }
+  }
+
   public BrowsePanel(@NotNull Context context) {
     this(context, true);
   }
 
   public BrowsePanel(@NotNull Context context, boolean showDesignButton) {
     myContext = context;
-    myBrowseButton = createActionButton(createBrowseAction());
+    myBrowseButton = createActionButton(new BrowseAction(context));
     myDesignButton = showDesignButton ? createActionButton(createDesignAction()) : null;
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
     add(myBrowseButton);
+    myBrowseButton.setFocusable(true);
     if (myDesignButton != null) {
       add(myDesignButton);
+      myDesignButton.setFocusable(true);
     }
   }
 
@@ -110,43 +126,28 @@ public class BrowsePanel extends JPanel {
                             ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE);
   }
 
-  private AnAction createBrowseAction() {
-    return new AnAction() {
-      @Override
-      public void update(AnActionEvent event) {
-        Presentation presentation = event.getPresentation();
-        NlProperty property = myContext.getProperty();
-        if (property != null && hasResourceChooser(property)) {
-          presentation.setIcon(AllIcons.General.Ellipsis);
-          presentation.setText("Click to pick a resource");
-          presentation.setVisible(true);
-          presentation.setEnabled(true);
-        }
-        else {
-          presentation.setIcon(null);
-          presentation.setText(null);
-          presentation.setVisible(false);
-          presentation.setEnabled(false);
-        }
-      }
+  private static class BrowseAction extends AnAction {
+    private final Context myContext;
 
-      @Override
-      public void actionPerformed(AnActionEvent event) {
-        displayResourcePicker();
-      }
-    };
-  }
-
-  private void displayResourcePicker() {
-    NlProperty property = myContext.getProperty();
-    if (property == null) {
-      return;
+    private BrowseAction(@NotNull Context context) {
+      myContext = context;
+      Presentation presentation = getTemplatePresentation();
+      presentation.setIcon(AllIcons.General.Ellipsis);
+      presentation.setText("Pick a Resource");
     }
-    ChooseResourceDialog dialog = showResourceChooser(property);
-    myContext.cancelEditing();
 
-    if (dialog.showAndGet()) {
-      myContext.stopEditing(dialog.getResourceName());
+    @Override
+    public void actionPerformed(AnActionEvent event) {
+      NlProperty property = myContext.getProperty();
+      if (property == null) {
+        return;
+      }
+      ChooseResourceDialog dialog = showResourceChooser(property);
+      myContext.cancelEditing();
+
+      if (dialog.showAndGet()) {
+        myContext.stopEditing(dialog.getResourceName());
+      }
     }
   }
 
@@ -185,13 +186,13 @@ public class BrowsePanel extends JPanel {
         switch (checkDesignState()) {
           case MISSING_DESIGN_PROPERTY:
             presentation.setIcon(AndroidIcons.NeleIcons.DesignProperty);
-            presentation.setText("Click to specify design property");
+            presentation.setText("Specify Design Property");
             presentation.setVisible(true);
             presentation.setEnabled(true);
             break;
           case IS_REMOVABLE_DESIGN_PROPERTY:
             presentation.setIcon(AllIcons.Actions.Delete);
-            presentation.setText("Click to remove this design property");
+            presentation.setText("Remove this Design Property");
             presentation.setVisible(true);
             presentation.setEnabled(true);
             break;

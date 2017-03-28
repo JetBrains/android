@@ -24,12 +24,28 @@ import java.util.List;
 import java.util.Map;
 
 public interface InspectorProvider {
+  /**
+   * Returns true if this {@link InspectorProvider} should be used for the given
+   * components and properties.
+   */
   boolean isApplicable(@NotNull List<NlComponent> components,
                        @NotNull Map<String, NlProperty> properties,
                        @NotNull NlPropertiesManager propertiesManager);
 
+  /**
+   * Return an {@link InspectorComponent} for editing a subset of properties for
+   * the given components.<br/>
+   * The provider may choose to cache a {@link InspectorComponent} with editors
+   * for a given set of component types and properties.
+   */
   @NotNull
   InspectorComponent createCustomInspector(@NotNull List<NlComponent> components,
                                            @NotNull Map<String, NlProperty> properties,
                                            @NotNull NlPropertiesManager propertiesManager);
+
+
+  /**
+   * Get rid of cache that a provider may maintain.
+   */
+  void resetCache();
 }

@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.inspections.lint;
 
+import com.android.tools.idea.lint.*;
 import com.android.tools.lint.checks.*;
 import com.android.tools.lint.detector.api.*;
 import com.android.utils.XmlUtils;
@@ -34,6 +35,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 import static com.android.utils.SdkUtils.escapePropertyValue;
+import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
 
 /** Ensures that all relevant lint checks are available and registered */
 public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
@@ -56,42 +58,54 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
     //   AndroidLintInspectionBase.getInspectionShortNameByIssue
     // to iterate the available inspections from unit tests; at runtime this will enumerate all
     // the available inspections, but from unit tests (even when extending IdeaTestCase) it's empty.
-    // So instead we take advantage of the knowledge that all our inspections are declared as inner classes
-    // of AndroidLintInspectionToolProvider and we iterate these instead. This won't catch cases if
-    // we declare a class there and forget to register in the plugin, but it's better than nothing.
+    // So instead we take advantage of the knowledge that all our inspections are named in a particular
+    // way from the lint issue id's, so we can use reflection to find the classes.
+    // This won't catch cases if we declare a class there and forget to register in the plugin, but
+    // it's better than nothing.
     Set<String> registered = Sets.newHashSetWithExpectedSize(200);
     Set<Issue> quickfixes = Sets.newLinkedHashSetWithExpectedSize(200);
-    for (Class<?> c : AndroidLintInspectionToolProvider.class.getDeclaredClasses()) {
-      if (AndroidLintInspectionBase.class.isAssignableFrom(c) && ((c.getModifiers() & Modifier.ABSTRACT) == 0)) {
-        AndroidLintInspectionBase provider = (AndroidLintInspectionBase)c.newInstance();
-        registered.add(provider.getIssue().getId());
 
-        boolean hasQuickFix = true;
-        try {
-          provider.getClass().getDeclaredMethod("getQuickFixes", String.class);
-        } catch (NoSuchMethodException e1) {
+    final LintIdeIssueRegistry fullRegistry = new LintIdeIssueRegistry();
+    List<Issue> allIssues = fullRegistry.getIssues();
+
+    for (Issue issue : allIssues) {
+      if (!isRelevant(issue)) {
+        continue;
+      }
+      String className = "com.android.tools.idea.lint.AndroidLint" + issue.getId() + "Inspection";
+      try {
+        Class<?> c = Class.forName(className);
+        if (AndroidLintInspectionBase.class.isAssignableFrom(c) && ((c.getModifiers() & Modifier.ABSTRACT) == 0)) {
+          AndroidLintInspectionBase provider = (AndroidLintInspectionBase)c.newInstance();
+          registered.add(provider.getIssue().getId());
+
+          boolean hasQuickFix = true;
           try {
-            provider.getClass().getDeclaredMethod("getQuickFixes", PsiElement.class, PsiElement.class, String.class);
-          } catch (NoSuchMethodException e2) {
-            hasQuickFix = false;
+            provider.getClass().getDeclaredMethod("getQuickFixes", String.class);
+          }
+          catch (NoSuchMethodException e1) {
+            try {
+              provider.getClass().getDeclaredMethod("getQuickFixes", PsiElement.class, PsiElement.class, String.class);
+            }
+            catch (NoSuchMethodException e2) {
+              hasQuickFix = false;
+            }
+          }
+          if (hasQuickFix) {
+            quickfixes.add(provider.getIssue());
           }
         }
-        if (hasQuickFix) {
-          quickfixes.add(provider.getIssue());
-        }
+      } catch (ClassNotFoundException ignore) {
       }
     }
 
     final List<Issue> missing = new ArrayList<>();
-    final IntellijLintIssueRegistry fullRegistry = new IntellijLintIssueRegistry();
-
-    List<Issue> allIssues = fullRegistry.getIssues();
     for (Issue issue : allIssues) {
       if (!isRelevant(issue) || registered.contains(issue.getId())) {
         continue;
       }
 
-      assertFalse(IntellijLintProject.SUPPORT_CLASS_FILES); // When enabled, adjust this to register class based registrations
+      assertFalse(LintIdeProject.SUPPORT_CLASS_FILES); // When enabled, adjust this to register class based registrations
       Implementation implementation = issue.getImplementation();
       if (implementation.getScope().contains(Scope.CLASS_FILE) ||
           implementation.getScope().contains(Scope.ALL_CLASS_FILES) ||
@@ -126,9 +140,8 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
         continue;
       }
 
-      final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
-      PsiElement element = null;
-      HighlightDisplayLevel errorLevel = profile.getErrorLevel(key, element);
+      final InspectionProfile profile = InspectionProjectProfileManager.getInstance(project).getInspectionProfile();
+      HighlightDisplayLevel errorLevel = profile.getErrorLevel(key, null);
       Severity s;
       if (errorLevel == HighlightDisplayLevel.WARNING || errorLevel == HighlightDisplayLevel.WEAK_WARNING) {
         s = Severity.WARNING;
@@ -156,19 +169,15 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
 
     // Spit out registration information for the missing elements
     if (!missing.isEmpty()) {
-      Collections.sort(missing, new Comparator<Issue>() {
-        @Override
-        public int compare(Issue issue1, Issue issue2) {
-          return String.CASE_INSENSITIVE_ORDER.compare(issue1.getId(), issue2.getId());
-        }
-      });
+      missing.sort((issue1, issue2) -> String.CASE_INSENSITIVE_ORDER.compare(issue1.getId(), issue2.getId()));
 
       StringBuilder sb = new StringBuilder(1000);
       sb.append("Missing registration for ").append(missing.size()).append(" issues (out of a total issue count of ")
         .append(allIssues.size()).append(")");
-      sb.append("\nAdd to plugin.xml (and please try to preserve the case insensitive alphabetical order):\n");
+      sb.append("\nAdd to android/src/META-INF/android-plugin.xml (and please try to preserve the case insensitive alphabetical order):\n");
       for (Issue issue : missing) {
-        sb.append("    <globalInspection hasStaticDescription=\"true\" shortName=\"AndroidLint");
+        sb.append("    <globalInspection hasStaticDescription=\"true\" shortName=\"");
+        sb.append(LINT_INSPECTION_PREFIX);
         String id = issue.getId();
         sb.append(id);
         sb.append("\" displayName=\"");
@@ -178,25 +187,46 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
         sb.append(issue.isEnabledByDefault());
         sb.append("\" level=\"");
         sb.append(issue.getDefaultSeverity() == Severity.ERROR || issue.getDefaultSeverity() == Severity.FATAL ?
-                  "ERROR" : "WARNING");
-        sb.append("\" implementationClass=\"org.jetbrains.android.inspections.lint.AndroidLintInspectionToolProvider$AndroidLint");
+                  "ERROR" : issue.getDefaultSeverity() == Severity.WARNING ? "WARNING" : "INFO");
+        sb.append("\" implementationClass=\"com.android.tools.idea.lint.AndroidLint");
         sb.append(id);
         sb.append("Inspection\"/>\n");
       }
 
-      sb.append("\nAdd to AndroidLintInspectionToolProvider.java:\n");
+      sb.append("\nAdd to com.android.tools.idea.lint:\n");
       for (Issue issue : missing) {
         String id = issue.getId();
-        String detectorName = getDetectorClass(issue).getName();
+        String detectorClass = getDetectorClass(issue).getName();
+        String detectorName = getDetectorClass(issue).getSimpleName();
         String issueName = getIssueFieldName(issue);
         String messageKey = getMessageKey(issue);
         //noinspection StringConcatenationInsideStringBufferAppend
-        sb.append("" +
-                  "  public static class AndroidLint" + id + "Inspection extends AndroidLintInspectionBase {\n" +
-                  "    public AndroidLint" + id + "Inspection() {\n" +
-                  "      super(AndroidBundle.message(\"android.lint.inspections." + messageKey + "\"), " + detectorName + "." + issueName + ");\n" +
-                  "    }\n" +
-                  "  }\n");
+        sb.append("/*\n" +
+                  " * Copyright (C) 2016 The Android Open Source Project\n" +
+                  " *\n" +
+                  " * Licensed under the Apache License, Version 2.0 (the \"License\");\n" +
+                  " * you may not use this file except in compliance with the License.\n" +
+                  " * You may obtain a copy of the License at\n" +
+                  " *\n" +
+                  " *      http://www.apache.org/licenses/LICENSE-2.0\n" +
+                  " *\n" +
+                  " * Unless required by applicable law or agreed to in writing, software\n" +
+                  " * distributed under the License is distributed on an \"AS IS\" BASIS,\n" +
+                  " * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n" +
+                  " * See the License for the specific language governing permissions and\n" +
+                  " * limitations under the License.\n" +
+                  " */\n" +
+                  "package com.android.tools.idea.lint;\n" +
+                  "\n" +
+                  "import " + detectorClass + ";\n" +
+                  "import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;\n" +
+                  "import org.jetbrains.android.util.AndroidBundle;\n" +
+                  "\n" +
+                  "public class AndroidLint" + id + "Inspection extends AndroidLintInspectionBase {\n" +
+                  "  public AndroidLint" + id + "Inspection() {\n" +
+                  "    super(AndroidBundle.message(\"android.lint.inspections." + messageKey + "\"), " + detectorName + "." + issueName + ");\n" +
+                  "  }\n" +
+                  "}\n");
       }
 
       sb.append("\nAdd to AndroidBundle.properties:\n");
@@ -209,7 +239,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
       sb.append("\nAdded registrations for ").append(missing.size()).append(" issues (out of a total issue count of ")
         .append(allIssues.size()).append(")\n");
 
-      System.out.println("If necessary, add these category descriptors to AndroidBundle.properties:\n");
+      System.out.println("*IF* necessary, add these category descriptors to AndroidBundle.properties:\n");
       Set<Category> categories = Sets.newHashSet();
       for (Issue issue : missing) {
         categories.add(issue.getCategory());
@@ -299,12 +329,10 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
   private static Class<? extends Detector> getDetectorClass(Issue issue) {
     Class<? extends Detector> detectorClass = issue.getImplementation().getDetectorClass();
 
-    // Undo the effects of IntellijLintIssueRegistry
-    if (detectorClass == IntellijApiDetector.class) {
-      detectorClass = ApiDetector.class;
-    } else if (detectorClass == IntellijGradleDetector.class) {
+    // Undo the effects of LintIdeIssueRegistry
+    if (detectorClass == LintIdeGradleDetector.class) {
       detectorClass = GradleDetector.class;
-    } else if (detectorClass == IntellijViewTypeDetector.class) {
+    } else if (detectorClass == LintIdeViewTypeDetector.class) {
       detectorClass = ViewTypeDetector.class;
     }
     return detectorClass;
@@ -342,8 +370,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
 
   private static boolean isRelevant(Issue issue) {
     // Supported more directly by other IntelliJ checks(?)
-    if (issue == NamespaceDetector.TYPO ||                  // IDEA has its own spelling check
-        issue == NamespaceDetector.UNUSED ||                // IDEA already does full validation
+    if (issue == NamespaceDetector.UNUSED ||                // IDEA already does full validation
         issue == ManifestTypoDetector.ISSUE ||              // IDEA already does full validation
         issue == ManifestDetector.WRONG_PARENT ||           // IDEA checks for this in Java code
         // Reimplemented by ResourceTypeInspection

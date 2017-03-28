@@ -41,8 +41,7 @@ public interface NlProperty {
   /**
    * Get the value of the property as a string.
    * If the value exists in the XML tag return that value,
-   * otherwise return the default value determined from the
-   * current theme and text appearance.
+   * otherwise return null
    */
   @Nullable
   String getValue();
@@ -67,8 +66,8 @@ public interface NlProperty {
   /**
    * Resolves the specified value.
    */
-  @NotNull
-  String resolveValue(@NotNull String value);
+  @Nullable
+  String resolveValue(@Nullable String value);
 
   /**
    * Set the property value.

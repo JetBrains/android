@@ -35,7 +35,7 @@ public enum CppStandardType {
   @NotNull
   private final String myDialogName;
 
-  @Nullable("if no additional flag required")
+  @Nullable/*if no additional flag required*/
   private final String myCompilerFlag;
 
   @Nullable

@@ -19,12 +19,19 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 import android.support.constraint.solver.widgets.ConstraintAnchor;
 import android.support.constraint.solver.widgets.ConstraintWidget;
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.*;
+import com.android.tools.idea.uibuilder.scene.draw.ConstraintLayoutComponentNotchProvider;
+import com.android.tools.idea.uibuilder.scene.draw.ConstraintLayoutNotchProvider;
+import com.android.tools.idea.uibuilder.scene.draw.DrawAction;
+import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -35,6 +42,7 @@ import com.android.tools.sherpa.scout.Scout;
 import com.android.tools.sherpa.structure.Selection;
 import com.android.tools.sherpa.structure.WidgetsScene;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -57,6 +65,10 @@ import static com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT;
  * Handles interactions for the ConstraintLayout viewgroups
  */
 public class ConstraintLayoutHandler extends ViewGroupHandler {
+
+  public static final boolean USE_SOLVER = false;
+  public static final boolean USE_SCENE_INTERACTION = true;
+
   private static final String PREFERENCE_KEY_PREFIX = "ConstraintLayoutPreference";
   /**
    * Preference key (used with {@link PropertiesComponent}) for auto connect mode
@@ -111,6 +123,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     if (WidgetDecorator.sDeleteConnectionsImageIcon == null) {
       WidgetDecorator.sDeleteConnectionsImageIcon = iconToImage(AndroidIcons.SherpaIcons.DeleteConstraintB);
     }
+    if (WidgetDecorator.sPackChainImageIcon == null) {
+      WidgetDecorator.sPackChainImageIcon = iconToImage(AndroidIcons.SherpaIcons.ChainStyle);
+    }
     if (WidgetDraw.sGuidelineArrowLeft == null) {
       WidgetDraw.sGuidelineArrowLeft = iconToImage(AndroidIcons.SherpaIcons.ArrowLeft);
     }
@@ -130,7 +145,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
   @Override
   @NotNull
-  public String getGradleCoordinate(@NotNull String tagName) {
+  public String getGradleCoordinateId(@NotNull String tagName) {
     return CONSTRAINT_LAYOUT_LIB_ARTIFACT;
   }
 
@@ -149,7 +164,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
     // TODO Decide if we want lock actions.add(new LockConstraints());
 
-    actions.add(new NestedViewActionMenu("Pack", AndroidIcons.SherpaIcons.PackSelectionVertically, Lists.newArrayList(
+    actions.add(new NestedViewActionMenu("Pack", AndroidIcons.SherpaIcons.PackSelectionVerticallyB, Lists.newArrayList(
 
       Lists.newArrayList(
         new AlignAction(Scout.Arrange.HorizontalPack,
@@ -370,7 +385,80 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   @Override
   public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component) {
+    if (USE_SCENE_INTERACTION) {
+      return new SceneInteraction(screenView);
+    }
     return new ConstraintInteraction(screenView, component);
+  }
+
+  /**
+   * Add resize and anchor targets on the given component
+   *
+   * @param component the component we'll add targets on
+   * @param isParent
+   */
+  @Override
+  public void addTargets(@NotNull SceneComponent component, boolean isParent) {
+    boolean showAnchors = !isParent;
+    NlComponent nlComponent = component.getNlComponent();
+    if (nlComponent.viewInfo != null
+        && nlComponent.viewInfo.getClassName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE)) {
+      String orientation = nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ORIENTATION);
+      boolean isHorizontal = true;
+      if (orientation != null && orientation.equalsIgnoreCase(SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
+        isHorizontal = false;
+      }
+      component.addTarget(new GuidelineTarget(isHorizontal));
+      if (isHorizontal) {
+        component.addTarget(new GuidelineAnchorTarget(AnchorTarget.Type.TOP, true));
+      } else {
+        component.addTarget(new GuidelineAnchorTarget(AnchorTarget.Type.LEFT, false));
+      }
+      component.addTarget(new GuidelineCycleTarget(isHorizontal));
+      return;
+    }
+    if (!isParent) {
+      DragTarget dragTarget = new DragTarget();
+      component.addTarget(dragTarget);
+      component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_TOP));
+      component.addTarget(new ResizeTarget(ResizeTarget.Type.LEFT_BOTTOM));
+      component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_TOP));
+      component.addTarget(new ResizeTarget(ResizeTarget.Type.RIGHT_BOTTOM));
+      component.setNotchProvider(new ConstraintLayoutComponentNotchProvider());
+    } else {
+      component.addTarget(new LassoTarget());
+      component.setNotchProvider(new ConstraintLayoutNotchProvider());
+    }
+    component.addTarget(new AnchorTarget(AnchorTarget.Type.LEFT, showAnchors));
+    component.addTarget(new AnchorTarget(AnchorTarget.Type.TOP, showAnchors));
+    component.addTarget(new AnchorTarget(AnchorTarget.Type.RIGHT, showAnchors));
+    component.addTarget(new AnchorTarget(AnchorTarget.Type.BOTTOM, showAnchors));
+    if (!isParent) {
+      ActionTarget previousAction = (ActionTarget) component.addTarget(new ClearConstraintsTarget(null));
+      int baseline = component.getNlComponent().getBaseline();
+      if (baseline <= 0 && component.getNlComponent().viewInfo != null) {
+        baseline = component.getNlComponent().viewInfo.getBaseLine();
+      }
+      if (baseline > 0) {
+        component.addTarget(new AnchorTarget(AnchorTarget.Type.BASELINE, showAnchors));
+        ActionTarget baselineActionTarget = new ActionTarget(previousAction, (SceneComponent c) -> {
+          c.setShowBaseline(!c.canShowBaseline()); });
+        baselineActionTarget.setActionType(DrawAction.BASELINE);
+        component.addTarget(baselineActionTarget);
+        previousAction = baselineActionTarget;
+      }
+      component.addTarget(new ChainCycleTarget(previousAction, null));
+    }
+  }
+
+  /**
+   * Let the ViewGroupHandler handle clearing attributes on a given component
+   *
+   * @param component
+   */
+  @Override
+  public void clearAttributes(SceneComponent component) {
+    ConstraintComponentUtilities.clearAttributes(component);
   }
 
   /**
@@ -387,6 +475,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                        @NotNull NlComponent layout,
                                        @NotNull java.util.List<NlComponent> components,
                                        @NotNull DragType type) {
+    if (USE_SCENE_INTERACTION) {
+      return new SceneDragHandler(editor, this, layout, components, type);
+    }
     return new ConstraintDragHandler(editor, this, layout, components, type);
   }
 
@@ -401,15 +492,29 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   @Override
   public boolean updateCursor(@NotNull ScreenView screenView,
                               @AndroidCoordinate int x, @AndroidCoordinate int y) {
-    DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(screenView);
+    if (USE_SCENE_INTERACTION) {
+      Scene scene = screenView.getScene();
+      int dpX = Coordinates.pxToDp(screenView, x);
+      int dpY = Coordinates.pxToDp(screenView, y);
+      scene.mouseHover(SceneContext.get(screenView), dpX, dpY);
+      int cursor = scene.getMouseCursor();
 
-    drawConstraintModel.mouseMoved(x, y);
-    int cursor = drawConstraintModel.getMouseInteraction().getMouseCursor();
+      // Set the mouse cursor
+      // TODO: we should only update if we are above a component we manage, not simply all component that
+      // is a child of this viewgroup
+      screenView.getSurface().setCursor(Cursor.getPredefinedCursor(cursor));
+      screenView.getSurface().repaint();
+    } else {
+      DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(screenView);
 
-    // Set the mouse cursor
-    // TODO: we should only update if we are above a component we manage, not simply all component that
-    // is a child of this viewgroup
-    screenView.getSurface().setCursor(Cursor.getPredefinedCursor(cursor));
+      drawConstraintModel.mouseMoved(x, y);
+      int cursor = drawConstraintModel.getMouseInteraction().getMouseCursor();
+
+      // Set the mouse cursor
+      // TODO: we should only update if we are above a component we manage, not simply all component that
+      // is a child of this viewgroup
+      screenView.getSurface().setCursor(Cursor.getPredefinedCursor(cursor));
+    }
     return true;
   }
 
@@ -438,7 +543,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(screenView);
     updateActions(constraintModel.getSelection());
     ConstraintWidget widget = constraintModel.getScene().getWidget(component);
-    return drawConstraintModel.paint(gc, widget,
+    if (USE_SCENE_INTERACTION) {
+      return false;
+    }
+    return drawConstraintModel.paint(gc, screenView, widget,
                                      Coordinates.getSwingDimension(screenView, component.w),
                                      Coordinates.getSwingDimension(screenView, component.h),
                                      myShowAllConstraints);
@@ -459,6 +567,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                               @NotNull ViewHandler handler,
                               @NotNull NlComponent parent,
                               @NotNull List<NlComponent> selectedChildren) {
+      if (USE_SCENE_INTERACTION) {
+        return PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, false);
+      }
       return ConstraintModel.isAutoConnect();
     }
 
@@ -468,19 +579,15 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             @NotNull NlComponent parent,
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
-      ConstraintModel.setAutoConnect(selected);
-    }
-
-    @Override
-    public void updatePresentation(@NotNull ViewActionPresentation presentation,
-                                   @NotNull ViewEditor editor,
-                                   @NotNull ViewHandler handler,
-                                   @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers,
-                                   boolean selected) {
-      presentation
-        .setIcon(ConstraintModel.isAutoConnect() ? AndroidIcons.SherpaIcons.AutoConnect : AndroidIcons.SherpaIcons.AutoConnectOff);
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+        .logAction(selected
+                   ? LayoutEditorEvent.LayoutEditorEventType.TURN_ON_AUTOCONNECT
+                   : LayoutEditorEvent.LayoutEditorEventType.TURN_OFF_AUTOCONNECT);
+      if (USE_SCENE_INTERACTION) {
+        PropertiesComponent.getInstance().setValue(AUTO_CONNECT_PREF_KEY, selected, false);
+      } else {
+        ConstraintModel.setAutoConnect(selected);
+      }
     }
 
     @Override
@@ -500,9 +607,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
-      WidgetsScene scene = model.getScene();
-      scene.clearAllConstraints();
-      model.saveToXML(true);
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+        .logAction(LayoutEditorEvent.LayoutEditorEventType.CLEAR_ALL_CONSTRAINTS);
+      ViewEditorImpl viewEditor = (ViewEditorImpl) editor;
+      Scene scene = viewEditor.getScreenView().getScene();
+      scene.clearAttributes();
     }
 
     @Override
@@ -557,6 +666,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+        .logAction(LayoutEditorEvent.LayoutEditorEventType.INFER_CONSTRAINS);
       WidgetsScene scene = model.getScene();
       try {
         Scout.inferConstraints(scene);
@@ -583,8 +694,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
   private class ToggleConstraintModeAction extends ToggleViewAction {
     public ToggleConstraintModeAction() {
-      super(AndroidIcons.SherpaIcons.Unhide, AndroidIcons.SherpaIcons.Hide, "Show Constraints",
-            "Hide Constraints");
+      super(AndroidIcons.SherpaIcons.Hide, AndroidIcons.SherpaIcons.Unhide, "Show Constraints", "Hide Constraints");
       myShowAllConstraints = PropertiesComponent.getInstance().getBoolean(SHOW_CONSTRAINTS_PREF_KEY);
     }
 
@@ -603,18 +713,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                             @NotNull List<NlComponent> selectedChildren,
                             boolean selected) {
       myShowAllConstraints = selected;
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+        .logAction(
+          selected ? LayoutEditorEvent.LayoutEditorEventType.SHOW_CONSTRAINTS : LayoutEditorEvent.LayoutEditorEventType.HIDE_CONSTRAINTS);
       PropertiesComponent.getInstance().setValue(SHOW_CONSTRAINTS_PREF_KEY, myShowAllConstraints);
-    }
-
-    @Override
-    public void updatePresentation(@NotNull ViewActionPresentation presentation,
-                                   @NotNull ViewEditor editor,
-                                   @NotNull ViewHandler handler,
-                                   @NotNull NlComponent component,
-                                   @NotNull List<NlComponent> selectedChildren,
-                                   @InputEventMask int modifiers,
-                                   boolean selected) {
-      presentation.setIcon(myShowAllConstraints ? AndroidIcons.SherpaIcons.Unhide : AndroidIcons.SherpaIcons.Hide);
     }
   }
 
@@ -668,7 +770,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                         @NotNull NlComponent component,
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
-
       NlComponent parent = component;
       while (parent != null && !parent.isOrHasSuperclass(SdkConstants.CONSTRAINT_LAYOUT)) {
         parent = parent.getParent();
@@ -677,11 +778,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         NlComponent guideline = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
         guideline.ensureId();
         guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
+        NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface());
         if (myType == HORIZONTAL_GUIDELINE) {
+          tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_GUIDELINE);
           guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
                                  SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
         }
         else {
+          tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_GUIDELINE);
           guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
                                  SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL);
         }
@@ -756,8 +860,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       if (model == null) {
         return;
       }
+      NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getScreenView().getSurface())
+        .logAction(LayoutEditorEvent.LayoutEditorEventType.ALIGN);
       modifiers &= InputEvent.CTRL_MASK;
-      Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), modifiers != 0 || ConstraintModel.isAutoConnect());
+      Scout.arrangeWidgets(myActionType, model.getSelection().getWidgets(), modifiers == 0 || ConstraintModel.isAutoConnect());
       model.saveToXML(true);
     }
 
@@ -771,7 +877,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
       Icon icon = myAlignIcon;
       if (myConstrainIcon != null) {
-        if (ConstraintModel.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) != 0) {
+        if (ConstraintModel.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) == 0) {
           icon = myConstrainIcon;
         }
       }
@@ -835,6 +941,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         return;
       }
       DesignSurface surface = ((ViewEditorImpl)editor).getScreenView().getSurface();
+      NlUsageTrackerManager.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEFAULT_MARGINS);
       RelativePoint relativePoint = new RelativePoint(surface, new Point(0, 0));
       JBPopupFactory.getInstance().createComponentPopupBuilder(myMarginPopup, myMarginPopup.getTextField())
         .setRequestFocus(true)
@@ -848,11 +955,52 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                                    @NotNull NlComponent component,
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiers) {
+      // TODO: Use AndroidIcons.SherpaIcons.Margin instead?
       updateIcon();
       if (myMarginIcon instanceof ControlIcon) {
-        ((ControlIcon)myMarginIcon).setHighlight(ConstraintModel.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) != 0);
+        ((ControlIcon)myMarginIcon).setHighlight(ConstraintModel.isAutoConnect() || (InputEvent.CTRL_MASK & modifiers) == 0);
       }
       presentation.setIcon(myMarginIcon);
+    }
+  }
+
+  /**
+   * Called when one or more children are about to be deleted by the user.
+   *
+   * @param parent  the parent of the deleted children (which still contains
+   *                the children since this method is called before the deletion
+   *                is performed)
+   * @param deleted a nonempty list of children about to be deleted
+   * @return true if the children have been fully deleted by this participant; false if normal deletion should resume. Note that even though
+   * an implementation may return false from this method, that does not mean it did not perform any work. For example, a RelativeLayout
+   * handler could remove constraints pointing to now deleted components, but leave the overall deletion of the elements to the core
+   * designer.
+   */
+  @Override
+  public boolean deleteChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> deleted) {
+    final int count = parent.getChildCount();
+    for (int i = 0; i < count; i++) {
+      NlComponent component = parent.getChild(i);
+      if (deleted.contains(component)) {
+        continue;
+      }
+      willDelete(component, deleted);
+    }
+    return false;
+  }
+
+  /**
+   * Update the given component if one of its constraint points to one of the component deleted
+   *
+   * @param component the component we want to check
+   * @param deleted the list of components that are deleted
+   */
+  private void willDelete(NlComponent component, @NotNull List<NlComponent> deleted) {
+    final int count = deleted.size();
+    for (int i = 0; i < count; i++) {
+      NlComponent deletedComponent = deleted.get(i);
+      String id = deletedComponent.getId();
+      ConstraintComponentUtilities.updateOnDelete(component, id);
     }
   }
 

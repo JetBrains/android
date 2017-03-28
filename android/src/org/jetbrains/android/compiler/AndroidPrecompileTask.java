@@ -109,7 +109,7 @@ public class AndroidPrecompileTask implements CompileTask {
 
       LOG.debug("Platform-tools revision for module " + module.getName() + " is " + platformToolsRevision);
 
-      if (facet.isLibraryProject()) {
+      if (!facet.isAppProject()) {
         if (platformToolsRevision >= 0 && platformToolsRevision <= 7) {
           LOG.debug("Excluded sources of module " + module.getName());
           excludeAllSourceRoots(module, configuration, addedEntries);
@@ -275,7 +275,7 @@ public class AndroidPrecompileTask implements CompileTask {
                            manifestMergerProp.getSecond().getUrl(), -1, -1);
       }
 
-      if (!facet.isLibraryProject()) {
+      if (facet.isAppProject()) {
 
         for (OrderEntry entry : ModuleRootManager.getInstance(module).getOrderEntries()) {
           if (entry instanceof ModuleOrderEntry) {
@@ -287,7 +287,7 @@ public class AndroidPrecompileTask implements CompileTask {
               if (depModule != null) {
                 final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
 
-                if (depFacet != null && !depFacet.isLibraryProject()) {
+                if (depFacet != null && !depFacet.canBeDependency()) {
                   String message = "Suspicious module dependency " +
                                    module.getName() +
                                    " -> " +

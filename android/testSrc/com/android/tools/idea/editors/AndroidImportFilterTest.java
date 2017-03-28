@@ -49,5 +49,6 @@ public class AndroidImportFilterTest extends AndroidTestCase {
     assertFalse(filter.shouldUseFullyQualifiedName(file, "my.R.unrelated"));
     assertFalse(filter.shouldUseFullyQualifiedName(file, "my.R.unrelated.to"));
     assertFalse(filter.shouldUseFullyQualifiedName(file, "R.string")); // R is never in the default package
+    assertTrue(filter.shouldUseFullyQualifiedName(file, "android.databinding.tool.util.GenerationalClassUtil.ExtensionFilter.BR")); // Not the BR you're looking for!
   }
 }

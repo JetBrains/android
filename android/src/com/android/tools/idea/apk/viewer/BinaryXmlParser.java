@@ -16,7 +16,7 @@
 package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.api.XmlBuilder;
+import com.android.tools.idea.XmlBuilder;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.devrel.gmscore.tools.apk.arsc.*;

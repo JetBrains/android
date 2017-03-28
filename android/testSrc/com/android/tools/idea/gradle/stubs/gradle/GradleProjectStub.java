@@ -45,11 +45,6 @@ public class GradleProjectStub implements GradleProject {
   }
 
   @Override
-  public ProjectIdentifier getProjectIdentifier() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public DomainObjectSet<? extends GradleTask> getTasks() {
     return ImmutableDomainObjectSet.of(myTasks);
   }
@@ -83,6 +78,7 @@ public class GradleProjectStub implements GradleProject {
   }
 
   @Override
+  @Nullable
   public String getDescription() {
     throw new UnsupportedOperationException();
   }
@@ -101,4 +97,7 @@ public class GradleProjectStub implements GradleProject {
   public File getProjectDirectory() {
     return null;
   }
+
+  @Override
+  public ProjectIdentifier getProjectIdentifier() { throw new UnsupportedOperationException(); }
 }

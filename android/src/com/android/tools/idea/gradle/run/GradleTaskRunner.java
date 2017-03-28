@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.intellij.openapi.application.ApplicationManager;
@@ -45,17 +45,17 @@ public interface GradleTaskRunner {
         throws InvocationTargetException, InterruptedException {
         assert !ApplicationManager.getApplication().isDispatchThread();
 
-        final GradleInvoker gradleInvoker = GradleInvoker.getInstance(project);
+        final GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
 
         final AtomicBoolean success = new AtomicBoolean();
         final Semaphore done = new Semaphore();
         done.down();
 
-        final GradleInvoker.AfterGradleInvocationTask afterTask = new GradleInvoker.AfterGradleInvocationTask() {
+        final GradleBuildInvoker.AfterGradleInvocationTask afterTask = new GradleBuildInvoker.AfterGradleInvocationTask() {
           @Override
           public void execute(@NotNull GradleInvocationResult result) {
             success.set(result.isBuildSuccessful());
-            gradleInvoker.removeAfterGradleInvocationTask(this);
+            gradleBuildInvoker.remove(this);
             done.up();
           }
         };
@@ -70,8 +70,8 @@ public interface GradleTaskRunner {
         // To ensure that the "Run Configuration" waits for the Gradle tasks to be executed, we use SwingUtilities.invokeAndWait. I tried
         // using Application.invokeAndWait but it never worked. IDEA also uses SwingUtilities in this scenario (see CompileStepBeforeRun.)
         TransactionGuard.submitTransaction(project, () -> {
-          gradleInvoker.addAfterGradleInvocationTask(afterTask);
-          gradleInvoker.executeTasks(tasks, buildMode, args);
+          gradleBuildInvoker.add(afterTask);
+          gradleBuildInvoker.executeTasks(tasks, buildMode, args);
         });
 
         done.waitFor();

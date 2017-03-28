@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.sherpa.structure.WidgetCompanion;
 import com.android.tools.idea.uibuilder.api.DragHandler;
@@ -101,7 +102,7 @@ public class ConstraintDragHandler extends DragHandler {
   }
 
   @Override
-  public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+  public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
     if (myComponent != null) {
       myComponent = components.get(0);
       myComponent.x = x;
@@ -121,6 +122,7 @@ public class ConstraintDragHandler extends DragHandler {
         model.commitDragComponent(myComponent);
       }
     }
+    insertComponents(-1, insertType);
   }
 
   @Override

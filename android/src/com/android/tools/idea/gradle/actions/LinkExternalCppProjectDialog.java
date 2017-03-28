@@ -16,7 +16,8 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.google.common.base.Strings;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -59,7 +60,7 @@ public class LinkExternalCppProjectDialog extends DialogWrapper {
   @NotNull private final Module myModule;
 
   private JPanel myPanel;
-  private JComboBox myBuildSystemCombo;
+  private JComboBox<BuildSystem> myBuildSystemCombo;
   private JXLabel myProjectPathDescriptionLabel;
   private TextFieldWithBrowseButton myProjectPathTextField;
   private JXLabel myProjectPathResultLabel;
@@ -176,11 +177,14 @@ public class LinkExternalCppProjectDialog extends DialogWrapper {
     GradleBuildModel buildModel = GradleBuildModel.get(myModule);
     assert buildModel != null;
 
+    AndroidModel android = buildModel.android();
+    assert android != null;
+
     if (myBuildSystemCombo.getSelectedItem() == BuildSystem.CMAKE) {
-      buildModel.android().externalNativeBuild().cmake().setPath(new File(relativePath));
+      android.externalNativeBuild().cmake().setPath(new File(relativePath));
     }
     else {
-      buildModel.android().externalNativeBuild().ndkBuild().setPath(new File(relativePath));
+      android.externalNativeBuild().ndkBuild().setPath(new File(relativePath));
     }
 
     Project project = myModule.getProject();
@@ -191,7 +195,7 @@ public class LinkExternalCppProjectDialog extends DialogWrapper {
       }
     }.execute();
 
-    GradleProjectImporter.getInstance().requestProjectSync(project, null);
+    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null);
     super.doOKAction();
   }
 

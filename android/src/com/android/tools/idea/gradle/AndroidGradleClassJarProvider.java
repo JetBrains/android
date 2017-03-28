@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.builder.model.Variant;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.intellij.openapi.module.Module;
@@ -39,7 +40,7 @@ public class AndroidGradleClassJarProvider extends ClassJarProvider {
   @Override
   @Nullable
   public VirtualFile findModuleClassFile(@NotNull String className, @NotNull Module module) {
-    AndroidGradleModel model = AndroidGradleModel.get(module);
+    AndroidModuleModel model = AndroidModuleModel.get(module);
     if (model == null) {
       return null;
     }
@@ -51,7 +52,7 @@ public class AndroidGradleClassJarProvider extends ClassJarProvider {
   }
 
   @Nullable
-  private static VirtualFile getCompilerOutputRoot(@NotNull AndroidGradleModel model) {
+  private static VirtualFile getCompilerOutputRoot(@NotNull AndroidModuleModel model) {
     Variant variant = model.getSelectedVariant();
     String variantName = variant.getName();
     AndroidArtifact mainArtifactInfo = model.getMainArtifact();

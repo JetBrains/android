@@ -17,7 +17,8 @@
     <string name="string_1">Hello World!</string>
 
     <!-- a comment -->
-    <string name="string_with_blank_and_comment_before">String with blank and comment before</string>
+    <string name="string_with_blank_and_comment_before">String with blank and comment before
+    </string>
 
     <!-- comment 2 -->
     <string name="bar">Another string</string>

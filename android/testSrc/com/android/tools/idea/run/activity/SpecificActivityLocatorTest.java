@@ -19,8 +19,10 @@ import com.android.SdkConstants;
 import org.jetbrains.android.AndroidTestCase;
 
 public class SpecificActivityLocatorTest extends AndroidTestCase {
-  public SpecificActivityLocatorTest() {
-    super(false);
+
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   public void testValidLauncherActivity() throws ActivityLocator.ActivityLocatorException {

@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -49,13 +51,15 @@ public class FlightRecorderTest {
     LocalDateTime now = LocalDateTime.now();
     Random random = new Random(System.currentTimeMillis());
 
-    // create a bunch of log folders at different times in the past
-    List<LocalDateTime> instants = new ArrayList<>();
-    for (int i = 0; i < 10; i++) {
-      LocalDateTime instant = now.minus(random.nextInt(500), ChronoUnit.SECONDS);
-      if (instants.contains(instant)) continue;
-      instants.add(instant);
+    // create 10 instants back in time
+    List<LocalDateTime> instants = ThreadLocalRandom.current()
+      .ints(1, 500)
+      .distinct()
+      .limit(10)
+      .mapToObj(i -> now.minus(i, ChronoUnit.SECONDS))
+      .collect(Collectors.toList());
 
+    for (LocalDateTime instant : instants) {
       // create a log folder and add some logs within it
       File logFolder = myFolder.newFolder(FlightRecorder.timeStampToFolder(instant));
       Files.write("", new File(logFolder, "build.log"), Charsets.UTF_8);

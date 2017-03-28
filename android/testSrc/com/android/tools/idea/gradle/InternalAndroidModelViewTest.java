@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle;
 
 import com.android.tools.idea.gradle.util.ProxyUtil;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;

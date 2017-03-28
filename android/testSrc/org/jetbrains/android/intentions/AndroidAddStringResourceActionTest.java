@@ -18,8 +18,9 @@ import java.io.IOException;
 public class AndroidAddStringResourceActionTest extends AndroidTestCase {
   private static final String BASE_PATH = "addStringRes/";
 
-  public AndroidAddStringResourceActionTest() {
-    super(false);
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override

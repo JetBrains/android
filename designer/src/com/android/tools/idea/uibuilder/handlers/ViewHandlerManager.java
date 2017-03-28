@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.google.AdViewHandler;
-import com.android.tools.idea.uibuilder.handlers.google.MapFragmentHandler;
 import com.android.tools.idea.uibuilder.handlers.google.MapViewHandler;
 import com.android.tools.idea.uibuilder.handlers.grid.GridLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.grid.GridLayoutV7Handler;
@@ -103,6 +103,12 @@ public class ViewHandlerManager implements ProjectComponent {
    */
   @Nullable
   public ViewHandler getHandler(@NotNull NlComponent component) {
+    if (component.getTagName().equalsIgnoreCase(VIEW_MERGE)) {
+      String parentTag = component.getAttribute(TOOLS_URI, ATTR_PARENT_TAG);
+      if (parentTag != null) {
+        return getHandler(parentTag);
+      }
+    }
     return getHandler(component.getTagName());
   }
 
@@ -264,8 +270,6 @@ public class ViewHandlerManager implements ProjectComponent {
         return new ImageViewHandler();
       case IMAGE_SWITCHER:
         return new ImageSwitcherHandler();
-      case MAP_FRAGMENT:
-        return new MapFragmentHandler();
       case MAP_VIEW:
         return new MapViewHandler();
       case NAVIGATION_VIEW:

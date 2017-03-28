@@ -128,10 +128,13 @@ public final class VectorAsset extends BaseAsset {
   /**
    * Parse the file specified by the {@link #path()} property, overriding its final width which is
    * useful for previewing this vector asset in some UI component of the same width.
+   * @param previewWidth width of the display component
+   * @param allowPropertyOverride true if this method can override some properties of the original file
+   *                              (e.g. size ratio, opacity)
    */
   @NotNull
-  public ParseResult parse(int previewWidth) {
-    return tryParse(previewWidth);
+  public ParseResult parse(int previewWidth, boolean allowPropertyOverride) {
+    return tryParse(previewWidth, allowPropertyOverride);
   }
 
   /**
@@ -139,7 +142,7 @@ public final class VectorAsset extends BaseAsset {
    */
   @NotNull
   public ParseResult parse() {
-    return parse(0);
+    return parse(0, true);
   }
 
   @NotNull
@@ -155,7 +158,7 @@ public final class VectorAsset extends BaseAsset {
    *                     value (in effect, scaling the final result).
    */
   @NotNull
-  private ParseResult tryParse(int previewWidth) {
+  private ParseResult tryParse(int previewWidth, boolean allowPropertyOverride) {
     StringBuilder errorBuffer = new StringBuilder();
 
     File path = myPath.get();
@@ -199,9 +202,11 @@ public final class VectorAsset extends BaseAsset {
         originalWidth = vdOriginalSize.getWidth();
         originalHeight = vdOriginalSize.getHeight();
 
-        String overriddenXml = overrideXmlFileContent(vdDocument, vdOriginalSize, errorBuffer);
-        if (overriddenXml != null) {
-          xmlFileContent = overriddenXml;
+        if (allowPropertyOverride) {
+          String overriddenXml = overrideXmlFileContent(vdDocument, vdOriginalSize, errorBuffer);
+          if (overriddenXml != null) {
+            xmlFileContent = overriddenXml;
+          }
         }
 
         if (previewWidth <= 0) {

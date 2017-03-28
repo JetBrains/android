@@ -16,10 +16,11 @@
 package com.android.tools.idea.gradle.variant.conflict;
 
 import com.android.builder.model.AndroidLibrary;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.messages.Message;
-import com.android.tools.idea.gradle.messages.ProjectSyncMessages;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.MessageType;
+import com.android.tools.idea.gradle.project.sync.messages.SyncMessages;
+import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.collect.ImmutableList;
@@ -37,9 +38,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.messages.CommonMessageGroupNames.VARIANT_SELECTION_CONFLICTS;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.VARIANT_SELECTION_CONFLICTS;
 import static com.android.tools.idea.gradle.util.GradleUtil.getDirectLibraryDependencies;
-import static com.android.tools.idea.gradle.util.Projects.getAndroidModel;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
 
 /**
@@ -64,8 +65,8 @@ public class ConflictSet {
 
     ModuleManager moduleManager = ModuleManager.getInstance(project);
     for (Module module : moduleManager.getModules()) {
-      AndroidGradleModel currentAndroidModel = AndroidGradleModel.get(module);
-      if (currentAndroidModel == null || !currentAndroidModel.isLibrary()) {
+      AndroidModuleModel currentAndroidModel = AndroidModuleModel.get(module);
+      if (currentAndroidModel == null || currentAndroidModel.getProjectType() == PROJECT_TYPE_APP ) {
         continue;
       }
       String gradlePath = GradleUtil.getGradlePath(module);
@@ -76,7 +77,7 @@ public class ConflictSet {
       String selectedVariant = currentAndroidModel.getSelectedVariant().getName();
 
       for (Module dependent : ModuleUtilCore.getAllDependentModules(module)) {
-        AndroidGradleModel dependentAndroidModel = AndroidGradleModel.get(dependent);
+        AndroidModuleModel dependentAndroidModel = AndroidModuleModel.get(dependent);
         if (dependentAndroidModel == null) {
           continue;
         }
@@ -117,7 +118,7 @@ public class ConflictSet {
   }
 
   @Nullable
-  private static String getExpectedVariant(@NotNull AndroidGradleModel dependentAndroidModel, @NotNull String dependencyGradlePath) {
+  private static String getExpectedVariant(@NotNull AndroidModuleModel dependentAndroidModel, @NotNull String dependencyGradlePath) {
     List<AndroidLibrary> dependencies = getDirectLibraryDependencies(dependentAndroidModel.getSelectedVariant(), dependentAndroidModel);
     for (AndroidLibrary dependency : dependencies) {
       if (!dependencyGradlePath.equals(dependency.getProject())) {
@@ -157,13 +158,13 @@ public class ConflictSet {
    * Shows the "variant selection" conflicts in the "Build Variant" and "Messages" windows.
    */
   public void showSelectionConflicts() {
-    ProjectSyncMessages messages = ProjectSyncMessages.getInstance(myProject);
+    SyncMessages messages = SyncMessages.getInstance(myProject);
     String groupName = VARIANT_SELECTION_CONFLICTS;
     messages.removeMessages(groupName);
 
-    for (final Conflict conflict : mySelectionConflicts) {
+    for (Conflict conflict : mySelectionConflicts) {
       // Creates the "Select in 'Build Variants' window" hyperlink.
-      final Module source = conflict.getSource();
+      Module source = conflict.getSource();
       String hyperlinkText = String.format("Select '%1$s' in \"Build Variants\" window", source.getName());
       NotificationHyperlink selectInBuildVariantsWindowHyperlink =
         new NotificationHyperlink("select.conflict.in.variants.window", hyperlinkText) {
@@ -185,8 +186,11 @@ public class ConflictSet {
         }
       };
 
-      Message msg = new Message(groupName, Message.Type.ERROR, conflict.toString());
-      messages.add(msg, selectInBuildVariantsWindowHyperlink, quickFixHyperlink);
+      SyncMessage msg = new SyncMessage(groupName, MessageType.WARNING, conflict.toString());
+      msg.add(selectInBuildVariantsWindowHyperlink);
+      msg.add(quickFixHyperlink);
+
+      messages.report(msg);
     }
 
     BuildVariantView.getInstance(myProject).updateContents(mySelectionConflicts);

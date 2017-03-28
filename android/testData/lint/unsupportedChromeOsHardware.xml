@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.pkg">
+  <<error>uses-fe<caret>ature</error> android:name="android.hardware.touchscreen"/>
+</manifest>

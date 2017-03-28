@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.monitor.actions;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.monitor.BaseMonitorView;
-import com.android.tools.idea.stats.UsageTracker;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -54,8 +56,10 @@ public class RecordingAction extends ToggleAction {
   @Override
   public void setSelected(AnActionEvent e, boolean state) {
     if (myMonitorView.getIsPaused() != state) {
-      UsageTracker.getInstance()
-        .trackEvent(UsageTracker.CATEGORY_PROFILING, UsageTracker.ACTION_MONITOR_RUNNING, myMonitorView.getDescription(), state ? 0 : 1);
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                     .setCategory(EventCategory.PROFILING)
+                                     .setKind(AndroidStudioEvent.EventKind.MONITOR_RUNNING)
+                                     .setMonitorType(myMonitorView.getMonitorType()));
     }
     myMonitorView.setIsPaused(state);
   }

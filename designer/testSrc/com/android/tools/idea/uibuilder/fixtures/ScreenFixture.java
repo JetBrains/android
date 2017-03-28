@@ -16,12 +16,12 @@
 package com.android.tools.idea.uibuilder.fixtures;
 
 import com.android.resources.Density;
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -132,7 +132,7 @@ public class ScreenFixture {
       fail("Found multiple components with matcher " +
            match +
            ": component hierarchy is " +
-           LayoutTestUtilities.toTree(myModel.getComponents()));
+           NlTreeDumper.dumpTree(myModel.getComponents()));
     }
   }
 
@@ -141,7 +141,7 @@ public class ScreenFixture {
       fail("Could not find component with matcher " +
            match +
            ": component hierarchy is " +
-           LayoutTestUtilities.toTree(myModel.getComponents()));
+           NlTreeDumper.dumpTree(myModel.getComponents()));
     }
   }
 

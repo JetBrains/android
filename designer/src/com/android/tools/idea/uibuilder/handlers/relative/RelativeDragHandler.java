@@ -54,7 +54,7 @@ public class RelativeDragHandler extends GuidelineHandler {
     super(viewEditor, layout);
 
     // Compute list of nodes being dragged within the layout, if any
-    List<NlComponent> nodes = new ArrayList<NlComponent>();
+    List<NlComponent> nodes = new ArrayList<>();
     for (NlComponent element : elements) {
       ViewData view = myDependencyGraph.getView(element);
       if (view != null) {

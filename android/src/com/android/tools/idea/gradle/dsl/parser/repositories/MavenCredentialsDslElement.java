@@ -15,20 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.repositories;
 
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 
-public class MavenCredentialsDslElement extends GradlePropertiesDslElement {
+public class MavenCredentialsDslElement extends GradleDslBlockElement {
   @NonNls public static final String CREDENTIALS_BLOCK_NAME = "credentials";
 
   public MavenCredentialsDslElement(@Nullable GradleDslElement parent) {
-    super(parent, null, CREDENTIALS_BLOCK_NAME);
-  }
-
-  @Override
-  public boolean isBlockElement() {
-    return true;
+    super(parent, CREDENTIALS_BLOCK_NAME);
   }
 }

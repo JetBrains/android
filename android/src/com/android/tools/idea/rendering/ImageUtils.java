@@ -137,6 +137,17 @@ public class ImageUtils {
     }
   }
 
+  @NotNull
+  public static BufferedImage convertToRetinaIgnoringFailures(@NotNull BufferedImage image) {
+    if (supportsRetina()) {
+      BufferedImage retina = convertToRetina(image);
+      if (retina != null) {
+        return retina;
+      }
+    }
+    return image;
+  }
+
   public static void drawDipImage(Graphics g, Image image,
                                   int dx1, int dy1, int dx2, int dy2,
                                   int sx1, int sy1, int sx2, int sy2,
@@ -173,6 +184,18 @@ public class ImageUtils {
     g2.dispose();
 
     return expanded;
+  }
+
+  /**
+   * Resize the given image
+   *
+   * @param source the image to be scaled
+   * @param amount to scale the image in both directions
+   * @return the scaled image
+   */
+  @NotNull
+  public static BufferedImage scale(BufferedImage source, double amount) {
+    return scale(source, amount, amount, 0, 0);
   }
 
   /**
@@ -633,6 +656,24 @@ public class ImageUtils {
     }
 
     return 0;
+  }
+
+  /**
+   * Returns true if at least one pixel in the image is semi-transparent (alpha != 255)
+   *
+   * @param image the image to check
+   * @return true if it has one or more non-opaque pixels
+   */
+  public static boolean isNonOpaque(@NotNull BufferedImage image) {
+    for (int y = 0; y < image.getHeight(); y++) {
+      for (int x = 0; x < image.getWidth(); x++) {
+        int rgb = image.getRGB(x, y);
+        if (((rgb & 0xFF000000) ^ 0xFF000000) != 0) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**

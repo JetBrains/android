@@ -16,26 +16,40 @@
 package com.android.tools.idea.uibuilder.property;
 
 import com.android.SdkConstants;
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
 import com.android.tools.idea.uibuilder.property.ptable.PTable;
+import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableModel;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.Table;
-import com.intellij.openapi.project.Project;
+import com.intellij.ide.CopyProvider;
+import com.intellij.ide.CutProvider;
+import com.intellij.ide.DeleteProvider;
+import com.intellij.ide.PasteProvider;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBCardLayout;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.SpeedSearchComparator;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,16 +57,20 @@ import java.util.Map;
 
 import static com.android.SdkConstants.TOOLS_URI;
 
-public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction.Model {
+public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction.Model,
+                                                         DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
   private static final String CARD_ADVANCED = "table";
   private static final String CARD_DEFAULT = "default";
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 50;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 25;
 
+  private final TableRowSorter<PTableModel> myRowSorter;
+  private final MyFilter myFilter;
   private final PTable myTable;
   private final JPanel myTablePanel;
   private final PTableModel myModel;
   private final InspectorPanel myInspectorPanel;
+  private final MyFocusTraversalPolicy myFocusTraversalPolicy;
 
   private final JPanel myCardPanel;
 
@@ -60,17 +78,16 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
   private List<NlPropertyItem> myProperties;
   private boolean myAllPropertiesPanelVisible;
 
-  public NlPropertiesPanel(@NotNull Project project) {
+  public NlPropertiesPanel(@NotNull NlPropertiesManager propertiesManager, @NotNull Disposable parentDisposable) {
     super(new BorderLayout());
     setOpaque(true);
-    setFocusable(true);
-    setRequestFocusEnabled(true);
     setBackground(UIUtil.TRANSPARENT_COLOR);
 
+    myRowSorter = new TableRowSorter<>();
+    myFilter = new MyFilter();
     myModel = new PTableModel();
-
     myTable = new PTable(myModel);
-    myTable.setEditorProvider(NlPropertyEditors.getInstance(project));
+    myTable.setEditorProvider(NlPropertyEditors.getInstance(propertiesManager.getProject()));
     myTable.getEmptyText().setText("No selected component");
     JComponent fewerPropertiesLink = createViewAllPropertiesLinkPanel(false);
     fewerPropertiesLink.setBorder(BorderFactory.createEmptyBorder(8, 4, 2, 0));
@@ -80,7 +97,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     myTablePanel.add(myTable, BorderLayout.NORTH);
     myTablePanel.add(fewerPropertiesLink, BorderLayout.SOUTH);
 
-    myInspectorPanel = new InspectorPanel(project, createViewAllPropertiesLinkPanel(true));
+    myInspectorPanel = new InspectorPanel(propertiesManager, parentDisposable, createViewAllPropertiesLinkPanel(true));
 
     myCardPanel = new JPanel(new JBCardLayout());
 
@@ -92,9 +109,51 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     JScrollPane tableScrollPane = ScrollPaneFactory.createScrollPane(myTablePanel);
     tableScrollPane.getVerticalScrollBar().setUnitIncrement(VERTICAL_SCROLLING_UNIT_INCREMENT);
     tableScrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
+    tableScrollPane.setBorder(BorderFactory.createEmptyBorder());
+    myFocusTraversalPolicy = new MyFocusTraversalPolicy();
     myCardPanel.add(CARD_ADVANCED, tableScrollPane);
+    myCardPanel.setFocusCycleRoot(true);
+    myCardPanel.setFocusTraversalPolicy(myFocusTraversalPolicy);
     myComponents = Collections.emptyList();
     myProperties = Collections.emptyList();
+  }
+
+  @Override
+  public void addNotify() {
+    super.addNotify();
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(this::scrollIntoView);
+  }
+
+  @Override
+  public void removeNotify() {
+    super.removeNotify();
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(this::scrollIntoView);
+  }
+
+  public void setFilter(@NotNull String filter) {
+    int selectedRow = myTable.getSelectedRow();
+    PTableItem selectedItem = myTable.getSelectedItem();
+    if (filter.isEmpty()) {
+      myTable.setRowSorter(null);
+    }
+    else {
+      myFilter.setPattern(filter);
+      myRowSorter.setModel(myModel);
+      myRowSorter.setRowFilter(myFilter);
+      myRowSorter.setSortKeys(null);
+      myTable.setRowSorter(myRowSorter);
+    }
+    myTable.restoreSelection(selectedRow, selectedItem);
+
+    myInspectorPanel.setFilter(filter);
+  }
+
+  public void activatePropertySheet() {
+    setAllPropertiesPanelVisible(true);
+  }
+
+  public void activateInspector() {
+    setAllPropertiesPanelVisible(false);
   }
 
   public void setItems(@NotNull List<NlComponent> components,
@@ -114,7 +173,14 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     if (myTable.isEditing()) {
       myTable.removeEditor();
     }
+
+    int selectedRow = myTable.getSelectedRow();
+    PTableItem selectedItem = myTable.getSelectedItem();
+
     myModel.setItems(groupedProperties);
+    if (myTable.getRowCount() > 0) {
+      myTable.restoreSelection(selectedRow, selectedItem);
+    }
 
     updateDefaultProperties(propertiesManager);
     myInspectorPanel.setComponent(components, properties, propertiesManager);
@@ -181,6 +247,7 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     textLink.addHyperlinkListener(event -> setAllPropertiesPanelVisible(event, viewAllProperties));
     HyperlinkLabel iconLink = new HyperlinkLabel();
     iconLink.setIcon(AndroidIcons.NeleIcons.ToggleProperties);
+    iconLink.setFocusable(false);
     iconLink.setUseIconAsLink(true);
     iconLink.addHyperlinkListener(event -> setAllPropertiesPanelVisible(event, viewAllProperties));
     JPanel linkPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
@@ -206,13 +273,168 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
     myAllPropertiesPanelVisible = viewAllProperties;
     JBCardLayout cardLayout = (JBCardLayout)myCardPanel.getLayout();
     String name = viewAllProperties ? CARD_ADVANCED : CARD_DEFAULT;
-    cardLayout.swipe(myCardPanel, name, JBCardLayout.SwipeDirection.AUTO);
+    Component next = viewAllProperties ? myTable : myInspectorPanel;
+    cardLayout.swipe(myCardPanel, name, JBCardLayout.SwipeDirection.AUTO, next::requestFocus);
   }
 
-  public boolean activatePreferredEditor(boolean afterload) {
+  public boolean activatePreferredEditor(@NotNull String propertyName, boolean afterload) {
     if (isAllPropertiesPanelVisible()) {
       setAllPropertiesPanelVisible(false);
     }
-    return myInspectorPanel.activatePreferredEditor(afterload);
+    return myInspectorPanel.activatePreferredEditor(propertyName, afterload);
+  }
+
+  private void scrollIntoView(@NotNull PropertyChangeEvent event) {
+    if (event.getNewValue() instanceof Component && "focusOwner".equals(event.getPropertyName())) {
+      Component newFocusedComponent = (Component)event.getNewValue();
+      if (isAncestorOf(newFocusedComponent) &&
+          newFocusedComponent.getParent() instanceof JComponent &&
+          myFocusTraversalPolicy.isLastFocusRecipient(newFocusedComponent)) {
+        JComponent parent1 = (JComponent)newFocusedComponent.getParent();
+        Rectangle bounds = newFocusedComponent.getBounds();
+        if (newFocusedComponent == myTable) {
+          bounds = myTable.getCellRect(myTable.getSelectedRow(), 1, true);
+          bounds.x = 0;
+        }
+        parent1.scrollRectToVisible(bounds);
+      }
+    }
+  }
+
+  // ---- Implements DataProvider ----
+
+  @Override
+  public Object getData(@NonNls String dataId) {
+    if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
+        PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
+      return this;
+    }
+    return null;
+  }
+
+  // ---- Implements CopyProvider ----
+  // Avoid the copying of components while editing the properties.
+
+  @Override
+  public boolean isCopyEnabled(@NotNull DataContext dataContext) {
+    return false;
+  }
+
+  @Override
+  public boolean isCopyVisible(@NotNull DataContext dataContext) {
+    return false;
+  }
+
+  @Override
+  public void performCopy(@NotNull DataContext dataContext) {
+  }
+
+  // ---- Implements CutProvider ----
+  // Avoid the deletion of components while editing the properties.
+
+  @Override
+  public boolean isCutEnabled(@NotNull DataContext dataContext) {
+    return false;
+  }
+
+  @Override
+  public boolean isCutVisible(@NotNull DataContext dataContext) {
+    return false;
+  }
+
+  @Override
+  public void performCut(@NotNull DataContext dataContext) {
+  }
+
+  // ---- Implements DeleteProvider ----
+  // Avoid the deletion of components while editing the properties.
+
+  @Override
+  public boolean canDeleteElement(@NotNull DataContext dataContext) {
+    return false;
+  }
+
+  @Override
+  public void deleteElement(@NotNull DataContext dataContext) {
+  }
+
+  // ---- Implements PasteProvider ----
+  // Avoid the paste of components while editing the properties.
+
+  @Override
+  public boolean isPastePossible(@NotNull DataContext dataContext) {
+    return false;
+  }
+
+  @Override
+  public boolean isPasteEnabled(@NotNull DataContext dataContext) {
+    return false;
+  }
+
+  @Override
+  public void performPaste(@NotNull DataContext dataContext) {
+  }
+
+  @TestOnly
+  public PTable getTable() {
+    return myTable;
+  }
+
+  @VisibleForTesting
+  static class MyFilter extends RowFilter<PTableModel, Integer> {
+    private final SpeedSearchComparator myComparator = new SpeedSearchComparator(false);
+    private String myPattern;
+
+    @VisibleForTesting
+    void setPattern(@NotNull String pattern) {
+      myPattern = pattern;
+    }
+
+    @Override
+    public boolean include(Entry<? extends PTableModel, ? extends Integer> entry) {
+      PTableItem item = (PTableItem)entry.getValue(0);
+      if (isMatch(item.getName())) {
+        return true;
+      }
+      if (item.getParent() != null && isMatch(item.getParent().getName())) {
+        return true;
+      }
+      if (!(item instanceof PTableGroupItem)) {
+        return false;
+      }
+      PTableGroupItem group = (PTableGroupItem)item;
+      for (PTableItem child : group.getChildren()) {
+        if (isMatch(child.getName())) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    private boolean isMatch(@NotNull String text) {
+      return myComparator.matchingFragments(myPattern, text) != null;
+    }
+  }
+
+  private static class MyFocusTraversalPolicy extends LayoutFocusTraversalPolicy {
+
+    private Component myLastFocusRecipient;
+
+    private boolean isLastFocusRecipient(@NotNull Component component) {
+      boolean isLastRecipient = component == myLastFocusRecipient;
+      myLastFocusRecipient = null;
+      return isLastRecipient;
+    }
+
+    @Override
+    protected boolean accept(@NotNull Component component) {
+      if (!super.accept(component)) {
+        return false;
+      }
+      myLastFocusRecipient = component;
+      return true;
+    }
   }
 }

@@ -31,7 +31,6 @@ import java.util.Set;
 
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
@@ -75,7 +74,7 @@ public class WizardConstants {
   // TODO After the wizard migration delete as many of these keys as possible
   public static final Key<String> APPLICATION_NAME_KEY = createKey(ATTR_APP_TITLE, WIZARD, String.class);
   public static final Key<String> BUILD_TOOLS_VERSION_KEY = createKey(ATTR_BUILD_TOOLS_VERSION, WIZARD, String.class);
-  public static final Key<String> COMPANY_DOMAIN_KEY = createKey("companyDomain", STEP, String.class);
+  public static final Key<String> COMPANY_DOMAIN_KEY = createKey("companyDomain", WIZARD, String.class);
   public static final Key<String> DEBUG_KEYSTORE_SHA_1_KEY = createKey(ATTR_DEBUG_KEYSTORE_SHA1, WIZARD, String.class);
   @SuppressWarnings("unchecked") public static final Key<SetMultimap<String, String>> DEPENDENCIES_KEY =
     createKey(ATTR_DEPENDENCIES_MULTIMAP, WIZARD, (Class<SetMultimap<String, String>>)(Class) SetMultimap.class);
@@ -97,6 +96,17 @@ public class WizardConstants {
   // TODO: change this an IntProperty, see com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep#checkForUpgrades
   public static final Key<Integer> NEWLY_INSTALLED_API_KEY = createKey("newly.installed.api.level", WIZARD, Integer.class);
   public static final Key<Boolean> IS_LIBRARY_KEY = createKey(ATTR_IS_LIBRARY_MODULE, WIZARD, Boolean.class);
+  public static final Key<Boolean> IS_LOW_MEMORY_KEY = createKey(ATTR_IS_LOW_MEMORY, WIZARD, Boolean.class);
+
+  // Instant module step keys
+  public static final Key<String> WH_SDK_KEY = createKey(ATTR_WH_SDK, WIZARD, String.class);
+  public static final Key<String> APP_DOMAIN_KEY = createKey(ATTR_APP_DOMAIN, WIZARD, String.class);
+  public static final Key<String> ATOM_ROUTE_KEY = createKey(ATTR_ATOM_ROUTE, WIZARD, String.class);
+  public static final Key<String> SPLIT_NAME_KEY = createKey(ATTR_SPLIT_NAME, WIZARD, String.class);
+  public static final Key<Boolean> IS_INSTANT_APP_KEY = createKey(ATTR_IS_INSTANT_APP, WIZARD, Boolean.class);
+  public static final Key<Boolean> IS_BASE_ATOM_KEY = createKey(ATTR_IS_BASE_ATOM, WIZARD, Boolean.class);
+  public static final Key<Boolean> ALSO_CREATE_IAPK_KEY = createKey("alsoCreateIapk", WIZARD, Boolean.class);
+  public static final Key<Boolean> WH_SDK_ENABLED_KEY = createKey("whSdkEnabled", WIZARD, Boolean.class);
 
   // Native support configuration in new project wizard, see ConfigureCppSupportStep for usages
   public static final Key<Boolean> INCLUDE_CPP_SUPPORT_KEY = createKey(ATTR_CPP_SUPPORT, WIZARD, Boolean.class);

@@ -40,9 +40,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.util.Consumer;
 import com.intellij.util.IconUtil;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,7 +69,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
 
   private static final int ASSET_PREVIEW_HEIGHT = 96;
 
-  private final AndroidFacet myFacet;
+  private final AndroidProjectPaths myDefaultPaths;
   private final ValidatorPanel myValidatorPanel;
 
   private final BindingsManager myBindings = new BindingsManager();
@@ -100,11 +98,13 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
    * presented to the user in a pulldown menu (unless there's only one supported type). If no
    * supported types are passed in, then all types will be supported by default.
    */
-  public GenerateIconsPanel(@NotNull Disposable disposableParent, @NotNull AndroidFacet facet, @NotNull AndroidIconType... supportedTypes) {
+  public GenerateIconsPanel(@NotNull Disposable disposableParent,
+                            @NotNull AndroidProjectPaths defaultPaths,
+                            @NotNull AndroidIconType... supportedTypes) {
     super(new BorderLayout());
 
-    myFacet = facet;
-    myPaths = new AndroidProjectPaths(myFacet);
+    myDefaultPaths = defaultPaths;
+    myPaths = myDefaultPaths;
 
     if (supportedTypes.length == 0) {
       supportedTypes = AndroidIconType.values();
@@ -220,11 +220,7 @@ public final class GenerateIconsPanel extends JPanel implements Disposable {
    * this panel will attempt to use reasonable defaults for the project.
    */
   public void setProjectPaths(@Nullable AndroidProjectPaths projectPaths) {
-    if (projectPaths == null) {
-      projectPaths = new AndroidProjectPaths(myFacet);
-    }
-
-    myPaths = projectPaths;
+    myPaths = (projectPaths != null) ? projectPaths : myDefaultPaths;
   }
 
   /**

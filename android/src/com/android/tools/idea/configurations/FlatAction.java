@@ -28,6 +28,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
@@ -72,6 +73,7 @@ public abstract class FlatAction extends AnAction implements CustomComponentActi
 
   protected class FlatButton extends JButton {
     private final Presentation myPresentation;
+    private final Border myBorder = IdeBorderFactory.createEmptyBorder(0, 2, 0, 2);
     private PropertyChangeListener myButtonSynchronizer;
     private boolean myMouseInside = false;
 
@@ -82,9 +84,9 @@ public abstract class FlatAction extends AnAction implements CustomComponentActi
       setFocusable(false);
       Insets margins = getMargin();
       setMargin(JBUI.insets(margins.top, 2, margins.bottom, 2));
-      setBorder(IdeBorderFactory.createEmptyBorder(0, 2, 0, 2));
+      setBorder(myBorder);
       if (!UIUtil.isUnderGTKLookAndFeel()) {
-        setFont(UIUtil.getLabelFont().deriveFont(JBUI.scale(11.0f)));
+        setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
       }
       addActionListener(new ActionListener() {
         @Override
@@ -177,9 +179,9 @@ public abstract class FlatAction extends AnAction implements CustomComponentActi
     @Override
     public void updateUI() {
       super.updateUI();
-      if (!UIUtil.isUnderGTKLookAndFeel()) {
-        setBorder(UIUtil.getButtonBorder());
-      }
+      // The border needs to be set every time the UI is updated to ensure we have the same border in all L&F.
+      // Otherwise the Windows L&F would set the border to its default no matter if a border had been set previously.
+      setBorder(myBorder);
     }
 
     private class MyButtonSynchronizer implements PropertyChangeListener {
@@ -201,12 +203,6 @@ public abstract class FlatAction extends AnAction implements CustomComponentActi
           setEnabled(((Boolean)evt.getNewValue()).booleanValue());
         }
       }
-    }
-
-    @Override
-    public Insets getInsets() {
-      final Insets insets = super.getInsets();
-      return new Insets(insets.top, insets.left, insets.bottom, insets.right);
     }
 
     @Override

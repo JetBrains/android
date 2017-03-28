@@ -16,7 +16,13 @@
 
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.npw.NewModuleWizardDynamic;
+import com.android.tools.idea.npw.*;
+import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
+import com.android.tools.idea.npw.module.ModuleGalleryEntry;
+import com.android.tools.idea.npw.module.NewModuleModel;
+import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
+import com.android.tools.idea.wizard.model.ModelWizard;
+import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
@@ -24,10 +30,14 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.event.InputEvent;
+import java.util.ArrayList;
+
+import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class AndroidNewModuleAction extends AnAction implements DumbAware {
   public AndroidNewModuleAction() {
-    super("New Module...", "Adds a new module to the project", null);
+    super(message("android.wizard.module.new.module.menu"), message("android.wizard.module.new.module.menu.description"), null);
   }
 
   public AndroidNewModuleAction(@Nullable String text, @Nullable String description, @Nullable Icon icon) {
@@ -38,9 +48,23 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
   public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (project != null) {
-      NewModuleWizardDynamic dialog = new NewModuleWizardDynamic(project, null);
-      dialog.init();
-      dialog.show();
+      // TODO: before submitting this code, change this to only use the new wizard
+      if (Boolean.getBoolean("use.npw.modelwizard") && (e.getModifiers() & InputEvent.SHIFT_MASK) == 0) {
+        ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
+        for (ModuleDescriptionProvider provider : ModuleDescriptionProvider.EP_NAME.getExtensions()) {
+          moduleDescriptions.addAll(provider.getDescriptions());
+        }
+
+        ChooseModuleTypeStep chooseModuleTypeStep = new ChooseModuleTypeStep(new NewModuleModel(project), moduleDescriptions);
+        ModelWizard wizard = new ModelWizard.Builder().addStep(chooseModuleTypeStep).build();
+
+        new StudioWizardDialogBuilder(wizard, message("android.wizard.module.new.module.title")).build().show();
+      }
+      else {
+        NewModuleWizardDynamic dialog = new NewModuleWizardDynamic(project, null);
+        dialog.init();
+        dialog.show();
+      }
     }
   }
 }

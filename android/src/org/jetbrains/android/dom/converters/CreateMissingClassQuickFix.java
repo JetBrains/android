@@ -58,7 +58,7 @@ public class CreateMissingClassQuickFix implements LocalQuickFix {
   CreateMissingClassQuickFix(@NotNull PsiPackage aPackage,
                              @NotNull String className,
                              @NotNull Module module,
-                             @Nullable("if created class shouldn't extend anything") String baseClassFqcn) {
+                             @Nullable/*if created class shouldn't extend anything*/ String baseClassFqcn) {
     myPackage = SmartPointerManager.getInstance(aPackage.getProject()).createSmartPsiElementPointer(aPackage);
     myClassName = className;
     myModule = module;

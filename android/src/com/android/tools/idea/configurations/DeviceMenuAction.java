@@ -16,20 +16,19 @@
 package com.android.tools.idea.configurations;
 
 import com.android.annotations.Nullable;
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
 import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.rendering.RenderService;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.AndroidIcons;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
@@ -44,20 +43,12 @@ import static com.android.ide.common.rendering.HardwareConfigHelper.*;
 public class DeviceMenuAction extends FlatComboAction {
   private static final boolean LIST_RECENT_DEVICES = false;
   private final ConfigurationHolder myRenderContext;
-  private final boolean myClassicStyle;
 
   public DeviceMenuAction(@NotNull ConfigurationHolder renderContext) {
-    this(renderContext, !RenderService.NELE_ENABLED);
-  }
-
-  public DeviceMenuAction(@NotNull ConfigurationHolder renderContext, boolean classicStyle) {
     myRenderContext = renderContext;
-    myClassicStyle = classicStyle;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Device in Editor");
-    if (classicStyle) {
-      presentation.setIcon(AndroidIcons.Display);
-    }
+    presentation.setIcon(AndroidIcons.NeleIcons.VirtualDevice);
     updatePresentation(presentation);
   }
 
@@ -74,10 +65,6 @@ public class DeviceMenuAction extends FlatComboAction {
       Device device = configuration.getDevice();
       String label = getDeviceLabel(device, true);
       presentation.setText(label);
-
-      if (!myClassicStyle) {
-        presentation.setIcon(getDeviceClassIcon(device));
-      }
     }
     if (visible != presentation.isVisible()) {
       presentation.setVisible(visible);
@@ -110,7 +97,8 @@ public class DeviceMenuAction extends FlatComboAction {
           if (end != -1) {
             if (name.equals("Nexus 7 (2012)")) {
               return "Nexus 7";
-            } else {
+            }
+            else {
               return name.substring(begin, end).trim();
             }
           }
@@ -118,29 +106,22 @@ public class DeviceMenuAction extends FlatComboAction {
       }
 
       String skipPrefix = "Android ";
-      if (name.startsWith(skipPrefix)) {
-        name = name.substring(skipPrefix.length());
-      }
+      name = StringUtil.trimStart(name, skipPrefix);
     }
 
     return name;
   }
 
   /**
-   * Similar to {@link DeviceMenuAction.FormFactor#getFormFactor(Device)}
+   * Similar to {@link FormFactor#getFormFactor(Device)}
    * but (a) distinguishes between tablets and phones, and (b) uses the new Nele icons
    */
   public Icon getDeviceClassIcon(@Nullable Device device) {
-    if (myClassicStyle) {
-      FormFactor formFactor = device != null ? FormFactor.getFormFactor(device) : FormFactor.MOBILE;
-      return formFactor.getIcon();
-    }
-
     if (device != null) {
-      if (HardwareConfigHelper.isWear(device)) {
+      if (isWear(device)) {
         return AndroidIcons.NeleIcons.Wear;
       }
-      else if (HardwareConfigHelper.isTv(device)) {
+      else if (isTv(device)) {
         return AndroidIcons.NeleIcons.Tv;
       }
 
@@ -187,46 +168,29 @@ public class DeviceMenuAction extends FlatComboAction {
       // Unlikely, but has happened - see http://b.android.com/68091
       return group;
     }
-    final AvdManager avdManager = facet.getAvdManagerSilently();
-    if (avdManager != null) {
-      boolean separatorNeeded = false;
-      for (AvdInfo avd : avdManager.getValidAvds()) {
-        Device device = configurationManager.createDeviceForAvd(avd);
-        if (device != null) {
-          String avdName = "AVD: " + avd.getName();
-          boolean selected = current != null && (current.getDisplayName().equals(avdName) || current.getId().equals(avdName));
-          Icon icon = getDeviceClassIcon(device);
-          group.add(new SetDeviceAction(myRenderContext, avdName, device, icon, selected));
-          separatorNeeded = true;
-        }
-      }
-
-      if (separatorNeeded) {
-        group.addSeparator();
-      }
-    }
 
     if (!deviceList.isEmpty()) {
-      Map<String, List<Device>> manufacturers = new TreeMap<String, List<Device>>();
+      Map<String, List<Device>> manufacturers = new TreeMap<>();
       for (Device device : deviceList) {
         List<Device> devices;
         if (manufacturers.containsKey(device.getManufacturer())) {
           devices = manufacturers.get(device.getManufacturer());
         }
         else {
-          devices = new ArrayList<Device>();
+          devices = new ArrayList<>();
           manufacturers.put(device.getManufacturer(), devices);
         }
         devices.add(device);
       }
-      List<Device> nexus = new ArrayList<Device>();
+      List<Device> nexus = new ArrayList<>();
       Map<FormFactor,List<Device>> deviceMap = Maps.newEnumMap(FormFactor.class);
       for (FormFactor factor : FormFactor.values()) {
-        deviceMap.put(factor, Lists.<Device>newArrayList());
+        deviceMap.put(factor, Lists.newArrayList());
       }
       for (List<Device> devices : manufacturers.values()) {
         for (Device device : devices) {
-          if (isNexus(device) && !device.getManufacturer().equals(MANUFACTURER_GENERIC)) {
+          if (isNexus(device) && !device.getManufacturer().equals(MANUFACTURER_GENERIC)
+              && !isWear(device) && !isTv(device)) {
             nexus.add(device);
           } else {
             deviceMap.get(FormFactor.getFormFactor(device)).add(device);
@@ -234,15 +198,39 @@ public class DeviceMenuAction extends FlatComboAction {
         }
       }
 
-      sortNexusList(nexus);
-      addNexusDeviceSection(group, current, nexus);
-      group.addSeparator();
+      sortDevicesByScreenSize(nexus);
+      for (List<Device> list : splitDevicesByScreenSize(nexus)) {
+        addNexusDeviceSection(group, current, list);
+        group.addSeparator();
+      }
       addDeviceSection(group, current, deviceMap, false, FormFactor.WEAR);
       group.addSeparator();
       addDeviceSection(group, current, deviceMap, false, FormFactor.TV);
       group.addSeparator();
 
+      final AvdManager avdManager = facet.getAvdManagerSilently();
+      if (avdManager != null) {
+        boolean separatorNeeded = false;
+        boolean first = true;
+        for (AvdInfo avd : avdManager.getValidAvds()) {
+          Device device = configurationManager.createDeviceForAvd(avd);
+          if (device != null) {
+            String avdName = "AVD: " + avd.getName();
+            boolean selected = current != null && (current.getDisplayName().equals(avdName) || current.getId().equals(avdName));
+            Icon icon = first ? getDeviceClassIcon(device) : null;
+            group.add(new SetDeviceAction(myRenderContext, avdName, device, icon, selected));
+            first = false;
+            separatorNeeded = true;
+          }
+        }
+
+        if (separatorNeeded) {
+          group.addSeparator();
+        }
+      }
+
       DefaultActionGroup genericGroup = new DefaultActionGroup("_Generic Phones and Tablets", true);
+      sortDevicesByScreenSize(deviceMap.get(FormFactor.MOBILE));
       addDeviceSection(genericGroup, current, deviceMap, true, FormFactor.MOBILE);
       group.add(genericGroup);
     }
@@ -252,10 +240,40 @@ public class DeviceMenuAction extends FlatComboAction {
     return group;
   }
 
+  private static List<List<Device>> splitDevicesByScreenSize(List<Device> devices) {
+    List<List<Device>> lists = Lists.newArrayList();
+    List<Device> list = Lists.newArrayListWithExpectedSize(6);
+    int prevGroup = -1;
+    for (Device device : devices) {
+      int group = sizeGroup(device);
+      if (group != prevGroup) {
+        prevGroup = group;
+        list = Lists.newArrayListWithExpectedSize(6);
+        lists.add(list);
+      }
+      list.add(device);
+    }
+
+    return lists;
+  }
+
+  private static int sizeGroup(Device device) {
+    double diagonalLength = device.getDefaultHardware().getScreen().getDiagonalLength();
+    if (diagonalLength < 5) {
+      return 1;
+    } else if (diagonalLength < 6.5) {
+      return 2;
+    } else {
+      return 3;
+    }
+  }
+
   private void addNexusDeviceSection(@NotNull DefaultActionGroup group, @Nullable Device current, @NotNull List<Device> devices) {
+    boolean first = true;
     for (final Device device : devices) {
       String label = getLabel(device, true /*nexus*/);
-      Icon icon = getDeviceClassIcon(device);
+      Icon icon = first ? getDeviceClassIcon(device) : null;
+      first = false;
       group.add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
     }
   }
@@ -269,10 +287,12 @@ public class DeviceMenuAction extends FlatComboAction {
     if (reverse) {
       Collections.reverse(generic);
     }
+    boolean first = true;
     for (final Device device : generic) {
-      String label = getLabel(device, false /*nexus*/);
-      Icon icon = getDeviceClassIcon(device);
+      String label = getLabel(device, isNexus(device));
+      Icon icon = first ? getDeviceClassIcon(device) : null;
       group.add(new SetDeviceAction(myRenderContext, label, device, icon, current == device));
+      first = false;
     }
   }
 
@@ -286,7 +306,7 @@ public class DeviceMenuAction extends FlatComboAction {
       }
     }
 
-    return isNexus ? getNexusLabel(device) : getGenericLabel(device);
+    return isNexus ? getNexusMenuLabel(device) : getGenericLabel(device);
   }
 
   private class SetDeviceAction extends ConfigurationAction {

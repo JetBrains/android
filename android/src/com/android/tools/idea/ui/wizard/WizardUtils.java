@@ -19,7 +19,10 @@ import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.SystemProperties;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -29,6 +32,15 @@ import java.net.URL;
  * Static utility methods useful across wizards
  */
 public final class WizardUtils {
+  /**
+   * The package is used to create a directory (eg: MyApplication/app/src/main/java/src/my/package/name)
+   * A windows directory path cannot be longer than 250 chars
+   * On unix/mac a directory name cannot be longer than 250 chars
+   * On all platforms, aapt fails with really cryptic errors if the package name is longer that ~200 chars
+   * Having a sane length for the package also seems a good thing
+   */
+  private static final int PACKAGE_LENGTH_LIMIT = 100;
+
   /**
    * Returns the parent directory which the last project was created into or a reasonable default
    * if this will be the first project a user has created. Either way, the {@link File} returned
@@ -47,14 +59,24 @@ public final class WizardUtils {
     }
   }
 
+  @Nullable
+  public static String validatePackageName(@Nullable String packageName) {
+    if (packageName.length() >= PACKAGE_LENGTH_LIMIT) {
+      return AndroidBundle.message("android.wizard.module.package.too.long");
+    }
+    packageName = (packageName == null) ? "" : packageName;
+    return AndroidUtils.validateAndroidPackageName(packageName);
+  }
+
   /**
-   * Wrap a target string with {@code <html></html>} if it's not already so wrapped. This is useful
+   * Wrap a target string with {@code <html></html>} if it's not already so wrapped, and replaces NewLines with html breaks. This is useful
    * as various Swing components (particularly labels) act slightly differently with html input.
    */
   @NotNull
   public static String toHtmlString(@NotNull String text) {
     if (!StringUtil.isEmpty(text) && !text.startsWith("<html>")) {
-      return String.format("<html>%1$s</html>", text.trim());
+      text = text.trim().replaceAll("\n", "<br>");
+      return String.format("<html>%1$s</html>", text);
     }
     return text;
   }

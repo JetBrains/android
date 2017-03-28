@@ -17,20 +17,24 @@ package com.android.tools.idea.fd;
 
 import com.android.tools.fd.client.InstantRunArtifact;
 import com.android.tools.fd.client.InstantRunBuildInfo;
+import com.android.tools.idea.diagnostics.crash.CrashReporter;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.tasks.*;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.internal.statistic.StatisticsUploadAssistant;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.SmartList;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.android.tools.fd.client.InstantRunArtifactType.*;
 
@@ -73,7 +77,7 @@ public class InstantRunBuildAnalyzer {
 
     BuildSelection buildSelection = myContext.getBuildSelection();
     assert buildSelection != null : "Build must have completed before results are analyzed";
-    return buildSelection.mode == BuildMode.HOT && (myBuildInfo.hasNoChanges() || myBuildInfo.canHotswap());
+    return buildSelection.getBuildMode() == BuildMode.HOT && (myBuildInfo.hasNoChanges() || myBuildInfo.canHotswap());
   }
 
   /**
@@ -94,15 +98,55 @@ public class InstantRunBuildAnalyzer {
       case SPLITAPK:
         return ImmutableList.of(new SplitApkDeployTask(myProject, myContext), updateStateTask);
       case DEX:
-        return ImmutableList.of(new DexDeployTask(myProject, myContext), updateStateTask);
+        if (!canReuseProcessHandler()) {
+          throw new IllegalStateException(
+            "Cannot hotswap changes - the process has died since the build was started. Please Run or Debug again to recover from this issue.");
+        }
+        // fall through
       case FULLAPK:
-        Preconditions.checkNotNull(launchOptions); // launchOptions can be null only under NO_CHANGES or HOTSWAP scenarios
-        DeployApkTask deployApkTask = new DeployApkTask(myProject, launchOptions, getApks(myBuildInfo, myContext), myContext);
-        return ImmutableList.of(deployApkTask, updateStateTask);
       case LEGACY:
       default:
-        throw new IllegalStateException("Unhandled deploy type: " + deployType);
+        // https://code.google.com/p/android/issues/detail?id=232515
+        // We don't know as yet how this happened, so we collect some information
+        if (StatisticsUploadAssistant.isSendAllowed()) {
+          CrashReporter.getInstance().submit(getIrDebugSignals(deployType));
+        }
+        throw new IllegalStateException(AndroidBundle.message("instant.run.build.error"));
     }
+  }
+
+  @NotNull
+  private Map<String, String> getIrDebugSignals(@NotNull DeployType deployType) {
+    Map<String, String> m = new HashMap<>();
+
+    m.put("deployType", deployType.toString());
+    m.put("canReuseProcessHandler", Boolean.toString(canReuseProcessHandler()));
+    m.put("androidGradlePluginVersion", myContext.getGradlePluginVersion().toString());
+
+    BuildSelection selection = myContext.getBuildSelection();
+    if (selection != null) {
+      m.put("buildSelection.mode", selection.getBuildMode().toString());
+      m.put("buildSelection.why", selection.why.toString());
+    }
+
+    InstantRunBuildInfo buildInfo = myContext.getInstantRunBuildInfo();
+    if (buildInfo != null) {
+      m.put("buildinfo.buildMode", buildInfo.getBuildMode());
+      m.put("buildinfo.verifierStatus", buildInfo.getVerifierStatus());
+      m.put("buildinfo.format", Integer.toString(buildInfo.getFormat()));
+
+      List<InstantRunArtifact> artifacts = buildInfo.getArtifacts();
+      m.put("buildinfo.nArtifacts", Integer.toString(artifacts.size()));
+      for (int i = 0; i < artifacts.size(); i++) {
+        InstantRunArtifact artifact = artifacts.get(i);
+        String prefix = "buildInfo.artifact[" + i + "]";
+
+        m.put(prefix + ".type", artifact.type.toString());
+        m.put(prefix + ".file", artifact.file.getName());
+      }
+    }
+
+    return m;
   }
 
   @NotNull
@@ -152,11 +196,11 @@ public class InstantRunBuildAnalyzer {
         String msg = "Expected to only find apks, but got : " + artifact.type + "\n";
         BuildSelection buildSelection = context.getBuildSelection();
         assert buildSelection != null : "Build must have completed before apks are obtained";
-        if (buildSelection.mode == BuildMode.HOT) {
+        if (buildSelection.getBuildMode() == BuildMode.HOT) {
           msg += "Could not use hot-swap artifacts when there is no existing session.";
         }
         else {
-          msg += "Unexpected artifacts for build mode: " + buildSelection.mode;
+          msg += "Unexpected artifacts for build mode: " + buildSelection.getBuildMode();
         }
         InstantRunManager.LOG.error(msg);
         throw new ExecutionException(msg);

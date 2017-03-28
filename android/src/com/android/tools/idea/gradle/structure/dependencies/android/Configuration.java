@@ -15,19 +15,19 @@
  */
 package com.android.tools.idea.gradle.structure.dependencies.android;
 
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
-import static com.android.builder.model.AndroidProject.ARTIFACT_MAIN;
-import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
+import static com.android.builder.model.AndroidProject.*;
 
 class Configuration {
   static final Configuration MAIN = new Configuration("Main", ARTIFACT_MAIN);
-  static final Configuration ANDROID_TEST = new Configuration("Android Tests", ARTIFACT_ANDROID_TEST);
-  static final Configuration UNIT_TEST = new Configuration("Unit Tests", ARTIFACT_UNIT_TEST);
+  static final Configuration ANDROID_TEST = new Configuration(AndroidBundle.message("android.test.run.configuration.type.name"),
+                                                              ARTIFACT_ANDROID_TEST);
+  static final Configuration UNIT_TEST = new Configuration("Local Unit Tests", ARTIFACT_UNIT_TEST);
 
   @NotNull private final String myName;
   @Nullable private final String myArtifactName;

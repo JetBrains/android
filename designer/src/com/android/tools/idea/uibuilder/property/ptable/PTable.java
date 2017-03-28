@@ -15,13 +15,30 @@
  */
 package com.android.tools.idea.uibuilder.property.ptable;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.property.ptable.renderers.PNameRenderer;
+import com.intellij.ide.CopyProvider;
+import com.intellij.ide.CutProvider;
+import com.intellij.ide.DeleteProvider;
+import com.intellij.ide.PasteProvider;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.ex.IdeFocusTraversalPolicy;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.ui.TableSpeedSearch;
 import com.intellij.ui.TableUtil;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,23 +47,38 @@ import javax.swing.plaf.TableUI;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.util.Objects;
 
-public class PTable extends JBTable {
+public class PTable extends JBTable implements DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
   private final PNameRenderer myNameRenderer = new PNameRenderer();
   private final TableSpeedSearch mySpeedSearch;
   private PTableModel myModel;
+  private CopyPasteManager myCopyPasteManager;
   private PTableCellEditorProvider myEditorProvider;
 
   private int myMouseHoverRow;
   private int myMouseHoverCol;
+  private Point myMouseHoverPoint;
 
   public PTable(@NotNull PTableModel model) {
+    this(model, CopyPasteManager.getInstance());
+  }
+
+  @VisibleForTesting
+  PTable(@NotNull PTableModel model, @NotNull CopyPasteManager copyPasteManager) {
     super(model);
     myModel = model;
+    myCopyPasteManager = copyPasteManager;
+    myMouseHoverPoint = new Point(-1, -1);
 
     // since the row heights are uniform, there is no need to look at more than a few items
     setMaxItemsForSizeCalculation(5);
@@ -126,6 +158,11 @@ public class PTable extends JBTable {
     return row == myMouseHoverRow && col == myMouseHoverCol;
   }
 
+  @NotNull
+  public Point getHoverPosition() {
+    return myMouseHoverPoint;
+  }
+
   @Override
   public void setUI(TableUI ui) {
     super.setUI(ui);
@@ -165,12 +202,21 @@ public class PTable extends JBTable {
   }
 
   private void toggleTreeNode(int row) {
-    PTableItem item = (PTableItem)myModel.getValueAt(row, 0);
+    PTableItem item = (PTableItem)getValueAt(row, 0);
+    int index = convertRowIndexToModel(row);
     if (item.isExpanded()) {
-      myModel.collapse(row);
+      myModel.collapse(index);
     }
     else {
-      myModel.expand(row);
+      myModel.expand(index);
+    }
+  }
+
+  private void toggleStar(int row) {
+    PTableItem item = (PTableItem)getValueAt(row, 0);
+    StarState state = item.getStarState();
+    if (state != StarState.NOT_STAR_ABLE) {
+      item.setStarState(state.opposite());
     }
   }
 
@@ -221,6 +267,175 @@ public class PTable extends JBTable {
     return preferredComponent;
   }
 
+  public void restoreSelection(int previousSelectedRow, @Nullable PTableItem previousSelectedItem) {
+    int selectedRow = 0;
+    if (previousSelectedItem != null) {
+      PTableItem item =
+        previousSelectedRow >= 0 && previousSelectedRow < getRowCount() ? (PTableItem)getValueAt(previousSelectedRow, 0) : null;
+      if (Objects.equals(item, previousSelectedItem)) {
+        selectedRow = previousSelectedRow;
+      }
+      else {
+        for (int row = 0; row < getRowCount(); row++) {
+          item = (PTableItem)getValueAt(row, 0);
+          if (item.equals(previousSelectedItem)) {
+            selectedRow = row;
+            break;
+          }
+        }
+      }
+    }
+    if (selectedRow < getRowCount()) {
+      addRowSelectionInterval(selectedRow, selectedRow);
+    }
+  }
+
+  @Nullable
+  public PTableItem getSelectedItem() {
+    int selectedRow = getSelectedRow();
+    if (isEditing() || selectedRow == -1) {
+      return null;
+    }
+    return (PTableItem)getValueAt(selectedRow, 0);
+  }
+
+  @Nullable
+  private PTableItem getSelectedNonGroupItem() {
+    PTableItem item = getSelectedItem();
+    return item instanceof PTableGroupItem ? null : item;
+  }
+
+  // ---- Implements DataProvider ----
+
+  @Override
+  public Object getData(@NonNls String dataId) {
+    if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
+        PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
+      return this;
+    }
+    return null;
+  }
+
+  // ---- Implements CopyProvider ----
+
+  @Override
+  public boolean isCopyEnabled(@NotNull DataContext dataContext) {
+    return getSelectedNonGroupItem() != null;
+  }
+
+  @Override
+  public boolean isCopyVisible(@NotNull DataContext dataContext) {
+    return true;
+  }
+
+  @Override
+  public void performCopy(@NotNull DataContext dataContext) {
+    PTableItem item = getSelectedNonGroupItem();
+    if (item == null) {
+      return;
+    }
+    myCopyPasteManager.setContents(new StringSelection(item.getValue()));
+  }
+
+  // ---- Implements CutProvider ----
+
+  @Override
+  public boolean isCutEnabled(@NotNull DataContext dataContext) {
+    return getSelectedNonGroupItem() != null;
+  }
+
+  @Override
+  public boolean isCutVisible(@NotNull DataContext dataContext) {
+    return true;
+  }
+
+  @Override
+  public void performCut(@NotNull DataContext dataContext) {
+    if (getSelectedNonGroupItem() == null) {
+      return;
+    }
+    performCopy(dataContext);
+    deleteElement(dataContext);
+  }
+
+  // ---- Implements DeleteProvider ----
+
+  @Override
+  public boolean canDeleteElement(@NotNull DataContext dataContext) {
+    return getSelectedItem() != null;
+  }
+
+  @Override
+  public void deleteElement(@NotNull DataContext dataContext) {
+    PTableItem item = getSelectedItem();
+    if (item == null) {
+      return;
+    }
+    if (item instanceof PTableGroupItem) {
+      deleteGroupValues(dataContext, (PTableGroupItem)item);
+    }
+    else {
+      item.setValue(null);
+    }
+  }
+
+  private static void deleteGroupValues(@NotNull DataContext dataContext, @NotNull PTableGroupItem group) {
+    Project project = CommonDataKeys.PROJECT.getData(dataContext);
+    if (project == null) {
+      return;
+    }
+    VirtualFile file = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+    if (file == null) {
+      return;
+    }
+    PsiFile containingFile = PsiManager.getInstance(project).findFile(file);
+    if (containingFile == null) {
+      return;
+    }
+    new WriteCommandAction.Simple(project, "Delete " + group.getName(), containingFile) {
+      @Override
+      protected void run() throws Throwable {
+        group.getChildren().forEach(item -> item.setValue(null));
+      }
+    }.execute();
+  }
+
+  // ---- Implements PasteProvider ----
+
+  @Override
+  public boolean isPastePossible(@NotNull DataContext dataContext) {
+    if (getSelectedNonGroupItem() == null) {
+      return false;
+    }
+    Transferable transferable = myCopyPasteManager.getContents();
+    return transferable != null && transferable.isDataFlavorSupported(DataFlavor.stringFlavor);
+  }
+
+  @Override
+  public boolean isPasteEnabled(@NotNull DataContext dataContext) {
+    return true;
+  }
+
+  @Override
+  public void performPaste(@NotNull DataContext dataContext) {
+    PTableItem item = getSelectedNonGroupItem();
+    if (item == null) {
+      return;
+    }
+    Transferable transferable = myCopyPasteManager.getContents();
+    if (transferable == null || !transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+      return;
+    }
+    try {
+      item.setValue(transferable.getTransferData(DataFlavor.stringFlavor));
+    }
+    catch (IOException | UnsupportedFlavorException exception) {
+      Logger.getInstance(PTable.class).warn(exception);
+    }
+  }
+
   // Expand/Collapse if it is a group property, start editing otherwise
   private class MyEnterAction extends AbstractAction {
     // don't launch a full editor, just perform a quick toggle
@@ -237,7 +452,7 @@ public class PTable extends JBTable {
         return;
       }
 
-      PTableItem item = (PTableItem)myModel.getValueAt(selectedRow, 0);
+      PTableItem item = (PTableItem)getValueAt(selectedRow, 0);
       if (item.hasChildren()) {
         toggleTreeNode(selectedRow);
         selectRow(selectedRow);
@@ -266,20 +481,21 @@ public class PTable extends JBTable {
         return;
       }
 
-      PTableItem item = (PTableItem)myModel.getValueAt(selectedRow, 0);
+      PTableItem item = (PTableItem)getValueAt(selectedRow, 0);
+      int index = convertRowIndexToModel(selectedRow);
       if (myExpand) {
         if (item.hasChildren() && !item.isExpanded()) {
-          myModel.expand(selectedRow);
+          myModel.expand(index);
           selectRow(selectedRow);
         }
       }
       else {
         if (item.isExpanded()) { // if it is a compound node, collapse it
-          myModel.collapse(selectedRow);
+          myModel.collapse(index);
           selectRow(selectedRow);
         }
         else if (item.getParent() != null) { // if it is a child node, move selection to the parent
-          selectRow(myModel.getParent(selectedRow));
+          selectRow(myModel.getParent(index));
         }
       }
     }
@@ -294,15 +510,18 @@ public class PTable extends JBTable {
         return;
       }
 
-      PTableItem item = (PTableItem)myModel.getValueAt(row, 0);
-      if (!item.hasChildren()) {
-        return;
-      }
+      PTableItem item = (PTableItem)getValueAt(row, 0);
 
       Rectangle rectLeftColumn = getCellRect(row, convertColumnIndexToView(0), false);
-      if (rectLeftColumn.contains(e.getX(), e.getY()) && PNameRenderer.hitTestTreeNodeIcon(item, e.getX() - rectLeftColumn.x)) {
-        toggleTreeNode(row);
-        return;
+      if (rectLeftColumn.contains(e.getX(), e.getY())) {
+        if (PNameRenderer.hitTestTreeNodeIcon(item, e.getX() - rectLeftColumn.x) && item.hasChildren()) {
+          toggleTreeNode(row);
+          return;
+        }
+        if (PNameRenderer.hitTestStarIcon(e.getX() - rectLeftColumn.x)) {
+          toggleStar(row);
+          return;
+        }
       }
 
       Rectangle rectRightColumn = getCellRect(row, convertColumnIndexToView(1), false);
@@ -319,6 +538,7 @@ public class PTable extends JBTable {
 
     @Override
     public void mouseMoved(MouseEvent e) {
+      myMouseHoverPoint = e.getPoint();
       myMouseHoverRow = rowAtPoint(e.getPoint());
       if (myMouseHoverRow >= 0) {
         myMouseHoverCol = columnAtPoint(e.getPoint());

@@ -19,30 +19,47 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.ddms.screenshot.DeviceArtPainter;
-import com.android.tools.idea.rendering.RenderErrorPanel;
+import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
+import com.android.tools.idea.rendering.errors.ui.RenderErrorPanel;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
-import com.android.tools.idea.uibuilder.editor.NlEditorPanel;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
+import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
+import com.android.tools.idea.uibuilder.lint.LintNotificationPanel;
+import com.android.tools.idea.uibuilder.mockup.editor.MockupEditor;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.surface.ScreenView.ScreenViewType;
+import com.android.utils.HtmlBuilder;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.intellij.designer.DesignerEditorPanelFacade;
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
+import com.intellij.ide.DataManager;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.Magnificator;
@@ -53,6 +70,7 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import org.intellij.lang.annotations.JdkConstants;
+import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,6 +79,7 @@ import javax.swing.*;
 import javax.swing.plaf.ScrollBarUI;
 import java.awt.*;
 import java.awt.event.*;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -71,17 +90,38 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
  * The design surface in the layout editor, which contains the full background, rulers, one
  * or more device renderings, etc
  */
-public class DesignSurface extends JPanel implements Disposable {
-  public static final boolean SIZE_ERROR_PANEL_DYNAMICALLY = true;
+public class DesignSurface extends EditorDesignSurface implements Disposable, DataProvider {
   private static final Integer LAYER_PROGRESS = JLayeredPane.POPUP_LAYER + 100;
+  private static final String PROPERTY_ERROR_PANEL_SPLITTER = DesignSurface.class.getCanonicalName() + ".error.panel.split";
+  /**
+   * {@link RenderErrorModel} with one issue that is displayed while the project is still building. This avoids displaying an error
+   * panel full of errors.
+   */
+  private static final RenderErrorModel STILL_BUILDING_ERROR_MODEL = new RenderErrorModel(ImmutableList.of(
+    RenderErrorModel.Issue.builder()
+      .setSeverity(HighlightSeverity.INFORMATION)
+      .setSummary("The project is still building")
+      .setHtmlContent(new HtmlBuilder()
+                        .add("The project is still building and the current preview might be inaccurate.")
+                        .newline()
+                        .add("The preview will automatically refresh once the build finishes."))
+      .build()
+  ));
 
   private final Project myProject;
-  private final DesignerEditorPanelFacade myDesigner;
+  private final JBSplitter myErrorPanelSplitter;
+  private final boolean myInPreview;
   private boolean myRenderHasProblems;
   private boolean myStackVertically;
 
   private boolean myIsCanvasResizing = false;
+  private boolean myMockupVisible;
+  private MockupEditor myMockupEditor;
   private boolean myZoomFitted = true;
+  /**
+   * {@link LintNotificationPanel} currently being displayed
+   */
+  private WeakReference<JBPopup> myLintTooltipPopup = new WeakReference<>(null);
 
   public enum ScreenMode {
     SCREEN_ONLY(ScreenViewType.NORMAL),
@@ -115,7 +155,6 @@ public class DesignSurface extends JPanel implements Disposable {
           return mode;
         }
       }
-
       return BOTH;
     }
 
@@ -132,7 +171,7 @@ public class DesignSurface extends JPanel implements Disposable {
   @SwingCoordinate private int myScreenX = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X;
   @SwingCoordinate private int myScreenY = RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y;
 
-  private double myScale = -1;
+  private double myScale = 1;
   @NotNull private final JScrollPane myScrollPane;
   private final MyLayeredPane myLayeredPane;
   private boolean myDeviceFrames = false;
@@ -144,11 +183,13 @@ public class DesignSurface extends JPanel implements Disposable {
   private List<PanZoomListener> myZoomListeners;
   private boolean myCentered;
   private final NlActionManager myActionManager = new NlActionManager(this);
+  private float mySavedErrorPanelProportion;
+  @NotNull private WeakReference<FileEditor> myFileEditorDelegate = new WeakReference<>(null);
 
-  public DesignSurface(@NotNull Project project, @NotNull DesignerEditorPanelFacade designer) {
+  public DesignSurface(@NotNull Project project, boolean inPreview) {
     super(new BorderLayout());
     myProject = project;
-    myDesigner = designer;
+    myInPreview = inPreview;
 
     setOpaque(true);
     setFocusable(true);
@@ -174,21 +215,46 @@ public class DesignSurface extends JPanel implements Disposable {
     myScrollPane.getHorizontalScrollBar().addAdjustmentListener(this::notifyPanningChanged);
     myScrollPane.getVerticalScrollBar().addAdjustmentListener(this::notifyPanningChanged);
 
-    add(myScrollPane, BorderLayout.CENTER);
-
     myErrorPanel = new RenderErrorPanel();
+    Disposer.register(this, myErrorPanel);
     myErrorPanel.setName("Layout Editor Error Panel");
-    myErrorPanel.setVisible(false);
-    myLayeredPane.add(myErrorPanel, JLayeredPane.POPUP_LAYER);
+
+    // The error panel can only take up to 50% of the surface and it will take a 25% by default
+    myErrorPanelSplitter = new JBSplitter(true, 0.75f, 0.5f, 1f);
+    myErrorPanelSplitter.setAndLoadSplitterProportionKey(PROPERTY_ERROR_PANEL_SPLITTER);
+    myErrorPanelSplitter.setHonorComponentsMinimumSize(true);
+    myErrorPanelSplitter.setFirstComponent(myScrollPane);
+    myErrorPanelSplitter.setSecondComponent(myErrorPanel);
+
+    mySavedErrorPanelProportion = myErrorPanelSplitter.getProportion();
+    myErrorPanel.setMinimizeListener((isMinimized) -> {
+      NlUsageTracker tracker = NlUsageTrackerManager.getInstance(this);
+      if (isMinimized) {
+        tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.MINIMIZE_ERROR_PANEL);
+        mySavedErrorPanelProportion = myErrorPanelSplitter.getProportion();
+        myErrorPanelSplitter.setProportion(1f);
+      }
+      else {
+        tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL);
+        myErrorPanelSplitter.setProportion(mySavedErrorPanelProportion);
+      }
+      updateErrorPanelSplitterUi(isMinimized);
+    });
+
+    updateErrorPanelSplitterUi(myErrorPanel.isMinimized());
+    add(myErrorPanelSplitter);
 
     // TODO: Do this as part of the layout/validate operation instead
-    addComponentListener(new ComponentListener() {
+    myScrollPane.addComponentListener(new ComponentListener() {
       @Override
       public void componentResized(ComponentEvent componentEvent) {
         if (isShowing() && getWidth() > 0 && getHeight() > 0 && myZoomFitted) {
           // Only rescale if the user did not set the zoom
           // to something else than fit
           zoomToFit();
+        }
+        else {
+          positionScreens();
         }
       }
 
@@ -209,36 +275,32 @@ public class DesignSurface extends JPanel implements Disposable {
     myActionManager.registerActions(myLayeredPane);
   }
 
+  private void updateErrorPanelSplitterUi(boolean isMinimized) {
+    boolean showDivider = myErrorPanel.isVisible() && !isMinimized;
+    myErrorPanelSplitter.setShowDividerIcon(showDivider);
+    myErrorPanelSplitter.setShowDividerControls(showDivider);
+    myErrorPanelSplitter.setResizeEnabled(showDivider);
+
+    if (isMinimized) {
+      myErrorPanelSplitter.setProportion(1f);
+    }
+  }
+
   @NotNull
   public Project getProject() {
     return myProject;
   }
 
   public boolean isPreviewSurface() {
-    return myDesigner instanceof NlPreviewForm;
+    return myInPreview;
   }
 
   @NotNull
   public NlLayoutType getLayoutType() {
-    XmlFile file;
-    if (myDesigner instanceof NlEditorPanel) {
-      file = ((NlEditorPanel)myDesigner).getFile();
+    if (myScreenView == null) {
+      return NlLayoutType.UNKNOWN;
     }
-    else if (myDesigner instanceof NlPreviewForm) {
-      // TODO Will this ever happen?
-      file = ((NlPreviewForm)myDesigner).getFile();
-      assert file != null;
-    }
-    else {
-      throw new IllegalStateException(myDesigner.toString());
-    }
-    return NlLayoutType.typeOf(file);
-  }
-
-  public void minimizePaletteOnPreview() {
-    if (isPreviewSurface()) {
-      ApplicationManager.getApplication().invokeLater(((NlPreviewForm)myDesigner)::minimizePalette);
-    }
+    return NlLayoutType.typeOf(myScreenView.getModel().getFile());
   }
 
   @NotNull
@@ -340,6 +402,12 @@ public class DesignSurface extends JPanel implements Disposable {
       SelectionModel selectionModel = model.getSelectionModel();
       selectionModel.addListener(mySelectionListener);
       selectionAfter = selectionModel.getSelection();
+      if (myInteractionManager.isListening() && !getLayoutType().isSupportedByDesigner()) {
+        myInteractionManager.unregisterListeners();
+      }
+      else if (!myInteractionManager.isListening() && getLayoutType().isSupportedByDesigner()) {
+        myInteractionManager.registerListeners();
+      }
     }
     else {
       myScreenView = null;
@@ -386,26 +454,36 @@ public class DesignSurface extends JPanel implements Disposable {
       myLayers.add(new ConstraintsLayer(this, myScreenView, true));
     }
 
+    if (ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
+      myLayers.add(new SceneLayer(myScreenView, false));
+    }
     myLayers.add(new WarningLayer(myScreenView));
-    myLayers.add(new CanvasResizeLayer(this, myScreenView));
+    if (getLayoutType().isSupportedByDesigner()) {
+      myLayers.add(new CanvasResizeLayer(this, myScreenView));
+    }
   }
 
   private void addBlueprintLayers(@NotNull ScreenView view) {
-    myLayers.add(new BlueprintLayer(view));
+    if (!ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
+      myLayers.add(new BlueprintLayer(view));
+    }
     myLayers.add(new SelectionLayer(view));
+    myLayers.add(new MockupLayer(view));
     myLayers.add(new CanvasResizeLayer(this, view));
+    if (ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
+      myLayers.add(new SceneLayer(view, true));
+    }
   }
 
   @Override
   public void dispose() {
-    myErrorPanel.dispose();
   }
 
   /**
    * @return The new {@link Dimension} of the LayeredPane (ScreenView)
    */
   @Nullable
-  private Dimension updateScrolledAreaSize() {
+  public Dimension updateScrolledAreaSize() {
     if (myScreenView == null) {
       return null;
     }
@@ -413,13 +491,12 @@ public class DesignSurface extends JPanel implements Disposable {
     // TODO: Account for the size of the blueprint screen too? I should figure out if I can automatically make it jump
     // to the side or below based on the form factor and the available size
     Dimension dimension = new Dimension(size.width + 2 * DEFAULT_SCREEN_OFFSET_X,
-                                        size.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
+                                          size.height + 2 * DEFAULT_SCREEN_OFFSET_Y);
     if (myScreenMode == ScreenMode.BOTH) {
       if (isStackVertically()) {
         dimension.setSize(dimension.getWidth(),
                           dimension.getHeight() + size.height + SCREEN_DELTA);
-      }
-      else {
+      } else {
         dimension.setSize(dimension.getWidth() + size.width + SCREEN_DELTA,
                           dimension.getHeight());
       }
@@ -493,6 +570,13 @@ public class DesignSurface extends JPanel implements Disposable {
           repaint();
         }
       }
+      if (layer instanceof SceneLayer) {
+        SceneLayer sceneLayer = (SceneLayer) layer;
+        if (!sceneLayer.isShowOnHover()) {
+          sceneLayer.setShowOnHover(true);
+          repaint();
+        }
+      }
     }
   }
 
@@ -505,6 +589,13 @@ public class DesignSurface extends JPanel implements Disposable {
         ConstraintsLayer constraintsLayer = (ConstraintsLayer)layer;
         if (constraintsLayer.isShowOnHover()) {
           constraintsLayer.setShowOnHover(false);
+          repaint();
+        }
+      }
+      if (layer instanceof SceneLayer) {
+        SceneLayer sceneLayer = (SceneLayer) layer;
+        if (!sceneLayer.isShowOnHover()) {
+          sceneLayer.setShowOnHover(false);
           repaint();
         }
       }
@@ -563,6 +654,18 @@ public class DesignSurface extends JPanel implements Disposable {
           repaint();
         }
       }
+      else if (layer instanceof SceneLayer) {
+        // For constraint layer, set show on hover if they are above their screen view
+        SceneLayer sceneLayer = (SceneLayer)layer;
+        boolean show = false;
+        if (sceneLayer.getScreenView() == current) {
+          show = true;
+        }
+        if (sceneLayer.isShowOnHover() != show) {
+          sceneLayer.setShowOnHover(show);
+          repaint();
+        }
+      }
       else if (layer instanceof CanvasResizeLayer) {
         if (((CanvasResizeLayer)layer).changeHovering(x, y)) {
           repaint();
@@ -577,18 +680,27 @@ public class DesignSurface extends JPanel implements Disposable {
     }
 
     // Currently, we use the hover action only to check whether we need to show a warning.
-    for (Layer layer : myLayers) {
-      String tooltip = layer.getTooltip(x, y);
-      if (tooltip != null) {
-        myErrorPanel.showWarning(tooltip);
-        if (!myErrorPanel.isVisible()) {
-          myErrorPanel.setVisible(true);
-          revalidate();
+    if (AndroidEditorSettings.getInstance().getGlobalState().isShowLint()) {
+      ScreenView currentScreenView = getCurrentScreenView();
+      LintAnnotationsModel lintModel = currentScreenView != null ? currentScreenView.getModel().getLintAnnotationsModel() : null;
+      if (lintModel != null) {
+        for (Layer layer : myLayers) {
+          String tooltip = layer.getTooltip(x, y);
+          if (tooltip != null) {
+            JBPopup lintPopup = myLintTooltipPopup.get();
+            if (lintPopup == null || !lintPopup.isVisible()) {
+              NlUsageTrackerManager.getInstance(this).logAction(LayoutEditorEvent.LayoutEditorEventType.LINT_TOOLTIP);
+              LintNotificationPanel lintPanel = new LintNotificationPanel(getCurrentScreenView(), lintModel);
+              lintPanel.selectIssueAtPoint(Coordinates.getAndroidX(getCurrentScreenView(), x),
+                                           Coordinates.getAndroidY(getCurrentScreenView(), y));
+
+              Point point = new Point(x, y);
+              SwingUtilities.convertPointToScreen(point, this);
+              myLintTooltipPopup = new WeakReference<>(lintPanel.showInScreenPosition(myProject, this, point));
+            }
+            break;
+          }
         }
-        else {
-          repaint();
-        }
-        break;
       }
     }
   }
@@ -673,7 +785,8 @@ public class DesignSurface extends JPanel implements Disposable {
         double scaleY = (double)availableHeight / requiredHeight;
         double scale = Math.min(scaleX, scaleY);
         if (type == ZoomType.FIT_INTO) {
-          scale = Math.min(1.0, scale);
+          double min = (SystemInfo.isMac && UIUtil.isRetina()) ? 0.5 : 1.0;
+          scale = Math.min(min, scale);
         }
         setScale(scale);
         repaint();
@@ -719,14 +832,9 @@ public class DesignSurface extends JPanel implements Disposable {
     return myScale;
   }
 
+  @Override
   public Configuration getConfiguration() {
     return myScreenView != null ? myScreenView.getConfiguration() : null;
-  }
-
-  public void setConfiguration(@NotNull Configuration configuration) {
-    if (myScreenView != null) {
-      myScreenView.setConfiguration(configuration);
-    }
   }
 
   public void setScrollPosition(int x, int y) {
@@ -820,24 +928,14 @@ public class DesignSurface extends JPanel implements Disposable {
           requiredWidth += SCREEN_DELTA;
           requiredWidth += screenViewSize.width;
         }
-        if (requiredWidth < availableWidth) {
-          myScreenX = (availableWidth - requiredWidth) / 2;
-        }
-        else {
-          myScreenX = 0;
-        }
+        myScreenX = Math.max((availableWidth - requiredWidth) / 2, RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_X);
 
         int requiredHeight = screenViewSize.height;
         if (myScreenMode == ScreenMode.BOTH && myStackVertically) {
           requiredHeight += SCREEN_DELTA;
           requiredHeight += screenViewSize.height;
         }
-        if (requiredHeight < availableHeight) {
-          myScreenY = (availableHeight - requiredHeight) / 2;
-        }
-        else {
-          myScreenY = 0;
-        }
+        myScreenY = Math.max((availableHeight - requiredHeight) / 2, RULER_SIZE_PX + DEFAULT_SCREEN_OFFSET_Y);
       }
       else {
         if (myDeviceFrames) {
@@ -863,6 +961,14 @@ public class DesignSurface extends JPanel implements Disposable {
         // left/right ordering
         myBlueprintView.setLocation(myScreenX + screenViewSize.width + SCREEN_DELTA, myScreenY);
       }
+    }
+    if (myScreenView != null && myScreenView.getScene() != null) {
+      Scene scene = myScreenView.getScene();
+      scene.needsRebuildList();
+    }
+    if (myBlueprintView != null && myBlueprintView.getScene() != null) {
+      Scene scene = myBlueprintView.getScene();
+      scene.needsRebuildList();
     }
   }
 
@@ -955,6 +1061,11 @@ public class DesignSurface extends JPanel implements Disposable {
         positionScreens();
       }
     }
+
+    @Override
+    public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+      repaint();
+    }
   };
 
   public void addPanZoomListener(PanZoomListener listener) {
@@ -990,34 +1101,14 @@ public class DesignSurface extends JPanel implements Disposable {
     myInteractionManager.cancelInteraction();
   }
 
-  private void positionErrorPanel() {
-    if (!myErrorPanel.isVisible()) {
-      return;
-    }
-    int height = getHeight();
-    int width = getWidth();
-    int size;
-    if (SIZE_ERROR_PANEL_DYNAMICALLY) { // TODO: Only do this when the error panel is showing
-      boolean showingErrors = HighlightSeverity.ERROR.equals(myErrorPanel.getSeverity());
-      size = computeErrorPanelHeight(showingErrors, height, myErrorPanel.getPreferredHeight(width) + 16);
-    }
-    else {
-      size = height / 2;
-    }
-
-    myErrorPanel.setSize(width, size);
-    myErrorPanel.setLocation(RULER_SIZE_PX, height - size);
-  }
-
-  private static int computeErrorPanelHeight(boolean showingErrors, int designerHeight, int preferredHeight) {
-    int maxSize = designerHeight * 3 / 4; // error panel can take up to 3/4th of the designer
-    int minSize = showingErrors ? designerHeight / 4 : 16; // but is at least 1/4th if errors are being shown
-    if (preferredHeight < maxSize) {
-      return Math.max(preferredHeight, minSize);
-    }
-    else {
-      return maxSize;
-    }
+  /**
+   * Sets the file editor to which actions like undo/redo will be delegated. This is only needed if this DesignSurface is not a child
+   * of a {@link FileEditor} like in the case of {@link NlPreviewForm}.
+   * <p>
+   * The surface will only keep a {@link WeakReference} to the editor.
+   */
+  public void setFileEditorDelegate(@Nullable FileEditor fileEditor) {
+    myFileEditorDelegate = new WeakReference<>(fileEditor);
   }
 
   private static class MyScrollPane extends JBScrollPane {
@@ -1117,7 +1208,7 @@ public class DesignSurface extends JPanel implements Disposable {
 
       RenderResult result = myScreenView.getResult();
       boolean paintedFrame = false;
-      if (myDeviceFrames && result != null && result.getRenderedImage() != null) {
+      if (myDeviceFrames && result != null && result.hasImage()) {
         Configuration configuration = myScreenView.getConfiguration();
         Device device = configuration.getDevice();
         State deviceState = configuration.getDeviceState();
@@ -1130,6 +1221,17 @@ public class DesignSurface extends JPanel implements Disposable {
         }
       }
 
+      g2d.setComposite(oldComposite);
+      for (Layer layer : myLayers) {
+        if (!layer.isHidden()) {
+          layer.paint(g2d);
+        }
+      }
+
+      if (!getLayoutType().isSupportedByDesigner()) {
+        return;
+      }
+
       if (paintedFrame) {
         // Only use alpha on the ruler bar if overlaying the device art
         g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.9f));
@@ -1137,13 +1239,6 @@ public class DesignSurface extends JPanel implements Disposable {
       else {
         // Only show bounds dashed lines when there's no device
         paintBoundsRectangle(g2d);
-      }
-
-      g2d.setComposite(oldComposite);
-      for (Layer layer : myLayers) {
-        if (!layer.isHidden()) {
-          layer.paint(g2d);
-        }
       }
 
       // Temporary overlays:
@@ -1158,72 +1253,75 @@ public class DesignSurface extends JPanel implements Disposable {
     }
 
     private void paintBackground(@NotNull Graphics2D graphics, int lx, int ly) {
-      int width = myScrollPane.getWidth() - RULER_SIZE_PX;
-      int height = myScrollPane.getHeight() - RULER_SIZE_PX;
+      int width = myScrollPane.getWidth();
+      int height = myScrollPane.getHeight();
       graphics.setColor(DESIGN_SURFACE_BG);
-      graphics.fillRect(RULER_SIZE_PX + lx, RULER_SIZE_PX + ly, width, height);
+      graphics.fillRect(lx, ly, width, height);
     }
 
-    private void paintRulers(@NotNull Graphics2D g, int lx, int ly) {
+    private void paintRulers(@NotNull Graphics2D g, int scrolledX, int scrolledY) {
+      if (myScale < 0) {
+        return;
+      }
+
       final Graphics2D graphics = (Graphics2D)g.create();
       try {
         int width = myScrollPane.getWidth();
         int height = myScrollPane.getHeight();
 
         graphics.setColor(RULER_BG);
-        graphics.fillRect(lx, ly, width, RULER_SIZE_PX);
-        graphics.fillRect(lx, ly + RULER_SIZE_PX, RULER_SIZE_PX, height - RULER_SIZE_PX);
+        graphics.fillRect(scrolledX, scrolledY, width, RULER_SIZE_PX);
+        graphics.fillRect(scrolledX, scrolledY + RULER_SIZE_PX, RULER_SIZE_PX, height - RULER_SIZE_PX);
 
         graphics.setColor(RULER_TICK_COLOR);
         graphics.setStroke(SOLID_STROKE);
-
-        int x = myScreenX + lx - lx % 100;
-        int px2 = x + 10 - 100;
-        for (int i = 1; i < 10; i++, px2 += 10) {
-          if (px2 < myScreenX + lx - 100) {
-            continue;
-          }
-          graphics.drawLine(px2, ly, px2, ly + RULER_MINOR_TICK_PX);
-        }
-        // TODO: The rulers need to be updated to track the scale!!!
-
-        for (int px = 0; px < width; px += 100, x += 100) {
-          graphics.drawLine(x, ly, x, ly + RULER_MAJOR_TICK_PX);
-          px2 = x + 10;
-          for (int i = 1; i < 10; i++, px2 += 10) {
-            graphics.drawLine(px2, ly, px2, ly + RULER_MINOR_TICK_PX);
-          }
-        }
-
-        int y = myScreenY + ly - ly % 100;
-        int py2 = y + 10 - 100;
-        for (int i = 1; i < 10; i++, py2 += 10) {
-          if (py2 < myScreenY + ly - 100) {
-            continue;
-          }
-          graphics.drawLine(lx, py2, lx + RULER_MINOR_TICK_PX, py2);
-        }
-        for (int py = 0; py < height; py += 100, y += 100) {
-          graphics.drawLine(lx, y, lx + RULER_MAJOR_TICK_PX, y);
-          py2 = y + 10;
-          for (int i = 1; i < 10; i++, py2 += 10) {
-            graphics.drawLine(lx, py2, lx + RULER_MINOR_TICK_PX, py2);
-          }
-        }
-
-        graphics.setColor(RULER_TEXT_COLOR);
         graphics.setFont(RULER_TEXT_FONT);
-        int xDelta = lx - lx % 100;
-        x = myScreenX + 2 + xDelta;
-        for (int px = 0; px < width; px += 100, x += 100) {
-          graphics.drawString(Integer.toString(px + xDelta), x, ly + RULER_MAJOR_TICK_PX);
+
+        // Distance between two minor ticks (corrected with the current scale)
+        int minorTickDistance = Math.max((int)Math.round(RULER_TICK_DISTANCE * myScale), 1);
+        // If we keep reducing the scale, at some point we only buildDisplayList half of the minor ticks
+        int tickIncrement = (minorTickDistance > RULER_MINOR_TICK_MIN_DIST_PX) ? 1 : 2;
+        int labelWidth = RULER_TEXT_FONT.getStringBounds("0000", graphics.getFontRenderContext()).getBounds().width;
+        // Only display the text if it fits between major ticks
+        boolean displayText = labelWidth < minorTickDistance * 10;
+
+        // Get the first tick that is within the viewport
+        int firstVisibleTickX = scrolledX / minorTickDistance - Math.min(myScreenX / minorTickDistance, 10);
+        for (int i = firstVisibleTickX; i * minorTickDistance < width + scrolledX; i += tickIncrement) {
+          if (i == -10) {
+            continue;
+          }
+
+          int tickPosition = i * minorTickDistance + myScreenX;
+          boolean majorTick = i >= 0 && (i % 10) == 0;
+
+          graphics.drawLine(tickPosition, scrolledY, tickPosition, scrolledY + (majorTick ? RULER_MAJOR_TICK_PX : RULER_MINOR_TICK_PX));
+
+          if (displayText && majorTick) {
+            graphics.setColor(RULER_TEXT_COLOR);
+            graphics.drawString(Integer.toString(i * 10), tickPosition + 2, scrolledY + RULER_MAJOR_TICK_PX);
+            graphics.setColor(RULER_TICK_COLOR);
+          }
         }
 
         graphics.rotate(-Math.PI / 2);
-        int yDelta = ly - ly % 100;
-        y = myScreenY - 2 + yDelta;
-        for (int py = 0; py < height; py += 100, y += 100) {
-          graphics.drawString(Integer.toString(py + yDelta), -y, lx + RULER_MAJOR_TICK_PX);
+        int firstVisibleTickY = scrolledY / minorTickDistance - Math.min(myScreenY / minorTickDistance, 10);
+        for (int i = firstVisibleTickY; i * minorTickDistance < height + scrolledY; i += tickIncrement) {
+          if (i == -10) {
+            continue;
+          }
+
+          int tickPosition = i * minorTickDistance + myScreenY;
+          boolean majorTick = i >= 0 && (i % 10) == 0;
+
+          //noinspection SuspiciousNameCombination (we rotate the drawing 90 degrees)
+          graphics.drawLine(-tickPosition, scrolledX, -tickPosition, scrolledX + (majorTick ? RULER_MAJOR_TICK_PX : RULER_MINOR_TICK_PX));
+
+          if (displayText && majorTick) {
+            graphics.setColor(RULER_TEXT_COLOR);
+            graphics.drawString(Integer.toString(i * 10), -tickPosition + 2, scrolledX + RULER_MAJOR_TICK_PX);
+            graphics.setColor(RULER_TICK_COLOR);
+          }
         }
       }
       finally {
@@ -1262,19 +1360,14 @@ public class DesignSurface extends JPanel implements Disposable {
     protected void paintChildren(@NotNull Graphics graphics) {
       super.paintChildren(graphics); // paints the screen
 
-      // Paint rulers on top of whatever is under the scroll panel
-
-      Graphics2D g2d = (Graphics2D)graphics;
-      // (x,y) coordinates of the top left corner in the view port
-      int tlx = myScrollPane.getHorizontalScrollBar().getValue();
-      int tly = myScrollPane.getVerticalScrollBar().getValue();
-      paintRulers(g2d, tlx, tly);
-    }
-
-    @Override
-    public void doLayout() {
-      super.doLayout();
-      positionErrorPanel();
+      if (getLayoutType().isSupportedByDesigner()) {
+        // Paint rulers on top of whatever is under the scroll panel
+        Graphics2D g2d = (Graphics2D)graphics;
+        // (x,y) coordinates of the top left corner in the view port
+        int tlx = myScrollPane.getHorizontalScrollBar().getValue();
+        int tly = myScrollPane.getVerticalScrollBar().getValue();
+        paintRulers(g2d, tlx, tly);
+      }
     }
 
     @Nullable
@@ -1297,7 +1390,7 @@ public class DesignSurface extends JPanel implements Disposable {
           for (NlComponent component : selection) {
             list.add(component.getTag());
           }
-          return list.toArray(new XmlTag[0]);
+          return list.toArray(XmlTag.EMPTY);
         }
       }
 
@@ -1319,11 +1412,17 @@ public class DesignSurface extends JPanel implements Disposable {
       updateErrors(result);
     }
     else {
-      UIUtil.invokeLaterIfNeeded(() -> {
-        myErrorPanel.setVisible(false);
-        repaint();
-      });
+      setShowErrorPanel(false);
     }
+  }
+
+  public void setShowErrorPanel(boolean show) {
+    UIUtil.invokeLaterIfNeeded(() -> {
+      myErrorPanel.setVisible(show);
+      updateErrorPanelSplitterUi(myErrorPanel.isMinimized());
+      revalidate();
+      repaint();
+    });
   }
 
   /**
@@ -1342,14 +1441,13 @@ public class DesignSurface extends JPanel implements Disposable {
         if (result == null) {
           return;
         }
-        myErrorPanel.showErrors(result);
-        ApplicationManager.getApplication().invokeLater(() -> {
-          if (!myErrorPanel.isVisible()) {
-            myErrorPanel.setVisible(true);
-          }
-          revalidate();
-          repaint();
-        });
+
+        RenderErrorModel model =
+          BuildSettings.getInstance(myProject).getBuildMode() != null && result.getLogger().hasErrors() ?
+          STILL_BUILDING_ERROR_MODEL :
+          RenderErrorModelFactory.createErrorModel(result, DataManager.getInstance().getDataContext(myErrorPanel));
+        myErrorPanel.setModel(model);
+        setShowErrorPanel(model.getSize() != 0);
       }
 
       @Override
@@ -1557,6 +1655,7 @@ public class DesignSurface extends JPanel implements Disposable {
    *
    * @param invalidateModel if true, the model will be invalidated and re-inflated. When false, this will only repaint the current model.
    */
+  @Override
   public void requestRender(boolean invalidateModel) {
     ScreenView screenView = getCurrentScreenView();
     if (screenView != null) {
@@ -1578,7 +1677,44 @@ public class DesignSurface extends JPanel implements Disposable {
   /**
    * Invalidates the current model and request a render of the layout. This will re-inflate the layout and render it.
    */
+  @Override
   public void requestRender() {
     requestRender(true);
+  }
+
+  public void setMockupVisible(boolean mockupVisible) {
+    myMockupVisible = mockupVisible;
+    repaint();
+  }
+
+  public boolean isMockupVisible() {
+    return myMockupVisible;
+  }
+
+  public void setMockupEditor(@Nullable MockupEditor mockupEditor) {
+    myMockupEditor = mockupEditor;
+  }
+
+  @Nullable
+  public MockupEditor getMockupEditor() {
+    return myMockupEditor;
+  }
+
+  @Override
+  public Object getData(@NonNls String dataId) {
+    if (PlatformDataKeys.FILE_EDITOR.is(dataId)) {
+        return myFileEditorDelegate.get();
+    } else if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
+        PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
+      return new DesignSurfaceActionHandler(this);
+    }
+    return null;
+  }
+
+  @VisibleForTesting
+  RenderErrorModel getErrorModel() {
+    return myErrorPanel.getModel();
   }
 }

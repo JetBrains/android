@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
+import com.android.tools.idea.XmlBuilder;
 import com.intellij.openapi.util.IconLoader;
 import icons.AndroidIcons;
 import org.intellij.lang.annotations.Language;
@@ -38,7 +39,7 @@ public abstract class PaletteComponentHandler {
   public static final String NO_PREVIEW = "";
 
   /**
-   * A special value returned from {@link #getGradleCoordinate} to indicate that this
+   * A special value returned from {@link #getGradleCoordinateId} to indicate that this
    * component is included in the SDK platform.
    */
   public static final String IN_PLATFORM = "";
@@ -68,16 +69,28 @@ public abstract class PaletteComponentHandler {
   }
 
   /**
-   * Returns the Gradle coordinate (ex. "com.android.support:support-v4") of the library
+   * Returns a 24x24 icon used to represent this component as a larger image on the palette.<br>
+   * This default implementation assumes the icon is one of the builtin icons.
+   *
+   * @param tagName the tag name of the component
+   * @return an icon to identify the component
+   */
+  @NotNull
+  public Icon getLargeIcon(@NotNull String tagName) {
+    return loadBuiltinLargeIcon(tagName);
+  }
+
+  /**
+   * Returns the Gradle coordinate ID (ex. "com.android.support:support-v4") of the library
    * this component belongs to. The palette will use this information to provide a download
    * link if the library is not present in the project dependencies.<br>
    *
    * The value {@link #IN_PLATFORM} means the component is included in the SDK platform.
    *
-   * @return the Gradle Coordinate of the library this component belongs to
+   * @return the Gradle Coordinate ID of the library this component belongs to
    */
   @NotNull
-  public String getGradleCoordinate(@NotNull String tagName) {
+  public String getGradleCoordinateId(@NotNull String tagName) {
     return getBuiltinCoordinate(tagName);
   }
 
@@ -126,6 +139,16 @@ public abstract class PaletteComponentHandler {
     String path = "AndroidIcons.Views." + getSimpleTagName(tagName);
     Icon icon = IconLoader.findIcon(path, getClass());
     return icon != null ? icon : AndroidIcons.Views.Unknown;
+  }
+
+  @NotNull
+  protected Icon loadBuiltinLargeIcon(@NotNull String tagName) {
+    String path = "AndroidIcons.Views." + getSimpleTagName(tagName) + "Large";
+    Icon icon = IconLoader.findIcon(path, getClass());
+    if (icon != null) {
+      return icon;
+    }
+    return AndroidIcons.Views.UnknownLarge;
   }
 
   @NotNull

@@ -113,4 +113,10 @@ public class NativeArtifactStub implements NativeArtifact {
   public File getOutputFile() {
     return myOutputFile;
   }
+
+  @NotNull
+  @Override
+  public Collection<File> getRuntimeFiles() {
+    throw new UnsupportedOperationException();
+  }
 }

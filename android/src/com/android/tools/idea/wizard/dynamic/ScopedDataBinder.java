@@ -17,7 +17,7 @@ package com.android.tools.idea.wizard.dynamic;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.ui.ApiComboBoxItem;
-import com.android.tools.idea.ui.DocumentAccessor;
+import com.android.tools.adtui.DocumentAccessor;
 import com.android.tools.idea.ui.TextAccessors;
 import com.google.common.base.Objects;
 import com.google.common.collect.*;

@@ -16,32 +16,50 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.BaseCompileOptionsModel;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class CompileOptionsModel extends BaseCompileOptionsModel {
-  @NonNls public static String ENCODING_ATTRIBUTE_NAME = "encoding";
+  @NonNls private static final String ENCODING = "encoding";
+  @NonNls private static final String INCREMENTAL = "incremental";
 
   public CompileOptionsModel(@NotNull BaseCompileOptionsDslElement dslElement, boolean useAssignment) {
     super(dslElement, useAssignment);
   }
 
-  @Nullable
-  public String encoding() {
-    return myDslElement.getProperty(ENCODING_ATTRIBUTE_NAME, String.class);
+  @NotNull
+  public GradleNullableValue<String> encoding() {
+    return myDslElement.getLiteralProperty(ENCODING, String.class);
   }
 
   @NotNull
   public CompileOptionsModel setEncoding(@NotNull String encoding) {
-    myDslElement.setNewLiteral(ENCODING_ATTRIBUTE_NAME, encoding);
+    myDslElement.setNewLiteral(ENCODING, encoding);
     return this;
   }
 
   @NotNull
   public CompileOptionsModel removeEncoding() {
-    myDslElement.removeProperty(ENCODING_ATTRIBUTE_NAME);
+    myDslElement.removeProperty(ENCODING);
+    return this;
+  }
+
+  @NotNull
+  public GradleNullableValue<Boolean> incremental() {
+    return myDslElement.getLiteralProperty(INCREMENTAL, Boolean.class);
+  }
+
+  @NotNull
+  public CompileOptionsModel setIncremental(boolean incremental) {
+    myDslElement.setNewLiteral(INCREMENTAL, incremental);
+    return this;
+  }
+
+  @NotNull
+  public CompileOptionsModel removeIncremental() {
+    myDslElement.removeProperty(INCREMENTAL);
     return this;
   }
 }

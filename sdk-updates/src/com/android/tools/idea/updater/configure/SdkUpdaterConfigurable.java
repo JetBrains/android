@@ -38,8 +38,8 @@ import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.options.ex.Settings;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.AncestorListenerAdapter;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -120,8 +120,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
    * cached.
    */
   AndroidSdkHandler getSdkHandler() {
-    // Right now just get it statically. In the future we could cache and listen for updates.
-    return AndroidSdkUtils.tryToChooseSdkHandler();
+    return AndroidSdkHandler.getInstance(myPanel.getSelectedSdkLocation());
   }
 
   RepoManager getRepoManager() {
@@ -260,5 +259,10 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   @Override
   public void reset() {
     myPanel.reset();
+  }
+
+  @Override
+  public void disposeUIResources() {
+    Disposer.dispose(myPanel);
   }
 }

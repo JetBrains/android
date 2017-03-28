@@ -20,6 +20,7 @@ import com.android.resources.NightMode;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
 import com.android.resources.UiMode;
+import com.android.resources.*;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
@@ -103,6 +104,14 @@ public class ConfigurationTest extends AndroidTestCase {
       configuration.setDeviceState(landscape);
       assertEquals(ScreenOrientation.LANDSCAPE, configuration.getFullConfig().getScreenOrientationQualifier().getValue());
     }
+
+    Density density = configuration.getDensity();
+    assertEquals(Density.XHIGH, density);
+
+    DensityQualifier qualifier = new DensityQualifier().getNullQualifier();
+    configuration.getFullConfig().setDensityQualifier(qualifier);
+    density = configuration.getDensity();
+    assertEquals(Density.MEDIUM, density);
   }
 
   public void testListener() throws Exception {

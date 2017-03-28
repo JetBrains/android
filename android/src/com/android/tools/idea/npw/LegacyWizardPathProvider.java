@@ -26,7 +26,7 @@ public class LegacyWizardPathProvider implements NewModuleDynamicPathFactory {
     private final Collection<LegacyPathWrapper> myWrappers;
 
     public LegacyWizardModuleBuilder(@Nullable Project project, Disposable disposable) {
-      super(null, null, project, null, Lists.newLinkedList(), disposable, false);
+      super(null, project, null, Lists.newLinkedList(), disposable, false);
       myWrappers = wrapPaths();
     }
 

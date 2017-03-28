@@ -22,39 +22,48 @@ import javax.swing.*;
 import java.util.List;
 
 /**
- * TODO document me
+ * Representation of an assistant tutorial configuration. Used to render an {@see AssistSidePanel}.
  */
 public interface TutorialBundleData {
+
+  /**
+   * Workaround for classloading issues. Sets a class from your plugin (typically your
+   * implementation of {@see AssistantBundleCreator} to use with icon loading. Implemntors
+   * of this class do not need to worry about calling this though they should be aware that
+   * it is not set until after {@code afterUnmarshall} in the bundle.
+   */
+  void setResourceClass(@NotNull Class clazz);
+
+  /**
+   * Returns the Assistant name, used as a label in the panel.
+   */
   @NotNull
   String getName();
 
   /**
+   * Returns logo rendered instead of the name and icon when present.
+   *
    * @see #getLogo()
    */
-  @Nullable("Optionally rendered")
+  @Nullable
   Icon getIcon();
 
   /**
+   * Returns icon that accompanies the name.
    * Supersedes {@link #getIcon()} if non-null.
    */
-  @Nullable("Optionally rendered")
+  @Nullable
   Icon getLogo();
 
-  @NotNull
-  String getId();
-
-  @NotNull
-  String getContentRoot();
-
+  /**
+   * Returns a list of features that will contain your individual tutorials.
+   */
   @NotNull
   List<? extends FeatureData> getFeatures();
 
-  @Nullable("Optionally supported")
-  Integer getMinPluginVersion();
-
+  /**
+   * Returns summary content displayed in the entry-point view of the panel.
+   */
   @NotNull
   String getWelcome();
-
-  @Nullable("Optionally rendered")
-  String getLearnMoreLink();
 }

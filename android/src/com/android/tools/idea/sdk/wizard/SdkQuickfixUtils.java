@@ -20,6 +20,7 @@ import com.android.repository.api.*;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.util.InstallerUtil;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -27,13 +28,11 @@ import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,7 +86,7 @@ public final class SdkQuickfixUtils {
   }
 
   private static AndroidSdkHandler getSdkHandler() {
-    AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData data = AndroidSdks.getInstance().tryToChooseAndroidSdk();
 
     if (data == null) {
       String title = "SDK Problem";

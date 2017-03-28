@@ -10,5 +10,10 @@
     <orderEntry type="module" module-name="platform-impl" />
     <orderEntry type="module" module-name="android" />
     <orderEntry type="module" module-name="lang-api" />
+    <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="module" module-name="analytics-protos" />
+    <orderEntry type="module" module-name="observable" />
+    <orderEntry type="module" module-name="adt-ui" />
+    <orderEntry type="module" module-name="wizard" />
   </component>
 </module>

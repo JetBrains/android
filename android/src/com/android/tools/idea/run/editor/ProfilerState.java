@@ -19,6 +19,7 @@ import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import org.jdom.Element;
+import org.jetbrains.annotations.NonNls;
 
 import java.util.Properties;
 
@@ -26,15 +27,11 @@ import java.util.Properties;
  * Holds all the project persisted state variables for the profilers.
  */
 public class ProfilerState {
+  @NonNls public static final String ENABLE_EXPERIMENTAL_PROFILING = "enable.experimental.profiling";
+  @NonNls public static final String ENABLE_ENERGY_PROFILER = "enable.energy.profiler";
   /** Whether to apply the profiling plugin. */
   public boolean ENABLE_ADVANCED_PROFILING = true;
   public static final String ENABLE_ADVANCED_PROFILING_NAME = "android.profiler.enabled";
-
-  /** Enable GAPID (GPU) tracing. */
-  public boolean GAPID_ENABLED = false;
-
-  /** GAPID disable pre-compiled shader support. */
-  public boolean GAPID_DISABLE_PCS = false;
 
   public boolean SUPPORT_LIB_ENABLED = true;
   private static final String SUPPORT_LIB_ENABLED_NAME = "android.profiler.supportLib.enabled";

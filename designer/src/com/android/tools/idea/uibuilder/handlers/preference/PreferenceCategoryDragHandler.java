@@ -20,70 +20,69 @@ import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.List;
 
 final class PreferenceCategoryDragHandler extends PreferenceGroupDragHandler {
   PreferenceCategoryDragHandler(@NotNull ViewEditor editor,
                                 @NotNull ViewGroupHandler handler,
-                                @NotNull NlComponent preferenceGroup,
+                                @NotNull NlComponent category,
                                 @NotNull List<NlComponent> preferences,
                                 @NotNull DragType type) {
-    super(editor, handler, preferenceGroup, preferences, type);
+    super(editor, handler, category, preferences, type);
+  }
+
+  @Nullable
+  @Override
+  public String update(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+    String message = super.update(x, y, modifiers);
+
+    if (message != null) {
+      return message;
+    }
+    else if (myGroup.getChildren().isEmpty()) {
+      return null;
+    }
+    else {
+      updateActivePreference();
+      return null;
+    }
   }
 
   @Override
   void drawDropPreviewLine(@NotNull NlGraphics graphics) {
-    int count = myPreferenceGroup.getChildCount();
-    graphics.useStyle(NlDrawingStyle.DROP_PREVIEW);
-
-    if (count == 0) {
-      drawBottom(graphics, myPreferenceGroup);
-    }
-    else if (myInsertIndex == -1) {
-      drawBottom(graphics, getChild(count - 1));
+    if (myGroup.getChildren().isEmpty()) {
+      graphics.useStyle(NlDrawingStyle.DROP_PREVIEW);
+      graphics.drawBottom(getBounds(myGroup));
     }
     else {
-      graphics.drawTop(getChild(myInsertIndex));
+      super.drawDropPreviewLine(graphics);
     }
   }
 
   @Override
   void drawDropRecipientLines(@NotNull NlGraphics graphics) {
-    int count = myPreferenceGroup.getChildCount();
-    NlComponent preference = count == 0 ? myPreferenceGroup : getChild(count - 1);
-
     graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
+    Rectangle bounds = getBounds(myGroup);
 
-    graphics.drawTop(myPreferenceGroup);
-    graphics.drawLine(myPreferenceGroup.x, myPreferenceGroup.y, myPreferenceGroup.x, preference.y + preference.h);
+    graphics.drawTop(bounds);
+    graphics.drawLeft(bounds);
+    graphics.drawRight(bounds);
 
-    graphics.drawLine(myPreferenceGroup.x + myPreferenceGroup.w, myPreferenceGroup.y,
-                      myPreferenceGroup.x + myPreferenceGroup.w, preference.y + preference.h);
+    List<NlComponent> preferences = myGroup.getChildren();
 
-    if (!((count == 0 && myInsertIndex == 0) || myInsertIndex == -1)) {
-      drawBottom(graphics, preference);
+    if (!preferences.isEmpty() && lastY < getMidpointY(preferences.get(preferences.size() - 1))) {
+      graphics.drawBottom(bounds);
     }
   }
 
   @Override
   void drawDropZoneLines(@NotNull NlGraphics graphics) {
-    int count = myPreferenceGroup.getChildCount();
-
-    if (count == 0) {
-      return;
-    }
-
-    graphics.useStyle(NlDrawingStyle.DROP_ZONE);
-
-    for (int i = 0; i < count; i++) {
-      if (i == myInsertIndex) {
-        continue;
-      }
-
-      graphics.drawTop(getChild(i));
-    }
+    drawDropZoneLines(graphics, 0);
   }
 }

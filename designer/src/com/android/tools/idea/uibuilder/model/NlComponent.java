@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.model;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.AttributeSnapshot;
@@ -25,8 +26,6 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
-import com.google.common.base.Objects;
-import com.google.common.base.Objects.ToStringHelper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.lang.LanguageNamesValidation;
@@ -34,6 +33,8 @@ import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.refactoring.NamesValidator;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -45,10 +46,9 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static com.android.SdkConstants.*;
@@ -74,19 +74,18 @@ public class NlComponent implements NlAttributesHolder {
   @AndroidCoordinate public int y;
   @AndroidCoordinate public int w;
   @AndroidCoordinate public int h;
-
-  /**
-   * True if this component's bounds were computed by NlModel.
-   */
-  private boolean myBoundsComputed;
-
   private NlComponent myParent;
   @NotNull private final NlModel myModel;
   @NotNull private XmlTag myTag;
   @NotNull private String myTagName; // for non-read lock access elsewhere
   @Nullable private TagSnapshot mySnapshot;
+  HashMap<Object, Object> myClientProperties = new HashMap<>();;
+  private ArrayList<ChangeListener> myListeners = new ArrayList<ChangeListener>();
+  private ChangeEvent myChangeEvent = new ChangeEvent(this);
 
-  /** Current open attributes transaction or null if none is open */
+  /**
+   * Current open attributes transaction or null if none is open
+   */
   @Nullable AttributesTransaction myCurrentTransaction;
 
   public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
@@ -124,10 +123,6 @@ public class NlComponent implements NlAttributesHolder {
     this.y = y;
     this.w = w;
     this.h = h;
-  }
-
-  void setBoundsComputed(boolean boundsComputed) {
-    myBoundsComputed = boundsComputed;
   }
 
   public void addChild(@NotNull NlComponent component) {
@@ -291,7 +286,7 @@ public class NlComponent implements NlAttributesHolder {
       }
     }
 
-    return (!myBoundsComputed && x <= px && y <= py && x + w >= px && y + h >= py) ? this : null;
+    return (x <= px && y <= py && x + w >= px && y + h >= py) ? this : null;
   }
 
   public boolean containsX(@AndroidCoordinate int x) {
@@ -390,6 +385,31 @@ public class NlComponent implements NlAttributesHolder {
     return assignId();
   }
 
+  /**
+   * Ensure that there's a id, if not execute a write command to add
+   * the id to the component.
+   * @return
+   */
+  public String ensureLiveId() {
+    String id = getId();
+    if (id != null) {
+      return id;
+    }
+
+    AttributesTransaction attributes = startAttributeTransaction();
+    id = assignId();
+    attributes.apply();
+    WriteCommandAction action = new WriteCommandAction(getModel().getProject(),
+                                                       "Added id", getModel().getFile()) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        attributes.commit();
+      }
+    };
+    action.execute();
+    return id;
+  }
+
   private String assignId() {
     Collection<String> idList = getIds(myModel);
     return assignId(this, idList);
@@ -403,7 +423,7 @@ public class NlComponent implements NlAttributesHolder {
 
     Module module = component.getModel().getModule();
     Project project = module.getProject();
-    idValue = ResourceHelper.prependResourcePrefix(module, idValue);
+    idValue = ResourceHelper.prependResourcePrefix(module, idValue, ResourceFolderType.LAYOUT);
 
     String nextIdValue = idValue;
     int index = 0;
@@ -486,23 +506,6 @@ public class NlComponent implements NlAttributesHolder {
     }
 
     return 0;
-  }
-
-  /**
-   * Return the actual view id used in layout lib
-   *
-   * @return the view id, or -1 if impossible to get
-   */
-  public int getAndroidViewId() {
-    try {
-      if (viewInfo != null) {
-        Object viewObject = viewInfo.getViewObject();
-        return (Integer)viewObject.getClass().getMethod("getId").invoke(viewObject);
-      }
-    }
-    catch (Throwable ignore) {
-    }
-    return -1;
   }
 
   /**
@@ -602,6 +605,9 @@ public class NlComponent implements NlAttributesHolder {
   public boolean isOrHasSuperclass(@NotNull String className) {
     if (viewInfo != null) {
       Object viewObject = viewInfo.getViewObject();
+      if (viewObject == null) {
+        return ApplicationManager.getApplication().isUnitTestMode() && myTagName.equals(className);
+      }
       Class<?> viewClass = viewObject.getClass();
       while (viewClass != Object.class) {
         if (className.equals(viewClass.getName())) {
@@ -629,10 +635,7 @@ public class NlComponent implements NlAttributesHolder {
 
   @Override
   public String toString() {
-    ToStringHelper helper = Objects.toStringHelper(this).omitNullValues()
-      .add("tag", "<" + myTag.getName() + ">")
-      .add("bounds", "[" + x + "," + y + ":" + w + "x" + h);
-    return helper.toString();
+    return String.format("<%s> (%s, %s) %s × %s", myTagName, x, y, w, h);
   }
 
   /**
@@ -671,6 +674,21 @@ public class NlComponent implements NlAttributesHolder {
     }
 
     return myCurrentTransaction;
+  }
+
+  /**
+   * Returns the latest attribute value (either live -- not committed -- or from xml)
+   *
+   * @param namespace
+   * @param attribute
+   * @return
+   */
+  @Nullable
+  public String getLiveAttribute(@Nullable String namespace, @NotNull String attribute) {
+    if (myCurrentTransaction != null) {
+      return myCurrentTransaction.getAttribute(namespace, attribute);
+    }
+    return getAttribute(namespace, attribute);
   }
 
   @Override
@@ -734,7 +752,7 @@ public class NlComponent implements NlAttributesHolder {
    * Creates a new child of the given type, and inserts it before the given sibling (or null to append at the end).
    * Note: This operation can only be called when the caller is already holding a write lock. This will be the
    * case from {@link ViewHandler} callbacks such as {@link ViewHandler#onCreate(ViewEditor, NlComponent, NlComponent, InsertType)}
-   * and {@link DragHandler#commit(int, int, int)}.
+   * and {@link DragHandler#commit}.
    *
    * @param editor     The editor showing the component
    * @param fqcn       The fully qualified name of the widget to insert, such as {@code android.widget.LinearLayout}
@@ -805,5 +823,51 @@ public class NlComponent implements NlAttributesHolder {
       return str.substring(index + 5);
     }
     return null;
+  }
+
+  /**
+   * A cache for use by system to reduce recalculating information
+   * The cache may be destroyed at any time as the system rebuilds the nlcomponents
+   * @param key
+   * @param value
+   */
+  public final void putClientProperty(Object key, Object value) {
+    myClientProperties.put(key, value);
+  }
+
+  /**
+   * A cache for use by system to reduce recalculating information
+   * The cache may be destroyed at any time as the system rebuilds the nlcomponents
+   * @param key
+   * @return
+   */
+  public final Object getClientProperty(Object key) {
+    return myClientProperties.get(key);
+  }
+
+  /**
+   * You can add listeners to track interactive updates
+   * Listeners should look at the liveUpdates for changes
+   * @param listener
+   */
+  public void addLiveChangeListener(ChangeListener listener){
+    if (!myListeners.contains(listener)) {
+      myListeners.add(listener);
+    }
+  }
+
+  /**
+   * remove a listener you have already added
+   * @param listener
+   */
+  public void removeLiveChangeListener(ChangeListener listener){
+    myListeners.remove(listener);
+  }
+
+  /**
+   * call to notify listeners you have made a "live" change
+   */
+  public void fireLiveChangeEvent() {
+    myListeners.forEach(listener -> listener.stateChanged(myChangeEvent));
   }
 }

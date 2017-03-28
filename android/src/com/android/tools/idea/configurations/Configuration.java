@@ -1054,11 +1054,11 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   @NotNull
   public Density getDensity() {
-    DensityQualifier qualifier = myFullConfig.getDensityQualifier();
+    DensityQualifier qualifier = getFullConfig().getDensityQualifier();
     if (qualifier != null) {
       // just a sanity check
       Density d = qualifier.getValue();
-      if (d.isValidValueForDevice()) {
+      if (d != null && d.isValidValueForDevice()) {
         return d;
       }
     }

@@ -18,7 +18,7 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class SetAttributeQuickFix implements AndroidLintQuickFix {
+public class SetAttributeQuickFix implements AndroidLintQuickFix {
 
   private final String myName;
   private final String myAttributeName;
@@ -26,11 +26,11 @@ class SetAttributeQuickFix implements AndroidLintQuickFix {
   private final String myNamespace;
 
   // 'null' value means asking
-  SetAttributeQuickFix(@NotNull String name, @NotNull String attributeName, @Nullable String value) {
+  public SetAttributeQuickFix(@NotNull String name, @NotNull String attributeName, @Nullable String value) {
     this(name, attributeName, SdkConstants.ANDROID_URI, value);
   }
 
-  SetAttributeQuickFix(@NotNull String name, @NotNull String attributeName, @Nullable String namespace, @Nullable String value) {
+  public SetAttributeQuickFix(@NotNull String name, @NotNull String attributeName, @Nullable String namespace, @Nullable String value) {
     super();
     myName = name;
     myAttributeName = attributeName;

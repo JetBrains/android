@@ -221,6 +221,7 @@ public abstract class AndroidLogFilterModel extends LogFilterModel {
   @Override
   public void processingStarted() {
     myPrevHeader = null;
+    myRejectBeforeTime = null;
     myCustomApplicable = false;
     myConfiguredApplicable = false;
     myMessageSoFar.setLength(0);

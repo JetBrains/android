@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import com.android.builder.model.SourceProvider;
 import com.android.resources.Density;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
+import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.ui.FileTreeCellRenderer;
 import com.android.tools.idea.ui.FileTreeModel;
 import com.android.tools.idea.ui.properties.ListenerManager;
@@ -37,11 +36,9 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.primitives.Ints;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -74,29 +71,24 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
   private JComboBox myPathsComboBox;
   private Tree myOutputPreviewTree;
 
-  private ObservableValue<AndroidProjectPaths> mySelectedPaths;
+  private ObservableValue<AndroidSourceSet> mySelectedSourceSet;
   private BoolProperty myFilesAlreadyExist = new BoolValueProperty();
 
-  public ConfirmGenerateIconsStep(@NotNull final GenerateIconsModel model) {
+  public ConfirmGenerateIconsStep(@NotNull GenerateIconsModel model, @NotNull List<AndroidSourceSet> sourceSets) {
     super(model, "Confirm Icon Path");
     myValidatorPanel = new ValidatorPanel(this, myRootPanel);
 
-    AndroidFacet facet = model.getFacet();
-    List<SourceProvider> sourceProviders = AndroidProjectPaths.getSourceProviders(facet, null);
-    DefaultComboBoxModel pathsModel = new DefaultComboBoxModel();
-    for (SourceProvider sourceProvider : sourceProviders) {
-      pathsModel.addElement(new AndroidProjectPaths(facet, sourceProvider));
+    DefaultComboBoxModel sourceSetsModel = new DefaultComboBoxModel();
+    for (AndroidSourceSet sourceSet : sourceSets) {
+      sourceSetsModel.addElement(sourceSet);
     }
-    myPathsComboBox.setRenderer(new ListCellRendererWrapper<AndroidProjectPaths>() {
+    myPathsComboBox.setRenderer(new ListCellRendererWrapper<AndroidSourceSet>() {
       @Override
-      public void customize(JList list, AndroidProjectPaths paths, int index, boolean selected, boolean hasFocus) {
-        File moduleRoot = paths.getModuleRoot();
-        File resDir = paths.getResDirectory();
-
-        setText(FileUtil.getRelativePath(moduleRoot, resDir));
+      public void customize(JList list, AndroidSourceSet sourceSet, int index, boolean selected, boolean hasFocus) {
+        setText(sourceSet.getName());
       }
     });
-    myPathsComboBox.setModel(pathsModel);
+    myPathsComboBox.setModel(sourceSetsModel);
 
     myOutputPreviewTree.setModel(EMPTY_MODEL);
     myOutputPreviewTree.setCellRenderer(new FileTreeCellRenderer());
@@ -119,7 +111,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    mySelectedPaths = new AsValueExpression<>(new SelectedItemProperty<>(myPathsComboBox));
+    mySelectedSourceSet = new AsValueExpression<>(new SelectedItemProperty<>(myPathsComboBox));
   }
 
   @NotNull
@@ -130,20 +122,20 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
 
   @Override
   protected void onProceeding() {
-    getModel().setPaths(mySelectedPaths.get());
+    getModel().setPaths(mySelectedSourceSet.get().getPaths());
   }
 
   @Override
   protected void onEntering() {
-    myListeners.release(mySelectedPaths); // Just in case we're entering this step a second time
-    myListeners.receiveAndFire(mySelectedPaths, paths -> {
+    myListeners.release(mySelectedSourceSet); // Just in case we're entering this step a second time
+    myListeners.receiveAndFire(mySelectedSourceSet, sourceSet -> {
       AndroidIconGenerator iconGenerator = getModel().getIconGenerator();
-      File resDir = paths.getResDirectory();
+      File resDir = sourceSet.getPaths().getResDirectory();
       if (iconGenerator == null || resDir == null || resDir.getParentFile() == null) {
         return;
       }
 
-      final Map<File, BufferedImage> pathIconMap = iconGenerator.generateIntoFileMap(paths);
+      final Map<File, BufferedImage> pathIconMap = iconGenerator.generateIntoFileMap(sourceSet.getPaths());
       myFilesAlreadyExist.set(false);
 
       int minHeight = Integer.MAX_VALUE;

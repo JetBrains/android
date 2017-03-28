@@ -69,9 +69,9 @@ public class EditMultipleSourcesAction extends AnAction {
     if (files.length > 1) {
       DefaultListModel listModel = new DefaultListModel();
       for (int i = 0; i < files.length; ++i) {
-        assert files[i] instanceof PsiFileAndLineNavigation;
+        assert files[i] instanceof PsiClassNavigation;
         //noinspection unchecked
-        listModel.add(i, ((PsiFileAndLineNavigation)files[i]).getPsiFile());
+        listModel.add(i, ((PsiClassNavigation)files[i]).getPsiFile());
       }
       final JBList list = new JBList(listModel);
       int width = WindowManager.getInstance().getFrame(project).getSize().width;
@@ -82,10 +82,10 @@ public class EditMultipleSourcesAction extends AnAction {
           @Override
           public void run() {
             Object selectedValue = list.getSelectedValue();
-            PsiFileAndLineNavigation navigationWrapper = null;
+            PsiClassNavigation navigationWrapper = null;
             for (Navigatable file : files) {
-              if (selectedValue == ((PsiFileAndLineNavigation)file).getPsiFile()) {
-                navigationWrapper = (PsiFileAndLineNavigation)file;
+              if (selectedValue == ((PsiClassNavigation)file).getPsiFile()) {
+                navigationWrapper = (PsiClassNavigation)file;
                 break;
               }
             }
@@ -104,8 +104,8 @@ public class EditMultipleSourcesAction extends AnAction {
       }
     }
     else {
-      assert files[0] instanceof PsiFileAndLineNavigation;
-      PsiFileAndLineNavigation file = (PsiFileAndLineNavigation)files[0];
+      assert files[0] instanceof PsiClassNavigation;
+      PsiClassNavigation file = (PsiClassNavigation)files[0];
       if (file.canNavigate()) {
         file.navigate(true);
       }

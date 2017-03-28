@@ -17,6 +17,7 @@ package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.templates.*;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
@@ -26,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.tools.idea.npw.NewModuleWizardState.ATTR_CREATE_ACTIVITY;
-import static com.android.tools.idea.templates.RepositoryUrlManager.*;
+import static com.android.tools.idea.templates.RepositoryUrlManager.get;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
 
 public class NewModuleWizardStateTest extends AndroidGradleTestCase {

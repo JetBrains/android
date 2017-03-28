@@ -33,16 +33,17 @@ import java.util.Set;
 public class InstantRunNotificationProvider {
   private static final Set<BuildCause> ourCausesThatDontNeedNotifications = ImmutableSet.of(
     BuildCause.FIRST_INSTALLATION_TO_DEVICE,
-    BuildCause.APP_NOT_INSTALLED
+    BuildCause.APP_NOT_INSTALLED,
+    BuildCause.USER_REQUESTED_COLDSWAP,
+    BuildCause.USER_CHOSE_TO_COLDSWAP
   );
 
   private static final Map<BuildCause, String> ourFullBuildNotificationsByCause = new ImmutableMap.Builder<BuildCause, String>()
     .put(BuildCause.USER_REQUESTED_CLEAN_BUILD, AndroidBundle.message("instant.run.notification.cleanbuild.on.user.request"))
-    .put(BuildCause.MISMATCHING_TIMESTAMPS, AndroidBundle.message("instant.run.notification.cleanbuild.mismatching.timestamps"))
-    .put(BuildCause.API_TOO_LOW_FOR_INSTANT_RUN, AndroidBundle.message("instant.run.notification.fullbuild.api.less.than.15"))
+    .put(BuildCause.MISMATCHING_TIMESTAMPS, AndroidBundle.message("instant.run.notification.fullbuild.mismatching.timestamps"))
+    .put(BuildCause.API_TOO_LOW_FOR_INSTANT_RUN, AndroidBundle.message("instant.run.notification.ir.disabled.api.less.than.21"))
     .put(BuildCause.MANIFEST_RESOURCE_CHANGED, AndroidBundle.message("instant.run.notification.fullbuild.manifestresourcechanged"))
     .put(BuildCause.FREEZE_SWAP_REQUIRES_API21, AndroidBundle.message("instant.run.notification.fullbuild.api.less.than.21"))
-    .put(BuildCause.FREEZE_SWAP_REQUIRES_WORKING_RUN_AS, AndroidBundle.message("instant.run.notification.fullbuild.broken.runas"))
     .build();
 
   private final BuildSelection myBuildSelection;
@@ -59,7 +60,6 @@ public class InstantRunNotificationProvider {
 
   @Nullable
   public String getNotificationText() {
-    BuildMode buildMode = myBuildSelection.mode;
     BuildCause buildCause = myBuildSelection.why;
 
     if (ourCausesThatDontNeedNotifications.contains(buildCause)) {
@@ -81,7 +81,9 @@ public class InstantRunNotificationProvider {
 
     switch (myDeployType) {
       case NO_CHANGES:
-        return AndroidBundle.message("instant.run.notification.nochanges");
+        // when there are no changes, we don't want to display a notification if it was a cold swap build
+        // see b.android.com/232931
+        return buildCause.getBuildMode() == BuildMode.COLD ? null : AndroidBundle.message("instant.run.notification.nochanges");
       case HOTSWAP:
         return AndroidBundle.message("instant.run.notification.hotswap", getRestartActivityShortcutText());
       case WARMSWAP:
@@ -89,7 +91,7 @@ public class InstantRunNotificationProvider {
       case SPLITAPK:
       case DEX: {
         StringBuilder sb = new StringBuilder("Instant Run applied code changes and restarted the app.");
-        if (buildMode == BuildMode.HOT) {
+        if (buildCause.getBuildMode() == BuildMode.HOT) {
           // we requested a hot swap build, but we got cold swap artifacts
           if (!myVerifierStatus.isEmpty()) {
             sb.append(' ');
@@ -98,7 +100,7 @@ public class InstantRunNotificationProvider {
             sb.append('.');
           }
         }
-        else if (buildMode == BuildMode.COLD) {
+        else if (buildCause.getBuildMode() == BuildMode.COLD) {
           if (buildCause == BuildCause.APP_USES_MULTIPLE_PROCESSES) {
             return AndroidBundle.message("instant.run.notification.coldswap.multiprocess");
           }
@@ -109,7 +111,20 @@ public class InstantRunNotificationProvider {
         return sb.toString();
       }
       case FULLAPK:
-        return "Instant Run re-installed and restarted the app";
+        StringBuilder sb = new StringBuilder("Instant Run re-installed and restarted the app.");
+        if (buildCause.getBuildMode() == BuildMode.HOT || buildCause.getBuildMode() == BuildMode.COLD) {
+          // we requested a hot or cold swap build, but we got full apk artifacts
+          if (!myVerifierStatus.isEmpty()) {
+            sb.append(' ');
+            // Convert tokens like "FIELD_REMOVED" to "Field Removed" for better readability
+            sb.append(StringUtil.capitalizeWords(myVerifierStatus.toLowerCase(Locale.US).replace('_', ' '), true));
+            sb.append('.');
+          }
+        } else if (buildCause.getBuildMode() == BuildMode.FULL) {
+          // we requested a full build, so mention why we requested such a build
+          sb.append(' ').append(buildCause).append('.');
+        }
+        return sb.toString();
       default:
         return null;
     }

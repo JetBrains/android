@@ -31,7 +31,7 @@ public class AndroidLayoutUtil {
     return result;
   }
 
-  @Nullable("invalid type")
+  @Nullable/*invalid type*/
   public static String getAlias(Import anImport) {
     String aliasValue = null;
     String typeValue = null;

@@ -20,8 +20,10 @@ import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.editor.NlPropertiesWindowManager;
+import com.android.tools.idea.uibuilder.graphics.NlConstants;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.SceneInteraction;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
@@ -65,7 +67,7 @@ public class InteractionManager {
 
   /**
    * The list of overlays associated with {@link #myCurrentInteraction}. Will be
-   * null before it has been initialized lazily by the paint routine (the
+   * null before it has been initialized lazily by the buildDisplayList routine (the
    * initialized value can never be null, but it can be an empty collection).
    */
   @Nullable
@@ -118,6 +120,9 @@ public class InteractionManager {
   /** Drop target installed by this manager */
   private DropTarget myDropTarget;
 
+  /** Indicates whether listeners have been registered to listen for interactions */
+  private boolean myIsListening;
+
   /**
    * Constructs a new {@link InteractionManager} for the given
    * {@link DesignSurface}.
@@ -168,8 +173,9 @@ public class InteractionManager {
    * Registers all the listeners needed by the {@link InteractionManager}.
    */
   public void registerListeners() {
-    assert myListener == null;
-    myListener = new Listener();
+    if (myListener == null) {
+      myListener = new Listener();
+    }
     JComponent layeredPane = mySurface.getLayeredPane();
     layeredPane.addMouseMotionListener(myListener);
     layeredPane.addMouseWheelListener(myListener);
@@ -180,6 +186,7 @@ public class InteractionManager {
       myDropTarget = new DropTarget(mySurface.getLayeredPane(), DnDConstants.ACTION_COPY_OR_MOVE, myListener, true, null);
     }
     myHoverTimer.addActionListener(myListener);
+    myIsListening = true;
   }
 
   /**
@@ -187,8 +194,21 @@ public class InteractionManager {
    * {@link #registerListeners}.
    */
   public void unregisterListeners() {
+    JComponent layeredPane = mySurface.getLayeredPane();
+    layeredPane.removeMouseMotionListener(myListener);
+    layeredPane.removeMouseWheelListener(myListener);
+    layeredPane.removeMouseListener(myListener);
+    layeredPane.removeKeyListener(myListener);
     myDropTarget.removeDropTargetListener(myListener);
     myHoverTimer.removeActionListener(myListener);
+    myIsListening = false;
+  }
+
+  /**
+   * Returns whether this is currently listening to interactions with a {@link Listener}
+   */
+  public boolean isListening() {
+    return myIsListening;
   }
 
   /**
@@ -269,8 +289,20 @@ public class InteractionManager {
    * </ul>
    */
   void updateCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
+    // Set cursor for the canvas resizing interaction. If both screen views are present, only set it next to the normal one.
+    ScreenView screenView = mySurface.getCurrentScreenView(); // Gets the preview screen view if both are present
+    if (screenView != null) {
+      Dimension size = screenView.getSize();
+      Rectangle resizeZone =
+        new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
+      if (resizeZone.contains(x, y)) {
+        mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+        return;
+      }
+    }
+
     // We don't hover on the root since it's not a widget per see and it is always there.
-    ScreenView screenView = mySurface.getScreenView(x, y);
+    screenView = mySurface.getScreenView(x, y);
     if (screenView == null) {
       mySurface.setCursor(null);
       return;
@@ -344,20 +376,11 @@ public class InteractionManager {
           }
         }
       }
-
-      // Set cursor for the canvas resizing interaction. If both screen views are present, only set it next to the normal one.
-      if (mySurface.getScreenMode() != DesignSurface.ScreenMode.BOTH || screenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
-        Dimension size = screenView.getSize();
-        // TODO: use constants for those numbers
-        Rectangle resizeZone = new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-        if (resizeZone.contains(x, y)) {
-          mySurface.setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
-          return;
-        }
-      }
     }
 
-    mySurface.setCursor(null);
+    if (!ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
+      mySurface.setCursor(null);
+    }
   }
 
   /**
@@ -409,24 +432,33 @@ public class InteractionManager {
         return;
       }
 
+      // Deal with the canvas resizing interaction at the bottom right of the screen view.
+      // If both screen views are present, only enable it next to the normal one.
+      ScreenView screenView = mySurface.getCurrentScreenView(); // Gets the preview screen view if both are present
+      if (screenView == null) {
+        return;
+      }
+      Dimension size = screenView.getSize();
+      // TODO: use constants for those numbers
+      Rectangle resizeZone =
+        new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
+      if (resizeZone.contains(myLastMouseX, myLastMouseY)) {
+        startInteraction(myLastMouseX, myLastMouseY, new CanvasResizeInteraction(mySurface), ourLastStateMask);
+        return;
+      }
+
       // Check if we have a ViewGroupHandler that might want
       // to handle the entire interaction
 
-      ScreenView screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
+      screenView = mySurface.getScreenView(myLastMouseX, myLastMouseY);
       if (screenView == null) {
         return;
       }
 
-      // Deal with the canvas resizing interaction at the bottom right of the screen view.
-      // If both screen views are present, only enable it next to the normal one.
-      if (mySurface.getScreenMode() != DesignSurface.ScreenMode.BOTH || screenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
-        Dimension size = screenView.getSize();
-        // TODO: use constants for those numbers
-        Rectangle resizeZone = new Rectangle(screenView.getX() + size.width, screenView.getY() + size.height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-        if (resizeZone.contains(myLastMouseX, myLastMouseY)) {
-          startInteraction(myLastMouseX, myLastMouseY, new CanvasResizeInteraction(mySurface), ourLastStateMask);
-          return;
-        }
+      if (false && ConstraintLayoutHandler.USE_SCENE_INTERACTION) {
+        Interaction interaction = new SceneInteraction(screenView);
+        startInteraction(myLastMouseX, myLastMouseY, interaction, ourLastStateMask);
+        return;
       }
 
       SelectionModel selectionModel = screenView.getSelectionModel();
@@ -445,13 +477,14 @@ public class InteractionManager {
       if (viewGroupHandler == null) {
         return;
       }
+
       Interaction interaction = null;
 
       // Give a chance to the current selection's parent handler
       if (interaction == null && !selectionModel.isEmpty()) {
         NlComponent primary = screenView.getSelectionModel().getPrimary();
         NlComponent parent = primary != null ? primary.getParent() : null;
-        if (parent != null) {
+        if (parent != null && interaction == null) {
           int ax = Coordinates.getAndroidX(screenView, myLastMouseX);
           int ay = Coordinates.getAndroidY(screenView, myLastMouseY);
           if (primary.containsX(ax) && primary.containsY(ay)) {
@@ -582,6 +615,9 @@ public class InteractionManager {
         //noinspection AssignmentToStaticFieldFromInstanceMethod
         ourLastStateMask = event.getModifiers();
         myCurrentInteraction.update(myLastMouseX, myLastMouseY, ourLastStateMask);
+        mySurface.getLayeredPane().scrollRectToVisible(
+          new Rectangle(x - NlConstants.DEFAULT_SCREEN_OFFSET_X, y - NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+                        2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y));
         mySurface.repaint();
       } else {
         x = myLastMouseX; // initiate the drag from the mousePress location, not the point we've dragged to
@@ -964,11 +1000,14 @@ public class InteractionManager {
 
       ScreenView screenView = mySurface.getScreenView(x, y);
       if (screenView == null) {
+        e.getComponent().getParent().dispatchEvent(e);
         return;
       }
 
       final NlComponent component = Coordinates.findComponent(screenView, x, y);
       if (component == null) {
+        // There is no component consuming the scroll
+        e.getComponent().getParent().dispatchEvent(e);
         return;
       }
 

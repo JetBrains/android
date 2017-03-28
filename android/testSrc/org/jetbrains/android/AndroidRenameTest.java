@@ -13,13 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -40,12 +40,15 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+
 public class AndroidRenameTest extends AndroidTestCase {
   private static final String BASE_PATH = "/rename/";
   private static final String R_JAVA_PATH = "gen/p1/p2/R.java";
 
-  public AndroidRenameTest() {
-    super(false);
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override
@@ -173,6 +176,7 @@ public class AndroidRenameTest extends AndroidTestCase {
     PsiClass aClass = JavaPsiFacade.getInstance(getProject()).findClass(className, GlobalSearchScope.projectScope(getProject()));
     PsiPackage aPackage = JavaPsiFacade.getInstance(getProject()).findPackage(newPackageName);
 
+    assertNotNull(aPackage);
     final PsiDirectory[] dirs = aPackage.getDirectories();
     assertEquals(dirs.length, 1);
 
@@ -539,7 +543,7 @@ public class AndroidRenameTest extends AndroidTestCase {
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                             @NotNull List<MyAdditionalModuleData> modules) {
     if ("testRenamePackageFromTestModule".equals(getName())) {
-      addModuleWithAndroidFacet(projectBuilder, modules, "module1", false);
+      addModuleWithAndroidFacet(projectBuilder, modules, "module1", PROJECT_TYPE_APP);
     }
   }
 
@@ -733,6 +737,18 @@ public class AndroidRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile("AndroidManifest.xml", BASE_PATH + "AndroidManifest_theme_after.xml", true);
   }
 
+  // Regression test for http://b.android.com/205527
+  public void testRenameLocalisedResourceFromUsage() throws Throwable {
+    myFixture.copyFileToProject(BASE_PATH + "dimens.xml", "res/values/dimens.xml");
+    myFixture.copyFileToProject(BASE_PATH + "dimens.xml", "res/values-en/dimens.xml");
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout16.xml", "res/layout/layout16.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    checkAndRenameUsingHandler("localised_newname_value");
+    myFixture.checkResultByFile(BASE_PATH + "layout16_after.xml");
+    myFixture.checkResultByFile("res/values/dimens.xml", BASE_PATH + "dimens_after.xml", true);
+    myFixture.checkResultByFile("res/values-en/dimens.xml", BASE_PATH + "dimens_after.xml", true);
+  }
+
   private void doMovePackageTest(String packageName, String newPackageName) throws Exception {
     VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(manifestFile);
@@ -792,5 +808,14 @@ public class AndroidRenameTest extends AndroidTestCase {
     assertTrue(e.getPresentation().isEnabled() && e.getPresentation().isVisible());
     // Note: This fails when trying to rename XML attribute values: Use myFixture.renameElementAtCaretUsingHandler() instead!
     myFixture.renameElementAtCaret(newName);
+  }
+
+  private void checkAndRenameUsingHandler(String newName) {
+    final RenameElementAction action = new RenameElementAction();
+    final AnActionEvent e = new TestActionEvent(DataManager.getInstance().getDataContext(myFixture.getEditor().getComponent()), action);
+    action.update(e);
+    assertTrue(e.getPresentation().isEnabled() && e.getPresentation().isVisible());
+    // Note: This fails when trying to rename XML attribute values: Use myFixture.renameElementAtCaretUsingHandler() instead!
+    myFixture.renameElementAtCaretUsingHandler(newName);
   }
 }

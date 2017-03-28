@@ -30,7 +30,6 @@ import com.android.tools.idea.run.InstalledPatchCache;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -58,9 +57,6 @@ public class InstantRunBuilderTest {
 
   private static final String DUMPSYS_PACKAGE_EXISTS = "Package [" + APPLICATION_ID + "]";
   private static final String DUMPSYS_NO_SUCH_PACKAGE = "";
-
-  private static final RunAsValidator ourRunAsSupported = (device, applicationId) -> true;
-  private static final RunAsValidator ourRunAsNotSupported = (device, applicationId) -> false;
 
   @Language("XML")
   private static final String BUILD_INFO =
@@ -161,7 +157,7 @@ public class InstantRunBuilderTest {
 
     myBuilder =
       new InstantRunBuilder(myDevice, myInstantRunContext, myRunConfigContext, myTasksProvider, false,
-                            ourRunAsSupported, myInstalledApkCache, myInstantRunClientDelegate);
+                            myInstalledApkCache, myInstantRunClientDelegate);
   }
 
   @NotNull
@@ -181,19 +177,18 @@ public class InstantRunBuilderTest {
 
   @After
   public void tearDown() throws Exception {
-    myApk.delete();
-    Disposer.dispose(myInstalledPatchCache);
-    Disposer.dispose(myInstalledApkCache);
+    FileUtil.delete(myApk);
   }
 
   @Test
-  public void cleanBuildIfNoDevice() throws Exception {
+  public void fullBuildIfNoDevice() throws Exception {
     InstantRunBuilder builder =
       new InstantRunBuilder(null, myInstantRunContext, myRunConfigContext, myTasksProvider, false,
-                            ourRunAsSupported, myInstalledApkCache, myInstantRunClientDelegate);
+                            myInstalledApkCache, myInstantRunClientDelegate);
     builder.build(myTaskRunner, Arrays.asList("-Pdevice.api=14", "-Pprofiling=on"));
     assertEquals(
-      "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
+      "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK" +
+      " :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -204,33 +199,33 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK clean :app:gen :app:assemble",
       myTaskRunner.getBuilds());
   }
 
   @Test
-  public void cleanBuildIfNoLocalTimestamp() throws Exception {
+  public void fullBuildIfNoLocalTimestamp() throws Exception {
     myDumpsysPackageOutput = DUMPSYS_NO_SUCH_PACKAGE;
     when(myInstantRunContext.getInstantRunBuildInfo()).thenReturn(null);
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
   @Test
-  public void cleanBuildWhenPackageNotInstalledOnDevice() throws Exception {
+  public void fullBuildWhenPackageNotInstalledOnDevice() throws Exception {
     myDumpsysPackageOutput = DUMPSYS_NO_SUCH_PACKAGE;
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
   @Test
-  public void cleanBuildWhenPackageNotInstalledForDefaultUser() throws Exception {
+  public void fullBuildWhenPackageNotInstalledForDefaultUser() throws Exception {
     myDumpsysPackageOutput =
       "Packages:\n" +
       "  Package [instant.run] (a1df9a8):\n" +
@@ -242,12 +237,12 @@ public class InstantRunBuilderTest {
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
   @Test
-  public void cleanBuildIfBuildTimestampsDoNotMatch() throws Exception {
+  public void fullBuildIfBuildTimestampsDoNotMatch() throws Exception {
     myDumpsysPackageOutput = DUMPSYS_PACKAGE_EXISTS;
     myDeviceBuildTimetamp = "123";
     when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
@@ -255,7 +250,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK clean :app:gen :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -268,7 +263,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -280,7 +275,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -295,7 +290,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -309,7 +304,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -325,26 +320,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
-      myTaskRunner.getBuilds());
-  }
-
-  @Test
-  public void fullBuildOnFreezeSwapIfNoWorkingRunAs() throws Exception {
-    myDumpsysPackageOutput = DUMPSYS_PACKAGE_EXISTS;
-    myDeviceBuildTimetamp = "100";
-    myAppInForeground = false;
-    myRunConfigContext.setSameExecutorAsPreviousSession(true);
-    when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
-
-    setUpDeviceForHotSwap();
-
-    myBuilder =
-      new InstantRunBuilder(myDevice, myInstantRunContext, myRunConfigContext, myTasksProvider, false,
-                            ourRunAsNotSupported, myInstalledApkCache, myInstantRunClientDelegate);
-    myBuilder.build(myTaskRunner, Collections.emptyList());
-    assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -359,7 +335,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -376,7 +352,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -391,7 +367,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -410,7 +386,7 @@ public class InstantRunBuilderTest {
 
     myBuilder.build(myTaskRunner, Collections.emptyList());
     assertEquals(
-      "gradlew -Pandroid.optional.compilation=INSTANT_DEV :app:assemble",
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
       myTaskRunner.getBuilds());
   }
 
@@ -418,11 +394,39 @@ public class InstantRunBuilderTest {
   public void flightRecorderOptions() throws Exception {
     InstantRunBuilder builder =
       new InstantRunBuilder(null, myInstantRunContext, myRunConfigContext, myTasksProvider, true,
-                            ourRunAsSupported, myInstalledApkCache, myInstantRunClientDelegate);
+                            myInstalledApkCache, myInstantRunClientDelegate);
     builder.build(myTaskRunner, Arrays.asList("-Pdevice.api=14", "-Pprofiling=on"));
     assertEquals(
-      "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK --info clean :app:gen :app:assemble",
+      "gradlew -Pdevice.api=14 -Pprofiling=on -Pandroid.optional.compilation=INSTANT_DEV,FULL_APK -Pandroid.injected.coldswap.mode=MULTIAPK"
+      + " --info --full-stacktrace :app:assemble",
       myTaskRunner.getBuilds());
+  }
+
+  @Test
+  public void alternativeUiForHotswap() throws Exception {
+    myDumpsysPackageOutput = DUMPSYS_PACKAGE_EXISTS;
+    myDeviceBuildTimetamp = "100";
+    myAppInForeground = true;
+    myRunConfigContext.setSameExecutorAsPreviousSession(true);
+    when(myDevice.getVersion()).thenReturn(new AndroidVersion(23, null));
+    setUpDeviceForHotSwap();
+
+    // normally we'd do a hotswap
+    myBuilder.build(myTaskRunner, Collections.emptyList());
+    assertEquals(
+      "gradlew -Pandroid.optional.compilation=INSTANT_DEV -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+      myTaskRunner.getBuilds());
+
+    // but a full apk is forced if this was launched from the new UI
+    boolean[] couldHaveInvokedHotswapValues = new boolean[] { true, false };
+    for (boolean couldHaveHotswaped: couldHaveInvokedHotswapValues) {
+      myRunConfigContext.setForceColdSwap(true, couldHaveHotswaped);
+      myTaskRunner = new RecordingTaskRunner();
+      myBuilder.build(myTaskRunner, Collections.emptyList());
+      assertEquals(
+        "gradlew -Pandroid.optional.compilation=INSTANT_DEV,RESTART_ONLY -Pandroid.injected.coldswap.mode=MULTIAPK :app:assemble",
+        myTaskRunner.getBuilds());
+    }
   }
 
   private void setUpDeviceForHotSwap() {

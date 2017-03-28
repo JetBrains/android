@@ -17,6 +17,7 @@ package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.google.common.collect.Maps;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.ui.CollectionComboBoxModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,8 +27,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Map;
 
-public class AndroidDebuggerPanel<T extends AndroidRunConfigurationBase> {
-  private final T myConfiguration;
+public class AndroidDebuggerPanel {
+  private final AndroidDebuggerContext myAndroidDebuggerContext;
   private JPanel myPanel;
   private JComboBox myDebuggerType;
 
@@ -35,10 +36,10 @@ public class AndroidDebuggerPanel<T extends AndroidRunConfigurationBase> {
   private JComponent myOptionComponent;
   private final Map<String, AndroidDebuggerConfigurable<AndroidDebuggerState>> myConfigurables = Maps.newHashMap();
 
-  public AndroidDebuggerPanel(@NotNull T configuration) {
-    myConfiguration = configuration;
+  public AndroidDebuggerPanel(@NotNull RunConfiguration runConfiguration, @NotNull AndroidDebuggerContext androidDebuggerContext) {
+    myAndroidDebuggerContext = androidDebuggerContext;
 
-    myDebuggerType.setModel(new CollectionComboBoxModel(configuration.getAndroidDebuggers()));
+    myDebuggerType.setModel(new CollectionComboBoxModel(myAndroidDebuggerContext.getAndroidDebuggers()));
     myDebuggerType.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent actionEvent) {
@@ -50,9 +51,9 @@ public class AndroidDebuggerPanel<T extends AndroidRunConfigurationBase> {
     });
     myDebuggerType.setRenderer(new AndroidDebugger.Renderer());
 
-    for (AndroidDebugger androidDebugger: configuration.getAndroidDebuggers()) {
-      AndroidDebuggerConfigurable<AndroidDebuggerState> configurable = androidDebugger.createConfigurable(myConfiguration);
-      configurable.resetFrom(myConfiguration.getAndroidDebuggerState(androidDebugger.getId()));
+    for (AndroidDebugger androidDebugger: myAndroidDebuggerContext.getAndroidDebuggers()) {
+      AndroidDebuggerConfigurable<AndroidDebuggerState> configurable = androidDebugger.createConfigurable(runConfiguration);
+      configurable.resetFrom(myAndroidDebuggerContext.getAndroidDebuggerState(androidDebugger.getId()));
       myConfigurables.put(androidDebugger.getId(), configurable);
     }
   }
@@ -68,7 +69,7 @@ public class AndroidDebuggerPanel<T extends AndroidRunConfigurationBase> {
     }
 
     AndroidDebuggerConfigurable<AndroidDebuggerState> configurable = getConfigurable(androidDebugger);
-    configurable.resetFrom(myConfiguration.getAndroidDebuggerState(androidDebugger.getId()));
+    configurable.resetFrom(myAndroidDebuggerContext.getAndroidDebuggerState(androidDebugger.getId()));
 
     myOptionComponent = configurable.getComponent();
     if (myOptionComponent != null) {
@@ -76,21 +77,21 @@ public class AndroidDebuggerPanel<T extends AndroidRunConfigurationBase> {
     }
   }
 
-  void resetFrom(T configuration) {
-    AndroidDebugger<AndroidDebuggerState> debugOption = configuration.getAndroidDebugger();
+  public void resetFrom(@NotNull AndroidDebuggerContext androidDebuggerContext) {
+    AndroidDebugger<AndroidDebuggerState> debugOption = androidDebuggerContext.getAndroidDebugger();
     if (debugOption != null) {
       myDebuggerType.setSelectedItem(debugOption);
       switchDebugOption(debugOption);
     }
   }
 
-  void applyTo(T configuration) {
+  public void applyTo(@NotNull AndroidDebuggerContext androidDebuggerContext) {
     AndroidDebugger<AndroidDebuggerState> androidDebugger = (AndroidDebugger)myDebuggerType.getSelectedItem();
-    configuration.DEBUGGER_TYPE = androidDebugger.getId();
+    androidDebuggerContext.setDebuggerType(androidDebugger.getId());
     AndroidDebuggerConfigurable<AndroidDebuggerState> configurable = getConfigurable(androidDebugger);
 
     if (configurable != null) {
-      configurable.applyTo(myConfiguration.getAndroidDebuggerState(androidDebugger.getId()));
+      configurable.applyTo(myAndroidDebuggerContext.getAndroidDebuggerState(androidDebugger.getId()));
     }
   }
 

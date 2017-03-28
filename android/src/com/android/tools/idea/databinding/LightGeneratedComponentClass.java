@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.light.LightIdentifier;
 import com.intellij.psi.impl.light.LightMethod;
@@ -42,7 +43,7 @@ import java.util.*;
 /**
  * Virtual class for DataBinding that represents the generated BindingComponent class.
  */
-public class LightGeneratedComponentClass extends AndroidLightClassBase {
+public class LightGeneratedComponentClass extends AndroidLightClassBase implements ModificationTracker {
   private final AndroidFacet myFacet;
   private CachedValue<PsiMethod[]> myMethodCache;
   private PsiFile myContainingFile;
@@ -54,69 +55,65 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase {
     myPsiModifierList = new LightModifierList(myManager, getLanguage(), PsiModifier.PUBLIC);
     myMethodCache =
       CachedValuesManager.getManager(facet.getModule().getProject()).createCachedValue(
-        new CachedValueProvider<PsiMethod[]>() {
-          @Nullable
-          @Override
-          public Result<PsiMethod[]> compute() {
-            Project project = facet.getModule().getProject();
+        () -> {
+          Project project = facet.getModule().getProject();
 
-            Map<String, Set<String>> instanceAdapterClasses = Maps.newHashMap();
-            JavaPsiFacade facade = JavaPsiFacade.getInstance(myFacet.getModule().getProject());
-            PsiClass aClass = facade
-              .findClass(SdkConstants.BINDING_ADAPTER_ANNOTATION, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
-            if (aClass == null) {
-              return Result.create(PsiMethod.EMPTY_ARRAY, myManager.getModificationTracker().getJavaStructureModificationTracker());
-            }
+          Map<String, Set<String>> instanceAdapterClasses = Maps.newHashMap();
+          JavaPsiFacade facade = JavaPsiFacade.getInstance(myFacet.getModule().getProject());
+          PsiClass aClass = facade
+            .findClass(SdkConstants.BINDING_ADAPTER_ANNOTATION, myFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
+          if (aClass == null) {
+            return CachedValueProvider.Result.create(PsiMethod.EMPTY_ARRAY, myManager.getModificationTracker().getJavaStructureModificationTracker());
+          }
 
-            @SuppressWarnings("unchecked")
-            final Collection<? extends PsiModifierListOwner> psiElements =
-              AnnotatedElementsSearch.searchElements(aClass, myFacet.getModule().getModuleScope(), PsiMethod.class).findAll();
-            int methodCount = 0;
+          @SuppressWarnings("unchecked")
+          final Collection<? extends PsiModifierListOwner> psiElements =
+            AnnotatedElementsSearch.searchElements(aClass, myFacet.getModule().getModuleScope(), PsiMethod.class).findAll();
+          int methodCount = 0;
 
-            for (PsiModifierListOwner owner : psiElements) {
-              if (owner instanceof PsiMethod && !owner.hasModifierProperty(PsiModifier.STATIC)) {
-                PsiClass containingClass = ((PsiMethod)owner).getContainingClass();
-                if (containingClass == null) {
-                  continue;
-                }
-                String className = containingClass.getName();
-                Set<String> set = instanceAdapterClasses.get(className);
-                if (set == null) {
-                  set = new TreeSet<String>();
-                  instanceAdapterClasses.put(className, set);
-                }
-                if (set.add(containingClass.getQualifiedName())) {
-                  methodCount++;
-                }
+          for (PsiModifierListOwner owner : psiElements) {
+            if (owner instanceof PsiMethod && !owner.hasModifierProperty(PsiModifier.STATIC)) {
+              PsiClass containingClass = ((PsiMethod)owner).getContainingClass();
+              if (containingClass == null) {
+                continue;
+              }
+              String className = containingClass.getName();
+              Set<String> set = instanceAdapterClasses.get(className);
+              if (set == null) {
+                set = new TreeSet<>();
+                instanceAdapterClasses.put(className, set);
+              }
+              if (set.add(containingClass.getQualifiedName())) {
+                methodCount++;
               }
             }
-            if (methodCount == 0) {
-              return Result.create(PsiMethod.EMPTY_ARRAY, myManager.getModificationTracker().getJavaStructureModificationTracker());
+          }
+          if (methodCount == 0) {
+            return CachedValueProvider.Result.create(PsiMethod.EMPTY_ARRAY, myManager.getModificationTracker().getJavaStructureModificationTracker());
+          }
+          PsiElementFactory elementFactory = PsiElementFactory.SERVICE.getInstance(project);
+          PsiMethod[] result = new PsiMethod[methodCount];
+          int methodIndex = 0;
+          GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+          for (Map.Entry<String, Set<String>> methods : instanceAdapterClasses.entrySet()) {
+            if (methods.getValue().size() == 1) {
+              result[methodIndex] =
+                createPsiMethod(elementFactory, "get" + methods.getKey(), Iterables.getFirst(methods.getValue(), ""), project, scope);
+              methodIndex ++;
             }
-            PsiElementFactory elementFactory = PsiElementFactory.SERVICE.getInstance(project);
-            PsiMethod[] result = new PsiMethod[methodCount];
-            int methodIndex = 0;
-            GlobalSearchScope scope = GlobalSearchScope.allScope(project);
-            for (Map.Entry<String, Set<String>> methods : instanceAdapterClasses.entrySet()) {
-              if (methods.getValue().size() == 1) {
-                result[methodIndex] =
-                  createPsiMethod(elementFactory, "get" + methods.getKey(), Iterables.getFirst(methods.getValue(), ""), project, scope);
+            else {
+              int suffix = 1;
+              for (String item : methods.getValue()) {
+                final String name = "get" + methods.getKey() + suffix;
+                result[methodIndex] = createPsiMethod(elementFactory, name, item, project, scope);
+                suffix++;
                 methodIndex ++;
               }
-              else {
-                int suffix = 1;
-                for (String item : methods.getValue()) {
-                  final String name = "get" + methods.getKey() + suffix;
-                  result[methodIndex] = createPsiMethod(elementFactory, name, item, project, scope);
-                  suffix++;
-                  methodIndex ++;
-                }
-              }
             }
-            return Result.create(result, myManager.getModificationTracker().getJavaStructureModificationTracker());
           }
+          return CachedValueProvider.Result.create(result, myManager.getModificationTracker().getJavaStructureModificationTracker());
         }
-      );
+      , false);
   }
 
   @Override
@@ -223,5 +220,10 @@ public class LightGeneratedComponentClass extends AndroidLightClassBase {
   public PsiElement getNavigationElement() {
     PsiFile containingFile = getContainingFile();
     return containingFile == null ? super.getNavigationElement() : containingFile;
+  }
+
+  @Override
+  public long getModificationCount() {
+    return 0;
   }
 }

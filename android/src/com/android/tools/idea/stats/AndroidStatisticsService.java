@@ -17,7 +17,7 @@
 package com.android.tools.idea.stats;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.startup.AndroidStudioInitializer;
+import com.android.tools.idea.IdeInfo;
 import com.intellij.internal.statistic.connect.StatisticsConnectionService;
 import com.intellij.internal.statistic.connect.StatisticsResult;
 import com.intellij.internal.statistic.connect.StatisticsService;
@@ -29,7 +29,6 @@ import com.intellij.openapi.application.ApplicationNamesInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -89,7 +88,7 @@ public class AndroidStatisticsService implements StatisticsService {
   @SuppressWarnings("ConstantConditions")
   @Override
   public StatisticsResult send() {
-    if (!AndroidStudioInitializer.isAndroidStudio()) {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
       // If this is running as part of another product (not studio), then we return immediately
       // without sending anything via this service
       return new StatisticsResult(StatisticsResult.ResultCode.SEND, "OK");
@@ -100,30 +99,15 @@ public class AndroidStatisticsService implements StatisticsService {
       return code;
     }
 
-    // Legacy ADT-compatible stats service.
-    LegacySdkStatsService sdkstats = new LegacySdkStatsService();
-    try {
-      Method getStrictVersion = ApplicationInfo.class.getMethod("getStrictVersion");
-      Object version = getStrictVersion.invoke(ApplicationInfo.getInstance());
-      sdkstats.ping("studio", (String)version);
-    }
-    catch (Exception e) {
-      // This code should only be run on AndroidStudio, if the method getStrictVersion
-      // doesn't exist it means that we are incorrectly running this in Ij + android plugin.
-      // Once the getStrictVersion function has been upstreamed, we can remove reflection here.
-      throw new AssertionError(e);
-    }
 
     return new StatisticsResult(StatisticsResult.ResultCode.SEND, "OK");
   }
 
   /**
-   * Checks whether the statistics service has a service URL and is authorized
-   * to send statistics.
+   * Checks whether the statistics service has a service URL and is authorized to send statistics.
    *
-   * @return A {@link StatisticsResult} with a
-   * {@link com.intellij.internal.statistic.connect.StatisticsResult.ResultCode#SEND} result code
-   * on success, otherwise one of the error result codes.
+   * @return A {@link StatisticsResult} with a {@link StatisticsResult.ResultCode#SEND} result code on success, otherwise one of the error
+   * result codes.
    */
   static StatisticsResult areStatisticsAuthorized() {
     // Get the redirected URL

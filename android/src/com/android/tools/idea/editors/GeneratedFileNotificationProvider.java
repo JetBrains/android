@@ -16,8 +16,8 @@
 
 package com.android.tools.idea.editors;
 
-import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.ide.GeneratedSourceFileChangeTracker;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
@@ -30,8 +30,7 @@ import com.intellij.ui.EditorNotifications;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
-import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_BUNDLES;
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 
 public class GeneratedFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("android.generated.file.ro");
@@ -52,11 +51,11 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
   @Nullable
   @Override
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-    AndroidProject androidProject = Projects.getAndroidModel(file, myProject);
-    if (androidProject == null) {
+    AndroidModuleModel androidModel = GradleProjectInfo.getInstance(myProject).findAndroidModelInModule(file);
+    if (androidModel == null) {
       return null;
     }
-    VirtualFile buildFolder = VfsUtil.findFileByIoFile(androidProject.getBuildFolder(), false);
+    VirtualFile buildFolder = VfsUtil.findFileByIoFile(androidModel.getAndroidProject().getBuildFolder(), false);
     if (buildFolder == null || !buildFolder.isDirectory()) {
       return null;
     }
@@ -66,11 +65,7 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
         return null;
       }
 
-      VirtualFile explodedBundled = buildFolder.findChild(EXPLODED_BUNDLES);
-      if (explodedBundled == null) {
-        // 0.8.2+
-        explodedBundled = buildFolder.findChild(EXPLODED_AAR);
-      }
+      VirtualFile explodedBundled = buildFolder.findChild(EXPLODED_AAR);
       boolean inAar = explodedBundled != null && VfsUtilCore.isAncestor(explodedBundled, file, true);
       String text;
       if (inAar) {

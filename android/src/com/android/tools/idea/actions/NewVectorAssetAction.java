@@ -17,7 +17,7 @@ package com.android.tools.idea.actions;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.npw.assetstudio.wizard.GenerateVectorIconModel;
 import com.android.tools.idea.npw.assetstudio.wizard.NewVectorAssetStep;
 import com.android.tools.idea.ui.wizard.WizardUtils;
@@ -25,12 +25,12 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
@@ -59,7 +59,7 @@ public final class NewVectorAssetAction extends AndroidAssetStudioAction {
   protected ModelWizard createWizard(@NotNull AndroidFacet facet) {
     Module module = facet.getModule();
     Project project = module.getProject();
-    AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel != null) {
       AndroidVersion minSdkVersion = androidModel.getMinSdkVersion();
       String version = androidModel.getAndroidProject().getModelVersion();
@@ -73,14 +73,14 @@ public final class NewVectorAssetAction extends AndroidAssetStudioAction {
     }
 
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new NewVectorAssetStep(new GenerateVectorIconModel(facet)));
+    wizardBuilder.addStep(new NewVectorAssetStep(new GenerateVectorIconModel(facet), facet));
     return wizardBuilder.build();
   }
 
   @NotNull
   @Override
   protected Dimension getWizardSize() {
-    return new Dimension(700, 500);
+    return JBUI.size(700, 500);
   }
 
   @Nullable

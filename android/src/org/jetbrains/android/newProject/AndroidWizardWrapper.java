@@ -227,7 +227,7 @@ public class AndroidWizardWrapper extends ModuleBuilder implements WizardDelegat
       return canGoNext();
     }
   }
-
+  
   private static class ModuleWizard extends NewModuleWizardDynamic implements WizardDelegate {
     public ModuleWizard(@Nullable Project project, @NotNull DynamicWizardHost host) {
       super(project, null, host);

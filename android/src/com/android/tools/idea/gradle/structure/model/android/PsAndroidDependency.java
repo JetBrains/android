@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsDependency;
 import com.google.common.collect.Sets;
@@ -39,7 +39,7 @@ public abstract class PsAndroidDependency extends PsDependency implements PsAndr
 
   @Override
   @NotNull
-  public AndroidGradleModel getGradleModel() {
+  public AndroidModuleModel getGradleModel() {
     return getParent().getGradleModel();
   }
 

@@ -37,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
@@ -143,6 +144,7 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
 
   protected class FlatComboButton extends JButton {
     private final Presentation myPresentation;
+    private final Border myBorder = IdeBorderFactory.createEmptyBorder(0, 2, 0, 2);
     private boolean myForcePressed = false;
     private PropertyChangeListener myButtonSynchronizer;
     private boolean myMouseInside = false;
@@ -155,7 +157,7 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
       setFocusable(ScreenReader.isActive());
       Insets margins = getMargin();
       setMargin(new Insets(margins.top, 2, margins.bottom, 2));
-      setBorder(IdeBorderFactory.createEmptyBorder(0, 2, 0, 2));
+      setBorder(myBorder);
       if (!UIUtil.isUnderGTKLookAndFeel()) {
         setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
       }
@@ -225,6 +227,14 @@ public abstract class FlatComboAction extends AnAction implements CustomComponen
           dispatchEventToPopup(e);
         }
       });
+    }
+
+    @Override
+    public void updateUI() {
+      super.updateUI();
+      // The border needs to be set every time the UI is updated to ensure we have the same border in all L&F.
+      // Otherwise the Windows L&F would set the border to its default no matter if a border had been set previously.
+      setBorder(myBorder);
     }
 
     // Event forwarding. We need it if user does press-and-drag gesture for opening popup and

@@ -56,7 +56,7 @@ import java.util.List;
  * in the IDE: determining if an app is running with the fast deploy runtime, whether it's up to date, communicating with it, etc.
  */
 public final class InstantRunManager implements ProjectComponent {
-  public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = SdkConstants.GRADLE_PLUGIN_LATEST_VERSION;
+  public static final String MINIMUM_GRADLE_PLUGIN_VERSION_STRING = "2.3.0-beta1";
   public static final GradleVersion MINIMUM_GRADLE_PLUGIN_VERSION = GradleVersion.parse(MINIMUM_GRADLE_PLUGIN_VERSION_STRING);
   public static final NotificationGroup NOTIFICATION_GROUP = NotificationGroup.toolWindowGroup("InstantRun", ToolWindowId.RUN);
 
@@ -76,14 +76,11 @@ public final class InstantRunManager implements ProjectComponent {
                     ":background_crash"); // firebase uses a :background_crash process for crash reporting
 
   @NotNull private final Project myProject;
-  @NotNull private final FileChangeListener myFileChangeListener;
 
   /** Don't call directly: this is a project component instantiated by the IDE; use {@link #get(Project)} instead! */
   @SuppressWarnings("WeakerAccess") // Called by infrastructure
   public InstantRunManager(@NotNull Project project) {
     myProject = project;
-    myFileChangeListener = new FileChangeListener(project);
-    myFileChangeListener.setEnabled(InstantRunSettings.isInstantRunEnabled());
   }
 
   /** Returns the per-project instance of the fast deploy manager */
@@ -93,10 +90,9 @@ public final class InstantRunManager implements ProjectComponent {
     return project.getComponent(InstantRunManager.class);
   }
 
-  @NotNull
+  @Nullable
   public static AndroidVersion getMinDeviceApiLevel(@NotNull ProcessHandler processHandler) {
-    AndroidVersion version = processHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL);
-    return version == null ? AndroidVersion.DEFAULT : version;
+    return processHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL);
   }
 
   /**
@@ -118,7 +114,7 @@ public final class InstantRunManager implements ProjectComponent {
 
   /** Returns true if the device is capable of running Instant Run */
   public static boolean isInstantRunCapableDeviceVersion(@NotNull AndroidVersion version) {
-    return version.getApiLevel() >= 15;
+    return version.getApiLevel() >= 21;
   }
 
   public static boolean hasLocalCacheOfDeviceData(@NotNull IDevice device, @NotNull InstantRunContext context) {
@@ -146,16 +142,6 @@ public final class InstantRunManager implements ProjectComponent {
 
   @Override
   public void disposeComponent() {
-  }
-
-  public FileChangeListener.Changes getChangesAndReset() {
-    return myFileChangeListener.getChangesAndReset();
-  }
-
-  /** Synchronizes the file listening state with whether instant run is enabled */
-  static void updateFileListener(@NotNull Project project) {
-    InstantRunManager manager = get(project);
-    manager.myFileChangeListener.setEnabled(InstantRunSettings.isInstantRunEnabled());
   }
 
   @Nullable

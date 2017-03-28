@@ -34,13 +34,16 @@ import org.jetbrains.annotations.Nullable;
  * {@link #setIconGenerator(AndroidIconGenerator)} at some point before finishing.
  */
 public abstract class GenerateIconsModel extends WizardModel {
-  @NotNull private AndroidFacet myAndroidFacet;
   @Nullable private AndroidIconGenerator myIconGenerator;
+
   @NotNull private AndroidProjectPaths myPaths;
 
-  public GenerateIconsModel(@NotNull AndroidFacet androidFacet) {
-    myAndroidFacet = androidFacet;
-    myPaths = new AndroidProjectPaths(myAndroidFacet);
+  public GenerateIconsModel(@NotNull AndroidFacet facet) {
+    this(new AndroidProjectPaths(facet));
+  }
+
+  public GenerateIconsModel(@NotNull AndroidProjectPaths paths) {
+    myPaths = paths;
   }
 
   @NotNull
@@ -48,13 +51,13 @@ public abstract class GenerateIconsModel extends WizardModel {
     return Logger.getInstance(GenerateIconsModel.class);
   }
 
-  @NotNull
-  public final AndroidFacet getFacet() {
-    return myAndroidFacet;
-  }
-
   public final void setPaths(@NotNull AndroidProjectPaths paths) {
     myPaths = paths;
+  }
+
+  @NotNull
+  public AndroidProjectPaths getPaths() {
+    return myPaths;
   }
 
   @Nullable
@@ -73,12 +76,7 @@ public abstract class GenerateIconsModel extends WizardModel {
       return;
     }
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        generateIntoPath(myPaths, myIconGenerator);
-      }
-    });
+    ApplicationManager.getApplication().runWriteAction(() -> generateIntoPath(myPaths, myIconGenerator));
   }
 
   /**

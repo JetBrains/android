@@ -37,7 +37,7 @@ public class MemorySampler extends DeviceSampler implements AndroidDebugBridge.I
 
   @Override
   public void start() {
-    if (myExecutingTask == null && myClient != null) {
+    if (!isRunning() && getClient() != null) {
       AndroidDebugBridge.addClientChangeListener(this);
     }
     super.start();
@@ -47,9 +47,7 @@ public class MemorySampler extends DeviceSampler implements AndroidDebugBridge.I
   public void stop() {
     super.stop();
     myRequestPending = false;
-    if (myExecutingTask != null) {
-      AndroidDebugBridge.removeClientChangeListener(this);
-    }
+    AndroidDebugBridge.removeClientChangeListener(this);
   }
 
   @NotNull
@@ -62,8 +60,9 @@ public class MemorySampler extends DeviceSampler implements AndroidDebugBridge.I
   protected void recordSample(int type) {
     float freeMb = 0.0f;
     float allocMb = 0.0f;
-    if (myClient != null) {
-      ClientData.HeapInfo m = myClient.getClientData().getVmHeapInfo(1);
+    Client client = getClient();
+    if (client != null) {
+      ClientData.HeapInfo m = client.getClientData().getVmHeapInfo(1);
       if (m != null) {
         allocMb = m.bytesAllocated / (1024.f * 1024.f);
         freeMb = m.sizeInBytes / (1024.f * 1024.f) - allocMb;
@@ -73,11 +72,11 @@ public class MemorySampler extends DeviceSampler implements AndroidDebugBridge.I
       type = TYPE_UNREACHABLE;
     }
     // We cannot use the timeStamp in HeapInfo because it's based on the current time of the attached device.
-    myTimelineData.add(System.currentTimeMillis(), type, allocMb, freeMb);
+    getTimelineData().add(System.currentTimeMillis(), type, allocMb, freeMb);
   }
 
   protected void requestSample() {
-    Client client = myClient;
+    Client client = getClient();
     if (client != null) {
       client.updateHeapInfo();
     }
@@ -100,7 +99,8 @@ public class MemorySampler extends DeviceSampler implements AndroidDebugBridge.I
 
   @Override
   public void clientChanged(@NotNull Client client, int changeMask) {
-    if (myClient != null && myClient == client) {
+    Client localClient = getClient();
+    if (localClient != null && localClient == client) {
       if ((changeMask & Client.CHANGE_HEAP_DATA) != 0) {
         forceSample();
       }

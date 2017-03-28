@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,75 +15,75 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.sdklib.ISystemImage;
 import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.run.ExternalToolRunner;
-import com.android.tools.idea.stats.UsageTracker;
+import com.android.tools.analytics.CommonMetricsData;
+import com.android.tools.analytics.UsageTracker;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.DeviceInfo;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.process.ProcessAdapter;
+import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.ui.ConsoleView;
-import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.execution.process.ProcessListener;
+import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class EmulatorRunner extends ExternalToolRunner {
-  public EmulatorRunner(@NotNull Project project,
-                        @NotNull String consoleTitle,
-                        @NotNull GeneralCommandLine commandLine,
-                        @Nullable AvdInfo avdInfo) {
-    super(project, consoleTitle, commandLine);
+import java.util.ArrayList;
+import java.util.List;
 
-    ISystemImage image = avdInfo == null ? null : avdInfo.getSystemImage();
+public class EmulatorRunner {
+  private final GeneralCommandLine myCommandLine;
 
-    String description = image == null ? null : image.toString();
-    UsageTracker.getInstance().trackEvent(
-      UsageTracker.CATEGORY_DEPLOYMENT, UsageTracker.ACTION_DEPLOYMENT_EMULATOR, description, null);
+  private ProcessHandler myProcessHandler;
+  private final List<ProcessListener> myExtraListeners = new ArrayList<>();
+
+  public EmulatorRunner(@NotNull GeneralCommandLine commandLine, @Nullable AvdInfo avdInfo) {
+    myCommandLine = commandLine;
+
+    AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
+      .setCategory(AndroidStudioEvent.EventCategory.DEPLOYMENT)
+      .setKind(AndroidStudioEvent.EventKind.DEPLOYMENT_TO_EMULATOR);
 
     if (avdInfo != null) {
-      UsageTracker.getInstance().trackEvent(
-        UsageTracker.CATEGORY_AVDINFO, UsageTracker.ACTION_AVDINFO_ABI, AvdInfo.getPrettyAbiType(avdInfo), null);
+      event.setDeviceInfo(DeviceInfo.newBuilder()
+                            .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(avdInfo.getAbiType()))
+                            .setBuildApiLevelFull(avdInfo.getAndroidVersion().toString()));
+    }
 
-      String version = image == null ? "unknown" : image.getAndroidVersion().toString();
-      UsageTracker.getInstance().trackEvent(
-        UsageTracker.CATEGORY_AVDINFO, UsageTracker.ACTION_AVDINFO_TARGET_VERSION, version, null);
+    UsageTracker.getInstance().log(event);
+  }
+
+  public ProcessHandler start() throws ExecutionException {
+    final Process process = myCommandLine.createProcess();
+    myProcessHandler = new EmulatorProcessHandler(process, myCommandLine);
+    myExtraListeners.forEach(myProcessHandler::addProcessListener);
+    return myProcessHandler;
+  }
+
+  /**
+   * Adds a listener to our process (if it's started already), or saves the listener away to be added when the process is started.
+   */
+  public void addProcessListener(@NotNull ProcessListener listener) {
+    if (myProcessHandler != null) {
+      myProcessHandler.addProcessListener(listener);
+    }
+    else {
+      myExtraListeners.add(listener);
     }
   }
 
-  @NotNull
-  @Override
-  protected ProcessHandler createProcessHandler(Process process, @NotNull GeneralCommandLine commandLine) {
+  public static class ProcessOutputCollector extends ProcessAdapter {
+    private final StringBuilder sb = new StringBuilder();
 
-    // Override the default process killing behavior:
-    // The emulator process should not be killed forcibly since it would leave stale lock files around.
-    // We want to preserve the behavior that once an emulator is launched, that process runs even if the IDE is closed
-    return new EmulatorProcessHandler(process, commandLine);
-  }
-
-  @Override
-  protected void fillToolBarActions(DefaultActionGroup toolbarActions) {
-    // override default implementation: we don't want to add a stop action since we can't just kill the emulator process
-    // without leaving stale lock files around
-  }
-
-  @Override
-  protected ConsoleView initConsoleUi() {
-    ConsoleView consoleView = super.initConsoleUi();
-
-    String avdHome = System.getenv("ANDROID_SDK_HOME");
-    if (!StringUtil.isEmpty(avdHome)) {
-      consoleView.print(
-        "\n" +
-        "Note: The environment variable $ANDROID_SDK_HOME is set, and the emulator uses that variable to locate AVDs.\n" +
-        "This may result in the emulator failing to start if it cannot find the AVDs in the folder pointed to by the\n" +
-        "given environment variable.\n" +
-        "ANDROID_SDK_HOME=" + avdHome + "\n\n",
-        ConsoleViewContentType.NORMAL_OUTPUT);
+    @Override
+    public void onTextAvailable(ProcessEvent event, Key outputType) {
+      sb.append(event.getText());
     }
 
-    return consoleView;
+    public String getText() {
+      return sb.toString();
+    }
   }
-
 }

@@ -2,5 +2,5 @@ apply plugin: 'android'
 
 dependencies {
     compile 'com.google.android.gms:play-services:4.4.+'
-    compile 'com.google.android.gms:<caret>play-services:6.1.11'
+    compile 'com.google.android.gms:<caret>play-services:9.6.1'
 }

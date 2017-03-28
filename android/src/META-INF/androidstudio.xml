@@ -34,9 +34,16 @@
   </extensions>
 
   <actions>
-    <action id="Android.CleanRun" class="com.android.tools.idea.run.ReRunAction">
-      <add-to-group group-id="RunMenu" anchor="before" relative-to-action="Stop" />
-      <add-to-group group-id="ToolbarRunGroup" anchor="before" relative-to-action="Stop" />
+    <!-- Note: the action id "Android.HotswapChanges" is used in HotswapAction to determine the current shortcut. -->
+    <action id="Android.HotswapChanges" class="com.android.tools.idea.fd.actions.HotswapAction">
+      <add-to-group group-id="RunMenu" anchor="before" relative-to-action="Stop"/>
+      <keyboard-shortcut first-keystroke="control F10" keymap="$default"/>
+      <keyboard-shortcut first-keystroke="control meta R" keymap="Mac OS X 10.5+"/>
+      <!-- <add-to-group group-id="RunnerActions" anchor="after" relative-to-action="Run" /> registered in code in AndroidPlugin -->
+    </action>
+
+    <action id="Android.InstantRunFeedback" class="com.android.tools.idea.fd.actions.SubmitFeedback">
+      <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="SendFeedback" />
     </action>
 
     <action id="Android.InstantRunFeedback" class="com.android.tools.idea.fd.actions.SubmitFeedback">
@@ -48,16 +55,22 @@
       <add-to-group group-id="RefactoringMenu"/>
     </action>
 
-    <action
-        id="WelcomeScreen.RunAndroidSdkManager"
-        class="org.jetbrains.android.actions.RunAndroidSdkManagerAction"
-        icon="AndroidIcons.SdkManager" >
+    <action id="WelcomeScreen.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
+            icon="AndroidIcons.SdkManager">
       <add-to-group group-id="WelcomeScreen.Configure" anchor="first" />
     </action>
 
+    <!-- Disable this action to use IDEA's default "Project Structure" dialog (useful when debugging Android Studio project setup.) -->
     <action id="ShowProjectStructureSettings" class="com.android.tools.idea.gradle.actions.AndroidShowStructureSettingsAction"
             project-type="Android" icon="AllIcons.General.ProjectStructure"/>
     <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
+    <group id="Android.NavBarToolBar">
+      <reference id="Android.RunAndroidSdkManager" />
+      <reference id="Android.RunAndroidAvdManager" />
+      <separator/>
+      <add-to-group group-id="NavBarToolBar" anchor="before" relative-to-action="ShowProjectStructureSettings" />
+    </group>
+
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -69,6 +82,7 @@
     <projectService serviceInterface="org.jetbrains.plugins.gradle.settings.GradleSettings"
                         serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
                         overrides="true"/>
+    <welcomeFrameProvider implementation="com.android.tools.idea.welcome.wizard.FirstRunWizardFrameProvider" order="FIRST"/>
   </extensions>
 
 </idea-plugin>

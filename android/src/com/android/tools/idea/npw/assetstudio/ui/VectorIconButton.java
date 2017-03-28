@@ -18,8 +18,6 @@ package com.android.tools.idea.npw.assetstudio.ui;
 import com.android.ide.common.vectordrawable.VdIcon;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.ui.properties.BindingsManager;
-import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ObservableValue;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.io.FileUtil;
@@ -29,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -47,25 +46,19 @@ public final class VectorIconButton extends JButton implements AssetComponent<Ve
   @Nullable private VdIcon myIcon;
 
   public VectorIconButton() {
-    addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent actionEvent) {
-        IconPickerDialog iconPicker = new IconPickerDialog(myIcon);
-        if (iconPicker.showAndGet()) {
-          VdIcon selectedIcon = iconPicker.getSelectedIcon();
-          assert selectedIcon != null; // Not null if user pressed OK
-          updateIcon(selectedIcon);
-        }
+    addActionListener(actionEvent -> {
+      IconPickerDialog iconPicker = new IconPickerDialog(myIcon);
+      if (iconPicker.showAndGet()) {
+        VdIcon selectedIcon = iconPicker.getSelectedIcon();
+        assert selectedIcon != null; // Not null if user pressed OK
+        updateIcon(selectedIcon);
       }
     });
 
-    myXmlAsset.path().addListener(new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        ActionEvent e = new ActionEvent(VectorIconButton.this, ActionEvent.ACTION_PERFORMED, null);
-        for (ActionListener listener : myAssetListeners) {
-          listener.actionPerformed(e);
-        }
+    myXmlAsset.path().addListener(sender -> {
+      ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);
+      for (ActionListener listener : myAssetListeners) {
+        listener.actionPerformed(e);
       }
     });
 
@@ -85,8 +78,12 @@ public final class VectorIconButton extends JButton implements AssetComponent<Ve
       myXmlAsset.path().set(iconFile);
       // Our icons are always square, so although parse() expects width, we can pass in height
       int h = getHeight() - getInsets().top - getInsets().bottom;
-      VectorAsset.ParseResult result = myXmlAsset.parse(h);
-      setIcon(new ImageIcon(result.getImage()));
+      VectorAsset.ParseResult result = myXmlAsset.parse(h, false);
+
+      BufferedImage image = result.getImage();
+      // Switch foreground to white instead?
+      image = VdIcon.adjustIconColor(this, image);
+      setIcon(new ImageIcon(image));
       myIcon = selectedIcon;
     }
     catch (IOException ignored) {

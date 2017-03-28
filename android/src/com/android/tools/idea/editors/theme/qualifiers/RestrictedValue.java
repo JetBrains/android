@@ -71,7 +71,7 @@ public class RestrictedValue implements RestrictedQualifier {
   }
 
   @Override
-  @Nullable("if there is no boundary for a value")
+  @Nullable/*if there is no boundary for a value*/
   public Object getAny() {
     if (myMinValue == 0 && myMaxValue == Integer.MAX_VALUE) {
       return null;

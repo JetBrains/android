@@ -21,7 +21,11 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.internal.project.ProjectProperties;
-import com.android.tools.idea.run.*;
+import com.android.tools.idea.model.MergedManifest;
+import com.android.tools.idea.run.AndroidRunConfiguration;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.AndroidRunConfigurationType;
+import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintUtil;
@@ -51,8 +55,6 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -84,7 +86,6 @@ import com.intellij.psi.*;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.tree.java.IKeywordElementType;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.content.impl.ContentImpl;
@@ -107,11 +108,15 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.intellij.openapi.application.ApplicationManager.getApplication;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 /**
  * @author yole, coyote
@@ -145,10 +150,11 @@ public class AndroidUtils {
   public static final int TIMEOUT = 3000000;
   public static final int MAX_RETRIES = 5;
 
-  private static final Key<ConsoleView> CONSOLE_VIEW_KEY = new Key<ConsoleView>("AndroidConsoleView");
+  private static final Key<ConsoleView> CONSOLE_VIEW_KEY = new Key<>("AndroidConsoleView");
 
   // Properties
   @NonNls public static final String ANDROID_LIBRARY_PROPERTY = SdkConstants.ANDROID_LIBRARY;
+  @NonNls public static final String ANDROID_PROJECT_TYPE_PROPERTY = "project.type";
   @NonNls public static final String ANDROID_MANIFEST_MERGER_PROPERTY = "manifestmerger.enabled";
   @NonNls public static final String ANDROID_DEX_DISABLE_MERGER = "dex.disable.merger";
   @NonNls public static final String ANDROID_DEX_FORCE_JUMBO_PROPERTY = "dex.force.jumbo";
@@ -174,7 +180,7 @@ public class AndroidUtils {
   public static <T extends DomElement> T loadDomElement(@NotNull final Project project,
                                                         @NotNull final VirtualFile file,
                                                         @NotNull final Class<T> aClass) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<T>() {
+    return getApplication().runReadAction(new Computable<T>() {
       @Override
       @Nullable
       public T compute() {
@@ -195,7 +201,7 @@ public class AndroidUtils {
   public static <T extends DomElement> T loadDomElementWithReadPermission(@NotNull Project project,
                                                                           @NotNull XmlFile xmlFile,
                                                                           @NotNull Class<T> aClass) {
-    ApplicationManager.getApplication().assertReadAccessAllowed();
+    getApplication().assertReadAccessAllowed();
     DomManager domManager = DomManager.getDomManager(project);
     DomFileElement<T> element = domManager.getFileElement(xmlFile, aClass);
     if (element == null) return null;
@@ -204,7 +210,7 @@ public class AndroidUtils {
 
   @Nullable
   public static VirtualFile findSourceRoot(@NotNull Module module, VirtualFile file) {
-    final Set<VirtualFile> sourceRoots = new HashSet<VirtualFile>();
+    final Set<VirtualFile> sourceRoots = new HashSet<>();
     Collections.addAll(sourceRoots, ModuleRootManager.getInstance(module).getSourceRoots());
 
     while (file != null) {
@@ -218,11 +224,11 @@ public class AndroidUtils {
 
   @Nullable
   public static String computePackageName(@NotNull Module module, VirtualFile file) {
-    final Set<VirtualFile> sourceRoots = new HashSet<VirtualFile>();
+    final Set<VirtualFile> sourceRoots = new HashSet<>();
     Collections.addAll(sourceRoots, ModuleRootManager.getInstance(module).getSourceRoots());
 
     final VirtualFile projectDir = module.getProject().getBaseDir();
-    final List<String> packages = new ArrayList<String>();
+    final List<String> packages = new ArrayList<>();
     file = file.getParent();
 
     while (file != null && !Comparing.equal(projectDir, file) && !sourceRoots.contains(file)) {
@@ -240,62 +246,6 @@ public class AndroidUtils {
       return packageName.toString();
     }
     return null;
-  }
-
-  public static void addRunConfiguration(@NotNull final AndroidFacet facet, @Nullable final String activityClass, final boolean ask,
-                                         @Nullable final TargetSelectionMode targetSelectionMode,
-                                         @Nullable final String preferredAvdName) {
-    final Module module = facet.getModule();
-    final Project project = module.getProject();
-
-    final Runnable r = new Runnable() {
-      @Override
-      public void run() {
-        final RunManager runManager = RunManager.getInstance(project);
-        final RunnerAndConfigurationSettings settings = runManager.
-          createRunConfiguration(module.getName(), AndroidRunConfigurationType.getInstance().getFactory());
-        final AndroidRunConfiguration configuration = (AndroidRunConfiguration)settings.getConfiguration();
-        configuration.setModule(module);
-
-        if (activityClass != null) {
-          configuration.setLaunchActivity(activityClass);
-        }
-        else if (LaunchUtils.isWatchFaceApp(facet)) {
-          // In case of a watch face app, there is only a service and no default activity that can be launched
-          // Eventually, we'd need to support launching a service, but currently you cannot launch a watch face service as well.
-          // See https://code.google.com/p/android/issues/detail?id=151353
-          configuration.MODE = AndroidRunConfiguration.DO_NOTHING;
-        }
-        else {
-          configuration.MODE = AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY;
-        }
-
-        if (targetSelectionMode != null) {
-          configuration.setTargetSelectionMode(targetSelectionMode);
-        }
-        if (preferredAvdName != null) {
-          configuration.PREFERRED_AVD = preferredAvdName;
-        }
-        runManager.addConfiguration(settings, false);
-        runManager.setSelectedConfiguration(settings);
-      }
-    };
-    if (!ask) {
-      r.run();
-    }
-    else {
-      UIUtil.invokeLaterIfNeeded(new Runnable() {
-        @Override
-        public void run() {
-          final String moduleName = facet.getModule().getName();
-          final int result = Messages.showYesNoDialog(project, AndroidBundle.message("create.run.configuration.question", moduleName),
-                                                      AndroidBundle.message("create.run.configuration.title"), Messages.getQuestionIcon());
-          if (result == Messages.YES) {
-            r.run();
-          }
-        }
-      });
-    }
   }
 
   public static boolean isAbstract(@NotNull PsiClass c) {
@@ -474,22 +424,14 @@ public class AndroidUtils {
         if (window != null && !window.isVisible()) {
           ((ToolWindowManagerEx)manager).removeToolWindowManagerListener(this);
 
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              manager.unregisterToolWindow(toolWindowId);
-            }
-          });
+          getApplication().invokeLater(() -> manager.unregisterToolWindow(toolWindowId));
         }
       }
     };
 
-    toolWindow.show(new Runnable() {
-      @Override
-      public void run() {
-        runAfterActivation.run();
-        ((ToolWindowManagerEx)manager).addToolWindowManagerListener(listener);
-      }
+    toolWindow.show(() -> {
+      runAfterActivation.run();
+      ((ToolWindowManagerEx)manager).addToolWindowManagerListener(listener);
     });
   }
 
@@ -497,7 +439,7 @@ public class AndroidUtils {
   public static AndroidFacet addAndroidFacetInWriteAction(@NotNull final Module module,
                                                           @NotNull final VirtualFile contentRoot,
                                                           final boolean library) {
-    return ApplicationManager.getApplication().runWriteAction(new Computable<AndroidFacet>() {
+    return getApplication().runWriteAction(new Computable<AndroidFacet>() {
       @Override
       public AndroidFacet compute() {
         return addAndroidFacet(module, contentRoot, library);
@@ -517,7 +459,7 @@ public class AndroidUtils {
       AndroidFacetConfiguration configuration = facet.getConfiguration();
       configuration.init(module, contentRoot);
       if (library) {
-        facet.getProperties().LIBRARY_PROJECT = true;
+        facet.setProjectType(PROJECT_TYPE_LIBRARY);
       }
       model.addFacet(facet);
     }
@@ -538,36 +480,6 @@ public class AndroidUtils {
     return null;
   }
 
-  public static int getIntAttrValue(@NotNull final XmlTag tag, @NotNull final String attrName) {
-    String value = ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-      @Override
-      public String compute() {
-        return tag.getAttributeValue(attrName, SdkConstants.NS_RESOURCES);
-      }
-    });
-    try {
-      return Integer.parseInt(value);
-    }
-    catch (NumberFormatException e) {
-      return -1;
-    }
-  }
-
-  public static void collectFiles(@NotNull VirtualFile root, @NotNull Set<VirtualFile> visited, @NotNull Set<VirtualFile> result) {
-    if (!visited.add(root)) {
-      return;
-    }
-
-    if (root.isDirectory()) {
-      for (VirtualFile child : root.getChildren()) {
-        collectFiles(child, visited, result);
-      }
-    }
-    else {
-      result.add(root);
-    }
-  }
-
   @Nullable
   public static TargetSelectionMode getDefaultTargetSelectionMode(@NotNull Module module,
                                                                   @NotNull ConfigurationType type,
@@ -581,8 +493,9 @@ public class AndroidUtils {
       for (RunConfiguration configuration : configurations) {
         if (configuration instanceof AndroidRunConfigurationBase) {
           final AndroidRunConfigurationBase runConfig = (AndroidRunConfigurationBase)configuration;
-          final TargetSelectionMode targetMode = runConfig.getTargetSelectionMode();
+          final TargetSelectionMode targetMode = runConfig.getDeployTargetContext().getTargetSelectionMode();
 
+          //noinspection IfStatementWithIdenticalBranches - branches are only identical for final iteration of outer loop
           if (runConfig.getConfigurationModule() == module) {
             return targetMode;
           }
@@ -601,14 +514,14 @@ public class AndroidUtils {
     if (configurations.size() > 0) {
       for (RunConfiguration configuration : configurations) {
         if (configuration instanceof AndroidRunConfigurationBase) {
-          return ((AndroidRunConfigurationBase)configuration).getTargetSelectionMode();
+          return ((AndroidRunConfigurationBase)configuration).getDeployTargetContext().getTargetSelectionMode();
         }
       }
     }
     return null;
   }
 
-  public static boolean equal(@Nullable String s1, @Nullable String s2, boolean distinguishDelimeters) {
+  public static boolean equal(@Nullable String s1, @Nullable String s2, boolean distinguishDelimiters) {
     if (s1 == null || s2 == null) {
       return false;
     }
@@ -616,7 +529,7 @@ public class AndroidUtils {
     for (int i = 0, n = s1.length(); i < n; i++) {
       char c1 = s1.charAt(i);
       char c2 = s2.charAt(i);
-      if (distinguishDelimeters || (Character.isLetterOrDigit(c1) && Character.isLetterOrDigit(c2))) {
+      if (distinguishDelimiters || (Character.isLetterOrDigit(c1) && Character.isLetterOrDigit(c2))) {
         if (c1 != c2) return false;
       }
     }
@@ -625,10 +538,10 @@ public class AndroidUtils {
 
   @NotNull
   public static List<AndroidFacet> getApplicationFacets(@NotNull Project project) {
-    final List<AndroidFacet> result = new ArrayList<AndroidFacet>();
+    final List<AndroidFacet> result = new ArrayList<>();
 
     for (AndroidFacet facet : ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)) {
-      if (!facet.isLibraryProject()) {
+      if (facet.isAppProject()) {
         result.add(facet);
       }
     }
@@ -637,7 +550,7 @@ public class AndroidUtils {
 
   @NotNull
   public static List<AndroidFacet> getAndroidLibraryDependencies(@NotNull Module module) {
-    final List<AndroidFacet> depFacets = new ArrayList<AndroidFacet>();
+    final List<AndroidFacet> depFacets = new ArrayList<>();
 
     for (OrderEntry orderEntry : ModuleRootManager.getInstance(module).getOrderEntries()) {
       if (orderEntry instanceof ModuleOrderEntry) {
@@ -649,7 +562,7 @@ public class AndroidUtils {
           if (depModule != null) {
             final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
 
-            if (depFacet != null && depFacet.isLibraryProject()) {
+            if (depFacet != null && depFacet.canBeDependency()) {
               depFacets.add(depFacet);
             }
           }
@@ -666,8 +579,8 @@ public class AndroidUtils {
 
   @NotNull
   public static Set<String> getDepLibsPackages(Module module) {
-    final Set<String> result = new HashSet<String>();
-    final HashSet<Module> visited = new HashSet<Module>();
+    final Set<String> result = new HashSet<>();
+    final HashSet<Module> visited = new HashSet<>();
 
     if (visited.add(module)) {
       for (AndroidFacet depFacet : getAllAndroidDependencies(module, true)) {
@@ -708,16 +621,6 @@ public class AndroidUtils {
     }
   }
 
-  public static void checkPassword(JPasswordField passwordField) throws CommitStepException {
-    char[] password = passwordField.getPassword();
-    try {
-      checkPassword(password);
-    }
-    finally {
-      Arrays.fill(password, '\0');
-    }
-  }
-
   @NotNull
   public static <T> List<T> toList(@NotNull Enumeration<T> enumeration) {
     return ContainerUtil.toList(enumeration);
@@ -728,7 +631,7 @@ public class AndroidUtils {
   }
 
   public static void reportError(@NotNull Project project, @NotNull String message, @NotNull String title) {
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
+    if (getApplication().isUnitTestMode()) {
       throw new IncorrectOperationException(message);
     }
     else {
@@ -822,7 +725,7 @@ public class AndroidUtils {
     // that will lead to compilation errors, which the package manager doesn't need to worry about
     // (the code wouldn't have compiled)
 
-    ApplicationManager.getApplication().assertReadAccessAllowed();
+    getApplication().assertReadAccessAllowed();
     int index = 0;
     while (true) {
       int index1 = name.indexOf('.', index);
@@ -914,7 +817,7 @@ public class AndroidUtils {
     if (modules.isEmpty()) return Collections.emptySet();
     Module next = modules.iterator().next();
     Graph<Module> graph = ModuleManager.getInstance(next.getProject()).moduleGraph();
-    final Set<Module> set = new HashSet<Module>();
+    final Set<Module> set = new HashSet<>();
     for (Module module : modules) {
       GraphAlgorithms.getInstance().collectOutsRecursively(graph, module, set);
     }
@@ -926,7 +829,7 @@ public class AndroidUtils {
     if (urls.isEmpty()) {
       return Collections.emptyList();
     }
-    final List<String> result = new ArrayList<String>(urls.size());
+    final List<String> result = new ArrayList<>(urls.size());
 
     for (String url : urls) {
       if (sdkHomeCanonicalPath != null) {
@@ -935,11 +838,6 @@ public class AndroidUtils {
       result.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(url)));
     }
     return result;
-  }
-
-  @NotNull
-  public static String getAndroidSystemDirectoryOsPath() {
-    return PathManager.getSystemPath() + File.separator + "android";
   }
 
   public static boolean isAndroidComponent(@NotNull PsiClass c) {

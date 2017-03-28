@@ -20,7 +20,8 @@ import com.android.SdkConstants;
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidArtifactOutput;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.lang.properties.psi.PropertiesFile;
 import com.intellij.openapi.application.ApplicationManager;
@@ -47,14 +48,13 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getOutput;
-import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
+import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.util.io.FileUtil.getRelativePath;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.*;
 import static org.jetbrains.android.compiler.AndroidCompileUtil.getOutputPackage;
 import static org.jetbrains.android.maven.AndroidMavenUtil.isMavenizedModule;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 import static org.jetbrains.android.util.AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
 import static org.jetbrains.android.util.AndroidCommonUtils.CLASSES_JAR_FILE_NAME;
 
@@ -252,70 +252,67 @@ public class AndroidRootUtil {
     if (!visited.add(module)) {
       return;
     }
-    ApplicationManager.getApplication().runReadAction(new Runnable() {
-      @Override
-      public void run() {
-        ModuleRootManager manager = ModuleRootManager.getInstance(module);
-        for (OrderEntry entry : manager.getOrderEntries()) {
-          if (!(entry instanceof ExportableOrderEntry) || ((ExportableOrderEntry)entry).getScope() != DependencyScope.COMPILE) {
+    ApplicationManager.getApplication().runReadAction(() -> {
+      ModuleRootManager manager = ModuleRootManager.getInstance(module);
+      for (OrderEntry entry : manager.getOrderEntries()) {
+        if (!(entry instanceof ExportableOrderEntry) || ((ExportableOrderEntry)entry).getScope() != DependencyScope.COMPILE) {
+          continue;
+        }
+        if (libraries != null && entry instanceof LibraryOrderEntry) {
+          LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)entry;
+          Library library = libraryOrderEntry.getLibrary();
+          if (library != null && (!exportedLibrariesOnly || libraryOrderEntry.isExported())) {
+            for (VirtualFile file : library.getFiles(OrderRootType.CLASSES)) {
+              if (!file.exists()) {
+                continue;
+              }
+
+              if (file.getFileType() instanceof ArchiveFileType) {
+                if (file.getFileSystem() instanceof JarFileSystem) {
+                  VirtualFile localFile = JarFileSystem.getInstance().getVirtualFileForJar(file);
+                  if (localFile != null) {
+                    libraries.add(localFile);
+                  }
+                }
+                else {
+                  libraries.add(file);
+                }
+              }
+              else if (file.isDirectory() && !(file.getFileSystem() instanceof JarFileSystem)) {
+                collectClassFilesAndJars(file, libraries, new HashSet<>());
+              }
+            }
+          }
+        }
+        else if (entry instanceof ModuleOrderEntry) {
+          Module depModule = ((ModuleOrderEntry)entry).getModule();
+          if (depModule == null) {
             continue;
           }
-          if (libraries != null && entry instanceof LibraryOrderEntry) {
-            LibraryOrderEntry libraryOrderEntry = (LibraryOrderEntry)entry;
-            Library library = libraryOrderEntry.getLibrary();
-            if (library != null && (!exportedLibrariesOnly || libraryOrderEntry.isExported())) {
-              for (VirtualFile file : library.getFiles(OrderRootType.CLASSES)) {
-                if (!file.exists()) {
-                  continue;
-                }
+          AndroidFacet facet = AndroidFacet.getInstance(depModule);
+          boolean libraryProject = facet != null && facet.isLibraryProject();
 
-                if (file.getFileType() instanceof ArchiveFileType) {
-                  if (file.getFileSystem() instanceof JarFileSystem) {
-                    VirtualFile localFile = JarFileSystem.getInstance().getVirtualFileForJar(file);
-                    if (localFile != null) {
-                      libraries.add(localFile);
-                    }
-                  }
-                  else {
-                    libraries.add(file);
-                  }
-                }
-                else if (file.isDirectory() && !(file.getFileSystem() instanceof JarFileSystem)) {
-                  collectClassFilesAndJars(file, libraries, new HashSet<VirtualFile>());
+          CompilerModuleExtension extension = CompilerModuleExtension.getInstance(depModule);
+          if (extension != null) {
+            VirtualFile classDir = extension.getCompilerOutputPath();
+
+            if (libraryProject) {
+              VirtualFile tmpArtifactsDir = AndroidDexCompiler.getOutputDirectoryForDex(depModule);
+
+              if (tmpArtifactsDir != null) {
+                VirtualFile packedClassesJar = tmpArtifactsDir.findChild(CLASSES_JAR_FILE_NAME);
+                if (packedClassesJar != null) {
+                  outputDirs.add(packedClassesJar);
                 }
               }
+            }
+            // do not support android-app->android-app compile dependencies
+            else if (facet == null && !outputDirs.contains(classDir) && classDir != null && classDir.exists()) {
+              outputDirs.add(classDir);
             }
           }
-          else if (entry instanceof ModuleOrderEntry) {
-            Module depModule = ((ModuleOrderEntry)entry).getModule();
-            if (depModule == null) {
-              continue;
-            }
-            AndroidFacet facet = AndroidFacet.getInstance(depModule);
-            boolean libraryProject = facet != null && facet.isLibraryProject();
-
-            CompilerModuleExtension extension = CompilerModuleExtension.getInstance(depModule);
-            if (extension != null) {
-              VirtualFile classDir = extension.getCompilerOutputPath();
-
-              if (libraryProject) {
-                VirtualFile tmpArtifactsDir = AndroidDexCompiler.getOutputDirectoryForDex(depModule);
-
-                if (tmpArtifactsDir != null) {
-                  VirtualFile packedClassesJar = tmpArtifactsDir.findChild(CLASSES_JAR_FILE_NAME);
-                  if (packedClassesJar != null) {
-                    outputDirs.add(packedClassesJar);
-                  }
-                }
-              }
-              // do not support android-app->android-app compile dependencies
-              else if (facet == null && !outputDirs.contains(classDir) && classDir != null && classDir.exists()) {
-                outputDirs.add(classDir);
-              }
-            }
-            if (recursive) {
-              fillExternalLibrariesAndModules(depModule, outputDirs, visited, libraries, !libraryProject || exportedLibrariesOnly, true);
-            }
+          if (recursive) {
+            fillExternalLibrariesAndModules(depModule, outputDirs, visited, libraries, !libraryProject || exportedLibrariesOnly, true);
           }
         }
       }
@@ -324,13 +321,13 @@ public class AndroidRootUtil {
 
   @NotNull
   public static List<VirtualFile> getExternalLibraries(Module module) {
-    Set<VirtualFile> files = new HashSet<VirtualFile>();
-    OrderedSet<VirtualFile> libs = new OrderedSet<VirtualFile>();
+    Set<VirtualFile> files = new HashSet<>();
+    OrderedSet<VirtualFile> libs = new OrderedSet<>();
     // In a module imported from Maven dependencies are transitive, so we don't need to traverse all dependency tree
     // and compute all jars referred by library modules. Moreover it would be incorrect,
     // because Maven has dependency resolving algorithm based on versioning
     boolean recursive = !isMavenizedModule(module);
-    fillExternalLibrariesAndModules(module, files, new HashSet<Module>(), libs, false, recursive);
+    fillExternalLibrariesAndModules(module, files, new HashSet<>(), libs, false, recursive);
 
     addAnnotationsJar(module, libs);
     return libs;
@@ -338,7 +335,7 @@ public class AndroidRootUtil {
 
   private static void addAnnotationsJar(@NotNull Module module, @NotNull OrderedSet<VirtualFile> libs) {
     Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    if (sdk == null || !isAndroidSdk(sdk)) {
+    if (sdk == null || !AndroidSdks.getInstance().isAndroidSdk(sdk)) {
       return;
     }
     String sdkHomePath = sdk.getHomePath();
@@ -359,8 +356,8 @@ public class AndroidRootUtil {
 
   @NotNull
   public static Set<VirtualFile> getDependentModules(@NotNull Module module, @NotNull VirtualFile moduleOutputDir) {
-    Set<VirtualFile> files = new HashSet<VirtualFile>();
-    fillExternalLibrariesAndModules(module, files, new HashSet<Module>(), null, false, true);
+    Set<VirtualFile> files = new HashSet<>();
+    fillExternalLibrariesAndModules(module, files, new HashSet<>(), null, false, true);
     files.remove(moduleOutputDir);
     return files;
   }
@@ -368,7 +365,7 @@ public class AndroidRootUtil {
   @NotNull
   public static VirtualFile[] getResourceOverlayDirs(@NotNull AndroidFacet facet) {
     List<String> overlayFolders = facet.getProperties().RES_OVERLAY_FOLDERS;
-    List<VirtualFile> result = new ArrayList<VirtualFile>();
+    List<VirtualFile> result = new ArrayList<>();
     for (String overlayFolder : overlayFolders) {
       VirtualFile overlayDir = getFileByRelativeModulePath(facet.getModule(), overlayFolder, true);
       if (overlayDir != null) {
@@ -518,10 +515,10 @@ public class AndroidRootUtil {
   @Nullable
   public static String getApkPath(@NotNull AndroidFacet facet) {
     if (facet.requiresAndroidModel()) {
-      AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet);
-      if (androidGradleModel != null) {
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
+      if (androidModuleModel != null) {
         // For Android-Gradle projects, AndroidModel is not null.
-        AndroidArtifact mainArtifact = androidGradleModel.getMainArtifact();
+        AndroidArtifact mainArtifact = androidModuleModel.getMainArtifact();
         AndroidArtifactOutput output = getOutput(mainArtifact);
         File outputFile = output.getMainOutputFile().getOutputFile();
         return outputFile.getAbsolutePath();

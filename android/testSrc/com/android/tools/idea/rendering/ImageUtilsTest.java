@@ -24,6 +24,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
+import static com.google.common.truth.Truth.assertThat;
+
 public class ImageUtilsTest extends TestCase {
   public void testScaleImage() throws Exception {
     @SuppressWarnings("UndesirableClassUsage")
@@ -299,5 +301,21 @@ public class ImageUtilsTest extends TestCase {
     g.dispose();
 
     return dest;
+  }
+
+  @SuppressWarnings("UndesirableClassUsage")
+  public void testNonOpaque() throws Exception {
+    BufferedImage image = new BufferedImage(100, 200, BufferedImage.TYPE_INT_RGB);
+    assertThat(ImageUtils.isNonOpaque(image)).isFalse();
+
+    image = new BufferedImage(100, 200, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D graphics = image.createGraphics();
+    graphics.setColor(new Color(255, 0, 0, 255));
+    graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
+    graphics.dispose();
+    assertThat(ImageUtils.isNonOpaque(image)).isFalse();
+
+    image.setRGB(50, 50, 0x7FFFFFFF);
+    assertThat(ImageUtils.isNonOpaque(image)).isTrue();
   }
 }

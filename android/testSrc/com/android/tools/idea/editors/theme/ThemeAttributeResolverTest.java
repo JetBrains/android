@@ -97,7 +97,7 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
     List<EditedStyleItem> items = ThemeAttributeResolver.resolveAll(style, configuration.getConfigurationManager());
     boolean foundColorPrimary = false;
     for (EditedStyleItem item : items) {
-      if (item.getName().equals("colorPrimary")) {
+      if (item.getName().equals("colorPrimary") && item.getAttrGroup().equals("Other non-theme attributes.")) {
         foundColorPrimary = true;
         assertEquals(answer.size(), item.getAllConfiguredItems().size());
         for (ConfiguredElement<ItemResourceValue> value : item.getAllConfiguredItems()) {
@@ -130,7 +130,7 @@ public class ThemeAttributeResolverTest extends AndroidTestCase {
     List<EditedStyleItem> items = ThemeAttributeResolver.resolveAll(style, configuration.getConfigurationManager());
     boolean foundColorPrimary = false;
     for (EditedStyleItem item : items) {
-      if (item.getName().equals("colorPrimary")) {
+      if (item.getName().equals("colorPrimary") && item.getAttrGroup().equals("Other non-theme attributes.")) {
         foundColorPrimary = true;
         assertEquals(answer.size(), item.getAllConfiguredItems().size());
         for (ConfiguredElement<ItemResourceValue> value : item.getAllConfiguredItems()) {

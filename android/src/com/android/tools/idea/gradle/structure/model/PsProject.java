@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.structure.model;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.JavaProject;
-import com.android.tools.idea.gradle.facet.JavaGradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule;
 import com.google.common.collect.Lists;
@@ -50,17 +50,17 @@ public class PsProject extends PsModel {
         // Only Gradle-based modules are displayed in the PSD.
         PsModule module = null;
 
-        AndroidGradleModel gradleModel = AndroidGradleModel.get(resolvedModel);
+        AndroidModuleModel gradleModel = AndroidModuleModel.get(resolvedModel);
         if (gradleModel != null) {
           module = new PsAndroidModule(this, resolvedModel, gradlePath, gradleModel);
         }
         // TODO enable when Java module support is complete.
         else {
-          JavaGradleFacet facet = JavaGradleFacet.getInstance(resolvedModel);
+          JavaFacet facet = JavaFacet.getInstance(resolvedModel);
           if (facet != null) {
-            JavaProject javaProject = facet.getJavaProject();
-            if (javaProject != null && javaProject.isBuildable()) {
-              module = new PsJavaModule(this, resolvedModel, gradlePath, javaProject);
+            JavaModuleModel javaModuleModel = facet.getJavaModuleModel();
+            if (javaModuleModel != null && javaModuleModel.isBuildable()) {
+              module = new PsJavaModule(this, resolvedModel, gradlePath, javaModuleModel);
             }
           }
         }

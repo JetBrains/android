@@ -15,50 +15,37 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
-import com.intellij.openapi.fileEditor.FileEditorStateLevel;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.UserDataHolderBase;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.beans.PropertyChangeListener;
 
 public class StringResourceEditor extends UserDataHolderBase implements FileEditor {
   public static final Icon ICON = AndroidIcons.Globe;
   public static final String NAME = "String Resource Editor";
 
-  private final Project myProject;
   private StringResourceViewPanel myPanel;
 
-  public StringResourceEditor(@NotNull Project project, @NotNull final VirtualFile file) {
-    if (!(file instanceof StringsVirtualFile)) {
-      throw new IllegalArgumentException();
-    }
-
-    myProject = project;
-
+  StringResourceEditor(@NotNull StringsVirtualFile file) {
     // Post startup activities (such as when reopening last open editors) are run from a background thread
     UIUtil.invokeAndWaitIfNeeded(new Runnable() {
       @Override
       public void run() {
-        myPanel = new StringResourceViewPanel(((StringsVirtualFile)file).getFacet(), StringResourceEditor.this);
+        myPanel = new StringResourceViewPanel(file.getFacet(), StringResourceEditor.this);
       }
     });
-  }
-
-  @NotNull
-  Project getProject() {
-    return myProject;
   }
 
   @NotNull
@@ -77,12 +64,6 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
   @Override
   public String getName() {
     return NAME;
-  }
-
-  @NotNull
-  @Override
-  public FileEditorState getState(@NotNull FileEditorStateLevel level) {
-    return FileEditorState.INSTANCE;
   }
 
   @Override
@@ -144,5 +125,14 @@ public class StringResourceEditor extends UserDataHolderBase implements FileEdit
   @VisibleForTesting
   public JTable getTranslationsTable() {
     return myPanel.getTable();
+  }
+
+  public JTextComponent getKeyTextField() {
+    return myPanel.myKeyTextField;
+  }
+
+  @VisibleForTesting
+  public TextFieldWithBrowseButton getTranslationTextField() {
+    return myPanel.myTranslationTextField;
   }
 }

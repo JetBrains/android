@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
+import com.android.tools.idea.actions.BlueprintModeAction;
+import com.android.tools.idea.actions.BothModeAction;
+import com.android.tools.idea.actions.DesignModeAction;
 import com.android.tools.idea.configurations.*;
 import com.android.tools.idea.uibuilder.actions.LintNotificationAction;
 import com.android.tools.idea.uibuilder.actions.SetZoomAction;
@@ -34,7 +37,6 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -144,6 +146,7 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     ThemeMenuAction themeAction = new ThemeMenuAction(configurationHolder);
     group.add(themeAction);
 
+    group.addSeparator();
     LocaleMenuAction localeAction = new LocaleMenuAction(configurationHolder);
     group.add(localeAction);
 
@@ -255,5 +258,10 @@ public class NlActionsToolbar implements DesignSurfaceListener, ModelListener {
     // Ensure that the toolbar is populated initially
     updateViewActions();
     model.removeListener(this);
+  }
+
+  @Override
+  public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+    // Do nothing
   }
 }

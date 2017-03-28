@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsProject;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -30,6 +30,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
@@ -38,7 +39,7 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
  */
 public class PsAndroidModuleTest extends AndroidGradleTestCase {
   public void testProductFlavors() throws Throwable {
-    loadProject("projects/projectWithAppandLib");
+    loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project resolvedProject = myFixture.getProject();
     PsProject project = new PsProject(resolvedProject);
@@ -66,7 +67,7 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
   }
 
   public void testVariants() throws Throwable {
-    loadProject("projects/projectWithAppandLib");
+    loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project resolvedProject = myFixture.getProject();
     PsProject project = new PsProject(resolvedProject);
@@ -106,7 +107,7 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
   }
 
   public void testEditableDependencies() throws Throwable {
-    loadProject("projects/projectWithAppandLib");
+    loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project resolvedProject = myFixture.getProject();
     Module appModule = ModuleManager.getInstance(resolvedProject).findModuleByName("app");
@@ -125,7 +126,7 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
     runWriteCommandAction(resolvedProject, buildModel::applyChanges);
 
     //noinspection ConstantConditions
-    importProject(resolvedProject, resolvedProject.getName(), new File(resolvedProject.getBasePath()), null);
+    importProject(resolvedProject.getName(), new File(resolvedProject.getBasePath()), null);
 
     PsProject project = new PsProject(resolvedProject);
 
@@ -153,7 +154,7 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
   }
 
   public void testEditableDependenciesWithPlusInVersion() throws Throwable {
-    loadProject("projects/projectWithAppandLib");
+    loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project resolvedProject = myFixture.getProject();
     PsProject project = new PsProject(resolvedProject);
@@ -194,7 +195,7 @@ public class PsAndroidModuleTest extends AndroidGradleTestCase {
   }
 
   public void testCanDependOnModules() throws Throwable {
-    loadProject("projects/projectWithAppandLib");
+    loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project resolvedProject = myFixture.getProject();
     PsProject project = new PsProject(resolvedProject);

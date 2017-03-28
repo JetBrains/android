@@ -70,7 +70,7 @@ public abstract class AndroidLogcatView implements Disposable {
 
   private volatile IDevice myDevice;
   private final AndroidLogConsole myLogConsole;
-  private final FormattedLogLineReceiver myFormattedLogLineReceiver;
+  private final FormattedLogcatReceiver myLogcatReceiver;
   private final AndroidLogFilterModel myLogFilterModel;
 
   private final IDevice myPreselectedDevice;
@@ -94,7 +94,7 @@ public abstract class AndroidLogcatView implements Disposable {
         }
         if (forceReconnect) {
           if (myDevice != null) {
-            AndroidLogcatService.getInstance().removeListener(myDevice, myFormattedLogLineReceiver);
+            AndroidLogcatService.getInstance().removeListener(myDevice, myLogcatReceiver);
           }
           myDevice = null;
         }
@@ -111,22 +111,6 @@ public abstract class AndroidLogcatView implements Disposable {
   @NotNull
   public final LogConsoleBase getLogConsole() {
     return myLogConsole;
-  }
-
-  // TODO: Now that clearLogcat lives in AndroidLogcatService, this should go away using a listener
-  // pattern.
-  public final void clearLogcat(@Nullable IDevice device) {
-    if (device == null) {
-      return;
-    }
-
-    myLogFilterModel.beginRejectingOldMessages();
-    AndroidLogcatService.getInstance().clearLogcat(device, myProject);
-
-    // We check for null, because myLogConsole.clear() depends on myLogConsole.getConsole() not being null
-    if (myLogConsole.getConsole() != null) {
-      myLogConsole.clear();
-    }
   }
 
   /**
@@ -169,10 +153,19 @@ public abstract class AndroidLogcatView implements Disposable {
 
     AndroidLogcatFormatter logFormatter = new AndroidLogcatFormatter(AndroidLogcatPreferences.getInstance(project));
     myLogConsole = new AndroidLogConsole(project, myLogFilterModel, logFormatter);
-    myFormattedLogLineReceiver = new FormattedLogLineReceiver() {
+    myLogcatReceiver = new FormattedLogcatReceiver() {
       @Override
       protected void receiveFormattedLogLine(@NotNull String line) {
         myLogConsole.addLogLine(line);
+      }
+
+      @Override
+      public void onCleared() {
+        myLogFilterModel.beginRejectingOldMessages();
+        // We check for null, because myLogConsole.clear() depends on myLogConsole.getConsole() not being null
+        if (myLogConsole.getConsole() != null) {
+          myLogConsole.clear();
+        }
       }
     };
 
@@ -284,7 +277,7 @@ public abstract class AndroidLogcatView implements Disposable {
 
     editFiltersCombo.setRenderer(new ColoredListCellRenderer<Object>() {
       @Override
-      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
         if (value instanceof AndroidLogcatFilter) {
           setBorder(null);
           append(((AndroidLogcatFilter)value).getName());
@@ -321,14 +314,15 @@ public abstract class AndroidLogcatView implements Disposable {
     if (myDevice != device) {
       AndroidLogcatService androidLogcatService = AndroidLogcatService.getInstance();
       if (myDevice != null) {
-        androidLogcatService.removeListener(myDevice, myFormattedLogLineReceiver);
+        androidLogcatService.removeListener(myDevice, myLogcatReceiver);
       }
       // We check for null, because myLogConsole.clear() depends on myLogConsole.getConsole() not being null
       if (myLogConsole.getConsole() != null) {
         myLogConsole.clear();
       }
+      myLogFilterModel.processingStarted();
       myDevice = device;
-      androidLogcatService.addListener(myDevice, myFormattedLogLineReceiver, true);
+      androidLogcatService.addListener(myDevice, myLogcatReceiver, true);
     }
   }
 
@@ -428,7 +422,7 @@ public abstract class AndroidLogcatView implements Disposable {
   @Override
   public final void dispose() {
     if (myDevice != null) {
-      AndroidLogcatService.getInstance().removeListener(myDevice, myFormattedLogLineReceiver);
+      AndroidLogcatService.getInstance().removeListener(myDevice, myLogcatReceiver);
     }
   }
 
@@ -459,7 +453,7 @@ public abstract class AndroidLogcatView implements Disposable {
     }
   }
 
-  final class AndroidLogConsole extends LogConsoleBase{
+  final class AndroidLogConsole extends LogConsoleBase {
     private final RegexFilterComponent myRegexFilterComponent = new RegexFilterComponent("LOG_FILTER_HISTORY", 5);
     private final AndroidLogcatPreferences myPreferences;
 
@@ -493,7 +487,9 @@ public abstract class AndroidLogcatView implements Disposable {
     }
 
     public void clearLogcat() {
-      AndroidLogcatView.this.clearLogcat(getSelectedDevice());
+      if (getSelectedDevice() != null) {
+        AndroidLogcatService.getInstance().clearLogcat(getSelectedDevice(), myProject);
+      }
     }
 
     @NotNull

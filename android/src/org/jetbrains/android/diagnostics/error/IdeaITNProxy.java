@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.diagnostics.error;
 
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.errorreport.bean.ErrorBean;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationNamesInfo;
@@ -42,7 +42,7 @@ public class IdeaITNProxy {
                                                             ApplicationInfoEx appInfo,
                                                             ApplicationNamesInfo namesInfo,
                                                             UpdateSettings updateSettings) {
-    List<Pair<String, String>> params = new ArrayList<Pair<String, String>>();
+    List<Pair<String, String>> params = new ArrayList<>();
 
     params.add(Pair.create("protocol.version", "1"));
 
@@ -90,7 +90,7 @@ public class IdeaITNProxy {
 
     Project[] projects = ProjectManager.getInstance().getOpenProjects();
     for (int i = 0; i < projects.length; i++) {
-      params.add(Pair.create("is.gradle.project." + i, Boolean.toString(Projects.requiresAndroidModel(projects[i]))));
+      params.add(Pair.create("is.gradle.project." + i, Boolean.toString(AndroidProjectInfo.getInstance(projects[i]).requiresAndroidModel())));
     }
 
     return params;

@@ -5,11 +5,10 @@ import com.android.resources.ResourceType;
 import com.intellij.codeInsight.daemon.QuickFixActionRegistrar;
 import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReferenceExpression;
-import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -20,23 +19,13 @@ import org.jetbrains.annotations.NotNull;
 public class AndroidResourceQuickFixProvider extends UnresolvedReferenceQuickFixProvider<PsiReferenceExpression> {
   @Override
   public void registerFixes(@NotNull PsiReferenceExpression exp, @NotNull QuickFixActionRegistrar registrar) {
-    final Module contextModule = ModuleUtil.findModuleForPsiElement(exp);
+    Module contextModule = ModuleUtilCore.findModuleForPsiElement(exp);
     if (contextModule == null) {
       return;
     }
 
-    final AndroidFacet facet = AndroidFacet.getInstance(contextModule);
+    AndroidFacet facet = AndroidFacet.getInstance(contextModule);
     if (facet == null) {
-      return;
-    }
-
-    final Manifest manifest = facet.getManifest();
-    if (manifest == null) {
-      return;
-    }
-
-    final String aPackage = manifest.getPackage().getValue();
-    if (aPackage == null) {
       return;
     }
 
@@ -57,6 +46,13 @@ public class AndroidResourceQuickFixProvider extends UnresolvedReferenceQuickFix
     }
     final String resClassName = info.getClassName();
     final String resFieldName = info.getFieldName();
+    Module resolvedModule = info.getResolvedModule();
+    if (resolvedModule != null && resolvedModule != contextModule) {
+      AndroidFacet resolvedFacet = AndroidFacet.getInstance(resolvedModule);
+      if (resolvedFacet != null) {
+        facet = resolvedFacet;
+      }
+    }
 
     ResourceType resourceType = ResourceType.getEnum(resClassName);
 

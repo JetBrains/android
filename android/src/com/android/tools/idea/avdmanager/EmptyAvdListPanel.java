@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.tools.idea.npw.FormFactorUtils;
+import com.android.tools.idea.npw.platform.FormFactorUtils;
 import com.intellij.ui.components.JBLabel;
 
 import javax.swing.*;

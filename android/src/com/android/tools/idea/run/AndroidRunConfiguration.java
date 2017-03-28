@@ -16,9 +16,9 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.apk.AndroidApkFacet;
-import com.android.tools.idea.apk.ApkProjects;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider;
+import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider;
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.editor.*;
 import com.android.tools.idea.run.tasks.LaunchTask;
@@ -61,6 +61,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
 public class AndroidRunConfiguration extends AndroidRunConfigurationBase implements RefactoringListenerProvider {
   @NonNls public static final String LAUNCH_DEFAULT_ACTIVITY = "default_activity";
@@ -118,7 +120,7 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @Override
   @NotNull
   protected ApkProvider getApkProvider(@NotNull AndroidFacet facet, @NotNull ApplicationIdProvider applicationIdProvider) {
-    if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidGradleModel) {
+    if (facet.getAndroidModel() != null && facet.getAndroidModel() instanceof AndroidModuleModel) {
       return new GradleApkProvider(facet, applicationIdProvider, false);
     }
     AndroidApkFacet androidApkFacet = AndroidApkFacet.getInstance(facet.getModule());
@@ -207,8 +209,21 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     LaunchOptionState state = getLaunchOptionState(MODE);
     assert state != null;
 
-    final StartActivityFlagsProvider startActivityFlagsProvider = new DefaultStartActivityFlagsProvider(
-      getAndroidDebugger(), getAndroidDebuggerState(), getProfilerState(), getProject(), waitForDebugger, ACTIVITY_EXTRA_FLAGS);
+    String extraFlags = ACTIVITY_EXTRA_FLAGS;
+
+    StartActivityFlagsProvider startActivityFlagsProvider;
+    if (facet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+      startActivityFlagsProvider = new InstantAppStartActivityFlagsProvider();
+    }
+    else {
+      startActivityFlagsProvider = new DefaultStartActivityFlagsProvider(
+        getAndroidDebuggerContext().getAndroidDebugger(),
+        getAndroidDebuggerContext().getAndroidDebuggerState(),
+        getProfilerState(),
+        getProject(),
+        waitForDebugger,
+        extraFlags);
+    }
 
     try {
       return state.getLaunchTask(applicationIdProvider.getPackageName(), facet, startActivityFlagsProvider, getProfilerState());
@@ -228,6 +243,14 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
     LaunchOptionState state = getLaunchOptionState(LAUNCH_SPECIFIC_ACTIVITY);
     assert state instanceof SpecificActivityLaunch.State;
     ((SpecificActivityLaunch.State)state).ACTIVITY_CLASS = activityName;
+  }
+
+  public void setLaunchUrl(@NotNull String url) {
+    MODE = LAUNCH_DEEP_LINK;
+
+    final LaunchOptionState state = getLaunchOptionState(LAUNCH_DEEP_LINK);
+    assert state instanceof DeepLinkLaunch.State;
+    ((DeepLinkLaunch.State)state).DEEP_LINK = url;
   }
 
   public boolean isLaunchingActivity(@Nullable String activityName) {

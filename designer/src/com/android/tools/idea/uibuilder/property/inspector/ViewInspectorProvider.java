@@ -27,9 +27,9 @@ import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.*;
@@ -86,6 +86,11 @@ public class ViewInspectorProvider implements InspectorProvider, ProjectComponen
     return inspector;
   }
 
+  @Override
+  public void resetCache() {
+    myInspectors.clear();
+  }
+
   private static class ViewInspectorComponent implements InspectorComponent {
     // These layout properties should be shown for all child components of layouts that have the property.
     // Which we can do by simply ask if the property is present.
@@ -97,8 +102,8 @@ public class ViewInspectorProvider implements InspectorProvider, ProjectComponen
 
     private final String myComponentName;
     private final List<String> myPropertyNames;
-    private final Map<String, NlComponentEditor> myEditors;
-    private Map<String, NlProperty> myProperties;
+    private final List<NlComponentEditor> myEditors;
+    private final int mySrcPropertyIndex;
 
     public ViewInspectorComponent(@NotNull String tagName,
                                   @NotNull Map<String, NlProperty> properties,
@@ -106,13 +111,23 @@ public class ViewInspectorProvider implements InspectorProvider, ProjectComponen
                                   @NotNull List<String> propertyNames) {
       myComponentName = tagName.substring(tagName.lastIndexOf('.') + 1);
       myPropertyNames = combineLists(propertyNames, LAYOUT_PROPERTIES);
-      useSrcCompatIfExist(properties);
-      myEditors = new HashMap<>(propertyNames.size());
-      myProperties = properties;
-      for (String propertyName : propertyNames) {
+      mySrcPropertyIndex = myPropertyNames.indexOf(ATTR_SRC);
+      myEditors = new ArrayList<>(myPropertyNames.size());
+      createEditors(properties, propertiesManager);
+    }
+
+    private void createEditors(@NotNull Map<String, NlProperty> properties, @NotNull NlPropertiesManager propertiesManager) {
+      for (String propertyName : myPropertyNames) {
+        boolean designPropertyRequired = propertyName.startsWith(TOOLS_NS_NAME_PREFIX);
+        propertyName = StringUtil.trimStart(propertyName, TOOLS_NS_NAME_PREFIX);
         NlProperty property = properties.get(propertyName);
         if (property != null) {
-          myEditors.put(propertyName, propertiesManager.getPropertyEditors().create(property));
+          if (designPropertyRequired) {
+            property = property.getDesignTimeProperty();
+          }
+          NlComponentEditor editor = propertiesManager.getPropertyEditors().create(property);
+          editor.setProperty(property);
+          myEditors.add(editor);
         }
       }
     }
@@ -121,13 +136,16 @@ public class ViewInspectorProvider implements InspectorProvider, ProjectComponen
     public void updateProperties(@NotNull List<NlComponent> components,
                                  @NotNull Map<String, NlProperty> properties,
                                  @NotNull NlPropertiesManager propertiesManager) {
-      myProperties = properties;
-      for (String propertyName : myPropertyNames) {
-        NlProperty property = properties.get(propertyName);
-        if (property != null && !myEditors.containsKey(propertyName)) {
-          myEditors.put(propertyName, propertiesManager.getPropertyEditors().create(property));
-        }
-      }
+      // TODO: Update the properties in the editors instead of recreating the editors
+      useSrcCompatIfExist(properties);
+      myEditors.clear();
+      createEditors(properties, propertiesManager);
+    }
+
+    @Override
+    @NotNull
+    public List<NlComponentEditor> getEditors() {
+      return myEditors;
     }
 
     @Override
@@ -139,30 +157,22 @@ public class ViewInspectorProvider implements InspectorProvider, ProjectComponen
     public void attachToInspector(@NotNull InspectorPanel inspector) {
       refresh();
       inspector.addTitle(myComponentName);
-      for (String propertyName : myPropertyNames) {
-        if (myProperties.containsKey(propertyName)) {
-          NlProperty property = myProperties.get(propertyName);
-          JLabel label = inspector.addComponent(propertyName, property.getTooltipText(), myEditors.get(propertyName).getComponent());
+      for (NlComponentEditor editor : myEditors) {
+        NlProperty property = editor.getProperty();
+        if (property != null) {
+          String propertyName = property.getName();
+          JLabel label = inspector.addComponent(propertyName, property.getTooltipText(), editor.getComponent());
           if (TOOLS_URI.equals(property.getNamespace())) {
             label.setIcon(AndroidIcons.NeleIcons.DesignProperty);
           }
+          editor.setLabel(label);
         }
       }
     }
 
     @Override
     public void refresh() {
-      for (String propertyName : myPropertyNames) {
-        if (myProperties.containsKey(propertyName)) {
-          myEditors.get(propertyName).setProperty(myProperties.get(propertyName));
-        }
-      }
-    }
-
-    @Nullable
-    @Override
-    public NlComponentEditor getEditorForProperty(@NotNull String propertyName) {
-      return myEditors.get(propertyName);
+      myEditors.forEach(NlComponentEditor::refresh);
     }
 
     @NotNull
@@ -174,12 +184,10 @@ public class ViewInspectorProvider implements InspectorProvider, ProjectComponen
     }
 
     private void useSrcCompatIfExist(@NotNull Map<String, NlProperty> properties) {
-      if (properties.containsKey(ATTR_SRC_COMPAT)) {
-        int index = myPropertyNames.indexOf(ATTR_SRC);
-        if (index >= 0) {
-          myPropertyNames.set(index, ATTR_SRC_COMPAT);
-        }
+      if (mySrcPropertyIndex < 0) {
+        return;
       }
+      myPropertyNames.set(mySrcPropertyIndex, properties.containsKey(ATTR_SRC_COMPAT) ? ATTR_SRC_COMPAT : ATTR_SRC);
     }
   }
 

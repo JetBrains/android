@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw;
 
+import com.android.tools.idea.npw.deprecated.WrapArchiveWizardPath;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateManager;
 import com.google.common.collect.Lists;
@@ -70,7 +71,7 @@ public class NewModuleWizardTest extends AndroidTestCase {
     expectedCount += wrapArchiveWizardPath.getBuiltInTemplates().size();
 
     ArrayList<ModuleWizardStep> steps = Lists.newArrayList();
-    TemplateWizardModuleBuilder myModuleBuilder = new TemplateWizardModuleBuilder(null, null, myModule.getProject(),
+    TemplateWizardModuleBuilder myModuleBuilder = new TemplateWizardModuleBuilder(null, myModule.getProject(),
                                                                                   AndroidIcons.Wizards.NewModuleSidePanel,
                                                                                   steps, getTestRootDisposable(), false) {
       @Override

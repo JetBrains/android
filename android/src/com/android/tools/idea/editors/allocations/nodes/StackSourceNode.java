@@ -22,10 +22,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 abstract public class StackSourceNode extends AbstractTreeNode {
-  @NotNull protected Map<StackTraceElement, StackNode>
-    myChildrenMap = new HashMap<StackTraceElement, StackNode>();
+  @NotNull private Map<String, AllocNode> mySimilarObjectsMap = new HashMap<>();
 
-  public void insert(AllocationInfo alloc, int depth) {
+  @NotNull protected Map<StackTraceElement, StackNode> myChildrenMap = new HashMap<>();
+
+  public void insert(@NotNull AllocationInfo alloc, int depth) {
     StackTraceElement[] stack = alloc.getStackTrace();
     if (depth < stack.length) {
       StackTraceElement element = stack[stack.length - 1 - depth];
@@ -33,13 +34,30 @@ abstract public class StackSourceNode extends AbstractTreeNode {
       if (child == null) {
         child = new StackNode(element);
         myChildrenMap.put(element, child);
-        addChild(child);
+        insertChild(child);
       }
       child.insert(alloc, depth + 1);
     }
     else {
-      AllocNode allocNode = new AllocNode(alloc);
-      addChild(allocNode);
+      insertChild(new AllocNode(alloc));
+    }
+  }
+
+  @Override
+  protected void addChild(@NotNull AbstractTreeNode node) {
+    if (node instanceof AllocNode) {
+      AllocationInfo allocInfo = ((AllocNode)node).getAllocation();
+      String key = String.format("%s,%s", allocInfo.getAllocatedClass(), allocInfo.getSize());
+      if (mySimilarObjectsMap.containsKey(key)) {
+        mySimilarObjectsMap.get(key).incrementCount();
+      }
+      else {
+        super.addChild(node);
+        mySimilarObjectsMap.put(key, (AllocNode)node);
+      }
+    }
+    else {
+      super.addChild(node);
     }
   }
 }

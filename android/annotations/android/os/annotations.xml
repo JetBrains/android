@@ -497,5 +497,8 @@
   <item name="android.os.UserManager android.content.Intent createUserCreationIntent(java.lang.String, java.lang.String, java.lang.String, android.os.PersistableBundle) 3">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.os.UserManager android.os.Bundle getApplicationRestrictions(java.lang.String)">
+    <annotation name="android.support.annotation.WorkerThread" />
+  </item>
 </root>
 

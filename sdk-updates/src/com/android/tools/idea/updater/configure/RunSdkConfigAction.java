@@ -15,16 +15,26 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.tools.idea.stats.UsageTracker;
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
+import com.intellij.facet.ProjectFacetManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.options.ex.ConfigurableExtensionPointUtil;
 import com.intellij.openapi.project.DumbAwareAction;
+import com.intellij.openapi.project.Project;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidSdkManagerEnabled;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
 
 /**
  * Action to open the Android SDK pane in Settings.
@@ -36,12 +46,29 @@ public class RunSdkConfigAction extends DumbAwareAction {
 
   @Override
   public void update(AnActionEvent e) {
-    e.getPresentation().setEnabledAndVisible(isAndroidSdkManagerEnabled());
+    if (e == null || ActionPlaces.WELCOME_SCREEN.equals(e.getPlace()) || IdeInfo.getInstance().isAndroidStudio()) {
+      Presentation presentation = e == null ? getTemplatePresentation() : e.getPresentation();
+      presentation.setEnabledAndVisible(isAndroidSdkManagerEnabled());
+    }
+    else {
+      Project project = e.getProject();
+      e.getPresentation().setEnabled(project != null && !ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).isEmpty());
+    }
   }
 
   @Override
   public void actionPerformed(@Nullable AnActionEvent e) {
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_SDK_MANAGER, UsageTracker.ACTION_SDK_MANAGER_TOOLBAR_CLICKED, null, null);
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                   .setCategory(EventCategory.SDK_MANAGER)
+                                   .setKind(AndroidStudioEvent.EventKind.SDK_MANAGER_TOOLBAR_CLICKED));
+    if (e != null && ActionPlaces.WELCOME_SCREEN.equals(e.getPlace())) {
+      // Invoked from Welcome Screen, might not have an SDK setup yet
+      AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
+      if (sdkData == null) {
+        // This probably shouldn't happen, but the check was there in the standalone launcher case...
+        return;
+      }
+    }
     Configurable configurable =
       ConfigurableExtensionPointUtil.createApplicationConfigurableForProvider(SdkUpdaterConfigurableProvider.class);
     ShowSettingsUtil.getInstance().showSettingsDialog(null, configurable.getClass());

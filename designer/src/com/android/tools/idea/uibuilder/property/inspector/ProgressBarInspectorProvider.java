@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.property.NlPropertiesManager;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.*;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +52,11 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
     }
     myComponent.updateProperties(components, properties, propertiesManager);
     return myComponent;
+  }
+
+  @Override
+  public void resetCache() {
+    myComponent = null;
   }
 
   /**
@@ -134,34 +140,39 @@ public class ProgressBarInspectorProvider implements InspectorProvider {
     @Override
     public void refresh() {
       myStyleEditor.setProperty(myStyle);
-      boolean indeterminate = VALUE_TRUE.equalsIgnoreCase(myIndeterminate.getResolvedValue());
-      if (indeterminate) {
-        myDrawableEditor.setProperty(myIndeterminateDrawable);
-        myTintEditor.setProperty(myIndeterminateTint);
-      }
-      else {
-        myIndeterminateDrawableEditor.setProperty(myProgressDrawable);
-        myIndeterminateTintEditor.setProperty(myProgressTint);
-        myMaxEditor.setProperty(myMax);
-        myProgressEditor.setProperty(myProgress);
-      }
-      myDrawableEditor.setVisible(indeterminate);
-      myTintEditor.setVisible(indeterminate);
-
-      myIndeterminateDrawableEditor.setVisible(!indeterminate);
-      myIndeterminateTintEditor.setVisible(!indeterminate);
-      myMaxEditor.setVisible(!indeterminate);
-      myProgressEditor.setVisible(!indeterminate);
-
+      myDrawableEditor.setProperty(myProgressDrawable);
+      myIndeterminateDrawableEditor.setProperty(myIndeterminateDrawable);
+      myTintEditor.setProperty(myProgressTint);
+      myIndeterminateTintEditor.setProperty(myIndeterminateTint);
+      myMaxEditor.setProperty(myMax);
+      myProgressEditor.setProperty(myProgress);
       myVisibilityEditor.setProperty(myVisibility);
       myDesignVisibilityEditor.setProperty(myDesignVisibility);
       myIndeterminateEditor.setProperty(myIndeterminate);
+
+      boolean indeterminate = VALUE_TRUE.equalsIgnoreCase(myIndeterminate.getResolvedValue());
+      myDrawableEditor.setVisible(!indeterminate);
+      myTintEditor.setVisible(!indeterminate);
+      myIndeterminateDrawableEditor.setVisible(indeterminate);
+      myIndeterminateTintEditor.setVisible(indeterminate);
+      myMaxEditor.setVisible(!indeterminate);
+      myProgressEditor.setVisible(!indeterminate);
     }
 
-    @Nullable
     @Override
-    public NlComponentEditor getEditorForProperty(@NotNull String propertyName) {
-      return null;
+    @NotNull
+    public List<NlComponentEditor> getEditors() {
+      return ImmutableList.of(
+        myStyleEditor,
+        myDrawableEditor,
+        myIndeterminateDrawableEditor,
+        myTintEditor,
+        myIndeterminateTintEditor,
+        myMaxEditor,
+        myProgressEditor,
+        myVisibilityEditor,
+        myDesignVisibilityEditor,
+        myIndeterminateEditor);
     }
 
     private NlEditingListener createIndeterminateListener() {

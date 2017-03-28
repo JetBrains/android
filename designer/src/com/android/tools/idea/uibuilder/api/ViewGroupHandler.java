@@ -16,8 +16,12 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.XmlBuilder;
+import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.uibuilder.model.FillPolicy;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.SegmentType;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.intellij.lang.annotations.Language;
@@ -30,6 +34,7 @@ import java.util.List;
 /**
  * Handler for views that are layout managers.
  */
+@SuppressWarnings("UnusedParameters")
 public class ViewGroupHandler extends ViewHandler {
 
   @Override
@@ -68,6 +73,19 @@ public class ViewGroupHandler extends ViewHandler {
   }
 
   /**
+   * Returns true if the parent accepts the new child. Called by the editor when a user drags a component into the design surface.
+   *
+   * @param x the x coordinate of the drag in the Android coordinate system
+   * @param y the y coordinate of the drag in the Android coordinate system
+   */
+  public boolean acceptsChild(@NotNull NlComponent parent,
+                              @NotNull NlComponent newChild,
+                              @AndroidCoordinate int x,
+                              @AndroidCoordinate int y) {
+    return acceptsChild(parent, newChild);
+  }
+
+  /**
    * Called when one or more children are about to be deleted by the user.
    *
    * @param parent  the parent of the deleted children (which still contains
@@ -79,6 +97,7 @@ public class ViewGroupHandler extends ViewHandler {
    * handler could remove constraints pointing to now deleted components, but leave the overall deletion of the elements to the core
    * designer.
    */
+  @SuppressWarnings("SameReturnValue")
   public boolean deleteChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> deleted) {
     return false;
   }
@@ -184,9 +203,9 @@ public class ViewGroupHandler extends ViewHandler {
   /**
    * Paint the component and its children on the given context
    *
-   * @param gc          graphics context
-   * @param screenView  the current screen view
-   * @param component   the component to draw
+   * @param gc         graphics context
+   * @param screenView the current screen view
+   * @param component  the component to draw
    * @return true to indicate that we will need to be repainted
    */
   public boolean drawGroup(@NotNull Graphics2D gc, @NotNull ScreenView screenView,
@@ -195,4 +214,22 @@ public class ViewGroupHandler extends ViewHandler {
     return false;
   }
 
+  /**
+   * Give a chance to the ViewGroup to add targets to the {@linkplain SceneComponent}
+   *
+   * @param component the component we'll add targets on
+   * @param isParent  is it the parent viewgroup component
+   */
+  public void addTargets(@NotNull SceneComponent component, boolean isParent) {
+    // do nothing
+  }
+
+  /**
+   * Let the ViewGroupHandler handle clearing attributes on a given component
+   *
+   * @param component
+   */
+  public void clearAttributes(SceneComponent component) {
+    // do nothing
+  }
 }

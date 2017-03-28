@@ -27,10 +27,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.LoggerProgressIndicatorWrapper;
 import com.android.sdklib.repository.legacy.descriptors.IPkgDesc;
 import com.android.sdklib.repository.legacy.descriptors.PkgType;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.SdkLoggerIntegration;
-import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.StudioSettingsController;
+import com.android.tools.idea.sdk.*;
 import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
@@ -41,7 +38,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -51,7 +47,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,7 +62,6 @@ import static com.android.tools.idea.wizard.WizardConstants.NEWLY_INSTALLED_API_
  * @deprecated Replaced by {@link InstallSelectedPackagesStep}
  */
 public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
-  private Logger LOG = Logger.getInstance(SmwOldApiDirectInstall.class);
   private JBLabel myLabelSdkPath;
   private JTextArea mySdkManagerOutput;
   private JBLabel myLabelProgress1;
@@ -106,14 +100,14 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
 
   private void startSdkInstallUsingNonSwtOldApi() {
     // Get the SDK instance.
-    final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+    final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     if (sdkHandler.getLocation() == null) {
       myErrorLabel.setText("Error: can't get SDK instance.");
       myErrorLabel.setIcon(AllIcons.General.BalloonError);
       return;
     }
 
-    File androidSdkPath = IdeSdks.getAndroidSdkPath();
+    File androidSdkPath = IdeSdks.getInstance().getAndroidSdkPath();
     if (androidSdkPath != null && androidSdkPath.exists() && !androidSdkPath.canWrite()) {
       myErrorLabel.setText(String.format("SDK folder is read-only: '%1$s'", androidSdkPath.getPath()));
       myErrorLabel.setIcon(AllIcons.General.BalloonError);
@@ -218,9 +212,9 @@ public class SmwOldApiDirectInstall extends DynamicWizardStepWithDescription {
     public void run(@NotNull ProgressIndicator indicator) {
       com.android.repository.api.ProgressIndicator repoProgress = new LoggerProgressIndicatorWrapper(myLogger);
       final RepoManager sdkManager = mySdkHandler.getSdkManager(repoProgress);
+      InstallerFactory factory = StudioSdkInstallerUtil.createInstallerFactory(mySdkHandler);
       for (RemotePackage p : myRequestedPackages) {
         FileOp fop = FileOpUtils.create();
-        InstallerFactory factory = StudioSdkInstallerUtil.createInstallerFactory(p, mySdkHandler);
         Installer installer = factory.createInstaller(p, sdkManager, new StudioDownloader(indicator), fop);
         if (installer.prepare(repoProgress)) {
           installer.complete(repoProgress);

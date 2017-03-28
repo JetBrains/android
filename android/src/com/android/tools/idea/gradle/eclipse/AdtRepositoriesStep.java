@@ -1,9 +1,9 @@
 package com.android.tools.idea.gradle.eclipse;
 
 import com.intellij.ide.util.projectWizard.WizardContext;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.projectImport.ProjectImportWizardStep;
 import com.intellij.ui.components.JBLabel;
-import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -62,7 +62,8 @@ class AdtRepositoriesStep extends ProjectImportWizardStep implements ActionListe
       if (importer != null) {
         File location = importer.getSdkLocation();
         if (location != null) {
-          RunAndroidSdkManagerAction.runSpecificSdkManager(null, location);
+          // TODO: just install the components directly. There's no need for this anymore.
+          ActionManager.getInstance().getAction("Android.RunAndroidSdkManager").actionPerformed(null);
         }
       }
     } else if (source == myRefreshButton) {

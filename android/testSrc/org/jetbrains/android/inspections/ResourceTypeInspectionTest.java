@@ -28,7 +28,6 @@ import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
 import com.intellij.util.ArrayUtil;
 import com.siyeh.ig.LightInspectionTestCase;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
@@ -55,9 +54,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
 
     // Module must have Android facet or resource type inspection will become a no-op
     if (AndroidFacet.getInstance(myModule) == null) {
-      String sdkPath = AndroidTestBase.getDefaultTestSdkPath();
-      String platform = AndroidTestBase.getDefaultPlatformDir();
-      AndroidTestCase.addAndroidFacet(myModule, sdkPath, platform, true);
+      AndroidTestCase.addAndroidFacet(myModule);
       Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
       assertNotNull(sdk);
       @SuppressWarnings("SpellCheckingInspection") SdkModificator sdkModificator = sdk.getSdkModificator();
@@ -442,6 +439,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "    public void printBetweenFromExclusiveToInclusive(@FloatRange(from=2.5,to=5.0,fromInclusive=false) float arg) { }\n" +
             "    public void printBetweenFromInclusiveToExclusive(@FloatRange(from=2.5,to=5.0,toInclusive=false) float arg) { }\n" +
             "    public void printBetweenFromExclusiveToExclusive(@FloatRange(from=2.5,to=5.0,fromInclusive=false,toInclusive=false) float arg) { }\n" +
+            "    public void printNegativeRange(@FloatRange(from=-90.0,to=-5.0) float arg) { }\n" +
             "    public static final int MINIMUM = -1;\n" +
             "    public static final int MAXIMUM = 42;\n" +
             "    public static final int SIZE = 5;\n" +
@@ -582,6 +580,9 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        printBetweenFromExclusiveToExclusive(2.51f); // OK\n" +
             "        printBetweenFromExclusiveToExclusive(4.99f); // OK\n" +
             "        printBetweenFromExclusiveToExclusive(/*Value must be > 2.5 and < 5.0 (was 5.0f)*/5.0f/**/); // ERROR\n" +
+            "        printNegativeRange(/*Value must be ≥ -90.0 and ≤ -5.0 (was -150.0)*/-150.0f/**/); // ERROR\n" +
+            "        printNegativeRange/*'printNegativeRange(float)' in 'X' cannot be applied to '(double)'*/(-10.0)/**/; // OK\n" +
+            "        printNegativeRange(/*Value must be ≥ -90.0 and ≤ -5.0 (was -3.0)*/-3.0f/**/); // ERROR\n" +
             "    }\n" +
             "}\n");
   }
@@ -654,7 +655,7 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "        // Wrong\n" +
             "        textView.setTextColor(/*Should pass resolved color instead of resource id here: `getResources().getColor(R.color.red)`*/R.color.red/**/);\n" +
             "        textView.setTextColor(/*Should pass resolved color instead of resource id here: `getResources().getColor(android.R.color.black)`*/android.R.color.black/**/);\n" +
-            "        textView.setTextColor(/*Should pass resolved color instead of resource id here: `getResources().getColor(foo > 0 ? R.color.green : R.color.blue)`*/foo > 0 ? R.color.green : R.color.blue/**/);\n" +
+            "        textView.setTextColor(foo > 0 ? /*Should pass resolved color instead of resource id here: `getResources().getColor(R.color.green)`*/R.color.green/**/ : R.color.blue);\n" +
             "        // OK\n" +
             "        textView.setTextColor(getResources().getColor(R.color.red));\n" +
             "        // OK\n" +
@@ -932,16 +933,11 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "import android.net.Uri;\n" +
             "import android.support.annotation.RequiresPermission;\n" +
             "\n" +
-            "import static android.Manifest.permission.READ_HISTORY_BOOKMARKS;\n" +
-            "import static android.Manifest.permission.WRITE_HISTORY_BOOKMARKS;\n" +
-            "\n" +
             "@SuppressWarnings({\"deprecation\", \"unused\"})\n" +
             "public class X {\n" +
             "    @RequiresPermission(Manifest.permission.CALL_PHONE)\n" +
             "    public static final String ACTION_CALL = \"android.intent.action.CALL\";\n" +
             "\n" +
-            "    @RequiresPermission.Read(@RequiresPermission(READ_HISTORY_BOOKMARKS))\n" +
-            "    @RequiresPermission.Write(@RequiresPermission(WRITE_HISTORY_BOOKMARKS))\n" +
             "    public static final Uri BOOKMARKS_URI = Uri.parse(\"content://browser/bookmarks\");\n" +
             "\n" +
             "    public static final Uri COMBINED_URI = Uri.withAppendedPath(BOOKMARKS_URI, \"bookmarks\");\n" +
@@ -984,18 +980,15 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "\n" +
             "    public static void contentResolvers(Context context, ContentResolver resolver) {\n" +
             "        // read\n" +
-            "        /*Missing permissions required to read X.BOOKMARKS_URI: com.android.browser.permission.READ_HISTORY_BOOKMARKS*/resolver.query(BOOKMARKS_URI, null, null, null, null)/**/;\n" +
+            "        resolver.query(BOOKMARKS_URI, null, null, null, null);\n" +
             "\n" +
             "        // write\n" +
-            "        /*Missing permissions required to write X.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.insert(BOOKMARKS_URI, null)/**/;\n" +
-            "        /*Missing permissions required to write X.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.delete(BOOKMARKS_URI, null, null)/**/;\n" +
-            "        /*Missing permissions required to write X.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.update(BOOKMARKS_URI, null, null, null)/**/;\n" +
-            "\n" +
-            "        // Framework (external) annotation\n" +
-            "        /*Missing permissions required to write Browser.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.update(android.provider.Browser.BOOKMARKS_URI, null, null, null)/**/;\n" +
+            "        resolver.insert(BOOKMARKS_URI, null);\n" +
+            "        resolver.delete(BOOKMARKS_URI, null, null);\n" +
+            "        resolver.update(BOOKMARKS_URI, null, null, null);\n" +
             "\n" +
             "        // URI manipulations\n" +
-            "        /*Missing permissions required to write X.BOOKMARKS_URI: com.android.browser.permission.WRITE_HISTORY_BOOKMARKS*/resolver.insert(COMBINED_URI, null)/**/;\n" +
+            "        resolver.insert(COMBINED_URI, null);\n" +
             "    }\n" +
             "\n" +
             "    public static void startActivity(Object other) {\n" +
@@ -1247,6 +1240,115 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  public void testPx2() {
+    // Regression test for https://code.google.com/p/android/issues/detail?id=229189
+    doCheck("" +
+            "package com.example;\n" +
+            "\n" +
+            "import android.app.Activity;\n" +
+            "import android.content.Context;\n" +
+            "import android.support.annotation.Dimension;\n" +
+            "import android.support.annotation.Px;\n" +
+            "import android.util.TypedValue;\n" +
+            "import android.widget.TextView;\n" +
+            "\n" +
+            "public class X extends Activity {\n" +
+            "    public void test(TextView someView, boolean condition) {\n" +
+            "        someView.setPadding(0, 0, 0, condition ? (int) convertDpToPixels(8) : 0);\n" +
+            "        someView.setPadding(0, 0, 0, condition ? (int) convertDpToPixelsNoAnnotation(8) : 0);\n" +
+            "        setPadding(0, 0, 0, condition ? (int) convertDpToPixelsNoAnnotation(8) : 0);\n" +
+            "    }\n" +
+            "\n" +
+            "    @Dimension(unit = Dimension.PX)\n" +
+            "    public float convertDpToPixels(final float dp) {\n" +
+            "        Context context = this;\n" +
+            "        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());\n" +
+            "    }\n" +
+            "\n" +
+            "    public float convertDpToPixelsNoAnnotation(final float dp) {\n" +
+            "        Context context = this;\n" +
+            "        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());\n" +
+            "    }\n" +
+            "\n" +
+            "    private void setPadding(@Px int a, @Px int b, @Px int c, @Px int d) {\n" +
+            "    }\n" +
+            "}\n");
+  }
+
+  public void testOverlappingRanges() throws Exception {
+    doCheck("" +
+            "package pkg.my.myapplication;\n" +
+            "\n" +
+            "import android.support.annotation.IntRange;\n" +
+            "import android.support.annotation.Size;\n" +
+            "\n" +
+            "@SuppressWarnings({\"WeakerAccess\", \"ConstantConditions\", \"UnusedParameters\", \"unused\"})\n" +
+            "public class X {\n" +
+            "    public void testSize(\n" +
+            "            @Size(4) int exactly4,\n" +
+            "            @Size(2) int exactly2,\n" +
+            "            @Size(min = 5) int atLeast5,\n" +
+            "            @Size(max = 5) int atMost5,\n" +
+            "            @Size(min = 2, max = 5) int between2and5,\n" +
+            "            @Size(multiple = 3) int triple,\n" +
+            "            @Size(min = 4, multiple = 3) int tripleFrom4,\n" +
+            "            @Size(min = 4, multiple = 4) int quadrupleFrom4) {\n" +
+            "        sizeMin3(/*Size must be at least 3*/exactly2/**/); // ERROR\n" +
+            "        sizeMin3(exactly4); // OK\n" +
+            "        sizeMin3(atLeast5); // OK\n" +
+            "        sizeMin3(/*Size must be at least 3*/atMost5/**/); // ERROR: delta\n" +
+            "        sizeMin3(/*Size must be at least 3*/between2and5/**/); // ERROR: 2 is not included\n" +
+            "        sizeMin3(/*Size must be at least 3*/triple/**/); // ERROR\n" +
+            "        sizeMin3(tripleFrom4); // OK\n" +
+            "\n" +
+            "        sizeMin3multiple2(/*Size must be at least 3 and a multiple of 2*/tripleFrom4/**/); // ERROR\n" +
+            "        sizeMin3multiple2(quadrupleFrom4); // OK\n" +
+            "\n" +
+            "        sizeMax10(exactly2);\n" +
+            "        sizeMax10(exactly4);\n" +
+            "        sizeMax10(/*Size must be at most 10*/atLeast5/**/); // ERROR: allows numbers outside the max\n" +
+            "        sizeMax10(between2and5); // OK\n" +
+            "        sizeMax10(/*Size must be at most 10*/triple/**/); // ERROR: allows numbers outside the max\n" +
+            "    }\n" +
+            "\n" +
+            "    public void testIntRange(\n" +
+            "            @IntRange(from = 5) int atLeast5,\n" +
+            "            @IntRange(to = 5) int atMost5,\n" +
+            "            @IntRange(from = 2, to = 5) int between2and5,\n" +
+            "            @IntRange(from = 4, to = 6) int between4and6) {\n" +
+            "        rangeMin3(atLeast5); // OK\n" +
+            "        rangeMin3(/*Value must be ≥ 3*/atMost5/**/); // ERROR: delta\n" +
+            "        rangeMin3(/*Value must be ≥ 3*/between2and5/**/); // ERROR: 2 is not included\n" +
+            "\n" +
+            "        range3to6(/*Value must be ≥ 3 and ≤ 6*/atLeast5/**/); // ERROR\n" +
+            "        range3to6(/*Value must be ≥ 3 and ≤ 6*/atMost5/**/); // ERROR\n" +
+            "        range3to6(/*Value must be ≥ 3 and ≤ 6*/between2and5/**/); // ERROR not overlapping\n" +
+            "        range3to6(between4and6); // OK\n" +
+            "\n" +
+            "        rangeMax10(/*Value must be ≤ 10*/atLeast5/**/); // ERROR: allows numbers outside the max\n" +
+            "        rangeMax10(between2and5); // OK\n" +
+            "        rangeMax10(atMost5); // OK\n" +
+            "    }\n" +
+            "    public void sizeMin3(@Size(min = 3) int size) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void sizeMin3multiple2(@Size(min = 3, multiple = 2) int size) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void sizeMax10(@Size(max = 10) int size) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void rangeMin3(@IntRange(from = 3) int range) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void range3to6(@IntRange(from = 3, to = 6) int range) {\n" +
+            "    }\n" +
+            "\n" +
+            "    public void rangeMax10(@IntRange(to = 10) int range) {\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   public void testCombinedIntDefAndIntRange() throws Exception {
     doCheck("package test.pkg;\n" +
             "\n" +
@@ -1317,6 +1419,49 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "    }\n" +
             "\n" +
             "    public void method(@IntRange(from=0) int parameter) {\n" +
+            "    }\n" +
+            "}\n");
+  }
+
+  public void testIntRangeOnTernaryOperators() {
+    doCheck("package test.pkg;\n" +
+            "\n" +
+            "import android.support.annotation.IntRange;\n" +
+            "\n" +
+            "import java.util.ArrayList;\n" +
+            "import java.util.List;\n" +
+            "\n" +
+            "public class X {\n" +
+            "    @SuppressWarnings(\"MismatchedQueryAndUpdateOfCollection\")\n" +
+            "    private List<String> mItems = new ArrayList<>();\n" +
+            "\n" +
+            "    @IntRange(from = 0)\n" +
+            "    public int test1() {\n" +
+            "        return mItems == null ? 0 : mItems.size(); // OK\n" +
+            "    }\n" +
+            "\n" +
+            "    @IntRange(from = 0)\n" +
+            "    public int test2() {\n" +
+            "        return 0; // OK\n" +
+            "    }\n" +
+            "\n" +
+            "    @IntRange(from = 0)\n" +
+            "    public int test3() {\n" +
+            "        return mItems.size(); // OK\n" +
+            "    }\n" +
+            "\n" +
+            "    @IntRange(from = 0)\n" +
+            "    public int test4() {\n" +
+            "        if (mItems == null) {\n" +
+            "            return 0;\n" +
+            "        } else {\n" +
+            "            return mItems.size();\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    @IntRange(from = 0)\n" +
+            "    public int testError() {\n" +
+            "        return /*Value must be ≥ 0*/mItems == null ? -1 : mItems.size()/**/; // ERROR\n\n" +
             "    }\n" +
             "}\n");
   }
@@ -1474,6 +1619,39 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  public void testRequiresApi2() throws Exception {
+    // Regression test for b/32952309: Ensure we don't inherit RequiresApi beyond direct containing class
+    doCheck("" +
+            "package android.support.v7.app;\n" +
+            "\n" +
+            "import android.support.annotation.RequiresApi;\n" +
+            "\n" +
+            "@SuppressWarnings({\"WeakerAccess\", \"unused\"})\n" +
+            "public class X {\n" +
+            "    public void test() {\n" +
+            "        /*Call requires API level 18 (current min is 17): android.support.v7.app.X.ParentClass#foo1*/new ParentClass().foo1()/**/; // ERROR\n" +
+            "        new ChildClass().foo1(); // OK\n" +
+            "        new ChildClass().foo2(); // OK\n" +
+            "    }\n" +
+            "\n" +
+            "    @RequiresApi(16)\n" +
+            "    public class ParentClass {\n" +
+            "        @RequiresApi(18)\n" +
+            "        void foo1() {\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public class ChildClass extends ParentClass {\n" +
+            "        @Override\n" +
+            "        void foo1() {\n" +
+            "        }\n" +
+            "\n" +
+            "        void foo2() {\n" +
+            "        }\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   public void testSuppressNames() throws Exception {
     doCheck("package test.pkg;\n" +
             "\n" +
@@ -1623,6 +1801,33 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
             "}\n");
   }
 
+  public void testRestrictTo() {
+    doCheck("\n" +
+            "package p1.p2;\n" +
+            "\n" +
+            "import android.support.annotation.RestrictTo;\n" +
+            "\n" +
+            "public class X {\n" +
+            "    public static class Class1 {\n" +
+            "        @RestrictTo(RestrictTo.Scope.SUBCLASSES)\n" +
+            "        public void onSomething() {\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public static class SubClass extends Class1 {\n" +
+            "        public void test1() {\n" +
+            "            onSomething(); // OK: Call from subclass\n" +
+            "        }\n" +
+            "    }\n" +
+            "\n" +
+            "    public static class NotSubClass {\n" +
+            "        public void test2(Class1 cls) {\n" +
+            "            cls./*Class1.onSomething can only be called from subclasses*/onSomething/**/(); // ERROR: Not from subclass\n" +
+            "        }\n" +
+            "    }\n" +
+            "}\n");
+  }
+
   @Override
   protected String[] getEnvironmentClasses() {
     @Language("JAVA")
@@ -1737,6 +1942,18 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
     classes.add(header + px);
 
     @Language("JAVA")
+    String dimension = "@Retention(SOURCE)\n" +
+                "@Target({METHOD,PARAMETER,FIELD,LOCAL_VARIABLE,ANNOTATION_TYPE})\n" +
+                "public @interface Dimension {\n" +
+                "    @DimensionUnit\n" +
+                "    int unit() default PX;\n" +
+                "    int DP = 0;\n" +
+                "    int PX = 1;\n" +
+                "    int SP = 2;\n" +
+                "}";
+    classes.add(header + dimension);
+
+    @Language("JAVA")
     String requiresApi = "@Retention(SOURCE)\n" +
                          "@Target({TYPE,METHOD,CONSTRUCTOR,FIELD})\n" +
                          "public @interface RequiresApi {\n" +
@@ -1797,6 +2014,19 @@ public class ResourceTypeInspectionTest extends LightInspectionTestCase {
                        "public @interface CheckResult {\n" +
                        "}\n";
     classes.add(header + checkResult);
+
+    @Language("JAVA")
+    String restrictTo = "@Retention(CLASS)\n" +
+                        "@Target({ANNOTATION_TYPE,TYPE,METHOD,CONSTRUCTOR,FIELD,PACKAGE})\n" +
+                        "public @interface RestrictTo {\n" +
+                        "    Scope[] value();\n" +
+                        "    enum Scope {\n" +
+                        "        GROUP_ID,\n" +
+                        "        TESTS,\n" +
+                        "        SUBCLASSES\n" +
+                        "    }\n" +
+                        "}\n";
+    classes.add(header + restrictTo);
 
 
     return ArrayUtil.toStringArray(classes);

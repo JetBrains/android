@@ -120,10 +120,6 @@ public class ScrollViewHandler extends ViewGroupHandler {
     }
 
     @Override
-    public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
-    }
-
-    @Override
     public void paint(@NotNull NlGraphics graphics) {
       if (layout.getChildCount() == 0) {
         graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);

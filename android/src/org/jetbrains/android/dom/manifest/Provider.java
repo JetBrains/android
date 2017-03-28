@@ -27,6 +27,8 @@ import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.structure.manifest.ProviderPresentationProvider;
 import org.jetbrains.android.util.AndroidUtils;
 
+import java.util.List;
+
 @Presentation(provider = ProviderPresentationProvider.class)
 @Styleable("AndroidManifestProvider")
 public interface Provider extends ApplicationComponent {
@@ -38,4 +40,8 @@ public interface Provider extends ApplicationComponent {
 
   @Required
   AndroidAttributeValue<String> getAuthorities();
+
+  List<IntentFilter> getIntentFilters();
+
+  IntentFilter addIntentFilter();
 }

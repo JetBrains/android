@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.property.editors;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
@@ -95,9 +94,7 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor, Browse
 
   @Override
   public void requestFocus() {
-    IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
-      IdeFocusManager.getGlobalInstance().requestFocus(getComponent(), true);
-    });
+    getComponent().requestFocus();
   }
 
   @Override
@@ -123,14 +120,5 @@ public abstract class NlBaseComponentEditor implements NlComponentEditor, Browse
     else {
       cancelEditing();
     }
-  }
-
-  @NotNull
-  protected BrowsePanel createBrowsePanel(@Nullable BrowsePanel.Context context) {
-    boolean showDesignButton = context != null;
-    if (!showDesignButton) {
-      context = this;
-    }
-    return new BrowsePanel(context, showDesignButton);
   }
 }

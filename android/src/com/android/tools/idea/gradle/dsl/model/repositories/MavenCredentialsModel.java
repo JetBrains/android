@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class MavenCredentialsModel {
   @NonNls private static final String USERNAME = "username";
@@ -30,13 +30,13 @@ public class MavenCredentialsModel {
     myDslElement = dslElement;
   }
 
-  @Nullable
-  public String username() {
-    return myDslElement.getProperty(USERNAME, String.class);
+  @NotNull
+  public GradleNullableValue<String> username() {
+    return myDslElement.getLiteralProperty(USERNAME, String.class);
   }
 
-  @Nullable
-  public String password() {
-    return myDslElement.getProperty(PASSWORD, String.class);
+  @NotNull
+  public GradleNullableValue<String> password() {
+    return myDslElement.getLiteralProperty(PASSWORD, String.class);
   }
 }

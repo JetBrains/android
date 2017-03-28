@@ -15,16 +15,15 @@
  */
 package org.jetbrains.android.sdk;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.util.SystemProperties;
+import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
@@ -36,96 +35,62 @@ import static org.mockito.Mockito.when;
 public class AndroidSdkDataTest extends AndroidTestCase {
 
   private AndroidSdkData sdkData;
-  private AndroidSdkData defaultSdkData;
-  private File sdkDir;
-  private File defaultSdkDir;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    sdkDir = new File(getTestSdkPath());
-    assertTrue(sdkDir.exists());
+    File sdkDir = TestUtils.getSdk();
     sdkData = AndroidSdkData.getSdkData(sdkDir);
-    defaultSdkDir = new File(getDefaultTestSdkPath());
-    assertTrue(defaultSdkDir.exists());
-    defaultSdkData = AndroidSdkData.getSdkData(defaultSdkDir);
 
-    assertNotNull(sdkData);
-    assertNotNull(defaultSdkData);
-    assertFalse(defaultSdkData.equals(sdkData));
-
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        IdeSdks.setAndroidSdkPath(sdkDir, null);
-        ProjectRootManager.getInstance(getProject()).setProjectSdk(IdeSdks.getEligibleAndroidSdks().get(0));
-      }
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      IdeSdks ideSdks = IdeSdks.getInstance();
+      ideSdks.setAndroidSdkPath(sdkDir, null);
+      ProjectRootManager.getInstance(getProject()).setProjectSdk(ideSdks.getEligibleAndroidSdks().get(0));
     });
   }
 
-  @Override
-  protected void collectAllowedRoots(List<String> roots) throws IOException {
-    String javaHome = SystemProperties.getJavaHome();
-    if (javaHome.endsWith("jre")) {
-      roots.add(new File(javaHome).getParent());
-    }
+  public void testSdkDataExposesSdkComponents() throws Exception {
+    assertNotNull(sdkData.getLatestBuildTool(false));
+    assertThat(sdkData.getTargets().length).isAtLeast(1);
+    assertTrue(FileUtil.filesEqual(sdkData.getLocation(), TestUtils.getSdk()));
   }
 
-  @Override
-  protected boolean requireRecentSdk() {
-    return true;
-  }
-
-  public void testGetSdkDataBadFile() throws Exception {
+  public void testGetSdkDataReturnsNullForInvalidSdkLocations() throws Exception {
     assertNull(AndroidSdkData.getSdkData("/blah"));
     assertNull(AndroidSdkData.getSdkData(getTestDataPath()));
   }
 
-  public void testGetSdkDataFile() throws Exception {
-    assertEquals(sdkData, AndroidSdkData.getSdkData(sdkDir));
-    assertEquals(defaultSdkData, AndroidSdkData.getSdkData(defaultSdkDir));
+  public void testGetSdkDataByPath() throws Exception {
+    String sdkPath = TestUtils.getSdk().toString();
 
-    assertThat(AndroidSdkData.getSdkData(sdkDir)).isNotEqualTo(AndroidSdkData.getSdkData(defaultSdkDir));
-  }
-
-  public void testGetSdkDataPath() throws Exception {
-    String testSdkPath = getTestSdkPath();
-    assertEquals(sdkData, AndroidSdkData.getSdkData(testSdkPath));
-    assertEquals(defaultSdkData, AndroidSdkData.getSdkData(getDefaultTestSdkPath()));
-
-    String otherEnding;
-    if (testSdkPath.endsWith(File.separator)) {
-      otherEnding = testSdkPath.substring(0, testSdkPath.length() - 1);
+    // This API should work with both a trailing slash and without
+    String sdkPathWithTrailingSlash = sdkPath;
+    String sdkPathWithoutTrailingSlash = sdkPath;
+    if (sdkPath.endsWith(File.separator)) {
+      sdkPathWithoutTrailingSlash = sdkPath.substring(0, sdkPath.length() - 1);
     } else {
-      otherEnding = testSdkPath + File.separator;
+      sdkPathWithTrailingSlash = sdkPath + File.separator;
     }
 
-    assertFalse(otherEnding.equals(testSdkPath));
-    assertEquals(new File(testSdkPath), new File(otherEnding));
-    assertEquals(AndroidSdkData.getSdkData(testSdkPath), AndroidSdkData.getSdkData(otherEnding));
-
-    assertThat(AndroidSdkData.getSdkData(getTestSdkPath())).isNotEqualTo(AndroidSdkData.getSdkData(getDefaultTestSdkPath()));
+    assertFalse(sdkPathWithTrailingSlash.equals(sdkPathWithoutTrailingSlash));
+    assertEquals(AndroidSdkData.getSdkData(sdkPathWithTrailingSlash), AndroidSdkData.getSdkData(sdkPathWithoutTrailingSlash));
+    assertNotNull(AndroidSdkData.getSdkData(sdkPathWithTrailingSlash));
   }
 
-  public void testGetSdkDataProject() throws Exception {
+  public void testGetSdkDataByProject() throws Exception {
     AndroidSdkData sdkFromProject = AndroidSdkData.getSdkData(getProject());
     assertEquals(sdkData, sdkFromProject);
   }
 
-  public void testGetSdkDataModule() throws Exception {
+  public void testGetSdkDataByModule() throws Exception {
     AndroidSdkData actual = AndroidSdkData.getSdkData(myModule);
     assertEquals(sdkData, actual);
   }
 
-  public void testGetSdkDataSdk() throws Exception {
+  public void testGetSdkDataBySdkClass() throws Exception {
     Sdk sdk = mock(Sdk.class);
-    when(sdk.getHomePath()).thenReturn(getTestSdkPath());
-    Sdk defaultSdk = mock(Sdk.class);
-    when(defaultSdk.getHomePath()).thenReturn(getDefaultTestSdkPath());
+    when(sdk.getHomePath()).thenReturn(TestUtils.getSdk().toString());
 
     assertEquals(sdkData, AndroidSdkData.getSdkData(sdk));
-    assertEquals(defaultSdkData, AndroidSdkData.getSdkData(defaultSdk));
-
-    assertThat(AndroidSdkData.getSdkData(sdk)).isNotEqualTo(AndroidSdkData.getSdkData(defaultSdk));
   }
 }

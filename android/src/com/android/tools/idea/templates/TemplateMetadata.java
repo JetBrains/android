@@ -23,7 +23,6 @@ import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
@@ -37,8 +36,6 @@ import static com.android.tools.idea.templates.Template.*;
 
 /** An ADT template along with metadata */
 public class TemplateMetadata {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.templates.TemplateMetadata");
-
   public static final String ATTR_PARENT_ACTIVITY_CLASS = "parentActivityClass";
   public static final String ATTR_ACTIVITY_TITLE = "activityTitle";
   public static final String ATTR_IS_LAUNCHER = "isLauncher";
@@ -84,6 +81,10 @@ public class TemplateMetadata {
   public static final String ATTR_ICON_NAME = "iconName";
   public static final String ATTR_APPLICATION_PACKAGE = "applicationPackage";
   public static final String ATTR_SOURCE_PROVIDER_NAME = "sourceProviderName";
+  public static final String ATTR_MODULE_NAME = "projectName";
+  public static final String ATTR_CREATE_ACTIVITY = "createActivity";
+  public static final String ATTR_INCLUDE_FORM_FACTOR = "included";
+  public static final String ATTR_IS_LOW_MEMORY = "isLowMemory";
 
   public static final String ATTR_CPP_FLAGS = "cppFlags";
   public static final String ATTR_CPP_SUPPORT = "includeCppSupport";
@@ -93,6 +94,14 @@ public class TemplateMetadata {
   public static final String ATTR_GRID_LAYOUT_EXTRA = "usesGridLayout";
   public static final String ATTR_NAVIGATION_DRAWER_EXTRA = "usesNavigationDrawer";
 
+  public static final String ATTR_WH_SDK = "whSdkPath";
+  public static final String ATTR_APP_DOMAIN = "supportedDomain";
+  public static final String ATTR_ATOM_NAME = "atomName";
+  public static final String ATTR_ATOM_ROUTE = "atomRoute";
+  public static final String ATTR_IS_INSTANT_APP = "isInstantApp";
+  public static final String ATTR_IS_BASE_ATOM = "isBaseAtom";
+  public static final String ATTR_SPLIT_NAME = "splitName";
+
   public static final String TAG_CATEGORY = "category";
   public static final String TAG_FORMFACTOR = "formfactor";
 
@@ -101,8 +110,8 @@ public class TemplateMetadata {
 
   private final AndroidIconType myIconType;
   private final String myIconName;
-  private String myFormFactor = null;
-  private String myCategory = null;
+  private String myFormFactor;
+  private String myCategory;
   private final Multimap<Parameter, Parameter> myRelatedParameters;
 
   @VisibleForTesting
@@ -110,7 +119,7 @@ public class TemplateMetadata {
     myDocument = document;
 
     NodeList parameters = myDocument.getElementsByTagName(TAG_PARAMETER);
-    myParameterMap = new LinkedHashMap<String, Parameter>(parameters.getLength());
+    myParameterMap = new LinkedHashMap<>(parameters.getLength());
     for (int index = 0, max = parameters.getLength(); index < max; index++) {
       Element element = (Element) parameters.item(index);
       Parameter parameter = new Parameter(this, element);
@@ -122,13 +131,13 @@ public class TemplateMetadata {
     NodeList icons = myDocument.getElementsByTagName(TAG_ICONS);
     if (icons.getLength() > 0) {
       Element element = (Element) icons.item(0);
-      if (element.hasAttribute(Template.ATTR_TYPE)) {
-        String iconTypeName = element.getAttribute(Template.ATTR_TYPE).toUpperCase(Locale.US);
+      if (element.hasAttribute(ATTR_TYPE)) {
+        String iconTypeName = element.getAttribute(ATTR_TYPE).toUpperCase(Locale.US);
         myIconType = AndroidIconType.valueOf(iconTypeName);
       } else {
         myIconType = null;
       }
-      myIconName = element.getAttribute(Template.ATTR_NAME);
+      myIconName = element.getAttribute(ATTR_NAME);
     } else {
       myIconType = null;
       myIconName = null;
@@ -137,16 +146,16 @@ public class TemplateMetadata {
     NodeList categories = myDocument.getElementsByTagName(TAG_CATEGORY);
     if (categories.getLength() > 0) {
       Element element = (Element) categories.item(0);
-      if (element.hasAttribute(Template.ATTR_VALUE)) {
-        myCategory = element.getAttribute(Template.ATTR_VALUE);
+      if (element.hasAttribute(ATTR_VALUE)) {
+        myCategory = element.getAttribute(ATTR_VALUE);
       }
     }
 
     NodeList formFactors = myDocument.getElementsByTagName(TAG_FORMFACTOR);
     if (formFactors.getLength() > 0) {
       Element element = (Element) formFactors.item(0);
-      if (element.hasAttribute(Template.ATTR_VALUE)) {
-        myFormFactor = element.getAttribute(Template.ATTR_VALUE);
+      if (element.hasAttribute(ATTR_VALUE)) {
+        myFormFactor = element.getAttribute(ATTR_VALUE);
       }
     }
     myRelatedParameters = computeRelatedParameters();
@@ -243,10 +252,7 @@ public class TemplateMetadata {
       NamedNodeMap attributes = thumb.getAttributes();
       if (bestMatch == null && attributes.getLength() == 0) {
         bestMatch = thumb;
-      } else if (attributes.getLength() <= bestMatchCount) {
-        // Already have a match with this number of attributes, no point checking
-        continue;
-      } else {
+      } else if (attributes.getLength() > bestMatchCount) {
         boolean match = true;
         for (int j = 0, max = attributes.getLength(); j < max; j++) {
           Attr attribute = (Attr) attributes.item(j);
@@ -284,7 +290,7 @@ public class TemplateMetadata {
       try {
         int version = Integer.parseInt(versionString);
         return version <= CURRENT_FORMAT;
-      } catch (NumberFormatException nufe) {
+      } catch (NumberFormatException nfe) {
         return false;
       }
     }
@@ -301,7 +307,7 @@ public class TemplateMetadata {
     }
     try {
       int version = Integer.parseInt(format);
-      return version < Template.RELATIVE_FILES_FORMAT;
+      return version < RELATIVE_FILES_FORMAT;
     }
     catch (NumberFormatException ignore) {
       // If we cannot parse the format string assume this is an old format:
@@ -329,18 +335,15 @@ public class TemplateMetadata {
   @Nullable
   private String getAttrNonEmpty(@NotNull String attrName) {
     String attr = myDocument.getDocumentElement().getAttribute(attrName);
-    if (attr != null && !attr.isEmpty()) {
-      return attr;
-    }
-    return null;
+    return (attr == null || attr.isEmpty()) ? null : attr;
   }
 
   private int getInteger(@NotNull String attrName, int defaultValue) {
     try {
       return Integer.parseInt(myDocument.getDocumentElement().getAttribute(attrName));
-    } catch (NumberFormatException nufe) {
+    } catch (NumberFormatException nfe) {
       // Templates aren't allowed to contain codenames, should always be an integer
-      //LOG.warn(nufe);
+      //LOG.warn(nfe);
       return defaultValue;
     } catch (RuntimeException e) {
       return defaultValue;
@@ -349,10 +352,7 @@ public class TemplateMetadata {
 
   private boolean getBoolean(@NotNull String attrName, boolean defaultValue) {
     String value = myDocument.getDocumentElement().getAttribute(attrName);
-    if (value == null) {
-      return defaultValue;
-    }
-    return value.equals(SdkConstants.VALUE_TRUE);
+    return (value == null) ? defaultValue : SdkConstants.VALUE_TRUE.equals(value);
   }
 
   /**
@@ -361,10 +361,7 @@ public class TemplateMetadata {
    */
   @NotNull
   public static String getBuildApiString(@NotNull AndroidVersion version) {
-    if (version.isPreview()) {
-      return AndroidTargetHash.getPlatformHashString(version);
-    }
-    return version.getApiString();
+    return version.isPreview() ? AndroidTargetHash.getPlatformHashString(version) : version.getApiString();
   }
 
   /**

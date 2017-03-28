@@ -62,7 +62,7 @@ public abstract class Layer implements Disposable {
    * @param gc The Graphics object to draw into
    */
   public void paint(@NotNull Graphics2D gc) {
-    assert false; // probably using wrong paint signature in overlay
+    assert false; // probably using wrong buildDisplayList signature in overlay
   }
 
   /**

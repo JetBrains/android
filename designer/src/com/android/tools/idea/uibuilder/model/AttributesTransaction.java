@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX;
@@ -53,6 +54,7 @@ public class AttributesTransaction implements NlAttributesHolder {
    */
   private boolean isSuccessful = false;
   @NotNull private WeakReference<View> myCachedView = new WeakReference<>(null);
+  private boolean hasPendingRelayout;
 
   public AttributesTransaction(@NotNull NlComponent thisComponent) {
     myComponent = thisComponent;
@@ -70,27 +72,42 @@ public class AttributesTransaction implements NlAttributesHolder {
 
   /**
    * Apply the given {@link PendingAttribute} to the passed {@link ViewInfo}
-   *
-   * @return whether the attribute could be applied to the view or not
    */
-  private static boolean applyAttributeToView(@NotNull PendingAttribute attribute, @NotNull ViewInfo viewInfo, NlModel model) {
+  private void applyAttributeToView(@NotNull PendingAttribute attribute, @NotNull ViewInfo viewInfo, NlModel model) {
     if (attribute.name.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX)) {
       String value = attribute.value;
       Object layoutParams = viewInfo.getLayoutParamsObject();
       Object viewObject = viewInfo.getViewObject();
       if (viewObject == null || layoutParams == null) {
-        return false;
+        return;
       }
 
-      return LayoutParamsManager
+      boolean changed = LayoutParamsManager
         .setAttribute(layoutParams, StringUtil.trimStart(attribute.name, ATTR_LAYOUT_RESOURCE_PREFIX), value, model);
+      hasPendingRelayout |= changed;
     }
-
-    return false;
   }
 
   private static void triggerViewRelayout(@NotNull View view) {
     view.setLayoutParams(view.getLayoutParams());
+  }
+
+  /**
+   * Applies all the existing attributes to the given ViewInfo info
+   * @param viewInfo
+   */
+  private void applyAllPendingAttributesToView(@NotNull ViewInfo viewInfo) {
+    View cachedView = (View)viewInfo.getViewObject();
+    myCachedView = new WeakReference<>(cachedView);
+
+    if (cachedView != null) {
+      // If the value is null, means that the attribute was reset to the default value. In that case, since this is a new view object
+      // we do not need to propagate that change.
+      myPendingAttributes.values().stream()
+        .filter(Objects::nonNull)
+        .forEach(pendingAttribute -> applyAttributeToView(pendingAttribute, viewInfo, myModel));
+      hasPendingRelayout = true;
+    }
   }
 
   @Override
@@ -122,26 +139,12 @@ public class AttributesTransaction implements NlAttributesHolder {
         if (cachedView == viewInfo.getViewObject()) {
           // We still have the same view info so we can just apply the delta (the passed attribute)
           if (modified && cachedView != null) {
-            if (applyAttributeToView(attribute, viewInfo, myModel)) {
-              triggerViewRelayout(cachedView);
-            }
+            applyAttributeToView(attribute, viewInfo, myModel);
           }
         }
         else {
           // The view object has changed so we need to re-apply all the attributes
-          cachedView = (View)viewInfo.getViewObject();
-          myCachedView = new WeakReference<>(cachedView);
-
-          if (cachedView != null) {
-            for (PendingAttribute pendingAttribute : myPendingAttributes.values()) {
-              // If the value is null, means that the attribute was reset to the default value. In that case, since this is a new view object
-              // we do not need to propagate that change.
-              if (pendingAttribute.value != null) {
-                applyAttributeToView(pendingAttribute, viewInfo, myModel);
-              }
-            }
-            triggerViewRelayout(cachedView);
-          }
+          applyAllPendingAttributesToView(viewInfo);
         }
       }
     }
@@ -178,7 +181,23 @@ public class AttributesTransaction implements NlAttributesHolder {
     myPendingAttributes.clear();
     myOriginalValues.clear();
 
-    return !hadPendingChanges;
+    return hadPendingChanges;
+  }
+
+  /**
+   * Apply the current transaction, without saving to XML
+   * It will trigger a layout.
+   */
+  public void apply() {
+    ViewInfo viewInfo = myComponent.viewInfo;
+    if (hasPendingRelayout && viewInfo != null) {
+      View currentView = (View)viewInfo.getViewObject();
+      if (currentView != myCachedView.get()) {
+        // The view has changed since the last update so re-apply everything
+        applyAllPendingAttributesToView(myComponent.viewInfo);
+      }
+      triggerViewRelayout((View)myComponent.viewInfo.getViewObject());
+    }
   }
 
   /**
@@ -188,6 +207,16 @@ public class AttributesTransaction implements NlAttributesHolder {
    * @return true if the XML was changed as result of this call
    */
   public boolean commit() {
+    ViewInfo viewInfo = myComponent.viewInfo;
+    if (hasPendingRelayout && viewInfo != null) {
+      View currentView = (View)viewInfo.getViewObject();
+      if (currentView != myCachedView.get()) {
+        // The view has changed since the last update so re-apply everything
+        applyAllPendingAttributesToView(myComponent.viewInfo);
+      }
+      triggerViewRelayout((View)myComponent.viewInfo.getViewObject());
+    }
+
     myLock.writeLock().lock();
     try {
       assert isValid;
@@ -197,7 +226,7 @@ public class AttributesTransaction implements NlAttributesHolder {
       }
 
       if (!ApplicationManager.getApplication().isWriteAccessAllowed()) {
-        ApplicationManager.getApplication().runWriteAction((Computable<Boolean>)this::commit);
+        return ApplicationManager.getApplication().runWriteAction((Computable<Boolean>)this::commit);
       }
 
       boolean modified = false;

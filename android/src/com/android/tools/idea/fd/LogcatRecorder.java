@@ -50,7 +50,7 @@ public class LogcatRecorder {
 
   // Device currently being monitored
   private AtomicReference<IDevice> myDeviceRef = new AtomicReference<>();
-  private AndroidLogcatService.LogLineListener myLogListener;
+  private AndroidLogcatService.LogcatListener myLogListener;
 
   public LogcatRecorder(@NotNull AndroidLogcatService logcatService) {
     myLogcatService = logcatService;
@@ -93,9 +93,9 @@ public class LogcatRecorder {
     }
   }
 
-  private class MyLogLineListener implements AndroidLogcatService.LogLineListener {
+  private class MyLogLineListener implements AndroidLogcatService.LogcatListener {
     @Override
-    public void receiveLogLine(@NotNull LogCatMessage line) {
+    public void onLogLineReceived(@NotNull LogCatMessage line) {
       if ("InstantRun".equals(line.getTag())) { // only save logs from the instant run library
         addLog(line.toString());
       }

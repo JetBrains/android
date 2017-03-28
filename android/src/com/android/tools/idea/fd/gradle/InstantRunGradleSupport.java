@@ -17,7 +17,7 @@ package com.android.tools.idea.fd.gradle;
 
 import com.android.builder.model.InstantRun;
 import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +36,7 @@ public enum InstantRunGradleSupport {
   CANNOT_BUILD_FOR_MULTIPLE_DEVICES(AndroidBundle.message("instant.run.notification.ir.disabled.multiple.devices")),
   CANNOT_DEPLOY_FOR_SECONDARY_USER(AndroidBundle.message("instant.run.notification.ir.disabled.secondary.user")),
   TARGET_PLATFORM_NOT_INSTALLED(AndroidBundle.message("instant.run.notification.ir.disabled.target.platform.missing")),
+  API_TOO_LOW_FOR_INSTANT_RUN, // we don't want a notification for this since w/ the current API level of 21, it'll be too annoying
 
   // Gradle 2.2.0-alpha6 and above can provide more fine grained info when IR is disabled.
   // The following status messages correspond to the values returned by the gradle plugin.
@@ -61,7 +62,13 @@ public enum InstantRunGradleSupport {
     return myUserNotification;
   }
 
-  public static InstantRunGradleSupport fromModel(@NotNull AndroidGradleModel model) throws UnsupportedOperationException {
+  public static InstantRunGradleSupport fromModel(@NotNull AndroidModuleModel model) throws UnsupportedOperationException {
+    // Regardless of whether Gradle supports IR or not, we need to make sure it is of a minimum version.
+    boolean modelSupportsInstantRun = InstantRunGradleUtils.modelSupportsInstantRun(model);
+    if (!modelSupportsInstantRun) {
+      return GRADLE_PLUGIN_TOO_OLD;
+    }
+
     int modelStatus;
     try {
       modelStatus = model.getSelectedVariant().getMainArtifact().getInstantRun().getSupportStatus();

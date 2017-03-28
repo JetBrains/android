@@ -40,7 +40,7 @@ public class DependenciesModel extends GradleDslBlockModel {
   public List<DependencyModel> all() {
     List<DependencyModel> dependencies = Lists.newArrayList();
     for (String configurationName : myDslElement.getProperties()) {
-      GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
+      GradleDslElementList list = myDslElement.getPropertyElement(configurationName, GradleDslElementList.class);
       if (list != null) {
         for (GradleDslElement element : list.getElements(GradleDslElement.class)) {
           dependencies.addAll(ArtifactDependencyModel.create(element));
@@ -71,7 +71,7 @@ public class DependenciesModel extends GradleDslBlockModel {
   }
 
   private void addArtifacts(@NotNull String configurationName, @NotNull List<ArtifactDependencyModel> dependencies) {
-    GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
+    GradleDslElementList list = myDslElement.getPropertyElement(configurationName, GradleDslElementList.class);
     if (list != null) {
       for (GradleDslElement element : list.getElements(GradleDslElement.class)) {
         dependencies.addAll(ArtifactDependencyModel.create(element));
@@ -117,7 +117,7 @@ public class DependenciesModel extends GradleDslBlockModel {
   public List<ModuleDependencyModel> modules() {
     List<ModuleDependencyModel> dependencies = Lists.newArrayList();
     for (String configurationName : myDslElement.getProperties()) {
-      GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
+      GradleDslElementList list = myDslElement.getPropertyElement(configurationName, GradleDslElementList.class);
       if (list != null) {
         for (GradleDslMethodCall element : list.getElements(GradleDslMethodCall.class)) {
           dependencies.addAll(ModuleDependencyModel.create(configurationName, element));
@@ -141,8 +141,58 @@ public class DependenciesModel extends GradleDslBlockModel {
   }
 
   @NotNull
+  public List<FileTreeDependencyModel> fileTrees() {
+    List<FileTreeDependencyModel> dependencies = Lists.newArrayList();
+    for (String configurationName : myDslElement.getProperties()) {
+      GradleDslElementList list = myDslElement.getPropertyElement(configurationName, GradleDslElementList.class);
+      if (list != null) {
+        for (GradleDslMethodCall element : list.getElements(GradleDslMethodCall.class)) {
+          dependencies.addAll(FileTreeDependencyModel.create(configurationName, element));
+        }
+      }
+    }
+    return dependencies;
+  }
+
+  @NotNull
+  public DependenciesModel addFileTree(@NotNull String configurationName, @NotNull String dir) {
+    return addFileTree(configurationName, dir, null, null);
+  }
+
+  @NotNull
+  public DependenciesModel addFileTree(@NotNull String configurationName,
+                                       @NotNull String dir,
+                                       @Nullable List<String> includes,
+                                       @Nullable List<String> excludes) {
+    GradleDslElementList list = getOrCreateGradleDslElementList(configurationName);
+    FileTreeDependencyModel.createAndAddToList(list, configurationName, dir, includes, excludes);
+    return this;
+  }
+
+  @NotNull
+  public List<FileDependencyModel> files() {
+    List<FileDependencyModel> dependencies = Lists.newArrayList();
+    for (String configurationName : myDslElement.getProperties()) {
+      GradleDslElementList list = myDslElement.getPropertyElement(configurationName, GradleDslElementList.class);
+      if (list != null) {
+        for (GradleDslMethodCall element : list.getElements(GradleDslMethodCall.class)) {
+          dependencies.addAll(FileDependencyModel.create(configurationName, element));
+        }
+      }
+    }
+    return dependencies;
+  }
+
+  @NotNull
+  public DependenciesModel addFile(@NotNull String configurationName, @NotNull String file) {
+    GradleDslElementList list = getOrCreateGradleDslElementList(configurationName);
+    FileDependencyModel.createAndAddToList(list, configurationName, file);
+    return this;
+  }
+
+  @NotNull
   private GradleDslElementList getOrCreateGradleDslElementList(@NotNull String configurationName) {
-    GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
+    GradleDslElementList list = myDslElement.getPropertyElement(configurationName, GradleDslElementList.class);
     if (list == null) {
       list = new GradleDslElementList(myDslElement, configurationName);
       myDslElement.setNewElement(configurationName, list);
@@ -151,22 +201,8 @@ public class DependenciesModel extends GradleDslBlockModel {
   }
 
   @NotNull
-  public List<FileTreeDependencyModel> fileTrees() {
-    List<FileTreeDependencyModel> dependencies = Lists.newArrayList();
-    for (String configurationName : myDslElement.getProperties()) {
-      GradleDslElementList list = myDslElement.getProperty(configurationName, GradleDslElementList.class);
-      if (list != null) {
-        for (GradleDslMethodCall element : list.getElements(GradleDslMethodCall.class)) {
-          dependencies.addAll(FileTreeDependencyModel.create(element));
-        }
-      }
-    }
-    return dependencies;
-  }
-
-  @NotNull
   public DependenciesModel remove(@NotNull DependencyModel dependency) {
-    GradleDslElementList gradleDslElementList = myDslElement.getProperty(dependency.configurationName(), GradleDslElementList.class);
+    GradleDslElementList gradleDslElementList = myDslElement.getPropertyElement(dependency.configurationName(), GradleDslElementList.class);
     if (gradleDslElementList != null) {
       GradleDslElement dependencyElement = dependency.getDslElement();
       GradleDslElement parent = dependencyElement.getParent();

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +31,6 @@ public class RebuildGradleProjectAction extends AndroidStudioGradleAction {
 
   @Override
   protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
-    GradleInvoker.getInstance(project).rebuild();
+    GradleBuildInvoker.getInstance(project).rebuild();
   }
 }

@@ -17,6 +17,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.google.common.collect.ImmutableMap;
@@ -50,6 +51,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.List;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
 
 public class ApplicationRunParameters<T extends AndroidRunConfiguration> implements ConfigurationSpecificEditor<T>, ActionListener {
   private JPanel myPanel;
@@ -307,6 +311,27 @@ public class ApplicationRunParameters<T extends AndroidRunConfiguration> impleme
     }
 
     return null;
+  }
+
+  public void onModuleChanged() {
+    Module currentModule = myModuleSelector.getModule();
+
+    if (currentModule == null) {
+      return;
+    }
+
+    // Lock and hide subset of UI when attached to an instantApp
+    AndroidModuleModel model = AndroidModuleModel.get(currentModule);
+    boolean isInstantApp = false;
+    if (model != null && model.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+      myLaunchOptionCombo.setSelectedItem(LAUNCH_DEEP_LINK);
+      myDeployOptionCombo.setSelectedItem(InstallOption.DEFAULT_APK);
+      isInstantApp = true;
+    }
+    myDeployOptionCombo.setEnabled(!isInstantApp);
+    myCustomArtifactLabeledComponent.setEnabled(!isInstantApp);
+
+    myLaunchOptionCombo.setEnabled(!isInstantApp);
   }
 
   private static class ArtifactRenderer extends ListCellRendererWrapper {

@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.assistant.datamodel;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 import java.util.List;
 
 /**
@@ -23,15 +27,49 @@ import java.util.List;
  * parent feature.
  */
 public interface TutorialData {
+  /**
+   * Returns a descriptive label for the tutorial. Used in conjunction with
+   * {@code #getDescription} to represent the tutorial's purpose.
+   */
+  @NotNull
   String getLabel();
 
+  /**
+   * Returns a short description of the tutorial, rendered as markup. Note that
+   * markup should be restricted to adding links and extremely basic formatting
+   * such as bolding.
+   */
+  @Nullable
   String getDescription();
 
+  /**
+   * Returns a url for more information on the tutorial.
+   */
+  @Nullable
   String getRemoteLink();
 
+  /**
+   * Returns the text to linkify with the result of {@code #getRemoteLink}.
+   */
+  @Nullable
   String getRemoteLinkLabel();
 
+  /**
+   * Returns a unique key for the tutorial. Used for mapping and logging purposes
+   * and is not user visible.
+   */
+  @NotNull
   String getKey();
 
+  /**
+   * Returns an icon for use in the tutorial. Displayed next to the label if non-null.
+   */
+  @Nullable
+  Icon getIcon();
+
+  /**
+   * Returns the set of steps in the tutorial.
+   */
+  @NotNull
   List<? extends StepData> getSteps();
 }

@@ -23,9 +23,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
+import java.util.List;
 
-import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -919,6 +918,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
     assertTrue(android.hasValidPsiElement());
 
     BuildTypeModel buildType = getXyzBuildType(buildModel);
@@ -1012,6 +1012,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
     assertTrue(android.hasValidPsiElement());
     buildType = getXyzBuildType(buildModel);
     assertTrue(buildType.hasValidPsiElement());
@@ -1048,8 +1049,9 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
     assertFalse(android.hasValidPsiElement());
-    assertEmpty(android.buildTypes());
+    assertThat(android.buildTypes()).isEmpty();
   }
 
   public void testEditAndApplyLiteralElements() throws Exception {
@@ -1485,8 +1487,9 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
     assertFalse(android.hasValidPsiElement());
-    assertEmpty(android.buildTypes());
+    assertThat(android.buildTypes()).isEmpty();
   }
 
   public void testSetAndApplyMapElements() throws Exception {
@@ -1580,10 +1583,12 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @NotNull
   private static BuildTypeModel getXyzBuildType(GradleBuildModel buildModel) {
-    Collection<BuildTypeModel> buildTypeModels = buildModel.android().buildTypes();
-    assertSize(1, buildTypeModels);
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+    List<BuildTypeModel> buildTypeModels = android.buildTypes();
+    assertThat(buildTypeModels).hasSize(1);
 
-    BuildTypeModel buildType = getOnlyElement(buildTypeModels);
+    BuildTypeModel buildType = buildTypeModels.get(0);
     assertEquals("name", "xyz", buildType.name());
     return buildType;
   }

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.structure.services;
 
-import com.android.tools.idea.stats.UsageTracker;
+import com.android.tools.analytics.UsageTracker;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.DeveloperServiceKind;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -23,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.stats.UsageTracker.*;
 import static com.android.tools.idea.structure.services.BuildSystemOperationsLookup.getBuildSystemOperations;
 
 /**
@@ -76,7 +77,7 @@ public final class DeveloperService {
     }.execute();
     getContext().snapshot();
     getContext().installed().set(true);
-    trackEvent(ACTION_DEVELOPER_SERVICES_INSTALLED);
+    trackEvent(AndroidStudioEvent.EventKind.DEVELOPER_SERVICES_INSTALLED);
   }
 
   public void uninstall() {
@@ -87,16 +88,55 @@ public final class DeveloperService {
     Module module = getModule();
     getBuildSystemOperations(module.getProject()).removeDependencies(module, getMetadata());
     getContext().installed().set(false);
-    trackEvent(ACTION_DEVELOPER_SERVICES_REMOVED);
-
+    trackEvent(AndroidStudioEvent.EventKind.DEVELOPER_SERVICES_REMOVED);
   }
 
   public boolean isInstalled() {
     return getContext().installed().get();
   }
 
-  private void trackEvent(@NotNull String event) {
-    UsageTracker.getInstance().trackEvent(CATEGORY_DEVELOPER_SERVICES, event, getMetadata().getName(), null);
+  private void trackEvent(AndroidStudioEvent.EventKind eventKind) {
+
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+      .setCategory(AndroidStudioEvent.EventCategory.DEVELOPER_SERVICES)
+                                   .setKind(eventKind)
+                                   .setDeveloperServiceKind(serviceIdToServiceKind(getMetadata().getId())));
+  }
+
+  private DeveloperServiceKind serviceIdToServiceKind(String id) {
+    switch(id) {
+      case "firebase.messaging":
+      case "google_cloud_messaging":
+        return DeveloperServiceKind.GOOGLE_CLOUD_MESSAGING;
+      case "admob":
+      case "firebase.admob":
+        return DeveloperServiceKind.AD_MOB;
+      case "google_identity":
+        return DeveloperServiceKind.GOOGLE_SIGN_IN;
+      case "google_analytics":
+      case "firebase.analytics":
+        return DeveloperServiceKind.GOOGLE_ANALYTICS;
+      case "firebase.database":
+        return DeveloperServiceKind.REALTIME_DATABASE;
+      case "firebase.auth":
+        return DeveloperServiceKind.AUTHENTICATION;
+      case "firebase.crash":
+        return DeveloperServiceKind.CRASH_REPORTING;
+      case "firebase.notifications":
+        return DeveloperServiceKind.NOTIFICATIONS;
+      case "firebase.remote_config":
+        return DeveloperServiceKind.REMOTE_CONFIG;
+      case "firebase.storage":
+        return DeveloperServiceKind.STORAGE;
+      case "firebase.app_invites":
+        return DeveloperServiceKind.APP_INVITES;
+      case "firebase.dynamiclinks":
+        return DeveloperServiceKind.DYNAMIC_LINKS;
+      case "firebase":
+      return DeveloperServiceKind.FIREBASE;
+      default:
+        return DeveloperServiceKind.UNKNOWN_DEVELOPER_SERVICE_KIND;
+    }
   }
 
   /**

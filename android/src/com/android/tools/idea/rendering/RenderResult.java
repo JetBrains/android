@@ -18,89 +18,111 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.sdklib.devices.Device;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.util.PropertiesMap;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static com.android.tools.idea.rendering.RenderedImage.ShadowType;
-
 public class RenderResult {
   @NotNull private final PsiFile myFile;
   @NotNull private final RenderLogger myLogger;
-  @Nullable private final List<ViewInfo> myRootViews;
-  @Nullable private final List<ViewInfo> mySystemRootViews;
-  @Nullable private final RenderedImage myImage;
+  @NotNull private final List<ViewInfo> myRootViews;
+  @NotNull private final List<ViewInfo> mySystemRootViews;
+  @NotNull private final ImagePool.Image myImage;
   @Nullable private final RenderTask myRenderTask;
   @NotNull private final Result myRenderResult;
-  @Nullable private IncludeReference myIncludedWithin = IncludeReference.NONE;
-  @NotNull private final Rectangle myImageBounds;
   @NotNull private final Map<Object, PropertiesMap> myDefaultProperties;
+  @NotNull private final Module myModule;
 
-  public RenderResult(@Nullable RenderTask renderTask,
-                      @Nullable RenderSession session,
-                      @NotNull PsiFile file,
-                      @NotNull RenderLogger logger) {
+  protected RenderResult(@NotNull PsiFile file,
+                         @NotNull Module module,
+                         @NotNull RenderLogger logger,
+                         @Nullable RenderTask renderTask,
+                         @NotNull Result renderResult,
+                         @NotNull List<ViewInfo> rootViews,
+                         @NotNull List<ViewInfo> systemRootViews,
+                         @NotNull ImagePool.Image image,
+                         @NotNull Map<Object, PropertiesMap> defaultProperties) {
     myRenderTask = renderTask;
+    myModule = module;
     myFile = file;
     myLogger = logger;
-    myRenderResult = session != null ? session.getResult() : Result.Status.ERROR_UNKNOWN.createResult("Failed to initialize session");
+    myRenderResult = renderResult;
+    myRootViews = rootViews;
+    mySystemRootViews = systemRootViews;
+    myImage = image;
+    myDefaultProperties = defaultProperties;
+  }
 
-    if (session != null && myRenderResult.isSuccess() && renderTask != null) {
-      List<ViewInfo> rootViews = session.getRootViews();
-      myRootViews = rootViews != null ? ImmutableList.copyOf(rootViews) : null;
-      List<ViewInfo> systemRootViews = session.getSystemRootViews();
-      mySystemRootViews = systemRootViews != null ? ImmutableList.copyOf(systemRootViews) : null;
+  /**
+   * Creates a new {@link RenderResult} from a given RenderTask and RenderSession
+   */
+  @NotNull
+  public static RenderResult create(@NotNull RenderTask renderTask,
+                                    @NotNull RenderSession session,
+                                    @NotNull PsiFile file,
+                                    @NotNull RenderLogger logger,
+                                    @NotNull ImagePool.Image image) {
+    List<ViewInfo> rootViews = session.getRootViews();
+    List<ViewInfo> systemRootViews = session.getSystemRootViews();
+    Map<Object, PropertiesMap> defaultProperties = session.getDefaultProperties();
+    return new RenderResult(
+      file,
+      renderTask.getModule(),
+      logger,
+      renderTask,
+      session.getResult(),
+      rootViews != null ? rootViews : Collections.emptyList(),
+      systemRootViews != null ? systemRootViews : Collections.emptyList(),
+      image, // image might be ImagePool.NULL_POOL_IMAGE if there is no rendered image (as in layout())
+      defaultProperties != null ? defaultProperties : Collections.emptyMap());
+  }
 
-      Configuration configuration = renderTask.getConfiguration();
-      BufferedImage image = session.getImage();
-      boolean alphaChannelImage = session.isAlphaChannelImage() || renderTask.requiresTransparency();
-      ShadowType shadowType = alphaChannelImage ? ShadowType.NONE : ShadowType.RECTANGULAR;
-      if (shadowType == ShadowType.NONE && renderTask.isNonRectangular()) {
-        shadowType = ShadowType.ARBITRARY;
-      } else {
-        Device device = renderTask.getConfiguration().getDevice();
-        if (device != null && device.isScreenRound()) {
-          shadowType = ShadowType.ARBITRARY;
-        }
-      }
-      // image might be null if we only inflated the layout but we didn't call render
-      myImage = image != null ? new RenderedImage(configuration, image, alphaChannelImage, shadowType) : null;
-      Map<Object, PropertiesMap> defaultProperties = session.getDefaultProperties();
-      myDefaultProperties = defaultProperties != null ? defaultProperties : Collections.emptyMap();
-    } else {
-      myRootViews = null;
-      mySystemRootViews = null;
-      myImage = null;
-      myDefaultProperties = Collections.emptyMap();
-    }
-
-    myImageBounds =
-      new Rectangle(0, 0, myImage != null ? myImage.getOriginalWidth() : 0, myImage != null ? myImage.getOriginalHeight() : 0);
+  /**
+   * Creates a new session initialization error {@link RenderResult} from a given RenderTask
+   */
+  @NotNull
+  public static RenderResult createSessionInitializationError(@NotNull RenderTask renderTask,
+                                                              @NotNull PsiFile file,
+                                                              @NotNull RenderLogger logger) {
+    return new RenderResult(
+      file,
+      renderTask.getModule(),
+      logger,
+      renderTask,
+      Result.Status.ERROR_UNKNOWN.createResult("Failed to initialize session"),
+      Collections.emptyList(),
+      Collections.emptyList(),
+      ImagePool.NULL_POOLED_IMAGE,
+      Collections.emptyMap());
   }
 
   /**
    * Creates a new blank {@link RenderResult}
    *
    * @param file the PSI file the render result corresponds to
-   * @param logger the optional logger
    * @return a blank render result
    */
   @NotNull
-  public static RenderResult createBlank(@NotNull PsiFile file, @Nullable RenderLogger logger) {
+  public static RenderResult createBlank(@NotNull PsiFile file) {
     Module module = ModuleUtilCore.findModuleForPsiElement(file);
-    return new RenderResult(null, null, file, logger != null ? logger : new RenderLogger(null, module));
+    assert module != null;
+    return new RenderResult(
+      file,
+      module,
+      new RenderLogger(null, module),
+      null,
+      Result.Status.ERROR_UNKNOWN.createResult(""),
+      Collections.emptyList(),
+      Collections.emptyList(),
+      ImagePool.NULL_POOLED_IMAGE,
+      Collections.emptyMap());
   }
 
   @NotNull
@@ -113,14 +135,13 @@ public class RenderResult {
     return myLogger;
   }
 
-  @Nullable
-  public RenderedImage getImage() {
-    return myImage;
+  @NotNull
+  public ImagePool.Image getRenderedImage() {
+    return myImage != null ? myImage : ImagePool.NULL_POOLED_IMAGE;
   }
 
-  @Nullable
-  public BufferedImage getRenderedImage() {
-    return myImage != null ? myImage.getOriginalImage() : null;
+  public boolean hasImage() {
+    return myImage != null && myImage != ImagePool.NULL_POOLED_IMAGE;
   }
 
   @NotNull
@@ -135,36 +156,23 @@ public class RenderResult {
 
   @NotNull
   public Module getModule() {
-    Module module = myLogger.getModule();
-    // This method should only be called on a valid render result
-    assert module != null;
-    return module;
+    return myModule;
   }
 
-  @Nullable
+  @NotNull
   public List<ViewInfo> getRootViews() {
     return myRootViews;
   }
 
-  @Nullable
+  @NotNull
   public List<ViewInfo> getSystemRootViews() {
     return mySystemRootViews;
   }
 
-  @Nullable
-  public IncludeReference getIncludedWithin() {
-    return myIncludedWithin;
-  }
-
-  public void setIncludedWithin(@Nullable IncludeReference includedWithin) {
-    myIncludedWithin = includedWithin;
-  }
-
-  @NotNull
-  public Rectangle getOriginalBounds() {
-    return myImageBounds;
-  }
-
+  /**
+   * Returns the default properties map. This map contains a list of the widgets default values for every attribute as returned by layoutlib.
+   * The map is index by view cookie.
+   */
   @NotNull
   public Map<Object, PropertiesMap> getDefaultProperties() {
     return myDefaultProperties;

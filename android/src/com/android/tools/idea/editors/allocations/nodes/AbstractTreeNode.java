@@ -35,7 +35,7 @@ public abstract class AbstractTreeNode implements ValuedTreeNode {
 
   int myValue;
 
-  @NotNull private Vector<AbstractTreeNode> myChildren = new Vector<AbstractTreeNode>();
+  @NotNull private Vector<AbstractTreeNode> myChildren = new Vector<>();
 
   @Override
   public TreeNode getChildAt(int i) {
@@ -93,8 +93,12 @@ public abstract class AbstractTreeNode implements ValuedTreeNode {
     }
   }
 
-  public void addChild(AbstractTreeNode node) {
+  protected void addChild(@NotNull AbstractTreeNode node) {
     myChildren.add(node);
+  }
+
+  public void insertChild(@NotNull AbstractTreeNode node) {
+    addChild(node);
     node.myParent = this;
     add(node.getCount(), node.getValue());
   }

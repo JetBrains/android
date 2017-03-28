@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.model;
 
+import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -32,6 +33,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
+import junit.framework.AssertionFailedError;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.Nullable;
@@ -41,11 +43,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.google.common.truth.Truth.assertThat;
 
 public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   public void testManifestOnly() throws Exception {
-    loadProject("projects/moduleInfo/manifestOnly");
+    loadProject(MODULE_INFO_MANIFEST_ONLY);
     assertNotNull(myAndroidFacet);
     assertEquals(7, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
     assertEquals(18, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
@@ -54,32 +57,32 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   }
 
   public void testGradleOnly() throws Exception {
-    loadProject("projects/moduleInfo/gradleOnly");
+    loadProject(MODULE_INFO_GRADLE_ONLY);
     assertNotNull(myAndroidFacet);
     assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
-    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
+    assertEquals(GradleImport.CURRENT_COMPILE_VERSION, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
     assertEquals("from.gradle", myAndroidFacet.getAndroidModuleInfo().getPackage());
   }
 
   public void testBoth() throws Exception {
-    loadProject("projects/moduleInfo/both");
+    loadProject(MODULE_INFO_BOTH);
     assertNotNull(myAndroidFacet);
     assertEquals(9, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
-    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
+    assertEquals(GradleImport.CURRENT_COMPILE_VERSION, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
     assertEquals("from.gradle", myAndroidFacet.getAndroidModuleInfo().getPackage());
   }
 
   public void testFlavors() throws Exception {
-    loadProject("projects/moduleInfo/flavors");
+    loadProject(MODULE_INFO_FLAVORS);
     assertNotNull(myAndroidFacet);
 
     assertEquals(14, myAndroidFacet.getAndroidModuleInfo().getMinSdkVersion().getApiLevel());
-    assertEquals(17, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
+    assertEquals(GradleImport.CURRENT_COMPILE_VERSION, myAndroidFacet.getAndroidModuleInfo().getTargetSdkVersion().getApiLevel());
     assertEquals("com.example.free.debug", myAndroidFacet.getAndroidModuleInfo().getPackage());
   }
 
   public void testMerge() throws Exception {
-    loadProject("projects/moduleInfo/merge");
+    loadProject(MODULE_INFO_MERGE);
     assertNotNull(myAndroidFacet);
 
     MergedManifest manifestInfo = MergedManifest.get(myAndroidFacet);
@@ -98,7 +101,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   }
 
   public void testManifestPlaceholderCompletion() throws Exception {
-    loadProject("projects/moduleInfo/merge");
+    loadProject(MODULE_INFO_MERGE);
     assertNotNull(myAndroidFacet);
     VirtualFile file = getProject().getBaseDir().findFileByRelativePath("src/main/AndroidManifest.xml");
     assertNotNull(file);
@@ -135,7 +138,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   }
 
   public void testManifestMerger() throws Exception {
-    loadProject("projects/moduleInfo/manifestMerger");
+    loadProject(MODULE_INFO_MANIFEST_MERGER);
     assertNotNull(myAndroidFacet);
     assertEquals(1, AndroidUtils.getAllAndroidDependencies(myAndroidFacet.getModule(), true).size());
 
@@ -221,9 +224,9 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
 
   public void testManifestError() throws Exception {
     try {
-      loadProject("projects/moduleInfo/manifestError");
+      loadProject(MODULE_INFO_MANIFEST_ERROR);
       fail();
-    } catch (Exception e) {
+    } catch (AssertionFailedError e) {
       assertThat(e.getMessage()).contains("Exception while parsing the supplied manifest file");
     }
   }

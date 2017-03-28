@@ -15,15 +15,20 @@
  */
 package com.android.tools.adtui.common;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 import javax.swing.*;
 import java.awt.*;
 
 import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
+import static org.junit.Assert.assertEquals;
 
-public class AdtUiUtilsTest extends TestCase {
+@RunWith(JUnit4.class)
+public class AdtUiUtilsTest {
+
+  @Test
   public void testGetFittedString() throws Exception {
     JLabel testLabel = new JLabel("Test");
     FontMetrics testMetrics = testLabel.getFontMetrics(AdtUiUtils.DEFAULT_FONT);
@@ -34,18 +39,18 @@ public class AdtUiUtilsTest extends TestCase {
     int perCharacterWidth = testMetrics.stringWidth("A");
 
     // Enough space to render the whole string so no truncation occurs
-    Assert.assertEquals(testString, AdtUiUtils.getFittedString(testMetrics, testString, stringWidth, 1));
+    assertEquals(testString, AdtUiUtils.getFittedString(testMetrics, testString, stringWidth, 1));
 
     // Not enough space for ellipsys so an empty string should be returned
-    Assert.assertEquals("", AdtUiUtils.getFittedString(testMetrics, testString, ellipsysWidth - 1, 1));
+    assertEquals("", AdtUiUtils.getFittedString(testMetrics, testString, ellipsysWidth - 1, 1));
 
     if (ellipsysWidth <= perCharacterWidth) {
-      Assert.assertEquals("AA...", AdtUiUtils.getFittedString(testMetrics, testString, stringWidth - perCharacterWidth, 1));
-      Assert.assertEquals("...", AdtUiUtils.getFittedString(testMetrics, testString, stringWidth - perCharacterWidth * 3, 1));
+      assertEquals("AA...", AdtUiUtils.getFittedString(testMetrics, testString, stringWidth - perCharacterWidth, 1));
+      assertEquals("...", AdtUiUtils.getFittedString(testMetrics, testString, stringWidth - perCharacterWidth * 3, 1));
     } else {
       // The "..." width is greater than the character "A" width, so the function needs to truncate an additional "A" to fit "..."
-      Assert.assertEquals("A...", AdtUiUtils.getFittedString(testMetrics, testString, stringWidth - perCharacterWidth, 1));
-      Assert.assertEquals("", AdtUiUtils.getFittedString(testMetrics, testString, stringWidth - perCharacterWidth * 3, 1));
+      assertEquals("A...", AdtUiUtils.getFittedString(testMetrics, testString, stringWidth - perCharacterWidth, 1));
+      assertEquals("", AdtUiUtils.getFittedString(testMetrics, testString, stringWidth - perCharacterWidth * 3, 1));
     }
   }
 }

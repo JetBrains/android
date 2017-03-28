@@ -18,8 +18,8 @@ package com.android.tools.idea.databinding;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.psi.util.CachedValue;
@@ -31,7 +31,6 @@ import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -43,29 +42,25 @@ public class BrShortNamesCache extends PsiShortNamesCache {
   private static final String[] BR_CLASS_NAME_LIST = new String[]{DataBindingUtil.BR};
   public BrShortNamesCache(DataBindingProjectComponent dataBindingProjectComponent) {
     myComponent = dataBindingProjectComponent;
-    myAllFieldNamesCache = CachedValuesManager.getManager(myComponent.getProject()).createCachedValue(new CachedValueProvider<String[]>() {
-      @Nullable
-      @Override
-      public Result<String[]> compute() {
-        AndroidFacet[] facets = myComponent.getDataBindingEnabledFacets();
-        String[] result;
-        if (facets.length == 0) {
-          result = ArrayUtil.EMPTY_STRING_ARRAY;
-        } else {
-          Set<String> allFields = Sets.newHashSet();
-          for (AndroidFacet facet : facets) {
-            DataBindingUtil.LightBrClass brClass = DataBindingUtil.getOrCreateBrClassFor(facet);
-            Collections.addAll(allFields, brClass.getAllFieldNames());
-          }
-          result = ArrayUtil.toStringArray(allFields);
+    myAllFieldNamesCache = CachedValuesManager.getManager(myComponent.getProject()).createCachedValue(() -> {
+      AndroidFacet[] facets = myComponent.getDataBindingEnabledFacets();
+      String[] result;
+      if (facets.length == 0) {
+        result = ArrayUtil.EMPTY_STRING_ARRAY;
+      } else {
+        Set<String> allFields = Sets.newHashSet();
+        for (AndroidFacet facet : facets) {
+          LightBrClass brClass = DataBindingUtil.getOrCreateBrClassFor(facet);
+          Collections.addAll(allFields, brClass.getAllFieldNames());
         }
-        return Result.create(result, myComponent);
+        result = ArrayUtil.toStringArray(allFields);
       }
+      return CachedValueProvider.Result.create(result, myComponent);
     }, false);
   }
 
   private boolean isMyScope(GlobalSearchScope scope) {
-    if( !myComponent.hasAnyDataBindingEnabledFacet()) {
+    if(!isEnabled()) {
       return false;
     }
     if (scope.getProject() == null) {
@@ -90,7 +85,7 @@ public class BrShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public String[] getAllClassNames() {
-    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+    if (!isEnabled()) {
       return ArrayUtil.EMPTY_STRING_ARRAY;
     }
     return BR_CLASS_NAME_LIST;
@@ -98,7 +93,7 @@ public class BrShortNamesCache extends PsiShortNamesCache {
 
   @Override
   public void getAllClassNames(@NotNull HashSet<String> dest) {
-    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+    if (!isEnabled()) {
       return;
     }
     dest.add(DataBindingUtil.BR);
@@ -167,7 +162,7 @@ public class BrShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public String[] getAllFieldNames() {
-    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+    if (!isEnabled()) {
       return ArrayUtil.EMPTY_STRING_ARRAY;
     }
     return myAllFieldNamesCache.getValue();
@@ -192,5 +187,9 @@ public class BrShortNamesCache extends PsiShortNamesCache {
       return PsiClass.EMPTY_ARRAY;
     }
     return selected.toArray(new PsiClass[selected.size()]);
+  }
+
+  private boolean isEnabled() {
+    return DataBindingUtil.inMemoryClassGenerationIsEnabled() && myComponent.hasAnyDataBindingEnabledFacet();
   }
 }

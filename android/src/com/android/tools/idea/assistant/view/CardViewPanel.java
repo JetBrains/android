@@ -25,7 +25,6 @@ import java.awt.event.ActionListener;
  * Base class for all tutorial views.
  *
  * TODO: Investigate further default layout properties or behaviors to add.
- * TODO: Investigate migrating display properties to a form.
  */
 public abstract class CardViewPanel extends JPanel {
 
@@ -33,12 +32,9 @@ public abstract class CardViewPanel extends JPanel {
   protected ActionListener myListener;
 
   public CardViewPanel(@NotNull ActionListener listener) {
-    super(new BorderLayout());
+    super(new BorderLayout(0, 0));
     setBorder(BorderFactory.createEmptyBorder());
     myListener = listener;
     setOpaque(false);
-    BorderLayout layout = (BorderLayout)getLayout();
-    layout.setVgap(0);
-    layout.setHgap(0);
   }
 }

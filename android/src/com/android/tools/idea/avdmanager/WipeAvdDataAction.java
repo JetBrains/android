@@ -17,16 +17,11 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 
 public class WipeAvdDataAction extends AvdUiAction {
-  private static final Logger LOG = Logger.getInstance(RunAvdAction.class);
-
   public WipeAvdDataAction(AvdInfoProvider avdInfoProvider) {
     super(avdInfoProvider, "Wipe Data", "Wipe the user data of this AVD", AllIcons.Modules.Edit);
   }

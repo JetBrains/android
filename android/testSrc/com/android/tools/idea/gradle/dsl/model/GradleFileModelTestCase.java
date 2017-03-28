@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,28 +15,33 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
+import com.android.tools.idea.gradle.dsl.model.values.GradleValue;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
+import junit.framework.Assert;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.idea.gradle.dsl.model.values.GradleValue.getValues;
 import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.*;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
-import static com.intellij.openapi.util.io.FileUtil.ensureCanCreateFile;
-import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static com.intellij.openapi.util.io.FileUtil.*;
 
 public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected static final String SUB_MODULE_NAME = "gradleModelTest";
@@ -78,28 +83,21 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   @Override
-  protected void tearDown() throws Exception {
-    mySubModule = null;
-    super.tearDown();
-  }
-
-  @NotNull
-  @Override
-  protected Module createMainModule() {
+  protected Module createMainModule() throws IOException {
     Module mainModule = createModule(myProject.getName());
 
     // Create a sub module
     final VirtualFile baseDir = myProject.getBaseDir();
     assertNotNull(baseDir);
-    final File moduleFile = new File(FileUtil.toSystemDependentName(baseDir.getPath()),
+    final File moduleFile = new File(toSystemDependentName(baseDir.getPath()),
                                      SUB_MODULE_NAME + File.separatorChar + SUB_MODULE_NAME + ModuleFileType.DOT_DEFAULT_EXTENSION);
-    FileUtil.createIfDoesntExist(moduleFile);
+    createIfDoesntExist(moduleFile);
     myFilesToDelete.add(moduleFile);
     mySubModule = new WriteAction<Module>() {
       @Override
       protected void run(@NotNull Result<Module> result) throws Throwable {
         VirtualFile virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
-        assertNotNull(virtualFile);
+        Assert.assertNotNull(virtualFile);
         Module module = ModuleManager.getInstance(myProject).newModule(virtualFile.getPath(), getModuleType().getId());
         module.getModuleFile();
         result.setResult(module);
@@ -151,12 +149,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void applyChanges(@NotNull final GradleBuildModel buildModel) {
-    runWriteCommandAction(myProject, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.applyChanges();
-      }
-    });
+    runWriteCommandAction(myProject, buildModel::applyChanges);
     assertFalse(buildModel.isModified());
   }
 
@@ -165,19 +158,60 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     buildModel.reparse();
   }
 
-  public static <T> void assertEquals(@NotNull String message, @NotNull T expected, @NotNull GradleNullableValue<T> actual) {
+
+  protected void verifyGradleValue(@NotNull GradleNullableValue gradleValue,
+                                   @NotNull String propertyName,
+                                   @NotNull String propertyText) {
+    verifyGradleValue(gradleValue, propertyName, propertyText, toSystemIndependentName(myBuildFile.getPath()));
+  }
+
+  public static void verifyGradleValue(@NotNull GradleNullableValue gradleValue,
+                                       @NotNull String propertyName,
+                                       @NotNull String propertyText,
+                                       @NotNull String propertyFilePath) {
+    GroovyPsiElement psiElement = gradleValue.getPsiElement();
+    assertNotNull(psiElement);
+    assertEquals(propertyText, psiElement.getText());
+    assertEquals(propertyFilePath, toSystemIndependentName(gradleValue.getFile().getPath()));
+    assertEquals(propertyName, gradleValue.getPropertyName());
+    assertEquals(propertyText, gradleValue.getDslText());
+  }
+
+  public static <T> void assertEquals(@NotNull String message, @Nullable T expected, @NotNull GradleValue<T> actual) {
     assertEquals(message, expected, actual.value());
   }
 
-  public static <T> void assertEquals(@NotNull T expected, @NotNull GradleNullableValue<T> actual) {
+  public static <T> void assertEquals(@Nullable T expected, @NotNull GradleValue<T> actual) {
     assertEquals(expected, actual.value());
   }
 
-  public static <T> void assertEquals(@NotNull String message, @NotNull T expected, @NotNull GradleNotNullValue<T> actual) {
-    assertEquals(message, expected, actual.value());
+  public static <T> void assertEquals(@NotNull String message, @NotNull List<T> expected, @Nullable List<? extends GradleValue<T>> actual) {
+    assertNotNull(message, actual);
+    assertWithMessage(message).that(getValues(actual)).containsExactlyElementsIn(expected);
   }
 
-  public static <T> void assertEquals(@NotNull T expected, @NotNull GradleNotNullValue<T> actual) {
-    assertEquals(expected, actual.value());
+  public static <T> void assertEquals(@NotNull List<T> expected, @Nullable List<? extends GradleValue<T>> actual) {
+    assertNotNull(actual);
+    assertThat(getValues(actual)).containsExactlyElementsIn(expected);
+  }
+
+  public static <T> void assertEquals(@NotNull String message,
+                                      @NotNull Map<String, T> expected,
+                                      @Nullable Map<String, ? extends GradleValue<T>> actual) {
+    assertNotNull(message, actual);
+    assertWithMessage(message).that(ImmutableMap.copyOf(getValues(actual))).containsExactlyEntriesIn(ImmutableMap.copyOf(expected));
+  }
+
+  public static <T> void assertEquals(@NotNull Map<String, T> expected, @Nullable Map<String, ? extends GradleValue<T>> actual) {
+    assertNotNull(actual);
+    assertThat(ImmutableMap.copyOf(getValues(actual))).containsExactlyEntriesIn(ImmutableMap.copyOf(expected));
+  }
+
+  public static <T> void assertNull(@NotNull String message, @NotNull GradleNullableValue<T> nullableValue) {
+    assertNull(message, nullableValue.value());
+  }
+
+  public static <T> void assertNull(@NotNull GradleNullableValue<T> nullableValue) {
+    assertNull(nullableValue.value());
   }
 }

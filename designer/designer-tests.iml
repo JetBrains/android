@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/testSrc">
+      <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="testFramework" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="module" module-name="designer" scope="TEST" />
+    <orderEntry type="module" module-name="android" scope="TEST" />
+    <orderEntry type="module" module-name="xml-psi-api" scope="TEST" />
+    <orderEntry type="module" module-name="testFramework-java" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="lang-api" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />
+    <orderEntry type="module" module-name="xml-psi-impl" scope="TEST" />
+    <orderEntry type="module" module-name="testutils" scope="TEST" />
+    <orderEntry type="module" module-name="adt-ui" scope="TEST" />
+    <orderEntry type="module" module-name="pixelprobe" scope="TEST" />
+    <orderEntry type="module" module-name="sherpa-ui" scope="TEST" />
+    <orderEntry type="module" module-name="android-test-framework" scope="TEST" />
+    <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
+    <orderEntry type="module" module-name="analytics-protos" scope="TEST" />
+  </component>
+</module>

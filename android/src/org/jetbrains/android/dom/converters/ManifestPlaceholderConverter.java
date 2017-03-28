@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 
 /**
  * {@link CustomReferenceConverter} used to resolve
- * <a href="http://tools.android.com/tech-docs/new-build-system/user-guide/manifest-merger">manifest merger placeholders</a>.
+ * <a href="https://developer.android.com/studio/build/manifest-build-variables.html">manifest merger placeholders</a>.
  * <p/>This Converter provides the completion options when it detects that there are placeholders in the reference and delegates to a delegate
  * converter otherwise.
  */

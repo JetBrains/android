@@ -6,7 +6,7 @@
   <TextView
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
-      <error descr="Duplicate id `@+id/id123`, already defined earlier in this layout (`@+id/id123` originally defined here)">android:id="@+id/id123"</error>
+      <error descr="Duplicate id `@+id/id123` originally defined here">android:id="@+id/id123"</error>
       />
   <TextView
       android:layout_width="fill_parent"

@@ -29,8 +29,8 @@ import java.util.Properties;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
-import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
+import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
+import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -40,7 +40,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
  */
 public final class LocalProperties {
   @NotNull private final File myPropertiesFilePath;
-  @NotNull private final File myProjectDirPath;
+  @NotNull private final File myProjectFolderPath;
   @NotNull private final Properties myProperties;
 
   @Nullable private File myNewAndroidSdkPath;
@@ -54,7 +54,7 @@ public final class LocalProperties {
    * {@link #save()} is invoked.
    *
    * @param project the Android project.
-   * @throws IOException if an I/O error occurs while reading the file.
+   * @throws IOException              if an I/O error occurs while reading the file.
    * @throws IllegalArgumentException if there is already a directory called "local.properties" in the given project.
    */
   public LocalProperties(@NotNull Project project) throws IOException {
@@ -65,13 +65,13 @@ public final class LocalProperties {
    * Creates a new {@link LocalProperties}. If a local.properties file does not exist, a new one will be created when the method
    * {@link #save()} is invoked.
    *
-   * @param projectDirPath the path of the Android project's root directory.
-   * @throws IOException if an I/O error occurs while reading the file.
+   * @param projectFolderPath the path of the Android project's root directory.
+   * @throws IOException              if an I/O error occurs while reading the file.
    * @throws IllegalArgumentException if there is already a directory called "local.properties" at the given path.
    */
-  public LocalProperties(@NotNull File projectDirPath) throws IOException {
-    myProjectDirPath = projectDirPath;
-    myPropertiesFilePath = new File(projectDirPath, FN_LOCAL_PROPERTIES);
+  public LocalProperties(@NotNull File projectFolderPath) throws IOException {
+    myProjectFolderPath = projectFolderPath;
+    myPropertiesFilePath = new File(projectFolderPath, FN_LOCAL_PROPERTIES);
     myProperties = getProperties(myPropertiesFilePath);
   }
 
@@ -176,7 +176,7 @@ public final class LocalProperties {
     String path = getProperty(property);
     if (isNotEmpty(path)) {
       if (!isAbsolute(path)) {
-        String canonicalPath = toCanonicalPath(new File(myProjectDirPath, toSystemDependentName(path)).getPath());
+        String canonicalPath = toCanonicalPath(new File(myProjectFolderPath, toSystemDependentName(path)).getPath());
         File file = new File(canonicalPath);
         if (!file.isDirectory()) {
           // Only accept resolved relative paths if they exist, otherwise just use the path as it was declared in local.properties.
