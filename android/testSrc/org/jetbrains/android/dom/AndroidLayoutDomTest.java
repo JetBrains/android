@@ -391,6 +391,7 @@ public class AndroidLayoutDomTest extends AndroidDomTestCase {
     myFixture.copyFileToProject(myTestFolder + "/tools_context_completion_after.xml", "res/layout/other_layout.xml");
     toTestFirstCompletion("tools_context_completion.xml", "tools_context_completion_after.xml");
     toTestCompletion("tools_showIn_completion.xml", "tools_showIn_completion_after.xml");
+    toTestCompletion("tools_parentTag_completion.xml", "tools_parentTag_completion_after.xml");
   }
 
   public void testCustomAttributeValueCompletion() throws Throwable {
