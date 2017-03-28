@@ -19,16 +19,20 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class ToolbarActionGroups {
+public class ToolbarActionGroups {
   final NlDesignSurface mySurface;
 
-  ToolbarActionGroups(@NotNull NlDesignSurface surface) {
+  public ToolbarActionGroups(@NotNull NlDesignSurface surface) {
     mySurface = surface;
   }
 
   @NotNull
-  abstract ActionGroup getNorthGroup();
+  ActionGroup getNorthGroup() {
+    return ActionGroup.EMPTY_GROUP;
+  }
 
   @NotNull
-  abstract ActionGroup getEastGroup();
+  ActionGroup getEastGroup() {
+    return ActionGroup.EMPTY_GROUP;
+  }
 }
