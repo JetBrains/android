@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,28 @@ package com.android.tools.idea.gradle.project.build;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface GradleBuildListener {
-  void buildStarted(@NotNull BuildContext context);
+public class BuildSummary {
+  @NotNull private final BuildStatus myStatus;
+  @Nullable private final BuildContext myContext;
+  private final long myTimestamp;
 
-  void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context);
+  BuildSummary(@NotNull BuildStatus status, @Nullable BuildContext context) {
+    myStatus = status;
+    myContext = context;
+    myTimestamp = System.currentTimeMillis();
+  }
 
-  abstract class Adapter implements GradleBuildListener {
-    @Override
-    public void buildStarted(@NotNull BuildContext context) {
-    }
+  @NotNull
+  public BuildStatus getStatus() {
+    return myStatus;
+  }
 
-    @Override
-    public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
-    }
+  @Nullable
+  public BuildContext getContext() {
+    return myContext;
+  }
+
+  public long getTimestamp() {
+    return myTimestamp;
   }
 }

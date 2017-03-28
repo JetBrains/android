@@ -21,6 +21,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.GradleProjectSyncData;
+import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -61,7 +62,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.android.tools.idea.gradle.project.build.BuildStatus.SKIPPED;
+import static com.android.tools.idea.gradle.util.Projects.getPluginVersionsPerModule;
+import static com.android.tools.idea.gradle.util.Projects.storePluginVersionsPerModule;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflicts;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 
@@ -221,7 +224,9 @@ public class PostSyncProjectSetup {
     // Notify "sync end" event first, to register the timestamp. Otherwise the cache (GradleProjectSyncData) will store the date of the
     // previous sync, and not the one from the sync that just ended.
     if (request.isUsingCachedGradleModels()) {
-      mySyncState.syncSkipped(System.currentTimeMillis());
+      long timestamp = System.currentTimeMillis();
+      mySyncState.syncSkipped(timestamp);
+      GradleBuildState.getInstance(myProject).buildFinished(SKIPPED);
     }
     else {
       mySyncState.syncEnded();
