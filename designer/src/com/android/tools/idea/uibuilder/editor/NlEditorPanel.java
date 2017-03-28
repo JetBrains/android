@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.startup.DelayedInitialization;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
@@ -28,6 +29,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,24 +45,51 @@ import static com.android.tools.idea.rendering.RenderService.MOCKUP_EDITOR_ENABL
  * Assembles a designer editor from various components
  */
 public class NlEditorPanel extends WorkBench<DesignSurface> {
+  private final AndroidFacet myFacet;
+  private final NlEditor myEditor;
+  private final XmlFile myFile;
   private final DesignSurface mySurface;
+  private final JPanel myContentPanel;
+  private boolean myIsActive;
 
   public NlEditorPanel(@NotNull NlEditor editor, @NotNull Project project, @NotNull AndroidFacet facet, @NotNull VirtualFile file) {
     super(project, "NELE_EDITOR", editor);
     setOpaque(true);
 
-    XmlFile xmlFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, file);
-    assert xmlFile != null : file;
+    myFacet = facet;
+    myEditor = editor;
+    myFile = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, file);
+    assert myFile != null : file;
+    myContentPanel = new JPanel(new BorderLayout());
 
     mySurface = new NlDesignSurface(project, false);
     Disposer.register(editor, mySurface);
-    NlModel model = NlModel.create(mySurface, editor, facet, xmlFile);
+
+    setLoadingText("Wait for build to complete");
+    DelayedInitialization.getInstance(project).runAfterBuild(this::initNeleModel, this::buildError);
+  }
+
+  // Build was either cancelled or there was an error
+  private void buildError() {
+    setLoadingText("Build error. Please fix any errors and retry building.");
+  }
+
+  private void initNeleModel() {
+    UIUtil.invokeLaterIfNeeded(this::initNeleModelOnEventDispatchThread);
+  }
+
+  private void initNeleModelOnEventDispatchThread() {
+    if (Disposer.isDisposed(myEditor) || myContentPanel.getComponentCount() > 0) {
+      return;
+    }
+    Project project = myFacet.getModule().getProject();
+
+    NlModel model = NlModel.create(mySurface, myEditor, myFacet, myFile);
     mySurface.setModel(model);
 
-    JPanel contentPanel = new JPanel(new BorderLayout());
     JComponent toolbarComponent = mySurface.getActionManager().createToolbar(model);
-    contentPanel.add(toolbarComponent, BorderLayout.NORTH);
-    contentPanel.add(mySurface);
+    myContentPanel.add(toolbarComponent, BorderLayout.NORTH);
+    myContentPanel.add(mySurface);
 
     List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
     tools.add(new NlPaletteDefinition(project, Side.LEFT, Split.TOP, AutoHide.DOCKED));
@@ -70,7 +99,10 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
       tools.add(new MockupToolDefinition(Side.RIGHT, Split.TOP, AutoHide.AUTO_HIDE));
     }
 
-    init(contentPanel, mySurface, tools);
+    init(myContentPanel, mySurface, tools);
+    if (myIsActive) {
+      model.activate();
+    }
   }
 
   @Nullable
@@ -80,10 +112,12 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
 
   public void activate() {
     mySurface.activate();
+    myIsActive = true;
   }
 
   public void deactivate() {
     mySurface.deactivate();
+    myIsActive = false;
   }
 
   @NotNull

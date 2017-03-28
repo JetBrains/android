@@ -28,6 +28,7 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.startup.DelayedInitialization;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
@@ -104,6 +105,9 @@ public class AndroidGradleProjectComponent extends AbstractProjectComponent {
       GradleBuildContext newContext = new GradleBuildContext(result);
       AndroidProjectBuildNotifications.getInstance(myProject).notifyBuildComplete(newContext);
     });
+
+    // Force registration from the DelayedInitialization component by loading it.
+    DelayedInitialization.getInstance(myProject);
   }
 
   /**
