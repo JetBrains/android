@@ -82,7 +82,9 @@ public class GradleBuildInvoker {
   }
 
   @VisibleForTesting
-  GradleBuildInvoker(@NotNull Project project, @NotNull FileDocumentManager documentManager, @NotNull GradleTasksExecutor.Factory tasksExecutorFactory) {
+  GradleBuildInvoker(@NotNull Project project,
+                     @NotNull FileDocumentManager documentManager,
+                     @NotNull GradleTasksExecutor.Factory tasksExecutorFactory) {
     myProject = project;
     myDocumentManager = documentManager;
     myTaskExecutorFactory = tasksExecutorFactory;
@@ -495,7 +497,6 @@ public class GradleBuildInvoker {
     @Nullable private ExternalSystemTaskNotificationListener myTaskListener;
     @Nullable private File myBuildFilePath;
     private boolean myWaitForCompletion;
-    private boolean myUseEmbeddedGradle;
 
     public Request(@NotNull Project project, @NotNull String... gradleTasks) {
       this(project, Arrays.asList(gradleTasks));
@@ -581,16 +582,6 @@ public class GradleBuildInvoker {
     @NotNull
     public Request setWaitForCompletion(boolean waitForCompletion) {
       myWaitForCompletion = waitForCompletion;
-      return this;
-    }
-
-    boolean isUseEmbeddedGradle() {
-      return myUseEmbeddedGradle;
-    }
-
-    @NotNull
-    public Request setUseEmbeddedGradle(boolean useEmbeddedGradle) {
-      myUseEmbeddedGradle = useEmbeddedGradle;
       return this;
     }
 
