@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.api.InsertType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.handlers.common.GenericLinearDragHandler;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,5 +74,14 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
     if (newChild.getAndroidAttribute(ATTR_TEXT) == null) {
       newChild.setAndroidAttribute(ATTR_TEXT, "Tab" + (layout.getChildren().size() + 1));
     }
+  }
+
+  @Nullable
+  @Override
+  public DragHandler createDragHandler(@NotNull ViewEditor editor,
+                                       @NotNull SceneComponent layout,
+                                       @NotNull List<SceneComponent> components,
+                                       @NotNull DragType type) {
+    return new GenericLinearDragHandler(editor, layout, components, type, this, false);
   }
 }
