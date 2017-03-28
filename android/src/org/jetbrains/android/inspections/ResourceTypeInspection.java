@@ -37,12 +37,14 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInsight.AnnotationUtil;
+import com.intellij.codeInsight.FileModificationService;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.actions.*;
 import com.intellij.codeInspection.*;
+import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -640,13 +642,6 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       return;
     }
 
-    if (ApiDetector.isWithinVersionCheckConditional(methodCall, api)) {
-      return;
-    }
-    if (ApiDetector.isPrecededByVersionCheckExit(methodCall, api)) {
-      return;
-    }
-
     PsiClass containingClass = method.getContainingClass();
     String fqcn = containingClass != null ? containingClass.getQualifiedName() : "";
     // Keep in sync with guessLintIssue
@@ -1209,8 +1204,14 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
     @Nls
     @NotNull
     @Override
-    public String getFamilyName() {
+    public String getName() {
       return "Add permission check";
+    }
+
+    @NotNull
+    @Override
+    public String getFamilyName() {
+      return getName();
     }
 
     @Override
@@ -1382,7 +1383,7 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
       }
       String name = getMethodName();
       final PsiFile file = methodCall.getContainingFile();
-      if (file == null) {
+      if (file == null || !FileModificationService.getInstance().prepareFileForWrite(file)) {
         return;
       }
 
@@ -2360,9 +2361,9 @@ public class ResourceTypeInspection extends BaseJavaLocalInspectionTool {
                                                languageSlicing.createRootUsage(argument, params));
 
     @SuppressWarnings("unchecked")
-    Collection<SliceNode> children = rootNode.getChildren().iterator().next().getChildren();
-    for (SliceNode child : children) {
-      SliceUsage usage = child.getValue();
+    Collection<? extends AbstractTreeNode> children = rootNode.getChildren().iterator().next().getChildren();
+    for (AbstractTreeNode child : children) {
+      SliceUsage usage = (SliceUsage)child.getValue();
       if (usage == null) {
         continue;
       }

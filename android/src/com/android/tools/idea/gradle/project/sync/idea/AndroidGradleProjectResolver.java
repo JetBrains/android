@@ -49,6 +49,7 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.KeyValue;
+import com.intellij.openapi.util.Pair;
 import com.intellij.util.PathsList;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleScript;
@@ -295,9 +296,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   @NotNull
-  public List<KeyValue<String, String>> getExtraJvmArgs() {
+  public List<Pair<String, String>> getExtraJvmArgs() {
     if (isInProcessMode(GRADLE_SYSTEM_ID)) {
-      List<KeyValue<String, String>> args = new ArrayList<>();
+      List<Pair<String, String>> args = new ArrayList<>();
 
       if (!IdeInfo.getInstance().isAndroidStudio()) {
         LocalProperties localProperties = getLocalProperties();

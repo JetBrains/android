@@ -61,7 +61,7 @@ public class ProjectJdkSetupStep extends ProjectSetupStep {
   void doSetUpProject(@NotNull Project project, boolean androidStudio) {
     LanguageLevel javaLangVersion = JDK_1_8;
     Sdk projectJdk = ProjectRootManager.getInstance(project).getProjectSdk();
-    Sdk ideJdk = null;
+    Sdk ideJdk = projectJdk;
 
     if (androidStudio) {
       ideJdk = myIdeSdks.getJdk();
@@ -76,9 +76,7 @@ public class ProjectJdkSetupStep extends ProjectSetupStep {
 
     if (ideJdk == null) {
       SyncMessage message = new SyncMessage(DEFAULT_GROUP, ERROR, "Unable to find a JDK");
-      if (androidStudio) {
-        message.add(myJdks.getWrongJdkQuickFixes(project));
-      }
+      message.add(myJdks.getWrongJdkQuickFixes(project));
 
       SyncMessages.getInstance(project).report(message);
       GradleSyncState.getInstance(project).getSummary().setSyncErrorsFound(true);

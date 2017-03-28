@@ -451,8 +451,10 @@ public class IdeSdks {
     // This happens when user has a fresh installation of Android Studio, and goes through the 'First Run' Wizard.
     if (myIdeInfo.isAndroidStudio()) {
       Sdk jdk = myJdks.createEmbeddedJdk();
-      assert isJdkCompatible(jdk, preferredVersion);
-      return jdk;
+      if (jdk != null) {
+        assert isJdkCompatible(jdk, preferredVersion);
+        return jdk;
+      }
     }
 
     List<File> jdkPaths = getPotentialJdkPaths();

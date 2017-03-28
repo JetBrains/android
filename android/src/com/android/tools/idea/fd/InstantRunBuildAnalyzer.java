@@ -21,6 +21,7 @@ import com.android.tools.idea.diagnostics.crash.CrashReporter;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.tasks.*;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessHandler;
@@ -104,6 +105,9 @@ public class InstantRunBuildAnalyzer {
         }
         // fall through
       case FULLAPK:
+        Preconditions.checkNotNull(launchOptions); // launchOptions can be null only under NO_CHANGES or HOTSWAP scenarios
+        DeployApkTask deployApkTask = new DeployApkTask(myProject, launchOptions, getApks(myBuildInfo, myContext), myContext);
+        return ImmutableList.of(deployApkTask, updateStateTask);
       case LEGACY:
       default:
         // https://code.google.com/p/android/issues/detail?id=232515

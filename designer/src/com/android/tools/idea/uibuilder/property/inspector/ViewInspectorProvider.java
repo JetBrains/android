@@ -23,9 +23,6 @@ import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.android.tools.idea.uibuilder.property.editors.NlComponentEditor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.ide.ui.LafManager;
-import com.intellij.ide.ui.LafManagerListener;
-import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.AndroidIcons;
@@ -36,17 +33,12 @@ import java.util.*;
 
 import static com.android.SdkConstants.*;
 
-public class ViewInspectorProvider implements InspectorProvider, ProjectComponent, LafManagerListener {
+public class ViewInspectorProvider implements InspectorProvider {
   private static final Set<String> TAG_EXCEPTIONS = ImmutableSet.of(TEXT_VIEW, PROGRESS_BAR);
   private final ViewHandlerManager myViewHandlerManager;
   private final Map<String, InspectorComponent> myInspectors;
 
-  @NotNull
-  public static ViewInspectorProvider getInstance(@NotNull Project project) {
-    return project.getComponent(ViewInspectorProvider.class);
-  }
-
-  private ViewInspectorProvider(@NotNull Project project) {
+  public ViewInspectorProvider(@NotNull Project project) {
     myViewHandlerManager = ViewHandlerManager.get(project);
     myInspectors = new HashMap<>();
   }
@@ -189,34 +181,5 @@ public class ViewInspectorProvider implements InspectorProvider, ProjectComponen
       }
       myPropertyNames.set(mySrcPropertyIndex, properties.containsKey(ATTR_SRC_COMPAT) ? ATTR_SRC_COMPAT : ATTR_SRC);
     }
-  }
-
-  @Override
-  public void projectOpened() {
-  }
-
-  @Override
-  public void projectClosed() {
-  }
-
-  @Override
-  public void initComponent() {
-    LafManager.getInstance().addLafManagerListener(this);
-  }
-
-  @Override
-  public void disposeComponent() {
-    LafManager.getInstance().removeLafManagerListener(this);
-  }
-
-  @Override
-  public void lookAndFeelChanged(LafManager source) {
-    myInspectors.clear();
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return ViewInspectorProvider.class.getSimpleName();
   }
 }

@@ -26,7 +26,6 @@
     <orderEntry type="module" module-name="properties" />
     <orderEntry type="library" name="xpp3-1.1.4-min" level="project" />
     <orderEntry type="module" module-name="testng" />
-    <orderEntry type="library" exported="" name="asm" level="project" />
     <orderEntry type="module" module-name="android-common" exported="" />
     <orderEntry type="module" module-name="android-rt" />
     <orderEntry type="module" module-name="java-indexing-api" />
@@ -127,7 +126,6 @@
     </orderEntry>
     <orderEntry type="module" module-name="gradle" />
     <orderEntry type="module" module-name="layoutlib" />
-    <orderEntry type="module" module-name="sherpa-solver" />
     <orderEntry type="module" module-name="sherpa-ui" />
     <orderEntry type="module-library">
       <library name="dexlib2">
@@ -144,15 +142,23 @@
     </orderEntry>
     <orderEntry type="module" module-name="binary-resources" />
     <orderEntry type="module" module-name="pixelprobe" />
-    <orderEntry type="library" name="studio-profiler-grpc-1.0-jarjar" level="project" />
-    <orderEntry type="module" module-name="analytics-tracker" />
-    <orderEntry type="module" module-name="analytics-protos" />
-    <orderEntry type="module" module-name="analytics-shared" />
-    <orderEntry type="module" module-name="common" />
-    <orderEntry type="module" module-name="observable" />
-    <orderEntry type="module" module-name="profilers" />
-    <orderEntry type="module" module-name="profilers-ui" />
-    <orderEntry type="module" module-name="gradle-tooling-extension-impl" />
+    <orderEntry type="library" name="Gradle" level="project" />
+    <orderEntry type="module-library">
+      <library name="gluegen-rt">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/gluegen-rt.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="sherpa-solver" level="project" />
+    <orderEntry type="library" name="google-analytics-library" level="project" />
     <orderEntry type="module" module-name="wizard" />
+    <orderEntry type="module" module-name="observable" />
+    <orderEntry type="library" name="studio-profiler-grpc-1.0-jarjar" level="project" />
+    <orderEntry type="module" module-name="profilers" />
+    <orderEntry type="module" module-name="gradle-tooling-extension-impl" />
+    <orderEntry type="module" module-name="profilers-ui" />
   </component>
 </module>
