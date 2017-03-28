@@ -26,6 +26,9 @@ import com.android.tools.idea.fd.FlightRecorder;
 import com.android.tools.idea.fd.InstantRunBuildProgressListener;
 import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.gradle.output.parser.BuildOutputParser;
+import com.android.tools.idea.gradle.project.BuildSettings;
+import com.android.tools.idea.gradle.project.build.BuildContext;
+import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.build.console.view.GradleConsoleToolWindowFactory;
 import com.android.tools.idea.gradle.project.build.console.view.GradleConsoleView;
@@ -34,6 +37,7 @@ import com.android.tools.idea.gradle.project.build.invoker.messages.GradleBuildT
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.annotations.VisibleForTesting;
@@ -94,6 +98,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
+import static com.android.tools.idea.gradle.project.build.BuildStatus.*;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.GradleBuilds.CONFIGURE_ON_DEMAND_OPTION;
 import static com.android.tools.idea.gradle.util.GradleBuilds.PARALLEL_BUILD_OPTION;
@@ -169,11 +174,14 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     @NotNull
     GradleTasksExecutor create(@NotNull GradleBuildInvoker.Request request,
                                @NotNull BuildStopper buildStopper) {
-      return new GradleTasksExecutorImpl(request, buildStopper);
+      Project project = request.getProject();
+      return new GradleTasksExecutorImpl(request, buildStopper, GradleBuildState.getInstance(project), BuildSettings.getInstance(project),
+                                         IdeInfo.getInstance(), IdeSdks.getInstance(), GradleConsoleView.getInstance(project));
     }
   }
 
-  private static class GradleTasksExecutorImpl extends GradleTasksExecutor {
+  @VisibleForTesting
+  static class GradleTasksExecutorImpl extends GradleTasksExecutor {
     private static final ExternalSystemTaskNotificationListener GRADLE_LISTENER = new ExternalSystemTaskNotificationListenerAdapter() {
     };
 
@@ -194,6 +202,11 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
     @NotNull private final GradleBuildInvoker.Request myRequest;
     @NotNull private final BuildStopper myBuildStopper;
+    @NotNull private final GradleBuildState myBuildState;
+    @NotNull private final BuildSettings myBuildSettings;
+    @NotNull private final IdeInfo myIdeInfo;
+    @NotNull private final IdeSdks myIdeSdks;
+    @NotNull private final GradleConsoleView myConsoleView;
 
     @GuardedBy("myCompletionLock")
     private int myCompletionCounter;
@@ -216,10 +229,20 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
     @VisibleForTesting
     GradleTasksExecutorImpl(@NotNull GradleBuildInvoker.Request request,
-                            @NotNull BuildStopper buildStopper) {
+                            @NotNull BuildStopper buildStopper,
+                            @NotNull GradleBuildState buildState,
+                            @NotNull BuildSettings buildSettings,
+                            @NotNull IdeInfo ideInfo,
+                            @NotNull IdeSdks ideSdks,
+                            @NotNull GradleConsoleView consoleView) {
       super(request.getProject());
       myRequest = request;
       myBuildStopper = buildStopper;
+      myBuildState = buildState;
+      myBuildSettings = buildSettings;
+      myIdeInfo = ideInfo;
+      myIdeSdks = ideSdks;
+      myConsoleView = consoleView;
     }
 
     @Override
@@ -236,7 +259,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
-      if (IdeInfo.getInstance().isAndroidStudio()) {
+      if (myIdeInfo.isAndroidStudio()) {
         // See https://code.google.com/p/android/issues/detail?id=169743
         clearStoredGradleJvmArgs(getProject());
       }
@@ -310,27 +333,28 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
     private void invokeGradleTasks() {
       Project project = myRequest.getProject();
-      GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(project, myRequest.isUseEmbeddedGradle());
+      GradleExecutionSettings executionSettings = getOrCreateGradleExecutionSettings(project);
 
       Function<ProjectConnection, Void> executeTasksFunction = connection -> {
         Stopwatch stopwatch = Stopwatch.createStarted();
 
-        GradleConsoleView consoleView = GradleConsoleView.getInstance(project);
-        consoleView.clear();
+        myConsoleView.clear();
 
         List<String> gradleTasks = myRequest.getGradleTasks();
         addMessage(new Message(Message.Kind.INFO, "Gradle tasks " + gradleTasks, SourceFilePosition.UNKNOWN), null);
 
         String executingTasksText = "Executing tasks: " + gradleTasks;
-        consoleView.print(executingTasksText + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator(), NORMAL_OUTPUT);
+        myConsoleView.print(executingTasksText + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator(), NORMAL_OUTPUT);
         addToEventLog(executingTasksText, INFO);
 
-        GradleOutputForwarder output = new GradleOutputForwarder(consoleView);
+        GradleOutputForwarder output = new GradleOutputForwarder(myConsoleView);
 
         Throwable buildError = null;
         InstantRunBuildProgressListener instantRunProgressListener = null;
         ExternalSystemTaskId id = myRequest.getTaskId();
         CancellationTokenSource cancellationTokenSource = myBuildStopper.createAndRegisterTokenSource(id);
+        BuildMode buildMode = myBuildSettings.getBuildMode();
+
         try {
           AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
           List<String> commandLineArguments = Lists.newArrayList(buildConfiguration.getCommandLineOptions());
@@ -374,7 +398,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           BuildLauncher launcher = connection.newBuild();
           prepare(launcher, id, executionSettings, GRADLE_LISTENER, jvmArguments, commandLineArguments, connection);
 
-          File javaHome = IdeSdks.getInstance().getJdkPath();
+          File javaHome = myIdeSdks.getJdkPath();
           if (javaHome != null) {
             launcher.setJavaHome(javaHome);
           }
@@ -406,7 +430,9 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
             launcher.addProgressListener(instantRunProgressListener);
           }
 
+          myBuildState.buildStarted(new BuildContext(project, gradleTasks, buildMode));
           launcher.run();
+          myBuildState.buildFinished(SUCCESS);
         }
         catch (BuildException e) {
           buildError = e;
@@ -416,6 +442,15 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           handleTaskExecutionError(e);
         }
         finally {
+          if (buildError != null) {
+            if (wasBuildCanceled(buildError)) {
+              myBuildState.buildFinished(CANCELED);
+            }
+            else {
+              myBuildState.buildFinished(FAILED);
+            }
+          }
+
           myBuildStopper.remove(id);
           String gradleOutput = output.toString();
           if (instantRunProgressListener != null) {
@@ -467,8 +502,6 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         }
 
         if (!hasError && myErrorCount == 0 && buildError != null && buildError instanceof BuildException) {
-          // Gradle throws BuildCancelledException when we cancel task execution. We don't want to force showing 'Messages' tool
-          // window for that situation though.
           addBuildExceptionAsMessage((BuildException)buildError, output.getStdErr(), buildMessages);
         }
         output.close();
@@ -482,7 +515,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
 
         application.invokeLater(() -> notifyGradleInvocationCompleted(stopwatch.elapsed(MILLISECONDS)));
 
-        if (buildError == null || !hasCause(buildError, BuildCancelledException.class)) {
+        if (buildError == null || !wasBuildCanceled(buildError)) {
           // Gradle throws BuildCancelledException when we cancel task execution. We don't want to force showing 'Messages' tool
           // window for that situation though.
           application.invokeLater(this::showMessages);
@@ -497,6 +530,10 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           task.execute(result);
         }
       });
+    }
+
+    private static boolean wasBuildCanceled(@NotNull Throwable buildError) {
+      return hasCause(buildError, BuildCancelledException.class);
     }
 
     @NotNull
@@ -560,15 +597,14 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
         // This is temporary. Once we have support for hyperlinks in "Messages" window, we'll show the error message the with a
         // hyperlink to set the JDK home.
         // For now we show the "Select SDK" dialog, but only giving the option to set the JDK path.
-        if (IdeInfo.getInstance().isAndroidStudio() && error.startsWith("Supplied javaHome is not a valid folder")) {
-          IdeSdks ideSdks = IdeSdks.getInstance();
-          File androidHome = ideSdks.getAndroidSdkPath();
+        if (myIdeInfo.isAndroidStudio() && error.startsWith("Supplied javaHome is not a valid folder")) {
+          File androidHome = myIdeSdks.getAndroidSdkPath();
           String androidSdkPath = androidHome != null ? androidHome.getPath() : null;
           SelectSdkDialog selectSdkDialog = new SelectSdkDialog(null, androidSdkPath);
           selectSdkDialog.setModal(true);
           if (selectSdkDialog.showAndGet()) {
             String jdkHome = selectSdkDialog.getJdkHome();
-            invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> ideSdks.setJdkPath(new File(jdkHome))));
+            invokeLaterIfNeeded(() -> ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setJdkPath(new File(jdkHome))));
           }
         }
       };

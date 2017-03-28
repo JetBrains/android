@@ -16,16 +16,15 @@
 package com.android.tools.idea.gradle.project.build;
 
 import com.android.ide.common.blame.Message;
-import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.project.AndroidProjectBuildNotifications;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.AbstractIterator;
 import com.intellij.notification.NotificationType;
@@ -45,9 +44,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.ui.AppUIUtil;
-import com.intellij.util.messages.MessageBusConnection;
-import com.intellij.util.messages.Topic;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,22 +71,10 @@ import static com.intellij.util.ThreeState.YES;
  * Both JPS and the "direct Gradle invocation" build strategies ares supported.
  */
 public class PostProjectBuildTasksExecutor {
-  private static final Topic<GradleBuildListener> GRADLE_BUILD_TOPIC = new Topic<>("Gradle project build", GradleBuildListener.class);
-
   private static final Key<Boolean> UPDATE_JAVA_LANG_LEVEL_AFTER_BUILD = Key.create("android.gradle.project.update.java.lang");
   private static final Key<Long> PROJECT_LAST_BUILD_TIMESTAMP_KEY = Key.create("android.gradle.project.last.build.timestamp");
 
   @NotNull private final Project myProject;
-
-  /**
-   * This method is used for testing only. For production code, please use
-   * {@link AndroidProjectBuildNotifications#subscribe(Project, AndroidProjectBuildNotifications.AndroidProjectBuildListener)}.
-   */
-  @VisibleForTesting
-  public static void subscribe(@NotNull Project project, @NotNull GradleBuildListener listener) {
-    MessageBusConnection connection = project.getMessageBus().connect(project);
-    connection.subscribe(GRADLE_BUILD_TOPIC, listener);
-  }
 
   @NotNull
   public static PostProjectBuildTasksExecutor getInstance(@NotNull Project project) {
@@ -182,10 +166,9 @@ public class PostProjectBuildTasksExecutor {
 
       BuildSettings buildSettings = BuildSettings.getInstance(myProject);
       BuildMode buildMode = buildSettings.getBuildMode();
-      buildSettings.removeAll();
+      buildSettings.clear();
 
       myProject.putUserData(PROJECT_LAST_BUILD_TIMESTAMP_KEY, System.currentTimeMillis());
-      notifyBuildFinished(buildMode);
 
       syncJavaLangLevel();
 
@@ -308,14 +291,6 @@ public class PostProjectBuildTasksExecutor {
         rootDir.refresh(true, true);
       }
     }
-  }
-
-  private void notifyBuildFinished(@Nullable final BuildMode buildMode) {
-    syncPublisher(() -> myProject.getMessageBus().syncPublisher(GRADLE_BUILD_TOPIC).buildFinished(myProject, buildMode));
-  }
-
-  private void syncPublisher(@NotNull Runnable publishingTask) {
-    AppUIUtil.invokeLaterIfProjectAlive(myProject, publishingTask);
   }
 
   public void updateJavaLangLevelAfterBuild() {

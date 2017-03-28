@@ -355,9 +355,9 @@ public final class GradleUtil {
   }
 
   @Nullable
-  public static GradleExecutionSettings getOrCreateGradleExecutionSettings(@NotNull Project project, boolean useEmbeddedGradle) {
+  public static GradleExecutionSettings getOrCreateGradleExecutionSettings(@NotNull Project project) {
     GradleExecutionSettings executionSettings = getGradleExecutionSettings(project);
-    if (IdeInfo.getInstance().isAndroidStudio() && useEmbeddedGradle) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       if (executionSettings == null) {
         File gradlePath = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionPath();
         assert gradlePath != null && gradlePath.isDirectory();
