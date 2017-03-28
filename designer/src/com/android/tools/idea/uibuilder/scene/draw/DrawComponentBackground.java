@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.scene.draw;
 
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.sherpa.drawing.ColorSet;
 
@@ -43,10 +45,10 @@ public class DrawComponentBackground extends DrawRegion {
      return COMPONENT_LEVEL;
   }
 
-  public DrawComponentBackground(int x,
-                                 int y,
-                                 int width,
-                                 int height,
+  public DrawComponentBackground(@SwingCoordinate int x,
+                                 @SwingCoordinate int y,
+                                 @SwingCoordinate int width,
+                                 @SwingCoordinate int height,
                                  int mode) {
     super(x, y, width, height);
     myMode = mode;
@@ -69,10 +71,8 @@ public class DrawComponentBackground extends DrawRegion {
 
   public static void add(DisplayList list,
                          SceneContext sceneContext,
-                         Rectangle rect,
-                         int mode,
-                         boolean hasHorizontalConstraints,
-                         boolean hasVerticalConstraints) {
+                         @AndroidDpCoordinate Rectangle rect,
+                         int mode) {
     int l = sceneContext.getSwingX(rect.x);
     int t = sceneContext.getSwingY(rect.y);
     int w = sceneContext.getSwingDimension(rect.width);

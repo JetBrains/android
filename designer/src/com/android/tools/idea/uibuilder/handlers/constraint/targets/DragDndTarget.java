@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 public class DragDndTarget extends DragTarget {
 
   @Override
-  public void mouseDown(int x, int y) {
+  public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     if (myComponent instanceof TemporarySceneComponent) {
       gatherNotches();
     } else {
@@ -52,7 +52,7 @@ public class DragDndTarget extends DragTarget {
     }
   }
 
-  public void mouseRelease(int x, int y, @NotNull NlComponent component) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @NotNull NlComponent component) {
     myComponent.setDragging(false);
     if (myComponent.getParent() != null) {
       AttributesTransaction attributes = component.startAttributeTransaction();

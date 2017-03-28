@@ -63,7 +63,11 @@ public interface Target {
    * @param b       bottom - Current bottom coordinate of the parent
    * @return true if the {@link com.android.tools.idea.uibuilder.scene.Scene} needs to be repainted.
    */
-  boolean layout(@NotNull SceneContext context, int l, int t, int r, int b);
+  boolean layout(@NotNull SceneContext context,
+                 @AndroidDpCoordinate int l,
+                 @AndroidDpCoordinate int t,
+                 @AndroidDpCoordinate int r,
+                 @AndroidDpCoordinate int b);
 
   /**
    * Implementing classes should use this method to add a hit region to the provided {@link ScenePicker} that can handle the interaction.
@@ -130,8 +134,10 @@ public interface Target {
 
   Cursor getMouseCursor();
 
+  @AndroidDpCoordinate
   float getCenterX();
 
+  @AndroidDpCoordinate
   float getCenterY();
 
   boolean canChangeSelection();

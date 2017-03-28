@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene.draw;
 
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.sherpa.drawing.ColorSet;
 
@@ -53,10 +54,10 @@ public class DrawComponentFrame extends DrawRegion {
     return COMPONENT_LEVEL;
   }
 
-  public DrawComponentFrame(int x,
-                            int y,
-                            int width,
-                            int height,
+  public DrawComponentFrame(@AndroidDpCoordinate int x,
+                            @AndroidDpCoordinate int y,
+                            @AndroidDpCoordinate int width,
+                            @AndroidDpCoordinate int height,
                             int mode,
                             int layout_width,
                             int layout_height) {
@@ -111,7 +112,7 @@ public class DrawComponentFrame extends DrawRegion {
 
   public static void add(DisplayList list,
                          SceneContext sceneContext,
-                         Rectangle rect,
+                         @AndroidDpCoordinate Rectangle rect,
                          int mode,
                          int layout_width,
                          int layout_height) {

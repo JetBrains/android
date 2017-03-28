@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.scene.draw;
 
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils; // TODO: remove
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.sherpa.drawing.ColorSet;
 
@@ -31,9 +33,10 @@ public class DrawHorizontalLine extends DrawRegion {
   public DrawHorizontalLine(String s) {
     super(s);
   }
-  public DrawHorizontalLine(int x,
-                            int y,
-                            int width) {
+  public DrawHorizontalLine(@SwingCoordinate int x,
+                            @SwingCoordinate int y,
+                            @SwingCoordinate int width) {
+    //noinspection SuspiciousNameCombination
     super(x, y, width, x);
   }
 
@@ -47,13 +50,11 @@ public class DrawHorizontalLine extends DrawRegion {
     g.setStroke(stroke);
   }
 
-  public static void add(DisplayList list, SceneContext transform, float left, float top, float right) {
-    add(list, transform, left, top, right, -1, -1, -1, -1, -1, 1.0f, false);
-  }
-
-  public static void add(DisplayList list, SceneContext transform, float left, float top, float right,
-                         float originX, float originY, float originHeight,
-                         int begin, int end, float percent, boolean selected) {
+  public static void add(DisplayList list,
+                         SceneContext transform,
+                         @AndroidDpCoordinate float left,
+                         @AndroidDpCoordinate float top,
+                         @AndroidDpCoordinate float right) {
     int l = transform.getSwingX(left);
     int t = transform.getSwingY(top);
     int w = transform.getSwingDimension(right - left);

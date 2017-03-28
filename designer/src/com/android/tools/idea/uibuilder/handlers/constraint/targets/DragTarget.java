@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -43,10 +44,10 @@ import java.util.*;
 public class DragTarget extends BaseTarget {
 
   private static final boolean DEBUG_RENDERER = false;
-  protected int myOffsetX;
-  protected int myOffsetY;
-  protected int myFirstMouseX;
-  protected int myFirstMouseY;
+  @AndroidDpCoordinate protected int myOffsetX;
+  @AndroidDpCoordinate protected int myOffsetY;
+  @AndroidDpCoordinate protected int myFirstMouseX;
+  @AndroidDpCoordinate protected int myFirstMouseY;
   protected boolean myChangedComponent;
 
   ArrayList<Notch> myHorizontalNotches = new ArrayList<>();
@@ -66,7 +67,11 @@ public class DragTarget extends BaseTarget {
   }
 
   @Override
-  public boolean layout(@NotNull SceneContext sceneTransform, int l, int t, int r, int b) {
+  public boolean layout(@NotNull SceneContext sceneTransform,
+                        @AndroidDpCoordinate int l,
+                        @AndroidDpCoordinate int t,
+                        @AndroidDpCoordinate int r,
+                        @AndroidDpCoordinate int b) {
     int minWidth = 16;
     int minHeight = 16;
     if (r - l < minWidth) {
@@ -206,7 +211,7 @@ public class DragTarget extends BaseTarget {
     return ConstraintComponentUtilities.getDpValue(nlComponent, nlComponent.getAttribute(SdkConstants.ANDROID_URI, attribute));
   }
 
-  protected void updateAttributes(AttributesTransaction attributes, int x, int y) {
+  protected void updateAttributes(AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     SceneComponent targetStartComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourStartAttributes);
     SceneComponent targetEndComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourEndAttributes);
     SceneComponent targetLeftComponent = getTargetComponent(SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourLeftAttributes);
@@ -351,7 +356,7 @@ public class DragTarget extends BaseTarget {
     }
   }
 
-  private void applyMargin(AttributesTransaction attributes, String attribute, int currentValue) {
+  private void applyMargin(AttributesTransaction attributes, String attribute, @AndroidDpCoordinate int currentValue) {
     currentValue = Math.max(0, currentValue);
     String marginString = myComponent.getNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, attribute);
     int marginValue = -1;
@@ -375,7 +380,7 @@ public class DragTarget extends BaseTarget {
   public int getPreferenceLevel() { return Target.DRAG_LEVEL; }
 
   @Override
-  public void mouseDown(int x, int y) {
+  public void mouseDown(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
     if (myComponent.getParent() == null) {
       return;
     }
@@ -412,7 +417,7 @@ public class DragTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseDrag(int x, int y, @Nullable Target closestTarget) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
     if (myComponent.getParent() == null) {
       return;
     }
@@ -460,7 +465,7 @@ public class DragTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseRelease(int x, int y, @Nullable Target closestTarget) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
     if (!myComponent.isDragging()) {
       return;
     }

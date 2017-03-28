@@ -136,7 +136,7 @@ public class SceneDecorator {
     if (sceneContext.getColorSet().drawBackground()) {
       Rectangle rect = new Rectangle();
       component.fillRect(rect); // get the rectangle from the component
-      DrawComponentBackground.add(list, sceneContext, rect, component.getDrawState().ordinal(), false, false); // add to the list
+      DrawComponentBackground.add(list, sceneContext, rect, component.getDrawState().ordinal()); // add to the list
     }
   }
 
