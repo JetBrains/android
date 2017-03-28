@@ -126,7 +126,7 @@ public class Recipe implements RecipeInstruction {
    * a node in a larger xml file rather than a recipe.xml file being passed in.
    */
   public void addUpdateAndSyncGradleInstruction() {
-    instructions.add(new UpdateAndSyncGradleInstruction());
+    instructions.add(new UpdateAndSyncInstruction());
   }
 
   @SuppressWarnings({"NullableProblems", "unused"})
@@ -291,10 +291,10 @@ public class Recipe implements RecipeInstruction {
   /**
    * This should only be executed by the root recipe and only at the end.
    */
-  private static final class UpdateAndSyncGradleInstruction implements RecipeInstruction {
+  private static final class UpdateAndSyncInstruction implements RecipeInstruction {
     @Override
     public void execute(@NotNull RecipeExecutor executor) {
-      executor.updateAndSyncGradle();
+      executor.updateAndSync();
     }
   }
 }
