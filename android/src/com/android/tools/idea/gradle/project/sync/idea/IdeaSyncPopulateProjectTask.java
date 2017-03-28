@@ -16,12 +16,15 @@
 package com.android.tools.idea.gradle.project.sync.idea;
 
 import com.android.tools.idea.gradle.project.subset.ProjectSubset;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
@@ -31,7 +34,6 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,28 +42,43 @@ import java.util.List;
 import java.util.Set;
 
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.PROJECT;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findParent;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.visit;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.*;
+import static com.intellij.util.ExceptionUtil.getRootCause;
+import static com.intellij.util.containers.ContainerUtil.newIdentityTroveSet;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 public class IdeaSyncPopulateProjectTask {
   @NotNull private final Project myProject;
-  @NotNull private final DataNode<ProjectData> myProjectInfo;
+  @NotNull private final PostSyncProjectSetup myProjectSetup;
+  @NotNull private final GradleSyncState mySyncState;
+  @NotNull private final ProjectDataManager myDataManager;
 
-  public IdeaSyncPopulateProjectTask(@NotNull Project project, @NotNull DataNode<ProjectData> projectInfo) {
-    myProject = project;
-    myProjectInfo = projectInfo;
+  public IdeaSyncPopulateProjectTask(@NotNull Project project) {
+    this(project, PostSyncProjectSetup.getInstance(project), GradleSyncState.getInstance(project),
+         ServiceManager.getService(ProjectDataManager.class));
   }
 
-  public void populateProject(@Nullable PostSyncProjectSetup.Request setupRequest, boolean allowModuleSelection) {
-    Collection<DataNode<ModuleData>> activeModules = getActiveModules(allowModuleSelection);
-    populateProject(activeModules, setupRequest);
+  @VisibleForTesting
+  IdeaSyncPopulateProjectTask(@NotNull Project project,
+                              @NotNull PostSyncProjectSetup projectSetup,
+                              @NotNull GradleSyncState syncState,
+                              @NotNull ProjectDataManager dataManager) {
+    myProject = project;
+    myProjectSetup = projectSetup;
+    mySyncState = syncState;
+    myDataManager = dataManager;
+  }
+
+  public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
+                              @Nullable PostSyncProjectSetup.Request setupRequest,
+                              boolean allowModuleSelection) {
+    Collection<DataNode<ModuleData>> activeModules = getActiveModules(projectInfo, allowModuleSelection);
+    populateProject(projectInfo, activeModules, setupRequest);
   }
 
   @NotNull
-  private Collection<DataNode<ModuleData>> getActiveModules(boolean allowModuleSelection) {
-    Collection<DataNode<ModuleData>> modules = findAll(myProjectInfo, ProjectKeys.MODULE);
+  private Collection<DataNode<ModuleData>> getActiveModules(@NotNull DataNode<ProjectData> projectInfo, boolean allowModuleSelection) {
+    Collection<DataNode<ModuleData>> modules = findAll(projectInfo, ProjectKeys.MODULE);
     ProjectSubset subview = ProjectSubset.getInstance(myProject);
     if (!ApplicationManager.getApplication().isUnitTestMode() &&
         ProjectSubset.getInstance(myProject).isFeatureEnabled() &&
@@ -98,29 +115,31 @@ public class IdeaSyncPopulateProjectTask {
     return modules; // Import all modules, not just subset.
   }
 
-  public void populateProject(@NotNull Collection<DataNode<ModuleData>> activeModules,
+  public void populateProject(@NotNull DataNode<ProjectData> projectInfo,
+                              @NotNull Collection<DataNode<ModuleData>> activeModules,
                               @Nullable PostSyncProjectSetup.Request setupRequest) {
     invokeAndWaitIfNeeded((Runnable)() -> GradleSyncMessages.getInstance(myProject).removeProjectMessages());
 
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      populate(activeModules, new EmptyProgressIndicator(), setupRequest);
+      populate(projectInfo, activeModules, new EmptyProgressIndicator(), setupRequest);
       return;
     }
 
     Task.Backgroundable task = new Task.Backgroundable(myProject, "Project Setup", false) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
-        populate(activeModules, indicator, setupRequest);
+        populate(projectInfo, activeModules, indicator, setupRequest);
       }
     };
     task.queue();
   }
 
-  private void populate(@NotNull Collection<DataNode<ModuleData>> activeModules,
+  private void populate(@NotNull DataNode<ProjectData> projectInfo,
+                        @NotNull Collection<DataNode<ModuleData>> activeModules,
                         @NotNull ProgressIndicator indicator,
                         @Nullable PostSyncProjectSetup.Request setupRequest) {
-    disableExcludedModules(activeModules);
-    doSelectiveImport(activeModules, myProject);
+    disableExcludedModules(projectInfo, activeModules);
+    doSelectiveImport(activeModules, myProject, setupRequest);
     if (setupRequest != null) {
       PostSyncProjectSetup.getInstance(myProject).setUpProject(setupRequest, indicator);
     }
@@ -129,8 +148,9 @@ public class IdeaSyncPopulateProjectTask {
   /**
    * Reuse external system 'selective import' feature for importing of the project sub-set.
    */
-  private void disableExcludedModules(@NotNull Collection<DataNode<ModuleData>> activeModules) {
-    Collection<DataNode<ModuleData>> allModules = findAll(myProjectInfo, ProjectKeys.MODULE);
+  private static void disableExcludedModules(@NotNull DataNode<ProjectData> projectInfo,
+                                             @NotNull Collection<DataNode<ModuleData>> activeModules) {
+    Collection<DataNode<ModuleData>> allModules = findAll(projectInfo, ProjectKeys.MODULE);
     if (activeModules.size() != allModules.size()) {
       Set<DataNode<ModuleData>> moduleToIgnore = Sets.newHashSet(allModules);
       moduleToIgnore.removeAll(activeModules);
@@ -144,24 +164,43 @@ public class IdeaSyncPopulateProjectTask {
    * Reuse external system 'selective import' feature for importing of the project sub-set.
    * And do not ignore projectNode children data, e.g. project libraries
    */
-  private static void doSelectiveImport(@NotNull Collection<DataNode<ModuleData>> activeModules, @NotNull Project project) {
-    ProjectDataManager dataManager = ServiceManager.getService(ProjectDataManager.class);
+  @VisibleForTesting
+  void doSelectiveImport(@NotNull Collection<DataNode<ModuleData>> activeModules,
+                         @NotNull Project project,
+                         @Nullable PostSyncProjectSetup.Request setupRequest) {
     DataNode<ProjectData> projectNode = activeModules.isEmpty() ? null : findParent(activeModules.iterator().next(), PROJECT);
 
-    // do not ignore projectNode child data, e.g. project libraries
-    if (projectNode != null) {
-      Collection<DataNode<ModuleData>> allModules = findAll(projectNode, ProjectKeys.MODULE);
-      if (activeModules.size() != allModules.size()) {
-        Set<DataNode<ModuleData>> moduleToIgnore = ContainerUtil.newIdentityTroveSet(allModules);
-        moduleToIgnore.removeAll(activeModules);
-        for (DataNode<ModuleData> moduleNode : moduleToIgnore) {
-          visit(moduleNode, node -> node.setIgnored(true));
+    try {
+      // do not ignore projectNode child data, e.g. project libraries
+      if (projectNode != null) {
+        Collection<DataNode<ModuleData>> allModules = findAll(projectNode, ProjectKeys.MODULE);
+        if (activeModules.size() != allModules.size()) {
+          Set<DataNode<ModuleData>> moduleToIgnore = newIdentityTroveSet(allModules);
+          moduleToIgnore.removeAll(activeModules);
+          for (DataNode<ModuleData> moduleNode : moduleToIgnore) {
+            visit(moduleNode, node -> node.setIgnored(true));
+          }
         }
+        myDataManager.importData(projectNode, project, true /* synchronous */);
       }
-      dataManager.importData(projectNode, project, true /* synchronous */);
+      else {
+        myDataManager.importData(activeModules, project, true /* synchronous */);
+      }
     }
-    else {
-      dataManager.importData(activeModules, project, true /* synchronous */);
+    catch (RuntimeException unexpected) {
+      String message = getRootCause(unexpected).getMessage();
+      Logger.getInstance(getClass()).warn("Sync failed: " + message, unexpected);
+
+      // See https://code.google.com/p/android/issues/detail?id=268806
+      if (setupRequest != null && setupRequest.isUsingCachedGradleModels()) {
+        // This happened when a newer version of IDEA cannot read the cache of a Gradle project created with an older IDE version.
+        // Request a full sync.
+        myProjectSetup.onCachedModelsSetupFailure(setupRequest);
+        return;
+      }
+
+      // Notify sync failed, so the "Sync" action is enabled again.
+      mySyncState.syncFailed(message);
     }
   }
 }
