@@ -16,34 +16,39 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.intellij.find.impl.FindDialog;
-import com.intellij.openapi.ui.ComboBox;
-import org.fest.swing.edt.GuiTask;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.find.impl.FindPopupPanel;
+import org.fest.swing.fixture.JPanelFixture;
+import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 
-public class FindDialogFixture extends IdeaDialogFixture<FindDialog> {
-  @NotNull
-  public static FindDialogFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
-    return new FindDialogFixture(ideFrameFixture, find(ideFrameFixture.robot(), FindDialog.class));
-  }
 
+public class FindPopupPanelFixture extends JPanelFixture {
   private final IdeFrameFixture myIdeFrameFixture;
 
-  private FindDialogFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull DialogAndWrapper<FindDialog> dialogAndWrapper) {
-    super(ideFrameFixture.robot(), dialogAndWrapper);
+  public FindPopupPanelFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull JPanel target) {
+    super(ideFrameFixture.robot(), target);
     myIdeFrameFixture = ideFrameFixture;
   }
 
   @NotNull
-  public FindDialogFixture setTextToFind(@NotNull final String text) {
-    GuiTask.execute(() -> ((ComboBox)getDialogWrapper().getPreferredFocusedComponent()).setSelectedItem(text));
+  public static FindPopupPanelFixture find(@NotNull IdeFrameFixture ideFrameFixture) {
+    return new FindPopupPanelFixture(ideFrameFixture,
+                                     GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byType(FindPopupPanel.class)));
+  }
+
+  @NotNull
+  public FindPopupPanelFixture setTextToFind(@NotNull final String text) {
+    new JTextComponentFixture(robot(), GuiTests.waitUntilShowing(robot(), target(), Matchers.byType(JTextArea.class))).click()
+      .enterText(text);
     return this;
   }
 
   @NotNull
   public FindToolWindowFixture.ContentFixture clickFind() {
-    GuiTests.findAndClickButton(this, "Find");
+    GuiTests.findAndClickButton(this, "Open in Find Window");
     GuiTests.waitForBackgroundTasks(robot());
     return new FindToolWindowFixture.ContentFixture(myIdeFrameFixture);
   }
