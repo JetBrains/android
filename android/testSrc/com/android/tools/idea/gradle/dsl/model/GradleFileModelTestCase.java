@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
-import com.android.tools.idea.gradle.dsl.model.values.GradleValue;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.Result;

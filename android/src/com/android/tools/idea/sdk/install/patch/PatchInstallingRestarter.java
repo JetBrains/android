@@ -30,9 +30,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.install.StudioSdkInstallListenerFactory;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
-import com.intellij.idea.Main;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -100,7 +98,7 @@ public class PatchInstallingRestarter {
         File oldPackageXml = new File(patchDir, OLD_PACKAGE_XML_FN);
         if (patch.exists() && existingPackageXml.renameTo(oldPackageXml)) {
           // This will exit the app.
-          Main.installPatch("sdk", PatchInstallerUtil.PATCH_JAR_FN, FileUtil.getTempDirectory(), patch, installDir.getAbsolutePath(), Main.PATCHER_MAIN);
+//          Main.installPatch("sdk", PatchInstallerUtil.PATCH_JAR_FN, FileUtil.getTempDirectory(), patch, installDir.getAbsolutePath());
         }
         else {
           // The patch is already installed, or was cancelled.

@@ -29,7 +29,6 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ColorIcon;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.AndroidColorAnnotator;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.annotations.NotNull;
@@ -153,7 +152,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
   @Nullable
   private static Icon getColorIcon(@NotNull String hexColor) {
     Color color = ResourceHelper.parseColor(hexColor);
-    return color == null ? null : JBUI.scale(new ColorIcon(ICON_SIZE, color, true));
+    return color == null ? null : new ColorIcon(ICON_SIZE, color, true);
   }
 
   private void appendName(@NotNull NlProperty property) {

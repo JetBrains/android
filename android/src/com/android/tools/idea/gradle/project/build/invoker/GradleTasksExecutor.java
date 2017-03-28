@@ -60,6 +60,7 @@ import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.ActionCallback;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -539,7 +540,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
           }
         }
       };
-      invokeLaterIfNeeded(addMessageTask);
+      ApplicationManager.getApplication().invokeLater(addMessageTask, NON_MODAL);
     }
 
     private void handleTaskExecutionError(@NotNull Throwable e) {
@@ -742,7 +743,7 @@ public abstract class GradleTasksExecutor extends Task.Backgroundable {
     private VirtualFile findFileFrom(@NotNull Message message) {
       SourceFile source = message.getSourceFilePositions().get(0).getFile();
       if (source.getSourceFile() != null) {
-        return findFileByIoFile(source.getSourceFile(), true);
+        return ApplicationManager.getApplication().runWriteAction((Computable<VirtualFile>)() -> findFileByIoFile(source.getSourceFile(), true));
       }
       if (source.getDescription() != null) {
         String gradlePath = source.getDescription();
