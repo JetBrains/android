@@ -26,5 +26,7 @@
     <orderEntry type="module" module-name="analytics-protos" scope="TEST" />
     <orderEntry type="module" module-name="dom-openapi" scope="TEST" />
     <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
+    <orderEntry type="module" module-name="adt-branding" scope="TEST" />
+    <orderEntry type="module" module-name="sdk-updates" scope="TEST" />
   </component>
 </module>
