@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,14 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.uibuilder.editor.NlEditor;
-import com.android.tools.idea.uibuilder.editor.NlEditorProvider;
+import com.android.tools.idea.res.AppResourceRepository;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.fileEditor.TextEditor;
-import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
+import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.fileEditor.impl.EditorHistoryManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
@@ -60,6 +57,12 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
 
   @Override
   public void actionPerformed(AnActionEvent e) {
+    final ActionManagerEx manager = ActionManagerEx.getInstanceEx();
+    final DataContext dataContext = e.getDataContext();
+    // Regular actions invoke this method before performing the action. We do so as well since the analytics subsystem hooks into
+    // this event to monitor invoked actions.
+    manager.fireBeforeActionPerformed(this, dataContext, e);
+
     tryUpdateConfiguration();
     updatePresentation();
   }
@@ -114,12 +117,11 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
     FileEditor selectedEditor = manager.getSelectedEditor(old);
     List<FileEditor> editors = manager.openEditor(descriptor, true);
 
-    // Switch to the same type of editor (XML or Layout Editor) in the target file
-    if (selectedEditor instanceof NlEditor) {
-      manager.setSelectedEditor(file, NlEditorProvider.DESIGNER_ID);
-    } else if (selectedEditor != null) {
-      manager.setSelectedEditor(file, TextEditorProvider.getInstance().getEditorTypeId());
-
+    if (selectedEditor != null) {
+      FileEditorProvider provider = EditorHistoryManager.getInstance(project).getSelectedProvider(old);
+      if (provider != null) {
+        manager.setSelectedEditor(file, provider.getEditorTypeId());
+      }
       // Proactively switch to the new editor right away in the layout XML preview, if applicable
       if (!editors.isEmpty()) {
         for (FileEditor editor : editors) {

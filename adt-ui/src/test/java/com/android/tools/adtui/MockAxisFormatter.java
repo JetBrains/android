@@ -15,9 +15,9 @@
  */
 package com.android.tools.adtui;
 
-import com.android.annotations.NonNull;
 import com.android.tools.adtui.common.formatter.BaseAxisFormatter;
 import gnu.trove.TIntArrayList;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A mock {@link BaseAxisFormatter} that works with length units.
@@ -41,7 +41,7 @@ public class MockAxisFormatter extends BaseAxisFormatter {
   }
 
   @Override
-  @NonNull
+  @NotNull
   protected String getUnit(int index) {
     return UNITS[index];
   }
@@ -67,13 +67,13 @@ public class MockAxisFormatter extends BaseAxisFormatter {
   }
 
   @Override
-  @NonNull
+  @NotNull
   protected TIntArrayList getUnitBaseFactors(int index) {
     return BASE_FACTORS;
   }
 
   @Override
-  protected int getMultiplier() {
+  protected long getMultiplier() {
     return super.getMultiplier();
   }
 }

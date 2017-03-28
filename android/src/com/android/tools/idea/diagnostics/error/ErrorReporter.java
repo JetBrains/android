@@ -16,12 +16,17 @@
 
 package com.android.tools.idea.diagnostics.error;
 
+import com.android.annotations.Nullable;
+import com.android.tools.idea.diagnostics.crash.CrashReport;
+import com.android.tools.idea.diagnostics.crash.CrashReporter;
 import com.google.common.collect.Maps;
 import com.intellij.diagnostic.AbstractMessage;
-import com.intellij.diagnostic.ITNReporterKt;
+import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.diagnostic.ReportMessages;
 import com.intellij.errorreport.bean.ErrorBean;
 import com.intellij.ide.DataManager;
+import com.intellij.ide.plugins.IdeaPluginDescriptor;
+import com.intellij.ide.plugins.PluginManager;
 import com.intellij.idea.IdeaLogger;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -34,6 +39,7 @@ import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
 import com.intellij.openapi.diagnostic.SubmittedReportInfo;
+import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -49,36 +55,44 @@ import java.awt.*;
 import java.util.List;
 import java.util.Map;
 
-/** Sends crash reports to Google. Patterned after {@link com.intellij.diagnostic.ITNReporter} */
 public class ErrorReporter extends ErrorReportSubmitter {
-
   private static final String FEEDBACK_TASK_TITLE = "Submitting error report";
 
-  @NotNull
   @Override
   public String getReportActionText() {
     return AndroidBundle.message("error.report.to.google.action");
   }
 
   @Override
-  public boolean submit(@NotNull IdeaLoggingEvent[] events, String additionalInfo, @NotNull Component parentComponent, @NotNull Consumer<SubmittedReportInfo> consumer) {
-    ErrorBean errorBean = new ErrorBean(events[0].getThrowable(), IdeaLogger.ourLastActionId);
-    return doSubmit(events[0], parentComponent, consumer, errorBean, additionalInfo);
-  }
-
-  private static boolean doSubmit(final IdeaLoggingEvent event,
-                                  final Component parentComponent,
-                                  final Consumer<SubmittedReportInfo> callback,
-                                  final ErrorBean bean,
-                                  final String description) {
+  public boolean submit(@NotNull IdeaLoggingEvent[] events,
+                        @Nullable String description,
+                        @Nullable Component parentComponent,
+                        @NotNull Consumer<SubmittedReportInfo> callback) {
+    IdeaLoggingEvent event = events[0];
+    ErrorBean bean = new ErrorBean(event.getThrowable(), IdeaLogger.ourLastActionId);
     final DataContext dataContext = DataManager.getInstance().getDataContext(parentComponent);
 
     bean.setDescription(description);
     bean.setMessage(event.getMessage());
 
-    ITNReporterKt.setPluginInfo(event, bean);
+    Throwable t = event.getThrowable();
+    if (t != null) {
+      final PluginId pluginId = IdeErrorsDialog.findPluginId(t);
+      if (pluginId != null) {
+        final IdeaPluginDescriptor ideaPluginDescriptor = PluginManager.getPlugin(pluginId);
+        if (ideaPluginDescriptor != null && (!ideaPluginDescriptor.isBundled() || ideaPluginDescriptor.allowBundledUpdate())) {
+          bean.setPluginName(ideaPluginDescriptor.getName());
+          bean.setPluginVersion(ideaPluginDescriptor.getVersion());
+        }
+      }
+    }
 
     Object data = event.getData();
+
+    // Early escape (and no UI impact) if these are analytics events being pushed from the platform
+    if (handleAnalyticsReports(t, data)) {
+      return true;
+    }
 
     if (data instanceof AbstractMessage) {
       bean.setAttachments(((AbstractMessage)data).getIncludedAttachments());
@@ -86,28 +100,25 @@ public class ErrorReporter extends ErrorReportSubmitter {
 
     final Project project = CommonDataKeys.PROJECT.getData(dataContext);
 
-    Consumer<String> successCallback = new Consumer<String>() {
-      @Override
-      public void consume(String token) {
-        final SubmittedReportInfo reportInfo = new SubmittedReportInfo(
-          null, "Issue " + token, SubmittedReportInfo.SubmissionStatus.NEW_ISSUE);
-        callback.consume(reportInfo);
+    Consumer<String> successCallback = token -> {
+      final SubmittedReportInfo reportInfo = new SubmittedReportInfo(
+        null, "Issue " + token, SubmittedReportInfo.SubmissionStatus.NEW_ISSUE);
+      callback.consume(reportInfo);
 
-        ReportMessages.GROUP.createNotification(ReportMessages.ERROR_REPORT,
-                                                "Submitted",
-                                                NotificationType.INFORMATION,
-                                                null).setImportant(false).notify(project);
-      }
+      ReportMessages.GROUP
+        .createNotification(ReportMessages.ERROR_REPORT, "Submitted", NotificationType.INFORMATION, null)
+        .setImportant(false)
+        .notify(project);
+
     };
 
-    Consumer<Exception> errorCallback = new Consumer<Exception>() {
-      @Override
-      public void consume(Exception e) {
-        // TODO: check for updates
-        String message = AndroidBundle.message("error.report.at.b.android", e.getMessage());
-        ReportMessages.GROUP.createNotification(ReportMessages.ERROR_REPORT, message, NotificationType.ERROR,
-                                                NotificationListener.URL_OPENING_LISTENER).setImportant(false).notify(project);
-      }
+    Consumer<Exception> errorCallback = e -> {
+      String message = AndroidBundle.message("error.report.at.b.android", e.getMessage());
+
+      ReportMessages.GROUP
+        .createNotification(ReportMessages.ERROR_REPORT, message, NotificationType.ERROR, NotificationListener.URL_OPENING_LISTENER)
+        .setImportant(false)
+        .notify(project);
     };
 
     Task.Backgroundable feedbackTask;
@@ -118,20 +129,46 @@ public class ErrorReporter extends ErrorReportSubmitter {
         .getKeyValuePairs(null, null, bean, IdeaLogger.getOurCompilationTimestamp(), ApplicationManager.getApplication(),
                           (ApplicationInfoEx)ApplicationInfo.getInstance(), ApplicationNamesInfo.getInstance(),
                           UpdateSettings.getInstance());
-
-      feedbackTask =
-        new AnonymousFeedbackTask(project, FEEDBACK_TASK_TITLE, true, event.getThrowable(), pair2map(kv), bean.getMessage(), bean.getDescription(),
-                                  ApplicationInfo.getInstance().getFullVersion(), successCallback, errorCallback);
+      feedbackTask = new SubmitCrashReportTask(project, FEEDBACK_TASK_TITLE, true, t, pair2map(kv), successCallback, errorCallback);
     }
+
     if (project == null) {
       feedbackTask.run(new EmptyProgressIndicator());
     } else {
       ProgressManager.getInstance().run(feedbackTask);
     }
+
     return true;
   }
 
-  private static Map<String, String> pair2map(List<Pair<String, String>> kv) {
+  private static boolean handleAnalyticsReports(@Nullable Throwable t, @Nullable Object data) {
+    if ("Exception".equals(data)) {
+      if (t != null) {
+        CrashReporter.getInstance().submit(CrashReport.Builder.createForException(t).build());
+      }
+      return true;
+    }
+    else if (data instanceof Map) {
+      Map map = (Map)data;
+      String type = (String)map.get("Type");
+      if ("ANR".equals(type)) {
+        CrashReporter.getInstance().submit(
+          CrashReport.Builder.createForPerfReport((String)map.get("file"), (String)map.get("threadDump")).build());
+      }
+      else if ("Crashes".equals(type)) {
+        //noinspection unchecked
+        List<String> descriptions = (List<String>)map.get("descriptions");
+        CrashReporter.getInstance().submit(
+          CrashReport.Builder.createForCrashes(descriptions).build());
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  @NotNull
+  private static Map<String, String> pair2map(@NotNull List<Pair<String, String>> kv) {
     Map<String, String> m = Maps.newHashMapWithExpectedSize(kv.size());
 
     for (Pair<String, String> i : kv) {

@@ -7,11 +7,22 @@
     <properties/>
     <border type="none"/>
     <children>
-      <grid id="48cc" binding="myCategoriesPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+      <grid id="48cc" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints border-constraint="West"/>
         <properties/>
         <border type="none"/>
-        <children/>
+        <children>
+          <grid id="f3e7" binding="myCategoriesPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+            <constraints border-constraint="Center"/>
+            <properties/>
+            <border type="none"/>
+            <children/>
+          </grid>
+          <component id="7dda6" class="com.android.tools.idea.ui.SearchField" binding="mySearchField" custom-create="true">
+            <constraints border-constraint="North"/>
+            <properties/>
+          </component>
+        </children>
       </grid>
       <grid id="23ccf" binding="myIconsPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints border-constraint="Center"/>

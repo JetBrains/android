@@ -70,6 +70,7 @@ public class ToggleSizeViewAction extends ToggleViewAction {
                                  @NotNull List<NlComponent> selectedChildren,
                                  @InputEventMask int modifiers,
                                  boolean selected) {
+    super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiers, selected);
     presentation.setEnabled(!selectedChildren.isEmpty());
 
     // The label says what the action will do:

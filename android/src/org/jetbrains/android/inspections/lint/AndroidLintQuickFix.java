@@ -1,18 +1,16 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.intellij.codeInspection.LocalQuickFix;
-import com.intellij.codeInspection.ProblemDescriptor;
+import com.intellij.codeInspection.LocalQuickFixOnPsiElement;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Eugene.Kudelevsky
- */
 public interface AndroidLintQuickFix {
   AndroidLintQuickFix[] EMPTY_ARRAY = new AndroidLintQuickFix[0];
-  
+
   void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context);
 
   boolean isApplicable(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.ContextType contextType);
@@ -20,21 +18,45 @@ public interface AndroidLintQuickFix {
   @NotNull
   String getName();
 
-  class LocalFixWrapper implements LocalQuickFix {
-    private final AndroidLintQuickFix myFix;
-    private final PsiElement myStart;
-    private final PsiElement myEnd;
+  /** Wrapper class allowing a {@link LocalQuickFixOnPsiElement} to be used as a {@link AndroidLintQuickFix} */
+  class LocalFixWrappee implements AndroidLintQuickFix {
+    private final LocalQuickFixOnPsiElement myFix;
 
-    public LocalFixWrapper(@NotNull AndroidLintQuickFix fix, @NotNull PsiElement start, @NotNull PsiElement end) {
+    public LocalFixWrappee(@NotNull LocalQuickFixOnPsiElement fix) {
       myFix = fix;
-      myStart = start;
-      myEnd = end;
     }
 
-    @Nls
+    @Override
+    public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
+      myFix.invoke(startElement.getProject(), startElement.getContainingFile(), startElement, endElement);
+    }
+
+    @Override
+    public boolean isApplicable(@NotNull PsiElement startElement,
+                                @NotNull PsiElement endElement,
+                                @NotNull AndroidQuickfixContexts.ContextType contextType) {
+      return startElement.isValid();
+    }
+
     @NotNull
     @Override
     public String getName() {
+      return myFix.getName();
+    }
+  }
+
+  /** Wrapper class allowing an {@link AndroidLintQuickFix} to be used as a {@link LocalQuickFix} */
+  class LocalFixWrapper extends LocalQuickFixOnPsiElement {
+    private final AndroidLintQuickFix myFix;
+
+    public LocalFixWrapper(@NotNull AndroidLintQuickFix fix, @NotNull PsiElement start, @NotNull PsiElement end) {
+      super(start, end);
+      myFix = fix;
+    }
+
+    @NotNull
+    @Override
+    public String getText() {
       return myFix.getName();
     }
 
@@ -46,8 +68,8 @@ public interface AndroidLintQuickFix {
     }
 
     @Override
-    public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
-      myFix.apply(myStart, myEnd, AndroidQuickfixContexts.BatchContext.getInstance());
+    public void invoke(@NotNull Project project, @NotNull PsiFile file, @NotNull PsiElement startElement, @NotNull PsiElement endElement) {
+      myFix.apply(startElement, endElement, AndroidQuickfixContexts.BatchContext.getInstance());
     }
   }
 }

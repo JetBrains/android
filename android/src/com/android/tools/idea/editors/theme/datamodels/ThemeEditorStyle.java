@@ -27,7 +27,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ProjectResourceRepository;
@@ -216,7 +216,7 @@ public class ThemeEditorStyle {
    * @param configuration FolderConfiguration of the style to lookup
    * @return parent this style with a FolderConfiguration configuration
    */
-  @Nullable("if there is no of this style")
+  @Nullable/*if there is no of this style*/
   public String getParentName(@NotNull FolderConfiguration configuration) {
     if (isFramework()) {
       IAndroidTarget target = myManager.getHighestApiTarget();
@@ -249,7 +249,7 @@ public class ThemeEditorStyle {
    * @param configuration FolderConfiguration of the style
    * @return XmlTag of this style coming from folder with corresponding FolderConfiguration
    */
-  @Nullable("if there is no style from this configuration")
+  @Nullable/*if there is no style from this configuration*/
   private XmlTag findXmlTagFromConfiguration(@NotNull FolderConfiguration configuration) {
     for (ResourceItem item : getStyleResourceItems()) {
       if (item.getConfiguration().equals(configuration)) {
@@ -379,7 +379,7 @@ public class ThemeEditorStyle {
           if (facet != null) {
             facet.refreshResources();
             // This is because the ResourceFolderRepository may initialize through the file instead of Psi.
-            GradleInvoker.saveAllFilesSafely();
+            GradleBuildInvoker.saveAllFilesSafely();
           }
         }
 
@@ -455,7 +455,7 @@ public class ThemeEditorStyle {
           if (facet != null) {
             facet.refreshResources();
             // This is because the ResourceFolderRepository may initialize through the file instead of Psi.
-            GradleInvoker.saveAllFilesSafely();
+            GradleBuildInvoker.saveAllFilesSafely();
           }
         }
 
@@ -477,7 +477,7 @@ public class ThemeEditorStyle {
    * @param attribute The style attribute name.
    * @return the XmlTag that contains the value for a given attribute in the current style.
    */
-  @Nullable("if the attribute does not exist in this theme")
+  @Nullable/*if the attribute does not exist in this theme*/
   private XmlTag getValueTag(@NotNull XmlTag sourceTag, @NotNull final String attribute) {
     if (!isProjectStyle()) {
       // Non project styles do not contain local values.

@@ -64,7 +64,6 @@ public class ConstraintInteraction extends Interaction {
     int androidY = Coordinates.getAndroidY(myScreenView, myStartY);
 
     DrawConstraintModel model = ConstraintModel.getDrawConstraintModel(myScreenView);
-
     model.updateModifiers(startMask);
     model.setInteractionComponent(myComponent.getParent() != null ? myComponent.getParent() : myComponent);
     model.mousePressed(androidX, androidY);
@@ -85,7 +84,6 @@ public class ConstraintInteraction extends Interaction {
     int androidX = Coordinates.getAndroidX(myScreenView, x);
     int androidY = Coordinates.getAndroidY(myScreenView, y);
     drawModel.mouseDragged(androidX, androidY);
-    ConstraintModel.getConstraintModel(myScreenView.getModel()).updateXml();
   }
 
   /**
@@ -111,8 +109,10 @@ public class ConstraintInteraction extends Interaction {
     DrawConstraintModel drawConstraintModel = ConstraintModel.getDrawConstraintModel(myScreenView);
     drawConstraintModel.updateModifiers(modifiers);
     drawConstraintModel.mouseReleased(ax, ay);
-    model.saveToXML(false);
 
+    model.updateMemoryXML(); // first do a memory update
+    model.saveToXML(true);
+    model.requestLayout(true);
 
     myScreenView.getSurface().repaint();
   }

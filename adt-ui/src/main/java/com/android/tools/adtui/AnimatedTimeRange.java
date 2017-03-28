@@ -16,8 +16,12 @@
 
 package com.android.tools.adtui;
 
+import com.android.tools.adtui.model.Range;
+
+import java.util.concurrent.TimeUnit;
+
 /**
- * Animates a time range assuming the data is represented in milliseconds since epoch.
+ * Animates a time range assuming the data is represented in microseconds since epoch.
  */
 public class AnimatedTimeRange implements Animatable {
 
@@ -25,11 +29,11 @@ public class AnimatedTimeRange implements Animatable {
 
   private boolean mShift;
 
-  private long mOffset;
+  private long mOffsetUs;
 
-  public AnimatedTimeRange(Range range, long offset) {
+  public AnimatedTimeRange(Range range, long offsetUs) {
     mRange = range;
-    mOffset = offset;
+    mOffsetUs = offsetUs;
   }
 
   /**
@@ -41,7 +45,7 @@ public class AnimatedTimeRange implements Animatable {
 
   @Override
   public void animate(float frameLength) {
-    long now = System.currentTimeMillis() - mOffset;
+    long now = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mOffsetUs;
     double min = mRange.getMin();
     double max = mRange.getMax();
     mRange.setMax(now);

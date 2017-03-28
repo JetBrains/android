@@ -32,6 +32,7 @@ import java.net.URL;
  */
 class PatchInstaller extends AbstractInstaller implements PatchOperation {
 
+  private static final String PATCH_JAR_FN = "patch.jar";
   private LocalPackage myExisting;
   private File myPatchFile;
 
@@ -47,6 +48,9 @@ class PatchInstaller extends AbstractInstaller implements PatchOperation {
   @Override
   protected boolean doComplete(@Nullable File installTemp,
                                @NotNull ProgressIndicator progress) {
+    if (myPatchFile == null) {
+      myPatchFile = new File(installTemp, PATCH_JAR_FN);
+    }
     return PatchInstallerUtil.installPatch(this, myPatchFile, mFop, progress);
   }
 
@@ -74,12 +78,30 @@ class PatchInstaller extends AbstractInstaller implements PatchOperation {
     return myExisting;
   }
 
-  @NotNull
+  @Nullable
   @Override
-  public LocalPackage getPatcher() {
+  public LocalPackage getPatcher(@NotNull ProgressIndicator progress) {
     LocalPackage dependantPatcher = PatchInstallerUtil.getDependantPatcher(getPackage(), getRepoManager());
-    assert dependantPatcher != null : "Shouldn't be creating a PatchInstaller with no patcher";
+    if (dependantPatcher == null) {
+      dependantPatcher = tryToCompletePatcherInstall(progress);
+    }
+    if (dependantPatcher == null) {
+      progress.logWarning("Failed to find SDK Patch Applier!");
+    }
     return dependantPatcher;
+  }
+
+  @Nullable
+  private LocalPackage tryToCompletePatcherInstall(@NotNull ProgressIndicator progress) {
+    PackageOperation op = PatchInstallerUtil.getInProgressDependantPatcherInstall(getPackage(), getRepoManager());
+    if (op != null && op.getInstallStatus() == InstallStatus.PREPARED) {
+      // It's ready to be installed, but not complete yet. We have to finish it now so we can use it.
+      op.complete(progress);
+    }
+
+    // Maybe it completed already, but we haven't reloaded the local SDK. Do so now.
+    getRepoManager().reloadLocalIfNeeded(progress);
+    return PatchInstallerUtil.getDependantPatcher(getPackage(), getRepoManager());
   }
 
   @NotNull
@@ -110,7 +132,7 @@ class PatchInstaller extends AbstractInstaller implements PatchOperation {
       return null;
     }
     try {
-      File patchFile = new File(tempDir, "patch.jar");
+      File patchFile = new File(tempDir, PATCH_JAR_FN);
       getDownloader().downloadFully(url, patchFile, patch.getChecksum(), progress);
       return patchFile;
     }

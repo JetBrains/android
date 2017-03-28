@@ -1,8 +1,8 @@
 package org.jetbrains.android.dom;
 
-public class AndroidRawResourcesDomTest extends AndroidDomTest {
+public class AndroidRawResourcesDomTest extends AndroidDomTestCase {
   public AndroidRawResourcesDomTest() {
-    super(true, "dom/raw");
+    super("dom/raw");
   }
 
   @Override

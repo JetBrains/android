@@ -25,7 +25,10 @@ import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorLocation;
+import com.intellij.openapi.fileEditor.FileEditorProvider;
+import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogBuilder;
@@ -57,6 +60,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     myRoot = root;
 
     mySplitter = new JBSplitter(true, "android.apk.viewer", 0.62f);
+    mySplitter.setName("apkViwerContainer");
 
     myApkViewPanel = new ApkViewPanel(new ApkParser(baseFile, root));
     myApkViewPanel.setListener(this);
@@ -83,7 +87,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   @Override
   public void selectApkAndCompare() {
     FileChooserDescriptor desc = new FileChooserDescriptor(true, false, false, false, false, false);
-    desc.withFileFilter(file -> SdkConstants.EXT_ANDROID_PACKAGE.equals(file.getExtension()));
+    desc.withFileFilter(file -> ApkFileSystem.EXTENSIONS.contains(file.getExtension()));
     VirtualFile file = FileChooser.chooseFile(desc, myProject, null);
     if(file == null) {
       // user canceled
@@ -117,12 +121,6 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   @Override
   public String getName() {
     return myBaseFile.getName();
-  }
-
-  @NotNull
-  @Override
-  public FileEditorState getState(@NotNull FileEditorStateLevel level) {
-    return FileEditorState.INSTANCE;
   }
 
   @Override

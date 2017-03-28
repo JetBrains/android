@@ -15,16 +15,46 @@
  */
 package com.android.tools.idea.uibuilder.handlers.menu;
 
+import com.android.tools.idea.uibuilder.api.DragHandler;
+import com.android.tools.idea.uibuilder.api.DragType;
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 import static com.android.SdkConstants.*;
 
-public final class ItemHandler extends MenuHandlerBase {
+public final class ItemHandler extends MenuHandler {
+  @Nullable
+  @Override
+  public DragHandler createDragHandler(@NotNull ViewEditor editor,
+                                       @NotNull NlComponent group,
+                                       @NotNull List<NlComponent> items,
+                                       @NotNull DragType type) {
+    return null;
+  }
+
+  @Override
+  public boolean onCreate(@NotNull ViewEditor editor,
+                          @Nullable NlComponent parent,
+                          @NotNull NlComponent newChild,
+                          @NotNull InsertType type) {
+    if (SearchItemHandler.handles(newChild)) {
+      return new SearchItemHandler().onCreate(editor, parent, newChild, type);
+    }
+    else if (SwitchItemHandler.handles(newChild)) {
+      return new SwitchItemHandler().onCreate(editor, parent, newChild, type);
+    }
+    else {
+      return super.onCreate(editor, parent, newChild, type);
+    }
+  }
+
   @Override
   public boolean acceptsChild(@NotNull NlComponent parent, @NotNull NlComponent newChild) {
     return newChild.getTagName().equals(TAG_MENU);

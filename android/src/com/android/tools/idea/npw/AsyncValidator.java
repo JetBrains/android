@@ -107,7 +107,7 @@ public abstract class AsyncValidator<V> {
   /**
    * Invoked on UI thread to show "stable" validation result in the UI.
    */
-  protected abstract void showValidationResult(V result);
+  protected abstract void showValidationResult(@NotNull V result);
 
   /**
    * Invoked on a validation thread to perform long-running operation.

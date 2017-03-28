@@ -15,18 +15,22 @@
  */
 package com.android.tools.idea.assistant;
 
-import com.android.tools.idea.structure.services.DeveloperServiceMap.DeveloperServiceList;
+import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Extension point to provide custom action handling.
  */
 public interface AssistActionHandler {
   ExtensionPointName<AssistActionHandler> EP_NAME =
-    ExtensionPointName.create("com.android.tools.idea.structure.services.actionHandler");
+    ExtensionPointName.create("com.android.tools.idea.assistant.actionHandler");
 
+  /**
+   * Returns a unique id for the action. Used in mapping from an {@see ActionData}
+   * instance to the handler.
+   */
   @NotNull
   String getId();
 
@@ -34,12 +38,10 @@ public interface AssistActionHandler {
    * Handles an action of a given type as identified by {@code getId}.
    * TODO: Determine what other signals, if any, are necessary.
    * TODO: Determine how we might want to handle callbacks.
-   * TODO: Decouple actionArgument from the value used to retrieve DeveloperService instances.
    *
-   * @param actionArgument An opaque argument associated with the given button. May be a number or key or anything that allows you to
-   *                       complete the desired action.
-   * @param services       All matching services accross all Android modules in the given project.
+   * @param actionData Configuration data for performing the action.
+   * @param project    The project context for the action.
    */
-  void handleAction(@Nullable("Arguments are optional") String actionArgument, @NotNull DeveloperServiceList services);
+  void handleAction(@NotNull ActionData actionData, @NotNull Project project);
 
 }

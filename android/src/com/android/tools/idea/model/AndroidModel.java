@@ -19,6 +19,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,16 +35,15 @@ public interface AndroidModel {
   /**
    * @return the default source provider.
    * TODO: To be build-system-agnostic, simplify source provider usage.
-   * {@link org.jetbrains.android.facet.AndroidFacet#getMainSourceProvider()}
+   * {@link AndroidFacet#getMainSourceProvider()}
    */
   @Deprecated
   @NotNull
   SourceProvider getDefaultSourceProvider();
 
   /**
-   * @return the currently active (non-test) source providers for this Android module in
-   * overlay order (meaning that later providers override earlier providers when they redefine
-   * resources).
+   * @return the currently active (non-test) source providers for this Android module in overlay order (meaning that later providers
+   * override earlier providers when they redefine resources).
    * {@link org.jetbrains.android.facet.IdeaSourceProvider#getCurrentSourceProviders}
    */
   @Deprecated
@@ -85,7 +85,7 @@ public interface AndroidModel {
   boolean overridesManifestPackage();
 
   /**
-   * @return whether the application is debuggable, or null if not specified.
+   * @return whether the application is debuggable, or {@code null} if not specified.
    */
   Boolean isDebuggable();
 
@@ -97,10 +97,9 @@ public interface AndroidModel {
   AndroidVersion getMinSdkVersion();
 
   /**
-   * Returns the minSdkVersion that we pass to the runtime. This is normally the same as
-   * {@link #getMinSdkVersion()}, but with preview platforms the minSdkVersion, targetSdkVersion
-   * and compileSdkVersion are all coerced to the same preview platform value. This method
-   * should be used by launch code for example or packaging code.
+   * @return the {@code minSdkVersion} that we pass to the runtime. This is normally the same as {@link #getMinSdkVersion()}, but with
+   * "preview" platforms the {@code minSdkVersion}, {@code targetSdkVersion} and {@code compileSdkVersion} are all coerced to the same
+   * "preview" platform value. This method should be used by launch code for example or packaging code.
    */
   @Nullable
   AndroidVersion getRuntimeMinSdkVersion();
@@ -135,8 +134,8 @@ public interface AndroidModel {
   /**
    * @return the path of the root directory of the module.
    *
-   * TODO: Do we really need two methods in our model interface for getting the root dir? It looks like it's not
-   * called very often, so we should be able to just re-locate it every time instead of caching.
+   * TODO: Do we really need two methods in our model interface for getting the root dir? It looks like it's not called very often, so we
+   * should be able to just re-locate it every time instead of caching.
    */
   @Deprecated
   @NotNull
@@ -154,8 +153,7 @@ public interface AndroidModel {
   ClassJarProvider getClassJarProvider();
 
   /**
-   * @return The timestamp of the latest project build, in milliseconds.
-   * Returns a null value if unknown.
+   * @return The timestamp of the latest project build, in milliseconds; or {@code null} if unknown.
    */
   @Nullable
   Long getLastBuildTimestamp(@NotNull Project project);

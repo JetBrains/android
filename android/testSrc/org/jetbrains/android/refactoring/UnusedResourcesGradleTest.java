@@ -15,13 +15,10 @@
  */
 package org.jetbrains.android.refactoring;
 
-import com.android.tools.idea.templates.AndroidGradleTestCase;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.gradle.eclipse.GradleImport;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+
+import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES;
 
 /**
  * This tests unused resource removal for a Gradle project. The JPS scenario is
@@ -29,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
   public void test() throws Exception {
-    loadProject("projects/unusedResources");
+    loadProject(UNUSED_RESOURCES);
 
     UnusedResourcesHandler.invoke(getProject(), null, null, true, true);
 
@@ -42,18 +39,17 @@ public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
     assertEquals("apply plugin: 'com.android.application'\n" +
                  "\n" +
                  "android {\n" +
-                 "  compileSdkVersion 19\n" +
-                 "  buildToolsVersion '23.0.2'\n" +
+                 "  compileSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
+                 "  buildToolsVersion '" + GradleImport.CURRENT_BUILD_TOOLS_VERSION + "'\n" +
                  "\n" +
                  "  defaultConfig {\n" +
                  "    minSdkVersion 15\n" +
-                 "    targetSdkVersion 19\n" +
+                 "    targetSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
                  "    applicationId 'com.example.android.app'\n" +
                  "  }\n" +
                  "}\n" +
                  "\n" +
-                 "repositories {\n" +
-                 "  jcenter()\n" +
+                 "repositories {\n" + getLocalRepositories() +
                  "}\n",
                  getTextForFile("app/build.gradle"));
   }

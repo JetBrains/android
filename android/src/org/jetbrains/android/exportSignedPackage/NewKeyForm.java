@@ -58,6 +58,9 @@ public abstract class NewKeyForm {
 
   public void init() {
     myAliasField.setText(generateAlias());
+
+    myKeyPasswordField.setName("myKeyPasswordField");
+    myConfirmKeyPasswordField.setName("myConfirmKeyPasswordField");
   }
 
   public JPanel getContentPanel() {

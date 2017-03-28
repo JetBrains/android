@@ -29,7 +29,6 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -71,7 +70,6 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 @Deprecated
 public abstract class TemplateWizardStep extends ModuleWizardStep
   implements ActionListener, FocusListener, DocumentListener, ChangeListener, AndroidStudioWizardStep {
-  private static final Logger LOG = Logger.getInstance("#" + TemplateWizardStep.class.getName());
 
   protected static final String LAST_USED_CLASS_PREFIX_KEY = "LAST_USED_CLASS_PREFIX";
 
@@ -127,7 +125,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     }
     if (!s.startsWith("<html>")) {
       s = "<html>" + s + "</html>";
-      s.replaceAll("\n", "<br>");
+      s = s.replaceAll("\n", "<br>");
     }
     JLabel label = getDescription();
     if (label != null) {
@@ -146,7 +144,7 @@ public abstract class TemplateWizardStep extends ModuleWizardStep
     }
     if (!s.startsWith("<html>")) {
       s = "<html><font color='#" + ColorUtil.toHex(JBColor.RED) + "'>" + XmlUtils.toXmlTextValue(s) + "</font></html>";
-      s.replaceAll("\n", "<br>");
+      s = s.replaceAll("\n", "<br>");
     }
     JLabel label = getError();
     if (label != null) {

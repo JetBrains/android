@@ -17,6 +17,7 @@ package org.jetbrains.android.spellchecker;
 
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.lint.client.api.DefaultConfiguration;
+import com.android.tools.lint.client.api.LintBaseline;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -83,7 +84,34 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
     // check which language the dictionary/dictionaries correspond to,
     // and english.dic is included by default.
 
-    return AndroidFacet.getInstance(element) != null;
+    boolean isAndroid = AndroidFacet.getInstance(element) != null;
+    if (isAndroid) {
+      return true;
+    }
+
+    if (isLintConfigElement(element)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private static boolean isLintConfigElement(@NotNull PsiElement element) {
+    // Skip baseline files and lint.xml files
+    XmlFile file = PsiTreeUtil.getParentOfType(element, XmlFile.class);
+    if (file != null) {
+      if (file.getName().equals(DefaultConfiguration.CONFIG_FILE_NAME)) {
+        return true;
+      }
+      XmlTag tag = file.getRootTag();
+      if (tag != null) {
+        String tagName = tag.getName();
+        if (DefaultConfiguration.TAG_LINT.equals(tagName) || LintBaseline.TAG_ISSUES.equals(tagName)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   @NotNull
@@ -176,7 +204,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
           }
         }
       }
-      else if (name.equals(DefaultConfiguration.CONFIG_FILE_NAME)) {
+      else if (isLintConfigElement(element)) {
         // lint config file: should not be spell checked
         return false;
       }

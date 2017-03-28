@@ -144,7 +144,7 @@ public class AndroidLogFilterModelTest {
     result = myFilterModel.processLine(lines[2]);
     assertThat(result.isApplicable()).isTrue();
     assert(result.getMessagePrefix() != null);
-    assertThat(result.getMessagePrefix().isEmpty());
+    assertThat(result.getMessagePrefix()).isEmpty();
 
     // Test multiline log against third line
     filterData.setLogMessagePattern("line 3");

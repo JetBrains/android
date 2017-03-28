@@ -27,6 +27,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.AsyncProcessIcon;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -95,6 +96,10 @@ public class ConfigureFormFactorStep extends DynamicWizardStepWithHeaderAndDescr
         continue;
       }
       FormFactor formFactor = FormFactor.get(metadata.getFormFactor());
+      if (formFactor == FormFactor.GLASS && !AndroidSdkUtils.isGlassInstalled()) {
+        // Only show Glass if you've already installed the SDK
+        continue;
+      }
       Integer prevMinSdk = myFormFactors.get(formFactor);
       int templateMinSdk = metadata.getMinSdk();
 

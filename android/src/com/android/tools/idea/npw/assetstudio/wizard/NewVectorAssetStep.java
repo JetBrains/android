@@ -19,6 +19,7 @@ import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidVectorIconGenerator;
 import com.android.tools.idea.npw.assetstudio.ui.VectorAssetBrowser;
 import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
+import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.ui.VectorImageComponent;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
@@ -36,12 +37,12 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,8 +61,6 @@ import java.util.Locale;
 @SuppressWarnings("UseJBColor") // Colors are used for the graphics generator, not the plugin UI
 public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel> {
 
-  // TODO: Add ModelWizard support for a help link
-  private final static String HELP_LINK = "http://developer.android.com/tools/help/vector-asset-studio.html";
   private static final int DEFAULT_MATERIAL_ICON_SIZE = 24;
   private static final String ICON_PREFIX = "ic_";
   private static final String VECTOR_ASSET_PATH_PROPERTY = "VectorAssetImportPath";
@@ -76,6 +75,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private final BindingsManager myGeneralBindings = new BindingsManager();
   private final BindingsManager myActiveAssetBindings = new BindingsManager();
   private final ListenerManager myListeners = new ListenerManager();
+  @NotNull private final AndroidFacet myFacet;
 
   private JPanel myRootPanel;
   private VectorImageComponent myImagePreview;
@@ -106,8 +106,9 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   private JBScrollPane myErrorsScrollPane;
   private JTextArea myErrorsTextArea;
 
-  public NewVectorAssetStep(@NotNull GenerateIconsModel model) {
+  public NewVectorAssetStep(@NotNull GenerateIconsModel model, @NotNull AndroidFacet facet) {
     super(model, "Configure Vector Asset");
+    myFacet = facet;
 
     // Start with the icon radio button selected, because icons are easy to browse and play around
     // with right away.
@@ -118,7 +119,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
-    return Collections.singletonList(new ConfirmGenerateIconsStep(getModel()));
+    return Collections.singletonList(new ConfirmGenerateIconsStep(getModel(), AndroidSourceSet.getSourceSets(myFacet, null)));
   }
 
   @Override
@@ -228,15 +229,14 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   }
 
   private void saveAssetPath() {
-    Module module = getModel().getFacet().getModule();
-    PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
+
+    PropertiesComponent properties = PropertiesComponent.getInstance(myFacet.getModule().getProject());
     File path = myBrowser.getAsset().path().get();
     properties.setValue(VECTOR_ASSET_PATH_PROPERTY, path.getParent());
   }
 
   private void loadAssetPath() {
-    Module module = getModel().getFacet().getModule();
-    Project project = module.getProject();
+    Project project = myFacet.getModule().getProject();
     PropertiesComponent properties = PropertiesComponent.getInstance(project);
     String lastPath = properties.getValue(VECTOR_ASSET_PATH_PROPERTY);
 
@@ -294,7 +294,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
         @Override
         protected Void doInBackground() throws Exception {
-          myParseResult = myActiveAsset.get().parse(myImagePreview.getWidth());
+          myParseResult = myActiveAsset.get().parse(myImagePreview.getWidth(), true);
           return null;
         }
 

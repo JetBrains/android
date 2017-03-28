@@ -19,11 +19,8 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.fd.InstantRunBuildAnalyzer;
 import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.fd.InstantRunSettings;
-import com.android.tools.idea.fd.InstantRunUtils;
-import com.android.tools.idea.fd.gradle.InstantRunGradleSupport;
-import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
 import com.android.tools.idea.run.editor.AndroidDebugger;
+import com.android.tools.idea.run.editor.AndroidDebuggerContext;
 import com.android.tools.idea.run.editor.AndroidDebuggerState;
 import com.android.tools.idea.run.tasks.*;
 import com.android.tools.idea.run.util.LaunchStatus;
@@ -41,6 +38,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
 public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private final AndroidRunConfigurationBase myRunConfig;
@@ -86,6 +85,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       launchTasks.addAll(getDeployTasks(device));
 
       packageName = myApplicationIdProvider.getPackageName();
+      if (myInstantRunBuildAnalyzer != null) {
+        launchTasks.add(new LaunchInstantRunServiceTask(packageName));
+      }
+
       LaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
                                                                       myLaunchOptions.isDebug(), launchStatus);
       if (appLaunchTask != null) {
@@ -97,20 +100,24 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       launchStatus.terminateLaunch("Unable to determine application id: " + e);
       return Collections.emptyList();
     }
+    catch (IllegalStateException e) {
+      Logger.getInstance(AndroidLaunchTasksProvider.class).error(e);
+      launchStatus.terminateLaunch(e.getMessage());
+      return Collections.emptyList();
+    }
 
     if (!myLaunchOptions.isDebug() && myLaunchOptions.isOpenLogcatAutomatically()) {
       launchTasks.add(new ShowLogcatTask(myProject, packageName));
     }
-    if (SetFirebaseLogTagsTask.projectUsesFirebase(myFacet)) {
-      launchTasks.add(new SetFirebaseLogTagsTask());
-    }
-
-    if (myRunConfig.getProfilerState().GAPID_ENABLED && GapidTraceTask.checkIfOkToTrace(myProject, myLaunchOptions)) {
-      launchTasks.add(new GapidTraceTask(myRunConfig, packageName));
-    }
 
     if (myInstantRunBuildAnalyzer != null) {
       launchTasks.add(myInstantRunBuildAnalyzer.getNotificationTask());
+    }
+
+    for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
+      if (taskContributor.isApplicable(myFacet.getModule())) {
+        launchTasks.add(taskContributor.getTask(packageName));
+      }
     }
 
     return launchTasks;
@@ -125,6 +132,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     // regular APK deploy flow
     if (!myLaunchOptions.isDeploy()) {
       return Collections.emptyList();
+    }
+
+    if (myFacet.getProjectType() == PROJECT_TYPE_INSTANTAPP) {
+      return ImmutableList.of(new DeployIapkTask(myApkProvider.getApks(device)));
     }
 
     InstantRunManager.LOG.info("Using legacy/main APK deploy task");
@@ -160,17 +171,24 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         .warn("Unable to obtain test package name, will not connect debugger if tests don't instantiate main application");
     }
 
-    AndroidDebugger debugger = myRunConfig.getAndroidDebugger();
+    AndroidDebuggerContext androidDebuggerContext = myRunConfig.getAndroidDebuggerContext();
+    AndroidDebugger debugger = androidDebuggerContext.getAndroidDebugger();
     if (debugger == null) {
       logger.warn("Unable to determine debugger to use for this launch");
       return null;
     }
     logger.info("Using debugger: " + debugger.getId());
 
-    AndroidDebuggerState androidDebuggerState = myRunConfig.getAndroidDebuggerState();
+    AndroidDebuggerState androidDebuggerState = androidDebuggerContext.getAndroidDebuggerState();
     if (androidDebuggerState != null) {
       //noinspection unchecked
-      return debugger.getConnectDebuggerTask(myEnv, version, packageIds, myFacet, androidDebuggerState, myRunConfig.getType().getId());
+      return debugger.getConnectDebuggerTask(myEnv,
+                                             version,
+                                             packageIds,
+                                             myFacet,
+                                             androidDebuggerState,
+                                             myRunConfig.getType().getId(),
+                                             monitorRemoteProcess());
     }
 
     return null;

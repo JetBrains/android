@@ -17,9 +17,11 @@ package org.jetbrains.android.sdk;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.JavaDependentSdkType;
 import com.intellij.openapi.roots.AnnotationOrderRootType;
@@ -28,7 +30,6 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.ui.Messages;
 import icons.AndroidIcons;
 import org.jdom.Element;
-import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +44,7 @@ import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetPresentableName;
 
 /**
  * @author Eugene.Kudelevsky
@@ -112,7 +113,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     final List<String> javaSdks = Lists.newArrayList();
     final Sdk[] sdks = sdkModel.getSdks();
     for (Sdk jdk : sdks) {
-      if (Jdks.isApplicableJdk(jdk)) {
+      if (Jdks.getInstance().isApplicableJdk(jdk)) {
         javaSdks.add(jdk.getName());
       }
     }
@@ -136,7 +137,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     if (targets.length == 0) {
       if (Messages.showOkCancelDialog(AndroidBundle.message("no.android.targets.error"), CommonBundle.getErrorTitle(),
                                       "Open SDK Manager", Messages.CANCEL_BUTTON, Messages.getErrorIcon()) == Messages.OK) {
-        RunAndroidSdkManagerAction.runSpecificSdkManager(null, sdkData.getLocation());
+        ActionManager.getInstance().getAction("Android.RunAndroidSdkManager").actionPerformed(null);
       }
       return false;
     }
@@ -164,8 +165,8 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     String name = javaSdks.get(dialog.getSelectedJavaSdkIndex());
     Sdk jdk = sdkModel.findSdk(name);
     IAndroidTarget target = targets[dialog.getSelectedTargetIndex()];
-    String sdkName = chooseNameForNewLibrary(target);
-    setUpSdk(sdk, sdkName, sdks, target, jdk, true);
+    String sdkName = AndroidSdks.getInstance().chooseNameForNewLibrary(target);
+    AndroidSdks.getInstance().setUpSdk(sdk, target, sdkName, Arrays.asList(sdks), jdk, true);
 
     return true;
   }
@@ -223,7 +224,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
 
   @Nullable
   private static Sdk getInternalJavaSdk(@NotNull Sdk sdk) {
-    AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(sdk);
+    AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(sdk);
     return data != null ? data.getJavaSdk() : null;
   }
 

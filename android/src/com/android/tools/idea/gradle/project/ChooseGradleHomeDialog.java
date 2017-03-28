@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.util.GradleVersions;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.model.settings.LocationSettingType;
@@ -35,7 +36,6 @@ import java.io.File;
 
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleVersion;
 import static com.intellij.openapi.externalSystem.model.settings.LocationSettingType.EXPLICIT_CORRECT;
 import static com.intellij.openapi.externalSystem.model.settings.LocationSettingType.EXPLICIT_INCORRECT;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -143,7 +143,7 @@ public class ChooseGradleHomeDialog extends DialogWrapper {
       GradleVersion minimum = GradleVersion.parse(myMinimumGradleVersion);
 
       File enteredGradleHomePath = getGradleHomePath(getEnteredGradleHomePath());
-      GradleVersion gradleVersion = getGradleVersion(enteredGradleHomePath);
+      GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(enteredGradleHomePath);
 
       if (gradleVersion == null) {
         return newPathIsInvalidInfo("Unable to detect Gradle version");

@@ -18,9 +18,11 @@ package com.android.tools.idea.gradle.dsl.model;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
 public abstract class GradleFileModel {
@@ -28,6 +30,11 @@ public abstract class GradleFileModel {
 
   public GradleFileModel(@NotNull GradleDslFile gradleDslFile) {
     myGradleDslFile = gradleDslFile;
+  }
+
+  @Nullable
+  public GroovyPsiElement getPsiElement() {
+    return myGradleDslFile.getPsiElement();
   }
 
   @NotNull
@@ -45,6 +52,11 @@ public abstract class GradleFileModel {
 
   public void resetState() {
     myGradleDslFile.resetState();
+  }
+
+  @NotNull
+  public VirtualFile getVirtualFile() {
+    return myGradleDslFile.getFile();
   }
 
   public void applyChanges() {

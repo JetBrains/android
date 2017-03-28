@@ -13,19 +13,20 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<component xmlns="http://jetbrains.org/intellij/schema/application-info"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:schemaLocation="http://jetbrains.org/intellij/schema/application-info http://jetbrains.org/intellij/schema/ApplicationInfo.xsd">
-  <version major="2" minor="2" micro="2" patch="0" full="{0}.{1}.{2}" eap="false" />
+<component>
+  <version major="2" minor="3" micro="0" patch="8" full="{0}.{1}" eap="false" />
   <company name="Google" url="http://developer.android.com"/>
-  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="AI-145.1617.8"/>
+  <build number="__BUILD_NUMBER__" date="__BUILD_DATE__" apiVersion="AI-162.2228.14"/>
+  <install-over minbuild="0.1" maxbuild="999.999999" version="0"/>
   <logo url="/artwork/studio_splash.png" textcolor="cccccc" progressColor="90c653" progressY="238" progressTailIcon="/community_progress_tail.png"/>
   <about url="/artwork/studio_about.png" foreground="cccccc"/>
-  <icon size128="/artwork/icon_AS_128.png" size32="/artwork/icon_AS.png" size16="/artwork/icon_AS_small.png" size12="/artwork/toolWindowProject_AS.png" ico="artwork/androidstudio.ico"/>
+  <icon size128="/artwork/icon_AS_128.png" size32="/artwork/icon_AS.png" size16="/artwork/icon_AS_small.png" size32opaque="/artwork/icon_AS_white.png" size12="/artwork/toolWindowProject_AS.png" ico="artwork/androidstudio.ico"/>
   <package code="__PACKAGE_CODE__"/>
   <names product="Studio" fullname="Android Studio" script="studio"/> <!-- fullname is used by NPW to show default folder for projects as -->
 
-  <welcome-screen logo-url="/artwork/welcome.png"/>
+  <welcome-screen logo-url="/artwork/welcome.png"
+                  caption-url="/welcomeCaption_community.png"
+                  slogan-url="/developSlogan_community.png"/>
 
   <editor background-url="/artwork/studio_logo_background.png"/>
 
@@ -35,9 +36,9 @@
 
   <help file="ideahelp.jar" root="idea"/>
   <documentation url="http://developer.android.com/r/studio-ui/menu-start.html"/>
-  <feedback eap-url="https://code.google.com/p/android/issues/entry?template=Android Studio bug&amp;comment=Build: $VERSION, __BUILD_NUMBER__, __BUILD_DATE__, $DESCR &#10;&#10;IMPORTANT: Please read http://tools.android.com/filing-bugs carefully and supply all required information.&amp;status=New"
-        release-url="https://code.google.com/p/android/issues/entry?template=Android Studio bug&amp;comment=Build: $VERSION, __BUILD_NUMBER__, __BUILD_DATE__, $DESCR &#10;&#10;IMPORTANT: Please read http://tools.android.com/filing-bugs carefully and supply all required information.&amp;status=New"/>
-  <whatsnew url="http://tools.android.com/recent"/>
+  <feedback eap-url="https://code.google.com/p/android/issues/entry?template=Android Studio bug&amp;comment=Build: $VERSION, __BUILD_NUMBER__, __BUILD_DATE__, $DESCR &#10;&#10;IMPORTANT: Please read https://developer.android.com/studio/report-bugs.html carefully and supply all required information.&amp;status=New"
+        release-url="https://code.google.com/p/android/issues/entry?template=Android Studio bug&amp;comment=Build: $VERSION, __BUILD_NUMBER__, __BUILD_DATE__, $DESCR &#10;&#10;IMPORTANT: Please read https://developer.android.com/studio/report-bugs.html carefully and supply all required information.&amp;status=New"/>
+  <whatsnew url="https://developer.android.com/studio/releases/"/>
   <keymap win="https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard.pdf"
           mac="https://www.jetbrains.com/idea/docs/IntelliJIDEA_ReferenceCard_Mac.pdf"/>
 

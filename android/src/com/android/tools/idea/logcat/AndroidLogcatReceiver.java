@@ -45,7 +45,7 @@ final class AndroidLogcatReceiver extends AndroidOutputReceiver implements Dispo
   private static final String STACK_TRACE_CAUSE_LINE_PREFIX = Character.toString(' ');
 
   private volatile boolean myCanceled = false;
-  private final AndroidLogcatService.LogLineListener myLogLineListener;
+  private final AndroidLogcatService.LogcatListener myLogcatListener;
   private final IDevice myDevice;
 
   /**
@@ -58,9 +58,9 @@ final class AndroidLogcatReceiver extends AndroidOutputReceiver implements Dispo
   @Nullable private LogCatHeader myActiveHeader;
   private int myLineIndex;
 
-  public AndroidLogcatReceiver(@NotNull IDevice device, @NotNull AndroidLogcatService.LogLineListener logLineListener) {
+  public AndroidLogcatReceiver(@NotNull IDevice device, @NotNull AndroidLogcatService.LogcatListener logcatListener) {
     myDevice = device;
-    myLogLineListener = logLineListener;
+    myLogcatListener = logcatListener;
     myStackTraceExpander = new StackTraceExpander(STACK_TRACE_LINE_PREFIX, STACK_TRACE_CAUSE_LINE_PREFIX);
   }
 
@@ -111,7 +111,7 @@ final class AndroidLogcatReceiver extends AndroidOutputReceiver implements Dispo
 
   // This method is package protected so other Logcat components can feed receiver processed log lines if they need to
   void notifyLine(@NotNull LogCatHeader header, @NotNull String line) {
-    myLogLineListener.receiveLogLine(new LogCatMessage(header, line));
+    myLogcatListener.onLogLineReceived(new LogCatMessage(header, line));
     myLineIndex++;
   }
 

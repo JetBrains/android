@@ -17,20 +17,17 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.diagnostic.Logger;
 
 import java.awt.event.ActionEvent;
 
 public class DuplicateAvdAction extends AvdUiAction {
-  private static final Logger LOG = Logger.getInstance(RunAvdAction.class);
-
   public DuplicateAvdAction(AvdInfoProvider avdInfoProvider) {
     super(avdInfoProvider, "Duplicate", "Duplicate this AVD", AllIcons.Modules.Edit);
   }
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(myAvdInfoProvider.getComponent(), null, getAvdInfo());
+    ModelWizardDialog dialog = AvdWizardUtils.createAvdWizard(myAvdInfoProvider.getComponent(), getProject(), getAvdInfo());
     if (dialog.showAndGet()) {
       refreshAvds();
     }

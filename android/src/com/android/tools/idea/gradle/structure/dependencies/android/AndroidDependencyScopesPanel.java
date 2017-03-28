@@ -99,7 +99,7 @@ public class AndroidDependencyScopesPanel extends AbstractDependencyScopesPanel 
   private static String getInstructions() {
     return "Assign a scope to the new dependency by selecting the scopes, build types and product " +
            "flavors where the dependency will be used.<br/><a " +
-           "href='http://tools.android.com/tech-docs/new-build-system/user-guide#TOC-Dependencies-Android-Libraries-and-Multi-project-setup'>Open Documentation</a>";
+           "href='https://developer.android.com/studio/build/dependencies.html'>Open Documentation</a>";
   }
 
   private void updateScopes() {

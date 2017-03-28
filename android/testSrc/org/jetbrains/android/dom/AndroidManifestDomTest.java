@@ -15,9 +15,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class AndroidManifestDomTest extends AndroidDomTest {
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+
+public class AndroidManifestDomTest extends AndroidDomTestCase {
   public AndroidManifestDomTest() {
-    super(false, "dom/manifest");
+    super("dom/manifest");
+  }
+
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override
@@ -26,11 +33,11 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   }
 
   public void testAttributeNameCompletion1() throws Throwable {
-    doTestCompletionVariants("an1.xml", "android:icon", "android:label", "android:priority", "android:logo", "replace");
+    doTestCompletionVariantsContains("an1.xml", "android:icon", "android:label", "android:priority", "android:logo", "replace");
   }
 
   public void testAttributeNameCompletion2() throws Throwable {
-    doTestCompletionVariants("an2.xml", "debuggable", "description", "hasCode", "vmSafeMode");
+    doTestCompletionVariantsContains("an2.xml", "debuggable", "description", "hasCode", "vmSafeMode");
   }
 
   public void testAttributeNameCompletion3() throws Throwable {
@@ -55,6 +62,12 @@ public class AndroidManifestDomTest extends AndroidDomTest {
 
   public void testHighlighting2() throws Throwable {
     doTestHighlighting("hl2.xml");
+  }
+
+  public void testHighlighting3() throws Throwable {
+    copyFileToProject("MyActivity.java", "src/p1/p2/MyActivity.java");
+    copyFileToProject("bools.xml", "res/values-v23/bools.xml");
+    doTestHighlighting("hl3.xml");
   }
 
   public void testTagNameCompletion3() throws Throwable {
@@ -174,21 +187,21 @@ public class AndroidManifestDomTest extends AndroidDomTest {
       copyFileToProject(getTestName(false) + ".xml"));
     myFixture.complete(CompletionType.BASIC);
     myFixture.type('\n');
-    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.xml");
   }
 
   public void testUsesPermissionCompletion2() throws Throwable {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));
     myFixture.complete(CompletionType.BASIC);
-    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.xml");
   }
 
   public void testUsesPermissionCompletion3() throws Throwable {
     myFixture.configureFromExistingVirtualFile(
       copyFileToProject(getTestName(false) + ".xml"));
     myFixture.complete(CompletionType.BASIC);
-    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.xml");
   }
 
   public void testUsesPermissionCompletion4() throws Throwable {
@@ -196,7 +209,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
       copyFileToProject(getTestName(false) + ".xml"));
     myFixture.complete(CompletionType.BASIC);
     myFixture.type('\n');
-    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.xml");
   }
 
   public void testUsesPermissionCompletion5() throws Throwable {
@@ -204,7 +217,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
       copyFileToProject(getTestName(false) + ".xml"));
     myFixture.complete(CompletionType.BASIC);
     myFixture.type('\n');
-    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.xml");
   }
 
   public void testUsesPermissionDoc() throws Throwable {
@@ -249,7 +262,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
   }
 
   public void testIntentActionCompletion3() throws Throwable {
-    doTestCompletionVariants(getTestName(false) + ".xml");
+    toTestFirstCompletion("IntentActionCompletion3.xml", "IntentActionCompletion3_after.xml");
   }
 
   // Regression test for http://b.android.com/154004
@@ -332,12 +345,12 @@ public class AndroidManifestDomTest extends AndroidDomTest {
                                             @NotNull List<MyAdditionalModuleData> modules) {
     if ("testInstrumentationRunner1".equals(getName()) ||
         "testInstrumentationRunner2".equals(getName())) {
-      addModuleWithAndroidFacet(projectBuilder, modules, "module1", false);
+      addModuleWithAndroidFacet(projectBuilder, modules, "module1", PROJECT_TYPE_APP);
     }
   }
 
   public void testIntentsCompletion1() throws Throwable {
-    doTestCompletion();
+    toTestFirstCompletion("intentsCompletion1.xml", "intentsCompletion1_after.xml");
   }
 
   public void testIntentsCompletion2() throws Throwable {
@@ -458,6 +471,10 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     doTestCompletionVariants(getTestName(true) + ".xml", "p1.MyActivity2", "p1.p2.MyActivity", "p1.p2.p3.MyActivity1");
   }
 
+  public void testContentProviderIntentFilter() throws Throwable {
+    copyFileToProject("MyDocumentsProvider.java", "src/p1/p2/MyDocumentsProvider.java");
+    doTestHighlighting();
+  }
 
   private void doTestSdkVersionAttributeValueCompletion() throws Throwable {
     final ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
@@ -466,7 +483,7 @@ public class AndroidManifestDomTest extends AndroidDomTest {
     ApplicationManager.getApplication().runWriteAction(() -> projectJdkTable.addJdk(sdk));
     try {
       doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
-                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "N_MR1");
+                               "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25");
     }
     finally {
       ApplicationManager.getApplication().runWriteAction(() -> projectJdkTable.removeJdk(sdk));

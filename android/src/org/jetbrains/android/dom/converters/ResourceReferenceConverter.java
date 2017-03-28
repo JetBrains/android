@@ -49,6 +49,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
+import static org.jetbrains.android.util.AndroidResourceUtil.VALUE_RESOURCE_TYPES;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 /**
@@ -150,6 +151,15 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     if (facet == null) return result;
 
     final Set<ResourceType> recommendedTypes = getResourceTypes(context);
+
+    if (recommendedTypes.contains(ResourceType.BOOL) && recommendedTypes.size() < VALUE_RESOURCE_TYPES.size()) {
+      // Is this resource reference expected to be a @bool reference? Specifically
+      // check that it's not allowed to be *all* resource types since that's a fallback
+      // for when we don't have metadata, and we don't want to show true and false
+      // as possible completions for things like com.google.android.gms.version
+      result.add(ResourceValue.literal(VALUE_TRUE));
+      result.add(ResourceValue.literal(VALUE_FALSE));
+    }
 
     // hack to check if it is a real id attribute
     if (recommendedTypes.contains(ResourceType.ID) && recommendedTypes.size() == 1) {
@@ -265,6 +275,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     return getPackagePrefix(resourcePackage, true) + typePart;
   }
 
+  @NotNull
   private Set<ResourceType> getResourceTypes(ConvertContext context) {
     return getResourceTypes(context.getInvocationElement());
   }
@@ -283,7 +294,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       }
     }
     if (types.size() == 0) {
-      types.addAll(AndroidResourceUtil.VALUE_RESOURCE_TYPES);
+      return VALUE_RESOURCE_TYPES;
     }
     else if (types.contains(ResourceType.DRAWABLE)) {
       types.add(ResourceType.COLOR);
@@ -437,12 +448,26 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
           return null;
         }
       }
-      else if (resType == null && parsed.isReference()) {
-        if (myWithExplicitResourceType && !NULL_RESOURCE.equals(s)) {
-          return null;
+      else if (resType == null) {
+        if (parsed.isReference()) {
+          if (myWithExplicitResourceType && !NULL_RESOURCE.equals(s)) {
+            return null;
+          }
+          if (myResourceTypes.size() == 1) {
+            parsed.setResourceType(myResourceTypes.iterator().next().getName());
+          }
         }
-        if (myResourceTypes.size() == 1) {
-          parsed.setResourceType(myResourceTypes.iterator().next().getName());
+        else {
+          Set<ResourceType> types = getResourceTypes(context);
+          if (types.contains(ResourceType.BOOL) && types.size() < VALUE_RESOURCE_TYPES.size()) {
+            // For a boolean we *only* accept true or false if it's not a resource reference
+            // (We're checking  VALUE_RESOURCE_TYPES.size above since for properties with
+            // *unknown type* we're including all resource types, and we don't want to start
+            // flagging colors (#ff00ff) as unresolved etc.
+            if (!(VALUE_TRUE.equals(s) || VALUE_FALSE.equals(s))) {
+              return null;
+            }
+          }
         }
       }
     }
@@ -514,7 +539,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
               if (folderType != null) {
                 fixes.add(new CreateFileResourceQuickFix(facet, folderType, resourceName, context.getFile(), false));
               }
-              if (AndroidResourceUtil.VALUE_RESOURCE_TYPES.contains(resType) && resType != ResourceType.LAYOUT) { // layouts: aliases only
+              if (VALUE_RESOURCE_TYPES.contains(resType) && resType != ResourceType.LAYOUT) { // layouts: aliases only
                 fixes.add(new CreateValueResourceQuickFix(facet, resType, resourceName, context.getFile(), false));
               }
               return fixes.toArray(new LocalQuickFix[fixes.size()]);

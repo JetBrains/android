@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.android.tools.idea.gradle.structure.model.PsModule;
@@ -34,8 +34,10 @@ import javax.swing.*;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+
 public class PsAndroidModule extends PsModule implements PsAndroidModel {
-  @NotNull private final AndroidGradleModel myGradleModel;
+  @NotNull private final AndroidModuleModel myGradleModel;
 
   private PsBuildTypeCollection myBuildTypeCollection;
   private PsProductFlavorCollection myProductFlavorCollection;
@@ -45,7 +47,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
   public PsAndroidModule(@NotNull PsProject parent,
                          @NotNull Module resolvedModel,
                          @NotNull String gradlePath,
-                         @NotNull AndroidGradleModel gradleModel) {
+                         @NotNull AndroidModuleModel gradleModel) {
     super(parent, resolvedModel, gradlePath);
     myGradleModel = gradleModel;
   }
@@ -61,7 +63,7 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
   }
 
   public boolean isLibrary() {
-    return myGradleModel.isLibrary();
+    return myGradleModel.getProjectType() != PROJECT_TYPE_APP;
   }
 
   @Nullable
@@ -135,13 +137,13 @@ public class PsAndroidModule extends PsModule implements PsAndroidModel {
 
   @Override
   @NotNull
-  public AndroidGradleModel getGradleModel() {
+  public AndroidModuleModel getGradleModel() {
     return myGradleModel;
   }
 
   @Override
   public Icon getIcon() {
-    return myGradleModel.getAndroidProject().isLibrary() ?  AndroidIcons.LibraryModule : AndroidIcons.AppModule;
+    return myGradleModel.getProjectType() == PROJECT_TYPE_APP ?  AndroidIcons.AppModule : AndroidIcons.LibraryModule;
   }
 
   @Override

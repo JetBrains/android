@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.google.common.collect.Lists;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -76,7 +76,7 @@ public class CleanImportProjectAction extends DumbAwareAction {
         deleteFiles(filesToDelete, projectName);
         try {
           LOG.info(String.format("About to import project '%1$s'.", projectName));
-          GradleProjectImporter.getInstance().importNewlyCreatedProject(projectName, projectDirPath, null, null, null);
+          GradleProjectImporter.getInstance().importProject(projectName, projectDirPath, null);
           LOG.info(String.format("Done importing project '%1$s'.", projectName));
         }
         catch (Exception error) {

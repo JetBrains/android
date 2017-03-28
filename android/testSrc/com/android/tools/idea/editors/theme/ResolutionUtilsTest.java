@@ -73,7 +73,6 @@ public class ResolutionUtilsTest extends AndroidTestCase {
 
     ConfiguredThemeEditorStyle style = ResolutionUtils.getStyle(configuration, "android:Theme.Holo.Light", null);
     assertEquals("Theme.Holo.Light", style.getName());
-    assertEmpty(style.getConfiguredValues()); // Style shouldn't have the values of the parent.
 
     try {
       style.setValue("newAttribute", "test");
@@ -92,7 +91,7 @@ public class ResolutionUtilsTest extends AndroidTestCase {
     }
 
     style = style.getParent();
-    assertEquals("Theme", style.getName());
+    assertEquals("Theme.Light", style.getName());
     assertNotEmpty(style.getConfiguredValues());
   }
 
@@ -129,7 +128,7 @@ public class ResolutionUtilsTest extends AndroidTestCase {
 
     style = resolver.getStyle("Theme.Holo.Light", true);
     assertNotNull(style);
-    assertEquals("android:Theme", ResolutionUtils.getParentQualifiedName(style));
+    assertEquals("android:Theme.Light", ResolutionUtils.getParentQualifiedName(style));
 
     style = resolver.getStyle("ATheme", false);
     assertNotNull(style);

@@ -18,8 +18,9 @@ package com.android.tools.idea.startup;
 import com.android.SdkConstants;
 import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.sdk.SystemInfoStatsMonitor;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.SystemInfoStatsMonitor;
 import com.android.tools.idea.sdk.install.patch.PatchInstallingRestarter;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
@@ -34,13 +35,14 @@ import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
-import static com.android.tools.idea.gradle.util.PropertiesUtil.getProperties;
+import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.sdk.VersionCheck.isCompatibleVersion;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidSdkManagerEnabled;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -69,12 +71,13 @@ public class AndroidSdkInitializer implements Runnable {
       return;
     }
 
-    File androidSdkPath = IdeSdks.getAndroidSdkPath();
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    File androidSdkPath = ideSdks.getAndroidSdkPath();
     if (androidSdkPath == null) {
       try {
         // Setup JDK and Android SDK if necessary
         setUpSdks();
-        androidSdkPath = IdeSdks.getAndroidSdkPath();
+        androidSdkPath = ideSdks.getAndroidSdkPath();
       }
       catch (Exception e) {
         LOG.error("Unexpected error while setting up SDKs: ", e);
@@ -97,7 +100,7 @@ public class AndroidSdkInitializer implements Runnable {
     if (sdk != null) {
       String sdkHomePath = sdk.getHomePath();
       assert sdkHomePath != null;
-      IdeSdks.createAndroidSdkPerAndroidTarget(new File(toSystemDependentName(sdkHomePath)));
+      IdeSdks.getInstance().createAndroidSdkPerAndroidTarget(new File(toSystemDependentName(sdkHomePath)));
       return;
     }
 
@@ -115,13 +118,14 @@ public class AndroidSdkInitializer implements Runnable {
       Sdk newSdk = createNewAndroidPlatform(androidSdkPath.getPath(), promptSdkSelection);
       if (newSdk != null) {
         // Rename the SDK to fit our default naming convention.
-        if (newSdk.getName().startsWith(SDK_NAME_PREFIX)) {
+        String sdkNamePrefix = AndroidSdks.SDK_NAME_PREFIX;
+        if (newSdk.getName().startsWith(sdkNamePrefix)) {
           SdkModificator sdkModificator = newSdk.getSdkModificator();
-          sdkModificator.setName(SDK_NAME_PREFIX + newSdk.getName().substring(SDK_NAME_PREFIX.length()));
+          sdkModificator.setName(sdkNamePrefix + newSdk.getName().substring(sdkNamePrefix.length()));
           sdkModificator.commitChanges();
 
           // Rename the JDK that goes along with this SDK.
-          AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(newSdk);
+          AndroidSdkAdditionalData additionalData = AndroidSdks.getInstance().getAndroidSdkAdditionalData(newSdk);
           if (additionalData != null) {
             Sdk jdk = additionalData.getJavaSdk();
             if (jdk != null) {
@@ -132,7 +136,7 @@ public class AndroidSdkInitializer implements Runnable {
           }
 
           // Fill out any missing build APIs for this new SDK.
-          IdeSdks.createAndroidSdkPerAndroidTarget(androidSdkPath);
+          IdeSdks.getInstance().createAndroidSdkPerAndroidTarget(androidSdkPath);
         }
       }
     });
@@ -140,7 +144,7 @@ public class AndroidSdkInitializer implements Runnable {
 
   @Nullable
   private static Sdk findFirstCompatibleAndroidSdk() {
-    List<Sdk> sdks = getAllAndroidSdks();
+    List<Sdk> sdks = AndroidSdks.getInstance().getAllAndroidSdks();
     for (Sdk sdk : sdks) {
       String sdkPath = sdk.getHomePath();
       if (isCompatibleVersion(sdkPath)) {

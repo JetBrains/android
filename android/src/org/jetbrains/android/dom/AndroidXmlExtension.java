@@ -17,6 +17,7 @@ package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
 import com.android.tools.lint.client.api.DefaultConfiguration;
+import com.android.tools.lint.client.api.LintBaseline;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
@@ -31,6 +32,8 @@ import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
 
 /**
  * @author Eugene.Kudelevsky
@@ -49,15 +52,33 @@ public class AndroidXmlExtension extends DefaultXmlExtension {
   @Override
   public boolean isAvailable(final PsiFile file) {
     if (file instanceof XmlFile) {
-      if (AndroidFacet.getInstance(file) == null) {
-        return false;
-      }
       return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
         @Override
         public Boolean compute() {
-          return AndroidResourceUtil.isInResourceSubdirectory(file, null) ||
-                 ManifestDomFileDescription.isManifestFile((XmlFile)file) ||
-                 DefaultConfiguration.CONFIG_FILE_NAME.equals(file.getName());
+          if (AndroidFacet.getInstance(file) != null) {
+            if (AndroidResourceUtil.isInResourceSubdirectory(file, null)) {
+              return true;
+            }
+
+            if (file.getName().equals(FN_ANDROID_MANIFEST_XML) && ManifestDomFileDescription.isManifestFile((XmlFile)file)) {
+              return true;
+            }
+          }
+
+          if (DefaultConfiguration.CONFIG_FILE_NAME.equals(file.getName())) {
+            return true;
+          }
+
+          XmlFile xmlFile = (XmlFile)file;
+          XmlTag tag = xmlFile.getRootTag();
+          if (tag != null) {
+            String tagName = tag.getName();
+            if (DefaultConfiguration.TAG_LINT.equals(tagName) || LintBaseline.TAG_ISSUES.equals(tagName)) {
+              return true;
+            }
+          }
+
+          return false;
         }
       });
     }

@@ -22,7 +22,9 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.fd.InstantRunSettings;
 import com.android.tools.idea.run.AndroidSessionInfo;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -39,9 +41,11 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XDebuggerManager;
+import com.sun.jdi.Field;
 import com.sun.jdi.Location;
+import com.sun.jdi.ReferenceType;
+import com.sun.jdi.Value;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +58,21 @@ public class InstantRunPositionManager extends PositionManagerImpl {
 
   public InstantRunPositionManager(DebugProcessImpl debugProcess) {
     super(debugProcess);
+  }
+
+  @Override
+  protected ReferenceType mapClass(ReferenceType type) {
+    ReferenceType ret = type;
+    if (InstantRunSettings.isInstantRunEnabled()) {
+      Field change = type.fieldByName("$change");
+      if (change != null) {
+        Value value = type.getValue(change);
+        if (value != null && value.type() instanceof ReferenceType) {
+          ret = (ReferenceType)value.type();
+        }
+      }
+    }
+    return ret;
   }
 
   /**
@@ -145,7 +164,7 @@ public class InstantRunPositionManager extends PositionManagerImpl {
   }
 
   private static Collection<? extends LocalPackage> getAllPlatformSourcePackages() {
-    AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+    AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     RepoManager sdkManager =
       sdkHandler.getSdkManager(new StudioLoggerProgressIndicator(InstantRunPositionManager.class));
     return sdkManager.getPackages().getLocalPackagesForPrefix(SdkConstants.FD_ANDROID_SOURCES);

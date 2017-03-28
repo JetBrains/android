@@ -15,20 +15,48 @@
  */
 package org.jetbrains.android;
 
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.fd.actions.HotswapAction;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.components.ApplicationComponent;
 import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author coyote
  */
-public class AndroidPlugin {
+public class AndroidPlugin implements ApplicationComponent {
   public static Key<Runnable> EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY = Key.create("gui.test.execute.before.build");
-  public static Key<Runnable> EXECUTE_BEFORE_PROJECT_SYNC_TASK_IN_GUI_TEST_KEY = Key.create("gui.test.execute.before.sync.task");
   public static Key<String> GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY = Key.create("gui.test.gradle.build.output");
   public static Key<String[]> GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY = Key.create("gradle.sync.command.line.options");
 
   private static boolean ourGuiTestingMode;
   private static GuiTestSuiteState ourGuiTestSuiteState;
+
+  @Override
+  @NotNull
+  public String getComponentName() {
+    return "AndroidApplicationComponent";
+  }
+
+  @Override
+  public void initComponent() {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
+      return;
+    }
+
+    // Since the executor actions are registered dynamically, and we want to insert ourselves in the middle, we have to do this
+    // in code as well (instead of xml).
+    ActionManager actionManager = ActionManager.getInstance();
+    AnAction runnerActions = actionManager.getAction("RunnerActions");
+    if (runnerActions instanceof DefaultActionGroup) {
+      ((DefaultActionGroup)runnerActions).add(new HotswapAction(), new Constraints(Anchor.AFTER, "Run"));
+    }
+  }
+
+  @Override
+  public void disposeComponent() {
+  }
 
   public static boolean isGuiTestingMode() {
     return ourGuiTestingMode;
@@ -51,7 +79,6 @@ public class AndroidPlugin {
 
   public static class GuiTestSuiteState {
     private boolean mySkipSdkMerge;
-    private boolean myUseCachedGradleModelOnly;
 
     public boolean isSkipSdkMerge() {
       return mySkipSdkMerge;
@@ -59,14 +86,6 @@ public class AndroidPlugin {
 
     public void setSkipSdkMerge(boolean skipSdkMerge) {
       mySkipSdkMerge = skipSdkMerge;
-    }
-
-    public boolean syncWithCachedModelOnly() {
-      return myUseCachedGradleModelOnly;
-    }
-
-    public void setUseCachedGradleModelOnly(boolean useCachedGradleModelOnly) {
-      myUseCachedGradleModelOnly = useCachedGradleModelOnly;
     }
   }
 }

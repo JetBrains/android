@@ -56,7 +56,7 @@ public class AndroidRunConfigurationType implements ConfigurationType {
 
     @Override
     public void configureBeforeRunTaskDefaults(Key<? extends BeforeRunTask> providerID, BeforeRunTask task) {
-      // Under Android Studio, disable the default Make compile step for this run configuration type
+      // Disable the default Make compile step for this run configuration type
       if (CompileStepBeforeRun.ID.equals(providerID)) {
         task.setEnabled(false);
       }

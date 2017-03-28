@@ -164,7 +164,7 @@ public final class ProxyUtil {
               }
             } else {
               value = new InvocationErrorValue(cause);
-              Logger.getInstance(ProxyUtil.class).error(String.format("Calling %s on %s unexpectedly threw %s", m, object, cause));
+              Logger.getInstance(ProxyUtil.class).warn(String.format("Calling %s on %s unexpectedly threw %s", m, object, cause));
             }
           }
           values.put(m.toGenericString().intern(), reproxy(m.getGenericReturnType(), value));

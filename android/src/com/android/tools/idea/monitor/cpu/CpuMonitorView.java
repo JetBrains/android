@@ -21,6 +21,7 @@ import com.android.tools.idea.ddms.actions.ToggleMethodProfilingAction;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.TimelineEventListener;
 import com.android.tools.idea.monitor.actions.RecordingAction;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.MonitorType;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
@@ -99,5 +100,10 @@ public class CpuMonitorView extends BaseMonitorView<CpuSampler> implements Timel
   @Override
   public String getDescription() {
     return "cpu usage";
+  }
+
+  @Override
+  public MonitorType getMonitorType() {
+    return MonitorType.CPU;
   }
 }

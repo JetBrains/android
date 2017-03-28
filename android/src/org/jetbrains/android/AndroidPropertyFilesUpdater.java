@@ -226,7 +226,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
 
     final List<Object> newState = Arrays.asList(
       androidTargetHashString,
-      facet.isLibraryProject(),
+      facet.getProjectType(),
       Arrays.asList(dependencyPaths),
       facet.getProperties().ENABLE_MANIFEST_MERGING,
       facet.getProperties().ENABLE_PRE_DEXING);
@@ -234,7 +234,7 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
 
     if (state == null || !Comparing.equal(state, newState)) {
       updateTargetProperty(facet, projectProperties, changes);
-      updateLibraryProperty(facet, projectProperties, changes);
+      updateProjectTypeProperty(facet, projectProperties, changes);
       updateManifestMergerProperty(facet, projectProperties, changes);
       updateDependenciesInPropertyFile(projectProperties, localProperties, dependencies, changes);
 
@@ -343,30 +343,20 @@ public class AndroidPropertyFilesUpdater extends AbstractProjectComponent {
     }
   }
 
-  public static void updateLibraryProperty(@NotNull AndroidFacet facet,
-                                           @NotNull final PropertiesFile propertiesFile,
-                                           @NotNull List<Runnable> changes) {
-    final IProperty property = propertiesFile.findPropertyByKey(AndroidUtils.ANDROID_LIBRARY_PROPERTY);
+  public static void updateProjectTypeProperty(@NotNull AndroidFacet facet,
+                                               @NotNull final PropertiesFile propertiesFile,
+                                               @NotNull List<Runnable> changes) {
+    IProperty property = propertiesFile.findPropertyByKey(AndroidUtils.ANDROID_PROJECT_TYPE_PROPERTY);
+    String value = Integer.toString(facet.getProjectType());
 
     if (property != null) {
-      final String value = Boolean.toString(facet.isLibraryProject());
 
       if (!value.equals(property.getValue())) {
-        changes.add(new Runnable() {
-          @Override
-          public void run() {
-            property.setValue(value);
-          }
-        });
+        changes.add(() -> property.setValue(value));
       }
     }
-    else if (facet.isLibraryProject()) {
-      changes.add(new Runnable() {
-        @Override
-        public void run() {
-          propertiesFile.addProperty(AndroidUtils.ANDROID_LIBRARY_PROPERTY, Boolean.TRUE.toString());
-        }
-      });
+    else {
+      changes.add(() -> propertiesFile.addProperty(AndroidUtils.ANDROID_PROJECT_TYPE_PROPERTY, value));
     }
   }
 

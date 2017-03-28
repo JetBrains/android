@@ -5,11 +5,11 @@ import android.view.View;
 import android.view.View.OnLayoutChangeListener;
 import android.widget.GridLayout;
 
-public class Class extends <error descr="Class requires API level 14 (current min is 1): GridLayout">Grid<caret>Layout</error> implements
-        <error descr="Class requires API level 11 (current min is 1): OnSystemUiVisibilityChangeListener">View.OnSystemUiVisibilityChangeListener</error>, <error descr="Class requires API level 11 (current min is 1): OnLayoutChangeListener">OnLayoutChangeListener</error> {
+public class Class extends <error descr="Class requires API level 14 (current min is 1): android.widget.GridLayout">Grid<caret>Layout</error> implements
+        <error descr="Class requires API level 11 (current min is 1): android.view.View.OnSystemUiVisibilityChangeListener">View.OnSystemUiVisibilityChangeListener</error>, <error descr="Class requires API level 11 (current min is 1): android.view.View.OnLayoutChangeListener">OnLayoutChangeListener</error> {
 
     public Class(Context context) {
-        <error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#GridLayout">super(context)</error>;
+        <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">super</error>(context);
     }
 
     @Override

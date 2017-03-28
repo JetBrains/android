@@ -28,8 +28,11 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  * A data class which, when initialized with a {@link SourceProvider} and some other relevant
@@ -37,8 +40,6 @@ import java.util.List;
  * where the source provider returns multiple paths, we always take the first match.
  */
 public final class AndroidProjectPaths {
-  @NotNull private final AndroidFacet myAndroidFacet;
-
   @Nullable private File myModuleRoot;
   @Nullable private File mySrcDirectory;
   @Nullable private File myTestDirectory;
@@ -46,22 +47,67 @@ public final class AndroidProjectPaths {
   @Nullable private File myAidlDirectory;
   @Nullable private File myManifestDirectory;
 
+  /**
+   * Convenience method to get {@link SourceProvider}s from the current project which can be used
+   * to instantiate an instance of this class.
+   */
+  @NotNull
+  static List<SourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet, @Nullable VirtualFile targetDirectory) {
+    if (targetDirectory != null) {
+      return IdeaSourceProvider.getSourceProvidersForFile(androidFacet, targetDirectory, androidFacet.getMainSourceProvider());
+    }
+    else {
+      return IdeaSourceProvider.getAllSourceProviders(androidFacet);
+    }
+  }
+
+  /**
+   * Create an instance of this class manually. You may wish to use one of the other
+   * convenience constructors instead, however. It assumes the 'main' flavor and default android locations for the source, test, res,
+   * aidl and manifest.
+   */
+  public AndroidProjectPaths(@NotNull File moduleRoot) {
+    myModuleRoot = moduleRoot;
+
+    File baseSrcDir = new File(moduleRoot, FD_SOURCES);
+    File baseFlavourDir = new File(baseSrcDir, FD_MAIN);
+
+    mySrcDirectory = new File(baseFlavourDir, FD_JAVA);
+    myTestDirectory = Paths.get(baseSrcDir.getPath(), FD_TEST, FD_JAVA).toFile();
+    myResDirectory = new File(baseFlavourDir, FD_RESOURCES);
+    myAidlDirectory = new File(baseFlavourDir, FD_AIDL);
+    myManifestDirectory = baseFlavourDir;
+  }
+
   public AndroidProjectPaths(@NotNull AndroidFacet androidFacet) {
     this(androidFacet, getSourceProviders(androidFacet, null).get(0));
   }
 
   public AndroidProjectPaths(@NotNull AndroidFacet androidFacet, @NotNull SourceProvider sourceProvider) {
-    myAndroidFacet = androidFacet;
-    Module module = getModule();
+    init(sourceProvider);
+
+    Module module = androidFacet.getModule();
     VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
     if (roots.length > 0) {
       myModuleRoot = VfsUtilCore.virtualToIoFile(roots[0]);
     }
 
-    mySrcDirectory = Iterables.getFirst(sourceProvider.getJavaDirectories(), null);
-
     List<VirtualFile> testsRoot = ModuleRootManager.getInstance(module).getSourceRoots(JavaModuleSourceRootTypes.TESTS);
     myTestDirectory = testsRoot.size() == 0 ? null : VfsUtilCore.virtualToIoFile(testsRoot.get(0));
+  }
+
+  /**
+   * This constructor should be used when there is still no AndroidFacet (eg when creating a new module or Project)
+   */
+  public AndroidProjectPaths(@NotNull File moduleRoot, @NotNull File testDirectory, @NotNull SourceProvider sourceProvider) {
+    init(sourceProvider);
+
+    myModuleRoot = moduleRoot;
+    myTestDirectory = testDirectory;
+  }
+
+  private void init(@NotNull SourceProvider sourceProvider) {
+    mySrcDirectory = Iterables.getFirst(sourceProvider.getJavaDirectories(), null);
 
     Collection<File> resDirectories = sourceProvider.getResDirectories();
     if (!resDirectories.isEmpty()) {
@@ -74,30 +120,6 @@ public final class AndroidProjectPaths {
     }
 
     myManifestDirectory = sourceProvider.getManifestFile().getParentFile();
-  }
-
-  /**
-   * Convenience method to get {@link SourceProvider}s from the current project which can be used
-   * to instantiate an instance of this class.
-   */
-  @NotNull
-  public static List<SourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet, @Nullable VirtualFile targetDirectory) {
-    if (targetDirectory != null) {
-      return IdeaSourceProvider.getSourceProvidersForFile(androidFacet, targetDirectory, androidFacet.getMainSourceProvider());
-    }
-    else {
-      return IdeaSourceProvider.getAllSourceProviders(androidFacet);
-    }
-  }
-
-  @NotNull
-  public AndroidFacet getAndroidFacet() {
-    return myAndroidFacet;
-  }
-
-  @NotNull
-  public Module getModule() {
-    return myAndroidFacet.getModule();
   }
 
   @Nullable

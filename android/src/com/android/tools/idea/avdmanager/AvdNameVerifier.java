@@ -39,8 +39,8 @@ public class AvdNameVerifier {
   @NotNull
   public static String stripBadCharactersAndCollapse(@NotNull String candidateName) {
     // Remove any invalid characters. Remove leading and trailing spaces. Replace consecutive
-    // spaces and underscores by a single underscore.
-    return candidateName.replaceAll("[^" + ALLOWED_CHARS + "]", " ").trim().replaceAll("[ _]+", "_");
+    // spaces, parentheses, and underscores by a single underscore.
+    return candidateName.replaceAll("[^" + ALLOWED_CHARS + "]", " ").trim().replaceAll("[ ()_]+", "_");
   }
 
   @NotNull

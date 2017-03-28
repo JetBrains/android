@@ -16,7 +16,6 @@
 package org.jetbrains.android.maven;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.OrderEntry;
@@ -40,8 +39,6 @@ import java.util.List;
  * @author Eugene.Kudelevsky
  */
 public class AndroidMavenUtil {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.maven.AndroidMavenUtil");
-
   @NonNls public static final String APKSOURCES_DEPENDENCY_TYPE = "apksources";
   @NonNls public static final String APKLIB_DEPENDENCY_AND_PACKAGING_TYPE = "apklib";
   @NonNls public static final String SO_PACKAGING_AND_DEPENDENCY_TYPE = "so";

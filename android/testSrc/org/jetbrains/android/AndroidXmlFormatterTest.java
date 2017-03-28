@@ -2,18 +2,16 @@ package org.jetbrains.android;
 
 import com.intellij.codeInsight.actions.RearrangeCodeProcessor;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.psi.codeStyle.CodeStyleSettings;
-import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.codeStyle.arrangement.engine.ArrangementEngine;
 import com.intellij.psi.formatter.xml.XmlCodeStyleSettings;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
-import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -24,19 +22,20 @@ import java.util.Arrays;
 public class AndroidXmlFormatterTest extends AndroidTestCase {
   private static final String BASE_PATH = "formatter/xml/";
 
-  private CodeStyleSettings mySettings;
-
   public void testLayout1() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     doTestLayout("layout1.xml");
   }
 
   public void testLayout2() throws Exception {
+    final XmlCodeStyleSettings xmlSettings = mySettings.getCustomSettings(XmlCodeStyleSettings.class);
+    xmlSettings.XML_ALIGN_ATTRIBUTES = true;
+    xmlSettings.XML_SPACE_INSIDE_EMPTY_TAG = false;
+    xmlSettings.XML_KEEP_LINE_BREAKS = true;
+    mySettings.getIndentOptions(XmlFileType.INSTANCE).CONTINUATION_INDENT_SIZE = 8;
     doTestLayout("layout1.xml");
   }
 
   public void testLayout3() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final XmlCodeStyleSettings xmlSettings = mySettings.getCustomSettings(XmlCodeStyleSettings.class);
     xmlSettings.XML_ATTRIBUTE_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
     xmlSettings.XML_KEEP_BLANK_LINES = 0;
@@ -44,7 +43,6 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
   }
 
   public void testLayout4() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final XmlCodeStyleSettings xmlSettings = mySettings.getCustomSettings(XmlCodeStyleSettings.class);
     xmlSettings.XML_ALIGN_ATTRIBUTES = true;
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
@@ -54,14 +52,12 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
   }
 
   public void testLayout5() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
     androidSettings.LAYOUT_SETTINGS.WRAP_ATTRIBUTES = CommonCodeStyleSettings.DO_NOT_WRAP;
     doTestLayout("layout1.xml");
   }
 
   public void testLayout6() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final XmlCodeStyleSettings xmlSettings = mySettings.getCustomSettings(XmlCodeStyleSettings.class);
     xmlSettings.XML_ALIGN_ATTRIBUTES = false;
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
@@ -71,7 +67,6 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
   }
 
   public void testLayout7() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final XmlCodeStyleSettings xmlSettings = mySettings.getCustomSettings(XmlCodeStyleSettings.class);
     xmlSettings.XML_ALIGN_ATTRIBUTES = true;
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
@@ -80,7 +75,6 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
   }
 
   public void testLayout8() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + "layout8.xml", "res/layout/layout.xml");
     myFixture.configureFromExistingVirtualFile(f);
 
@@ -103,7 +97,6 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
   // not on the first line, on first "Reformat Code" run it would but namespace first and keep the
   // line break if it was already there, and on the second run it would remove line break.
   public void testLayoutNonFirstNamespace() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + "layout_non_first_namespace.xml", "res/layout/layout.xml");
     myFixture.configureFromExistingVirtualFile(f);
 
@@ -120,7 +113,6 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
 
   public void testLayout9() throws Exception {
     // Regression test for https://code.google.com/p/android/issues/detail?id=177858
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final XmlCodeStyleSettings xmlSettings = mySettings.getCustomSettings(XmlCodeStyleSettings.class);
     xmlSettings.XML_ALIGN_ATTRIBUTES = true;
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
@@ -132,7 +124,6 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
 
   public void testManifest1() throws Exception {
     deleteManifest();
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     doTestManifest("manifest1.xml");
   }
 
@@ -140,12 +131,14 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
     deleteManifest();
     final XmlCodeStyleSettings xmlSettings = mySettings.getCustomSettings(XmlCodeStyleSettings.class);
     xmlSettings.XML_ATTRIBUTE_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
+    xmlSettings.XML_ALIGN_ATTRIBUTES = true;
+    xmlSettings.XML_SPACE_INSIDE_EMPTY_TAG = false;
+    mySettings.getIndentOptions(XmlFileType.INSTANCE).CONTINUATION_INDENT_SIZE = 8;
     doTestManifest("manifest1.xml");
   }
 
   public void testManifest3() throws Exception {
     deleteManifest();
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final XmlCodeStyleSettings xmlSettings = mySettings.getCustomSettings(XmlCodeStyleSettings.class);
     xmlSettings.XML_ATTRIBUTE_WRAP = CommonCodeStyleSettings.DO_NOT_WRAP;
     xmlSettings.XML_KEEP_BLANK_LINES = 0;
@@ -154,7 +147,6 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
 
   public void testManifest4() throws Exception {
     deleteManifest();
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final XmlCodeStyleSettings xmlSettings = mySettings.getCustomSettings(XmlCodeStyleSettings.class);
     xmlSettings.XML_ALIGN_ATTRIBUTES = true;
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
@@ -164,7 +156,6 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
 
   public void testManifest5() throws Exception {
     deleteManifest();
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
     androidSettings.MANIFEST_SETTINGS.WRAP_ATTRIBUTES = CommonCodeStyleSettings.DO_NOT_WRAP;
     doTestManifest("manifest1.xml");
@@ -172,7 +163,6 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
 
   public void testManifest6() throws Exception {
     deleteManifest();
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
     androidSettings.MANIFEST_SETTINGS.GROUP_TAGS_WITH_SAME_NAME = false;
     doTestManifest("manifest1.xml");
@@ -182,94 +172,82 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
     deleteManifest();
     final XmlCodeStyleSettings xmlSettings = mySettings.getCustomSettings(XmlCodeStyleSettings.class);
     xmlSettings.XML_ATTRIBUTE_WRAP = CommonCodeStyleSettings.WRAP_ON_EVERY_ITEM;
+    xmlSettings.XML_ALIGN_ATTRIBUTES = true;
+    xmlSettings.XML_SPACE_INSIDE_EMPTY_TAG = false;
+    mySettings.getIndentOptions(XmlFileType.INSTANCE).CONTINUATION_INDENT_SIZE = 8;
     doTestManifest("manifest1.xml");
   }
 
   public void testValues1() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     doTestValues("values1.xml");
   }
 
   public void testValues2() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
     androidSettings.VALUE_RESOURCE_FILE_SETTINGS.INSERT_LINE_BREAK_BEFORE_FIRST_ATTRIBUTE = true;
     doTestValues("values1.xml");
   }
 
   public void testValues3() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
     androidSettings.VALUE_RESOURCE_FILE_SETTINGS.WRAP_ATTRIBUTES = CommonCodeStyleSettings.WRAP_ALWAYS;
     doTestValues("values1.xml");
   }
 
   public void testValues4() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     doTestValues("values4.xml");
   }
 
   public void testValues5() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
     androidSettings.VALUE_RESOURCE_FILE_SETTINGS.INSERT_LINE_BREAKS_AROUND_STYLE = false;
     doTestValues("values4.xml");
   }
 
   public void testHtmlInsideString() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     doTestValues(getTestName(true) + ".xml");
   }
 
   public void testSelector1() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     doTest("selector1.xml", "res/drawable/selector.xml");
   }
 
   public void testSelector2() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     doTest("selector2.xml", "res/color/selector.xml");
   }
 
   public void testSelector3() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
     androidSettings.VALUE_RESOURCE_FILE_SETTINGS.WRAP_ATTRIBUTES = CommonCodeStyleSettings.WRAP_ALWAYS;
     doTest("selector2.xml", "res/color/selector.xml");
   }
 
   public void testShapeDrawable1() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     doTest("shapeDrawable1.xml", "res/drawable/drawable.xml");
   }
 
   public void testShapeDrawable2() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
     androidSettings.OTHER_SETTINGS.WRAP_ATTRIBUTES = CommonCodeStyleSettings.DO_NOT_WRAP;
     doTest("shapeDrawable1.xml", "res/drawable/drawable.xml");
   }
 
   public void testPreferences1() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     doTest("preferences1.xml", "res/xml/preferences.xml");
   }
 
   public void testPreferences2() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
     androidSettings.OTHER_SETTINGS.WRAP_ATTRIBUTES = CommonCodeStyleSettings.DO_NOT_WRAP;
     doTest("preferences1.xml", "res/xml/preferences.xml");
   }
 
   public void testAttributesArrangement1() throws Exception {
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     doTestArrangement("res/layout/layout1.xml");
   }
 
   public void testAttributesArrangement2() throws Exception {
     deleteManifest();
-    new AndroidXmlPredefinedCodeStyle().apply(mySettings);
     doTestArrangement("AndroidManifest.xml");
   }
 
@@ -310,22 +288,5 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
       }
     });
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
-  }
-
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
-    CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(mySettings);
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
-    }
-    finally {
-      super.tearDown();
-    }
   }
 }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.api.XmlBuilder;
+import com.android.tools.idea.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.google.common.collect.ImmutableList;
 import org.intellij.lang.annotations.Language;
@@ -60,7 +60,7 @@ public class CardViewHandler extends FrameLayoutHandler {
 
   @Override
   @NotNull
-  public String getGradleCoordinate(@NotNull String viewTag) {
+  public String getGradleCoordinateId(@NotNull String viewTag) {
     return CARD_VIEW_LIB_ARTIFACT;
   }
 }

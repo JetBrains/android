@@ -21,8 +21,8 @@ import com.android.builder.model.ClassField;
 import com.android.builder.model.Variant;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
@@ -84,7 +84,7 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
   protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
     if (mItems.isEmpty()) {
       // TODO: b/23032391
-      AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
       if (androidModel == null) {
         return mItems;
       }
@@ -152,6 +152,10 @@ public class DynamicResourceValueRepository extends LocalResourceRepository
 
   @Override
   public void syncStarted(@NotNull Project project) {
+  }
+
+  @Override
+  public void setupStarted(@NotNull Project project) {
   }
 
   @Override

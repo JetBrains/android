@@ -15,20 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.build;
 
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 
-public class SubProjectsDslElement extends GradlePropertiesDslElement {
+public class SubProjectsDslElement extends GradleDslBlockElement {
   @NonNls public static final String SUBPROJECTS_BLOCK_NAME = "subprojects";
 
   public SubProjectsDslElement(@Nullable GradleDslElement parent) {
-    super(parent, null, SUBPROJECTS_BLOCK_NAME);
-  }
-
-  @Override
-  protected boolean isBlockElement() {
-    return true;
+    super(parent, SUBPROJECTS_BLOCK_NAME);
   }
 }

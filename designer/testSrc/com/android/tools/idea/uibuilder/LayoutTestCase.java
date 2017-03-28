@@ -18,7 +18,11 @@ package com.android.tools.idea.uibuilder;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.fixtures.SurfaceFixture;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintModel;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +40,16 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myFixture.setTestDataPath(getTestDataPath());
+  }
 
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      ConstraintModel.clearCache();
+    }
+    finally {
+      super.tearDown();
+    }
   }
 
   @Override
@@ -75,5 +88,12 @@ public abstract class LayoutTestCase extends AndroidTestCase {
     SurfaceFixture fixture = new SurfaceFixture();
     mySurfaceFixtures.add(fixture);
     return fixture;
+  }
+
+  // Format the XML using AndroidStudio formatting
+  protected void format(@NotNull XmlFile xmlFile) {
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      CodeStyleManager.getInstance(getProject()).reformat(xmlFile);
+    });
   }
 }

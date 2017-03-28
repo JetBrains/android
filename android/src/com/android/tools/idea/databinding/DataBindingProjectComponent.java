@@ -47,24 +47,21 @@ public class DataBindingProjectComponent implements ProjectComponent, Modificati
 
   public DataBindingProjectComponent(final Project project) {
     myProject = project;
-    myDataBindingEnabledModules = CachedValuesManager.getManager(project).createCachedValue(new CachedValueProvider<AndroidFacet[]>() {
-      @Nullable
-      @Override
-      public Result<AndroidFacet[]> compute() {
-        Module[] modules = ModuleManager.getInstance(myProject).getModules();
-        List<AndroidFacet> facets = new ArrayList<AndroidFacet>();
-        for (Module module : modules) {
-          AndroidFacet facet = AndroidFacet.getInstance(module);
-          if (facet == null) {
-            continue;
-          }
-          if (facet.isDataBindingEnabled()) {
-            facets.add(facet);
-          }
+    myDataBindingEnabledModules = CachedValuesManager.getManager(project).createCachedValue(() -> {
+      Module[] modules = ModuleManager.getInstance(myProject).getModules();
+      List<AndroidFacet> facets = new ArrayList<>();
+      for (Module module : modules) {
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        if (facet == null) {
+          continue;
         }
-        myModificationCount.incrementAndGet();
-        return Result.create(facets.toArray(new AndroidFacet[facets.size()]), DataBindingUtil.DATA_BINDING_ENABLED_TRACKER, ModuleManager.getInstance(project));
+        if (facet.isDataBindingEnabled()) {
+          facets.add(facet);
+        }
       }
+      myModificationCount.incrementAndGet();
+      return CachedValueProvider.Result.create(facets.toArray(new AndroidFacet[facets.size()]),
+                                               DataBindingUtil.DATA_BINDING_ENABLED_TRACKER, ModuleManager.getInstance(project));
     }, false);
   }
 

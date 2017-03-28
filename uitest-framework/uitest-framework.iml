@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="common" scope="TEST" />
+    <orderEntry type="module" module-name="android" scope="TEST" />
+    <orderEntry type="module" module-name="platform-api" scope="TEST" />
+    <orderEntry type="module" module-name="platform-impl" scope="TEST" />
+    <orderEntry type="module" module-name="fest-swing" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="jsr305" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="gradle" scope="TEST" />
+    <orderEntry type="module" module-name="compiler-openapi" scope="TEST" />
+    <orderEntry type="module" module-name="java-impl" scope="TEST" />
+    <orderEntry type="module" module-name="openapi" scope="TEST" />
+    <orderEntry type="module" module-name="testRunner" scope="TEST" />
+    <orderEntry type="module" module-name="bootstrap" scope="TEST" />
+    <orderEntry type="module" module-name="xdebugger-impl" scope="TEST" />
+    <orderEntry type="module" module-name="dom-openapi" scope="TEST" />
+    <orderEntry type="module-library" scope="TEST">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../android/lib/spantable.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/../android/lib/src/spantable-src.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module" module-name="adt-ui" scope="TEST" />
+    <orderEntry type="module" module-name="designer" scope="TEST" />
+    <orderEntry type="module" module-name="testutils" scope="TEST" />
+    <orderEntry type="module" module-name="android-test-framework" scope="TEST" />
+  </component>
+</module>

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.tools.idea.rendering.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -23,9 +24,14 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.structure.NlComponentTree.InsertionPoint;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.utils.Pair;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Computable;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,10 +40,10 @@ import java.awt.*;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.*;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
 
+import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.structure.NlComponentTree.InsertionPoint.*;
 
 /**
@@ -45,11 +51,19 @@ import static com.android.tools.idea.uibuilder.structure.NlComponentTree.Inserti
  * Both internal moves and drags from the palette and other structure panes are supported.
  */
 public class NlDropListener extends DropTargetAdapter {
+
+  /**
+   * Attributes that can safely be copied when morphing the view
+   */
+  public static final HashSet<String> ourCopyableAttributes = new HashSet<>(Arrays.asList(
+    ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT, ATTR_ID, ATTR_BACKGROUND
+  ));
+
   private final List<NlComponent> myDragged;
   private final NlComponentTree myTree;
   private DnDTransferItem myTransferItem;
-  private NlComponent myDragReceiver;
-  private NlComponent myNextDragSibling;
+  protected NlComponent myDragReceiver;
+  protected NlComponent myNextDragSibling;
 
   public NlDropListener(@NotNull NlComponentTree tree) {
     myDragged = new ArrayList<>();
@@ -99,14 +113,14 @@ public class NlDropListener extends DropTargetAdapter {
         myTransferItem = (DnDTransferItem)event.getTransferable().getTransferData(ItemTransferable.DESIGNER_FLAVOR);
         InsertType insertType = determineInsertType(event, isPreview);
         if (insertType.isMove()) {
-          myDragged.addAll(model.getSelectionModel().getSelection());
+          myDragged.addAll(keepOnlyAncestors(model.getSelectionModel().getSelection()));
         }
         else {
           Collection<NlComponent> captured = ApplicationManager.getApplication()
             .runWriteAction((Computable<Collection<NlComponent>>)() -> model.createComponents(screenView, myTransferItem, insertType));
 
           if (captured != null) {
-            myDragged.addAll(captured);
+            myDragged.addAll(keepOnlyAncestors(captured));
           }
         }
         return insertType;
@@ -149,6 +163,25 @@ public class NlDropListener extends DropTargetAdapter {
     }
   }
 
+  protected boolean shouldInsert(@NotNull NlComponent receiver, @Nullable InsertionPoint insertionPoint) {
+    ViewHandler handler = receiver.getViewHandler();
+    return insertionPoint == INSERT_INTO &&
+           (handler instanceof ViewGroupHandler
+            || (isMorphableToViewGroup(receiver) && !isReceiverChild(receiver, myDragged)));
+  }
+
+  protected boolean canAddComponent(@NotNull NlModel model, @NotNull NlComponent receiver) {
+    return model.canAddComponents(myDragged, receiver, receiver.getChild(0))
+           || (isMorphableToViewGroup(receiver) && !isReceiverChild(receiver, myDragged));
+  }
+
+  /**
+   * @return True of the receiver can be safely morphed into a viewgroup
+   */
+  private static boolean isMorphableToViewGroup(@NotNull NlComponent receiver) {
+    return VIEW.equals(receiver.getTagName()) && receiver.getAttribute(TOOLS_URI, ATTR_MOCKUP) != null;
+  }
+
   @Nullable
   private Pair<TreePath, InsertionPoint> findInsertionPoint(@NotNull NlDropEvent event) {
     myDragReceiver = null;
@@ -173,10 +206,9 @@ public class NlDropListener extends DropTargetAdapter {
       return null;
     }
     InsertionPoint insertionPoint = findTreeStateInsertionPoint(event.getLocation().y, bounds);
-    ViewHandler handler = component.getViewHandler();
 
-    if (insertionPoint == INSERT_INTO && handler instanceof ViewGroupHandler) {
-      if (!model.canAddComponents(myDragged, component, component.getChild(0))) {
+    if (shouldInsert(component, insertionPoint)) {
+      if (!canAddComponent(model, component)) {
         return null;
       }
       myDragReceiver = component;
@@ -207,7 +239,7 @@ public class NlDropListener extends DropTargetAdapter {
   }
 
   @NotNull
-  private static InsertionPoint findTreeStateInsertionPoint(@SwingCoordinate int y, @SwingCoordinate @NotNull Rectangle bounds) {
+  protected static InsertionPoint findTreeStateInsertionPoint(@SwingCoordinate int y, @SwingCoordinate @NotNull Rectangle bounds) {
     int delta = bounds.height / 9;
     if (bounds.y + delta > y) {
       return INSERT_BEFORE;
@@ -222,10 +254,31 @@ public class NlDropListener extends DropTargetAdapter {
     myTree.markInsertionPoint(null, INSERT_BEFORE);
   }
 
-  private void performDrop(@NotNull final DropTargetDropEvent event, final InsertType insertType) {
+  protected void performDrop(@NotNull final DropTargetDropEvent event, final InsertType insertType) {
     myTree.skipNextUpdateDelay();
     NlModel model = myTree.getDesignerModel();
     assert model != null;
+    // If the receiver is already a ViewGroup, use the default DnD behavior
+    if (myDragReceiver.isOrHasSuperclass(CLASS_VIEWGROUP)
+        && model.canAddComponents(myDragged, myDragReceiver, myDragReceiver.getChild(0))) {
+      performNormalDrop(event, insertType, model);
+    }
+    else if (!myDragReceiver.isRoot()
+             && !isReceiverChild(myDragReceiver, myDragged)
+             && isMorphableToViewGroup(myDragReceiver)) {
+      morphReceiverIntoViewGroup(model);
+      performNormalDrop(event, insertType, model);
+    }
+  }
+
+  /**
+   * Perform the drop action normally without changing the type of component
+   *
+   * @param event      The DropTargetDropEvent from {@link #performDrop(DropTargetDropEvent, InsertType)}
+   * @param insertType The InsertType from {@link #performDrop(DropTargetDropEvent, InsertType)}
+   * @param model      {@link NlComponentTree#getDesignerModel()}
+   */
+  private void performNormalDrop(@NotNull DropTargetDropEvent event, @NotNull InsertType insertType, @NotNull NlModel model) {
     try {
       model.addComponents(myDragged, myDragReceiver, myNextDragSibling, insertType);
 
@@ -242,5 +295,75 @@ public class NlDropListener extends DropTargetAdapter {
       Logger.getInstance(NlDropListener.class).warn(exception);
       event.rejectDrop();
     }
+  }
+
+  /**
+   * Morph the receiver into a constraint layout and add the dragged component to it.
+   *
+   * @param model      {@link NlComponentTree#getDesignerModel()}
+   */
+  private void morphReceiverIntoViewGroup(@NotNull NlModel model) {
+
+    final AttributesTransaction transaction = myDragReceiver.startAttributeTransaction();
+    for (AttributeSnapshot attribute : myDragReceiver.getAttributes()) {
+      if (!TOOLS_PREFIX.equals(attribute.prefix) && !ourCopyableAttributes.contains(attribute.name)
+          && attribute.namespace != null) {
+        transaction.removeAttribute(attribute.namespace, attribute.name);
+      }
+    }
+    new WriteCommandAction(model.getProject(), model.getFile()) {
+      @Override
+      protected void run(@NotNull Result result) throws Throwable {
+        final XmlTag tag = myDragReceiver.getTag();
+        tag.setName(CONSTRAINT_LAYOUT);
+        myDragReceiver.setTag(tag);
+        transaction.commit();
+      }
+    }.execute();
+  }
+
+  /**
+   * Modified dragged to keep only the elements that have no ancestor in the selection
+   *
+   * @param dragged the dragged element
+   */
+  private static Collection<NlComponent> keepOnlyAncestors(@NotNull Collection<NlComponent> dragged) {
+    final Set<NlComponent> selection = Sets.newIdentityHashSet();
+    selection.addAll(dragged);
+    Stack<NlComponent> toTraverse = new Stack<>();
+    for (NlComponent selectedElement : dragged) {
+      final List<NlComponent> children = selectedElement.getChildren();
+      // recursively delete children from the selection
+      toTraverse.addAll(children);
+      while (!toTraverse.isEmpty()) {
+        // Traverse the subtree for each children
+        NlComponent child = toTraverse.pop();
+        toTraverse.addAll(child.getChildren());
+        if (selection.contains(child)) {
+          selection.remove(child);
+        }
+      }
+    }
+    return selection;
+  }
+
+  /**
+   * Check if receiver is a child of an element from to Add
+   *
+   * @param receiver
+   * @param toAdd
+   * @return true if toAdd element have receiver as child or grand-child
+   */
+  private static boolean isReceiverChild(@NotNull NlComponent receiver, @NotNull List<NlComponent> toAdd) {
+    NlComponent same = receiver;
+    for (NlComponent component : toAdd) {
+      while (same != null) {
+        if (same == component) {
+          return true;
+        }
+        same = same.getParent();
+      }
+    }
+    return false;
   }
 }

@@ -16,8 +16,10 @@
 package com.android.tools.idea.sdk.install;
 
 import com.android.annotations.NonNull;
+import com.android.repository.api.Installer;
 import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.Uninstaller;
 import com.android.tools.idea.sdk.wizard.HaxmWizard;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -31,15 +33,25 @@ public class HaxmInstallListener implements PackageOperation.StatusChangeListene
   @Override
   public void statusChanged(@NonNull PackageOperation op, @NonNull ProgressIndicator progress)
     throws PackageOperation.StatusChangeListenerException {
-    if (op.getInstallStatus() == PackageOperation.InstallStatus.COMPLETE) {
+
+    if ((op instanceof Uninstaller && op.getInstallStatus() == PackageOperation.InstallStatus.RUNNING) ||
+        (op instanceof Installer && op.getInstallStatus() == PackageOperation.InstallStatus.COMPLETE)
+      ) {
+      // There are two possible workflows:
+      // 1) Installation workflow: Install SDK package -> invoke wizard to run installer
+      // 2) Uninstallation workflow: Invoke wizard to run installer with uninstallation params -> Uninstall SDK package
+      // In both cases we need to leave the state of the SDK package consistent with the installer invocation success
+      // status.
+      // So if calling the installer during uninstallation fails, we simply throw an exception here and do not proceed
+      // with SDK package removal, as the SDK package operation is in PREPARING state
+      // If calling the installer during installation fails, then it is the responsibility of the wizard to cleanup the SDK
+      // package as well
+
       final AtomicBoolean result = new AtomicBoolean(false);
-      ApplicationManager.getApplication().invokeAndWait(new Runnable() {
-        @Override
-        public void run() {
-          HaxmWizard wizard = new HaxmWizard();
-          wizard.init();
-          result.set(wizard.showAndGet());
-        }
+      ApplicationManager.getApplication().invokeAndWait(() -> {
+        HaxmWizard wizard = new HaxmWizard(op instanceof Uninstaller);
+        wizard.init();
+        result.set(wizard.showAndGet());
       }, ModalityState.any());
       if (!result.get()) {
         throw new PackageOperation.StatusChangeListenerException("HAXM setup failed!");

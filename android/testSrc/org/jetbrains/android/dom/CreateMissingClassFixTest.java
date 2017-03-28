@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.dom;
 
+import com.android.SdkConstants;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
@@ -22,9 +23,16 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.android.AndroidTestUtils;
 
-public class CreateMissingClassFixTest extends AndroidDomTest {
+public class CreateMissingClassFixTest extends AndroidDomTestCase {
   public CreateMissingClassFixTest() {
-    super(false, "dom/manifest");
+    super("dom/manifest");
+  }
+
+  @Override
+  protected boolean providesCustomManifest() {
+    // Actually, this test doesn't provide a custom manifest, but saying we do allows us to check
+    // for it missing as a side-effect of having the base-class not create one.
+    return true;
   }
 
   @Override
@@ -33,7 +41,7 @@ public class CreateMissingClassFixTest extends AndroidDomTest {
   }
 
   public void testMissingActivityClass() throws Exception {
-    final VirtualFile file = copyFileToProject("activity_missing_class.xml", "AndroidManifest.xml");
+    final VirtualFile file = copyFileToProject("activity_missing_class.xml", SdkConstants.ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(file);
 
     final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Create class 'MyActivity'");
@@ -48,7 +56,7 @@ public class CreateMissingClassFixTest extends AndroidDomTest {
   }
 
   public void testMissingApplicationClass() throws Exception {
-    final VirtualFile file = copyFileToProject("application_missing_class.xml", "AndroidManifest.xml");
+    final VirtualFile file = copyFileToProject("application_missing_class.xml", SdkConstants.ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(file);
 
     final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Create class 'MyApplication'");

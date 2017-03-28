@@ -26,8 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Properties;
 
 import static com.android.tools.idea.gradle.util.ProxySettings.HTTPS_PROXY_TYPE;
@@ -53,9 +51,8 @@ public class ProxySettingsDialog extends DialogWrapper {
   private JTextField myHttpsProxyHostTextField;
   private RawCommandLineEditor myHttpsProxyExceptions;
 
-  private JCheckBox myEnableHTTPSProxyCheckBox;
+  private JCheckBox myEnableHttpsProxyCheckBox;
   private JPanel myHttpsProxyPanel;
-  private JPanel myHttpProxyPanel;
   private JBLabel myMessageTextLabel;
 
   public ProxySettingsDialog(@NotNull Project project, @NotNull ProxySettings httpProxySettings) {
@@ -79,6 +76,7 @@ public class ProxySettingsDialog extends DialogWrapper {
     myHttpProxyPortTextField.setNumber(httpProxySettings.getPort());
     myHttpProxyAuthCheckBox.setSelected(httpProxySettings.getUser() != null);
     myHttpProxyExceptions.setText(httpProxySettings.getExceptions());
+
     if (httpProxySettings.getExceptions() != null) {
       myHttpProxyExceptions.setText(httpProxySettings.getExceptions());
     }
@@ -93,6 +91,7 @@ public class ProxySettingsDialog extends DialogWrapper {
     myHttpsProxyHostTextField.setText(httpProxySettings.getHost());
     myHttpsProxyPortTextField.setNumber(httpProxySettings.getPort());
     myHttpsProxyAuthCheckBox.setSelected(httpProxySettings.getUser() != null);
+
     if (httpProxySettings.getExceptions() != null) {
       myHttpsProxyExceptions.setText(httpProxySettings.getExceptions());
       enableHttpsProxyAuth(true);
@@ -104,24 +103,24 @@ public class ProxySettingsDialog extends DialogWrapper {
       myHttpsProxyPasswordTextField.setText(httpProxySettings.getPassword());
     }
 
-    myEnableHTTPSProxyCheckBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        enableHttpsProxy(((JCheckBox) e.getSource()).isSelected());
+    myEnableHttpsProxyCheckBox.addActionListener(e -> {
+      Object source = e.getSource();
+      if (source == myEnableHttpsProxyCheckBox) {
+        enableHttpsProxy(myEnableHttpsProxyCheckBox.isSelected());
       }
     });
 
-    myHttpProxyAuthCheckBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        enableHttpProxyAuth(((JCheckBox) e.getSource()).isSelected());
+    myHttpProxyAuthCheckBox.addActionListener(e -> {
+      Object source = e.getSource();
+      if (source == myHttpProxyAuthCheckBox) {
+        enableHttpProxyAuth(myHttpProxyAuthCheckBox.isSelected());
       }
     });
 
-    myHttpsProxyAuthCheckBox.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        enableHttpsProxyAuth(((JCheckBox) e.getSource()).isSelected());
+    myHttpsProxyAuthCheckBox.addActionListener(e -> {
+      Object source = e.getSource();
+      if (source == myHttpsProxyAuthCheckBox) {
+        enableHttpsProxyAuth(myHttpsProxyAuthCheckBox.isSelected());
       }
     });
   }
@@ -131,7 +130,9 @@ public class ProxySettingsDialog extends DialogWrapper {
     if (PropertiesComponent.getInstance(myProject).getBoolean(SHOW_DO_NOT_ASK_TO_COPY_PROXY_SETTINGS_PROPERTY_NAME, true)) {
       super.show();
     }
-    // By default the exit code is CANCEL_EXIT_CODE
+    else {
+      doCancelAction();
+    }
   }
 
   public void applyProxySettings(@NotNull Properties properties) {
@@ -141,7 +142,7 @@ public class ProxySettingsDialog extends DialogWrapper {
 
     httpProxySetting.applyProxySettings(properties);
 
-    if (myEnableHTTPSProxyCheckBox.isSelected()) {
+    if (myEnableHttpsProxyCheckBox.isSelected()) {
       ProxySettings httpsProxySettings =
         createProxySettingsFromUI(HTTPS_PROXY_TYPE, myHttpsProxyHostTextField, myHttpsProxyPortTextField, myHttpsProxyExceptions,
                                   myHttpsProxyAuthCheckBox, myHttpsProxyLoginTextField, myHttpsProxyPasswordTextField);
@@ -171,7 +172,6 @@ public class ProxySettingsDialog extends DialogWrapper {
     return proxySettings;
   }
 
-
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
@@ -197,5 +197,4 @@ public class ProxySettingsDialog extends DialogWrapper {
     myHttpsProxyLoginTextField.setEnabled(enabled);
     myHttpsProxyPasswordTextField.setEnabled(enabled);
   }
-
 }

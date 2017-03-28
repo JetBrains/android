@@ -16,6 +16,7 @@
 package org.jetbrains.android.sdk;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModel;
@@ -34,12 +35,9 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.io.File;
 import java.util.List;
 import java.util.Map;
-
-import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalData;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 
 /**
  * @author Eugene.Kudelevsky
@@ -82,41 +80,39 @@ class AndroidSdkConfigurableForm {
       }
     });
 
-    myBuildTargetComboBox.addItemListener(new ItemListener() {
-      @Override
-      public void itemStateChanged(final ItemEvent e) {
-        if (myFreeze) {
-          return;
-        }
-        final IAndroidTarget target = (IAndroidTarget)e.getItem();
+    myBuildTargetComboBox.addItemListener(e -> {
+      if (myFreeze) {
+        return;
+      }
+      final IAndroidTarget target = (IAndroidTarget)e.getItem();
 
-        List<OrderRoot> roots = AndroidSdkUtils.getLibraryRootsForTarget(target, mySdkLocation, true);
-        Map<OrderRootType, String[]> configuredRoots = new HashMap<OrderRootType, String[]>();
+      File sdkPath = mySdkLocation != null ? new File(mySdkLocation) : null;
+      List<OrderRoot> roots = AndroidSdks.getInstance().getLibraryRootsForTarget(target, sdkPath, true);
+      Map<OrderRootType, String[]> configuredRoots = new HashMap<>();
 
-        for (OrderRootType type : OrderRootType.getAllTypes()) {
-          if (!AndroidSdkType.getInstance().isRootTypeApplicable(type)) {
-            continue;
-          }
-
-          final VirtualFile[] oldRoots = sdkModificator.getRoots(type);
-          final String[] oldRootPaths = new String[oldRoots.length];
-
-          for (int i = 0; i < oldRootPaths.length; i++) {
-            oldRootPaths[i] = oldRoots[i].getPath();
-          }
-
-          configuredRoots.put(type, oldRootPaths);
+      for (OrderRootType type : OrderRootType.getAllTypes()) {
+        if (!AndroidSdkType.getInstance().isRootTypeApplicable(type)) {
+          continue;
         }
 
-        for (OrderRoot root : roots) {
-          if (e.getStateChange() == ItemEvent.DESELECTED) {
-            sdkModificator.removeRoot(root.getFile(), root.getType());
-          }
-          else {
-            String[] configuredRootsForType = configuredRoots.get(root.getType());
-            if (ArrayUtil.find(configuredRootsForType, root.getFile().getPath()) == -1) {
-              sdkModificator.addRoot(root.getFile(), root.getType());
-            }
+        final VirtualFile[] oldRoots = sdkModificator.getRoots(type);
+        final String[] oldRootPaths = new String[oldRoots.length];
+
+        for (int i = 0; i < oldRootPaths.length; i++) {
+          oldRootPaths[i] = oldRoots[i].getPath();
+        }
+
+        configuredRoots.put(type, oldRootPaths);
+      }
+
+      for (OrderRoot root : roots) {
+        if (e.getStateChange() == ItemEvent.DESELECTED) {
+          sdkModificator.removeRoot(root.getFile(), root.getType());
+        }
+        else {
+          String[] configuredRootsForType = configuredRoots.get(root.getType());
+          if (ArrayUtil.find(configuredRootsForType, root.getFile().getPath()) == -1) {
+            sdkModificator.addRoot(root.getFile(), root.getType());
           }
         }
       }
@@ -163,7 +159,7 @@ class AndroidSdkConfigurableForm {
   private void updateJdks() {
     myJdksModel.removeAllElements();
     for (Sdk sdk : mySdkModel.getSdks()) {
-      if (Jdks.isApplicableJdk(sdk)) {
+      if (Jdks.getInstance().isApplicableJdk(sdk)) {
         myJdksModel.addElement(sdk);
       }
     }
@@ -201,8 +197,8 @@ class AndroidSdkConfigurableForm {
   public void updateJdks(Sdk sdk, String previousName) {
     Sdk[] sdks = mySdkModel.getSdks();
     for (Sdk currentSdk : sdks) {
-      if (currentSdk != null && isAndroidSdk(currentSdk)) {
-        AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(currentSdk);
+      if (currentSdk != null && AndroidSdks.getInstance().isAndroidSdk(currentSdk)) {
+        AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(currentSdk);
         Sdk internalJava = data != null ? data.getJavaSdk() : null;
         if (internalJava != null && Comparing.equal(internalJava.getName(), previousName)) {
           data.setJavaSdk(sdk);
@@ -213,7 +209,7 @@ class AndroidSdkConfigurableForm {
   }
 
   public void internalJdkUpdate(@NotNull Sdk sdk) {
-    AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(sdk);
+    AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(sdk);
     if (data == null) {
       return;
     }

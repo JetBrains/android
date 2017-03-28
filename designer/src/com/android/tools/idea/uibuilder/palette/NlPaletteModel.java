@@ -18,13 +18,14 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.NlLayoutType;
-import com.intellij.openapi.application.PathManager;
+import com.google.common.base.Charsets;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.JAXBException;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.EnumMap;
@@ -48,12 +49,7 @@ public class NlPaletteModel {
 
   @NotNull
   Palette getPalette(@NotNull NlLayoutType type) {
-    // Hack for 2.2
-    // Avoid exceptions for this assert by returning the palette for a layout.
-    // assert type.isSupportedByDesigner();
-    if (!type.isSupportedByDesigner()) {
-      type = NlLayoutType.LAYOUT;
-    }
+    assert type.isSupportedByDesigner();
     Palette palette = myTypeToPalette.get(type);
 
     if (palette == null) {
@@ -67,14 +63,11 @@ public class NlPaletteModel {
 
   private void loadPalette(@NotNull NlLayoutType type) {
     try {
-      String name = type.getPaletteFileName();
-      File file = new File(PathManager.getSystemPath(), ANDROID_PALETTE + File.separatorChar + PALETTE_VERSION + File.separatorChar + name);
+      String metadata = type.getPaletteFileName();
+      URL url = NlPaletteModel.class.getResource(metadata);
+      URLConnection connection = url.openConnection();
 
-      if (isOutOfDate(file, name)) {
-        copyPredefinedPalette(file, name);
-      }
-
-      try (Reader reader = new InputStreamReader(new FileInputStream(file))) {
+      try (Reader reader = new InputStreamReader(connection.getInputStream(), Charsets.UTF_8)) {
         loadPalette(reader, type);
       }
     }
@@ -87,31 +80,5 @@ public class NlPaletteModel {
   void loadPalette(@NotNull Reader reader, @NotNull NlLayoutType type) throws JAXBException {
     Palette palette = Palette.parse(reader, ViewHandlerManager.get(myProject));
     myTypeToPalette.put(type, palette);
-  }
-
-  private static void copyPredefinedPalette(@NotNull File paletteFile, @NotNull String metadata) throws IOException {
-    File folder = paletteFile.getParentFile();
-    if (!folder.isDirectory() && !folder.mkdirs()) {
-      throw new IOException("Could not create directory: " + folder);
-    }
-
-    try (InputStream input = NlPaletteModel.class.getResourceAsStream(metadata);
-         FileOutputStream output = new FileOutputStream(paletteFile)) {
-      FileUtil.copy(input, output);
-    }
-  }
-
-  private static boolean isOutOfDate(@NotNull File file, @NotNull String metadata) throws IOException {
-    if (!file.exists()) {
-      return true;
-    }
-    URL url = NlPaletteModel.class.getResource(metadata);
-    URLConnection connection = url.openConnection();
-
-    // The FileURLConnection creates an InputStream during url.openConnection. Make sure this is closed.
-    //noinspection unused
-    try (InputStream stream = connection.getInputStream()) {
-      return connection.getLastModified() > file.lastModified();
-    }
   }
 }

@@ -65,6 +65,7 @@ public class DataBindingCompletionUtil {
     final String packagePrefix = getPackagePrefix(originalParent, params.getOffset());
     fillAliases(resultSet, packagePrefix, originalPosition, module, originalParent);
     fillClassNames(resultSet, packagePrefix, module);
+    JavaClassNameCompletionContributor.addAllClasses(params, true, resultSet.getPrefixMatcher(), resultSet::addElement);
   }
 
   /**

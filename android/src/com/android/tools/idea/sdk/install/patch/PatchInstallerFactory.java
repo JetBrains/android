@@ -19,9 +19,9 @@ import com.android.repository.api.*;
 import com.android.repository.impl.installer.AbstractInstallerFactory;
 import com.android.repository.impl.meta.Archive;
 import com.android.repository.io.FileOp;
-import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Factory for installers/uninstallers that use the IntelliJ Updater mechanism to update the SDK.
@@ -34,38 +34,79 @@ import org.jetbrains.annotations.NotNull;
  */
 public class PatchInstallerFactory extends AbstractInstallerFactory {
 
+  /**
+   * The first version of the patcher that actually works reliably.
+   */
+  private static final String KNOWN_GOOD_VERSION = PatchInstallerUtil.PATCHER_PATH_PREFIX + RepoPackage.PATH_SEPARATOR + "v4";
+
   @NotNull
   @Override
-  protected Installer doCreateInstaller(@NotNull RemotePackage p,
+  protected Installer doCreateInstaller(@NotNull RemotePackage remote,
                                         @NotNull RepoManager mgr,
                                         @NotNull Downloader downloader,
                                         @NotNull FileOp fop) {
-    LocalPackage local = mgr.getPackages().getLocalPackages().get(p.getPath());
-    Archive archive = p.getArchive();
-    assert archive != null;
-    if (local != null && archive.getPatch(local.getVersion()) != null) {
-      return new PatchInstaller(local, p, downloader, mgr, fop);
+    LocalPackage local = mgr.getPackages().getLocalPackages().get(remote.getPath());
+    if (hasPatch(local, remote)) {
+      return new PatchInstaller(local, remote, downloader, mgr, fop);
     }
-    return new FullInstaller(local, p, mgr, downloader, fop);
+    return new FullInstaller(local, remote, mgr, downloader, fop);
+  }
+
+  private static boolean hasPatch(@Nullable LocalPackage local, @NotNull RemotePackage remote) {
+    Archive archive = remote.getArchive();
+    assert archive != null;
+    return local != null && archive.getPatch(local.getVersion()) != null;
   }
 
   @NotNull
   @Override
-  protected Uninstaller doCreateUninstaller(@NotNull LocalPackage p, @NotNull RepoManager mgr, @NotNull FileOp fop) {
-    return new PatchUninstaller(p, mgr, fop);
+  protected Uninstaller doCreateUninstaller(@NotNull LocalPackage local, @NotNull RepoManager mgr, @NotNull FileOp fop) {
+    return new PatchUninstaller(local, mgr, fop);
   }
 
   /**
-   * @return {@code true} if some type of patch installer can install/uninstall the given package.
+   * Check whether we can create an installer for this package.
    */
-  public static boolean canHandlePackage(@NotNull RepoPackage p, @NotNull AndroidSdkHandler handler) {
+  @Override
+  protected boolean canHandlePackage(@NotNull RepoPackage p, @NotNull RepoManager manager, @NotNull FileOp fop) {
     ProgressIndicator progress = new StudioLoggerProgressIndicator(PatchInstallerFactory.class);
-    RepoManager mgr = handler.getSdkManager(progress);
     if (p instanceof LocalPackage) {
-      // Uninstall case: just see if we have any patcher available.
-      return PatchInstallerUtil.getLatestPatcher(mgr) != null;
+      // Uninstall case. Only useful on windows, since it locks in-use files.
+      if (fop.isWindows()) {
+        // Any patcher will do: just see if we have any patcher available.
+        LocalPackage latestPatcher = PatchInstallerUtil.getLatestPatcher(manager);
+        // don't try to use the patcher to uninstall itself
+        return latestPatcher != null && !latestPatcher.equals(p);
+      }
+      else {
+        // Don't use patcher on non-windows.
+        return false;
+      }
     }
-    LocalPackage patcher = PatchInstallerUtil.getDependantPatcher((RemotePackage)p, mgr);
-    return patcher != null && PatchRunner.getPatchRunner(patcher, progress, handler.getFileOp()) != null;
+
+    LocalPackage local = manager.getPackages().getLocalPackages().get(p.getPath());
+    RemotePackage remote = (RemotePackage)p;
+    if (local == null || (!fop.isWindows() && !hasPatch(local, remote))) {
+      // If this isn't an update, or if we're not on windows and there's no patch, there's no reason to use the patcher.
+      return false;
+    }
+
+    if (hasPatch(local, remote)) {
+      // If a patch is available, make sure we can get the patcher itself
+      LocalPackage patcher = PatchInstallerUtil.getDependantPatcher((RemotePackage)p, manager);
+      if (patcher != null && PatchRunner.getPatchRunner(patcher, progress, fop) != null) {
+        return true;
+      }
+
+      // Maybe it's not installed yet, but is being installed right now as part of the same operation.
+      if (PatchInstallerUtil.getInProgressDependantPatcherInstall((RemotePackage)p, manager) != null) {
+        return true;
+      }
+    }
+
+    // At this point we must be on Windows.
+    // There's no patch available, but if a patch installer is installed and better than KNOWN_GOOD_VERSION we can still use it.
+    LocalPackage patcher = PatchInstallerUtil.getLatestPatcher(manager);
+    return patcher != null && PatchInstallerUtil.comparePatcherPaths(patcher.getPath(), KNOWN_GOOD_VERSION) >= 0;
   }
 }

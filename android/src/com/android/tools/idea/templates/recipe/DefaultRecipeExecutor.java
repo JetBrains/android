@@ -20,14 +20,13 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
 import com.android.tools.idea.templates.GradleFilePsiMerger;
 import com.android.tools.idea.templates.GradleFileSimpleMerger;
 import com.android.tools.idea.templates.RecipeMergeUtils;
 import com.android.tools.idea.templates.TemplateMetadata;
-import com.google.common.base.Objects;
 import com.google.common.collect.SetMultimap;
 import com.intellij.diff.comparison.ComparisonManager;
 import com.intellij.diff.comparison.ComparisonPolicy;
@@ -339,10 +338,7 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
       myReferences.addSourceFile(sourceFile);
       myReferences.addTargetFile(targetFile);
     }
-    catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    catch (TemplateException e) {
+    catch (IOException | TemplateException e) {
       throw new RuntimeException(e);
     }
   }
@@ -632,12 +628,8 @@ final class DefaultRecipeExecutor implements RecipeExecutor {
     }
 
     public void requestGradleSync(@NotNull final Project project) {
-      StartupManager.getInstance(project).runWhenProjectIsInitialized(new Runnable() {
-        @Override
-        public void run() {
-          GradleProjectImporter.getInstance().requestProjectSync(project, null);
-        }
-      });
+      StartupManager.getInstance(project)
+        .runWhenProjectIsInitialized(() -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, null));
     }
   }
 

@@ -30,7 +30,7 @@ public class IdeaModuleDependencyStub implements IdeaModuleDependency {
 
   @Override
   public String getTargetModuleName() {
-    return myModule.getName();
+    return null;
   }
 
   @Override

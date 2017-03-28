@@ -42,10 +42,10 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
   private File myGeneratedPatch;
 
   public FullInstaller(@Nullable LocalPackage existing,
-                          @NotNull RemotePackage p,
-                          @NotNull RepoManager mgr,
-                          @NotNull Downloader downloader,
-                          @NotNull FileOp fop) {
+                       @NotNull RemotePackage p,
+                       @NotNull RepoManager mgr,
+                       @NotNull Downloader downloader,
+                       @NotNull FileOp fop) {
     super(p, mgr, downloader, fop);
     myExisting = existing;
     myPatcher = PatchInstallerUtil.getDependantPatcher(getPackage(), getRepoManager());
@@ -134,7 +134,7 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
 
   @NotNull
   @Override
-  public LocalPackage getPatcher() {
+  public LocalPackage getPatcher(@NotNull ProgressIndicator progressIndicator) {
     return myPatcher;
   }
 

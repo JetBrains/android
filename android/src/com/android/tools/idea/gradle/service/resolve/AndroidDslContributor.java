@@ -18,25 +18,20 @@ package com.android.tools.idea.gradle.service.resolve;
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.lint.checks.GradleDetector;
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.NotNullFunction;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.service.GradleBuildClasspathManager;
 import org.jetbrains.plugins.gradle.service.resolve.GradleMethodContextContributor;
 import org.jetbrains.plugins.gradle.service.resolve.GradleResolverUtil;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
@@ -51,22 +46,21 @@ import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightParameter;
 import org.jetbrains.plugins.groovy.lang.psi.impl.synthetic.GrLightVariable;
 import org.jetbrains.plugins.groovy.lang.psi.util.GroovyPropertyUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * {@link AndroidDslContributor} provides symbol resolution for identifiers inside the android block
  * in a Gradle build script.
  */
 public class AndroidDslContributor implements GradleMethodContextContributor {
-  private static final Logger LOG = Logger.getInstance(AndroidDslContributor.class);
-
   @NonNls private static final String DSL_ANDROID = "android";
   @NonNls private static final String ANDROID_FQCN = "com.android.build.gradle.AppExtension";
   @NonNls private static final String ANDROID_LIB_FQCN = "com.android.build.gradle.LibraryExtension";
 
   private static final Key<PsiElement> CONTRIBUTOR_KEY = Key.create("AndroidDslContributor.key");
-
-  @NonNls private List<VirtualFile> myLastClassPath = Collections.emptyList();
 
   private static final Map<String, String> ourDslForClassMap = ImmutableMap.of(
     "com.android.builder.DefaultProductFlavor", "com.android.build.gradle.internal.dsl.ProductFlavorDsl",
@@ -121,7 +115,7 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
       return true;
     }
 
-    logClassPathOnce(place.getProject());
+    GroovyPsiManager psiManager = GroovyPsiManager.getInstance(place.getProject());
 
     // top level android block
     if (callStack.size() == 1) {
@@ -174,7 +168,8 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     // determine the type variable present in the parent method
     ParametrizedTypeExtractor typeExtractor = getTypeExtractor((PsiMethod)parentContributor);
     if (typeExtractor == null) {
-      LOG.info("inside the closure of a method, but unable to extract the closure parameter's type.");
+      Logger.getInstance(AndroidDslContributor.class)
+        .info("inside the closure of a method, but unable to extract the closure parameter's type.");
       return true;
     }
 
@@ -382,24 +377,6 @@ public class AndroidDslContributor implements GradleMethodContextContributor {
     if (method != null) {
       method.putUserData(CONTRIBUTOR_KEY, contributor);
     }
-  }
-
-  private void logClassPathOnce(@NotNull Project project) {
-    List<VirtualFile> files = GradleBuildClasspathManager.getInstance(project).getAllClasspathEntries();
-    if (ContainerUtil.equalsIdentity(files, myLastClassPath)) {
-      return;
-    }
-    myLastClassPath = files;
-
-    List<String> paths = ContainerUtil.map(files, new NotNullFunction<VirtualFile, String>() {
-      @NotNull
-      @Override
-      public String fun(VirtualFile vf) {
-        return vf.getPath();
-      }
-    });
-    String classPath = Joiner.on(':').join(paths);
-    LOG.info(String.format("Android DSL resolver classpath (project %1$s): %2$s", project.getName(), classPath));
   }
 
   /** Returns the class corresponding to the android extension for given file. */

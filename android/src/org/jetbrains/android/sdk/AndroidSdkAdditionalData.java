@@ -87,7 +87,7 @@ public class AndroidSdkAdditionalData implements ValidatableSdkAdditionalData {
       }
       else {
         for (Sdk jdk : jdkTable.getAllJdks()) {
-          if (Jdks.isApplicableJdk(jdk)) {
+          if (Jdks.getInstance().isApplicableJdk(jdk)) {
             myJavaSdk = jdk;
             break;
           }

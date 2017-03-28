@@ -17,6 +17,9 @@ package com.android.tools.idea.updater;
 
 import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.Archive;
+import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.welcome.wizard.WelcomeUIUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
@@ -32,7 +35,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Confirmation dialog for installing updates. Allows ignore/remind later/install/show release notes,
@@ -116,12 +120,37 @@ public class UpdateInfoDialog extends AbstractUpdateDialog {
     public UpdateInfoPanel(List<RemotePackage> packages) {
       configureMessageArea(mySettingsLink);
       myDownloadSize.setText(WelcomeUIUtils.getSizeLabel(computeDownloadSize(packages)));
+
+      // Unfortunately null keys aren't allowed, so non-versioned packages get this marker.
+      AndroidVersion noVersion = new AndroidVersion(-1, null);
+      // Split up by android version, sorted by both key and value
+      Map<AndroidVersion, Set<RemotePackage>> versionedPackages =
+        packages.stream().collect(Collectors.groupingBy(
+          pkg -> pkg.getTypeDetails() instanceof DetailsTypes.ApiDetailsType
+                 ? ((DetailsTypes.ApiDetailsType)pkg.getTypeDetails()).getAndroidVersion()
+                 : noVersion,
+          TreeMap::new, Collectors.toCollection(TreeSet::new)
+        ));
+
       HtmlBuilder packageHtmlBuilder = new HtmlBuilder();
       packageHtmlBuilder.openHtmlBody();
-      packageHtmlBuilder.beginList();
-      for (RemotePackage p : packages) {
-        packageHtmlBuilder.listItem().add(p.getDisplayName() + " revision " + p.getVersion());
+
+      if (versionedPackages.containsKey(noVersion)) {
+        packageHtmlBuilder.newline();
+        for (RemotePackage p : versionedPackages.getOrDefault(noVersion, Collections.emptySet())) {
+          packageHtmlBuilder.addNbsps(4).add(p.getDisplayName() + " revision " + p.getVersion()).newline();
+        }
+        versionedPackages.remove(noVersion);
       }
+      for (AndroidVersion version : versionedPackages.keySet()) {
+        packageHtmlBuilder.newline();
+        packageHtmlBuilder.addNbsps(4).addBold(SdkVersionInfo.getVersionWithCodename(version) + ":").newline();
+        for (RemotePackage p : versionedPackages.get(version)) {
+          packageHtmlBuilder.addNbsps(8).add(p.getDisplayName() + " revision " + p.getVersion()).newline();
+        }
+      }
+      packageHtmlBuilder.newline();
+
       packageHtmlBuilder.closeHtmlBody();
       myPackages.setText(packageHtmlBuilder.getHtml());
     }

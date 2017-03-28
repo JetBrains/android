@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ResizeInteraction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.intellij.lang.annotations.MagicConstant;
@@ -58,11 +58,22 @@ public class ResizeFixture {
     } else if (horizontalEdge == SegmentType.BOTTOM) {
       if (verticalEdge == SegmentType.LEFT) {
         position = SelectionHandle.Position.BOTTOM_LEFT;
-      } else if (verticalEdge == SegmentType.RIGHT) {
+      }
+      else if (verticalEdge == SegmentType.RIGHT) {
         position = SelectionHandle.Position.BOTTOM_RIGHT;
-      } else {
+      }
+      else {
         assertNull(verticalEdge);
         position = SelectionHandle.Position.BOTTOM_MIDDLE;
+      }
+    } else if (horizontalEdge == null) {
+      if (verticalEdge == SegmentType.LEFT) {
+        position = SelectionHandle.Position.LEFT_MIDDLE;
+      } else if (verticalEdge == SegmentType.RIGHT) {
+        position = SelectionHandle.Position.RIGHT_MIDDLE;
+      } else {
+        fail("Can't resize from center");
+        position = null;
       }
     } else {
       // Can't resize from edges like the baseline
@@ -74,7 +85,7 @@ public class ResizeFixture {
     myInteraction = new ResizeInteraction(myScreen, component, handle);
 
     int startX = Coordinates.getSwingX(myScreen, handle.getCenterX());
-    int startY = Coordinates.getSwingX(myScreen, handle.getCenterY());
+    int startY = Coordinates.getSwingY(myScreen, handle.getCenterY());
     myInteraction.begin(startX, startY, 0);
     myCurrentX = startX;
     myCurrentY = startY;

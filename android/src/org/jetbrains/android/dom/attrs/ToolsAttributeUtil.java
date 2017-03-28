@@ -38,8 +38,8 @@ import static java.util.Collections.singletonList;
  * <p/>
  * Tools attributes are described in several documents:
  * <ul>
- *   <li><a href="http://tools.android.com/tech-docs/tools-attributes">layout attributes</a></li>
- *   <li><a href="http://tools.android.com/tech-docs/new-build-system/user-guide/manifest-merger#TOC-Markers">manifest attributes</a></li>
+ *   <li><a href="https://developer.android.com/studio/write/tool-attributes.html#design-time_view_attributes">layout attributes</a></li>
+ *   <li><a href="https://developer.android.com/studio/build/manifest-merge.html#merge_rule_markers">manifest attributes</a></li>
  * </ul>
  */
 public class ToolsAttributeUtil {
@@ -68,6 +68,9 @@ public class ToolsAttributeUtil {
     .put(ATTR_LAYOUT, singletonList(AttributeFormat.Reference))
     .put(ATTR_LOCALE, NO_FORMATS)
     .put(ATTR_MENU, NO_FORMATS)
+    .put(ATTR_MOCKUP, singletonList(AttributeFormat.String))
+    .put(ATTR_MOCKUP_OPACITY, singletonList(AttributeFormat.Float))
+    .put(ATTR_MOCKUP_CROP, singletonList(AttributeFormat.String))
     .put(ATTR_OPEN_DRAWER, singletonList(AttributeFormat.Enum))
     .put(ATTR_PARENT_TAG, singletonList(AttributeFormat.String))
     .put(ATTR_SHOW_IN, singletonList(AttributeFormat.Reference))

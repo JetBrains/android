@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,29 +15,41 @@
  */
 package com.android.tools.idea.project;
 
+import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidProjectInfo {
-  private static final Key<Boolean> HAS_NATIVE_MODULES = Key.create("HAS_NATIVE_MODULES");
-  private final @NotNull Project myProject;
+  @NotNull private final Project myProject;
 
-  private AndroidProjectInfo(@NotNull Project project) {
+  @NotNull
+  public static AndroidProjectInfo getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, AndroidProjectInfo.class);
+  }
+
+  public AndroidProjectInfo(@NotNull Project project) {
     myProject = project;
   }
 
-  @NotNull
-  public static AndroidProjectInfo get(@NotNull Project project) {
-    return new AndroidProjectInfo(project);
-  }
-
-  public void setHasNativeModules(boolean hasNativeModules) {
-    myProject.putUserData(HAS_NATIVE_MODULES, hasNativeModules);
-  }
-
-  public boolean hasNativeModules() {
-    Boolean boolRes = myProject.getUserData(HAS_NATIVE_MODULES);
-    return (boolRes != null) ? boolRes.booleanValue() : false;
+  /**
+   * Indicates whether the given project has at least one module backed by an {@link AndroidProject}. To check if a project is a
+   * "Gradle project," please use the method {@link GradleProjectInfo#isBuildWithGradle()}.
+   *
+   * @return {@code true} if the project has one or more modules backed by an {@link AndroidProject}; {@code false} otherwise.
+   */
+  public boolean requiresAndroidModel() {
+    ModuleManager moduleManager = ModuleManager.getInstance(myProject);
+    for (Module module : moduleManager.getModules()) {
+      AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+      if (androidFacet != null && androidFacet.requiresAndroidModel()) {
+        return true;
+      }
+    }
+    return false;
   }
 }

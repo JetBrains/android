@@ -54,10 +54,10 @@ public class AvdNameVerifierTest {
 
     assertThat( AvdNameVerifier.stripBadCharactersAndCollapse("") ).isEqualTo("");
     assertThat( AvdNameVerifier.stripBadCharactersAndCollapse("Simple") ).isEqualTo("Simple");
-    assertThat( AvdNameVerifier.stripBadCharactersAndCollapse("no_change.f0r(this)-string") ).isEqualTo("no_change.f0r(this)-string");
+    assertThat( AvdNameVerifier.stripBadCharactersAndCollapse("no_change.f0r_this-string") ).isEqualTo("no_change.f0r_this-string");
 
     assertThat( AvdNameVerifier.stripBadCharactersAndCollapse(" ") ).isEqualTo("");
-    assertThat( AvdNameVerifier.stripBadCharactersAndCollapse("this.name is-also_(OK) 45") ).isEqualTo("this.name_is-also_(OK)_45");
+    assertThat( AvdNameVerifier.stripBadCharactersAndCollapse("this.name is-also_(OK) 45") ).isEqualTo("this.name_is-also_OK_45");
     assertThat( AvdNameVerifier.stripBadCharactersAndCollapse("  either/or _ _more ") ).isEqualTo("either_or_more");
     assertThat( AvdNameVerifier.stripBadCharactersAndCollapse("9\" nails__  ") ).isEqualTo("9_nails_");
     assertThat( AvdNameVerifier.stripBadCharactersAndCollapse("'6' under'") ).isEqualTo("6_under");

@@ -30,8 +30,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class GpuSampler extends DeviceSampler {
   private final GfxinfoHandler[] myGfxinfoHandlers = new GfxinfoHandler[]{new JHandler(), new LHandler(), new MHandler()};
-  private GfxinfoHandler myCurrentGfxinfoHandler;
-  private int myApiLevel = JHandler.MIN_API_LEVEL;
+  private volatile GfxinfoHandler myCurrentGfxinfoHandler;
+  private volatile int myApiLevel = JHandler.MIN_API_LEVEL;
 
   @Nullable protected ProfileStateListener myProfileStateListener;
   private boolean myGpuProfileSetting = true; // Flag to determine if the GPU profiling setting on the device is enabled.
@@ -52,11 +52,12 @@ public class GpuSampler extends DeviceSampler {
 
   @Override
   protected boolean requiresSamplerRestart(@Nullable Client client) {
-    return client != myClient || (client != null && decodeApiLevel(client) != myApiLevel);
+    return super.requiresSamplerRestart(client) || (client != null && decodeApiLevel(client) != myApiLevel);
   }
 
   @Override
-  protected void prepareSampler(@Nullable Client client) {
+  protected synchronized void prepareSampler() {
+    Client client = getClient();
     if (client != null) {
       int newApiLevel = decodeApiLevel(client);
 
@@ -79,7 +80,7 @@ public class GpuSampler extends DeviceSampler {
       }
 
       if (createNewTimelineData) {
-        myTimelineData = myCurrentGfxinfoHandler.createTimelineData();
+        setTimelineData(myCurrentGfxinfoHandler.createTimelineData());
       }
     }
     else {
@@ -90,7 +91,7 @@ public class GpuSampler extends DeviceSampler {
     if (myCurrentGfxinfoHandler != null) {
       myCurrentGfxinfoHandler.setClient(client);
     }
-    myTimelineData.clear();
+    getTimelineData().clear();
   }
 
   @Override
@@ -110,7 +111,7 @@ public class GpuSampler extends DeviceSampler {
         }
 
         if (myGpuProfileSetting) {
-          myCurrentGfxinfoHandler.sample(device, data, myTimelineData);
+          myCurrentGfxinfoHandler.sample(device, data, getTimelineData());
         }
       }
       catch (RuntimeException e) {

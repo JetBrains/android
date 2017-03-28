@@ -3,7 +3,40 @@
   <item name="android.view.inputmethod.BaseInputConnection void closeConnection()">
     <annotation name="android.support.annotation.CallSuper" />
   </item>
+  <item name="android.view.inputmethod.EditorInfo contentMimeTypes">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.view.inputmethod.EditorInfo hintLocales">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.inputmethod.InputConnection boolean commitContent(android.view.inputmethod.InputContentInfo, int, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.inputmethod.InputConnection boolean commitContent(android.view.inputmethod.InputContentInfo, int, android.os.Bundle) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.inputmethod.InputContentInfo InputContentInfo(android.net.Uri, android.content.ClipDescription) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.inputmethod.InputContentInfo InputContentInfo(android.net.Uri, android.content.ClipDescription) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.inputmethod.InputContentInfo InputContentInfo(android.net.Uri, android.content.ClipDescription, android.net.Uri) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.inputmethod.InputContentInfo InputContentInfo(android.net.Uri, android.content.ClipDescription, android.net.Uri) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.inputmethod.InputContentInfo InputContentInfo(android.net.Uri, android.content.ClipDescription, android.net.Uri) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.inputmethod.InputContentInfo android.content.ClipDescription getDescription()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.inputmethod.InputContentInfo android.net.Uri getContentUri()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.view.inputmethod.InputContentInfo android.net.Uri getLinkUri()">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.view.inputmethod.InputMethodManager boolean setCurrentInputMethodSubtype(android.view.inputmethod.InputMethodSubtype)">

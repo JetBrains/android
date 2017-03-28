@@ -58,7 +58,8 @@ public class StringsVirtualFile extends LightVirtualFile {
   @NotNull
   @Override
   public String getPath() {
-    return AndroidFakeFileSystem.constructPathForFile(getName(), myFacet.getModule());
+    Module module = myFacet.getModule();
+    return module.getProject().isDisposed() ? super.getPath() : AndroidFakeFileSystem.constructPathForFile(getName(), module);
   }
 
   @Nullable
@@ -74,13 +75,13 @@ public class StringsVirtualFile extends LightVirtualFile {
       return null;
     }
 
-    StringsVirtualFile vfile = facet.getUserData(KEY);
-    if (vfile == null) {
-      vfile = new StringsVirtualFile(facet);
-      facet.putUserData(KEY, vfile);
+    StringsVirtualFile file = facet.getUserData(KEY);
+    if (file == null) {
+      file = new StringsVirtualFile(facet);
+      facet.putUserData(KEY, file);
     }
 
-    return vfile;
+    return file;
   }
 
   @NotNull

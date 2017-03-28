@@ -103,26 +103,12 @@ public enum FormFactor {
     return myDisplayName == null ? id : myDisplayName;
   }
 
-  @NotNull
-  List<Integer> getApiBlacklist() {
-    return myApiBlacklist;
-  }
-
-  @NotNull
-  List<IdDisplay> getTags() {
-    return myTags;
-  }
-
   public int getMinOfflineApiLevel() {
     return myMinOfflineApiLevel;
   }
 
   public int getMaxOfflineApiLevel() {
     return myMaxOfflineApiLevel;
-  }
-
-  public static Iterator<FormFactor> iterator() {
-    return myFormFactors.values().iterator();
   }
 
   @NotNull
@@ -137,5 +123,14 @@ public enum FormFactor {
   @NotNull
   public Icon getIcon() {
     return myIcon64;
+  }
+
+  public boolean isSupported(@Nullable IdDisplay tag, int targetSdkLevel) {
+    // If a white-list is present, only allow things on the white-list
+    if (!myTags.isEmpty() && !myTags.contains(tag)) {
+      return false;
+    }
+
+    return !myApiBlacklist.contains(targetSdkLevel);
   }
 }

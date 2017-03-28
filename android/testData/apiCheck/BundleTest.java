@@ -1,7 +1,7 @@
 import android.app.Fragment;
 import android.os.Bundle;
 
-public class Class extends <error descr="Class requires API level 11 (current min is 1): Fragment">Fragment</error> {
+public class Class extends <error descr="Class requires API level 11 (current min is 1): android.app.Fragment">Fragment</error> {
     private String mCurrentPhotoPath = "";
     @Override
 	public void onCreate(Bundle savedInstanceState) {

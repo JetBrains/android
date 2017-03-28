@@ -39,6 +39,7 @@ import org.w3c.dom.Node;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.xml.AndroidManifest.NODE_INTENT;
 
 public class DefaultActivityLocator extends ActivityLocator {
@@ -95,7 +96,7 @@ public class DefaultActivityLocator extends ActivityLocator {
       return null;
     }
 
-    return computeDefaultActivity(merge(application.getActivities(), application.getActivityAliases()), null);
+    return computeDefaultActivity(merge(application.getActivities(), application.getActivityAliass()), null);
   }
 
   @Nullable
@@ -258,8 +259,18 @@ public class DefaultActivityLocator extends ActivityLocator {
     @Override
     public boolean isEnabled() {
       AndroidAttributeValue<String> enabled = myActivity.getEnabled();
-      return enabled == null || enabled.getValue() == null // true if not specified
-             || Boolean.valueOf(enabled.getValue());
+      if (enabled == null) {
+        return true;
+      }
+      String stringValue = enabled.getStringValue();
+      return stringValue == null // true if not specified
+             || Boolean.valueOf(stringValue)
+             // If the manifest specifies a resource reference, such as @bool/something,
+             // we'd need to actually compute the "real" value of the constant, which can
+             // depend on *any* resource qualifier, and those qualifiers depends on the
+             // context (such as the specific device and device state). Instead we'll
+             // just treat resource referenced enabled-values as true.
+             || stringValue.startsWith(PREFIX_RESOURCE_REF);
     }
 
     @Nullable
@@ -317,8 +328,18 @@ public class DefaultActivityLocator extends ActivityLocator {
     @Override
     public boolean isEnabled() {
       AndroidAttributeValue<String> enabled = myAlias.getEnabled();
-      return enabled == null || enabled.getValue() == null // true if not specified
-             || Boolean.valueOf(enabled.getValue());
+      if (enabled == null) {
+        return true;
+      }
+      String stringValue = enabled.getStringValue();
+      return stringValue == null // true if not specified
+             || Boolean.valueOf(stringValue)
+             // If the manifest specifies a resource reference, such as @bool/something,
+             // we'd need to actually compute the "real" value of the constant, which can
+             // depend on *any* resource qualifier, and those qualifiers depends on the
+             // context (such as the specific device and device state). Instead we'll
+             // just treat resource referenced enabled-values as true.
+             || stringValue.startsWith(PREFIX_RESOURCE_REF);
     }
 
     @Nullable
@@ -387,7 +408,8 @@ public class DefaultActivityLocator extends ActivityLocator {
     public boolean isEnabled() {
       String enabledAttr = myActivity.getAttributeNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ENABLED);
       return StringUtil.isEmpty(enabledAttr) // true if not specified
-             || Boolean.valueOf(enabledAttr);
+             || Boolean.valueOf(enabledAttr)
+             || enabledAttr.startsWith(PREFIX_RESOURCE_REF);
     }
 
     @Nullable

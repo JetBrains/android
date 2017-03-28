@@ -1,7 +1,8 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.lint.*;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.res.PsiProjectListener;
 import com.android.tools.lint.checks.DeprecationDetector;
 import com.android.tools.lint.checks.GradleDetector;
@@ -81,7 +82,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
     }
 
     final AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet == null && !IntellijLintProject.hasAndroidModule(module.getProject())) {
+    if (facet == null && !LintIdeProject.hasAndroidModule(module.getProject())) {
       return null;
     }
 
@@ -94,7 +95,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
     if (fileType == StdFileTypes.XML) {
       if (facet == null || facet.getLocalResourceManager().getFileResourceFolderType(file) == null &&
-          !SdkConstants.ANDROID_MANIFEST_XML.equals(vFile.getName())) {
+          !ANDROID_MANIFEST_XML.equals(vFile.getName())) {
         return null;
       }
     }
@@ -110,7 +111,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       }
       // Ensure that we're listening to the PSI structure for Gradle file edit notifications
       Project project = file.getProject();
-      if (Projects.requiresAndroidModel(project)) {
+      if (AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
         PsiProjectListener.getInstance(project);
       }
     }
@@ -127,9 +128,9 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
   @Override
   public State doAnnotate(final State state) {
-    final IntellijLintClient client = IntellijLintClient.forEditor(state);
+    final LintIdeClient client = LintIdeClient.forEditor(state);
     try {
-      final LintDriver lint = new LintDriver(new IntellijLintIssueRegistry(), client);
+      final LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client);
 
       EnumSet<Scope> scope;
       VirtualFile mainFile = state.getMainFile();
@@ -161,8 +162,8 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       }
 
       List<VirtualFile> files = Collections.singletonList(mainFile);
-      LintRequest request = new IntellijLintRequest(client, project, files,
-                                                    Collections.singletonList(state.getModule()), true /* incremental */);
+      LintRequest request = new LintIdeRequest(client, project, files,
+                                               Collections.singletonList(state.getModule()), true /* incremental */);
       request.setScope(scope);
 
       lint.analyze(request);
@@ -175,8 +176,8 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
   @NotNull
   static List<Issue> getIssuesFromInspections(@NotNull Project project, @Nullable PsiElement context) {
-    final List<Issue> result = new ArrayList<Issue>();
-    final IssueRegistry fullRegistry = new IntellijLintIssueRegistry();
+    final List<Issue> result = new ArrayList<>();
+    final IssueRegistry fullRegistry = new LintIdeIssueRegistry();
 
     for (Issue issue : fullRegistry.getIssues()) {
       final String inspectionShortName = AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue);
@@ -259,9 +260,9 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
             }
 
             String id = key.getID();
-            if (IntellijLintIssueRegistry.CUSTOM_ERROR == issue
-                || IntellijLintIssueRegistry.CUSTOM_WARNING == issue) {
-              Issue original = IntellijLintClient.findCustomIssue(message);
+            if (LintIdeIssueRegistry.CUSTOM_ERROR == issue
+                || LintIdeIssueRegistry.CUSTOM_WARNING == issue) {
+              Issue original = LintIdeClient.findCustomIssue(message);
               if (original != null) {
                 id = original.getId();
               }
@@ -427,12 +428,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
 
   private static class MyEditInspectionToolsSettingsAction extends CustomEditInspectionToolsSettingsAction {
     private MyEditInspectionToolsSettingsAction(@NotNull HighlightDisplayKey key, @NotNull final AndroidLintInspectionBase inspection) {
-      super(key, new Computable<String>() {
-        @Override
-        public String compute() {
-          return "Edit '" + inspection.getDisplayName() + "' inspection settings";
-        }
-      });
+      super(key, () -> "Edit '" + inspection.getDisplayName() + "' inspection settings");
     }
   }
 }

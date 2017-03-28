@@ -22,7 +22,7 @@ import com.android.builder.model.TestedTargetVariant;
 import com.android.builder.model.Variant;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.build.SplitOutputMatcher;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Joiner;
@@ -43,6 +43,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 
 /**
  * Provides the information on APKs to install for run configurations in Gradle projects.
@@ -67,7 +70,7 @@ public class GradleApkProvider implements ApkProvider {
   @Override
   @NotNull
   public Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
-    AndroidGradleModel androidModel = AndroidGradleModel.get(myFacet);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(myFacet);
     if (androidModel == null) {
       LOG.warn("Android model is null. Sync might have failed");
       return Collections.emptyList();
@@ -77,7 +80,8 @@ public class GradleApkProvider implements ApkProvider {
     List<ApkInfo> apkList = Lists.newArrayList();
 
     // install apk (note that variant.getOutputFile() will point to a .aar in the case of a library)
-    if (!androidModel.getAndroidProject().isLibrary()) {
+    int projectType = androidModel.getProjectType();
+    if (projectType == PROJECT_TYPE_APP || projectType == PROJECT_TYPE_INSTANTAPP) {
       File apk = getApk(selectedVariant, device);
       apkList.add(new ApkInfo(apk, myApplicationIdProvider.getPackageName()));
     }
@@ -144,7 +148,7 @@ public class GradleApkProvider implements ApkProvider {
         continue;
       }
 
-      AndroidGradleModel targetAndroidModel = AndroidGradleModel.get(targetFacet);
+      AndroidModuleModel targetAndroidModel = AndroidModuleModel.get(targetFacet);
       if (targetAndroidModel == null){
         LOG.warn("Android model for tested module is null. Sync might have failed.");
         continue;
@@ -178,15 +182,15 @@ public class GradleApkProvider implements ApkProvider {
   @NotNull
   @Override
   public List<ValidationError> validate() {
-    AndroidGradleModel androidGradleModel = AndroidGradleModel.get(myFacet);
-    assert androidGradleModel != null; // This is a Gradle project, there must be an AndroidGradleModel.
-    if (androidGradleModel.getMainArtifact().isSigned()) {
+    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(myFacet);
+    assert androidModuleModel != null; // This is a Gradle project, there must be an AndroidGradleModel.
+    if (androidModuleModel.getMainArtifact().isSigned()) {
       return ImmutableList.of();
     }
 
-    AndroidArtifactOutput output = GradleUtil.getOutput(androidGradleModel.getMainArtifact());
+    AndroidArtifactOutput output = GradleUtil.getOutput(androidModuleModel.getMainArtifact());
     final String message = AndroidBundle.message("run.error.apk.not.signed", output.getMainOutputFile().getOutputFile().getName(),
-                                                 androidGradleModel.getSelectedVariant().getDisplayName());
+                                                 androidModuleModel.getSelectedVariant().getDisplayName());
 
     Runnable quickFix = new Runnable() {
       @Override

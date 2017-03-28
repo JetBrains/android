@@ -18,11 +18,11 @@ package com.android.tools.idea.avdmanager;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
 
 /**
@@ -38,6 +38,9 @@ public abstract class DeviceUiAction implements Action {
     void refreshDevices();
     void setDevice(@Nullable Device device);
     void selectDefaultDevice();
+
+    @Nullable
+    Project getProject();
   }
 
   public DeviceUiAction(@NotNull DeviceProvider provider, @NotNull String text) {
@@ -77,6 +80,6 @@ public abstract class DeviceUiAction implements Action {
 
   static void showHardwareProfileWizard(ConfigureDeviceModel model) {
     ModelWizard wizard = new ModelWizard.Builder().addStep(new ConfigureDeviceOptionsStep(model)).build();
-    new StudioWizardDialogBuilder(wizard, "Hardware Profile Configuration").build().show();
+    new StudioWizardDialogBuilder(wizard, "Hardware Profile Configuration").setProject(model.getProject()).build().show();
   }
 }

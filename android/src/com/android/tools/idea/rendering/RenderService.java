@@ -26,14 +26,15 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.diagnostics.crash.CrashReporter;
 import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsService;
-import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
@@ -44,6 +45,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.ShutDownTracker;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.IncorrectOperationException;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
@@ -71,16 +73,22 @@ public class RenderService {
   public static final boolean NELE_ENABLED = true;
 
   /** Number of ms that we will wait for the rendering thread to return before timing out */
-  private static final int DEFAULT_RENDER_THREAD_TIMEOUT_MS = Integer.getInteger("layoutlib.thread.timeout", 6000);
+  private static final long DEFAULT_RENDER_THREAD_TIMEOUT_MS = Integer.getInteger("layoutlib.thread.timeout", 6000);
+  /** Number of ms that we will keep the render thread alive when idle */
+  private static final long RENDER_THREAD_IDLE_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(10);
 
   private static final AtomicReference<Thread> ourRenderingThread = new AtomicReference<>();
-  private static final ExecutorService ourRenderingExecutor = Executors.newSingleThreadExecutor((Runnable r) -> {
-    Thread renderingThread = new Thread(null, r, "Layoutlib Render Thread");
-    renderingThread.setDaemon(true);
-    ourRenderingThread.set(renderingThread);
+  private static final ExecutorService ourRenderingExecutor = new ThreadPoolExecutor(0, 1,
+                                                                                     RENDER_THREAD_IDLE_TIMEOUT_MS, TimeUnit.MILLISECONDS,
+                                                                                     new LinkedBlockingQueue<>(),
+                                                                                     (Runnable r) -> {
+                                                                                       Thread renderingThread =
+                                                                                         new Thread(null, r, "Layoutlib Render Thread");
+                                                                                       renderingThread.setDaemon(true);
+                                                                                       ourRenderingThread.set(renderingThread);
 
-    return renderingThread;
-  });
+                                                                                       return renderingThread;
+                                                                                     });
   private static final AtomicInteger ourTimeoutExceptionCounter = new AtomicInteger(0);
 
   static {
@@ -121,11 +129,8 @@ public class RenderService {
       try {
         return platform.getSdkData().getTargetData(target).getLayoutLibrary(project);
       }
-      catch (RenderingException e) {
+      catch (RenderingException | IOException e) {
         // Ignore.
-      }
-      catch (IOException e) {
-        // Ditto
       }
     }
     return null;
@@ -142,11 +147,8 @@ public class RenderService {
           return library.supports(capability);
         }
       }
-      catch (RenderingException e) {
+      catch (RenderingException | IOException e) {
         // Ignore: if service can't be found, that capability isn't available
-      }
-      catch (IOException e) {
-        // Ditto
       }
     }
     return false;
@@ -172,7 +174,7 @@ public class RenderService {
   public RenderTask createTask(@Nullable final PsiFile psiFile,
                                @NotNull final Configuration configuration,
                                @NotNull final RenderLogger logger,
-                               @Nullable final DesignSurface surface) {
+                               @Nullable final EditorDesignSurface surface) {
     Module module = myFacet.getModule();
     final Project project = module.getProject();
     AndroidPlatform platform = getPlatform(module, logger);
@@ -218,7 +220,9 @@ public class RenderService {
       return null;
     }
 
-    if (psiFile != null && TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(psiFile)) && !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
+    if (psiFile != null &&
+        TAG_PREFERENCE_SCREEN.equals(AndroidPsiUtils.getRootTagName(psiFile)) &&
+        !layoutLib.supports(Features.PREFERENCES_RENDERING)) {
       // This means that user is using an outdated version of layoutlib. A warning to update has already been
       // presented in warnIfObsoleteLayoutLib(). Just log a plain message asking users to update.
       logger.addMessage(RenderProblem.createPlain(ERROR, "This version of the rendering library does not support rendering Preferences. " +
@@ -233,13 +237,20 @@ public class RenderService {
       return null;
     }
 
-    RenderTask task = new RenderTask(this, configuration, logger, layoutLib, device, myCredential);
-    if (psiFile != null) {
-      task.setPsiFile(psiFile);
-    }
-    task.setDesignSurface(surface);
+    try {
+      RenderTask task = new RenderTask(this, configuration, logger, layoutLib, device, myCredential, CrashReporter.getInstance());
+      if (psiFile != null) {
+        task.setPsiFile(psiFile);
+      }
+      task.setDesignSurface(surface);
 
-    return task;
+      return task;
+    } catch (IncorrectOperationException | AssertionError e) {
+      // We can get this exception if the module/project is closed while we are updating the model. Ignore it.
+      assert myFacet.isDisposed();
+    }
+
+    return null;
   }
 
   @NotNull
@@ -268,17 +279,14 @@ public class RenderService {
         RenderProblem.Html message = RenderProblem.create(ERROR);
         logger.addMessage(message);
         message.getHtmlBuilder().addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
-           logger.getLinkManager().createRunnableLink(new Runnable() {
-             @Override
-             public void run() {
-               Project project = module.getProject();
-               ProjectSettingsService service = ProjectSettingsService.getInstance(project);
-               if (Projects.requiresAndroidModel(project) && service instanceof AndroidProjectSettingsService) {
-                 ((AndroidProjectSettingsService)service).openSdkSettings();
-                 return;
-               }
-               AndroidSdkUtils.openModuleDependenciesConfigurable(module);
+           logger.getLinkManager().createRunnableLink(() -> {
+             Project project = module.getProject();
+             ProjectSettingsService service = ProjectSettingsService.getInstance(project);
+             if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() && service instanceof AndroidProjectSettingsService) {
+               ((AndroidProjectSettingsService)service).openSdkSettings();
+               return;
              }
+             AndroidSdkUtils.openModuleDependenciesConfigurable(module);
            }));
       }
       else {
@@ -292,7 +300,7 @@ public class RenderService {
   private static boolean ourWarnAboutObsoleteLayoutLibVersions = true;
   private static void warnIfObsoleteLayoutLib(@NotNull final Module module,
                                               @NotNull RenderLogger logger,
-                                              @Nullable final DesignSurface surface,
+                                              @Nullable final EditorDesignSurface surface,
                                               @NotNull IAndroidTarget target) {
     if (!ourWarnAboutObsoleteLayoutLibVersions) {
       return;
@@ -335,44 +343,38 @@ public class RenderService {
       problem.tag("obsoleteLayoutlib");
       HtmlBuilder builder = problem.getHtmlBuilder();
       builder.add("Using an obsolete version of the " + target.getVersionName() + " layout library which contains many known bugs: ");
-      builder.addLink("Install Update", logger.getLinkManager().createRunnableLink(new Runnable() {
-        @Override
-        public void run() {
-          // Don't warn again
-          //noinspection AssignmentToStaticFieldFromInstanceMethod
-          ourWarnAboutObsoleteLayoutLibVersions = false;
+      builder.addLink("Install Update", logger.getLinkManager().createRunnableLink(() -> {
+        // Don't warn again
+        //noinspection AssignmentToStaticFieldFromInstanceMethod
+        ourWarnAboutObsoleteLayoutLibVersions = false;
 
-          List<String> requested = Lists.newArrayList();
-          // The revision to install. Note that this will install a higher version than this if available;
-          // e.g. even if we ask for version 4, if revision 7 is available it will be installed, not revision 4.
-          requested.add(DetailsTypes.getPlatformPath(version));
-          ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(module.getProject(), requested);
+        List<String> requested = Lists.newArrayList();
+        // The revision to install. Note that this will install a higher version than this if available;
+        // e.g. even if we ask for version 4, if revision 7 is available it will be installed, not revision 4.
+        requested.add(DetailsTypes.getPlatformPath(version));
+        ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(module.getProject(), requested);
 
-          if (dialog != null && dialog.showAndGet()) {
-            if (surface != null) {
-              // Force the target to be recomputed; this will pick up the new revision object from the local sdk.
-              Configuration configuration = surface.getConfiguration();
-              if (configuration != null) {
-                configuration.getConfigurationManager().setTarget(null);
-              }
-              surface.requestRender();
-              // However, due to issue https://code.google.com/p/android/issues/detail?id=76096 it may not yet
-              // take effect.
-              Messages.showInfoMessage(module.getProject(),
-                                       "Note: Due to a bug you may need to restart the IDE for the new layout library to fully take effect",
-                                       "Restart Recommended");
+        if (dialog != null && dialog.showAndGet()) {
+          if (surface != null) {
+            // Force the target to be recomputed; this will pick up the new revision object from the local sdk.
+            Configuration configuration = surface.getConfiguration();
+            if (configuration != null) {
+              configuration.getConfigurationManager().setTarget(null);
             }
+            surface.requestRender();
+            // However, due to issue https://code.google.com/p/android/issues/detail?id=76096 it may not yet
+            // take effect.
+            Messages.showInfoMessage(module.getProject(),
+                                     "Note: Due to a bug you may need to restart the IDE for the new layout library to fully take effect",
+                                     "Restart Recommended");
           }
         }
       }));
-      builder.addLink(", ", "Ignore For Now", null, logger.getLinkManager().createRunnableLink(new Runnable() {
-        @Override
-        public void run() {
-          //noinspection AssignmentToStaticFieldFromInstanceMethod
-          ourWarnAboutObsoleteLayoutLibVersions = false;
-          if (surface != null) {
-            surface.requestRender();
-          }
+      builder.addLink(", ", "Ignore For Now", null, logger.getLinkManager().createRunnableLink(() -> {
+        //noinspection AssignmentToStaticFieldFromInstanceMethod
+        ourWarnAboutObsoleteLayoutLibVersions = false;
+        if (surface != null) {
+          surface.requestRender();
         }
       }));
 

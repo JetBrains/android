@@ -18,17 +18,14 @@ package com.android.tools.idea.run.tasks;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.NullOutputReceiver;
-import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.fd.InstantRunUtils;
-import com.android.tools.idea.logcat.AndroidLogcatFormatter;
-import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.run.*;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
-import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.ui.DebuggerPanelsManager;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.RemoteConnection;
+import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.process.ProcessAdapter;
 import com.intellij.execution.process.ProcessEvent;
@@ -38,7 +35,6 @@ import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
@@ -50,8 +46,9 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
 
   public ConnectJavaDebuggerTask(@NotNull Set<String> applicationIds,
                                  @NotNull AndroidDebugger debugger,
-                                 @NotNull Project project) {
-    super(applicationIds, debugger, project);
+                                 @NotNull Project project,
+                                 boolean monitorRemoteProcess) {
+    super(applicationIds, debugger, project, monitorRemoteProcess);
   }
 
   @Override
@@ -77,7 +74,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
 
     // create a new process handler
     RemoteConnection connection = new RemoteConnection(true, "localhost", debugPort, false);
-    final RemoteDebugProcessHandler debugProcessHandler = new RemoteDebugProcessHandler(myProject);
+    final AndroidRemoteDebugProcessHandler debugProcessHandler = new AndroidRemoteDebugProcessHandler(myProject, myMonitorRemoteProcess);
 
     // switch the launch status and console printers to point to the new process handler
     // this is required, esp. for AndroidTestListener which holds a reference to the launch status and printers, and those should
@@ -119,7 +116,7 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     }
 
     RunProfile runProfile = currentLaunchInfo.env.getRunProfile();
-    int uniqueId = runProfile instanceof AndroidRunConfigurationBase ? ((AndroidRunConfigurationBase)runProfile).getUniqueID() : -1;
+    int uniqueId = runProfile instanceof RunConfigurationBase ? ((RunConfigurationBase)runProfile).getUniqueID() : -1;
     AndroidSessionInfo value = new AndroidSessionInfo(debugProcessHandler, debugDescriptor, uniqueId, currentLaunchInfo.executor.getId(),
                                                       InstantRunUtils.isInstantRunEnabled(currentLaunchInfo.env));
     debugProcessHandler.putUserData(AndroidSessionInfo.KEY, value);
@@ -129,28 +126,10 @@ public class ConnectJavaDebuggerTask extends ConnectDebuggerTask {
     final String pkgName = client.getClientData().getClientDescription();
     final IDevice device = client.getDevice();
 
-    final ApplicationLogListener logListener = new ApplicationLogListener(pkgName, client.getClientData().getPid()) {
-      private final String SIMPLE_FORMAT = AndroidLogcatFormatter.createCustomFormat(false, false, false, true);
-
-      @NotNull
-      @Override
-      public String formatLogLine(@NotNull LogCatMessage line) {
-        return AndroidLogcatFormatter.formatMessage(SIMPLE_FORMAT, line.getHeader(), line.getMessage());
-      }
-
-      @Override
-      public void notifyTextAvailable(@NotNull String message, @NotNull Key key) {
-        debugProcessHandler.notifyTextAvailable(message, key);
-      }
-    };
-    AndroidLogcatService.getInstance().addListener(device, logListener, true);
-
-
     // kill the process when the debugger is stopped
     debugProcessHandler.addProcessListener(new ProcessAdapter() {
       @Override
       public void processTerminated(ProcessEvent event) {
-        AndroidLogcatService.getInstance().removeListener(device, logListener);
         debugProcessHandler.removeProcessListener(this);
 
         Client currentClient = device.getClient(pkgName);

@@ -28,7 +28,6 @@ import com.intellij.openapi.application.RuntimeInterruptedException;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.XmlElementFactory;
@@ -281,9 +280,7 @@ public class AppBarConfigurationDialog extends JDialog {
     Rectangle screen = getGraphicsConfiguration().getBounds();
     setLocation(screen.x + (screen.width - size.width) / 2, screen.y + (screen.height - size.height) / 2);
     updateControls();
-    IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> {
-      IdeFocusManager.getGlobalInstance().requestFocus(myButtonOK, true);
-    });
+    myButtonOK.requestFocus();
     generatePreviews();
 
     setVisible(true);
@@ -329,6 +326,14 @@ public class AppBarConfigurationDialog extends JDialog {
     Application application = ApplicationManager.getApplication();
     myExpandedPreviewFuture = application.executeOnPooledThread(() -> updateExpandedImage(expandedFile));
     myCollapsedPreviewFuture = application.executeOnPooledThread(() -> updateCollapsedImage(collapsedFile));
+  }
+
+  @Nullable
+  private static Future<?> cancel(@Nullable Future<?> future) {
+    if (future != null) {
+      future.cancel(true);
+    }
+    return null;
   }
 
   private PsiFile generateXml(boolean collapsed) {
@@ -469,6 +474,15 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   @NotNull
+  private static String getScrollPos(boolean collapsed, @NotNull Map<String, String> namespaces) {
+    if (!collapsed) {
+      return "";
+    }
+    return String.format("        %1$s:scrollY=\"830px\"\n",
+                         namespaces.get(TOOLS_URI));
+  }
+
+  @NotNull
   private String getBackgroundImageCollapseMode(@NotNull Map<String, String> namespaces) {
     if (myParallax.isSelected()) {
       return "";
@@ -485,93 +499,6 @@ public class AppBarConfigurationDialog extends JDialog {
     return String.format(TAG_FLOATING_ACTION_BUTTON, namespaces.get(ANDROID_URI),
                          namespaces.get(AUTO_URI),
                          myFloatingActionButtonImage);
-  }
-
-  private void updateCollapsedImage(@NotNull PsiFile collapsedXmlFile) {
-    BufferedImage image = updateImage(collapsedXmlFile, myCollapsedPreview);
-    if (image != null) {
-      myCollapsedImage = image;
-    }
-  }
-
-  private void updateExpandedImage(@NotNull PsiFile expandedXmlFile) {
-    BufferedImage image = updateImage(expandedXmlFile, myExpandedPreview);
-    if (image != null) {
-      myExpandedImage = image;
-    }
-  }
-
-  @Nullable
-  private BufferedImage updateImage(@NotNull PsiFile xmlFile, @NotNull JBLabel preview) {
-    BufferedImage image = null;
-    try {
-      image = renderImage(xmlFile);
-      if (image == null) {
-        return null;
-      }
-    }
-    catch (RuntimeInterruptedException ex) {
-      // Will happen if several rendering calls are stacked.
-      return null;
-    }
-    catch (RuntimeException ex) {
-      getLogger().error(ex);
-    }
-    BufferedImage finalImage = image;
-    ApplicationManager.getApplication().invokeLater(() -> updatePreviewImage(finalImage, preview));
-    return image;
-  }
-
-  private BufferedImage renderImage(@NotNull PsiFile xmlFile) {
-    AndroidFacet facet = myEditor.getModel().getFacet();
-    RenderService renderService = RenderService.get(facet);
-    RenderLogger logger = renderService.createLogger();
-    final RenderTask task = renderService.createTask(xmlFile, myEditor.getConfiguration(), logger, null);
-    RenderResult result = null;
-    if (task != null) {
-      task.setRenderingMode(SessionParams.RenderingMode.NORMAL);
-      task.setFolderType(ResourceFolderType.LAYOUT);
-      //noinspection deprecation
-      result = task.render();
-      task.dispose();
-    }
-    BufferedImage image = result != null ? result.getRenderedImage() : null;
-    return image != null && image.getHeight() >= MIN_HEIGHT && image.getWidth() >= MIN_WIDTH ? image : null;
-  }
-
-  private void updatePreviewImage(@Nullable BufferedImage image, @NotNull JBLabel view) {
-    if (image == null) {
-      view.setIcon(null);
-      myPreview.setText(RENDER_ERROR);
-      return;
-    }
-    double width = myPreviewPanel.getWidth() / 2.0;
-    double height =
-      myPreviewPanel.getHeight() - myPreview.getHeight() - Math.max(myExpandedLabel.getHeight(), myCollapsedLabel.getHeight());
-    if (width < MIN_WIDTH || height < MIN_HEIGHT) {
-      view.setIcon(null);
-    }
-    double scale = Math.min(width / image.getWidth(), height / image.getHeight()) * FUDGE_FACTOR;
-    image = ImageUtils.scale(image, scale, scale);
-    view.setIcon(new ImageIcon(image));
-    myPreview.setText(PREVIEW_HEADER);
-  }
-
-  @Nullable
-  private static Future<?> cancel(@Nullable Future<?> future) {
-    if (future != null) {
-      future.cancel(true);
-    }
-    return null;
-  }
-
-  @NotNull
-  private static String getScrollPos(boolean collapsed, @NotNull Map<String, String> namespaces) {
-    if (!collapsed) {
-      return "";
-    }
-    return String.format("        %1$s:scrollY=\"830px\"\n",
-                         namespaces.get(TOOLS_URI));
   }
 
   @NotNull
@@ -635,6 +562,85 @@ public class AppBarConfigurationDialog extends JDialog {
       }
     }
     return content.getText();
+  }
+
+  private void updateCollapsedImage(@NotNull PsiFile collapsedXmlFile) {
+    BufferedImage image = updateImage(collapsedXmlFile, myCollapsedPreview);
+    if (image != null) {
+      myCollapsedImage = image;
+    }
+  }
+
+  private void updateExpandedImage(@NotNull PsiFile expandedXmlFile) {
+    BufferedImage image = updateImage(expandedXmlFile, myExpandedPreview);
+    if (image != null) {
+      myExpandedImage = image;
+    }
+  }
+
+  @Nullable
+  private BufferedImage updateImage(@NotNull PsiFile xmlFile, @NotNull JBLabel preview) {
+    BufferedImage image = null;
+    try {
+      image = renderImage(xmlFile);
+      if (image == null) {
+        return null;
+      }
+    }
+    catch (RuntimeInterruptedException ex) {
+      // Will happen if several rendering calls are stacked.
+      return null;
+    }
+    catch (RuntimeException ex) {
+      getLogger().error(ex);
+    }
+    BufferedImage finalImage = image;
+    ApplicationManager.getApplication().invokeLater(() -> updatePreviewImage(finalImage, preview));
+    return image;
+  }
+
+  private BufferedImage renderImage(@NotNull PsiFile xmlFile) {
+    AndroidFacet facet = myEditor.getModel().getFacet();
+    RenderService renderService = RenderService.get(facet);
+    RenderLogger logger = renderService.createLogger();
+    final RenderTask task = renderService.createTask(xmlFile, myEditor.getConfiguration(), logger, null);
+    RenderResult result = null;
+    if (task != null) {
+      task.setRenderingMode(SessionParams.RenderingMode.NORMAL);
+      task.setFolderType(ResourceFolderType.LAYOUT);
+      //noinspection deprecation
+      result = task.render();
+      task.dispose();
+    }
+
+    if (result == null || !result.hasImage()) {
+      return null;
+    }
+
+    ImagePool.Image image = result.getRenderedImage();
+    if (image.getWidth() < MIN_WIDTH || image.getHeight() < MIN_HEIGHT) {
+      return null;
+    }
+
+    return result.getRenderedImage().getCopy();
+  }
+
+  private void updatePreviewImage(@Nullable BufferedImage image, @NotNull JBLabel view) {
+    if (image == null) {
+      view.setIcon(null);
+      myPreview.setText(RENDER_ERROR);
+      return;
+    }
+    double width = myPreviewPanel.getWidth() / 2.0;
+    double height =
+      myPreviewPanel.getHeight() - myPreview.getHeight() - Math.max(myExpandedLabel.getHeight(), myCollapsedLabel.getHeight());
+    if (width < MIN_WIDTH || height < MIN_HEIGHT) {
+      view.setIcon(null);
+    }
+    double scale = Math.min(width / image.getWidth(), height / image.getHeight()) * FUDGE_FACTOR;
+    image = ImageUtils.scale(image, scale, scale);
+    view.setIcon(new ImageIcon(image));
+    myPreview.setText(PREVIEW_HEADER);
   }
 
   private static Logger getLogger() {

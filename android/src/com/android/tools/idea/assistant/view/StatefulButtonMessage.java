@@ -25,8 +25,6 @@ import java.awt.*;
 /**
  * Displays a message in lieu of a button when an action may not be completed. Note, this is not an extension of JBLabel as it will display
  * other elements such as an edit link and potentially support progress indication.
- *
- * TODO: Add support for an edit action (not yet spec'd out).
  */
 public class StatefulButtonMessage extends JPanel {
   public ActionState myState;
@@ -38,6 +36,7 @@ public class StatefulButtonMessage extends JPanel {
 
     JBLabel messageDisplay = new JBLabel(message);
     messageDisplay.setOpaque(false);
+    // TODO(b/29617676): Add a treatment for IN_PROGRESS.
     switch (state) {
       case PARTIALLY_COMPLETE:
       case COMPLETE:
@@ -48,6 +47,7 @@ public class StatefulButtonMessage extends JPanel {
         messageDisplay.setIcon(AllIcons.RunConfigurations.TestFailed);
         messageDisplay.setForeground(UIUtils.getFailureColor());
         break;
+      case NOT_APPLICABLE:
       default:
         messageDisplay.setIcon(null);
         messageDisplay.setForeground(new JBLabel("").getForeground());

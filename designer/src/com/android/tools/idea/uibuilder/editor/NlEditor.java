@@ -15,56 +15,42 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.lint.NlBackgroundEditorHighlighter;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
-import com.intellij.designer.LightToolWindowManager;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
 import com.intellij.openapi.fileEditor.FileEditorState;
-import com.intellij.openapi.fileEditor.FileEditorStateLevel;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.beans.PropertyChangeListener;
 
 public class NlEditor extends UserDataHolderBase implements FileEditor {
+  private final Project myProject;
   private final AndroidFacet myFacet;
   private final VirtualFile myFile;
-  private final DumbService myDumbService;
-  private final LightToolWindowManager myPaletteManager;
-  private final LightToolWindowManager myPropertiesWindowManager;
 
   private NlEditorPanel myEditorPanel;
   private BackgroundEditorHighlighter myBackgroundHighlighter;
 
   public NlEditor(AndroidFacet facet, VirtualFile file, Project project) {
+    myProject = project;
     myFacet = facet;
     myFile = file;
-    myDumbService = DumbService.getInstance(project);
-    myPaletteManager = NlPaletteManager.get(project);
-    myPropertiesWindowManager = NlPropertiesWindowManager.get(project);
   }
 
   @NotNull
   @Override
   public NlEditorPanel getComponent() {
     if (myEditorPanel == null) {
-      myEditorPanel = new NlEditorPanel(this, myFacet, myFile);
-
-      myDumbService.smartInvokeLater(new Runnable() {
-        @Override
-        public void run() {
-          myPaletteManager.bind(myEditorPanel);
-          myPropertiesWindowManager.bind(myEditorPanel);
-        }
-      });
+      myEditorPanel = new NlEditorPanel(this, myProject, myFacet, myFile);
     }
     return myEditorPanel;
   }
@@ -82,18 +68,12 @@ public class NlEditor extends UserDataHolderBase implements FileEditor {
   }
 
   @Override
-  @NotNull
-  public FileEditorState getState(@NotNull FileEditorStateLevel level) {
-    return FileEditorState.INSTANCE;
-  }
-
-  @Override
   public void setState(@NotNull FileEditorState state) {
   }
 
   @Override
   public void dispose() {
-    getComponent().dispose();
+    Disposer.dispose(getComponent());
   }
 
   @Override

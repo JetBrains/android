@@ -3,9 +3,9 @@
           package="test.pkg">
   <application android:icon="@mipmap/ic_launcher">
     <provider
-            android:name="com.sample.provider.providerClass1"
-            android:authorities="com.sample.provider.providerData"
-            android:exported="false">
+        android:name="com.sample.provider.providerClass1"
+        android:authorities="com.sample.provider.providerData"
+        android:exported="false">
     </provider>
   </application>
 </manifest>

@@ -57,14 +57,15 @@ public class CpuSampler extends DeviceSampler {
 
   @Override
   protected void sample(boolean forced) throws InterruptedException {
-    if (myClient == null) {
+    Client client = getClient();
+    if (client == null) {
       return;
     }
 
     //noinspection ConstantConditions
-    IDevice device = myClient.getDevice();
+    IDevice device = client.getDevice();
     //noinspection ConstantConditions
-    ClientData data = myClient.getClientData();
+    ClientData data = client.getClientData();
 
     Long kernelCpuUsage = null;
     Long userCpuUsage = null;
@@ -90,10 +91,7 @@ public class CpuSampler extends DeviceSampler {
       catch (AdbCommandRejectedException e) {
         type = TYPE_ERROR;
       }
-      catch (ShellCommandUnresponsiveException e) {
-        type = TYPE_UNREACHABLE;
-      }
-      catch (IOException e) {
+      catch (ShellCommandUnresponsiveException | IOException ignored) {
         type = TYPE_UNREACHABLE;
       }
     }
@@ -106,7 +104,7 @@ public class CpuSampler extends DeviceSampler {
           kernelPercentUsage = Math.max(Math.min(kernelPercentUsage, 100.0f), 0.0f);
           float userPercentUsage = (float)(userCpuUsage - previousUserUsage) * 100.0f / (float)totalTimeDiff;
           userPercentUsage = Math.max(Math.min(userPercentUsage, 100.0f), 0.0f);
-          myTimelineData.add(System.currentTimeMillis(), type, kernelPercentUsage, userPercentUsage);
+          getTimelineData().add(System.currentTimeMillis(), type, kernelPercentUsage, userPercentUsage);
         }
       }
       previousKernelUsage = kernelCpuUsage;
@@ -114,7 +112,7 @@ public class CpuSampler extends DeviceSampler {
       previousTotalUptime = totalUptime;
     }
     else {
-      final TimelineData timelineData = myTimelineData;
+      final TimelineData timelineData = getTimelineData();
       //noinspection SynchronizationOnLocalVariableOrMethodParameter - TimelineData synchronises on itself, and we need size/get to match
       synchronized (timelineData) {
         if (timelineData.size() > 0) {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.google.common.collect.Lists;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.google.common.collect.Maps;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +26,6 @@ import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -60,14 +59,14 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement {
    * <p>Returns an empty map when the given there are no values of type {@code clazz}.
    */
   @NotNull
-  public <V> Map<String, V> getValues(@NotNull Class<V> clazz) {
-    Map<String, V> result = Maps.newHashMap();
+  public <V> Map<String, GradleNotNullValue<V>> getValues(@NotNull Class<V> clazz) {
+    Map<String, GradleNotNullValue<V>> result = Maps.newLinkedHashMap();
     for (Map.Entry<String, GradleDslElement> entry : getPropertyElements().entrySet()) {
       GradleDslElement propertyElement = entry.getValue();
       if (propertyElement instanceof GradleDslExpression) {
         V value = ((GradleDslExpression)propertyElement).getValue(clazz);
         if (value != null) {
-          result.put(entry.getKey(), value);
+          result.put(entry.getKey(), new GradleNotNullValue<>(propertyElement, value));
         }
       }
     }

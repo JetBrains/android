@@ -62,4 +62,9 @@ public abstract class AbstractModuleTemplate implements ModuleTemplate {
   public final FormFactor getFormFactor() {
     return myFormFactor;
   }
+
+  @Override
+  public String toString() {
+    return getName();
+  }
 }

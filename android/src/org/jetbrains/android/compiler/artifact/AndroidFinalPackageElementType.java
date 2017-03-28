@@ -47,7 +47,7 @@ public class AndroidFinalPackageElementType extends PackagingElementType<Android
     final List<AndroidFacet> result = new ArrayList<AndroidFacet>();
     for (Module module : modules) {
       for (AndroidFacet facet : context.getFacetsProvider().getFacetsByType(module, AndroidFacet.ID)) {
-        if (!facet.isLibraryProject()) {
+        if (facet.isAppProject()) {
           result.add(facet);
         }
       }

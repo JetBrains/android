@@ -55,8 +55,7 @@ public class DexParserTest {
 
   @NotNull
   private static DexBackedDexFile getTestDexFile() throws IOException {
-    Path testDataPath = Paths.get(AndroidTestBase.getAbsoluteTestDataPath());
-    Path dexPath = testDataPath.resolve("apk/Test.dex");
+    Path dexPath = Paths.get(AndroidTestBase.getTestDataPath(), "apk/Test.dex");
     return DexParser.getDexFile(Files.readAllBytes(dexPath));
   }
 

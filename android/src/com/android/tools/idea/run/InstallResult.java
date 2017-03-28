@@ -21,13 +21,14 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The result of an attempted app installation.
  */
-class InstallResult {
+public class InstallResult {
 
   public enum FailureCode {
     NO_ERROR,
     DEVICE_NOT_RESPONDING,
     INCONSISTENT_CERTIFICATES,
     INSTALL_FAILED_VERSION_DOWNGRADE,
+    INSTALL_FAILED_UPDATE_INCOMPATIBLE,
     INSTALL_FAILED_DEXOPT,
     NO_CERTIFICATE,
     INSTALL_FAILED_OLDER_SDK,
@@ -54,20 +55,12 @@ class InstallResult {
       return FailureCode.NO_ERROR;
     }
 
-    if ("INSTALL_PARSE_FAILED_INCONSISTENT_CERTIFICATES".equals(failureMessage)) {
-      return FailureCode.INCONSISTENT_CERTIFICATES;
-    }
-    else if ("INSTALL_PARSE_FAILED_NO_CERTIFICATES".equals(failureMessage)) {
-      return FailureCode.NO_CERTIFICATE;
-    }
-    else if ("INSTALL_FAILED_VERSION_DOWNGRADE".equals(failureMessage)) {
-      return FailureCode.INSTALL_FAILED_VERSION_DOWNGRADE;
-    }
-    else if ("INSTALL_FAILED_DEXOPT".equals(failureMessage)) {
-      return FailureCode.INSTALL_FAILED_DEXOPT;
-    }
-    else if ("INSTALL_FAILED_OLDER_SDK".equals(failureMessage)) {
-      return FailureCode.INSTALL_FAILED_OLDER_SDK;
+    if (failureMessage != null) {
+      for (FailureCode code : FailureCode.values()) {
+        if (failureMessage.equals(code.toString())) {
+          return code;
+        }
+      }
     }
 
     return FailureCode.UNTYPED_ERROR;

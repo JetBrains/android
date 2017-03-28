@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.tools.idea.uibuilder.api.InsertType;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -96,12 +97,11 @@ public class CoordinatorLayoutHandler extends FrameLayoutHandler {
     }
 
     @Override
-    public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+    public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
       checkPosition();
       if (myAnchor == null) {
         myDragged.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR, null);
         myDragged.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY, null);
-        super.commit(x, y, modifiers);
       } else {
         NlComponent root = myDragged.getRoot();
         root.ensureNamespace(APP_PREFIX, AUTO_URI);
@@ -112,6 +112,7 @@ public class CoordinatorLayoutHandler extends FrameLayoutHandler {
         myDragged.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY, myAnchorGravity);
         myDragged.setAttribute(ANDROID_URI, ATTR_LAYOUT_GRAVITY, myGravity);
       }
+      insertComponents(-1, insertType);
     }
 
     @Override

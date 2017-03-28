@@ -40,7 +40,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeFormat;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.inspections.lint.IntellijLintClient;
+import com.android.tools.idea.lint.LintIdeClient;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -217,7 +217,7 @@ public class ResolutionUtils {
       return -1;
     }
 
-    ApiLookup apiLookup = IntellijLintClient.getApiLookup(project);
+    ApiLookup apiLookup = LintIdeClient.getApiLookup(project);
     if (apiLookup == null) {
       // There is no Lint API database for this project
       LOG.warn("Could not find Lint client for project " + project.getName());
@@ -241,7 +241,7 @@ public class ResolutionUtils {
     }
   }
 
-  @Nullable("if this style doesn't have parent")
+  @Nullable/*if this style doesn't have parent*/
   public static String getParentQualifiedName(@NotNull StyleResourceValue style) {
     String parentName = ResourceResolver.getParentName(style);
     if (parentName == null) {
@@ -279,7 +279,7 @@ public class ResolutionUtils {
     return allItems.values();
   }
 
-  @Nullable("if we can't work out the type, e.g a 'reference' with a '@null' value or enum")
+  @Nullable/*if we can't work out the type, e.g a 'reference' with a '@null' value or enum*/
   public static ResourceType getAttrType(@NotNull ItemResourceValue item, @NotNull Configuration configuration) {
     ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;

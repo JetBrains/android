@@ -20,6 +20,7 @@ import com.android.tools.idea.npw.assetstudio.wizard.GenerateImageIconsModel;
 import com.android.tools.idea.npw.assetstudio.wizard.NewImageAssetStep;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +42,7 @@ public class NewImageAssetAction extends AndroidAssetStudioAction {
   @Override
   protected ModelWizard createWizard(@NotNull AndroidFacet facet) {
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    wizardBuilder.addStep(new NewImageAssetStep(new GenerateImageIconsModel(facet)));
+    wizardBuilder.addStep(new NewImageAssetStep(new GenerateImageIconsModel(facet), facet));
 
     return wizardBuilder.build();
   }
@@ -49,7 +50,7 @@ public class NewImageAssetAction extends AndroidAssetStudioAction {
   @NotNull
   @Override
   protected Dimension getWizardSize() {
-    return new Dimension(800, 750);
+    return JBUI.size(800, 750);
   }
 
   @Nullable

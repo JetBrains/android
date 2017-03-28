@@ -32,7 +32,7 @@ public abstract class DragHandler {
   @NotNull protected final ViewEditor editor;
   @NotNull protected final ViewGroupHandler handler;
   @NotNull protected final List<NlComponent> components;
-  @NotNull protected final NlComponent layout;
+  @NotNull protected NlComponent layout;
   @NotNull protected DragType type = DragType.COPY;
   @AndroidCoordinate protected int startX;
   @AndroidCoordinate protected int startY;
@@ -64,13 +64,16 @@ public abstract class DragHandler {
   /**
    * Sets new drag type. This can happen during a drag (e.g. when the user presses a
    * modifier key.
+   *
    * @param type the new type to use
    */
   public void setDragType(@NotNull DragType type) {
     this.type = type;
   }
 
-  /** Aborts a drag in this handler's view */
+  /**
+   * Aborts a drag in this handler's view
+   */
   public void cancel() {
   }
 
@@ -81,7 +84,9 @@ public abstract class DragHandler {
    * @param y         the y coordinate in the Android screen pixel coordinate system
    * @param modifiers the modifier key state
    */
-  public abstract void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers);
+  public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
+    insertComponents(-1, insertType);
+  }
 
   /**
    * Starts a drag of the given components from the given position
@@ -116,19 +121,23 @@ public abstract class DragHandler {
   /**
    * Paints the drag feedback during the drag &amp; drop operation
    *
-   * @param graphics the graphics to paint to
+   * @param graphics the graphics to buildDisplayList to
    */
   public abstract void paint(@NotNull NlGraphics graphics);
 
   /**
-   * Returns the index of the position between the children of the layout to drop newly inserted
-   * children, or -1 to append them at the end. 0 refers to the first child, and so on.
-   * The indices refer to the positions of the children <b>before</b> the drag, which matters
-   * if some of the existing children in the layout are being dragged.
+   * Insert the components being dragged into this layout.
    *
-   * @return the insert index, or -1 to append to the end
+   * @param insertIndex the position to drop the dragged components at, or -1 to append them at the end.
+   *                    The index refers to the position of the children <b>before</b> the drag, which
+   *                    matters if some of the existing children in the layout are being dragged.
+   * @param insertType  the type of move/insert
    */
-  public int getInsertIndex() {
-    return -1;
+  protected final void insertComponents(int insertIndex, @NotNull InsertType insertType) {
+    NlComponent before = null;
+    if (insertIndex != -1 && insertIndex < layout.getChildCount()) {
+      before = layout.getChild(insertIndex);
+    }
+    editor.getModel().addComponents(components, layout, before, insertType);
   }
 }

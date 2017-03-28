@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.hprof;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.profiling.capture.FileCaptureType;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.ProfilerCaptureType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -32,5 +33,10 @@ public class HprofCaptureType extends FileCaptureType {
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
     return new HprofEditor(project, file);
+  }
+
+  @Override
+  public ProfilerCaptureType getCaptureType() {
+    return ProfilerCaptureType.HEAP;
   }
 }

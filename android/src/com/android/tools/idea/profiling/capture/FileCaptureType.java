@@ -18,11 +18,8 @@ package com.android.tools.idea.profiling.capture;
 import com.android.utils.SdkUtils;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public abstract class FileCaptureType extends CaptureType {
   @NotNull private String myName;

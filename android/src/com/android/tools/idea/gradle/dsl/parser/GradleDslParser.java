@@ -18,13 +18,23 @@ package com.android.tools.idea.gradle.dsl.parser;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.parser.android.*;
-import com.android.tools.idea.gradle.dsl.parser.android.external.CMakeDslElement;
-import com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement;
-import com.android.tools.idea.gradle.dsl.parser.android.external.NdkBuildDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.ExternalNativeBuildOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.CMakeOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.NdkBuildOptionsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceFileDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement;
+import com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependencyConfigurationDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement;
@@ -33,6 +43,7 @@ import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslE
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -50,12 +61,27 @@ import org.jetbrains.plugins.groovy.lang.psi.api.types.GrCodeReferenceElement;
 
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement.DATA_BINDING_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement.DEX_OPTIONS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement.LINT_OPTIONS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement.PACKAGING_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.external.CMakeDslElement.CMAKE_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.external.NdkBuildDslElement.NDK_BUILD_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement.SIGNING_CONFIGS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement.SOURCE_SETS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement.SPLITS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement.TEST_OPTIONS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement.CMAKE_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement.NDK_BUILD_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement.NDK_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement.ABI_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement.DENSITY_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement.LANGUAGE_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement.UNIT_TESTS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
@@ -103,24 +129,34 @@ public final class GradleDslParser {
       return false;
     }
 
-    GradleDslExpression expressionElement = getExpressionElement(dslElement, expression, name, expression);
-    if (expressionElement instanceof GradleDslMethodCall && ((GradleDslMethodCall)expressionElement).getArguments().size() > 0) {
-      dslElement.addParsedElement(name, expressionElement);
-      // This element is a method call with arguments. This element may also contain a closure along with it, but as of now we do not have
-      // a use case to understand closure associated with a method call with arguments. So, just process the method arguments and return.
-      // ex: compile("dependency") {}
-      return true;
+    List<String> nameSegments = Splitter.on('.').splitToList(name);
+    if (nameSegments.size() > 1) {
+      dslElement = getBlockElement(nameSegments.subList(0, (nameSegments.size() - 1)), dslElement);
+      name = nameSegments.get(nameSegments.size() - 1);
+    }
+
+    if (dslElement == null) {
+      return false;
     }
 
     GrClosableBlock[] closureArguments = expression.getClosureArguments();
-    if (closureArguments.length == 0) {
-      if (expressionElement instanceof GradleDslMethodCall && ((GradleDslMethodCall)expressionElement).getArguments().isEmpty()) {
-        dslElement.addParsedElement(name, expressionElement);
-        // This element is a pure method call, i.e a method call with no arguments and no closure arguments.
-        // ex: jcenter()
-        return true;
+    GrArgumentList argumentList = expression.getArgumentList();
+    if (argumentList.getAllArguments().length > 0) {
+      // This element is a method call with arguments and an optional closure associated with it.
+      // ex: compile("dependency") {}
+      GradleDslExpression methodCall = getMethodCall(dslElement, expression, name, argumentList);
+      if (closureArguments.length > 0) {
+        methodCall.setParsedClosureElement(getClosureElement(methodCall, closureArguments[0], name));
       }
-      return false;
+      dslElement.addParsedElement(name, methodCall);
+      return true;
+    }
+
+    if (argumentList.getAllArguments().length == 0 && closureArguments.length == 0) {
+      // This element is a pure method call, i.e a method call with no arguments and no closure arguments.
+      // ex: jcenter()
+      dslElement.addParsedElement(name, new GradleDslMethodCall(dslElement, expression, name));
+      return true;
     }
 
     // Now this element is pure block element, i.e a method call with no argument but just a closure argument. So, here just process the
@@ -137,8 +173,7 @@ public final class GradleDslParser {
       name = "subprojects";
     }
 
-    List<String> nameSegments = Splitter.on('.').splitToList(name);
-    GradlePropertiesDslElement blockElement = getBlockElement(nameSegments, dslElement);
+    GradlePropertiesDslElement blockElement = getBlockElement(ImmutableList.of(name), dslElement);
     if (blockElement != null) {
       blockElement.setPsiElement(closableBlock);
       blockElements.add(blockElement);
@@ -170,7 +205,6 @@ public final class GradleDslParser {
         parse(expression, blockElement);
       }
     });
-
   }
 
   private static boolean parse(@NotNull GrApplicationStatement statement, @NotNull GradlePropertiesDslElement blockElement) {
@@ -235,6 +269,11 @@ public final class GradleDslParser {
     }
     if (propertyElement == null) {
       return false;
+    }
+
+    GroovyPsiElement lastArgument = arguments[arguments.length - 1];
+    if (lastArgument instanceof GrClosableBlock) {
+      propertyElement.setParsedClosureElement(getClosureElement(propertyElement, (GrClosableBlock)lastArgument, name));
     }
 
     blockElement.addParsedElement(propertyName, propertyElement);
@@ -362,6 +401,9 @@ public final class GradleDslParser {
           }
         }
       }
+      else if (expression instanceof GrClosableBlock) {
+        methodCall.setParsedClosureElement(getClosureElement(methodCall, (GrClosableBlock)expression, propertyName));
+      }
       else {
         GradleDslExpression dslExpression = getExpressionElement(methodCall, expression, propertyName, expression);
         if (dslExpression != null) {
@@ -455,6 +497,21 @@ public final class GradleDslParser {
     return expressionMap;
   }
 
+  @NotNull
+  private static GradleDslClosure getClosureElement(@NotNull GradleDslElement parentElement,
+                                                    @NotNull GrClosableBlock closableBlock,
+                                                    @NotNull String propertyName) {
+    GradleDslClosure closureElement;
+    if (parentElement.getParent() instanceof DependenciesDslElement) {
+      closureElement = new DependencyConfigurationDslElement(parentElement, closableBlock, propertyName);
+    }
+    else {
+      closureElement = new GradleDslClosure(parentElement, closableBlock, propertyName);
+    }
+    parse(closableBlock, closureElement);
+    return closureElement;
+  }
+
   private static GradlePropertiesDslElement getBlockElement(@NotNull List<String> qualifiedName,
                                                             @NotNull GradlePropertiesDslElement parentElement) {
     GradlePropertiesDslElement resultElement = parentElement;
@@ -542,6 +599,36 @@ public final class GradleDslParser {
           else if (EXTERNAL_NATIVE_BUILD_BLOCK_NAME.equals(nestedElementName)) {
             newElement = new ExternalNativeBuildDslElement(resultElement);
           }
+          else if (SIGNING_CONFIGS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new SigningConfigsDslElement(resultElement);
+          }
+          else if (SOURCE_SETS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new SourceSetsDslElement(resultElement);
+          }
+          else if (AAPT_OPTIONS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new AaptOptionsDslElement(resultElement);
+          }
+          else if (ADB_OPTIONS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new AdbOptionsDslElement(resultElement);
+          }
+          else if (DATA_BINDING_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new DataBindingDslElement(resultElement);
+          }
+          else if (DEX_OPTIONS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new DexOptionsDslElement(resultElement);
+          }
+          else if (LINT_OPTIONS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new LintOptionsDslElement(resultElement);
+          }
+          else if (PACKAGING_OPTIONS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new PackagingOptionsDslElement(resultElement);
+          }
+          else if (SPLITS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new SplitsDslElement(resultElement);
+          }
+          else if (TEST_OPTIONS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new TestOptionsDslElement(resultElement);
+          }
           else {
             return null;
           }
@@ -560,15 +647,72 @@ public final class GradleDslParser {
         else if (resultElement instanceof ProductFlavorsDslElement) {
           newElement = new ProductFlavorDslElement(resultElement, nestedElementName);
         }
-        else if (resultElement instanceof ProductFlavorDslElement &&
-                 ("manifestPlaceholders".equals(nestedElementName) || "testInstrumentationRunnerArguments".equals(nestedElementName))) {
-          newElement = new GradleDslExpressionMap(resultElement, nestedElementName);
+        else if (resultElement instanceof ProductFlavorDslElement) {
+          if ("manifestPlaceholders".equals(nestedElementName) || "testInstrumentationRunnerArguments".equals(nestedElementName)) {
+            newElement = new GradleDslExpressionMap(resultElement, nestedElementName);
+          }
+          else if (EXTERNAL_NATIVE_BUILD_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new ExternalNativeBuildOptionsDslElement(resultElement);
+          }
+          else if (NDK_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new NdkOptionsDslElement(resultElement);
+          }
+          else {
+            return null;
+          }
         }
         else if (resultElement instanceof BuildTypesDslElement) {
           newElement = new BuildTypeDslElement(resultElement, nestedElementName);
         }
         else if (resultElement instanceof BuildTypeDslElement && "manifestPlaceholders".equals(nestedElementName)) {
           newElement = new GradleDslExpressionMap(resultElement, nestedElementName);
+        }
+        else if (resultElement instanceof SigningConfigsDslElement) {
+          newElement = new SigningConfigDslElement(resultElement, nestedElementName);
+        }
+        else if (resultElement instanceof SourceSetsDslElement) {
+          newElement = new SourceSetDslElement(resultElement, nestedElementName);
+        }
+        else if (resultElement instanceof SourceSetDslElement) {
+          if ("manifest".equals(nestedElementName)) {
+            newElement = new SourceFileDslElement(resultElement, nestedElementName);
+          }
+          else {
+            newElement = new SourceDirectoryDslElement(resultElement, nestedElementName);
+          }
+        }
+        else if (resultElement instanceof ExternalNativeBuildOptionsDslElement) {
+          if (CMAKE_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new CMakeOptionsDslElement(resultElement);
+          }
+          else if (NDK_BUILD_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new NdkBuildOptionsDslElement(resultElement);
+          }
+          else {
+            return null;
+          }
+        }
+        else if (resultElement instanceof SplitsDslElement) {
+          if (ABI_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new AbiDslElement(resultElement);
+          }
+          else if (DENSITY_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new DensityDslElement(resultElement);
+          }
+          else if (LANGUAGE_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new LanguageDslElement(resultElement);
+          }
+          else {
+            return null;
+          }
+        }
+        else if (resultElement instanceof TestOptionsDslElement) {
+          if (UNIT_TESTS_BLOCK_NAME.equals(nestedElementName)) {
+            newElement = new UnitTestsDslElement(resultElement);
+          }
+          else {
+            return null;
+          }
         }
         else {
           return null;

@@ -18,13 +18,12 @@ package com.android.tools.idea.gradle.structure;
 
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
-import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.sdk.*;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
-import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.progress.StudioProgressRunner;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
@@ -32,6 +31,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
@@ -46,7 +46,6 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.HyperlinkAdapter;
 import com.intellij.ui.HyperlinkLabel;
@@ -55,7 +54,6 @@ import com.intellij.ui.navigation.Place;
 import com.intellij.util.Function;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.android.actions.RunAndroidSdkManagerAction;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -74,9 +72,8 @@ import java.util.List;
 
 import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
-import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getEmbeddedJdkPath;
 import static com.android.tools.idea.npw.WizardUtils.validateLocation;
-import static com.android.tools.idea.sdk.IdeSdks.*;
+import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
@@ -91,8 +88,6 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ui.UIUtil.getLabelBackground;
 import static com.intellij.util.ui.UIUtil.getTextFieldBackground;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseSdkHandler;
 
 /**
  * Allows the user set global Android SDK and JDK locations that are used for Gradle-based Android projects.
@@ -153,7 +148,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
     layout.show(myNdkDownloadPanel, "loading");
 
     ProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
-    RepoManager repoManager = tryToChooseSdkHandler().getSdkManager(logger);
+    RepoManager repoManager = AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(logger);
     StudioProgressRunner runner = new StudioProgressRunner(false, true, false, "Loading Remote SDK", true, project);
     RepoManager.RepoLoadedCallback onComplete = packages -> {
       if (packages.getRemotePackages().get(FD_NDK) != null) {
@@ -188,8 +183,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       boolean useEmbeddedJdk = useEmbeddedJdk();
       updateJdkTextField(useEmbeddedJdk);
 
-      File embeddedJdkPath = getEmbeddedJdkPath();
-      String path = embeddedJdkPath != null ? embeddedJdkPath.getPath() : "";
+      String path = EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath();
       if (!useEmbeddedJdk) {
         // If the user-selected path is the same as the "embedded JDK" path, ignore it because there is no user-selected path yet.
         if (path.equals(myUserSelectedJdkHomePath)) {
@@ -211,17 +205,20 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   }
 
   @Override
+  public void disposeUIResources() {
+  }
+
+  @Override
   public void reset() {
     myOriginalSdkHomePath = getIdeAndroidSdkPath();
     myOriginalNdkHomePath = getIdeNdkPath();
     myOriginalJdkHomePath = getIdeJdkPath();
-    myOriginalUseEmbeddedJdk = isUsingEmbeddedJdk();
+    myOriginalUseEmbeddedJdk = IdeSdks.getInstance().isUsingEmbeddedJdk();
 
     mySdkLocationTextField.setText(myOriginalSdkHomePath);
     myNdkLocationTextField.setText(myOriginalNdkHomePath);
 
-    File embeddedJdkPath = getEmbeddedJdkPath();
-    String jdkPath = myOriginalUseEmbeddedJdk && embeddedJdkPath != null ? embeddedJdkPath.getPath() : myOriginalJdkHomePath;
+    String jdkPath = myOriginalUseEmbeddedJdk ? EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().getPath() : myOriginalJdkHomePath;
     myJdkLocationTextField.setText(jdkPath);
     myUserSelectedJdkHomePath = myOriginalJdkHomePath;
     updateJdkTextField(myOriginalUseEmbeddedJdk);
@@ -247,18 +244,12 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       // to take effect during the sync.
       saveAndroidNdkPath();
 
-      boolean useEmbeddedJdk = useEmbeddedJdk();
-      if (useEmbeddedJdk) {
-        setUseEmbeddedJdk();
-      }
-      else {
-        setJdkPath(getUserSelectedJdkLocation());
-      }
-
-      setAndroidSdkPath(getSdkLocation(), myProject);
+      IdeSdks ideSdks = IdeSdks.getInstance();
+      ideSdks.setJdkPath(useEmbeddedJdk() ? EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath() : getJdkLocation());
+      ideSdks.setAndroidSdkPath(getSdkLocation(), myProject);
 
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        RunAndroidSdkManagerAction.updateInWelcomePage(myDetailsComponent.getComponent());
+        ActionManager.getInstance().getAction("WelcomeScreen.RunAndroidSdkManager").update(null);
       }
     });
   }
@@ -347,7 +338,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
         // known non-null since otherwise we won't show the link
-        File androidNdkPath = getAndroidNdkPath();
+        File androidNdkPath = IdeSdks.getInstance().getAndroidNdkPath();
         assert androidNdkPath != null;
         myNdkLocationTextField.setText(androidNdkPath.getPath());
       }
@@ -367,7 +358,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
         List<String> requested = ImmutableList.of(FD_NDK);
         ModelWizardDialog dialog = createDialogForPaths(myWholePanel, requested, false);
         if (dialog != null && dialog.showAndGet()) {
-          File ndk = getAndroidNdkPath();
+          File ndk = IdeSdks.getInstance().getAndroidNdkPath();
           if (ndk != null) {
             myNdkLocationTextField.setText(ndk.getPath());
           }
@@ -383,7 +374,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   }
 
   public void chooseJdkLocation() {
-    IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(() -> IdeFocusManager.getGlobalInstance().requestFocus(myJdkLocationTextField.getTextField(), true));
+    myJdkLocationTextField.getTextField().requestFocus();
 
     VirtualFile suggestedDir = null;
     File jdkLocation = getUserSelectedJdkLocation();
@@ -416,6 +407,24 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
     }
   }
 
+  @NotNull
+  private static FileChooserDescriptor createSingleFolderDescriptor(@NotNull String title, @NotNull Function<File, Void> validation) {
+    FileChooserDescriptor descriptor = new FileChooserDescriptor(false, true, false, false, false, false) {
+      @Override
+      public void validateSelectedFiles(VirtualFile[] files) throws Exception {
+        for (VirtualFile virtualFile : files) {
+          File file = virtualToIoFile(virtualFile);
+          validation.fun(file);
+        }
+      }
+    };
+    if (SystemInfo.isMac) {
+      descriptor.withShowHiddenFiles(true);
+    }
+    descriptor.setTitle(title);
+    return descriptor;
+  }
+
   @Override
   public String getDisplayName() {
     return "SDK Location";
@@ -441,8 +450,52 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   public boolean isModified() {
     return !myOriginalSdkHomePath.equals(getSdkLocation().getPath()) ||
            !myOriginalNdkHomePath.equals(getNdkLocation().getPath()) ||
-           !myOriginalJdkHomePath.equals(getUserSelectedJdkLocation().getPath()) ||
+           !myOriginalJdkHomePath.equals(getJdkLocation().getPath()) ||
            myOriginalUseEmbeddedJdk != useEmbeddedJdk();
+  }
+
+  /**
+   * Returns the first SDK it finds that matches our default naming convention. There will be several SDKs so named, one for each build
+   * target installed in the SDK; which of those this method returns is not defined.
+   *
+   * @param create True if this method should attempt to create an SDK if one does not exist.
+   * @return null if an SDK is unavailable or creation failed.
+   */
+  @Nullable
+  private static Sdk getFirstDefaultAndroidSdk(boolean create) {
+    IdeSdks ideSdks = IdeSdks.getInstance();
+    List<Sdk> allAndroidSdks = ideSdks.getEligibleAndroidSdks();
+    if (!allAndroidSdks.isEmpty()) {
+      return allAndroidSdks.get(0);
+    }
+    if (!create) {
+      return null;
+    }
+    AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
+    if (sdkData == null) {
+      return null;
+    }
+    List<Sdk> sdks = ideSdks.createAndroidSdkPerAndroidTarget(sdkData.getLocation());
+    return !sdks.isEmpty() ? sdks.get(0) : null;
+  }
+
+  /**
+   * @return what the IDE is using as the home path for the Android SDK for new projects.
+   */
+  @NotNull
+  private static String getIdeAndroidSdkPath() {
+    File path = IdeSdks.getInstance().getAndroidSdkPath();
+    if (path != null) {
+      return path.getPath();
+    }
+    Sdk sdk = getFirstDefaultAndroidSdk(true);
+    if (sdk != null) {
+      String sdkHome = sdk.getHomePath();
+      if (sdkHome != null) {
+        return toSystemDependentName(sdkHome);
+      }
+    }
+    return "";
   }
 
   /**
@@ -463,12 +516,21 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       }
     }
     else {
-      File path = getAndroidNdkPath();
+      File path = IdeSdks.getInstance().getAndroidNdkPath();
       if (path != null) {
         return path.getPath();
       }
     }
     return "";
+  }
+
+  /**
+   * @return what the IDE is using as the home path for the JDK.
+   */
+  @NotNull
+  private static String getIdeJdkPath() {
+    File javaHome =  IdeSdks.getInstance().getJdkPath();
+    return javaHome != null ? javaHome.getPath() : "";
   }
 
   @NotNull
@@ -497,7 +559,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
     }
 
     if (!useEmbeddedJdk()) {
-      File validJdkLocation = validateJdkPath(getUserSelectedJdkLocation());
+      File validJdkLocation = validateJdkPath(getJdkLocation());
       if (validJdkLocation == null) {
         throw new ConfigurationException(CHOOSE_VALID_JDK_DIRECTORY_ERR);
       }
@@ -521,20 +583,20 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
       errors.add(error);
     }
 
-    if (!useEmbeddedJdk()) {
-      File jdkLocation = validateJdkPath(getUserSelectedJdkLocation());
-      if (jdkLocation == null) {
+    File jdkLocation;
+    jdkLocation = validateJdkPath(getJdkLocation());
+
+    if (jdkLocation == null) {
+      ProjectConfigurationError error =
+        new ProjectConfigurationError(CHOOSE_VALID_JDK_DIRECTORY_ERR, myJdkLocationTextField.getTextField());
+      errors.add(error);
+    }
+    else {
+      JavaSdkVersion version = Jdks.getInstance().findVersion(jdkLocation);
+      if (version == null || !version.isAtLeast(JDK_1_8)) {
         ProjectConfigurationError error =
-          new ProjectConfigurationError(CHOOSE_VALID_JDK_DIRECTORY_ERR, myJdkLocationTextField.getTextField());
+          new ProjectConfigurationError("Please choose JDK 8 or newer", myJdkLocationTextField.getTextField());
         errors.add(error);
-      }
-      else {
-        JavaSdkVersion version = Jdks.findVersion(jdkLocation);
-        if (version == null || !version.isAtLeast(JDK_1_8)) {
-          ProjectConfigurationError error =
-            new ProjectConfigurationError("Please choose JDK 8 or newer", myJdkLocationTextField.getTextField());
-          errors.add(error);
-        }
       }
     }
 
@@ -594,7 +656,7 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   }
 
   private void adjustNdkQuickFixVisibility() {
-    boolean hasNdk = getAndroidNdkPath() != null;
+    boolean hasNdk = IdeSdks.getInstance().getAndroidNdkPath() != null;
     myNdkDownloadPanel.setVisible(!hasNdk);
     myNdkResetHyperlinkLabel.setVisible(hasNdk);
   }
@@ -607,6 +669,12 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   @NotNull
   private File getUserSelectedJdkLocation() {
     String jdkLocation = nullToEmpty(myUserSelectedJdkHomePath);
+    return new File(toSystemDependentName(jdkLocation));
+  }
+
+  @NotNull
+  private File getJdkLocation() {
+    String jdkLocation = myJdkLocationTextField.getText();
     return new File(toSystemDependentName(jdkLocation));
   }
 
@@ -634,6 +702,21 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
     return null;
   }
 
+  /**
+   * @return {@code true} if the configurable is needed: e.g. if we're missing a JDK or an Android SDK setting.
+   */
+  public static boolean isNeeded() {
+    String jdkPath = getIdeJdkPath();
+    String sdkPath = getIdeAndroidSdkPath();
+
+    IdeSdks ideSdks = IdeSdks.getInstance();
+
+    boolean validJdk = ideSdks.isUsingEmbeddedJdk() || (!jdkPath.isEmpty() && checkForJdk(new File(jdkPath)));
+    boolean validSdk = !sdkPath.isEmpty() && ideSdks.isValidAndroidSdkPath(new File(sdkPath));
+
+    return !validJdk || !validSdk;
+  }
+
   @Override
   public void setHistory(History history) {
     myHistory = history;
@@ -656,86 +739,5 @@ public class IdeSdksConfigurable extends BaseConfigurable implements Place.Navig
   @Override
   public void queryPlace(@NotNull Place place) {
     place.putPath(SDKS_PLACE, mySelectedComponentId);
-  }
-
-  @NotNull
-  private static FileChooserDescriptor createSingleFolderDescriptor(@NotNull String title, @NotNull Function<File, Void> validation) {
-    FileChooserDescriptor descriptor = new FileChooserDescriptor(false, true, false, false, false, false) {
-      @Override
-      public void validateSelectedFiles(VirtualFile[] files) throws Exception {
-        for (VirtualFile virtualFile : files) {
-          File file = virtualToIoFile(virtualFile);
-          validation.fun(file);
-        }
-      }
-    };
-    if (SystemInfo.isMac) {
-      descriptor.withShowHiddenFiles(true);
-    }
-    descriptor.setTitle(title);
-    return descriptor;
-  }
-
-  /**
-   * Returns the first SDK it finds that matches our default naming convention. There will be several SDKs so named, one for each build
-   * target installed in the SDK; which of those this method returns is not defined.
-   *
-   * @param create True if this method should attempt to create an SDK if one does not exist.
-   * @return null if an SDK is unavailable or creation failed.
-   */
-  @Nullable
-  private static Sdk getFirstDefaultAndroidSdk(boolean create) {
-    List<Sdk> allAndroidSdks = getEligibleAndroidSdks();
-    if (!allAndroidSdks.isEmpty()) {
-      return allAndroidSdks.get(0);
-    }
-    if (!create) {
-      return null;
-    }
-    AndroidSdkData sdkData = tryToChooseAndroidSdk();
-    if (sdkData == null) {
-      return null;
-    }
-    List<Sdk> sdks = createAndroidSdkPerAndroidTarget(sdkData.getLocation());
-    return !sdks.isEmpty() ? sdks.get(0) : null;
-  }
-
-  /**
-   * @return what the IDE is using as the home path for the Android SDK for new projects.
-   */
-  @NotNull
-  private static String getIdeAndroidSdkPath() {
-    File path = getAndroidSdkPath();
-    if (path != null) {
-      return path.getPath();
-    }
-    Sdk sdk = getFirstDefaultAndroidSdk(true);
-    if (sdk != null) {
-      String sdkHome = sdk.getHomePath();
-      if (sdkHome != null) {
-        return toSystemDependentName(sdkHome);
-      }
-    }
-    return "";
-  }
-
-  /**
-   * @return what the IDE is using as the home path for the JDK.
-   */
-  @NotNull
-  private static String getIdeJdkPath() {
-    File javaHome = getJdkPath();
-    return javaHome != null ? javaHome.getPath() : "";
-  }
-
-  /**
-   * @return {@code true} if the configurable is needed: e.g. if we're missing a JDK or an Android SDK setting.
-   */
-  public static boolean isNeeded() {
-    String jdkPath = getIdeJdkPath();
-    String sdkPath = getIdeAndroidSdkPath();
-    boolean validJdk = isUsingEmbeddedJdk() || (!jdkPath.isEmpty() && checkForJdk(new File(jdkPath)));
-    boolean validSdk = !sdkPath.isEmpty() && isValidAndroidSdkPath(new File(sdkPath));
-    return !validJdk || !validSdk;
   }
 }

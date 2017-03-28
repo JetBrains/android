@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleVersion;
@@ -27,13 +26,16 @@ import com.android.tools.idea.avdmanager.AvdScreenData;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.configurations.ConfigurationMatcher;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.rendering.*;
+import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.ProjectResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
+import com.android.tools.idea.templates.TemplateUtils;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.editor.NlEditorProvider;
@@ -45,7 +47,9 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
 import com.android.util.PropertiesMap;
 import com.android.utils.XmlUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.*;
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -120,6 +124,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       if ((flags & (CFG_DEVICE | CFG_DEVICE_STATE)) != 0 && !mySurface.isCanvasResizing()) {
         mySurface.zoom(ZoomType.FIT_INTO);
       }
+
       return true;
     }
   };
@@ -131,7 +136,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private final SelectionModel mySelectionModel;
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
-  private final Disposable myParent;
   private boolean myActive;
   private ResourceVersion myRenderedVersion;
   private final ModelVersion myModelVersion = new ModelVersion();
@@ -140,6 +144,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private RenderTask myRenderTask;
   private final NlLayoutType myType;
   private long myConfigurationModificationCount;
+
+  // Variables to track previous values of the configuration bar for tracking purposes
+  private String myPreviousDeviceName;
+  private Locale myPreviousLocale;
+  private String myPreviousVersion;
+  private String myPreviousTheme;
+  // Variable to track what triggered the latest render (if known)
+  private ChangeType myModificationTrigger;
 
   @NotNull
   public static NlModel create(@NotNull DesignSurface surface,
@@ -152,7 +164,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @VisibleForTesting
   protected NlModel(@NotNull DesignSurface surface, @Nullable Disposable parent, @NotNull AndroidFacet facet, @NotNull XmlFile file) {
     mySurface = surface;
-    myParent = parent;
     myFacet = facet;
     myFile = file;
     myConfiguration = facet.getConfigurationManager().getConfiguration(myFile.getVirtualFile());
@@ -164,6 +175,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     }
     myType = NlLayoutType.typeOf(file);
     myProjectResourceRepository = ProjectResourceRepository.getProjectResources(myFacet, true);
+
+    updateTrackingConfiguration();
   }
 
   /**
@@ -247,7 +260,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       @Override
       public void run() {
         DumbService.getInstance(myFacet.getModule().getProject()).waitForSmartMode();
-        if (!myFacet.getModule().getProject().isDisposed()) {
+        if (!myFacet.isDisposed()) {
           try {
             if (myFacet.requiresAndroidModel() && myFacet.getAndroidModel() == null) {
               // Try again later - model hasn't been synced yet (and for example we won't
@@ -307,6 +320,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return ourRenderViewPort;
   }
 
+  @VisibleForTesting
+  protected void setupRenderTask(@Nullable RenderTask task) {
+  }
+
   /**
    * Synchronously inflates the model and updates the view hierarchy
    *
@@ -343,6 +360,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         myRenderTask.dispose();
       }
       myRenderTask = renderService.createTask(myFile, configuration, logger, mySurface);
+      setupRenderTask(myRenderTask);
       if (myRenderTask != null) {
         if (!isRenderViewPort()) {
           myRenderTask.useDesignMode(myFile);
@@ -353,16 +371,17 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           myRenderTask = null;
 
           if (result == null) {
-            result = RenderResult.createBlank(myFile, logger);
+            result = RenderResult.createBlank(myFile);
           }
         }
       }
 
+      updateHierarchy(result);
       myRenderResultLock.writeLock().lock();
       try {
         myRenderResult = result;
-        updateHierarchy(result);
-      } finally {
+      }
+      finally {
         myRenderResultLock.writeLock().unlock();
       }
 
@@ -393,7 +412,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @VisibleForTesting
-  public void updateHierarchy(@Nullable XmlTag rootTag, @Nullable Iterable<ViewInfo> rootViews) {
+  public void updateHierarchy(@Nullable XmlTag rootTag, @NotNull Iterable<ViewInfo> rootViews) {
     ModelUpdater updater = new ModelUpdater(this);
     updater.update(rootTag, rootViews);
   }
@@ -504,22 +523,58 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * method will be called.
    * <p/>
    * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
+   * <p/>
+   * <b>Do not call this method from the dispatch thread!</b>
    */
   public void render() {
+    if (myConfigurationModificationCount != myConfiguration.getModificationCount()) {
+      // usage tracking (we only pay attention to individual changes where only one item is affected since those are likely to be triggered
+      // by the user
+      if (!StringUtil.equals(myConfiguration.getTheme(), myPreviousTheme)) {
+        myPreviousTheme = myConfiguration.getTheme();
+        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.THEME_CHANGE);
+      }
+      else if (myConfiguration.getTarget() != null && !StringUtil.equals(myConfiguration.getTarget().getVersionName(), myPreviousVersion)) {
+        myPreviousVersion = myConfiguration.getTarget().getVersionName();
+        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.API_LEVEL_CHANGE);
+      }
+      else if (!myConfiguration.getLocale().equals(myPreviousLocale)) {
+        myPreviousLocale = myConfiguration.getLocale();
+        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.LANGUAGE_CHANGE);
+      }
+      else if (myConfiguration.getDevice() != null && !StringUtil.equals(myConfiguration.getDevice().getDisplayName(), myPreviousDeviceName)) {
+        myPreviousDeviceName = myConfiguration.getDevice().getDisplayName();
+        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEVICE_CHANGE);
+      }
+    }
+
+    ChangeType changeType = myModificationTrigger;
+    myModificationTrigger = null;
+    long renderStartTimeMs = System.currentTimeMillis();
     boolean inflated = inflate(false);
 
     synchronized (RENDERING_LOCK) {
       if (myRenderTask != null) {
         RenderResult result = myRenderTask.render();
+        // When the layout was inflated in this same call, we do not have to update the hierarchy again
+        if (!inflated) {
+          updateHierarchy(result);
+        }
         myRenderResultLock.writeLock().lock();
         try {
           myRenderResult = result;
-          // When the layout was inflated in this same call, we do not have to update the hierarchy again
-          if (!inflated) {
-            updateHierarchy(myRenderResult);
-          }
-        } finally {
+          // Downgrade the write lock to read lock
+          myRenderResultLock.readLock().lock();
+        }
+        finally {
           myRenderResultLock.writeLock().unlock();
+        }
+        try {
+          NlUsageTrackerManager.getInstance(mySurface).logRenderResult(changeType,
+                                                                       myRenderResult,
+                                                                       System.currentTimeMillis() - renderStartTimeMs);
+        } finally {
+          myRenderResultLock.readLock().unlock();
         }
       }
     }
@@ -537,7 +592,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
       @Override
       public void run() {
-        if (myFacet.getModule().getProject().isDisposed()) {
+        if (myFacet.isDisposed()) {
           return;
         }
 
@@ -549,6 +604,23 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         return this.equals(update);
       }
     });
+  }
+
+  /**
+   * Request a layout pass
+   *
+   * @param animate if true, the resuting layout should be animated
+   */
+  public void requestLayout(boolean animate) {
+    if (myRenderTask != null) {
+      synchronized (RENDERING_LOCK) {
+        RenderResult result = myRenderTask.layout();
+        if (result != null) {
+          updateHierarchy(result);
+          notifyListenersModelLayoutComplete(animate);
+        }
+      }
+    }
   }
 
   /**
@@ -604,12 +676,27 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     listeners.forEach(listener -> listener.modelRendered(this));
   }
 
+  /**
+   * Calls all the listeners {@link ModelListener#modelChangedOnLayout(NlModel, boolean)} method.
+   *
+   * @param animate if true, warns the listeners to animate the layout update
+   */
+  private void notifyListenersModelLayoutComplete(boolean animate) {
+    List<ModelListener> listeners;
+    synchronized (myListeners) {
+      listeners = ImmutableList.copyOf(myListeners);
+    }
+
+    listeners.forEach(listener -> listener.modelChangedOnLayout(this, animate));
+  }
+
   @Nullable
   public RenderResult getRenderResult() {
     myRenderResultLock.readLock().lock();
     try {
       return myRenderResult;
-    } finally {
+    }
+    finally {
       myRenderResultLock.readLock().unlock();
     }
   }
@@ -622,7 +709,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         return Collections.emptyMap();
       }
       return myRenderResult.getDefaultProperties();
-    } finally {
+    }
+    finally {
       myRenderResultLock.readLock().unlock();
     }
   }
@@ -653,7 +741,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * @param artifact library artifact e.g. "com.android.support:appcompat-v7"
    */
   public boolean isModuleDependency(@NotNull String artifact) {
-    AndroidGradleModel gradleModel = AndroidGradleModel.get(myFacet);
+    AndroidModuleModel gradleModel = AndroidModuleModel.get(myFacet);
     return gradleModel != null && GradleUtil.dependsOn(gradleModel, artifact);
   }
 
@@ -665,7 +753,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    */
   @Nullable
   public GradleVersion getModuleDependencyVersion(@NotNull String artifact) {
-    AndroidGradleModel gradleModel = AndroidGradleModel.get(myFacet);
+    AndroidModuleModel gradleModel = AndroidModuleModel.get(myFacet);
     return gradleModel != null ? GradleUtil.getModuleDependencyVersion(gradleModel, artifact) : null;
   }
 
@@ -806,7 +894,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
      * XML PSI file, the given tag snapshot and {@link ViewInfo} hierarchy from layoutlib.
      */
     @VisibleForTesting
-    public void update(@Nullable XmlTag newRoot, @Nullable Iterable<ViewInfo> rootViews) {
+    public void update(@Nullable XmlTag newRoot, @NotNull Iterable<ViewInfo> rootViews) {
       if (newRoot == null) {
         myModel.myComponents = Collections.emptyList();
         return;
@@ -814,10 +902,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
       // Next find the snapshots corresponding to the missing components.
       // We have to search among the view infos in the new components.
-      if (rootViews != null) {
-        for (ViewInfo rootView : rootViews) {
-          gatherTagsAndSnapshots(rootView, myTagToSnapshot);
-        }
+      for (ViewInfo rootView : rootViews) {
+        gatherTagsAndSnapshots(rootView, myTagToSnapshot);
       }
 
       NlComponent root = ApplicationManager.getApplication().runReadAction((Computable<NlComponent>)() -> {
@@ -852,10 +938,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       }
 
       // Update the bounds. This is based on the ViewInfo instances.
-      if (rootViews != null) {
-        for (ViewInfo view : rootViews) {
-          updateHierarchy(view, 0, 0);
-        }
+      for (ViewInfo view : rootViews) {
+        updateHierarchy(view, 0, 0);
       }
 
       // Finally, fix up bounds: ensure that all components not found in the view
@@ -889,7 +973,6 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           }
 
           root.setBounds(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
-          root.setBoundsComputed(true);
         }
       }
     }
@@ -1081,12 +1164,12 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
               assert false : t;
             }
             seenTags.add(t);
-            NlComponent registeredCOmponent = myTagToComponentMap.get(t);
-            if (registeredCOmponent != null) {
-              if (seen.contains(registeredCOmponent)) {
-                assert false : registeredCOmponent;
+            NlComponent registeredComponent = myTagToComponentMap.get(t);
+            if (registeredComponent != null) {
+              if (seen.contains(registeredComponent)) {
+                assert false : registeredComponent;
               }
-              seen.add(registeredCOmponent);
+              seen.add(registeredComponent);
             }
           }
         }
@@ -1374,8 +1457,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * right before the given sibling or null to append at the end.)
    * <p/>
    * Note: This operation can only be called when the caller is already holding a write lock. This will be the
-   * case from {@link ViewHandler} callbacks such as {@link ViewHandler#onCreate(ViewEditor, NlComponent, NlComponent, InsertType)}
-   * and {@link DragHandler#commit(int, int, int)}.
+   * case from {@link ViewHandler} callbacks such as {@link ViewHandler#onCreate} and {@link DragHandler#commit}.
    *
    * @param screenView The target screen, if known. Used to handle pixel to dp computations in view handlers, etc.
    * @param fqcn       The fully qualified name of the widget to insert, such as {@code android.widget.LinearLayout}.
@@ -1579,6 +1661,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
         }
       }
       removeNamespaceAttributes(component);
+      TemplateUtils.reformatAndRearrange(getProject(), component.getTag());
     }
   }
 
@@ -1694,7 +1777,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                                             @NotNull InsertType insertType) {
     List<NlComponent> components = new ArrayList<>(item.getComponents().size());
     for (DnDTransferComponent dndComponent : item.getComponents()) {
-      XmlTag tag = createTagFromTransferItem(screenView, dndComponent.getRepresentation());
+      XmlTag tag = createTag(screenView.getModel().getProject(), dndComponent.getRepresentation());
       NlComponent component = createComponent(screenView, tag, null, null, insertType);
       if (component == null) {
         return null;  // User may have cancelled
@@ -1707,15 +1790,16 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   @NotNull
-  private static XmlTag createTagFromTransferItem(@NotNull ScreenView screenView, @NotNull String text) {
-    NlModel model = screenView.getModel();
-    Project project = model.getFacet().getModule().getProject();
+  @VisibleForTesting
+  public static XmlTag createTag(@NotNull Project project, @NotNull String text) {
     XmlElementFactory elementFactory = XmlElementFactory.getInstance(project);
     XmlTag tag = null;
     if (XmlUtils.parseDocumentSilently(text, false) != null) {
       try {
-        String xml = addAndroidNamespaceIfMissing(text);
-        tag = elementFactory.createTagFromText(xml);
+        tag = elementFactory.createTagFromText(text);
+
+        setNamespaceUri(tag, ANDROID_NS_NAME, ANDROID_URI);
+        setNamespaceUri(tag, APP_PREFIX, AUTO_URI);
       }
       catch (IncorrectOperationException ignore) {
         // Thrown by XmlElementFactory if you try to parse non-valid XML. User might have tried
@@ -1734,28 +1818,13 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return tag;
   }
 
-  private static String addAndroidNamespaceIfMissing(@NotNull String xml) {
-    // TODO: Remove this temporary hack, which adds an Android namespace if necessary
-    // (this is such that the resulting tag is namespace aware, and attempts to manipulate it from
-    // a component handler will correctly set namespace prefixes)
+  private static void setNamespaceUri(@NotNull XmlTag tag, @NotNull String prefix, @NotNull String uri) {
+    boolean anyMatch = Arrays.stream(tag.getAttributes())
+      .anyMatch(attribute -> attribute.getNamespacePrefix().equals(prefix));
 
-    if (!xml.contains(ANDROID_URI)) {
-      int index = xml.indexOf('<');
-      if (index != -1) {
-        index = xml.indexOf(' ', index);
-        if (index == -1) {
-          index = xml.indexOf("/>");
-          if (index == -1) {
-            index = xml.indexOf('>');
-          }
-        }
-        if (index != -1) {
-          xml =
-            xml.substring(0, index) + " xmlns:android=\"http://schemas.android.com/apk/res/android\"" + xml.substring(index);
-        }
-      }
+    if (anyMatch) {
+      tag.setAttribute("xmlns:" + prefix, uri);
     }
-    return xml;
   }
 
   @NotNull
@@ -1780,6 +1849,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   public void dispose() {
     deactivate(); // ensure listeners are unregistered if necessary
 
+    synchronized (myListeners) {
+      myListeners.clear();
+    }
+
     // dispose is called by the project close using the read lock. Invoke the render task dispose later without the lock.
     ApplicationManager.getApplication().invokeLater(() -> {
       synchronized (RENDERING_LOCK) {
@@ -1787,7 +1860,12 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           myRenderTask.dispose();
           myRenderTask = null;
         }
+      }
+      myRenderResultLock.writeLock().lock();
+      try {
         myRenderResult = null;
+      } finally {
+        myRenderResultLock.writeLock().unlock();
       }
     });
   }
@@ -1803,16 +1881,24 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
     for (ResourceNotificationManager.Reason r : reason) {
       switch (r) {
-        case RESOURCE_EDIT: {
+        case RESOURCE_EDIT:
           notifyModified(ChangeType.RESOURCE_EDIT);
-        }
-        break;
-        case EDIT: {
+          break;
+        case EDIT:
           notifyModified(ChangeType.EDIT);
-        }
-        break;
-        default:
-          notifyModified(ChangeType.RESOURCE_CHANGED);
+          break;
+        case IMAGE_RESOURCE_CHANGED:
+          RefreshRenderAction.clearCache(mySurface);
+          break;
+        case GRADLE_SYNC:
+        case PROJECT_BUILD:
+        case VARIANT_CHANGED:
+        case SDK_CHANGED:
+          notifyModified(ChangeType.BUILD);
+          break;
+        case CONFIGURATION_CHANGED:
+          notifyModified(ChangeType.CONFIGURATION_CHANGE);
+          break;
       }
     }
   }
@@ -1830,7 +1916,9 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     DROP,
     RESIZE_END, RESIZE_COMMIT,
     REQUEST_RENDER,
-    UPDATE_HIERARCHY
+    UPDATE_HIERARCHY,
+    BUILD,
+    CONFIGURATION_CHANGE
   }
 
   /**
@@ -1885,18 +1973,18 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       myConfiguration.setTheme(myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration));
     }
     myModelVersion.increase(reason);
+    myModificationTrigger = reason;
     requestModelUpdate();
   }
 
-  public void setConfiguration(@NotNull Configuration configuration) {
-    myConfiguration = configuration;
-    ResourceNotificationManager manager = ResourceNotificationManager.getInstance(myFile.getProject());
-    ResourceVersion version = manager.addListener(this, myFacet, myFile, myConfiguration);
-    if (!version.equals(myRenderedVersion)) {
-      requestModelUpdate();
-      myModelVersion.myResourceVersion.incrementAndGet();
-    }
-    myConfigurationModificationCount = myConfiguration.getModificationCount();
+  /**
+   * Updates the saved values that are used to log user changes to the configuration toolbar.
+   */
+  private void updateTrackingConfiguration() {
+    myPreviousDeviceName = myConfiguration.getDevice() != null ? myConfiguration.getDevice().getDisplayName() : null;
+    myPreviousVersion = myConfiguration.getTarget() != null ? myConfiguration.getTarget().getVersionName() : null;
+    myPreviousLocale = myConfiguration.getLocale();
+    myPreviousTheme = myConfiguration.getTheme();
   }
 
   private class AndroidPreviewProgressIndicator extends ProgressIndicatorBase {

@@ -17,10 +17,11 @@ package com.android.tools.idea.welcome.wizard;
 
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.StudioSettingsController;
+import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.InstallerData;
@@ -35,7 +36,6 @@ import com.intellij.openapi.wm.WelcomeScreenProvider;
 import com.intellij.util.net.HttpConfigurable;
 import com.intellij.util.proxy.CommonProxy;
 import org.jetbrains.android.AndroidPlugin;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,7 +67,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
     else if (!persistentData.isSdkUpToDate()) {
       return FirstRunWizardMode.NEW_INSTALL;
     }
-    else if (IdeSdks.getEligibleAndroidSdks().isEmpty()) {
+    else if (IdeSdks.getInstance().getEligibleAndroidSdks().isEmpty()) {
       return FirstRunWizardMode.MISSING_SDK;
     }
     else {
@@ -102,12 +102,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
         connection.disconnect();
         result = ConnectionState.OK;
       }
-      catch (IOException e) {
-        result = promptToRetryFailedConnection();
-      }
-      catch (RuntimeException e) {
-        // "Proxy Vole" is a network layer used by Intellij.
-        // This layer will throw a RuntimeException instead of an IOException on certain proxy misconfigurations.
+      catch (IOException | RuntimeException e) {
         result = promptToRetryFailedConnection();
       }
       catch (Throwable e) {
@@ -132,12 +127,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
   private static ConnectionState promptToRetryFailedConnection() {
     final AtomicReference<ConnectionState> atomicBoolean = Atomics.newReference();
     Application application = ApplicationManager.getApplication();
-    application.invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        atomicBoolean.set(promptUserForProxy());
-      }
-    }, application.getAnyModalityState());
+    application.invokeAndWait(() -> atomicBoolean.set(promptUserForProxy()), application.getAnyModalityState());
     return atomicBoolean.get();
   }
 
@@ -179,7 +169,7 @@ public final class AndroidStudioWelcomeScreenProvider implements WelcomeScreenPr
     }
 
     StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(AndroidStudioWelcomeScreenProvider.class);
-    RepoManager mgr = AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(logger);
+    RepoManager mgr = AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(logger);
     mgr.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, logger, new StudioDownloader(),
                           StudioSettingsController.getInstance());
 

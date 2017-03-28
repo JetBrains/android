@@ -14,14 +14,74 @@
  * limitations under the License.
  */
 
+
 package com.android.tools.adtui.chart.hchart;
+
+import com.android.annotations.NonNull;
+import com.android.tools.adtui.common.AdtUiUtils;
+import com.intellij.ui.JBColor;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
-public interface HRenderer<T> {
+public abstract class HRenderer<T> {
 
-  void setFont(Font font);
+  protected static final JBColor fillVendorColor = new JBColor(new Color(146, 215, 248), new Color(146, 215, 248));
+  protected static final JBColor bordVendorColor = new JBColor(new Color(115, 190, 233), new Color(115, 190, 233));
 
-  void render(Graphics2D g, T data, Rectangle2D rect);
+  protected static final JBColor fillPlatformColor = new JBColor(new Color(190, 225, 154), new Color(190, 225, 154));
+  protected static final JBColor bordPlatformColor = new JBColor(new Color(159, 208, 110), new Color(159, 208, 110));
+
+  protected static final JBColor fillAppColor = new JBColor(new Color(245, 192, 118), new Color(245, 192, 118));
+  protected static final JBColor bordAppColor = new JBColor(new Color(235, 163, 63), new Color(235, 163, 63));
+
+  // To limit the number of object allocation we reuse the same Rectangle.
+  @NonNull protected Rectangle2D.Float mRect;
+
+  Font mFont;
+
+  public HRenderer() {
+    mRect = new Rectangle2D.Float();
+  }
+
+  public void setFont(Font font) {
+    this.mFont = font;
+  }
+
+  // This method is not thread-safe. In order to limit object allocation, mRect is being re-used.
+  public void render(Graphics2D g, T node, Rectangle2D drawingArea) {
+    mRect.x = (float)drawingArea.getX();
+    mRect.y = (float)drawingArea.getY();
+    mRect.width = (float)drawingArea.getWidth();
+    mRect.height = (float)drawingArea.getHeight();
+
+    // Draw rectangle background
+    Color fillColor = getFillColor(node);
+    g.setPaint(fillColor);
+    g.fill(mRect);
+
+    // Draw rectangle outline.
+    Color bordColor = getBordColor(node);
+    g.setPaint(bordColor);
+    g.draw(mRect);
+
+    // Draw text
+    FontMetrics fontMetrics = g.getFontMetrics(mFont);
+    String text = generateFittingText(node, drawingArea, fontMetrics);
+    int textWidth = fontMetrics.stringWidth(text);
+    long middle = (long)drawingArea.getCenterX();
+    long textPositionX = middle - textWidth / 2;
+    int textPositionY = (int)(drawingArea.getY() + fontMetrics.getAscent());
+
+    Font prevFont = g.getFont();
+    g.setFont(mFont);
+    g.setPaint(AdtUiUtils.DEFAULT_FONT_COLOR);
+    g.drawString(text, textPositionX, textPositionY);
+    g.setFont(prevFont);
+  }
+
+  protected abstract String generateFittingText(T node, Rectangle2D rect, FontMetrics fontMetrics);
+  protected abstract Color getFillColor(T t);
+  protected abstract Color getBordColor(T t);
+
 }

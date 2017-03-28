@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<problems>
+  <problem>
+    <file>Stopship.java</file>
+    <line>4</line>
+    <package>p1.p2</package>
+    <description>&lt;html&gt;&lt;code&gt;STOPSHIP&lt;/code&gt; comment found; points to code which must be fixed prior to
+      release&lt;/html&gt;</description>
+  </problem>
+  <problem>
+    <file>Stopship.java</file>
+    <line>5</line>
+    <package>p1.p2</package>
+    <description>&lt;html&gt;&lt;code&gt;STOPSHIP&lt;/code&gt; comment found; points to code which must be fixed prior to
+      release&lt;/html&gt;</description>
+  </problem>
+</problems>

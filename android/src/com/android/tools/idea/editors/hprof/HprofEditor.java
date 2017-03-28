@@ -48,8 +48,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.Set;
@@ -58,64 +56,61 @@ import java.util.concurrent.Executors;
 public class HprofEditor extends CaptureEditor {
   @NotNull private static final Logger LOG = Logger.getInstance(HprofEditor.class);
   @Nullable private HprofView myView;
-  private Snapshot mySnapshot;
+  @Nullable private Snapshot mySnapshot;
   private boolean myIsValid = true;
 
   public HprofEditor(@NotNull final Project project, @NotNull final VirtualFile file) {
     AnalyzerTask[] tasks = new AnalyzerTask[]{new LeakedActivityAnalyzerTask(), new DuplicatedStringsAnalyzerTask()};
     myPanel = new CapturePanel(project, this, tasks, true);
 
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
-      @Override
-      public void run() {
-        final File hprofFile = VfsUtilCore.virtualToIoFile(file);
-        final InlineProgressIndicator indicator = myPanel.getProgressIndicator();
-        assert indicator != null;
-        Timer timer = null;
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      final File hprofFile = VfsUtilCore.virtualToIoFile(file);
+      final InlineProgressIndicator indicator = myPanel.getProgressIndicator();
+      assert indicator != null;
 
-        try {
-          updateIndicator(indicator, 0.01, "Parsing hprof file...");
-          mySnapshot = Snapshot.createSnapshot(new MemoryMappedFileBuffer(hprofFile));
-
-          // Refresh the timer at 30fps (33ms/frame).
-          timer = new Timer(1000 / 30, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-              Snapshot.DominatorComputationStage stage = mySnapshot.getDominatorComputationStage();
-              ComputationProgress progress = mySnapshot.getComputationProgress();
-              updateIndicator(indicator, Snapshot.DominatorComputationStage.toAbsoluteProgressPercentage(stage, progress),
-                              progress.getMessage());
-            }
-          });
-          timer.start();
-          mySnapshot.computeDominators();
-        }
-        catch (Throwable throwable) {
-          LOG.info(throwable);
-          //noinspection ThrowableResultOfMethodCallIgnored
-          final String errorMessage = "Unexpected error while processing hprof file: " + Throwables.getRootCause(throwable).getMessage();
-          indicator.cancel();
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              Messages.showErrorDialog(project, errorMessage, getName());
-            }
-          });
-        }
-        finally {
-          if (timer != null) {
-            timer.stop();
-          }
-          if (mySnapshot != null) {
-            myView = new HprofView(project, HprofEditor.this, mySnapshot);
-            HprofAnalysisContentsDelegate delegate = new HprofAnalysisContentsDelegate(HprofEditor.this);
-            myPanel.setEditorPanel(myView.getComponent(), delegate);
-
-            Disposer.register(HprofEditor.this, myView);
-            Disposer.register(HprofEditor.this, delegate);
-          }
-        }
+      final Snapshot snapshot;
+      try {
+        updateIndicator(indicator, 0.01, "Parsing hprof file...");
+        snapshot = Snapshot.createSnapshot(new MemoryMappedFileBuffer(hprofFile));
       }
+      catch (Throwable t) {
+        showErrorWhileProcessingFile(project, indicator, t);
+        return;
+      }
+
+      // Refresh the timer at 30fps (33ms/frame).
+      Timer timer = new Timer(1000 / 30, actionEvent -> {
+        Snapshot.DominatorComputationStage stage = snapshot.getDominatorComputationStage();
+        ComputationProgress progress = snapshot.getComputationProgress();
+        updateIndicator(indicator, Snapshot.DominatorComputationStage.toAbsoluteProgressPercentage(stage, progress),
+                        progress.getMessage());
+      });
+      timer.start();
+      try {
+        snapshot.computeDominators();
+      }
+      catch (Throwable t) {
+        showErrorWhileProcessingFile(project, indicator, t);
+        return;
+      }
+      finally {
+        timer.stop();
+      }
+
+      ApplicationManager.getApplication().invokeLater(() -> {
+        if (!isValid()) {
+          snapshot.dispose();
+        }
+        else {
+          mySnapshot = snapshot;
+          myView = new HprofView(project, this, snapshot);
+          HprofAnalysisContentsDelegate delegate = new HprofAnalysisContentsDelegate(this);
+          myPanel.setEditorPanel(myView.getComponent(), delegate);
+
+          Disposer.register(this, myView);
+          Disposer.register(this, delegate);
+        }
+      });
     });
   }
 
@@ -203,10 +198,12 @@ public class HprofEditor extends CaptureEditor {
 
   @Override
   public void dispose() {
-    mySnapshot.dispose();
+    myIsValid = false;
+    if (mySnapshot != null) {
+      mySnapshot.dispose();
+    }
     mySnapshot = null;
     myPanel = null;
-    myIsValid = false;
   }
 
   @NotNull
@@ -218,8 +215,10 @@ public class HprofEditor extends CaptureEditor {
   @NotNull
   @Override
   public AnalysisReport performAnalysis(@NotNull Set<? extends AnalyzerTask> tasks, @NotNull Set<AnalysisReport.Listener> listeners) {
-    assert mySnapshot != null;
+    ApplicationManager.getApplication().assertIsDispatchThread();
+
     CaptureGroup captureGroup = new CaptureGroup();
+    assert mySnapshot != null;
     captureGroup.addCapture(mySnapshot);
 
     MemoryAnalyzer memoryAnalyzer = new MemoryAnalyzer();
@@ -230,12 +229,17 @@ public class HprofEditor extends CaptureEditor {
   }
 
   private static void updateIndicator(@NotNull final InlineProgressIndicator indicator, final double fraction, @NotNull final String text) {
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        indicator.setFraction(fraction);
-        indicator.setText(text);
-      }
+    UIUtil.invokeLaterIfNeeded(() -> {
+      indicator.setFraction(fraction);
+      indicator.setText(text);
     });
+  }
+
+  private void showErrorWhileProcessingFile(@NotNull Project project, @NotNull InlineProgressIndicator indicator, @NotNull Throwable t) {
+    LOG.info(t);
+    //noinspection ThrowableResultOfMethodCallIgnored
+    final String errorMessage = "Unexpected error while processing hprof file: " + Throwables.getRootCause(t).getMessage();
+    indicator.cancel();
+    ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(project, errorMessage, getName()));
   }
 }

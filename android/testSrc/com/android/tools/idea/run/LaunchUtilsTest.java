@@ -16,22 +16,24 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.idea.run.util.LaunchUtils;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+
+import static com.android.tools.idea.testing.TestProjectPaths.*;
 
 public class LaunchUtilsTest extends AndroidGradleTestCase {
   public void testActivity() throws Exception {
-    loadProject("projects/runConfig/activity");
+    loadProject(RUN_CONFIG_ACTIVITY);
     assertFalse(LaunchUtils.isWatchFaceApp(myAndroidFacet));
     assertFalse(LaunchUtils.isWatchFeatureRequired(myAndroidFacet));
   }
 
   public void testActivityAlias() throws Exception {
-    loadProject("projects/runConfig/alias");
+    loadProject(RUN_CONFIG_ALIAS);
     assertFalse(LaunchUtils.isWatchFaceApp(myAndroidFacet));
   }
 
   public void testWatchFaceService() throws Exception {
-    loadProject("projects/runConfig/watchface");
+    loadProject(RUN_CONFIG_WATCHFACE);
     assertTrue(LaunchUtils.isWatchFaceApp(myAndroidFacet));
     assertTrue(LaunchUtils.isWatchFeatureRequired(myAndroidFacet));
   }

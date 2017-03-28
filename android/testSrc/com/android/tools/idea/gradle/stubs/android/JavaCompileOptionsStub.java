@@ -19,10 +19,12 @@ import com.android.builder.model.JavaCompileOptions;
 import org.jetbrains.annotations.NotNull;
 
 public class JavaCompileOptionsStub implements JavaCompileOptions {
+  @NotNull private String myEncoding = "UTF-8";
+
   @Override
   @NotNull
   public String getEncoding() {
-    return "UTF-8";
+    return myEncoding;
   }
 
   @Override
@@ -35,5 +37,9 @@ public class JavaCompileOptionsStub implements JavaCompileOptions {
   @NotNull
   public String getTargetCompatibility() {
     return "1.6";
+  }
+
+  public void setEncoding(@NotNull String encoding) {
+    myEncoding = encoding;
   }
 }

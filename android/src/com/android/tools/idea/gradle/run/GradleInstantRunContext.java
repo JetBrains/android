@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import com.android.SdkConstants;
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.resources.ResourceUrl;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.BuildSelection;
-import com.android.tools.idea.fd.FileChangeListener;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.res.AppResourceRepository;
@@ -49,23 +48,22 @@ import org.w3c.dom.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.google.common.base.Charsets.UTF_8;
 
 public class GradleInstantRunContext implements InstantRunContext {
   private final String myApplicationId;
   private final AndroidFacet myFacet;
-  private final AndroidGradleModel myModel;
+  private final AndroidModuleModel myModel;
   private BuildSelection myBuildChoice;
 
   public GradleInstantRunContext(@NotNull String applicationId, @NotNull AndroidFacet appFacet) {
     myApplicationId = applicationId;
     myFacet = appFacet;
-    myModel = AndroidGradleModel.get(appFacet);
+    myModel = AndroidModuleModel.get(appFacet);
   }
 
   @Nullable
@@ -89,6 +87,13 @@ public class GradleInstantRunContext implements InstantRunContext {
   @Override
   public String getApplicationId() {
     return myApplicationId;
+  }
+
+  @NotNull
+  @Override
+  public GradleVersion getGradlePluginVersion() {
+    GradleVersion version = myModel.getModelVersion();
+    return version == null ? new GradleVersion(0, 0, 0) : version;
   }
 
   @NotNull
@@ -196,20 +201,14 @@ public class GradleInstantRunContext implements InstantRunContext {
     return manifestSpecifiesMultiProcess(manifest.getDocumentElement(), InstantRunManager.ALLOWED_MULTI_PROCESSES);
   }
 
-  @Nullable
-  @Override
-  public FileChangeListener.Changes getFileChangesAndReset() {
-    return InstantRunManager.get(myFacet.getModule().getProject()).getChangesAndReset();
-  }
-
   @NotNull
   @Override
   public List<String> getCustomBuildArguments() {
-    if (myModel.isLibrary()) {
+    if (myModel.getProjectType() != PROJECT_TYPE_APP) {
       return Collections.emptyList();
     }
 
-    AndroidGradleFacet facet = AndroidGradleFacet.getInstance(myFacet.getModule());
+    GradleFacet facet = GradleFacet.getInstance(myFacet.getModule());
     if (facet == null) {
       Logger.getInstance(GradleInstantRunContext.class).warn("Unable to obtain gradle facet for module " + myFacet.getModule().getName());
       return Collections.emptyList();

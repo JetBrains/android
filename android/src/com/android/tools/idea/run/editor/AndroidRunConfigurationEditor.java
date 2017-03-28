@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.fd.InstantRunConfigurable;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.google.common.base.Predicate;
@@ -32,13 +33,13 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.options.ex.ConfigurableCardPanel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.PanelWithAnchor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
-import com.intellij.util.NotNullProducer;
 import com.intellij.util.ui.PlatformColors;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -47,7 +48,6 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
@@ -87,6 +87,8 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   private final AndroidProfilersPanel myAndroidProfilersPanel;
 
   public AndroidRunConfigurationEditor(final Project project, final Predicate<AndroidFacet> libraryProjectValidator, T config) {
+    Disposer.register(project, this);
+
     myModuleSelector = new ConfigurationModuleSelector(project, myModulesComboBox) {
       @Override
       public boolean isModuleAccepted(Module module) {
@@ -132,8 +134,9 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     };
     mySkipNoOpApkInstallation.addActionListener(actionListener);
 
-    if (config.getAndroidDebuggers().size() > 1) {
-      myAndroidDebuggerPanel = new AndroidDebuggerPanel(config);
+    AndroidDebuggerContext androidDebuggerContext = config.getAndroidDebuggerContext();
+    if (androidDebuggerContext.getAndroidDebuggers().size() > 1) {
+      myAndroidDebuggerPanel = new AndroidDebuggerPanel(config, androidDebuggerContext);
       myTabbedPane.add("Debugger", myAndroidDebuggerPanel.getComponent());
     }
 
@@ -160,13 +163,14 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   }
 
   @Override
-  protected void resetEditorFrom(@NotNull T configuration) {
+  protected void resetEditorFrom(T configuration) {
     // Set configurations before resetting the module selector to avoid premature calls to setFacet.
     myModuleSelector.reset(configuration);
 
-    myDeploymentTargetCombo.setSelectedItem(configuration.getCurrentDeployTargetProvider());
+    DeployTargetContext deployTargetContext = configuration.getDeployTargetContext();
+    myDeploymentTargetCombo.setSelectedItem(deployTargetContext.getCurrentDeployTargetProvider());
     for (DeployTargetProvider target : myApplicableDeployTargetProviders) {
-      DeployTargetState state = configuration.getDeployTargetState(target);
+      DeployTargetState state = deployTargetContext.getDeployTargetState(target);
       myDeployTargetConfigurables.get(target.getId()).resetFrom(state, configuration.getUniqueID());
     }
 
@@ -178,18 +182,19 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myConfigurationSpecificEditor.resetFrom(configuration);
 
     if (myAndroidDebuggerPanel != null) {
-      myAndroidDebuggerPanel.resetFrom(configuration);
+      myAndroidDebuggerPanel.resetFrom(configuration.getAndroidDebuggerContext());
     }
     myAndroidProfilersPanel.resetFrom(configuration.getProfilerState());
   }
 
   @Override
-  protected void applyEditorTo(@NotNull T configuration) throws ConfigurationException {
+  protected void applyEditorTo(T configuration) throws ConfigurationException {
     myModuleSelector.applyTo(configuration);
 
-    configuration.setTargetSelectionMode((DeployTargetProvider)myDeploymentTargetCombo.getSelectedItem());
+    DeployTargetContext deployTargetContext = configuration.getDeployTargetContext();
+    deployTargetContext.setTargetSelectionMode((DeployTargetProvider)myDeploymentTargetCombo.getSelectedItem());
     for (DeployTargetProvider target : myApplicableDeployTargetProviders) {
-      DeployTargetState state = configuration.getDeployTargetState(target);
+      DeployTargetState state = deployTargetContext.getDeployTargetState(target);
       myDeployTargetConfigurables.get(target.getId()).applyTo(state, configuration.getUniqueID());
     }
 
@@ -201,7 +206,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     myConfigurationSpecificEditor.applyTo(configuration);
 
     if (myAndroidDebuggerPanel != null) {
-      myAndroidDebuggerPanel.applyTo(configuration);
+      myAndroidDebuggerPanel.applyTo(configuration.getAndroidDebuggerContext());
     }
     myAndroidProfilersPanel.applyTo(configuration.getProfilerState());
   }
@@ -220,17 +225,15 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   public void actionPerformed(ActionEvent e) {
     if (e.getSource() == myModulesComboBox) {
       updateLinkState();
+      if (myConfigurationSpecificEditor instanceof ApplicationRunParameters) {
+        ((ApplicationRunParameters)myConfigurationSpecificEditor).onModuleChanged();
+      }
     }
   }
 
   private void createUIComponents() {
-    myOldVersionLabel = new HyperlinkLabel("", JBColor.RED, new JBColor(new NotNullProducer<Color>() {
-      @NotNull
-      @Override
-      public Color produce() {
-        return UIUtil.getLabelBackground();
-      }
-    }), PlatformColors.BLUE);
+    // JBColor keeps a strong reference to its parameter func, so, using a lambda avoids this reference and fixes a leak
+    myOldVersionLabel = new HyperlinkLabel("", JBColor.RED, new JBColor(UIUtil::getLabelBackground), PlatformColors.BLUE);
 
     setSyncLinkMessage("");
     myOldVersionLabel.addHyperlinkListener(this);
@@ -252,6 +255,10 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   @Override
   public void syncStarted(@NotNull Project project) {
     setSyncLinkMessage("(Syncing)");
+  }
+
+  @Override
+  public void setupStarted(@NotNull Project project) {
   }
 
   @Override
@@ -281,12 +288,17 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
       return;
     }
 
-    AndroidGradleModel model = AndroidGradleModel.get(module);
+    AndroidModuleModel model = AndroidModuleModel.get(module);
     if (model == null || InstantRunGradleUtils.modelSupportsInstantRun(model)) {
       myOldVersionLabel.setVisible(false);
       return;
     }
 
     myOldVersionLabel.setVisible(true);
+  }
+
+  @VisibleForTesting
+  public ConfigurationSpecificEditor<T> getConfigurationSpecificEditor() {
+    return myConfigurationSpecificEditor;
   }
 }

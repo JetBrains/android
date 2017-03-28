@@ -140,7 +140,7 @@ public class ConfigurationMatcher {
       }
       else {
         // if we stop here that means the current file is not even a match!
-        LOG.info("Current file is not a match for the given config.");
+        LOG.debug("Current file is not a match for the given config.");
       }
     }
 

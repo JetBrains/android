@@ -17,14 +17,17 @@ package com.android.tools.idea.npw;
 
 import com.android.SdkConstants;
 import com.android.repository.io.FileOpUtils;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportPath;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
+import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep;
 import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.startup.AndroidStudioInitializer;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
@@ -40,8 +43,11 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -52,17 +58,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 
-import static com.android.tools.idea.wizard.WizardConstants.APPLICATION_NAME_KEY;
-import static com.android.tools.idea.wizard.WizardConstants.ESPRESSO_VERSION_KEY;
-import static com.android.tools.idea.wizard.WizardConstants.PROJECT_LOCATION_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.*;
 
 /**
  * Presents a wizard to the user to create a new project.
  */
 public class NewProjectWizardDynamic extends DynamicWizard {
-
   private static final String ERROR_MSG_TITLE = "Error in New Project Wizard";
   private Project myProject;
 
@@ -111,37 +113,42 @@ public class NewProjectWizardDynamic extends DynamicWizard {
    * Populate our state store with some common configuration items, such as the SDK location and the Gradle configuration.
    */
   private void initState() {
-    initState(getState(), SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION);
+    initState(getState(), AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
   }
 
   static void initState(@NotNull ScopedStateStore state, @NotNull String gradlePluginVersion) {
-    state.put(WizardConstants.GRADLE_PLUGIN_VERSION_KEY, gradlePluginVersion);
-    state.put(WizardConstants.GRADLE_VERSION_KEY, SdkConstants.GRADLE_LATEST_VERSION);
-    state.put(WizardConstants.IS_GRADLE_PROJECT_KEY, true);
-    state.put(WizardConstants.IS_NEW_PROJECT_KEY, true);
-    state.put(WizardConstants.TARGET_FILES_KEY, new HashSet<>());
-    state.put(WizardConstants.FILES_TO_OPEN_KEY, new ArrayList<>());
-    state.put(WizardConstants.USE_PER_MODULE_REPOS_KEY, false);
+    state.put(GRADLE_PLUGIN_VERSION_KEY, gradlePluginVersion);
+    state.put(GRADLE_VERSION_KEY, SdkConstants.GRADLE_LATEST_VERSION);
+    state.put(IS_GRADLE_PROJECT_KEY, true);
+    state.put(IS_NEW_PROJECT_KEY, true);
+    state.put(TARGET_FILES_KEY, new HashSet<>());
+    state.put(FILES_TO_OPEN_KEY, new ArrayList<>());
+    state.put(USE_PER_MODULE_REPOS_KEY, false);
+    state.put(ALSO_CREATE_IAPK_KEY, true);
+
+    // For now, our definition of low memory is running in a 32-bit JVM. In this case, we have to be careful about the amount of memory we
+    // request for the Gradle build.
+    state.put(WizardConstants.IS_LOW_MEMORY_KEY, SystemInfo.is32Bit);
 
     try {
-      state.put(WizardConstants.DEBUG_KEYSTORE_SHA_1_KEY, KeystoreUtils.sha1(KeystoreUtils.getOrCreateDefaultDebugKeystore()));
+      state.put(DEBUG_KEYSTORE_SHA_1_KEY, KeystoreUtils.sha1(KeystoreUtils.getOrCreateDefaultDebugKeystore()));
     }
     catch (Exception exception) {
       LOG.warn("Could not create debug keystore", exception);
-      state.put(WizardConstants.DEBUG_KEYSTORE_SHA_1_KEY, "");
+      state.put(DEBUG_KEYSTORE_SHA_1_KEY, "");
     }
 
     String mavenUrl = System.getProperty(TemplateWizard.MAVEN_URL_PROPERTY);
 
     if (mavenUrl != null) {
-      state.put(WizardConstants.MAVEN_URL_KEY, mavenUrl);
+      state.put(MAVEN_URL_KEY, mavenUrl);
     }
 
-    AndroidSdkData data = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData data = AndroidSdks.getInstance().tryToChooseAndroidSdk();
 
     if (data != null) {
       File sdkLocation = data.getLocation();
-      state.put(WizardConstants.SDK_DIR_KEY, sdkLocation.getPath());
+      state.put(SDK_DIR_KEY, sdkLocation.getPath());
 
       String espressoVersion = RepositoryUrlManager.get().getLibraryRevision(SupportLibrary.ESPRESSO_CORE.getGroupId(),
                                                                              SupportLibrary.ESPRESSO_CORE.getArtifactId(),
@@ -174,10 +181,9 @@ public class NewProjectWizardDynamic extends DynamicWizard {
       return;
     }
     File rootLocation = new File(rootPath);
-
-    File wrapperPropertiesFilePath = GradleUtil.getGradleWrapperPropertiesFilePath(rootLocation);
+    File wrapperPropertiesFilePath = GradleWrapper.getDefaultPropertiesFilePath(rootLocation);
     try {
-      GradleUtil.updateGradleDistributionUrl(SdkConstants.GRADLE_LATEST_VERSION, wrapperPropertiesFilePath);
+      GradleWrapper.get(wrapperPropertiesFilePath).updateDistributionUrl(SdkConstants.GRADLE_LATEST_VERSION);
     }
     catch (IOException e) {
       // Unlikely to happen. Continue with import, the worst-case scenario is that sync fails and the error message has a "quick fix".
@@ -195,9 +201,7 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     // a changing-language-level-requires-reopening modal dialog box and have to reload
     // the project
     LanguageLevel initialLanguageLevel = null;
-    Iterator<FormFactor> iterator = FormFactor.iterator();
-    while (iterator.hasNext()) {
-      FormFactor factor = iterator.next();
+    for (FormFactor factor : FormFactor.values()) {
       Object version = getState().get(FormFactorUtils.getLanguageLevelKey(factor));
       if (version != null) {
         LanguageLevel level = LanguageLevel.parse(version.toString());
@@ -208,40 +212,30 @@ public class NewProjectWizardDynamic extends DynamicWizard {
     }
 
     // This is required for Android plugin in IDEA
-    if (!AndroidStudioInitializer.isAndroidStudio()) {
-      final Sdk jdk = IdeSdks.getJdk();
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
+      final Sdk jdk = IdeSdks.getInstance().getJdk();
       if (jdk != null) {
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-          @Override
-          public void run() {
-            ProjectRootManager.getInstance(myProject).setProjectSdk(jdk);
-          }
-        });
+        ApplicationManager.getApplication().runWriteAction(() -> ProjectRootManager.getInstance(myProject).setProjectSdk(jdk));
       }
     }
     try {
-      GradleSyncListener listener = new PostStartupGradleSyncListener(new Runnable() {
-        @Override
-        public void run() {
-          Iterable<File> targetFiles = myState.get(WizardConstants.TARGET_FILES_KEY);
-          assert targetFiles != null;
+      GradleSyncListener listener = new PostStartupGradleSyncListener(() -> {
+        Iterable<File> targetFiles = myState.get(TARGET_FILES_KEY);
+        assert targetFiles != null;
 
-          TemplateUtils.reformatAndRearrange(myProject, targetFiles);
+        TemplateUtils.reformatAndRearrange(myProject, targetFiles);
 
-          Collection<File> filesToOpen = myState.get(WizardConstants.FILES_TO_OPEN_KEY);
-          assert filesToOpen != null;
+        Collection<File> filesToOpen = myState.get(FILES_TO_OPEN_KEY);
+        assert filesToOpen != null;
 
-          TemplateUtils.openEditors(myProject, filesToOpen, true);
-        }
+        TemplateUtils.openEditors(myProject, filesToOpen, true);
       });
 
-      projectImporter.importNewlyCreatedProject(projectName, rootLocation, listener, myProject, initialLanguageLevel);
+      GradleProjectImporter.Request request = new GradleProjectImporter.Request();
+      request.setLanguageLevel(initialLanguageLevel).setProject(myProject);
+      projectImporter.importProject(projectName, rootLocation, request, listener);
     }
-    catch (IOException e) {
-      Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
-      LOG.error(e);
-    }
-    catch (ConfigurationException e) {
+    catch (IOException | ConfigurationException e) {
       Messages.showErrorDialog(e.getMessage(), ERROR_MSG_TITLE);
       LOG.error(e);
     }
@@ -256,6 +250,45 @@ public class NewProjectWizardDynamic extends DynamicWizard {
   @Override
   public void doFinishAction() {
     if (!checkFinish()) return;
+
+    final String projectLocation = myState.get(PROJECT_LOCATION_KEY);
+    assert projectLocation != null;
+
+    boolean couldEnsureLocationExists = WriteCommandAction.runWriteCommandAction(getProject(), new Computable<Boolean>() {
+      @Override
+      public Boolean compute() {
+        // We generally assume that the path has passed a fair amount of prevalidation checks
+        // at the project configuration step before. Write permissions check can be tricky though in some cases,
+        // e.g., consider an unmounted device in the middle of wizard execution or changed permissions.
+        // Anyway, it seems better to check that we were really able to create the target location and are able to
+        // write to it right here when the wizard is about to close, than running into some internal IDE errors
+        // caused by these problems downstream
+        // Note: this change was originally caused by http://b.android.com/219851, but then
+        // during further discussions that a more important bug was in path validation in the old wizards,
+        // where File.canWrite() always returned true as opposed to the correct Files.isWritable(), which is
+        // already used in new wizard's PathValidator.
+        // So the change below is therefore a more narrow case than initially supposed (however it still needs to be handled)
+        try {
+          if (VfsUtil.createDirectoryIfMissing(projectLocation) != null
+              && FileOpUtils.create().canWrite(new File(projectLocation))) {
+            return true;
+          }
+        } catch (Exception e) {
+          LOG.error(String.format("Exception thrown when creating target project location: %1$s", projectLocation), e);
+        }
+        return false;
+      }
+    });
+    if(!couldEnsureLocationExists) {
+      Messages.showErrorDialog(String.format("Could not ensure the target project location exists and is accessible:\n\n%1$s\n\n" +
+                                             "Please try to specify another path.", projectLocation),
+                                             "Error Creating Project");
+      navigateToNamedStep(ConfigureAndroidProjectStep.STEP_NAME, true);
+      myHost.shakeWindow();
+      return;
+    }
+
+    // Create project in the dispatch thread. (super.doFinishAction also calls doFinish, but in other thread.)
     try {
       doFinish();
     }
@@ -266,16 +299,11 @@ public class NewProjectWizardDynamic extends DynamicWizard {
 
   @Override
   protected void doFinish() throws IOException {
-    final String location = myState.get(PROJECT_LOCATION_KEY);
+    final String projectLocation = myState.get(PROJECT_LOCATION_KEY);
     final String name = myState.get(APPLICATION_NAME_KEY);
-    assert location != null && name != null;
-    new WriteCommandAction.Simple(getProject()) {
-      @Override
-      protected void run() throws Throwable {
-        VfsUtil.createDirectoryIfMissing(location);
-      }
-    }.execute();
-    ApplicationManager.getApplication().invokeAndWait(() -> myProject = ProjectManager.getInstance().createProject(name, location));
+    assert projectLocation != null && name != null;
+
+    myProject = UIUtil.invokeAndWaitIfNeeded(() -> ProjectManager.getInstance().createProject(name, projectLocation));
     super.doFinish();
   }
 

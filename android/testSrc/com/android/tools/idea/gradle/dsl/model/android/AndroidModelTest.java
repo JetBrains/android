@@ -17,15 +17,13 @@ package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
-import com.android.tools.idea.gradle.dsl.model.android.external.CMakeModel;
-import com.android.tools.idea.gradle.dsl.model.android.external.ExternalNativeBuildModel;
+import com.android.tools.idea.gradle.dsl.model.android.externalNativeBuild.CMakeModel;
 import com.google.common.collect.ImmutableList;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.List;
 
-import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link AndroidModel}.
@@ -45,6 +43,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig());
@@ -65,6 +65,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
     assertEquals("compileSdkVersion", "android-23", android.compileSdkVersion());
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig());
@@ -83,6 +85,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig());
@@ -101,6 +105,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
     assertEquals("compileSdkVersion", "android-23", android.compileSdkVersion());
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig());
@@ -129,6 +135,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
     assertEquals("buildToolsVersion", "21.0.0", android.buildToolsVersion());
     assertEquals("compileSdkVersion", "android-21", android.compileSdkVersion());
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig());
@@ -148,6 +156,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
     ProductFlavorModel defaultConfig = android.defaultConfig();
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
   }
@@ -167,13 +177,14 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     AndroidModel android = getGradleBuildModel().android();
-    Collection<BuildTypeModel> buildTypes = android.buildTypes();
-    assertSize(2, buildTypes);
-    Iterator<BuildTypeModel> buildTypesIterator = buildTypes.iterator();
-    BuildTypeModel buildType1 = buildTypesIterator.next();
+    assertNotNull(android);
+
+    List<BuildTypeModel> buildTypes = android.buildTypes();
+    assertThat(buildTypes).hasSize(2);
+    BuildTypeModel buildType1 = buildTypes.get(0);
     assertEquals("name", "type1", buildType1.name());
     assertEquals("applicationIdSuffix", "typeSuffix-1", buildType1.applicationIdSuffix());
-    BuildTypeModel buildType2 = buildTypesIterator.next();
+    BuildTypeModel buildType2 = buildTypes.get(1);
     assertEquals("name", "type2", buildType2.name());
     assertEquals("applicationIdSuffix", "typeSuffix-2", buildType2.applicationIdSuffix());
   }
@@ -193,13 +204,14 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     AndroidModel android = getGradleBuildModel().android();
-    Collection<ProductFlavorModel> productFlavors = android.productFlavors();
-    assertSize(2, productFlavors);
-    Iterator<ProductFlavorModel> productFlavorsIterator = productFlavors.iterator();
-    ProductFlavorModel flavor1 = productFlavorsIterator.next();
+    assertNotNull(android);
+
+    List<ProductFlavorModel> productFlavors = android.productFlavors();
+    assertThat(productFlavors).hasSize(2);
+    ProductFlavorModel flavor1 = productFlavors.get(0);
     assertEquals("name", "flavor1", flavor1.name());
     assertEquals("applicationId", "com.example.myapplication.flavor1", flavor1.applicationId());
-    ProductFlavorModel flavor2 = productFlavorsIterator.next();
+    ProductFlavorModel flavor2 = productFlavors.get(1);
     assertEquals("name", "flavor2", flavor2.name());
     assertEquals("applicationId", "com.example.myapplication.flavor2", flavor2.applicationId());
   }
@@ -216,6 +228,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
     ExternalNativeBuildModel externalNativeBuild = android.externalNativeBuild();
     assertTrue(externalNativeBuild.hasValidPsiElement());
     CMakeModel cmake = externalNativeBuild.cmake();
@@ -238,6 +252,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig());
@@ -287,6 +303,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig());
@@ -340,6 +358,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
     assertNull("buildToolsVersion", android.buildToolsVersion());
     assertNull("compileSdkVersion", android.compileSdkVersion());
     assertNull("defaultPublishConfig", android.defaultPublishConfig());
@@ -394,6 +414,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
     assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
 
     android.replaceFlavorDimension("abi", "xyz");
@@ -411,6 +433,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
     assertNull("flavorDimensions", android.flavorDimensions());
 
     android.addFlavorDimension("xyz");
@@ -420,7 +444,27 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertNull("flavorDimensions", android.flavorDimensions());
   }
 
-  public void testAddToAndResetListElements() throws Exception {
+  public void testAddToAndResetListElementsWithArgument() throws Exception {
+    String text = "android { \n" +
+                  "  flavorDimensions \"abi\"\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    assertEquals("flavorDimensions", ImmutableList.of("abi"), android.flavorDimensions());
+
+    android.addFlavorDimension("version");
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
+
+    buildModel.resetState();
+    assertEquals("flavorDimensions", ImmutableList.of("abi"), android.flavorDimensions());
+  }
+
+  public void testAddToAndResetListElementsWithMultipleArguments() throws Exception {
     String text = "android { \n" +
                   "  flavorDimensions \"abi\", \"version\"\n" +
                   "}";
@@ -429,6 +473,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
     assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
 
     android.addFlavorDimension("xyz");
@@ -447,6 +493,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
     assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
 
     android.removeFlavorDimension("version");
@@ -463,6 +511,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
     assertFalse(android.defaultConfig().hasValidPsiElement());
     assertNull(android.defaultConfig().applicationId());
 
@@ -481,15 +531,17 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
-    assertEmpty(android.buildTypes());
+    assertNotNull(android);
+
+    assertThat(android.buildTypes()).isEmpty();
 
     android.addBuildType("type");
-    Collection<BuildTypeModel> buildTypes = android.buildTypes();
-    assertSize(1, buildTypes);
-    assertEquals("buildTypes", "type", buildTypes.iterator().next().name());
+    List<BuildTypeModel> buildTypes = android.buildTypes();
+    assertThat(buildTypes).hasSize(1);
+    assertEquals("buildTypes", "type", buildTypes.get(0).name());
 
     buildModel.resetState();
-    assertEmpty(android.buildTypes());
+    assertThat(android.buildTypes()).isEmpty();
   }
 
   public void testAddAndResetProductFlavorBlock() throws Exception {
@@ -499,15 +551,17 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
-    assertEmpty(android.productFlavors());
+    assertNotNull(android);
+
+    assertThat(android.productFlavors()).isEmpty();
 
     android.addProductFlavor("flavor");
-    Collection<ProductFlavorModel> productFlavors = android.productFlavors();
-    assertSize(1, productFlavors);
-    assertEquals("productFlavors", "flavor", productFlavors.iterator().next().name());
+    List<ProductFlavorModel> productFlavors = android.productFlavors();
+    assertThat(productFlavors).hasSize(1);
+    assertEquals("productFlavors", "flavor", productFlavors.get(0).name());
 
     buildModel.resetState();
-    assertEmpty(android.productFlavors());
+    assertThat(android.productFlavors()).isEmpty();
   }
 
   public void testRemoveAndResetBuildTypeBlock() throws Exception {
@@ -523,23 +577,23 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
-    Collection<BuildTypeModel> buildTypes = android.buildTypes();
-    assertSize(2, buildTypes);
-    Iterator<BuildTypeModel> buildTypesIterator = buildTypes.iterator();
-    assertEquals("buildTypes", "type1", buildTypesIterator.next().name());
-    assertEquals("buildTypes", "type2", buildTypesIterator.next().name());
+    assertNotNull(android);
+
+    List<BuildTypeModel> buildTypes = android.buildTypes();
+    assertThat(buildTypes).hasSize(2);
+    assertEquals("buildTypes", "type1", buildTypes.get(0).name());
+    assertEquals("buildTypes", "type2", buildTypes.get(1).name());
 
     android.removeBuildType("type1");
     buildTypes = android.buildTypes();
-    assertSize(1, buildTypes);
-    assertEquals("buildTypes", "type2", buildTypes.iterator().next().name());
+    assertThat(buildTypes).hasSize(1);
+    assertEquals("buildTypes", "type2", buildTypes.get(0).name());
 
     buildModel.resetState();
     buildTypes = android.buildTypes();
-    assertSize(2, buildTypes);
-    buildTypesIterator = buildTypes.iterator();
-    assertEquals("buildTypes", "type1", buildTypesIterator.next().name());
-    assertEquals("buildTypes", "type2", buildTypesIterator.next().name());
+    assertThat(buildTypes).hasSize(2);
+    assertEquals("buildTypes", "type1", buildTypes.get(0).name());
+    assertEquals("buildTypes", "type2", buildTypes.get(1).name());
   }
 
   public void testRemoveAndResetProductFlavorBlock() throws Exception {
@@ -555,24 +609,23 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
-    Collection<ProductFlavorModel> productFlavors = android.productFlavors();
-    assertSize(2, productFlavors);
-    Iterator<ProductFlavorModel> productFlavorsIterator = productFlavors.iterator();
-    assertEquals("productFlavors", "flavor1", productFlavorsIterator.next().name());
-    assertEquals("productFlavors", "flavor2", productFlavorsIterator.next().name());
+    assertNotNull(android);
+
+    List<ProductFlavorModel> productFlavors = android.productFlavors();
+    assertThat(productFlavors).hasSize(2);
+    assertEquals("productFlavors", "flavor1", productFlavors.get(0).name());
+    assertEquals("productFlavors", "flavor2", productFlavors.get(1).name());
 
     android.removeProductFlavor("flavor2");
     productFlavors = android.productFlavors();
-    assertSize(1, productFlavors);
-    productFlavorsIterator = productFlavors.iterator();
-    assertEquals("productFlavors", "flavor1", productFlavorsIterator.next().name());
+    assertThat(productFlavors).hasSize(1);
+    assertEquals("productFlavors", "flavor1", productFlavors.get(0).name());
 
     buildModel.resetState();
     productFlavors = android.productFlavors();
-    assertSize(2, productFlavors);
-    productFlavorsIterator = productFlavors.iterator();
-    assertEquals("productFlavors", "flavor1", productFlavorsIterator.next().name());
-    assertEquals("productFlavors", "flavor2", productFlavorsIterator.next().name());
+    assertThat(productFlavors).hasSize(2);
+    assertEquals("productFlavors", "flavor1", productFlavors.get(0).name());
+    assertEquals("productFlavors", "flavor2", productFlavors.get(1).name());
   }
 
   public void testRemoveAndApplyElements() throws Exception {
@@ -590,6 +643,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig());
@@ -624,7 +679,9 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertNull("resourcePrefix", android.resourcePrefix());
 
     buildModel.reparse();
-    assertFalse(buildModel.android().hasValidPsiElement());
+    android = buildModel.android();
+    assertNotNull(android);
+    assertFalse(android.hasValidPsiElement());
   }
 
   public void testAddAndApplyEmptyBuildTypeBlock() throws Exception {
@@ -634,16 +691,20 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
     android.addBuildType("type");
-    Collection<BuildTypeModel> buildTypes = android.buildTypes();
-    assertSize(1, buildTypes);
-    assertEquals("buildTypes", "type", buildTypes.iterator().next().name());
+    List<BuildTypeModel> buildTypes = android.buildTypes();
+    assertThat(buildTypes).hasSize(1);
+    assertEquals("buildTypes", "type", buildTypes.get(0).name());
 
     applyChanges(buildModel);
-    assertEmpty(android.buildTypes()); // Empty blocks are not saved to the file.
+    assertThat(android.buildTypes()).isEmpty(); // Empty blocks are not saved to the file.
 
     buildModel.reparse();
-    assertEmpty(buildModel.android().buildTypes()); // Empty blocks are not saved to the file.
+    android = buildModel.android();
+    assertNotNull(android);
+    assertThat(android.buildTypes()).isEmpty(); // Empty blocks are not saved to the file.
   }
 
   public void testAddAndApplyEmptyProductFlavorBlock() throws Exception {
@@ -653,16 +714,66 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
     android.addProductFlavor("flavor");
-    Collection<ProductFlavorModel> productFlavors = android.productFlavors();
-    assertSize(1, productFlavors);
-    assertEquals("productFlavors", "flavor", productFlavors.iterator().next().name());
+    List<ProductFlavorModel> productFlavors = android.productFlavors();
+    assertThat(productFlavors).hasSize(1);
+    assertEquals("productFlavors", "flavor", productFlavors.get(0).name());
 
     applyChanges(buildModel);
-    assertEmpty(android.productFlavors()); // Empty blocks are not saved to the file.
+    assertThat(android.productFlavors()).isEmpty(); // Empty blocks are not saved to the file.
 
     buildModel.reparse();
-    assertEmpty(buildModel.android().productFlavors()); // Empty blocks are not saved to the file.
+    android = buildModel.android();
+    assertNotNull(android);
+    assertThat(android.productFlavors()).isEmpty(); // Empty blocks are not saved to the file.
+  }
+
+  public void testAddAndApplyEmptySigningConfigBlock() throws Exception {
+    String text = "android { \n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    android.addSigningConfig("config");
+    List<SigningConfigModel> signingConfigs = android.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    assertEquals("signingConfigs", "config", signingConfigs.get(0).name());
+
+    applyChanges(buildModel);
+    assertThat(android.signingConfigs()).isEmpty(); // Empty blocks are not saved to the file.
+
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+    assertThat(android.signingConfigs()).isEmpty(); // Empty blocks are not saved to the file.
+  }
+
+  public void testAddAndApplyEmptySourceSetBlock() throws Exception {
+    String text = "android { \n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    android.addSourceSet("set");
+    List<SourceSetModel> sourceSets = android.sourceSets();
+    assertThat(sourceSets).hasSize(1);
+    assertEquals("sourceSets", "set", sourceSets.get(0).name());
+
+    applyChanges(buildModel);
+    assertThat(android.sourceSets()).isEmpty(); // Empty blocks are not saved to the file.
+
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+    assertThat(android.sourceSets()).isEmpty(); // Empty blocks are not saved to the file.
   }
 
   public void testAddAndApplyDefaultConfigBlock() throws Exception {
@@ -672,6 +783,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
 
     android.defaultConfig().setApplicationId("foo.bar");
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId());
@@ -681,6 +793,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId());
   }
 
@@ -691,69 +804,153 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
 
     android.addBuildType("type");
-    Collection<BuildTypeModel> buildTypes = android.buildTypes();
-    assertSize(1, buildTypes);
-    BuildTypeModel buildType = getOnlyElement(buildTypes);
+    List<BuildTypeModel> buildTypes = android.buildTypes();
+    assertThat(buildTypes).hasSize(1);
+    BuildTypeModel buildType = buildTypes.get(0);
     buildType.setApplicationIdSuffix("mySuffix");
 
     buildTypes = android.buildTypes();
-    assertSize(1, buildTypes);
-    buildType = getOnlyElement(buildTypes);
+    assertThat(buildTypes).hasSize(1);
+    buildType = buildTypes.get(0);
     assertEquals("buildTypes", "type", buildType.name());
     assertEquals("buildTypes", "mySuffix", buildType.applicationIdSuffix());
 
     applyChanges(buildModel);
     buildTypes = android.buildTypes();
-    assertSize(1, buildTypes);
-    buildType = getOnlyElement(buildTypes);
+    assertThat(buildTypes).hasSize(1);
+    buildType = buildTypes.get(0);
     assertEquals("buildTypes", "type", buildType.name());
     assertEquals("buildTypes", "mySuffix", buildType.applicationIdSuffix());
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
+
     buildTypes = android.buildTypes();
-    assertSize(1, buildTypes);
-    buildType = getOnlyElement(buildTypes);
+    assertThat(buildTypes).hasSize(1);
+    buildType = buildTypes.get(0);
     assertEquals("buildTypes", "type", buildType.name());
     assertEquals("buildTypes", "mySuffix", buildType.applicationIdSuffix());
   }
 
-  public void testAddAndApplyProdcutFlavorBlock() throws Exception {
+  public void testAddAndApplyProductFlavorBlock() throws Exception {
     String text = "android { \n" +
                   "}";
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
 
     android.addProductFlavor("flavor");
-    Collection<ProductFlavorModel> productFlavors = android.productFlavors();
-    assertSize(1, productFlavors);
-    ProductFlavorModel productFlavor = getOnlyElement(productFlavors);
+    List<ProductFlavorModel> productFlavors = android.productFlavors();
+    assertThat(productFlavors).hasSize(1);
+    ProductFlavorModel productFlavor = productFlavors.get(0);
     productFlavor.setApplicationId("abc.xyz");
 
     productFlavors = android.productFlavors();
-    assertSize(1, productFlavors);
-    productFlavor = getOnlyElement(productFlavors);
+    assertThat(productFlavors).hasSize(1);
+    productFlavor = productFlavors.get(0);
     assertEquals("productFlavors", "flavor", productFlavor.name());
     assertEquals("productFlavors", "abc.xyz", productFlavor.applicationId());
 
     applyChanges(buildModel);
     productFlavors = android.productFlavors();
-    assertSize(1, productFlavors);
-    productFlavor = getOnlyElement(productFlavors);
+    assertThat(productFlavors).hasSize(1);
+    productFlavor = productFlavors.get(0);
     assertEquals("productFlavors", "flavor", productFlavor.name());
     assertEquals("productFlavors", "abc.xyz", productFlavor.applicationId());
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
+
     productFlavors = android.productFlavors();
-    assertSize(1, productFlavors);
-    productFlavor = getOnlyElement(productFlavors);
+    assertThat(productFlavors).hasSize(1);
+    productFlavor = productFlavors.get(0);
     assertEquals("productFlavors", "flavor", productFlavor.name());
     assertEquals("productFlavors", "abc.xyz", productFlavor.applicationId());
+  }
+
+  public void testAddAndApplySigningConfigBlock() throws Exception {
+    String text = "android { \n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    android.addSigningConfig("config");
+    List<SigningConfigModel> signingConfigs = android.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    SigningConfigModel signingConfig = signingConfigs.get(0);
+    signingConfig.setKeyAlias("myKeyAlias");
+
+    signingConfigs = android.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    signingConfig = signingConfigs.get(0);
+    assertEquals("signingConfigs", "config", signingConfig.name());
+    assertEquals("signingConfigs", "myKeyAlias", signingConfig.keyAlias());
+
+    applyChanges(buildModel);
+    signingConfigs = android.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    signingConfig = signingConfigs.get(0);
+    assertEquals("signingConfigs", "config", signingConfig.name());
+    assertEquals("signingConfigs", "myKeyAlias", signingConfig.keyAlias());
+
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    signingConfigs = android.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    signingConfig = signingConfigs.get(0);
+    assertEquals("signingConfigs", "config", signingConfig.name());
+    assertEquals("signingConfigs", "myKeyAlias", signingConfig.keyAlias());
+  }
+
+  public void testAddAndApplySourceSetBlock() throws Exception {
+    String text = "android { \n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    android.addSourceSet("set");
+    List<SourceSetModel> sourceSets = android.sourceSets();
+    assertThat(sourceSets).hasSize(1);
+    SourceSetModel sourceSet = sourceSets.get(0);
+    sourceSet.setRoot("source");
+
+    sourceSets = android.sourceSets();
+    assertThat(sourceSets).hasSize(1);
+    sourceSet = sourceSets.get(0);
+    assertEquals("sourceSets", "set", sourceSet.name());
+    assertEquals("sourceSets", "source", sourceSet.root());
+
+    applyChanges(buildModel);
+    sourceSets = android.sourceSets();
+    assertThat(sourceSets).hasSize(1);
+    sourceSet = sourceSets.get(0);
+    assertEquals("sourceSets", "set", sourceSet.name());
+    assertEquals("sourceSets", "source", sourceSet.root());
+
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    sourceSets = android.sourceSets();
+    assertThat(sourceSets).hasSize(1);
+    sourceSet = sourceSets.get(0);
+    assertEquals("sourceSets", "set", sourceSet.name());
+    assertEquals("sourceSets", "source", sourceSet.root());
   }
 
   public void testRemoveAndApplyDefaultConfigBlock() throws Exception {
@@ -766,6 +963,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId());
     assertTrue(android.defaultConfig().hasValidPsiElement());
 
@@ -779,6 +978,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
+
     assertNull(android.defaultConfig().applicationId());
     assertFalse(android.defaultConfig().hasValidPsiElement());
   }
@@ -796,31 +997,30 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
 
-    Collection<BuildTypeModel> buildTypes = android.buildTypes();
-    assertSize(2, buildTypes);
-    Iterator<BuildTypeModel> buildTypesIterator = buildTypes.iterator();
-    assertEquals("buildTypes", "type1", buildTypesIterator.next().name());
-    assertEquals("buildTypes", "type2", buildTypesIterator.next().name());
+    List<BuildTypeModel> buildTypes = android.buildTypes();
+    assertThat(buildTypes).hasSize(2);
+    assertEquals("buildTypes", "type1", buildTypes.get(0).name());
+    assertEquals("buildTypes", "type2", buildTypes.get(1).name());
 
     android.removeBuildType("type1");
     buildTypes = android.buildTypes();
-    assertSize(1, buildTypes);
-    buildTypesIterator = buildTypes.iterator();
-    assertEquals("buildTypes", "type2", buildTypesIterator.next().name());
+    assertThat(buildTypes).hasSize(1);
+    assertEquals("buildTypes", "type2", buildTypes.get(0).name());
 
     applyChanges(buildModel);
     buildTypes = android.buildTypes();
-    assertSize(1, buildTypes);
-    buildTypesIterator = buildTypes.iterator();
-    assertEquals("buildTypes", "type2", buildTypesIterator.next().name());
+    assertThat(buildTypes).hasSize(1);
+    assertEquals("buildTypes", "type2", buildTypes.get(0).name());
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
+
     buildTypes = android.buildTypes();
-    assertSize(1, buildTypes);
-    buildTypesIterator = buildTypes.iterator();
-    assertEquals("buildTypes", "type2", buildTypesIterator.next().name());
+    assertThat(buildTypes).hasSize(1);
+    assertEquals("buildTypes", "type2", buildTypes.get(0).name());
   }
 
   public void testRemoveAndApplyProductFlavorBlock() throws Exception {
@@ -836,30 +1036,108 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
-    Collection<ProductFlavorModel> productFlavors = android.productFlavors();
-    assertSize(2, productFlavors);
-    Iterator<ProductFlavorModel> productFlavorsIterator = productFlavors.iterator();
-    assertEquals("productFlavors", "flavor1", productFlavorsIterator.next().name());
-    assertEquals("productFlavors", "flavor2", productFlavorsIterator.next().name());
+    assertNotNull(android);
+
+    List<ProductFlavorModel> productFlavors = android.productFlavors();
+    assertThat(productFlavors).hasSize(2);
+    assertEquals("productFlavors", "flavor1", productFlavors.get(0).name());
+    assertEquals("productFlavors", "flavor2", productFlavors.get(1).name());
 
     android.removeProductFlavor("flavor2");
     productFlavors = android.productFlavors();
-    assertSize(1, productFlavors);
-    productFlavorsIterator = productFlavors.iterator();
-    assertEquals("productFlavors", "flavor1", productFlavorsIterator.next().name());
+    assertThat(productFlavors).hasSize(1);
+    assertEquals("productFlavors", "flavor1", productFlavors.get(0).name());
 
     applyChanges(buildModel);
     productFlavors = android.productFlavors();
-    assertSize(1, productFlavors);
-    productFlavorsIterator = productFlavors.iterator();
-    assertEquals("productFlavors", "flavor1", productFlavorsIterator.next().name());
+    assertThat(productFlavors).hasSize(1);
+    assertEquals("productFlavors", "flavor1", productFlavors.get(0).name());
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
+
     productFlavors = android.productFlavors();
-    assertSize(1, productFlavors);
-    productFlavorsIterator = productFlavors.iterator();
-    assertEquals("productFlavors", "flavor1", productFlavorsIterator.next().name());
+    assertThat(productFlavors).hasSize(1);
+    assertEquals("productFlavors", "flavor1", productFlavors.get(0).name());
+  }
+
+  public void testRemoveAndApplySigningConfigBlock() throws Exception {
+    String text = "android { \n" +
+                  "  signingConfigs { \n" +
+                  "    config1 { \n" +
+                  "    } \n" +
+                  "    config2 {" +
+                  "    } \n" +
+                  "  } \n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    List<SigningConfigModel> signingConfigs = android.signingConfigs();
+    assertThat(signingConfigs).hasSize(2);
+    assertEquals("signingConfigs", "config1", signingConfigs.get(0).name());
+    assertEquals("signingConfigs", "config2", signingConfigs.get(1).name());
+
+    android.removeSigningConfig("config2");
+    signingConfigs = android.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    assertEquals("signingConfigs", "config1", signingConfigs.get(0).name());
+
+    applyChanges(buildModel);
+    signingConfigs = android.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    assertEquals("signingConfigs", "config1", signingConfigs.get(0).name());
+
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    signingConfigs = android.signingConfigs();
+    assertThat(signingConfigs).hasSize(1);
+    assertEquals("signingConfigs", "config1", signingConfigs.get(0).name());
+  }
+
+  public void testRemoveAndApplySourceSetBlock() throws Exception {
+    String text = "android { \n" +
+                  "  sourceSets { \n" +
+                  "    set1 { \n" +
+                  "    } \n" +
+                  "    set2 {" +
+                  "    } \n" +
+                  "  } \n" +
+                  "}";
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    List<SourceSetModel> sourceSets = android.sourceSets();
+    assertThat(sourceSets).hasSize(2);
+    assertEquals("sourceSets", "set1", sourceSets.get(0).name());
+    assertEquals("sourceSets", "set2", sourceSets.get(1).name());
+
+    android.removeSourceSet("set2");
+    sourceSets = android.sourceSets();
+    assertThat(sourceSets).hasSize(1);
+    assertEquals("sourceSets", "set1", sourceSets.get(0).name());
+
+    applyChanges(buildModel);
+    sourceSets = android.sourceSets();
+    assertThat(sourceSets).hasSize(1);
+    assertEquals("sourceSets", "set1", sourceSets.get(0).name());
+
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    sourceSets = android.sourceSets();
+    assertThat(sourceSets).hasSize(1);
+    assertEquals("sourceSets", "set1", sourceSets.get(0).name());
   }
 
   public void testRemoveAndApplyBlockApplicationStatements() throws Exception {
@@ -869,7 +1147,10 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
-    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    ProductFlavorModel defaultConfig = android.defaultConfig();
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
 
@@ -877,7 +1158,10 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     defaultConfig.removeAllProguardFiles();
 
     applyChangesAndReparse(buildModel);
-    defaultConfig = buildModel.android().defaultConfig();
+    android = buildModel.android();
+    assertNotNull(android);
+
+    defaultConfig = android.defaultConfig();
     assertNull(defaultConfig.applicationId());
     assertNull(defaultConfig.proguardFiles());
   }
@@ -889,8 +1173,10 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     writeToBuildFile(text);
 
     GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
 
-    ProductFlavorModel defaultConfig = buildModel.android().defaultConfig();
+    ProductFlavorModel defaultConfig = android.defaultConfig();
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
 
@@ -900,8 +1186,10 @@ public class AndroidModelTest extends GradleFileModelTestCase {
     assertEquals("dimension", "abcd", defaultConfig.dimension());
 
     applyChangesAndReparse(buildModel);
+    android = buildModel.android();
+    assertNotNull(android);
 
-    defaultConfig = buildModel.android().defaultConfig();
+    defaultConfig = android.defaultConfig();
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId());
     assertEquals("proguardFiles", ImmutableList.of("proguard-android.txt", "proguard-rules.pro"), defaultConfig.proguardFiles());
     assertEquals("dimension", "abcd", defaultConfig.dimension());
@@ -921,6 +1209,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
@@ -955,6 +1244,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
+
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion());
     assertEquals("compileSdkVersion", "24", android.compileSdkVersion());
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig());
@@ -973,6 +1264,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion());
     assertEquals("compileSdkVersion", "23", android.compileSdkVersion());
@@ -991,6 +1283,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
+
     assertEquals("buildToolsVersion", "22", android.buildToolsVersion());
     assertEquals("compileSdkVersion", "21", android.compileSdkVersion());
   }
@@ -1003,6 +1297,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
 
     assertNull("buildToolsVersion", android.buildToolsVersion());
     assertNull("compileSdkVersion", android.compileSdkVersion());
@@ -1037,6 +1332,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
+
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion());
     assertEquals("compileSdkVersion", "24", android.compileSdkVersion());
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig());
@@ -1053,6 +1350,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
 
     assertNull("buildToolsVersion", android.buildToolsVersion());
     assertNull("compileSdkVersion", android.compileSdkVersion());
@@ -1071,6 +1369,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
+
     assertEquals("buildToolsVersion", "22", android.buildToolsVersion());
     assertEquals("compileSdkVersion", "21", android.compileSdkVersion());
   }
@@ -1084,6 +1384,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
     assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
 
     android.replaceFlavorDimension("abi", "xyz");
@@ -1094,6 +1395,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
     assertEquals("flavorDimensions", ImmutableList.of("xyz", "version"), android.flavorDimensions());
   }
 
@@ -1105,6 +1407,8 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
     assertNull("flavorDimensions", android.flavorDimensions());
 
     android.addFlavorDimension("xyz");
@@ -1115,10 +1419,35 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
     assertEquals("flavorDimensions", ImmutableList.of("xyz"), android.flavorDimensions());
   }
 
-  public void testAddToAndApplyListElements() throws Exception {
+  public void testAddToAndApplyListElementsWithOneArgument() throws Exception {
+    String text = "android { \n" +
+                  "  flavorDimensions \"abi\"\n" +
+                  "}";
+
+    writeToBuildFile(text);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+    assertEquals("flavorDimensions", ImmutableList.of("abi"), android.flavorDimensions());
+
+    android.addFlavorDimension("version");
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
+
+    applyChanges(buildModel);
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
+
+    buildModel.reparse();
+    android = buildModel.android();
+    assertNotNull(android);
+    assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
+  }
+
+  public void testAddToAndApplyListElementsWithMultipleArguments() throws Exception {
     String text = "android { \n" +
                   "  flavorDimensions \"abi\", \"version\"\n" +
                   "}";
@@ -1127,6 +1456,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
     assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
 
     android.addFlavorDimension("xyz");
@@ -1137,6 +1467,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
     assertEquals("flavorDimensions", ImmutableList.of("abi", "version", "xyz"), android.flavorDimensions());
   }
 
@@ -1149,6 +1480,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     GradleBuildModel buildModel = getGradleBuildModel();
     AndroidModel android = buildModel.android();
+    assertNotNull(android);
     assertEquals("flavorDimensions", ImmutableList.of("abi", "version"), android.flavorDimensions());
 
     android.removeFlavorDimension("version");
@@ -1159,6 +1491,7 @@ public class AndroidModelTest extends GradleFileModelTestCase {
 
     buildModel.reparse();
     android = buildModel.android();
+    assertNotNull(android);
     assertEquals("flavorDimensions", ImmutableList.of("abi"), android.flavorDimensions());
   }
 }

@@ -16,8 +16,10 @@
 
 package com.android.tools.adtui.chart.linechart;
 
+import com.android.tools.adtui.LegendRenderData;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 
@@ -26,8 +28,26 @@ import java.awt.*;
  */
 public class LineConfig {
 
+  /**
+   * Stroke which can be used with {@link #setStroke(Stroke)} which results in a solid line with
+   * default thickness.
+   */
+  public static final BasicStroke DEFAULT_LINE_STROKE = new BasicStroke(2);
+
+  /**
+   * Stroke which can be used with {@link #setStroke(Stroke)} which results in a dashed line with
+   * default thickness.
+   */
+  public static final BasicStroke DEFAULT_DASH_STROKE =
+    new BasicStroke(2.0f,
+                    BasicStroke.CAP_BUTT,
+                    BasicStroke.JOIN_BEVEL,
+                    10.0f,  // Miter limit, Swing's default
+                    new float[]{8.0f, 5.0f},  // Dash pattern in pixel
+                    0.0f);  // Dash phase - just starts at zero.
+
   //TODO Move colors out of LineConfig
-  public static final Color[] COLORS = {
+  private static final Color[] COLORS = {
     new JBColor(0x6baed6, 0x6baed6),
     new JBColor(0xff0000, 0xff0000),
     new JBColor(0xfd8d3c, 0xfd8d3c),
@@ -41,73 +61,68 @@ public class LineConfig {
   };
 
   /**
-   * Whether the series should be represented by dashed lines.
-   */
-  private boolean mIsDashed = false;
-
-  /**
    * Whether the series should be represented by a stepped chart.
    * In case it is not, a straight line is drawn between points (e.g. (x0, y0) and (x1, y1)).
    * Otherwise, a line is drawn from (x0, y0) to (x1, y0) and another one is drawn from (x1, y0)
    * to (x1, y1).
    */
-  private boolean mIsStepped = false;
+  private boolean myIsStepped = false;
 
   /**
    * Whether the series should be represented by a filled chart, instead of only lines.
    */
-  private boolean mIsFilled = false;
+  private boolean myIsFilled = false;
 
   /**
    * Whether the series should stack with other series instead of being independent.
    */
-  private boolean mIsStacked = false;
+  private boolean myIsStacked = false;
+
+  /**
+   * Type of the legend icon that represents the line.
+   */
+  @Nullable
+  private LegendRenderData.IconType myLegendIconType;
+
+  @NotNull
+  private Stroke myStroke;
 
   @NotNull
   private Color mColor;
 
   public LineConfig(@NotNull Color color) {
     mColor = color;
-  }
-
-  @NotNull
-  public LineConfig setDashed(boolean isDashed) {
-    mIsDashed = isDashed;
-    return this;
-  }
-
-  public boolean isDashed() {
-    return mIsDashed;
+    myStroke = DEFAULT_LINE_STROKE;
   }
 
   @NotNull
   public LineConfig setStepped(boolean isStepped) {
-    mIsStepped = isStepped;
+    myIsStepped = isStepped;
     return this;
   }
 
   public boolean isStepped() {
-    return mIsStepped;
+    return myIsStepped;
   }
 
   @NotNull
   public LineConfig setFilled(boolean isFilled) {
-    mIsFilled = isFilled;
+    myIsFilled = isFilled;
     return this;
   }
 
   public boolean isFilled() {
-    return mIsFilled;
+    return myIsFilled;
   }
 
   @NotNull
   public LineConfig setStacked(boolean isStacked) {
-    mIsStacked = isStacked;
+    myIsStacked = isStacked;
     return this;
   }
 
   public boolean isStacked() {
-    return mIsStacked;
+    return myIsStacked;
   }
 
   @NotNull
@@ -119,5 +134,34 @@ public class LineConfig {
   public LineConfig setColor(@NotNull Color color) {
     mColor = color;
     return this;
+  }
+
+  @NotNull
+  public LineConfig setStroke(@NotNull Stroke stroke) {
+    myStroke = stroke;
+    return this;
+  }
+
+  @NotNull
+  public Stroke getStroke() {
+    return myStroke;
+  }
+
+  public LineConfig setLegendIconType(@Nullable LegendRenderData.IconType legendIconType) {
+    myLegendIconType = legendIconType;
+    return this;
+  }
+
+  @Nullable
+  public LegendRenderData.IconType getLegendIconType() {
+    return myLegendIconType;
+  }
+
+  /**
+   * @deprecated This is mostly used by visual tests and should really be removed. Color resources can live elsewhere.
+   */
+  @NotNull
+  public static Color getColor(int index) {
+    return COLORS[index % COLORS.length];
   }
 }

@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
@@ -27,12 +28,20 @@ import org.jetbrains.annotations.NotNull;
  * Re-imports (syncs) an Android-Gradle project, without showing the "Import Project" wizard.
  */
 public class SyncProjectAction extends AndroidStudioGradleAction {
+  @NotNull private final GradleSyncInvoker mySyncInvoker;
+
   public SyncProjectAction() {
     this("Sync Project with Gradle Files");
   }
 
   protected SyncProjectAction(@NotNull String text) {
+    this(text, GradleSyncInvoker.getInstance());
+  }
+
+  @VisibleForTesting
+  SyncProjectAction(@NotNull String text, @NotNull GradleSyncInvoker syncInvoker) {
     super(text);
+    mySyncInvoker = syncInvoker;
   }
 
   @Override
@@ -41,7 +50,7 @@ public class SyncProjectAction extends AndroidStudioGradleAction {
     Presentation presentation = e.getPresentation();
     presentation.setEnabled(false);
     try {
-      GradleProjectImporter.getInstance().requestProjectSync(project, null);
+      mySyncInvoker.requestProjectSyncAndSourceGeneration(project, null);
     }
     finally {
       presentation.setEnabled(true);

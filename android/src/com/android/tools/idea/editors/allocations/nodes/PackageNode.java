@@ -23,29 +23,28 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class PackageNode extends AbstractTreeNode {
-  @NotNull
-  private final String myName;
+  @NotNull private final String myName;
 
-  @NotNull
-  private final Map<String, PackageNode> myChildrenMap;
+  @NotNull private final Map<String, PackageNode> myChildrenMap;
 
   public PackageNode(@NotNull String name) {
     myName = name;
-    myChildrenMap = new HashMap<String, PackageNode>();
+    myChildrenMap = new HashMap<>();
   }
 
-  public void insert(String[] packages, AllocationInfo alloc, int depth) {
+  public void insert(@NotNull String[] packages, @NotNull AllocationInfo alloc, int depth) {
     if (depth < packages.length) {
       String name = packages[depth];
       PackageNode node = myChildrenMap.get(name);
       if (node == null) {
         node = depth == packages.length - 1 ? new ClassNode(name) : new PackageNode(name);
         myChildrenMap.put(name, node);
-        addChild(node);
+        insertChild(node);
       }
       node.insert(packages, alloc, depth + 1);
-    } else {
-      addChild(new AllocNode(alloc));
+    }
+    else {
+      insertChild(new AllocNode(alloc));
     }
   }
 
@@ -54,6 +53,7 @@ public class PackageNode extends AbstractTreeNode {
     return myName;
   }
 
+  @NotNull
   public String getQualifiedName() {
     TreeNode parent = getParent();
     String pkg = parent instanceof PackageNode ? ((PackageNode)parent).getQualifiedName() : "";

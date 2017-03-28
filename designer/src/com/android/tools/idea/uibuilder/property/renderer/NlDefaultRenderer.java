@@ -127,7 +127,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
     }
 
     File file = AndroidColorAnnotator.pickBestBitmap(ResourceHelper.resolveDrawable(resolver, drawable, property.getModel().getProject()));
-    return file == null ? null : GutterIconCache.getInstance().getIcon(file.getPath());
+    return file == null ? null : GutterIconCache.getInstance().getIcon(file.getPath(), resolver);
   }
 
   @Nullable

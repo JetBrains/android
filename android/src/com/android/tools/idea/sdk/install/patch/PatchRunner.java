@@ -186,7 +186,15 @@ public class PatchRunner {
       progress.logWarning("Patcher doesn't support full package generation!");
       return false;
     }
-    catch (InvocationTargetException | IllegalAccessException e) {
+    catch (InvocationTargetException e) {
+      Throwable reason = e.getTargetException();
+      progress.logWarning("Patch invocation failed! " + reason);
+      if (reason != null) {
+        reason.printStackTrace();
+      }
+      return false;
+    }
+    catch (IllegalAccessException e) {
       progress.logWarning("Patch generation failed!");
       return false;
     }

@@ -16,8 +16,12 @@
 package org.jetbrains.android.databinding;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.builder.model.AndroidLibrary;
+import com.android.ide.common.blame.Message;
+import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -26,79 +30,94 @@ import com.intellij.psi.*;
 import com.intellij.util.containers.ContainerUtil;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.org.objectweb.asm.ClassReader;
-import org.jetbrains.org.objectweb.asm.ClassVisitor;
-import org.jetbrains.org.objectweb.asm.FieldVisitor;
-import org.jetbrains.org.objectweb.asm.MethodVisitor;
-import org.jetbrains.org.objectweb.asm.Opcodes;
+import org.jetbrains.org.objectweb.asm.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_DATA_BINDING;
 
 /**
  * This class compiles a real project with data binding then checks whether the generated Binding classes match the virtual ones.
- * This test requires DataBinding's rebuildRepo task to be run first otherwise it will fail because it won't find the snapshot versions.
  */
 public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
   private static final String DATA_BINDING_COMPONENT_CLASS_NAME = SdkConstants.CLASS_DATA_BINDING_COMPONENT.replace(".", "/");
   @NotNull
   private ClassReader findViewDataBindingClass() throws IOException {
-    File explodedAars =
-      new File(getProject().getBaseDir().getCanonicalPath(), "app/build/intermediates/exploded-aar/com.android.databinding/library");
-    File[] contents = explodedAars.listFiles();
-    assert contents != null;
-    assertEquals(1, contents.length);
-    File container = contents[0]; //version
-    File classes = new File(container, "jars/classes.jar");
+    File classes = null;
+
+    AndroidModuleModel model = AndroidModuleModel.get(myAndroidFacet);
+    for (AndroidLibrary lib : model.getMainArtifact().getDependencies().getLibraries()) {
+      if (lib.getName().startsWith("com.android.databinding:library")) {
+        classes = lib.getJarFile();
+      }
+    }
+    assert classes != null;
     assertTrue(classes.exists());
-    JarFile classesJar = null;
-    try {
-      //noinspection IOResourceOpenedButNotSafelyClosed
-      classesJar = new JarFile(classes, true);
+
+    try (JarFile classesJar = new JarFile(classes, true)) {
       ZipEntry entry = classesJar.getEntry(SdkConstants.CLASS_DATA_BINDING_BASE_BINDING.replace(".", "/") + ".class");
       assertNotNull(entry);
       return new ClassReader(classesJar.getInputStream(entry));
     }
-    finally {
-      if (classesJar != null) {
-        classesJar.close();
-      }
-    }
   }
 
   public void testGeneratedCodeMatch() throws Exception {
-    File projectFolder = virtualToIoFile(myFixture.getProject().getBaseDir());
-    createGradlePropertiesFile(projectFolder);
-    loadProject("projects/projectWithDataBinding");
-    compile();
+    loadProject(PROJECT_WITH_DATA_BINDING);
+    // temporary fix until test model can detect dependencies properly
+    GradleInvocationResult assembleDebug = invokeGradleTasks(getProject(), "assembleDebug");
+    assertTrue(StringUtil.join(assembleDebug.getCompilerMessages(Message.Kind.ERROR), "\n"), assembleDebug.isBuildSuccessful());
 
-    GradleSyncState syncState = GradleSyncState.getInstance(myFixture.getProject());
+    GradleSyncState syncState = GradleSyncState.getInstance(getProject());
     assertFalse(syncState.isSyncNeeded().toBoolean());
     assertTrue(myAndroidFacet.isDataBindingEnabled());
+
+
     // trigger initialization
     myAndroidFacet.getModuleResources(true);
 
-    File classesOut = new File(projectFolder, "/app/build/intermediates/classes/debug");
+    File classesOut = new File(getProject().getBaseDir().getPath(), "/app/build/intermediates/classes/debug");
     //noinspection unchecked
     Collection<File> classes = FileUtils.listFiles(classesOut, new String[]{"class"}, true);
     assertTrue("if we cannot find any class, something is wrong with the test", classes.size() > 0);
     ClassReader viewDataBindingClass = findViewDataBindingClass();
     Set<String> baseClassInfo = collectDescriptionSet(viewDataBindingClass, new HashSet<>());
 
-    JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(myAndroidFacet.getModule().getProject());
+    JavaPsiFacade javaPsiFacade = JavaPsiFacade.getInstance(getProject());
     Set<String> missingClasses = new HashSet<>();
-    boolean foundOne = false;
-    for (File classFile : classes) {
-      ClassReader classReader = new ClassReader(FileUtils.readFileToByteArray(classFile));
-      if (!shouldVerify(classReader, viewDataBindingClass)) {
+
+    Map<String, ClassReader> klassMap = classes.stream().map((file) -> {
+      try {
+        return new ClassReader(FileUtils.readFileToByteArray(file));
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+        fail(e.getMessage());
+      }
+      return null;
+    }).filter(kls -> kls != null)
+      .collect(Collectors.toMap(
+        kls -> kls.getClassName(),
+        kls -> kls
+      ));
+
+    Map<ClassReader, ClassReader> superClassLookup = klassMap.values().stream()
+      .filter(kls -> klassMap.containsKey(kls.getSuperName()))
+      .collect(Collectors.toMap(
+        kls -> kls,
+        kls -> klassMap.get(kls.getSuperName())
+      ));
+
+    int verifiedClassCount = 0;
+    for (ClassReader classReader : klassMap.values()) {
+      if (!shouldVerify(viewDataBindingClass, classReader, superClassLookup)) {
         continue;
       }
-      foundOne = true;
+      verifiedClassCount ++;
       String className = classReader.getClassName();
       PsiClass psiClass =  javaPsiFacade
         .findClass(className.replace("/", "."), myAndroidFacet.getModule().getModuleWithDependenciesAndLibrariesScope(false));
@@ -109,33 +128,32 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
       assertNotNull(psiClass);
       String asmInfo = collectDescriptions(classReader, baseClassInfo);
       String psiInfo = collectDescriptions(psiClass);
-      assertEquals(asmInfo, psiInfo);
+      assertEquals(className, asmInfo, psiInfo);
     }
-    assertTrue("test sanity, should be able to find some data binding generated classes", foundOne);
+    assertTrue("test sanity, should be able to find some data binding generated classes", verifiedClassCount > 3);
     assertEquals("These classes are missing", "", StringUtil.join(missingClasses, "\n"));
   }
 
-  private boolean shouldVerify(ClassReader classReader, ClassReader viewDataBindingClass) {
-    return viewDataBindingClass.getClassName().equals(classReader.getSuperName())
-           || DATA_BINDING_COMPONENT_CLASS_NAME.equals(classReader.getClassName());
-  }
-
-  private static void createGradlePropertiesFile(@NotNull File projectFolder) throws IOException {
-    File dataBindingRoot = new File(getTestDataPath(), "/../../../../data-binding");
-    File out = new File(projectFolder, SdkConstants.FN_GRADLE_PROPERTIES);
-    FileUtils.writeStringToFile(out, "dataBindingRoot=" + dataBindingRoot.getCanonicalPath());
-  }
-
-  private void compile() throws Exception {
-    String javaHome = System.getenv().get("JAVA_HOME");
-    assertTrue("this test requires java 8", StringUtil.isNotEmpty(javaHome));
-    assertBuildsCleanly(getProject(), true, "-Dorg.gradle.java.home=" + javaHome);
+  private static boolean shouldVerify(ClassReader viewDataBindingClass, ClassReader classReader, Map<ClassReader,
+    ClassReader> superClassLookup) {
+    return classReader != null &&
+           (viewDataBindingClass.getClassName().equals(classReader.getSuperName()) ||
+            DATA_BINDING_COMPONENT_CLASS_NAME.equals(classReader.getClassName()) ||
+            shouldVerify(viewDataBindingClass, superClassLookup.get(classReader), superClassLookup));
   }
 
   @NotNull
   private static TreeSet<String> collectDescriptionSet(@NotNull ClassReader classReader, @NotNull final Set<String> exclude) {
     final TreeSet<String> set = new TreeSet<>();
     classReader.accept(new ClassVisitor(Opcodes.ASM5) {
+      @Override
+      public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+        List<String> interfaceList = new ArrayList<>();
+        Collections.addAll(interfaceList, interfaces);
+        Collections.sort(interfaceList);
+        set.add(name + " : " + superName + " -> " + StringUtil.join(interfaceList, ", "));
+      }
+
       @Override
       public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         String info = modifierDescription(access) + " " + name + " : " + desc;
@@ -165,8 +183,13 @@ public class GeneratedCodeMatchTest extends AndroidGradleTestCase {
   @NotNull
   private static String collectDescriptions(@NotNull PsiClass psiClass) {
     final TreeSet<String> set = new TreeSet<>();
+    PsiClassType[] superTypes = psiClass.getSuperTypes();
+    String superType = superTypes.length == 0 ? "java/lang/Object" : superTypes[0].getCanonicalText().replace('.', '/');
+    List<String> sortedInterfaces = Arrays.stream(psiClass.getInterfaces()).map((klass) -> klass.getQualifiedName().replace('.', '/'))
+      .sorted().collect(Collectors.toList());
+    set.add(psiClass.getQualifiedName().replace('.', '/') + " : " + superType + " -> " + StringUtil.join(sortedInterfaces, ", "));
     for (PsiMethod method : psiClass.getMethods()) {
-      if (method.getModifierList() != null && method.getModifierList().hasModifierProperty(PsiModifier.PUBLIC)) {
+      if (method.getModifierList().hasModifierProperty(PsiModifier.PUBLIC)) {
         set.add(modifierDescription(method) + " " + method.getName() + " : " + createMethodDescription(method));
       }
     }

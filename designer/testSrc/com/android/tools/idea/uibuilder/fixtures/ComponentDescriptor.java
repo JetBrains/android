@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.rendering.TagSnapshot;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.utils.XmlUtils;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.xml.XmlTag;
@@ -28,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
@@ -37,6 +38,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ComponentDescriptor {
+  @NotNull private static final Splitter SPLITTER = Splitter.on(":").omitEmptyStrings().trimResults().limit(2);
   @NotNull private final String myTagName;
   @NotNull final List<Pair<String, String>> myAttributes = Lists.newArrayList();
   @NotNull private ComponentDescriptor[] myChildren = new ComponentDescriptor[0];
@@ -137,6 +139,11 @@ public class ComponentDescriptor {
                  child, bounds.contains(child.getBounds()));
     }
 
+    myChildren = children;
+    return this;
+  }
+
+  public ComponentDescriptor unboundedChildren(@NotNull ComponentDescriptor... children) {
     myChildren = children;
     return this;
   }
@@ -255,12 +262,7 @@ public class ComponentDescriptor {
     sb.append('<');
     sb.append(myTagName);
     if (depth == 0) {
-      sb.append(" xmlns:android=\"http://schemas.android.com/apk/res/android\"\n");
-      sb.append(" ");
-      for (int i = 0; i < myTagName.length(); i++) {
-        sb.append(" ");
-      }
-      sb.append(" xmlns:app=\"http://schemas.android.com/apk/res-auto\"");
+      appendReferencedNamespaces(sb);
     }
     for (Pair<String, String> attribute : myAttributes) {
       sb.append("\n");
@@ -275,12 +277,67 @@ public class ComponentDescriptor {
     if (myChildren.length > 0) {
       sb.append(">\n");
       for (ComponentDescriptor child : myChildren) {
+        sb.append("\n");
         child.appendXml(sb, depth + 1);
       }
-      sb.append("</").append(myTagName).append(">\n");
+      sb.append("\n</").append(myTagName).append(">\n");
     }
     else {
       sb.append("/>\n");
+    }
+  }
+
+  private void appendReferencedNamespaces(@NotNull StringBuilder sb) {
+    Map<String, String> namespaces = new HashMap<>();
+    findUsedNamespaces(namespaces);
+    List<String> prefixes = new ArrayList<>(namespaces.keySet());
+    prefixes.sort(String::compareTo);
+    int indent = 1;
+    if (namespaces.isEmpty()) {
+      return;
+    }
+    for (String prefix : prefixes) {
+      for (int i = 0; i < indent; i++) {
+        sb.append(" ");
+      }
+      indent = myTagName.length() + 1;
+      sb.append("xmlns:").append(prefix).append("=\"").append(namespaces.get(prefix)).append("\"\n");
+    }
+    // Remove the last \n
+    sb.setLength(sb.length() - 1);
+  }
+
+  private void findUsedNamespaces(@NotNull Map<String, String> namespaces) {
+    for (Pair<String, String> attribute : myAttributes) {
+      String name = attribute.getFirst();
+      String value = attribute.getSecond();
+      List<String> prefixAndName = SPLITTER.splitToList(name);
+      if (prefixAndName.size() != 2) {
+        continue;
+      }
+      String prefix = prefixAndName.get(0);
+      name = prefixAndName.get(1);
+      if (prefix.equals(XMLNS)) {
+        namespaces.put(name, value);
+      }
+      else if (!namespaces.containsKey(prefix)) {
+        switch (prefix) {
+          case ANDROID_NS_NAME:
+            namespaces.put(prefix, ANDROID_URI);
+            break;
+          case APP_PREFIX:
+            namespaces.put(prefix, AUTO_URI);
+            break;
+          case TOOLS_PREFIX:
+            namespaces.put(prefix, TOOLS_URI);
+            break;
+          default:
+            throw new IllegalArgumentException("Unknown namespace prefix: " + prefix);
+        }
+      }
+    }
+    for (ComponentDescriptor child : myChildren) {
+      child.findUsedNamespaces(namespaces);
     }
   }
 
@@ -297,7 +354,7 @@ public class ComponentDescriptor {
     TagSnapshot snapshot = TagSnapshot.createTagSnapshotWithoutChildren(tag);
 
     TestViewInfo viewInfo = new TestViewInfo(myTagName, snapshot, left, top, right, bottom, myViewObject, myLayoutParamsObject);
-
+    viewInfo.setExtendedInfo((int) (0.8 * (bottom - top)), 0, 0, 0, 0);
     if (myViewType != null) {
       viewInfo.setViewType(myViewType);
     }

@@ -16,15 +16,18 @@
 
 package org.jetbrains.android.uipreview;
 
+import android.view.Gravity;
+import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.LayoutLibrary;
-import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.IntArrayWrapper;
+import com.android.layoutlib.bridge.MockView;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.rendering.InconvertibleClassError;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderProblem;
+import com.android.tools.idea.rendering.RenderSecurityManager;
+import com.android.tools.idea.res.AppResourceRepository;
 import com.android.util.Pair;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.HashMultiset;
@@ -49,7 +52,10 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,6 +63,8 @@ import java.util.Set;
 
 import static com.android.SdkConstants.*;
 import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymize;
+import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
 
 /**
  * Handler for loading views for the layout editor on demand, and reporting issues with class
@@ -77,8 +85,11 @@ public class ViewLoader {
   /** Classes that have been modified after compilation. */
   @NotNull private final Set<String> myRecentlyModifiedClasses = Sets.newHashSetWithExpectedSize(5);
   @Nullable private final Object myCredential;
-  @NotNull private RenderLogger myLogger;
   @NotNull private final LayoutLibrary myLayoutLibrary;
+  /**
+   * {@link RenderLogger} used to log loading problems. It can only be null during the dispose of this class.
+   */
+  @Nullable private RenderLogger myLogger;
   @Nullable private ModuleClassLoader myModuleClassLoader;
 
   public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull RenderLogger logger,
@@ -99,40 +110,92 @@ public class ViewLoader {
   }
 
   @Nullable
-  public Object loadView(String className, Class<?>[] constructorSignature, Object[] constructorArgs)
-    throws ClassNotFoundException {
-
-    Object aClass = loadClass(className, constructorSignature, constructorArgs, true);
-    if (aClass != null) {
-      return aClass;
-    }
-
-    try {
-      final Object o = createViewFromSuperclass(className, constructorSignature, constructorArgs);
-
-      if (o != null) {
-        return o;
+  private static String getRClassName(@NotNull final Module module) {
+    return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
+      final AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet == null) {
+        return null;
       }
-      return createMockView(className, constructorSignature, constructorArgs);
-    }
-    catch (ClassNotFoundException e) {
-      throw new ClassNotFoundException(className, e);
-    }
-    catch (InvocationTargetException e) {
-      throw new ClassNotFoundException(className, e);
-    }
-    catch (NoSuchMethodException e) {
-      throw new ClassNotFoundException(className, e);
+
+      final Manifest manifest = facet.getManifest();
+      if (manifest == null) {
+        return null;
+      }
+
+      final String packageName = manifest.getPackage().getValue();
+      return packageName == null ? null : packageName + '.' + R_CLASS;
+    });
+  }
+
+  private static boolean parseClass(@NotNull Class<?> rClass,
+                                    @NotNull TIntObjectHashMap<Pair<ResourceType, String>> id2res,
+                                    @NotNull Map<IntArrayWrapper, String> styleableId2Res,
+                                    @NotNull Map<ResourceType, TObjectIntHashMap<String>> res2id) throws ClassNotFoundException {
+    try {
+      final Class<?>[] nestedClasses;
+      try {
+        nestedClasses = rClass.getDeclaredClasses();
+      }
+      catch (LinkageError e) {
+        final Throwable cause = e.getCause();
+
+        LOG.debug(e);
+        if (cause instanceof ClassNotFoundException) {
+          throw (ClassNotFoundException)cause;
+        }
+        throw e;
+      }
+      for (Class<?> resClass : nestedClasses) {
+        final ResourceType resType = ResourceType.getEnum(resClass.getSimpleName());
+        if (resType == null) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("  '%s' is not a valid resource type", anonymizeClassName(resClass.getSimpleName())));
+          }
+          continue;
+        }
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(String.format("  Defining resource type '%s'", anonymizeClassName(resClass.getSimpleName())));
+        }
+
+        final TObjectIntHashMap<String> resName2Id = new TObjectIntHashMap<>();
+        res2id.put(resType, resName2Id);
+
+        for (Field field : resClass.getDeclaredFields()) {
+          if (!Modifier.isStatic(field.getModifiers())) { // May not be final in library projects
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(String.format("  '%s' field is not static, skipping", field.getName()));
+            }
+
+            continue;
+          }
+
+          final Class<?> type = field.getType();
+          if (type.isArray() && type.getComponentType() == int.class) {
+            styleableId2Res.put(new IntArrayWrapper((int[])field.get(null)), field.getName());
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(String.format("  '%s' defined as int[]", field.getName()));
+            }
+          }
+          else if (type == int.class) {
+            final Integer value = (Integer)field.get(null);
+            id2res.put(value, Pair.of(resType, field.getName()));
+            resName2Id.put(field.getName(), value);
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(String.format("  '%s' defined as int", field.getName()));
+            }
+          }
+          else {
+            LOG.error("Unknown field type in R class: " + type);
+          }
+        }
+      }
     }
     catch (IllegalAccessException e) {
-      throw new ClassNotFoundException(className, e);
+      LOG.info(e);
+      return false;
     }
-    catch (InstantiationException e) {
-      throw new ClassNotFoundException(className, e);
-    }
-    catch (NoSuchFieldException e) {
-      throw new ClassNotFoundException(className, e);
-    }
+
+    return true;
   }
 
   /**
@@ -151,8 +214,35 @@ public class ViewLoader {
   }
 
   @Nullable
-  private Object loadClass(String className, Class<?>[] constructorSignature, Object[] constructorArgs, boolean isView) {
+  public Object loadView(@NotNull String className, @Nullable Class<?>[] constructorSignature, @Nullable Object[] constructorArgs)
+    throws ClassNotFoundException {
+
+    Object aClass = loadClass(className, constructorSignature, constructorArgs, true);
+    if (aClass != null) {
+      return aClass;
+    }
+
+    try {
+      final Object o = createViewFromSuperclass(className, constructorSignature, constructorArgs);
+
+      if (o != null) {
+        return o;
+      }
+      return createMockView(className, constructorSignature, constructorArgs);
+    }
+    catch (ClassNotFoundException | InvocationTargetException | IllegalAccessException | InstantiationException | NoSuchFieldException | NoSuchMethodException e) {
+      throw new ClassNotFoundException(className, e);
+    }
+  }
+
+  @Nullable
+  private Object loadClass(@NotNull String className, @Nullable Class<?>[] constructorSignature, @Nullable Object[] constructorArgs, boolean isView) {
+    assert myLogger != null;
     Class<?> aClass = myLoadedClasses.get(className);
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("loadClassA(%s)", anonymizeClassName(className)));
+    }
 
     try {
       if (aClass != null) {
@@ -171,6 +261,9 @@ public class ViewLoader {
         try {
           final Object viewObject = createNewInstance(aClass, constructorSignature, constructorArgs, isView);
           myLoadedClasses.put(className, aClass);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("  instance created");
+          }
           return viewObject;
         }
         finally {
@@ -180,14 +273,20 @@ public class ViewLoader {
     }
     catch (InconvertibleClassError e) {
       myLogger.addIncorrectFormatClass(e.getClassName(), e);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(e);
+      }
     }
-    catch (LinkageError e) {
-      myLogger.addBrokenClass(className, e);
-    }
-    catch (ClassNotFoundException e) {
+    catch (LinkageError | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InstantiationException e) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(e);
+      }
       myLogger.addBrokenClass(className, e);
     }
     catch (InvocationTargetException e) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(e);
+      }
       final Throwable cause = e.getCause();
       if (cause instanceof InconvertibleClassError) {
         InconvertibleClassError error = (InconvertibleClassError)cause;
@@ -197,16 +296,23 @@ public class ViewLoader {
         myLogger.addBrokenClass(className, cause);
       }
     }
-    catch (IllegalAccessException e) {
-      myLogger.addBrokenClass(className, e);
-    }
-    catch (InstantiationException e) {
-      myLogger.addBrokenClass(className, e);
-    }
-    catch (NoSuchMethodException e) {
-      myLogger.addBrokenClass(className, e);
-    }
     return null;
+  }
+
+  @NotNull
+  private ModuleClassLoader getModuleClassLoader() {
+    if (myModuleClassLoader == null) {
+      // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
+      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+      try {
+        myModuleClassLoader = ModuleClassLoader.get(myLayoutLibrary, myModule);
+      }
+      finally {
+        RenderSecurityManager.exitSafeRegion(token);
+      }
+    }
+
+    return myModuleClassLoader;
   }
 
   /** Checks that the given class has not been edited since the last compilation (and if it has, logs a warning to the user) */
@@ -217,110 +323,20 @@ public class ViewLoader {
     }
 
     if (myModuleClassLoader != null && myModuleClassLoader.isSourceModified(fqcn, myCredential) && !myRecentlyModifiedClasses.contains(fqcn)) {
+      assert myLogger != null;
+
       myRecentlyModifiedClasses.add(fqcn);
       RenderProblem.Html problem = RenderProblem.create(WARNING);
       HtmlBuilder builder = problem.getHtmlBuilder();
       String className = fqcn.substring(fqcn.lastIndexOf('.') + 1);
       builder.addLink("The " + className + " custom view has been edited more recently than the last build: ", "Build", " the project.",
-                      myLogger.getLinkManager().createCompileModuleUrl());
+                      myLogger.getLinkManager().createBuildProjectUrl());
       myLogger.addMessage(problem);
     }
   }
 
-  @Nullable
-  public Class<?> loadClass(@NotNull String className, boolean logError) throws InconvertibleClassError {
-    try {
-      return getModuleClassLoader().loadClass(className);
-    }
-    catch (ClassNotFoundException e) {
-      if (logError && !className.equals(VIEW_FRAGMENT)) {
-        myLogger.addMissingClass(className);
-      }
-      return null;
-    }
-  }
-
   @NotNull
-  private ModuleClassLoader getModuleClassLoader() {
-    if (myModuleClassLoader == null) {
-      // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
-      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
-      try {
-        myModuleClassLoader = ModuleClassLoader.get(myLayoutLibrary, myModule);
-      } finally {
-        RenderSecurityManager.exitSafeRegion(token);
-      }
-    }
-
-    return myModuleClassLoader;
-  }
-
-  @Nullable
-  private Object createViewFromSuperclass(final String className, final Class<?>[] constructorSignature, final Object[] constructorArgs) {
-    // Creating views from the superclass calls into PSI which may need
-    // I/O access (for example when it consults the Java class index
-    // and that index needs to be lazily updated.)
-    // We run most of the method as a safe region, but we exit the
-    // safe region before calling {@link #createNewInstance} (which can
-    // call user code), and enter it again upon return.
-    final Ref<Boolean> token = new Ref<Boolean>();
-    token.set(RenderSecurityManager.enterSafeRegion(myCredential));
-    try {
-      return ApplicationManager.getApplication().runReadAction(new Computable<Object>() {
-        @Nullable
-        @Override
-        public Object compute() {
-          final JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getProject());
-          PsiClass psiClass = facade.findClass(className, myModule.getModuleWithDependenciesAndLibrariesScope(false));
-
-          if (psiClass == null) {
-            return null;
-          }
-          psiClass = psiClass.getSuperClass();
-          final Set<String> visited = new HashSet<String>();
-
-          while (psiClass != null) {
-            final String qName = psiClass.getQualifiedName();
-
-            if (qName == null ||
-                !visited.add(qName) ||
-                AndroidUtils.VIEW_CLASS_NAME.equals(psiClass.getQualifiedName())) {
-              break;
-            }
-
-            if (!AndroidUtils.isAbstract(psiClass)) {
-              try {
-                Class<?> aClass = myLoadedClasses.get(qName);
-                if (aClass == null && myLayoutLibrary.getClassLoader() != null) {
-                  aClass = myLayoutLibrary.getClassLoader().loadClass(qName);
-                  if (aClass != null) {
-                    myLoadedClasses.put(qName, aClass);
-                  }
-                }
-                if (aClass != null) {
-                  try {
-                    RenderSecurityManager.exitSafeRegion(token.get());
-                    return createNewInstance(aClass, constructorSignature, constructorArgs, true);
-                  } finally {
-                    token.set(RenderSecurityManager.enterSafeRegion(myCredential));
-                  }
-                }
-              }
-              catch (Throwable e) {
-                LOG.debug(e);
-              }
-            }
-            psiClass = psiClass.getSuperClass();
-          }
-          return null;
-        }
-      });
-    } finally {
-      RenderSecurityManager.exitSafeRegion(token.get());
-    }
-  }
-
-  private Object createMockView(String className, Class<?>[] constructorSignature, Object[] constructorArgs)
+  private MockView createMockView(@NotNull String className, @Nullable Class<?>[] constructorSignature, @Nullable Object[] constructorArgs)
     throws
     ClassNotFoundException,
     InvocationTargetException,
@@ -329,35 +345,24 @@ public class ViewLoader {
     IllegalAccessException,
     NoSuchFieldException {
 
-    final Class<?> mockViewClass = getModuleClassLoader().loadClass(CLASS_MOCK_VIEW);
-    final Object viewObject = createNewInstance(mockViewClass, constructorSignature, constructorArgs, true);
-
-    final Method setTextMethod = viewObject.getClass().getMethod("setText", CharSequence.class);
+    MockView mockView = (MockView)createNewInstance(MockView.class, constructorSignature, constructorArgs, true);
     String label = getShortClassName(className);
-    if (label.equals(VIEW_FRAGMENT)) {
-      label = "<fragment>";
-      // TODO:
-      // Append "\nPick preview layout from the \"Fragment Layout\" context menu"
-      // when used from the layout editor
-    }
-    else if (label.equals(VIEW_INCLUDE)) {
-      label = "Text";
-    }
-
-    setTextMethod.invoke(viewObject, label);
-
-    try {
-      final Class<?> gravityClass = Class.forName("android.view.Gravity", true, viewObject.getClass().getClassLoader());
-      final Field centerField = gravityClass.getField("CENTER");
-      final int center = centerField.getInt(null);
-      final Method setGravityMethod = viewObject.getClass().getMethod("setGravity", Integer.TYPE);
-      setGravityMethod.invoke(viewObject, Integer.valueOf(center));
-    }
-    catch (ClassNotFoundException e) {
-      LOG.info(e);
+    switch (label) {
+      case VIEW_FRAGMENT:
+        label = "<fragment>";
+        // TODO:
+        // Append "\nPick preview layout from the \"Fragment Layout\" context menu"
+        // when used from the layout editor
+        break;
+      case VIEW_INCLUDE:
+        label = "Text";
+        break;
     }
 
-    return viewObject;
+    mockView.setText(label);
+    mockView.setGravity(Gravity.CENTER);
+
+    return mockView;
   }
 
   @NotNull
@@ -365,20 +370,20 @@ public class ViewLoader {
     return myModule;
   }
 
-  private static String getShortClassName(String fqcn) {
-    if (fqcn.startsWith("android.")) {
+  @VisibleForTesting
+  @NotNull
+  static String getShortClassName(@NotNull String fqcn) {
+    int first = fqcn.indexOf('.');
+    int last = fqcn.lastIndexOf('.');
+    if (fqcn.startsWith(ANDROID_PKG_PREFIX)) {
       // android.foo.Name -> android...Name
-      int first = fqcn.indexOf('.');
-      int last = fqcn.lastIndexOf('.');
       if (last > first) {
         return fqcn.substring(0, first) + ".." + fqcn.substring(last);
       }
     }
     else {
       // com.example.p1.p2.MyClass -> com.example...MyClass
-      int first = fqcn.indexOf('.');
       first = fqcn.indexOf('.', first + 1);
-      int last = fqcn.lastIndexOf('.');
       if (last > first && first >= 0) {
         return fqcn.substring(0, first) + ".." + fqcn.substring(last);
       }
@@ -387,8 +392,11 @@ public class ViewLoader {
     return fqcn;
   }
 
-  @SuppressWarnings("ConstantConditions")
-  private Object createNewInstance(Class<?> clazz, Class<?>[] constructorSignature, Object[] constructorParameters, boolean isView)
+  @NotNull
+  private Object createNewInstance(@NotNull Class<?> clazz,
+                                   @Nullable Class<?>[] constructorSignature,
+                                   @Nullable Object[] constructorParameters,
+                                   boolean isView)
     throws NoSuchMethodException, ClassNotFoundException, InvocationTargetException, IllegalAccessException, InstantiationException {
     Constructor<?> constructor = null;
 
@@ -402,10 +410,11 @@ public class ViewLoader {
 
       // View class has 1-parameter, 2-parameter and 3-parameter constructors
 
-      final int paramsCount = constructorSignature.length;
+      final int paramsCount = constructorSignature != null ? constructorSignature.length : 0;
       if (paramsCount == 0) {
         throw e;
       }
+      assert constructorParameters != null;
 
       for (int i = 3; i >= 1; i--) {
         if (i == paramsCount) {
@@ -439,6 +448,7 @@ public class ViewLoader {
           constructor = clazz.getConstructor(constructorSignature);
           if (constructor != null) {
             if (constructorSignature.length < 2) {
+              assert myLogger != null;
               LOG.info("wrong_constructor: Custom view " +
                        clazz.getSimpleName() +
                        " is not using the 2- or 3-argument " +
@@ -466,25 +476,93 @@ public class ViewLoader {
   }
 
   @Nullable
-  private static String getRClassName(@NotNull final Module module) {
-    return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
-      @Nullable
-      @Override
-      public String compute() {
-        final AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet == null) {
-          return null;
-        }
+  public Class<?> loadClass(@NotNull String className, boolean logError) throws InconvertibleClassError {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("loadClassB(%s)", anonymizeClassName(className)));
+    }
 
-        final Manifest manifest = facet.getManifest();
-        if (manifest == null) {
-          return null;
-        }
-
-        final String packageName = manifest.getPackage().getValue();
-        return packageName == null ? null : packageName + '.' + R_CLASS;
+    try {
+      return getModuleClassLoader().loadClass(className);
+    }
+    catch (ClassNotFoundException e) {
+      if (logError && !className.equals(VIEW_FRAGMENT)) {
+        assert myLogger != null;
+        myLogger.addMissingClass(className);
       }
-    });
+      return null;
+    }
+  }
+
+  @Nullable
+  private Object createViewFromSuperclass(@NotNull final String className,
+                                          @Nullable final Class<?>[] constructorSignature,
+                                          @Nullable final Object[] constructorArgs) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("createViewFromSuperClass(%s)", anonymizeClassName(className)));
+    }
+
+    // Creating views from the superclass calls into PSI which may need
+    // I/O access (for example when it consults the Java class index
+    // and that index needs to be lazily updated.)
+    // We run most of the method as a safe region, but we exit the
+    // safe region before calling {@link #createNewInstance} (which can
+    // call user code), and enter it again upon return.
+    final Ref<Boolean> token = new Ref<>();
+    token.set(RenderSecurityManager.enterSafeRegion(myCredential));
+    try {
+      return ApplicationManager.getApplication().runReadAction((Computable<Object>)() -> {
+        final JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getProject());
+        PsiClass psiClass = facade.findClass(className, myModule.getModuleWithDependenciesAndLibrariesScope(false));
+
+        if (psiClass == null) {
+          return null;
+        }
+        psiClass = psiClass.getSuperClass();
+        final Set<String> visited = new HashSet<>();
+
+        while (psiClass != null) {
+          final String qName = psiClass.getQualifiedName();
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("  parent " + anonymizeClassName(qName));
+          }
+
+          if (qName == null ||
+              !visited.add(qName) ||
+              AndroidUtils.VIEW_CLASS_NAME.equals(psiClass.getQualifiedName())) {
+            break;
+          }
+
+          if (!AndroidUtils.isAbstract(psiClass)) {
+            try {
+              Class<?> aClass = myLoadedClasses.get(qName);
+              if (aClass == null && myLayoutLibrary.getClassLoader() != null) {
+                aClass = myLayoutLibrary.getClassLoader().loadClass(qName);
+                if (aClass != null) {
+                  myLoadedClasses.put(qName, aClass);
+                }
+              }
+              if (aClass != null) {
+                try {
+                  RenderSecurityManager.exitSafeRegion(token.get());
+                  return createNewInstance(aClass, constructorSignature, constructorArgs, true);
+                }
+                finally {
+                  token.set(RenderSecurityManager.enterSafeRegion(myCredential));
+                }
+              }
+            }
+            catch (Throwable e) {
+              LOG.debug(e);
+            }
+          }
+          psiClass = psiClass.getSuperClass();
+        }
+        return null;
+      });
+    }
+    finally {
+      RenderSecurityManager.exitSafeRegion(token.get());
+    }
   }
 
   /**
@@ -492,6 +570,7 @@ public class ViewLoader {
    * to local resources properly
    */
   public void loadAndParseRClassSilently() {
+    assert myLogger != null;
     final String rClassName = getRClassName(myModule);
     try {
       if (rClassName == null) {
@@ -501,13 +580,7 @@ public class ViewLoader {
       myLogger.setResourceClass(rClassName);
       loadAndParseRClass(rClassName);
     }
-    catch (ClassNotFoundException e) {
-      myLogger.setMissingResourceClass(true);
-    }
-    catch (NoClassDefFoundError e) {
-      // ClassNotFoundException is thrown when no R class was found. But if the R class was found, but not the inner classes (like R$id or
-      // R$styleable), NoClassDefFoundError is thrown. This is likely because R class was generated by AarResourceClassGenerator but the
-      // inner classes weren't needed and hence not generated.
+    catch (ClassNotFoundException | NoClassDefFoundError e) {
       myLogger.setMissingResourceClass(true);
     }
     catch (InconvertibleClassError e) {
@@ -516,92 +589,69 @@ public class ViewLoader {
     }
   }
 
-  private void loadAndParseRClass(@NotNull String className) throws ClassNotFoundException, InconvertibleClassError {
+  @VisibleForTesting
+  void loadAndParseRClass(@NotNull String className) throws ClassNotFoundException, InconvertibleClassError {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("loadAndParseRClass(%s)", anonymizeClassName(className)));
+    }
+
     Class<?> aClass = myLoadedClasses.get(className);
+    AppResourceRepository appResources = AppResourceRepository.getAppResources(myModule, true);
     if (aClass == null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("  The R class is not loaded.");
+      }
+
       final ModuleClassLoader moduleClassLoader = getModuleClassLoader();
       final boolean isClassLoaded = moduleClassLoader.isClassLoaded(className);
       aClass = moduleClassLoader.loadClass(className);
 
       if (!isClassLoaded && aClass != null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(String.format("  Class found in module %s, first time load.", anonymize(myModule)));
+        }
+
         // This is the first time we've found the resources. The dynamic R classes generated for aar libraries are now stale and must be
         // regenerated. Clear the ModuleClassLoader and reload the R class.
         myLoadedClasses.clear();
         ModuleClassLoader.clearCache(myModule);
         myModuleClassLoader = null;
         aClass = getModuleClassLoader().loadClass(className);
+        if (appResources != null) {
+          appResources.resetDynamicIds(true);
+        }
+      }
+      else {
+        if (LOG.isDebugEnabled()) {
+          if (isClassLoaded) {
+            LOG.debug(String.format("  Class already loaded in module %s.", anonymize(myModule)));
+          }
+        }
       }
       if (aClass != null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("  Class loaded");
+        }
+
+        assert myLogger != null;
         myLoadedClasses.put(className, aClass);
         myLogger.setHasLoadedClasses(true);
       }
     }
 
     if (aClass != null) {
-      final Map<ResourceType, TObjectIntHashMap<String>> res2id =
-        new EnumMap<ResourceType, TObjectIntHashMap<String>>(ResourceType.class);
-      final TIntObjectHashMap<Pair<ResourceType, String>> id2res = new TIntObjectHashMap<Pair<ResourceType, String>>();
-      final Map<IntArrayWrapper, String> styleableId2res = new HashMap<IntArrayWrapper, String>();
+      final Map<ResourceType, TObjectIntHashMap<String>> res2id = new EnumMap<>(ResourceType.class);
+      final TIntObjectHashMap<Pair<ResourceType, String>> id2res = new TIntObjectHashMap<>();
+      final Map<IntArrayWrapper, String> styleableId2res = new HashMap<>();
 
       if (parseClass(aClass, id2res, styleableId2res, res2id)) {
-        AppResourceRepository appResources = AppResourceRepository.getAppResources(myModule, true);
         if (appResources != null) {
           appResources.setCompiledResources(id2res, styleableId2res, res2id);
         }
       }
     }
-  }
-
-  private static boolean parseClass(Class<?> rClass,
-                                    TIntObjectHashMap<Pair<ResourceType, String>> id2res,
-                                    Map<IntArrayWrapper, String> styleableId2Res,
-                                    Map<ResourceType, TObjectIntHashMap<String>> res2id) throws ClassNotFoundException {
-    try {
-      final Class<?>[] nestedClasses;
-      try {
-        nestedClasses = rClass.getDeclaredClasses();
-      }
-      catch (LinkageError e) {
-        final Throwable cause = e.getCause();
-
-        if (cause instanceof ClassNotFoundException) {
-          LOG.debug(e);
-          throw (ClassNotFoundException)cause;
-        }
-        throw e;
-      }
-      for (Class<?> resClass : nestedClasses) {
-        final ResourceType resType = ResourceType.getEnum(resClass.getSimpleName());
-
-        if (resType != null) {
-          final TObjectIntHashMap<String> resName2Id = new TObjectIntHashMap<String>();
-          res2id.put(resType, resName2Id);
-
-          for (Field field : resClass.getDeclaredFields()) {
-            final int modifiers = field.getModifiers();
-            if (Modifier.isStatic(modifiers)) { // May not be final in library projects
-              final Class<?> type = field.getType();
-              if (type.isArray() && type.getComponentType() == int.class) {
-                styleableId2Res.put(new IntArrayWrapper((int[])field.get(null)), field.getName());
-              }
-              else if (type == int.class) {
-                final Integer value = (Integer)field.get(null);
-                id2res.put(value, Pair.of(resType, field.getName()));
-                resName2Id.put(field.getName(), value);
-              }
-              else {
-                LOG.error("Unknown field type in R class: " + type);
-              }
-            }
-          }
-        }
-      }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("END loadAndParseRClass(%s)", anonymizeClassName(className)));
     }
-    catch (IllegalAccessException e) {
-      LOG.info(e);
-      return false;
-    }
-
-    return true;
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.builder.model.AndroidAtom;
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaLibrary;
@@ -23,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class DependenciesStub implements Dependencies {
@@ -58,5 +60,15 @@ public class DependenciesStub implements Dependencies {
   @NotNull
   public List<String> getProjects() {
     return myProjects;
+  }
+
+  @Override
+  public Collection<AndroidAtom> getAtoms() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public AndroidAtom getBaseAtom() {
+    return null;
   }
 }

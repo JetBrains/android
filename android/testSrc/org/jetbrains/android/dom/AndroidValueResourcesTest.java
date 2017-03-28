@@ -16,13 +16,16 @@
 
 package org.jetbrains.android.dom;
 
+import com.android.builder.model.AndroidProject;
 import com.android.SdkConstants;
+import com.android.testutils.TestUtils;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -37,22 +40,36 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.actions.InlineAction;
 import com.intellij.refactoring.util.CommonRefactoringUtil;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class AndroidValueResourcesTest extends AndroidDomTest {
+public class AndroidValueResourcesTest extends AndroidDomTestCase {
   public AndroidValueResourcesTest() {
-    super(false, "dom/resources");
+    super("dom/resources");
+  }
+
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
+  }
+
+  @Override
+  protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
+                                            @NotNull List<MyAdditionalModuleData> modules) {
+    addModuleWithAndroidFacet(projectBuilder, modules, "lib", AndroidProject.PROJECT_TYPE_LIBRARY);
   }
 
   @Override
@@ -95,7 +112,7 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     myFixture.type('\n');
-    myFixture.checkResultByFile(testFolder + '/' + "styles2_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + "styles2_after.xml");
   }
 
   public void testStyles3() throws Throwable {
@@ -122,7 +139,7 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
 
   public void testDeclareStyleableNameNavigation1() throws Exception {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
-    final VirtualFile file = copyFileToProject("attrs4.xml");
+    VirtualFile file = copyFileToProject("attrs4.xml");
     myFixture.configureFromExistingVirtualFile(file);
 
     PsiElement[] targets =
@@ -136,7 +153,7 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
 
   public void testDeclareStyleableNameNavigation2() throws Exception {
     copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
-    final VirtualFile file = copyFileToProject("attrs5.xml");
+    VirtualFile file = copyFileToProject("attrs5.xml");
     myFixture.configureFromExistingVirtualFile(file);
 
     PsiElement[] targets =
@@ -181,7 +198,7 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     myFixture.type('\n');
-    myFixture.checkResultByFile(testFolder + '/' + getTestName(true) + "_after.xml");
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(true) + "_after.xml");
   }
 
   public void testMoreTypes() throws Throwable {
@@ -225,15 +242,15 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
   }
 
   public void testIntResourceReference() throws Throwable {
-    myFixture.copyFileToProject(testFolder + "/intResReference.xml", "res/layout/main.xml");
-    myFixture.copyFileToProject(testFolder + "/intbool.xml", "res/values/values.xml");
-    myFixture.testCompletion("res/layout/main.xml", testFolder + "/intResReference_after.xml");
+    myFixture.copyFileToProject(myTestFolder + "/intResReference.xml", "res/layout/main.xml");
+    myFixture.copyFileToProject(myTestFolder + "/intbool.xml", "res/values/values.xml");
+    myFixture.testCompletion("res/layout/main.xml", myTestFolder + "/intResReference_after.xml");
   }
 
   public void testBoolResourceReference() throws Throwable {
-    myFixture.copyFileToProject(testFolder + "/boolResReference.xml", "res/layout/main.xml");
-    myFixture.copyFileToProject(testFolder + "/intbool.xml", "res/values/values.xml");
-    myFixture.testCompletion("res/layout/main.xml", testFolder + "/boolResReference_after.xml");
+    myFixture.copyFileToProject(myTestFolder + "/boolResReference.xml", "res/layout/main.xml");
+    myFixture.copyFileToProject(myTestFolder + "/intbool.xml", "res/values/values.xml");
+    myFixture.testCompletion("res/layout/main.xml", myTestFolder + "/boolResReference_after.xml");
   }
 
   public void testResourceReferenceAsValueHighlighting() throws Throwable {
@@ -270,13 +287,13 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     assertDoesntContain(lookupElements, "@mipmap/icon");
 
     // Add a mipmap to resources and expect for it to be listed
-    myFixture.copyFileToProject(testFolder + "/icon.png", "res/mipmap/icon.png");
+    myFixture.copyFileToProject(myTestFolder + "/icon.png", "res/mipmap/icon.png");
     myFixture.complete(CompletionType.BASIC);
     assertContainsElements(myFixture.getLookupElementStrings(), "@android:", "@color/color1", "@drawable/picture1", "@mipmap/icon");
   }
 
   public void testParentStyleReference() throws Throwable {
-    VirtualFile file = myFixture.copyFileToProject(testFolder + "/psreference.xml", getPathToCopy("psreference.xml"));
+    VirtualFile file = myFixture.copyFileToProject(myTestFolder + "/psreference.xml", getPathToCopy("psreference.xml"));
     myFixture.configureFromExistingVirtualFile(file);
     PsiFile psiFile = myFixture.getFile();
     String text = psiFile.getText();
@@ -295,19 +312,19 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
   }
 
   public void testCreateResourceFromUsage() throws Throwable {
-    final VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml", "res/values/drawables.xml");
+    VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml", "res/values/drawables.xml");
     doCreateValueResourceFromUsage(virtualFile);
-    myFixture.checkResultByFile(testFolder + '/' + getTestName(true) + "_after.xml", true);
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(true) + "_after.xml", true);
   }
 
   public void testJavaCompletion1() throws Throwable {
     copyFileToProject("value_resources.xml", "res/values/value_resources.xml");
-    final String fileName = getTestName(false) + ".java";
-    final VirtualFile file = copyFileToProject(fileName, "src/" + "p1.p2".replace('/', '.') + '/' + fileName);
+    String fileName = getTestName(false) + ".java";
+    VirtualFile file = copyFileToProject(fileName, "src/" + "p1.p2".replace('/', '.') + '/' + fileName);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     myFixture.type('\n');
-    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + "_after.java");
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.java");
   }
 
   public void testJavaCompletion2() throws Throwable {
@@ -356,7 +373,7 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
 
   public void testInlineResourceField() throws Exception {
     copyFileToProject("value_resources.xml", "res/values/value_resources.xml");
-    final VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(false) + ".java");
+    VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(false) + ".java");
     myFixture.configureFromExistingVirtualFile(virtualFile);
     try {
       myFixture.testAction(new InlineAction());
@@ -364,19 +381,39 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     }
     catch (CommonRefactoringUtil.RefactoringErrorHintException e) {
     }
-    myFixture.checkResultByFile(testFolder + '/' + getTestName(false) + ".java", true);
+    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + ".java", true);
   }
 
   public void testJavaCreateFromUsage() throws Throwable {
-    final VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(false) + ".java");
+    VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(false) + ".java");
     doCreateValueResourceFromUsage(virtualFile);
-    myFixture.checkResultByFile("res/values/drawables.xml", testFolder + '/' + getTestName(true) + "_drawables_after.xml", true);
+    myFixture.checkResultByFile("res/values/drawables.xml", myTestFolder + '/' + getTestName(true) + "_drawables_after.xml", true);
   }
 
   public void testJavaCreateFromUsage1() throws Throwable {
+    VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(false) + ".java");
+    doCreateValueResourceFromUsage(virtualFile);
+    myFixture.checkResultByFile("res/values/bools.xml", myTestFolder + '/' + getTestName(true) + "_bools_after.xml", true);
+  }
+
+  /**
+   * Test quickfix where the R class is from a dependency, not the main module. This is a proxy for testing Bazel projects where
+   * the main "workspace" module doesn't have a manifest or resources. There are instead some resource-only modules which are
+   * dependencies of the main module.
+   */
+  public void testJavaCreateFromUsageResourcesInDeps() throws Throwable {
+    // Replace lib manifest (defaults to p1.p2) with one that has the right package (p1.p2.lib).
+    Module libModule = myAdditionalModules.get(0);
+    deleteManifest(libModule);
+    myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml");
+    myFixture.copyFileToProject("util/lib/R.java", "additionalModules/lib/gen/p1/p2/lib/R.java");
+    // Should be okay even if main module is missing a manifest since the resources come from the library.
+    deleteManifest(myModule);
+
     final VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(false) + ".java");
     doCreateValueResourceFromUsage(virtualFile);
-    myFixture.checkResultByFile("res/values/bools.xml", testFolder + '/' + getTestName(true) + "_bools_after.xml", true);
+    myFixture.checkResultByFile("additionalModules/lib/res/values/strings.xml",
+                                myTestFolder + '/' + getTestName(true) + "_strings_after.xml", true);
   }
 
   public void testAttrReferenceCompletion() throws Throwable {
@@ -401,58 +438,89 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
     doTestHighlighting();
   }
 
-  public void testNavigationInPlatformXml1() throws Exception {
-    final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(
-      getTestSdkPath() + "/platforms/" + getPlatformDir() + "/data/res/values/resources.xml");
-    myFixture.configureFromExistingVirtualFile(file);
-    myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(16, 43));
+  public void testNavigationInPlatformXml1_NavigateFromParentAttr() throws Exception {
+    VirtualFile themes_holo =
+      LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/themes_holo.xml").toString());
+    assertNotNull(themes_holo);
+    VirtualFile themes =
+      LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/themes.xml").toString());
+    assertNotNull(themes);
+
+    // In themes_holo.xml: point to value of "Theme" in the parent attribute on line:
+    //     <style name="Theme.Holo.Light" parent="Theme.Light">
+    // Goto action should navigate to "Theme" in themes.xml, on line: "<style name="Theme">"
+    myFixture.configureFromExistingVirtualFile(themes_holo);
+    myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(406, 45));
+
     PsiElement[] targets =
       GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
     assertNotNull(targets);
     assertEquals(1, targets.length);
-    final PsiElement targetElement = LazyValueResourceElementWrapper.computeLazyElement(targets[0]);
+    PsiElement targetElement = LazyValueResourceElementWrapper.computeLazyElement(targets[0]);
+
     assertInstanceOf(targetElement, XmlAttributeValue.class);
-    final XmlAttributeValue targetAttrValue = (XmlAttributeValue)targetElement;
+    XmlAttributeValue targetAttrValue = (XmlAttributeValue)targetElement;
     assertEquals("Theme", targetAttrValue.getValue());
     assertEquals("name", ((XmlAttribute)targetAttrValue.getParent()).getName());
     assertEquals("style", ((XmlTag)targetAttrValue.getParent().getParent()).getName());
-    assertEquals(file, targetElement.getContainingFile().getVirtualFile());
+    assertEquals(themes, targetElement.getContainingFile().getVirtualFile());
   }
 
-  public void testNavigationInPlatformXml2() throws Exception {
-    final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(
-      getTestSdkPath() + "/platforms/" + getPlatformDir() + "/data/res/values/resources.xml");
-    myFixture.configureFromExistingVirtualFile(file);
-    myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(19, 17));
+  public void testNavigationInPlatformXml2_NavigateFromNameAttr() throws Exception {
+    VirtualFile themes_holo =
+      LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/themes_holo.xml").toString());
+    assertNotNull(themes_holo);
+    VirtualFile themes =
+      LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/themes.xml").toString());
+    assertNotNull(themes);
+
+    // In themes_holo.xml: point to value of "Theme" in the name attribute on line:
+    //     <style name="Theme.Holo.NoActionBar">
+    // Goto action should navigate to "Theme" in themes.xml, on line: "<style name="Theme">"
+    myFixture.configureFromExistingVirtualFile(themes_holo);
+    myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(776, 19));
+
     PsiElement[] targets =
       GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
     assertNotNull(targets);
     assertEquals(1, targets.length);
-    final PsiElement targetElement = LazyValueResourceElementWrapper.computeLazyElement(targets[0]);
+    PsiElement targetElement = LazyValueResourceElementWrapper.computeLazyElement(targets[0]);
+
     assertInstanceOf(targetElement, XmlAttributeValue.class);
-    final XmlAttributeValue targetAttrValue = (XmlAttributeValue)targetElement;
+    XmlAttributeValue targetAttrValue = (XmlAttributeValue)targetElement;
     assertEquals("Theme", targetAttrValue.getValue());
     assertEquals("name", ((XmlAttribute)targetAttrValue.getParent()).getName());
     assertEquals("style", ((XmlTag)targetAttrValue.getParent().getParent()).getName());
-    assertEquals(file, targetElement.getContainingFile().getVirtualFile());
+    assertEquals(themes, targetElement.getContainingFile().getVirtualFile());
   }
 
   public void testNavigationInPlatformXml3() throws Exception {
-    final VirtualFile file = LocalFileSystem.getInstance().findFileByPath(
-      getTestSdkPath() + "/platforms/" + getPlatformDir() + "/data/res/values/resources.xml");
-    myFixture.configureFromExistingVirtualFile(file);
-    myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(5, 44));
+    VirtualFile themes_holo =
+      LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/themes_holo.xml").toString());
+    assertNotNull(themes_holo);
+    VirtualFile colors_holo =
+      LocalFileSystem.getInstance().findFileByPath(TestUtils.getPlatformFile("data/res/values/colors_holo.xml").toString());
+    assertNotNull(colors_holo);
+
+    // In themes_holo.xml: point to value of "bright_foreground_holo_light" on line:
+    //    <item name="colorForeground">@color/bright_foreground_holo_light</item>
+    // Goto action should navigate to "bright_foreground_holo_light" in colors_holo.xml, on line:
+    //    <color name="bright_foreground_holo_light">@color/background_holo_dark</color>
+    myFixture.configureFromExistingVirtualFile(themes_holo);
+    myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(407, 60));
+
     PsiElement[] targets =
       GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
     assertNotNull(targets);
     assertEquals(1, targets.length);
-    final PsiElement targetElement = LazyValueResourceElementWrapper.computeLazyElement(targets[0]);
+    PsiElement targetElement = LazyValueResourceElementWrapper.computeLazyElement(targets[0]);
+
     assertInstanceOf(targetElement, XmlAttributeValue.class);
-    final XmlAttributeValue targetAttrValue = (XmlAttributeValue)targetElement;
-    assertEquals("my_white", targetAttrValue.getValue());
+    XmlAttributeValue targetAttrValue = (XmlAttributeValue)targetElement;
+    assertEquals("bright_foreground_holo_light", targetAttrValue.getValue());
     assertEquals("name", ((XmlAttribute)targetAttrValue.getParent()).getName());
     assertEquals("color", ((XmlTag)targetAttrValue.getParent().getParent()).getName());
-    assertEquals(file, targetElement.getContainingFile().getVirtualFile());
+    assertEquals(colors_holo, targetElement.getContainingFile().getVirtualFile());
   }
 
   public void testSpellchecker1() throws Throwable {
@@ -516,15 +584,15 @@ public class AndroidValueResourcesTest extends AndroidDomTest {
 
   private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {
     myFixture.configureFromExistingVirtualFile(virtualFile);
-    final List<HighlightInfo> infos = myFixture.doHighlighting();
-    final List<IntentionAction> actions = new ArrayList<>();
+    List<HighlightInfo> infos = myFixture.doHighlighting();
+    List<IntentionAction> actions = new ArrayList<>();
 
     for (HighlightInfo info : infos) {
-      final List<Pair<HighlightInfo.IntentionActionDescriptor, TextRange>> ranges = info.quickFixActionRanges;
+      List<Pair<HighlightInfo.IntentionActionDescriptor, TextRange>> ranges = info.quickFixActionRanges;
 
       if (ranges != null) {
         for (Pair<HighlightInfo.IntentionActionDescriptor, TextRange> pair : ranges) {
-          final IntentionAction action = pair.getFirst().getAction();
+          IntentionAction action = pair.getFirst().getAction();
           if (action instanceof CreateValueResourceQuickFix) {
             actions.add(action);
           }

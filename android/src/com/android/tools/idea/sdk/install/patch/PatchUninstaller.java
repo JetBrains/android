@@ -48,7 +48,7 @@ class PatchUninstaller extends AbstractUninstaller implements PatchOperation {
 
   @NotNull
   @Override
-  public LocalPackage getPatcher() {
+  public LocalPackage getPatcher(@NotNull ProgressIndicator progressIndicator) {
     return myPatcher;
   }
 

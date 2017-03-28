@@ -30,7 +30,6 @@ import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleExecutionSettings;
 import static com.android.tools.idea.gradle.util.Projects.populate;
-import static com.android.tools.idea.gradle.util.Projects.setSkipSyncIssueReporting;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT;
 import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
@@ -40,8 +39,6 @@ public class FastGradleSync {
 
   @NotNull
   public Callback requestProjectSync(@NotNull Project project) {
-    setSkipSyncIssueReporting(project, true);
-
     Callback callback = new Callback();
     GradleExecutionSettings settings = getGradleExecutionSettings(project);
     ExternalSystemTaskId id = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, RESOLVE_PROJECT, project);
@@ -52,14 +49,11 @@ public class FastGradleSync {
       try {
         DataNode<ProjectData> projectDataNode = myProjectResolver.resolveProjectInfo(id, projectPath, false, settings, NULL_OBJECT);
         assert projectDataNode != null;
-        invokeAndWaitIfNeeded((ThrowableRunnable)() -> populate(project, projectDataNode, false, false));
+        invokeAndWaitIfNeeded((ThrowableRunnable)() -> populate(project, projectDataNode, null, false));
         callback.setDone();
       }
       catch (Throwable e) {
         callback.setRejected(e);
-      }
-      finally {
-        setSkipSyncIssueReporting(project, null);
       }
     });
     return callback;

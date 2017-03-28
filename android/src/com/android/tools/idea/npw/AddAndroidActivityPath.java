@@ -60,8 +60,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_ATOM;
 import static com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
+import static com.android.tools.idea.wizard.WizardConstants.IS_INSTANT_APP_KEY;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.PATH;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.WIZARD;
@@ -84,7 +86,7 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   public static final Set<String> PACKAGE_NAME_PARAMETERS = ImmutableSet.of(ATTR_PACKAGE_NAME);
   public static final Set<String> CLASS_NAME_PARAMETERS = ImmutableSet.of(ATTR_PARENT_ACTIVITY_CLASS);
   public static final Key<Boolean> KEY_OPEN_EDITORS = createKey("open.editors", WIZARD, Boolean.class);
-  public static final Set<Key<?>> IMPLICIT_PARAMETERS = ImmutableSet.of(KEY_PACKAGE_NAME, KEY_SOURCE_PROVIDER_NAME);
+  public static final Set<Key<?>> IMPLICIT_PARAMETERS = ImmutableSet.of(KEY_PACKAGE_NAME, KEY_SOURCE_PROVIDER_NAME, IS_INSTANT_APP_KEY);
 
   private static final Logger LOG = Logger.getInstance(AddAndroidActivityPath.class);
   public static final String CUSTOMIZE_ACTIVITY_TITLE = "Customize the Activity";
@@ -94,7 +96,6 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
   private IconStep myAssetStudioStep;
   private final VirtualFile myTargetFolder;
   @Nullable private final File myTemplate;
-  private final Map<String, Object> myPredefinedParameterValues;
   private final Disposable myParentDisposable;
 
   /**
@@ -102,10 +103,8 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
    */
   public AddAndroidActivityPath(@Nullable VirtualFile targetFolder,
                                 @Nullable File template,
-                                Map<String, Object> predefinedParameterValues,
                                 Disposable parentDisposable) {
     myTemplate = template;
-    myPredefinedParameterValues = predefinedParameterValues;
     myParentDisposable = parentDisposable;
     myIsNewModule = false;
     myTargetFolder = targetFolder != null && !targetFolder.isDirectory() ? targetFolder.getParent() : targetFolder;
@@ -342,8 +341,12 @@ public final class AddAndroidActivityPath extends DynamicWizardPath {
       myState.put(KEY_SELECTED_TEMPLATE, new TemplateEntry(myTemplate, templateMetadata));
     }
     SourceProvider[] sourceProviders = getSourceProviders(module, myTargetFolder);
+
+    boolean isInstantAppModule = facet.getProjectType() == PROJECT_TYPE_ATOM;
+    myState.put(IS_INSTANT_APP_KEY, isInstantAppModule);
+
     myParameterStep =
-      new TemplateParameterStep2(getFormFactor(myTargetFolder), myPredefinedParameterValues, myParentDisposable, KEY_PACKAGE_NAME,
+      new TemplateParameterStep2(getFormFactor(myTargetFolder), ImmutableMap.of(), myParentDisposable, KEY_PACKAGE_NAME,
                                  sourceProviders, CUSTOMIZE_ACTIVITY_TITLE);
     myAssetStudioStep = new IconStep(KEY_SELECTED_TEMPLATE, KEY_SOURCE_PROVIDER, myParentDisposable);
 

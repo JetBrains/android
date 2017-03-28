@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.property.editors;
 
 import com.android.tools.idea.uibuilder.property.NlProperty;
+import com.android.tools.idea.uibuilder.property.editors.support.EnumSupportFactory;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditor;
 import com.android.tools.idea.uibuilder.property.ptable.PTableCellEditorProvider;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
@@ -119,10 +120,11 @@ public class NlPropertyEditors implements PTableCellEditorProvider, ProjectCompo
           break;
       }
     }
+    // Do not inline this method. Other classes should not know about EnumSupportFactory.
     if (isBoolean == Boolean.TRUE) {
       return EditorType.BOOLEAN;
     }
-    else if (NlEnumEditor.supportsProperty(property)) {
+    else if (EnumSupportFactory.supportsProperty(property)) {
       if (property.getName().equals(ATTR_STYLE)) {
         return EditorType.COMBO_WITH_BROWSE;
       }

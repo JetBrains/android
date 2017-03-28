@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.sdk;
 
+import com.android.testutils.TestUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.util.xml.NanoXmlUtil;
@@ -25,21 +26,10 @@ import java.io.BufferedReader;
 import java.io.File;
 
 public class AndroidTargetDataTest extends AndroidTestCase {
-  private File mySdkDir;
-
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    mySdkDir = new File(getTestSdkPath());
-    assertTrue(mySdkDir.exists());
-  }
 
   public void testResourceIdMap() throws Exception {
     final AndroidTargetData.MyPublicResourceCacheBuilder builder = new AndroidTargetData.MyPublicResourceCacheBuilder();
-    String path = "platforms/android-1.5/data/res/values/public.xml".replace('/', File.separatorChar);
-    File publicXml = new File(mySdkDir, path);
-
-    assertTrue(publicXml.exists());
+    File publicXml = TestUtils.getPlatformFile("data/res/values/public.xml");
 
     BufferedReader reader = null;
     try {
