@@ -122,6 +122,19 @@ public class EmbeddedDistributionPaths {
   }
 
   @NotNull
+  public String findEmbeddedJavaLibPluginPath() {
+    File file = new File(PathManager.getHomePath(), "plugins/android/resources/java-lib-plugin/");
+    // Release build
+    if (file.exists()) {
+      return file.getPath();
+    }
+
+    // Development build
+    String relativePath = toSystemDependentName("/../../out/studio/java-lib-plugin/libs/");
+    return toSystemDependentName(PathManager.getHomePath() + relativePath);
+  }
+
+  @NotNull
   private static Logger getLog() {
     return Logger.getInstance(EmbeddedDistributionPaths.class);
   }
