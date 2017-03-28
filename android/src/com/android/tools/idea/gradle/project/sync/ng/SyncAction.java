@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.project.sync.ng;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
+import com.android.java.model.ArtifactModel;
+import com.android.java.model.JavaProject;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.GradleProject;
@@ -99,7 +101,12 @@ public class SyncAction implements BuildAction<SyncAction.ProjectModels>, Serial
         return;
       }
       // This is a Java module.
-      // TODO use the new Java library model here.
+      JavaProject javaProject = findAndAddModel(gradleProject, controller, JavaProject.class);
+      if(javaProject != null){
+        return;
+      }
+      // Jar/Aar module.
+      findAndAddModel(gradleProject, controller, ArtifactModel.class);
     }
 
     @NotNull
