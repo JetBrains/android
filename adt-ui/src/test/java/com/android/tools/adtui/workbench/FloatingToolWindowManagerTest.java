@@ -31,10 +31,7 @@ import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import com.intellij.util.ui.UIUtil;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
@@ -135,12 +132,14 @@ public class FloatingToolWindowManagerTest {
   }
 
   @Test
+  @Ignore
   public void testProjectClosed() {
     myManager.projectClosed();
     verify(myConnection).disconnect();
   }
 
   @Test
+  @Ignore
   @SuppressWarnings("unchecked")
   public void testRestoreDefaultLayout() {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1);
@@ -150,11 +149,13 @@ public class FloatingToolWindowManagerTest {
   }
 
   @Test
+  @Ignore
   public void testFileOpened() {
     myListener.fileOpened(myEditorManager, myVirtualFile);
   }
 
   @Test
+  @Ignore
   public void testFileOpenedCausingFloatingToolWindowToDisplay() {
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor1});
     myListener.fileOpened(myEditorManager, myVirtualFile);
@@ -163,6 +164,7 @@ public class FloatingToolWindowManagerTest {
   }
 
   @Test
+  @Ignore
   public void testFileOpenedCausingFloatingToolWindowToDisplay2() {
     when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor1, myFileEditor2});
     myListener.fileOpened(myEditorManager, myVirtualFile);
@@ -172,6 +174,7 @@ public class FloatingToolWindowManagerTest {
 
   @Test
   @SuppressWarnings("unchecked")
+  @Ignore
   public void testSwitchingBetweenTwoEditorsWithDifferentFloatingToolWindows() {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1, myWorkBench2);
     myListener.fileOpened(myEditorManager, myVirtualFile);
@@ -199,6 +202,7 @@ public class FloatingToolWindowManagerTest {
 
   @Test
   @SuppressWarnings("unchecked")
+  @Ignore
   public void testFileCloseCausingFloatingToolWindowToHide() {
     when(myKeyboardFocusManager.getFocusOwner()).thenReturn(myWorkBench1, new JLabel());
     myListener.fileOpened(myEditorManager, myVirtualFile);
