@@ -50,7 +50,7 @@ class SyncExecutor {
   @NotNull private final GradleExecutionHelper myHelper = new GradleExecutionHelper();
 
   SyncExecutor(@NotNull Project project) {
-    this(project, new CommandLineArgs(false /* do not create classpath init script */), new SyncErrorHandlerManager(project));
+    this(project, new CommandLineArgs(true), new SyncErrorHandlerManager(project));
   }
 
   @VisibleForTesting

@@ -20,7 +20,7 @@
         <os family="windows" />
     </condition>
 
-    <target name="preBuild" depends="profiler">
+    <target name="preBuild" depends="profiler, java-lib-plugin">
     </target>
     <target name="rebuild">
         <exec executable="${gradle.wrapper.executable}" dir="${android.basedir}/../../../base/profiler" failonerror="true">
@@ -33,6 +33,12 @@
         <exec executable="${gradle.wrapper.executable}" dir="${android.basedir}/../../../base/profiler" failonerror="true">
             <arg value="build" />
             <env key="JAVA_HOME" value="${java.home}"/>
+        </exec>
+    </target>
+    <target name="java-lib-plugin">
+        <exec executable="${gradle.wrapper.executable}" dir="${android.basedir}/../../../base/build-system/java-lib-plugin/java-lib-model-builder" failonerror="true">
+            <arg value="build" />
+            <env key="BUILD_FROM_STUDIO" value="true"/>
         </exec>
     </target>
 </project>
