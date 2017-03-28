@@ -433,6 +433,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       panel.add(myLabel, new TabularLayout.Constraint(0, 0));
       panel.add(myStateChart, new TabularLayout.Constraint(0, 0));
       myStateChart.setModel(value.getModel());
+      // 1 is index of the selected color, 0 is of the non-selected
+      // See more: {@link ProfilerColors#THREAD_STATES}
+      myStateChart.getColors().setColorIndex(isSelected ? 1 : 0);
       return panel;
     }
   }
