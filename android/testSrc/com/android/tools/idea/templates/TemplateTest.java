@@ -1229,7 +1229,7 @@ public class TemplateTest extends AndroidGradleTestCase {
     RenderingContext.Builder builder = RenderingContext.Builder.newContext(projectTemplate, project)
       .withOutputRoot(projectRoot)
       .withModuleRoot(moduleRoot)
-      .withGradleSync(false);
+      .withPerformSync(false);
 
     if (parameters != null) {
       builder.withParams(parameters);
