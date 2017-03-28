@@ -138,18 +138,55 @@ public class WidgetConstraintPanel extends JPanel {
   static final int CONNECTION_BOTTOM = 3;
   static final int CONNECTION_BASELINE = 4;
 
-  static String[][] ourConstraintString = {
-    {SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF},
-    {SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF},
-    {SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF},
-    {SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF},
-    {SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF}
+  static String[][] ourConstraintString_ltr = {{
+    SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
+    SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
+    SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF,
+    SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF
+  }, {
+    SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
+    SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
+    SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
+    SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF
+  }, {
+    SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
+    SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF
+  }, {
+    SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
+    SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF
+  }, {
+    SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF
+  }};
+  static String[][] ourConstraintString_rtl = {{
+    SdkConstants.ATTR_LAYOUT_END_TO_START_OF,
+    SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
+    SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF,
+    SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF
+  }, {
+    SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
+    SdkConstants.ATTR_LAYOUT_START_TO_END_OF,
+    SdkConstants.ATTR_LAYOUT_RIGHT_TO_LEFT_OF,
+    SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF,
+  }, {SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
+    SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF
+  }, {
+    SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
+    SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF
+  }, {
+    SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF
+  }};
+
+  static String[][] ourMarginString_ltr = {
+    {SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, SdkConstants.ATTR_LAYOUT_MARGIN_START},
+    {SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, SdkConstants.ATTR_LAYOUT_MARGIN_END},
+    {SdkConstants.ATTR_LAYOUT_MARGIN_TOP},
+    {SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM},
   };
-  static String[] ourMarginString = {
-    SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
-    SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
-    SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
-    SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
+  static String[][] ourMarginString_rtl = {
+    {SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, SdkConstants.ATTR_LAYOUT_MARGIN_END},
+    {SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, SdkConstants.ATTR_LAYOUT_MARGIN_START},
+    {SdkConstants.ATTR_LAYOUT_MARGIN_TOP},
+    {SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM},
   };
   static String[][] ourDeleteAttributes = {
     {SdkConstants.ATTR_LAYOUT_LEFT_TO_LEFT_OF,
@@ -196,13 +233,25 @@ public class WidgetConstraintPanel extends JPanel {
   };
 
   private int getMargin(int type) {
-    int margin = ConstraintUtilities.getMargin(mComponent, ourMarginString[type]);
+    boolean rtl = ConstraintUtilities.isInRTL(mComponent);
+
+    String[][] marginsAttr = rtl ? ourMarginString_rtl : ourMarginString_ltr;
+    String marginString = mComponent.getLiveAttribute(SdkConstants.NS_RESOURCES, marginsAttr[type][0]);
+    for (int i = 1; marginString == null && marginsAttr[type].length > i; i++) {
+      marginString = mComponent.getLiveAttribute(SdkConstants.NS_RESOURCES, marginsAttr[type][i]);
+    }
+
+    int margin = 0;
+    if (marginString != null) {
+      margin = ConstraintUtilities.getDpValue(mComponent, marginString);
+    }
+    String[][] ourConstraintString = rtl ? ourConstraintString_rtl : ourConstraintString_ltr;
     String connection = mComponent.getLiveAttribute(SdkConstants.SHERPA_URI, ourConstraintString[type][0]);
-    if (connection == null && ourConstraintString[type].length > 1) {
-      connection = mComponent.getLiveAttribute(SdkConstants.SHERPA_URI, ourConstraintString[type][1]);
-      if (connection == null) {
-        margin = -1;
-      }
+    for (int i = 1; connection == null && i < ourConstraintString[type].length; i++) {
+      connection = mComponent.getLiveAttribute(SdkConstants.SHERPA_URI, ourConstraintString[type][i]);
+    }
+    if (connection == null) {
+      margin = -1;
     }
     return margin;
   }
@@ -459,11 +508,11 @@ public class WidgetConstraintPanel extends JPanel {
   }
 
   public void setLeftMargin(int margin) {
-    setDimension(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, margin);
+    setDimension(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START, margin);
   }
 
   public void setRightMargin(int margin) {
-    setDimension(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, margin);
+    setDimension(mComponent, SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END, margin);
   }
 
   public void setBottomMargin(int margin) {

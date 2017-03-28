@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
+import com.android.resources.LayoutDirection;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.model.*;
@@ -82,6 +84,24 @@ public class ConstraintUtilities {
       return getDpValue(component, margin);
     }
     return 0;
+  }
+
+  /**
+   * Is this component displayed in RTL mode
+   *
+   * @param component
+   * @return
+   */
+  static public boolean isInRTL(@NotNull NlComponent component) {
+    Configuration configuration = component.getModel().getConfiguration();
+    if (configuration == null) {
+      return false;
+    }
+    LayoutDirectionQualifier qualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
+    if (qualifier == null) {
+      return false;
+    }
+    return qualifier.getValue() != LayoutDirection.RTL ? false : true;
   }
 
   /**
