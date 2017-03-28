@@ -20,7 +20,9 @@ import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.rendering.ImagePool;
 import com.android.tools.idea.rendering.ImageUtils;
 import com.android.tools.idea.rendering.RenderResult;
+import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Answers;
@@ -52,6 +54,12 @@ public class ScreenViewLayerTest {
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
+  }
+
+  @After
+  public void tearDown() {
+    // myScreenView registers its design surface in the disposer tree as a root.
+    Disposer.dispose(myScreenView.getSurface());
   }
 
   @Test
