@@ -86,7 +86,7 @@ public enum NlLayoutType {
     @NotNull
     @Override
     public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
-      throw new UnsupportedOperationException();
+      return new ToolbarActionGroups((NlDesignSurface)surface);
     }
   };
 
