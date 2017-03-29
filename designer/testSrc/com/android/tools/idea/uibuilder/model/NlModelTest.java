@@ -38,10 +38,12 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
@@ -632,6 +634,106 @@ public class NlModelTest extends LayoutTestCase {
     //noinspection OptionalGetWithoutIsPresent
     NlComponent searchViewComponent = model.flattenComponents().filter(c -> c.getTagName().equals("SearchView")).findFirst().get();
     assertEquals("android.widget.SearchView", searchViewComponent.viewInfo.getClassName());
+  }
+
+  public void testLayoutListenersModifyListenerList() throws Exception {
+    XmlFile modelXml = (XmlFile)myFixture.addFileToProject("res/layout/model.xml",
+                                                           "<LinearLayout" +
+                                                           "         xmlns:android=\"http://schemas.android.com/apk/res/android\"" +
+                                                           "         android:layout_width=\"match_parent\"" +
+                                                           "         android:layout_height=\"match_parent\">" +
+                                                           "</LinearLayout>");
+    NlModel model = SyncNlModel.create(createSurface(), myFixture.getProject(), myFacet, modelXml);
+    ModelListener listener1 = mock(ModelListener.class);
+    ModelListener remove1 = mock(ModelListener.class, invocation -> {
+      model.removeListener((ModelListener)invocation.getMock());
+      return null;
+    });
+    ModelListener listener2 = mock(ModelListener.class);
+    model.addListener(listener1);
+    model.addListener(remove1);
+    model.addListener(listener2);
+    model.notifyListenersModelLayoutComplete(false);
+    verify(listener1).modelChangedOnLayout(any(), anyBoolean());
+    verify(remove1).modelChangedOnLayout(any(), anyBoolean());
+    verify(listener2).modelChangedOnLayout(any(), anyBoolean());
+
+    model.notifyListenersModelLayoutComplete(false);
+    verify(listener1, times(2)).modelChangedOnLayout(any(), anyBoolean());
+    verifyNoMoreInteractions(remove1);
+    verify(listener2, times(2)).modelChangedOnLayout(any(), anyBoolean());
+  }
+
+  private static void notifyAndCheckListeners(@NotNull NlModel model,
+                                              @NotNull Consumer<NlModel> notifyMethod,
+                                              @NotNull Consumer<ModelListener> verifyMethod) throws Exception {
+    ModelListener listener1 = mock(ModelListener.class);
+    ModelListener remove1 = mock(ModelListener.class, invocation -> {
+      model.removeListener((ModelListener)invocation.getMock());
+      return null;
+    });
+    ModelListener listener2 = mock(ModelListener.class);
+    model.addListener(listener1);
+    model.addListener(remove1);
+    model.addListener(listener2);
+    notifyMethod.accept(model);
+    verifyMethod.accept(verify(listener1));
+    verifyMethod.accept(verify(remove1));
+    verifyMethod.accept(verify(listener2));
+
+    notifyMethod.accept(model);
+    verifyMethod.accept(verify(listener1, times(2)));
+    verifyNoMoreInteractions(remove1);
+    verifyMethod.accept(verify(listener2, times(2)));
+    model.removeListener(listener1);
+    model.removeListener(listener2);
+  }
+
+  public void testListenersModifyListenerList() throws Exception {
+    XmlFile modelXml = (XmlFile)myFixture.addFileToProject("res/layout/model.xml",
+                                                           "<LinearLayout" +
+                                                           "         xmlns:android=\"http://schemas.android.com/apk/res/android\"" +
+                                                           "         android:layout_width=\"match_parent\"" +
+                                                           "         android:layout_height=\"match_parent\">" +
+                                                           "</LinearLayout>");
+    NlModel model = SyncNlModel.create(createSurface(), myFixture.getProject(), myFacet, modelXml);
+
+    notifyAndCheckListeners(model, NlModel::notifyListenersModelUpdateComplete, listener -> listener.modelDerivedDataChanged(any()));
+    notifyAndCheckListeners(model, NlModel::notifyListenersRenderComplete, listener -> listener.modelRendered(any()));
+    notifyAndCheckListeners(model, m -> m.notifyModified(NlModel.ChangeType.EDIT), listener -> listener.modelChanged(any()));
+  }
+
+  public void testActivateDeactivateListeners() throws Exception {
+    XmlFile modelXml = (XmlFile)myFixture.addFileToProject("res/layout/model.xml",
+                                                           "<LinearLayout" +
+                                                           "         xmlns:android=\"http://schemas.android.com/apk/res/android\"" +
+                                                           "         android:layout_width=\"match_parent\"" +
+                                                           "         android:layout_height=\"match_parent\">" +
+                                                           "</LinearLayout>");
+    NlModel model = SyncNlModel.create(createSurface(), myFixture.getProject(), myFacet, modelXml);
+    ModelListener listener1 = mock(ModelListener.class);
+    ModelListener remove1 = mock(ModelListener.class, invocation -> {
+      model.removeListener((ModelListener)invocation.getMock());
+      return null;
+    });
+    ModelListener listener2 = mock(ModelListener.class);
+    model.addListener(listener1);
+    model.addListener(remove1);
+    model.addListener(listener2);
+    model.activate();
+    verify(listener1).modelActivated(any());
+    verify(remove1).modelActivated(any());
+    verify(listener2).modelActivated(any());
+    ModelListener remove2 = mock(ModelListener.class, invocation -> {
+      model.removeListener((ModelListener)invocation.getMock());
+      return null;
+    });
+    model.addListener(remove2);
+    model.deactivate();
+    verify(listener1).modelDeactivated(any());
+    verifyNoMoreInteractions(remove1);
+    verify(listener2).modelDeactivated(any());
+    verify(remove2).modelDeactivated(any());
   }
 
   @Override
