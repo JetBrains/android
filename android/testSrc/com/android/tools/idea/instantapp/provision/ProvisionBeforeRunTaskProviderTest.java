@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.instantapp.provision;
 
+import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.testing.IdeComponents;
 import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mock;
 
-import static com.android.tools.idea.instantapp.InstantApps.setInstantAppSdkLocation;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
@@ -27,15 +29,17 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class ProvisionBeforeRunTaskProviderTest extends AndroidTestCase {
   @Mock AndroidRunConfigurationBase myRunConfiguration;
+  private InstantAppSdks myInstantAppSdks;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    myInstantAppSdks = IdeComponents.replaceServiceWithMock(InstantAppSdks.class);
     initMocks(this);
   }
 
   public void testTaskNotCreatedIfSdkNotDefined() {
-    setInstantAppSdkLocation(null);
+    when(myInstantAppSdks.isInstantAppSdkEnabled()).thenReturn(false);
     assertNull(new ProvisionBeforeRunTaskProvider().createTask(myRunConfiguration));
   }
 }
