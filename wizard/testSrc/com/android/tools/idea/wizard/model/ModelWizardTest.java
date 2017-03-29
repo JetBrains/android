@@ -528,6 +528,8 @@ public class ModelWizardTest {
     step2.throwOnProceeding(false);
     wizard.goForward();
     assertThat(wizard.getCurrentStep()).isEqualTo(step3);
+
+    Disposer.dispose(wizard);
   }
 
   @Test
@@ -568,6 +570,7 @@ public class ModelWizardTest {
     step2.throwOnEntering(false);
     wizard.goForward();
     assertThat(wizard.getCurrentStep()).isEqualTo(step2);
+
     Disposer.dispose(wizard);
   }
 
@@ -606,6 +609,8 @@ public class ModelWizardTest {
     }
 
     assertThat(onFinished[0]).isTrue();
+
+    Disposer.dispose(wizard);
   }
 
   private static class DummyModel extends WizardModel {
