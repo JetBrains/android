@@ -120,8 +120,8 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   }
 
   private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo) {
-    IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject, projectInfo);
-    task.populateProject(mySetupRequest, mySelectModulesToImport);
+    IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
+    task.populateProject(projectInfo, mySetupRequest, mySelectModulesToImport);
   }
 
   @Override
