@@ -244,6 +244,11 @@ public class LayoutlibSceneManager extends SceneManager {
         myRenderingQueue.cancelAllUpdates();
       }
     }
+
+    @Override
+    public void modelLiveUpdate(@NotNull NlModel model, boolean animate) {
+      layout(animate);
+    }
   }
 
   private class SelectionChangeListener implements SelectionListener {
