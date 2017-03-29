@@ -16,9 +16,11 @@
 package com.android.tools.idea.uibuilder.fixtures;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.uibuilder.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.utils.XmlUtils;
@@ -46,7 +48,7 @@ import java.util.List;
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.tools.idea.uibuilder.LayoutTestUtilities.createSurface;
 import static com.google.common.truth.Truth.assertThat;
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 /** Fixture for building up models for tests */
@@ -132,9 +134,12 @@ public class ModelBuilder {
       assertNotNull(xml, rootTag);
       XmlDocument document = xmlFile.getDocument();
       assertNotNull(document);
-      NlDesignSurface surface = createSurface();
-      SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myFacet, xmlFile);
-      model.updateHierarchy(xmlFile.getRootTag(), buildViewInfos(model));
+
+      SyncNlModel model = SyncNlModel.create(createSurface(), myFixture.getProject(), myFacet, xmlFile);
+      LayoutlibSceneManager.updateHierarchy(buildViewInfos(model), model);
+      NlDesignSurface surface = model.getSurface();
+      SelectionModel selectionModel = model.getSelectionModel();
+      when(surface.getSelectionModel()).thenReturn(selectionModel);
       when(surface.getModel()).thenReturn(model);
       SyncLayoutlibSceneManager sceneManager = new SyncLayoutlibSceneManager(model);
       when(surface.getSceneManager()).thenReturn(sceneManager);
@@ -160,7 +165,7 @@ public class ModelBuilder {
     assertThat(model).isNotNull();
     name("linear2.xml"); // temporary workaround: replacing contents not working
     NlModel newModel = preserveXmlTags ? model : build();
-    model.updateHierarchy(newModel.getFile().getRootTag(), buildViewInfos(newModel));
+    LayoutlibSceneManager.updateHierarchy(AndroidPsiUtils.getRootTagSafely(newModel.getFile()), buildViewInfos(newModel), model);
     for (NlComponent component : newModel.getComponents()) {
       checkStructure(component);
     }
