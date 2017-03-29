@@ -272,7 +272,8 @@ public class NlDesignSurface extends DesignSurface {
    * @return the ScreenView, or null if we are not above one.
    */
   @Nullable
-  ScreenView getHoverScreenView(@SwingCoordinate int x, @SwingCoordinate int y) {
+  @Override
+  public ScreenView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
     if (myBlueprintView != null
         && x >= myBlueprintView.getX() && x <= myBlueprintView.getX() + myBlueprintView.getSize().width
         && y >= myBlueprintView.getY() && y <= myBlueprintView.getY() + myBlueprintView.getSize().height) {
