@@ -29,8 +29,8 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.BLUEPRINT_BG
  * Basic display layer for Scene
  */
 public class SceneLayer extends Layer {
-  private final NlDesignSurface myDesignSurface;
-  private final ScreenView myScreenView;
+  private final DesignSurface myDesignSurface;
+  private final SceneView myScreenView;
   private final Dimension myScreenViewSize = new Dimension();
   private final Rectangle mySizeRectangle = new Rectangle();
   private final Display myDisplay = new Display();
@@ -43,7 +43,7 @@ public class SceneLayer extends Layer {
    *
    * @param view the current ScreenView
    */
-  public SceneLayer(@NotNull NlDesignSurface surface, @NotNull ScreenView view, boolean showAlways) {
+  public SceneLayer(@NotNull DesignSurface surface, @NotNull SceneView view, boolean showAlways) {
     myDesignSurface = surface;
     myScreenView = view;
     myShowAlways = showAlways;
@@ -93,14 +93,14 @@ public class SceneLayer extends Layer {
     myShowOnHover = value;
   }
 
-  public ScreenView getScreenView() {
+  public SceneView getScreenView() {
     return myScreenView;
   }
 
   @Override
   public void hover(@SwingCoordinate int x, @SwingCoordinate int y) {
     boolean show = false;
-    if (getScreenView() == myDesignSurface.getHoverScreenView(x, y)) {
+    if (getScreenView() == myDesignSurface.getHoverSceneView(x, y)) {
       show = true;
     }
     if (isShowOnHover() != show) {
