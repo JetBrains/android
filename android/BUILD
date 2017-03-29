@@ -120,9 +120,6 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
-    test_runtime_deps = [
-        "//tools/adt/idea/adt-branding",
-    ],
     test_srcs = ["testSrc"],
     test_tags = [
         "slow",
@@ -169,6 +166,8 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/adt/idea/wizard[module, test]",
         "//tools/idea/.idea/libraries:guava-testlib[test]",
+        "//tools/adt/idea/adt-branding[module, test]",
+        "//tools/adt/idea/sdk-updates[module, test]",
     ],
 )
 
