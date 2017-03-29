@@ -383,13 +383,16 @@ public class LayoutlibSceneManager extends SceneManager {
     getRenderingQueue().queue(new Update("model.update", HIGH_PRIORITY) {
       @Override
       public void run() {
-        DumbService.getInstance(getModel().getModule().getProject()).waitForSmartMode();
-        if (!getModel().getFacet().isDisposed()) {
-          try {
-            updateModel();
-          }
-          catch (Throwable e) {
-            Logger.getInstance(NlModel.class).error(e);
+        Project project = getModel().getModule().getProject();
+        if (project.isOpen()) {
+          DumbService.getInstance(project).waitForSmartMode();
+          if (!getModel().getFacet().isDisposed()) {
+            try {
+              updateModel();
+            }
+            catch (Throwable e) {
+              Logger.getInstance(NlModel.class).error(e);
+            }
           }
         }
 
