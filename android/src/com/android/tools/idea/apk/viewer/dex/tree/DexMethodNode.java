@@ -23,12 +23,13 @@ import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.immutable.reference.ImmutableMethodReference;
 
 import javax.swing.*;
 
 public class DexMethodNode extends DexElementNode {
 
-  public DexMethodNode(@NotNull String displayName, @Nullable MethodReference reference) {
+  public DexMethodNode(@NotNull String displayName, @Nullable ImmutableMethodReference reference) {
     super(displayName, false, reference);
   }
 
@@ -58,5 +59,20 @@ public class DexMethodNode extends DexElementNode {
       }
     }
     return false;
+  }
+
+  @Override
+  public int getMethodDefinitionsCount() {
+    return isDefined() ? 1 : 0;
+  }
+
+  @Override
+  public int getMethodReferencesCount() {
+    return isRemoved() ? 0 : 1;
+  }
+
+  @Override
+  public void update() {
+
   }
 }

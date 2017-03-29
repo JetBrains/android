@@ -21,17 +21,21 @@ import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.iface.reference.TypeReference;
+import org.jf.dexlib2.immutable.reference.ImmutableFieldReference;
+import org.jf.dexlib2.immutable.reference.ImmutableMethodReference;
+import org.jf.dexlib2.immutable.reference.ImmutableReference;
+import org.jf.dexlib2.immutable.reference.ImmutableTypeReference;
 
 public class DexElementNodeFactory {
 
   @NotNull
-  public static DexElementNode from(@NotNull Reference ref){
-    if (ref instanceof TypeReference){
-      return new DexClassNode(DebuggerUtilsEx.signatureToName(((TypeReference)ref).getType()), (TypeReference)ref);
-    } else if (ref instanceof FieldReference){
-      return new DexFieldNode(((FieldReference)ref).getName(), (FieldReference)ref);
-    } else if (ref instanceof MethodReference){
-      return new DexMethodNode(((MethodReference)ref).getName(), (MethodReference)ref);
+  public static DexElementNode from(@NotNull ImmutableReference ref){
+    if (ref instanceof ImmutableTypeReference){
+      return new DexClassNode(DebuggerUtilsEx.signatureToName(((TypeReference)ref).getType()), (ImmutableTypeReference)ref);
+    } else if (ref instanceof ImmutableFieldReference){
+      return new DexFieldNode(((FieldReference)ref).getName(), (ImmutableFieldReference)ref);
+    } else if (ref instanceof ImmutableMethodReference){
+      return new DexMethodNode(((MethodReference)ref).getName(), (ImmutableMethodReference)ref);
     } else {
       throw new IllegalArgumentException("This method accepts a Type/Field/MethodReference");
     }

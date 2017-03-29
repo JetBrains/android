@@ -22,12 +22,13 @@ import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.immutable.reference.ImmutableFieldReference;
 
 import javax.swing.*;
 
 public class DexFieldNode extends DexElementNode {
 
-  public DexFieldNode(@NotNull String displayName, @Nullable FieldReference reference) {
+  public DexFieldNode(@NotNull String displayName, @Nullable ImmutableFieldReference reference) {
     super(displayName, false, reference);
   }
 
@@ -53,5 +54,10 @@ public class DexFieldNode extends DexElementNode {
       }
     }
     return false;
+  }
+
+  @Override
+  public void update() {
+
   }
 }

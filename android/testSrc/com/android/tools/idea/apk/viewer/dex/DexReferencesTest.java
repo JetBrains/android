@@ -27,14 +27,15 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.Collections;
 
+import static com.android.tools.idea.apk.viewer.dex.PackageTreeCreatorTest.getDexPath;
 import static com.android.tools.idea.apk.viewer.dex.PackageTreeCreatorTest.getTestDexFile;
 import static org.junit.Assert.assertEquals;
 
 public class DexReferencesTest {
   @Test
   public void createReferenceTree() throws IOException {
-    DexBackedDexFile dexFile = getTestDexFile("Test2.dex");
-    DexReferences references = new DexReferences(dexFile);
+    DexBackedDexFile dexFile = getTestDexFile(getDexPath("Test2.dex"));
+    DexReferences references = new DexReferences(new DexBackedDexFile[]{dexFile});
     DexElementNode root = references.getReferenceTreeFor(
       new ImmutableTypeReference("La;"));
     StringBuffer sb = new StringBuffer();

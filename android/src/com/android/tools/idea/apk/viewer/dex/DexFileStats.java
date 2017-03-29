@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jf.dexlib2.dexbacked.DexBackedClassDef;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 
+import java.util.Collection;
 import java.util.Set;
 
 public class DexFileStats {
@@ -34,13 +35,21 @@ public class DexFileStats {
   }
 
   @NotNull
-  public static DexFileStats create(@NotNull DexBackedDexFile dexFile) {
+  public static DexFileStats create(@NotNull Collection<DexBackedDexFile> dexFiles) {
     int definedMethodCount = 0;
-    Set<? extends DexBackedClassDef> classes = dexFile.getClasses();
-    for (DexBackedClassDef dexBackedClassDef : classes) {
-      definedMethodCount += Iterables.size(dexBackedClassDef.getMethods());
+    int classesCount = 0;
+    int methodCount = 0;
+
+    for (DexBackedDexFile dexFile : dexFiles) {
+      Set<? extends DexBackedClassDef> classes = dexFile.getClasses();
+      for (DexBackedClassDef dexBackedClassDef : classes) {
+        definedMethodCount += Iterables.size(dexBackedClassDef.getMethods());
+      }
+      classesCount += classes.size();
+      methodCount += dexFile.getMethodCount();
     }
 
-    return new DexFileStats(classes.size(), definedMethodCount, dexFile.getMethodCount());
+
+    return new DexFileStats(classesCount, definedMethodCount, methodCount);
   }
 }

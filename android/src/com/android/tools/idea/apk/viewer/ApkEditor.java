@@ -53,7 +53,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.beans.PropertyChangeListener;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -130,13 +129,20 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
    * Changes the editor displayed based on the path selected in the tree.
    */
   @Override
-  public void selectionChanged(@NotNull Archive archive, @Nullable ArchiveTreeNode entry) {
+  public void selectionChanged(@NotNull Archive archive, @Nullable ArchiveTreeNode[] entry) {
     if (myCurrentEditor != null) {
       Disposer.dispose(myCurrentEditor);
     }
-
-    Path p = entry == null ? null : entry.getData().getPath();
-    myCurrentEditor = getEditor(archive, p);
+    Path[] paths;
+    if (entry == null) {
+      paths = new Path[0];
+    } else {
+      paths = new Path[entry.length];
+      for (int i = 0; i < entry.length; i++) {
+        paths[i] = entry[i].getData().getPath();
+      }
+    }
+    myCurrentEditor = getEditor(archive, paths);
     mySplitter.setSecondComponent(myCurrentEditor.getComponent());
   }
 
@@ -251,11 +257,29 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
   }
 
   @NotNull
-  private ApkFileEditorComponent getEditor(@NotNull Archive archive, @Nullable Path p) {
-    if (p == null) {
+  private ApkFileEditorComponent getEditor(@NotNull Archive archive, @Nullable Path[] paths) {
+    if (paths == null || paths.length == 0) {
       return new EmptyPanel();
     }
 
+    //check if multiple dex files are selected
+    //and return a multiple dex viewer
+    boolean allDex = true;
+    for (Path path : paths) {
+      if (!path.getFileName().toString().endsWith(SdkConstants.EXT_DEX)){
+        allDex = false;
+        break;
+      }
+    }
+
+    if (allDex){
+      return new DexFileViewer(myProject, paths, myBaseFile.getParent());
+    }
+
+    //only one file or many files with different extensions are selected
+    //we can only show a single editor for a single filetype,
+    //so arbitrarily pick the first file:
+    Path p = paths[0];
     Path fileName = p.getFileName();
     if ("resources.arsc".equals(fileName.toString())) {
       byte[] arscContent;
@@ -269,7 +293,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     }
 
     if (p.toString().endsWith(SdkConstants.EXT_DEX)) {
-      return new DexFileViewer(myProject, p, myBaseFile.getParent());
+      return new DexFileViewer(myProject, new Path[]{p}, myBaseFile.getParent());
     }
 
     VirtualFile file = createVirtualFile(archive, p);
