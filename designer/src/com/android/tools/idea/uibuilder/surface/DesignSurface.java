@@ -306,7 +306,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * @return The new {@link Dimension} of the LayeredPane (ScreenView)
+   * @return The new {@link Dimension} of the LayeredPane (SceneView)
    */
   @Nullable
   public abstract Dimension getScrolledAreaSize();
@@ -402,7 +402,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * @param dimension the Dimension object to reuse to avoid reallocation
-   * @return The total size of all the ScreenViews in the DesignSurface
+   * @return The total size of all the SceenViews in the DesignSurface
    */
   @NotNull
   public abstract Dimension getContentSize(@Nullable Dimension dimension);
@@ -420,8 +420,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
     // Currently, we use the hover action only to check whether we need to show a warning.
     if (AndroidEditorSettings.getInstance().getGlobalState().isShowLint()) {
-      SceneView currentScreenView = getCurrentSceneView();
-      LintAnnotationsModel lintModel = currentScreenView != null ? currentScreenView.getModel().getLintAnnotationsModel() : null;
+      SceneView currentSceneView = getCurrentSceneView();
+      LintAnnotationsModel lintModel = currentSceneView != null ? currentSceneView.getModel().getLintAnnotationsModel() : null;
       if (lintModel != null) {
         for (Layer layer : myLayers) {
           String tooltip = layer.getTooltip(x, y);
@@ -800,6 +800,18 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   public SceneView getSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
+    return getCurrentSceneView();
+  }
+
+  /**
+   * Return the SceneView under the given position
+   *
+   * @param x
+   * @param y
+   * @return the SceneView, or null if we are not above one.
+   */
+  @Nullable
+  public SceneView getHoverSceneView(@SwingCoordinate int x, @SwingCoordinate int y) {
     return getCurrentSceneView();
   }
 
