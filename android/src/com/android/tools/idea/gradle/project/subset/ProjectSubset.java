@@ -102,8 +102,8 @@ public class ProjectSubset {
     if (selectedModules != null) {
       setSelection(selectedModules);
       if (!Arrays.equals(getSelection(), selection)) {
-        IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject, projectInfo);
-        task.populateProject(selectedModules, DEFAULT_REQUEST);
+        IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
+        task.populateProject(projectInfo, selectedModules, DEFAULT_REQUEST);
       }
     }
   }
@@ -256,8 +256,8 @@ public class ProjectSubset {
       notification.showBalloon(MODULE_LOOKUP_MESSAGE_TITLE, text, INFORMATION);
     });
 
-    IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject, projectInfo);
-    task.populateProject(selectedModules, DEFAULT_REQUEST);
+    IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
+    task.populateProject(projectInfo, selectedModules, DEFAULT_REQUEST);
   }
 
   /**
@@ -310,8 +310,8 @@ public class ProjectSubset {
           finalSelection.addAll(selectedModules);
           setSelection(finalSelection);
 
-          IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject, projectInfo);
-          task.populateProject(finalSelection, DEFAULT_REQUEST);
+          IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
+          task.populateProject(projectInfo, finalSelection, DEFAULT_REQUEST);
         }
       }
     });
@@ -356,8 +356,8 @@ public class ProjectSubset {
           }
           if (!selectedModules.isEmpty() && found) {
             setSelection(selectedModules);
-            IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(project, projectInfo);
-            task.populateProject(selectedModules, DEFAULT_REQUEST);
+            IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(project);
+            task.populateProject(projectInfo, selectedModules, DEFAULT_REQUEST);
           }
         }
       }.queue();
