@@ -20,7 +20,9 @@ import com.android.tools.idea.npw.template.RenderTemplateModel;
 import com.android.tools.idea.npw.template.TemplateValueInjector;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.recipe.RenderingContext;
+import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.core.*;
+import com.android.tools.idea.ui.properties.expressions.string.StringExpression;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
@@ -41,6 +43,8 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 public final class NewModuleModel extends WizardModel {
+  private final BindingsManager myBindings = new BindingsManager();
+
   @NotNull private final StringProperty myModuleName = new StringValueProperty();
   @NotNull private final StringProperty mySplitName = new StringValueProperty();
   @NotNull private final BoolProperty myIsLibrary = new BoolValueProperty();
@@ -51,8 +55,8 @@ public final class NewModuleModel extends WizardModel {
   @NotNull private final Map<String, Object> myTemplateValues = Maps.newHashMap();
 
   @NotNull private final StringProperty myApplicationName;
-  @NotNull private final StringProperty myPackageName;
-  @NotNull private final StringProperty myInstantAppPackageName = new StringValueProperty();
+  @NotNull private final StringProperty myPackageName = new StringValueProperty();
+  @NotNull private final StringProperty myProjectPackageName;
   @NotNull private final BoolProperty myIsInstantApp = new BoolValueProperty();
   @NotNull private final BoolProperty myEnableCppSupport;
   @NotNull private final OptionalProperty<Project> myProject;
@@ -62,12 +66,11 @@ public final class NewModuleModel extends WizardModel {
   { // Default init constructor
     myModuleName.addConstraint(String::trim);
     mySplitName.addConstraint(String::trim);
-    myInstantAppPackageName.addConstraint(String::trim);
   }
 
   public NewModuleModel(@NotNull Project project) {
     myProject = new OptionalValueProperty<>(project);
-    myPackageName = new StringValueProperty();
+    myProjectPackageName = myPackageName;
     myCreateInExistingProject = true;
     myEnableCppSupport = new BoolValueProperty();
 
@@ -81,13 +84,21 @@ public final class NewModuleModel extends WizardModel {
 
   public NewModuleModel(@NotNull NewProjectModel projectModel, @NotNull File templateFile) {
     myProject = projectModel.project();
-    myPackageName = projectModel.packageName();
+    myProjectPackageName = projectModel.packageName();
     myCreateInExistingProject = false;
     myEnableCppSupport = projectModel.enableCppSupport();
     myApplicationName = projectModel.applicationName();
     myTemplateFile.setValue(templateFile);
     myMultiTemplateRenderer = projectModel.getMultiTemplateRenderer();
     myMultiTemplateRenderer.increment();
+
+    myBindings.bind(myPackageName, myProjectPackageName, myIsInstantApp.not());
+  }
+
+  @Override
+  public void dispose() {
+    super.dispose();
+    myBindings.releaseAll();
   }
 
   @NotNull
@@ -113,11 +124,6 @@ public final class NewModuleModel extends WizardModel {
   @NotNull
   public StringProperty packageName() {
     return myPackageName;
-  }
-
-  @NotNull
-  public StringProperty instantAppPackageName() {
-    return myInstantAppPackageName;
   }
 
   @NotNull
@@ -153,6 +159,18 @@ public final class NewModuleModel extends WizardModel {
   @NotNull
   public MultiTemplateRenderer getMultiTemplateRenderer() {
     return myMultiTemplateRenderer;
+  }
+
+  @NotNull
+  public ObservableString computedFeatureModulePackageName() {
+    return new StringExpression(myProjectPackageName, mySplitName) {
+
+      @NotNull
+      @Override
+      public String get() {
+        return myProjectPackageName.get() + "." + mySplitName.get();
+      }
+    };
   }
 
   /**
@@ -193,17 +211,26 @@ public final class NewModuleModel extends WizardModel {
         return false;
       }
 
+      Map<String, Object> renderTemplateValues = myRenderTemplateValues.getValueOrNull();
+
       myTemplateValues = new HashMap<>(NewModuleModel.this.myTemplateValues);
       myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, myIsLibrary.get());
 
       Project project = myProject.getValue();
       if (myIsInstantApp.get()) {
+        myTemplateValues.put(ATTR_INSTANT_APP_PACKAGE_NAME, myProjectPackageName.get());
         myTemplateValues.put(ATTR_GRADLE_PLUGIN_VERSION, getInstantAppPluginVersion());
         myTemplateValues.put(ATTR_INSTANT_APP_SDK_DIR, getInstantAppSdkLocation());
-        myTemplateValues.put(ATTR_BASE_SPLIT_MANIFEST_OUT, "./base/src/main");
-        myTemplateValues.put(ATTR_IS_LIBRARY_MODULE, true);
         myTemplateValues.put(ATTR_HAS_SPLIT_WRAPPER, true);
-        myTemplateValues.put(ATTR_SPLIT_NAME, myModuleName.get() + "split");
+        myTemplateValues.put(ATTR_HAS_INSTANT_APP_WRAPPER, true);
+
+        if (renderTemplateValues != null) {
+          renderTemplateValues.put(ATTR_IS_INSTANT_APP, true);
+          renderTemplateValues.put(ATTR_IS_LIBRARY_MODULE, true);
+          renderTemplateValues.put(ATTR_SPLIT_NAME, myModuleName.get() + "split");
+          // TODO: Calculate the "out" values in a more correct fashion
+          renderTemplateValues.put(ATTR_BASE_SPLIT_MANIFEST_OUT, "./base/src/main");
+        }
 
         if (myCreateInExistingProject) {
           ApplicationManager.getApplication().runReadAction(() -> {
@@ -213,7 +240,10 @@ public final class NewModuleModel extends WizardModel {
               myTemplateValues.put(ATTR_HAS_INSTANT_APP_WRAPPER, false);
               myTemplateValues.put(ATTR_INSTANT_APP_PACKAGE_NAME, getInstantAppPackage(baseSplit));
               myTemplateValues.put(ATTR_BASE_SPLIT_NAME, baseSplit.getName());
-              myTemplateValues.put(ATTR_BASE_SPLIT_MANIFEST_OUT, getBaseSplitOutDir(baseSplit) + "/src/main");
+
+              if (renderTemplateValues != null) {
+                renderTemplateValues.put(ATTR_BASE_SPLIT_MANIFEST_OUT, getBaseSplitOutDir(baseSplit) + "/src/main");
+              }
             }
 
             // TODO: need better name-clash handling (http://b/35712205) but this handles the most common issue.
@@ -227,12 +257,9 @@ public final class NewModuleModel extends WizardModel {
             }
           });
         }
-        else {
-          myTemplateValues.put(ATTR_HAS_INSTANT_APP_WRAPPER, true);
-        }
+
       }
 
-      Map<String, Object> renderTemplateValues = myRenderTemplateValues.getValueOrNull();
       if (renderTemplateValues != null) {
         myTemplateValues.putAll(renderTemplateValues);
       }
