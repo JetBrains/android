@@ -20,48 +20,42 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidTryWithIdenticalCatchesInspectionTest extends AndroidInspectionTestCase {
+public class AndroidJava8ListSortInspectionTest extends AndroidInspectionTestCase {
 
-  public void testNoIdenticalBranchWarningPre19() {
-    addManifest(17);
+  public void testNoWarningsPre24() {
+    addManifest(23);
     //noinspection all // Sample code
     doTest("" +
            "package test.pkg;\n" +
            "\n" +
+           "import java.util.Collections;\n" +
+           "import java.util.Comparator;\n" +
+           "import java.util.List;\n" +
+           "\n" +
            "@SuppressWarnings(\"unused\")\n" +
            "public class X {\n" +
-           "    public void test() {\n" +
-           "        try {\n" +
-           "            Class.forName(\"name\").newInstance();\n" +
-           "        } catch (ClassNotFoundException e) {\n" +
-           "            e.printStackTrace();\n" +
-           "        } catch (InstantiationException e) {\n" +
-           "            e.printStackTrace();\n" +
-           "        } catch (IllegalAccessException e) {\n" +
-           "            e.printStackTrace();\n" +
-           "        }        \n" +
+           "\n" +
+           "    public void test(List<String> strings, Comparator<String> comparator) {\n" +
+           "        Collections.sort(strings, comparator);\n" +
            "    }\n" +
            "}\n");
   }
 
-  public void testIdenticalBranchWarningPost19() {
-    addManifest(20);
+  public void testWarningsPost24() {
+    addManifest(24);
     //noinspection all // Sample code
     doTest("" +
            "package test.pkg;\n" +
            "\n" +
+           "import java.util.Collections;\n" +
+           "import java.util.Comparator;\n" +
+           "import java.util.List;\n" +
+           "\n" +
            "@SuppressWarnings(\"unused\")\n" +
            "public class X {\n" +
-           "    public void test() {\n" +
-           "        try {\n" +
-           "            Class.forName(\"name\").newInstance();\n" +
-           "        } catch (ClassNotFoundException e) {\n" +
-           "            e.printStackTrace();\n" +
-           "        } /*'catch' branch identical to 'ClassNotFoundException' branch*/catch (InstantiationException e)/**/ {\n" +
-           "            e.printStackTrace();\n" +
-           "        } /*'catch' branch identical to 'ClassNotFoundException' branch*/catch (IllegalAccessException e)/**/ {\n" +
-           "            e.printStackTrace();\n" +
-           "        }        \n" +
+           "\n" +
+           "    public void test(List<String> strings, Comparator<String> comparator) {\n" +
+           "        Collections./*Collections.sort could be replaced with List.sort*/sort/**/(strings, comparator);\n" +
            "    }\n" +
            "}\n");
   }
@@ -69,18 +63,25 @@ public class AndroidTryWithIdenticalCatchesInspectionTest extends AndroidInspect
   @Nullable
   @Override
   protected InspectionProfileEntry getInspection() {
-    return new AndroidTryWithIdenticalCatchesInspection() {
+    return new AndroidJava8ListSortInspection() {
       @NotNull
       @Override
       public String getShortName() {
-        return "TryWithIdenticalCatches";
+        return "Java8ListSort";
+      }
+
+      @Nls
+      @NotNull
+      @Override
+      public String getGroupDisplayName() {
+        return "Java 8";
       }
 
       @Nls
       @NotNull
       @Override
       public String getDisplayName() {
-        return "Identical 'catch' branches in 'try' statement";
+        return "Collections.sort() can be replaced with List.sort()";
       }
     };
   }
