@@ -20,11 +20,14 @@ import com.android.tools.idea.editors.strings.FontUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
+  private static Icon DEFAULT_VIEW_ICON = AndroidDomElementDescriptorProvider.getIconForViewTag("View");
 
   @Override
   public void customizeCellRenderer(JTree tree, Object nodeValue, boolean selected,
@@ -35,9 +38,10 @@ public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
 
     ViewNode node = (ViewNode)nodeValue;
     String[] name = node.name.split("\\.");
-    append(name[name.length - 1] + " ",
+    String elementName = name[name.length - 1];
+    append(elementName + " ",
            node.isDrawn() ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAYED_ATTRIBUTES);
-    setIcon(AndroidDomElementDescriptorProvider.getIconForViewTag(name[name.length - 1]));
+    setIcon(findIconForNode(elementName));
     if (node.displayInfo.contentDesc != null) {
       Font currentFont = getFont();
       Font f = FontUtil.getFontAbleToDisplay(node.displayInfo.contentDesc, currentFont);
@@ -47,5 +51,32 @@ public class ViewNodeTreeRenderer extends ColoredTreeCellRenderer {
       append(node.displayInfo.contentDesc,
              node.isDrawn() ? SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES : SimpleTextAttributes.GRAY_ITALIC_ATTRIBUTES);
     }
+  }
+
+
+  /**
+   * Determine the icon to use given a node. First try full element name.
+   * If there is no matching icon, then try a subset of the name (i.e. map AppCompatEditText to EditText)
+   *
+   * @param elementName the elementName name we want to find icon for
+   * @return Icon for the node
+   */
+  @Nullable
+  private Icon findIconForNode(@NotNull String elementName) {
+    Icon icon = null;
+    String[] words = elementName.split("(?=\\p{Upper})");
+
+    int index = 0;
+    StringBuilder builder;
+    while (icon == null && index < words.length) {
+      builder = new StringBuilder();
+      for (int i = index; i < words.length; i++) {
+        builder.append(words[i]);
+      }
+      icon = AndroidDomElementDescriptorProvider.getIconForViewTag(builder.toString());
+      index++;
+    }
+
+    return icon != null ? icon : DEFAULT_VIEW_ICON;
   }
 }
