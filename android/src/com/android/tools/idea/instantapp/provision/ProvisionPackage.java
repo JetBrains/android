@@ -53,13 +53,13 @@ abstract class ProvisionPackage {
     // TODO: is it always the same version for different variants?
     File apk = getApk(getDeviceArchitecture(device), getSupportedVariants().get(0));
     checkApiLevel(device);
-    String apkVersion = getApkVersion(apk);
-    String installedApkVersion = getInstalledApkVersion(device);
+    long apkVersion = getApkVersion(apk);
+    long installedApkVersion = getInstalledApkVersion(device);
 
     getLogger().info("SDK apk version is \"" + apkVersion + "\"");
-    getLogger().info("Installed apk version is \"" + (installedApkVersion.isEmpty() ? "not installed" : installedApkVersion) + "\"");
+    getLogger().info("Installed apk version is \"" + (installedApkVersion == 0 ? "not installed" : installedApkVersion) + "\"");
     // Checks if the apk version in the SDK is higher than the installed one. If no installed one, it should always be true.
-    return installedApkVersion.isEmpty() || isHigherVersion(apkVersion, installedApkVersion);
+    return installedApkVersion == 0 || apkVersion > installedApkVersion;
     // TODO: should downgrade?
   }
 
@@ -144,8 +144,7 @@ abstract class ProvisionPackage {
     }
   }
 
-  @NotNull
-  static String getApkVersion(@NotNull File apk) throws ProvisionException {
+  static long getApkVersion(@NotNull File apk) throws ProvisionException {
     try {
       AaptInvoker invoker = AaptInvoker.getInstance();
       if (invoker == null) {
@@ -153,15 +152,14 @@ abstract class ProvisionPackage {
       }
 
       ProcessOutput xmlTree = invoker.getXmlTree(apk, SdkConstants.FN_ANDROID_MANIFEST_XML);
-      return AndroidApplicationInfo.fromXmlTree(xmlTree).versionName;
+      return AndroidApplicationInfo.fromXmlTree(xmlTree).versionCode;
     }
     catch (ExecutionException e) {
       throw new ProvisionException("Couldn't run aapt", e);
     }
   }
 
-  @NotNull
-  String getInstalledApkVersion(@NotNull IDevice device) throws ProvisionException {
+  long getInstalledApkVersion(@NotNull IDevice device) throws ProvisionException {
     try {
       return PackageVersionFinder.getVersion(device, getPkgName());
     }
@@ -174,23 +172,6 @@ abstract class ProvisionPackage {
   String getApkSubFolder() {
     // Folder inside the variant folder
     return "";
-  }
-
-  boolean isHigherVersion(@NotNull String a, @NotNull String b) {
-    String[] as = a.split("\\.|-");
-    String[] bs = b.split("\\.|-");
-    if (as.length != bs.length) {
-      // Reinstall just in case
-      return true;
-    }
-    for (int i = 0; i < as.length; i++) {
-      if (as[i].matches("[-+]?\\d*\\.?\\d+") &&
-          bs[i].matches("[-+]?\\d*\\.?\\d+") &&
-          Integer.parseInt(as[i]) > Integer.parseInt(bs[i])) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @NotNull

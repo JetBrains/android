@@ -41,30 +41,30 @@ abstract class ProvisionPackageTest<T extends ProvisionPackage> extends AndroidG
   abstract T getProvisionPackageInstance();
 
   public void testShouldInstallStandard() throws Throwable {
-    IDevice device = getMockDevice("arm64-v8a", 23, "dev-keys", myProvisionPackage.getPkgName(), "");
+    IDevice device = getMockDevice("arm64-v8a", 23, "dev-keys", myProvisionPackage.getPkgName(), 0);
     assertTrue(myProvisionPackage.shouldInstall(device));
   }
 
   public void testShouldNotInstallWrongArchitecture() throws Throwable {
-    IDevice device = getMockDevice("falseArch", 23, "dev-keys", myProvisionPackage.getPkgName(), "");
+    IDevice device = getMockDevice("falseArch", 23, "dev-keys", myProvisionPackage.getPkgName(), 0);
     assertExceptionInShouldInstall(device);
   }
 
   public void testShouldNotInstallLowApiLevel() throws Throwable {
-    IDevice device = getMockDevice("arm64-v8a", 16, "dev-keys", myProvisionPackage.getPkgName(), "");
+    IDevice device = getMockDevice("arm64-v8a", 16, "dev-keys", myProvisionPackage.getPkgName(), 0);
     assertExceptionInShouldInstall(device);
   }
 
   public void testInstall() throws Throwable {
-    IDevice device = getMockDevice("arm64-v8a", 23, "dev-keys", myProvisionPackage.getPkgName(), "1.0-release-1234");
+    IDevice device = getMockDevice("arm64-v8a", 23, "dev-keys", myProvisionPackage.getPkgName(), 123456789);
     // Testing that no exception is thrown
     myProvisionPackage.install(device);
     verify(device).installPackage(any(), eq(true), eq("-d"));
   }
 
   public void testGetInstalledApkVersion() throws Throwable {
-    IDevice device = new ProvisionPackageTests.DeviceGenerator().setVersionOfPackage(myProvisionPackage.getPkgName(), "versionMock").getDevice();
-    assertEquals("versionMock", myProvisionPackage.getInstalledApkVersion(device));
+    IDevice device = new ProvisionPackageTests.DeviceGenerator().setVersionOfPackage(myProvisionPackage.getPkgName(), 123456789).getDevice();
+    assertEquals(123456789, myProvisionPackage.getInstalledApkVersion(device));
   }
 
   void assertExceptionInShouldInstall(IDevice device) throws Throwable {
