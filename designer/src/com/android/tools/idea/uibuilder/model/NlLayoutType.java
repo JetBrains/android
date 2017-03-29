@@ -26,6 +26,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.dom.drawable.fileDescriptions.AdaptiveIconDomFileDescription;
+import org.jetbrains.android.dom.font.FontFamilyDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.menu.MenuDomFileDescription;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -61,13 +63,21 @@ public enum NlLayoutType {
   VECTOR(false) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return isResourceTypeOf(file, ResourceConstants.FD_RES_DRAWABLE, SdkConstants.TAG_VECTOR);
+      return isResourceTypeOf(file, ResourceConstants.FD_RES_DRAWABLE, SdkConstants.TAG_VECTOR) ||
+             AdaptiveIconDomFileDescription.isAdaptiveIcon(file);
     }
 
     @NotNull
     @Override
     public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
       return new VectorToolbarActionGroups((NlDesignSurface)surface);
+    }
+  },
+
+  FONT(false) {
+    @Override
+    public boolean isResourceTypeOf(@NotNull XmlFile file) {
+      return FontFamilyDomFileDescription.isFontFamilyFile(file);
     }
   },
 
