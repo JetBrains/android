@@ -146,7 +146,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
           }
         }
         catch (ProvisionException e) {
-          getLogger().error("Error while provisioning devices", e);
+          getLogger().warn("Error while provisioning devices", e);
 
           // If there was an error while provisioning, we stop running the RunConfiguration
           result.set(false);
