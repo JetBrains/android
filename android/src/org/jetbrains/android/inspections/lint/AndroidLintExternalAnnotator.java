@@ -132,7 +132,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
     return new State(module, vFile, file.getText(), issues);
   }
 
-  private static boolean isKotlin(FileType fileType) {
+  public static boolean isKotlin(FileType fileType) {
     // KotlinFileType.getName() is "Kotlin"; we don't have compile-time dependency on the Kotlin plugin and it's not in StdFileTypes
     return fileType.getName().equals("Kotlin");
   }

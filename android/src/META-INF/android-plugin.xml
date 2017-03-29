@@ -1162,6 +1162,8 @@
     <extensionPoint qualifiedName="org.jetbrains.android.uipreview.viewLoaderExtension"
                     interface="org.jetbrains.android.uipreview.ViewLoaderExtension"
                     area="IDEA_PROJECT"/>
+    <extensionPoint qualifiedName="org.jetbrains.android.androidLintQuickFixProvider"
+                    interface="org.jetbrains.android.inspections.lint.AndroidLintQuickFixProvider" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android">
