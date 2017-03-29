@@ -17,8 +17,10 @@ package org.jetbrains.android.dom.drawable.fileDescriptions;
 
 import com.android.resources.ResourceFolderType;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.AbstractMultiRootFileDescription;
 import org.jetbrains.android.dom.drawable.AdaptiveIcon;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
 
@@ -27,6 +29,10 @@ public class AdaptiveIconDomFileDescription extends AbstractMultiRootFileDescrip
 
   public AdaptiveIconDomFileDescription() {
     super(AdaptiveIcon.class, EnumSet.of(ResourceFolderType.MIPMAP, ResourceFolderType.DRAWABLE), ImmutableSet.copyOf(TAGS));
+  }
+
+  public static boolean isAdaptiveIcon(@NotNull XmlFile file) {
+    return doIsMyFile(file, ResourceFolderType.MIPMAP, TAGS);
   }
 }
 
