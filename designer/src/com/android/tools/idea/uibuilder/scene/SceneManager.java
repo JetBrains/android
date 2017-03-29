@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.DragDndTarget;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A facility for creating and updating {@link Scene}s based on {@link NlModel}s.
@@ -48,16 +53,82 @@ abstract public class SceneManager implements Disposable {
     return myScene;
   }
 
+  /**
+   * Update the Scene with the components in the given NlModel. This method needs to be called in the dispatch thread.
+   * {@link #build()} must have been invoked already.
+   */
   public void update() {
-    assert ApplicationManager.getApplication().isDispatchThread();
-    assert myScene != null;
+    List<NlComponent> components = getModel().getComponents();
+    Scene scene = getScene();
+    if (components.size() == 0) {
+      scene.removeAllComponents();
+      scene.setRoot(null);
+      return;
+    }
+    Set<SceneComponent> usedComponents = new HashSet<>();
+    Set<SceneComponent> oldComponents = new HashSet<>(scene.getSceneComponents());
+
+    NlComponent rootComponent = components.get(0).getRoot();
+
+    SceneComponent root = updateFromComponent(rootComponent, usedComponents);
+    oldComponents.removeAll(usedComponents);
+    oldComponents.forEach(scene::removeComponent);
+
+    SelectionModel selectionModel = getDesignSurface().getSelectionModel();
+    scene.setRoot(root);
+    if (root != null && selectionModel.isEmpty()) {
+      addTargets(root);
+    }
+    scene.needsRebuildList();
+  }
+
+  abstract protected void addTargets(@NotNull SceneComponent component);
+
+  /**
+   * Update (and if necessary, create) the SceneComponent paired to the given NlComponent
+   *
+   * @param component      a given NlComponent
+   * @param seenComponents Collector of components that were seen during NlComponent tree traversal.
+   * @return the SceneComponent paired with the given NlComponent
+   */
+  protected SceneComponent updateFromComponent(@NotNull NlComponent component, Set<SceneComponent> seenComponents) {
+    SceneComponent sceneComponent = getScene().getSceneComponent(component);
+    if (sceneComponent == null) {
+      sceneComponent = new SceneComponent(getScene(), component);
+    }
+    seenComponents.add(sceneComponent);
+
+    updateFromComponent(component, sceneComponent);
+
+    for (NlComponent nlChild : component.getChildren()) {
+      SceneComponent child = updateFromComponent(nlChild, seenComponents);
+      if (child.getParent() != sceneComponent) {
+        sceneComponent.addChild(child);
+      }
+    }
+    return sceneComponent;
   }
 
   /**
-   * Creates a {@link TemporarySceneComponent} in our Scene meant to be used temporarily for Drag and Drop
+   * Creates a {@link TemporarySceneComponent} in our Scene.
    */
   @NotNull
-  abstract public TemporarySceneComponent createTemporaryComponent(@NotNull NlComponent component);
+  public TemporarySceneComponent createTemporaryComponent(@NotNull NlComponent component) {
+    Scene scene = getScene();
+
+    assert scene.getRoot() != null;
+
+    TemporarySceneComponent tempComponent = new TemporarySceneComponent(getScene(), component);
+    tempComponent.addTarget(new DragDndTarget());
+    scene.setAnimated(false);
+    scene.getRoot().addChild(tempComponent);
+    updateFromComponent(component, tempComponent);
+    scene.setAnimated(true);
+
+    return tempComponent;
+  }
+
+  abstract protected void updateFromComponent(@NotNull NlComponent component, SceneComponent sceneComponent);
 
   @NotNull
   protected DesignSurface getDesignSurface() {
