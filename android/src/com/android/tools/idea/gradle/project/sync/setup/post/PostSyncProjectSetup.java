@@ -189,7 +189,7 @@ public class PostSyncProjectSetup {
     myModuleSetup.setUpModules(null);
   }
 
-  private void onCachedModelsSetupFailure(@NotNull Request request) {
+  public void onCachedModelsSetupFailure(@NotNull Request request) {
     // Sync with cached model failed (e.g. when Studio has a newer embedded builder-model interfaces and the cache is using an older
     // version of such interfaces.
     long syncTimestamp = request.getLastSyncTimestamp();
@@ -359,7 +359,7 @@ public class PostSyncProjectSetup {
     private boolean myGenerateSourcesAfterSync = true;
     private long myLastSyncTimestamp = -1L;
 
-    boolean isUsingCachedGradleModels() {
+    public boolean isUsingCachedGradleModels() {
       return myUsingCachedGradleModels;
     }
 
@@ -369,7 +369,7 @@ public class PostSyncProjectSetup {
       return this;
     }
 
-    boolean isCleanProjectAfterSync() {
+    public boolean isCleanProjectAfterSync() {
       return myCleanProjectAfterSync;
     }
 
@@ -379,7 +379,7 @@ public class PostSyncProjectSetup {
       return this;
     }
 
-    boolean isGenerateSourcesAfterSync() {
+    public boolean isGenerateSourcesAfterSync() {
       return myGenerateSourcesAfterSync;
     }
 
@@ -389,7 +389,7 @@ public class PostSyncProjectSetup {
       return this;
     }
 
-    long getLastSyncTimestamp() {
+    public long getLastSyncTimestamp() {
       return myLastSyncTimestamp;
     }
 
