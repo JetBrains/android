@@ -85,17 +85,44 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   }
 
   @NotNull
-  private LocalQuickFix[] getLocalQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message,
-                                             @Nullable Object extraData) {
-    final AndroidLintQuickFix[] fixes = getQuickFixes(startElement, endElement, message, extraData);
-    final List<LocalQuickFix> result = new ArrayList<>(fixes.length);
+  private LocalQuickFix[] getLocalQuickFixes(@NotNull PsiElement startElement,
+                                             @NotNull PsiElement endElement,
+                                             @NotNull String message,
+                                             @Nullable Object extraData,
+                                             @NotNull AndroidLintQuickFixProvider[] fixProviders,
+                                             @NotNull Issue issue) {
+    AndroidLintQuickFix[] fixes = getQuickFixes(startElement, endElement, message, extraData);
+    List<LocalQuickFix> result = new ArrayList<>(4);
 
+    for (AndroidLintQuickFixProvider provider : fixProviders) {
+      fixes = provider.getQuickFixes(issue, startElement, endElement, message, extraData);
+      addFixes(result, fixes, startElement, endElement);
+    }
+
+    if (!result.isEmpty()) {
+      // If one or more fixes were registered by quickfix providers, and this is a Kotlin file,
+      // it's likely that the Kotlin plugin provided an alternative quickfix for this problem,
+      // and we don't want to include the Java-centric quickfixes from the Android plugin
+      PsiFile file = startElement.getContainingFile();
+      if (file != null && AndroidLintExternalAnnotator.isKotlin(file.getFileType())) {
+        return result.toArray(LocalQuickFix.EMPTY_ARRAY);
+      }
+    }
+
+    addFixes(result, fixes, startElement, endElement);
+
+    return result.toArray(LocalQuickFix.EMPTY_ARRAY);
+  }
+
+  private static void addFixes(List<LocalQuickFix> result,
+                               AndroidLintQuickFix[] fixes,
+                               @NotNull PsiElement startElement,
+                               @NotNull PsiElement endElement) {
     for (AndroidLintQuickFix fix : fixes) {
       if (fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.BatchContext.TYPE)) {
         result.add(new MyLocalQuickFix(fix));
       }
     }
-    return result.toArray(LocalQuickFix.EMPTY_ARRAY);
   }
 
   @Override
@@ -156,6 +183,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
                                                         @NotNull List<ProblemData> problems) {
     final List<ProblemDescriptor> result = new ArrayList<>();
 
+    AndroidLintQuickFixProvider[] fixProviders = AndroidLintQuickFixProvider.EP_NAME.getExtensions();
+
     for (ProblemData problemData : problems) {
       final String originalMessage = problemData.getMessage();
 
@@ -170,16 +199,17 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
       // The inspections UI does not correctly handle
 
       final TextRange range = problemData.getTextRange();
+      Issue issue = problemData.getIssue();
 
       if (range.getStartOffset() == range.getEndOffset()) {
 
         if (psiFile instanceof PsiBinaryFile || psiFile instanceof PsiDirectory) {
-          final LocalQuickFix[] fixes = getLocalQuickFixes(psiFile, psiFile, originalMessage, quickfixData);
+          final LocalQuickFix[] fixes = getLocalQuickFixes(psiFile, psiFile, originalMessage, quickfixData, fixProviders, issue);
           result.add(new NonTextFileProblemDescriptor((PsiFileSystemItem)psiFile, formattedMessage, fixes));
         } else if (!isSuppressedFor(psiFile)) {
           result.add(manager.createProblemDescriptor(psiFile, formattedMessage, false,
-                                                     getLocalQuickFixes(psiFile, psiFile, originalMessage, quickfixData),
-                                                     ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
+                                                     getLocalQuickFixes(psiFile, psiFile, originalMessage, quickfixData, fixProviders,
+                                                                        issue), ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
         }
       }
       else {
@@ -189,7 +219,8 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
         if (startElement != null && endElement != null && !isSuppressedFor(startElement)) {
           result.add(manager.createProblemDescriptor(startElement, endElement, formattedMessage,
                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING, false,
-                                                     getLocalQuickFixes(startElement, endElement, originalMessage, quickfixData)));
+                                                     getLocalQuickFixes(startElement, endElement, originalMessage, quickfixData,
+                                                                        fixProviders, issue)));
         }
       }
     }
@@ -221,7 +252,9 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
 
     @Override
     public boolean isAvailable(@NotNull Project project, @NotNull PsiElement context) {
-      return true;
+      // This action doesn't work for Kotlin files
+      PsiFile file = context.getContainingFile();
+      return file == null || !AndroidLintExternalAnnotator.isKotlin(file.getFileType());
     }
 
     @Override
