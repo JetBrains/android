@@ -90,19 +90,4 @@ public class InstantAppsTest extends AndroidGradleTestCase {
     loadProject(SIMPLE_APPLICATION, "app");
     assertEquals("<<ERROR - NO URL SET>>", getDefaultInstantAppUrl(myAndroidFacet));
   }
-
-  public void testIsInstantAppSdkEnabledWithNullValue() throws Exception {
-    setInstantAppSdkLocation(null);
-    assertFalse(isInstantAppSdkEnabled());
-  }
-
-  public void testIsInstantAppSdkEnabledWithEmptyValue() throws Exception {
-    setInstantAppSdkLocation("");
-    assertFalse(isInstantAppSdkEnabled());
-  }
-
-  public void testIsInstantAppSdkEnabledWithValue() throws Exception {
-    setInstantAppSdkLocation("SOME_VALUE");
-    assertTrue(isInstantAppSdkEnabled());
-  }
 }

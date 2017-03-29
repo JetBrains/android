@@ -29,31 +29,17 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Objects;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_ATOM;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public class InstantApps {
-  private static final String INSTANT_APP_SDK_ENV_VAR = "WH_SDK";
-  private static final String INSTANT_APP_SDK_PROPERTY = "android.instant_app_sdk_location";
-  private static String INSTANT_APP_SDK_LOCATION = findInstantAppSdkLocation();
-
-  @Nullable
-  static String findInstantAppSdkLocation() {
-    String value = System.getenv(INSTANT_APP_SDK_ENV_VAR);
-    if (isEmpty(value)) {
-      value = System.getProperty(INSTANT_APP_SDK_PROPERTY);
-    }
-    return value;
-  }
-
   /*
   This method will find and return a base split if one exists and is associated with the given AndroidFacet. Otherwise it returns null
    */
@@ -194,31 +180,17 @@ public class InstantApps {
   }
 
   public static boolean isInstantAppSdkEnabled() {
-    return isNotEmpty(getInstantAppSdkLocation());
-  }
-
-  @Nullable
-  public static String getInstantAppSdkLocation() {
-    return INSTANT_APP_SDK_LOCATION;
+    return InstantAppSdks.getInstance().isInstantAppSdkEnabled();
   }
 
   @NotNull
-  public static File getInstantAppSdk() throws Exception {
-    String path = getInstantAppSdkLocation();
-    if (path == null) {
-      throw new Exception("Environment variable " + INSTANT_APP_SDK_ENV_VAR + " not defined");
+  public static File getInstantAppSdk() throws FileNotFoundException {
+    File sdk = InstantAppSdks.getInstance().getInstantAppSdk(true);
+    if (sdk == null) {
+      throw new FileNotFoundException("Instant App SDK couldn't be found.");
     }
 
-    File instantAppSdkFile = new File(path);
-    if (!instantAppSdkFile.exists() || !instantAppSdkFile.isDirectory()) {
-      throw new FileNotFoundException("Directory " +
-                                      instantAppSdkFile.getAbsolutePath() +
-                                      "defined in environment variable " +
-                                      INSTANT_APP_SDK_ENV_VAR +
-                                      " does not exist");
-    }
-
-    return instantAppSdkFile;
+    return sdk;
   }
 
   public static boolean isInstantAppApplicationModule(@NotNull Module module) {
@@ -226,9 +198,15 @@ public class InstantApps {
     return model != null && model.getProjectType() == PROJECT_TYPE_INSTANTAPP;
   }
 
-  // Can't directly set environment variables in Java so need this for testing.
-  @TestOnly
-  public static void setInstantAppSdkLocation(String value) {
-    INSTANT_APP_SDK_LOCATION = value;
+  @Nullable
+  @Deprecated
+  public static String getInstantAppSdkLocation() {
+    try {
+      return getInstantAppSdk().getCanonicalPath();
+    }
+    catch (IOException e) {
+      // Ignore
+      return null;
+    }
   }
 }

@@ -43,6 +43,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.android.tools.idea.instantapp.InstantApps.isInstantAppSdkEnabled;
+
 /**
  * Provides a {@link ProvisionBeforeRunTask} which is executed before an Instant App is run.
  * This provisions the device.
@@ -96,7 +98,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
   @Nullable
   @Override
   public ProvisionBeforeRunTask createTask(RunConfiguration runConfiguration) {
-    if (runConfiguration instanceof AndroidRunConfigurationBase && InstantApps.getInstantAppSdkLocation() != null) {
+    if (runConfiguration instanceof AndroidRunConfigurationBase && isInstantAppSdkEnabled()) {
       ProvisionBeforeRunTask task = new ProvisionBeforeRunTask();
       task.setEnabled(true);
       return task;
@@ -168,7 +170,7 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
 
   private static boolean isInstantAppContext(AndroidRunConfigurationBase runConfiguration) {
     Module module = runConfiguration.getConfigurationModule().getModule();
-    return InstantApps.getInstantAppSdkLocation() != null && module != null && InstantApps.isInstantAppApplicationModule(module);
+    return isInstantAppSdkEnabled() && module != null && InstantApps.isInstantAppApplicationModule(module);
   }
 
   @Nullable
