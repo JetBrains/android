@@ -4,6 +4,7 @@ iml_module(
     name = "wizard",
     srcs = ["src"],
     tags = ["managed"],
+    test_class = "com.android.tools.idea.wizard.WizardTestSuite",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -17,5 +18,6 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/adt-ui[module, test]",
         "//tools/idea:platform-impl_and_others[module]",
+        "//tools/base/testutils:studio.testutils[module, test]",
     ],
 )
