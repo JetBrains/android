@@ -19,6 +19,7 @@ package com.android.tools.idea.diagnostics.error;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.diagnostics.crash.CrashReport;
 import com.android.tools.idea.diagnostics.crash.CrashReporter;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.intellij.diagnostic.AbstractMessage;
 import com.intellij.diagnostic.ITNReporterKt;
@@ -142,29 +143,29 @@ public class ErrorReporter extends ErrorReportSubmitter {
   }
 
   private static boolean handleAnalyticsReports(@Nullable Throwable t, @Nullable Object data) {
-    if ("Exception".equals(data)) {
-      if (t != null) {
-        CrashReporter.getInstance().submit(CrashReport.Builder.createForException(t).build());
-      }
-      return true;
-    }
-    else if (data instanceof Map) {
-      Map map = (Map)data;
-      String type = (String)map.get("Type");
-      if ("ANR".equals(type)) {
-        CrashReporter.getInstance().submit(
-          CrashReport.Builder.createForPerfReport((String)map.get("file"), (String)map.get("threadDump")).build());
-      }
-      else if ("Crashes".equals(type)) {
-        //noinspection unchecked
-        List<String> descriptions = (List<String>)map.get("descriptions");
-        CrashReporter.getInstance().submit(
-          CrashReport.Builder.createForCrashes(descriptions).build());
-      }
-      return true;
+    if (!(data instanceof Map)) {
+      return false;
     }
 
-    return false;
+    Map map = (Map)data;
+    String type = (String)map.get("Type");
+    if ("Exception".equals(type)) {
+      ImmutableMap<String, String> productData = ImmutableMap.of("md5", (String)map.get("md5"),
+                                                                 "summary", (String)map.get("summary"));
+      CrashReporter.getInstance().submit(
+        CrashReport.Builder.createForException(t).addProductData(productData).build());
+    }
+    else if ("ANR".equals(type)) {
+      CrashReporter.getInstance().submit(
+        CrashReport.Builder.createForPerfReport((String)map.get("file"), (String)map.get("threadDump")).build());
+    }
+    else if ("Crashes".equals(type)) {
+      //noinspection unchecked
+      List<String> descriptions = (List<String>)map.get("descriptions");
+      CrashReporter.getInstance().submit(
+        CrashReport.Builder.createForCrashes(descriptions).build());
+    }
+    return true;
   }
 
   @NotNull
