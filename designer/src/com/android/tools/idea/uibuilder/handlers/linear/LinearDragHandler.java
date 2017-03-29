@@ -18,8 +18,8 @@ package com.android.tools.idea.uibuilder.handlers.linear;
 import com.android.tools.idea.uibuilder.api.DragType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.common.GenericLinearDragHandler;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneDragHandler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -29,10 +29,10 @@ import java.util.List;
  */
 class LinearDragHandler extends GenericLinearDragHandler {
   public LinearDragHandler(@NotNull ViewEditor editor,
-                                  @NotNull SceneComponent layout,
-                                  @NotNull List<SceneComponent> components,
-                                  @NotNull DragType type,
-                                  @NotNull LinearLayoutHandler linearLayoutHandler) {
+                           @NotNull SceneComponent layout,
+                           @NotNull List<NlComponent> components,
+                           @NotNull DragType type,
+                           @NotNull LinearLayoutHandler linearLayoutHandler) {
     super(editor, layout, components, type, linearLayoutHandler, linearLayoutHandler.isVertical(layout.getNlComponent()));
   }
 }

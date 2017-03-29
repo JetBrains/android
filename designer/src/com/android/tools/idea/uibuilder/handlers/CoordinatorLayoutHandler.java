@@ -57,7 +57,7 @@ public class CoordinatorLayoutHandler extends ScrollViewHandler {
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
                                        @NotNull SceneComponent layout,
-                                       @NotNull List<SceneComponent> components,
+                                       @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     // The {@link CoordinatorDragHandler} handles the logic for anchoring a
     // single component to an existing component in the CoordinatorLayout.
@@ -72,9 +72,8 @@ public class CoordinatorLayoutHandler extends ScrollViewHandler {
   }
 
   private class CoordinatorDragHandler extends FrameLayoutHandler.FrameDragHandler {
-    private SceneComponent myAnchor;
-    private SceneComponent myDragged;
-    private NlComponent myDraggedNlComponent;
+    private NlComponent myAnchor;
+    private NlComponent myDragged;
     private String myAnchorGravity;
     private String myGravity;
     @AndroidDpCoordinate
@@ -84,12 +83,11 @@ public class CoordinatorLayoutHandler extends ScrollViewHandler {
 
     public CoordinatorDragHandler(@NotNull ViewEditor editor,
                                   @NotNull SceneComponent layout,
-                                  @NotNull List<SceneComponent> components,
+                                  @NotNull List<NlComponent> components,
                                   @NotNull DragType type) {
       super(editor, CoordinatorLayoutHandler.this, layout, components, type);
       assert components.size() == 1;
       myDragged = components.get(0);
-      myDraggedNlComponent = myDragged.getNlComponent();
       assert myDragged != null;
     }
 
@@ -111,17 +109,17 @@ public class CoordinatorLayoutHandler extends ScrollViewHandler {
     public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
       checkPosition();
       if (myAnchor == null) {
-        myDraggedNlComponent.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR, null);
-        myDraggedNlComponent.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY, null);
+        myDragged.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR, null);
+        myDragged.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY, null);
       } else {
-        NlComponent root = myDraggedNlComponent.getRoot();
+        NlComponent root = myDragged.getRoot();
         root.ensureNamespace(APP_PREFIX, AUTO_URI);
         root.ensureNamespace(ANDROID_NS_NAME, ANDROID_URI);
-        myAnchor.getNlComponent().ensureId();
-        String id = myAnchor.getNlComponent().getAttribute(ANDROID_URI, ATTR_ID);
-        myDraggedNlComponent.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR, id);
-        myDraggedNlComponent.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY, myAnchorGravity);
-        myDraggedNlComponent.setAttribute(ANDROID_URI, ATTR_LAYOUT_GRAVITY, myGravity);
+        myAnchor.ensureId();
+        String id = myAnchor.getAttribute(ANDROID_URI, ATTR_ID);
+        myDragged.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR, id);
+        myDragged.setAttribute(AUTO_URI, ATTR_LAYOUT_ANCHOR_GRAVITY, myAnchorGravity);
+        myDragged.setAttribute(ANDROID_URI, ATTR_LAYOUT_GRAVITY, myGravity);
       }
       insertComponents(-1, insertType);
     }
@@ -131,19 +129,19 @@ public class CoordinatorLayoutHandler extends ScrollViewHandler {
       if (myAnchor == null) {
         super.paint(gc);
       } else {
-        Insets padding = myAnchor.getNlComponent().getPadding();
-        @AndroidCoordinate int anchorX = editor.dpToPx(myDragged.getDrawX());
-        @AndroidCoordinate int anchorY = editor.dpToPx(myDragged.getDrawY());
-        @AndroidCoordinate int anchorW = editor.dpToPx(myDragged.getDrawWidth());
-        @AndroidCoordinate int anchorH = editor.dpToPx(myDragged.getDrawHeight());
+        Insets padding = myAnchor.getPadding();
+        @AndroidCoordinate int anchorX = myDragged.x;
+        @AndroidCoordinate int anchorY = myDragged.y;
+        @AndroidCoordinate int anchorW = myDragged.w;
+        @AndroidCoordinate int anchorH = myDragged.h;
 
         // Highlight the anchor
         gc.useStyle(NlDrawingStyle.DROP_RECIPIENT);
         gc.drawRect(anchorX + padding.left, anchorY + padding.top, anchorW + padding.width(), anchorH + padding.height());
 
         gc.useStyle(NlDrawingStyle.DROP_ZONE);
-        @AndroidCoordinate int draggedW = editor.dpToPx(myDragged.getDrawWidth());
-        @AndroidCoordinate int draggedH = editor.dpToPx(myDragged.getDrawHeight());
+        @AndroidCoordinate int draggedW = myDragged.w;
+        @AndroidCoordinate int draggedH = myDragged.h;
 
         gc.drawRect(anchorX - draggedW, anchorY - draggedH, draggedW * 2, draggedH * 2);
         gc.drawRect(anchorX + anchorW - draggedW, anchorY - draggedH, draggedW * 2, draggedH * 2);
@@ -184,57 +182,57 @@ public class CoordinatorLayoutHandler extends ScrollViewHandler {
         @AndroidDpCoordinate int x = -1;
         @AndroidDpCoordinate int y = -1;
 
-        if (lastX < myAnchor.getDrawX() + myDragged.getDrawWidth()) {
+        if (lastX < myAnchor.x + myDragged.w) {
           anchorHgrav = GRAVITY_VALUE_LEFT;
-          left = myAnchor.getDrawX() - myDragged.getDrawWidth();
-          x = lastX - myAnchor.getDrawX();
-        } else if (lastX >= myAnchor.getDrawX() + myAnchor.getDrawWidth() - myDragged.getDrawWidth()) {
+          left = myAnchor.x - myDragged.w;
+          x = lastX - myAnchor.x;
+        } else if (lastX >= myAnchor.x + myAnchor.w - myDragged.w) {
           anchorHgrav = GRAVITY_VALUE_RIGHT;
-          left = myAnchor.getDrawX() + myAnchor.getDrawWidth() - myDragged.getDrawWidth();
-          x = lastX - (myAnchor.getDrawX() + myAnchor.getDrawWidth() - myDragged.getDrawWidth());
-        } else if (myAnchor.getDrawWidth() > 4 * myDragged.getDrawWidth() &&
-                   myAnchor.getDrawX() + myAnchor.getDrawWidth() / 2 - myDragged.getDrawWidth() <= lastX &&
-                   lastX < myAnchor.getDrawX() + myAnchor.getDrawWidth() / 2 + myDragged.getDrawWidth()) {
+          left = myAnchor.x + myAnchor.w - myDragged.w;
+          x = lastX - (myAnchor.x + myAnchor.w - myDragged.w);
+        } else if (myAnchor.w > 4 * myDragged.w &&
+                   myAnchor.x + myAnchor.w / 2 - myDragged.w <= lastX &&
+                   lastX < myAnchor.x + myAnchor.w / 2 + myDragged.w) {
           anchorHgrav = GRAVITY_VALUE_CENTER_HORIZONTAL;
-          left = myAnchor.getDrawX() + myAnchor.getDrawWidth() / 2 - myDragged.getDrawWidth();
-          x = (lastX - (myAnchor.getDrawX() + myAnchor.getDrawWidth() / 2 - myDragged.getDrawWidth())) / 2;
+          left = myAnchor.x + myAnchor.w / 2 - myDragged.w;
+          x = (lastX - (myAnchor.x + myAnchor.w / 2 - myDragged.w)) / 2;
         }
         if (anchorHgrav != null) {
-          if (x < myDragged.getDrawWidth() / 3) {
+          if (x < myDragged.w / 3) {
             selfHgrav = GRAVITY_VALUE_LEFT;
-          } else if (x < 2 * myDragged.getDrawWidth() / 3) {
+          } else if (x < 2 * myDragged.w / 3) {
             selfHgrav = GRAVITY_VALUE_CENTER_HORIZONTAL;
-            left += myDragged.getDrawWidth() / 2;
+            left += myDragged.w / 2;
           } else {
             selfHgrav = GRAVITY_VALUE_RIGHT;
-            left += myDragged.getDrawWidth();
+            left += myDragged.w;
           }
         }
 
-        if (lastY < myAnchor.getDrawY() + myDragged.getDrawHeight()) {
+        if (lastY < myAnchor.y + myDragged.h) {
           anchorVgrav = GRAVITY_VALUE_TOP;
-          top = myAnchor.getDrawY() - myDragged.getDrawHeight();
-          y = lastY - myAnchor.getDrawY();
-        } else if (lastY >= myAnchor.getDrawY() + myAnchor.getDrawHeight() - myDragged.getDrawHeight()) {
+          top = myAnchor.y - myDragged.h;
+          y = lastY - myAnchor.y;
+        } else if (lastY >= myAnchor.y + myAnchor.h - myDragged.h) {
           anchorVgrav = GRAVITY_VALUE_BOTTOM;
-          top = myAnchor.getDrawY() + myAnchor.getDrawHeight() - myDragged.getDrawHeight();
-          y = lastY - (myAnchor.getDrawY() + myAnchor.getDrawHeight() - myDragged.getDrawHeight());
-        } else if (myAnchor.getDrawHeight() > 4 * myDragged.getDrawHeight() &&
-                   myAnchor.getDrawY() + myAnchor.getDrawHeight() / 2 - myDragged.getDrawHeight() <= lastY &&
-                   lastY < myAnchor.getDrawY() + myAnchor.getDrawHeight() / 2 + myDragged.getDrawHeight()) {
+          top = myAnchor.y + myAnchor.h - myDragged.h;
+          y = lastY - (myAnchor.y + myAnchor.h - myDragged.h);
+        } else if (myAnchor.h > 4 * myDragged.h &&
+                   myAnchor.y + myAnchor.h / 2 - myDragged.h <= lastY &&
+                   lastY < myAnchor.y + myAnchor.h / 2 + myDragged.h) {
           anchorVgrav = GRAVITY_VALUE_CENTER_VERTICAL;
-          top = myAnchor.getDrawY() + myAnchor.getDrawHeight() / 2 - myDragged.getDrawHeight();
-          y = (lastY - (myAnchor.getDrawY() + myAnchor.getDrawHeight() / 2 - myDragged.getDrawHeight())) / 2;
+          top = myAnchor.y + myAnchor.h / 2 - myDragged.h;
+          y = (lastY - (myAnchor.y + myAnchor.h / 2 - myDragged.h)) / 2;
         }
         if (anchorVgrav != null) {
-          if (y < myDragged.getDrawHeight() / 3) {
+          if (y < myDragged.h / 3) {
             selfVgrav = GRAVITY_VALUE_TOP;
-          } else if (y < 2 * myDragged.getDrawHeight() / 3) {
+          } else if (y < 2 * myDragged.h / 3) {
             selfVgrav = GRAVITY_VALUE_CENTER_VERTICAL;
-            top += myDragged.getDrawHeight() / 2;
+            top += myDragged.h / 2;
           } else {
             selfVgrav = GRAVITY_VALUE_BOTTOM;
-            top += myDragged.getDrawHeight();
+            top += myDragged.h;
           }
         }
 
@@ -248,13 +246,13 @@ public class CoordinatorLayoutHandler extends ScrollViewHandler {
     }
 
     @Nullable
-    SceneComponent findAnchor() {
+    NlComponent findAnchor() {
       for (int i = layout.getChildCount() - 1; i >= 0; i--) {
-        SceneComponent component = layout.getChild(i);
+        NlComponent component = layout.getChild(i).getNlComponent();
         assert component != null;
-        if (component.getDrawX() < lastX && lastX < component.getDrawX() + component.getDrawWidth() &&
-            component.getDrawY() < lastY && lastY < component.getDrawY() + component.getDrawHeight() &&
-            component.getDrawWidth() > myDragged.getDrawWidth() * 3 && component.getDrawHeight() > myDragged.getDrawHeight() * 3) {
+        if (component.x < lastX && lastX < component.x + component.w &&
+            component.y < lastY && lastY < component.y + component.h &&
+            component.w > myDragged.w * 3 && component.h > myDragged.h * 3) {
           return component;
         }
       }

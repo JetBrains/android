@@ -18,11 +18,15 @@ package com.android.tools.idea.uibuilder.handlers.common;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
+import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
+import com.android.tools.idea.uibuilder.handlers.linear.*;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.Insets;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.TemporarySceneComponent;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,10 +88,12 @@ public class GenericLinearDragHandler extends DragHandler {
   @AndroidDpCoordinate
   private Integer myHeight;
 
+  private SceneComponent myComponent;
+
 
   public GenericLinearDragHandler(@NotNull ViewEditor editor,
                                   @NotNull SceneComponent layout,
-                                  @NotNull List<SceneComponent> components,
+                                  @NotNull List<NlComponent> components,
                                   @NotNull DragType type,
                                   @NotNull ViewGroupHandler viewGroupHandler,
                                   boolean isVertical) {
@@ -109,7 +115,7 @@ public class GenericLinearDragHandler extends DragHandler {
     mySelfPos = -1;
     for (SceneComponent it : layout.getChildren()) {
       if (it.getDrawWidth() > 0 && it.getDrawHeight() > 0) {
-        boolean isDragged = components.contains(it);
+        boolean isDragged = components.contains(it.getNlComponent());
 
         // We don't want to insert drag positions before or after the
         // element that is itself being dragged. However, we -do- want
@@ -153,6 +159,9 @@ public class GenericLinearDragHandler extends DragHandler {
     }
 
     myNumPositions = layout.getChildCount() + 1;
+    NlComponent component = components.get(0);
+    myComponent = new TemporarySceneComponent(layout.getScene(), component);
+    myComponent.setSize(editor.pxToDp(component.w), editor.pxToDp(component.h), false);
   }
 
   @Nullable
@@ -229,11 +238,11 @@ public class GenericLinearDragHandler extends DragHandler {
       if (pos != selfPos) {
         if (isVertical) {
           // draw horizontal lines
-          gc.drawLineDp(layoutX, i, layoutW, i);
+          gc.drawLineDp(layoutX, i, layoutX + layoutW, i);
         }
         else {
           // draw vertical lines
-          gc.drawLineDp(i, layoutY, i, layoutH);
+          gc.drawLineDp(i, layoutY, i, layoutY + layoutH);
         }
       }
     }
@@ -246,8 +255,6 @@ public class GenericLinearDragHandler extends DragHandler {
 
       @AndroidDpCoordinate int x = currX;
       @AndroidDpCoordinate int y = currY;
-
-      SceneComponent be = components.get(0);
 
       // Draw a clear line at the closest drop zone (unless we're over the
       // dragged element itself)
@@ -267,6 +274,7 @@ public class GenericLinearDragHandler extends DragHandler {
         }
       }
 
+      SceneComponent be = myComponent;
       if (be.getDrawWidth() > 0 && be.getDrawHeight() > 0) {
         boolean isLast = myInsertPos == myNumPositions - 1;
 
@@ -284,8 +292,15 @@ public class GenericLinearDragHandler extends DragHandler {
           offsetY = layoutY - be.getDrawY();
         }
 
-        gc.useStyle(NlDrawingStyle.DROP_PREVIEW);
-        for (SceneComponent element : components) {
+        gc.useStyle(NlDrawingStyle.DROP_ZONE_ACTIVE);
+        for (NlComponent nlComponent : components) {
+          SceneComponent element = layout.getSceneComponent(nlComponent);
+          if (nlComponent == myComponent.getNlComponent()) {
+            element = myComponent;
+          }
+          if (element == null) {
+            continue;
+          }
           if (element.getDrawWidth() > 0 && element.getDrawHeight() > 0 &&
               (element.getDrawWidth() > layoutW || element.getDrawHeight() > layoutH) &&
               layout.getChildCount() == 0) {
@@ -313,7 +328,7 @@ public class GenericLinearDragHandler extends DragHandler {
             gc.drawRectDp(px, py, pw, ph);
           }
           else {
-            drawElement(gc, element.getNlComponent(), editor.dpToPx(offsetX), editor.dpToPx(offsetY));
+            drawElement(gc, element, editor.dpToPx(offsetX), editor.dpToPx(offsetY));
           }
         }
       }
@@ -331,18 +346,29 @@ public class GenericLinearDragHandler extends DragHandler {
    * @param offsetY   a vertical delta to add to the current bounds of the element when
    *                  drawing it
    */
-  public void drawElement(NlGraphics gc, NlComponent component, @AndroidCoordinate int offsetX, @AndroidCoordinate int offsetY) {
-    if (component.w > 0 && component.h > 0) {
-      gc.drawRect(component.x + offsetX, component.y + offsetY, component.w, component.h);
+  public void drawElement(NlGraphics gc,SceneComponent component, @AndroidCoordinate int offsetX, @AndroidCoordinate int offsetY) {
+    int w = editor.dpToPx(component.getDrawWidth());
+    int h = editor.dpToPx(component.getDrawHeight());
+    if (w > 0 && h > 0) {
+      gc.fillRect(offsetX, offsetY, w, h);
+      gc.drawRect(offsetX, offsetY, w, h);
     }
 
-    for (NlComponent inner : component.getChildren()) {
+    for (SceneComponent inner : component.getChildren()) {
       drawElement(gc, inner, offsetX, offsetY);
     }
   }
 
   @Override
+  public void cancel() {
+    Scene scene = ((ViewEditorImpl) editor).getSceneView().getScene();
+    scene.removeComponent(myComponent);
+  }
+
+  @Override
   public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
     insertComponents(myInsertPos, insertType);
+    Scene scene = ((ViewEditorImpl) editor).getSceneView().getScene();
+    scene.removeComponent(myComponent);
   }
 }

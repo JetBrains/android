@@ -617,7 +617,7 @@ public class InteractionManager {
             interaction = new MarqueeInteraction(sceneView, toggle);
           }
           else {
-            List<SceneComponent> dragged;
+            List<NlComponent> dragged;
             // Dragging over a non-root component: move the set of components (if the component dragged over is
             // part of the selection, drag them all, otherwise drag just this component)
             if (selectionModel.isSelected(component.getNlComponent())) {
@@ -629,18 +629,18 @@ public class InteractionManager {
                   primaryNlComponent = null;
                 }
                 else {
-                  dragged.add(primary);
+                  dragged.add(primaryNlComponent);
                 }
               }
 
               for (NlComponent selected : selectionModel.getSelection()) {
                 if (!selected.isRoot() && selected != primaryNlComponent) {
-                  dragged.add(scene.getSceneComponent(selected));
+                  dragged.add(selected);
                 }
               }
             }
             else {
-              dragged = Collections.singletonList(component);
+              dragged = Collections.singletonList(primaryNlComponent);
             }
             interaction = new DragDropInteraction(mySurface, dragged);
           }
@@ -802,33 +802,14 @@ public class InteractionManager {
         DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
         InsertType insertType = model.determineInsertType(dragType, item, true /* preview */);
 
-        List<NlComponent> draggedNl = ApplicationManager.getApplication()
+        List<NlComponent> dragged = ApplicationManager.getApplication()
           .runWriteAction((Computable<List<NlComponent>>)() -> model.createComponents(sceneView, item, insertType));
 
-        if (draggedNl == null) {
+        if (dragged == null) {
           event.reject();
           return;
         }
 
-        List<SceneComponent> dragged = new ArrayList<>();
-        Scene scene = sceneView.getScene();
-        List<SceneComponent> temporaryComponents = new ArrayList<>();
-        for (NlComponent draggedNlComponent : draggedNl) {
-          SceneComponent component = scene.getSceneComponent(draggedNlComponent);
-          if (component == null) {
-            component = sceneView.getSceneManager().createTemporaryComponent(draggedNlComponent);
-            temporaryComponents.add(component);
-          }
-          dragged.add(component);
-        }
-
-        @AndroidDpCoordinate int yOffset = 0;
-        for (SceneComponent component : dragged) {
-          // todo: keep original relative position?
-          component.setPosition(Coordinates.getAndroidXDip(sceneView, myLastMouseX) - component.getDrawWidth() / 2,
-                                Coordinates.getAndroidYDip(sceneView, myLastMouseY) - component.getDrawHeight() / 2 + yOffset);
-          yOffset += component.getDrawHeight();
-        }
         DragDropInteraction interaction = new DragDropInteraction(mySurface, dragged);
         interaction.setType(dragType);
         interaction.setTransferItem(item);
@@ -927,7 +908,7 @@ public class InteractionManager {
       interaction.setType(dragType);
       interaction.setTransferItem(item);
 
-      List<SceneComponent> dragged = interaction.getDraggedComponents();
+      List<NlComponent> dragged = interaction.getDraggedComponents();
       List<NlComponent> components;
       if (insertType.isMove()) {
         components = model.getSelectionModel().getSelection();
@@ -944,15 +925,9 @@ public class InteractionManager {
           String.format("Problem with drop: dragged.size(%1$d) != components.size(%2$d)", dragged.size(), components.size()));
       }
       for (int index = 0; index < dragged.size(); index++) {
-        components.get(index).x = dragged.get(index).getNlComponent().x;
-        components.get(index).y = dragged.get(index).getNlComponent().y;
+        components.get(index).x = dragged.get(index).x;
+        components.get(index).y = dragged.get(index).y;
       }
-
-      // Remove the temporary components from the scene
-      dragged.forEach(SceneComponent::removeFromParent);
-      dragged.clear();
-
-      components.forEach(nl -> dragged.add(sceneView.getSceneManager().createTemporaryComponent(nl)));
       return insertType;
     }
 

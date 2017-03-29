@@ -142,6 +142,6 @@ public final class PreferenceScreenDragHandlerTest extends PreferenceScreenTestC
 
     ViewEditor editor = editor(screenFixture.getScreen());
     SceneComponent component = scene.getRoot();
-    return new PreferenceScreenDragHandler(editor, new ViewGroupHandler(), component, Collections.singletonList(component), DragType.MOVE);
+    return new PreferenceScreenDragHandler(editor, new ViewGroupHandler(), component, Collections.singletonList(component.getNlComponent()), DragType.MOVE);
   }
 }

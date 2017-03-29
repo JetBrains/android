@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +41,7 @@ final class PreferenceScreenDragHandler extends PreferenceGroupDragHandler {
   PreferenceScreenDragHandler(@NotNull ViewEditor editor,
                               @NotNull ViewGroupHandler handler,
                               @NotNull SceneComponent group,
-                              @NotNull List<SceneComponent> preferences,
+                              @NotNull List<NlComponent> preferences,
                               @NotNull DragType type) {
     super(editor, handler, group, preferences, type);
 

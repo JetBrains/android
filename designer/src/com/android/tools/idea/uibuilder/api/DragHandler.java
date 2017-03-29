@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 public abstract class DragHandler {
   @NotNull protected final ViewEditor editor;
   @NotNull protected final ViewGroupHandler handler;
-  @NotNull protected final List<SceneComponent> components;
+  @NotNull protected final List<NlComponent> components;
   @NotNull protected SceneComponent layout;
   @NotNull protected DragType type = DragType.COPY;
   @AndroidDpCoordinate protected int startX;
@@ -55,7 +55,7 @@ public abstract class DragHandler {
   protected DragHandler(@NotNull ViewEditor editor,
                         @NotNull ViewGroupHandler handler,
                         @NotNull SceneComponent layout,
-                        @NotNull List<SceneComponent> components,
+                        @NotNull List<NlComponent> components,
                         @NotNull DragType type) {
     this.editor = editor;
     this.handler = handler;
@@ -141,7 +141,6 @@ public abstract class DragHandler {
     if (insertIndex != -1 && insertIndex < layout.getChildCount()) {
       before = layout.getNlComponent().getChild(insertIndex);
     }
-    List<NlComponent> nlComponents = components.stream().map(SceneComponent::getNlComponent).collect(Collectors.toList());
-    editor.getModel().addComponents(nlComponents, layout.getNlComponent(), before, insertType);
+    editor.getModel().addComponents(components, layout.getNlComponent(), before, insertType);
   }
 }

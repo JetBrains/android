@@ -76,7 +76,6 @@ public class Scene implements SelectionListener {
   private long myDisplayListVersion = 1;
   private Target myOverTarget;
   private SceneComponent myCurrentComponent;
-  private SceneComponent myDnDComponent;
 
   private int mNeedsLayout = NO_LAYOUT;
 
@@ -200,29 +199,6 @@ public class Scene implements SelectionListener {
     return myMouseCursor;
   }
 
-  public void setDnDComponent(@Nullable SceneComponent component) {
-    if (component == null || component != myDnDComponent) {
-      // We are here to reset the dnd component
-      if (myDnDComponent != null) {
-        if (myDnDComponent instanceof TemporarySceneComponent) {
-          myDnDComponent.removeFromParent();
-          mySceneComponents.remove(myDnDComponent, myDnDComponent.getNlComponent());
-        } else {
-          int pos = myDnDComponent.findTarget(DragDndTarget.class);
-          if (pos != -1) {
-            myDnDComponent.removeTarget(pos);
-          }
-        }
-      }
-      myDnDComponent = null;
-    }
-
-    if (component != null) {
-      myDnDComponent = component;
-      myDnDComponent.setTargetProvider((sceneComponent, isParent) -> ImmutableList.of(new DragDndTarget()), false);
-    }
-  }
-
   public boolean isAutoconnectOn() {
     return PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, false);
   }
@@ -280,15 +256,22 @@ public class Scene implements SelectionListener {
   /**
    * Add the given SceneComponent to the Scene
    *
-   * @param component
+   * @param component component to add
    */
   public void addComponent(@NotNull SceneComponent component) {
     mySceneComponents.put(component.getNlComponent(), component);
+    needsRebuildList();
   }
 
-  void removeComponent(SceneComponent component) {
+  /**
+   * Remove teh given SceneComponent from the Scene
+   *
+   * @param component component to remove
+   */
+  public void removeComponent(@NotNull SceneComponent component) {
     component.removeFromParent();
     mySceneComponents.remove(component.getNlComponent(), component);
+    needsRebuildList();
   }
 
   void removeAllComponents() {

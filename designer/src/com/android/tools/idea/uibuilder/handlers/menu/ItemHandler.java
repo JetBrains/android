@@ -35,7 +35,7 @@ public final class ItemHandler extends MenuHandler {
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
                                        @NotNull SceneComponent group,
-                                       @NotNull List<SceneComponent> items,
+                                       @NotNull List<NlComponent> items,
                                        @NotNull DragType type) {
     return null;
   }

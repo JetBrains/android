@@ -30,7 +30,7 @@ public final class PreferenceScreenHandler extends ViewGroupHandler {
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
                                        @NotNull SceneComponent preferenceScreen,
-                                       @NotNull List<SceneComponent> preferences,
+                                       @NotNull List<NlComponent> preferences,
                                        @NotNull DragType type) {
     return new PreferenceScreenDragHandler(editor, this, preferenceScreen, preferences, type);
   }

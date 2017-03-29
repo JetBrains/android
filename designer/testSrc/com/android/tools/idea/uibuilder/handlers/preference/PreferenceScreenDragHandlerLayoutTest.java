@@ -55,7 +55,7 @@ public final class PreferenceScreenDragHandlerLayoutTest extends PreferenceScree
 
     DragHandler handler =
       new PreferenceScreenDragHandler(editor(screenFixture.getScreen()), new ViewGroupHandler(), scene.getSceneComponent(screen),
-                                      Collections.singletonList(builder.createTemporaryComponent(preference)), DragType.MOVE);
+                                      Collections.singletonList(preference), DragType.MOVE);
 
     handler.update(180, 251, 0);
     handler.commit(360, 502, 0, InsertType.CREATE);
