@@ -568,6 +568,7 @@ public class ModelWizardTest {
     step2.throwOnEntering(false);
     wizard.goForward();
     assertThat(wizard.getCurrentStep()).isEqualTo(step2);
+    Disposer.dispose(wizard);
   }
 
   @Test
