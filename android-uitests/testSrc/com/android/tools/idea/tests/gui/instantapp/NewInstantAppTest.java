@@ -67,7 +67,7 @@ public class NewInstantAppTest {
   }
 
   //Not putting this in before() as I plan to add some tests that work on non-default projects.
-  private void createAndOpenDefaultAIAProject(@NotNull String projectName, @Nullable String featureName) {
+  private void createAndOpenDefaultAIAProject(@NotNull String projectName, @Nullable String featureModuleName) {
     //TODO: There is some commonality between this code, the code in NewProjectTest and further tests I am planning, but there are also
     //      differences. Once AIA tests are completed this should be factored out into the NewProjectWizardFixture
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
@@ -88,10 +88,10 @@ public class NewInstantAppTest {
     newProjectWizard
       .clickNext(); // Complete form factor configuration
 
-    if (featureName != null) {
+    if (featureModuleName != null) {
       newProjectWizard
         .getConfigureInstantModuleStep()
-        .enterFeatureName(featureName);
+        .enterFeatureModuleName(featureModuleName);
     }
 
     newProjectWizard
@@ -184,7 +184,7 @@ public class NewInstantAppTest {
 
   @Test
   public void testCanCustomiseFeatureModuleInNewInstantAppProjects() throws IOException {
-    createAndOpenDefaultAIAProject("SetFeatureNameApp", "Test Feature Name");
+    createAndOpenDefaultAIAProject("SetFeatureNameApp", "testfeaturename");
 
     guiTest.ideFrame().getModule("testfeaturename");
     guiTest.ideFrame().getModule("testfeaturenamesplit");

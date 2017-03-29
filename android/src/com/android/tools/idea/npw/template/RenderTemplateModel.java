@@ -50,6 +50,7 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull private final ObjectProperty<AndroidSourceSet> mySourceSet;
   @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
   @NotNull private final StringProperty myPackageName;
+  @NotNull private final BoolProperty myInstantApp;
   @NotNull private final MultiTemplateRenderer myMultiTemplateRenderer;
 
   /**
@@ -66,6 +67,7 @@ public final class RenderTemplateModel extends WizardModel {
                              @NotNull AndroidSourceSet sourceSet,
                              @NotNull String commandName) {
     myProject = new OptionalValueProperty<>(project);
+    myInstantApp = new BoolValueProperty(false);
     myPackageName = new StringValueProperty(initialPackageSuggestion);
     mySourceSet = new ObjectValueProperty<>(sourceSet);
     myTemplateHandle = templateHandle;
@@ -78,6 +80,7 @@ public final class RenderTemplateModel extends WizardModel {
                              @NotNull AndroidSourceSet sourceSet,
                              @NotNull String commandName) {
     myProject = moduleModel.getProject();
+    myInstantApp = moduleModel.instantApp();
     myPackageName = moduleModel.packageName();
     mySourceSet = new ObjectValueProperty<>(sourceSet);
     myTemplateHandle = templateHandle;
@@ -110,6 +113,11 @@ public final class RenderTemplateModel extends WizardModel {
   @NotNull
   public StringProperty packageName() {
     return myPackageName;
+  }
+
+  @NotNull
+  public BoolProperty instantApp() {
+    return myInstantApp;
   }
 
   public void setTemplateHandle(@Nullable TemplateHandle templateHandle) {

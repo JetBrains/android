@@ -394,7 +394,8 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
       additionalValues.put(ATTR_PACKAGE_NAME, myPackageName.get());
       ObjectProperty<AndroidSourceSet> sourceSet = getModel().getSourceSet();
       additionalValues.put(ATTR_SOURCE_PROVIDER_NAME, sourceSet.get().getName());
-      additionalValues.put(ATTR_IS_INSTANT_APP, myFacet != null && getContainingSplit(myFacet.getModule()) != null);
+      additionalValues
+        .put(ATTR_IS_INSTANT_APP, (myFacet != null && getContainingSplit(myFacet.getModule()) != null) || getModel().instantApp().get());
 
       Map<String, Object> allValues = Maps.newHashMap(additionalValues);
 
