@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering.webp;
 
-import com.android.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.JBColor;
@@ -69,8 +68,8 @@ public class WebpConversionDialog extends DialogWrapper implements DocumentListe
     myMinSdkVersionLabel.setText(minSdkText);
     myMinSdkVersionLabel2.setText(minSdkText);
 
-    if (minSdkVersion < 15) {
-      myWarningLabel.setText("WARNING: WebP requires API 15; current minSdkVersion is " + minSdkVersionString);
+    if (minSdkVersion < 14) {
+      myWarningLabel.setText("WARNING: WebP requires API 14; current minSdkVersion is " + minSdkVersionString);
       myWarningLabel.setForeground(JBColor.RED);
       myWarningLabel.setVisible(true);
     } else if (minSdkVersion < 18) {
