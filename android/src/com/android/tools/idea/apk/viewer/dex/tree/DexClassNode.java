@@ -22,12 +22,13 @@ import com.intellij.util.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jf.dexlib2.iface.reference.TypeReference;
+import org.jf.dexlib2.immutable.reference.ImmutableTypeReference;
 
 import javax.swing.*;
 
 public class DexClassNode extends DexElementNode {
 
-  public DexClassNode(@NotNull String displayName, @Nullable TypeReference reference) {
+  public DexClassNode(@NotNull String displayName, @Nullable ImmutableTypeReference reference) {
     super(displayName, true, reference);
   }
 
@@ -53,5 +54,20 @@ public class DexClassNode extends DexElementNode {
   @Override
   public TypeReference getReference() {
     return (TypeReference) super.getReference();
+  }
+
+  @Override
+  public void update() {
+    super.update();
+    int methodDefinitions = 0;
+    int methodReferences = 0;
+
+    for (int i = 0, n = getChildCount(); i < n; i++){
+      DexElementNode node = getChildAt(i);
+      methodDefinitions += node.getMethodDefinitionsCount();
+      methodReferences += node.getMethodReferencesCount();
+    }
+    setMethodDefinitionsCount(methodDefinitions);
+    setMethodReferencesCount(methodReferences);
   }
 }

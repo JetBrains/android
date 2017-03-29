@@ -23,18 +23,27 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
+import static com.android.tools.idea.apk.viewer.dex.PackageTreeCreatorTest.getDexMap;
+import static com.android.tools.idea.apk.viewer.dex.PackageTreeCreatorTest.getDexPath;
 import static com.android.tools.idea.apk.viewer.dex.PackageTreeCreatorTest.getTestDexFile;
 import static com.google.common.truth.Truth.assertThat;
 
 public class ShowDisassemblyActionTest {
-  private DexBackedDexFile myDexFile;
   private DexElementNode myPackageTree;
+  private Map<Path, DexBackedDexFile> myDexMap;
+  private DexBackedDexFile myDexFile;
 
   @Before
   public void setUp() throws IOException {
-    myDexFile = getTestDexFile("Test.dex");
-    myPackageTree = new PackageTreeCreator(null, false).constructPackageTree(myDexFile);
+    Path path = getDexPath("Test.dex");
+    myDexFile = getTestDexFile(path);
+    myDexMap = new HashMap<>();
+    myDexMap.put(path, myDexFile);
+    myPackageTree = new PackageTreeCreator(null, false).constructPackageTree(myDexMap);
   }
 
   @Test

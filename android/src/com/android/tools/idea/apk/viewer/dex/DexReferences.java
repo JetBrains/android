@@ -36,17 +36,15 @@ import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.iface.reference.TypeReference;
 import org.jf.dexlib2.immutable.reference.*;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class DexReferences {
 
   private final Multimap<Reference, ImmutableReference> myReferenceReferences =
     HashMultimap.create();
 
-  public DexReferences(DexBackedDexFile file) {
-    gatherBackReferences(file);
+  public DexReferences(DexBackedDexFile[] files) {
+    gatherBackReferences(files);
   }
 
   /**
@@ -65,81 +63,103 @@ public class DexReferences {
    *
    * @param a dex file
    */
-  private void gatherBackReferences(@NotNull DexBackedDexFile file) {
-    //build a map from class names (String) to actual TypeReferences,
-    //as this information is not readily available to query through
-    //the dexlib2 API.
-    Map<String, ImmutableTypeReference> myTypesByName = new HashMap<>();
-    for (int i = 0, m = file.getTypeCount(); i < m; i++) {
-      ImmutableTypeReference immutableTypeRef = ImmutableTypeReference.of(new DexBackedTypeReference(file, i));
-      myTypesByName.put(immutableTypeRef.getType(), immutableTypeRef);
-    }
+  private void gatherBackReferences(@NotNull DexBackedDexFile[] files) {
 
-    //loop through all methods referenced in the dex file, mapping the following:
-    for (int i = 0, m = file.getMethodCount(); i < m; i++) {
-      ImmutableMethodReference immutableMethodRef = ImmutableMethodReference.of(new DexBackedMethodReference(file, i));
-      //- method to return type
-      ImmutableReference typeRef = myTypesByName.get(immutableMethodRef.getReturnType());
-      myReferenceReferences.put(typeRef, immutableMethodRef);
-      //- method to all parameter types
-      for (String parameterType : immutableMethodRef.getParameterTypes()) {
-        typeRef = myTypesByName.get(parameterType);
-        myReferenceReferences.put(typeRef, immutableMethodRef);
-      }
-    }
+    Map<Reference, ImmutableReference> immutableReferencesBin = new HashMap<>();
 
-    //loop through all classes defined in the dex file, mapping the following:
-    for (DexBackedClassDef classDef : file.getClasses()) {
-      ImmutableReference immutableClassRef = ImmutableReferenceFactory.of(classDef);
-      //- class to superclass
-      ImmutableReference typeRef = myTypesByName.get(classDef.getSuperclass());
-      myReferenceReferences.put(typeRef, immutableClassRef);
-      //- class to all implemented interfaces
-      for (String iface : classDef.getInterfaces()) {
-        typeRef = myTypesByName.get(iface);
-        myReferenceReferences.put(typeRef, immutableClassRef);
+    for (DexBackedDexFile file : files) {
+      //build a map from class names (String) to actual TypeReferences,
+      //as this information is not readily available to query through
+      //the dexlib2 API.
+      Map<String, ImmutableTypeReference> myTypesByName = new HashMap<>();
+      for (int i = 0, m = file.getTypeCount(); i < m; i++) {
+        ImmutableTypeReference immutableTypeRef = ImmutableTypeReference.of(new DexBackedTypeReference(file, i));
+        myTypesByName.put(immutableTypeRef.getType(), immutableTypeRef);
       }
-      //loop through all the methods defined in this class,
-      for (DexBackedMethod method : classDef.getMethods()) {
-        //if the method has an implementation, loop through the bytecode
-        //mapping this method to any references that exist in dex instructions.
-        //Fortunately, dexlib2 marks every bytecode instruction that accepts
-        //a reference with one of the 2 interfaces: ReferenceInstruction
-        //or DualReferenceInstructions.
-        DexBackedMethodImplementation impl = method.getImplementation();
-        if (impl != null) {
-          for (Instruction instruction : impl.getInstructions()) {
-            if (instruction instanceof ReferenceInstruction) {
-              Reference reference = ((ReferenceInstruction)instruction).getReference();
-              myReferenceReferences.put(ImmutableReferenceFactory.of(reference), ImmutableReferenceFactory.of(method));
-            }
-            if (instruction instanceof DualReferenceInstruction) {
-              Reference reference = ((DualReferenceInstruction)instruction).getReference2();
-              myReferenceReferences.put(ImmutableReferenceFactory.of(reference), ImmutableReferenceFactory.of(method));
+
+      //loop through all methods referenced in the dex file, mapping the following:
+      for (int i = 0, m = file.getMethodCount(); i < m; i++) {
+        MethodReference methodReference = new DexBackedMethodReference(file, i);
+        //- method to return type
+        ImmutableReference typeRef = myTypesByName.get(methodReference.getReturnType());
+        addReference(typeRef, methodReference, immutableReferencesBin);
+        //- method to all parameter types
+        for (CharSequence parameterType : methodReference.getParameterTypes()) {
+          typeRef = myTypesByName.get(parameterType.toString());
+          addReference(typeRef, methodReference, immutableReferencesBin);
+        }
+      }
+
+      //loop through all classes defined in the dex file, mapping the following:
+      for (DexBackedClassDef classDef : file.getClasses()) {
+        //- class to superclass
+        ImmutableReference typeRef = myTypesByName.get(classDef.getSuperclass());
+        addReference(typeRef, classDef, immutableReferencesBin);
+        //- class to all implemented interfaces
+        for (String iface : classDef.getInterfaces()) {
+          typeRef = myTypesByName.get(iface);
+          addReference(typeRef, classDef, immutableReferencesBin);
+        }
+        //loop through all the methods defined in this class,
+        for (DexBackedMethod method : classDef.getMethods()) {
+          //if the method has an implementation, loop through the bytecode
+          //mapping this method to any references that exist in dex instructions.
+          //Fortunately, dexlib2 marks every bytecode instruction that accepts
+          //a reference with one of the 2 interfaces: ReferenceInstruction
+          //or DualReferenceInstructions.
+          DexBackedMethodImplementation impl = method.getImplementation();
+          if (impl != null) {
+            for (Instruction instruction : impl.getInstructions()) {
+              if (instruction instanceof ReferenceInstruction) {
+                Reference reference = ((ReferenceInstruction)instruction).getReference();
+                addReference(reference, method, immutableReferencesBin);
+              }
+              if (instruction instanceof DualReferenceInstruction) {
+                Reference reference = ((DualReferenceInstruction)instruction).getReference2();
+                addReference(reference, method, immutableReferencesBin);
+              }
             }
           }
         }
       }
-    }
 
-    //loop through all fields referenced in this dex file, creating
-    //a mapping from the field to its type
-    for (int i = 0, m = file.getFieldCount(); i < m; i++) {
-      ImmutableFieldReference immutableFieldRef = ImmutableFieldReference.of(new DexBackedFieldReference(file, i));
-      ImmutableReference typeRef = myTypesByName.get(immutableFieldRef.getType());
-      myReferenceReferences.put(typeRef, immutableFieldRef);
+      //loop through all fields referenced in this dex file, creating
+      //a mapping from the field to its type
+      for (int i = 0, m = file.getFieldCount(); i < m; i++) {
+        FieldReference fieldRef = new DexBackedFieldReference(file, i);
+        ImmutableReference typeRef = myTypesByName.get(fieldRef.getType());
+        addReference(typeRef, fieldRef, immutableReferencesBin);
+      }
     }
   }
 
+  //we want to reuse immutable references, not keep creating them
+  //use the map as a bag of ImmutableReferences for reuse
+  private void addReference(Reference ref1, Reference ref2, Map<Reference,ImmutableReference> immutableReferencesBin){
+    ImmutableReference immutableRef1 = immutableReferencesBin.get(ref1);
+    if (immutableRef1 == null){
+      immutableRef1 = ImmutableReferenceFactory.of(ref1);
+      immutableReferencesBin.put(immutableRef1, immutableRef1);
+    }
+
+    ImmutableReference immutableRef2 = immutableReferencesBin.get(ref2);
+    if (immutableRef2 == null){
+      immutableRef2 = ImmutableReferenceFactory.of(ref2);
+      immutableReferencesBin.put(immutableRef2, immutableRef2);
+    }
+
+    myReferenceReferences.put(immutableRef1, immutableRef2);
+  }
+
   public DexElementNode getReferenceTreeFor(@NotNull Reference referenced) {
-    DexElementNode rootNode = DexElementNodeFactory.from(referenced);
+    DexElementNode rootNode = DexElementNodeFactory.from(ImmutableReferenceFactory.of(referenced));
     createReferenceTree(rootNode, referenced);
     return rootNode;
   }
 
   private void createReferenceTree(@NotNull DexElementNode node, @NotNull Reference referenced) {
-    Collection<? extends Reference> references = myReferenceReferences.get(referenced);
-    for (Reference ref : references) {
+    Collection<? extends ImmutableReference> references = myReferenceReferences.get(referenced);
+    for (ImmutableReference ref : references) {
       if (ref instanceof MethodReference || ref instanceof TypeReference || ref instanceof FieldReference) {
         DexElementNode parentNode = node;
         boolean hasCycle = false;
