@@ -78,7 +78,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
                                        @NotNull SceneComponent layout,
-                                       @NotNull List<SceneComponent> components,
+                                       @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return new OneChildDragHandler(editor, this, layout, components, type);
   }
@@ -142,7 +142,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
     public OneChildDragHandler(@NotNull ViewEditor editor,
                                @NotNull ViewGroupHandler handler,
                                @NotNull SceneComponent layout,
-                               @NotNull List<SceneComponent> components,
+                               @NotNull List<NlComponent> components,
                                @NotNull DragType type) {
       super(editor, handler, layout, components, type);
     }

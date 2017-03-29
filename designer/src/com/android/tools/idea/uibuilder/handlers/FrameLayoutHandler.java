@@ -32,7 +32,7 @@ public class FrameLayoutHandler extends ViewGroupHandler {
   @Nullable
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
                                        @NotNull SceneComponent layout,
-                                       @NotNull List<SceneComponent> components,
+                                       @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return new FrameDragHandler(editor, this, layout, components, type) {
     };
@@ -43,7 +43,7 @@ public class FrameLayoutHandler extends ViewGroupHandler {
     protected FrameDragHandler(@NotNull ViewEditor editor,
                                @NotNull ViewGroupHandler handler,
                                @NotNull SceneComponent layout,
-                               @NotNull List<SceneComponent> components,
+                               @NotNull List<NlComponent> components,
                                @NotNull DragType type) {
       super(editor, handler, layout, components, type);
     }
@@ -54,8 +54,9 @@ public class FrameLayoutHandler extends ViewGroupHandler {
       graphics.drawRectDp(layout.getDrawX(), layout.getDrawY(), layout.getDrawWidth(), layout.getDrawHeight());
 
 
-      for (SceneComponent component : components) {
+      for (NlComponent nlComponent : components) {
         // Place all elements at (0,0) in the FrameLayout
+        SceneComponent component = layout.getSceneComponent(nlComponent);
         int x = layout.getDrawX();
         int y = layout.getDrawY();
         int w = component.getDrawWidth();

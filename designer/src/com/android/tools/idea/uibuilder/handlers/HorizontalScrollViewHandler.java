@@ -64,7 +64,7 @@ public class HorizontalScrollViewHandler extends ScrollViewHandler {
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
                                        @NotNull SceneComponent layout,
-                                       @NotNull List<SceneComponent> components,
+                                       @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return new OneChildDragHandler(editor, this, layout, components, type);
   }
