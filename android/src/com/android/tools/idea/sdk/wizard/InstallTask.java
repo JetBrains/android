@@ -77,8 +77,11 @@ class InstallTask extends Task.Backgroundable {
     myLogger.cancel();
   }
 
-  @Override
-  public void processSentToBackground() {
+  /**
+   * This task is always run in the background, but there's another progress indicator shown in the foreground.
+   * This should be called when the foreground progress is closed, thus making it look like we're in the background.
+   */
+  public void foregroundIndicatorClosed() {
     myBackgrounded = true;
   }
 

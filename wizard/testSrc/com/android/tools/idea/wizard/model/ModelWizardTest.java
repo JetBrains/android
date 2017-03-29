@@ -48,12 +48,8 @@ public class ModelWizardTest {
     final ModelWizard.WizardResult[] wizardResult = new ModelWizard.WizardResult[1];
     wizard.addResultListener(new ModelWizard.WizardListener() {
       @Override
-      public void onWizardFinished(ModelWizard.WizardResult result) {
+      public void onWizardFinished(@NotNull ModelWizard.WizardResult result) {
         wizardResult[0] = result;
-      }
-
-      @Override
-      public void onWizardAdvanceError(Exception e) {
       }
     });
 
@@ -135,13 +131,8 @@ public class ModelWizardTest {
     final ModelWizard.WizardResult[] wizardResult = new ModelWizard.WizardResult[1];
     wizard.addResultListener(new ModelWizard.WizardListener() {
       @Override
-      public void onWizardFinished(ModelWizard.WizardResult result) {
+      public void onWizardFinished(@NotNull ModelWizard.WizardResult result) {
         wizardResult[0] = result;
-      }
-
-      @Override
-      public void onWizardAdvanceError(Exception e) {
-
       }
     });
 
@@ -504,11 +495,7 @@ public class ModelWizardTest {
     final ModelWizardStep<?>[] badStep = {null};
     wizard.addResultListener(new ModelWizard.WizardListener() {
       @Override
-      public void onWizardFinished(ModelWizard.WizardResult result) {
-      }
-
-      @Override
-      public void onWizardAdvanceError(Exception e) {
+      public void onWizardAdvanceError(@NotNull Exception e) {
         badStep[0] = ((FakeStepException)e).getStep();
       }
     });
@@ -548,11 +535,7 @@ public class ModelWizardTest {
     final ModelWizardStep<?>[] badStep = {null};
     wizard.addResultListener(new ModelWizard.WizardListener() {
       @Override
-      public void onWizardFinished(ModelWizard.WizardResult result) {
-      }
-
-      @Override
-      public void onWizardAdvanceError(Exception e) {
+      public void onWizardAdvanceError(@NotNull Exception e) {
         badStep[0] = ((FakeStepException)e).getStep();
       }
     });
@@ -589,12 +572,9 @@ public class ModelWizardTest {
     final boolean[] onFinished = {false};
     wizard.addResultListener(new ModelWizard.WizardListener() {
       @Override
-      public void onWizardFinished(ModelWizard.WizardResult result) {
+      public void onWizardFinished(@NotNull ModelWizard.WizardResult result) {
         onFinished[0] = true;
       }
-
-      @Override
-      public void onWizardAdvanceError(Exception e) { }
     });
 
     wizard.goForward();
