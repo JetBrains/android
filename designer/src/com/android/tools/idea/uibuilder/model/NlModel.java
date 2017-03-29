@@ -520,6 +520,17 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   }
 
   /**
+   * This will warn model listeners that the model has been changed "live", without
+   * the attributes of components being actually committed. Listeners such as Scene Managers will
+   * likely want for example to schedule a layout pass in reaction to that callback.
+   *
+   * @param animate should the changes be animated or not.
+   */
+  public void notifyLiveUpdate(boolean animate) {
+    new ArrayList<>(myListeners).forEach(listener -> listener.modelLiveUpdate(this, animate));
+  }
+
+  /**
    * A node in a tree structure where each node provides a {@link TagSnapshot}.
    */
   public interface TagSnapshotTreeNode {

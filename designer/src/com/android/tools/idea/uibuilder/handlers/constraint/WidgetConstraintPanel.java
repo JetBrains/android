@@ -362,11 +362,10 @@ public class WidgetConstraintPanel extends JPanel {
       return;
     }
     NlModel model = mComponent.getModel();
-
     AttributesTransaction transaction = mComponent.startAttributeTransaction();
     transaction.setAttribute(nameSpace, attribute, value);
     transaction.apply();
-
+    model.notifyLiveUpdate(false);
     myTimer.setRepeats(false);
 
     Project project = model.getProject();
