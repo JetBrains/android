@@ -197,7 +197,7 @@ public class LaunchAndroidApplicationTest extends TestWithEmulator {
   public void testCppDebugOnEmulatorWithBreakpoint() throws Exception {
     BrowseSamplesWizardFixture samplesWizard = guiTest.welcomeFrame()
       .importCodeSample();
-    File location = samplesWizard.selectSample("Ndk/Teapot")
+    File location = samplesWizard.selectSample("Ndk/Teapots")
       .clickNext()
       .getConfigureFormFactorStep()
       .enterApplicationName("TeapotTest")
