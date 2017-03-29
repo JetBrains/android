@@ -39,7 +39,6 @@ public final class ConfigureInstantModuleStep extends DynamicWizardStepWithDescr
   @NotNull private final FormFactor myFormFactor;
   private JTextField mySplitNameField;
   private JPanel myPanel;
-  private JTextField myFeatureNameField;
   private LabelWithEditLink myPackageName;
 
   public ConfigureInstantModuleStep(@Nullable Disposable parentDisposable, @NotNull FormFactor formFactor) {
@@ -52,36 +51,46 @@ public final class ConfigureInstantModuleStep extends DynamicWizardStepWithDescr
   public void init() {
     super.init();
     // TODO: put descriptions in AndroidBundle once UI is finalised
-    setControlDescription(myFeatureNameField, "Name of the feature to add to the project");
     setControlDescription(mySplitNameField, "Name of the feature module which will be added to the project");
     setControlDescription(myPackageName, "Package which will contain all feature splits in this instant app");
 
     ScopedStateStore.Key<String> moduleNameKey = FormFactorUtils.getModuleNameKey(myFormFactor);
-    myState.put(moduleNameKey, null);
+    myState.put(moduleNameKey, "feature");
+    myState.put(INSTANT_APP_PACKAGE_NAME_KEY, myState.get(PACKAGE_NAME_KEY));
 
-    register(FEATURE_NAME_KEY, myFeatureNameField);
     register(moduleNameKey, mySplitNameField);
     register(SPLIT_NAME_KEY, mySplitNameField);
-    register(INSTANT_APP_PACKAGE_NAME_KEY, myPackageName);
-    myState.put(FEATURE_NAME_KEY, "Feature");
-    myState.put(moduleNameKey, "feature");
+    register(PACKAGE_NAME_KEY, myPackageName);
 
-    registerValueDeriver(moduleNameKey, new ValueDeriver<String>() {
+    registerValueDeriver(PACKAGE_NAME_KEY, new ValueDeriver<String>() {
       @Nullable
       @Override
       public Set<ScopedStateStore.Key<?>> getTriggerKeys() {
-        return makeSetOf(FEATURE_NAME_KEY);
+        return makeSetOf(moduleNameKey);
       }
 
       @Nullable
       @Override
       public String deriveValue(@NotNull ScopedStateStore state, @Nullable ScopedStateStore.Key changedKey, @Nullable String currentValue) {
-        return WizardUtils.computeModuleName(state.getNotNull(FEATURE_NAME_KEY, "Feature"), getProject());
+        return myState.get(INSTANT_APP_PACKAGE_NAME_KEY) + "." + myState.get(moduleNameKey);
       }
     });
 
-    myState.put(INSTANT_APP_PACKAGE_NAME_KEY, myState.get(PACKAGE_NAME_KEY) + ".instantapp");
   }
+
+  @Override
+  public boolean commitStep() {
+    boolean commit = super.commitStep();
+
+    if (commit && myPath instanceof NewFormFactorModulePath) {
+      // The path expects the package name to be set early on, but we are changing it here, so update all the places we need to using the
+      // mechanism added for ConfigureAndroidModuleStepDynamic#commitStep
+      ((NewFormFactorModulePath)myPath).updatePackageDerivedValues();
+    }
+
+    return commit;
+  }
+
 
   @NotNull
   @Override
@@ -103,7 +112,7 @@ public final class ConfigureInstantModuleStep extends DynamicWizardStepWithDescr
 
   @Override
   public JComponent getPreferredFocusedComponent() {
-    return myFeatureNameField;
+    return mySplitNameField;
   }
 
   @Override

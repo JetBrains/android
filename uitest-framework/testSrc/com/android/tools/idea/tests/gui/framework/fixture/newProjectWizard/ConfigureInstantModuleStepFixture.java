@@ -27,8 +27,8 @@ public class ConfigureInstantModuleStepFixture extends AbstractWizardStepFixture
   }
 
   @NotNull
-  public ConfigureInstantModuleStepFixture enterFeatureName(@NotNull String text) {
-    JTextComponent textField = findTextFieldWithLabel("Feature Name:");
+  public ConfigureInstantModuleStepFixture enterFeatureModuleName(@NotNull String text) {
+    JTextComponent textField = findTextFieldWithLabel("Module Name:");
     replaceText(textField, text);
     return this;
   }

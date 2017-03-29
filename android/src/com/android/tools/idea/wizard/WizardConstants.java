@@ -100,7 +100,6 @@ public class WizardConstants {
 
   // Instant module step keys
   public static final Key<String> SPLIT_NAME_KEY = createKey(ATTR_SPLIT_NAME, WIZARD, String.class);
-  public static final Key<String> FEATURE_NAME_KEY = createKey("instantAppFeatureName", WIZARD, String.class);
   public static final Key<String> INSTANT_APP_PACKAGE_NAME_KEY = createKey(ATTR_INSTANT_APP_PACKAGE_NAME, WIZARD, String.class);
   public static final Key<Boolean> IS_INSTANT_APP_KEY = createKey(ATTR_IS_INSTANT_APP, WIZARD, Boolean.class);
 
