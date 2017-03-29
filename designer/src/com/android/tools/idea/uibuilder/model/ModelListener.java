@@ -35,6 +35,15 @@ public interface ModelListener {
    */
   default void modelChanged(@NotNull NlModel model) {}
 
+  /**
+   * Something in the model has changed "live", but not committed.
+   * Listeners may want to schedule a layout pass in reaction to that callback.
+   *
+   * @param model the notifier model
+   * @param animate shall those changes be animated or not
+   */
+  default void modelLiveUpdate(@NotNull NlModel model, boolean animate) {}
+
   /** The model finished rendering after updates */
   void modelRendered(@NotNull NlModel model);
 
