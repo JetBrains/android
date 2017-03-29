@@ -28,7 +28,7 @@ class DevManPackage extends ProvisionPackage {
   @NotNull private static final String APK_PREFIX = "devman";
   @NotNull private static final String PKG_NAME = "com.google.android.instantapps.devman";
   // These are the variants of the apks contained in the SDK. Basically the names of the folders with apks
-  @NotNull private static final List<String> SUPPORTED_VARIANTS = Lists.newArrayList("debug");
+  @NotNull private static final List<String> SUPPORTED_VARIANTS = Lists.newArrayList("release");
 
   DevManPackage(@NotNull File instantAppSdk) {
     super(instantAppSdk);
@@ -36,7 +36,7 @@ class DevManPackage extends ProvisionPackage {
 
   @Override
   void install(@NotNull IDevice device) throws ProvisionException {
-    if (!getInstalledApkVersion(device).isEmpty()) {
+    if (getInstalledApkVersion(device) != 0) {
       uninstall(device);
     }
     super.install(device);

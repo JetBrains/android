@@ -35,12 +35,16 @@ public class PolicySetsPackageTest extends ProvisionPackageTest<PolicySetsPackag
     return myProvisionPackage;
   }
 
+  public void testGetApkFiles() {
+    assertSize(1, myProvisionPackage.getPolicyPackages());
+  }
+
   public void testGetApk() throws Throwable {
     assertEquals((getInstantAppSdk().getPath() + "/tools/apks/debug/policy_sets/instantapps_arm64-v8a.apk").replace('/', File.separatorChar),
-                 myProvisionPackage.getApk("arm64-v8a", "debug").getPath());
+                 myProvisionPackage.getPolicyPackages().get(0).getApk("arm64-v8a", "debug").getPath());
   }
 
   public void testGetApkVersion() throws Throwable {
-    assertEquals("34010.147725744.147725744", getApkVersion(myProvisionPackage.getApk("arm64-v8a", "debug")));
+    assertEquals(34010, getApkVersion(myProvisionPackage.getPolicyPackages().get(0).getApk("arm64-v8a", "debug")));
   }
 }

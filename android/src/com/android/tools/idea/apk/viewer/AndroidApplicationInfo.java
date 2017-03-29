@@ -21,14 +21,16 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidApplicationInfo {
-  public static final AndroidApplicationInfo UNKNOWN = new AndroidApplicationInfo("unknown", "unknown");
+  public static final AndroidApplicationInfo UNKNOWN = new AndroidApplicationInfo("unknown", "unknown", 0);
 
   @NotNull public final String packageId;
   @NotNull public final String versionName;
+  public final long versionCode;
 
-  private AndroidApplicationInfo(@NotNull String packageId, @NotNull String versionName) {
+  private AndroidApplicationInfo(@NotNull String packageId, @NotNull String versionName, long versionCode) {
     this.packageId = packageId;
     this.versionName = versionName;
+    this.versionCode = versionCode;
   }
 
   public static AndroidApplicationInfo fromXmlTree(@NotNull ProcessOutput xmlTree) {
@@ -42,10 +44,22 @@ public class AndroidApplicationInfo {
   @NotNull
   static AndroidApplicationInfo parse(@NotNull String output) {
     String packageId = null;
+    long versionCode = 0;
     String versionName = null;
 
     for (String line : Splitter.on('\n').trimResults().split(output)) {
-      if (line.startsWith("A: android:versionName")) {
+      if (line.startsWith("A: android:versionCode")) {
+        // e.g: A: android:versionCode(0x0101021b)=(type 0x10)0x2079
+        int eqIndex = line.indexOf("=(type 0x10)");
+        if (eqIndex > 0) {
+          int endParenthesis = line.indexOf(")", eqIndex + 2);
+          if (endParenthesis > 0) {
+            String versionCodeStr = line.substring(endParenthesis + 1);
+            versionCode = Long.decode(versionCodeStr);
+          }
+        }
+      }
+      else if (line.startsWith("A: android:versionName")) {
         // e.g: A: android:versionName(0x0101021c)="51.0.2704.10" (Raw: "51.0.2704.10")
         int eqIndex = line.indexOf("=");
         if (eqIndex > 0) {
@@ -66,11 +80,13 @@ public class AndroidApplicationInfo {
         }
       }
 
-      if (packageId != null && versionName != null) {
+      if (packageId != null && versionName != null && versionCode != 0) {
         break;
       }
     }
 
-    return new AndroidApplicationInfo(StringUtil.notNullize(packageId, "unknown"), StringUtil.notNullize(versionName, "?"));
+    return new AndroidApplicationInfo(StringUtil.notNullize(packageId, "unknown"),
+                                      StringUtil.notNullize(versionName, "?"),
+                                      versionCode);
   }
 }
