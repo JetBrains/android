@@ -35,6 +35,7 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.*;
+import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -454,6 +455,10 @@ public class AvdDisplayList extends JPanel implements ListSelectionListener, Avd
       @Override
       public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         JBLabel label = new JBLabel((Icon)value);
+        if (value == AndroidIcons.PlayStore) {
+          // (No accessible name for the Device Type column)
+          AccessibleContextUtil.setName(label, "Play Store");
+        }
         if (table.getSelectedRow() == row) {
           label.setBackground(table.getSelectionBackground());
           label.setForeground(table.getSelectionForeground());

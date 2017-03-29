@@ -36,6 +36,7 @@ import com.intellij.ui.table.TableView;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
+import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -620,6 +621,9 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       @Override
       public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         JBLabel label = new JBLabel((Icon)value);
+        if (value != null) {
+          AccessibleContextUtil.setName(label, "Play Store");
+        }
         if (table.getSelectedRow() == row) {
           label.setBackground(table.getSelectionBackground());
           label.setForeground(table.getSelectionForeground());
