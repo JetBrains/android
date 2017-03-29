@@ -16,13 +16,12 @@
 package com.android.tools.idea.npw.instantapp;
 
 import com.android.tools.adtui.LabelWithEditLink;
-import com.android.tools.idea.npw.module.AppNameToModuleNameExpression;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.core.BoolProperty;
 import com.android.tools.idea.ui.properties.core.BoolValueProperty;
-import com.android.tools.idea.ui.properties.expressions.Expression;
+import com.android.tools.idea.ui.properties.core.ObservableString;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
@@ -43,7 +42,6 @@ public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleM
 
   private JTextField mySplitNameField;
   private JPanel myPanel;
-  private JTextField myFeatureNameField;
   private LabelWithEditLink myPackageName;
 
   public ConfigureInstantModuleStep(@NotNull NewModuleModel moduleModel) {
@@ -53,19 +51,19 @@ public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleM
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
     NewModuleModel model = getModel();
-
     TextProperty splitFieldText = new TextProperty(mySplitNameField);
-    myBindings.bindTwoWay(new TextProperty(myPackageName), model.instantAppPackageName());
+    TextProperty packageNameText = new TextProperty(myPackageName);
 
-    Expression<String> computedSplitName = new AppNameToModuleNameExpression(null, new TextProperty(myFeatureNameField));
-    BoolProperty isSplitNameSynced = new BoolValueProperty(true);
-    myBindings.bind(splitFieldText, computedSplitName, isSplitNameSynced);
-    myBindings.bind(model.moduleName(), splitFieldText);
+    BoolProperty isPackageNameSynced = new BoolValueProperty(true);
+    ObservableString computedFeatureModulePackageName = model.computedFeatureModulePackageName();
+    myBindings.bind(model.packageName(), packageNameText, model.instantApp());
+    myBindings.bind(packageNameText, computedFeatureModulePackageName, isPackageNameSynced);
+
+    myBindings.bind(model.moduleName(), splitFieldText, model.instantApp());
     myBindings.bind(model.splitName(), splitFieldText);
-    myListeners.receive(splitFieldText, value -> isSplitNameSynced.set(value.equals(computedSplitName.get())));
+    myListeners.receive(packageNameText, value -> isPackageNameSynced.set(value.equals(computedFeatureModulePackageName.get())));
 
-    splitFieldText.set("Feature");
-    model.instantAppPackageName().set(model.packageName() + ".instantapp");
+    splitFieldText.set("feature");
   }
 
   @NotNull
@@ -77,7 +75,7 @@ public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleM
   @Nullable
   @Override
   protected JComponent getPreferredFocusComponent() {
-    return myFeatureNameField;
+    return mySplitNameField;
   }
 
   @Override

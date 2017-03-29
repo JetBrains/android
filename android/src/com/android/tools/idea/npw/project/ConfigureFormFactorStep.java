@@ -132,13 +132,15 @@ public class ConfigureFormFactorStep extends ModelWizardStep<NewProjectModel> {
       myListeners.receive(renderModel.androidSdkInfo(), value ->  checkValidity());
       myBindings.bindTwoWay(renderModel.androidSdkInfo(), new SelectedItemProperty<>(controls.getMinSdkCombobox()));
 
-      // Some changes on the ProjectModel trigger changes on the ModuleModel/RenderModel
-      myListeners.listenAll(getModel().projectLocation(), myEnabledFormFactors).withAndFire(() -> {
+      myListeners.listenAll(myEnabledFormFactors).withAndFire(() -> {
         String moduleName = myEnabledFormFactors.get() <= 1 ? SdkConstants.APP_PREFIX : getModuleName(formFactor);
-        String projectPath = getModel().projectLocation().get();
-
         moduleModel.moduleName().set(moduleName);
-        renderModel.getSourceSet().set(GradleAndroidProjectPaths.createDefaultSourceSetAt(new File(projectPath, moduleName)));
+      });
+
+      // Some changes on the Project/Module Model trigger changes on the Render Model
+      myListeners.listenAll(getModel().projectLocation(), moduleModel.moduleName()).withAndFire(() -> {
+        File moduleRoot = new File(getModel().projectLocation().get(), moduleModel.moduleName().get());
+        renderModel.getSourceSet().set(GradleAndroidProjectPaths.createDefaultSourceSetAt(moduleRoot));
       });
     }
 
