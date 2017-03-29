@@ -22,6 +22,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
+import com.intellij.icons.AllIcons;
 import com.intellij.psi.PsiElement;
 import icons.AndroidIcons;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
@@ -43,8 +44,20 @@ public class LintAnnotationsModel {
     return myIssues == null ? Collections.<NlComponent>emptyList() : myIssues.keySet();
   }
 
-  @Nullable
   public Icon getIssueIcon(@NotNull NlComponent component) {
+    return  getIssueIcon(component, true);
+  }
+
+  /**
+   * Get the icon for the severity level of the issue associated with the
+   * given component. If the component has no issue, the returned icon will be null
+   * @param component The component the get the icon for
+   * @param smallSize If true, will return an 8x8 icon, otherwise it will return a 16x16
+   *                  (or scaled equivalent for HiDpi screen)
+   * @return The icon for the severity level of the issue.
+   */
+  @Nullable
+  public Icon getIssueIcon(@NotNull NlComponent component, boolean smallSize) {
     if (myIssues == null) {
       return null;
     }
@@ -54,7 +67,9 @@ public class LintAnnotationsModel {
     }
 
     IssueData max = findHighestSeverityIssue(issueData);
-    return HighlightDisplayLevel.ERROR.equals(max.level) ? AndroidIcons.ErrorBadge : AndroidIcons.WarningBadge;
+    return HighlightDisplayLevel.ERROR.equals(max.level)
+           ? smallSize ? AndroidIcons.ErrorBadge : AllIcons.General.Error
+           : smallSize ? AndroidIcons.WarningBadge : AllIcons.General.BalloonWarning;
   }
 
   public String getIssueMessage(@NotNull NlComponent component) {
