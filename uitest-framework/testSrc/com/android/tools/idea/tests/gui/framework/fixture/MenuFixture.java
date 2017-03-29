@@ -22,6 +22,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import org.fest.swing.core.Robot;
+import org.fest.swing.exception.ComponentLookupException;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -106,9 +107,16 @@ class MenuFixture {
    * @param path the series of menu names, e.g. {@link isMenuPathEnabled("Build", "Make Project ")}
    */
   public boolean isMenuPathEnabled(String... path) {
-    boolean isEnabled = findActionMenuItem(path).isEnabled();
-    myRobot.pressAndReleaseKey(KeyEvent.VK_ESCAPE); // Close the menu before continuing.
-
+    boolean isEnabled;
+    try {
+      isEnabled = findActionMenuItem(path).isEnabled();
+    } catch (ComponentLookupException e) {
+      isEnabled = false;
+    }
+    // Close all opened menu before continuing.
+    while (myRobot.finder().findAll(Matchers.byType(JPopupMenu.class).andIsShowing()).size() > 0) {
+      myRobot.pressAndReleaseKey(KeyEvent.VK_ESCAPE);
+    }
     return isEnabled;
   }
 }
