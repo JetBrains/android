@@ -26,8 +26,7 @@ import java.util.concurrent.TimeUnit;
  * Finds the version of a package installed in a device.
  */
 class PackageVersionFinder {
-  @NotNull
-  static String getVersion(@NotNull IDevice device, @NotNull String pkgName) throws Exception {
+  static long getVersion(@NotNull IDevice device, @NotNull String pkgName) throws Exception {
     try {
       String output = executeShellCommand(device, "dumpsys package " + pkgName, 500, TimeUnit.MILLISECONDS, 1);
       return parseOutput(output);
@@ -37,18 +36,23 @@ class PackageVersionFinder {
     }
   }
 
-  @NotNull
-  private static String parseOutput(@NotNull String output) {
-    int index = output.lastIndexOf("versionName");
+  private static long parseOutput(@NotNull String output) {
+    int index = output.indexOf("versionCode");
     if (index == -1) {
-      return "";
+      return 0;
     }
 
     int begIndex = output.indexOf('=', index) + 1;
-    int endIndex = output.indexOf('\n', begIndex);
+    int endIndex = output.indexOf(' ', begIndex);
+    endIndex = endIndex == -1 ? output.indexOf('\n', begIndex) : endIndex;
+
+    if (endIndex == -1) {
+      return 0;
+    }
 
     // Returns an empty string if the package is not installed
-    return output.substring(begIndex, endIndex);
+    String versionCode = output.substring(begIndex, endIndex);
+    return Long.parseLong(versionCode);
   }
 
   @NotNull

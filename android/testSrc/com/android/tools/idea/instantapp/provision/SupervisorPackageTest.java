@@ -41,6 +41,6 @@ public class SupervisorPackageTest extends ProvisionPackageTest<SupervisorPackag
   }
 
   public void testGetApkVersion() throws Throwable {
-    assertEquals("1.0-release-147728895", getApkVersion(myProvisionPackage.getApk("arm64-v8a", "release")));
+    assertEquals(6768, getApkVersion(myProvisionPackage.getApk("arm64-v8a", "release")));
   }
 }

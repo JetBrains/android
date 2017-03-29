@@ -31,5 +31,6 @@ public class AndroidApplicationInfoTest {
                                                                 "    A: platformBuildVersionName=\"N\" (Raw: \"N\")\n");
     assertEquals("com.android.chrome", info.packageId);
     assertEquals("51.0.2704.10", info.versionName);
+    assertEquals(270401001, info.versionCode);
   }
 }

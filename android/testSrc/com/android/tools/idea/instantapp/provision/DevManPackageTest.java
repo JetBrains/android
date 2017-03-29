@@ -36,11 +36,11 @@ public class DevManPackageTest extends ProvisionPackageTest<DevManPackage> {
   }
 
   public void testGetApk() throws Throwable {
-    assertEquals((getInstantAppSdk().getPath() + "/tools/apks/debug/devman.apk").replace('/', File.separatorChar),
-                 myProvisionPackage.getApk("arm64-v8a", "debug").getPath());
+    assertEquals((getInstantAppSdk().getPath() + "/tools/apks/release/devman.apk").replace('/', File.separatorChar),
+                 myProvisionPackage.getApk("arm64-v8a", "release").getPath());
   }
 
   public void testGetApkVersion() throws Throwable {
-    assertEquals("0.1", getApkVersion(myProvisionPackage.getApk("arm64-v8a", "debug")));
+    assertEquals(1, getApkVersion(myProvisionPackage.getApk("arm64-v8a", "release")));
   }
 }
