@@ -29,8 +29,8 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
 
-public final class DefaultToolbarActionGroups extends ToolbarActionGroups {
-  public DefaultToolbarActionGroups(@NotNull NlDesignSurface surface) {
+public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
+  public DefaultNlToolbarActionGroups(@NotNull NlDesignSurface surface) {
     super(surface);
   }
 
@@ -39,9 +39,9 @@ public final class DefaultToolbarActionGroups extends ToolbarActionGroups {
   ActionGroup getNorthGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
 
-    group.add(new DesignModeAction(mySurface));
-    group.add(new BlueprintModeAction(mySurface));
-    group.add(new BothModeAction(mySurface));
+    group.add(new DesignModeAction((NlDesignSurface)mySurface));
+    group.add(new BlueprintModeAction((NlDesignSurface)mySurface));
+    group.add(new BothModeAction((NlDesignSurface)mySurface));
     group.addSeparator();
 
     group.add(new OrientationMenuAction(mySurface::getConfiguration));
@@ -68,10 +68,10 @@ public final class DefaultToolbarActionGroups extends ToolbarActionGroups {
     group.add(new ZoomLabelAction(mySurface));
     group.add(new SetZoomAction(mySurface, ZoomType.IN));
     group.add(new SetZoomAction(mySurface, ZoomType.FIT));
-    group.add(new TogglePanningDialogAction(mySurface));
+    group.add(new TogglePanningDialogAction((NlDesignSurface)mySurface));
     group.addSeparator();
 
-    group.add(new LintNotificationAction(mySurface));
+    group.add(new LintNotificationAction((NlDesignSurface)mySurface));
     return group;
   }
 }
