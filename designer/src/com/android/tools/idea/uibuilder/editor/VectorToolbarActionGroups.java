@@ -17,14 +17,14 @@ package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.uibuilder.actions.SetZoomAction;
 import com.android.tools.idea.uibuilder.actions.ZoomLabelAction;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
 
 public final class VectorToolbarActionGroups extends ToolbarActionGroups {
-  public VectorToolbarActionGroups(@NotNull NlDesignSurface surface) {
+  public VectorToolbarActionGroups(@NotNull DesignSurface surface) {
     super(surface);
   }
 

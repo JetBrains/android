@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -33,9 +33,9 @@ import java.beans.PropertyChangeListener;
  * Action which shows a zoom percentage
  */
 public class ZoomLabelAction extends AnAction implements CustomComponentAction {
-  @NotNull private final NlDesignSurface mySurface;
+  @NotNull private final DesignSurface mySurface;
 
-  public ZoomLabelAction(@NotNull NlDesignSurface surface) {
+  public ZoomLabelAction(@NotNull DesignSurface surface) {
     mySurface = surface;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Current Zoom Level");
