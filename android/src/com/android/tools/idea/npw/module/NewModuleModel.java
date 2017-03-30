@@ -219,7 +219,6 @@ public final class NewModuleModel extends WizardModel {
       Project project = myProject.getValue();
       if (myIsInstantApp.get()) {
         myTemplateValues.put(ATTR_INSTANT_APP_PACKAGE_NAME, myProjectPackageName.get());
-        myTemplateValues.put(ATTR_GRADLE_PLUGIN_VERSION, getInstantAppPluginVersion());
         myTemplateValues.put(ATTR_INSTANT_APP_SDK_DIR, getInstantAppSdkLocation());
         myTemplateValues.put(ATTR_HAS_SPLIT_WRAPPER, true);
         myTemplateValues.put(ATTR_HAS_INSTANT_APP_WRAPPER, true);
