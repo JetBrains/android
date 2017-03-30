@@ -45,7 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.border.Border;
+import javax.swing.text.html.HTMLDocument;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -307,27 +307,26 @@ public class ConnectionDetailsView extends JPanel {
 
     JLabel titleLabel = new NoWrapBoldLabel(title);
     titleLabel.setFont(titleLabel.getFont().deriveFont(TITLE_FONT_SIZE));
-    int rowIndex = 0;
-    panel.add(titleLabel, new TabularLayout.Constraint(rowIndex, 0));
+    panel.add(titleLabel, new TabularLayout.Constraint(0, 0));
 
     if (map.isEmpty()) {
       JLabel emptyLabel = new JLabel("No data available");
       // TODO: Adjust color.
-      rowIndex++;
-      panel.add(emptyLabel, new TabularLayout.Constraint(rowIndex, 0));
+
+      panel.add(emptyLabel, new TabularLayout.Constraint(1, 0));
     } else {
+      StringBuilder stringBuilder = new StringBuilder();
+      stringBuilder.append("<html>");
       Map<String, String> sortedMap = new TreeMap<>(map);
-      Border rowKeyBorder = BorderFactory.createEmptyBorder(0, 0, 0, JBUI.scale(14));
+
       for (Map.Entry<String, String> entry : sortedMap.entrySet()) {
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        JLabel keyLabel = new NoWrapBoldLabel(entry.getKey() + ":");
-        keyLabel.setBorder(rowKeyBorder);
-        row.add(keyLabel);
-        row.add(new JLabel(entry.getValue()));
-        row.setName(entry.getKey());
-        rowIndex++;
-        panel.add(row, new TabularLayout.Constraint(rowIndex, 0));
+        stringBuilder.append("<p><nobr><b>" + entry.getKey() + ":&nbsp&nbsp</b></nobr>");
+        stringBuilder.append("<span>" + entry.getValue() + "</span></p>");
       }
+
+      stringBuilder.append("</html>");
+      JTextPane pane = createTextPane(stringBuilder.toString());
+      panel.add(pane, new TabularLayout.Constraint(1, 0));
     }
 
     new TreeWalker(panel).descendantStream().forEach(c -> {
@@ -339,6 +338,19 @@ public class ConnectionDetailsView extends JPanel {
     // Set name so tests can get a handle to this panel.
     panel.setName(title);
     return panel;
+  }
+
+  private static JTextPane createTextPane(String text) {
+    JTextPane textPane = new JTextPane();
+    textPane.setContentType("text/html");
+    textPane.setBackground(null);
+    textPane.setBorder(null);
+    textPane.setEditable(false);
+    textPane.setText(text);
+    Font labelFont = UIManager.getFont("Label.font");
+    String rule = "body { font-family: " + labelFont.getFamily() + "; font-size: " + FIELD_FONT_SIZE + "pt; }";
+    ((HTMLDocument)textPane.getDocument()).getStyleSheet().addRule(rule);
+    return textPane;
   }
 
   private static void adjustFont(Component c) {
