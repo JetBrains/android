@@ -39,8 +39,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static com.android.SdkConstants.GRADLE_PLUGIN_AIA_VERSION;
-import static com.android.tools.idea.instantapp.InstantApps.setInstantAppPluginVersion;
 import static com.android.tools.idea.instantapp.InstantApps.setInstantAppSdkLocation;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.google.common.truth.Truth.assertThat;
@@ -56,13 +54,11 @@ public class NewInstantAppTest {
 
   @Before
   public void before() {
-    setInstantAppPluginVersion(AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion());
     setInstantAppSdkLocation("TestValue");
   }
 
   @After
   public void after() {
-    setInstantAppPluginVersion(GRADLE_PLUGIN_AIA_VERSION);
     setInstantAppSdkLocation(getenv("WH_SDK"));
   }
 
