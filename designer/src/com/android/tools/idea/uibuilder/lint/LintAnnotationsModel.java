@@ -19,6 +19,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.lint.checks.RtlDetector;
 import com.android.tools.lint.detector.api.Issue;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
@@ -112,7 +113,7 @@ public class LintAnnotationsModel {
   }
 
   private static IssueData findHighestSeverityIssue(List<IssueData> issueData) {
-    return Collections.max(issueData, Comparator.comparing(o -> o.level.getSeverity()));
+    return Collections.max(issueData);
   }
 
   public void addIssue(@NotNull NlComponent component,
@@ -146,7 +147,7 @@ public class LintAnnotationsModel {
     return myIssueList != null ? myIssueList : Collections.emptyList();
   }
 
-  static class IssueData {
+  static class IssueData implements Comparable<IssueData> {
     @NotNull public final AndroidLintInspectionBase inspection;
     @NotNull public final HighlightDisplayLevel level;
     @NotNull public final String message;
@@ -172,6 +173,23 @@ public class LintAnnotationsModel {
       this.startElement = startElement;
       this.endElement = endElement;
       this.quickfixData = quickfixData;
+    }
+
+    /**
+     * Compare the issue by comparing the following properties, sorted by Highest priority first
+     *  <ul>
+     *    <li> {@link HighlightDisplayLevel#getSeverity()}
+     *    <li> {@link Issue#priority}
+     *    <li> {@link Issue#severity}
+     *  </ul>
+     */
+    @Override
+    public int compareTo(@NotNull IssueData o) {
+      return ComparisonChain.start()
+        .compare(this.level.getSeverity(), o.level.getSeverity())
+        .compare(this.issue.getPriority(), o.issue.getPriority())
+        .compare(o.issue.getDefaultSeverity(), this.issue.getDefaultSeverity()) // Inverted on purpose
+        .result();
     }
   }
 }
