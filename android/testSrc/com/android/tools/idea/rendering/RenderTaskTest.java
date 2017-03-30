@@ -124,7 +124,8 @@ public class RenderTaskTest extends RenderTestBase {
     task.dispose();
   }
 
-  public void testAsyncCallAndDispose() throws IOException, ExecutionException, InterruptedException, BrokenBarrierException {
+  // http://b.android.com/278500
+  public void ignored_testAsyncCallAndDispose() throws IOException, ExecutionException, InterruptedException, BrokenBarrierException {
     VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
     Configuration configuration = getConfiguration(layoutFile, DEFAULT_DEVICE_ID);
     RenderLogger logger = mock(RenderLogger.class);
