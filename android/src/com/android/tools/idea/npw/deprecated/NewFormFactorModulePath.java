@@ -309,7 +309,6 @@ public class NewFormFactorModulePath extends DynamicWizardPath {
     Map<String, Object> templateState = FormFactorUtils.scrubFormFactorPrefixes(myFormFactor, myState.flatten());
 
     if (myState.getNotNull(IS_INSTANT_APP_KEY, false)) {
-      templateState.put(ATTR_GRADLE_PLUGIN_VERSION, getInstantAppPluginVersion());
       templateState.put(ATTR_INSTANT_APP_SDK_DIR, getInstantAppSdkLocation());
       templateState.put(ATTR_BASE_SPLIT_MANIFEST_OUT, "./base/src/main");
       templateState.put(ATTR_IS_LIBRARY_MODULE, true);
