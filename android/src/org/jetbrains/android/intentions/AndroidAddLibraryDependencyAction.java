@@ -21,8 +21,8 @@ import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.model.dependencies.CommonConfigurationNames;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.templates.SupportLibrary;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -39,6 +39,7 @@ import com.intellij.openapi.ui.popup.PopupChooserBuilder;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -108,6 +109,7 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
     if (!(file instanceof GroovyFile) || !file.getName().equals("build.gradle")) {
       return false;
     }
+    if (!AndroidFacet.hasAndroid(project)) return false;
 
     GradleBuildModel buildModel = getGradleBuildModel(project, file);
     // Check that this file is a gradle model and that it declares dependencies
