@@ -248,7 +248,7 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void testAgentStatusChange() throws Exception {
+  public void testAgentAspectFiring() throws Exception {
     FakeTimer timer = new FakeTimer();
     AgentStatusAspectObserver observer = new AgentStatusAspectObserver();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
@@ -267,26 +267,75 @@ public final class StudioProfilersTest {
 
     // Test that agent status change fires after a process is selected.
     Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
-    Profiler.Process process = Profiler.Process.newBuilder()
+    Profiler.Process process1 = Profiler.Process.newBuilder()
       .setPid(20)
       .setState(Profiler.Process.State.ALIVE)
-      .setName("FakeProcess")
+      .setName("FakeProcess1")
+      .build();
+    Profiler.Process process2 = Profiler.Process.newBuilder()
+      .setPid(21)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess2")
       .build();
     myProfilerService.addDevice(device);
     Common.Session session = Common.Session.newBuilder()
       .setBootId(device.getBootId())
       .setDeviceSerial(device.getSerial())
       .build();
-    myProfilerService.addProcess(session, process);
+    myProfilerService.addProcess(session, process1);
+    myProfilerService.addProcess(session, process2);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertEquals(process, profilers.getProcess());
+    assertEquals(process1, profilers.getProcess());
     assertTrue(profilers.isAgentAttached());
     assertEquals(1, observer.getAgentStatusChangedCount());
+
+    // Test that manually setting a process fires an agent status change
+    profilers.setProcess(process2);
+    assertEquals(process2, profilers.getProcess());
+    assertTrue(profilers.isAgentAttached());
+    assertEquals(2, observer.getAgentStatusChangedCount());
 
     myProfilerService.setAgentStatus(Profiler.AgentStatusResponse.Status.DETACHED);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertFalse(profilers.isAgentAttached());
-    assertEquals(2, observer.getAgentStatusChangedCount());
+    assertEquals(3, observer.getAgentStatusChangedCount());
+  }
+
+  @Test
+  public void testAgentAspectNotFiredWhenSettingSameDeviceProcess() throws Exception {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+
+    Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
+    Profiler.Process process1 = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setState(Profiler.Process.State.ALIVE)
+      .setName("FakeProcess1")
+      .build();
+    myProfilerService.addDevice(device);
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    myProfilerService.addProcess(session, process1);
+
+    AgentStatusAspectObserver observer = new AgentStatusAspectObserver();
+    profilers.addDependency(observer).onChange(ProfilerAspect.AGENT, observer::AgentStatusChanged);
+
+    // Test that the status changed is fired when the process first gets selected.
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertEquals(device, profilers.getDevice());
+    assertEquals(process1, profilers.getProcess());
+    assertFalse(profilers.isAgentAttached());
+    assertEquals(1, observer.getAgentStatusChangedCount());
+
+    // Test that resetting the same device/process would not trigger the status changed event.
+    profilers.setDevice(device);
+    profilers.setProcess(process1);
+    assertEquals(device, profilers.getDevice());
+    assertEquals(process1, profilers.getProcess());
+    assertFalse(profilers.isAgentAttached());
+    assertEquals(1, observer.getAgentStatusChangedCount());
   }
 
   @Test
