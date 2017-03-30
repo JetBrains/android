@@ -33,7 +33,6 @@ import java.util.regex.Pattern;
 public class FlavorsExecutionTest extends TestWithEmulator {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-  @Rule public final ScreenshotsDuringTest screenshots = new ScreenshotsDuringTest();
 
   private static final String PROCESS_NAME = "google.simpleapplication";
   private static final String ACTIVITY_OUTPUT_PATTERN =
