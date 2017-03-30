@@ -31,7 +31,7 @@ import org.junit.Test;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -195,17 +195,40 @@ public class ConnectionDetailsViewTest {
   }
 
   @Test
-  public void headerSectionIsSorted() {
+  public void headerSectionIsSortedAndFormatted() {
     HttpData data = getBuilderFromHttpData(DEFAULT_DATA).setRequestFields(TEST_HEADERS).build();
     myView.setHttpData(data);
     Stream<Component> stream = new TreeWalker(myView).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
     JPanel headers = (JPanel)stream.filter(c -> "Headers".equals(c.getName())).findFirst().get();
     stream = new TreeWalker(headers).descendantStream(TreeWalker.DescendantOrder.DEPTH_FIRST);
     JPanel responseHeaders = (JPanel)stream.filter(c -> "Request Headers".equals(c.getName())).findFirst().get();
-    assertThat(responseHeaders.getComponent(1).getName()).isEqualTo("123");
-    assertThat(responseHeaders.getComponent(2).getName()).isEqualTo("apple");
-    assertThat(responseHeaders.getComponent(3).getName()).isEqualTo("border");
-    assertThat(responseHeaders.getComponent(4).getName()).isEqualTo("car");
+
+    String text = ((JTextPane)responseHeaders.getComponent(1)).getText();
+    String idealText = "<html>\n" +
+                       "  <head>\n" +
+                       "    <style type=\"text/css\">\n" +
+                       "      <!--\n" +
+                       "        body { font-family: Dialog; font-size: 10.0pt }\n" +
+                       "      -->\n" +
+                       "    </style>\n" +
+                       "    \n" +
+                       "  </head>\n" +
+                       "  <body>\n" +
+                       "    <p>\n" +
+                       "      <nobr><b>123:&#160;&#160;</b></nobr><span>value</span>\n" +
+                       "    </p>\n" +
+                       "    <p>\n" +
+                       "      <nobr><b>apple:&#160;&#160;</b></nobr><span>value</span>\n" +
+                       "    </p>\n" +
+                       "    <p>\n" +
+                       "      <nobr><b>border:&#160;&#160;</b></nobr><span>value</span>\n" +
+                       "    </p>\n" +
+                       "    <p>\n" +
+                       "      <nobr><b>car:&#160;&#160;</b></nobr><span>value</span>\n" +
+                       "    </p>\n" +
+                       "  </body>\n" +
+                       "</html>\n";
+    assertThat(text).isEqualTo(idealText);
   }
 
   @Test
