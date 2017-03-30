@@ -124,43 +124,45 @@ public class RenderTaskTest extends RenderTestBase {
     task.dispose();
   }
 
-  // http://b.android.com/278500
-  public void ignored_testAsyncCallAndDispose() throws IOException, ExecutionException, InterruptedException, BrokenBarrierException {
+  public void testAsyncCallAndDispose()
+    throws IOException, ExecutionException, InterruptedException, BrokenBarrierException, TimeoutException {
     VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
     Configuration configuration = getConfiguration(layoutFile, DEFAULT_DEVICE_ID);
     RenderLogger logger = mock(RenderLogger.class);
 
-    RenderTask task = createRenderTask(layoutFile, configuration, logger);
-    Semaphore semaphore = new Semaphore(0);
-    task.runAsyncRenderAction(() -> {
-      semaphore.acquire();
+    for (int i = 0; i < 5; i++) {
+      RenderTask task = createRenderTask(layoutFile, configuration, logger);
+      Semaphore semaphore = new Semaphore(0);
+      task.runAsyncRenderAction(() -> {
+        semaphore.acquire();
 
-      return null;
-    });
-    task.runAsyncRenderAction(() -> {
-      semaphore.acquire();
+        return null;
+      });
+      task.runAsyncRenderAction(() -> {
+        semaphore.acquire();
 
-      return null;
-    });
+        return null;
+      });
 
-    boolean timedOut = false;
+      boolean timedOut = false;
 
-    Future<?> disposeFuture = task.dispose();
-    semaphore.release();
+      Future<?> disposeFuture = task.dispose();
+      semaphore.release();
 
-    // The render tasks won't finish until all tasks are done
-    try {
+      // The render tasks won't finish until all tasks are done
+      try {
+        disposeFuture.get(500, TimeUnit.MILLISECONDS);
+      }
+      catch (InterruptedException | ExecutionException ignored) {
+      }
+      catch (TimeoutException e) {
+        timedOut = true;
+      }
+      assertTrue(timedOut);
+
+      semaphore.release();
       disposeFuture.get(500, TimeUnit.MILLISECONDS);
     }
-    catch (InterruptedException | ExecutionException ignored) {
-    }
-    catch (TimeoutException e) {
-      timedOut = true;
-    }
-    assertTrue(timedOut);
-
-    semaphore.release();
-    disposeFuture.get();
   }
 
 }
