@@ -23,10 +23,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * Main Wrapper class for Constraint Widgets
@@ -158,7 +155,21 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   }
 
   /**
-   * Wrap an array of ConstraintWidgets into an array of InferWidgets
+   * Wrap an list of NlComponent into an array
+   *
+   * @param array
+   * @return
+   */
+  public static ScoutWidget[] create(java.util.List<NlComponent> list, ScoutWidget parent) {
+    ScoutWidget[] ret = new ScoutWidget[list.size()];
+    for (int i = 0; i < ret.length; i++) {
+      ret[i] = new ScoutWidget(list.get(i), parent);
+    }
+    return ret;
+  }
+
+  /**
+   * Wrap an array of NlComponent into an array of ScoutWidget
    *
    * @param array
    * @return
@@ -952,6 +963,21 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
    */
   public boolean isConnected(Direction direction) {
     return getAnchor(direction).isConnected();
+  }
+
+  /**
+   * is widget connected other widget in that direction
+   *
+   * @param direction
+   * @param to
+   * @return
+   */
+  public boolean isConnected(Direction direction, ScoutWidget to) {
+    Anchor anchor = getAnchor(direction);
+    if (anchor.isConnected()) {
+      return anchor.getTarget().getOwner() == to;
+    }
+    return false;
   }
 
   /**

@@ -41,27 +41,16 @@ public class CheckDisplayList extends JPanel {
     }
   }
 
-  String simpleList = "Rect,0,0,1000,1000,ffff0000\n" +
-                      "Clip,0,0,1000,1000\n" +
-                      "Rect,450,490,100,20,ff00ffff\n" +
-                      "Rect,450,490,100,20,ff00ff00\n" +
-                      "Line,450,490,550,510,ffff0000\n" +
-                      "Line,450,510,550,490,ffff0000\n" +
-                      "Rect,450,490,100,20,ff00ff00\n" +
-                      "Line,450,490,550,510,ffff0000\n" +
-                      "Line,450,510,550,490,ffff0000\n" +
-                      "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,true,false,0,0.5\n" +
-                      "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,true,false,0,0.5\n" +
-                      "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,true,false,0,0.5\n" +
-                      "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,true,false,0,0.5\n" +
-                      "Rect,450,490,100,20,ff00ffff\n" +
-                      "Rect,450,490,100,20,ff00ff00\n" +
-                      "Line,450,490,550,510,ffff0000\n" +
-                      "Line,450,510,550,490,ffff0000\n" +
-                      "Rect,450,490,100,20,ff00ff00\n" +
-                      "Line,450,490,550,510,ffff0000\n" +
-                      "Line,450,510,550,490,ffff0000\n" +
-                      "UNClip\n";
+  String simpleList =  "DrawComponentFrame,0,0,1000,1000,1,1000,1000\n" +
+                       "Clip,0,0,1000,1000\n" +
+                       "DrawComponentBackground,450,490,100,20,1\n" +
+                       "DrawTextRegion,450,490,100,20,0,false,false,5,5,28,1.0,\"\"\n" +
+                       "DrawComponentFrame,450,490,100,20,1,20,20\n" +
+                       "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,0\n" +
+                       "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5,0\n" +
+                       "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5,0\n" +
+                       "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5,0\n" +
+                       "UNClip\n";
 
   {
     list = DisplayList.getDisplayList(simpleList);
