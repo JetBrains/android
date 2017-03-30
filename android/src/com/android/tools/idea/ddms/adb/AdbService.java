@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.concurrent.*;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * {@link AdbService} is the main entry point to initializing and obtaining the {@link AndroidDebugBridge}.
@@ -47,11 +48,13 @@ import java.util.concurrent.TimeoutException;
  * by first invoking {@link #getDebugBridge(File)} to obtain the bridge, and implementing
  * {@link AndroidDebugBridge.IDebugBridgeChangeListener} to ensure that they get updates to the status of the bridge.
  */
-public class AdbService implements Disposable {
+public class AdbService implements Disposable, AdbOptionsService.AdbOptionsListener {
   private static final Logger LOG = Logger.getInstance(AdbService.class);
 
   @GuardedBy("this")
   @Nullable private ListenableFuture<AndroidDebugBridge> myFuture;
+
+  private final AtomicReference<File> myAdb = new AtomicReference<>();
 
   /**
    * adb initialization and termination could occur in separate threads (see {@link #terminateDdmlib()} and {@link CreateBridgeTask}.
@@ -68,14 +71,19 @@ public class AdbService implements Disposable {
     DdmPreferences.setTimeOut(AndroidUtils.TIMEOUT);
 
     Log.addLogger(new AdbLogOutput.SystemLogRedirecter());
+
+    AdbOptionsService.getInstance().addListener(this);
   }
 
   @Override
   public void dispose() {
     terminateDdmlib();
+    AdbOptionsService.getInstance().removeListener(this);
   }
 
   public synchronized ListenableFuture<AndroidDebugBridge> getDebugBridge(@NotNull File adb) {
+    myAdb.set(adb);
+
     // Cancel previous requests if they were unsuccessful
     if (myFuture != null && myFuture.isDone() && !wasSuccessful(myFuture)) {
       terminateDdmlib();
@@ -156,6 +164,19 @@ public class AdbService implements Disposable {
     }
   }
 
+  @Override
+  public void optionsChanged() {
+    File adb = myAdb.get();
+    // we use the presence of myAdb as an indication that adb was started earlier
+    if (adb != null) {
+      LOG.info("Terminating adb server");
+      terminateDdmlib();
+
+      LOG.info("Restart adb server");
+      getDebugBridge(adb);
+    }
+  }
+
   private static class CreateBridgeTask implements Callable<BridgeConnectionResult> {
     private final File myAdb;
 
@@ -173,7 +194,7 @@ public class AdbService implements Disposable {
       Log.addLogger(toStringLogger);
       try {
         synchronized (ADB_INIT_LOCK) {
-          AndroidDebugBridge.init(clientSupport);
+          AndroidDebugBridge.init(clientSupport, AdbOptionsService.getInstance().shouldUseLibusb());
           bridge = AndroidDebugBridge.createBridge(myAdb.getPath(), false);
         }
 
