@@ -73,7 +73,7 @@ public final class GridDragHandlerTest extends LayoutTestCase {
     Scene scene = new SyncLayoutlibSceneManager(model).build();
     scene.buildDisplayList(new DisplayList(), 0);
 
-    List<SceneComponent> components = Collections.emptyList();
+    List<NlComponent> components = Collections.emptyList();
     ScreenView screen = new ScreenFixture(model).getScreen();
     handler = new GridDragHandler(editor(screen), new ViewGroupHandler(), scene.getRoot(), components, DragType.CREATE);
   }

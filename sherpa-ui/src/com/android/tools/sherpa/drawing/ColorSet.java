@@ -102,6 +102,9 @@ public class ColorSet {
     private Paint mBackgroundPaint;
     protected Color myUnconstrainedColor;
 
+    protected Color mDragReceiverFrames = new Color(220, 103, 53);
+    protected Color mDragReceiverBackground = new Color(220, 103, 53, 100);
+
     public Stroke getOutlineStroke() { return sOutlineStroke; }
 
     public Paint getBackgroundPaint() {
@@ -125,6 +128,10 @@ public class ColorSet {
     public Color getSubduedText() { return mSubduedText; }
 
     public Color getSelectedFrames() { return mSelectedFrames; }
+
+    public Color getDragReceiverFrames() { return mDragReceiverFrames; }
+
+    public Color getDragReceiverBackground() { return mDragReceiverBackground; }
 
     public Color getBackground() { return mBackground; }
 
@@ -249,4 +256,5 @@ public class ColorSet {
     public Color getUnconstrainedColor() {
         return myUnconstrainedColor;
     }
+
 }

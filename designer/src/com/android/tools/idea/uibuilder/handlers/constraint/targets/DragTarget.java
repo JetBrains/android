@@ -398,6 +398,9 @@ public class DragTarget extends BaseTarget {
     myHorizontalNotches.clear();
     myVerticalNotches.clear();
     SceneComponent parent = myComponent.getParent();
+    if (parent == null) {
+      return;
+    }
     assert parent != null;
     Notch.Provider notchProvider = parent.getNotchProvider();
     if (notchProvider != null) {

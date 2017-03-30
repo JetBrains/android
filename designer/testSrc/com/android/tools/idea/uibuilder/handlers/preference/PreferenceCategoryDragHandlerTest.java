@@ -111,7 +111,7 @@ public final class PreferenceCategoryDragHandlerTest extends PreferenceScreenTes
 
     SceneComponent component = scene.getSceneComponent(category);
     return new PreferenceCategoryDragHandler(
-      editor(screenFixture.getScreen()), new ViewGroupHandler(), component, Collections.singletonList(component),
+      editor(screenFixture.getScreen()), new ViewGroupHandler(), component, Collections.singletonList(component.getNlComponent()),
       DragType.MOVE);
   }
 }
