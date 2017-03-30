@@ -24,6 +24,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Condition;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.presentation.java.SymbolPresentationUtil;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.ui.DoubleClickListener;
@@ -38,8 +39,11 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.text.Collator;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Locale;
 
 /**
  * @author Alexander Lobas
@@ -93,14 +97,27 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
   }
 
   protected void findClasses(Module module, boolean includeAll, DefaultListModel model, String[] classes) {
+    Collection<PsiClass> collection = new ArrayList<>(classes.length);
+
     for (String className : classes) {
       for (PsiClass psiClass : findInheritors(module, className, includeAll)) {
         if (myFilter != null && !myFilter.value(psiClass)) {
           continue;
         }
-        model.addElement(psiClass);
+
+        collection.add(psiClass);
       }
     }
+
+    Collator collator = Collator.getInstance(Locale.US);
+
+    collection.stream()
+      .sorted((psiClass1, psiClass2) -> collator.compare(SymbolPresentationUtil.getSymbolPresentableText(psiClass1),
+                                                         SymbolPresentationUtil.getSymbolPresentableText(psiClass2)))
+      .forEach(psiClass -> {
+        // noinspection Convert2MethodRef, unchecked
+        model.addElement(psiClass);
+      });
   }
 
   public static Collection<PsiClass> findInheritors(Module module, String name, boolean includeAll) {
