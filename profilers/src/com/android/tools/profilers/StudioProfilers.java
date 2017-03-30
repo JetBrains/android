@@ -69,7 +69,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @Nullable
   private Profiler.Process myProcess;
 
-  private boolean myAgentAttached;
+  private Profiler.AgentStatusResponse.Status myAgentStatus;
 
   @Nullable
   private String myPreferredProcessName;
@@ -187,22 +187,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         changed(ProfilerAspect.PROCESSES);
       }
 
-      // Ping to see if perfa is alive.
+      // A heartbeat event may not have been sent by perfa when we first profile an app, here we keep pinging the status and
+      // fire the corresponding change and tracking events.
       if (myProcess != null) {
-        Common.Session session = Common.Session.newBuilder()
-          .setDeviceSerial(myDevice.getSerial())
-          .setBootId(myDevice.getBootId())
-          .build();
-        Profiler.AgentStatusRequest statusRequest =
-          Profiler.AgentStatusRequest.newBuilder().setProcessId(myProcess.getPid()).setSession(session).build();
-        Profiler.AgentStatusResponse statusResponse = myClient.getProfilerClient().getAgentStatus(statusRequest);
-
-        boolean agentAttach = statusResponse.getStatus() == Profiler.AgentStatusResponse.Status.ATTACHED;
-        if (myAgentAttached != agentAttach) {
-          myAgentAttached = agentAttach;
+        Profiler.AgentStatusResponse.Status agentStatus = getAgentStatus();
+        if (myAgentStatus != agentStatus) {
+          myAgentStatus = agentStatus;
           changed(ProfilerAspect.AGENT);
-
-          if (agentAttach) {
+          if (isProcessAlive() && myAgentStatus == Profiler.AgentStatusResponse.Status.ATTACHED) {
             getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
           }
         }
@@ -322,6 +314,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       boolean onlyStateChanged = isSameProcess(myProcess, process);
       myProcess = process;
       changed(ProfilerAspect.PROCESSES);
+      myAgentStatus = getAgentStatus();
+      changed(ProfilerAspect.AGENT);
 
       if (myDevice != null && myProcess != null &&
           myDevice.getState() == Profiler.Device.State.ONLINE &&
@@ -342,6 +336,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         myClient.getProfilerClient()
           .attachAgent(Profiler.AgentAttachRequest.newBuilder().setSession(getSession()).setProcessId(myProcess.getPid()).build());
         myIdeServices.getFeatureTracker().trackProfilingStarted();
+        if (myAgentStatus == Profiler.AgentStatusResponse.Status.ATTACHED) {
+          getIdeServices().getFeatureTracker().trackAdvancedProfilingStarted();
+        }
       }
       else {
         myTimeline.setIsPaused(true);
@@ -386,6 +383,21 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
     // No preferred candidate. Choose a new process.
     return processes.get(0);
+  }
+
+  @NotNull
+  private Profiler.AgentStatusResponse.Status getAgentStatus() {
+    if (myDevice == null || myProcess == null) {
+      return Profiler.AgentStatusResponse.getDefaultInstance().getStatus();
+    }
+
+    Common.Session session = Common.Session.newBuilder()
+      .setDeviceSerial(myDevice.getSerial())
+      .setBootId(myDevice.getBootId())
+      .build();
+    Profiler.AgentStatusRequest statusRequest =
+      Profiler.AgentStatusRequest.newBuilder().setProcessId(myProcess.getPid()).setSession(session).build();
+    return myClient.getProfilerClient().getAgentStatus(statusRequest).getStatus();
   }
 
   /**
@@ -453,7 +465,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   public boolean isAgentAttached() {
-    return myAgentAttached;
+    return myAgentStatus == Profiler.AgentStatusResponse.Status.ATTACHED;
   }
 
   public List<StudioProfiler> getProfilers() {
