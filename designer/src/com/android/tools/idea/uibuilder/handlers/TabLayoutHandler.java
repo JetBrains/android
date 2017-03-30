@@ -80,7 +80,7 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
                                        @NotNull SceneComponent layout,
-                                       @NotNull List<SceneComponent> components,
+                                       @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return new GenericLinearDragHandler(editor, layout, components, type, this, false);
   }

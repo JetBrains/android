@@ -34,6 +34,7 @@ public class DrawComponentFrame extends DrawRegion {
   static Stroke myProblemStroke = new BasicStroke(2);
   static Stroke myWrapStroke =  new BasicStroke(2);
   static Stroke myMatchParentStroke = new BasicStroke(2);
+  static Stroke myDragReceiverStroke = new BasicStroke(3);
   static Stroke myMatchConstraintStroke = new FancyStroke(FancyStroke.Type.SPRING, 2, 2, 2);
 
   int myMode;
@@ -83,16 +84,19 @@ public class DrawComponentFrame extends DrawRegion {
   @Override
   public void paint(Graphics2D g, SceneContext sceneContext) {
     ColorSet colorSet = sceneContext.getColorSet();
-    Color[] colorFrame = {colorSet.getSubduedFrames(), colorSet.getFrames(), colorSet.getHighlightedFrames(), colorSet.getSelectedFrames()};
+    Color[] colorFrame = {colorSet.getSubduedFrames(), colorSet.getFrames(), colorSet.getHighlightedFrames(), colorSet.getSelectedFrames(), colorSet.getDragReceiverFrames()};
     Stroke previousStroke = g.getStroke();
     g.setStroke(myNormalStroke);
     g.setColor(colorFrame[myMode]);
-    if (myLayoutWidth == myLayoutHeight) {
-      g.setStroke(getStroke(myLayoutWidth));
+    if (myLayoutWidth == myLayoutHeight || myMode == 4) {
+      if (myMode == 4) {
+        g.setStroke(myDragReceiverStroke);
+      } else {
+        g.setStroke(getStroke(myLayoutWidth));
+      }
       g.drawRect(x, y, width, height);
     }
     else {
-
       g.setColor(colorFrame[myMode]);
       g.setStroke(getStroke(myLayoutHeight));
       g.drawLine(x, y, x, y + height);

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
@@ -70,7 +71,7 @@ public class DragDropInteraction extends Interaction {
   /**
    * The components being dragged
    */
-  private final List<SceneComponent> myDraggedComponents;
+  private final List<NlComponent> myDraggedComponents;
 
   /**
    * The current view group handler, if any. This is the layout widget we're dragging over (or the
@@ -103,8 +104,13 @@ public class DragDropInteraction extends Interaction {
    */
   private DnDTransferItem myTransferItem;
 
+  /**
+   * The current viewgroup found for handling the dnd
+   */
+  SceneComponent myCurrentViewgroup = null;
+
   public DragDropInteraction(@NotNull DesignSurface designSurface,
-                             @NotNull List<SceneComponent> dragged) {
+                             @NotNull List<NlComponent> dragged) {
     myDesignSurface = designSurface;
     myDraggedComponents = dragged;
   }
@@ -165,8 +171,25 @@ public class DragDropInteraction extends Interaction {
 
     Project project = mySceneView.getModel().getProject();
     ViewGroupHandler handler = findViewGroupHandlerAt(x, y);
+    SceneComponent viewgroup =
+      mySceneView.getScene().findComponent(SceneContext.get(mySceneView),
+                                         Coordinates.getAndroidXDip(mySceneView, x),
+                                         Coordinates.getAndroidYDip(mySceneView, y));
 
-    if (handler != myCurrentHandler) {
+    while (viewgroup != null && viewgroup.getNlComponent() != null
+           && !viewgroup.getNlComponent().isOrHasSuperclass(SdkConstants.CLASS_VIEWGROUP)) {
+      viewgroup = viewgroup.getParent();
+    }
+
+    if (handler != myCurrentHandler || myCurrentViewgroup != viewgroup) {
+      if (myCurrentViewgroup != null) {
+        myCurrentViewgroup.setDrawState(SceneComponent.DrawState.NORMAL);
+      }
+      myCurrentViewgroup = viewgroup;
+      if (myCurrentViewgroup != null) {
+        myCurrentViewgroup.setDrawState(SceneComponent.DrawState.DRAG);
+      }
+
       if (myDragHandler != null) {
         myDragHandler.cancel();
         myDragHandler = null;
@@ -179,8 +202,7 @@ public class DragDropInteraction extends Interaction {
 
         String error = null;
         ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(project);
-        for (SceneComponent sceneComponent : myDraggedComponents) {
-          NlComponent component = sceneComponent.getNlComponent();
+        for (NlComponent component : myDraggedComponents) {
           if (!myCurrentHandler.acceptsChild(myDragReceiver, component, ax, ay)) {
             error = String.format(
               "<%1$s> does not accept <%2$s> as a child", myDragReceiver.getNlComponent().getTagName(), component.getTagName());
@@ -208,7 +230,7 @@ public class DragDropInteraction extends Interaction {
 
     if (myDragHandler != null && myCurrentHandler != null) {
       String error = myDragHandler.update(Coordinates.pxToDp(mySceneView, ax), Coordinates.pxToDp(mySceneView, ay), modifiers);
-      final List<SceneComponent> added = Lists.newArrayList();
+      final List<NlComponent> added = Lists.newArrayList();
       if (commit && error == null) {
         added.addAll(myDraggedComponents);
         final NlModel model = mySceneView.getModel();
@@ -225,7 +247,7 @@ public class DragDropInteraction extends Interaction {
         action.execute();
         model.notifyModified(NlModel.ChangeType.DND_COMMIT);
         // Select newly dropped components
-        model.getSelectionModel().setSelection(added.stream().map(SceneComponent::getNlComponent).collect(Collectors.toList()));
+        model.getSelectionModel().setSelection(added);
       }
       mySceneView.getSurface().repaint();
     }
@@ -287,7 +309,7 @@ public class DragDropInteraction extends Interaction {
   private SceneComponent excludeDraggedComponents(@Nullable SceneComponent component) {
     SceneComponent receiver = component;
     while (component != null) {
-      if (myDraggedComponents.contains(component)) {
+      if (myDraggedComponents.contains(component.getNlComponent())) {
         receiver = component.getParent();
       }
       component = component.getParent();
@@ -312,7 +334,7 @@ public class DragDropInteraction extends Interaction {
       return childHandler != null && childHandler.acceptsParent(parent.getNlComponent(), child);
     };
 
-    return myDraggedComponents.stream().map(SceneComponent::getNlComponent).allMatch(acceptsChild.and(acceptsParent));
+    return myDraggedComponents.stream().allMatch(acceptsChild.and(acceptsParent));
   }
 
   @Override
@@ -321,7 +343,7 @@ public class DragDropInteraction extends Interaction {
   }
 
   @NotNull
-  public List<SceneComponent> getDraggedComponents() {
+  public List<NlComponent> getDraggedComponents() {
     return myDraggedComponents;
   }
 

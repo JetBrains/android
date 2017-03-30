@@ -52,7 +52,7 @@ public class SceneComponent {
   private boolean myAllowsAutoconnect = true;
   private TargetProvider myTargetProvider;
 
-  public enum DrawState {SUBDUED, NORMAL, HOVER, SELECTED}
+  public enum DrawState {SUBDUED, NORMAL, HOVER, SELECTED, DRAG}
 
   private final Scene myScene;
   private final NlComponent myNlComponent;
@@ -107,7 +107,7 @@ public class SceneComponent {
 
   @Override
   public String toString() {
-    return getNlComponent().toString();
+    return getNlComponent().toString() + " [ " + myCurrentLeft + ", " + myCurrentTop + " - " + myCurrentRight + ", " + myCurrentBottom + "]";
   }
 
   //endregion
@@ -560,6 +560,12 @@ public class SceneComponent {
     return null;
   }
 
+  /**
+   * Returns the SceneComponent corresponding to the given id
+   *
+   * @param componentId the given id
+   * @return the matching scene component, or null if none found
+   */
   @Nullable
   public SceneComponent getSceneComponent(@NotNull String componentId) {
     if (componentId.equalsIgnoreCase(myNlComponent.getId())) {
@@ -569,6 +575,26 @@ public class SceneComponent {
     for (int i = 0; i < count; i++) {
       SceneComponent child = myChildren.get(i);
       SceneComponent found = child.getSceneComponent(componentId);
+      if (found != null) {
+        return found;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns the SceneComponent corresponding to the given NlComponent
+   *
+   * @param nlComponent the given NlComponent
+   * @return the matching scene component, or null if none found
+   */
+  @Nullable
+  public SceneComponent getSceneComponent(@NotNull NlComponent nlComponent) {
+    if (nlComponent == myNlComponent) {
+      return this;
+    }
+    for (SceneComponent child : getChildren()) {
+      SceneComponent found = child.getSceneComponent(nlComponent);
       if (found != null) {
         return found;
       }
@@ -697,6 +723,9 @@ public class SceneComponent {
     int childCount = myChildren.size();
     for (int i = 0; i < childCount; i++) {
       SceneComponent child = myChildren.get(i);
+      if (child instanceof TemporarySceneComponent) {
+        continue;
+      }
       child.addHit(sceneTransform, picker);
     }
   }
