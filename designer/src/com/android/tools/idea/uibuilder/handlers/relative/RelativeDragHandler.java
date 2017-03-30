@@ -51,13 +51,13 @@ public class RelativeDragHandler extends GuidelineHandler {
    * @param layout     the layout element the handler is operating on
    * @param elements   the elements being dragged in the move operation
    */
-  public RelativeDragHandler(@NotNull ViewEditor viewEditor, @NotNull SceneComponent layout, @NotNull List<SceneComponent> elements) {
+  public RelativeDragHandler(@NotNull ViewEditor viewEditor, @NotNull SceneComponent layout, @NotNull List<NlComponent> elements) {
     super(viewEditor, layout.getNlComponent());
 
     // Compute list of nodes being dragged within the layout, if any
     List<NlComponent> nodes = new ArrayList<>();
-    for (SceneComponent element : elements) {
-      ViewData view = myDependencyGraph.getView(element.getNlComponent());
+    for (NlComponent element : elements) {
+      ViewData view = myDependencyGraph.getView(element);
       if (view != null) {
         nodes.add(view.node);
       }

@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.DragDndTarget;
 import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,12 +40,15 @@ public class SceneDragHandler extends DragHandler {
   public SceneDragHandler(@NotNull ViewEditor editor,
                           @NotNull ViewGroupHandler handler,
                           @NotNull SceneComponent layout,
-                          @NotNull List<SceneComponent> components, DragType type) {
+                          @NotNull List<NlComponent> components, DragType type) {
     super(editor, handler, layout, components, type);
     if (components.size() == 1) {
-      myComponent = components.get(0);
-      Scene scene = ((ViewEditorImpl) editor).getSceneView().getScene();
-      scene.setDnDComponent(myComponent);
+      NlComponent component = components.get(0);
+      myComponent = new TemporarySceneComponent(layout.getScene(), component);
+      myComponent.setSize(editor.pxToDp(component.w), editor.pxToDp(component.h), false);
+      myComponent.setTargetProvider((sceneComponent, isParent) -> ImmutableList.of(new DragDndTarget()), false);
+      myComponent.setDrawState(SceneComponent.DrawState.DRAG);
+      layout.addChild(myComponent);
     }
   }
 
@@ -94,7 +98,7 @@ public class SceneDragHandler extends DragHandler {
   @Override
   public void cancel() {
     Scene scene = ((ViewEditorImpl) editor).getSceneView().getScene();
-    scene.setDnDComponent(null);
+    scene.removeComponent(myComponent);
   }
 
   @Override
@@ -108,14 +112,14 @@ public class SceneDragHandler extends DragHandler {
         @AndroidDpCoordinate int dy = editor.pxToDp(y) - myComponent.getDrawHeight() / 2;
         for (Target target : myComponent.getTargets()) {
           if (target instanceof DragDndTarget) {
-            ((DragDndTarget)target).mouseRelease(dx, dy, components.get(0).getNlComponent());
+            ((DragDndTarget)target).mouseRelease(dx, dy, components.get(0));
             break;
           }
         }
       }
     }
     insertComponents(-1, insertType);
-    scene.setDnDComponent(null);
+    scene.removeComponent(myComponent);
     scene.checkRequestLayoutStatus();
   }
 

@@ -45,9 +45,7 @@ public class DragFixture {
 
     myScreen = myComponents.getScreen();
     List<NlComponent> componentList = myComponents.getComponents();
-    List<SceneComponent> sceneComponents =
-      componentList.stream().map(nl -> myScreen.getScene().getSceneComponent(nl)).collect(Collectors.toList());
-    myInteraction = new DragDropInteraction(myScreen.getSurface(), sceneComponents);
+    myInteraction = new DragDropInteraction(myScreen.getSurface(), componentList);
 
     // Drag from center of primary
     NlComponent primary = componentList.get(0);

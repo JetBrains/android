@@ -139,7 +139,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
     if (sceneComponent == null) {
       sceneComponent = builder.createTemporaryComponent(item);
     }
-    List<SceneComponent> itemAsList = Collections.singletonList(sceneComponent);
+    List<NlComponent> itemAsList = Collections.singletonList(sceneComponent.getNlComponent());
     return new GroupDragHandler(editor, new ViewGroupHandler(), scene.getSceneComponent(menu), itemAsList,
                                 DragType.MOVE);
   }

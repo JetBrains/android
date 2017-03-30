@@ -36,7 +36,7 @@ final class GridDragHandler extends DragHandler {
   private int column;
 
   GridDragHandler(@NotNull ViewEditor editor, @NotNull ViewGroupHandler handler, @NotNull SceneComponent layout,
-                  @NotNull List<SceneComponent> components, @NotNull DragType type) {
+                  @NotNull List<NlComponent> components, @NotNull DragType type) {
     super(editor, handler, layout, components, type);
     info = new GridInfo(layout.getNlComponent());
   }

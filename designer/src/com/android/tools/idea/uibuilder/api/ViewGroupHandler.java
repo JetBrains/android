@@ -127,7 +127,7 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
   @Nullable
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
                                        @NotNull SceneComponent layout,
-                                       @NotNull List<SceneComponent> components,
+                                       @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return null;
   }
