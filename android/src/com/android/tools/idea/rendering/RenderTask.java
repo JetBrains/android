@@ -266,11 +266,11 @@ public class RenderTask implements IImageFactory {
       return Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
 
-    return ForkJoinPool.commonPool().submit(() -> {
+    FutureTask<Void> disposeTask = new FutureTask<Void>(() -> {
       try {
         synchronized (myRunningFutures) {
           // Wait for all current running operations to complete
-          Futures.successfulAsList(myRunningFutures).get();
+          Futures.successfulAsList(myRunningFutures).get(5, TimeUnit.SECONDS);
         }
       }
       catch (InterruptedException | ExecutionException e) {
@@ -287,7 +287,12 @@ public class RenderTask implements IImageFactory {
         }
       }
       myImageFactoryDelegate = null;
+
+      return null;
     });
+
+    new Thread(disposeTask, "RenderTask dispose thread").start();
+    return disposeTask;
   }
 
   /**
