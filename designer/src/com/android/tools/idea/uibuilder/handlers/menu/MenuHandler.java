@@ -35,7 +35,7 @@ public class MenuHandler extends ViewGroupHandler {
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
                                        @NotNull SceneComponent group,
-                                       @NotNull List<SceneComponent> items,
+                                       @NotNull List<NlComponent> items,
                                        @NotNull DragType type) {
     return new GroupDragHandler(editor, this, group, items, type);
   }

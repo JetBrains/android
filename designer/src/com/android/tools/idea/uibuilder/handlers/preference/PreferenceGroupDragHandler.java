@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
+import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,7 +47,7 @@ abstract class PreferenceGroupDragHandler extends DragHandler {
   PreferenceGroupDragHandler(@NotNull ViewEditor editor,
                              @NotNull ViewGroupHandler handler,
                              @NotNull SceneComponent group,
-                             @NotNull List<SceneComponent> preferences,
+                             @NotNull List<NlComponent> preferences,
                              @NotNull DragType type) {
     super(editor, handler, group, preferences, type);
     myGroup = group;

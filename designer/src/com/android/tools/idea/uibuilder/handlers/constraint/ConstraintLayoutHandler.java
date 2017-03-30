@@ -588,7 +588,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
                                        @NotNull SceneComponent layout,
-                                       @NotNull List<SceneComponent> components,
+                                       @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return new SceneDragHandler(editor, this, layout, components, type);
   }

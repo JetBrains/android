@@ -246,7 +246,7 @@ public final class GroupDragHandlerTest extends LayoutTestCase {
     Scene scene = new SyncLayoutlibSceneManager(model).build();
     scene.buildDisplayList(new DisplayList(), 0);
 
-    List<SceneComponent> items = Collections.singletonList(mock(SceneComponent.class));
+    List<NlComponent> items = Collections.singletonList(mock(NlComponent.class));
     return new GroupDragHandler(editor(screenFixture.getScreen()), new ViewGroupHandler(), scene.getSceneComponent("menu"), items,
                                 DragType.CREATE);
   }

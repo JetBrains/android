@@ -43,7 +43,7 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
   @Nullable
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
                                        @NotNull SceneComponent layout,
-                                       @NotNull List<SceneComponent> components,
+                                       @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     final RelativeDragHandler moveHandler = new RelativeDragHandler(editor, layout, components);
     return new DragHandler(editor, this, layout, components, type) {
@@ -51,7 +51,7 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
       @Override
       public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
         super.update(x, y, modifiers);
-        SceneComponent primary = components.get(0);
+        SceneComponent primary = layout.getSceneComponent(components.get(0));
         int deltaX = lastX - startX;
         int deltaY = lastY - startY;
         moveHandler.updateMove(primary, deltaX, deltaY, modifiers);
@@ -68,10 +68,10 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
       public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
         moveHandler.removeCycles();
 
-        SceneComponent previous = null;
-        for (SceneComponent component : components) {
+        NlComponent previous = null;
+        for (NlComponent component : components) {
           if (previous == null) {
-            moveHandler.applyConstraints(component.getNlComponent());
+            moveHandler.applyConstraints(component);
           } else {
             // Arrange the nodes next to each other, depending on which
             // edge we are attaching to. For example, if attaching to the
@@ -85,7 +85,7 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
             // dragging several connected components, which we'd then
             // need to stitch together such that they are all visible.
 
-            moveHandler.attachPrevious(previous.getNlComponent(), component.getNlComponent());
+            moveHandler.attachPrevious(previous, component);
           }
           previous = component;
         }
@@ -95,7 +95,6 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
       private void insertAddedComponents(@NotNull InsertType insertType) {
         List<NlComponent> added = components
           .stream()
-          .map(SceneComponent::getNlComponent)
           .filter(component -> component.getParent() != layout.getNlComponent())
           .collect(Collectors.toList());
         editor.getModel().addComponents(added, layout.getNlComponent(), null, insertType);

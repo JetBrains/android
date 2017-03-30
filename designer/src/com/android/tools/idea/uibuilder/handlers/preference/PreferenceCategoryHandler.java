@@ -51,7 +51,7 @@ public final class PreferenceCategoryHandler extends ViewGroupHandler {
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
                                        @NotNull SceneComponent preferenceCategory,
-                                       @NotNull List<SceneComponent > preferences,
+                                       @NotNull List<NlComponent > preferences,
                                        @NotNull DragType type) {
     return new PreferenceCategoryDragHandler(editor, this, preferenceCategory, preferences, type);
   }

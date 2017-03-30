@@ -42,7 +42,7 @@ import static com.android.SdkConstants.*;
  */
 final class GroupDragHandler extends DragHandler {
   private final SceneComponent myGroup;
-  private final List<SceneComponent> myItems;
+  private final List<NlComponent> myItems;
   private final ActionBar myActionBar;
 
   private SceneComponent myActiveItem;
@@ -50,7 +50,7 @@ final class GroupDragHandler extends DragHandler {
   GroupDragHandler(@NotNull ViewEditor editor,
                    @NotNull ViewGroupHandler handler,
                    @NotNull SceneComponent group,
-                   @NotNull List<SceneComponent> items,
+                   @NotNull List<NlComponent> items,
                    @NotNull DragType type) {
     super(editor, handler, group, items, type);
     assert !items.isEmpty();
@@ -69,7 +69,7 @@ final class GroupDragHandler extends DragHandler {
 
   private void updateOrderInCategoryAttributes() {
     // TODO Handle more than one item
-    if (myActiveItem == null || myActiveItem == myItems.get(0)) {
+    if (myActiveItem == null || myActiveItem == layout.getSceneComponent(myItems.get(0))) {
       return;
     }
 
@@ -95,7 +95,7 @@ final class GroupDragHandler extends DragHandler {
     incrementOrderInCategoryAttributes(createOrderToItemMultimap(myActionBar.getItems()), order);
 
     // TODO Handle more than one item
-    myItems.get(0).getNlComponent().setAndroidAttribute(ATTR_ORDER_IN_CATEGORY, Integer.toString(order));
+    myItems.get(0).setAndroidAttribute(ATTR_ORDER_IN_CATEGORY, Integer.toString(order));
   }
 
   private void updateOverflowGroupOrderInCategoryAttributes(int order) {
@@ -106,7 +106,7 @@ final class GroupDragHandler extends DragHandler {
     incrementOrderInCategoryAttributes(createOrderToItemMultimap(myActionBar.getOverflowItems()), order);
 
     // TODO Handle more than one item
-    myItems.get(0).getNlComponent().setAndroidAttribute(ATTR_ORDER_IN_CATEGORY, Integer.toString(order));
+    myItems.get(0).setAndroidAttribute(ATTR_ORDER_IN_CATEGORY, Integer.toString(order));
   }
 
   private static void incrementOrderInCategoryAttributes(@NotNull Multimap<Integer, SceneComponent> orderToItemMultimap, int order) {
@@ -120,7 +120,7 @@ final class GroupDragHandler extends DragHandler {
 
   @NotNull
   private Multimap<Integer, SceneComponent> createOrderToItemMultimap(@NotNull Iterable<SceneComponent> group) {
-    SceneComponent draggedItem = myItems.get(0);
+    SceneComponent draggedItem = layout.getSceneComponent(myItems.get(0));
     Multimap<Integer, SceneComponent> orderToItemMultimap = ArrayListMultimap.create();
 
     for (SceneComponent item : group) {
@@ -147,10 +147,10 @@ final class GroupDragHandler extends DragHandler {
   private void updateShowAsActionAttribute() {
     if (isActionBarGroupActive()) {
       // TODO Handle more than one item
-      myItems.get(0).getNlComponent().setAttribute(getNamespace(), ATTR_SHOW_AS_ACTION, VALUE_ALWAYS);
+      myItems.get(0).setAttribute(getNamespace(), ATTR_SHOW_AS_ACTION, VALUE_ALWAYS);
     }
     else {
-      myItems.get(0).getNlComponent().removeAttribute(getNamespace(), ATTR_SHOW_AS_ACTION);
+      myItems.get(0).removeAttribute(getNamespace(), ATTR_SHOW_AS_ACTION);
     }
   }
 
@@ -230,8 +230,9 @@ final class GroupDragHandler extends DragHandler {
 
   private void drawActionBarGroupDropPreviewLine(@NotNull NlGraphics graphics) {
     graphics.useStyle(NlDrawingStyle.DROP_PREVIEW);
+    SceneComponent activeItem = myActiveItem;
 
-    if (lastX < myActiveItem.getCenterX()) {
+    if (lastX < activeItem.getCenterX()) {
       graphics.drawLeft(myActiveItem.getNlComponent());
     }
     else {
@@ -286,7 +287,6 @@ final class GroupDragHandler extends DragHandler {
 
   private void drawOverflowGroupDropPreviewLine(@NotNull NlGraphics graphics) {
     graphics.useStyle(NlDrawingStyle.DROP_PREVIEW);
-
     if (lastY < myActiveItem.getCenterY()) {
       graphics.drawTop(myActiveItem.getNlComponent());
     }

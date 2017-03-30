@@ -70,7 +70,7 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   @Nullable
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
                                        @NotNull SceneComponent layout,
-                                       @NotNull List<SceneComponent> components,
+                                       @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
     return myHandler.createDragHandler(editor, layout, components, type);
   }
