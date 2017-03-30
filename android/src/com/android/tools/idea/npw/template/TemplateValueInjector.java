@@ -269,10 +269,6 @@ public final class TemplateValueInjector {
    */
   @NotNull
   private static String determineGradlePluginVersion(@Nullable Project project) {
-    if (isInstantAppSdkEnabled()) {
-      return getInstantAppPluginVersion();
-    }
-
     String defaultGradleVersion = AndroidPluginGeneration.ORIGINAL.getLatestKnownVersion();
     if (project == null) {
       return defaultGradleVersion;

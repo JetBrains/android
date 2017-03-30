@@ -35,7 +35,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Objects;
 
-import static com.android.SdkConstants.GRADLE_PLUGIN_AIA_VERSION;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_ATOM;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
@@ -45,7 +44,6 @@ public class InstantApps {
   private static final String INSTANT_APP_SDK_ENV_VAR = "WH_SDK";
   private static final String INSTANT_APP_SDK_PROPERTY = "android.instant_app_sdk_location";
   private static String INSTANT_APP_SDK_LOCATION = findInstantAppSdkLocation();
-  private static String INSTANT_APP_PLUGIN_VERSION = GRADLE_PLUGIN_AIA_VERSION;
 
   @Nullable
   static String findInstantAppSdkLocation() {
@@ -232,16 +230,5 @@ public class InstantApps {
   @TestOnly
   public static void setInstantAppSdkLocation(String value) {
     INSTANT_APP_SDK_LOCATION = value;
-  }
-
-  @NotNull
-  public static String getInstantAppPluginVersion() {
-    return INSTANT_APP_PLUGIN_VERSION;
-  }
-
-  // Need to be able to override this value for testing.
-  @TestOnly
-  public static void setInstantAppPluginVersion(String value) {
-    INSTANT_APP_PLUGIN_VERSION = value;
   }
 }
