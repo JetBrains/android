@@ -38,6 +38,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.android.ddmlib.IDevice.CHANGE_STATE;
 
@@ -59,6 +61,10 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
   @NotNull
   private final DataStoreService myDataStoreService;
   private boolean isAdbInitialized;
+  /**
+   * Maps a device to its correspondent {@link PerfdProxy}.
+   */
+  private Map<IDevice, PerfdProxy> myDeviceProxies;
 
   public StudioProfilerDeviceManager(@NotNull DataStoreService dataStoreService) {
     myDataStoreService = dataStoreService;
@@ -66,6 +72,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     AndroidDebugBridge.addDeviceChangeListener(this);
     // TODO: Once adb API doesn't require a project, move initialization to constructor and remove this flag.
     isAdbInitialized = false;
+    myDeviceProxies = new HashMap<>();
   }
 
   @Override
@@ -134,7 +141,7 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
     thread.start();
   }
 
-  private static class PerfdThread extends Thread {
+  private class PerfdThread extends Thread {
     private final DataStoreService myDataStore;
     private final IDevice myDevice;
     private int myLocalPort;
@@ -187,42 +194,11 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
           public void addOutput(byte[] data, int offset, int length) {
             String s = new String(data, offset, length, Charsets.UTF_8);
             getLogger().info("[perfd]: " + s);
-            try {
-              myLocalPort = NetUtils.findAvailableSocketPort();
-              myDevice.createForward(myLocalPort, DEVICE_PORT);
-              if (myLocalPort < 0) {
-                return;
-              }
-
-              /*
-                Creates the channel that is used to connect to the device perfd.
-
-                TODO: investigate why ant build fails to find the ManagedChannel-related classes
-                The temporary fix is to stash the currently set context class loader,
-                so ManagedChannelProvider can find an appropriate implementation.
-               */
-              ClassLoader stashedContextClassLoader = Thread.currentThread().getContextClassLoader();
-              Thread.currentThread().setContextClassLoader(NettyChannelBuilder.class.getClassLoader());
-              ManagedChannel perfdChannel = NettyChannelBuilder
-                .forAddress("localhost", myLocalPort)
-                .usePlaintext(true)
-                .maxMessageSize(MAX_MESSAGE_SIZE)
-                .build();
-              Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
-
-              // Creates a proxy server that the datastore connects to.
-              String channelName = myDevice.getSerialNumber();
-              myPerfdProxy = new PerfdProxy(myDevice, perfdChannel, channelName);
-              myPerfdProxy.connect();
-
-              // TODO using directexecutor for this channel freezes up grpc calls that are redirected to the device (e.g. GetTimes)
-              // We should otherwise do it for performance reasons, so we should investigate why.
-              ManagedChannel proxyChannel = InProcessChannelBuilder.forName(channelName).build();
-              myDataStore.connect(proxyChannel);
+            if (myDeviceProxies.containsKey(myDevice)) {
+              // PerfdProxy for the current device was already created.
+              return;
             }
-            catch (TimeoutException | AdbCommandRejectedException | IOException e) {
-              throw new RuntimeException(e);
-            }
+            createPerfdProxy();
           }
 
           @Override
@@ -239,6 +215,55 @@ class StudioProfilerDeviceManager implements AndroidDebugBridge.IDebugBridgeChan
         getLogger().info("Terminating perfd thread");
       }
       catch (TimeoutException | AdbCommandRejectedException | SyncException | ShellCommandUnresponsiveException | IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    private void createPerfdProxy() {
+      try {
+        myLocalPort = NetUtils.findAvailableSocketPort();
+        myDevice.createForward(myLocalPort, DEVICE_PORT);
+        if (myLocalPort < 0) {
+          return;
+        }
+        /*
+          Creates the channel that is used to connect to the device perfd.
+
+          TODO: investigate why ant build fails to find the ManagedChannel-related classes
+          The temporary fix is to stash the currently set context class loader,
+          so ManagedChannelProvider can find an appropriate implementation.
+         */
+        ClassLoader stashedContextClassLoader = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(NettyChannelBuilder.class.getClassLoader());
+        ManagedChannel perfdChannel = NettyChannelBuilder
+          .forAddress("localhost", myLocalPort)
+          .usePlaintext(true)
+          .maxMessageSize(MAX_MESSAGE_SIZE)
+          .build();
+        Thread.currentThread().setContextClassLoader(stashedContextClassLoader);
+
+        // Creates a proxy server that the datastore connects to.
+        String channelName = myDevice.getSerialNumber();
+        myPerfdProxy = new PerfdProxy(myDevice, perfdChannel, channelName);
+        myPerfdProxy.connect();
+        // Add the proxy to the proxies map.
+        myDeviceProxies.put(myDevice, myPerfdProxy);
+        myPerfdProxy.setOnDisconnectCallback(() -> {
+          if (myDeviceProxies.containsKey(myDevice)) {
+            myDeviceProxies.remove(myDevice);
+          }
+        });
+
+        // TODO using directexecutor for this channel freezes up grpc calls that are redirected to the device (e.g. GetTimes)
+        // We should otherwise do it for performance reasons, so we should investigate why.
+        ManagedChannel proxyChannel = InProcessChannelBuilder.forName(channelName).build();
+        myDataStore.connect(proxyChannel);
+      }
+      catch (TimeoutException | AdbCommandRejectedException | IOException e) {
+        // If some error happened after PerfdProxy was created, make sure to disconnect it
+        if (myPerfdProxy != null) {
+          myPerfdProxy.disconnect();
+        }
         throw new RuntimeException(e);
       }
     }
