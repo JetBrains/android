@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import com.android.build.OutputFile;
+import com.android.builder.model.AndroidArtifactOutput;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.TestCompileType;
@@ -26,8 +28,11 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -50,6 +55,7 @@ public class BuildApkAction extends DumbAwareAction {
     Project project = e.getProject();
     if (project != null && GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
       List<Module> appModules = new ArrayList<>();
+      Map<Module, File> appModulesToOutputs = new HashMap<>();
 
       for (Module module : ModuleManager.getInstance(project).getModules()) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -59,6 +65,18 @@ public class BuildApkAction extends DumbAwareAction {
             String assembleTaskName = facet.getProperties().ASSEMBLE_TASK_NAME;
             if (isNotEmpty(assembleTaskName)) {
               appModules.add(module);
+              //if there's just one APK, we'll pass it directly to the GoToApkLocationTask,
+              //if more than one APK, pass the output folder instead
+              File outputFolderOrApk = null;
+              for (AndroidArtifactOutput output : androidModel.getMainArtifact().getOutputs()) {
+                if (output.getOutputs().size() == 1 && outputFolderOrApk == null){
+                  outputFolderOrApk = output.getMainOutputFile().getOutputFile();
+                } else {
+                  outputFolderOrApk = output.getMainOutputFile().getOutputFile().getParentFile();
+                  break;
+                }
+              }
+              appModulesToOutputs.put(module, outputFolderOrApk);
             }
           }
         }
@@ -66,7 +84,7 @@ public class BuildApkAction extends DumbAwareAction {
 
       if (!appModules.isEmpty()) {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
-        gradleBuildInvoker.add(new GoToApkLocationTask(appModules, ACTION_TEXT));
+        gradleBuildInvoker.add(new GoToApkLocationTask(appModulesToOutputs, ACTION_TEXT));
         gradleBuildInvoker.assemble(appModules.toArray(new Module[appModules.size()]), TestCompileType.NONE);
       }
     }
