@@ -49,6 +49,7 @@ public class ThemeEditorTableTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @RunIn(TestGroup.UNRELIABLE)
   @Test
   public void testParentValueCell() throws IOException {
     guiTest.importSimpleApplication();
