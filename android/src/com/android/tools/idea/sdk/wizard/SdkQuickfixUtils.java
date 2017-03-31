@@ -30,6 +30,8 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.Lists;
+import com.intellij.CommonBundle;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
@@ -42,6 +44,8 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+
+import static org.jetbrains.android.util.AndroidBundle.message;
 
 public final class SdkQuickfixUtils {
   private static final ProgressIndicator REPO_LOGGER = new StudioLoggerProgressIndicator(SdkQuickfixUtils.class);
@@ -86,15 +90,22 @@ public final class SdkQuickfixUtils {
     return createDialog(project, null, requestedPaths, null, null, getSdkHandler(), false);
   }
 
+  public static void showSdkMissingDialog() {
+    String msg = message("android.sdk.missing.msg");
+    String title = message("android.sdk.missing.title");
+    String okText = message("android.sdk.open.manager");
+    String cancelText = CommonBundle.getCancelButtonText();
+
+    if (Messages.showOkCancelDialog((Project) null, msg, title, okText, cancelText, null) == Messages.OK) {
+      ActionManager.getInstance().getAction("Android.RunAndroidSdkManager").actionPerformed(null);
+    }
+  }
+
   private static AndroidSdkHandler getSdkHandler() {
     AndroidSdkData data = AndroidSdks.getInstance().tryToChooseAndroidSdk();
 
     if (data == null) {
-      String title = "SDK Problem";
-      String msg = "<html>" + "Your Android SDK is missing or out of date." + "<br>" +
-                   "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
-      Messages.showErrorDialog(msg, title);
-
+      showSdkMissingDialog();
       return null;
     }
 
@@ -117,11 +128,7 @@ public final class SdkQuickfixUtils {
     RepoManager mgr = sdkHandler.getSdkManager(REPO_LOGGER);
 
     if (mgr.getLocalPath() == null) {
-      String title = "SDK Problem";
-      String msg = "<html>" + "Your Android SDK is missing or out of date." + "<br>" +
-                   "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
-      Messages.showErrorDialog(msg, title);
-
+      showSdkMissingDialog();
       return null;
     }
 

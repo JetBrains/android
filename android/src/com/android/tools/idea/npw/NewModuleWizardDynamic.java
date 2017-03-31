@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.npw.deprecated.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
 import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
-import com.android.tools.idea.templates.TemplateManager;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
@@ -35,7 +35,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
@@ -73,11 +72,8 @@ public class NewModuleWizardDynamic extends DynamicWizard {
   }
 
   protected boolean checkSdk() {
-    if (!AndroidSdkUtils.isAndroidSdkAvailable() || !TemplateManager.templatesAreValid()) {
-      String title = "SDK problem";
-      String msg = "<html>Your Android SDK is missing, out of date, or is missing templates.<br>" +
-                   "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
-      Messages.showErrorDialog(msg, title);
+    if (!AndroidSdkUtils.isAndroidSdkAvailable()) {
+      SdkQuickfixUtils.showSdkMissingDialog();
       return false;
     }
     return true;
