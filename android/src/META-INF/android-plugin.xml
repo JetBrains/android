@@ -879,18 +879,6 @@
                       secondary="true"
                       icon="AndroidIcons.AndroidToolWindow"
                       factoryClass="com.android.tools.idea.gradle.variant.view.BuildVariantToolWindowFactory"/>
-    <facet.toolWindow id="Android Model"
-                      facetIdList="android,android-gradle"
-                      anchor="right"
-                      secondary="true"
-                      icon="AndroidIcons.AndroidToolWindow"
-                      factoryClass="com.android.tools.idea.gradle.AndroidModelToolWindowFactory"/>
-    <toolWindow id="Android Model (Internal)"
-                anchor="right"
-                secondary="true"
-                conditionClass="com.android.tools.idea.gradle.InternalAndroidModelViewCondition"
-                icon="AndroidIcons.AndroidToolWindow"
-                factoryClass="com.android.tools.idea.gradle.InternalAndroidModelToolWindowFactory"/>
     <facet.toolWindow id="Device File Explorer"
                       facetIdList="android"
                       anchor="right"
@@ -912,8 +900,6 @@
                       factoryClass="com.android.tools.idea.profiling.view.CapturesToolWindowFactory"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectBuildNotifications"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.AndroidModelView"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.InternalAndroidModelView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.subset.ProjectSubset"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.console.view.DefaultGradleConsoleView"/>

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.model;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.InternalAndroidModelView;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
