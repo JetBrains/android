@@ -173,6 +173,10 @@ public class NlComponentFixture {
     return this;
   }
 
+  public void doubleClick() {
+    myRobot.click(mySurface, getMidPoint(), MouseButton.LEFT_BUTTON, 2);
+  }
+
   /** Right clicks s in the middle of the view */
   public void rightClick() {
     // Can't use ComponentDriver -- need to both set button and where
