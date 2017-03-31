@@ -18,18 +18,19 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.HeapObject;
+import com.android.tools.profilers.memory.adapters.HeapSet;
+import com.intellij.ui.ColoredListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.List;
+import java.util.Collection;
 import java.util.Objects;
 
 public class MemoryHeapView extends AspectObserver {
   @NotNull private final MemoryProfilerStage myStage;
 
-  @NotNull private FlatComboBox<HeapObject> myComboBox = new FlatComboBox<>();
+  @NotNull private FlatComboBox<HeapSet> myComboBox = new FlatComboBox<>();
 
   @Nullable private CaptureObject myCaptureObject = null;
 
@@ -42,10 +43,9 @@ public class MemoryHeapView extends AspectObserver {
       .onChange(MemoryProfilerAspect.CURRENT_HEAP, this::refreshHeap);
 
     myComboBox.addActionListener(e -> {
-      // TODO abstract out selection path so we don't need to special case
       Object item = myComboBox.getSelectedItem();
-      if (item != null && item instanceof HeapObject) {
-        myStage.selectHeap((HeapObject)item);
+      if (item != null && item instanceof HeapSet) {
+        myStage.selectHeapSet((HeapSet)item);
       }
     });
     setNewCapture();
@@ -53,14 +53,15 @@ public class MemoryHeapView extends AspectObserver {
   }
 
   @NotNull
-  FlatComboBox<HeapObject> getComponent() {
+  FlatComboBox<HeapSet> getComponent() {
     return myComboBox;
   }
 
   private void setNewCapture() {
     myCaptureObject = myStage.getSelectedCapture();
     myComboBox.setModel(new DefaultComboBoxModel<>());
-    myStage.selectHeap(null); // Clear the heap such that views lower in the hierarchy has a chance to repopulate themselves.
+    myComboBox.setRenderer(new HeapListCellRenderer());
+    myStage.selectHeapSet(null); // Clear the heap such that views lower in the hierarchy has a chance to repopulate themselves.
   }
 
   private void updateCaptureState() {
@@ -69,31 +70,35 @@ public class MemoryHeapView extends AspectObserver {
       return;
     }
 
-    assert myCaptureObject != null; // Clearing the capture should have gone through {@link #setNewCapture()} instead.
     myCaptureObject = captureObject;
-    List<HeapObject> heaps = myCaptureObject.getHeaps();
-    ComboBoxModel<HeapObject> comboBoxModel = new DefaultComboBoxModel<>(heaps.toArray(new HeapObject[heaps.size()]));
-    myComboBox.setModel(comboBoxModel);
-
-    // TODO provide a default selection in the model API?
-    for (HeapObject heap : heaps) {
-      if (heap.getName().equals("app")) {
-        myComboBox.setSelectedItem(heap);
-        myStage.selectHeap(heap);
-        return;
-      }
+    if (myCaptureObject == null) {
+      return; // Loading probably failed.
     }
 
-    HeapObject heap = heaps.get(0);
-    myComboBox.setSelectedItem(heap);
-    myStage.selectHeap(heap);
+    Collection<HeapSet> heaps = myCaptureObject.getHeapSets();
+    HeapSet[] heapsArray = heaps.toArray(new HeapSet[heaps.size()]);
+    ComboBoxModel<HeapSet> comboBoxModel = new DefaultComboBoxModel<>(heapsArray);
+    myComboBox.setModel(comboBoxModel);
   }
 
   void refreshHeap() {
-    HeapObject heapObject = myStage.getSelectedHeap();
+    HeapSet heapSet = myStage.getSelectedHeapSet();
     Object selectedObject = myComboBox.getSelectedItem();
-    if (!Objects.equals(heapObject, selectedObject)) {
-      myComboBox.setSelectedItem(heapObject);
+    if (!Objects.equals(heapSet, selectedObject)) {
+      myComboBox.setSelectedItem(heapSet);
+    }
+  }
+
+  private static final class HeapListCellRenderer extends ColoredListCellRenderer<HeapSet> {
+    @Override
+    protected void customizeCellRenderer(@NotNull JList<? extends HeapSet> list,
+                                         HeapSet value,
+                                         int index,
+                                         boolean selected,
+                                         boolean hasFocus) {
+      if (value != null) {
+        append(value.getName() + " heap");
+      }
     }
   }
 }

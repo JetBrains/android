@@ -15,8 +15,8 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.MemoryObject;
+import com.android.tools.profilers.memory.adapters.ValueObject;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
@@ -24,9 +24,9 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 
-import static com.android.tools.profilers.memory.adapters.ClassObject.ValueType.STRING;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.STRING;
 
-public class InstanceColumnRenderer extends ColoredTreeCellRenderer {
+public class ValueColumnRenderer extends ColoredTreeCellRenderer {
   public static final SimpleTextAttributes STRING_ATTRIBUTES =
     new SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, new Color(0, 0x80, 0));
 
@@ -44,26 +44,31 @@ public class InstanceColumnRenderer extends ColoredTreeCellRenderer {
     }
 
     MemoryObject adapter = ((MemoryObjectTreeNode)value).getAdapter();
-    if (!(adapter instanceof InstanceObject)) {
+    if (!(adapter instanceof ValueObject)) {
       append(adapter.getName());
       return;
     }
 
-    InstanceObject instanceObject = (InstanceObject)adapter;
-    setIcon(MemoryProfilerStageView.getInstanceObjectIcon(instanceObject));
+    ValueObject valueObject = (ValueObject)adapter;
+    setIcon(MemoryProfilerStageView.getValueObjectIcon(valueObject));
 
     setTextAlign(SwingConstants.LEFT);
-    String displayLabel = instanceObject.getName();
-    append(displayLabel, SimpleTextAttributes.REGULAR_ATTRIBUTES, displayLabel);
-    String valueText = instanceObject.getToStringText();
-    if (valueText != null) {
-      if (instanceObject.getValueType() == STRING) {
-        // TODO import IntelliJ colors for accessibility
-        append(valueText, STRING_ATTRIBUTES, valueText);
-      }
-      else {
-        append(valueText, SimpleTextAttributes.REGULAR_ATTRIBUTES, valueText);
-      }
+
+    String name = valueObject.getName();
+    append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
+    append(name.isEmpty() ? "" : " = ");
+
+    String valueText = valueObject.getValueText();
+    append(valueText, SimpleTextAttributes.REGULAR_ATTRIBUTES, valueText);
+    append(valueText.isEmpty() ? "" : " ");
+
+    String toStringText = valueObject.getToStringText();
+    if (valueObject.getValueType() == STRING) {
+      // TODO import IntelliJ colors for accessibility
+      append(toStringText, STRING_ATTRIBUTES, toStringText);
+    }
+    else {
+      append(toStringText, SimpleTextAttributes.REGULAR_ATTRIBUTES, toStringText);
     }
   }
 }

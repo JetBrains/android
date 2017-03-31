@@ -15,106 +15,54 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.profilers.memory.adapters.InstanceObject.InstanceAttribute;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
-public abstract class ClassObject extends NamespaceObject {
-  public static final String JAVA_LANG_STRING = "java.lang.String";
-  public static final String JAVA_LANG_CLASS = "java.lang.Class";
+/**
+ * Classifies {@link InstanceObject}s based on their {@link Class}.
+ */
+public class ClassSet extends ClassifierSet {
+  @NotNull private final ClassDb.ClassEntry myClassEntry;
 
-  public enum ClassAttribute {
-    LABEL(1),
-    TOTAL_COUNT(2),
-    HEAP_COUNT(3),
-    INSTANCE_SIZE(0),
-    SHALLOW_SIZE(4),
-    RETAINED_SIZE(5);
-
-    private final int myWeight;
-
-    ClassAttribute(int weight) {
-      myWeight = weight;
-    }
-
-    public int getWeight() {
-      return myWeight;
-    }
+  @NotNull
+  public static Classifier createDefaultClassifier() {
+    return new ClassClassifier();
   }
 
-  public enum ValueType {
-    NULL(false),
-    BOOLEAN(true),
-    BYTE(true),
-    CHAR(true),
-    SHORT(true),
-    INT(true),
-    LONG(true),
-    FLOAT(true),
-    DOUBLE(true),
-    OBJECT(false),
-    CLASS(false),
-    STRING(false); // special case for strings
-
-    private boolean myIsPrimitive;
-
-    ValueType(boolean isPrimitive) {
-      myIsPrimitive = isPrimitive;
-    }
-
-    public boolean getIsPrimitive() {
-      return myIsPrimitive;
-    }
+  public ClassSet(@NotNull ClassDb.ClassEntry classEntry) {
+    super(classEntry.getSimpleClassName());
+    myClassEntry = classEntry;
   }
 
   @NotNull
-  private final String myPackageName;
-
-  @NotNull
-  private final String myClassName;
-
-  public ClassObject(@NotNull String fullyQualifiedClassName) {
-    super(fullyQualifiedClassName);
-
-    int lastIndexOfDot = fullyQualifiedClassName.lastIndexOf('.');
-    myPackageName = lastIndexOfDot > 0 ? fullyQualifiedClassName.substring(0, lastIndexOfDot) : "";
-    myClassName = fullyQualifiedClassName.substring(lastIndexOfDot + 1);
+  public ClassDb.ClassEntry getClassEntry() {
+    return myClassEntry;
   }
 
   @NotNull
-  public abstract HeapObject getHeapObject();
-
-  @NotNull
-  public String getClassName() {
-    return myClassName;
-  }
-
-  @NotNull
-  public String getPackageName() {
-    return myPackageName;
-  }
-
-  @NotNull
-  public String[] getSplitPackageName() {
-    //noinspection SSBasedInspection
-    return myPackageName.isEmpty() ? new String[0] : myPackageName.split("\\.");
-  }
-
-  /**
-   * @return list of instances on current heap.
-   */
-  @NotNull
-  public List<InstanceObject> getInstances() {
-    return Collections.emptyList();
-  }
-
-  @NotNull
-  public abstract List<InstanceAttribute> getInstanceAttributes();
-
   @Override
-  public boolean isInNamespace(@NotNull NamespaceObject target) {
-    return equals(target);
+  public Classifier createSubClassifier() {
+    // Do nothing, as this is a leaf node (presently).
+    return Classifier.IDENTITY_CLASSIFIER;
+  }
+
+  private static final class ClassClassifier extends Classifier {
+    @NotNull private final Map<ClassDb.ClassEntry, ClassSet> myClassMap = new LinkedHashMap<>();
+
+    @Override
+    public boolean partition(@NotNull InstanceObject instance) {
+      myClassMap.computeIfAbsent(instance.getClassEntry(), ClassSet::new).addInstanceObject(instance);
+      return true;
+    }
+
+    @NotNull
+    @Override
+    public List<ClassifierSet> getClassifierSets() {
+      return new ArrayList<>(myClassMap.values());
+    }
   }
 }

@@ -16,7 +16,8 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.android.tools.profilers.memory.adapters.HeapObject;
+import com.android.tools.profilers.memory.adapters.HeapSet;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.jetbrains.annotations.NotNull;
@@ -24,13 +25,14 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Stream;
 
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
@@ -64,13 +66,7 @@ public class CaptureObjectLoaderTest {
         CaptureObject loadedCapture = future.get();
         assertEquals(capture, loadedCapture);
       }
-      catch (InterruptedException exception) {
-        assert false;
-      }
-      catch (ExecutionException exception) {
-        assert false;
-      }
-      catch (CancellationException ignored) {
+      catch (InterruptedException | ExecutionException | CancellationException exception) {
         assert false;
       }
       finally {
@@ -194,8 +190,38 @@ public class CaptureObjectLoaderTest {
 
     @NotNull
     @Override
-    public List<HeapObject> getHeaps() {
+    public List<ClassifierAttribute> getClassifierAttributes() {
       return Collections.emptyList();
+    }
+
+    @NotNull
+    @Override
+    public List<InstanceAttribute> getInstanceAttributes() {
+      return Collections.emptyList();
+    }
+
+    @NotNull
+    @Override
+    public Collection<HeapSet> getHeapSets() {
+      return Collections.emptyList();
+    }
+
+    @NotNull
+    @Override
+    public String getHeapName(int heapId) {
+      return INVALID_HEAP_NAME;
+    }
+
+    @Nullable
+    @Override
+    public HeapSet getHeapSet(int heapId) {
+      return null;
+    }
+
+    @NotNull
+    @Override
+    public Stream<InstanceObject> getInstances() {
+      return Stream.empty();
     }
 
     @Override

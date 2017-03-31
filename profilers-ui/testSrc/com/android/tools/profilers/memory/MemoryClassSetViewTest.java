@@ -16,198 +16,142 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeTestInfo;
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.profilers.*;
-import com.android.tools.profilers.stacktrace.CodeLocation;
-import com.android.tools.profilers.stacktrace.ContextMenuItem;
-import com.android.tools.profilers.memory.adapters.ClassObject;
-import com.android.tools.profilers.memory.adapters.FieldObject;
-import com.android.tools.profilers.memory.adapters.HeapObject;
-import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
+import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.memory.adapters.FakeInstanceObject.Builder;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.util.containers.ImmutableList;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import javax.swing.*;
-import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.function.Supplier;
 
-import static com.android.tools.profilers.memory.MemoryInstanceView.InstanceTreeNode;
+import static com.android.tools.profilers.memory.MemoryClassSetView.InstanceTreeNode;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
-public class MemoryInstanceViewTest {
+public class MemoryClassSetViewTest {
   private static final String MOCK_CLASS_NAME = "MockClass";
 
-  private static final List<InstanceObject> INSTANCE_OBJECT_LIST = Arrays.asList(
-    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance1", "string1", null, null, 0, 2, 3, 4),
-    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance2", "string2", null, null, 1, 5, 6, 7),
-    MemoryProfilerTestBase.mockInstanceObject(MOCK_CLASS_NAME, "MockInstance3", "string3", null, null, 5, Integer.MAX_VALUE, 9, 10));
+  @NotNull private final FakeMemoryService myMemoryService = new FakeMemoryService();
+  @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryInstanceViewTestGrpc", myMemoryService);
 
-  private static final ClassObject MOCK_CLASS = MemoryProfilerTestBase.mockClassObject(MOCK_CLASS_NAME, 1, 2, 3, INSTANCE_OBJECT_LIST);
-
-  @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryInstanceViewTestGrpc", new FakeMemoryService());
-
-  private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
   private MemoryProfilerStage myStage;
+
+  private MemoryClassSetView myClassSetView;
+  private JTree myClassSetTree;
+
+  private FakeCaptureObject myCaptureObject;
+  private List<InstanceObject> myInstanceObjects;
+
+  private MemoryObjectTreeNode<HeapSet> myClassifierSetHeapNode;
+  private MemoryObjectTreeNode<MemoryObject> myClassSetRootNode;
   private MemoryProfilerStageView myStageView;
+  private JTree myClassifierSetTree;
 
   @Before
   public void before() {
-    FakeIdeProfilerServices profilerServices = new FakeIdeProfilerServices();
-    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), profilerServices);
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices(), new FakeTimer());
+    StudioProfilersView profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
 
-    myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
-    StudioProfilersView profilersView = new StudioProfilersView(profilers, myFakeIdeProfilerComponents);
-
-    myStage = spy(new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), profilerServices)));
+    FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
+    loader.setReturnImmediateFuture(true);
+    myStage = new MemoryProfilerStage(profilers, loader);
     myStageView = new MemoryProfilerStageView(profilersView, myStage);
+
+    myCaptureObject = new FakeCaptureObject.Builder().build();
+    myInstanceObjects = Arrays.asList(
+      new Builder(myCaptureObject, MOCK_CLASS_NAME).setName("MockInstance1").createFakeFields(0).setDepth(2).setShallowSize(3)
+        .setRetainedSize(4).build(),
+      new Builder(myCaptureObject, MOCK_CLASS_NAME).setName("MockInstance2").createFakeFields(1).setDepth(5).setShallowSize(6)
+        .setRetainedSize(7).build(),
+      new Builder(myCaptureObject, MOCK_CLASS_NAME).setName("MockInstance3").createFakeFields(5).setDepth(Integer.MAX_VALUE)
+        .setShallowSize(9).setRetainedSize(10).build());
+    myCaptureObject.addInstanceObjects(new HashSet<>(myInstanceObjects));
+
+    myStage.selectCaptureObject(myCaptureObject, MoreExecutors.directExecutor());
+    myStage.selectHeapSet(myCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID));
+
+    myClassifierSetTree = myStageView.getClassifierView().getTree();
+    assertNotNull(myClassifierSetTree);
+    Object classifierRoot = myClassifierSetTree.getModel().getRoot();
+    assertTrue(classifierRoot instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)classifierRoot).getAdapter() instanceof HeapSet);
+    //noinspection unchecked
+    myClassifierSetHeapNode = (MemoryObjectTreeNode<HeapSet>)classifierRoot;
+
+    myClassSetView = myStageView.getClassSetView();
+    ClassifierSet classifierSet = myClassifierSetHeapNode.getAdapter().findContainingClassifierSet(myInstanceObjects.get(0));
+    assertTrue(classifierSet instanceof ClassSet);
+    myStage.selectClassSet((ClassSet)classifierSet);
+
+    myClassSetTree = myClassSetView.getTree();
+    assertNotNull(myClassSetTree);
+    Object classSetRoot = myClassSetTree.getModel().getRoot();
+    assertTrue(classSetRoot instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)classSetRoot).getAdapter() instanceof ClassSet);
+    //noinspection unchecked
+    myClassSetRootNode = (MemoryObjectTreeNode<MemoryObject>)classSetRoot;
   }
 
   @Test
-  public void testSelectClassToShowInInstanceView() {
-    MemoryInstanceView view = new MemoryInstanceView(myStage, myFakeIdeProfilerComponents);
-
-    myStage.selectClass(MOCK_CLASS);
-    assertNotNull(view.getTree());
-    assertTrue(view.getTree().getModel().getRoot() instanceof MemoryObjectTreeNode);
-    MemoryObjectTreeNode root = (MemoryObjectTreeNode)view.getTree().getModel().getRoot();
-    assertEquals(3, root.getChildCount());
+  public void testSelectClassSetToShowInClassSetView() {
+    assertEquals(3, myClassSetRootNode.getChildCount());
     //noinspection unchecked
-    ImmutableList<MemoryObjectTreeNode<InstanceObject>> children = root.getChildren();
+    ImmutableList<MemoryObjectTreeNode<MemoryObject>> children = myClassSetRootNode.getChildren();
     // Verify the ordering is based on retain size.
-    assertEquals(INSTANCE_OBJECT_LIST.get(2), children.get(0).getAdapter());
-    assertEquals(INSTANCE_OBJECT_LIST.get(1), children.get(1).getAdapter());
-    assertEquals(INSTANCE_OBJECT_LIST.get(0), children.get(2).getAdapter());
+    assertEquals(myInstanceObjects.get(2), children.get(0).getAdapter());
+    assertEquals(myInstanceObjects.get(1), children.get(1).getAdapter());
+    assertEquals(myInstanceObjects.get(0), children.get(2).getAdapter());
   }
 
   @Test
   public void testSelectInstanceToShowInInstanceView() {
-    MemoryInstanceView view = new MemoryInstanceView(myStage, myFakeIdeProfilerComponents);
-    myStage.selectClass(MOCK_CLASS);
-    assertNotNull(view.getTree());
-    assertEquals(0, view.getTree().getSelectionCount());
-    myStage.selectInstance(INSTANCE_OBJECT_LIST.get(0));
-    assertEquals(1, view.getTree().getSelectionCount());
+    assertEquals(0, myClassSetTree.getSelectionCount());
+    myStage.selectInstanceObject(myInstanceObjects.get(0));
+    assertEquals(1, myClassSetTree.getSelectionCount());
+    assertTrue(myClassSetTree.getLastSelectedPathComponent() instanceof MemoryObjectTreeNode);
+    assertEquals(myInstanceObjects.get(0), ((MemoryObjectTreeNode)myClassSetTree.getLastSelectedPathComponent()).getAdapter());
   }
 
   @Test
   public void testTreeSelectionTriggersInstanceSelection() {
-    MemoryInstanceView view = new MemoryInstanceView(myStage, myFakeIdeProfilerComponents);
-    myStage.selectClass(MOCK_CLASS);
     MemoryAspectObserver observer = new MemoryAspectObserver(myStage.getAspect());
 
     // Selects the first instance object.
-    JTree tree = view.getTree();
-    MemoryObjectTreeNode firstNode = (MemoryObjectTreeNode)((MemoryObjectTreeNode)tree.getModel().getRoot()).getChildAt(0);
+    MemoryObjectTreeNode firstNode = (MemoryObjectTreeNode)((MemoryObjectTreeNode)myClassSetTree.getModel().getRoot()).getChildAt(0);
     // Verify the ordering is based on retain size.
-    assertEquals(INSTANCE_OBJECT_LIST.get(2), firstNode.getAdapter());
-    tree.setSelectionPath(new TreePath(firstNode));
+    assertEquals(myInstanceObjects.get(2), firstNode.getAdapter());
+    myClassSetTree.setSelectionPath(new TreePath(firstNode));
     observer.assertAndResetCounts(0, 0, 0, 0, 0, 0, 1);
-    assertEquals(firstNode, tree.getSelectionPath().getLastPathComponent());
+    assertEquals(firstNode, myClassSetTree.getSelectionPath().getLastPathComponent());
   }
 
   @Test
   public void testResetInstanceView() {
-    MemoryInstanceView view = new MemoryInstanceView(myStage, myFakeIdeProfilerComponents);
-    myStage.selectClass(MOCK_CLASS);
-    assertNotNull(view.getTree());
-    assertTrue(view.getTree().getModel().getRoot() instanceof MemoryObjectTreeNode);
-    view.reset();
-    assertNull(view.getTree());
-  }
-
-  @Test
-  public void testGoToInstance() {
-    InstanceObject instance = MemoryProfilerTestBase.mockInstanceObject("instanceClass", "instance", null, null, null, 1, 1, 2, 3);
-    assertEquals(1, instance.getFieldCount());
-    assertEquals(1, instance.getFields().size());
-
-    // Setup a Class-Instance-Fields hierarchy so that the instance contains a field of a different class
-    FieldObject field = instance.getFields().get(0);
-    ClassObject fieldClass = MemoryProfilerTestBase.mockClassObject("fieldClass", 1, 2, 3, Collections.singletonList(field));
-    HeapObject fieldHeap = MemoryProfilerTestBase.mockHeapObject("fieldHeap", Collections.singletonList(fieldClass));
-
-    when(field.getClassObject()).thenReturn(fieldClass);
-    when(fieldClass.getHeapObject()).thenReturn(fieldHeap);
-
-    ClassObject instanceClass = MemoryProfilerTestBase.mockClassObject("instanceClass", 1, 2, 3, Collections.singletonList(instance));
-
-    MemoryInstanceView view = new MemoryInstanceView(myStage, myFakeIdeProfilerComponents);
-    myStage.selectClass(instanceClass);
-    JTree tree = view.getTree();
-
-    // Check that the Go To Instance menu item exists but is disabled since no instance is selected
-    List<ContextMenuItem> menus = myFakeIdeProfilerComponents.getComponentContextMenus(tree);
-    assertEquals(1, menus.size());
-    assertEquals("Go to Instance", menus.get(0).getText());
-    assertFalse(menus.get(0).isEnabled());
-
-    // Expands the instance in the tree to select the field
-    TreeNode instanceNode = ((MemoryObjectTreeNode)tree.getModel().getRoot()).getChildAt(0);
-    tree.expandPath(new TreePath(instanceNode));
-    TreeNode fieldNode = instanceNode.getChildAt(0);
-    tree.setSelectionPath(new TreePath(fieldNode));
-    assertEquals(instanceClass, myStage.getSelectedClass());
-    assertEquals(field, myStage.getSelectedInstance());
-
-    // Trigger the context menu action to go to the field's class
-    assertTrue(menus.get(0).isEnabled());
-    menus.get(0).run();
-    assertEquals(fieldHeap, myStage.getSelectedHeap());
-    assertEquals(fieldClass, myStage.getSelectedClass());
-    assertEquals(field, myStage.getSelectedInstance());
-  }
-
-  @Test
-  public void navigationTest() {
-    final String testClassName = "com.Foo";
-    InstanceObject mockInstance = MemoryProfilerTestBase.mockInstanceObject(testClassName, "TestInstance", null, null, null, 0, 1, 2, 3);
-    ClassObject mockClass = MemoryProfilerTestBase.mockClassObject(testClassName, 4, 5, 6, Collections.singletonList(mockInstance));
-    List<ClassObject> mockClassObjects = Collections.singletonList(mockClass);
-    HeapObject mockHeap = MemoryProfilerTestBase.mockHeapObject("TestHeap", mockClassObjects);
-    myStage.selectHeap(mockHeap);
-    myStage.selectClass(mockClass);
-    myStage.selectInstance(mockInstance);
-
-    JTree instanceTree = myStageView.getClassView().getTree();
-    assertNotNull(instanceTree);
-    Supplier<CodeLocation> codeLocationSupplier = myFakeIdeProfilerComponents.getCodeLocationSupplier(instanceTree);
-
-    assertNotNull(codeLocationSupplier);
-    CodeLocation codeLocation = codeLocationSupplier.get();
-    assertNotNull(codeLocation);
-    String codeLocationClassName = codeLocation.getClassName();
-    assertEquals(testClassName, codeLocationClassName);
-
-    myStage.getStudioProfilers().getIdeServices().getCodeNavigator().navigate(codeLocation);
-    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    myClassSetView.reset();
+    assertNull(myClassSetView.getTree());
   }
 
   @Test
   public void testCorrectColumnsAndRendererContents() {
-    MemoryInstanceView view = new MemoryInstanceView(myStage, myFakeIdeProfilerComponents);
-    myStage.selectClass(MOCK_CLASS);
-
-    JTree tree = view.getTree();
-    assertNotNull(tree);
-    JScrollPane columnTreePane = (JScrollPane)view.getColumnTree();
+    JScrollPane columnTreePane = (JScrollPane)myClassSetView.getColumnTree();
     assertNotNull(columnTreePane);
-    ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(tree, columnTreePane);
+    ColumnTreeTestInfo treeInfo = new ColumnTreeTestInfo(myClassSetTree, columnTreePane);
     treeInfo.verifyColumnHeaders("Instance", "Depth", "Shallow Size", "Retained Size");
 
-    MemoryObjectTreeNode root = (MemoryObjectTreeNode)tree.getModel().getRoot();
-    assertEquals(INSTANCE_OBJECT_LIST.size(), root.getChildCount());
+    MemoryObjectTreeNode root = (MemoryObjectTreeNode)myClassSetTree.getModel().getRoot();
+    assertEquals(myInstanceObjects.size(), root.getChildCount());
     for (int i = 0; i < root.getChildCount(); i++) {
-      InstanceObject instance = INSTANCE_OBJECT_LIST.get(2 - i);
+      InstanceObject instance = myInstanceObjects.get(2 - i);
       treeInfo.verifyRendererValues(root.getChildAt(i),
-                                    new String[]{instance.getName(), instance.getToStringText()},
+                                    new String[]{instance.getName(), null, instance.getValueText(), null, instance.getToStringText()},
                                     new String[]{(instance.getDepth() >= 0 && instance.getDepth() < Integer.MAX_VALUE) ?
                                                  Integer.toString(instance.getDepth()) : ""},
                                     new String[]{Integer.toString(instance.getShallowSize())},
@@ -217,9 +161,9 @@ public class MemoryInstanceViewTest {
 
   @Test
   public void testInstanceTreeNodeExpansion() {
-    InstanceTreeNode instanceTreeNode0 = new InstanceTreeNode(INSTANCE_OBJECT_LIST.get(0));
-    InstanceTreeNode instanceTreeNode1 = new InstanceTreeNode(INSTANCE_OBJECT_LIST.get(1));
-    InstanceTreeNode instanceTreeNode2 = new InstanceTreeNode(INSTANCE_OBJECT_LIST.get(2));
+    InstanceTreeNode instanceTreeNode0 = new InstanceTreeNode(myInstanceObjects.get(0));
+    InstanceTreeNode instanceTreeNode1 = new InstanceTreeNode(myInstanceObjects.get(1));
+    InstanceTreeNode instanceTreeNode2 = new InstanceTreeNode(myInstanceObjects.get(2));
     assertEquals(0, instanceTreeNode0.getBuiltChildren().size());
     assertEquals(0, instanceTreeNode1.getBuiltChildren().size());
     assertEquals(0, instanceTreeNode2.getBuiltChildren().size());
@@ -227,44 +171,59 @@ public class MemoryInstanceViewTest {
     instanceTreeNode1.expandNode();
     instanceTreeNode2.expandNode();
     assertEquals(0, instanceTreeNode0.getBuiltChildren().size());
-    assertTrue(instanceTreeNode0.getBuiltChildren().stream().allMatch(node -> node instanceof InstanceTreeNode));
+    assertTrue(instanceTreeNode0.getBuiltChildren().stream().allMatch(node -> node.getAdapter() instanceof FieldObject));
     assertEquals(1, instanceTreeNode1.getBuiltChildren().size());
-    assertTrue(instanceTreeNode1.getBuiltChildren().stream().allMatch(node -> node instanceof InstanceTreeNode));
+    assertTrue(instanceTreeNode1.getBuiltChildren().stream().allMatch(node -> node.getAdapter() instanceof FieldObject));
     assertEquals(5, instanceTreeNode2.getBuiltChildren().size());
-    assertTrue(instanceTreeNode2.getBuiltChildren().stream().allMatch(node -> node instanceof InstanceTreeNode));
+    assertTrue(instanceTreeNode2.getBuiltChildren().stream().allMatch(node -> node.getAdapter() instanceof FieldObject));
   }
 
   @Test
   public void testLazyPopulateSiblings() {
-    MemoryInstanceView view = new MemoryInstanceView(myStage, myFakeIdeProfilerComponents);
-
+    myCaptureObject = new FakeCaptureObject.Builder().build();
     // create a mock class containing 209 instances
     List<InstanceObject> fakeInstances = new ArrayList<>();
     for (int i = 0; i < 209; i++) {
       String name = Integer.toString(i);
-      fakeInstances.add(MemoryProfilerTestBase.mockInstanceObject(
-        MOCK_CLASS_NAME, name, name, null, null, i, i, i, i));
+      fakeInstances.add(
+        new FakeInstanceObject.Builder(myCaptureObject, MOCK_CLASS_NAME).setName(name).setShallowSize(i).setDepth(i).setRetainedSize(i)
+          .build());
     }
+    myCaptureObject.addInstanceObjects(new HashSet<>(fakeInstances));
+    myStage.selectCaptureObject(myCaptureObject, MoreExecutors.directExecutor());
+    myStage.selectHeapSet(myCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID));
 
-    ClassObject fakeClass = MemoryProfilerTestBase.mockClassObject(
-      MOCK_CLASS_NAME, 1, 1, 1, fakeInstances);
-    myStage.selectClass(fakeClass);
-    JTree tree = view.getTree();
-    MemoryObjectTreeNode root = (MemoryObjectTreeNode)tree.getModel().getRoot();
+    myClassifierSetTree = myStageView.getClassifierView().getTree();
+    assertNotNull(myClassifierSetTree);
+    Object classifierRoot = myClassifierSetTree.getModel().getRoot();
+    assertTrue(classifierRoot instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)classifierRoot).getAdapter() instanceof HeapSet);
+    //noinspection unchecked
+    myClassifierSetHeapNode = (MemoryObjectTreeNode<HeapSet>)classifierRoot;
+
+    ClassifierSet classifierSet = myClassifierSetHeapNode.getAdapter().findContainingClassifierSet(fakeInstances.get(0));
+    assertTrue(classifierSet instanceof ClassSet);
+    myStage.selectClassSet((ClassSet)classifierSet);
+
+    myClassSetTree = myClassSetView.getTree();
+    assertNotNull(myClassSetTree);
+    Object classSetRoot = myClassSetTree.getModel().getRoot();
+    assertTrue(classSetRoot instanceof MemoryObjectTreeNode && ((MemoryObjectTreeNode)classSetRoot).getAdapter() instanceof ClassSet);
+    //noinspection unchecked
+    myClassSetRootNode = (MemoryObjectTreeNode<MemoryObject>)classSetRoot;
 
     // View would display only the first 100 object, plus an extra node for sibling expansion.
-    assertEquals(101, root.getChildCount());
+    assertEquals(101, myClassSetRootNode.getChildCount());
 
     // Selecting a regular node would do nothing
-    tree.addSelectionPath(new TreePath(new Object[]{root, root.getChildAt(0)}));
-    assertEquals(101, root.getChildCount());
+    myClassSetTree.addSelectionPath(new TreePath(new Object[]{myClassSetRootNode, myClassSetRootNode.getChildAt(0)}));
+    assertEquals(101, myClassSetRootNode.getChildCount());
 
     // Selecting the last node would expand the next 100
-    tree.addSelectionPath(new TreePath(new Object[]{root, root.getChildAt(100)}));
-    assertEquals(201, root.getChildCount());
+    myClassSetTree.addSelectionPath(new TreePath(new Object[]{myClassSetRootNode, myClassSetRootNode.getChildAt(100)}));
+    assertEquals(201, myClassSetRootNode.getChildCount());
 
     // Selecting the last node again would expand the remaining 9
-    tree.addSelectionPath(new TreePath(new Object[]{root, root.getChildAt(200)}));
-    assertEquals(209, root.getChildCount());
+    myClassSetTree.addSelectionPath(new TreePath(new Object[]{myClassSetRootNode, myClassSetRootNode.getChildAt(200)}));
+    assertEquals(209, myClassSetRootNode.getChildCount());
   }
 }
