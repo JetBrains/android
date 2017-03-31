@@ -16,50 +16,38 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.uibuilder.Features;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.api.actions.*;
-import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
-import com.android.tools.idea.uibuilder.editor.NlEditor;
 import com.android.tools.idea.uibuilder.graphics.NlIcon;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
-import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.model.NlModel;
-import com.android.tools.idea.uibuilder.scene.*;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
-import com.android.tools.idea.uibuilder.scene.target.*;
-import com.android.tools.idea.uibuilder.structure.NlDropListener;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
+import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.Scene;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.SceneDragHandler;
+import com.android.tools.idea.uibuilder.scene.SceneInteraction;
+import com.android.tools.idea.uibuilder.scene.target.ActionTarget;
+import com.android.tools.idea.uibuilder.scene.target.LassoTarget;
+import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
+import com.android.tools.idea.uibuilder.scene.target.Target;
+import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.WidgetDraw;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
-import com.android.tools.idea.uibuilder.scout.Scout;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiReference;
-import com.intellij.psi.util.PsiUtilCore;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlAttributeValue;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -69,18 +57,15 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.uibuilder.editor.NlEditorProvider.DESIGNER_ID;
 
 /**
- * Handles interactions for the ConstraintLayout viewgroups
+ * Handles interactions for the ConstraintLayout
  */
 public class ConstraintLayoutHandler extends ViewGroupHandler {
 
@@ -96,8 +81,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
 
   private static final NlIcon BASELINE_ICON =
     new NlIcon(AndroidIcons.SherpaIcons.BaselineColor, AndroidIcons.SherpaIcons.BaselineBlue);
-  private static final NlIcon NAVIGATE_TO_ICON =
-    new NlIcon(AndroidIcons.SherpaIcons.ArrowRight, AndroidIcons.SherpaIcons.ArrowRight);
 
   private boolean myShowAllConstraints = true;
   private static boolean ourAutoConnect;
@@ -107,16 +90,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   private final static String ADD_LAYER = "Add Layer";
 
   static {
-    ourAutoConnect = PropertiesComponent.getInstance().getBoolean(ConstraintLayoutHandler.AUTO_CONNECT_PREF_KEY, false);
+    ourAutoConnect = PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, false);
   }
 
   // This is used to efficiently test if they are horizontal or vertical.
-  static HashSet<String> ourHorizontalBarriers = new HashSet<String>(Arrays.asList(GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM));
+  static HashSet<String> ourHorizontalBarriers = new HashSet<>(Arrays.asList(GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM));
   ArrayList<ViewAction> myActions = new ArrayList<>();
   ArrayList<ViewAction> myPopupActions = new ArrayList<>();
   ArrayList<ViewAction> myControlActions = new ArrayList<>();
-
-  private JLabel breadcrumb = new JLabel("Navigated from ");
 
   /**
    * Utility function to convert from an Icon to an Image
@@ -507,9 +488,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     result.add(new AnchorTarget(AnchorTarget.Type.RIGHT, showAnchors));
     result.add(new AnchorTarget(AnchorTarget.Type.BOTTOM, showAnchors));
 
-    ActionTarget previousAction = null;
     if (showAnchors) {
-      previousAction = new ClearConstraintsTarget(previousAction);
+      ActionTarget previousAction = new ClearConstraintsTarget(null);
       result.add(previousAction);
 
       int baseline = component.getNlComponent().getBaseline();
@@ -531,37 +511,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
       ActionTarget chainCycleTarget = new ChainCycleTarget(previousAction, null);
       result.add(chainCycleTarget);
-      previousAction = chainCycleTarget;
-    }
-
-    if (Features.INCLUDE_NAVIGATION_ENABLED && VIEW_INCLUDE.equals(nlComponent.getTagName())) {
-      ActionTarget navigateTo = new ActionTarget(previousAction, NAVIGATE_TO_ICON, (c) -> {
-        XmlAttribute layoutAttribute = nlComponent.getTag().getAttribute(ATTR_LAYOUT);
-        if (layoutAttribute != null) {
-          XmlAttributeValue value = layoutAttribute.getValueElement();
-          PsiReference reference = value != null ? value.getReference() : null;
-          PsiElement navigationElement = reference != null ? reference.resolve() : null;
-          Project project = nlComponent.getModel().getProject();
-          VirtualFile destinationFile = PsiUtilCore.getVirtualFile(navigationElement);
-          if (destinationFile != null) {
-            FileEditorManager manager = FileEditorManager.getInstance(project);
-            VirtualFile currentFile = value.getContainingFile().getVirtualFile();
-            FileEditor currentEditor = manager.getSelectedEditor(currentFile);
-            boolean isInDesignerMode = currentEditor instanceof NlEditor;
-
-            OpenFileDescriptor openFileDescriptor =
-              new OpenFileDescriptor(project, destinationFile);
-            manager.openEditor(openFileDescriptor, true);
-            manager
-              .setSelectedEditor(destinationFile, isInDesignerMode ? DESIGNER_ID : TextEditorProvider.getInstance().getEditorTypeId());
-
-            FileEditor newEditor = manager.getSelectedEditor(destinationFile);
-            LayoutNavigationManager.getInstance(project).updateNavigation(currentEditor, currentFile, newEditor, destinationFile);
-          }
-        }
-      });
-      result.add(navigateTo);
-      previousAction = navigateTo;
     }
     return result;
   }
@@ -793,31 +742,31 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                         @NotNull List<NlComponent> selectedChildren,
                         @InputEventMask int modifiers) {
       NlComponent parent = component;
-      while (parent != null && !parent.isOrHasSuperclass(SdkConstants.CONSTRAINT_LAYOUT)) {
+      while (parent != null && !parent.isOrHasSuperclass(CONSTRAINT_LAYOUT)) {
         parent = parent.getParent();
       }
       if (parent != null) {
 
         switch (myType) {
           case HORIZONTAL_GUIDELINE: {
-            NlComponent guideline = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
+            NlComponent guideline = parent.createChild(editor, CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
             guideline.ensureId();
-            guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
+            guideline.setAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
             NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
             tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_GUIDELINE);
-            guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
-                                   SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
+            guideline.setAttribute(NS_RESOURCES, ATTR_ORIENTATION,
+                                   ATTR_GUIDELINE_ORIENTATION_HORIZONTAL);
           }
           break;
           case VERTICAL_GUIDELINE: {
-            NlComponent guideline = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
+            NlComponent guideline = parent.createChild(editor, CONSTRAINT_LAYOUT_GUIDELINE, null, InsertType.CREATE);
             guideline.ensureId();
-            guideline.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
+            guideline.setAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN, "20dp");
             NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
 
             tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_GUIDELINE);
-            guideline.setAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_ORIENTATION,
-                                   SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL);
+            guideline.setAttribute(NS_RESOURCES, ATTR_ORIENTATION,
+                                   ATTR_GUIDELINE_ORIENTATION_VERTICAL);
           }
           break;
           case LAYER: {
@@ -849,32 +798,32 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                   if (ConstraintComponentUtilities.isLine(child)) {
                     continue;
                   }
-                  NlComponent tag = barrier.createChild(editor, SdkConstants.TAG, null, InsertType.CREATE);
+                  NlComponent tag = barrier.createChild(editor, TAG, null, InsertType.CREATE);
                   tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
                   tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
-                  tag.setAttribute(ANDROID_URI, SdkConstants.ATTR_ID, ID_PREFIX + child.getId());
-                  tag.setAttribute(ANDROID_URI,ATTR_VALUE,SdkConstants.VALUE_TRUE);
+                  tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
+                  tag.setAttribute(ANDROID_URI, ATTR_VALUE, VALUE_TRUE);
                 }
               }
               return;
             }
-            NlComponent barrier = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
+            NlComponent barrier = parent.createChild(editor, CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
             barrier.ensureId();
-            barrier.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_BARRIER_DIRECTION, "top");
+            barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "top");
             NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
 
             // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_HORIZONTAL_BARRIER);
 
             if (selectedChildren.size() > 0) {
-              NlComponent tag = barrier.createChild(editor, SdkConstants.TAG, null, InsertType.CREATE);
+              NlComponent tag = barrier.createChild(editor, TAG, null, InsertType.CREATE);
               tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
               tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
               for (NlComponent child : selectedChildren) {
                 if (ConstraintComponentUtilities.isLine(child)) {
                   continue;
                 }
-                tag.setAttribute(ANDROID_URI, SdkConstants.ATTR_ID, ID_PREFIX + child.getId());
-                tag.setAttribute(ANDROID_URI, ATTR_VALUE, SdkConstants.VALUE_TRUE);
+                tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
+                tag.setAttribute(ANDROID_URI, ATTR_VALUE, VALUE_TRUE);
               }
             }
           }
@@ -903,18 +852,18 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                   if (ConstraintComponentUtilities.isLine(child)) {
                     continue;
                   }
-                  NlComponent tag = barrier.createChild(editor, SdkConstants.TAG, null, InsertType.CREATE);
+                  NlComponent tag = barrier.createChild(editor, TAG, null, InsertType.CREATE);
                   tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
                   tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
-                  tag.setAttribute(ANDROID_URI, SdkConstants.ATTR_ID, ID_PREFIX + child.getId());
-                  tag.setAttribute(ANDROID_URI, ATTR_VALUE, SdkConstants.VALUE_TRUE);
+                  tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
+                  tag.setAttribute(ANDROID_URI, ATTR_VALUE, VALUE_TRUE);
                 }
               }
               return;
             }
-            NlComponent barrier = parent.createChild(editor, SdkConstants.CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
+            NlComponent barrier = parent.createChild(editor, CONSTRAINT_LAYOUT_BARRIER, null, InsertType.CREATE);
             barrier.ensureId();
-            barrier.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_BARRIER_DIRECTION, "left");
+            barrier.setAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION, "left");
             NlUsageTracker tracker = NlUsageTrackerManager.getInstance(((ViewEditorImpl)editor).getSceneView().getSurface());
             // TODO add tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_BARRIER);
 
@@ -924,11 +873,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
                 if (ConstraintComponentUtilities.isLine(child)) {
                   continue;
                 }
-                NlComponent tag = barrier.createChild(editor, SdkConstants.TAG, null, InsertType.CREATE);
+                NlComponent tag = barrier.createChild(editor, TAG, null, InsertType.CREATE);
                 tag.removeAndroidAttribute(ATTR_LAYOUT_WIDTH);
                 tag.removeAndroidAttribute(ATTR_LAYOUT_HEIGHT);
-                tag.setAttribute(ANDROID_URI, SdkConstants.ATTR_ID, ID_PREFIX + child.getId());
-                tag.setAttribute(ANDROID_URI, ATTR_VALUE, SdkConstants.VALUE_TRUE);
+                tag.setAttribute(ANDROID_URI, ATTR_ID, ID_PREFIX + child.getId());
+                tag.setAttribute(ANDROID_URI, ATTR_VALUE, VALUE_TRUE);
               }
             }
           }

@@ -33,8 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
-import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
-import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.*;
 
 /**
  * A reference to a particular file in the project
@@ -42,9 +41,6 @@ import static com.android.SdkConstants.TOOLS_URI;
 public class IncludeReference {
   @SuppressWarnings("ConstantConditions")
   public static final IncludeReference NONE = new IncludeReference(null, null, null);
-
-  /** Tools namespace attribute for declaring a surrounding layout to be used */
-  public static final String ATTR_RENDER_IN = "showIn";
 
   /**
    * The source file of the reference (included from)
@@ -190,7 +186,7 @@ public class IncludeReference {
     }
   }
 
-  /** Returns an {link IncludeReference} specified for the given file, or {@link #NONE} if no include should be performed from the
+  /** Returns an {@link IncludeReference} specified for the given file, or {@link #NONE} if no include should be performed from the
    * given file */
   @NotNull
   public static IncludeReference get(@NotNull final Module module, @NotNull final XmlFile file, @NotNull final RenderResources resolver) {
