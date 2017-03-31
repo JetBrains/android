@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.builder.model.*;
-import com.android.tools.idea.model.IdeVectorDrawablesOptions;
+import com.android.tools.idea.model.ide.IdeVectorDrawablesOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

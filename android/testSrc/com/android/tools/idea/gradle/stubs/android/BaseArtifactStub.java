@@ -20,7 +20,7 @@ import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.tools.idea.gradle.stubs.FileStructure;
-import com.android.tools.idea.model.IdeDependencyGraphs;
+import com.android.tools.idea.model.ide.IdeDependencyGraphs;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
