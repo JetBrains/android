@@ -1,0 +1,68 @@
+<!--
+  ~ Copyright (C) 2017 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:instant="http://schemas.android.com/instantapps"
+    package="com.google.android.instantapps.samples.multiatom.baselib">
+    <application android:allowBackup="true"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme"
+        android:supportsRtl="true">
+        <activity split="feature1atom"
+            android:name="com.google.android.instantapps.samples.multiatom.feature1lib.Feature1Activity"
+            android:label="@string/feature1_activity_name"
+            android:theme="@style/AppTheme">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <intent-filter instant:order="1">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data
+                    android:host="multiatom.samples.androidinstantapps.com"
+                    android:scheme="https"
+                    android:pathPrefix="/feature1"/>
+                <data
+                    android:host="multiatom.samples.androidinstantapps.com"
+                    android:scheme="http"
+                    android:pathPrefix="/feature1"/>
+            </intent-filter>
+        </activity>
+        <activity split="feature2atom"
+            android:name="com.google.android.instantapps.samples.multiatom.feature2lib.Feature2Activity"
+            android:label="@string/feature2_activity_name"
+            android:theme="@style/AppTheme">
+
+            <intent-filter instant:order="2">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data
+                    android:host="multiatom.samples.androidinstantapps.com"
+                    android:scheme="https"
+                    android:pathPrefix="/feature2"/>
+                <data
+                    android:host="multiatom.samples.androidinstantapps.com"
+                    android:scheme="http"
+                    android:pathPrefix="/feature2"/>
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
