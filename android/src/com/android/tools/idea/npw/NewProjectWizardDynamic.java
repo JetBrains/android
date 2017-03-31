@@ -28,12 +28,12 @@ import com.android.tools.idea.npw.deprecated.ConfigureCppSupportPath;
 import com.android.tools.idea.npw.deprecated.NewFormFactorModulePath;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.templates.*;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.android.tools.idea.wizard.template.TemplateWizard;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
@@ -88,11 +88,8 @@ public class NewProjectWizardDynamic extends DynamicWizard {
   }
 
   protected void checkSdk() {
-    if (!AndroidSdkUtils.isAndroidSdkAvailable() || !TemplateManager.templatesAreValid()) {
-      String title = "SDK problem";
-      String msg = "<html>Your Android SDK is missing, out of date, or is missing templates.<br>" +
-                   "You can configure your SDK via <b>Configure | Project Defaults | Project Structure | SDKs</b></html>";
-      Messages.showErrorDialog(msg, title);
+    if (!AndroidSdkUtils.isAndroidSdkAvailable()) {
+      SdkQuickfixUtils.showSdkMissingDialog();
       throw new IllegalStateException("Android SDK missing");
     }
   }
