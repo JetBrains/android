@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.SdkConstants;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +39,8 @@ import static com.android.SdkConstants.ATTR_VISIBILITY;
 
 /**
  * Handler for the {@code <include>} tag
+ * <p>
+ * <b> {@code layout} attribute does not take any namespace</b>.
  */
 public final class IncludeHandler extends ViewHandler {
   @Override
@@ -95,5 +101,32 @@ public final class IncludeHandler extends ViewHandler {
     }
 
     return true;
+  }
+
+  @Override
+  public void onActivate(@NotNull ViewEditor viewEditor, @NotNull NlComponent component) {
+    openIncludedLayout(viewEditor, component);
+  }
+
+  /**
+   * Open the layout referenced by the attribute {@link SdkConstants#ATTR_LAYOUT} in
+   * the provided {@link SdkConstants#VIEW_INCLUDE}.
+   *
+   * @param viewEditor
+   * @param component  The include component
+   */
+  private static void openIncludedLayout(ViewEditor viewEditor, @NotNull NlComponent component) {
+    NlModel model = component.getModel();
+    String attribute = component.getAttribute(null, ATTR_LAYOUT);
+    if (attribute == null) {
+      return;
+    }
+    Configuration configuration = model.getConfiguration();
+    boolean editorOpened = viewEditor.openLayout(configuration, attribute, component.getTag().getContainingFile().getVirtualFile());
+    if (!editorOpened) {
+      Logger.getInstance(IncludeHandler.class).warn(
+        String.format("Cannot open included layout \"%s\" for %s tag with id \"%s\"", attribute, component.getTag(), component.getId())
+      );
+    }
   }
 }

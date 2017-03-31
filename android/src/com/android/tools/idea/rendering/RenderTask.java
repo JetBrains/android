@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
@@ -417,7 +418,7 @@ public class RenderTask implements IImageFactory {
    * Sets the {@link IncludeReference} to an outer layout that this layout should be rendered
    * within. The outer layout <b>must</b> contain an include tag which points to this
    * layout. If not set explicitly to {@link IncludeReference#NONE}, it will look at the
-   * root tag of the rendered layout and if {@link IncludeReference#ATTR_RENDER_IN} has
+   * root tag of the rendered layout and if {@link SdkConstants#ATTR_RENDER_IN} has
    * been set it will use that layout.
    *
    * @param includedWithin a reference to an outer layout to render this layout within
@@ -868,7 +869,7 @@ public class RenderTask implements IImageFactory {
       ILayoutPullParser layoutEmbeddedParser = myLayoutlibCallback.getLayoutEmbeddedParser();
       if (layoutEmbeddedParser != null) {  // Should have been nulled out if used
         myLogger.error(null, String.format("The surrounding layout (%1$s) did not actually include this layout. " +
-                                           "Remove tools:" + IncludeReference.ATTR_RENDER_IN + "=... from the root tag.",
+                                           "Remove tools:" + SdkConstants.ATTR_RENDER_IN + "=... from the root tag.",
                                            myIncludedWithin.getFromResourceUrl()), null);
       }
     }
