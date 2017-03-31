@@ -18,9 +18,11 @@ package com.android.tools.idea.instantapp.provision;
 import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mock;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -41,5 +43,22 @@ public class ProvisionBeforeRunTaskProviderTest extends AndroidTestCase {
   public void testTaskNotCreatedIfSdkNotDefined() {
     when(myInstantAppSdks.isInstantAppSdkEnabled()).thenReturn(false);
     assertNull(new ProvisionBeforeRunTaskProvider().createTask(myRunConfiguration));
+  }
+
+  public void testTaskCreatedIfModuleNull() {
+    when(myInstantAppSdks.isInstantAppSdkEnabled()).thenReturn(true);
+    JavaRunConfigurationModule runConfigurationModule = mock(JavaRunConfigurationModule.class);
+    when(runConfigurationModule.getModule()).thenReturn(null);
+    when(myRunConfiguration.getConfigurationModule()).thenReturn(runConfigurationModule);
+    assertNotNull(new ProvisionBeforeRunTaskProvider().createTask(myRunConfiguration));
+  }
+
+  public void testProvisionSkippedWhenNotInstantApp() {
+    assertTrue(new ProvisionBeforeRunTaskProvider() {
+      @Override
+      boolean isInstantAppContext(AndroidRunConfigurationBase runConfiguration) {
+        return false;
+      }
+    }.executeTask(null, myRunConfiguration, null, null));
   }
 }
