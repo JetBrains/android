@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import org.fest.swing.core.MouseButton;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -77,6 +78,7 @@ public class NlEditorTest {
    */
   @RunIn(TestGroup.QA)
   @Test
+  @Ignore("https://code.google.com/p/android/issues/detail?id=302457")
   public void basicLayoutEdit() throws Exception {
     guiTest.importSimpleApplication()
       .getEditor()
