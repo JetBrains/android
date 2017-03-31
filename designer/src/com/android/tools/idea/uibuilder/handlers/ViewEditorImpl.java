@@ -17,7 +17,9 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.assetstudiolib.GraphicGenerator;
 import com.android.assetstudiolib.MaterialDesignIcons;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.configurations.Configuration;
@@ -27,9 +29,11 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ModuleResourceRepository;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -37,10 +41,13 @@ import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.xml.XmlFile;
@@ -53,6 +60,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -288,5 +296,33 @@ public class ViewEditorImpl extends ViewEditor {
   @NotNull
   public SceneView getSceneView() {
     return mySceneView;
+  }
+
+  @Override
+  public boolean openLayout(@NotNull Configuration configuration,
+                            @NotNull String layoutName,
+                            @Nullable VirtualFile currentFile) {
+    ResourceResolver resourceResolver = configuration.getResourceResolver();
+    if (resourceResolver == null) {
+      return false;
+    }
+    ResourceValue resValue = resourceResolver.findResValue(layoutName, false);
+    File path = ResourceHelper.resolveLayout(resourceResolver, resValue);
+    if (path != null) {
+      VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(path);
+      if (file != null) {
+        Project project = mySceneView.getModel().getProject();
+        if (currentFile != null) {
+          return LayoutNavigationManager.getInstance(project).pushFile(currentFile, file);
+        }
+        else {
+          FileEditor[] editors = FileEditorManager.getInstance(project).openFile(file, true, true);
+          if (editors.length > 0) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 }

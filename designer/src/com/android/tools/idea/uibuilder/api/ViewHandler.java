@@ -31,7 +31,9 @@ import java.util.List;
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 
-/** A view handler is a tool handler for a given Android view class */
+/**
+ * A view handler is a tool handler for a given Android view class
+ */
 public class ViewHandler extends StructurePaneComponentHandler {
   /**
    * Returns whether the given component accepts the given parent layout as a potential container
@@ -65,7 +67,7 @@ public class ViewHandler extends StructurePaneComponentHandler {
    * @return true, or false if the view handler wants to cancel this component
    * creation. This typically happens if for example the view handler tries
    * to customize the component by for example asking the user for a specific
-   * resource (via {@link ViewEditor#displayResourceInput(EnumSet, String)}),
+   * resource (via {@link ViewEditor#displayResourceInput(String, EnumSet)}),
    * and then the user cancels that dialog. At that point we don't want an
    * unconfigured component lingering around, so the component create handler
    * cancels the drop instead by returning false.
@@ -128,7 +130,9 @@ public class ViewHandler extends StructurePaneComponentHandler {
   public void addPopupMenuActions(@NotNull List<ViewAction> actions) {
   }
 
-  /** Utility method which exposes the toolbar actions in a submenu */
+  /**
+   * Utility method which exposes the toolbar actions in a submenu
+   */
   protected void addToolbarActionsToMenu(@NotNull String label, @NotNull List<ViewAction> actions) {
     List<ViewAction> nestedActions = Lists.newArrayList();
     addToolbarActions(nestedActions);
@@ -141,5 +145,17 @@ public class ViewHandler extends StructurePaneComponentHandler {
     actions.add(new ToggleSizeViewAction("Toggle Height", ATTR_LAYOUT_HEIGHT, AndroidDesignerIcons.FillHeight,
                                          AndroidDesignerIcons.WrapHeight).setRank(startRank + 20));
     // TODO: Gravity, etc
+  }
+
+
+  /**
+   * Called when the user double-click on the component in the {@link com.android.tools.idea.uibuilder.surface.NlDesignSurface}
+   * or the {@link com.android.tools.idea.uibuilder.structure.NlComponentTree}.
+   *
+   * @param viewEditor The View editor where the provided component is being edited
+   * @param component  The component clicked
+   */
+  public void onActivate(@NotNull ViewEditor viewEditor, @NotNull NlComponent component) {
+    // Do nothing
   }
 }
