@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardF
 import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import org.fest.swing.util.PatternTextMatcher;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,6 +70,7 @@ public class FlavorsExecutionTest extends TestWithEmulator {
    */
   @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
+  @Ignore("https://code.google.com/p/android/issues/detail?id=290375")
   public void runBuildFlavors() throws Exception {
     InstantRunSettings.setShowStatusNotifications(false);
     guiTest.ideFrame()
