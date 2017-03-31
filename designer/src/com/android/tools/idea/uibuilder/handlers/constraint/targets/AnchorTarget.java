@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor;
@@ -49,6 +50,8 @@ public class AnchorTarget extends BaseTarget {
 
   private static final boolean DEBUG_RENDERER = false;
   private final boolean myVisibility;
+  private AnchorTarget myCurrentClosestTarget; // used to define the closest target during drag;
+  private boolean myThisIsTheTarget;
 
   // Type of possible anchors
   public enum Type {
@@ -103,6 +106,9 @@ public class AnchorTarget extends BaseTarget {
     return myType == Type.TOP || myType == Type.BOTTOM;
   }
 
+  public void setThisIsTheTarget(boolean target) {
+    myThisIsTheTarget = target;
+  }
   @Override
   public void setOver(boolean over) {
     if (over != mIsOver) {
@@ -271,8 +277,36 @@ public class AnchorTarget extends BaseTarget {
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, Color.red);
     }
     DrawAnchor.add(list, sceneContext, myLeft, myTop, myRight, myBottom,
-                   myType == Type.BASELINE ? DrawAnchor.TYPE_BASELINE : DrawAnchor.TYPE_NORMAL, isConnected(),
+                   myType == Type.BASELINE ? DrawAnchor.TYPE_BASELINE : DrawAnchor.TYPE_NORMAL, isConnected() && !myThisIsTheTarget,
                    mIsOver ? DrawAnchor.OVER : DrawAnchor.NORMAL);
+    if (isConnected()) {
+
+      String dir;
+      switch (myType) {
+
+        case LEFT:
+          dir = DecoratorUtilities.LEFT_CONNECTION;
+          break;
+        case TOP:
+          dir = DecoratorUtilities.TOP_CONNECTION;
+          break;
+        case RIGHT:
+          dir = DecoratorUtilities.RIGHT_CONNECTION;
+          break;
+        case BOTTOM:
+          dir = DecoratorUtilities.BOTTOM_CONNECTION;
+          break;
+        default:
+          dir = DecoratorUtilities.BASELINE_CONNECTION;
+          break;
+      }
+      DecoratorUtilities.ViewStates mode = DecoratorUtilities.ViewStates.SELECTED;
+      if (mIsOver & !myThisIsTheTarget) {
+        mode = DecoratorUtilities.ViewStates.WILL_DESTROY;
+      }
+      DecoratorUtilities.setTimeChange(myComponent.getNlComponent(), dir, mode);
+    }
+
     if (myLastX != -1 && myLastY != -1) {
       if ((myConnectedX == -1 && myConnectedY == -1)
           || !(myLastX == myConnectedX && myLastY == myConnectedY)) {
@@ -581,6 +615,20 @@ public class AnchorTarget extends BaseTarget {
         break;
       }
     }
+
+    if (myCurrentClosestTarget != closestTarget) {
+      if (myCurrentClosestTarget != null) {
+        myCurrentClosestTarget.setThisIsTheTarget(false);
+      }
+      myCurrentClosestTarget = null;
+      if (closestTarget instanceof AnchorTarget) {
+        myCurrentClosestTarget = ((AnchorTarget)closestTarget);
+        if (myCurrentClosestTarget != null) {
+          myCurrentClosestTarget.setThisIsTheTarget(true);
+        }
+      }
+    }
+
     if (closestTarget != null && closestTarget instanceof AnchorTarget) {
       NlComponent component = myComponent.getNlComponent();
       String attribute = getAttribute(closestTarget);

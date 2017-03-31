@@ -177,7 +177,11 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
   public static ScoutWidget[] create(NlComponent[] array) {
     ScoutWidget[] ret = new ScoutWidget[array.length];
     NlComponent root = null;
-
+    if (array.length == 0) {
+      return ret;
+    } else  if (array.length == 1) {
+        root = array[0];
+      }
     //search for the root widget
     for (int i = 1; i < ret.length; i++) {
       NlComponent component1 = array[i - 1];
@@ -195,6 +199,7 @@ public class ScoutWidget implements Comparable<ScoutWidget> {
         break;
       }
     }
+
     ScoutWidget rootWidget = new ScoutWidget(root, null);
     ret[0] = rootWidget;
     int count = 1;
