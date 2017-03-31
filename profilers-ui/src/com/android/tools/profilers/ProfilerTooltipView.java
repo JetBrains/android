@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
@@ -39,7 +38,7 @@ public abstract class ProfilerTooltipView extends AspectObserver {
     myTitle = title;
 
     myLabel = new JLabel();
-    myLabel.setFont(AdtUiUtils.DEFAULT_FONT.deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
+    myLabel.setFont(myLabel.getFont().deriveFont(ProfilerLayout.TOOLTIP_FONT_SIZE));
     timeline.getTooltipRange().addDependency(this).onChange(Range.Aspect.RANGE, this::timeChanged);
   }
 

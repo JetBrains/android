@@ -19,7 +19,6 @@ import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TreeWalker;
-import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
@@ -356,7 +355,6 @@ public class ConnectionDetailsView extends JPanel {
   private static final class NoWrapBoldLabel extends BoldLabel {
     public NoWrapBoldLabel(String text) {
       super("<nobr>" + text + "</nobr>");
-      setFont(AdtUiUtils.DEFAULT_FONT);
     }
   }
 
