@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.gradle.model.java.IdeaJarLibraryDependencyFactory;
 import com.android.tools.idea.gradle.model.java.JarLibraryDependency;
 import com.android.tools.idea.gradle.model.java.JavaModuleContentRoot;
 import com.android.tools.idea.gradle.model.java.JavaModuleDependency;
@@ -35,6 +37,18 @@ import static com.android.tools.idea.gradle.project.model.JavaModuleModel.isBuil
  */
 @SuppressWarnings("deprecation")
 public class IdeaJavaModuleModelFactory {
+  @NotNull private final IdeaJarLibraryDependencyFactory myIdeaJarLibraryDependencyFactory;
+
+  public IdeaJavaModuleModelFactory() {
+    this(new IdeaJarLibraryDependencyFactory());
+  }
+
+  @VisibleForTesting
+  IdeaJavaModuleModelFactory(@NotNull IdeaJarLibraryDependencyFactory ideaJarLibraryDependencyFactory) {
+    myIdeaJarLibraryDependencyFactory = ideaJarLibraryDependencyFactory;
+  }
+
+  @NotNull
   public JavaModuleModel create(@NotNull IdeaModule ideaModule,
                                 @Nullable ModuleExtendedModel javaModel,
                                 boolean androidModuleWithoutVariants) {
@@ -79,7 +93,7 @@ public class IdeaJavaModuleModelFactory {
   }
 
   @NotNull
-  private static Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> getDependencies(@NotNull IdeaModule ideaModule) {
+  private Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> getDependencies(@NotNull IdeaModule ideaModule) {
     List<? extends IdeaDependency> dependencies = ideaModule.getDependencies().getAll();
     Collection<JavaModuleDependency> javaModuleDependencies = new ArrayList<>();
     Collection<JarLibraryDependency> jarLibraryDependencies = new ArrayList<>();
@@ -87,7 +101,7 @@ public class IdeaJavaModuleModelFactory {
     if (dependencies != null) {
       for (IdeaDependency dependency : dependencies) {
         if (dependency instanceof IdeaSingleEntryLibraryDependency) {
-          JarLibraryDependency libraryDependency = JarLibraryDependency.copy((IdeaSingleEntryLibraryDependency)dependency);
+          JarLibraryDependency libraryDependency = myIdeaJarLibraryDependencyFactory.create((IdeaSingleEntryLibraryDependency)dependency);
           if (libraryDependency != null) {
             jarLibraryDependencies.add(libraryDependency);
           }

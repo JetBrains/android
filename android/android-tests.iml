@@ -88,5 +88,6 @@
     <orderEntry type="library" scope="TEST" name="guava-testlib" level="project" />
     <orderEntry type="module" module-name="adt-branding" scope="TEST" />
     <orderEntry type="module" module-name="sdk-updates" scope="TEST" />
+    <orderEntry type="module" module-name="java-lib-model" scope="TEST" />
   </component>
 </module>
