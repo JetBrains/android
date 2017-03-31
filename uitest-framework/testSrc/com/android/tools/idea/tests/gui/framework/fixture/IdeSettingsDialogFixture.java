@@ -48,6 +48,12 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
     return new IdeSettingsDialogFixture(robot, find(robot, SettingsDialog.class, Matchers.byTitle(JDialog.class, title)));
   }
 
+  @NotNull
+  public static IdeSettingsDialogFixture findDefault(@NotNull Robot robot) {
+    String title = SystemInfo.isMac ? "Default Preferences" : "Default Settings";
+    return new IdeSettingsDialogFixture(robot, find(robot, SettingsDialog.class, Matchers.byTitle(JDialog.class, title)));
+  }
+
   private IdeSettingsDialogFixture(@NotNull Robot robot, @NotNull DialogAndWrapper<SettingsDialog> dialogAndWrapper) {
     super(robot, dialogAndWrapper);
   }
