@@ -431,6 +431,7 @@ public class NlComponent implements NlAttributesHolder {
     return ids;
   }
 
+  @AndroidCoordinate
   public int getBaseline() {
     try {
       if (viewInfo != null) {

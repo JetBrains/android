@@ -37,7 +37,6 @@ import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * Interaction where you insert a new component into a parent layout (which can vary
@@ -176,8 +175,7 @@ public class DragDropInteraction extends Interaction {
                                          Coordinates.getAndroidXDip(mySceneView, x),
                                          Coordinates.getAndroidYDip(mySceneView, y));
 
-    while (viewgroup != null && viewgroup.getNlComponent() != null
-           && !viewgroup.getNlComponent().isOrHasSuperclass(SdkConstants.CLASS_VIEWGROUP)) {
+    while (viewgroup != null && !viewgroup.getNlComponent().isOrHasSuperclass(SdkConstants.CLASS_VIEWGROUP)) {
       viewgroup = viewgroup.getParent();
     }
 
