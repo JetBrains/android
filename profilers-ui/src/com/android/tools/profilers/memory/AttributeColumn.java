@@ -16,33 +16,30 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import java.util.Comparator;
 import java.util.function.Supplier;
 
-class AttributeColumn {
+class AttributeColumn<T extends MemoryObject> {
   private final String myName;
   private final Supplier<ColoredTreeCellRenderer> myRendererSuppier;
   private final int myHeaderAlignment;
   private final int myPreferredWidth;
-  private final SortOrder mySortOrder;
-  private final Comparator<MemoryObjectTreeNode> myComparator;
+  private final Comparator<MemoryObjectTreeNode<T>> myComparator;
 
   public AttributeColumn(@NotNull String name,
                          @NotNull Supplier<ColoredTreeCellRenderer> rendererSupplier,
                          int headerAlignment,
                          int preferredWidth,
-                         @NotNull SortOrder sortOrder,
-                         @NotNull Comparator<MemoryObjectTreeNode> comparator) {
+                         @NotNull Comparator<MemoryObjectTreeNode<T>> comparator) {
     myName = name;
     myRendererSuppier = rendererSupplier;
     myHeaderAlignment = headerAlignment;
     myPreferredWidth = preferredWidth;
-    mySortOrder = sortOrder;
     myComparator = comparator;
   }
 
@@ -53,8 +50,11 @@ class AttributeColumn {
       .setRenderer(myRendererSuppier.get())
       .setHeaderAlignment(myHeaderAlignment)
       .setPreferredWidth(myPreferredWidth)
-      .setInitialOrder(mySortOrder)
       .setComparator(myComparator)
       .setHeaderBorder(JBUI.Borders.empty(2, 3));
+  }
+
+  public Comparator<MemoryObjectTreeNode<T>> getComparator() {
+    return myComparator;
   }
 }

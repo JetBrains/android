@@ -18,13 +18,67 @@ package com.android.tools.profilers.memory.adapters;
 import com.android.tools.profilers.stacktrace.ThreadId;
 import org.jetbrains.annotations.NotNull;
 
-public class ThreadObject extends ClassifierObject {
-  public ThreadObject(@NotNull ThreadId threadId) {
-    super(threadId.toString());
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+/**
+ * This classifier classifies {@link InstanceObject}s based on its allocation's thread ID. If no allocations are available, the instances
+ * are classified using a {@link MethodSet.MethodClassifier} (which will further classify under {@link ClassSet.ClassClassifier} if no stack
+ * information is available).
+ */
+public class ThreadSet extends ClassifierSet {
+  @NotNull private final CaptureObject myCaptureObject;
+  @NotNull private final ThreadId myThreadId;
+
+  @NotNull
+  public static Classifier createDefaultClassifier(@NotNull CaptureObject captureObject) {
+    return new ThreadClassifier(captureObject);
   }
 
+  public ThreadSet(@NotNull CaptureObject captureObject, @NotNull ThreadId threadId) {
+    super(threadId.toString());
+    myCaptureObject = captureObject;
+    myThreadId = threadId;
+  }
+
+  @NotNull
+  public ThreadId getThreadId() {
+    return myThreadId;
+  }
+
+  @NotNull
   @Override
-  public boolean hasStackInfo() {
-    return true;
+  public Classifier createSubClassifier() {
+    return MethodSet.createDefaultClassifier(myCaptureObject);
+  }
+
+  private static final class ThreadClassifier extends Classifier {
+    @NotNull private final CaptureObject myCaptureObject;
+    @NotNull private final Map<ThreadId, ThreadSet> myThreadSets = new HashMap<>();
+    @NotNull private final Classifier myMethodSetClassifier;
+
+    private ThreadClassifier(@NotNull CaptureObject captureObject) {
+      myCaptureObject = captureObject;
+      myMethodSetClassifier = MethodSet.createDefaultClassifier(myCaptureObject);
+    }
+
+    @Override
+    public boolean partition(@NotNull InstanceObject instance) {
+      if (instance.getAllocationThreadId() != ThreadId.INVALID_THREAD_ID) {
+        myThreadSets.computeIfAbsent(instance.getAllocationThreadId(), threadId -> new ThreadSet(myCaptureObject, threadId))
+          .addInstanceObject(instance);
+      }
+      else {
+        myMethodSetClassifier.partition(instance);
+      }
+      return true;
+    }
+
+    @NotNull
+    @Override
+    public List<ClassifierSet> getClassifierSets() {
+      return Stream.concat(myThreadSets.values().stream(), myMethodSetClassifier.getClassifierSets().stream()).collect(Collectors.toList());
+    }
   }
 }

@@ -46,22 +46,17 @@ public abstract class LazyMemoryObjectTreeNode<T extends MemoryObject> extends M
    * Math.min(myChildren.size(), myCurrentPageCount * NUM_CHILDREN_PER_PAGE);
    */
   private List<MemoryObjectTreeNode<T>> myChildrenView;
+
   @Nullable private DefaultTreeModel myTreeModel;
 
-  private MemoryObjectTreeNode<MemoryObject> myPagingNode;
+  @Nullable private MemoryObjectTreeNode<MemoryObject> myPagingNode;
 
-  public LazyMemoryObjectTreeNode(@NotNull T adapter) {
+  public LazyMemoryObjectTreeNode(@NotNull T adapter, boolean usePaging) {
     super(adapter);
 
     myCurrentPageCount = 1;
     myChildrenView = myChildren.subList(0, 0);
-    myPagingNode = new MemoryObjectTreeNode<MemoryObject>(
-      () -> String.format("Click to see next %d...", Math.min(NUM_CHILDREN_PER_PAGE, myChildren.size() - myChildrenView.size()))) {
-      @Override
-      public void select() {
-        LazyMemoryObjectTreeNode.this.expandSibling();
-      }
-    };
+    myPagingNode = usePaging ? new PagingNode(this) : null;
   }
 
   /**
@@ -85,29 +80,44 @@ public abstract class LazyMemoryObjectTreeNode<T extends MemoryObject> extends M
     expandNode();
     ensureOrder();
 
-    if (myChildren.size() == myChildrenView.size() && i >= myChildren.size()) {
+    if (myPagingNode != null && myChildren.size() == myChildrenView.size() && i >= myChildren.size()) {
       // Custom exception handling for the case where all children are displayed.
       // Otherwise we allow the index to be myChildrenView.size() + 1 to account for the paging node.
       throw new IndexOutOfBoundsException();
     }
-    return i == myChildrenView.size() ? myPagingNode : myChildrenView.get(i);
+    return myPagingNode != null && i == myChildrenView.size() ? myPagingNode : myChildren.get(i);
   }
 
   @Override
   public int getChildCount() {
     if (myMemoizedChildrenCount == INVALID_CHILDREN_COUNT) {
       myMemoizedChildrenCount = computeChildrenCount();
+      if (myPagingNode == null) {
+        myCurrentPageCount = (myMemoizedChildrenCount + NUM_CHILDREN_PER_PAGE - 1) / NUM_CHILDREN_PER_PAGE;
+        myChildrenView = myChildren;
+      }
     }
 
-    return myMemoizedChildrenCount > myCurrentPageCount * NUM_CHILDREN_PER_PAGE ?
-           myCurrentPageCount * NUM_CHILDREN_PER_PAGE + 1 : myMemoizedChildrenCount;
+    return myPagingNode != null && myMemoizedChildrenCount > myCurrentPageCount * NUM_CHILDREN_PER_PAGE
+           ? myCurrentPageCount * NUM_CHILDREN_PER_PAGE + 1
+           : myMemoizedChildrenCount;
   }
 
   @Override
   public int getIndex(TreeNode treeNode) {
     expandNode();
     ensureOrder();
-    return treeNode == myPagingNode ? myChildrenView.size() : myChildrenView.indexOf(treeNode);
+
+    if (treeNode == null) {
+      return -1;
+    }
+    if (treeNode instanceof LazyMemoryObjectTreeNode) {
+      return myPagingNode == null ? myChildren.indexOf(treeNode) : myChildrenView.indexOf(treeNode);
+    }
+    else if (treeNode == myPagingNode) {
+      return myChildrenView.size();
+    }
+    return -1;
   }
 
   @Override
@@ -142,31 +152,46 @@ public abstract class LazyMemoryObjectTreeNode<T extends MemoryObject> extends M
 
   @Override
   protected void ensureOrder() {
+    getChildCount();
     super.ensureOrder();
-    myChildrenView = myChildren.subList(0, Math.min(myChildren.size(), myCurrentPageCount * NUM_CHILDREN_PER_PAGE));
+    myChildrenView = myChildren.subList(
+      0, Math.min(myChildren.size(), myPagingNode != null ? myCurrentPageCount * NUM_CHILDREN_PER_PAGE : myMemoizedChildrenCount));
   }
 
-  private void expandSibling() {
-    myCurrentPageCount++;
-    int[] newIndices;
-    if (myCurrentPageCount * NUM_CHILDREN_PER_PAGE > myChildren.size()) {
-      newIndices = new int[myChildren.size() - myChildrenView.size()];
-    }
-    else {
-      // Note the +1 offset to account for the paging node that needs to be appended to the end.
-      newIndices = new int[NUM_CHILDREN_PER_PAGE + 1];
+  private static class PagingNode extends MemoryObjectTreeNode<MemoryObject> {
+    @NotNull private final LazyMemoryObjectTreeNode myOwnerNode;
+
+    public PagingNode(@NotNull LazyMemoryObjectTreeNode ownerNode) {
+      super(() -> String.format("Click to see next %d...",
+                                Math.min(NUM_CHILDREN_PER_PAGE, ownerNode.myChildren.size() - ownerNode.myChildrenView.size())));
+      myOwnerNode = ownerNode;
     }
 
-    for (int i = 0; i < newIndices.length; i++) {
-      newIndices[i] = myChildrenView.size() + i;
-    }
+    @Override
+    public void select() {
+      myOwnerNode.myCurrentPageCount++;
+      int[] newIndices;
+      if (myOwnerNode.myCurrentPageCount * NUM_CHILDREN_PER_PAGE > myOwnerNode.myChildren.size()) {
+        newIndices = new int[myOwnerNode.myChildren.size() - myOwnerNode.myChildrenView.size()];
+      }
+      else {
+        // Note the +1 offset to account for the paging node that needs to be appended to the end.
+        newIndices = new int[NUM_CHILDREN_PER_PAGE + 1];
+      }
 
-    assert myTreeModel != null;
-    int previousViewSize = myChildrenView.size();
-    myChildrenView = myChildren.subList(0, Math.min(myChildren.size(), myCurrentPageCount * NUM_CHILDREN_PER_PAGE));
-    // First remove the existing paging node.
-    myTreeModel.nodesWereRemoved(this, new int[]{previousViewSize}, new Object[]{myPagingNode});
-    // Fires the rest of the new node insertion events.
-    myTreeModel.nodesWereInserted(this, newIndices);
+      for (int i = 0; i < newIndices.length; i++) {
+        newIndices[i] = myOwnerNode.myChildrenView.size() + i;
+      }
+
+      assert myOwnerNode.myTreeModel != null;
+      int previousViewSize = myOwnerNode.myChildrenView.size();
+      myOwnerNode.myChildrenView =
+        myOwnerNode.myChildren
+          .subList(0, Math.min(myOwnerNode.myChildren.size(), myOwnerNode.myCurrentPageCount * NUM_CHILDREN_PER_PAGE));
+      // First remove the existing paging node.
+      myOwnerNode.myTreeModel.nodesWereRemoved(myOwnerNode, new int[]{previousViewSize}, new Object[]{this});
+      // Fires the rest of the new node insertion events.
+      myOwnerNode.myTreeModel.nodesWereInserted(myOwnerNode, newIndices);
+    }
   }
 }

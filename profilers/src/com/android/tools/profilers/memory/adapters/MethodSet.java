@@ -15,15 +15,34 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import org.jetbrains.annotations.NotNull;
 
-public class MethodObject extends ClassifierObject {
-  @NotNull private final CodeLocation myCodeLocation;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-  public MethodObject(@NotNull CodeLocation codeLocation) {
-    super("");
+/**
+ * Classifies {@link InstanceObject}s based on a particular stack trace line of its allocation stack. If the end of the stack is reached or
+ * if there's no stack, then the instances are classified under {@link ClassSet.ClassClassifier}s.
+ */
+public class MethodSet extends ClassifierSet {
+  @NotNull private final CodeLocation myCodeLocation;
+  @NotNull private final CaptureObject myCaptureObject;
+  private final int myCallstackDepth;
+
+  @NotNull
+  public static Classifier createDefaultClassifier(@NotNull CaptureObject captureObject) {
+    return new MethodClassifier(captureObject, 0);
+  }
+
+  public MethodSet(@NotNull CaptureObject captureObject, @NotNull CodeLocation codeLocation, int callstackDepth) {
+    super(convertCodeLocationToString(codeLocation));
+    myCaptureObject = captureObject;
+    myCallstackDepth = callstackDepth;
     myCodeLocation = codeLocation;
+    myHasStackInfo = true;
   }
 
   @NotNull
@@ -31,8 +50,59 @@ public class MethodObject extends ClassifierObject {
     return myCodeLocation;
   }
 
+  @NotNull
   @Override
-  public boolean hasStackInfo() {
-    return true;
+  public Classifier createSubClassifier() {
+    return new MethodClassifier(myCaptureObject, myCallstackDepth);
+  }
+
+  private static String convertCodeLocationToString(@NotNull CodeLocation codeLocation) {
+    String name = codeLocation.getMethodName();
+    int lineNumber = codeLocation.getLineNumber();
+    String className = codeLocation.getClassName();
+    StringBuilder builder = new StringBuilder();
+
+    if (name != null) {
+      builder.append(name).append("()");
+      if (lineNumber != CodeLocation.INVALID_LINE_NUMBER) {
+        builder.append(":").append(lineNumber);
+      }
+    }
+    else {
+      builder.append("<unknown method>");
+    }
+    builder.append(" (").append(className).append(")");
+    return builder.toString();
+  }
+
+  private static final class MethodClassifier extends Classifier {
+    @NotNull private final CaptureObject myCaptureObject;
+    @NotNull private final Map<CodeLocation, MethodSet> myStackLineMap = new HashMap<>();
+    @NotNull private final Map<ClassDb.ClassEntry, ClassSet> myClassMap = new HashMap<>();
+    private final int myDepth;
+
+    private MethodClassifier(@NotNull CaptureObject captureObject, int depth) {
+      myCaptureObject = captureObject;
+      myDepth = depth;
+    }
+
+    @Override
+    public boolean partition(@NotNull InstanceObject instance) {
+      AllocationStack allocationStack = instance.getCallStack();
+      if (allocationStack != null && allocationStack.getStackFramesCount() > 0 && myDepth < allocationStack.getStackFramesCount()) {
+        CodeLocation codeLocation = AllocationStackConverter.getCodeLocation(allocationStack.getStackFrames(allocationStack.getStackFramesCount() - myDepth - 1));
+        myStackLineMap.computeIfAbsent(codeLocation, cl -> new MethodSet(myCaptureObject, cl, myDepth + 1)).addInstanceObject(instance);
+      }
+      else {
+        myClassMap.computeIfAbsent(instance.getClassEntry(), ClassSet::new).addInstanceObject(instance);
+      }
+      return true;
+    }
+
+    @NotNull
+    @Override
+    public List<ClassifierSet> getClassifierSets() {
+      return Stream.concat(myStackLineMap.values().stream(), myClassMap.values().stream()).collect(Collectors.toList());
+    }
   }
 }

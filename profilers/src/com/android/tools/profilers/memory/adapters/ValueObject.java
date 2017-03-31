@@ -17,41 +17,58 @@ package com.android.tools.profilers.memory.adapters;
 
 import org.jetbrains.annotations.NotNull;
 
-public abstract class ClassifierObject extends NamespaceObject {
-  protected int myTotalCount = 0;
-  protected int myHeapCount = 0;
-  protected long myRetainedSize = 0L;
+/**
+ * A class that represents a value in memory, such as a primitive, a reference, or even the value of {@code null}.
+ */
+public interface ValueObject extends MemoryObject {
+  enum ValueType {
+    NULL(false),
+    BOOLEAN(true),
+    BYTE(true),
+    CHAR(true),
+    SHORT(true),
+    INT(true),
+    LONG(true),
+    FLOAT(true),
+    DOUBLE(true),
+    OBJECT(false),
+    CLASS(false),
+    ARRAY(false),
+    STRING(false); // special case for strings
 
-  public ClassifierObject(@NotNull String name) {
-    super(name);
+    private boolean myIsPrimitive;
+
+    ValueType(boolean isPrimitive) {
+      myIsPrimitive = isPrimitive;
+    }
+
+    public boolean getIsPrimitive() {
+      return myIsPrimitive;
+    }
   }
 
-  @Override
-  public int getTotalCount() {
-    return myTotalCount;
+  default int getDepth() {
+    return Integer.MAX_VALUE;
   }
 
-  @Override
-  public int getHeapCount() {
-    return myHeapCount;
+  default int getShallowSize() {
+    return INVALID_VALUE;
   }
 
-  @Override
-  public long getRetainedSize() {
-    return myRetainedSize;
+  default long getRetainedSize() {
+    return INVALID_VALUE;
   }
 
-  @Override
-  public void accumulateInstanceObject(@NotNull InstanceObject instanceObject) {
-    myHeapCount += 1;
-    myTotalCount += 1;
-    myRetainedSize += Math.max(instanceObject.getRetainedSize(), 0);
+  @NotNull
+  ValueType getValueType();
+
+  @NotNull
+  default String getValueText() {
+    return "";
   }
 
-  @Override
-  public void accumulateNamespaceObject(@NotNull NamespaceObject namespaceObject) {
-    myHeapCount += namespaceObject.getHeapCount();
-    myTotalCount += namespaceObject.getTotalCount();
-    myRetainedSize += Math.max(0, namespaceObject.getRetainedSize());
+  @NotNull
+  default String getToStringText() {
+    return "";
   }
 }

@@ -16,6 +16,9 @@
 package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.perflib.heap.ClassObj;
+import com.android.tools.perflib.heap.Heap;
+import com.android.tools.perflib.heap.Instance;
 import com.android.tools.perflib.heap.Snapshot;
 import com.android.tools.perflib.heap.io.InMemoryBuffer;
 import com.android.tools.profiler.proto.Common;
@@ -26,17 +29,20 @@ import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingS
 import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.proguard.ProguardMap;
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
-public final class HeapDumpCaptureObject implements CaptureObject {
+import static com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.*;
+
+public class HeapDumpCaptureObject implements CaptureObject {
 
   @NotNull
   private final MemoryServiceBlockingStub myClient;
@@ -51,6 +57,18 @@ public final class HeapDumpCaptureObject implements CaptureObject {
 
   @NotNull
   private final FeatureTracker myFeatureTracker;
+
+  @NotNull
+  private final Map<Integer, HeapSet> myHeapSets = new HashMap<>();
+
+  @NotNull
+  private final Map<ClassObj, InstanceObject> myClassObjectIndex = new HashMap<>();
+
+  @NotNull
+  private final Map<Instance, InstanceObject> myInstanceIndex = new HashMap<>();
+
+  @NotNull
+  private final ClassDb myClassDb = new ClassDb();
 
   @NotNull
   private final HeapDumpInfo myHeapDumpInfo;
@@ -118,14 +136,50 @@ public final class HeapDumpCaptureObject implements CaptureObject {
     }
   }
 
+  @VisibleForTesting
+  @NotNull
+  ClassDb getClassDb() {
+    return myClassDb;
+  }
+
   @NotNull
   @Override
-  public List<HeapObject> getHeaps() {
+  public Collection<HeapSet> getHeapSets() {
     Snapshot snapshot = mySnapshot;
     if (snapshot == null) {
       return Collections.emptyList();
     }
-    return snapshot.getHeaps().stream().map(HeapDumpHeapObject::new).collect(Collectors.toList());
+    return myHeapSets.values();
+  }
+
+  @NotNull
+  @Override
+  public String getHeapName(int heapId) {
+    Snapshot snapshot = mySnapshot;
+    if (snapshot == null) {
+      return INVALID_HEAP_NAME;
+    }
+    Heap heap = snapshot.getHeap(heapId);
+    if (heap == null) {
+      return INVALID_HEAP_NAME;
+    }
+    return heap.getName();
+  }
+
+  @Override
+  @Nullable
+  public HeapSet getHeapSet(int heapId) {
+    return myHeapSets.getOrDefault(heapId, null);
+  }
+
+  @NotNull
+  @Override
+  public Stream<InstanceObject> getInstances() {
+    Snapshot snapshot = mySnapshot;
+    if (snapshot == null) {
+      return Stream.empty();
+    }
+    return getHeapSets().stream().map(ClassifierSet::getInstancesStream).flatMap(Function.identity());
   }
 
   @Override
@@ -176,6 +230,45 @@ public final class HeapDumpCaptureObject implements CaptureObject {
     snapshot.computeDominators();
     mySnapshot = snapshot;
 
+    Map<Heap, HeapSet> heapSets = new HashMap<>(snapshot.getHeaps().size());
+    InstanceObject javaLangClassObject = null;
+    for (Heap heap : snapshot.getHeaps()) {
+      HeapSet heapSet = new HeapSet(this, heap.getId());
+      heapSets.put(heap, heapSet);
+      if (javaLangClassObject == null) {
+        ClassObj javaLangClass =
+          heap.getClasses().stream().filter(classObj -> ClassDb.JAVA_LANG_CLASS.equals(classObj.getClassName())).findFirst().orElse(null);
+        if (javaLangClass != null) {
+          javaLangClassObject = createClassObjectInstance(null, javaLangClass);
+        }
+      }
+    }
+
+    InstanceObject finalJavaLangClassObject = javaLangClassObject;
+    for (Heap heap : snapshot.getHeaps()) {
+      HeapSet heapSet = heapSets.get(heap);
+      heap.getClasses().forEach(classObj -> {
+        InstanceObject classObject = createClassObjectInstance(finalJavaLangClassObject, classObj);
+        myInstanceIndex.put(classObj, classObject);
+        heapSet.addInstanceObject(classObject);
+      });
+    }
+
+    for (Heap heap : snapshot.getHeaps()) {
+      HeapSet heapSet = heapSets.get(heap);
+      heap.forEachInstance(instance -> {
+        assert !ClassDb.JAVA_LANG_CLASS.equals(getName());
+        ClassObj classObj = instance.getClassObj();
+        InstanceObject instanceObject =
+          new HeapDumpInstanceObject(this, getClassObjectInstance(instance), instance,
+                                     myClassDb.registerClass(classObj.getClassLoaderId(), classObj.getClassName()), null);
+        myInstanceIndex.put(instance, instanceObject);
+        heapSet.addInstanceObject(instanceObject);
+        return true;
+      });
+    }
+    heapSets.entrySet().forEach(entry -> myHeapSets.put(entry.getKey().getId(), entry.getValue()));
+
     return true;
   }
 
@@ -187,5 +280,53 @@ public final class HeapDumpCaptureObject implements CaptureObject {
   @Override
   public boolean isError() {
     return myIsLoadingError;
+  }
+
+  @NotNull
+  @Override
+  public List<ClassifierAttribute> getClassifierAttributes() {
+    return Arrays.asList(LABEL, COUNT, SHALLOW_SIZE, RETAINED_SIZE);
+  }
+
+  @Override
+  @NotNull
+  public List<InstanceAttribute> getInstanceAttributes() {
+    return Arrays
+      .asList(InstanceAttribute.LABEL, InstanceAttribute.DEPTH, InstanceAttribute.SHALLOW_SIZE, InstanceAttribute.RETAINED_SIZE);
+  }
+
+  @Nullable
+  public InstanceObject findInstanceObject(@NotNull Instance instance) {
+    if (mySnapshot == null) {
+      return null;
+    }
+
+    return myInstanceIndex.get(instance);
+  }
+
+  @NotNull
+  InstanceObject createClassObjectInstance(@Nullable InstanceObject javaLangClass, @NotNull ClassObj classObj) {
+    if (javaLangClass == null) {
+      // Deal with the root java.lang.Class object.
+      assert !myClassObjectIndex.containsKey(classObj);
+      InstanceObject rootInstanceObject =
+        new HeapDumpInstanceObject(this, null, classObj,
+                                   myClassDb.registerClass(classObj.getClassLoaderId(), "java.lang.Class"),
+                                   ValueObject.ValueType.CLASS);
+      myClassObjectIndex.put(classObj, rootInstanceObject);
+      return rootInstanceObject;
+    }
+    else {
+      HeapDumpInstanceObject classObject = new HeapDumpInstanceObject(this, javaLangClass, classObj, myClassDb
+        .registerClass(classObj.getClassLoaderId(), javaLangClass.getClassEntry().getClassName()), ValueObject.ValueType.CLASS);
+      myClassObjectIndex.put(classObj, classObject);
+      return classObject;
+    }
+  }
+
+  @Nullable
+  InstanceObject getClassObjectInstance(@NotNull Instance instance) {
+    ClassObj classObj = instance.getClassObj();
+    return myClassObjectIndex.get(classObj);
   }
 }

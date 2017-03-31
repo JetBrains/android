@@ -15,14 +15,54 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-public interface HeapObject extends MemoryObject {
-  @NotNull
-  List<ClassObject> getClasses();
+/**
+ * Classifies {@link InstanceObject}s based on their allocation's heap ID.
+ */
+public class HeapSet extends ClassifierSet {
+  @NotNull private final CaptureObject myCaptureObject;
+  @NotNull private ClassGrouping myClassGrouping = ClassGrouping.ARRANGE_BY_CLASS;
+  private final int myId;
+
+  public HeapSet(@NotNull CaptureObject captureObject, int id) {
+    super(captureObject.getHeapName(id));
+    myCaptureObject = captureObject;
+    myId = id;
+    setClassGrouping(ClassGrouping.ARRANGE_BY_CLASS);
+  }
+
+  public void setClassGrouping(@NotNull ClassGrouping classGrouping) {
+    if (myClassGrouping == classGrouping) {
+      return;
+    }
+    myClassGrouping = classGrouping;
+
+    List<InstanceObject> descendantsStream = getInstancesStream().collect(Collectors.toList());
+    resetDescendants();
+    myInstances.addAll(descendantsStream);
+  }
+
+  public int getId() {
+    return myId;
+  }
 
   @NotNull
-  List<ClassObject.ClassAttribute> getClassAttributes();
+  @Override
+  public Classifier createSubClassifier() {
+    switch (myClassGrouping) {
+      case ARRANGE_BY_CLASS:
+        return ClassSet.createDefaultClassifier();
+      case ARRANGE_BY_PACKAGE:
+        return PackageSet.createDefaultClassifier(myCaptureObject);
+      case ARRANGE_BY_CALLSTACK:
+        return ThreadSet.createDefaultClassifier(myCaptureObject);
+      default:
+        throw new RuntimeException("Classifier type not implemented: " + myClassGrouping);
+    }
+  }
 }
