@@ -20,15 +20,11 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.android.tools.idea.instantapp.InstantApps.setInstantAppSdkLocation;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
-import static java.lang.System.getenv;
 
 /**
  * Tests that the min sdk for instant apps is validated correctly
@@ -38,18 +34,10 @@ import static java.lang.System.getenv;
 public class MinSdkForInstantAppTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Before
-  public void before() {
-    setInstantAppSdkLocation("TestValue");
-  }
-
-  @After
-  public void after() {
-    setInstantAppSdkLocation(getenv("WH_SDK"));
-  }
-
   @Test
   public void testErrorWhenSDK15Selected() {
+    SdkReplacer.replaceSdkLocationAndActivate(null, true);
+
     NewProjectWizardFixture newProjectWizard = guiTest.welcomeFrame()
       .createNewProject()
       .clickNext();
@@ -62,5 +50,7 @@ public class MinSdkForInstantAppTest {
 
     newProjectWizard
       .clickCancel();
+
+    SdkReplacer.putBack();
   }
 }

@@ -22,7 +22,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.ConfigureAndroidModuleStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewModuleWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -38,17 +37,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.io.IOException;
 
 import static com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN;
-import static com.android.tools.idea.instantapp.InstantApps.setInstantAppSdkLocation;
 import static com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectStep.SAVED_COMPANY_DOMAIN;
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static java.lang.System.getenv;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -66,13 +59,13 @@ public class NewInstantAppModuleTest {
     PropertiesComponent propertiesComponent = PropertiesComponent.getInstance();
     myOldSavedCompanyDomain = propertiesComponent.getValue(SAVED_COMPANY_DOMAIN);
     propertiesComponent.setValue(SAVED_COMPANY_DOMAIN, "aia.example.com");
-    setInstantAppSdkLocation("TestValue");
+    SdkReplacer.replaceSdkLocationAndActivate(null, true);
   }
 
   @After
   public void after() {
     PropertiesComponent.getInstance().setValue(SAVED_COMPANY_DOMAIN, myOldSavedCompanyDomain);
-    setInstantAppSdkLocation(getenv("WH_SDK"));
+    SdkReplacer.putBack();
   }
 
   // TODO: add tests for warnings in code - requires way to separate warnings from SimpleApplication out from warnings in new module

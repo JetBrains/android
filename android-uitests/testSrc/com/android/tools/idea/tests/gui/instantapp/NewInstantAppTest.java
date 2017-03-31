@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.instantapp;
 
-import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.android.tools.idea.instantapp.InstantAppUrlFinder;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -39,10 +38,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static com.android.tools.idea.instantapp.InstantApps.setInstantAppSdkLocation;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.google.common.truth.Truth.assertThat;
-import static java.lang.System.getenv;
 
 /**
  * Test that newly created Instant App projects do not have errors in them
@@ -54,12 +51,12 @@ public class NewInstantAppTest {
 
   @Before
   public void before() {
-    setInstantAppSdkLocation("TestValue");
+    SdkReplacer.replaceSdkLocationAndActivate("TestValue", true);
   }
 
   @After
   public void after() {
-    setInstantAppSdkLocation(getenv("WH_SDK"));
+    SdkReplacer.putBack();
   }
 
   //Not putting this in before() as I plan to add some tests that work on non-default projects.
