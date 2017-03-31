@@ -20,6 +20,7 @@ import com.android.tools.idea.npw.*;
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
 import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.npw.module.NewModuleModel;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider;
@@ -27,6 +28,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -48,6 +50,11 @@ public class AndroidNewModuleAction extends AnAction implements DumbAware {
     Project project = e.getProject();
     if (project != null) {
       if (WizardUtils.isNpwModelWizardEnabled(e, WizardUtils.Feature.NEW_MODULE)) {
+        if (!AndroidSdkUtils.isAndroidSdkAvailable()) {
+          SdkQuickfixUtils.showSdkMissingDialog();
+          return;
+        }
+
         ArrayList<ModuleGalleryEntry> moduleDescriptions = new ArrayList<>();
         for (ModuleDescriptionProvider provider : ModuleDescriptionProvider.EP_NAME.getExtensions()) {
           moduleDescriptions.addAll(provider.getDescriptions());

@@ -20,6 +20,7 @@ import com.android.tools.idea.npw.NewProjectWizardDynamic;
 import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.npw.project.ConfigureAndroidProjectStep;
 import com.android.tools.idea.npw.project.NewProjectModel;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.intellij.icons.AllIcons;
@@ -28,6 +29,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.wm.impl.welcomeScreen.NewWelcomeScreen;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -50,6 +52,11 @@ public class AndroidNewProjectAction extends AnAction implements DumbAware {
   @Override
   public void actionPerformed(AnActionEvent e) {
     if (WizardUtils.isNpwModelWizardEnabled(e, WizardUtils.Feature.NEW_PROJECT)) {
+      if (!AndroidSdkUtils.isAndroidSdkAvailable()) {
+        SdkQuickfixUtils.showSdkMissingDialog();
+        return;
+      }
+
       NewProjectModel model = new NewProjectModel();
       ModelWizard wizard = new ModelWizard.Builder()
         .addStep(new ConfigureAndroidProjectStep(model))
