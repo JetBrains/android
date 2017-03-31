@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.model.java;
 
-import org.gradle.tooling.model.GradleModuleVersion;
-import org.gradle.tooling.model.idea.IdeaDependencyScope;
-import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency;
+import com.android.java.model.JavaLibrary;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,20 +27,22 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link JarLibraryDependency}.
+ * Tests for {@link NewJarLibraryDependencyFactory}.
  */
-public class JarLibraryDependencyTest {
-  private IdeaSingleEntryLibraryDependency myOriginalDependency;
+public class NewJarLibraryDependencyFactoryTest {
+  private JavaLibrary myOriginalDependency;
+  private NewJarLibraryDependencyFactory myNewJarLibraryDependencyFactory;
 
   @Before
   public void setUp() {
-    myOriginalDependency = mock(IdeaSingleEntryLibraryDependency.class);
+    myOriginalDependency = mock(JavaLibrary.class);
+    myNewJarLibraryDependencyFactory = new NewJarLibraryDependencyFactory();
   }
 
   @Test
   public void testCopyWithNullBinaryPath() {
-    when(myOriginalDependency.getFile()).thenReturn(null);
-    assertNull(JarLibraryDependency.copy(myOriginalDependency));
+    when(myOriginalDependency.getJarFile()).thenReturn(null);
+    assertNull(myNewJarLibraryDependencyFactory.create(myOriginalDependency, "compile"));
   }
 
   @Test
@@ -51,46 +51,39 @@ public class JarLibraryDependencyTest {
     FileStub sourcePath = new FileStub("fake-src.jar", true);
     FileStub javadocPath = new FileStub("fake-javadoc.jar", true);
 
-    IdeaDependencyScope scope = mock(IdeaDependencyScope.class);
-    GradleModuleVersion moduleVersion = mock(GradleModuleVersion.class);
+    String scope = "compile";
 
-    when(myOriginalDependency.getFile()).thenReturn(binaryPath);
+    when(myOriginalDependency.getJarFile()).thenReturn(binaryPath);
     when(myOriginalDependency.getSource()).thenReturn(sourcePath);
     when(myOriginalDependency.getJavadoc()).thenReturn(javadocPath);
-    when(myOriginalDependency.getScope()).thenReturn(scope);
-    when(myOriginalDependency.getGradleModuleVersion()).thenReturn(moduleVersion);
-    when(scope.getScope()).thenReturn("compile");
 
-    JarLibraryDependency dependency = JarLibraryDependency.copy(myOriginalDependency);
+    JarLibraryDependency dependency = myNewJarLibraryDependencyFactory.create(myOriginalDependency, scope);
     assertNotNull(dependency);
     assertEquals("fake", dependency.getName());
     assertEquals("compile", dependency.getScope());
     assertSame(binaryPath, dependency.getBinaryPath());
     assertSame(sourcePath, dependency.getSourcePath());
     assertSame(javadocPath, dependency.getJavadocPath());
-    assertSame(moduleVersion, dependency.getModuleVersion());
+    assertNull(dependency.getModuleVersion());
     assertTrue(dependency.isResolved());
   }
 
   @Test
-  public void testCopyWithUnesolvedDependency() {
+  public void testCopyWithUnresolvedDependency() {
     FileStub binaryPath = new FileStub("unresolved dependency - fake", true);
-    GradleModuleVersion moduleVersion = mock(GradleModuleVersion.class);
 
-    when(myOriginalDependency.getFile()).thenReturn(binaryPath);
+    when(myOriginalDependency.getJarFile()).thenReturn(binaryPath);
     when(myOriginalDependency.getSource()).thenReturn(null);
     when(myOriginalDependency.getJavadoc()).thenReturn(null);
-    when(myOriginalDependency.getScope()).thenReturn(null);
-    when(myOriginalDependency.getGradleModuleVersion()).thenReturn(moduleVersion);
 
-    JarLibraryDependency dependency = JarLibraryDependency.copy(myOriginalDependency);
+    JarLibraryDependency dependency = myNewJarLibraryDependencyFactory.create(myOriginalDependency, null);
     assertNotNull(dependency);
     assertEquals("fake", dependency.getName());
     assertNull(dependency.getScope());
     assertSame(binaryPath, dependency.getBinaryPath());
     assertNull(dependency.getSourcePath());
     assertNull(dependency.getJavadocPath());
-    assertSame(moduleVersion, dependency.getModuleVersion());
+    assertNull(dependency.getModuleVersion());
     assertFalse(dependency.isResolved());
   }
 
