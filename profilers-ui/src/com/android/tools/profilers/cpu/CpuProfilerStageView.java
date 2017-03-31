@@ -31,6 +31,7 @@ import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.event.EventMonitorView;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.IconLoader;
@@ -51,7 +52,6 @@ import java.util.List;
 import static com.android.tools.profilers.ProfilerLayout.*;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
-
   private final CpuProfilerStage myStage;
 
   private final JButton myCaptureButton;
@@ -240,13 +240,15 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     return Logger.getInstance(CpuProfilerStageView.class);
   }
 
-  private static String formatTime(long micro) {
+  @VisibleForTesting
+  static String formatTime(long micro) {
     // TODO unify with TimeAxisFormatter
-    long min = micro / (1000000 * 60);
-    long sec = (micro % (1000000 * 60)) / 1000000;
-    long mil = (micro % 1000000) / 1000;
+    long mil = (micro / 1000) % 1000;
+    long sec = (micro / (1000 * 1000)) % 60;
+    long min = (micro / (1000 * 1000 * 60)) % 60;
+    long hour = micro / (1000L * 1000L * 60L * 60L);
 
-    return String.format("%d:%02d.%03d", min, sec, mil);
+    return String.format("%02d:%02d:%02d.%03d", hour, min, sec, mil);
   }
 
   @Override
