@@ -50,6 +50,8 @@ import static com.intellij.openapi.ui.MessageType.INFO;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class GradleSyncState {
   private static final Logger LOG = Logger.getInstance(GradleSyncState.class);
@@ -76,6 +78,8 @@ public class GradleSyncState {
 
   @GuardedBy("myLock")
   private boolean mySyncInProgress;
+
+  private long mySyncStartedTimestamp = -1L;
 
   @NotNull
   public static MessageBusConnection subscribe(@NotNull Project project, @NotNull GradleSyncListener listener) {
@@ -161,6 +165,7 @@ public class GradleSyncState {
     }
     LOG.info(String.format("Started sync with Gradle for project '%1$s'.", myProject.getName()));
 
+    mySyncStartedTimestamp = System.currentTimeMillis();
     addInfoToEventLog("Gradle sync started");
 
     if (notifyUser) {
@@ -177,10 +182,12 @@ public class GradleSyncState {
   }
 
   public void syncSkipped(long lastSyncTimestamp) {
-    LOG.info(String.format("Skipped sync with Gradle for project '%1$s'. Project state loaded from cache.", myProject.getName()));
+    long syncEndTimestamp = System.currentTimeMillis();
+    String msg = String.format("Gradle sync finished in %1$s (from cached state)", getFormattedSyncDuration(syncEndTimestamp));
+    addInfoToEventLog(msg);
+    LOG.info(msg);
 
     stopSyncInProgress();
-    addInfoToEventLog("Gradle sync completed");
     mySummary.setSyncTimestamp(lastSyncTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSkipped(myProject));
 
@@ -201,15 +208,16 @@ public class GradleSyncState {
   }
 
   public void syncFailed(@NotNull String message) {
-    LOG.info(String.format("Sync with Gradle for project '%1$s' failed: %2$s", myProject.getName(), message));
-
-    String logMsg = "Gradle sync failed";
+    long syncEndTimestamp = System.currentTimeMillis();
+    String msg = "Gradle sync failed";
     if (isNotEmpty(message)) {
-      logMsg += String.format(": %1$s", message);
+      msg += String.format(": %1$s", message);
     }
-    addToEventLog(logMsg, ERROR);
+    msg += String.format(" (%1$s)", getFormattedSyncDuration(syncEndTimestamp));
+    addToEventLog(msg, ERROR);
+    LOG.info(msg);
 
-    syncFinished();
+    syncFinished(System.currentTimeMillis());
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncFailed(myProject, message));
 
     mySummary.setSyncErrorsFound(true);
@@ -219,16 +227,17 @@ public class GradleSyncState {
   }
 
   public void syncEnded() {
-    LOG.info(String.format("Sync with Gradle successful for project '%1$s'.", myProject.getName()));
-
-    addInfoToEventLog("Gradle sync completed");
+    long syncEndTimestamp = System.currentTimeMillis();
+    String msg = String.format("Gradle sync finished in %1$s", getFormattedSyncDuration(syncEndTimestamp));
+    addInfoToEventLog(msg);
+    LOG.info(msg);
 
     // Temporary: Clear resourcePrefix flag in case it was set to false when working with
     // an older model. TODO: Remove this when we no longer support models older than 0.10.
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     LintUtils.sTryPrefixLookup = true;
 
-    syncFinished();
+    syncFinished(syncEndTimestamp);
     syncPublisher(() -> myMessageBus.syncPublisher(GRADLE_SYNC_TOPIC).syncSucceeded(myProject));
 
     GradleVersion gradleVersion = GradleVersions.getInstance().getGradleVersion(myProject);
@@ -242,6 +251,13 @@ public class GradleSyncState {
     UsageTracker.getInstance().log(event);
   }
 
+  @NotNull
+  private String getFormattedSyncDuration(long syncEndTimestamp) {
+    long duration = syncEndTimestamp - mySyncStartedTimestamp;
+    long seconds = MILLISECONDS.toSeconds(duration);
+    return String.format("%ds %dms", seconds, duration - SECONDS.toMillis(seconds));
+  }
+
   private void addInfoToEventLog(@NotNull String message) {
     addToEventLog(message, INFO);
   }
@@ -250,9 +266,10 @@ public class GradleSyncState {
     LOGGING_NOTIFICATION.createNotification(message, type).notify(myProject);
   }
 
-  private void syncFinished() {
+  private void syncFinished(long timestamp) {
     stopSyncInProgress();
-    mySummary.setSyncTimestamp(System.currentTimeMillis());
+    mySyncStartedTimestamp = -1L;
+    mySummary.setSyncTimestamp(timestamp);
     enableNotifications();
     notifyStateChanged();
   }
