@@ -20,6 +20,7 @@ import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.run.AndroidRunConfigContext;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceFutures;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.BeforeRunTaskProvider;
@@ -98,6 +99,9 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
   @Nullable
   @Override
   public ProvisionBeforeRunTask createTask(RunConfiguration runConfiguration) {
+    // This method is called when a new run configuration is created, and in that moment we don't know if it will be an Instant App or not,
+    // so we create the task anyway and later, when running it, we check if it's an instant app context to provision the device or not.
+    // This method is also called when reading from persistent data (first an empty task is created and after it's configured).
     if (runConfiguration instanceof AndroidRunConfigurationBase && isInstantAppSdkEnabled()) {
       ProvisionBeforeRunTask task = new ProvisionBeforeRunTask();
       task.setEnabled(true);
@@ -118,6 +122,11 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
 
   @Override
   public boolean executeTask(DataContext context, RunConfiguration configuration, ExecutionEnvironment env, ProvisionBeforeRunTask task) {
+    if (!isInstantAppContext((AndroidRunConfigurationBase)configuration)) {
+      // If the run configuration is not running an Instant App, there's no need to provision the device. Return early.
+      return true;
+    }
+
     AndroidRunConfigContext runConfigContext = env.getCopyableUserData(AndroidRunConfigContext.KEY);
     DeviceFutures deviceFutures = runConfigContext == null ? null : runConfigContext.getTargetDevices();
 
@@ -168,7 +177,10 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
     }
   }
 
-  private static boolean isInstantAppContext(AndroidRunConfigurationBase runConfiguration) {
+  @VisibleForTesting
+  boolean isInstantAppContext(@NotNull AndroidRunConfigurationBase runConfiguration) {
+    // This method returning false does not guarantee it's not an Instant App context, since recently created run configurations don't have
+    // a module selected yet, and then we can't check if the module is instant app.
     Module module = runConfiguration.getConfigurationModule().getModule();
     return isInstantAppSdkEnabled() && module != null && InstantApps.isInstantAppApplicationModule(module);
   }
