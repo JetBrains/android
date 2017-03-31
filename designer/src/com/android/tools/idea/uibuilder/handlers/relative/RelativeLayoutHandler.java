@@ -28,7 +28,9 @@ import java.awt.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/** Handler for the {@code <RelativeLayout>} layout */
+/**
+ * Handler for the {@code <RelativeLayout>} layout
+ */
 public class RelativeLayoutHandler extends ViewGroupHandler {
   @Override
   public boolean paintConstraints(@NotNull ScreenView screenView, @NotNull Graphics2D graphics, @NotNull NlComponent component) {
@@ -51,7 +53,10 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
       @Override
       public String update(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, int modifiers) {
         super.update(x, y, modifiers);
-        SceneComponent primary = layout.getSceneComponent(components.get(0));
+        if (components.isEmpty()) {
+          return null;
+        }
+        NlComponent primary = components.get(0);
         int deltaX = lastX - startX;
         int deltaY = lastY - startY;
         moveHandler.updateMove(primary, deltaX, deltaY, modifiers);
@@ -72,7 +77,8 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
         for (NlComponent component : components) {
           if (previous == null) {
             moveHandler.applyConstraints(component);
-          } else {
+          }
+          else {
             // Arrange the nodes next to each other, depending on which
             // edge we are attaching to. For example, if attaching to the
             // top edge, arrange the subsequent nodes in a column below it.
