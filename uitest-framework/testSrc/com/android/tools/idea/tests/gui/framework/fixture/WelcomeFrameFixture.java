@@ -39,6 +39,11 @@ public class WelcomeFrameFixture extends ComponentFixture<WelcomeFrameFixture, F
     super(WelcomeFrameFixture.class, robot, target);
   }
 
+  public SdkProblemDialogFixture createNewProjectWhenSdkIsInvalid() {
+    findActionLinkByActionId("WelcomeScreen.CreateNewProject").click();
+    return SdkProblemDialogFixture.find(this);
+  }
+
   @NotNull
   public NewProjectWizardFixture createNewProject() {
     findActionLinkByActionId("WelcomeScreen.CreateNewProject").click();
