@@ -169,6 +169,7 @@ iml_module(
         "//tools/idea/.idea/libraries:guava-testlib[test]",
         "//tools/adt/idea/adt-branding[module, test]",
         "//tools/adt/idea/sdk-updates[module, test]",
+        "//tools/base/build-system/java-lib-plugin/java-lib-model:studio.java-lib-model[module, test]",
     ],
 )
 
