@@ -19,9 +19,9 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.Jdks;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.google.common.collect.Lists;
 import com.intellij.CommonBundle;
-import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.projectRoots.impl.JavaDependentSdkType;
 import com.intellij.openapi.roots.AnnotationOrderRootType;
@@ -138,7 +138,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
     if (targets.length == 0) {
       if (Messages.showOkCancelDialog(AndroidBundle.message("no.android.targets.error"), CommonBundle.getErrorTitle(),
                                       "Open SDK Manager", Messages.CANCEL_BUTTON, Messages.getErrorIcon()) == Messages.OK) {
-        ActionManager.getInstance().getAction("Android.RunAndroidSdkManager").actionPerformed(null);
+        SdkQuickfixUtils.showAndroidSdkManager();
       }
       return false;
     }

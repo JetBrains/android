@@ -25,6 +25,7 @@ import com.android.tools.idea.npw.WizardUtils.ValidationResult;
 import com.android.tools.idea.npw.WizardUtils.WritableCheckMode;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.utils.Pair;
@@ -238,9 +239,7 @@ public class GradleSpecificInitializer implements Runnable {
       @Override
       protected void hyperlinkActivated(@NotNull Notification notification,
                                         @NotNull HyperlinkEvent e) {
-        ActionManager actionManager = ActionManager.getInstance();
-        AnAction sdkManagerAction = actionManager.getAction("Android.RunAndroidSdkManager");
-        sdkManagerAction.actionPerformed(null);
+        SdkQuickfixUtils.showAndroidSdkManager();
         notification.expire();
       }
     };

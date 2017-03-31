@@ -15,21 +15,24 @@
  */
 package com.android.tools.idea.tests.gui.sdkmanager;
 
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.dualView.TreeTableView;
 import org.fest.reflect.exception.ReflectionError;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
 import org.fest.swing.timing.Wait;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.Collections;
 
@@ -103,5 +106,33 @@ public class IntegratedSdkManagerTest {
     JButtonFixture finish = downloadDialog.button(withText("Finish"));
     Wait.seconds(120).expecting("Android source to be installed").until(finish::isEnabled);
     finish.click();
+  }
+
+
+  @Test
+  public void androidSdkManagerShowsFromWelcomeScreen() throws Exception {
+    ApplicationManager.getApplication().invokeLater(SdkQuickfixUtils::showAndroidSdkManager);
+    IdeSettingsDialogFixture.findDefault(guiTest.robot()).clickOK();
+  }
+
+  @Test
+  public void androidSdkManagerShowsFromOpenProject() throws Exception {
+    guiTest.importSimpleApplication();
+    ApplicationManager.getApplication().invokeLater(SdkQuickfixUtils::showAndroidSdkManager);
+    IdeSettingsDialogFixture.findDefault(guiTest.robot()).clickOK();
+  }
+
+  @Test
+  public void androidSdkManagerShowsFromToolbar() throws Exception {
+    guiTest.importSimpleApplication();
+    guiTest.robot().click(guiTest.robot().finder().find(Matchers.byTooltip(JComponent.class, "SDK Manager").andIsShowing()));
+    IdeSettingsDialogFixture.findDefault(guiTest.robot()).clickOK();
+  }
+
+  @Test
+  public void androidSdkManagerShowsFromMissingSdkDialog() throws Exception {
+    ApplicationManager.getApplication().invokeLater(SdkQuickfixUtils::showSdkMissingDialog);
+    guiTest.robot().click(guiTest.robot().finder().find(Matchers.byText(JButton.class, "Open SDK Manager").andIsShowing()));
+    IdeSettingsDialogFixture.findDefault(guiTest.robot()).clickOK();
   }
 }
