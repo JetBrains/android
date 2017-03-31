@@ -26,7 +26,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-/** Handler for the {@code <FrameLayout>} layout */
+/**
+ * Handler for the {@code <FrameLayout>} layout
+ */
 public class FrameLayoutHandler extends ViewGroupHandler {
   @Override
   @Nullable
@@ -55,12 +57,10 @@ public class FrameLayoutHandler extends ViewGroupHandler {
 
 
       for (NlComponent nlComponent : components) {
-        // Place all elements at (0,0) in the FrameLayout
-        SceneComponent component = layout.getSceneComponent(nlComponent);
         int x = layout.getDrawX();
         int y = layout.getDrawY();
-        int w = component.getDrawWidth();
-        int h = component.getDrawHeight();
+        int w = nlComponent.w;
+        int h = nlComponent.h;
 
         graphics.useStyle(NlDrawingStyle.DROP_PREVIEW);
         graphics.drawRectDp(x, y, w, h);
