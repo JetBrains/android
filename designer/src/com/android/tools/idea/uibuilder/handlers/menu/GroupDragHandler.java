@@ -121,6 +121,7 @@ final class GroupDragHandler extends DragHandler {
   @NotNull
   private Multimap<Integer, SceneComponent> createOrderToItemMultimap(@NotNull Iterable<SceneComponent> group) {
     SceneComponent draggedItem = layout.getSceneComponent(myItems.get(0));
+
     Multimap<Integer, SceneComponent> orderToItemMultimap = ArrayListMultimap.create();
 
     for (SceneComponent item : group) {
