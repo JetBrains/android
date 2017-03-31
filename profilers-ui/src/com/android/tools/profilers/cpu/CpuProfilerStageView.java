@@ -21,6 +21,7 @@ import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
 import com.android.tools.adtui.chart.statechart.StateChart;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.flat.FlatButton;
 import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.model.Range;
@@ -402,9 +403,12 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     public ThreadCellRenderer(JList<CpuThreadsModel.RangedCpuThread> list) {
       myLabel = new JLabel();
-      myLabel.setFont(myLabel.getFont().deriveFont(10.0f));
+      myLabel.setFont(AdtUiUtils.DEFAULT_FONT);
+      myLabel.setForeground(ProfilerColors.THREAD_LABEL_TEXT);
+      myLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, ProfilerColors.THREAD_LABEL_BORDER));
+
       myStateChart = new StateChart<>(new StateChartModel<>(), ProfilerColors.THREAD_STATES);
-      myStateChart.setHeightGap(0.35f);
+      myStateChart.setHeightGap(0.30f);
       list.addMouseMotionListener(new MouseAdapter() {
         @Override
         public void mouseMoved(MouseEvent e) {
@@ -420,20 +424,28 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
                                                   int index,
                                                   boolean isSelected,
                                                   boolean cellHasFocus) {
-      JPanel panel = new JPanel(new TabularLayout("*"));
-      myLabel.setText(value.getName());
+      JPanel panel = new JPanel(new TabularLayout("150px,*"));
+      panel.setPreferredSize(new Dimension(panel.getPreferredSize().width, 15));
+      panel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
 
-      Color cellBackground = ProfilerColors.DEFAULT_BACKGROUND;
+      myLabel.setText(value.getName());
+      myLabel.setOpaque(true);
+      myLabel.setBackground(ProfilerColors.THREAD_LABEL_BACKGROUND);
+
       if (isSelected) {
-        cellBackground = ProfilerColors.THREAD_SELECTED_BACKGROUND;
+        // Cell is selected. Update its background accordingly.
+        panel.setBackground(ProfilerColors.THREAD_SELECTED_BACKGROUND);
+        myLabel.setBackground(ProfilerColors.THREAD_SELECTED_BACKGROUND);
       }
       else if (myHoveredIndex == index) {
-        cellBackground = ProfilerColors.THREAD_HOVER_BACKGROUND;
+        // Cell is hovered. Draw the hover overlay over it.
+        JPanel overlay = new JPanel();
+        overlay.setBackground(ProfilerColors.THREAD_HOVER_OVERLAY);
+        panel.add(overlay, new TabularLayout.Constraint(0, 0, 2));
       }
-      panel.setBackground(cellBackground);
 
       panel.add(myLabel, new TabularLayout.Constraint(0, 0));
-      panel.add(myStateChart, new TabularLayout.Constraint(0, 0));
+      panel.add(myStateChart, new TabularLayout.Constraint(0, 0, 2));
       myStateChart.setModel(value.getModel());
       // 1 is index of the selected color, 0 is of the non-selected
       // See more: {@link ProfilerColors#THREAD_STATES}
