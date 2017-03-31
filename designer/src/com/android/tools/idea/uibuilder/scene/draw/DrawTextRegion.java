@@ -191,7 +191,7 @@ public class DrawTextRegion extends DrawRegion {
     if (!sceneContext.getColorSet().drawBackground()) {
       return;
     }
-    super.paint(g, sceneContext);
+
     ColorSet colorSet = sceneContext.getColorSet();
     int horizontalPadding = mHorizontalPadding + mHorizontalMargin;
     int verticalPadding = mVerticalPadding + mVerticalMargin;

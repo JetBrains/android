@@ -84,22 +84,22 @@ public class ScoutArrangeTest2 extends SceneTest {
                         "DrawComponentBackground,50,375,100,20,1\n" +
                         "DrawTextRegion,50,375,100,20,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,50,375,100,20,1,40,40\n" +
-                        "DrawConnection,2,50x375x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,50x375x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5,0\n" +
+                        "DrawConnection,2,50x375x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,50x375x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawComponentBackground,200,525,100,15,1\n" +
                         "DrawTextRegion,200,525,100,15,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,200,525,100,15,1,30,30\n" +
-                        "DrawConnection,2,200x525x100x15,0,0x0x1000x1000,0,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,200x525x100x15,1,0x0x1000x1000,1,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,6,200x525x100x15,2,50x375x100x20,2,0,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,6,200x525x100x15,3,50x375x100x20,3,0,false,0,0,false,0.5,0\n" +
+                        "DrawConnection,2,200x525x100x15,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,200x525x100x15,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,6,200x525x100x15,2,50x375x100x20,2,0,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,6,200x525x100x15,3,50x375x100x20,3,0,false,0,0,false,0.5,2,0,0\n" +
                         "DrawComponentBackground,325,575,100,25,1\n" +
                         "DrawTextRegion,325,575,100,25,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,325,575,100,25,1,50,50\n" +
-                        "DrawConnection,2,325x575x100x25,0,0x0x1000x1000,0,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,325x575x100x25,1,0x0x1000x1000,1,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,6,325x575x100x25,2,200x525x100x15,2,0,true,0,0,false,0.5,0\n" +
-                        "DrawConnection,6,325x575x100x25,3,200x525x100x15,3,0,true,0,0,false,0.5,0\n" +
+                        "DrawConnection,2,325x575x100x25,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,325x575x100x25,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,6,325x575x100x25,2,200x525x100x15,2,0,true,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,6,325x575x100x25,3,200x525x100x15,3,0,true,0,0,false,0.5,2,0,0\n" +
                         "UNClip\n";
 
     assertEquals(simpleList, myInteraction.getDisplayList().serialize());
@@ -132,20 +132,20 @@ public class ScoutArrangeTest2 extends SceneTest {
                         "DrawComponentBackground,50,375,100,20,1\n" +
                         "DrawTextRegion,50,375,100,20,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,50,375,100,20,1,40,40\n" +
-                        "DrawConnection,2,50x375x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,50x375x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5,0\n" +
+                        "DrawConnection,2,50x375x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,50x375x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawComponentBackground,200,525,100,15,1\n" +
                         "DrawTextRegion,200,525,100,15,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,200,525,100,15,1,30,30\n" +
-                        "DrawConnection,2,200x525x100x15,0,0x0x1000x1000,0,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,200x525x100x15,1,0x0x1000x1000,1,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,1,200x525x100x15,3,50x375x100x20,3,0,false,0,0,false,0.5,0\n" +
+                        "DrawConnection,2,200x525x100x15,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,200x525x100x15,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,1,200x525x100x15,3,50x375x100x20,3,0,false,0,0,false,0.5,2,0,0\n" +
                         "DrawComponentBackground,325,575,100,25,1\n" +
                         "DrawTextRegion,325,575,100,25,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,325,575,100,25,1,50,50\n" +
-                        "DrawConnection,2,325x575x100x25,0,0x0x1000x1000,0,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,325x575x100x25,1,0x0x1000x1000,1,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,1,325x575x100x25,3,200x525x100x15,3,0,true,0,0,false,0.5,0\n" +
+                        "DrawConnection,2,325x575x100x25,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,325x575x100x25,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,1,325x575x100x25,3,200x525x100x15,3,0,true,0,0,false,0.5,2,0,0\n" +
                         "UNClip\n";
 
     assertEquals(simpleList, myInteraction.getDisplayList().serialize());
@@ -178,20 +178,20 @@ public class ScoutArrangeTest2 extends SceneTest {
                         "DrawComponentBackground,50,375,100,20,1\n" +
                         "DrawTextRegion,50,375,100,20,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,50,375,100,20,1,40,40\n" +
-                        "DrawConnection,2,50x375x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,50x375x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5,0\n" +
+                        "DrawConnection,2,50x375x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,50x375x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawComponentBackground,200,525,100,15,1\n" +
                         "DrawTextRegion,200,525,100,15,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,200,525,100,15,1,30,30\n" +
-                        "DrawConnection,2,200x525x100x15,0,0x0x1000x1000,0,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,200x525x100x15,1,0x0x1000x1000,1,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,1,200x525x100x15,2,50x375x100x20,2,0,false,0,0,false,0.5,0\n" +
+                        "DrawConnection,2,200x525x100x15,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,200x525x100x15,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,1,200x525x100x15,2,50x375x100x20,2,0,false,0,0,false,0.5,2,0,0\n" +
                         "DrawComponentBackground,325,575,100,25,1\n" +
                         "DrawTextRegion,325,575,100,25,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,325,575,100,25,1,50,50\n" +
-                        "DrawConnection,2,325x575x100x25,0,0x0x1000x1000,0,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,325x575x100x25,1,0x0x1000x1000,1,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,1,325x575x100x25,2,200x525x100x15,2,0,true,0,0,false,0.5,0\n" +
+                        "DrawConnection,2,325x575x100x25,0,0x0x1000x1000,0,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,325x575x100x25,1,0x0x1000x1000,1,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,1,325x575x100x25,2,200x525x100x15,2,0,true,0,0,false,0.5,2,0,0\n" +
                         "UNClip\n";
 
     assertEquals(simpleList, myInteraction.getDisplayList().serialize());
@@ -224,22 +224,22 @@ public class ScoutArrangeTest2 extends SceneTest {
                         "DrawComponentBackground,50,375,100,20,1\n" +
                         "DrawTextRegion,50,375,100,20,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,50,375,100,20,1,40,40\n" +
-                        "DrawConnection,2,50x375x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,50x375x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5,0\n" +
+                        "DrawConnection,2,50x375x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,50x375x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawComponentBackground,200,525,100,15,1\n" +
                         "DrawTextRegion,200,525,100,15,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,200,525,100,15,1,30,30\n" +
-                        "DrawConnection,6,200x525x100x15,0,50x375x100x20,0,0,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,6,200x525x100x15,1,50x375x100x20,1,0,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,200x525x100x15,2,0x0x1000x1000,2,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,200x525x100x15,3,0x0x1000x1000,3,1,false,0,0,false,0.5,0\n" +
+                        "DrawConnection,6,200x525x100x15,0,50x375x100x20,0,0,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,6,200x525x100x15,1,50x375x100x20,1,0,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,200x525x100x15,2,0x0x1000x1000,2,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,200x525x100x15,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawComponentBackground,325,575,100,25,1\n" +
                         "DrawTextRegion,325,575,100,25,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,325,575,100,25,1,50,50\n" +
-                        "DrawConnection,6,325x575x100x25,0,200x525x100x15,0,0,true,0,0,false,0.5,0\n" +
-                        "DrawConnection,6,325x575x100x25,1,200x525x100x15,1,0,true,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,325x575x100x25,2,0x0x1000x1000,2,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,325x575x100x25,3,0x0x1000x1000,3,1,false,0,0,false,0.5,0\n" +
+                        "DrawConnection,6,325x575x100x25,0,200x525x100x15,0,0,true,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,6,325x575x100x25,1,200x525x100x15,1,0,true,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,325x575x100x25,2,0x0x1000x1000,2,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,325x575x100x25,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
                         "UNClip\n";
 
     assertEquals(simpleList, myInteraction.getDisplayList().serialize());
@@ -272,20 +272,20 @@ public class ScoutArrangeTest2 extends SceneTest {
                         "DrawComponentBackground,50,375,100,20,1\n" +
                         "DrawTextRegion,50,375,100,20,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,50,375,100,20,1,40,40\n" +
-                        "DrawConnection,2,50x375x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,50x375x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5,0\n" +
+                        "DrawConnection,2,50x375x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,50x375x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawComponentBackground,200,525,100,15,1\n" +
                         "DrawTextRegion,200,525,100,15,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,200,525,100,15,1,30,30\n" +
-                        "DrawConnection,1,200x525x100x15,0,50x375x100x20,0,0,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,200x525x100x15,2,0x0x1000x1000,2,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,200x525x100x15,3,0x0x1000x1000,3,1,false,0,0,false,0.5,0\n" +
+                        "DrawConnection,1,200x525x100x15,0,50x375x100x20,0,0,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,200x525x100x15,2,0x0x1000x1000,2,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,200x525x100x15,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawComponentBackground,325,575,100,25,1\n" +
                         "DrawTextRegion,325,575,100,25,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,325,575,100,25,1,50,50\n" +
-                        "DrawConnection,1,325x575x100x25,0,200x525x100x15,0,0,true,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,325x575x100x25,2,0x0x1000x1000,2,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,325x575x100x25,3,0x0x1000x1000,3,1,false,0,0,false,0.5,0\n" +
+                        "DrawConnection,1,325x575x100x25,0,200x525x100x15,0,0,true,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,325x575x100x25,2,0x0x1000x1000,2,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,325x575x100x25,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
                         "UNClip\n";
 
     assertEquals(simpleList, myInteraction.getDisplayList().serialize());
@@ -318,20 +318,20 @@ public class ScoutArrangeTest2 extends SceneTest {
                         "DrawComponentBackground,50,375,100,20,1\n" +
                         "DrawTextRegion,50,375,100,20,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,50,375,100,20,1,40,40\n" +
-                        "DrawConnection,2,50x375x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,50x375x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5,0\n" +
+                        "DrawConnection,2,50x375x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,50x375x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawComponentBackground,200,525,100,15,1\n" +
                         "DrawTextRegion,200,525,100,15,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,200,525,100,15,1,30,30\n" +
-                        "DrawConnection,1,200x525x100x15,1,50x375x100x20,1,0,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,200x525x100x15,2,0x0x1000x1000,2,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,200x525x100x15,3,0x0x1000x1000,3,1,false,0,0,false,0.5,0\n" +
+                        "DrawConnection,1,200x525x100x15,1,50x375x100x20,1,0,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,200x525x100x15,2,0x0x1000x1000,2,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,200x525x100x15,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
                         "DrawComponentBackground,325,575,100,25,1\n" +
                         "DrawTextRegion,325,575,100,25,0,false,false,5,5,28,1.0,\"\"\n" +
                         "DrawNlComponentFrame,325,575,100,25,1,50,50\n" +
-                        "DrawConnection,1,325x575x100x25,1,200x525x100x15,1,0,true,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,325x575x100x25,2,0x0x1000x1000,2,1,false,0,0,false,0.5,0\n" +
-                        "DrawConnection,2,325x575x100x25,3,0x0x1000x1000,3,1,false,0,0,false,0.5,0\n" +
+                        "DrawConnection,1,325x575x100x25,1,200x525x100x15,1,0,true,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,325x575x100x25,2,0x0x1000x1000,2,1,false,0,0,false,0.5,2,0,0\n" +
+                        "DrawConnection,2,325x575x100x25,3,0x0x1000x1000,3,1,false,0,0,false,0.5,2,0,0\n" +
                         "UNClip\n";
 
     assertEquals(simpleList, myInteraction.getDisplayList().serialize());

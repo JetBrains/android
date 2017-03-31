@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import org.jetbrains.annotations.NotNull;
@@ -66,15 +67,15 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
 
   final static String[][] MARGIN_ATTR_LTR = {
     {SdkConstants.ATTR_LAYOUT_MARGIN_START, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT},
-      {SdkConstants.ATTR_LAYOUT_MARGIN_END, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT},
-        {SdkConstants.ATTR_LAYOUT_MARGIN_TOP},
-          { SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM},
+    {SdkConstants.ATTR_LAYOUT_MARGIN_END, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT},
+    {SdkConstants.ATTR_LAYOUT_MARGIN_TOP},
+    {SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM},
   };
   final static String[][] MARGIN_ATTR_RTL = {
-    {SdkConstants.ATTR_LAYOUT_MARGIN_END , SdkConstants.ATTR_LAYOUT_MARGIN_LEFT},
+    {SdkConstants.ATTR_LAYOUT_MARGIN_END, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT},
     {SdkConstants.ATTR_LAYOUT_MARGIN_START, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT},
     {SdkConstants.ATTR_LAYOUT_MARGIN_TOP},
-    { SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM},
+    {SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM},
   };
   final static String[] BIAS_ATTR = {
     SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS,
@@ -209,28 +210,114 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
   }
 
   /**
+   * This is used to extract the connection status from nlcomponents
+   */
+  static class ConnectionStatus {
+    static String[] connectTypes = { // ordered to mach the order in ourDirections
+      DecoratorUtilities.LEFT_CONNECTION,
+      DecoratorUtilities.RIGHT_CONNECTION,
+      DecoratorUtilities.TOP_CONNECTION,
+      DecoratorUtilities.BOTTOM_CONNECTION,
+      DecoratorUtilities.BASELINE_CONNECTION
+    };
+    public static final int DIRECTION_BASELINE = 4;
+
+    int[] mPrevious = new int[connectTypes.length];
+    int[] mCurrent = new int[connectTypes.length];
+    long[] time = new long[connectTypes.length];
+
+    DecoratorUtilities.ViewStates componentPrevState;
+    DecoratorUtilities.ViewStates componentCurrentState;
+    Long componentChangeStateTime;
+    boolean mSelected = true;
+
+    void getConnectionInfo(NlComponent c, boolean isSelected) {
+      componentPrevState = DecoratorUtilities.getTimedChange_prev(c, DecoratorUtilities.VIEW);
+      componentCurrentState = DecoratorUtilities.getTimedChange_value(c, DecoratorUtilities.VIEW);
+      componentChangeStateTime = (Long)DecoratorUtilities.getTimedChange_time(c, "drawState");
+      mSelected = isSelected;
+      for (int i = 0; i < connectTypes.length; i++) {
+        String type = connectTypes[i];
+        DecoratorUtilities.ViewStates current, prev;
+        if (componentCurrentState != DecoratorUtilities.ViewStates.SELECTED) { // selection fix
+          // TODO we need to have a clear mechinisem for selection event to propagate
+          current = DecoratorUtilities.getTimedChange_value(c, type);
+          if (current == DecoratorUtilities.ViewStates.SELECTED) { // we need to turn off
+            long t = (componentChangeStateTime != null) ? componentChangeStateTime : System.nanoTime();
+            DecoratorUtilities.setTimeChange(c, type, t, current, DecoratorUtilities.ViewStates.NORMAL);
+          }
+        }
+        prev = DecoratorUtilities.getTimedChange_prev(c, type);
+        current = DecoratorUtilities.getTimedChange_value(c, type);
+        Long event = DecoratorUtilities.getTimedChange_time(c, type);
+        if (event != null) {
+          time[i] = event;
+          mPrevious[i] = prev.getVal();
+          mCurrent[i] = current.getVal();
+        }
+        else {
+          time[i] = -1;
+        }
+      }
+    }
+
+    int getPreviousMode(int direction) {
+      if (time[direction] == -1) {
+        if (componentPrevState == DecoratorUtilities.ViewStates.NORMAL) {
+          return DrawConnection.MODE_NORMAL;
+        }
+        return mCurrent[direction];
+      }
+      return mPrevious[direction];
+    }
+
+
+    int getCurrentMode(int direction) {
+      if (time[direction] == -1) {
+        if (mSelected) {
+          return DrawConnection.MODE_SELECTED;
+        }
+        return mCurrent[direction];
+      }
+      return mCurrent[direction];
+    }
+
+    long getTime(int direction) {
+      if (time[direction] == -1) {
+        return (componentChangeStateTime == null) ? 0 : componentChangeStateTime;
+      }
+      return time[direction];
+    }
+  }
+
+  /**
    * This is used to build the display list of Constraints hanging off of of each child.
    * This assume all children have been pre-processed to cache the connections to other SceneComponents
    *
    * @param list
    * @param time
    * @param screenView
-   * @param component
+   * @param constraintComponent
    * @param child
    */
   public void buildListConnections(@NotNull DisplayList list,
                                    long time,
                                    @NotNull SceneContext sceneContext,
-                                   @NotNull SceneComponent component,
+                                   @NotNull SceneComponent constraintComponent,
                                    @NotNull SceneComponent child) {
     Rectangle dest_rect = new Rectangle();
     Rectangle source_rect = new Rectangle();
     child.fillDrawRect(time, source_rect);
     convert(sceneContext, source_rect);
+    ConnectionStatus connectStatus = new ConnectionStatus();
+    List<NlComponent> selection = constraintComponent.getScene().getSelection();
+    boolean viewSelected = selection.contains(child.getNlComponent());
+    int mode = (viewSelected) ? DrawConnection.MODE_SELECTED : DrawConnection.MODE_NORMAL;
+    NlComponent c = child.getNlComponent();
+    long changeStart = 0;
+    int modeFrom = 0;
+    connectStatus.getConnectionInfo(child.getNlComponent(), viewSelected);
 
-    List<NlComponent> selection = component.getScene().getSelection();
-    boolean selected = selection.contains(child.getNlComponent());
-    int mode = (selected) ? DrawConnection.MODE_SELECTED : DrawConnection.MODE_NORMAL;
 
     // Extract Scene Components constraints from cache (Table speeds up next step)
     ConnectionType[] connectionTypes = new ConnectionType[ourDirections.length];
@@ -240,8 +327,11 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       connectionTo[i] = (SceneComponent)child.myCache.get(ourDirections[i]);
     }
 
-    for (int i = 0; i < ourDirections.length; i++) {
-      mode = (selected) ?  DrawConnection.MODE_SELECTED : DrawConnection.MODE_NORMAL;
+
+    for (int i = 0; i < ourDirections.length; i++) { // For each direction (not including baseline
+      Long  otherChangeStart = null;
+      int otherPreviousMode = 0, otherCurrentMode = 0;
+      mode = (viewSelected) ? DrawConnection.MODE_SELECTED : DrawConnection.MODE_NORMAL;
       ConnectionType type = connectionTypes[i];
       SceneComponent sc = connectionTo[i];
       int destType = DrawConnection.DEST_NORMAL;
@@ -253,7 +343,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
           destType = DrawConnection.DEST_PARENT;
         }
         else if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.equalsIgnoreCase(sc.getComponentClassName())
-          || SdkConstants.CONSTRAINT_LAYOUT_BARRIER.equalsIgnoreCase(sc.getComponentClassName())) {
+                 || SdkConstants.CONSTRAINT_LAYOUT_BARRIER.equalsIgnoreCase(sc.getComponentClassName())) {
           destType = DrawConnection.DEST_GUIDELINE;
         }
         int connectType = DrawConnection.TYPE_NORMAL;
@@ -279,10 +369,20 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
           if (sc.myCache.containsKey(ourChainDirections[ourOppositeDirection[i]])) {
             continue; // no need to add element to display list chains only have to go one way
           }
+          {
+            ConnectionStatus otherConnection = new ConnectionStatus();
+            otherConnection.getConnectionInfo(sc.getNlComponent(),selection.contains(sc.getNlComponent()));
+            int other = ourOppositeDirection[i];
+            otherChangeStart = otherConnection.getTime(other);
+            otherPreviousMode = otherConnection.getPreviousMode(other);
+            otherCurrentMode = otherConnection.getCurrentMode(other);
 
-          if (selection.contains(sc.getNlComponent())) {
-            mode =  DrawConnection.MODE_SELECTED;
+            if (otherCurrentMode <  connectStatus.getCurrentMode(i)) {
+              otherChangeStart = null;
+            }
+
           }
+
 
           child.myCache.put(ourChainDirections[i], "drawn");
         }
@@ -290,10 +390,10 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         int marginDistance = 0;
         boolean isMarginReference = false;
         float bias = 0.5f;
-        boolean rtl = component.getScene().isInRTL();
-        String []margin_attr = (rtl)?MARGIN_ATTR_RTL[i]:MARGIN_ATTR_LTR[i];
+        boolean rtl = constraintComponent.getScene().isInRTL();
+        String[] margin_attr = (rtl) ? MARGIN_ATTR_RTL[i] : MARGIN_ATTR_LTR[i];
         String marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, margin_attr[0]);
-        if (marginString == null && margin_attr.length>1) {
+        if (marginString == null && margin_attr.length > 1) {
           marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, margin_attr[1]);
         }
         if (marginString == null) {
@@ -326,8 +426,17 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         if (destType == DrawConnection.DEST_GUIDELINE) { // connections to guidelines are always Opposite
           connect = ourOppositeDirection[i];
         }
+        changeStart = connectStatus.getTime(i);
+        int previousMode = connectStatus.getPreviousMode(i);
+        int currentMode = connectStatus.getCurrentMode(i);
+        if (otherChangeStart != null) {
+          changeStart = otherChangeStart;
+          previousMode =  otherPreviousMode;
+          currentMode = otherCurrentMode;
+        }
         DrawConnection
-          .buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance, isMarginReference, bias, mode);
+          .buildDisplayList(list, connectType, source_rect, i, dest_rect, connect, destType, shift, margin, marginDistance,
+                            isMarginReference, bias, previousMode, currentMode, changeStart);
       }
     }
 
@@ -341,8 +450,17 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
       source_rect.height = 0;
       dest_rect.y += dest_offset;
       dest_rect.height = 0;
+      changeStart = connectStatus.getTime(ConnectionStatus.DIRECTION_BASELINE);
+      int previousMode = connectStatus.getPreviousMode(4);
+      int currentMode = connectStatus.getCurrentMode(4);
       DrawConnection
-        .buildDisplayList(list, DrawConnection.TYPE_BASELINE, source_rect, 5, dest_rect, 5, DrawConnection.DEST_NORMAL, false, 0, 0, false, 0f, mode);
+        .buildDisplayList(list,
+                          DrawConnection.TYPE_BASELINE, source_rect,
+                          DrawConnection.TYPE_BASELINE, dest_rect,
+                          DrawConnection.TYPE_BASELINE,
+                          DrawConnection.DEST_NORMAL,
+                          false, 0, 0, false,
+                          0f, previousMode, currentMode, changeStart);
     }
   }
 }
