@@ -21,60 +21,90 @@ import com.intellij.util.xmlb.annotations.Transient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-
 public class NativeLibrary {
-  @Transient @NotNull private String myId = "";
-  @Transient @NotNull private String myFileName = "";
-  @NotNull private String myFilePath = "";
-
-  // This class is serialized to XML in APKFacet. For this serialization, classes must have either getters/setters or public fields.
+  // These fields get serialized to/from XML in ApkFacet.
+  @NotNull public String name = "";
   @NotNull public List<String> sourceFolderPaths = new ArrayList<>();
   @NotNull public Map<String, String> pathMappings = new HashMap<>();
+
+  @NotNull private List<String> filePaths = new ArrayList<>();
+  @Transient @NotNull public List<VirtualFile> files = new ArrayList<>();
+  @Transient @NotNull public List<String> abis = new ArrayList<>();
+
   @Nullable public String debuggableFilePath;
+
   public boolean hasDebugSymbols;
 
   public NativeLibrary() {
   }
 
-  public NativeLibrary(@NotNull String filePath) {
-    setFilePath(filePath);
+  public NativeLibrary(@NotNull String name) {
+    this.name = name;
   }
 
   @NotNull
-  public String getFilePath() {
-    return myFilePath;
+  public List<String> getFilePaths() {
+    return filePaths;
   }
 
-  public void setFilePath(@NotNull String filePath) {
-    myFilePath = filePath;
-    File path = new File(toSystemDependentName(myFilePath));
-    File parentPath = path.getParentFile();
-    myFileName = path.getName();
-    myId = myFileName;
-    if (parentPath != null) {
-      myId = parentPath.getName() + '/' + myId;
+  // This is being invoked when NativeLibrary is deserialized from XML.
+  public void setFilePaths(@NotNull List<String> filePaths) {
+    this.filePaths = filePaths;
+
+    List<String> nonExistingPaths = new ArrayList<>();
+    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+    for (String path : filePaths) {
+      VirtualFile file = fileSystem.findFileByPath(path);
+      if (file != null) {
+        this.files.add(file);
+        abis.add(extractAbiFrom(file));
+        continue;
+      }
+      nonExistingPaths.add(path);
+    }
+    sortAbis();
+
+    if (!nonExistingPaths.isEmpty()) {
+      // Remove paths not found in the file system.
+      this.filePaths.removeAll(nonExistingPaths);
     }
   }
 
-  @NotNull
-  public String getId() {
-    return myId;
+  public void addFiles(@NotNull VirtualFile... files) {
+    for (VirtualFile file : files) {
+      addFile(file);
+    }
+    sortAbis();
+  }
+
+  public void addFiles(@NotNull List<VirtualFile> files) {
+    for (VirtualFile file : files) {
+      addFile(file);
+    }
+    sortAbis();
+  }
+
+  private void sortAbis() {
+    if (abis.size() > 1) {
+      abis.sort(String::compareTo);
+    }
+  }
+
+  private void addFile(@NotNull VirtualFile file) {
+    files.add(file);
+    abis.add(extractAbiFrom(file));
+    filePaths.add(file.getPath());
   }
 
   @NotNull
-  public String getFileName() {
-    return myFileName;
-  }
-
-  @Nullable
-  public VirtualFile getFile() {
-    return LocalFileSystem.getInstance().findFileByPath(myFilePath);
+  private static String extractAbiFrom(@NotNull VirtualFile file) {
+    VirtualFile parent = file.getParent();
+    assert parent != null;
+    return parent.getName();
   }
 }

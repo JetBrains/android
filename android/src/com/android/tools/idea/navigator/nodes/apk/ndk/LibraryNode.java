@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.apk.ndk;
 
 import com.android.tools.idea.apk.debugging.NativeLibrary;
+import com.google.common.base.Joiner;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -38,20 +39,16 @@ import java.util.List;
 
 import static com.intellij.icons.AllIcons.FileTypes.JavaClass;
 import static com.intellij.ui.JBColor.GRAY;
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
 
 public class LibraryNode extends ProjectViewNode<NativeLibrary> {
   @NotNull private final NativeLibrary myLibrary;
-  @NotNull private final String myLibraryName;
 
-  public LibraryNode(@NotNull Project project,
-                     @NotNull NativeLibrary library,
-                     @NotNull String libraryName,
-                     @NotNull ViewSettings settings) {
+  public LibraryNode(@NotNull Project project, @NotNull NativeLibrary library, @NotNull ViewSettings settings) {
     super(project, library, settings);
     myLibrary = library;
-    myLibraryName = libraryName;
   }
 
   @Override
@@ -86,7 +83,11 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
     presentation.setIcon(JavaClass);
     boolean hasDebugSymbols = myLibrary.hasDebugSymbols;
     SimpleTextAttributes attributes = hasDebugSymbols ? REGULAR_ATTRIBUTES : new SimpleTextAttributes(STYLE_WAVED, null, GRAY);
-    presentation.addText(myLibraryName, attributes);
+    presentation.addText(myLibrary.name, attributes);
+
+    String abis = Joiner.on(", ").join(myLibrary.abis);
+    presentation.addText(" (" + abis + ")", GRAY_ATTRIBUTES);
+
     if (!hasDebugSymbols) {
       presentation.setTooltip("Library does not have debug symbols");
     }
@@ -95,6 +96,6 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
   @Nullable
   @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    return myLibraryName;
+    return myLibrary.name;
   }
 }
