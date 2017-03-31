@@ -60,6 +60,7 @@ public class StackedEventComponent extends AnimatedComponent {
 
   public StackedEventComponent(@NotNull EventModel<StackedEventType> model) {
     myModel = model;
+    setFont(AdtUiUtils.DEFAULT_FONT);
     myModel.addDependency(myAspectObserver).onChange(EventModel.Aspect.EVENT, this::modelChanged);
     myRender = true;
   }
@@ -120,7 +121,6 @@ public class StackedEventComponent extends AnimatedComponent {
   protected void draw(Graphics2D g2d, Dimension dim) {
     // Set Antialiasing, before we draw anything.
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    g2d.setFont(AdtUiUtils.DEFAULT_FONT);
     if (myRender) {
       render();
       myRender = false;
@@ -134,6 +134,7 @@ public class StackedEventComponent extends AnimatedComponent {
     BasicStroke str = new BasicStroke(myLineThickness);
     AffineTransform scale = AffineTransform.getScaleInstance(scaleFactor, dim.height - SEGMENT_SPACING);
     Iterator<EventRenderData> itor = myActivities.iterator();
+    g2d.setFont(getFont());
 
     while (itor.hasNext()) {
       g2d.setStroke(str);
