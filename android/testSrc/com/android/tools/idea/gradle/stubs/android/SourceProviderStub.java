@@ -40,6 +40,11 @@ public class SourceProviderStub implements SourceProvider {
 
   @NotNull private final FileStructure myFileStructure;
 
+  @NotNull
+  public FileStructure getFileStructure() {
+    return myFileStructure;
+  }
+
   /**
    * Creates a new {@code SourceProviderStub}.
    *
