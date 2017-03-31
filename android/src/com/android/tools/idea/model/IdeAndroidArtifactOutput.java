@@ -29,11 +29,13 @@ import java.io.Serializable;
 public class IdeAndroidArtifactOutput extends IdeVariantOutput implements AndroidArtifactOutput, Serializable {
   @NotNull private final String myAssembleTaskName;
   @NotNull private final File myGeneratedManifest;
+  @NotNull private final File myOutputFile;
 
   public IdeAndroidArtifactOutput(@NotNull AndroidArtifactOutput output) {
     super(output);
     myAssembleTaskName = output.getAssembleTaskName();
     myGeneratedManifest = output.getGeneratedManifest();
+    myOutputFile = output.getOutputFile();
   }
 
   @Override
@@ -46,5 +48,11 @@ public class IdeAndroidArtifactOutput extends IdeVariantOutput implements Androi
   @NotNull
   public File getGeneratedManifest() {
     return myGeneratedManifest;
+  }
+
+  @Override
+  @NotNull
+  public File getOutputFile() {
+    return myOutputFile;
   }
 }

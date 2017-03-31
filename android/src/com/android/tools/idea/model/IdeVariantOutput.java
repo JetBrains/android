@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.model;
 
+import com.android.build.FilterData;
 import com.android.build.OutputFile;
 import com.android.build.VariantOutput;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -32,7 +33,9 @@ import java.util.HashSet;
 public class IdeVariantOutput implements VariantOutput, Serializable {
   @NotNull private final OutputFile myMainOutputFile;
   @NotNull private final Collection<IdeOutputFile> myOutputs;
-  @NotNull private final File mySplitFolder;
+  @NotNull private final String myOutputType;
+  @NotNull private final Collection<String> myFilterTypes;
+  @NotNull private final Collection<FilterData> myFilters;
   private final int myVersionCode;
 
   public IdeVariantOutput(@NotNull VariantOutput output) {
@@ -43,7 +46,9 @@ public class IdeVariantOutput implements VariantOutput, Serializable {
       myOutputs.add(new IdeOutputFile(file));
     }
 
-    mySplitFolder = output.getSplitFolder();
+    myOutputType = output.getOutputType();
+    myFilterTypes = new ArrayList<>(output.getFilterTypes());
+    myFilters = new ArrayList<>(output.getFilters());
     myVersionCode = output.getVersionCode();
   }
 
@@ -61,8 +66,20 @@ public class IdeVariantOutput implements VariantOutput, Serializable {
 
   @Override
   @NotNull
-  public File getSplitFolder() {
-    return mySplitFolder;
+  public String getOutputType() {
+    return myOutputType;
+  }
+
+  @Override
+  @NotNull
+  public Collection<String> getFilterTypes() {
+    return myFilterTypes;
+  }
+
+  @Override
+  @NotNull
+  public Collection<FilterData> getFilters() {
+    return myFilters;
   }
 
   @Override

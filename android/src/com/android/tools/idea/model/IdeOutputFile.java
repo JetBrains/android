@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -34,6 +35,9 @@ public class IdeOutputFile implements OutputFile, Serializable {
   @NotNull private final Collection<String> myFilterTypes;
   @NotNull private final Collection<FilterData> myFilters;
   @NotNull private final File myOutputFile;
+  @NotNull private final OutputFile myMainOutputFile;
+  @NotNull private final Collection<IdeOutputFile> myOutputs;
+  private final int myVersionCode;
 
   public IdeOutputFile(@NotNull OutputFile file) {
     myOutputType = file.getOutputType();
@@ -45,6 +49,14 @@ public class IdeOutputFile implements OutputFile, Serializable {
     }
 
     myOutputFile = file.getOutputFile();
+    myMainOutputFile = new IdeOutputFile(file.getMainOutputFile());
+
+    myOutputs = new ArrayList<IdeOutputFile>();
+    for (OutputFile output : file.getOutputs()) {
+      myOutputs.add(new IdeOutputFile(output));
+    }
+
+    myVersionCode = file.getVersionCode();
   }
 
   @Override
@@ -69,5 +81,22 @@ public class IdeOutputFile implements OutputFile, Serializable {
   @NotNull
   public File getOutputFile() {
     return myOutputFile;
+  }
+
+  @Override
+  @NotNull
+  public OutputFile getMainOutputFile() {
+    return myMainOutputFile;
+  }
+
+  @Override
+  @NotNull
+  public Collection<? extends OutputFile> getOutputs() {
+    return myOutputs;
+  }
+
+  @Override
+  public int getVersionCode() {
+    return myVersionCode;
   }
 }
