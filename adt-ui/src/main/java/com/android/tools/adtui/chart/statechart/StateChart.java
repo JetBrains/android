@@ -212,7 +212,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
     }
     long drawTime = System.nanoTime();
 
-    g2d.setFont(AdtUiUtils.DEFAULT_FONT);
+    g2d.setFont(getFont());
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     assert mRectangles.size() == mValues.size();
