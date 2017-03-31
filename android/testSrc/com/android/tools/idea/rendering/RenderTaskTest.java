@@ -124,7 +124,7 @@ public class RenderTaskTest extends RenderTestBase {
     task.dispose();
   }
 
-  public void testAsyncCallAndDispose()
+  public void ignore_testAsyncCallAndDispose()
     throws IOException, ExecutionException, InterruptedException, BrokenBarrierException, TimeoutException {
     VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
     Configuration configuration = getConfiguration(layoutFile, DEFAULT_DEVICE_ID);
