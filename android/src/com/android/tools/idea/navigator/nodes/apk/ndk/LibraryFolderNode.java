@@ -29,9 +29,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 
-import static com.android.SdkConstants.EXT_NATIVE_LIB;
 import static com.intellij.icons.AllIcons.Nodes.Folder;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
@@ -47,29 +49,19 @@ public class LibraryFolderNode extends ProjectViewNode<VirtualFile> {
   @NotNull
   public Collection<? extends AbstractTreeNode> getChildren() {
     assert myProject != null;
-    Map<String, NativeLibrary> librariesByPath = new HashMap<>();
+    List<NativeLibrary> libraries = new ArrayList<>();
 
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       ApkFacet facet = ApkFacet.getInstance(module);
       if (facet != null) {
-        for (NativeLibrary library : facet.getConfiguration().NATIVE_LIBRARIES) {
-          librariesByPath.put(library.getFilePath(), library);
-        }
+        libraries.addAll(facet.getConfiguration().NATIVE_LIBRARIES);
       }
     }
 
-    List<AbstractTreeNode> children = new ArrayList<>();
     ViewSettings settings = getSettings();
-    for (VirtualFile child : myFolder.getChildren()) {
-      if (child.isDirectory()) {
-        children.add(new LibraryFolderNode(myProject, child, settings));
-      }
-      else if (EXT_NATIVE_LIB.equals(child.getExtension())) {
-        NativeLibrary library = librariesByPath.get(child.getPath());
-        if (library != null) {
-          children.add(new LibraryNode(myProject, library, child.getName(), settings));
-        }
-      }
+    List<AbstractTreeNode> children = new ArrayList<>();
+    for (NativeLibrary library : libraries) {
+      children.add(new LibraryNode(myProject, library, settings));
     }
 
     return children;
