@@ -75,6 +75,7 @@ public class Scene implements SelectionListener {
   public static final int ANIMATED_LAYOUT = 2;
   private long myDisplayListVersion = 1;
   private Target myOverTarget;
+  private Target mySnapTarget;
   private SceneComponent myCurrentComponent;
 
   private int mNeedsLayout = NO_LAYOUT;
@@ -91,6 +92,7 @@ public class Scene implements SelectionListener {
   private HitListener myHoverListener = new HitListener();
   private HitListener myHitListener = new HitListener();
   private HitListener myFindListener = new HitListener();
+  private HitListener mySnapListener = new HitListener();
   private Target myHitTarget = null;
   private Cursor myMouseCursor;
   private SceneComponent myHitComponent;
@@ -481,10 +483,13 @@ public class Scene implements SelectionListener {
     double myClosestTargetDistance = Double.MAX_VALUE;
     ArrayList<SceneComponent> myHitComponents = new ArrayList<>();
     ArrayList<Target> myHitTargets = new ArrayList<>();
+    Target mySkipTarget = null;
 
     public HitListener() {
       myPicker.setSelectListener(this);
     }
+
+    public void skipTarget(Target target) { mySkipTarget = target; }
 
     public void find(@NotNull SceneContext transform,
                      @NotNull SceneComponent root,
@@ -502,6 +507,9 @@ public class Scene implements SelectionListener {
     @Override
     public void over(Object over, double dist) {
       if (over instanceof Target) {
+        if (mySkipTarget == over) {
+          return;
+        }
         Target target = (Target)over;
         if (dist < myClosestTargetDistance) {
           myHitTargets.clear();
@@ -647,6 +655,7 @@ public class Scene implements SelectionListener {
     myLastMouseY = y;
     if (myRoot != null) {
       myHoverListener.find(transform, myRoot, x, y);
+      mySnapListener.find(transform, myRoot, x, y);
     }
     Target closestTarget = myHoverListener.getClosestTarget();
     if (myOverTarget != closestTarget) {
@@ -660,6 +669,22 @@ public class Scene implements SelectionListener {
         transform.setToolTip(closestTarget.getToolTipText());
         myOverTarget = closestTarget;
         needsRebuildList();
+      }
+    }
+    if (closestTarget != null) {
+      Target snapTarget = myHoverListener.getFilteredTarget(closestTarget);
+      if (snapTarget != mySnapTarget) {
+        if (mySnapTarget != null) {
+          mySnapTarget.setOver(false);
+          mySnapTarget = null;
+          needsRebuildList();
+        }
+        if (snapTarget != null) {
+          snapTarget.setOver(true);
+          transform.setToolTip(closestTarget.getToolTipText());
+          mySnapTarget = closestTarget;
+          needsRebuildList();
+        }
       }
     }
     SceneComponent closestComponent = myHoverListener.getClosestComponent();
@@ -738,7 +763,9 @@ public class Scene implements SelectionListener {
           for (Target target : c.getTargets()) {
             if (target instanceof DragTarget) {
               DragTarget dragTarget = (DragTarget)target;
-              dragTarget.mouseDrag(x, y, closestTarget);
+              ArrayList<Target> list = new ArrayList<>();
+              list.add(closestTarget);
+              dragTarget.mouseDrag(x, y, list);
             }
           }
         }
@@ -761,7 +788,7 @@ public class Scene implements SelectionListener {
           for (Target target : c.getTargets()) {
             if (target instanceof DragTarget) {
               DragTarget dragTarget = (DragTarget)target;
-              dragTarget.mouseRelease(x, y, closestTarget);
+              dragTarget.mouseRelease(x, y, Collections.singletonList(closestTarget));
             }
           }
         }
@@ -818,12 +845,14 @@ public class Scene implements SelectionListener {
         return;
       }
 
+      myHitListener.skipTarget(myHitTarget);
       myHitListener.find(transform, myRoot, x, y);
-      myHitTarget.mouseDrag(x, y, myHitListener.getClosestTarget());
+      myHitTarget.mouseDrag(x, y, myHitListener.myHitTargets);
       myHitTarget.getComponent().setDragging(true);
       if (myHitTarget instanceof DragTarget) {
         delegateMouseDragToSelection(x, y, myHitListener.getClosestTarget(), myHitTarget.getComponent());
       }
+      myHitListener.skipTarget(null);
     }
     mouseHover(transform, x, y);
     checkRequestLayoutStatus();
@@ -846,7 +875,8 @@ public class Scene implements SelectionListener {
     myLastMouseY = y;
     if (myHitTarget != null) {
       myHitListener.find(transform, myRoot, x, y);
-      myHitTarget.mouseRelease(x, y, myHitListener.getFilteredTarget(myHitTarget));
+      Target closest = myHitListener.getFilteredTarget(myHitTarget);
+      myHitTarget.mouseRelease(x, y, closest != null ? Collections.singletonList(closest) : Collections.emptyList());
       myHitTarget.getComponent().setDragging(false);
       if (myHitTarget instanceof DragTarget) {
         delegateMouseReleaseToSelection(x, y, myHitListener.getClosestTarget(), myHitTarget.getComponent());

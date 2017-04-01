@@ -116,7 +116,7 @@ public abstract class Animation {
      * @param progress
      * @return
      */
-    public int getPulsatingAlpha(double progress) {
+    public static int getPulsatingAlpha(double progress) {
         progress *= 2;
         int start = 0;
         int end = 255;
