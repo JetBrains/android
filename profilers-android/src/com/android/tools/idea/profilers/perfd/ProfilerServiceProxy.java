@@ -54,6 +54,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
   }
 
   private static final String AGENT_NAME = "libperfa.so";
+  private static final String AGENT_JAR = "perfa.jar";
   private static final String EMULATOR = "Emulator";
   private static final int MINIMUM_SUPPORTED_API = 21;
 
@@ -191,6 +192,9 @@ public class ProfilerServiceProxy extends PerfdProxyService
           }
         }
 
+        File agentLib = new File(PathManager.getHomePath(), "../../out/studio/perfa/libs/" + AGENT_JAR);
+        assert agentLib.exists();
+
         // TODO: Handle the case where we don't have agent built for the device's abi.
         assert agent != null;
 
@@ -199,7 +203,10 @@ public class ProfilerServiceProxy extends PerfdProxyService
         String devicePath = "/data/local/tmp/perfd/";
         try {
           myDevice.pushFile(agent.getAbsolutePath(), devicePath + AGENT_NAME);
+          myDevice.pushFile(agentLib.getAbsolutePath(), devicePath + AGENT_JAR);
           myDevice.executeShellCommand(String.format("run-as %s cp %s%s %s", packageName, devicePath, AGENT_NAME, appDataDir),
+                                       new NullOutputReceiver());
+          myDevice.executeShellCommand(String.format("run-as %s cp %s%s %s", packageName, devicePath, AGENT_JAR, appDataDir),
                                        new NullOutputReceiver());
           myDevice.executeShellCommand(String.format("cmd activity attach-agent %s %s/%s", packageName, appDataDir, AGENT_NAME),
                                        new NullOutputReceiver());
