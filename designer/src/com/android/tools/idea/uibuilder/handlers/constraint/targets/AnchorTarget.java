@@ -36,8 +36,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Optional;
 
 /**
  * Implements a target anchor for the ConstraintLayout viewgroup
@@ -569,9 +571,16 @@ public class AnchorTarget extends BaseTarget {
    * @param closestTarget
    */
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
     myLastX = x;
     myLastY = y;
+    Target closestTarget = null;
+    for (Target target : closestTargets) {
+      if (target instanceof AnchorTarget && target != this) {
+        closestTarget = target;
+        break;
+      }
+    }
     if (closestTarget != null && closestTarget instanceof AnchorTarget) {
       NlComponent component = myComponent.getNlComponent();
       String attribute = getAttribute(closestTarget);
@@ -597,11 +606,21 @@ public class AnchorTarget extends BaseTarget {
    * @param closestTarget
    */
   @Override
-  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
     myLastX = -1;
     myLastY = -1;
     if (myComponent.getParent() != null) {
       myComponent.getParent().setExpandTargetArea(false);
+    }
+    Target closestTarget = null;
+    for (Target target : closestTargets) {
+      if (target instanceof AnchorTarget && target != this) {
+        closestTarget = target;
+        break;
+      }
+    }
+    if (closestTarget == null && closestTargets.contains(this)) {
+      closestTarget = this;
     }
     if (closestTarget != null && closestTarget instanceof AnchorTarget && !(((AnchorTarget)closestTarget).isConnected(this))) {
       NlComponent component = myComponent.getNlComponent();

@@ -25,6 +25,8 @@ import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 /**
  * Implements a target managing dragging on a dnd temporary widget
  */
@@ -40,7 +42,7 @@ public class DragDndTarget extends DragTarget {
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTarget) {
     if (myComponent instanceof TemporarySceneComponent) {
       Scene scene = myComponent.getScene();
       int dx = snapX(x);

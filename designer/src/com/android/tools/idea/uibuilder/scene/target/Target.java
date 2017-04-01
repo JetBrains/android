@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.List;
 
 /**
  * {@link Target} are associated with s {@link SceneComponent} and are used to handle
@@ -112,12 +113,11 @@ public interface Target {
 
   /**
    * Implement this method to react to mouse drag events
-   *
-   * @param x             X coordinate of the mouse in DP
+   *  @param x             X coordinate of the mouse in DP
    * @param y             Y coordinate of the mouse in DP
    * @param closestTarget Closest target from the mouse if there is one
    */
-  default void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
+  default void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
   }
 
   /**
@@ -127,7 +127,7 @@ public interface Target {
    * @param y             Y coordinate of the mouse in DP
    * @param closestTarget Closest target from the mouse if there is one
    */
-  default void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
+  default void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
   }
 
   SceneComponent getComponent();
