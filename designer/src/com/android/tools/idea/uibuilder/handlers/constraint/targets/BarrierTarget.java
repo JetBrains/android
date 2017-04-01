@@ -91,18 +91,18 @@ public class BarrierTarget extends DragTarget {
                         @AndroidDpCoordinate int t,
                         @AndroidDpCoordinate int r,
                         @AndroidDpCoordinate int b) {
-    int dist = 6;
+    int dist = 2;
     SceneComponent parent = myComponent.getParent();
     if (parent != null) {
       if (isHorizontal()) {
         myLeft = parent.getDrawX();
         myRight = parent.getDrawX() + parent.getDrawWidth();
-        myTop = t - GAP;
-        myBottom = t + GAP;
+        myTop = t - dist;
+        myBottom = t + dist;
       }
       else {
-        myLeft = l - GAP;
-        myRight = l+ GAP;
+        myLeft = l - dist;
+        myRight = l + dist;
         myTop = parent.getDrawY();
         myBottom = parent.getDrawY() + parent.getDrawHeight();
       }
@@ -119,5 +119,16 @@ public class BarrierTarget extends DragTarget {
   protected void updateAttributes(AttributesTransaction attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
 
 
+  }
+
+  @Override
+  public String getToolTipText() {
+      switch (myDirection) {
+        case TOP: return "Barrier Top";
+        case BOTTOM:return "Barrier Bottom";
+        case LEFT:return "Barrier Left";
+        case RIGHT:return "Barrier Right";
+      }
+      return "Barrier Unknown";
   }
 }
