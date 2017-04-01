@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -213,6 +215,10 @@ public class SceneComponent {
     myParent = parent;
   }
 
+  public TargetProvider getTargetProvider() {
+    return myTargetProvider;
+  }
+
   public boolean allowsAutoConnect() {
     return myScene.isAutoconnectOn() && myAllowsAutoconnect;
   }
@@ -390,9 +396,11 @@ public class SceneComponent {
     if (!isFromModel || myIsModelUpdateAuthorized) {
       myAnimatedDrawX.setValue(dx);
       myAnimatedDrawY.setValue(dy);
-      if(isFromModel) {
+      if (isFromModel) {
         myNlComponent.x = Coordinates.dpToPx(myNlComponent.getModel(), dx);
         myNlComponent.y = Coordinates.dpToPx(myNlComponent.getModel(), dy);
+      } else {
+        myScene.needsRebuildList();
       }
     }
   }
@@ -412,9 +420,11 @@ public class SceneComponent {
     if (!isFromModel || myIsModelUpdateAuthorized) {
       myAnimatedDrawX.setTarget(dx, time);
       myAnimatedDrawY.setTarget(dy, time);
-      if(isFromModel) {
+      if (isFromModel) {
         myNlComponent.x = Coordinates.dpToPx(myNlComponent.getModel(), dx);
         myNlComponent.y = Coordinates.dpToPx(myNlComponent.getModel(), dy);
+      } else {
+        myScene.needsRebuildList();
       }
     }
   }
@@ -427,9 +437,11 @@ public class SceneComponent {
     if (!isFromModel || myIsModelUpdateAuthorized) {
       myAnimatedDrawWidth.setValue(width);
       myAnimatedDrawHeight.setValue(height);
-      if(isFromModel) {
+      if (isFromModel) {
         myNlComponent.w = Coordinates.dpToPx(myNlComponent.getModel(), width);
         myNlComponent.h = Coordinates.dpToPx(myNlComponent.getModel(), height);
+      } else {
+        myScene.needsRebuildList();
       }
     }
   }
@@ -774,13 +786,19 @@ public class SceneComponent {
       return;
     }
     myTargetProvider = targetProvider;
-    updateTargets(isParent);
+    myTargets.clear();
+    if (myTargetProvider != null) {
+      myTargetProvider.createTargets(this, isParent).forEach(this::addTarget);
+    }
   }
 
   public void updateTargets(boolean isParent) {
     myTargets.clear();
     if (myTargetProvider != null) {
       myTargetProvider.createTargets(this, isParent).forEach(this::addTarget);
+    }
+    for (SceneComponent child : getChildren()) {
+      child.updateTargets(false);
     }
   }
 

@@ -57,6 +57,12 @@ public class FrameLayoutHandler extends ViewGroupHandler {
 
 
       for (NlComponent nlComponent : components) {
+        // Place all elements at (0,0) in the FrameLayout
+        SceneComponent component = layout.getSceneComponent(nlComponent);
+        if (component == null) {
+          continue;
+        }
+
         int x = layout.getDrawX();
         int y = layout.getDrawY();
         int w = nlComponent.w;

@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 /**
  * Implements a target allowing dragging a widget for the ConstraintLayout viewgroup
@@ -420,7 +421,7 @@ public class DragTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTarget) {
     if (myComponent.getParent() == null) {
       return;
     }
@@ -468,7 +469,7 @@ public class DragTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
     if (!myComponent.isDragging()) {
       return;
     }
