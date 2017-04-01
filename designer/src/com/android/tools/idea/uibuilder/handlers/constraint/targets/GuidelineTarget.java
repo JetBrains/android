@@ -158,4 +158,32 @@ public class GuidelineTarget extends DragTarget {
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, percentStringValue);
     }
   }
+
+  @Override
+  public String getToolTipText() {
+    String str = "Guideline (";
+    if (myBegin != -1) {
+      str += "< "+myBegin+")";
+    }
+    else if (myEnd != -1) {
+      str += myEnd+" >)";
+    }
+    else {
+      float percentValue = myPercent;
+      if (percentValue > 1) {
+        percentValue = 1;
+      }
+      if (percentValue < 0) {
+        percentValue = 0;
+      }
+      percentValue = 100*Math.round(percentValue * 100) / 100f;
+      if (!Float.isNaN(percentValue)) {
+        str += String.valueOf(percentValue)+"%)";
+      }
+      else {
+        str += "50";
+      }
+    }
+    return str;
+  }
 }
