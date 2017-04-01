@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.List;
 
 /**
  * Base class for dragging targets.
@@ -119,7 +120,7 @@ public abstract class DragBaseTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
     if (myComponent.getParent() == null) {
       return;
     }
@@ -134,7 +135,7 @@ public abstract class DragBaseTarget extends BaseTarget {
   }
 
   @Override
-  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
     myComponent.setDragging(false);
     if (myComponent.getParent() != null) {
       boolean commitChanges = true;
