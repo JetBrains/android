@@ -86,7 +86,7 @@ public class SceneDragHandler extends DragHandler {
       for (int i = 0; i < targets.size(); i++) {
         if (targets.get(i) instanceof DragDndTarget) {
           DragDndTarget target = (DragDndTarget) targets.get(i);
-          target.mouseDrag(dx, dy, target);
+          target.mouseDrag(dx, dy, targets);
           break;
         }
       }

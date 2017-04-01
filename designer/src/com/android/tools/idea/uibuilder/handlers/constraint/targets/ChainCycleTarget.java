@@ -26,6 +26,8 @@ import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 /**
  * Implements an action to cycle chains
  */
@@ -51,8 +53,8 @@ public class ChainCycleTarget extends ActionTarget {
   }
 
   @Override
-  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
-    if (closestTarget == this && myIsVisible) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
+    if (myIsVisible && closestTargets.contains(this)) {
       if (myChainChecker.isInHorizontalChain()) {
         ConstraintComponentUtilities.cycleChainStyle(myChainChecker.getHorizontalChainHead(),
                                                      SdkConstants.ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE, myComponent);

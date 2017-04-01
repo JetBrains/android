@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
 import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.AttributesTransaction;
@@ -29,6 +30,9 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Target to handle the drag of LinearLayout's children
@@ -59,7 +63,7 @@ public class LinearDragTarget extends DragBaseTarget {
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
     myComponent.setDragging(true);
     SceneComponent sceneParent = myComponent.getParent();
     assert sceneParent != null;
@@ -78,7 +82,15 @@ public class LinearDragTarget extends DragBaseTarget {
       myClosest = null;
     }
 
-    if (closestTarget != null && closestTarget instanceof LinearSeparatorTarget) {
+    Target closestTarget = null;
+    for (Target target : closestTargets) {
+      if (target instanceof LinearSeparatorTarget && target != this) {
+        closestTarget = target;
+        break;
+      }
+    }
+
+    if (closestTarget != null) {
       myClosest = (LinearSeparatorTarget)closestTarget;
       myClosest.setHighlight(true);
     }
@@ -88,7 +100,7 @@ public class LinearDragTarget extends DragBaseTarget {
   }
 
   @Override
-  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTarget) {
     super.mouseRelease(x, y, closestTarget);
     if (myClosest != null) {
       SceneComponent sceneParent = myComponent.getParent();
