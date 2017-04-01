@@ -104,7 +104,12 @@ public abstract class BaseTarget implements Target {
 
   @Override
   public String getToolTipText() {
-    return null;
+    String str = myComponent.getNlComponent().getId();
+    if (str == null) {
+      str = myComponent.getComponentClassName();
+      str = str.substring(str.lastIndexOf('.')+1);
+    }
+    return str;
   }
 
   //endregion
