@@ -21,12 +21,12 @@ import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import org.jetbrains.annotations.NotNull;
 
+
 /**
  * Guideline anchors
  */
 public class BarrierAnchorTarget extends AnchorTarget {
   boolean myIsHorizontal;
-
 
   @Override
   public int getPreferenceLevel() {
@@ -44,7 +44,7 @@ public class BarrierAnchorTarget extends AnchorTarget {
                         @AndroidDpCoordinate int t,
                         @AndroidDpCoordinate int r,
                         @AndroidDpCoordinate int b) {
-    int dist = 4;
+    int dist = 8;
     SceneComponent parent = myComponent.getParent();
     if (parent != null) {
       if (myIsHorizontal) {

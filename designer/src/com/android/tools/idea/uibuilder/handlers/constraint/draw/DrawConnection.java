@@ -213,6 +213,7 @@ public class DrawConnection implements DrawCommand {
     int dx = getDestinationDX(destDirection);
     int dy = getDestinationDY(destDirection);
     Color constraintColor = (mode == MODE_SELECTED) ? color.getSelectedConstraints() : color.getConstraints();
+    Color marginColor = color.getMargins();
     int scale_source = 40;
     int scale_dest = (myDestType == DEST_PARENT) ? -40 : 40;
     boolean flip_arrow = false;
@@ -295,7 +296,7 @@ public class DrawConnection implements DrawCommand {
               if (Math.abs(startx - endx) > gap) {
                 int marginX = endx - ((endx > startx) ? gap : -gap);
                 int arrow = ((endx > startx) ? 1 : -1) * DrawConnectionUtils.ARROW_SIDE;
-                g.setColor(color.getMargins());
+                g.setColor(marginColor);
                 DrawConnectionUtils
                   .drawHorizontalMargin(g, marginString, isMarginReference, marginX, endx - arrow, endy);
                 springEndX = marginX;
@@ -306,7 +307,7 @@ public class DrawConnection implements DrawCommand {
               if (Math.abs(starty - endy) > gap) {
                 int marginY = endy - ((endy > starty) ? gap : -gap);
                 int arrow = ((endy > starty) ? 1 : -1) * DrawConnectionUtils.ARROW_SIDE;
-                g.setColor(color.getMargins());
+                g.setColor(marginColor);
                 DrawConnectionUtils
                   .drawVerticalMargin(g, marginString, isMarginReference, endx, marginY, endy - arrow);
                 springEndY = marginY;
@@ -324,6 +325,7 @@ public class DrawConnection implements DrawCommand {
           }
         }
         else {
+          g.setColor(constraintColor);
           if (destDirection == DIR_LEFT || destDirection == DIR_RIGHT) {
             DrawConnectionUtils.drawHorizontalZigZagLine(ourPath, startx, endx, starty);
             defaultStroke = g.getStroke();
@@ -341,6 +343,7 @@ public class DrawConnection implements DrawCommand {
             g.setStroke(defaultStroke);
           }
         }
+        g.setColor(constraintColor);
         g.draw(ourPath);
         if (drawArrow) {
           DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
@@ -437,7 +440,7 @@ public class DrawConnection implements DrawCommand {
           if (sourceDirection == DIR_RIGHT || sourceDirection == DIR_LEFT) {
             boolean above = starty < endy;
             int line_y = starty + (above ? -1 : 1) * source.height / 4;
-            g.setColor(color.getMargins());
+            g.setColor(marginColor);
             DrawConnectionUtils.drawHorizontalMarginIndicator(g, String.valueOf(margin), isMarginReference, startx, endx, line_y);
             if (myDestType != DEST_PARENT || (line_y < dest.y || line_y > dest.y + dest.height)) {
               int constraintX = (destDirection == DIR_LEFT) ? dest.x : dest.x + dest.width;
@@ -451,8 +454,9 @@ public class DrawConnection implements DrawCommand {
           else {
             boolean left = startx < endx;
             int line_x = startx + (left ? -1 : 1) * source.width / 4;
-            g.setColor(color.getMargins());
+            g.setColor(marginColor);
             DrawConnectionUtils.drawVerticalMarginIndicator(g, String.valueOf(margin), isMarginReference, line_x, starty, endy);
+
             if (myDestType != DEST_PARENT || (line_x < dest.x || line_x > dest.x + dest.width)) {
               int constraint_y = (destDirection == DIR_TOP) ? dest.y : dest.y + dest.height;
               Stroke stroke = g.getStroke();
@@ -464,6 +468,7 @@ public class DrawConnection implements DrawCommand {
             }
           }
         }
+        g.setColor(constraintColor);
         if (sourceDirection == destDirection && margin == 0) {
           scale_source /= 3;
           scale_dest /= 2;
