@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 
@@ -113,17 +114,17 @@ public abstract class ResizeWithSnapBaseTarget extends ResizeBaseTarget {
   }
 
   @Override
-  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
+  public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
     x = snapX(x);
     y = snapY(y);
-    super.mouseDrag(x, y, closestTarget);
+    super.mouseDrag(x, y, closestTargets);
   }
 
   @Override
-  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable Target closestTarget) {
+  public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
     x = snapX(x);
     y = snapY(y);
-    super.mouseRelease(x, y, closestTarget);
+    super.mouseRelease(x, y, closestTargets);
     myWrapSize = null;
   }
 
