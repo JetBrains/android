@@ -26,11 +26,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler;
 
 import javax.swing.event.HyperlinkEvent;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public abstract class AbstractSyncErrorHandler {
 
@@ -40,9 +39,6 @@ public abstract class AbstractSyncErrorHandler {
   public static final String FAILED_TO_SYNC_GRADLE_PROJECT_ERROR_GROUP_FORMAT = "Failed to sync Gradle project '%1$s'";
 
   protected static final NotificationHyperlink[] EMPTY = {};
-
-  private static final Pattern ERROR_LOCATION_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)' line: ([\\d]+)");
-  private static final Pattern ERROR_IN_FILE_PATTERN = Pattern.compile("Build file '(.*)'");
 
   protected static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.ERROR;
 
@@ -62,25 +58,7 @@ public abstract class AbstractSyncErrorHandler {
 
   @Nullable
   protected static Pair<String, Integer> getErrorLocation(@NotNull String msg) {
-    Matcher matcher = ERROR_LOCATION_IN_FILE_PATTERN.matcher(msg);
-    if (matcher.matches()) {
-      String filePath = matcher.group(1);
-      int line = -1;
-      try {
-        line = Integer.parseInt(matcher.group(2));
-      }
-      catch (NumberFormatException e) {
-        // ignored.
-      }
-      return Pair.create(filePath, line);
-    }
-
-    matcher = ERROR_IN_FILE_PATTERN.matcher(msg);
-    if (matcher.matches()) {
-      String filePath = matcher.group(1);
-      return Pair.create(filePath, -1);
-    }
-    return null;
+    return GradleExecutionErrorHandler.getErrorLocation(msg);
   }
 
 
