@@ -112,6 +112,11 @@ public class GenericLinearDragHandler extends DragHandler {
     int pos = 0;
     boolean lastDragged = false;
     mySelfPos = -1;
+    if (myVertical) {
+      layout.getChildren().sort((c1, c2) -> c1.getDrawY() - c2.getDrawY());
+    } else {
+      layout.getChildren().sort((c1, c2) -> c1.getDrawX() - c2.getDrawX());
+    }
     for (SceneComponent it : layout.getChildren()) {
       if (it.getDrawWidth() > 0 && it.getDrawHeight() > 0) {
         boolean isDragged = components.contains(it.getNlComponent());
