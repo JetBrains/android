@@ -26,6 +26,7 @@ import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectImportErrorHandler;
 
 import java.io.File;
@@ -38,7 +39,8 @@ import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
 import static com.android.SdkConstants.GRADLE_MINIMUM_VERSION;
 import static com.android.tools.idea.gradle.service.notification.errors.MissingAndroidSdkErrorHandler.FIX_SDK_DIR_PROPERTY;
 import static com.android.tools.idea.stats.UsageTracker.*;
-import static com.intellij.openapi.util.text.StringUtil.*;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.util.text.StringUtil.startsWith;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 
 /**
@@ -65,16 +67,16 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
   public ExternalSystemException getUserFriendlyError(@NotNull Throwable error,
                                                       @NotNull String projectPath,
                                                       @Nullable String buildFilePath) {
-    if (error instanceof ExternalSystemException) {
-      // This is already a user-friendly error.
+    GradleExecutionErrorHandler executionErrorHandler = new GradleExecutionErrorHandler(error, projectPath, buildFilePath);
+    ExternalSystemException friendlyError = executionErrorHandler.getUserFriendlyError();
+    if (friendlyError != null) {
       //noinspection ThrowableResultOfMethodCallIgnored
-      trackSyncError(error);
-
-      return (ExternalSystemException)error;
+      trackSyncError(friendlyError);
+      return friendlyError;
     }
 
-    Pair<Throwable, String> rootCauseAndLocation = getRootCauseAndLocation(error);
-    Throwable rootCause = rootCauseAndLocation.getFirst();
+    Throwable rootCause = executionErrorHandler.getRootCause();
+    String location = executionErrorHandler.getLocation();
 
     if (isOldGradleVersion(rootCause)) {
       trackSyncError(ACTION_GRADLE_SYNC_UNSUPPORTED_GRADLE_VERSION);
@@ -88,7 +90,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
     if (startsWith(rootCauseText, "org.gradle.api.internal.MissingMethodException")) {
       String method = parseMissingMethod(rootCauseText);
       trackSyncError(ACTION_GRADLE_SYNC_DSL_METHOD_NOT_FOUND, method);
-      return createUserFriendlyError(GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX + ": '" + method + "'", rootCauseAndLocation.getSecond());
+      return createUserFriendlyError(GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX + ": '" + method + "'", location);
     }
 
     if (rootCause instanceof UnsupportedClassVersionError) {
@@ -100,7 +102,7 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
           message += ".";
         }
         message += " " + USE_JDK_8;
-        return createUserFriendlyError(message, rootCauseAndLocation.getSecond());
+        return createUserFriendlyError(message, location);
       }
     }
 
@@ -255,25 +257,6 @@ public class ProjectImportErrorHandler extends AbstractProjectImportErrorHandler
    */
   static void trackSyncError(@NotNull String errorType, @Nullable String extraInfo) {
     UsageTracker.getInstance().trackEvent(CATEGORY_GRADLE_SYNC_FAILURE, errorType, extraInfo, null);
-  }
-
-  // The default implementation in IDEA only retrieves the location in build.gradle files. This implementation also handle location in
-  // settings.gradle file.
-  @Override
-  @Nullable
-  public String getLocationFrom(@NotNull Throwable error) {
-    String errorToString = error.toString();
-    if (errorToString.contains("LocationAwareException")) {
-      // LocationAwareException is never passed, but converted into a PlaceholderException that has the toString value of the original
-      // LocationAwareException.
-      String location = error.getMessage();
-      if (location != null && (location.startsWith("Build file '") || location.startsWith("Settings file '"))) {
-        // Only the first line contains the location of the error. Discard the rest.
-        String[] lines = splitByLines(location);
-        return lines.length > 0 ? lines[0] : null;
-      }
-    }
-    return null;
   }
 
   @Override
