@@ -61,6 +61,8 @@ public class IconPreviewFactoryTest extends LayoutTestCase {
     myScreenView = screen(model).getScreen();
     myFactory = new IconPreviewFactory();
     myFactory.myRenderTimeoutSeconds = Long.MAX_VALUE;
+    RenderService.shutdownRenderExecutor(5);
+    RenderService.initializeRenderExecutor();
     RenderService.setForTesting(myFacet, new MyRenderService(myFacet));
   }
 
