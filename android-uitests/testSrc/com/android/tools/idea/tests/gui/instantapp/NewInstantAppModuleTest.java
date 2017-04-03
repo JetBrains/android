@@ -27,6 +27,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.GenericAttributeValue;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -109,7 +110,7 @@ public class NewInstantAppModuleTest {
       .clickFinish(); // Default parameters
 
     ideFrame
-      .waitForGradleProjectSyncToFinish()
+      .waitForGradleProjectSyncToFinish(Wait.seconds(20))
       .waitForBuildToFinish(SOURCE_GEN);
   }
 
