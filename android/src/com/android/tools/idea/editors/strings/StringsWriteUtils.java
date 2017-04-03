@@ -55,12 +55,22 @@ public class StringsWriteUtils {
     FolderConfiguration configuration = new FolderConfiguration();
     configuration.setLocaleQualifier(locale.qualifier);
 
+    Project project = facet.getModule().getProject();
     String name = configuration.getFolderName(ResourceFolderType.VALUES);
 
-    ApplicationManager.getApplication().runWriteAction(() -> facet.getAllResourceDirectories().stream()
-      .map(directory -> directory.findChild(name))
-      .filter(Objects::nonNull)
-      .forEach(directory -> delete(directory, requestor)));
+    new WriteCommandAction.Simple(project, "Remove Locale " + locale) {
+      @Override
+      protected void run() throws Throwable {
+        // Makes the command global even if only one xml file is modified
+        // That way, the Undo is always available from the translation editor
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+
+        facet.getAllResourceDirectories().stream()
+          .map(directory -> directory.findChild(name))
+          .filter(Objects::nonNull)
+          .forEach(directory -> delete(directory, requestor));
+      }
+    }.execute();
   }
 
   private static void delete(@NotNull VirtualFile file, @NotNull Object requestor) {
