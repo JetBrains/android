@@ -103,8 +103,8 @@ public class RenderService extends AndroidFacetScopedService {
                              });
   }
 
-  @VisibleForTesting
-  static void initializeRenderExecutor() {
+  @TestOnly
+  public static void initializeRenderExecutor() {
     assert ApplicationManager.getApplication().isUnitTestMode(); // Only to be called from unit testszs
 
     innerInitializeRenderExecutor();
@@ -122,8 +122,8 @@ public class RenderService extends AndroidFacetScopedService {
    * Shutdowns the render thread and cancels any pending tasks.
    * @param timeoutSeconds if >0, wait at most this number of seconds before killing any running tasks.
    */
-  @VisibleForTesting
-  static void shutdownRenderExecutor(@SuppressWarnings("SameParameterValue") long timeoutSeconds) {
+  @TestOnly
+  public static void shutdownRenderExecutor(@SuppressWarnings("SameParameterValue") long timeoutSeconds) {
     assert ApplicationManager.getApplication().isUnitTestMode(); // Only to be called from unit tests
 
     if (timeoutSeconds > 0) {
