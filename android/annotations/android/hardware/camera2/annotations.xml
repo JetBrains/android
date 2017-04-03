@@ -186,6 +186,9 @@
   <item name="android.hardware.camera2.CameraDevice void createCaptureSession(java.util.List&lt;android.view.Surface&gt;, android.hardware.camera2.CameraCaptureSession.StateCallback, android.os.Handler) 2">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.hardware.camera2.CameraDevice void createCaptureSessionByOutputConfigurations(java.util.List&lt;android.hardware.camera2.params.OutputConfiguration&gt;, android.hardware.camera2.CameraCaptureSession.StateCallback, android.os.Handler) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.hardware.camera2.CameraDevice void createConstrainedHighSpeedCaptureSession(java.util.List&lt;android.view.Surface&gt;, android.hardware.camera2.CameraCaptureSession.StateCallback, android.os.Handler) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
