@@ -186,6 +186,58 @@ public class SelectionModelTest {
     assertTrue(event[SELECTION_CLEARED]);
   }
 
+  @Test
+  public void testSelectionClearOnRangeChange() {
+    SelectionModel model = new SelectionModel(mySelection, myRange);
+    model.addConstraint(createConstraint(2, 3, 18, 19, 38, 39));
+    model.setSelectFullConstraint(true);
+
+    final int CREATED = 0;
+    final int CLEARED = 1;
+    int[] counts = new int[]{0, 0};
+    model.addListener(new SelectionListener() {
+      @Override
+      public void selectionCreated() {
+        counts[CREATED]++;
+      }
+
+      @Override
+      public void selectionCleared() {
+        counts[CLEARED]++;
+      }
+    });
+
+    model.set(2.5, 2.5);
+    assertEquals(0, counts[CLEARED]);
+    assertEquals(1, counts[CREATED]);
+    Arrays.setAll(counts, operand -> 0);
+
+    model.set(4, 5);
+    assertEquals(1, counts[CLEARED]);
+    assertEquals(0, counts[CREATED]);
+    Arrays.setAll(counts, operand -> 0);
+
+    model.set(7, 9);
+    assertEquals(0, counts[CLEARED]);
+    assertEquals(0, counts[CREATED]);
+    Arrays.setAll(counts, operand -> 0);
+
+    model.set(18, 19);
+    assertEquals(0, counts[CLEARED]);
+    assertEquals(1, counts[CREATED]);
+    Arrays.setAll(counts, operand -> 0);
+
+    model.set(38.5, 38.7);
+    assertEquals(0, counts[CLEARED]);
+    assertEquals(1, counts[CREATED]);
+    Arrays.setAll(counts, operand -> 0);
+
+    model.set(38.3, 38.4);
+    assertEquals(0, counts[CLEARED]);
+    assertEquals(0, counts[CREATED]);
+    Arrays.setAll(counts, operand -> 0);
+  }
+
   private DurationDataModel<DefaultDurationData> createConstraint(long... values) {
     DefaultDataSeries<DefaultDurationData> series = new DefaultDataSeries<>();
     RangedSeries<DefaultDurationData> ranged = new RangedSeries<>(myRange, series);
