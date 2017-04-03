@@ -815,6 +815,49 @@ public class RenderErrorContributorTest extends AndroidTestCase {
                      "REF=\"runnable:1\">Copy stack to clipboard</A><BR/><BR/>", issues.get(0));
   }
 
+  public void testAppCompatException() {
+    LogOperation operation = (logger, render) -> {
+      Throwable throwable = createExceptionFromDesc(
+        "java.lang.IllegalArgumentException: You need to use a Theme.AppCompat theme (or descendant) with the design library.\n" +
+        "\tat android.support.design.widget.ThemeUtils.checkAppCompatTheme(ThemeUtils.java:36)\n" +
+        "\tat android.support.design.widget.FloatingActionButton.<init>(FloatingActionButton.java:159)\n" +
+        "\tat android.support.design.widget.FloatingActionButton.<init>(FloatingActionButton.java:153)\n" +
+        "\tat sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)\n" +
+        "\tat sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)\n" +
+        "\tat sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)\n" +
+        "\tat java.lang.reflect.Constructor.newInstance(Constructor.java:423)\n" +
+        "\tat org.jetbrains.android.uipreview.ViewLoader.createNewInstance(ViewLoader.java:488)\n" +
+        "\tat org.jetbrains.android.uipreview.ViewLoader.loadClass(ViewLoader.java:266)\n" +
+        "\tat org.jetbrains.android.uipreview.ViewLoader.loadView(ViewLoader.java:224)\n" +
+        "\tat com.android.tools.idea.rendering.LayoutlibCallbackImpl.loadView(LayoutlibCallbackImpl.java:189)\n" +
+        "\tat android.view.BridgeInflater.loadCustomView(BridgeInflater.java:337)\n" +
+        "\tat android.view.BridgeInflater.loadCustomView(BridgeInflater.java:348)\n" +
+        "\tat android.view.BridgeInflater.createViewFromTag(BridgeInflater.java:248)\n" +
+        "\tat android.view.LayoutInflater.createViewFromTag(LayoutInflater.java:727)\n" +
+        "\tat android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:860)\n" +
+        "\tat android.view.LayoutInflater_Delegate.rInflate(LayoutInflater_Delegate.java:72)\n" +
+        "\tat android.view.LayoutInflater.rInflate(LayoutInflater.java:834)\n" +
+        "\tat android.view.LayoutInflater.rInflateChildren(LayoutInflater.java:821)\n" +
+        "\tat android.view.LayoutInflater.inflate(LayoutInflater.java:518)\n" +
+        "\tat android.view.LayoutInflater.inflate(LayoutInflater.java:397)\n" +
+        "\tat com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:345)\n" +
+        "\tat com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:431)\n" +
+        "\tat com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:193)\n" +
+        "\tat com.android.tools.idea.rendering.RenderTask.createRenderSession(RenderTask.java:591)\n" +
+        "\tat com.android.tools.idea.rendering.RenderTask.lambda$inflate$3(RenderTask.java:739)\n" +
+        "\tat java.util.concurrent.FutureTask.run(FutureTask.java:266)\n" +
+        "\tat java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)\n" +
+        "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)\n" +
+        "\tat java.lang.Thread.run(Thread.java:745)\n");
+      logger.addBrokenClass("com.example.myapplication.MyButton", throwable);
+    };
+
+    List<RenderErrorModel.Issue> issues =
+      getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
+    assertSize(1, issues);
+    assertHtmlEquals("Select <I>Theme.AppCompat</I> or a descendant in the theme selector.", issues.get(0));
+  }
+
   private String stripSdkHome(@NotNull String html) {
     AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
     assertNotNull(platform);
