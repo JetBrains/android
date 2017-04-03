@@ -30,6 +30,7 @@ import static com.android.tools.idea.actions.DeepLinkCodeGeneratorAction.isDeepL
  */
 public class CreateDeepLinkIntentionAction extends AbstractIntentionAction {
 
+  @NotNull
   @Override
   public String getText() {
     return "Add URL";
