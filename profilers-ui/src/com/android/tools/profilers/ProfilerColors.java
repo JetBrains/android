@@ -80,11 +80,15 @@ public class ProfilerColors {
 
   public static final Color THREAD_LABEL_TEXT = new JBColor(0x545454, 0x9C9C9C);
 
+  public static final Color SELECTED_THREAD_LABEL_TEXT = Gray.xFF;
+
   public static final Color THREAD_LABEL_BACKGROUND = new JBColor(new Color(0xBFFFFFFF, true), new Color(0xBF2B2D2E, true));
 
   public static final Color THREAD_LABEL_BORDER = new JBColor(new Color(0x0C000000, true), new Color(0x0CFFFFFF, true));
 
   public static final Color DEFAULT_BACKGROUND = new JBColor(0xFFFFFF, 0x313335);
+
+  public static final Color DEFAULT_STAGE_BACKGROUND = new JBColor(0xFFFFFF, 0x2B2D2E);
 
   public static final Color MONITOR_FOCUSED = new JBColor(0xF5F7F8, 0x2B2C2D);
 
