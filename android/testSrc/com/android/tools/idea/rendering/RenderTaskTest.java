@@ -124,7 +124,7 @@ public class RenderTaskTest extends RenderTestBase {
     task.dispose();
   }
 
-  public void ignore_testAsyncCallAndDispose()
+  public void testAsyncCallAndDispose()
     throws IOException, ExecutionException, InterruptedException, BrokenBarrierException, TimeoutException {
     VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
     Configuration configuration = getConfiguration(layoutFile, DEFAULT_DEVICE_ID);
@@ -135,30 +135,31 @@ public class RenderTaskTest extends RenderTestBase {
       Semaphore semaphore = new Semaphore(0);
       task.runAsyncRenderAction(() -> {
         semaphore.acquire();
-
         return null;
       });
       task.runAsyncRenderAction(() -> {
         semaphore.acquire();
-
         return null;
       });
-
-      boolean timedOut = false;
 
       Future<?> disposeFuture = task.dispose();
       semaphore.release();
 
+      Throwable exception = null;
       // The render tasks won't finish until all tasks are done
       try {
         disposeFuture.get(500, TimeUnit.MILLISECONDS);
       }
-      catch (InterruptedException | ExecutionException ignored) {
+      catch (InterruptedException | ExecutionException e) {
+        exception = e;
       }
-      catch (TimeoutException e) {
-        timedOut = true;
+      catch (TimeoutException ignored) {
       }
-      assertTrue(timedOut);
+
+      if (exception != null) {
+        exception.printStackTrace();
+        fail("Unexpected exception");
+      }
 
       semaphore.release();
       disposeFuture.get(500, TimeUnit.MILLISECONDS);
