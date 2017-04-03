@@ -32,6 +32,9 @@ public class EventMonitor extends ProfilerMonitor {
   @NotNull
   private final EventModel<StackedEventType> myActivityEvents;
 
+  @NotNull
+  private final EventModel<StackedEventType> myFragmentEvents;
+
   private boolean myEnabled;
 
   public EventMonitor(@NotNull StudioProfilers profilers) {
@@ -43,8 +46,15 @@ public class EventMonitor extends ProfilerMonitor {
 
     ActivityEventDataSeries activities = new ActivityEventDataSeries(myProfilers.getClient(),
                                                                      myProfilers.getProcessId(),
-                                                                     myProfilers.getSession());
+                                                                     myProfilers.getSession(),
+                                                                     false);
     myActivityEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), activities));
+
+    ActivityEventDataSeries fragments = new ActivityEventDataSeries(myProfilers.getClient(),
+                                                                     myProfilers.getProcessId(),
+                                                                     myProfilers.getSession(),
+                                                                    true);
+    myFragmentEvents = new EventModel<>(new RangedSeries<>(getTimeline().getViewRange(), fragments));
 
     myProfilers.addDependency(this).onChange(ProfilerAspect.AGENT, this::onAgentStatusChanged);
     onAgentStatusChanged();
@@ -54,12 +64,14 @@ public class EventMonitor extends ProfilerMonitor {
   public void enter() {
     myProfilers.getUpdater().register(mySimpleEvents);
     myProfilers.getUpdater().register(myActivityEvents);
+    myProfilers.getUpdater().register(myFragmentEvents);
   }
 
   @Override
   public void exit() {
     myProfilers.getUpdater().unregister(mySimpleEvents);
     myProfilers.getUpdater().unregister(myActivityEvents);
+    myProfilers.getUpdater().unregister(myFragmentEvents);
   }
 
   @NotNull
@@ -70,6 +82,11 @@ public class EventMonitor extends ProfilerMonitor {
   @NotNull
   public EventModel<StackedEventType> getActivityEvents() {
     return myActivityEvents;
+  }
+
+  @NotNull
+  public EventModel<StackedEventType> getFragmentEvents() {
+    return myFragmentEvents;
   }
 
   @Override

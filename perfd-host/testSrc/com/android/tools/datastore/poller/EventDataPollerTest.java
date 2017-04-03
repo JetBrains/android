@@ -184,6 +184,7 @@ public class EventDataPollerTest extends DataStorePollerTest {
                                     .setState(EventProfiler.ActivityStateData.ActivityState.STARTED)
                                     .setTimestamp(START_TIME + ONE_SECOND)
                                     .build())
+                 .setFragmentData(EventProfiler.FragmentData.getDefaultInstance())
                  .build())
       .build();
 
