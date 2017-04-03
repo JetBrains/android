@@ -55,6 +55,14 @@ public abstract class RenderTestBase extends AndroidTestCase {
   private static final String DEFAULT_THEME_STYLE = "@android:style/Theme.Holo";
   private static final float MAX_PERCENT_DIFFERENT = 5.0f;
 
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+
+    RenderService.shutdownRenderExecutor(5);
+    RenderService.initializeRenderExecutor();
+  }
+
   protected RenderTask createRenderTask(VirtualFile file) throws Exception {
     Configuration configuration = getConfiguration(file, DEFAULT_DEVICE_ID, DEFAULT_THEME_STYLE);
     return createRenderTask(file, configuration);

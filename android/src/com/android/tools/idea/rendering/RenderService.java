@@ -78,27 +78,63 @@ public class RenderService extends AndroidFacetScopedService {
   private static final long RENDER_THREAD_IDLE_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(10);
 
   private static final AtomicReference<Thread> ourRenderingThread = new AtomicReference<>();
-  private static final ExecutorService ourRenderingExecutor = new ThreadPoolExecutor(0, 1,
-                                                                                     RENDER_THREAD_IDLE_TIMEOUT_MS, TimeUnit.MILLISECONDS,
-                                                                                     new LinkedBlockingQueue<>(),
-                                                                                     (Runnable r) -> {
-                                                                                       Thread renderingThread =
-                                                                                         new Thread(null, r, "Layoutlib Render Thread");
-                                                                                       renderingThread.setDaemon(true);
-                                                                                       ourRenderingThread.set(renderingThread);
-
-                                                                                       return renderingThread;
-                                                                                     });
+  private static ExecutorService ourRenderingExecutor;
   private static final AtomicInteger ourTimeoutExceptionCounter = new AtomicInteger(0);
 
   private static final Key<RenderService> KEY = Key.create(RenderService.class.getName());
 
   static {
+    innerInitializeRenderExecutor();
     // Register the executor to be shutdown on close
-    ShutDownTracker.getInstance().registerShutdownTask(() -> {
-      ourRenderingExecutor.shutdownNow();
-      ourRenderingThread.set(null);
-    });
+    ShutDownTracker.getInstance().registerShutdownTask(RenderService::shutdownRenderExecutor);
+  }
+
+  private static void innerInitializeRenderExecutor() {
+    ourRenderingExecutor = new ThreadPoolExecutor(0, 1,
+                             RENDER_THREAD_IDLE_TIMEOUT_MS, TimeUnit.MILLISECONDS,
+                             new LinkedBlockingQueue<>(),
+                             (Runnable r) -> {
+                               Thread renderingThread =
+                                 new Thread(null, r, "Layoutlib Render Thread");
+                               renderingThread.setDaemon(true);
+                               ourRenderingThread.set(renderingThread);
+
+                               return renderingThread;
+                             });
+  }
+
+  @VisibleForTesting
+  static void initializeRenderExecutor() {
+    assert ApplicationManager.getApplication().isUnitTestMode(); // Only to be called from unit testszs
+
+    innerInitializeRenderExecutor();
+  }
+
+  private static void shutdownRenderExecutor() {
+    ourRenderingExecutor.shutdownNow();
+    Thread currentThread = ourRenderingThread.getAndSet(null);
+    if (currentThread != null) {
+      currentThread.interrupt();
+    }
+  }
+
+  /**
+   * Shutdowns the render thread and cancels any pending tasks.
+   * @param timeoutSeconds if >0, wait at most this number of seconds before killing any running tasks.
+   */
+  @VisibleForTesting
+  static void shutdownRenderExecutor(@SuppressWarnings("SameParameterValue") long timeoutSeconds) {
+    assert ApplicationManager.getApplication().isUnitTestMode(); // Only to be called from unit tests
+
+    if (timeoutSeconds > 0) {
+      try {
+        ourRenderingExecutor.awaitTermination(timeoutSeconds, TimeUnit.SECONDS);
+      }
+      catch (InterruptedException ignored) {
+      }
+    }
+
+    shutdownRenderExecutor();
   }
 
   private static final String JDK_INSTALL_URL = "https://developer.android.com/preview/setup-sdk.html#java8";
