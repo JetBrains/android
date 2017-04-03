@@ -493,7 +493,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       component.setComponentProvider(this);
     }
     if (showAnchors) {
-      DragTarget dragTarget = new DragTarget();
+      ConstraintDragTarget dragTarget = new ConstraintDragTarget();
       result.add(dragTarget);
       result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP));
       result.add(new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM));

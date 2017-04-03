@@ -52,7 +52,7 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
     ourBottomAttributes.add(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
   }
 
-  private boolean hasAttributes(@NotNull AttributesTransaction transaction, String uri, ArrayList<String> attributes) {
+  private static boolean hasAttributes(@NotNull AttributesTransaction transaction, String uri, ArrayList<String> attributes) {
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
       String attribute = attributes.get(i);
@@ -63,23 +63,23 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
     return false;
   }
 
-  private boolean hasLeft(@NotNull AttributesTransaction transaction) {
+  private static boolean hasLeft(@NotNull AttributesTransaction transaction) {
     return hasAttributes(transaction, SdkConstants.SHERPA_URI, ourLeftAttributes);
   }
 
-  private boolean hasTop(@NotNull AttributesTransaction transaction) {
+  private static boolean hasTop(@NotNull AttributesTransaction transaction) {
     return hasAttributes(transaction, SdkConstants.SHERPA_URI, ourTopAttributes);
   }
 
-  private boolean hasRight(@NotNull AttributesTransaction transaction) {
+  private static boolean hasRight(@NotNull AttributesTransaction transaction) {
     return hasAttributes(transaction, SdkConstants.SHERPA_URI, ourRightAttributes);
   }
 
-  private boolean hasBottom(@NotNull AttributesTransaction transaction) {
+  private static boolean hasBottom(@NotNull AttributesTransaction transaction) {
     return hasAttributes(transaction, SdkConstants.SHERPA_URI, ourBottomAttributes);
   }
 
-  private boolean hasBaseline(@NotNull AttributesTransaction transaction) {
+  private static boolean hasBaseline(@NotNull AttributesTransaction transaction) {
     return transaction.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
   }
 
