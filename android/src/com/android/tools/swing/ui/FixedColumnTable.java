@@ -80,6 +80,9 @@ public class FixedColumnTable extends JBTable implements PropertyChangeListener 
         getScrollPane().revalidate();
       }
     });
+
+    fixed.setInputMap(WHEN_FOCUSED, getInputMap(WHEN_FOCUSED));
+    fixed.setActionMap(getActionMap());
   }
 
   public int[] getSelectedColumnModelIndices() {
