@@ -17,12 +17,10 @@ package com.android.tools.profilers;
 
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 
 import java.awt.*;
-import java.util.Map;
 
 public class ProfilerColors {
 
@@ -76,9 +74,15 @@ public class ProfilerColors {
 
   public static final Color TRANSPARENT_COLOR = new JBColor(new Color(0, 0, 0, 0), new Color(0, 0, 0, 0));
 
-  public static final Color THREAD_HOVER_BACKGROUND = new JBColor(new Color(0x171650C5, true), new Color(0x0CFFFFFF, true));
+  public static final Color THREAD_HOVER_OVERLAY = new JBColor(new Color(0x171650C5, true), new Color(0x0CFFFFFF, true));
 
   public static final Color THREAD_SELECTED_BACKGROUND = new JBColor(0x3476DC, 0x3476DC);
+
+  public static final Color THREAD_LABEL_TEXT = new JBColor(0x545454, 0x9C9C9C);
+
+  public static final Color THREAD_LABEL_BACKGROUND = new JBColor(new Color(0xBFFFFFFF, true), new Color(0xBF2B2D2E, true));
+
+  public static final Color THREAD_LABEL_BORDER = new JBColor(new Color(0x0C000000, true), new Color(0x0CFFFFFF, true));
 
   public static final Color DEFAULT_BACKGROUND = new JBColor(0xFFFFFF, 0x313335);
 
