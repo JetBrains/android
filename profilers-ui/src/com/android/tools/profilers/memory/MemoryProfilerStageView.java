@@ -212,7 +212,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     TabularLayout layout = new TabularLayout("*");
     JPanel panel = new JBPanel(layout);
     panel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
-    panel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    panel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
@@ -244,7 +244,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_STACK, memoryUsage.getStackSeries());
     configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_CODE, memoryUsage.getCodeSeries());
     configureStackedFilledLine(lineChart, ProfilerColors.MEMORY_OTHERS, memoryUsage.getOtherSeries());
-    lineChart.configure(memoryUsage.getTotalMemorySeries(), new LineConfig(ProfilerColors.DEFAULT_BACKGROUND));
+    lineChart.configure(memoryUsage.getTotalMemorySeries(), new LineConfig(ProfilerColors.DEFAULT_STAGE_BACKGROUND));
     lineChart.configure(memoryUsage.getObjectsSeries(), new LineConfig(ProfilerColors.MEMORY_OBJECTS)
       .setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
 
