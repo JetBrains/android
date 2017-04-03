@@ -39,8 +39,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.ide.common.resources.configuration.LocaleQualifier.BCP_47_PREFIX;
-
 public class LocaleMenuAction extends FlatComboAction {
   private final ConfigurationHolder myRenderContext;
   private final boolean myClassicStyle;
@@ -152,19 +150,6 @@ public class LocaleMenuAction extends FlatComboAction {
     return locales;
   }
 
-  @NotNull
-  public static List<Locale> getAllLocales() {
-    List<String> sorted = LocaleManager.getLanguageCodes(true);
-    List<Locale> locales = new ArrayList<>(sorted.size());
-    for (String language : sorted) {
-      LocaleQualifier qualifier = new LocaleQualifier(language.length() == 2 ? language : BCP_47_PREFIX + language,
-                                                      language, null, null);
-      Locale locale = Locale.create(qualifier);
-      locales.add(locale);
-    }
-    return locales;
-  }
-
   @Override
   public void update(AnActionEvent e) {
     super.update(e);
@@ -184,9 +169,11 @@ public class LocaleMenuAction extends FlatComboAction {
       Locale locale = configuration.getLocale();
       if (!myClassicStyle) {
         presentation.setIcon(AndroidIcons.NeleIcons.Language);
-      } else if (locale == Locale.ANY) {
+      }
+      else if (locale == Locale.ANY) {
         presentation.setIcon(AndroidIcons.Globe);
-      } else {
+      }
+      else {
         presentation.setIcon(locale.getFlagImage());
       }
       String brief = getLocaleLabel(locale, true, myClassicStyle);
@@ -294,7 +281,8 @@ public class LocaleMenuAction extends FlatComboAction {
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
       if (commit) {
         setProjectWideLocale();
-      } else {
+      }
+      else {
         // The locale can affect the direction qualifier: don't constrain best match
         // search to the current direction
         configuration.getEditedConfig().setLayoutDirectionQualifier(null);
