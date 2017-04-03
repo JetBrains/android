@@ -51,8 +51,7 @@ public final class AxisComponent extends AnimatedComponent {
   private static final int MAXIMUM_LABEL_WIDTH = 50;
   private static final int DEFAULT_MAJOR_MARKER_LENGTH = 10;
   private static final int DEFAULT_MINOR_MARKER_LENGTH = 4;
-  private static final JBColor TICK_COLOR = new JBColor(new Color(0,0,0,127), new Color(255,255,255,65));
-
+  private static final JBColor DEFAULT_MARKER_COLOR = new JBColor(new Color(0, 0, 0, 127), new Color(255, 255, 255, 65));
 
   @Nullable private JLabel myLabel;
 
@@ -90,6 +89,8 @@ public final class AxisComponent extends AnimatedComponent {
    * Cached marker labels
    */
   @NotNull private final List<String> myMarkerLabels;
+
+  @NotNull private Color myMarkerColor = DEFAULT_MARKER_COLOR;
 
   /**
    * Cached max marker lablels
@@ -141,6 +142,10 @@ public final class AxisComponent extends AnimatedComponent {
       }
       myLabel.setFont(AdtUiUtils.DEFAULT_FONT);
     }
+
+    setForeground(AdtUiUtils.DEFAULT_FONT_COLOR);
+    setFont(AdtUiUtils.DEFAULT_FONT);
+
     myModel.addDependency(myAspectObserver)
       .onChange(AxisComponentModel.Aspect.AXIS, this::modelChanged);
   }
@@ -271,10 +276,10 @@ public final class AxisComponent extends AnimatedComponent {
 
     if (myAxisLength > 0) {
       g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-      g.setColor(TICK_COLOR);
       g.setStroke(DEFAULT_AXIS_STROKE);
 
       if (myShowAxisLine) {
+        g.setColor(myMarkerColor);
         g.drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
       }
 
@@ -291,7 +296,7 @@ public final class AxisComponent extends AnimatedComponent {
   }
 
   private void drawMarkers(Graphics2D g2d, Point origin) {
-    g2d.setFont(AdtUiUtils.DEFAULT_FONT);
+    g2d.setFont(getFont());
 
     if (myShowMin && myMinLabel != null) {
       drawMarkerLabel(g2d, 0, origin, myMinLabel, true);
@@ -346,7 +351,7 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     line.setLine(markerStartX, markerStartY, markerEndX, markerEndY);
-    g2d.setColor(TICK_COLOR);
+    g2d.setColor(myMarkerColor);
     g2d.draw(line);
   }
 
@@ -386,7 +391,7 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     if (alwaysRender || (markerOffset - reserved > 0 && markerOffset + reserved < myAxisLength)) {
-      g2d.setColor(AdtUiUtils.DEFAULT_FONT_COLOR);
+      g2d.setColor(getForeground());
       g2d.drawString(value, labelX, labelY);
     }
   }
@@ -432,6 +437,10 @@ public final class AxisComponent extends AnimatedComponent {
   public void setMargins(int startMargin, int endMargin) {
     myStartMargin = startMargin;
     myEndMargin = endMargin;
+  }
+
+  public void setMarkerColor(@NotNull Color markerColor) {
+    myMarkerColor = markerColor;
   }
 
   @VisibleForTesting
