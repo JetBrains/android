@@ -23,13 +23,33 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
+/**
+ * Used to snap component during a drag
+ */
 public abstract class Notch {
 
   public interface Action {
     void apply(@NotNull AttributesTransaction attributes);
   }
 
+  /**
+   * A provider that will add Notches to component.
+   */
   public interface Provider {
+    /**
+     * The implementing class should override this method to add {@link Notch} to the given component.
+     *
+     * <p>
+     * The <i>target</i> is the component that will be snapped and <i>component</i> is a reference to {@link SceneComponent}
+     * holding the reference to this provider. It can be used to compute the position of the provider from its position or to access some other target.
+     * </p>
+     *
+     * @param component         {@link SceneComponent} holding the reference to this {@link Provider}.
+     *                          It can be use to compute the position of the {@link Notch}
+     * @param target            {@link SceneComponent} that will be snapped
+     * @param horizontalNotches
+     * @param verticalNotches
+     */
     void fill(@NotNull SceneComponent component, @NotNull SceneComponent target,
               @NotNull ArrayList<Notch> horizontalNotches, @NotNull ArrayList<Notch> verticalNotches);
   }
@@ -39,19 +59,33 @@ public abstract class Notch {
   int myNotchValue;
   int myDisplayValue;
   int myGap = 8;
-  Action myAction;
+  @Nullable Action myAction;
   boolean myDidApply = false;
 
+  @SuppressWarnings("unused")
   private Notch() {
   }
 
+  /**
+   * Create a new notch associated with the provided {@link SceneComponent} owner.
+   *
+   * @param owner        The {@link SceneComponent} holding the notch
+   * @param value        The position where element will be snapped
+   * @param displayValue The position where the Notch will be displayed
+   */
   private Notch(@NotNull SceneComponent owner, int value, int displayValue) {
-    myOwner = owner;
-    myNotchValue = value;
-    myDisplayValue = displayValue;
+    this(owner, value, displayValue, null);
   }
 
-  private Notch(@NotNull SceneComponent owner, int value, int displayValue, @NotNull Action action) {
+  /**
+   * Create a new notch associated with the provided {@link SceneComponent} owner.
+   *
+   * @param owner        The {@link SceneComponent} holding the notch
+   * @param value        The position where element will be snapped
+   * @param displayValue The position where the Notch will be displayed
+   * @param action       The {@link Action} to execute when {@link #applyAction(AttributesTransaction)} is called.
+   */
+  private Notch(@NotNull SceneComponent owner, int value, int displayValue, @Nullable Action action) {
     myOwner = owner;
     myNotchValue = value;
     myDisplayValue = displayValue;
@@ -62,15 +96,29 @@ public abstract class Notch {
     myAction = action;
   }
 
-  public void apply(AttributesTransaction attributes) {
+  /**
+   * Run the action provided in the constructor or by @{{@link #setAction(Action)}} if any.
+   *
+   * @param attributes The transaction that the {@link Action} can use to modify the component
+   */
+  public void applyAction(AttributesTransaction attributes) {
     if (myDidApply && myAction != null) {
       myAction.apply(attributes);
     }
   }
 
-  public boolean didApply() { return myDidApply; }
+  public boolean didApply() {
+    return myDidApply;
+  }
 
-  public int apply(int value) {
+  /**
+   * Check if the provided value is close enough to this {@link Notch} coordinates and returns the
+   * {@link Notch} snapping coordinate. If value is not close enough then the provided value is returned
+   *
+   * @param value The value to try to snap
+   * @return The provided value if it is too far from the notch or the notch vlau
+   */
+  public int trySnap(int value) {
     myDidApply = false;
     if (Math.abs(value - myNotchValue) <= myGap) {
       myDidApply = true;
@@ -81,54 +129,93 @@ public abstract class Notch {
 
   public abstract void render(@NotNull DisplayList list, @NotNull SceneContext context, @NotNull SceneComponent component);
 
+  /**
+   * A notch snapping on a motion on the <B>X (horizontal) axis</B>, so the line will be <b>vertical</b>.
+   */
   public static class Horizontal extends Notch {
+    /**
+     * Create a new notch associated with the provided {@link SceneComponent} owner.
+     *
+     * @param owner        The {@link SceneComponent} holding the notch
+     * @param value        The position where element will be snapped
+     * @param displayValue The position where the Notch will be displayed
+     */
     public Horizontal(@NotNull SceneComponent owner, int value, int displayValue) {
-      super(owner, value, displayValue);
+      this(owner, value, displayValue, null);
     }
 
-    public Horizontal(@NotNull SceneComponent owner, int value, int displayValue, @NotNull Action action) {
+    /**
+     * Create a new notch associated with the provided {@link SceneComponent} owner.
+     *
+     * @param owner        The {@link SceneComponent} holding the notch
+     * @param value        The position where element will be snapped
+     * @param displayValue The position where the Notch will be displayed
+     * @param action       The {@link Action} to execute when {@link #applyAction(AttributesTransaction)} is called.
+     */
+    public Horizontal(@NotNull SceneComponent owner, int value, int displayValue, @Nullable Action action) {
       super(owner, value, displayValue, action);
     }
 
     @Override
     public void render(@NotNull DisplayList list, @NotNull SceneContext context, @NotNull SceneComponent component) {
       SceneComponent parent = component.getParent();
-      DrawVerticalNotch.add(list, context, myDisplayValue, parent.getDrawY(),
-                            parent.getDrawY() + parent.getDrawHeight());
+      if (parent != null) {
+        DrawVerticalNotch.add(list, context, myDisplayValue, parent.getDrawY(),
+                              parent.getDrawY() + parent.getDrawHeight());
+      }
     }
   }
 
+  /**
+   * A notch snapping on a motion on the <B>Y (vertical) axis</B>, so the line will be <b>horizontal</b>.
+   */
   public static class Vertical extends Notch {
+
+    /**
+     * Create a new notch associated with the provided {@link SceneComponent} owner.
+     *
+     * @param owner        The {@link SceneComponent} holding the notch
+     * @param value        The position where element will be snapped
+     * @param displayValue The position where the Notch will be displayed
+     */
     public Vertical(@NotNull SceneComponent owner, int value, int displayValue) {
-      super(owner, value, displayValue);
+      this(owner, value, displayValue, null);
     }
 
-    public Vertical(@NotNull SceneComponent owner, int value, int displayValue, @NotNull Action action) {
+    /**
+     * Create a new notch associated with the provided {@link SceneComponent} owner.
+     *
+     * @param owner        The {@link SceneComponent} holding the notch
+     * @param value        The position where element will be snapped
+     * @param displayValue The position where the Notch will be displayed
+     * @param action       The {@link Action} to execute when {@link #applyAction(AttributesTransaction)} is called.
+     */
+    public Vertical(@NotNull SceneComponent owner, int value, int displayValue, @Nullable Action action) {
       super(owner, value, displayValue, action);
     }
 
     @Override
     public void render(@NotNull DisplayList list, @NotNull SceneContext context, @NotNull SceneComponent component) {
       SceneComponent parent = component.getParent();
-      DrawHorizontalNotch.add(list, context, parent.getDrawX(), myDisplayValue,
-                              parent.getDrawX() + parent.getDrawWidth());
+      if (parent != null) {
+        DrawHorizontalNotch.add(list, context, parent.getDrawX(), myDisplayValue,
+                                parent.getDrawX() + parent.getDrawWidth());
+      }
     }
   }
 
   public static class SmallHorizontal extends Notch {
     public SmallHorizontal(@NotNull SceneComponent owner, int value, int displayValue) {
-      super(owner, value, displayValue);
-      myGap = 6;
+      this(owner, value, displayValue, null);
     }
 
-    public SmallHorizontal(@NotNull SceneComponent owner, int value, int displayValue, @NotNull Action action) {
+    public SmallHorizontal(@NotNull SceneComponent owner, int value, int displayValue, @Nullable Action action) {
       super(owner, value, displayValue, action);
       myGap = 6;
     }
 
     @Override
     public void render(@NotNull DisplayList list, @NotNull SceneContext context, @NotNull SceneComponent component) {
-      SceneComponent parent = component.getParent();
       int gap = 16;
       int y1 = Math.min(myOwner.getDrawY(), component.getDrawY()) - gap;
       int y2 = Math.max(myOwner.getDrawY() + myOwner.getDrawHeight(), component.getDrawY() + component.getDrawHeight()) + gap;
@@ -138,11 +225,10 @@ public abstract class Notch {
 
   public static class SmallVertical extends Notch {
     public SmallVertical(@NotNull SceneComponent owner, int value, int displayValue) {
-      super(owner, value, displayValue);
-      myGap = 6;
+      this(owner, value, displayValue, null);
     }
 
-    public SmallVertical(@NotNull SceneComponent owner, int value, int displayValue, @NotNull Action action) {
+    public SmallVertical(@NotNull SceneComponent owner, int value, int displayValue, @Nullable Action action) {
       super(owner, value, displayValue, action);
       myGap = 6;
     }

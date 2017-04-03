@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.DragDndTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragDndTarget;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
@@ -124,7 +124,7 @@ abstract public class SceneManager implements Disposable {
     assert scene.getRoot() != null;
 
     TemporarySceneComponent tempComponent = new TemporarySceneComponent(getScene(), component);
-    tempComponent.addTarget(new DragDndTarget());
+    tempComponent.addTarget(new ConstraintDragDndTarget());
     scene.setAnimated(false);
     scene.getRoot().addChild(tempComponent);
     updateFromComponent(component, tempComponent);

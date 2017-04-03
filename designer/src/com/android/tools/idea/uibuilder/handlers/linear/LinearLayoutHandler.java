@@ -451,11 +451,11 @@ public class LinearLayoutHandler extends ViewGroupHandler {
 
     SceneComponent parent = sceneComponent.getParent();
     assert parent != null;
-    boolean isVertical = isVertical(parent.getNlComponent());
-    listBuilder.add(new LinearSeparatorTarget(isVertical, false));
+    boolean isLayoutOrientationVertical = isVertical(parent.getNlComponent());
+    listBuilder.add(new LinearSeparatorTarget(isLayoutOrientationVertical, false));
 
     if (isLastChild(parent, sceneComponent)) {
-      listBuilder.add(new LinearSeparatorTarget(isVertical, true));
+      listBuilder.add(new LinearSeparatorTarget(isLayoutOrientationVertical, true));
     }
 
     return listBuilder.build();

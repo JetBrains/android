@@ -17,8 +17,6 @@ package com.android.tools.idea.uibuilder.scene;
 
 import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;

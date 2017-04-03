@@ -425,10 +425,10 @@ public class Scene implements SelectionListener {
                  || (hasBaselineConnection && anchor.isHorizontalAnchor());
         }
       }
-      // if the baseline shows, hide all the targets others than ActionTarget, DragTarget and ResizeTarget
+      // if the baseline shows, hide all the targets others than ActionTarget, ConstraintDragTarget and ResizeTarget
       if (component.canShowBaseline()) {
         return (target instanceof ActionTarget) ||
-               (target instanceof DragTarget) ||
+               (target instanceof ConstraintDragTarget) ||
                (target instanceof DragBaseTarget) ||
                (target instanceof ResizeBaseTarget);
       }
@@ -901,8 +901,8 @@ public class Scene implements SelectionListener {
       myNewSelectedComponents.clear();
       myNewSelectedComponents.add(myHitTarget.getComponent());
     }
-    if (myHitTarget instanceof DragTarget) {
-      DragTarget dragTarget = (DragTarget)myHitTarget;
+    if (myHitTarget instanceof ConstraintDragTarget) {
+      ConstraintDragTarget dragTarget = (ConstraintDragTarget)myHitTarget;
       if (dragTarget.hasChangedComponent()) {
         myNewSelectedComponents.clear();
         myNewSelectedComponents.add(dragTarget.getComponent());
