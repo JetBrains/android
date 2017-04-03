@@ -76,6 +76,8 @@ public class ProfilerColors {
 
   public static final Color THREAD_HOVER_OVERLAY = new JBColor(new Color(0x171650C5, true), new Color(0x0CFFFFFF, true));
 
+  public static final Color CPU_AXIS_GUIDE_COLOR = Gray._150.withAlpha(50);
+
   public static final Color THREAD_SELECTED_BACKGROUND = new JBColor(0x3476DC, 0x3476DC);
 
   public static final Color THREAD_LABEL_TEXT = new JBColor(0x545454, 0x9C9C9C);
