@@ -7,7 +7,7 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.hardware.camera2.params.OutputConfiguration android.view.Surface getSurface()">
-    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
 </root>
 

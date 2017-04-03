@@ -351,6 +351,9 @@
   <item name="android.os.Bundle void putStringArrayList(java.lang.String, java.util.ArrayList&lt;java.lang.String&gt;) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.os.FileObserver void onEvent(int, java.lang.String) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.os.HardwarePropertiesManager android.os.CpuUsageInfo[] getCpuUsages()">
     <annotation name="android.support.annotation.NonNull" />
   </item>

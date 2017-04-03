@@ -222,10 +222,10 @@
   </item>
   <item name="android.provider.CallLog.Calls CONTENT_URI_WITH_VOICEMAIL">
     <annotation name="android.support.annotation.RequiresPermission.Read">
-      <val name="value" val="" />
+      <val name="allOf" val="{&quot;android.permission.READ_CALL_LOG&quot;, &quot;com.android.voicemail.permission.READ_VOICEMAIL&quot;}" />
     </annotation>
     <annotation name="android.support.annotation.RequiresPermission.Write">
-      <val name="value" val="" />
+      <val name="allOf" val="{&quot;android.permission.WRITE_CALL_LOG&quot;, &quot;com.android.voicemail.permission.WRITE_VOICEMAIL&quot;}" />
     </annotation>
   </item>
   <item name="android.provider.DocumentsContract boolean isDocumentUri(android.content.Context, android.net.Uri) 1">
@@ -238,20 +238,8 @@
     <annotation name="android.support.annotation.CallSuper" />
   </item>
   <item name="android.provider.UserDictionary CONTENT_URI">
-    <annotation name="android.support.annotation.RequiresPermission.Read">
-      <val name="value" val="&quot;android.permission.READ_USER_DICTIONARY&quot;" />
-    </annotation>
-    <annotation name="android.support.annotation.RequiresPermission.Write">
-      <val name="value" val="&quot;android.permission.WRITE_USER_DICTIONARY&quot;" />
-    </annotation>
   </item>
   <item name="android.provider.UserDictionary.Words CONTENT_URI">
-    <annotation name="android.support.annotation.RequiresPermission.Read">
-      <val name="value" val="&quot;android.permission.READ_USER_DICTIONARY&quot;" />
-    </annotation>
-    <annotation name="android.support.annotation.RequiresPermission.Write">
-      <val name="value" val="&quot;android.permission.WRITE_USER_DICTIONARY&quot;" />
-    </annotation>
   </item>
 </root>
 

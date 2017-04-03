@@ -148,6 +148,9 @@
   <item name="android.view.View">
     <annotation name="android.support.annotation.UiThread" />
   </item>
+  <item name="android.view.View T findViewById(int) 0">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
   <item name="android.view.View View(android.content.Context, android.util.AttributeSet) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -171,9 +174,6 @@
   </item>
   <item name="android.view.View android.os.Parcelable onSaveInstanceState()">
     <annotation name="android.support.annotation.CallSuper" />
-  </item>
-  <item name="android.view.View android.view.View findViewById(int) 0">
-    <annotation name="android.support.annotation.IdRes" />
   </item>
   <item name="android.view.View android.view.View focusSearch(int) 0">
     <annotation name="android.support.annotation.IntDef">
@@ -827,6 +827,12 @@
   </item>
   <item name="android.view.Window.Callback void onProvideKeyboardShortcuts(java.util.List&lt;android.view.KeyboardShortcutGroup&gt;, android.view.Menu, int) 1">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.view.WindowManager.LayoutParams softInputMode">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING, android.view.WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION}" />
+      <val name="flag" val="true" />
+    </annotation>
   </item>
   <item name="android.view.WindowManager.LayoutParams type">
     <annotation name="android.support.annotation.IntDef">
