@@ -24,7 +24,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.uibuilder.handlers.constraint.*;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
 import com.android.tools.idea.uibuilder.handlers.coordinator.CoordinatorSnapTarget;
 import com.android.tools.idea.uibuilder.model.*;
@@ -32,12 +32,11 @@ import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.target.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.collect.ImmutableList;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.intellij.lang.annotations.MagicConstant;
 import com.intellij.util.ui.JBUI;
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,8 +47,6 @@ import java.util.*;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_MARGIN;
 import static com.android.tools.idea.uibuilder.model.SelectionHandle.PIXEL_RADIUS;
 
@@ -115,6 +112,11 @@ public class Scene implements SelectionListener {
   public Scene(@NotNull DesignSurface surface) {
     myDesignSurface = surface;
     myDesignSurface.getSelectionModel().addListener(this);
+  }
+
+  @Nullable
+  public SceneManager getSceneManager() {
+    return myDesignSurface.getSceneManager();
   }
 
   public boolean supportsRTL() {
@@ -941,7 +943,6 @@ public class Scene implements SelectionListener {
    * Set a flag to notify that the Scene needs to recompute the layout on the nex
    * @param type Type of layout to recompute: {@link #NO_LAYOUT}, {@link #IMMEDIATE_LAYOUT}, {@link #ANIMATED_LAYOUT}
    */
-
   public void needsLayout(@MagicConstant(intValues = {NO_LAYOUT, IMMEDIATE_LAYOUT, ANIMATED_LAYOUT}) int type) {
     if (mNeedsLayout < type) {
       mNeedsLayout = type;
