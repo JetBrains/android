@@ -57,7 +57,8 @@ public class HttpData {
   private final long myDownloadingTimeUs;
   @NotNull private final String myUrl;
   @NotNull private final String myMethod;
-  @NotNull private StackTrace myTrace;
+  @NotNull private final StackTrace myTrace;
+  @NotNull private final JavaThread myThread;
 
   @Nullable private final String myResponsePayloadId;
 
@@ -75,6 +76,7 @@ public class HttpData {
     myUrl = builder.myUrl;
     myMethod = builder.myMethod;
     myTrace = new StackTrace(builder.myTrace);
+    myThread = builder.myThread;
     myResponsePayloadId = builder.myResponsePayloadId;
 
     if (builder.myResponseFields != null) {
@@ -113,6 +115,11 @@ public class HttpData {
 
   @NotNull
   public StackTrace getStackTrace() { return myTrace; }
+
+  @NotNull
+  public JavaThread getJavaThread() {
+    return myThread;
+  }
 
   @Nullable
   public String getResponsePayloadId() {
@@ -308,6 +315,27 @@ public class HttpData {
     }
   }
 
+  // Thread information fetched from the JVM, as opposed to from native code.
+  // See also: https://docs.oracle.com/javase/7/docs/api/java/lang/Thread.html
+  public static final class JavaThread {
+    private final long myId;
+    @NotNull private final String myName;
+
+    public JavaThread(long id, @NotNull String name) {
+      myId = id;
+      myName = name;
+    }
+
+    public long getId() {
+      return myId;
+    }
+
+    @NotNull
+    public String getName() {
+      return myName;
+    }
+  }
+
   public static final class Builder {
     private final long myId;
     private final long myStartTimeUs;
@@ -321,6 +349,7 @@ public class HttpData {
     private String myRequestFields;
     private String myResponsePayloadId;
     private String myTrace = "";
+    private JavaThread myThread;
 
     public Builder(long id, long startTimeUs, long endTimeUs, long downloadingTimeUS) {
       myId = id;
@@ -344,6 +373,12 @@ public class HttpData {
     @NotNull
     public Builder setTrace(@NotNull String trace) {
       myTrace = trace;
+      return this;
+    }
+
+    @NotNull
+    public Builder setJavaThread(@NotNull JavaThread javaThread) {
+      myThread = javaThread;
       return this;
     }
 

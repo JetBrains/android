@@ -24,6 +24,7 @@ import com.android.tools.adtui.model.SelectionListener;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.event.EventMonitorView;
+import com.android.tools.profilers.stacktrace.TabsPanel;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -45,8 +46,8 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
   private static final String CARD_INFO = "Info";
 
   private final ConnectionsView myConnectionsView;
+  private final ThreadsView myThreadsView;
   private final ConnectionDetailsView myConnectionDetails;
-  private final JBScrollPane myConnectionsScroller;
   private final JPanel myConnectionsPanel;
   private final NetworkStageTooltipView myTooltipView;
 
@@ -59,13 +60,20 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     myConnectionDetails = new ConnectionDetailsView(this);
     myConnectionDetails.setMinimumSize(new Dimension(JBUI.scale(450), (int)myConnectionDetails.getMinimumSize().getHeight()));
     myConnectionsView = new ConnectionsView(this, stage::setSelectedConnection);
-    myConnectionsScroller = new JBScrollPane(myConnectionsView.getComponent());
     myTooltipView = new NetworkStageTooltipView(stage);
+    myThreadsView = new ThreadsView(this);
+
     Splitter leftSplitter = new Splitter(true);
     leftSplitter.setFirstComponent(buildMonitorUi());
-
     myConnectionsPanel = new JPanel(new CardLayout());
-    myConnectionsPanel.add(myConnectionsScroller, CARD_CONNECTIONS);
+    if (NetworkProfilerStage.ENABLE_THREADS_VIEW_NETWORK_PROFILING) {
+      TabsPanel connectionsTab = getIdeComponents().createTabsPanel();
+      connectionsTab.addTab("Connection View", new JBScrollPane(myConnectionsView.getComponent()));
+      connectionsTab.addTab("Thread View", new JBScrollPane(myThreadsView.getComponent()));
+      myConnectionsPanel.add(connectionsTab.getComponent(), CARD_CONNECTIONS);
+    } else {
+      myConnectionsPanel.add(new JBScrollPane(myConnectionsView.getComponent()), CARD_CONNECTIONS);
+    }
 
     // TODO: Add this help link in as soon as we are notified that it is hooked up
     InfoMessagePanel.UrlData learnMoreData =
