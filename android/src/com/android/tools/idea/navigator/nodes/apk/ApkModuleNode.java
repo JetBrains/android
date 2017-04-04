@@ -19,7 +19,7 @@ import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.tools.idea.navigator.nodes.android.AndroidManifestsGroupNode;
 import com.android.tools.idea.navigator.nodes.apk.java.DexGroupNode;
-import com.android.tools.idea.navigator.nodes.apk.ndk.LibraryGroupNode;
+import com.android.tools.idea.navigator.nodes.apk.ndk.LibFolderNode;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
@@ -118,7 +118,7 @@ public class ApkModuleNode extends ProjectViewModuleNode {
     // "Native libraries" folder
     VirtualFile found = myProject.getBaseDir().findChild("lib");
     if (found != null && found.isDirectory()) {
-      children.add(new LibraryGroupNode(myProject, found, settings));
+      children.add(new LibFolderNode(myProject, found, settings));
     }
 
     return children;
