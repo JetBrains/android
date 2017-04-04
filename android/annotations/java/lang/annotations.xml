@@ -32,6 +32,11 @@
   <item name="java.lang.Iterable java.util.Iterator&lt;T&gt; iterator()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="java.lang.Object java.lang.Class&lt;?&gt; getClass()">
+    <annotation name="org.jetbrains.annotations.Contract">
+      <val name="value" val="true" />
+    </annotation>
+  </item>
   <item name="java.lang.Readable int read(java.nio.CharBuffer) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>

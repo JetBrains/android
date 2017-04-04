@@ -5,6 +5,12 @@
       <val name="value" val="{android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_BEHIND, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_NOSENSOR, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_USER, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LOCKED}" />
     </annotation>
   </item>
+  <item name="android.content.pm.ActivityInfo softInputMode">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING, android.view.WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.content.pm.LauncherApps android.graphics.drawable.Drawable getShortcutIconDrawable(android.content.pm.ShortcutInfo, int) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -181,7 +187,7 @@
   </item>
   <item name="android.content.pm.PackageManager android.content.pm.ApplicationInfo getApplicationInfo(java.lang.String, int) 1">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -301,7 +307,7 @@
   </item>
   <item name="android.content.pm.PackageManager java.util.List&lt;android.content.pm.ApplicationInfo&gt; getInstalledApplications(int) 0">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
+      <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
   </item>
@@ -465,6 +471,9 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ShortcutManager boolean setDynamicShortcuts(java.util.List&lt;android.content.pm.ShortcutInfo&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutManager boolean updateShortcuts(java.util.List&lt;android.content.pm.ShortcutInfo&gt;) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.content.pm.ShortcutManager java.util.List&lt;android.content.pm.ShortcutInfo&gt; getDynamicShortcuts()">

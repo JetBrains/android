@@ -7,7 +7,7 @@
   </item>
   <item name="android.service.notification.NotificationListenerService.Ranking int getImportance()">
     <annotation name="android.support.annotation.IntDef">
-      <val name="value" val="{android.app.NotificationManager.IMPORTANCE_UNSPECIFIED, android.app.NotificationManager.IMPORTANCE_NONE, android.app.NotificationManager.IMPORTANCE_MIN, android.app.NotificationManager.IMPORTANCE_LOW, android.app.NotificationManager.IMPORTANCE_DEFAULT, android.app.NotificationManager.IMPORTANCE_HIGH, android.app.NotificationManager.IMPORTANCE_MAX}" />
+      <val name="value" val="{android.app.NotificationManager.IMPORTANCE_UNSPECIFIED, android.app.NotificationManager.IMPORTANCE_NONE, android.app.NotificationManager.IMPORTANCE_MIN, android.app.NotificationManager.IMPORTANCE_LOW, android.app.NotificationManager.IMPORTANCE_DEFAULT, android.app.NotificationManager.IMPORTANCE_HIGH}" />
     </annotation>
   </item>
 </root>
