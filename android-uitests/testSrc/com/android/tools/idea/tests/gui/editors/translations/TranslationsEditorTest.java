@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.AddKeyDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
+import com.android.tools.swing.ui.FixedColumnTable;
 import com.intellij.notification.Notification;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -76,9 +77,9 @@ public final class TranslationsEditorTest {
       .awaitNotification("Edit translations for all locales in the translations editor.")
       .performAction("Open editor");
 
-    GuiTests.waitUntilShowing(myGuiTest.robot(), new GenericTypeMatcher<JTable>(JTable.class) {
+    GuiTests.waitUntilShowing(myGuiTest.robot(), new GenericTypeMatcher<FixedColumnTable>(FixedColumnTable.class) {
       @Override
-      protected boolean isMatching(@NotNull JTable table) {
+      protected boolean isMatching(@NotNull FixedColumnTable table) {
         return table.getModel().getRowCount() != 0;
       }
     });
@@ -142,7 +143,7 @@ public final class TranslationsEditorTest {
     VirtualFile mainValuesEn = frame.findFileByRelativePath("app/src/main/res/values-en", false);
     assert mainValuesEn != null;
 
-    myTranslationsEditor.getTableHeader().showPopupMenuAt(ENGLISH_COLUMN).menuItem("removeLocaleMenuItem").click();
+    myTranslationsEditor.getTable().tableHeader().showPopupMenuAt(ENGLISH_COLUMN).menuItem("removeLocaleMenuItem").click();
 
     Object expected = Arrays.asList(
       "Chinese (zh) in China (CN)",
@@ -188,10 +189,9 @@ public final class TranslationsEditorTest {
   public void setModel() {
     StringResourceTable table = (StringResourceTable)myTranslationsEditor.getTable().target();
     OptionalInt optionalWidth = table.getKeyColumnPreferredWidth();
-    TableColumnModel model = table.getColumnModel();
 
     if (optionalWidth.isPresent()) {
-      assertEquals(optionalWidth.getAsInt(), model.getColumn(KEY_COLUMN).getPreferredWidth());
+      assertEquals(optionalWidth.getAsInt(), table.getColumn(KEY_COLUMN).getPreferredWidth());
     }
     else {
       fail();
@@ -203,7 +203,7 @@ public final class TranslationsEditorTest {
       int width = optionalWidth.getAsInt();
 
       IntStream.range(DEFAULT_VALUE_COLUMN, table.getColumnCount())
-        .mapToObj(model::getColumn)
+        .mapToObj(table::getColumn)
         .forEach(column -> assertEquals(width, column.getPreferredWidth()));
     }
     else {
