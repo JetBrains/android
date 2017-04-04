@@ -242,7 +242,7 @@ public class PackageTreeCreatorTest {
     sb.append(StringUtil.repeatSymbol(' ', depth * 2));
     if (node.isRemoved()){
       sb.append("X-");
-    } else if (node.isSeed(seeds, map)){
+    } else if (node.isSeed(seeds, map, true)){
       sb.append("O-");
     } else if (!node.hasClassDefinition()){
       sb.append("~");
