@@ -111,6 +111,7 @@ public class RenderErrorContributor {
   @SuppressWarnings("unused") protected static final int LOW_PRIORITY = 10;
 
   protected static final Logger LOG = Logger.getInstance(RenderErrorPanel.class);
+  private static final String APP_COMPAT_REQUIRED_MSG = "You need to use a Theme.AppCompat";
 
   private final List<RenderErrorModel.Issue> myIssues = new ArrayList<>();
   private final HtmlLinkManager myLinkManager;
@@ -1119,12 +1120,19 @@ public class RenderErrorContributor {
 
     builder.add("The following classes could not be instantiated:");
 
+    boolean listContainsElements = false;
     Throwable firstThrowable = null;
     builder.beginList();
     for (Map.Entry<String, Throwable> entry : brokenClasses.entrySet()) {
       String className = entry.getKey();
       Throwable throwable = entry.getValue();
 
+      if (throwable != null && throwable.getMessage() != null && throwable.getMessage().startsWith(APP_COMPAT_REQUIRED_MSG)) {
+        // This is already handled by #reportAppCompatRequired
+        continue;
+      }
+
+      listContainsElements = true;
       builder.listItem()
         .add(className)
         .add(" (")
@@ -1142,6 +1150,11 @@ public class RenderErrorContributor {
         firstThrowable = throwable;
       }
     }
+
+    if (!listContainsElements) {
+      return;
+    }
+
     builder.endList()
       .addIcon(HtmlBuilderHelper.getTipIconPath())
       .addLink("Tip: Use ", "View.isInEditMode()", " in your custom views to skip code or show sample data when shown in the IDE.",
@@ -1359,7 +1372,7 @@ public class RenderErrorContributor {
 
     brokenClasses.values().stream()
       .filter(Objects::nonNull)
-      .filter(t -> t.getMessage() != null && t.getMessage().startsWith("You need to use a Theme.AppCompat"))
+      .filter(t -> t.getMessage() != null && t.getMessage().startsWith(APP_COMPAT_REQUIRED_MSG))
       .findAny()
       .ifPresent(t -> addIssue()
         .setSeverity(HighlightSeverity.ERROR, HIGH_PRIORITY + 1) // Reported above broken classes
