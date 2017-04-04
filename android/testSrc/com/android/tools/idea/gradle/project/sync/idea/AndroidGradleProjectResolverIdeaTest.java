@@ -160,7 +160,7 @@ public class AndroidGradleProjectResolverIdeaTest extends IdeaTestCase {
 
     DataNode<AndroidModuleModel> androidModelNode = getFirstItem(androidModelNodes);
     assertNotNull(androidModelNode);
-    assertSame(myAndroidProject, androidModelNode.getData().getAndroidProject());
+    assertEquals(myAndroidProject, androidModelNode.getData().getAndroidProject());
 
     // Verify module has IdeaGradleProject.
     Collection<DataNode<GradleModuleModel>> gradleModelNodes = getChildren(moduleDataNode, GRADLE_MODULE_MODEL);

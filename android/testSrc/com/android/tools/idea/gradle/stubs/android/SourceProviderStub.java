@@ -35,6 +35,7 @@ public class SourceProviderStub implements SourceProvider {
   @NotNull private final Set<File> myRenderscriptDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myResDirectories = Sets.newHashSet();
   @NotNull private final Set<File> myResourcesDirectories = Sets.newHashSet();
+  @NotNull private final String myName = "SourceProviderStubName";
 
   @Nullable File myManifestFile;
 
@@ -61,7 +62,7 @@ public class SourceProviderStub implements SourceProvider {
   @Override
   @NotNull
   public String getName() {
-    throw new UnsupportedOperationException();
+    return myName;
   }
 
   @Override
