@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.tools.idea.rendering.Locale;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -24,12 +25,22 @@ import java.util.Collections;
 import static org.junit.Assert.assertTrue;
 
 public final class AddLocaleActionTest {
-  @Test
-  public void getLocalesResultContainsLocales() {
-    Collection<Locale> locales = AddLocaleAction.getLocales(Collections.emptySet());
+  private Collection<Locale> myLocales;
 
-    assertTrue(locales.contains(Locale.create("en-rUS")));
-    assertTrue(locales.contains(Locale.create("en-rGB")));
-    assertTrue(locales.contains(Locale.create("en-rCA")));
+  @Before
+  public void getLocales() {
+    myLocales = AddLocaleAction.getLocales(Collections.emptySet());
+  }
+
+  @Test
+  public void localesContainLanguageLocale() {
+    assertTrue(myLocales.contains(Locale.create("de")));
+  }
+
+  @Test
+  public void localesContainLanguageRegionLocale() {
+    assertTrue(myLocales.contains(Locale.create("en-rUS")));
+    assertTrue(myLocales.contains(Locale.create("en-rGB")));
+    assertTrue(myLocales.contains(Locale.create("en-rCA")));
   }
 }
