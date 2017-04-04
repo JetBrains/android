@@ -26,6 +26,7 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.handlers.constraint.*;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
+import com.android.tools.idea.uibuilder.handlers.coordinator.CoordinatorSnapTarget;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.target.*;
@@ -403,6 +404,7 @@ public class Scene implements SelectionListener {
    * @return true if the target will be displayed
    */
   public boolean allowsTarget(Target target) {
+    // TODO: this should really be delegated to the handlers
     SceneComponent component = target.getComponent();
     if (component.isSelected()) {
       boolean hasBaselineConnection = component.getNlComponent().getAttribute(SdkConstants.SHERPA_URI,
@@ -427,6 +429,9 @@ public class Scene implements SelectionListener {
                (target instanceof ResizeBaseTarget);
       }
       return !component.isDragging();
+    }
+    if (target instanceof CoordinatorSnapTarget) {
+      return true;
     }
     if (target instanceof AnchorTarget) {
       AnchorTarget anchor = (AnchorTarget)target;
