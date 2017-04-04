@@ -18,14 +18,16 @@ package com.android.tools.idea.gradle.project.sync.ng;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.Variant;
+import com.android.java.model.ArtifactModel;
+import com.android.java.model.JavaProject;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.*;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.GradleModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetup;
+import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.ContentRootModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkFacetModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
@@ -34,6 +36,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
+import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +45,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.project.sync.ng.AndroidModuleProcessor.MODULE_GRADLE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.sync.ng.GradleSyncProgress.notifyProgress;
 import static com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets;
@@ -57,7 +59,8 @@ abstract class ModuleSetup {
       return new ModuleSetupImpl(project, modelsProvider, GradleSyncState.getInstance(project), new ModuleFactory(project, modelsProvider),
                                  new GradleModuleSetup(), new NewAndroidModuleSetup(), new AndroidModuleProcessor(project, modelsProvider),
                                  new NdkModuleSetup(new NdkFacetModuleSetupStep(), new ContentRootModuleSetupStep()),
-                                 new VariantSelector(), new ProjectCleanup(), new ObsoleteModuleDisposer(project, modelsProvider));
+                                 new VariantSelector(), new ProjectCleanup(), new ObsoleteModuleDisposer(project, modelsProvider),
+                                 new NewJavaModuleSetup(), new NewJavaModuleModelFactory(), new ArtifactModuleModelFactory());
     }
   }
 
@@ -74,6 +77,9 @@ abstract class ModuleSetup {
     @NotNull private final VariantSelector myVariantSelector;
     @NotNull private final ProjectCleanup myProjectCleanup;
     @NotNull private final ObsoleteModuleDisposer myModuleDisposer;
+    @NotNull private final JavaModuleSetup myJavaModuleSetup;
+    @NotNull private final NewJavaModuleModelFactory myNewJavaModuleModelFactory;
+    @NotNull private final ArtifactModuleModelFactory myArtifactModuleModelFactory;
 
     @NotNull private final List<Module> myAndroidModules = new ArrayList<>();
 
@@ -87,7 +93,10 @@ abstract class ModuleSetup {
                     @NotNull NdkModuleSetup ndkModuleSetup,
                     @NotNull VariantSelector variantSelector,
                     @NotNull ProjectCleanup projectCleanup,
-                    @NotNull ObsoleteModuleDisposer moduleDisposer) {
+                    @NotNull ObsoleteModuleDisposer moduleDisposer,
+                    @NotNull JavaModuleSetup javaModuleSetup,
+                    @NotNull NewJavaModuleModelFactory javaModuleModelFactory,
+                    @NotNull ArtifactModuleModelFactory artifactModuleModelFactory) {
       myProject = project;
       myModelsProvider = modelsProvider;
       mySyncState = syncState;
@@ -99,6 +108,9 @@ abstract class ModuleSetup {
       myVariantSelector = variantSelector;
       myProjectCleanup = projectCleanup;
       myModuleDisposer = moduleDisposer;
+      myJavaModuleSetup = javaModuleSetup;
+      myNewJavaModuleModelFactory = javaModuleModelFactory;
+      myArtifactModuleModelFactory = artifactModuleModelFactory;
     }
 
     @Override
@@ -129,19 +141,8 @@ abstract class ModuleSetup {
       Module module = myModuleFactory.createModule(moduleModels);
       module.putUserData(MODULE_GRADLE_MODELS_KEY, moduleModels);
 
-      boolean isProjectRootFolder = false;
-
       File moduleRootFolderPath = findModuleRootFolderPath(module);
       assert moduleRootFolderPath != null;
-
-      File gradleSettingsFile = new File(moduleRootFolderPath, FN_SETTINGS_GRADLE);
-      if (gradleSettingsFile.isFile() &&
-          !moduleModels.hasModel(AndroidProject.class) &&
-          !moduleModels.hasModel(NativeAndroidProject.class)) {
-        // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
-        // compile it using Gradle. We still need to create the module to display files inside it.
-        isProjectRootFolder = true;
-      }
 
       myGradleModuleSetup.setUpModule(module, myModelsProvider, moduleModels);
 
@@ -155,7 +156,9 @@ abstract class ModuleSetup {
         else {
           // This is an Android module without variants. Treat as a non-buildable Java module.
           removeAndroidFacetFrom(module);
-          //setUpJavaModule(module, models, indicator, true /* Android project without variants */, syncSkipped);
+          // TODO: Figure out what to do with android modules without variants.
+          // New Java library plugin relies on 'java' plugin, it does not return JavaProject models for android module.
+          // setUpJavaModule(module, models, indicator, true /* Android project without variants */, syncSkipped);
         }
         return;
       }
@@ -171,9 +174,20 @@ abstract class ModuleSetup {
       // This is not an Android module. Remove any AndroidFacet set in a previous sync operation.
       removeAllFacets(myModelsProvider.getModifiableFacetModel(module), NdkFacet.getFacetTypeId());
 
-      if (!isProjectRootFolder) {
-        // TODO: enable when new "Java library" model is implemented
-        //setUpJavaModule(module, models, indicator, false /* Regular Java module */, syncSkipped);
+      // This is a Java module.
+      JavaProject javaProject = moduleModels.findModel(JavaProject.class);
+      GradleProject gradleProject = moduleModels.findModel(GradleProject.class);
+      if (gradleProject != null && javaProject != null) {
+        JavaModuleModel javaModuleModel = myNewJavaModuleModelFactory.create(gradleProject, javaProject, false);
+        myJavaModuleSetup.setUpModule(module, myModelsProvider, javaModuleModel, moduleModels, indicator, syncSkipped);
+        return;
+      }
+
+      // This is a Jar/Aar module or root module.
+      ArtifactModel jarAarProject = moduleModels.findModel(ArtifactModel.class);
+      if (gradleProject != null && jarAarProject != null) {
+        JavaModuleModel javaModuleModel = myArtifactModuleModelFactory.create(gradleProject, jarAarProject);
+        myJavaModuleSetup.setUpModule(module, myModelsProvider, javaModuleModel, moduleModels, indicator, syncSkipped);
       }
     }
 
