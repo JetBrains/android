@@ -16,9 +16,6 @@
 package com.android.tools.idea.uibuilder.scene.decorator;
 
 import com.android.SdkConstants;
-import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
@@ -30,8 +27,6 @@ import com.android.tools.idea.uibuilder.scene.draw.DrawTextRegion;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-
-import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
 
 /**
  * Support Progress Bar
