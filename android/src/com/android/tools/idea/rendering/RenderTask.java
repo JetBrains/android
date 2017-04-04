@@ -264,7 +264,7 @@ public class RenderTask implements IImageFactory {
    */
   public Future<?> dispose() {
     if (isDisposed.getAndSet(true)) {
-      assert false : "RenderTask was already dispose";
+      assert false : "RenderTask was already disposed";
       return Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
 

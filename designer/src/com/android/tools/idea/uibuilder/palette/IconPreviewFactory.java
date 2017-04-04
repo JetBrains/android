@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.*;
 import com.android.tools.idea.uibuilder.api.InsertType;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.SceneView;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -189,7 +190,7 @@ public class IconPreviewFactory implements Disposable {
   @Override
   public void dispose() {
     if (myRenderTask != null) {
-      myRenderTask.dispose();
+      Futures.getUnchecked(myRenderTask.dispose());
       myRenderTask = null;
     }
   }

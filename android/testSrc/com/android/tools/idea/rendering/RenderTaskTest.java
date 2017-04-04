@@ -80,7 +80,7 @@ public class RenderTaskTest extends RenderTestBase {
       g.dispose();
     }
 
-    task.dispose();
+    task.dispose().get(5, TimeUnit.SECONDS);
   }
 
   public void testRender() throws Exception {
@@ -121,7 +121,7 @@ public class RenderTaskTest extends RenderTestBase {
       assertEquals("android.widget.LinearLayout", views.get(0).getClassName());
     }
 
-    task.dispose();
+    task.dispose().get(5, TimeUnit.SECONDS);
   }
 
   public void testAsyncCallAndDispose()

@@ -18,7 +18,6 @@ package com.android.tools.idea;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.uibuilder.palette.IconPreviewFactoryTest;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeTest;
 import com.android.tools.idea.uibuilder.surface.InteractionManagerTest;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfaceTest;
@@ -37,7 +36,6 @@ import java.nio.file.Paths;
 @JarTestSuiteRunner.ExcludeClasses({
   DesignerTestSuite.class,
   NlDesignSurfaceTest.class, // flaky in bazel
-  IconPreviewFactoryTest.class, // flaky in bazel
 })
 public class DesignerTestSuite {
 
