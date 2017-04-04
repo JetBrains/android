@@ -17,7 +17,9 @@ package com.android.tools.idea.uibuilder.model;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceConstants;
+import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.uibuilder.editor.DefaultNlToolbarActionGroups;
+import com.android.tools.idea.naveditor.editor.NavToolbarActionGroups;
 import com.android.tools.idea.uibuilder.editor.ToolbarActionGroups;
 import com.android.tools.idea.uibuilder.editor.VectorToolbarActionGroups;
 import com.android.tools.idea.uibuilder.statelist.StateListActionGroups;
@@ -78,6 +80,19 @@ public enum NlLayoutType {
     @Override
     public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
       return new StateListActionGroups(surface);
+    }
+  },
+
+  NAV(true) {
+    @Override
+    public boolean isResourceTypeOf(@NotNull XmlFile file) {
+      return NavSceneManager.enableNavigationEditor() && file.getName().equals("mobile_navigation.xml");
+    }
+
+    @NotNull
+    @Override
+    public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
+      return new NavToolbarActionGroups(surface);
     }
   },
 
