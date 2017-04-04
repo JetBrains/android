@@ -19,9 +19,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import org.junit.Ignore;
 
 import static com.android.tools.idea.instantapp.InstantApps.*;
-import static com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP;
-import static com.android.tools.idea.testing.TestProjectPaths.MULTI_ATOM;
-import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
+import static com.android.tools.idea.testing.TestProjectPaths.*;
 import static com.intellij.openapi.util.io.FileUtil.join;
 
 @Ignore("http://b/35788310")
@@ -39,6 +37,16 @@ public class InstantAppsTest extends AndroidGradleTestCase {
 
   public void testGetBaseSplitInInstantAppWithInstantApp() throws Exception {
     loadProject(INSTANT_APP, "baseatom");
+    assertEquals(myAndroidFacet.getModule(), getBaseSplitInInstantApp(getProject()));
+  }
+
+  public void testGetBaseSplitInInstantAppWithMultiAtom() throws Exception {
+    loadProject(MULTI_ATOM, "baseatom");
+    assertEquals(myAndroidFacet.getModule(), getBaseSplitInInstantApp(getProject()));
+  }
+
+  public void testGetBaseSplitInInstantAppWithNestedMultiAtom() throws Exception {
+    loadProject(NESTED_MULTI_ATOM, "atom-base");
     assertEquals(myAndroidFacet.getModule(), getBaseSplitInInstantApp(getProject()));
   }
 
@@ -67,6 +75,11 @@ public class InstantAppsTest extends AndroidGradleTestCase {
     assertEquals(join(getProjectFolderPath().getAbsolutePath(), "baselib"), getBaseSplitOutDir(myAndroidFacet.getModule()));
   }
 
+  public void testGetBaseSplitOutDirNestedMultiAtom() throws Exception {
+    loadProject(NESTED_MULTI_ATOM, "atom-base");
+    assertEquals(join(getProjectFolderPath().getAbsolutePath(), "lib", "base"), getBaseSplitOutDir(myAndroidFacet.getModule()));
+  }
+
   public void testGetContainingSplitWithSplit() throws Exception {
     loadProject(INSTANT_APP, "baseatom");
     assertEquals(myAndroidFacet.getModule(), getContainingSplit(myAndroidFacet.getModule()));
@@ -75,6 +88,11 @@ public class InstantAppsTest extends AndroidGradleTestCase {
   public void testGetContainingSplitWithLibrary() throws Exception {
     loadProject(MULTI_ATOM, "baselib");
     assertEquals(myModules.getModule("baseatom"), getContainingSplit(myAndroidFacet.getModule()));
+  }
+
+  public void testGetContainingSplitWithNestedLibrary() throws Exception {
+    loadProject(NESTED_MULTI_ATOM, "lib-base");
+    assertEquals(myModules.getModule("atom-base"), getContainingSplit(myAndroidFacet.getModule()));
   }
 
   public void testGetContainingSplitWithoutInstantApp() throws Exception {
