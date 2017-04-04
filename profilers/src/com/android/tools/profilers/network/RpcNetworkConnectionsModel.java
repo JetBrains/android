@@ -61,8 +61,8 @@ public class RpcNetworkConnectionsModel implements NetworkConnectionsModel {
       long startTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getStartTimestamp());
       long endTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getEndTimestamp());
       long downloadTimeUs = TimeUnit.NANOSECONDS.toMicros(connection.getDownloadingTimestamp());
-
       HttpData.Builder httpBuilder = new HttpData.Builder(connection.getConnId(), startTimeUs, endTimeUs, downloadTimeUs);
+      httpBuilder.setJavaThread(new HttpData.JavaThread(connection.getThread().getId(), connection.getThread().getName()));
 
       requestHttpRequest(connection.getConnId(), httpBuilder);
       if (connection.getEndTimestamp() != 0) {
