@@ -26,7 +26,6 @@ import com.android.tools.profilers.ProfilerColors;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ExpandedItemRendererComponentWrapper;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
@@ -317,7 +316,7 @@ final class ConnectionsView {
      * Keep in sync 1:1 with {@link ConnectionsTableModel#myDataList}. When the table asks for the
      * chart to render, it will be converted from model index to view index.
      */
-    @NotNull private final List<RequestTimeline> myTimelines = new ArrayList<>();
+    @NotNull private final List<ConnectionsStateChart> myConnectionsCharts = new ArrayList<>();
     @NotNull private final JTable myTable;
     @NotNull private final Range myRange;
 
@@ -330,27 +329,27 @@ final class ConnectionsView {
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      RequestTimeline timeline = myTimelines.get(myTable.convertRowIndexToModel(row));
-      timeline.getColors().setColorIndex(isSelected ? 1 : 0);
+      ConnectionsStateChart chart = myConnectionsCharts.get(myTable.convertRowIndexToModel(row));
+      chart.getColors().setColorIndex(isSelected ? 1 : 0);
       JPanel panel = new JBPanel(new TabularLayout("*" , "*"));
       if (row == 0) {
         AxisComponent axis = createAxis();
         axis.setForeground(isSelected ? NETWORK_TABLE_AXIS_SELECTED : NETWORK_TABLE_AXIS);
         panel.add(axis, new TabularLayout.Constraint(0, 0));
       }
-      panel.add(timeline.getComponent(), new TabularLayout.Constraint(0, 0));
+      panel.add(chart.getComponent(), new TabularLayout.Constraint(0, 0));
 
       return panel;
     }
 
     @Override
     public void tableChanged(TableModelEvent e) {
-      myTimelines.clear();
+      myConnectionsCharts.clear();
       ConnectionsTableModel model = (ConnectionsTableModel)myTable.getModel();
       for (int i = 0; i < model.getRowCount(); ++i) {
-        RequestTimeline timeline = new RequestTimeline(model.getHttpData(i), myRange);
-        timeline.setHeightGap(0.3f);
-        myTimelines.add(timeline);
+        ConnectionsStateChart chart = new ConnectionsStateChart(model.getHttpData(i), myRange);
+        chart.setHeightGap(0.3f);
+        myConnectionsCharts.add(chart);
       }
     }
 
@@ -368,7 +367,6 @@ final class ConnectionsView {
   }
 
   private static final class ConnectionsTable extends JBTable {
-    private static final JBColor HOVER_COLOR = new JBColor(0xEAEFFA, 0x3B3D3F);
     private int myHoveredRow = -1;
 
     ConnectionsTable(@NotNull TableModel model) {
@@ -415,7 +413,7 @@ final class ConnectionsView {
         toChangeComp.setBackground(getSelectionBackground());
       }
       else if (row == myHoveredRow) {
-        toChangeComp.setBackground(HOVER_COLOR);
+        toChangeComp.setBackground(ProfilerColors.NETWORK_TABLE_HOVER_COLOR);
         toChangeComp.setForeground(getForeground());
       }
       else {

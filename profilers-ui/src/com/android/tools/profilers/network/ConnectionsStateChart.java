@@ -25,26 +25,34 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 import static com.android.tools.profilers.ProfilerColors.*;
+import static com.android.tools.profilers.ProfilerColors.NETWORK_WAITING_COLOR;
+import static com.android.tools.profilers.ProfilerColors.TRANSPARENT_COLOR;
 
 /**
- * A Swing component which renders a single network request as a horizontal bar where each stage of its lifetime (sending, receiving, etc.)
- * is highlighted with unique colors.
+ * Class responsible for rendering one or more sequential network requests, with each request appearing as a horizontal
+ * bar where each stage of its lifetime (sending, receiving, etc.) is highlighted with unique colors.
  */
-public class RequestTimeline {
-
-  @NotNull
-  private final StateChart<NetworkState> myChart;
-  @NotNull
-  private final EnumColors<NetworkState> myColors = new EnumColors.Builder<NetworkState>(2)
+class ConnectionsStateChart {
+  @NotNull private final EnumColors<NetworkState> myColors = new EnumColors.Builder<NetworkState>(2)
     .add(NetworkState.SENDING, NETWORK_SENDING_COLOR, NETWORK_SENDING_COLOR)
     .add(NetworkState.RECEIVING, NETWORK_RECEIVING_COLOR, NETWORK_RECEIVING_SELECTED_COLOR)
     .add(NetworkState.WAITING, NETWORK_WAITING_COLOR, NETWORK_WAITING_COLOR)
     .add(NetworkState.NONE, TRANSPARENT_COLOR, TRANSPARENT_COLOR)
     .build();
 
-  public RequestTimeline(@NotNull HttpData httpData, @NotNull Range range) {
-    myChart = createChart(httpData, range);
+  @NotNull private final StateChart<NetworkState> myChart;
+
+  ConnectionsStateChart(@NotNull List<HttpData> dataList, @NotNull Range range) {
+    myChart = createChart(dataList, range);
+  }
+
+  ConnectionsStateChart(@NotNull HttpData data, @NotNull Range range) {
+    this(Collections.singletonList(data), range);
   }
 
   @NotNull
@@ -62,17 +70,18 @@ public class RequestTimeline {
   }
 
   @NotNull
-  private StateChart<NetworkState> createChart(@NotNull HttpData httpData, @NotNull Range range) {
+  private StateChart<NetworkState> createChart(@NotNull Collection<HttpData> dataList, @NotNull Range range) {
     DefaultDataSeries<NetworkState> series = new DefaultDataSeries<>();
     series.add(0, NetworkState.NONE);
-    series.add(httpData.getStartTimeUs(), NetworkState.SENDING);
-    if (httpData.getDownloadingTimeUs() > 0) {
-      series.add(httpData.getDownloadingTimeUs(), NetworkState.RECEIVING);
+    for (HttpData data : dataList) {
+      series.add(data.getStartTimeUs(), NetworkState.SENDING);
+      if (data.getDownloadingTimeUs() > 0) {
+        series.add(data.getDownloadingTimeUs(), NetworkState.RECEIVING);
+      }
+      if (data.getEndTimeUs() > 0) {
+        series.add(data.getEndTimeUs(), NetworkState.NONE);
+      }
     }
-    if (httpData.getEndTimeUs() > 0) {
-      series.add(httpData.getEndTimeUs(), NetworkState.NONE);
-    }
-
     StateChartModel<NetworkState> stateModel = new StateChartModel<>();
     StateChart<NetworkState> chart = new StateChart<>(stateModel, myColors);
     stateModel.addSeries(new RangedSeries<>(range, series));

@@ -30,6 +30,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf3jarjar.ByteString;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,6 +42,9 @@ import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.
 import static com.android.tools.profilers.network.NetworkTrafficDataSeries.Type.BYTES_SENT;
 
 public class NetworkProfilerStage extends Stage implements CodeNavigator.Listener {
+  // Network threads view, false by default.
+  @NonNls public static final boolean ENABLE_THREADS_VIEW_NETWORK_PROFILING =
+    "true".equals(System.getProperty("enable.threads.view.network.profiling"));
 
   private static final BaseAxisFormatter TRAFFIC_AXIS_FORMATTER = new NetworkTrafficFormatter(1, 5, 5);
   private static final BaseAxisFormatter CONNECTIONS_AXIS_FORMATTER = new SingleUnitAxisFormatter(1, 5, 1, "");
