@@ -19,11 +19,13 @@ import com.android.tools.adtui.workbench.*;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.startup.DelayedInitialization;
 import com.android.tools.idea.uibuilder.mockup.editor.MockupToolDefinition;
+import com.android.tools.idea.uibuilder.model.NlLayoutType;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
 import com.android.tools.idea.uibuilder.property.NlPropertyPanelDefinition;
 import com.android.tools.idea.uibuilder.structure.NlComponentTreeDefinition;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.naveditor.surface.NavDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -48,7 +50,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
   private final AndroidFacet myFacet;
   private final NlEditor myEditor;
   private final XmlFile myFile;
-  private final NlDesignSurface mySurface;
+  private final DesignSurface mySurface;
   private final JPanel myContentPanel;
   private boolean myIsActive;
 
@@ -62,8 +64,13 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     assert myFile != null : file;
     myContentPanel = new JPanel(new BorderLayout());
 
-    mySurface = new NlDesignSurface(project, false);
-    mySurface.setCentered(true);
+    if (NlLayoutType.typeOf(myFile) == NlLayoutType.NAV) {
+      mySurface = new NavDesignSurface(project);
+    }
+    else {
+      mySurface = new NlDesignSurface(project, false);
+      ((NlDesignSurface)mySurface).setCentered(true);
+    }
     Disposer.register(editor, mySurface);
 
     setLoadingText("Wait for build to complete");
@@ -87,17 +94,20 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
 
     NlModel model = NlModel.create(mySurface, myEditor, myFacet, myFile);
     mySurface.setModel(model);
+    Disposer.register(myEditor, mySurface);
 
     JComponent toolbarComponent = mySurface.getActionManager().createToolbar(model);
     myContentPanel.add(toolbarComponent, BorderLayout.NORTH);
     myContentPanel.add(mySurface);
 
     List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
-    tools.add(new NlPaletteDefinition(project, Side.LEFT, Split.TOP, AutoHide.DOCKED));
-    tools.add(new NlComponentTreeDefinition(project, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
     tools.add(new NlPropertyPanelDefinition(project, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
-    if (MOCKUP_EDITOR_ENABLED) {
-      tools.add(new MockupToolDefinition(Side.RIGHT, Split.TOP, AutoHide.AUTO_HIDE));
+    if (NlLayoutType.typeOf(myFile) != NlLayoutType.NAV) {
+      tools.add(new NlPaletteDefinition(project, Side.LEFT, Split.TOP, AutoHide.DOCKED));
+      tools.add(new NlComponentTreeDefinition(project, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));
+      if (MOCKUP_EDITOR_ENABLED) {
+        tools.add(new MockupToolDefinition(Side.RIGHT, Split.TOP, AutoHide.AUTO_HIDE));
+      }
     }
 
     init(myContentPanel, mySurface, tools);

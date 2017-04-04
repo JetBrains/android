@@ -25,6 +25,7 @@ import java.util.Optional;
 
 public abstract class SceneDecoratorFactory {
   static Map<String, SceneDecorator> ourSceneMap = new HashMap<>();
+  protected static final SceneDecorator BASIC_DECORATOR = new SceneDecorator();
 
   @NotNull
   public abstract SceneDecorator get(@NotNull NlComponent component);

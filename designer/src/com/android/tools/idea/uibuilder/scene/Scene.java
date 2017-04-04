@@ -977,7 +977,7 @@ public class Scene implements SelectionListener {
     return mySceneComponents.values();
   }
 
-  void setRoot(SceneComponent root) {
+  public void setRoot(SceneComponent root) {
     myRoot = root;
   }
 

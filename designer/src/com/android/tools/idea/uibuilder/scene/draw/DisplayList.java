@@ -72,11 +72,6 @@ public class DisplayList {
     }
 
     @Override
-    public int compareTo(@NotNull Object o) {
-      return Integer.compare(getLevel(), ((DrawCommand)o).getLevel());
-    }
-
-    @Override
     public String serialize() {
       return "Connection," + x1 + "," + y1 + "," + x2 + "," + y2
              + myDirection;
@@ -184,11 +179,6 @@ public class DisplayList {
     }
 
     @Override
-    public int compareTo(@NotNull Object o) {
-      return Integer.compare(getLevel(), ((DrawCommand)o).getLevel());
-    }
-
-    @Override
     public void paint(Graphics2D g, SceneContext sceneContext) {
       g.setColor(color);
       g.drawRect(x, y, width, height);
@@ -206,11 +196,6 @@ public class DisplayList {
     @Override
     public int getLevel() {
       return CLIP_LEVEL;
-    }
-
-    @Override
-    public int compareTo(@NotNull Object o) {
-      return Integer.compare(getLevel(), ((DrawCommand)o).getLevel());
     }
 
     public Clip(String s) {
@@ -250,11 +235,6 @@ public class DisplayList {
       return UNCLIP_LEVEL;
     }
 
-    @Override
-    public int compareTo(@NotNull Object o) {
-      return Integer.compare(getLevel(), ((DrawCommand)o).getLevel());
-    }
-
     public UNClip(String s) {
     }
 
@@ -287,11 +267,6 @@ public class DisplayList {
     @Override
     public int getLevel() {
       return TARGET_LEVEL;
-    }
-
-    @Override
-    public int compareTo(@NotNull Object o) {
-      return Integer.compare(getLevel(), ((DrawCommand)o).getLevel());
     }
 
     public Line(String s) {
@@ -495,11 +470,6 @@ public class DisplayList {
         str += command.serialize() + "\n";
       }
       return str;
-    }
-
-    @Override
-    public int compareTo(@NotNull Object o) {
-      return Integer.compare(getLevel(), ((DrawCommand)o).getLevel());
     }
   }
 

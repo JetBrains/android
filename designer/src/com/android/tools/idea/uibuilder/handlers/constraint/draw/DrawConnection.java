@@ -89,11 +89,6 @@ public class DrawConnection implements DrawCommand {
   }
 
   @Override
-  public int compareTo(@NotNull Object o) {
-    return Integer.compare(getLevel(), ((DrawCommand)o).getLevel());
-  }
-
-  @Override
   public String serialize() {
     return "DrawConnection," + myConnectionType + "," + rectToString(mySource) + "," +
            mySourceDirection + "," + rectToString(myDest) + "," + myDestDirection + "," +

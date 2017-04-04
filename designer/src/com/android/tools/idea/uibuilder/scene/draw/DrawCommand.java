@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.scene.draw;
 
 import com.android.tools.idea.uibuilder.scene.SceneContext;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
@@ -35,4 +36,9 @@ public interface DrawCommand extends Comparable {
   int getLevel(); // things are drawn 0 first
   void paint(Graphics2D g, SceneContext sceneContext);
   String serialize();
+
+  @Override
+  default int compareTo(@NotNull Object o) {
+    return Integer.compare(getLevel(), ((DrawCommand)o).getLevel());
+  }
 }
