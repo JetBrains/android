@@ -199,7 +199,7 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
 
   private void addColumns(@NotNull Map<String, TableColumn> map) {
     StringResourceTableModel model = getModel();
-    TableCellRenderer renderer = tableHeader == null ? null : new LocaleRenderer(tableHeader.getDefaultRenderer(), model);
+    TableCellRenderer renderer = tableHeader == null ? null : new LocaleRenderer(tableHeader.getDefaultRenderer());
 
     IntStream.range(0, model.getColumnCount())
       .filter(this::includeColumn)
