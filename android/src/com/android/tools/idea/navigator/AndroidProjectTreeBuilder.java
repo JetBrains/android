@@ -40,7 +40,7 @@ import javax.swing.tree.DefaultTreeModel;
 import java.util.*;
 
 public class AndroidProjectTreeBuilder extends ProjectTreeBuilder {
-  private Map<VirtualFile,AbstractTreeNode> myFileToNodeMap = new HashMap<>();
+  private Map<VirtualFile, AbstractTreeNode> myFileToNodeMap = new HashMap<>();
 
   public AndroidProjectTreeBuilder(@NotNull Project project,
                                    @NotNull JTree tree,
@@ -107,7 +107,8 @@ public class AndroidProjectTreeBuilder extends ProjectTreeBuilder {
     VirtualFile virtualFile = null;
     if (element instanceof PsiDirectory) {
       virtualFile = ((PsiDirectory)element).getVirtualFile();
-    } else if (element instanceof PsiFile) {
+    }
+    else if (element instanceof PsiFile) {
       virtualFile = ((PsiFile)element).getVirtualFile();
     }
 

@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.ndk;
 
+import com.android.tools.idea.apk.ApkFacet;
+import com.android.tools.idea.apk.debugging.NativeLibrary;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
-import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiManager;
 import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,39 +35,50 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.intellij.icons.AllIcons.Modules.SourceRoot;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 
-public class NdkGroupNode extends ProjectViewNode<List<VirtualFile>> {
-  @NotNull private final List<VirtualFile> myFiles;
+public class LibFolderNode extends ProjectViewNode<VirtualFile> {
+  @NotNull private final VirtualFile myFolder;
 
-  public NdkGroupNode(@NotNull Project project, @NotNull List<VirtualFile> files, @NotNull ViewSettings settings) {
-    super(project, files, settings);
-    myFiles = files;
+  public LibFolderNode(@NotNull Project project, @NotNull VirtualFile folder, @NotNull ViewSettings settings) {
+    super(project, folder, settings);
+    myFolder = folder;
   }
 
   @Override
   @NotNull
   public Collection<? extends AbstractTreeNode> getChildren() {
-    List<AbstractTreeNode> children = new ArrayList<>();
-    for (VirtualFile file : myFiles) {
-      assert myProject != null;
-      PsiDirectory psiFile = PsiManager.getInstance(myProject).findDirectory(file);
-      if (psiFile != null) {
-        children.add(new PsiDirectoryNode(myProject, psiFile, getSettings()));
+    assert myProject != null;
+    List<NativeLibrary> libraries = new ArrayList<>();
+
+    for (Module module : ModuleManager.getInstance(myProject).getModules()) {
+      ApkFacet facet = ApkFacet.getInstance(module);
+      if (facet != null) {
+        libraries.addAll(facet.getConfiguration().NATIVE_LIBRARIES);
       }
     }
+
+    ViewSettings settings = getSettings();
+    List<AbstractTreeNode> children = new ArrayList<>();
+    for (NativeLibrary library : libraries) {
+      children.add(new LibraryNode(myProject, library, settings));
+    }
+
     return children;
   }
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    return myFiles.contains(file);
+    return isAncestor(myFolder, file, false /* not strict */);
   }
 
   @Override
   protected void update(PresentationData presentation) {
     presentation.setIcon(SourceRoot);
     presentation.addText(getSourceType().getName(), REGULAR_ATTRIBUTES);
+    presentation.addText(" (lib)", GRAY_ATTRIBUTES);
   }
 
   @Override
@@ -83,5 +96,11 @@ public class NdkGroupNode extends ProjectViewNode<List<VirtualFile>> {
   @NotNull
   private static AndroidSourceType getSourceType() {
     return AndroidSourceType.CPP;
+  }
+
+  @Override
+  @Nullable
+  public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
+    return getSourceType().getName();
   }
 }
