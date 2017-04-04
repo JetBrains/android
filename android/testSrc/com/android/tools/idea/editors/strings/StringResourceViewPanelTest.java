@@ -26,6 +26,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 
 import javax.swing.*;
@@ -67,27 +68,27 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
 
   public void testSetShowingOnlyKeysNeedingTranslations() {
     assertEquals(10, myTable.getRowCount());
-    assertEquals("key1", myTable.getValueAt(0, 0));
-    assertEquals("key10", myTable.getValueAt(1, 0));
-    assertEquals("key2", myTable.getValueAt(2, 0));
-    assertEquals("key3", myTable.getValueAt(3, 0));
-    assertEquals("key4", myTable.getValueAt(4, 0));
-    assertEquals("key5", myTable.getValueAt(5, 0));
-    assertEquals("key6", myTable.getValueAt(6, 0));
-    assertEquals("key7", myTable.getValueAt(7, 0));
-    assertEquals("key8", myTable.getValueAt(8, 0));
-    assertEquals("key9", myTable.getValueAt(9, 0));
+    assertEquals("key1", getValueAt(0, 0));
+    assertEquals("key10", getValueAt(1, 0));
+    assertEquals("key2", getValueAt(2, 0));
+    assertEquals("key3", getValueAt(3, 0));
+    assertEquals("key4", getValueAt(4, 0));
+    assertEquals("key5", getValueAt(5, 0));
+    assertEquals("key6", getValueAt(6, 0));
+    assertEquals("key7", getValueAt(7, 0));
+    assertEquals("key8", getValueAt(8, 0));
+    assertEquals("key9", getValueAt(9, 0));
 
     myTable.setRowFilter(new NeedsTranslationsRowFilter(false));
 
     assertEquals(7, myTable.getRowCount());
-    assertEquals("key1", myTable.getValueAt(0, 0));
-    assertEquals("key10", myTable.getValueAt(1, 0));
-    assertEquals("key3", myTable.getValueAt(2, 0));
-    assertEquals("key4", myTable.getValueAt(3, 0));
-    assertEquals("key7", myTable.getValueAt(4, 0));
-    assertEquals("key8", myTable.getValueAt(5, 0));
-    assertEquals("key9", myTable.getValueAt(6, 0));
+    assertEquals("key1", getValueAt(0, 0));
+    assertEquals("key10", getValueAt(1, 0));
+    assertEquals("key3", getValueAt(2, 0));
+    assertEquals("key4", getValueAt(3, 0));
+    assertEquals("key7", getValueAt(4, 0));
+    assertEquals("key8", getValueAt(5, 0));
+    assertEquals("key9", getValueAt(6, 0));
   }
 
   public void testRefilteringAfterEditingUntranslatableCell() {
@@ -95,12 +96,12 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     editCellAt(true, 0, StringResourceTableModel.UNTRANSLATABLE_COLUMN);
 
     assertEquals(6, myTable.getRowCount());
-    assertEquals("key10", myTable.getValueAt(0, 0));
-    assertEquals("key3", myTable.getValueAt(1, 0));
-    assertEquals("key4", myTable.getValueAt(2, 0));
-    assertEquals("key7", myTable.getValueAt(3, 0));
-    assertEquals("key8", myTable.getValueAt(4, 0));
-    assertEquals("key9", myTable.getValueAt(5, 0));
+    assertEquals("key10", getValueAt(0, 0));
+    assertEquals("key3", getValueAt(1, 0));
+    assertEquals("key4", getValueAt(2, 0));
+    assertEquals("key7", getValueAt(3, 0));
+    assertEquals("key8", getValueAt(4, 0));
+    assertEquals("key9", getValueAt(5, 0));
   }
 
   public void testRefilteringAfterEditingTranslationCells() {
@@ -108,12 +109,12 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     editCellAt("Key 3 en-rGB", 2, 6);
 
     assertEquals(6, myTable.getRowCount());
-    assertEquals("key1", myTable.getValueAt(0, 0));
-    assertEquals("key10", myTable.getValueAt(1, 0));
-    assertEquals("key4", myTable.getValueAt(2, 0));
-    assertEquals("key7", myTable.getValueAt(3, 0));
-    assertEquals("key8", myTable.getValueAt(4, 0));
-    assertEquals("key9", myTable.getValueAt(5, 0));
+    assertEquals("key1", getValueAt(0, 0));
+    assertEquals("key10", getValueAt(1, 0));
+    assertEquals("key4", getValueAt(2, 0));
+    assertEquals("key7", getValueAt(3, 0));
+    assertEquals("key8", getValueAt(4, 0));
+    assertEquals("key9", getValueAt(5, 0));
   }
 
   public void testSelectingCell() {
@@ -123,13 +124,14 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     assertEquals("Key 3 default", myPanel.myDefaultValueTextField.getTextField().getText());
   }
 
-  private void editCellAt(Object value, int row, int column) {
-    TableUtils.selectCellAt(myTable, row, column);
-    myTable.editCellAt(row, column, new MouseEvent(myTable, 0, 0, 0, 0, 0, 2, false, MouseEvent.BUTTON1));
+  private void editCellAt(@NotNull Object value, int viewRowIndex, int modelColumnIndex) {
+    int viewColumnIndex = myTable.convertColumnIndexToView(modelColumnIndex);
+    TableUtils.selectCellAt(myTable, viewRowIndex, viewColumnIndex);
+    myTable.editCellAt(viewRowIndex, viewColumnIndex, new MouseEvent(myTable, 0, 0, 0, 0, 0, 2, false, MouseEvent.BUTTON1));
 
     CellEditor cellEditor = myTable.getCellEditor();
 
-    if (column == StringResourceTableModel.UNTRANSLATABLE_COLUMN) {
+    if (modelColumnIndex == StringResourceTableModel.UNTRANSLATABLE_COLUMN) {
       Object component = ((DefaultCellEditor)cellEditor).getComponent();
       ((AbstractButton)component).setSelected((Boolean)value);
     }
@@ -138,5 +140,13 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
     }
 
     cellEditor.stopCellEditing();
+  }
+
+  private Object getValueAt(int row, int column) {
+    int fixed = myTable.getTotalColumnCount() - myTable.getColumnCount();
+    if (column < fixed) {
+      return myTable.getFixedColumnValueAt(row, column);
+    }
+    return myTable.getValueAt(row, column - fixed);
   }
 }

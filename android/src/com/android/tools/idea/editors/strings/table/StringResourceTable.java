@@ -19,6 +19,7 @@ import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.editors.strings.StringsWriteUtils;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.ui.TableUtils;
+import com.android.tools.swing.ui.FixedColumnTable;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.ide.PasteProvider;
@@ -29,7 +30,6 @@ import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.TableSpeedSearch;
-import com.intellij.ui.table.JBTable;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,9 +49,7 @@ import java.util.Map;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
 
-import static com.android.tools.idea.editors.strings.table.StringResourceTableModel.*;
-
-public final class StringResourceTable extends JBTable implements DataProvider, PasteProvider {
+public final class StringResourceTable extends FixedColumnTable implements DataProvider, PasteProvider {
   @NotNull
   private final AndroidFacet myFacet;
 
@@ -87,6 +85,7 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
     setCellSelectionEnabled(true);
     setDefaultEditor(String.class, editor);
     setDefaultRenderer(String.class, new StringsCellRenderer());
+    setFixedColumnCount(2);
     setRowSorter(new ThreeStateTableRowSorter<>(getModel()));
     new TableSpeedSearch(this);
 
@@ -125,7 +124,7 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
           return;
         }
 
-        Locale locale = getModel().getLocale(column);
+        Locale locale = getModel().getLocale(convertColumnIndexToModel(column));
 
         if (locale == null) {
           return;
@@ -185,12 +184,11 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
 
   @NotNull
   private Map<String, TableColumn> removeAllColumns() {
-    Map<String, TableColumn> map = Maps.newHashMapWithExpectedSize(columnModel.getColumnCount());
+    Map<String, TableColumn> map = Maps.newHashMapWithExpectedSize(getTotalColumnCount());
 
-    while (columnModel.getColumnCount() != 0) {
-      TableColumn column = columnModel.getColumn(0);
-
-      columnModel.removeColumn(column);
+    while (getTotalColumnCount() != 0) {
+      TableColumn column = getColumn(0);
+      removeColumn(column);
       map.put((String)column.getHeaderValue(), column);
     }
 
@@ -208,7 +206,7 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
   }
 
   private boolean includeColumn(int column) {
-    if (column < FIXED_COLUMN_COUNT) {
+    if (column < StringResourceTableModel.FIXED_COLUMN_COUNT) {
       return true;
     }
 
@@ -229,7 +227,7 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
     if (tableColumn == null) {
       tableColumn = new TableColumn(column);
 
-      if (column >= FIXED_COLUMN_COUNT && renderer != null) {
+      if (column >= StringResourceTableModel.FIXED_COLUMN_COUNT && renderer != null) {
         tableColumn.setHeaderRenderer(renderer);
       }
     }
@@ -253,12 +251,6 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
 
   public int getSelectedColumnModelIndex() {
     return convertColumnIndexToModel(getSelectedColumn());
-  }
-
-  public int[] getSelectedColumnModelIndices() {
-    return Arrays.stream(getSelectedColumns())
-      .map(this::convertColumnIndexToModel)
-      .toArray();
   }
 
   @Override
@@ -291,7 +283,7 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
     OptionalInt optionalWidth = getKeyColumnPreferredWidth();
 
     if (optionalWidth.isPresent()) {
-      columnModel.getColumn(KEY_COLUMN).setPreferredWidth(optionalWidth.getAsInt());
+      getColumn(StringResourceTableModel.KEY_COLUMN).setPreferredWidth(optionalWidth.getAsInt());
     }
 
     optionalWidth = getDefaultValueAndLocaleColumnPreferredWidths();
@@ -299,7 +291,7 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
     if (optionalWidth.isPresent()) {
       int width = optionalWidth.getAsInt();
 
-      IntStream.range(DEFAULT_VALUE_COLUMN, getColumnCount())
+      IntStream.range(convertColumnIndexToView(StringResourceTableModel.DEFAULT_VALUE_COLUMN), getColumnCount())
         .mapToObj(columnModel::getColumn)
         .forEach(column -> column.setPreferredWidth(width));
     }
@@ -310,15 +302,17 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
   @NotNull
   @VisibleForTesting
   public OptionalInt getKeyColumnPreferredWidth() {
-    return IntStream.range(0, getRowCount())
-      .map(row -> getPreferredWidth(getCellRenderer(row, KEY_COLUMN), getValueAt(row, KEY_COLUMN), row, KEY_COLUMN))
+    return IntStream.range(0, getModel().getRowCount())
+      .map(row -> getPreferredWidth(getCellRendererAtModel(row, StringResourceTableModel.KEY_COLUMN),
+                                    getModel().getValueAt(row, StringResourceTableModel.KEY_COLUMN), row,
+                                    StringResourceTableModel.KEY_COLUMN))
       .max();
   }
 
   @NotNull
   @VisibleForTesting
   public OptionalInt getDefaultValueAndLocaleColumnPreferredWidths() {
-    return IntStream.range(DEFAULT_VALUE_COLUMN, getColumnCount())
+    return IntStream.range(convertColumnIndexToView(StringResourceTableModel.DEFAULT_VALUE_COLUMN), getColumnCount())
       .map(column -> getPreferredWidth(getHeaderRenderer(column), getColumnName(column), -1, column))
       .max();
   }
@@ -346,7 +340,7 @@ public final class StringResourceTable extends JBTable implements DataProvider, 
     }
     else {
       int column = getSelectedColumn();
-      return column != KEY_COLUMN && column != UNTRANSLATABLE_COLUMN;
+      return column != StringResourceTableModel.KEY_COLUMN && column != StringResourceTableModel.UNTRANSLATABLE_COLUMN;
     }
   }
 
