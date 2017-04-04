@@ -22,6 +22,7 @@ import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.timing.Wait;
 import org.fest.swing.util.PatternTextMatcher;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,6 +59,7 @@ public class EspressoRecorderTest extends TestWithEmulator {
    *   </pre>
    * <p>
    */
+  @Ignore("https://code.google.com/p/android/issues/detail?id=290375")
   @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void addDependencyOnFly() throws Exception {
