@@ -38,4 +38,15 @@ public class SourceProviderContainerStub implements SourceProviderContainer {
   public SourceProvider getSourceProvider() {
     return mySourceProvider;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof SourceProviderContainer)) return false;
+    // If it is an stub, it should be the same
+    if (o instanceof SourceProviderContainerStub) return false;
+    SourceProviderContainer container = (SourceProviderContainer)o;
+    // Use other object equals
+    return container.equals(this);
+  }
 }

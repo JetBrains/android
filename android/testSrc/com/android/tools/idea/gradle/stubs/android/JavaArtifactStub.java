@@ -38,4 +38,15 @@ public class JavaArtifactStub extends BaseArtifactStub implements JavaArtifact {
   public void setMockablePlatformJar(@Nullable File mockablePlatformJar) {
     myMockablePlatformJar = mockablePlatformJar;
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    // Must be the same if an stub
+    if (o instanceof JavaArtifactStub) return false;
+    // Use other object equals instead
+    if (!(o instanceof JavaArtifact)) return false;
+    JavaArtifact artifact = (JavaArtifact)o;
+    return artifact.equals(this);
+  }
 }

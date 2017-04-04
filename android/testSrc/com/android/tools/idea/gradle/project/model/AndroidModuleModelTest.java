@@ -46,20 +46,20 @@ public class AndroidModuleModelTest extends AndroidGradleTestCase {
     String buildTypeName = "debug";
     BuildTypeContainer buildType = myAndroidModel.findBuildType(buildTypeName);
     assertNotNull(buildType);
-    assertSame(myAndroidProject.findBuildType(buildTypeName), buildType);
+    assertEquals( buildType, myAndroidProject.findBuildType(buildTypeName));
   }
 
   public void testFindProductFlavor() throws Exception {
     String flavorName = "fa";
     ProductFlavorContainer flavor = myAndroidModel.findProductFlavor(flavorName);
     assertNotNull(flavor);
-    assertSame(myAndroidProject.findProductFlavor(flavorName), flavor);
+    assertEquals(flavor, myAndroidProject.findProductFlavor(flavorName));
   }
 
   public void testGetSelectedVariant() throws Exception {
     Variant selectedVariant = myAndroidModel.getSelectedVariant();
     assertNotNull(selectedVariant);
-    assertSame(myAndroidProject.getFirstVariant(), selectedVariant);
+    assertEquals(selectedVariant, myAndroidProject.getFirstVariant());
   }
 
   public void testReadWriteObject() throws Exception {

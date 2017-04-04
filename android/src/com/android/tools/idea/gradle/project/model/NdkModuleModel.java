@@ -26,7 +26,10 @@ import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
@@ -203,8 +206,7 @@ public class NdkModuleModel implements ModuleModel {
   }
 
   /**
-   * A proxy object of the Native Android Gradle project is created and maintained for persisting the model data. The same proxy object is
-   * also used to visualize the model information in {@link InternalAndroidModelView}.
+   * A proxy object of the Native Android Gradle project is created and maintained for persisting the model data.
    *
    * <p>If the proxy operation is still going on, this method will be blocked until that is completed.
    *
@@ -218,8 +220,7 @@ public class NdkModuleModel implements ModuleModel {
   }
 
   /**
-   * A proxy object of the Native Android Gradle project is created and maintained for persisting the model data. The same proxy object is
-   * also used to visualize the model information in {@link InternalAndroidModelView}.
+   * A proxy object of the Native Android Gradle project is created and maintained for persisting the model data.
    *
    * <p>This method will return immediately if the proxy operation is already completed, or will be blocked until that is completed.
    */
