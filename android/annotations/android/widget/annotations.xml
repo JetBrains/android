@@ -306,6 +306,9 @@
   <item name="android.widget.CompoundButton void setButtonTintMode(android.graphics.PorterDuff.Mode) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.widget.CompoundButton void setOnCheckedChangeListener(android.widget.CompoundButton.OnCheckedChangeListener) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.widget.CursorAdapter android.database.Cursor runQueryOnBackgroundThread(java.lang.CharSequence)">
     <annotation name="android.support.annotation.WorkerThread" />
   </item>
@@ -555,11 +558,11 @@
   <item name="android.widget.ListPopupWindow void setPromptView(android.view.View) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.widget.ListView T findViewTraversal(int) 0">
+    <annotation name="android.support.annotation.IdRes" />
+  </item>
   <item name="android.widget.ListView android.graphics.drawable.Drawable getDivider()">
     <annotation name="android.support.annotation.Nullable" />
-  </item>
-  <item name="android.widget.ListView android.view.View findViewTraversal(int) 0">
-    <annotation name="android.support.annotation.IdRes" />
   </item>
   <item name="android.widget.ListView void setDivider(android.graphics.drawable.Drawable) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -593,11 +596,23 @@
   <item name="android.widget.PopupWindow int getMaxAvailableHeight(android.view.View, int, boolean) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.widget.PopupWindow int getSoftInputMode()">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING, android.view.WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
   <item name="android.widget.PopupWindow void setEnterTransition(android.transition.Transition) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.widget.PopupWindow void setExitTransition(android.transition.Transition) 0">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.PopupWindow void setSoftInputMode(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_UNSPECIFIED, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN, android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING, android.view.WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION}" />
+      <val name="flag" val="true" />
+    </annotation>
   </item>
   <item name="android.widget.ProgressBar android.content.res.ColorStateList getIndeterminateTintList()">
     <annotation name="android.support.annotation.Nullable" />
@@ -673,6 +688,12 @@
   </item>
   <item name="android.widget.SearchView void setQueryHint(java.lang.CharSequence) 0">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.widget.SimpleAdapter SimpleAdapter(android.content.Context, java.util.List&lt;? extends java.util.Map&lt;java.lang.String,?&gt;&gt;, int, java.lang.String[], int[]) 2">
+    <annotation name="android.support.annotation.LayoutRes" />
+  </item>
+  <item name="android.widget.SimpleAdapter SimpleAdapter(android.content.Context, java.util.List&lt;? extends java.util.Map&lt;java.lang.String,?&gt;&gt;, int, java.lang.String[], int[]) 4">
+    <annotation name="android.support.annotation.IdRes" />
   </item>
   <item name="android.widget.Spinner void setPopupBackgroundResource(int) 0">
     <annotation name="android.support.annotation.DrawableRes" />

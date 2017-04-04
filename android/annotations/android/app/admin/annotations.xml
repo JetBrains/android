@@ -3,19 +3,85 @@
   <item name="android.app.admin.DeviceAdminInfo android.content.ComponentName getComponent()">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.admin.DeviceAdminReceiver ACTION_DEVICE_ADMIN_DISABLED">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="explicitOnly" val="true" />
+    </annotation>
+  </item>
+  <item name="android.app.admin.DeviceAdminReceiver ACTION_DEVICE_ADMIN_DISABLE_REQUESTED">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="explicitOnly" val="true" />
+    </annotation>
+  </item>
+  <item name="android.app.admin.DeviceAdminReceiver ACTION_DEVICE_ADMIN_ENABLED">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="explicitOnly" val="true" />
+    </annotation>
+  </item>
+  <item name="android.app.admin.DeviceAdminReceiver ACTION_LOCK_TASK_ENTERING">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="explicitOnly" val="true" />
+    </annotation>
+  </item>
+  <item name="android.app.admin.DeviceAdminReceiver ACTION_LOCK_TASK_EXITING">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="explicitOnly" val="true" />
+    </annotation>
+  </item>
+  <item name="android.app.admin.DeviceAdminReceiver ACTION_PASSWORD_CHANGED">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="explicitOnly" val="true" />
+    </annotation>
+  </item>
+  <item name="android.app.admin.DeviceAdminReceiver ACTION_PASSWORD_EXPIRING">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="explicitOnly" val="true" />
+    </annotation>
+  </item>
+  <item name="android.app.admin.DeviceAdminReceiver ACTION_PASSWORD_FAILED">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="explicitOnly" val="true" />
+    </annotation>
+  </item>
+  <item name="android.app.admin.DeviceAdminReceiver ACTION_PASSWORD_SUCCEEDED">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="explicitOnly" val="true" />
+    </annotation>
+  </item>
+  <item name="android.app.admin.DeviceAdminReceiver ACTION_PROFILE_PROVISIONING_COMPLETE">
+    <annotation name="android.support.annotation.BroadcastBehavior">
+      <val name="explicitOnly" val="true" />
+    </annotation>
+  </item>
   <item name="android.app.admin.DeviceAdminReceiver void onBugreportFailed(android.content.Context, android.content.Intent, int) 2">
     <annotation name="android.support.annotation.IntDef">
       <val name="value" val="{android.app.admin.DeviceAdminReceiver.BUGREPORT_FAILURE_FAILED_COMPLETING, android.app.admin.DeviceAdminReceiver.BUGREPORT_FAILURE_FILE_NO_LONGER_AVAILABLE}" />
     </annotation>
   </item>
+  <item name="android.app.admin.DevicePolicyManager android.app.admin.DevicePolicyManager getParentProfileInstance(android.content.ComponentName)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.app.admin.DevicePolicyManager android.app.admin.DevicePolicyManager getParentProfileInstance(android.content.ComponentName) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager android.app.admin.SystemUpdatePolicy getSystemUpdatePolicy()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager android.os.Bundle getApplicationRestrictions(android.content.ComponentName, java.lang.String)">
+    <annotation name="android.support.annotation.WorkerThread" />
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.admin.DevicePolicyManager android.os.Bundle getApplicationRestrictions(android.content.ComponentName, java.lang.String) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.app.admin.DevicePolicyManager android.os.Bundle getUserRestrictions(android.content.ComponentName)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.app.admin.DevicePolicyManager android.os.Bundle getUserRestrictions(android.content.ComponentName) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager android.os.UserHandle createAndManageUser(android.content.ComponentName, java.lang.String, android.content.ComponentName, android.os.PersistableBundle, int)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.admin.DevicePolicyManager android.os.UserHandle createAndManageUser(android.content.ComponentName, java.lang.String, android.content.ComponentName, android.os.PersistableBundle, int) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -98,8 +164,11 @@
   <item name="android.app.admin.DevicePolicyManager boolean isPackageSuspended(android.content.ComponentName, java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
-  <item name="android.app.admin.DevicePolicyManager boolean isSecurityLoggingEnabled(android.content.ComponentName) 0">
+  <item name="android.app.admin.DevicePolicyManager boolean isProvisioningAllowed(java.lang.String) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager boolean isSecurityLoggingEnabled(android.content.ComponentName) 0">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.admin.DevicePolicyManager boolean isUninstallBlocked(android.content.ComponentName, java.lang.String) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -186,13 +255,19 @@
     <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.admin.DevicePolicyManager int getPermissionGrantState(android.content.ComponentName, java.lang.String, java.lang.String) 0">
-    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.admin.DevicePolicyManager int setStorageEncryption(android.content.ComponentName, boolean) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.admin.DevicePolicyManager java.lang.CharSequence getLongSupportMessage(android.content.ComponentName)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.app.admin.DevicePolicyManager java.lang.CharSequence getLongSupportMessage(android.content.ComponentName) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager java.lang.CharSequence getOrganizationName(android.content.ComponentName)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.admin.DevicePolicyManager java.lang.CharSequence getOrganizationName(android.content.ComponentName) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -200,26 +275,59 @@
   <item name="android.app.admin.DevicePolicyManager java.lang.CharSequence getShortSupportMessage(android.content.ComponentName) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.admin.DevicePolicyManager java.lang.String getAlwaysOnVpnPackage(android.content.ComponentName)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.app.admin.DevicePolicyManager java.lang.String getAlwaysOnVpnPackage(android.content.ComponentName) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager java.lang.String getApplicationRestrictionsManagingPackage(android.content.ComponentName)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.admin.DevicePolicyManager java.lang.String getApplicationRestrictionsManagingPackage(android.content.ComponentName) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.admin.DevicePolicyManager java.lang.String getCertInstallerPackage(android.content.ComponentName)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.app.admin.DevicePolicyManager java.lang.String getCertInstallerPackage(android.content.ComponentName) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.admin.DevicePolicyManager java.lang.String getWifiMacAddress(android.content.ComponentName)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.app.admin.DevicePolicyManager java.lang.String getWifiMacAddress(android.content.ComponentName) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager java.lang.String[] getAccountTypesWithManagementDisabled()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager java.lang.String[] setPackagesSuspended(android.content.ComponentName, java.lang.String[], boolean)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.admin.DevicePolicyManager java.lang.String[] setPackagesSuspended(android.content.ComponentName, java.lang.String[], boolean) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.admin.DevicePolicyManager java.lang.String[] setPackagesSuspended(android.content.ComponentName, java.lang.String[], boolean) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager java.util.List&lt;android.app.admin.SecurityLog.SecurityEvent&gt; retrievePreRebootSecurityLogs(android.content.ComponentName)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.app.admin.DevicePolicyManager java.util.List&lt;android.app.admin.SecurityLog.SecurityEvent&gt; retrievePreRebootSecurityLogs(android.content.ComponentName) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.admin.DevicePolicyManager java.util.List&lt;android.app.admin.SecurityLog.SecurityEvent&gt; retrieveSecurityLogs(android.content.ComponentName)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.app.admin.DevicePolicyManager java.util.List&lt;android.app.admin.SecurityLog.SecurityEvent&gt; retrieveSecurityLogs(android.content.ComponentName) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager java.util.List&lt;android.content.ComponentName&gt; getActiveAdmins()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager java.util.List&lt;android.os.PersistableBundle&gt; getTrustAgentConfiguration(android.content.ComponentName, android.content.ComponentName)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.admin.DevicePolicyManager java.util.List&lt;android.os.PersistableBundle&gt; getTrustAgentConfiguration(android.content.ComponentName, android.content.ComponentName) 0">
     <annotation name="android.support.annotation.Nullable" />
@@ -227,14 +335,26 @@
   <item name="android.app.admin.DevicePolicyManager java.util.List&lt;android.os.PersistableBundle&gt; getTrustAgentConfiguration(android.content.ComponentName, android.content.ComponentName) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.admin.DevicePolicyManager java.util.List&lt;byte[]&gt; getInstalledCaCerts(android.content.ComponentName)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
   <item name="android.app.admin.DevicePolicyManager java.util.List&lt;byte[]&gt; getInstalledCaCerts(android.content.ComponentName) 0">
     <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager java.util.List&lt;java.lang.String&gt; getCrossProfileWidgetProviders(android.content.ComponentName)">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.admin.DevicePolicyManager java.util.List&lt;java.lang.String&gt; getCrossProfileWidgetProviders(android.content.ComponentName) 0">
     <annotation name="android.support.annotation.NonNull" />
   </item>
+  <item name="android.app.admin.DevicePolicyManager java.util.List&lt;java.lang.String&gt; getPermittedAccessibilityServices(android.content.ComponentName)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.app.admin.DevicePolicyManager java.util.List&lt;java.lang.String&gt; getPermittedAccessibilityServices(android.content.ComponentName) 0">
     <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager java.util.List&lt;java.lang.String&gt; getPermittedInputMethods(android.content.ComponentName)">
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.admin.DevicePolicyManager java.util.List&lt;java.lang.String&gt; getPermittedInputMethods(android.content.ComponentName) 0">
     <annotation name="android.support.annotation.NonNull" />
@@ -290,6 +410,9 @@
   <item name="android.app.admin.DevicePolicyManager void setAlwaysOnVpnPackage(android.content.ComponentName, java.lang.String, boolean) 1">
     <annotation name="android.support.annotation.Nullable" />
   </item>
+  <item name="android.app.admin.DevicePolicyManager void setApplicationRestrictions(android.content.ComponentName, java.lang.String, android.os.Bundle)">
+    <annotation name="android.support.annotation.WorkerThread" />
+  </item>
   <item name="android.app.admin.DevicePolicyManager void setApplicationRestrictions(android.content.ComponentName, java.lang.String, android.os.Bundle) 0">
     <annotation name="android.support.annotation.Nullable" />
   </item>
@@ -330,6 +453,9 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.admin.DevicePolicyManager void setLockTaskPackages(android.content.ComponentName, java.lang.String[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.app.admin.DevicePolicyManager void setLockTaskPackages(android.content.ComponentName, java.lang.String[]) 1">
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.admin.DevicePolicyManager void setLongSupportMessage(android.content.ComponentName, java.lang.CharSequence) 0">
@@ -432,7 +558,7 @@
     <annotation name="android.support.annotation.NonNull" />
   </item>
   <item name="android.app.admin.DevicePolicyManager void setUninstallBlocked(android.content.ComponentName, java.lang.String, boolean) 0">
-    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.app.admin.DevicePolicyManager void setUserIcon(android.content.ComponentName, android.graphics.Bitmap) 0">
     <annotation name="android.support.annotation.NonNull" />
