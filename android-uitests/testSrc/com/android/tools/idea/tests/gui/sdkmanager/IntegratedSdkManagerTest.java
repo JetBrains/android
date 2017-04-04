@@ -45,6 +45,7 @@ import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 
 @RunWith(GuiTestRunner.class)
+@RunIn(TestGroup.PROJECT_WIZARD)
 public class IntegratedSdkManagerTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
