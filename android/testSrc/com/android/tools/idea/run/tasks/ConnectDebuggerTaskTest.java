@@ -36,7 +36,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Ignore;
 
 import java.io.File;
 import java.util.Arrays;
@@ -47,8 +46,13 @@ import java.util.concurrent.TimeUnit;
 
 import static com.android.utils.FileUtils.join;
 
-@Ignore("http://b/36808469")
 public class ConnectDebuggerTaskTest extends AndroidTestCase {
+
+  @Override
+  protected boolean shouldRunTest() {
+    // Ignore this class: b/36808469
+    return false;
+  }
 
   private static final String TEST_DEVICE_ID = "test_device_001";
   private static final String TEST_MANUFACTURER = "Google";
