@@ -64,7 +64,7 @@
     </annotation>
   </item>
   <item name="android.media.browse.MediaBrowser.MediaItem java.lang.String getMediaId()">
-    <annotation name="android.support.annotation.NonNull" />
+    <annotation name="android.support.annotation.Nullable" />
   </item>
   <item name="android.media.browse.MediaBrowser.SubscriptionCallback void onChildrenLoaded(java.lang.String, java.util.List&lt;android.media.browse.MediaBrowser.MediaItem&gt;) 0">
     <annotation name="android.support.annotation.NonNull" />
