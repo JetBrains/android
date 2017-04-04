@@ -84,8 +84,16 @@ final class AddLocaleAction extends AnAction {
 
   @NotNull
   private static Stream<Locale> getLocales(@NotNull String language) {
-    return LocaleManager.getRelevantRegions(language).stream()
+    Stream<Locale> regionStream = LocaleManager.getRelevantRegions(language).stream()
       .map(region -> Locale.create(new LocaleQualifier(null, language, region, null)));
+
+    return Stream.concat(Stream.of(createLocale(language)), regionStream);
+  }
+
+  @NotNull
+  private static Locale createLocale(@NotNull String language) {
+    String full = language.length() == 2 ? language : LocaleQualifier.BCP_47_PREFIX + language;
+    return Locale.create(new LocaleQualifier(full, language, null, null));
   }
 
   private void createItem(@NotNull Locale locale) {
