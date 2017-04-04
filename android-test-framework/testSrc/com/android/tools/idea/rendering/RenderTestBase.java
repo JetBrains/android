@@ -63,6 +63,15 @@ public abstract class RenderTestBase extends AndroidTestCase {
     RenderService.initializeRenderExecutor();
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      waitForRenderTaskDisposeToFinish();
+    } finally {
+      super.tearDown();
+    }
+  }
+
   protected RenderTask createRenderTask(VirtualFile file) throws Exception {
     Configuration configuration = getConfiguration(file, DEFAULT_DEVICE_ID, DEFAULT_THEME_STYLE);
     return createRenderTask(file, configuration);
@@ -191,5 +200,22 @@ public abstract class RenderTestBase extends AndroidTestCase {
     }
 
     return new File(System.getProperty("java.io.tmpdir")); //$NON-NLS-1$
+  }
+
+  /**
+   * Waits for any RenderTask dispose threads to finish
+   */
+  public static void waitForRenderTaskDisposeToFinish() {
+    Thread.getAllStackTraces().keySet().stream()
+      .filter(t -> t.getName().startsWith("RenderTask dispose"))
+      .forEach(t -> {
+        try {
+          t.join(10 * 1000); // 10s
+        }
+        catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      });
+
   }
 }
