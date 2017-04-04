@@ -44,6 +44,7 @@ import com.android.tools.idea.res.AssetRepositoryImpl;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -269,10 +270,13 @@ public class RenderTask implements IImageFactory {
 
     FutureTask<Void> disposeTask = new FutureTask<Void>(() -> {
       try {
+        ImmutableList<ListenableFuture<?>> currentRunningFutures;
         synchronized (myRunningFutures) {
-          // Wait for all current running operations to complete
-          Futures.successfulAsList(myRunningFutures).get(5, TimeUnit.SECONDS);
+          currentRunningFutures = ImmutableList.copyOf(myRunningFutures);
+          myRunningFutures.clear();
         }
+        // Wait for all current running operations to complete
+        Futures.successfulAsList(currentRunningFutures).get(5, TimeUnit.SECONDS);
       }
       catch (InterruptedException | ExecutionException e) {
         LOG.warn(e);
@@ -697,18 +701,22 @@ public class RenderTask implements IImageFactory {
 
     synchronized (myRunningFutures) {
       ListenableFuture<V> newFuture = RenderService.runAsyncRenderAction(callable);
-      myRunningFutures.add(newFuture);
       Futures.addCallback(newFuture, new FutureCallback<V>() {
         @Override
         public void onSuccess(@javax.annotation.Nullable V result) {
-          myRunningFutures.remove(newFuture);
+          synchronized (myRunningFutures) {
+            myRunningFutures.remove(newFuture);
+          }
         }
 
         @Override
         public void onFailure(Throwable ignored) {
-          myRunningFutures.remove(newFuture);
+          synchronized (myRunningFutures) {
+            myRunningFutures.remove(newFuture);
+          }
         }
       });
+      myRunningFutures.add(newFuture);
 
       return newFuture;
     }
