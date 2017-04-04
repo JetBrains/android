@@ -23,7 +23,6 @@ import org.jf.dexlib2.iface.reference.Reference;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreeNode;
 import java.util.Collections;
 import java.util.Comparator;
 
@@ -104,11 +103,11 @@ public abstract class DexElementNode extends DefaultMutableTreeNode {
 
   //TODO: does this belong here?
   //Or should it be ProguardSeedsMap::isSeed(Reference reference, ProguardMap map)
-  public boolean isSeed(@Nullable ProguardSeedsMap seedsMap, @Nullable ProguardMap map) {
-    if (seedsMap != null) {
+  public boolean isSeed(@Nullable ProguardSeedsMap seedsMap, @Nullable ProguardMap map, boolean checkChildren) {
+    if (seedsMap != null && checkChildren) {
       for (int i = 0, n = getChildCount(); i < n; i++) {
         DexElementNode node = getChildAt(i);
-        if (node.isSeed(seedsMap, map)) {
+        if (node.isSeed(seedsMap, map, checkChildren)) {
           return true;
         }
       }
