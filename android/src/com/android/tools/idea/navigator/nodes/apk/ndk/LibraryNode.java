@@ -28,45 +28,55 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
-import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
-import static com.intellij.icons.AllIcons.FileTypes.JavaClass;
-import static com.intellij.ui.JBColor.GRAY;
+import static com.intellij.icons.AllIcons.Modules.Library;
 import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
 
 public class LibraryNode extends ProjectViewNode<NativeLibrary> {
-  @NotNull private final NativeLibrary myLibrary;
+  @NotNull final NativeLibrary myLibrary;
+  @NotNull private final String myLibraryName;
 
   public LibraryNode(@NotNull Project project, @NotNull NativeLibrary library, @NotNull ViewSettings settings) {
     super(project, library, settings);
     myLibrary = library;
+    myLibraryName = getLibraryName();
+  }
+
+  @NotNull
+  private String getLibraryName() {
+    List<VirtualFile> files = myLibrary.files;
+    if (files.size() > 0) {
+      VirtualFile file = files.get(0);
+      return file.getNameWithoutExtension();
+    }
+    return myLibrary.name;
   }
 
   @Override
   @NotNull
   public Collection<? extends AbstractTreeNode> getChildren() {
-    List<String> sourceFolderPaths = myLibrary.sourceFolderPaths;
-    if (sourceFolderPaths.isEmpty()) {
-      return Collections.emptyList();
-    }
     assert myProject != null;
     List<AbstractTreeNode> children = new ArrayList<>();
-    LocalFileSystem fileSystem = LocalFileSystem.getInstance();
-    for (String path : sourceFolderPaths) {
-      VirtualFile folder = fileSystem.findFileByPath(path);
-      if (folder != null) {
-        PsiDirectory psiFile = PsiManager.getInstance(myProject).findDirectory(folder);
-        if (psiFile != null) {
-          children.add(new PsiDirectoryNode(myProject, psiFile, getSettings()));
+    ViewSettings settings = getSettings();
+    children.add(new LibraryFileNode(myProject, myLibrary, settings));
+
+    List<String> sourceFolderPaths = myLibrary.sourceFolderPaths;
+    if (!sourceFolderPaths.isEmpty()) {
+      LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+      for (String path : sourceFolderPaths) {
+        VirtualFile folder = fileSystem.findFileByPath(path);
+        if (folder != null) {
+          PsiDirectory psiFile = PsiManager.getInstance(myProject).findDirectory(folder);
+          if (psiFile != null) {
+            children.add(new PsiDirectoryNode(myProject, psiFile, settings));
+          }
         }
       }
     }
@@ -75,27 +85,21 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
 
   @Override
   public boolean contains(@NotNull VirtualFile file) {
-    return false;
+    return myLibrary.files.contains(file);
   }
 
   @Override
   protected void update(PresentationData presentation) {
-    presentation.setIcon(JavaClass);
-    boolean hasDebugSymbols = myLibrary.hasDebugSymbols;
-    SimpleTextAttributes attributes = hasDebugSymbols ? REGULAR_ATTRIBUTES : new SimpleTextAttributes(STYLE_WAVED, null, GRAY);
-    presentation.addText(myLibrary.name, attributes);
+    presentation.setIcon(Library);
+    presentation.addText(myLibraryName, REGULAR_ATTRIBUTES);
 
     String abis = Joiner.on(", ").join(myLibrary.abis);
     presentation.addText(" (" + abis + ")", GRAY_ATTRIBUTES);
-
-    if (!hasDebugSymbols) {
-      presentation.setTooltip("Library does not have debug symbols");
-    }
   }
 
   @Nullable
   @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
-    return myLibrary.name;
+    return myLibraryName;
   }
 }
