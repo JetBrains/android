@@ -27,6 +27,7 @@ import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.StateChartModel;
+import com.android.tools.adtui.model.Updater;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -51,7 +52,9 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.android.tools.profilers.ProfilerLayout.*;
 
@@ -190,7 +193,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     });
     JScrollPane scrollingThreads = new MyScrollPane();
     scrollingThreads.setViewportView(myThreads);
-    myThreads.setCellRenderer(new ThreadCellRenderer(myThreads));
+    myThreads.setCellRenderer(new ThreadCellRenderer(myThreads, stage.getStudioProfilers().getUpdater()));
     myThreads.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
     details.add(eventsComponent, new TabularLayout.Constraint(0, 0));
@@ -396,16 +399,27 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
   private static class ThreadCellRenderer implements ListCellRenderer<CpuThreadsModel.RangedCpuThread> {
 
+    /**
+     * Label to display the thread name on a cell.
+     */
     private final JLabel myLabel;
 
-    private final StateChart<CpuProfilerStage.ThreadState> myStateChart;
+    /**
+     * Maps a thread id to a {@link StateChartData} containing the chart that should be rendered on the cell corresponding to that thread.
+     */
+    private final Map<Integer, StateChartData> myStateCharts;
 
     /**
      * Keep the index of the item currently hovered.
      */
     private int myHoveredIndex = -1;
 
-    public ThreadCellRenderer(JList<CpuThreadsModel.RangedCpuThread> list) {
+    /**
+     * Updater responsible for updating the threads state charts.
+     */
+    private final Updater myUpdater;
+
+    public ThreadCellRenderer(JList<CpuThreadsModel.RangedCpuThread> list, Updater updater) {
       myLabel = new JLabel();
       myLabel.setFont(AdtUiUtils.DEFAULT_FONT);
       Border rightSeparator = BorderFactory.createMatteBorder(0, 0, 0, 1, ProfilerColors.THREAD_LABEL_BORDER);
@@ -413,8 +427,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       myLabel.setBorder(new CompoundBorder(rightSeparator, marginLeft));
       myLabel.setOpaque(true);
 
-      myStateChart = new StateChart<>(new StateChartModel<>(), ProfilerColors.THREAD_STATES);
-      myStateChart.setHeightGap(0.40f);
+      myUpdater = updater;
+
+      myStateCharts = new HashMap<>();
       list.addMouseMotionListener(new MouseAdapter() {
         @Override
         public void mouseMoved(MouseEvent e) {
@@ -437,11 +452,22 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       myLabel.setBackground(ProfilerColors.THREAD_LABEL_BACKGROUND);
       myLabel.setForeground(ProfilerColors.THREAD_LABEL_TEXT);
 
-      myStateChart.setModel(value.getModel());
+      // Instead of using just one statechart for the cell renderer and set its model here, we cache the statecharts
+      // corresponding to each thread and their models. StateChart#setModel is currently expensive and will make StateChart#render
+      // to be called. As this method can be called by Swing more often than our update cycle, we cache the models to avoid
+      // recalculating the render states. This causes the rendering time to be substantially improved.
+      int tid = value.getThreadId();
+      StateChartModel<CpuProfilerStage.ThreadState> model = value.getModel();
+      if (myStateCharts.containsKey(tid) && !model.equals(myStateCharts.get(tid).getModel())) {
+        // The model associated to the tid has changed. That might have happened because the tid was recycled and
+        // assigned to another thread. The current model needs to be unregistered.
+        myUpdater.unregister(myStateCharts.get(tid).getModel());
+      }
+      StateChart<CpuProfilerStage.ThreadState> stateChart = getOrCreateStateChart(tid, model);
       // 1 is index of the selected color, 0 is of the non-selected
       // See more: {@link ProfilerColors#THREAD_STATES}
-      myStateChart.getColors().setColorIndex(isSelected ? 1 : 0);
-      myStateChart.setOpaque(true);
+      stateChart.getColors().setColorIndex(isSelected ? 1 : 0);
+      stateChart.setOpaque(true);
 
       if (isSelected) {
         // Cell is selected. Update its background accordingly.
@@ -450,7 +476,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
         myLabel.setForeground(ProfilerColors.SELECTED_THREAD_LABEL_TEXT);
         // As the state chart is opaque the selected background wouldn't be visible
         // if we didn't set the opaqueness to false if the cell is selected.
-        myStateChart.setOpaque(false);
+        stateChart.setOpaque(false);
       }
       else if (myHoveredIndex == index) {
         // Cell is hovered. Draw the hover overlay over it.
@@ -460,8 +486,46 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       }
 
       panel.add(myLabel, new TabularLayout.Constraint(0, 0));
-      panel.add(myStateChart, new TabularLayout.Constraint(0, 0, 2));
+      panel.add(stateChart, new TabularLayout.Constraint(0, 0, 2));
       return panel;
+    }
+
+    /**
+     * Returns a {@link StateChart} corresponding to a given thread or create a new one if it doesn't exist.
+     */
+    private StateChart<CpuProfilerStage.ThreadState> getOrCreateStateChart(int tid, StateChartModel<CpuProfilerStage.ThreadState> model) {
+      if (myStateCharts.containsKey(tid) && myStateCharts.get(tid).getModel().equals(model)) {
+        // State chart is already saved on the map. Return it.
+        return myStateCharts.get(tid).getChart();
+      }
+      // The state chart corresponding to the thread is not stored on the map. Create a new one.
+      StateChart<CpuProfilerStage.ThreadState> stateChart = new StateChart<>(model, ProfilerColors.THREAD_STATES);
+      StateChartData data = new StateChartData(stateChart, model);
+      stateChart.setHeightGap(0.40f);
+      myStateCharts.put(tid, data);
+      myUpdater.register(model);
+      return stateChart;
+    }
+
+    /**
+     * Contains a state chart and its corresponding model.
+     */
+    private static class StateChartData {
+      private StateChart<CpuProfilerStage.ThreadState> myChart;
+      private StateChartModel<CpuProfilerStage.ThreadState> myModel;
+
+      public StateChartData(StateChart<CpuProfilerStage.ThreadState> chart, StateChartModel<CpuProfilerStage.ThreadState> model) {
+        myChart = chart;
+        myModel = model;
+      }
+
+      public StateChart<CpuProfilerStage.ThreadState> getChart() {
+        return myChart;
+      }
+
+      public StateChartModel<CpuProfilerStage.ThreadState> getModel() {
+        return myModel;
+      }
     }
   }
 }
