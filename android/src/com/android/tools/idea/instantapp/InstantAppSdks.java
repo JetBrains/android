@@ -32,6 +32,7 @@ import java.net.URISyntaxException;
 import static com.android.SdkConstants.FD_EXTRAS;
 import static com.android.repository.api.RepoPackage.PATH_SEPARATOR;
 import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
+import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
 
 /**
  * Responsible for providing InstantApp SDK.
@@ -81,7 +82,8 @@ public class InstantAppSdks {
 
   private static void installSdkIfNeeded() {
     ApplicationManager.getApplication().invokeAndWait(() -> {
-      int result = Messages.showYesNoDialog("Required Instant App SDK components not installed. Do you want to install it now?", "Instant Apps", null);
+      int result = Messages.showYesNoDialog(
+        "Required Instant App SDK components not installed. Do you want to install it now?", "Instant Apps", null);
       if (result == Messages.OK) {
         ModelWizardDialog dialog = createDialogForPaths(null, ImmutableList.of(INSTANT_APP_SDK_PATH));
         if (dialog != null) {
@@ -114,13 +116,16 @@ public class InstantAppSdks {
       }
       else if (StringUtil.isNotEmpty(sdkUrl)) {
         try {
-          File sdkRepo = new File(new URI(sdkUrl));
-          if (sdkRepo.exists() && sdkRepo.isDirectory()) {
-            String[] children = sdkRepo.list();
-            if (children != null) {
-              for (String child : children) {
-                if (child.startsWith("whsdk")) {
-                  myInstantAppSdkAvailable = true;
+          URI sdkUri = new URI(sdkUrl);
+          if (FILE_PROTOCOL.equals(sdkUri.getScheme())) {
+            File sdkRepo = new File(sdkUri);
+            if (sdkRepo.exists() && sdkRepo.isDirectory()) {
+              String[] children = sdkRepo.list();
+              if (children != null) {
+                for (String child : children) {
+                  if (child.startsWith("whsdk")) {
+                    myInstantAppSdkAvailable = true;
+                  }
                 }
               }
             }
