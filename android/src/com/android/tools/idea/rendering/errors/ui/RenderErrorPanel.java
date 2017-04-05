@@ -293,6 +293,11 @@ public class RenderErrorPanel extends JPanel implements ListDataListener, Dispos
       // Try to preserve the current selection
       myList.setSelectedIndex(currentSelectedIndex);
 
+      // If any severity level of issue is higher than WEAK_WARNING, display the panel. Otherwise minimize the panel.
+      boolean containsHighPriorityIssue =
+        orderedIssues.stream().anyMatch(issue -> issue.getSeverity().compareTo(HighlightSeverity.WEAK_WARNING) > 0);
+      setMinimized(!containsHighPriorityIssue);
+
       setVisible(myModel.getSize() > 0);
       updateTitlebarStyle();
       revalidate();
