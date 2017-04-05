@@ -44,7 +44,7 @@ public class StructureTreeDecorator {
   }
 
   @NotNull
-  static String toString(@NotNull NlComponent component) {
+  public static String toString(@NotNull NlComponent component) {
     ColoredTextContainer container = new StringBuilderContainer();
     append(container, component);
 
