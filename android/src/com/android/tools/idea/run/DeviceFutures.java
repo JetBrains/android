@@ -22,7 +22,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -59,7 +58,7 @@ public final class DeviceFutures {
     }
 
     try {
-      return Futures.get(Futures.allAsList(devices), ExecutionException.class);
+      return Futures.getChecked(Futures.allAsList(devices), ExecutionException.class);
     } catch (Exception e) {
       // This can happen if the process behind the future threw an exception.
       return null;
