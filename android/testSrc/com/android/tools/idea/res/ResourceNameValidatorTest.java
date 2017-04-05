@@ -15,18 +15,13 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -98,30 +93,14 @@ public class ResourceNameValidatorTest extends AndroidTestCase {
   public void testIds2() throws Exception {
     final Map<ResourceType, ListMultimap<String, ResourceItem>> map = Maps.newHashMap();
     ListMultimap<String, ResourceItem> multimap = ArrayListMultimap.create();
-    map.put(ResourceType.ID, multimap);
     multimap.put("foo1", new ResourceItem("foo1", null, ResourceType.ID, null, null));
     multimap.put("foo3", new ResourceItem("foo3", null, ResourceType.ID, null, null));
     multimap.put("foo.4", new ResourceItem("foo.4", null, ResourceType.ID, null, null));
     multimap.put("foo_5", new ResourceItem("foo_5", null, ResourceType.ID, null, null));
-    LocalResourceRepository resources = new LocalResourceRepository("unit test") {
-      @NonNull
-      @Override
-      protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
-        return map;
-      }
 
-      @Nullable
-      @Override
-      protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
-        return map.get(type);
-      }
+    LocalResourceRepository resources = new TestLocalResourceRepository();
+    resources.getItems().put(null, ResourceType.ID, multimap);
 
-      @NotNull
-      @Override
-      protected Set<VirtualFile> computeResourceDirs() {
-        return ImmutableSet.of();
-      }
-    };
     ResourceNameValidator validator = ResourceNameValidator.create(false, resources, ResourceType.ID);
     assertEquals("foo1 already exists", validator.getErrorText("foo1"));
     assertEquals(null, validator.getErrorText("foo2"));

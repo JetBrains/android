@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.ide.common.res2.ResourceRepository;
+import com.android.ide.common.res2.ResourceTable;
 import com.android.ide.common.resources.TestResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.util.Pair;
@@ -35,7 +36,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
 import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
@@ -45,7 +45,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   private static final String LIBRARY_NAME = "com.test:test-library:1.0.0";
 
   public void test() throws Exception {
-    final ResourceRepository repository = TestResourceRepository.createRes2(false, new Object[]{
+    final ResourceRepository repository = TestResourceRepository.createRes2(new Object[]{
       "layout/layout1.xml", "<!--contents doesn't matter-->",
 
       "layout-land/layout1.xml", "<!--contents doesn't matter-->",
@@ -85,7 +85,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
                                "</resources>\n",});
     LocalResourceRepository resources = new LocalResourceRepositoryDelegate("test", repository);
     AppResourceRepository appResources = new AppResourceRepository(myFacet, Collections.singletonList(resources),
-                                                                   Collections.<FileResourceRepository>emptyList());
+                                                                   Collections.emptyList());
 
     ResourceClassGenerator generator = ResourceClassGenerator.create(appResources);
     assertNotNull(generator);
@@ -183,7 +183,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
   }
 
   public void testStyleableMerge() throws Exception {
-    final ResourceRepository repositoryA = TestResourceRepository.createRes2(false, new Object[]{
+    final ResourceRepository repositoryA = TestResourceRepository.createRes2(new Object[]{
       "values/styles.xml", "" +
                            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                            "<resources>\n" +
@@ -267,14 +267,20 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
 
     @NonNull
     @Override
-    protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
+    protected ResourceTable getFullTable() {
       return myDelegate.getItems();
     }
 
     @Nullable
     @Override
-    protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
-      return myDelegate.getItems().get(type);
+    protected ListMultimap<String, ResourceItem> getMap(@Nullable String namespace, @NonNull ResourceType type, boolean create) {
+      return myDelegate.getItems().get(namespace, type);
+    }
+
+    @NonNull
+    @Override
+    public Set<String> getNamespaces() {
+      return myDelegate.getNamespaces();
     }
 
     @NotNull
