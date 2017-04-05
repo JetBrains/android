@@ -21,13 +21,10 @@ import com.android.build.OutputFile;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Objects;
 
 public class OutputFileStub implements OutputFile {
 
   private final File myOutputFile;
-  private String myOutputType = "outputType";
 
   public OutputFileStub(File outputFile) {
     myOutputFile = outputFile;
@@ -36,33 +33,24 @@ public class OutputFileStub implements OutputFile {
   @NonNull
   @Override
   public String getOutputType() {
-    return myOutputType;
+    throw new UnsupportedOperationException();
   }
 
   @NonNull
   @Override
   public Collection<String> getFilterTypes() {
-    return Collections.emptyList();
+    throw new UnsupportedOperationException();
   }
 
   @NonNull
   @Override
   public Collection<FilterData> getFilters() {
-    return Collections.emptyList();
+    throw new UnsupportedOperationException();
   }
 
   @NonNull
   @Override
   public File getOutputFile() {
     return myOutputFile;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof OutputFile)) return false;
-    OutputFile file = (OutputFile)o;
-    return Objects.equals(getOutputFile(), file.getOutputFile()) &&
-           Objects.equals(getOutputType(), file.getOutputType());
   }
 }

@@ -44,11 +44,8 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
     myFlavor = new ProductFlavorStub(flavorName);
     mySourceProvider = new SourceProviderStub(fileStructure);
     myInstrumentationTestSourceProvider = new SourceProviderStub(fileStructure);
-
-    SourceProviderContainerStub extraArtifactStub = new SourceProviderContainerStub(AndroidProject.ARTIFACT_ANDROID_TEST, myInstrumentationTestSourceProvider);
-    ((SourceProviderStub)extraArtifactStub.getSourceProvider()).setManifestFile("src/" + flavorName + "/manifest.xml");
-    myExtraArtifactSourceProviders.add(extraArtifactStub);
-
+    myExtraArtifactSourceProviders.add(
+      new SourceProviderContainerStub(AndroidProject.ARTIFACT_ANDROID_TEST, myInstrumentationTestSourceProvider));
     setUpPaths(flavorName);
   }
 
@@ -96,16 +93,5 @@ public class ProductFlavorContainerStub implements ProductFlavorContainer {
   @NotNull
   public SourceProviderStub getInstrumentationTestSourceProvider() {
     return myInstrumentationTestSourceProvider;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof ProductFlavorContainer)) return false;
-    // Assume different if both are Stubs and are not the same object
-    if (o instanceof ProductFlavorContainerStub) return false;
-    // Assume the other object will have an equals method
-    ProductFlavorContainer container = (ProductFlavorContainer)o;
-    return container.equals(this);
   }
 }

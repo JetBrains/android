@@ -21,7 +21,10 @@ import com.android.builder.model.ClassField;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Creates a version of {@link BaseConfig} with default values, used for testing {@link IdeAndroidProject}.
@@ -122,16 +125,5 @@ public class IdeBaseConfigStub implements BaseConfig {
   @Nullable
   public File getMultiDexKeepProguard() {
     return myMultiDexKeepProguard;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    // Must be the same if it is an stub
-    if (o instanceof IdeBaseConfigStub) return false;
-    // Use other object equals
-    if (!(o instanceof BaseConfig)) return false;
-    BaseConfig config = (BaseConfig)o;
-    return config.equals(this);
   }
 }

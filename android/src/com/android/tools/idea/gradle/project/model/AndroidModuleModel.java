@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
-import com.android.tools.idea.model.ide.IdeAndroidProject;
+import com.android.tools.idea.model.IdeAndroidProject;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -55,11 +55,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
+import static com.android.tools.idea.gradle.util.ProxyUtil.reproxy;
 import static com.android.tools.lint.detector.api.LintUtils.convertVersion;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.find;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
@@ -81,10 +83,12 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull private ProjectSystemId myProjectSystemId;
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
+  @NotNull private AndroidProject myAndroidProject;
 
   @NotNull private transient AndroidModelFeatures myFeatures;
   @Nullable private transient GradleVersion myModelVersion;
-  @NotNull private AndroidProject myIdeAndroidProject;
+  @Nullable private transient CountDownLatch myCopyAndroidProjectLatch;
+  @Nullable private AndroidProject myCopyAndroidProject;
   @NotNull private String mySelectedVariantName;
 
   private transient VirtualFile myRootDir;
@@ -124,11 +128,22 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;
     myRootDirPath = rootDirPath;
-
-    myIdeAndroidProject = new IdeAndroidProject(androidProject);
+    myAndroidProject = androidProject;
 
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
+
+    // Create a copy of the project to avoid calling its methods during every serialization operation and also schedule it to run
+    // asynchronously to avoid blocking the project sync operation for copy to complete.
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      myCopyAndroidProjectLatch = new CountDownLatch(1);
+      try {
+        //myCopyAndroidProject = new IdeAndroidProject(myAndroidProject);
+        myCopyAndroidProject = reproxy(AndroidProject.class, myAndroidProject);
+      } finally {
+        myCopyAndroidProjectLatch.countDown();
+      }
+    });
 
     populateBuildTypesByName();
     populateProductFlavorsByName();
@@ -138,21 +153,21 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   private void populateBuildTypesByName() {
-    for (BuildTypeContainer container : myIdeAndroidProject.getBuildTypes()) {
+    for (BuildTypeContainer container : myAndroidProject.getBuildTypes()) {
       String name = container.getBuildType().getName();
       myBuildTypesByName.put(name, container);
     }
   }
 
   private void populateProductFlavorsByName() {
-    for (ProductFlavorContainer container : myIdeAndroidProject.getProductFlavors()) {
+    for (ProductFlavorContainer container : myAndroidProject.getProductFlavors()) {
       String name = container.getProductFlavor().getName();
       myProductFlavorsByName.put(name, container);
     }
   }
 
   private void populateVariantsByName() {
-    for (Variant variant : myIdeAndroidProject.getVariants()) {
+    for (Variant variant : myAndroidProject.getVariants()) {
       myVariantsByName.put(variant.getName(), variant);
     }
   }
@@ -345,14 +360,14 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Override
   @NotNull
   public List<SourceProvider> getAllSourceProviders() {
-    Collection<Variant> variants = myIdeAndroidProject.getVariants();
+    Collection<Variant> variants = myAndroidProject.getVariants();
     List<SourceProvider> providers = Lists.newArrayList();
 
     // Add main source set
     providers.add(getDefaultSourceProvider());
 
     // Add all flavors
-    Collection<ProductFlavorContainer> flavors = myIdeAndroidProject.getProductFlavors();
+    Collection<ProductFlavorContainer> flavors = myAndroidProject.getProductFlavors();
     for (ProductFlavorContainer pfc : flavors) {
       providers.add(pfc.getSourceProvider());
     }
@@ -366,7 +381,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     }
 
     // Add all the build types
-    Collection<BuildTypeContainer> buildTypes = myIdeAndroidProject.getBuildTypes();
+    Collection<BuildTypeContainer> buildTypes = myAndroidProject.getBuildTypes();
     for (BuildTypeContainer btc : buildTypes) {
       providers.add(btc.getSourceProvider());
     }
@@ -392,7 +407,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Override
   public Set<String> getAllApplicationIds() {
     Set<String> ids = Sets.newHashSet();
-    for (Variant v : myIdeAndroidProject.getVariants()) {
+    for (Variant v : myAndroidProject.getVariants()) {
       String applicationId = v.getMergedFlavor().getApplicationId();
       if (applicationId != null) {
         ids.add(applicationId);
@@ -545,7 +560,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @Override
   public boolean isGenerated(@NotNull VirtualFile file) {
-    VirtualFile buildFolder = findFileByIoFile(myIdeAndroidProject.getBuildFolder(), false);
+    VirtualFile buildFolder = findFileByIoFile(myAndroidProject.getBuildFolder(), false);
     if (buildFolder != null && isAncestor(buildFolder, file, false)) {
       return true;
     }
@@ -557,7 +572,42 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    */
   @NotNull
   public AndroidProject getAndroidProject() {
-    return myIdeAndroidProject;
+    return myAndroidProject;
+  }
+
+  /**
+   * A copy object of the Android-Gradle project is created and maintained for persisting the Android model data. The same copy object is
+   * also used to visualize the model information in {@link InternalAndroidModelView}.
+   *
+   * <p>If the copy operation is still going on, this method will be blocked until that is completed.
+   *
+   * @return the copy object of the imported Android-Gradle project.
+   * @see IdeAndroidProject
+   */
+  @NotNull
+  public AndroidProject waitForAndGetCopyAndroidProject() {
+    waitForAndGetCopyAndroidProject();
+
+    assert myCopyAndroidProject != null;
+    return myCopyAndroidProject;
+  }
+
+  /**
+   * A copy object of the Android-Gradle project is created and maintained for persisting the Android model data. The same copy object is
+   * also used to visualize the model information in {@link InternalAndroidModelView}.
+   *
+   * <p>This method will return immediately if the copy operation is already completed, or will be blocked until that is completed.
+   */
+  public void waitForCopyAndroidProject() {
+    if (myCopyAndroidProjectLatch != null) {
+      try {
+        myCopyAndroidProjectLatch.await();
+      }
+      catch (InterruptedException e) {
+        getLogger().error(e);
+        Thread.currentThread().interrupt();
+      }
+    }
   }
 
   @NotNull
@@ -642,7 +692,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @Nullable
   public LanguageLevel getJavaLanguageLevel() {
-    JavaCompileOptions compileOptions = myIdeAndroidProject.getJavaCompileOptions();
+    JavaCompileOptions compileOptions = myAndroidProject.getJavaCompileOptions();
     String sourceCompatibility = compileOptions.getSourceCompatibility();
     return LanguageLevel.parse(sourceCompatibility);
   }
@@ -739,18 +789,18 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Nullable
   public Collection<SyncIssue> getSyncIssues() {
     if (getFeatures().isIssueReportingSupported()) {
-      return myIdeAndroidProject.getSyncIssues();
+      return myAndroidProject.getSyncIssues();
     }
     return null;
   }
 
   @Nullable
   public SourceFileContainerInfo containsSourceFile(@NotNull File file) {
-    ProductFlavorContainer defaultConfig = myIdeAndroidProject.getDefaultConfig();
+    ProductFlavorContainer defaultConfig = myAndroidProject.getDefaultConfig();
     if (containsSourceFile(defaultConfig, file)) {
       return new SourceFileContainerInfo();
     }
-    for (Variant variant : myIdeAndroidProject.getVariants()) {
+    for (Variant variant : myAndroidProject.getVariants()) {
       AndroidArtifact artifact = variant.getMainArtifact();
       if (containsSourceFile(artifact, file)) {
         return new SourceFileContainerInfo(variant, artifact);
@@ -864,7 +914,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     out.writeObject(myModuleName);
     out.writeObject(myRootDirPath);
 
-    out.writeObject(myIdeAndroidProject);
+    waitForCopyAndroidProject();
+    out.writeObject(myCopyAndroidProject);
 
     out.writeObject(mySelectedVariantName);
   }
@@ -873,7 +924,8 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myProjectSystemId = (ProjectSystemId)in.readObject();
     myModuleName = (String)in.readObject();
     myRootDirPath = (File)in.readObject();
-    myIdeAndroidProject = (AndroidProject)in.readObject();
+    myAndroidProject = (AndroidProject)in.readObject();
+    myCopyAndroidProject = myAndroidProject;
 
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
@@ -892,7 +944,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   private void parseAndSetModelVersion() {
     // Old plugin versions do not return model version.
-    myModelVersion = GradleVersion.tryParse(myIdeAndroidProject.getModelVersion());
+    myModelVersion = GradleVersion.tryParse(myAndroidProject.getModelVersion());
   }
 
   /**

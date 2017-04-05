@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.stubs.android.*;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -36,7 +36,6 @@ import java.util.List;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
-import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link ConflictSet}
@@ -46,7 +45,6 @@ public class ConflictSetTest extends IdeaTestCase {
   private AndroidModuleModel myApp;
   private AndroidModuleModel myLib;
   private String myLibGradlePath;
-  private VariantStub myVariant;
 
   @Override
   protected void setUp() throws Exception {
@@ -79,7 +77,7 @@ public class ConflictSetTest extends IdeaTestCase {
     AndroidProjectStub project = new AndroidProjectStub("app");
     VariantStub variant = project.addVariant("debug");
 
-    myApp = spy(new AndroidModuleModel(myModule.getName(), rootDirPath, project, variant.getName()));
+    myApp = new AndroidModuleModel(myModule.getName(), rootDirPath, project, variant.getName());
   }
 
   private void setUpLib() {
@@ -87,9 +85,9 @@ public class ConflictSetTest extends IdeaTestCase {
 
     AndroidProjectStub project = new AndroidProjectStub("lib");
     project.setProjectType(PROJECT_TYPE_LIBRARY);
-    myVariant = project.addVariant("debug");
+    VariantStub variant = project.addVariant("debug");
 
-    myLib = spy(new AndroidModuleModel(myModule.getName(), moduleFilePath.getParentFile(), project, myVariant.getName()));
+    myLib = new AndroidModuleModel(myModule.getName(), moduleFilePath.getParentFile(), project, variant.getName());
   }
 
   private void setUpMainModuleAsApp() {
@@ -144,36 +142,24 @@ public class ConflictSetTest extends IdeaTestCase {
   }
 
   public void testFindSelectionConflictsWithoutConflict() {
-    // Make android model use external variant since AndroidProject is a copy
-    doReturn(myVariant).when(myApp).getSelectedVariant();
-
     setUpDependencyOnLibrary("debug");
     List<Conflict> conflicts = ConflictSet.findConflicts(myProject).getSelectionConflicts();
     assertTrue(conflicts.isEmpty());
   }
 
   public void testFindSelectionConflictsWithoutEmptyVariantDependency() {
-    // Make android model use external variant since AndroidProject is a copy
-    doReturn(myVariant).when(myApp).getSelectedVariant();
-
     setUpDependencyOnLibrary("");
     List<Conflict> conflicts = ConflictSet.findConflicts(myProject).getSelectionConflicts();
     assertTrue(conflicts.isEmpty());
   }
 
   public void testFindSelectionConflictsWithoutNullVariantDependency() {
-    // Make android model use external variant since AndroidProject is a copy
-    doReturn(myVariant).when(myApp).getSelectedVariant();
-
     setUpDependencyOnLibrary(null);
     List<Conflict> conflicts = ConflictSet.findConflicts(myProject).getSelectionConflicts();
     assertTrue(conflicts.isEmpty());
   }
 
   public void testFindSelectionConflictsWithConflict() {
-    // Make android model use external variant since AndroidProject is a copy
-    doReturn(myVariant).when(myApp).getSelectedVariant();
-
     setUpDependencyOnLibrary("release");
     List<Conflict> conflicts = ConflictSet.findConflicts(myProject).getSelectionConflicts();
     assertEquals(1, conflicts.size());

@@ -15,8 +15,13 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.annotations.NonNull;
 import com.android.build.OutputFile;
-import com.android.builder.model.*;
+import com.android.builder.model.AndroidArtifact;
+import com.android.builder.model.AndroidArtifactOutput;
+import com.android.builder.model.ClassField;
+import com.android.builder.model.NativeLibrary;
+import com.android.builder.model.InstantRun;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -39,9 +44,8 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
     super(name, dirName, new DependenciesStub(), buildType, fileStructure);
     myApplicationId = "app." + buildType.toLowerCase();
     myOutputs = Arrays.<AndroidArtifactOutput>asList(
-      new AndroidArtifactOutputStub(name + "-" + buildType, Arrays.<OutputFile>asList(
+      new AndroidArtifactOutputStub(Arrays.<OutputFile>asList(
         new OutputFileStub(new File(name + "-" + buildType + ".apk")))));
-    myInstantRun = new InstantRunStub(new File(name + "-" + buildType + "-infoFile"), false, 0);
   }
 
   @Override
@@ -52,13 +56,13 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
 
   @Override
   public boolean isSigned() {
-    return false;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   @Nullable
   public String getSigningConfigName() {
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -99,13 +103,13 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   @Override
   @NotNull
   public Map<String, ClassField> getBuildConfigFields() {
-    return Collections.emptyMap();
+    throw new UnsupportedOperationException();
   }
 
   @Override
   @NotNull
   public Map<String, ClassField> getResValues() {
-    return Collections.emptyMap();
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -126,16 +130,5 @@ public class AndroidArtifactStub extends BaseArtifactStub implements AndroidArti
   public void addGeneratedResourceFolder(@NotNull String path) {
     File directory = myFileStructure.createProjectDir(path);
     myGeneratedResourceFolders.add(directory);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    // Should be the same if it is an stub
-    if ((o instanceof AndroidArtifactStub)) return false;
-    //Use other object equals
-    if (!(o instanceof AndroidArtifact)) return false;
-    AndroidArtifact artifact = (AndroidArtifact)o;
-    return artifact.equals(this);
   }
 }
