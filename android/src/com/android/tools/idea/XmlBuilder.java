@@ -30,6 +30,7 @@ public final class XmlBuilder {
     NULL,
     START_TAG,
     ATTRIBUTE,
+    CHARACTER_DATA,
     END_TAG
   }
 
@@ -80,6 +81,11 @@ public final class XmlBuilder {
   }
 
   @NotNull
+  public XmlBuilder attribute(@NotNull String name, @NotNull String value) {
+    return attribute("", name, value);
+  }
+
+  @NotNull
   public XmlBuilder attribute(@NotNull String namespacePrefix, @NotNull String name, @NotNull String value) {
     indent();
 
@@ -96,6 +102,23 @@ public final class XmlBuilder {
       .append("\"\n");
 
     myLastAppendedConstruct = Construct.ATTRIBUTE;
+    return this;
+  }
+
+  @NotNull
+  public XmlBuilder characterData(@NotNull String data) {
+    if (myLastAppendedConstruct.equals(Construct.START_TAG) || myLastAppendedConstruct.equals(Construct.ATTRIBUTE)) {
+      int length = myStringBuilder.length();
+      myStringBuilder.replace(length - 1, length, ">\n");
+    }
+
+    indent();
+
+    myStringBuilder
+      .append(data)
+      .append('\n');
+
+    myLastAppendedConstruct = Construct.CHARACTER_DATA;
     return this;
   }
 
