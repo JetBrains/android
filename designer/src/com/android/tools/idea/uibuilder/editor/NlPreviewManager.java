@@ -104,8 +104,13 @@ public class NlPreviewManager implements ProjectComponent {
     return AndroidBundle.message("android.layout.preview.tool.window.title");
   }
 
+  @NotNull
+  protected NlPreviewForm createPreviewForm() {
+    return new NlPreviewForm(this);
+  }
+
   protected void initToolWindow() {
-    myToolWindowForm = new NlPreviewForm(this);
+    myToolWindowForm = createPreviewForm();
     final String toolWindowId = getToolWindowId();
     myToolWindow =
       ToolWindowManager.getInstance(myProject).registerToolWindow(toolWindowId, false, ToolWindowAnchor.RIGHT, myProject, true);
