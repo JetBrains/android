@@ -18,15 +18,21 @@ package com.android.tools.idea.instantapp;
 import com.android.builder.model.AndroidAtom;
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.Library;
+import com.android.ddmlib.CollectingOutputReceiver;
+import com.android.ddmlib.IDevice;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.model.MergedManifest;
+import com.google.common.base.Splitter;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +42,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -280,5 +288,45 @@ public class InstantApps {
       // Ignore
       return null;
     }
+  }
+
+  public static boolean isPostO(IDevice device) {
+    AndroidVersion version = device.getVersion();
+
+    // Previews of O have api level 25, so comparing with #isGreaterOrEqualThan(apiLevel) doesn't work here.
+    return version.compareTo(25, "O") >= 0;
+  }
+
+  public static boolean isLoggedInGoogleAccount(@NotNull IDevice device, boolean showDialog) throws Exception {
+    // TODO: delete this when Google accounts are not needed anymore
+
+    CountDownLatch latch = new CountDownLatch(1);
+    CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);
+    try {
+      device.executeShellCommand("dumpsys account", receiver);
+      latch.await(500, TimeUnit.MILLISECONDS);
+    }
+    catch (Exception e) {
+      throw new Exception("Couldn't get account in device", e);
+    }
+
+    String output = receiver.getOutput();
+
+    Iterable<String> lines = Splitter.on("\n").split(output);
+    for (String line : lines) {
+      line = line.trim();
+      if (line.startsWith("Account {")) {
+        if (line.contains("type=com.google")) {
+          return true;
+        }
+      }
+    }
+
+    if (showDialog) {
+      ApplicationManager.getApplication().invokeLater(
+        () -> Messages.showMessageDialog("Device not logged in a Google account", "Instant App", null));
+    }
+
+    return false;
   }
 }
