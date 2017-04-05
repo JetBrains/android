@@ -151,4 +151,21 @@ public class NewModuleTest {
       .waitForGradleProjectSyncToFinish();
     assertAbout(file()).that(new File(guiTest.getProjectPath(), "library-module")).isDirectory();
   }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test
+  public void createNewCloudModule() throws Exception {
+    guiTest.importSimpleApplication()
+      .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
+      .chooseModuleType("Google Cloud Module")
+      .clickNextToStep("New Google Cloud Module")
+      .setModuleName("backend")
+      .setPackageName("com.example.backend")
+      .clickFinish()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("backend/src/main/java/com/example/backend/MyBean.java")
+      .open("backend/src/main/java/com/example/backend/MyEndpoint.java")
+      .open("backend/src/main/webapp/index.html");
+  }
 }
