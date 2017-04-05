@@ -67,6 +67,10 @@ import java.nio.file.Paths;
   com.android.tools.idea.npw.project.AndroidGradleModuleUtilsTest.class,
   com.android.tools.idea.instantapp.InstantAppsTest.class,
   com.android.tools.idea.npw.importing.SourceToGradleModuleStepTest.class,
+  com.android.tools.idea.instantapp.MultiAtomSupportTest.class,
+
+  // http://b/36872873
+  com.android.tools.idea.ddms.adb.AdbServiceTest.class,
 })
 public class IdeaTestSuite {
 
