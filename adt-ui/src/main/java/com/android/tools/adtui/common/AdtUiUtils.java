@@ -15,6 +15,8 @@
  */
 package com.android.tools.adtui.common;
 
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.AppUIUtil;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBFont;
@@ -23,6 +25,8 @@ import com.intellij.util.ui.JBUI;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
 
 import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
 
@@ -34,7 +38,21 @@ public final class AdtUiUtils {
   /**
    * Default font to be used in the profiler UI.
    */
-  public static final JBFont DEFAULT_FONT = JBFont.create(new Font(null, Font.PLAIN, 10));
+  private static final float FONT_DEFAULT_SIZE = 10f;
+  private static final JBFont ROBOTO_BOLD = load("/fonts/Roboto-Bold.ttf", FONT_DEFAULT_SIZE);
+  private static final JBFont ROBOTO_MEDIUM = load("/fonts/Roboto-Medium.ttf", FONT_DEFAULT_SIZE);
+  private static final JBFont ROBOTO_REGULAR = load("/fonts/Roboto-Regular.ttf", FONT_DEFAULT_SIZE);
+  public static final JBFont FONT_DEFAULT = ROBOTO_REGULAR;
+  public static final JBFont FONT_DEFAULT_TITLE = ROBOTO_MEDIUM.deriveFont(11f);
+  public static final JBFont FONT_PROFILER_TITLE = ROBOTO_MEDIUM.deriveFont(11f);
+  public static final JBFont FONT_TIMELINE = ROBOTO_MEDIUM.deriveFont(5f);
+  public static final JBFont FONT_SECTION_TITLE = ROBOTO_MEDIUM.deriveFont(13f);
+  public static final JBFont FONT_NULL_STAGE_TITLE = ROBOTO_MEDIUM.deriveFont(21.0f);
+  public static final JBFont FONT_NULL_STAGE_MESSAGE = ROBOTO_REGULAR.deriveFont(13.0f);
+  public static final JBFont FONT_ERROR_INLINE_TITLE = ROBOTO_MEDIUM.deriveFont(16.0f);
+  public static final JBFont FONT_ERROR_INLINE_MESSAGE = ROBOTO_REGULAR.deriveFont(13.0f);
+  public static final JBFont FONT_MONITOR_TITLE = ROBOTO_BOLD.deriveFont(12.0f);
+
 
   /**
    * Default font color of charts, and component labels.
@@ -49,6 +67,19 @@ public final class AdtUiUtils {
     new GridBagConstraints(0, 0, 1, 1, 1, 1, GridBagConstraints.BASELINE, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
 
   private AdtUiUtils() {
+  }
+
+  private static JBFont load(String fontPath, float size) {
+    try (InputStream stream = AdtUiUtils.class.getResource(fontPath).openStream()) {
+      Font font = Font.createFont(Font.TRUETYPE_FONT, stream).deriveFont(size);
+      GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+      ge.registerFont(font);
+      return JBFont.create(font);
+    } catch (FontFormatException | IOException ex) {
+      Logger.getInstance(AdtUiUtils.class).warn("Cannot load font: " + fontPath, ex);
+    }
+
+    return JBFont.create(new Font(null, Font.PLAIN, (int)size));
   }
 
   /**

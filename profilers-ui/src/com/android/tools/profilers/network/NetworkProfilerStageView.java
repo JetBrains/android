@@ -18,6 +18,7 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.*;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SelectionListener;
@@ -134,9 +135,11 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
     JPanel monitorPanel = new JBPanel(new TabularLayout("*", "*"));
     monitorPanel.setOpaque(false);
     monitorPanel.setBorder(MONITOR_BORDER);
-    final JLabel label = new JLabel(getStage().getName());
-    label.setBorder(MONITOR_LABEL_PADDING);
-    label.setVerticalAlignment(SwingConstants.TOP);
+    final JLabel stageHeader = new JLabel(getStage().getName());
+    stageHeader.setFont(AdtUiUtils.FONT_PROFILER_TITLE);
+    stageHeader.setBorder(MONITOR_LABEL_PADDING);
+    stageHeader.setVerticalAlignment(SwingConstants.TOP);
+    stageHeader.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
 
     final JPanel lineChartPanel = new JBPanel(new BorderLayout());
     lineChartPanel.setOpaque(false);
@@ -181,7 +184,7 @@ public class NetworkProfilerStageView extends StageView<NetworkProfilerStage> {
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
-    legendPanel.add(label, BorderLayout.WEST);
+    legendPanel.add(stageHeader, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
     SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel());

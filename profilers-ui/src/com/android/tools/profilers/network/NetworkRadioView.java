@@ -18,6 +18,7 @@ package com.android.tools.profilers.network;
 import com.android.tools.adtui.LegendComponent;
 import com.android.tools.adtui.LegendConfig;
 import com.android.tools.adtui.chart.statechart.StateChart;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
@@ -72,9 +73,11 @@ public class NetworkRadioView {
   }
 
   private void populateUI(@NotNull JComponent panel) {
-    JLabel label = new JLabel(LABEL);
-    label.setBorder(BorderFactory.createEmptyBorder(0, ProfilerLayout.MARKER_LENGTH, 0, 0));
-    label.setVerticalAlignment(SwingConstants.TOP);
+    JLabel sectionHeader = new JLabel(LABEL);
+    sectionHeader.setFont(AdtUiUtils.FONT_DEFAULT); //Intentionally not a title label as we want this to appear smaller.
+    sectionHeader.setBorder(BorderFactory.createEmptyBorder(0, ProfilerLayout.MARKER_LENGTH, 0, 0));
+    sectionHeader.setVerticalAlignment(SwingConstants.TOP);
+    sectionHeader.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
 
     LegendComponentModel legendModel = new LegendComponentModel(LEGEND_UPDATE_FREQUENCY_MS);
     Legend wifiLegend = new FixedLegend(RadioState.WIFI.toString());
@@ -92,7 +95,7 @@ public class NetworkRadioView {
 
     JPanel topPane = new JPanel(new BorderLayout());
     topPane.setOpaque(false);
-    topPane.add(label, BorderLayout.WEST);
+    topPane.add(sectionHeader, BorderLayout.WEST);
     topPane.add(legend, BorderLayout.EAST);
 
     panel.setLayout(new VerticalFlowLayout(true, true));

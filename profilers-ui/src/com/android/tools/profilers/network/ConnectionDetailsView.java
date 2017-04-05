@@ -15,15 +15,14 @@
  */
 package com.android.tools.profilers.network;
 
-import com.android.tools.adtui.LegendComponent;
-import com.android.tools.adtui.LegendConfig;
-import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.TreeWalker;
+import com.android.tools.adtui.*;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.legend.FixedLegend;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.profilers.CloseButton;
+import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.stacktrace.DataViewer;
@@ -37,6 +36,8 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.labels.BoldLabel;
+import com.intellij.ui.tabs.impl.table.TableLayout;
+import com.intellij.util.ui.Html;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.PlatformColors;
 import com.intellij.util.ui.UIUtil;
@@ -186,37 +187,51 @@ public class ConnectionDetailsView extends JPanel {
     revalidate();
   }
 
+  private static JLabel createTitleLabel(String text) {
+    JLabel sectionTitle = new JLabel(text);
+    sectionTitle.setFont(AdtUiUtils.FONT_DEFAULT_TITLE);
+    return sectionTitle;
+  }
+
+  private static JLabel createLabel(String text) {
+    JLabel sectionTitle = new JLabel(text);
+    sectionTitle.setFont(AdtUiUtils.FONT_DEFAULT);
+    return sectionTitle;
+  }
+
+
+
   private static JComponent createFields(@NotNull HttpData httpData, @Nullable Dimension payloadDimension) {
     JPanel myFieldsPanel = new JPanel(new TabularLayout("Fit,20px,*").setVGap(SECTION_VGAP));
-
+    myFieldsPanel.setFont(AdtUiUtils.FONT_DEFAULT);
     int row = 0;
-    myFieldsPanel.add(new NoWrapBoldLabel("Request"), new TabularLayout.Constraint(row, 0));
-    myFieldsPanel.add(new JLabel(HttpData.getUrlName(httpData.getUrl())), new TabularLayout.Constraint(row, 2));
+    myFieldsPanel.add(createTitleLabel("Request"), new TabularLayout.Constraint(row, 0));
+    myFieldsPanel.add(createLabel(HttpData.getUrlName(httpData.getUrl())), new TabularLayout.Constraint(row, 2));
 
     row++;
-    myFieldsPanel.add(new NoWrapBoldLabel("Method"), new TabularLayout.Constraint(row, 0));
-    myFieldsPanel.add(new JLabel(httpData.getMethod()), new TabularLayout.Constraint(row, 2));
+    myFieldsPanel.add(createTitleLabel("Method"), new TabularLayout.Constraint(row, 0));
+    myFieldsPanel.add(createLabel(httpData.getMethod()), new TabularLayout.Constraint(row, 2));
 
     if (httpData.getStatusCode() != HttpData.NO_STATUS_CODE) {
       row++;
-      myFieldsPanel.add(new NoWrapBoldLabel("Status"), new TabularLayout.Constraint(row, 0));
-      JLabel statusCode = new JLabel(String.valueOf(httpData.getStatusCode()));
+      myFieldsPanel.add(createTitleLabel("Status"), new TabularLayout.Constraint(row, 0));
+      JLabel statusCode = createLabel(String.valueOf(httpData.getStatusCode()));
       statusCode.setName("StatusCode");
       myFieldsPanel.add(statusCode, new TabularLayout.Constraint(row, 2));
     }
 
     if (payloadDimension != null) {
       row++;
-      myFieldsPanel.add(new NoWrapBoldLabel("Dimension"), new TabularLayout.Constraint(row, 0));
-      JLabel dimension = new JLabel(String.format("%d x %d", (int) payloadDimension.getWidth(), (int) payloadDimension.getHeight()));
+      myFieldsPanel.add(createTitleLabel("Dimension"), new TabularLayout.Constraint(row, 0));
+      JLabel dimension = createLabel(String.format("%d x %d", (int) payloadDimension.getWidth(), (int) payloadDimension.getHeight()));
       dimension.setName("Dimension");
       myFieldsPanel.add(dimension, new TabularLayout.Constraint(row, 2));
     }
 
     if (httpData.getContentType() != null) {
       row++;
-      myFieldsPanel.add(new NoWrapBoldLabel("Content type"), new TabularLayout.Constraint(row, 0));
-      JLabel contentTypeLabel = new JLabel(httpData.getContentType().getMimeType());
+      myFieldsPanel.add(createTitleLabel("Content type"), new TabularLayout.Constraint(row, 0));
+      JLabel contentTypeLabel = createLabel(httpData.getContentType().getMimeType());
       contentTypeLabel.setName("Content type");
       myFieldsPanel.add(contentTypeLabel, new TabularLayout.Constraint(row, 2));
     }
@@ -227,15 +242,15 @@ public class ConnectionDetailsView extends JPanel {
       try {
         long number = Long.parseUnsignedLong(contentLength);
         row++;
-        myFieldsPanel.add(new NoWrapBoldLabel("Size"), new TabularLayout.Constraint(row, 0));
-        JLabel contentLengthLabel = new JLabel(StringUtil.formatFileSize(number));
+        myFieldsPanel.add(createTitleLabel("Size"), new TabularLayout.Constraint(row, 0));
+        JLabel contentLengthLabel = createLabel(StringUtil.formatFileSize(number));
         contentLengthLabel.setName("Size");
         myFieldsPanel.add(contentLengthLabel, new TabularLayout.Constraint(row, 2));
       } catch (NumberFormatException ignored) {}
     }
 
     row++;
-    NoWrapBoldLabel urlLabel = new NoWrapBoldLabel("URL");
+    JLabel urlLabel = createTitleLabel("URL");
     urlLabel.setVerticalAlignment(SwingConstants.TOP);
     myFieldsPanel.add(urlLabel, new TabularLayout.Constraint(row, 0));
     WrappedHyperlink hyperlink = new WrappedHyperlink(httpData.getUrl());
@@ -251,12 +266,10 @@ public class ConnectionDetailsView extends JPanel {
     myFieldsPanel.add(separatorContainer, new TabularLayout.Constraint(row, 0, 1, 3));
 
     row++;
-    NoWrapBoldLabel timingLabel = new NoWrapBoldLabel("Timing");
+    JLabel timingLabel = createTitleLabel("Timing");
     timingLabel.setVerticalAlignment(SwingConstants.TOP);
     myFieldsPanel.add(timingLabel, new TabularLayout.Constraint(row, 0));
     myFieldsPanel.add(createTimingBar(httpData), new TabularLayout.Constraint(row, 2));
-
-    new TreeWalker(myFieldsPanel).descendantStream().forEach(c -> adjustFont(c));
 
     myFieldsPanel.setName("Response fields");
     return myFieldsPanel;
@@ -304,70 +317,39 @@ public class ConnectionDetailsView extends JPanel {
     JPanel panel = new JPanel(new TabularLayout("*").setVGap(SECTION_VGAP));
     panel.setBorder(BorderFactory.createEmptyBorder(0, HGAP, 0, 0));
 
-    JLabel titleLabel = new NoWrapBoldLabel(title);
-    titleLabel.setFont(titleLabel.getFont().deriveFont(TITLE_FONT_SIZE));
+    JLabel titleLabel = new JLabel(title);
+    titleLabel.setFont(AdtUiUtils.FONT_SECTION_TITLE);
     panel.add(titleLabel, new TabularLayout.Constraint(0, 0));
 
     if (map.isEmpty()) {
       JLabel emptyLabel = new JLabel("No data available");
       // TODO: Adjust color.
-
       panel.add(emptyLabel, new TabularLayout.Constraint(1, 0));
     } else {
-      StringBuilder stringBuilder = new StringBuilder();
-      stringBuilder.append("<html>");
       Map<String, String> sortedMap = new TreeMap<>(map);
-
+      int rows = sortedMap.size();
+      JPanel labelsContainer = new JPanel(new GridLayout(rows,1));
       for (Map.Entry<String, String> entry : sortedMap.entrySet()) {
-        stringBuilder.append("<p><nobr><b>" + entry.getKey() + ":&nbsp&nbsp</b></nobr>");
-        stringBuilder.append("<span>" + entry.getValue() + "</span></p>");
+        JPanel valuesRowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0,5));
+        JLabel sectionTitle = new JLabel(entry.getKey() + ": ");
+        sectionTitle.setFont(AdtUiUtils.FONT_DEFAULT_TITLE);
+        valuesRowPanel.add(sectionTitle);
+        JLabel valueLabel = new JLabel(entry.getValue());
+        valueLabel.setFont(AdtUiUtils.FONT_DEFAULT);
+        valuesRowPanel.add(valueLabel);
+        labelsContainer.add(valuesRowPanel);
       }
-
-      stringBuilder.append("</html>");
-      JTextPane pane = createTextPane(stringBuilder.toString());
-      panel.add(pane, new TabularLayout.Constraint(1, 0));
+      panel.add(labelsContainer, new TabularLayout.Constraint(1, 0));
     }
-
-    new TreeWalker(panel).descendantStream().forEach(c -> {
-      if (c != titleLabel) {
-        adjustFont(c);
-      }
-    });
 
     // Set name so tests can get a handle to this panel.
     panel.setName(title);
     return panel;
   }
 
-  private static JTextPane createTextPane(String text) {
-    JTextPane textPane = new JTextPane();
-    textPane.setContentType("text/html");
-    textPane.setBackground(null);
-    textPane.setBorder(null);
-    textPane.setEditable(false);
-    textPane.setText(text);
-    Font labelFont = UIManager.getFont("Label.font");
-    String rule = "body { font-family: " + labelFont.getFamily() + "; font-size: " + FIELD_FONT_SIZE + "pt; }";
-    ((HTMLDocument)textPane.getDocument()).getStyleSheet().addRule(rule);
-    return textPane;
-  }
-
-  private static void adjustFont(Component c) {
-    c.setFont(c.getFont().deriveFont(Font.PLAIN, FIELD_FONT_SIZE));
-  }
-
   @NotNull
   public StackTraceView getStackTraceView() {
     return myStackTraceView;
-  }
-
-  /**
-   * This is a label with bold font and does not wrap.
-   */
-  private static final class NoWrapBoldLabel extends BoldLabel {
-    public NoWrapBoldLabel(String text) {
-      super("<nobr>" + text + "</nobr>");
-    }
   }
 
   /**
