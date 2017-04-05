@@ -67,6 +67,50 @@ public final class StudioProfilersTest {
   }
 
   @Test
+  public void testSleepBeforeAppLaunched() throws Exception {
+    FakeTimer timer = new FakeTimer();
+    StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
+
+    //Validate we start in the null stage.
+    assertEquals(NullMonitorStage.class, profilers.getStageClass());
+
+    Profiler.Device device = Profiler.Device.newBuilder()
+      .setSerial("FakeDevice")
+      .setState(Profiler.Device.State.ONLINE)
+      .build();
+    myProfilerService.addDevice(device);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
+
+    // Validate that just because we add a device, we still have not left the  null monitor stage.
+    assertEquals("FakeDevice", profilers.getDevice().getSerial());
+    assertEquals(NullMonitorStage.class, profilers.getStageClass());
+
+    // Pick a time to set the device to. Note that this value is arbitrary but the bug this tests
+    // is exposed if this value is larger than nanoTime.
+    long timeOnDevice = System.nanoTime() + 1000;
+    myProfilerService.setTimestampNs(timeOnDevice);
+
+    Common.Session session = Common.Session.newBuilder()
+      .setBootId(device.getBootId())
+      .setDeviceSerial(device.getSerial())
+      .build();
+    Profiler.Process process = Profiler.Process.newBuilder()
+      .setPid(20)
+      .setName("FakeProcess")
+      .setStartTimestampNs(timeOnDevice)
+      .setState(Profiler.Process.State.ALIVE)
+      .build();
+
+    // Add a process and validate the stage goes to the monitor stage.
+    myProfilerService.addProcess(session, process);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    // Test that the process was attached correctly
+    assertTrue(profilers.getTimeline().isStreaming());
+    // Test that the data range has not been inverted
+    assertFalse(profilers.getTimeline().getDataRange().isEmpty());
+  }
+
+  @Test
   public void testProfilerStageChange() throws Exception {
     FakeTimer timer = new FakeTimer();
     StudioProfilers profilers = new StudioProfilers(myGrpcServer.getClient(), new FakeIdeProfilerServices(), timer);
@@ -74,7 +118,10 @@ public final class StudioProfilersTest {
     //Validate we start in the null stage.
     assertEquals(NullMonitorStage.class, profilers.getStageClass());
 
-    Profiler.Device device = Profiler.Device.newBuilder().setSerial("FakeDevice").build();
+    Profiler.Device device = Profiler.Device.newBuilder()
+      .setSerial("FakeDevice")
+      .setState(Profiler.Device.State.ONLINE)
+      .build();
     myProfilerService.addDevice(device);
     timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
 
