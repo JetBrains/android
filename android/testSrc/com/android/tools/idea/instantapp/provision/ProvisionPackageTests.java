@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 /**
  * Utils for creating mocks for testing {@link ProvisionPackage}s.
  */
-class ProvisionPackageTests {
+public class ProvisionPackageTests {
   @NotNull
   static File getInstantAppSdk() {
     File testData = new File(getTestDataPath());
@@ -51,27 +51,27 @@ class ProvisionPackageTests {
       .getDevice();
   }
 
-  static class DeviceGenerator {
+  public static class DeviceGenerator {
     @NotNull private final IDevice myDevice;
 
-    DeviceGenerator() {
+    public DeviceGenerator() {
       myDevice = mock(IDevice.class);
     }
 
     @NotNull
-    DeviceGenerator setArchitectures(@NotNull String... archs) {
+    public DeviceGenerator setArchitectures(@NotNull String... archs) {
       when(myDevice.getAbis()).thenReturn(Lists.newArrayList(archs));
       return this;
     }
 
     @NotNull
-    DeviceGenerator setApiLevel(int apiLevel) {
+    public DeviceGenerator setApiLevel(int apiLevel) {
       when(myDevice.getVersion()).thenReturn(new AndroidVersion(apiLevel, null));
       return this;
     }
 
     @NotNull
-    DeviceGenerator setVersionOfPackage(@NotNull String pkgName, long version) throws Throwable {
+    public DeviceGenerator setVersionOfPackage(@NotNull String pkgName, long version) throws Throwable {
       String shellCommand = "dumpsys package " + pkgName;
       doAnswer(invocation -> {
         IShellOutputReceiver receiver = invocation.getArgument(1);
@@ -84,7 +84,7 @@ class ProvisionPackageTests {
     }
 
     @NotNull
-    DeviceGenerator setGoogleAccountLogged() throws Throwable {
+    public DeviceGenerator setGoogleAccountLogged() throws Throwable {
       String shellCommand = "dumpsys account";
       doAnswer(invocation -> {
         IShellOutputReceiver receiver = invocation.getArgument(1);
@@ -97,13 +97,13 @@ class ProvisionPackageTests {
     }
 
     @NotNull
-    DeviceGenerator setOsBuildType(@NotNull String osBuildType) {
+    public DeviceGenerator setOsBuildType(@NotNull String osBuildType) {
       when(myDevice.getProperty("ro.build.tags")).thenReturn(osBuildType);
       return this;
     }
 
     @NotNull
-    IDevice getDevice() {
+    public IDevice getDevice() {
       return myDevice;
     }
   }
