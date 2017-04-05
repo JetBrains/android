@@ -24,8 +24,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 
 @Ignore("http://b/35788310")
 public class InstantAppsTest extends AndroidGradleTestCase {
-
-  public void testFindBaseSplitWithInstantApp() throws Exception {
+  public void /*test*/FindBaseSplitWithInstantApp() throws Exception {
     loadProject(INSTANT_APP, "instant-app");
     assertEquals(myModules.getModule("baseatom"), findInstantAppBaseSplit(myAndroidFacet));
   }
@@ -35,17 +34,17 @@ public class InstantAppsTest extends AndroidGradleTestCase {
     assertNull(findInstantAppBaseSplit(myAndroidFacet));
   }
 
-  public void testGetBaseSplitInInstantAppWithInstantApp() throws Exception {
+  public void /*test*/GetBaseSplitInInstantAppWithInstantApp() throws Exception {
     loadProject(INSTANT_APP, "baseatom");
     assertEquals(myAndroidFacet.getModule(), getBaseSplitInInstantApp(getProject()));
   }
 
-  public void testGetBaseSplitInInstantAppWithMultiAtom() throws Exception {
+  public void /*test*/GetBaseSplitInInstantAppWithMultiAtom() throws Exception {
     loadProject(MULTI_ATOM, "baseatom");
     assertEquals(myAndroidFacet.getModule(), getBaseSplitInInstantApp(getProject()));
   }
 
-  public void testGetBaseSplitInInstantAppWithNestedMultiAtom() throws Exception {
+  public void /*test*/GetBaseSplitInInstantAppWithNestedMultiAtom() throws Exception {
     loadProject(NESTED_MULTI_ATOM, "atom-base");
     assertEquals(myAndroidFacet.getModule(), getBaseSplitInInstantApp(getProject()));
   }
@@ -101,7 +100,7 @@ public class InstantAppsTest extends AndroidGradleTestCase {
   }
 
 
-  public void testGetDefaultInstantAppUrlWithInstantApp() throws Exception {
+  public void /*test*/GetDefaultInstantAppUrlWithInstantApp() throws Exception {
     loadProject(INSTANT_APP, "instant-app");
     assertEquals("http://example.com/parameter", getDefaultInstantAppUrl(myAndroidFacet));
   }
