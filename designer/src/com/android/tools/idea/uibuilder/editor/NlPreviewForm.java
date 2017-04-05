@@ -219,6 +219,12 @@ public class NlPreviewForm implements Disposable, CaretListener {
     }
   }
 
+  @SuppressWarnings("unused") // Used by Kotlin plugin
+  @Nullable
+  public JComponent getToolbarComponent() {
+    return myActionsToolbar.getToolbarComponent();
+  }
+
   @Nullable
   public XmlFile getFile() {
     if (myFile == null && myPendingFile != null) {
