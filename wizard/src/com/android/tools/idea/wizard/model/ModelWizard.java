@@ -143,6 +143,7 @@ public final class ModelWizard implements Disposable {
       // Normally we'd leave it up to external code to dispose the wizard, but since we're throwing
       // an exception in the constructor, it means the caller won't be able to get a reference to
       // this wizard before the exception interrupts it. So we manually clean things up ourselves.
+      myCurrIndex = 1;
       Disposer.dispose(this);
       throw new IllegalStateException("Trying to create a wizard but no steps are visible");
     }
@@ -369,7 +370,7 @@ public final class ModelWizard implements Disposable {
     }
   }
 
-  private void handleFinished(WizardResult result) {
+  private void handleFinished(@NotNull WizardResult result) {
     try {
       if (result == WizardResult.FINISHED) {
         Set<WizardModel> seenModels = Sets.newHashSet();
@@ -491,7 +492,7 @@ public final class ModelWizard implements Disposable {
     /**
      * Fired when the wizard is finished or cancelled.
      */
-    void onWizardFinished(ModelWizard.WizardResult result);
+    default void onWizardFinished(@NotNull ModelWizard.WizardResult result) {}
 
     /**
      * Fired when an unexpected exception happens while trying to move to the next step. Note that
@@ -500,7 +501,7 @@ public final class ModelWizard implements Disposable {
      *
      * @param e The exception that occurred during the course of running the wizard.
      */
-    void onWizardAdvanceError(Exception e);
+    default void onWizardAdvanceError(@NotNull Exception e) {};
   }
 
   /**
