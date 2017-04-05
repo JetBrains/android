@@ -47,11 +47,6 @@ public class AndroidProjectStub implements AndroidProject {
   @Nullable private VariantStub myFirstVariant;
   private int myProjectType = PROJECT_TYPE_APP;
   private int myPluginGeneration;
-  @NotNull final private String myBuildToolsVersion = SdkConstants.MIN_BUILD_TOOLS_VERSION;
-  private Collection<ArtifactMetaData> myExtraArtifacts = new ArrayList<>();
-  @NotNull final private String myCompileTarget = "release";
-  @NotNull final private AaptOptions myAaptOptions;
-  @NotNull final private LintOptions myLintOptions;
 
   public AndroidProjectStub(@NotNull String name) {
     this(name, new FileStructure(name));
@@ -67,8 +62,6 @@ public class AndroidProjectStub implements AndroidProject {
     myBuildFolder = myFileStructure.createProjectDir("build");
     myDefaultConfig = new ProductFlavorContainerStub("main", myFileStructure);
     myBuildFile = myFileStructure.createProjectFile(SdkConstants.FN_BUILD_GRADLE);
-    myAaptOptions = new IdeAaptOptionsStub(name);
-    myLintOptions = new IdeLintOptionsStub();
   }
 
   @Override
@@ -139,7 +132,7 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public Collection<ProductFlavorContainer> getProductFlavors() {
-    return new ArrayList<>(myProductFlavors.values());
+    return myProductFlavors.values();
   }
 
   @Nullable
@@ -170,7 +163,7 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public Collection<Variant> getVariants() {
-    return new ArrayList<>(myVariants.values());
+    return myVariants.values();
   }
 
   @Override
@@ -182,7 +175,7 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public Collection<ArtifactMetaData> getExtraArtifacts() {
-    return myExtraArtifacts;
+    throw new UnsupportedOperationException();
   }
 
   @Nullable
@@ -193,25 +186,25 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public String getCompileTarget() {
-    return myCompileTarget;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   @NotNull
   public List<String> getBootClasspath() {
-    return Collections.emptyList();
+    throw new UnsupportedOperationException();
   }
 
   @Override
   @NotNull
   public Collection<File> getFrameworkSources() {
-    return Collections.emptyList();
+    throw new UnsupportedOperationException();
   }
 
   @Override
   @NotNull
   public Collection<NativeToolchain> getNativeToolchains() {
-    return Collections.emptyList();
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -223,13 +216,13 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public AaptOptions getAaptOptions() {
-    return myAaptOptions;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   @NotNull
   public LintOptions getLintOptions() {
-    return myLintOptions;
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -265,7 +258,7 @@ public class AndroidProjectStub implements AndroidProject {
   @Override
   @NotNull
   public String getBuildToolsVersion() {
-    return myBuildToolsVersion;
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -299,16 +292,5 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull
   public File getBuildFile() {
     return myBuildFile;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    // Must be same if it is an stub
-    if (o instanceof AndroidProjectStub) return false;
-    // Use other object equals
-    if (!(o instanceof AndroidProject)) return false;
-    AndroidProject project = (AndroidProject)o;
-    return project.equals(this);
   }
 }

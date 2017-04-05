@@ -13,40 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.stubs.android;
+package com.android.tools.idea.model;
 
 import com.android.annotations.Nullable;
 import com.android.builder.model.BuildType;
 import com.android.builder.model.SigningConfig;
-import com.android.tools.idea.model.IdeSigningConfig;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
+
 /**
- * Creates a version of {@link BuildType} that does not cause unsupported exceptions, used for testing {@link IdeAndroidProject}.
+ * Creates a deep copy of {@link BuildType}.
  *
+ * @see IdeAndroidProject
  */
-public class IdeBuildTypeStub extends IdeBaseConfigStub implements BuildType {
+public class IdeBuildType extends IdeBaseConfig implements BuildType, Serializable {
+  @Nullable private final SigningConfig mySigningConfig;
+  private final boolean myDebuggable;
+  private final boolean myTestCoverageEnabled;
+  private final boolean myPseudoLocalesEnabled;
+  private final boolean myJniDebuggable;
+  private final boolean myRenderscriptDebuggable;
+  private final int myRenderscriptOptimLevel;
+  private final boolean myMinifyEnabled;
+  private final boolean myZipAlignEnabled;
+  private final boolean myEmbedMicroApp;
 
-  @Nullable private final SigningConfig mySigningConfig = new IdeSigningConfig("typeSigningConfig", null, "storePassword",
-                                                                               "keyAlias", "keyPassword", "storeType",
-                                                                               true, true,  true);
-  private final static boolean myDebuggable = true;
-  private final static boolean myTestCoverageEnabled = true;
-  private final static boolean myPseudoLocalesEnabled = true;
-  private final static boolean myJniDebuggable = true;
-  private final static boolean myRenderscriptDebuggable = true;
-  private final static int myRenderscriptOptimLevel = 1;
-  private final static boolean myMinifyEnabled = true;
-  private final static boolean myZipAlignEnabled = true;
-  private final static boolean myEmbedMicroApp = true;
+  public IdeBuildType(@NotNull BuildType type) {
+    super(type);
 
+    SigningConfig tySigningConfig = type.getSigningConfig();
+    mySigningConfig = tySigningConfig == null ? null : new IdeSigningConfig(tySigningConfig);
 
-  public IdeBuildTypeStub(@NotNull String name) {
-    super(name);
+    myDebuggable = type.isDebuggable();
+    myTestCoverageEnabled = type.isTestCoverageEnabled();
+    myPseudoLocalesEnabled = type.isPseudoLocalesEnabled();
+    myJniDebuggable = type.isJniDebuggable();
+    myRenderscriptDebuggable = type.isRenderscriptDebuggable();
+    myRenderscriptOptimLevel = type.getRenderscriptOptimLevel();
+    myMinifyEnabled = type.isMinifyEnabled();
+    myZipAlignEnabled = type.isZipAlignEnabled();
+    myEmbedMicroApp = type.isEmbedMicroApp();
   }
 
-  @Nullable
   @Override
+  @Nullable
   public SigningConfig getSigningConfig() {
     return mySigningConfig;
   }

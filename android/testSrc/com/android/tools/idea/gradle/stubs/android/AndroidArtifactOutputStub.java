@@ -24,29 +24,23 @@ import java.util.Collection;
 
 public class AndroidArtifactOutputStub implements AndroidArtifactOutput {
 
+  @NonNull
+  private final Collection<OutputFile> myOutputs;
 
-  @NonNull private final Collection<OutputFile> myOutputs;
-  @NonNull private final String myAssembleTaskName;
-  @NonNull private final File mySplitFolder;
-  @NonNull private final File myGeneratedManifest;
-
-  public AndroidArtifactOutputStub(@NonNull String name,  @NonNull Collection<OutputFile> outputs) {
+  public AndroidArtifactOutputStub(@NonNull Collection<OutputFile> outputs) {
     myOutputs = outputs;
-    myAssembleTaskName = name;
-    mySplitFolder = new File(name + "-split");
-    myGeneratedManifest = new File(name + "-generatedManifest");
   }
 
   @NonNull
   @Override
   public String getAssembleTaskName() {
-    return myAssembleTaskName;
+    throw new UnsupportedOperationException();
   }
 
   @NonNull
   @Override
   public File getGeneratedManifest() {
-    return myGeneratedManifest;
+    throw new UnsupportedOperationException();
   }
 
   @NonNull
@@ -64,22 +58,11 @@ public class AndroidArtifactOutputStub implements AndroidArtifactOutput {
   @NonNull
   @Override
   public File getSplitFolder() {
-    return mySplitFolder;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public int getVersionCode() {
-    return 0;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof AndroidArtifactOutput)) return false;
-    // Should be the same if it is an stub
-    if (o instanceof AndroidArtifactOutputStub) return false;
-    // Use other object equals
-    AndroidArtifactOutput output = (AndroidArtifactOutput)o;
-    return output.equals(this);
+    throw new UnsupportedOperationException();
   }
 }

@@ -31,8 +31,6 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
 /**
  * Tests for {@link DependenciesExtractor}.
@@ -76,11 +74,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     myVariant.getMainArtifact().getDependencies().addJar(jarFile);
     myVariant.getInstrumentTestArtifact().getDependencies().addJar(jarFile);
 
-    // Make android model use external variant since AndroidProject is a copy
-    AndroidModuleModel mySpyAndroidModel = spy(myAndroidModel);
-    doReturn(myVariant).when(mySpyAndroidModel).getSelectedVariant();
-
-    Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(mySpyAndroidModel).onLibraries();
+    Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(myAndroidModel).onLibraries();
     assertEquals(1, dependencies.size());
 
     LibraryDependency dependency = ContainerUtil.getFirstItem(dependencies);
@@ -105,11 +99,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     myVariant.getMainArtifact().getDependencies().addLibrary(library);
     myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
 
-    // Make android model use external variant since AndroidProject is a copy
-    AndroidModuleModel mySpyAndroidModel = spy(myAndroidModel);
-    doReturn(myVariant).when(mySpyAndroidModel).getSelectedVariant();
-
-    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(mySpyAndroidModel).onModules();
+    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(myAndroidModel).onModules();
     assertEquals(1, dependencies.size());
 
     ModuleDependency dependency = ContainerUtil.getFirstItem(dependencies);
@@ -137,11 +127,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     myVariant.getMainArtifact().getDependencies().addLibrary(library);
     myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
 
-    // Make android model use external variant since AndroidProject is a copy
-    AndroidModuleModel mySpyAndroidModel = spy(myAndroidModel);
-    doReturn(myVariant).when(mySpyAndroidModel).getSelectedVariant();
-
-    Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(mySpyAndroidModel).onLibraries();
+    Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(myAndroidModel).onLibraries();
     assertEquals(1, dependencies.size());
 
     LibraryDependency dependency = ContainerUtil.getFirstItem(dependencies);
@@ -168,11 +154,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     myVariant.getMainArtifact().getDependencies().addLibrary(library);
     myVariant.getInstrumentTestArtifact().getDependencies().addLibrary(library);
 
-    // Make android model use external variant since AndroidProject is a copy
-    AndroidModuleModel mySpyAndroidModel = spy(myAndroidModel);
-    doReturn(myVariant).when(mySpyAndroidModel).getSelectedVariant();
-
-    List<LibraryDependency> dependencies = Lists.newArrayList(myDependenciesExtractor.extractFrom(mySpyAndroidModel).onLibraries());
+    List<LibraryDependency> dependencies = Lists.newArrayList(myDependenciesExtractor.extractFrom(myAndroidModel).onLibraries());
     assertEquals(1, dependencies.size());
 
     LibraryDependency dependency = dependencies.get(0);
@@ -188,12 +170,7 @@ public class DependenciesExtractorTest extends IdeaTestCase {
     String gradlePath = "abc:xyz:library";
     myVariant.getMainArtifact().getDependencies().addProject(gradlePath);
     myVariant.getInstrumentTestArtifact().getDependencies().addProject(gradlePath);
-
-    // Make android model use external variant since AndroidProject is a copy
-    AndroidModuleModel mySpyAndroidModel = spy(myAndroidModel);
-    doReturn(myVariant).when(mySpyAndroidModel).getSelectedVariant();
-
-    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(mySpyAndroidModel).onModules();
+    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(myAndroidModel).onModules();
     assertEquals(1, dependencies.size());
 
     ModuleDependency dependency = ContainerUtil.getFirstItem(dependencies);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,19 +12,27 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */package com.android.tools.idea.gradle.stubs.android;
+ */
+package com.android.tools.idea.model;
 
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.SourceProviderContainer;
 import org.jetbrains.annotations.NotNull;
 
-public class SourceProviderContainerStub implements SourceProviderContainer {
-  @NotNull private final String myArtifactName;
-  @NotNull private final SourceProviderStub mySourceProvider;
+import java.io.Serializable;
 
-  SourceProviderContainerStub(@NotNull String artifactName, @NotNull SourceProviderStub sourceProvider) {
-    myArtifactName = artifactName;
-    mySourceProvider = sourceProvider;
+/**
+ * Creates a deep copy of {@link SourceProviderContainer}.
+ *
+ * @see IdeAndroidProject
+ */
+public class IdeSourceProviderContainer implements SourceProviderContainer, Serializable {
+  @NotNull private final String myArtifactName;
+  @NotNull private final SourceProvider mySourceProvider;
+
+  public IdeSourceProviderContainer(@NotNull SourceProviderContainer container) {
+    myArtifactName = container.getArtifactName();
+    mySourceProvider = new IdeSourceProvider(container.getSourceProvider());
   }
 
   @Override

@@ -22,7 +22,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class BuildTypeStub implements BuildType {
   @NotNull private final String myName;
@@ -39,7 +42,7 @@ public class BuildTypeStub implements BuildType {
 
   @Override
   public boolean isDebuggable() {
-    return false;
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -54,56 +57,56 @@ public class BuildTypeStub implements BuildType {
 
   @Override
   public boolean isJniDebuggable() {
-    return false;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public boolean isRenderscriptDebuggable() {
-    return false;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public int getRenderscriptOptimLevel() {
-    return 0;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   @Nullable
   public String getApplicationIdSuffix() {
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   @Nullable
   public String getVersionNameSuffix() {
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public boolean isMinifyEnabled() {
-    return false;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public boolean isZipAlignEnabled() {
-    return false;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public boolean isEmbedMicroApp() {
-    return false;
+    throw new UnsupportedOperationException();
   }
 
-  @Nullable
+  @com.android.annotations.Nullable
   @Override
   public SigningConfig getSigningConfig() {
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   @NotNull
   public Map<String, ClassField> getBuildConfigFields() {
-    return Collections.emptyMap();
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -115,31 +118,31 @@ public class BuildTypeStub implements BuildType {
   @Override
   @NotNull
   public Collection<File> getProguardFiles() {
-    return Collections.emptyList();
+    throw new UnsupportedOperationException();
   }
 
   @Override
   @NotNull
   public Collection<File> getConsumerProguardFiles() {
-    return Collections.emptyList();
+    throw new UnsupportedOperationException();
   }
 
   @Override
   @NotNull
   public Collection<File> getTestProguardFiles() {
-    return Collections.emptyList();
+    throw new UnsupportedOperationException();
   }
 
   @Override
   @NotNull
   public Map<String, Object> getManifestPlaceholders() {
-    return Collections.emptyMap();
+    throw new UnsupportedOperationException();
   }
 
   @Override
   @Nullable
   public Boolean getMultiDexEnabled() {
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -158,16 +161,5 @@ public class BuildTypeStub implements BuildType {
   @NotNull
   public List<File> getJarJarRuleFiles() {
     return Collections.emptyList();
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    // Must be the same if it is an Stub
-    if (o instanceof BuildTypeStub) return false;
-    // Use other object equals
-    if (!(o instanceof BuildType)) return false;
-    BuildType type = (BuildType)o;
-    return type.equals(this);
   }
 }

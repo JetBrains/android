@@ -20,7 +20,9 @@ import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 public class VariantStub implements Variant {
   @NotNull private final List<String> myProductFlavors = Lists.newArrayList();
@@ -113,22 +115,10 @@ public class VariantStub implements Variant {
   @Override
   @NotNull
   public Collection<TestedTargetVariant> getTestedTargetVariants() {
-    return Collections.emptyList();
+    throw new UnsupportedOperationException();
   }
 
   public void addProductFlavors(@NotNull String... flavorNames) {
     myProductFlavors.addAll(Arrays.asList(flavorNames));
   }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof Variant)) return false;
-    // If both are stubs, they must be the same
-    if (o instanceof Variant) return false;
-    Variant variant = (Variant)o;
-    // Use other object equals
-    return variant.equals(this);
-  }
-
 }

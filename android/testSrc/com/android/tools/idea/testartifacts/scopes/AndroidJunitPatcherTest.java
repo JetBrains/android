@@ -40,8 +40,6 @@ import java.util.Set;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.normalize;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
 /**
  * Tests for {@link AndroidJunitPatcher}.
@@ -56,8 +54,6 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   private JavaParameters myJavaParameters;
   private AndroidProjectStub myAndroidProject;
   private String myRoot;
-  private VariantStub myVariant;
-  private AndroidModuleModel myAndroidModel;
 
   @Override
   public void setUp() throws Exception {
@@ -107,12 +103,11 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
 
   private void setUpIdeaAndroidProject() {
     myAndroidProject = TestProjects.createBasicProject();
-    myVariant = myAndroidProject.getFirstVariant();
-    assertNotNull(myVariant);
-    //JavaArtifactStub myJavaArtifactStub = myAndroidProject.
-    myAndroidModel = spy(new AndroidModuleModel(myAndroidProject.getName(), myAndroidProject.getRootDir(),
-                                                                 myAndroidProject, myVariant.getName()));
-    myFacet.setAndroidModel(myAndroidModel);
+    VariantStub variant = myAndroidProject.getFirstVariant();
+    assertNotNull(variant);
+    AndroidModuleModel androidModel = new AndroidModuleModel(myAndroidProject.getName(), myAndroidProject.getRootDir(), myAndroidProject,
+                                                             variant.getName());
+    myFacet.setAndroidModel(androidModel);
     for (Module module : ModuleManager.getInstance(getProject()).getModules()) {
       TestArtifactSearchScopes.initializeScope(module);
     }
@@ -166,9 +161,6 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   @SuppressWarnings("ConstantConditions") // No risk of NPEs.
   public void testMultipleMockableJars_newModel() throws Exception {
     myJavaParameters.getClassPath().remove(myMockableAndroidJar);
-
-    // Make android model use external variant since AndroidProject is a copy
-    doReturn(myVariant).when(myAndroidModel).getSelectedVariant();
 
     JavaArtifactStub artifact = (JavaArtifactStub)AndroidModuleModel.get(myFacet).getUnitTestArtifactInSelectedVariant();
     artifact.setMockablePlatformJar(new File(myMockableAndroidJar));
