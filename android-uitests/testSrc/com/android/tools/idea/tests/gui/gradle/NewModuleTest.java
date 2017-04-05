@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
+import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.NewModuleDialogFixture;
@@ -71,11 +72,12 @@ public class NewModuleTest {
   @Test
   public void createNewModuleFromJar() throws Exception {
     String jarFile = GuiTests.getTestDataDir() + "/LocalJarsAsModules/localJarAsModule/local.jar";
+    boolean isNewWizard = WizardUtils.isNpwModelWizardEnabled(WizardUtils.Feature.IMPORT_MODULE);
 
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
       .chooseModuleType("Import .JAR/.AAR Package")
-      .clickNextToStep("") // Legacy code, doesn't have a step title
+      .clickNextToStep(isNewWizard ? "Import Module from Library" : "") // Legacy code, doesn't have a step title
       .setFileName(jarFile)
       .setSubprojectName("localJarLib")
       .clickFinish()
