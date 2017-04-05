@@ -25,8 +25,6 @@ import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
-import com.android.tools.idea.uibuilder.scene.decorator.NlSceneDecoratorFactory;
-import com.android.tools.idea.uibuilder.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.util.PropertiesMap;
 import com.google.common.annotations.VisibleForTesting;
@@ -69,8 +67,6 @@ import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
  */
 public class LayoutlibSceneManager extends SceneManager {
 
-  private static final SceneDecoratorFactory DECORATOR_FACTORY = new NlSceneDecoratorFactory();
-
   private int myDpi = 0;
   private final SelectionChangeListener mySelectionChangeListener = new SelectionChangeListener();
   private static final Object PROGRESS_LOCK = new Object();
@@ -95,12 +91,6 @@ public class LayoutlibSceneManager extends SceneManager {
   public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
     super(model, designSurface);
     updateTrackingConfiguration();
-  }
-
-  @Override
-  @NotNull
-  public SceneDecoratorFactory getSceneDecoratorFactory() {
-    return DECORATOR_FACTORY;
   }
 
   /**
