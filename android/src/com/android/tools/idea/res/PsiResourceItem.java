@@ -41,9 +41,9 @@ class PsiResourceItem extends ResourceItem {
   private final XmlTag myTag;
   private PsiFile myFile;
 
-  PsiResourceItem(@NonNull String name, @NonNull ResourceType type, @Nullable XmlTag tag, @NonNull PsiFile file) {
+  PsiResourceItem(@NonNull String name, @NonNull ResourceType type, @Nullable String namespace, @Nullable XmlTag tag, @NonNull PsiFile file) {
     // TODO: Actually figure out the namespace.
-    super(name, null, type, null, null);
+    super(name, namespace, type, null, null);
     myTag = tag;
     myFile = file;
   }

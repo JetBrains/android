@@ -18,12 +18,15 @@ package com.android.tools.idea.res;
 import com.android.annotations.NonNull;
 import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.res2.ResourceNamespaces;
+import com.android.ide.common.res2.ResourceTable;
 import com.android.resources.ResourceType;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.util.containers.SmartHashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,8 +48,9 @@ import java.util.Set;
 public abstract class MultiResourceRepository extends LocalResourceRepository {
   protected List<? extends LocalResourceRepository> myChildren;
   private long[] myModificationCounts;
-  private Map<ResourceType, ListMultimap<String, ResourceItem>> myItems = Maps.newEnumMap(ResourceType.class);
-  private final Map<ResourceType, ListMultimap<String, ResourceItem>> myCachedTypeMaps = Maps.newEnumMap(ResourceType.class);
+  private ResourceTable myFullTable;
+  private Set<String> myCachedNamespaces;
+  private final ResourceTable myCachedMaps = new ResourceTable();
   private final Map<ResourceType, Boolean> myCachedHasResourcesOfType = Maps.newEnumMap(ResourceType.class);
   private Map<String, DataBindingInfo> myDataBindingResourceFiles = Maps.newHashMap();
   private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
@@ -78,13 +82,13 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
       myModificationCounts[i] = resources.getModificationCount();
     }
     clearCache();
-    invalidateItemCaches();
+    invalidateParentCaches();
   }
 
   private void clearCache() {
-    myItems = null;
+    myFullTable = null;
     synchronized (this) {
-      myCachedTypeMaps.clear();
+      myCachedMaps.clear();
       myCachedHasResourcesOfType.clear();
     }
   }
@@ -147,31 +151,56 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     return myDataBindingResourceFiles;
   }
 
-  @NonNull
+  @NotNull
   @Override
-  protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
-    if (myItems == null) {
+  public synchronized Set<String> getNamespaces() {
+    if (myCachedNamespaces == null) {
       if (myChildren.size() == 1) {
-        myItems = myChildren.get(0).getItems();
-      }
-      else {
-        Map<ResourceType, ListMultimap<String, ResourceItem>> map = Maps.newEnumMap(ResourceType.class);
-        for (ResourceType type : ResourceType.values()) {
-          map.put(type, getMap(type, false)); // should pass create is true, but as described below we interpret this differently
+        myCachedNamespaces = myChildren.get(0).getNamespaces();
+      } else {
+        myCachedNamespaces = new SmartHashSet<>();
+        for (LocalResourceRepository child : myChildren) {
+          for (String namespace : child.getNamespaces()) {
+            myCachedNamespaces.add(ResourceNamespaces.normalizeNamespace(namespace));
+          }
         }
-        myItems = map;
       }
     }
 
-    return myItems;
+    return myCachedNamespaces;
+  }
+
+  @NonNull
+  @Override
+  protected ResourceTable getFullTable() {
+    if (myFullTable == null) {
+      if (myChildren.size() == 1) {
+        myFullTable = myChildren.get(0).getItems();
+      }
+      else {
+        myFullTable = new ResourceTable();
+        for (String namespace : getNamespaces()) {
+          for (ResourceType type : ResourceType.values()) {
+            ListMultimap<String, ResourceItem> map = getMap(namespace, type, false);
+            if (map != null) {
+              myFullTable.put(namespace, type, map);
+            }
+          }
+        }
+      }
+    }
+
+    return myFullTable;
   }
 
   @Nullable
   @Override
-  protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
+  protected ListMultimap<String, ResourceItem> getMap(@Nullable String namespace,
+                                                      @NonNull ResourceType type,
+                                                      boolean create) {
     // Should I assert !create here? If we try to manipulate the cache it won't work right...
     synchronized (this) {
-      ListMultimap<String, ResourceItem> map = myCachedTypeMaps.get(type);
+      ListMultimap<String, ResourceItem> map = myCachedMaps.get(namespace, type);
       if (map != null) {
         return map;
       }
@@ -180,43 +209,32 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
     if (myChildren.size() == 1) {
       LocalResourceRepository child = myChildren.get(0);
       if (child instanceof MultiResourceRepository) {
-        return ((MultiResourceRepository)child).getMap(type);
+        return ((MultiResourceRepository)child).getMap(namespace, type);
       }
-      return child.getItems().get(type);
+      return child.getItems().get(namespace, type);
     }
 
     ListMultimap<String, ResourceItem> map = ArrayListMultimap.create();
     Set<LocalResourceRepository> visited = Sets.newHashSet();
     SetMultimap<String, String> seenQualifiers = HashMultimap.create();
     // Merge all items of the given type
-    merge(visited, type, seenQualifiers, map);
+    merge(visited, namespace, type, seenQualifiers, map);
 
     synchronized (this) {
-      myCachedTypeMaps.put(type, map);
+      myCachedMaps.put(namespace, type, map);
     }
 
     return map;
   }
 
-  @NonNull
-  @Override
-  protected ListMultimap<String, ResourceItem> getMap(ResourceType type) {
-    return super.getMap(type);
-  }
-
-  @NonNull
-  @Override
-  public Map<ResourceType, ListMultimap<String, ResourceItem>> getItems() {
-    return getMap();
-  }
-
   @Override
   protected void doMerge(@NotNull Set<LocalResourceRepository> visited,
+                         @Nullable String namespace,
                          @NotNull ResourceType type,
                          @NotNull SetMultimap<String, String> seenQualifiers,
                          @NotNull ListMultimap<String, ResourceItem> result) {
     for (int i = myChildren.size() - 1; i >= 0; i--) {
-      myChildren.get(i).merge(visited, type, seenQualifiers, result);
+      myChildren.get(i).merge(visited, namespace, type, seenQualifiers, result);
     }
   }
 
@@ -263,28 +281,44 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   }
 
   /**
-   * Notifies this delegating repository that the given dependent repository has invalidated
-   * resources of the given types (empty means all)
+   * Notifies this delegating repository that the given dependent repository has invalidated all resources.
    */
-  public void invalidateCache(@NotNull LocalResourceRepository repository, @Nullable ResourceType... types) {
+  public void invalidateCache(@NotNull LocalResourceRepository repository) {
     assert myChildren.contains(repository) : repository;
 
     synchronized (this) {
-      if (types == null || types.length == 0) {
-        myCachedTypeMaps.clear();
-        myCachedHasResourcesOfType.clear();
-      }
-      else {
-        for (ResourceType type : types) {
-          myCachedTypeMaps.remove(type);
+      myCachedNamespaces = null;
+      myCachedMaps.clear();
+      myCachedHasResourcesOfType.clear();
+    }
+
+    myFullTable = null;
+    myGeneration = ourModificationCounter.incrementAndGet();
+
+    invalidateParentCaches();
+  }
+
+  /**
+   * Notifies this delegating repository that the given dependent repository has invalidated
+   * resources of the given types in the given namespace.
+   */
+  public void invalidateCache(@NotNull LocalResourceRepository repository, @Nullable String namespace, @NotNull ResourceType... types) {
+    assert myChildren.contains(repository) : repository;
+
+    synchronized (this) {
+      for (ResourceType type : types) {
+        myCachedNamespaces = null;
+        myCachedMaps.remove(namespace, type);
+
+        if (ResourceNamespaces.isDefaultNamespace(namespace)) {
           myCachedHasResourcesOfType.remove(type);
         }
       }
     }
-    myItems = null;
+    myFullTable = null;
     myGeneration = ourModificationCounter.incrementAndGet();
 
-    invalidateItemCaches(types);
+    invalidateParentCaches(namespace, types);
   }
 
   @Override

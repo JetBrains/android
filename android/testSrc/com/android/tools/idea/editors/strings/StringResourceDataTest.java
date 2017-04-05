@@ -59,13 +59,15 @@ public class StringResourceDataTest extends AndroidTestCase {
     Mockito.when(field.getName()).thenReturn("dynamic_key1");
     Mockito.when(field.getValue()).thenReturn("L\\'Étranger");
 
-    LocalResourceRepository otherDelegate = DynamicResourceValueRepository.createForTest(myFacet,
-                                                                                         Collections.singletonMap("dynamic_key1", field));
+    DynamicResourceValueRepository dynamicResourceValueRepository =
+      DynamicResourceValueRepository.createForTest(myFacet, null, Collections.singletonMap("dynamic_key1", field));
 
-    Disposer.register(myFacet, otherDelegate);
+    Disposer.register(myFacet, dynamicResourceValueRepository);
 
-    myParent = ModuleResourceRepository.createForTest(myFacet, Collections.singletonList(resourceDirectory),
-                                                      Collections.singletonList(otherDelegate));
+    myParent = ModuleResourceRepository.createForTest(myFacet,
+                                                      Collections.singletonList(resourceDirectory), null,
+                                                      dynamicResourceValueRepository);
+
     data = new StringResourceRepository(myParent).getData(myFacet);
   }
 

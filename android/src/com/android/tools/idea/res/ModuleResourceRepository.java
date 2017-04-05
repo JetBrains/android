@@ -185,22 +185,25 @@ public final class ModuleResourceRepository extends MultiResourceRepository {
   @NotNull
   @VisibleForTesting
   public static ModuleResourceRepository createForTest(@NotNull AndroidFacet facet, @NotNull Collection<VirtualFile> resourceDirectories) {
-    return createForTest(facet, resourceDirectories, Collections.emptyList());
+    return createForTest(facet, resourceDirectories, null, null);
   }
 
   @NotNull
   @VisibleForTesting
   public static ModuleResourceRepository createForTest(@NotNull AndroidFacet facet,
                                                        @NotNull Collection<VirtualFile> resourceDirectories,
-                                                       @NotNull Collection<LocalResourceRepository> otherDelegates) {
+                                                       @Nullable String namespace,
+                                                       @Nullable DynamicResourceValueRepository dynamicResourceValueRepository) {
     assert ApplicationManager.getApplication().isUnitTestMode();
-    List<LocalResourceRepository> delegates = new ArrayList<>(resourceDirectories.size() + otherDelegates.size());
+    List<LocalResourceRepository> delegates = new ArrayList<>(resourceDirectories.size() + 1);
 
     for (VirtualFile resourceDirectory : resourceDirectories) {
-      delegates.add(ResourceFolderRegistry.get(facet, resourceDirectory));
+      delegates.add(ResourceFolderRegistry.get(facet, resourceDirectory, namespace));
     }
 
-    delegates.addAll(otherDelegates);
+    if (dynamicResourceValueRepository != null) {
+      delegates.add(dynamicResourceValueRepository);
+    }
     return new ModuleResourceRepository(facet, delegates);
   }
 

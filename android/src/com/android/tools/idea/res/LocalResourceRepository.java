@@ -160,7 +160,7 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   @Nullable private Set<VirtualFile> myResourceDirs;
 
   protected LocalResourceRepository(@NotNull String displayName) {
-    super(false);
+    super();
     myDisplayName = displayName;
     myGeneration = ourModificationCounter.incrementAndGet();
   }
@@ -175,18 +175,8 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     return null;
   }
 
-  @Nullable
-  String getNamespace() {
-    return null;
-  }
-
   @Override
   public void dispose() {
-  }
-
-  @Override
-  public final boolean isFramework() {
-    return false;
   }
 
   public void addParent(@NonNull MultiResourceRepository parent) {
@@ -202,16 +192,25 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
   }
 
-  protected void invalidateItemCaches(@Nullable ResourceType... types) {
+  protected void invalidateParentCaches() {
     if (myParents != null) {
       for (MultiResourceRepository parent : myParents) {
-        parent.invalidateCache(this, types);
+        parent.invalidateCache(this);
+      }
+    }
+  }
+
+  protected void invalidateParentCaches(@Nullable String namespace, @NotNull ResourceType... types) {
+    if (myParents != null) {
+      for (MultiResourceRepository parent : myParents) {
+        parent.invalidateCache(this, namespace, types);
       }
     }
   }
 
   /** If this repository has not already been visited, merge its items of the given type into result. */
   protected final void merge(@NotNull Set<LocalResourceRepository> visited,
+                             @Nullable String namespace,
                              @NotNull ResourceType type,
                              @NotNull SetMultimap<String, String> seenQualifiers,
                              @NotNull ListMultimap<String, ResourceItem> result) {
@@ -219,14 +218,15 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
       return;
     }
     visited.add(this);
-    doMerge(visited, type, seenQualifiers, result);
+    doMerge(visited, namespace, type, seenQualifiers, result);
   }
 
   protected void doMerge(@NotNull Set<LocalResourceRepository> visited,
+                         @Nullable String namespace,
                          @NotNull ResourceType type,
                          @NotNull SetMultimap<String, String> seenQualifiers,
                          @NotNull ListMultimap<String, ResourceItem> result) {
-    ListMultimap<String, ResourceItem> items = getMap(type, false);
+    ListMultimap<String, ResourceItem> items = getMap(namespace, type, false);
     if (items == null) {
       return;
     }

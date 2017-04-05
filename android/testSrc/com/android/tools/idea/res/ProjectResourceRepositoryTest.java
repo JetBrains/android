@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.res;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
@@ -25,9 +23,6 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.gradle.stubs.android.VariantStub;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -37,11 +32,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleWithNameAlreadyExists;
 import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.roots.ModifiableRootModel;
-import com.intellij.openapi.roots.ModuleOrderEntry;
-import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.roots.ModuleRootModificationUtil;
-import com.intellij.openapi.roots.OrderEntry;
+import com.intellij.openapi.roots.*;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -99,25 +90,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
 
     // Just need an empty repository to make it a real module -set-; otherwise with a single
     // module we just get a module repository, not a module set repository
-    LocalResourceRepository other = new LocalResourceRepository("unit test") {
-      @NonNull
-      @Override
-      protected Map<ResourceType, ListMultimap<String, ResourceItem>> getMap() {
-        return Collections.emptyMap();
-      }
-
-      @Nullable
-      @Override
-      protected ListMultimap<String, ResourceItem> getMap(ResourceType type, boolean create) {
-        return ArrayListMultimap.create();
-      }
-
-      @NotNull
-      @Override
-      protected Set<VirtualFile> computeResourceDirs() {
-        return ImmutableSet.of();
-      }
-    };
+    LocalResourceRepository other = new TestLocalResourceRepository();
 
     ModuleResourceRepository module = ModuleResourceRepository.createForTest(myFacet, Arrays.asList(res1, res2, res3));
     final ProjectResourceRepository resources = ProjectResourceRepository.createForTest(myFacet, Arrays.asList(module, other));

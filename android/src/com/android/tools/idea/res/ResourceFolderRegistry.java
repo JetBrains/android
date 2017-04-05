@@ -30,6 +30,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.concurrency.BoundedTaskExecutor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 import java.io.File;
@@ -56,12 +57,21 @@ public class ResourceFolderRegistry {
   }
 
   @NotNull
+  // TODO: namespaces
   public static ResourceFolderRepository get(@NotNull final AndroidFacet facet, @NotNull final VirtualFile dir) {
+    return get(facet, dir, null);
+  }
+
+  @NotNull
+  public static ResourceFolderRepository get(@NotNull final AndroidFacet facet,
+                                             @NotNull final VirtualFile dir,
+                                             @Nullable String namespace) {
     synchronized (DIR_MAP_LOCK) {
       ResourceFolderRepository repository = ourDirMap.get(dir);
       if (repository == null) {
         Project project = facet.getModule().getProject();
-        repository = ResourceFolderRepository.create(facet, dir);
+        // TODO: namespaces: use the namespace as the cache key.
+        repository = ResourceFolderRepository.create(facet, dir, namespace);
         putRepositoryInCache(project, dir, repository);
       }
       return repository;
@@ -80,7 +90,7 @@ public class ResourceFolderRegistry {
           synchronized (DIR_MAP_LOCK) {
             ResourceFolderRepository repository = ourDirMap.remove(dir);
             if (repository != null) {
-              repository.dispose();
+              Disposer.dispose(repository);
             }
           }
         }
@@ -202,7 +212,7 @@ public class ResourceFolderRegistry {
       @NotNull final BoundedTaskExecutor myParallelBuildExecutor,
       @NotNull final AndroidFacet facet,
       @NotNull final VirtualFile dir) {
-      return myParallelBuildExecutor.submit(() -> ResourceFolderRepository.create(facet, dir));
+      return myParallelBuildExecutor.submit(() -> ResourceFolderRepository.create(facet, dir, null));
     }
   }
 
