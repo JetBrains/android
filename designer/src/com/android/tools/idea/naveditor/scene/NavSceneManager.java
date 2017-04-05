@@ -17,6 +17,8 @@ package com.android.tools.idea.naveditor.scene;
 
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory;
 import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider;
+import com.android.tools.idea.naveditor.scene.layout.DummyAlgorithm;
+import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
@@ -43,7 +45,8 @@ public class NavSceneManager extends SceneManager {
   public static final String TAG_ACTION = "action";
   public static final String TAG_NAVIGATION = "navigation";
   public static final NavScreenTargetProvider SCREEN_TARGET_PROVIDER = new NavScreenTargetProvider();
-  private Dimension myContentSize = new Dimension();
+  private NavSceneLayoutAlgorithm myLayoutAlgorithm = new DummyAlgorithm();
+
   private static final SceneDecoratorFactory DECORATOR_FACTORY = new NavSceneDecoratorFactory();
   private static final String ENABLE_NAV_PROPERTY = "enable.nav.editor";
 
@@ -90,7 +93,11 @@ public class NavSceneManager extends SceneManager {
   }
 
   public void getContentSize(@NotNull Dimension toFill) {
-    toFill.setSize(myContentSize);
+    SceneComponent root = getScene().getRoot();
+    if (root == null) {
+      return;
+    }
+    toFill.setSize(root.getDrawWidth(), root.getDrawWidth());
   }
 
   @Override
@@ -119,8 +126,6 @@ public class NavSceneManager extends SceneManager {
 
   @Override
   public void layout(boolean animate) {
-    int maxX = 0;
-    int maxY = 0;
     List<NlComponent> components = getModel().getComponents();
     if (components.size() != 0) {
       NlComponent rootComponent = components.get(0).getRoot();
@@ -131,28 +136,8 @@ public class NavSceneManager extends SceneManager {
       root.setSize(Coordinates.getAndroidDimensionDip(getDesignSurface(), (int)surfaceSize.getWidth()),
                    Coordinates.getAndroidDimensionDip(getDesignSurface(), (int)surfaceSize.getHeight()),
                    false);
-
-      // TODO: this is dummy logic. Factor out actual layout.
-      Deque<SceneComponent> toBeProcessed = new ArrayDeque<>();
-      toBeProcessed.add(root);
-      int xOffset = 50;
-      int yOffset = 50;
-      while (!toBeProcessed.isEmpty()) {
-        SceneComponent component = toBeProcessed.removeLast();
-        toBeProcessed.addAll(component.getChildren());
-        if (component.getNlComponent().getTagName().equals(TAG_FRAGMENT)) {
-          component.setPosition(xOffset, yOffset);
-          xOffset += 130;
-          if (xOffset + 100 > root.getDrawWidth()) {
-            yOffset += 130;
-            xOffset = 50;
-          }
-          maxX = xOffset > maxX ? xOffset : maxX;
-          maxY = yOffset > maxY ? yOffset : maxY;
-        }
-      }
+      myLayoutAlgorithm.layout(root);
     }
-    myContentSize.setSize(maxX, maxY);
     getScene().needsRebuildList();
   }
 
