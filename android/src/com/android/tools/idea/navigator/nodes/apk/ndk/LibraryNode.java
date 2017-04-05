@@ -51,12 +51,14 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
 
   @NotNull
   private String getLibraryName() {
+    VirtualFile file = getFirstFile();
+    return file != null ? file.getNameWithoutExtension() : myLibrary.name;
+  }
+
+  @Nullable
+  protected VirtualFile getFirstFile() {
     List<VirtualFile> files = myLibrary.files;
-    if (files.size() > 0) {
-      VirtualFile file = files.get(0);
-      return file.getNameWithoutExtension();
-    }
-    return myLibrary.name;
+    return files.isEmpty() ? null : files.get(0);
   }
 
   @Override
