@@ -52,10 +52,10 @@ class ProvisionRunner {
     }
 
     myPackages = Lists.newArrayList(
+      new DevManPackage(instantAppSdk),
       new SupervisorPackage(instantAppSdk),
       new GmsCorePackage(instantAppSdk),
-      new PolicySetsPackage(instantAppSdk),
-      new DevManPackage(instantAppSdk)
+      new PolicySetsPackage(instantAppSdk)
     );
   }
 
