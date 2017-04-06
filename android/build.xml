@@ -20,9 +20,7 @@
         <os family="windows" />
     </condition>
 
-    <target name="preBuild" depends="profiler, java-lib-plugin">
-        <property name="bundle.gradle.plugin" value="true"/>
-        <antcall target="android-plugin" />
+    <target name="preBuild" depends="profiler, java-lib-plugin, android-plugin">
     </target>
     <target name="rebuild" depends="java-lib-plugin, android-plugin">
         <exec executable="${gradle.wrapper.executable}" dir="${android.basedir}/../../../base/profiler" failonerror="true">
