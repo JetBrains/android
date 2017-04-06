@@ -53,7 +53,7 @@ public class ProfilerServiceProxy extends PerfdProxyService
     return Logger.getInstance(ProfilerServiceProxy.class);
   }
 
-  private static final String AGENT_NAME = "libagent.so";
+  private static final String AGENT_NAME = "libperfa.so";
   private static final String EMULATOR = "Emulator";
   private static final int MINIMUM_SUPPORTED_API = 21;
 
