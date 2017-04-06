@@ -531,28 +531,36 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
           return;
         }
 
-        // Fit to zoom
-        int availableWidth = myScrollPane.getWidth() - myScrollPane.getVerticalScrollBar().getWidth();
-        int availableHeight = myScrollPane.getHeight() - myScrollPane.getHorizontalScrollBar().getHeight();
-        Dimension padding = getDefaultOffset();
-        availableWidth -= padding.width;
-        availableHeight -= padding.height;
-
-        Dimension preferredSize = getPreferredContentSize(availableWidth, availableHeight);
-        double scaleX = (double)availableWidth / preferredSize.getWidth();
-        double scaleY = (double)availableHeight / preferredSize.getHeight();
-        double scale = Math.min(scaleX, scaleY);
-        if (type == ZoomType.FIT_INTO) {
-          double min = (SystemInfo.isMac && UIUtil.isRetina()) ? 0.5 : 1.0;
-          scale = Math.min(min, scale);
-        }
-        setScale(scale);
+        setScale(getFitScale(type == ZoomType.FIT_INTO));
         repaint();
         break;
       default:
       case SCREEN:
         throw new UnsupportedOperationException("Not yet implemented: " + type);
     }
+  }
+
+  /**
+   * @param fitInto {@link ZoomType#FIT_INTO}
+   * @return The scale to make the content fit the design surface
+   */
+  private double getFitScale(boolean fitInto) {
+    // Fit to zoom
+    int availableWidth = myScrollPane.getWidth() - myScrollPane.getVerticalScrollBar().getWidth();
+    int availableHeight = myScrollPane.getHeight() - myScrollPane.getHorizontalScrollBar().getHeight();
+    Dimension padding = getDefaultOffset();
+    availableWidth -= padding.width;
+    availableHeight -= padding.height;
+
+    Dimension preferredSize = getPreferredContentSize(availableWidth, availableHeight);
+    double scaleX = (double)availableWidth / preferredSize.getWidth();
+    double scaleY = (double)availableHeight / preferredSize.getHeight();
+    double scale = Math.min(scaleX, scaleY);
+    if (fitInto) {
+      double min = (SystemInfo.isMac && UIUtil.isRetina()) ? 0.5 : 1.0;
+      scale = Math.min(min, scale);
+    }
+    return scale;
   }
 
   @SwingCoordinate
@@ -641,13 +649,11 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     else if (Math.abs(scale - 1) < 0.0001) {
       scale = 1;
     }
-    else if (scale < 0.01) {
-      scale = 0.01;
-    }
     else if (scale > 10) {
       scale = 10;
     }
-    myScale = scale;
+    double fitScale = getFitScale(false);
+    myScale = Math.max(scale, fitScale > 1 ? 1 : fitScale);
 
     Dimension oldSize = myScrollPane.getViewport().getViewSize();
     Point viewPortTargetCoordinates;
