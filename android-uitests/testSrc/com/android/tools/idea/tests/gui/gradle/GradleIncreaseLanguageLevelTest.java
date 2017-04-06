@@ -20,6 +20,7 @@ import com.android.tools.idea.tests.gui.framework.*;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,7 +30,7 @@ import java.io.IOException;
 import static com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction.UNDO;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
-@RunIn(TestGroup.UNRELIABLE)
+@Ignore("fails; replace with headless integration test; see ag/2070451")
 @RunWith(GuiTestRunner.class)
 public class GradleIncreaseLanguageLevelTest {
 
