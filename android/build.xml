@@ -21,8 +21,10 @@
     </condition>
 
     <target name="preBuild" depends="profiler, java-lib-plugin">
+        <property name="bundle.gradle.plugin" value="true"/>
+        <antcall target="android-plugin" />
     </target>
-    <target name="rebuild">
+    <target name="rebuild" depends="java-lib-plugin, android-plugin">
         <exec executable="${gradle.wrapper.executable}" dir="${android.basedir}/../../../base/profiler" failonerror="true">
             <arg value="clean" />
             <arg value="build" />
@@ -38,7 +40,16 @@
     <target name="java-lib-plugin">
         <exec executable="${gradle.wrapper.executable}" dir="${android.basedir}/../../../base/build-system/java-lib-plugin/java-lib-model-builder" failonerror="true">
             <arg value="build" />
+            <env key="JAVA_HOME" value="${java.home}"/>
             <env key="BUILD_FROM_STUDIO" value="true"/>
         </exec>
+    </target>
+    <target name="android-plugin" if="${bundle.gradle.plugin}">
+        <exec executable="${gradle.wrapper.executable}" dir="${android.basedir}/../../.." failonerror="true">
+            <env key="JAVA_HOME" value="${java.home}" />
+            <arg value="init" />
+            <arg value="zipOfflineRepo" />
+        </exec>
+        <unzip src="${android.basedir}/../../../../out/dist/offline_repo.zip" dest="${android.basedir}/../../../../out/studio/repo" />
     </target>
 </project>
