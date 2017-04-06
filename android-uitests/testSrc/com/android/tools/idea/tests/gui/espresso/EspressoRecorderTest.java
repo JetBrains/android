@@ -27,6 +27,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
 
 @RunWith(GuiTestRunner.class)
@@ -88,6 +89,7 @@ public class EspressoRecorderTest extends TestWithEmulator {
         new JListFixture(guiTest.robot(), GuiTests.waitForPopup(guiTest.robot())).clickItem("Wrapper[MyActivityTest]");
         return true;
       } catch (LocationUnavailableException e) {
+        guiTest.robot().pressAndReleaseKeys(KeyEvent.VK_ESCAPE);
         return false;
       }
     });
