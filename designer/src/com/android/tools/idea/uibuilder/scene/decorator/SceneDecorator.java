@@ -15,76 +15,30 @@
  */
 package com.android.tools.idea.uibuilder.scene.decorator;
 
-
-import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
-import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.draw.DrawComponentFrame;
 import com.android.tools.idea.uibuilder.scene.draw.DrawComponentBackground;
+import com.android.tools.idea.uibuilder.scene.draw.DrawComponentFrame;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities.getDpValue;
 
 /**
  * The generic Scene Decorator
  */
 public class SceneDecorator {
-  private static final boolean DEBUG = false;
-  static SceneDecorator basicDecorator = new SceneDecorator();
-  static Map<String, Constructor<? extends SceneDecorator>> ourConstructorMap = new HashMap<>();
-  static Map<String, SceneDecorator> ourSceneMap = new HashMap<>();
+  private SceneFrameFactory myFrameFactory = (list, component, sceneContext) -> {
+    Rectangle rect = new Rectangle();
+    component.fillRect(rect); // get the rectangle from the component
 
-  static {
-    try {
-      ourConstructorMap.put(SdkConstants.CLASS_CONSTRAINT_LAYOUT, ConstraintLayoutDecorator.class.getConstructor());
-      ourConstructorMap.put(SdkConstants.PROGRESS_BAR, ProgressBarDecorator.class.getConstructor());
-      ourConstructorMap.put(SdkConstants.BUTTON, ButtonDecorator.class.getConstructor());
-      ourConstructorMap.put(SdkConstants.TEXT_VIEW, TextViewDecorator.class.getConstructor());
-      ourConstructorMap.put(SdkConstants.IMAGE_VIEW, ImageViewDecorator.class.getConstructor());
-      ourConstructorMap.put(SdkConstants.CHECK_BOX, CheckBoxDecorator.class.getConstructor());
-      ourConstructorMap.put(SdkConstants.RADIO_BUTTON, RadioButtonDecorator.class.getConstructor());
-      ourConstructorMap.put(SdkConstants.SEEK_BAR, SeekBarDecorator.class.getConstructor());
-      ourConstructorMap.put(SdkConstants.SWITCH, SwitchDecorator.class.getConstructor());
-    }
-    catch (NoSuchMethodException e) {
-    }
-  }
+    SceneComponent.DrawState mode = component.getDrawState();
+    DrawComponentFrame.add(list, sceneContext, rect, mode.ordinal()); // add to the list
+  };
 
-  /**
-   * Simple factory for providing decorators
-   *
-   * @param component
-   * @return
-   */
-  public static SceneDecorator get(NlComponent component) {
-    String tag = component.getTagName();
-    if (tag != null && tag.equalsIgnoreCase(SdkConstants.VIEW_MERGE)) {
-      String parentTag = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_PARENT_TAG);
-      if (parentTag != null) {
-        tag = parentTag;
-      }
-    }
-    if (ourConstructorMap.containsKey(tag)) {
-      if (!ourSceneMap.containsKey(tag)) {
-        try {
-          ourSceneMap.put(tag, ourConstructorMap.get(tag).newInstance());
-        }
-        catch (Exception e) {
-          ourSceneMap.put(tag, basicDecorator);
-        }
-      }
-      return ourSceneMap.get(tag);
-    }
-    return basicDecorator;
+  public void setFrameFactory(@NotNull SceneFrameFactory sceneFrameFactory) {
+    myFrameFactory = sceneFrameFactory;
   }
 
   /**
@@ -143,25 +97,9 @@ public class SceneDecorator {
   protected void addFrame(@NotNull DisplayList list,
                           @NotNull SceneContext sceneContext,
                           @NotNull SceneComponent component) {
-    Rectangle rect = new Rectangle();
-    component.fillRect(rect); // get the rectangle from the component
-
-    int layout_width = layoutDimToMode(component.getNlComponent(), SdkConstants.ATTR_LAYOUT_WIDTH);
-    int layout_height = layoutDimToMode(component.getNlComponent(), SdkConstants.ATTR_LAYOUT_HEIGHT);
-    SceneComponent.DrawState mode = component.getDrawState();
-    boolean paint = sceneContext.showOnlySelection() ? mode == SceneComponent.DrawState.SELECTED : true;
-    if (paint) {
-      DrawComponentFrame.add(list, sceneContext, rect, mode.ordinal(), layout_width, layout_height); // add to the list
-    }
+    myFrameFactory.addFrame(list, component, sceneContext);
   }
 
-  private  int layoutDimToMode(NlComponent component,String attr) {
-    String value = component.getAttribute(SdkConstants.ANDROID_URI, attr);
-    if (SdkConstants.VALUE_WRAP_CONTENT.equalsIgnoreCase(value)) return -2;
-    if (SdkConstants.VALUE_MATCH_PARENT.equalsIgnoreCase(value)) return -1;
-    return getDpValue(component, value);
-
-  }
   /**
    * This is responsible for setting the clip and building the list for this component's children
    *
