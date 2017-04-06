@@ -48,7 +48,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
   private final AndroidFacet myFacet;
   private final NlEditor myEditor;
   private final XmlFile myFile;
-  private final DesignSurface mySurface;
+  private final NlDesignSurface mySurface;
   private final JPanel myContentPanel;
   private boolean myIsActive;
 
@@ -63,6 +63,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     myContentPanel = new JPanel(new BorderLayout());
 
     mySurface = new NlDesignSurface(project, false);
+    mySurface.setCentered(true);
     Disposer.register(editor, mySurface);
 
     setLoadingText("Wait for build to complete");
