@@ -27,10 +27,8 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayou
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneDragHandler;
-import com.android.tools.idea.uibuilder.scene.SceneInteraction;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.*;
 import com.android.tools.idea.uibuilder.scene.target.ActionTarget;
 import com.android.tools.idea.uibuilder.scene.target.LassoTarget;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
@@ -41,13 +39,19 @@ import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.WidgetDraw;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
+import com.android.utils.Pair;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.Computable;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -67,7 +71,7 @@ import static com.android.SdkConstants.*;
 /**
  * Handles interactions for the ConstraintLayout
  */
-public class ConstraintLayoutHandler extends ViewGroupHandler {
+public class ConstraintLayoutHandler extends ViewGroupHandler implements ComponentProvider {
 
   private static final String PREFERENCE_KEY_PREFIX = "ConstraintLayoutPreference";
   /**
@@ -88,6 +92,8 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   private final static String ADD_HORIZONTAL_BARRIER = "Add Horizontal Barrier";
   private final static String ADD_TO_BARRIER = "Add to Barrier";
   private final static String ADD_LAYER = "Add Layer";
+  private final static String ADD_GROUP = "Add Group";
+  private final static String ADD_CONSTRAINTS_SET = "Add set of Constraints";
 
   static {
     ourAutoConnect = PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, false);
@@ -274,6 +280,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
         new AddElementAction(AddElementAction.HORIZONTAL_BARRIER,
                              AndroidIcons.SherpaIcons.BarrierHorizontal,
                              ADD_HORIZONTAL_BARRIER),
+        new AddElementAction(AddElementAction.GROUP,
+                             AndroidIcons.SherpaIcons.Layer,
+                             ADD_GROUP),
+        new AddElementAction(AddElementAction.CONSTRAINT_SET,
+                             AndroidIcons.SherpaIcons.Layer,
+                             ADD_CONSTRAINTS_SET),
         new AddElementAction(AddElementAction.LAYER,
                              AndroidIcons.SherpaIcons.Layer,
                              ADD_LAYER)
@@ -385,6 +397,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     actions.add(action = new AddElementAction(AddElementAction.HORIZONTAL_BARRIER, AndroidIcons.SherpaIcons.BarrierHorizontal, str));
     myPopupActions.add(action);
 
+    str = ADD_GROUP;
+    actions.add(action = new AddElementAction(AddElementAction.GROUP, AndroidIcons.SherpaIcons.Layer, str));
+    myPopupActions.add(action);
+
+    str = ADD_CONSTRAINTS_SET;
+    actions.add(action = new AddElementAction(AddElementAction.CONSTRAINT_SET, AndroidIcons.SherpaIcons.Layer, str));
+    myPopupActions.add(action);
+
     str = ADD_LAYER;
     actions.add(action = new AddElementAction(AddElementAction.LAYER, AndroidIcons.SherpaIcons.Layer, str));
     myPopupActions.add(action);
@@ -427,7 +447,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
    */
   @Override
   public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component) {
-    return new SceneInteraction(screenView);
+    return new ConstraintSceneInteraction(screenView, component);
   }
 
   /**
@@ -438,7 +458,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   public List<Target> createTargets(@NotNull SceneComponent component, boolean isParent) {
     List<Target> result = new ArrayList<>();
     boolean showAnchors = !isParent;
-    NlComponent nlComponent = component.getNlComponent();
+    NlComponent nlComponent = component.getAuthoritativeNlComponent();
     ViewInfo vi = nlComponent.viewInfo;
     if (vi != null) {
 
@@ -469,6 +489,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
     }
 
+    if (!isParent) {
+      component.setComponentProvider(this);
+    }
     if (showAnchors) {
       DragTarget dragTarget = new DragTarget();
       result.add(dragTarget);
@@ -726,7 +749,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
     public static final int VERTICAL_GUIDELINE = 1;
     public static final int HORIZONTAL_BARRIER = 2;
     public static final int VERTICAL_BARRIER = 3;
-    public static final int LAYER = 4;
+    public static final int GROUP = 4;
+    public static final int CONSTRAINT_SET = 5;
+    public static final int LAYER = 6;
 
     final int myType;
 
@@ -767,6 +792,17 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
             tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.ADD_VERTICAL_GUIDELINE);
             guideline.setAttribute(NS_RESOURCES, ATTR_ORIENTATION,
                                    ATTR_GUIDELINE_ORIENTATION_VERTICAL);
+          }
+          break;
+          case GROUP: {
+            NlComponent group = parent.createChild(editor, CLASS_CONSTRAINT_LAYOUT_GROUP, null, InsertType.CREATE);
+            group.ensureId();
+          }
+          break;
+          case CONSTRAINT_SET: {
+            NlComponent constraints = parent.createChild(editor, CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS, null, InsertType.CREATE);
+            constraints.ensureId();
+            ConstraintReferenceManagement.populateConstraints(constraints);
           }
           break;
           case LAYER: {
@@ -914,8 +950,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
           }
         }
       }
-      if (myType == LAYER) {
+      if (myType == GROUP) {
         show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 0);
+      }
+      if (myType == CONSTRAINT_SET) {
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 0);
+      }
+      if (myType == LAYER) {
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(component.getModel(), 1, 1);
       }
 
       presentation.setVisible(show);
@@ -1118,5 +1160,63 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(ATTR_MIN_WIDTH, ATTR_MAX_WIDTH, ATTR_MIN_HEIGHT, ATTR_MAX_HEIGHT, ATTR_LAYOUT_CONSTRAINTSET);
+  }
+
+  /**
+   * Returns a component provider instance
+   *
+   * @return the component provider
+   */
+  @Override
+  public ComponentProvider getComponentProvider(@NotNull SceneComponent component) {
+    SceneComponent parent = component.getParent();
+    if (parent == null) {
+      return null;
+    }
+    NlComponent nlComponent = parent.getNlComponent();
+    if (nlComponent.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT)) {
+      String attribute = nlComponent.getLiveAttribute(SHERPA_URI, "constraints");
+      if (attribute != null) {
+        return this;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns the NlComponent associated with the given SceneComponent.
+   *
+   * @param component a given SceneComponent
+   * @return the associated NlComponent
+   */
+  @Override
+  public NlComponent getComponent(@NotNull SceneComponent component) {
+    SceneComponent parent = component.getParent();
+    NlComponent nlComponent = parent.getNlComponent();
+    String attribute = nlComponent.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_CONSTRAINTSET);
+    attribute = NlComponent.extractId(attribute);
+    if (attribute == null) {
+      return component.getNlComponent();
+    }
+    // else, let's get the component indicated
+    NlComponent constraints = null;
+    for (SceneComponent child : parent.getChildren()) {
+      String childId = child.getNlComponent().getId();
+      if (childId != null && childId.equals(attribute)) {
+        constraints = child.getNlComponent();
+        break;
+      }
+    }
+    if (constraints == null) {
+      return component.getNlComponent();
+    }
+    for (NlComponent child : constraints.getChildren()) {
+      String reference = child.getLiveAttribute(ANDROID_URI, ATTR_ID);
+      reference = NlComponent.extractId(reference);
+      if (reference != null && reference.equals(component.getNlComponent().getId())) {
+        return child;
+      }
+    }
+    return component.getNlComponent();
   }
 }
