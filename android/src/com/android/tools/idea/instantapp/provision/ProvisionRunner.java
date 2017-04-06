@@ -15,28 +15,21 @@
  */
 package com.android.tools.idea.instantapp.provision;
 
-import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.instantapp.InstantApps;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.ui.Messages;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static com.android.tools.idea.instantapp.InstantApps.getInstantAppSdk;
+import static com.android.tools.idea.instantapp.InstantApps.isLoggedInGoogleAccount;
 
 class ProvisionRunner {
-  private static final int O_API_LEVEL = 26;
-
   @NotNull private final ProgressIndicator myIndicator;
   @NotNull private final List<ProvisionPackage> myPackages;
 
@@ -107,44 +100,25 @@ class ProvisionRunner {
 
   private boolean isPostO(@NotNull IDevice device) {
     myIndicator.setText2("Checking API level");
+    getLogger().info("API level detected: " + device.getVersion().getApiLevel());
 
-    AndroidVersion androidVersion = device.getVersion();
-    getLogger().info("API level detected: " + androidVersion.getApiLevel());
-
-    return androidVersion.isGreaterOrEqualThan(O_API_LEVEL);
+    return InstantApps.isPostO(device);
   }
 
   private void checkSignedIn(@NotNull IDevice device) throws ProvisionException {
-    // TODO: delete this when Google accounts are not needed anymore
-
     myIndicator.setText2("Checking Google account");
     getLogger().info("Checking Google account");
 
-    CountDownLatch latch = new CountDownLatch(1);
-    CollectingOutputReceiver receiver = new CollectingOutputReceiver(latch);
     try {
-      device.executeShellCommand("dumpsys account", receiver);
-      latch.await(500, TimeUnit.MILLISECONDS);
+      if (isLoggedInGoogleAccount(device, true)) {
+        return;
+      }
     }
     catch (Exception e) {
-      throw new ProvisionException("Couldn't get account in device", e);
-    }
-
-    String output = receiver.getOutput();
-
-    Iterable<String> lines = Splitter.on("\n").split(output);
-    for (String line : lines) {
-      line = line.trim();
-      if (line.startsWith("Account {")) {
-        if (line.contains("type=com.google")) {
-          return;
-        }
-      }
+      throw new ProvisionException(e);
     }
 
     getLogger().warn("Device not logged in a Google account");
-    ApplicationManager.getApplication().invokeLater(
-      () -> Messages.showMessageDialog("Device not logged in a Google account", "Instant App Provision", null));
     throw new ProvisionException("Device not logged in a Google account");
   }
 
