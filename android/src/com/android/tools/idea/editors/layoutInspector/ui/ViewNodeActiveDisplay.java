@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ui;
 
-import com.android.tools.idea.editors.layoutInspector.model.DisplayInfo;
-import com.android.tools.idea.editors.layoutInspector.model.ViewNode;
+import com.android.layoutinspector.model.DisplayInfo;
+import com.android.layoutinspector.model.ViewNode;
 import com.android.tools.idea.editors.theme.MaterialColors;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
