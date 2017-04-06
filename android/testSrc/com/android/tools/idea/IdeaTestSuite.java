@@ -71,6 +71,9 @@ import java.nio.file.Paths;
 
   // http://b/36872873
   com.android.tools.idea.ddms.adb.AdbServiceTest.class,
+
+  // http://b/37059055
+  com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystemServiceTest.class,
 })
 public class IdeaTestSuite {
 
