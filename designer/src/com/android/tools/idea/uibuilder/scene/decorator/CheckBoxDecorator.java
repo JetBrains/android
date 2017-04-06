@@ -52,17 +52,19 @@ public class CheckBoxDecorator extends SceneDecorator {
             DrawTextRegion.TEXT_ALIGNMENT_CENTER, 32,scale);
     }
 
-    public DrawCheckbox(String s) {
+    @NotNull
+    public static DrawCheckbox createFromString(@NotNull String s) {
       String[] sp = s.split(",");
       int c = 0;
-      x = Integer.parseInt(sp[c++]);
-      y = Integer.parseInt(sp[c++]);
-      width = Integer.parseInt(sp[c++]);
-      height = Integer.parseInt(sp[c++]);
-      myBaseLineOffset = Integer.parseInt(sp[c++]);
-      mScale = java.lang.Float.parseFloat(sp[c++]);
-      mFont = mFont.deriveFont(mFont.getSize() * mScale);
-      mText = s.substring(s.indexOf('\"') + 1, s.lastIndexOf('\"'));
+      int x = Integer.parseInt(sp[c++]);
+      int y = Integer.parseInt(sp[c++]);
+      int width = Integer.parseInt(sp[c++]);
+      int height = Integer.parseInt(sp[c++]);
+      int baseLineOffset = Integer.parseInt(sp[c++]);
+      float scale = java.lang.Float.parseFloat(sp[c++]);
+      String text = s.substring(s.indexOf('\"') + 1, s.lastIndexOf('\"'));
+
+      return new DrawCheckbox(x, y, width, height, baseLineOffset, scale, text);
     }
 
     @Override

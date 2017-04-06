@@ -23,6 +23,9 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.android.tools.sherpa.drawing.ColorSet;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.SimpleAttributeSet;
@@ -30,37 +33,44 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Base Class for drawing text components
  */
 public class DrawTextRegion extends DrawRegion {
+  private static Cache<String, Font> ourFontCache = CacheBuilder.newBuilder()
+    .maximumSize(100)
+    .expireAfterAccess(10, TimeUnit.SECONDS)
+    .build();
+
+  protected static final int DEFAULT_FONT_SIZE = 14;
+  protected static final float DEFAULT_SCALE = 1.0f;
+  public static final float SCALE_ADJUST = .88f; // a factor to scale funts from android to Java2d
+  @SuppressWarnings("UseJBColor")
+  private static final Color TEXT_PANE_BACKGROUND = new Color(0, 0, 0, 0);
+
   static boolean DO_WRAP = false;
-  protected int mFontSize = 14;
-  protected float mScale = 1.0f;
-  protected int myBaseLineOffset = 0;
+  protected final int mFontSize;
+  protected final float mScale;
+  protected final int myBaseLineOffset;
   @SwingCoordinate protected int mHorizontalPadding = 0;
   @SwingCoordinate protected int mVerticalPadding = 0;
   @SwingCoordinate protected int mVerticalMargin = 0;
   @SwingCoordinate protected int mHorizontalMargin = 0;
-  protected boolean mToUpperCase = false;
+  protected final boolean mToUpperCase;
   public static final int TEXT_ALIGNMENT_TEXT_START = 2;
   public static final int TEXT_ALIGNMENT_TEXT_END = 3;
   public static final int TEXT_ALIGNMENT_VIEW_START = 5;
   public static final int TEXT_ALIGNMENT_VIEW_END = 6;
   public static final int TEXT_ALIGNMENT_CENTER = 4;
-  protected int mAlignmentX = TEXT_ALIGNMENT_VIEW_START;
-  protected int mAlignmentY = TEXT_ALIGNMENT_VIEW_START;
-  protected String mText;
-  public static final float SCALE_ADJUST = .88f; // a factor to scale funts from android to Java2d
-  protected Font mFont = new Font("Helvetica", Font.PLAIN, mFontSize)
-    .deriveFont(AffineTransform.getScaleInstance(mScale * SCALE_ADJUST, mScale * SCALE_ADJUST));
+  protected final int mAlignmentX;
+  protected final int mAlignmentY;
+  protected final String mText;
+  protected final Font mFont;
   protected boolean mSingleLine = false;
-  JTextPane mTextPane = new JTextPane();
-
-  {
-    mTextPane.setBackground(new Color(0, 0, 0, 0));
-  }
+  final JTextPane mTextPane;
 
   /**
    * Set the behavior to do a text wrap content or not
@@ -72,17 +82,37 @@ public class DrawTextRegion extends DrawRegion {
     DO_WRAP = doWrap;
   }
 
-  public DrawTextRegion(String string) {
+  @NotNull
+  private static Font getFont(int size, float scale) {
+    String key = String.format("%d %f", size, scale);
+
+    // Convert to swing size font
+    try {
+      return ourFontCache.get(key, () -> new Font("Helvetica", Font.PLAIN, size)
+        .deriveFont(AffineTransform.getScaleInstance(scale * SCALE_ADJUST, scale * SCALE_ADJUST)));
+    }
+    catch (ExecutionException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static DrawTextRegion createFromString(String string) {
     String[] sp = string.split(",");
-    int c = super.parse(sp, 0);
-    myBaseLineOffset = Integer.parseInt(sp[c++]);
-    mSingleLine = Boolean.parseBoolean(sp[c++]);
-    mToUpperCase = Boolean.parseBoolean(sp[c++]);
-    mAlignmentX = Integer.parseInt(sp[c++]);
-    mAlignmentY = Integer.parseInt(sp[c++]);
-    mFontSize = Integer.parseInt(sp[c++]);
-    mScale = java.lang.Float.parseFloat(sp[c++]);
-    mText = string.substring(string.indexOf('\"') + 1, string.lastIndexOf('\"'));
+    int c = 0;
+    int x = Integer.parseInt(sp[c++]);
+    int y = Integer.parseInt(sp[c++]);
+    int width = Integer.parseInt(sp[c++]);
+    int height = Integer.parseInt(sp[c++]);
+    int baseLineOffset = Integer.parseInt(sp[c++]);
+    boolean singleLine = Boolean.parseBoolean(sp[c++]);
+    boolean toUpperCase = Boolean.parseBoolean(sp[c++]);
+    int alignmentX = Integer.parseInt(sp[c++]);
+    int alignmentY = Integer.parseInt(sp[c++]);
+    int fontSize = Integer.parseInt(sp[c++]);
+    float scale = java.lang.Float.parseFloat(sp[c++]);
+    String text = string.substring(string.indexOf('\"') + 1, string.lastIndexOf('\"'));
+
+    return new DrawTextRegion(x, y, width, height, baseLineOffset, text, singleLine, toUpperCase, alignmentX, alignmentY, fontSize, scale);
   }
 
   @Override
@@ -115,21 +145,6 @@ public class DrawTextRegion extends DrawRegion {
            "\"";
   }
 
-  public DrawTextRegion() {
-
-  }
-
-  public DrawTextRegion(@SwingCoordinate int x,
-                        @SwingCoordinate int y,
-                        @SwingCoordinate int width,
-                        @SwingCoordinate int height,
-                        int baseLineOffset,
-                        String text) {
-    super(x, y, width, height);
-    myBaseLineOffset = baseLineOffset;
-    mText = text;
-  }
-
   public DrawTextRegion(@SwingCoordinate int x,
                         @SwingCoordinate int y,
                         @SwingCoordinate int width,
@@ -151,8 +166,20 @@ public class DrawTextRegion extends DrawRegion {
     mFontSize = fontSize;
     mScale = scale;
 
-    mFont = new Font("Helvetica", Font.PLAIN, mFontSize)
-      .deriveFont(AffineTransform.getScaleInstance(mScale * SCALE_ADJUST, mScale * SCALE_ADJUST)); // Convert to swing size font
+    mFont = getFont(mFontSize, mScale);
+
+    mTextPane = new JTextPane();
+    mTextPane.setBackground(TEXT_PANE_BACKGROUND);
+  }
+
+  public DrawTextRegion(@SwingCoordinate int x,
+                        @SwingCoordinate int y,
+                        @SwingCoordinate int width,
+                        @SwingCoordinate int height,
+                        int baseLineOffset,
+                        String text) {
+    this(x, y, width, height, baseLineOffset, text, false, false, TEXT_ALIGNMENT_TEXT_START, TEXT_ALIGNMENT_TEXT_START, DEFAULT_FONT_SIZE,
+         DEFAULT_SCALE);
   }
 
   @Override
