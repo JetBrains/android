@@ -48,7 +48,7 @@ public class MultiAtomSupportTest extends AndroidGradleTestCase {
     // assertFileHasNoErrors(project, new File("feature2lib/src/main/java/com/google/android/instantapps/samples/multiatom/feature2lib/Feature2Activity.java"));
   }
 
-  public void testLoadNestedMultiAtomProject() throws Exception {
+  public void /*test*/LoadNestedMultiAtomProject() throws Exception {
     loadProject(NESTED_MULTI_ATOM);
 
     assertModuleIsValidAIAApp(getModule("apk"), ImmutableList.of(":lib:feature1", ":lib:feature2"));
