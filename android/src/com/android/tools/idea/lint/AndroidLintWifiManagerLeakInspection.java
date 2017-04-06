@@ -16,11 +16,39 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.ServiceCastDetector;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
+import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidLintWifiManagerLeakInspection extends AndroidLintInspectionBase {
   public AndroidLintWifiManagerLeakInspection() {
     super(AndroidBundle.message("android.lint.inspections.wifi.manager.leak"), ServiceCastDetector.WIFI_MANAGER);
+  }
+
+  @NotNull
+  @Override
+  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                             @NotNull PsiElement endElement,
+                                             @NotNull String message,
+                                             @Nullable Object extraData) {
+
+    if (extraData instanceof String[] && ((String[])extraData).length == 2) {
+      String[] calls = (String[])extraData;
+      String current = calls[0];
+      String proposed = calls[1];
+      String qfxName = proposed;
+      if (!qfxName.endsWith("()")) {
+        qfxName += "()";
+      }
+      return new AndroidLintQuickFix[]{
+        new ReplaceStringQuickFix("Replace with " + qfxName, current, proposed)
+      };
+    }
+    else {
+      return AndroidLintQuickFix.EMPTY_ARRAY;
+    }
   }
 }

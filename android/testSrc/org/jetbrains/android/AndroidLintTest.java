@@ -1159,6 +1159,16 @@ public class AndroidLintTest extends AndroidTestCase {
                   "/src/test/pkg/WakelockTest.java", "java");
   }
 
+  public void testWifiManagerLeak() throws Exception {
+    deleteManifest();
+    // Set minSdkVersion to pre-N:
+    myFixture.copyFileToProject(getGlobalTestDir() + "/AndroidManifest.xml", "AndroidManifest.xml");
+
+    doTestWithFix(new AndroidLintWifiManagerLeakInspection(),
+                  "Replace with getApplicationContext().getSystemService()",
+                  "/src/test/pkg/WifiManagerLeak.java", "java");
+  }
+
   private Map<RefEntity, CommonProblemDescriptor[]> doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
     enableOnlySpecificLintInspections(myFixture, inspection);
     return doGlobalInspectionTest(inspection, getGlobalTestDir(), new AnalysisScope(myModule));
