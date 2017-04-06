@@ -20,8 +20,8 @@ import com.android.repository.io.FileOpUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.npw.template.MultiTemplateRenderer;
 import com.android.tools.idea.npw.module.NewModuleModel;
+import com.android.tools.idea.npw.template.MultiTemplateRenderer;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.recipe.RenderingContext;
@@ -42,6 +42,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -141,6 +142,7 @@ public class NewProjectModel extends WizardModel {
 
   /**
    * Loads saved company domain, or generates a dummy one if no domain has been saved
+   *
    * @param includeUserName This is used to implement legacy behaviour. When creating a new project the package name includes the user name
    *                        (if available), but when creating a new Module, the user name is not used.
    */
@@ -226,6 +228,14 @@ public class NewProjectModel extends WizardModel {
     @Override
     public void render() {
       performCreateProject(false);
+
+      try {
+        File projectRoot = VfsUtilCore.virtualToIoFile(project().getValue().getBaseDir());
+        AndroidGradleModuleUtils.setGradleWrapperExecutable(projectRoot);
+      }
+      catch (IOException e) {
+        getLogger().warn("Failed to update Gradle wrapper permissions", e);
+      }
 
       // Allow all other Wizard models to run handleFinished() (and the Wizard to close), before starting the (slow) import process.
       ApplicationManager.getApplication().invokeLater(this::performGradleImport);
