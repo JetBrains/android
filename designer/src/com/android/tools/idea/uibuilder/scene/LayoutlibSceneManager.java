@@ -26,6 +26,7 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.util.PropertiesMap;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
@@ -201,7 +202,13 @@ public class LayoutlibSceneManager extends SceneManager {
   private class ModelChangeListener implements ModelListener {
     @Override
     public void modelDerivedDataChanged(@NotNull NlModel model) {
-      render();
+      DesignSurface surface = getDesignSurface();
+      if (surface instanceof NlDesignSurface && ((NlDesignSurface)surface).getScreenMode() == NlDesignSurface.ScreenMode.BLUEPRINT_ONLY) {
+        layout(false);
+      }
+      else {
+        render();
+      }
     }
 
     @Override
