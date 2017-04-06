@@ -835,7 +835,6 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     return myScene;
   }
 
-  @Nullable
   public SceneManager getSceneManager() {
     return mySceneManager;
   }

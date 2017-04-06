@@ -66,11 +66,11 @@ public class ScoutTest extends SceneTest {
                  "      app:layout_constraintRight_toRightOf=\"parent\" />");
 
     buildScene();
-    String simpleList = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
+    String simpleList = "DrawComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                         "Clip,0,0,1000,1000\n" +
                         "DrawComponentBackground,450,490,100,20,1\n" +
                         "DrawTextRegion,450,490,100,20,0,false,false,5,5,28,1.0,\"\"\n" +
-                        "DrawNlComponentFrame,450,490,100,20,1,20,20\n" +
+                        "DrawComponentFrame,450,490,100,20,1,20,20\n" +
                         "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,0\n" +
                         "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5,0\n" +
                         "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5,0\n" +
@@ -82,14 +82,14 @@ public class ScoutTest extends SceneTest {
     assertEquals(simpleList, DisplayList.getDisplayList(simpleList).serialize());
     assertEquals(10, disp.getCommands().size());
     String result = disp.generateSortedDisplayList(SceneContext.get());
-    String sorted = "DrawNlComponentFrame,0,0,1000,1000,1,1000,1000\n" +
+    String sorted = "DrawComponentFrame,0,0,1000,1000,1,1000,1000\n" +
                     "Clip,0,0,1000,1000\n" +
                     "DrawConnection,2,450x490x100x20,0,0x0x1000x1000,0,1,false,0,0,false,0.5,0\n" +
                     "DrawConnection,2,450x490x100x20,1,0x0x1000x1000,1,1,false,0,0,false,0.5,0\n" +
                     "DrawConnection,2,450x490x100x20,2,0x0x1000x1000,2,1,false,0,0,false,0.5,0\n" +
                     "DrawConnection,2,450x490x100x20,3,0x0x1000x1000,3,1,false,0,0,false,0.5,0\n" +
                     "DrawComponentBackground,450,490,100,20,1\n" +
-                    "DrawNlComponentFrame,450,490,100,20,1,20,20\n" +
+                    "DrawComponentFrame,450,490,100,20,1,20,20\n" +
                     "DrawTextRegion,450,490,100,20,0,false,false,5,5,28,1.0,\"\"\n" +
                     "UNClip\n" +
                     "\n";

@@ -19,7 +19,6 @@ import com.android.tools.idea.uibuilder.handlers.constraint.targets.DragDndTarge
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -150,7 +149,4 @@ abstract public class SceneManager implements Disposable {
   public abstract void requestRender();
 
   public abstract void layout(boolean animate);
-
-  @NotNull
-  public abstract SceneDecoratorFactory getSceneDecoratorFactory();
 }
