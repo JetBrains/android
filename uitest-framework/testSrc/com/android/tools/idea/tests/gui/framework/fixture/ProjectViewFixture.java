@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.base.Strings;
@@ -22,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
+import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.ide.projectView.impl.ProjectViewTree;
 import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
@@ -66,26 +68,12 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
   @NotNull
   public PaneFixture selectProjectPane() {
-    activate();
-    final ProjectView projectView = ProjectView.getInstance(myProject);
-
-    if (!"ProjectView".equals(projectView.getCurrentViewId())) {
-      changePane("Project");
-    }
-
-    return new PaneFixture(projectView.getCurrentProjectViewPane(), myRobot);
+    return selectPane(ProjectViewPane.ID, "Project");
   }
 
   @NotNull
   public PaneFixture selectAndroidPane() {
-    activate();
-    final ProjectView projectView = ProjectView.getInstance(myProject);
-
-    if (!"AndroidView".equals(projectView.getCurrentViewId())) {
-      changePane("Android");
-    }
-
-    return new PaneFixture(projectView.getCurrentProjectViewPane(), myRobot);
+    return selectPane(AndroidProjectViewPane.ID, "Android");
   }
 
   @NotNull
@@ -127,6 +115,22 @@ public class ProjectViewFixture extends ToolWindowFixture {
         return !component.isRunning();
       }
     });
+  }
+
+  @NotNull
+  public String  getCurrentViewId() {
+    return ProjectView.getInstance(myProject).getCurrentViewId();
+  }
+
+  @NotNull public PaneFixture selectPane(String viewId, String name) {
+    activate();
+    final ProjectView projectView = ProjectView.getInstance(myProject);
+
+    if (!viewId.equals(projectView.getCurrentViewId())) {
+      changePane(name);
+    }
+
+    return new PaneFixture(projectView.getCurrentProjectViewPane(), myRobot);
   }
 
   public static class PaneFixture {

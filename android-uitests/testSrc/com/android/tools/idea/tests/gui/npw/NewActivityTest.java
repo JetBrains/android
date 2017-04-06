@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.npw;
 
+import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -23,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActivityStepFixture.ActivityTextField;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
+import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.openapi.util.text.StringUtil;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -55,6 +57,7 @@ public class NewActivityTest {
   @Before
   public void setUp() throws IOException {
     guiTest.importSimpleApplication();
+    guiTest.ideFrame().getProjectView().selectProjectPane();
     myEditor = guiTest.ideFrame().getEditor();
     myEditor.open(PROVIDED_ACTIVITY);
 
@@ -240,9 +243,55 @@ public class NewActivityTest {
     myDialog.clickCancel();
   }
 
+  @Test
+  public void projectViewPaneNotChanged() throws Exception {
+    // Verify that after creating a new activity, the current pane on projectView does not change, assumes initial pane is ProjectView
+    myDialog.clickFinish();
+
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+
+    myEditor = guiTest.ideFrame().getEditor();
+    myEditor.open(PROVIDED_ACTIVITY);
+
+    assertEquals(ProjectViewPane.ID, guiTest.ideFrame().getProjectView().getCurrentViewId());
+
+    // Verify that Android stays on Android
+    verifyNewActivityProjectPane(AndroidProjectViewPane.ID, "Android", true);
+
+    // Now when new activity is cancelled
+    verifyNewActivityProjectPane(ProjectViewPane.ID, "Project", false);
+    verifyNewActivityProjectPane(AndroidProjectViewPane.ID, "Android", false);
+  }
+
   private void assertTextFieldValues(@NotNull String activityName, @NotNull String layoutName, @NotNull String title) {
     assertThat(myConfigActivity.getTextFieldValue(ActivityTextField.NAME)).isEqualTo(activityName);
     assertThat(myConfigActivity.getTextFieldValue(ActivityTextField.LAYOUT)).isEqualTo(layoutName);
     assertThat(myConfigActivity.getTextFieldValue(ActivityTextField.TITLE)).isEqualTo(title);
+  }
+
+
+  private void verifyNewActivityProjectPane(@NotNull String viewId, @NotNull String name, boolean finish) {
+    // Change to viewId
+    guiTest.ideFrame().getProjectView().selectPane(viewId, name);
+    myEditor = guiTest.ideFrame().getEditor();
+    myEditor.open(PROVIDED_ACTIVITY);
+
+    // Create a new activity
+    guiTest.ideFrame().invokeMenuPath("File", "New", "Activity", "Basic Activity");
+    myDialog = NewActivityWizardFixture.find(guiTest.ideFrame());
+    myConfigActivity = myDialog.getConfigureActivityStep();
+    if (finish) {
+      myDialog.clickFinish();
+      guiTest.ideFrame().waitForGradleProjectSyncToFinish();
+      myEditor = guiTest.ideFrame().getEditor();
+      myEditor.open(PROVIDED_ACTIVITY);
+
+    }
+    else {
+      myDialog.clickCancel();
+    }
+
+    // Make sure it is still the same
+    assertEquals(viewId, guiTest.ideFrame().getProjectView().getCurrentViewId());
   }
 }
