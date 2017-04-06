@@ -45,6 +45,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -90,7 +93,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
     TabularLayout layout = new TabularLayout("*");
     JPanel details = new JPanel(layout);
-    details.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    details.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
     EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
     JComponent eventsComponent = eventsView.getComponent();
@@ -188,6 +191,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     JScrollPane scrollingThreads = new MyScrollPane();
     scrollingThreads.setViewportView(myThreads);
     myThreads.setCellRenderer(new ThreadCellRenderer(myThreads));
+    myThreads.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
 
     details.add(eventsComponent, new TabularLayout.Constraint(0, 0));
 
@@ -404,11 +408,13 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     public ThreadCellRenderer(JList<CpuThreadsModel.RangedCpuThread> list) {
       myLabel = new JLabel();
       myLabel.setFont(AdtUiUtils.DEFAULT_FONT);
-      myLabel.setForeground(ProfilerColors.THREAD_LABEL_TEXT);
-      myLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, ProfilerColors.THREAD_LABEL_BORDER));
+      Border rightSeparator = BorderFactory.createMatteBorder(0, 0, 0, 1, ProfilerColors.THREAD_LABEL_BORDER);
+      Border marginLeft = new EmptyBorder(0, 10, 0, 0);
+      myLabel.setBorder(new CompoundBorder(rightSeparator, marginLeft));
+      myLabel.setOpaque(true);
 
       myStateChart = new StateChart<>(new StateChartModel<>(), ProfilerColors.THREAD_STATES);
-      myStateChart.setHeightGap(0.30f);
+      myStateChart.setHeightGap(0.40f);
       list.addMouseMotionListener(new MouseAdapter() {
         @Override
         public void mouseMoved(MouseEvent e) {
@@ -424,18 +430,27 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
                                                   int index,
                                                   boolean isSelected,
                                                   boolean cellHasFocus) {
-      JPanel panel = new JPanel(new TabularLayout("150px,*"));
+      JPanel panel = new JPanel(new TabularLayout("150px,*", "*"));
       panel.setPreferredSize(new Dimension(panel.getPreferredSize().width, 15));
-      panel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
 
       myLabel.setText(value.getName());
-      myLabel.setOpaque(true);
       myLabel.setBackground(ProfilerColors.THREAD_LABEL_BACKGROUND);
+      myLabel.setForeground(ProfilerColors.THREAD_LABEL_TEXT);
+
+      myStateChart.setModel(value.getModel());
+      // 1 is index of the selected color, 0 is of the non-selected
+      // See more: {@link ProfilerColors#THREAD_STATES}
+      myStateChart.getColors().setColorIndex(isSelected ? 1 : 0);
+      myStateChart.setOpaque(true);
 
       if (isSelected) {
         // Cell is selected. Update its background accordingly.
         panel.setBackground(ProfilerColors.THREAD_SELECTED_BACKGROUND);
         myLabel.setBackground(ProfilerColors.THREAD_SELECTED_BACKGROUND);
+        myLabel.setForeground(ProfilerColors.SELECTED_THREAD_LABEL_TEXT);
+        // As the state chart is opaque the selected background wouldn't be visible
+        // if we didn't set the opaqueness to false if the cell is selected.
+        myStateChart.setOpaque(false);
       }
       else if (myHoveredIndex == index) {
         // Cell is hovered. Draw the hover overlay over it.
@@ -446,10 +461,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
 
       panel.add(myLabel, new TabularLayout.Constraint(0, 0));
       panel.add(myStateChart, new TabularLayout.Constraint(0, 0, 2));
-      myStateChart.setModel(value.getModel());
-      // 1 is index of the selected color, 0 is of the non-selected
-      // See more: {@link ProfilerColors#THREAD_STATES}
-      myStateChart.getColors().setColorIndex(isSelected ? 1 : 0);
       return panel;
     }
   }
