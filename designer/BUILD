@@ -82,5 +82,6 @@ iml_module(
         "//tools/analytics-library/shared:analytics-shared[module, test]",
         "//tools/adt/idea/adt-branding[module, test]",
         "//tools/adt/idea/sdk-updates[module, test]",
+        "//tools/base/layoutinspector:studio.layoutinspector[test]",
     ],
 )

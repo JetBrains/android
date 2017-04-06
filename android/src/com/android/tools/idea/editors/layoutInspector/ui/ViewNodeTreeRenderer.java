@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.layoutInspector.ui;
 
-import com.android.tools.idea.editors.layoutInspector.model.ViewNode;
+import com.android.layoutinspector.model.ViewNode;
 import com.android.tools.idea.editors.strings.FontUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;

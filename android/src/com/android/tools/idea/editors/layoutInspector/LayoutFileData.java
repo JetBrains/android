@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.editors.layoutInspector;
 
-import com.android.tools.idea.editors.layoutInspector.model.ViewNode;
+import com.android.layoutinspector.LayoutInspectorCaptureOptions;
+import com.android.layoutinspector.model.ViewNode;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,8 +28,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 
 public class LayoutFileData {
-  public final @Nullable BufferedImage myBufferedImage;
-  public final @Nullable ViewNode myNode;
+  @Nullable public final BufferedImage myBufferedImage;
+  @Nullable public final ViewNode myNode;
 
   public LayoutFileData(@NotNull VirtualFile file) throws IOException {
     byte[] previewBytes;
