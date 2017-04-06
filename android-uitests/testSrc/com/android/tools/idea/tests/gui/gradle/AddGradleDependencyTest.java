@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildMode
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JListFixture;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,7 +45,7 @@ public class AddGradleDependencyTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   @Rule public final ScreenshotsDuringTest screenshotsRule = new ScreenshotsDuringTest();
 
-  @RunIn(TestGroup.UNRELIABLE)
+  @Ignore("fails; replace with headless integration test; see ag/2070514")
   @Test
   public void testAddProdModuleDependency() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -70,7 +71,7 @@ public class AddGradleDependencyTest {
     verifyUndo(editor, 1);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
+  @Ignore("fails; replace with headless integration test; see ag/2070514")
   @Test
   public void testAddTestModuleDependency() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -96,7 +97,7 @@ public class AddGradleDependencyTest {
     verifyUndo(editor, 1);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
+  @Ignore("fails; replace with headless integration test; see ag/2070514")
   @Test
   public void testAddLibDependencyDeclaredInJavaProject() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -124,7 +125,7 @@ public class AddGradleDependencyTest {
     verifyUndo(editor, 1);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
+  @Ignore("fails; replace with headless integration test; see ag/2070514")
   @Test
   public void testAddLibDependencyDeclaredInAndroidProject() throws IOException {
     guiTest.importProjectAndWaitForProjectSyncToFinish("MultiModule");
@@ -185,7 +186,7 @@ public class AddGradleDependencyTest {
     assertThat(intentions).asList().doesNotContain(intention);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
+  @Ignore("fails; replace with headless integration test; see ag/2070514")
   @Test
   public void testAddJUnitDependency() throws IOException {
     EditorFixture editor = guiTest
@@ -213,7 +214,7 @@ public class AddGradleDependencyTest {
     verifyUndo(editor, 6);
   }
 
-  @RunIn(TestGroup.UNRELIABLE)
+  @Ignore("fails; replace with headless integration test; see ag/2070514")
   @Test
   public void testAddJetbrainsAnnotationDependency() throws IOException {
     guiTest.importSimpleApplication();
