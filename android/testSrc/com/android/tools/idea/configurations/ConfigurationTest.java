@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.android.ide.common.resources.configuration.*;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.ide.common.resources.configuration.LocaleQualifier;
+import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.NightMode;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
@@ -28,9 +30,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_ACTIVITY;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_NIGHT_MODE;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_THEME;
+import static com.android.tools.idea.configurations.ConfigurationListener.*;
 
 @SuppressWarnings("ConstantConditions")
 public class ConfigurationTest extends AndroidTestCase {
@@ -194,7 +194,7 @@ public class ConfigurationTest extends AndroidTestCase {
     assertEquals(ScreenSize.XLARGE, configuration4.getDevice().getDefaultHardware().getScreen().getSize());
   }
 
-  public void testCreateSimilar() throws Exception {
+  public void _testCreateSimilar() throws Exception {
     VirtualFile file1 = myFixture.copyFileToProject(TEST_FILE, "res/layout/layout1.xml");
     VirtualFile file2 = myFixture.copyFileToProject(TEST_FILE, "res/layout-no-rNO/layout1.xml");
     VirtualFile file3 = myFixture.copyFileToProject(TEST_FILE, "res/layout-xlarge-land/layout1.xml");
