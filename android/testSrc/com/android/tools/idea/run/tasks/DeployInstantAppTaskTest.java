@@ -17,10 +17,14 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
+import com.android.tools.idea.instantapp.provision.ProvisionPackageTests;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.intellij.openapi.project.Project;
+import com.intellij.util.io.ZipUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,74 +45,100 @@ import static org.mockito.Mockito.*;
 public class DeployInstantAppTaskTest {
 
   @Rule public TemporaryFolder myFolder = new TemporaryFolder();
-  @Mock private IDevice myDevice;
   @Mock private LaunchStatus myLaunchStatus;
   @Mock private ConsolePrinter myPrinter;
+  @Mock private Project myProject;
   @Captor private ArgumentCaptor<String> myShellCommandsCaptor;
 
   private File createDummyZipFile() throws Exception {
-    return myFolder.newFile("dummy.zip");
+    File apk = myFolder.newFile("dummy.apk");
+    File zip = myFolder.newFile("dummy.zip");
+    ZipUtil.compressFile(apk, zip);
+    return zip;
   }
 
   @Before
   public void initMocks() throws Exception {
     MockitoAnnotations.initMocks(this);
+    when(myLaunchStatus.isLaunchTerminated()).thenReturn(false);
   }
 
   @Test
-  public void perform_uploadsCorrectly() throws Exception {
+  public void perform_uploadsCorrectly() throws Throwable {
+    IDevice device = new ProvisionPackageTests.DeviceGenerator().setGoogleAccountLogged().setOsBuildType("dev-keys").setApiLevel(24).getDevice();
+
     ApkInfo dummyInfo = new ApkInfo(createDummyZipFile(), "applicationId");
-    DeployInstantAppTask task = new DeployInstantAppTask(ImmutableList.of(dummyInfo));
+    DeployInstantAppTask task = new DeployInstantAppTask(ImmutableList.of(dummyInfo), myProject);
 
-    assertThat(task.perform(myDevice, myLaunchStatus, myPrinter)).isTrue();
+    assertThat(task.perform(device, myLaunchStatus, myPrinter)).isTrue();
 
-    verify(myDevice, times(1)).pushFile(dummyInfo.getFile().getPath(), "/data/local/tmp/aia/dummy.zip");
-    verify(myDevice, times(3)).executeShellCommand(myShellCommandsCaptor.capture(), any(IShellOutputReceiver.class));
+    verify(device, times(1)).pushFile(dummyInfo.getFile().getPath(), "/data/local/tmp/aia/dummy.zip");
+    verify(device, times(5)).executeShellCommand(myShellCommandsCaptor.capture(), any(IShellOutputReceiver.class));
 
     List<String> shellCommands = myShellCommandsCaptor.getAllValues();
 
-    assertThat(shellCommands.get(0))
+    assertThat(shellCommands.get(1)).matches("su shell mkdir -p /data/local/tmp/aia/");
+    assertThat(shellCommands.get(2))
       .matches("am startservice -a \"com.google.android.instantapps.devman.iapk.LOAD\" " +
                "--es \"com.google.android.instantapps.devman.iapk.IAPK_PATH\" \"/data/local/tmp/aia/dummy.zip\" " +
                "--es \"com.google.android.instantapps.devman.iapk.INSTALL_TOKEN\" \"[^\"]+\" " +
                "--ez \"com.google.android.instantapps.devman.iapk.FORCE\" \"false\" " +
                "-n com.google.android.instantapps.devman/.iapk.IapkLoadService");
-    assertThat(shellCommands.get(1)).isEqualTo("rm /data/local/tmp/aia/dummy.zip");
-    assertThat(shellCommands.get(2)).isEqualTo("am force-stop com.google.android.instantapps.supervisor");
+    assertThat(shellCommands.get(3)).isEqualTo("rm -f /data/local/tmp/aia/dummy.zip");
+    assertThat(shellCommands.get(4)).isEqualTo("am force-stop com.google.android.instantapps.supervisor");
   }
 
   @Test
-  public void perform_generatesUniqueTokens() throws Exception {
+  public void perform_uploadsCorrectlyPostO() throws Throwable {
+    IDevice device = new ProvisionPackageTests.DeviceGenerator().setGoogleAccountLogged().setOsBuildType("dev-keys").setApiLevel(26).getDevice();
+
+    ApkInfo dummyInfo = new ApkInfo(createDummyZipFile(), "applicationId");
+    DeployInstantAppTask task = new DeployInstantAppTask(ImmutableList.of(dummyInfo), myProject);
+
+    assertThat(task.perform(device, myLaunchStatus, myPrinter)).isTrue();
+
+    verify(device, times(0)).pushFile(any(), any());
+    verify(device, times(1)).installPackages(anyList(), eq(true), eq(Lists.newArrayList("-t", "--ephemeral")), anyLong(), any());
+  }
+
+  @Test
+  public void perform_generatesUniqueTokens() throws Throwable {
+    IDevice device = new ProvisionPackageTests.DeviceGenerator().setGoogleAccountLogged().setOsBuildType("dev-keys").setApiLevel(24).getDevice();
+
     Pattern tokenExtractor = Pattern.compile(".*TOKEN\" \"([^\"]*)\".*");
-    DeployInstantAppTask task = new DeployInstantAppTask(ImmutableList.of(new ApkInfo(createDummyZipFile(), "applicationId")));
+    DeployInstantAppTask task = new DeployInstantAppTask(ImmutableList.of(new ApkInfo(createDummyZipFile(), "applicationId")), myProject);
 
     // Generate first token
-    task.perform(myDevice, myLaunchStatus, myPrinter);
+    task.perform(device, myLaunchStatus, myPrinter);
 
-    verify(myDevice, atLeastOnce()).executeShellCommand(myShellCommandsCaptor.capture(), any(IShellOutputReceiver.class));
-    Matcher tokenMatcher = tokenExtractor.matcher(myShellCommandsCaptor.getAllValues().get(0));
+    verify(device, atLeastOnce()).executeShellCommand(myShellCommandsCaptor.capture(), any(IShellOutputReceiver.class));
+    Matcher tokenMatcher = tokenExtractor.matcher(myShellCommandsCaptor.getAllValues().get(2));
     assertThat(tokenMatcher.find()).isTrue();
 
-    reset(myDevice);
+    IDevice device2 = new ProvisionPackageTests.DeviceGenerator().setGoogleAccountLogged().setOsBuildType("dev-keys").setApiLevel(24).getDevice();
 
     // Generate second token
-    task.perform(myDevice, myLaunchStatus, myPrinter);
+    task.perform(device2, myLaunchStatus, myPrinter);
 
-    verify(myDevice, never()).executeShellCommand(contains(tokenMatcher.group(1)), any(IShellOutputReceiver.class));
+    verify(device2, never()).executeShellCommand(contains(tokenMatcher.group(1)), any(IShellOutputReceiver.class));
   }
 
   @Test
-  public void perform_failsWhenNoTarget() throws Exception {
-    DeployInstantAppTask task = new DeployInstantAppTask(ImmutableList.of());
+  public void perform_failsWhenNoTarget() throws Throwable {
+    IDevice device = new ProvisionPackageTests.DeviceGenerator().setGoogleAccountLogged().setOsBuildType("dev-keys").setApiLevel(24).getDevice();
 
-    assertThat(task.perform(myDevice, myLaunchStatus, myPrinter)).isFalse();
+    DeployInstantAppTask task = new DeployInstantAppTask(ImmutableList.of(), myProject);
+
+    assertThat(task.perform(device, myLaunchStatus, myPrinter)).isFalse();
   }
 
   @Test
-  public void perform_failsWhenMissingTarget() throws Exception {
+  public void perform_failsWhenMissingTarget() throws Throwable {
+    IDevice device = new ProvisionPackageTests.DeviceGenerator().setGoogleAccountLogged().setOsBuildType("dev-keys").setApiLevel(24).getDevice();
+
     ApkInfo dummyInfo = new ApkInfo(new File("fake_path"), "applicationId");
-    DeployInstantAppTask task = new DeployInstantAppTask(ImmutableList.of(dummyInfo));
+    DeployInstantAppTask task = new DeployInstantAppTask(ImmutableList.of(dummyInfo), myProject);
 
-    assertThat(task.perform(myDevice, myLaunchStatus, myPrinter)).isFalse();
+    assertThat(task.perform(device, myLaunchStatus, myPrinter)).isFalse();
   }
 }
