@@ -172,4 +172,10 @@ public final class FakeProfilerService extends ProfilerServiceGrpc.ProfilerServi
   public void setThrowErrorOnGetDevices(boolean throwErrorOnGetDevices) {
     myThrowErrorOnGetDevices = throwErrorOnGetDevices;
   }
+
+  @Override
+  public void attachAgent(Profiler.AgentAttachRequest request, StreamObserver<Profiler.AgentAttachResponse> responseObserver) {
+    responseObserver.onNext(Profiler.AgentAttachResponse.getDefaultInstance());
+    responseObserver.onCompleted();
+  }
 }

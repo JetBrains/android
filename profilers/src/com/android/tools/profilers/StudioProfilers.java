@@ -91,10 +91,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private long myRefreshDevices;
 
-  private long myDeviceTimeNs;
-
-  private long myHostTimeNs;
-
   private boolean myConnected;
 
   public StudioProfilers(ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
@@ -269,10 +265,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           .setDeviceSerial(myDevice.getSerial())
           .setBootId(myDevice.getBootId())
           .build();
-        Profiler.TimeResponse
-          response = myClient.getProfilerClient().getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(mySessionData).build());
-        myHostTimeNs = System.nanoTime();
-        myDeviceTimeNs = response.getTimestampNs();
       }
       else {
         mySessionData = null;
@@ -321,12 +313,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
           myDevice.getState() == Profiler.Device.State.ONLINE &&
           myProcess.getState() == Profiler.Process.State.ALIVE) {
 
-        // Calculating the current device time, so we can properly estimate how long the timeline should be when selecting
-        // the running application.
-        // Due to plug/unplug changing the application start time, when you plug/unplug the delta time is small.
-        // Without getting the current time here, if you switch to an application that has been running for a while, the timeline will
-        // not match the profiling data.
-        long currentDeviceTime = ((System.nanoTime() - myHostTimeNs) + myDeviceTimeNs);
+        Profiler.TimeResponse
+          response = myClient.getProfilerClient().getCurrentTime(Profiler.TimeRequest.newBuilder().setSession(mySessionData).build());
+        long currentDeviceTime = response.getTimestampNs();
         long runTime = currentDeviceTime - myProcess.getStartTimestampNs();
         myRelativeTimeConverter = new RelativeTimeConverter(myProcess.getStartTimestampNs() - TimeUnit.SECONDS.toNanos(TIMELINE_BUFFER));
         myTimeline.reset(myRelativeTimeConverter, runTime);
