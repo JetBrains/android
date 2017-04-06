@@ -85,11 +85,7 @@ public class NlModelTest extends LayoutTestCase {
                  myTreeDumper.toTree(model.getComponents()));
 
 
-    // Same hierarchy; preserveXmlTags means that all the XmlTags in the view hiearchy
-    // will be different than in the existing model (simulating a completely separate
-    // PSI parse)
-    boolean preserveXmlTags = false;
-    modelBuilder.updateModel(model, preserveXmlTags);
+    modelBuilder.updateModel(model);
 
     // Everything should be identical
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
@@ -111,7 +107,7 @@ public class NlModelTest extends LayoutTestCase {
     ComponentDescriptor parent = modelBuilder.findByPath(LINEAR_LAYOUT);
     assertThat(parent).isNotNull();
     parent.removeChild(modelBuilder.findByPath(LINEAR_LAYOUT, TEXT_VIEW));
-    modelBuilder.updateModel(model, false);
+    modelBuilder.updateModel(model);
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
@@ -131,7 +127,7 @@ public class NlModelTest extends LayoutTestCase {
     ComponentDescriptor parent = modelBuilder.findByPath(LINEAR_LAYOUT);
     assertThat(parent).isNotNull();
     parent.removeChild(modelBuilder.findByPath(LINEAR_LAYOUT, BUTTON));
-    modelBuilder.updateModel(model, false);
+    modelBuilder.updateModel(model);
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}",
@@ -153,7 +149,7 @@ public class NlModelTest extends LayoutTestCase {
     ComponentDescriptor textView = modelBuilder.findByPath(LINEAR_LAYOUT, TEXT_VIEW);
     assertThat(parent).isNotNull();
     parent.children(button, textView);
-    modelBuilder.updateModel(model, false);
+    modelBuilder.updateModel(model);
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}\n" +
@@ -177,7 +173,7 @@ public class NlModelTest extends LayoutTestCase {
       .withBounds(100, 100, 100, 100)
       .width("100dp")
       .height("100dp"), null);
-    modelBuilder.updateModel(model, false);
+    modelBuilder.updateModel(model);
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
@@ -204,7 +200,7 @@ public class NlModelTest extends LayoutTestCase {
     assertThat(button).isNotNull();
     parent.removeChild(button);
     textView.addChild(button, null);
-    modelBuilder.updateModel(model, false);
+    modelBuilder.updateModel(model);
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
@@ -214,7 +210,6 @@ public class NlModelTest extends LayoutTestCase {
 
   @SuppressWarnings("ConstantConditions")
   public void testChangedPropertiesWithIds() throws Exception {
-    boolean preserveXmlTags = false;
     // We include id's in the tags here since (due to attribute
     // changes between the two elements
     boolean includeIds = true;
@@ -235,7 +230,7 @@ public class NlModelTest extends LayoutTestCase {
     button.withAttribute("style", "@style/Foo");
     textView.withAttribute("style", "@style/Foo");
 
-    modelBuilder.updateModel(model, preserveXmlTags);
+    modelBuilder.updateModel(model);
 
     // Everything should be identical
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
@@ -246,7 +241,6 @@ public class NlModelTest extends LayoutTestCase {
 
   @SuppressWarnings("ConstantConditions")
   public void testChangeSingleProperty() throws Exception {
-    boolean preserveXmlTags = false;
     boolean includeIds = false;
 
     ModelBuilder modelBuilder = createDefaultModelBuilder(includeIds);
@@ -262,7 +256,7 @@ public class NlModelTest extends LayoutTestCase {
     assertThat(layout).isNotNull();
     layout.withAttribute("style", "@style/Foo");
 
-    modelBuilder.updateModel(model, preserveXmlTags);
+    modelBuilder.updateModel(model);
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
@@ -293,7 +287,7 @@ public class NlModelTest extends LayoutTestCase {
                       .width("100dp")
                       .height("100dp"), textView);
     parent.removeChild(button);
-    modelBuilder.updateModel(model, false);
+    modelBuilder.updateModel(model);
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<EditText>, bounds=[100,100:100x100, instance=3}\n" +

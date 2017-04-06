@@ -45,7 +45,7 @@ public class DrawAction implements DrawCommand {
 
   @Override
   public String serialize() {
-    return "DrawConnection," + myConnectionType + "," + rectToString(mySource) + "," +
+    return "DrawAction," + myConnectionType + "," + rectToString(mySource) + "," +
            rectToString(myDest) + "," + myMode;
   }
 
