@@ -22,6 +22,7 @@ import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.OsType;
 import com.android.testutils.TestUtils;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.junit.AfterClass;
 import org.junit.runner.RunWith;
 
@@ -122,7 +123,8 @@ public class IdeaTestSuite {
     try {
       Files.createDirectories(linkName.getParent());
       Files.createSymbolicLink(linkName, targetPath);
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -139,7 +141,8 @@ public class IdeaTestSuite {
     Path path = Paths.get(TMP_DIR, p);
     try {
       Files.createDirectories(path);
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       throw new RuntimeException(e);
     }
     return path;
@@ -159,7 +162,8 @@ public class IdeaTestSuite {
           FileOpUtils.create(),
           offlineRepoZip.length(),
           new FakeProgressIndicator());
-      } catch (IOException e) {
+      }
+      catch (IOException e) {
         throw new RuntimeException(e);
       }
     }
@@ -169,5 +173,10 @@ public class IdeaTestSuite {
   public static void leakChecker() throws Exception {
     Class<?> leakTestClass = Class.forName("_LastInSuiteTest");
     leakTestClass.getMethod("testProjectLeak").invoke(leakTestClass.newInstance());
+  }
+
+  @AfterClass
+  public static void killGradleDaemons() {
+    DefaultGradleConnector.close();
   }
 }
