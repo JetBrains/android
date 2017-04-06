@@ -28,7 +28,6 @@ import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.impl.ComponentManagerImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
@@ -134,7 +133,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     ArrayList<String> allowedRoots = new ArrayList<>();
     collectAllowedRoots(allowedRoots);
-    registerAllowedRoots(allowedRoots, myTestRootDisposable);
+    registerAllowedRoots(allowedRoots, getTestRootDisposable());
     mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
     AndroidCodeStyleSettingsModifier.modify(mySettings);
     CodeStyleSettingsManager.getInstance(getProject()).setTemporarySettings(mySettings);
