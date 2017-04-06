@@ -102,7 +102,8 @@ public class SceneComponent {
     myScene = scene;
     myNlComponent = component;
     myScene.addComponent(this);
-    myDecorator = SceneDecorator.get(component);
+    SceneManager manager = scene.getSceneManager();
+    myDecorator = manager.getSceneDecoratorFactory().get(component);
     myAllowsAutoconnect = !myNlComponent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE);
     myAllowsFixedPosition = !myNlComponent.getTagName().equalsIgnoreCase(SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE);
   }
