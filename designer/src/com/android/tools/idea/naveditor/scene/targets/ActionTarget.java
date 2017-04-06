@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.targets;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.naveditor.scene.draw.DrawAction;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
@@ -117,7 +118,7 @@ public class ActionTarget extends BaseTarget {
   @Override
   public void render(@NotNull DisplayList list, @NotNull SceneContext sceneContext) {
     Rectangle sourceRect = Coordinates.getSwingRectDip(sceneContext, getComponent().fillRect(null));
-    String targetId = myNlComponent.getAttribute("http://schemas.android.com/apk/res-auto", NavSceneManager.ATTR_DESTINATION);
+    String targetId = myNlComponent.getAttribute(SdkConstants.AUTO_URI, NavSceneManager.ATTR_DESTINATION);
     Rectangle destRect = null;
     //noinspection ConstantConditions
     for (SceneComponent candidate : getComponent().getParent().getChildren()) {
