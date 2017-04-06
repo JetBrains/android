@@ -161,7 +161,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
   }
 
   @Override
-  public void onWizardFinished(ModelWizard.WizardResult result) {
+  public void onWizardFinished(@NotNull ModelWizard.WizardResult result) {
     // Only progress when we know the underlying wizard is done. Call the super methods directly
     // since we stubbed out our local overrides.
     if (result.isFinished()) {
@@ -173,7 +173,7 @@ public final class ModelWizardDialog extends DialogWrapper implements ModelWizar
   }
 
   @Override
-  public void onWizardAdvanceError(Exception e) {
+  public void onWizardAdvanceError(@NotNull Exception e) {
     DialogEarthquakeShaker.shake(getWindow());
   }
 

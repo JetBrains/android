@@ -73,12 +73,12 @@ final class IdeaWizardAdapter implements ModelWizard.WizardListener, WizardDeleg
   }
 
   @Override
-  public void onWizardFinished(ModelWizard.WizardResult result) {
+  public void onWizardFinished(@NotNull ModelWizard.WizardResult result) {
     myHostWizard.close(DialogWrapper.CLOSE_EXIT_CODE, result.isFinished());
   }
 
   @Override
-  public void onWizardAdvanceError(Exception e) {
+  public void onWizardAdvanceError(@NotNull Exception e) {
     DialogEarthquakeShaker.shake(myHostWizard.getWindow());
   }
 
