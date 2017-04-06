@@ -432,6 +432,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
                                                   boolean cellHasFocus) {
       JPanel panel = new JPanel(new TabularLayout("150px,*", "*"));
       panel.setPreferredSize(new Dimension(panel.getPreferredSize().width, 15));
+      panel.setBackground(list.getBackground());
 
       myLabel.setText(value.getName());
       myLabel.setBackground(ProfilerColors.THREAD_LABEL_BACKGROUND);
