@@ -21,6 +21,13 @@ iml_module(
 iml_module(
     name = "sdk-updates-tests",
     tags = ["managed"],
+    test_class = "com.android.tools.idea.updater.SdkUpdaterTestSuite",
+    test_data = [
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/android/testData",
+        "//tools/base/templates",
+    ],
     test_srcs = ["testSrc"],
     # do not sort: must match IML order
     deps = [
@@ -30,5 +37,7 @@ iml_module(
         "//tools/base/sdklib:studio.sdklib[module, test]",
         "//tools/adt/idea/android[module, test]",
         "//tools/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/android-test-framework[module, test]",
+        "//tools/base/testutils:studio.testutils[module, test]",
     ],
 )
