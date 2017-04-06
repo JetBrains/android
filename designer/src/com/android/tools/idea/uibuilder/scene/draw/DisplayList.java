@@ -24,12 +24,14 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor; // 
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnection; // TODO: remove
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils; // TODO: remove
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.GeneralPath;
-import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.function.Function;
 
 
 /**
@@ -549,55 +551,51 @@ public class DisplayList {
     return str;
   }
 
-  static HashMap<String, Constructor<? extends DrawCommand>> ourBuildMap = new HashMap<>();
+  static HashMap<String, Function<String, ? extends DrawCommand>> ourBuildMap = new HashMap<>();
 
   static {
-    try {
-      ourBuildMap.put("Connection", Connection.class.getConstructor(String.class));
-      ourBuildMap.put("Rect", Rect.class.getConstructor(String.class));
-      ourBuildMap.put("Clip", Clip.class.getConstructor(String.class));
-      ourBuildMap.put("UNClip", UNClip.class.getConstructor(String.class));
-      ourBuildMap.put("Line", Line.class.getConstructor(String.class));
-      ourBuildMap.put("DrawConnection", DrawConnection.class.getConstructor(String.class));
-      addListElementConstructor(DrawResize.class);
-      addListElementConstructor(DrawAnchor.class);
-      addListElementConstructor(DrawComponentBackground.class);
-      addListElementConstructor(DrawNlComponentFrame.class);
-      addListElementConstructor(ProgressBarDecorator.DrawProgressBar.class);
-      addListElementConstructor(ButtonDecorator.DrawButton.class);
-      addListElementConstructor(DrawTextRegion.class);
-      addListElementConstructor(ImageViewDecorator.DrawImageView.class);
-      addListElementConstructor(CheckBoxDecorator.DrawCheckbox.class);
-      addListElementConstructor(RadioButtonDecorator.DrawRadioButton.class);
-      addListElementConstructor(SeekBarDecorator.DrawSeekBar.class);
-      addListElementConstructor(SwitchDecorator.DrawSwitch.class);
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
+    addListElementConstructor(Connection.class);
+    addListElementConstructor(Rect.class);
+    addListElementConstructor(Clip.class);
+    addListElementConstructor(UNClip.class);
+    addListElementConstructor(Line.class);
+    addListElementConstructor(DrawConnection.class);
+    addListElementConstructor(DrawResize.class);
+    addListElementConstructor(DrawAnchor.class);
+    addListElementConstructor(DrawComponentBackground.class);
+    addListElementConstructor(DrawNlComponentFrame.class);
+    addListElementConstructor(ProgressBarDecorator.DrawProgressBar.class);
+
+    addListElementConstructor(ImageViewDecorator.DrawImageView.class);
+    addListElementConstructor(SeekBarDecorator.DrawSeekBar.class);
+
+    addListElementProvider(DrawTextRegion.class, DrawTextRegion::createFromString);
+    addListElementProvider(ButtonDecorator.DrawButton.class, ButtonDecorator.DrawButton::createFromString);
+    addListElementProvider(SwitchDecorator.DrawSwitch.class, SwitchDecorator.DrawSwitch::createFromString);
+    addListElementProvider(RadioButtonDecorator.DrawRadioButton.class, RadioButtonDecorator.DrawRadioButton::createFromString);
+    addListElementProvider(CheckBoxDecorator.DrawCheckbox.class, CheckBoxDecorator.DrawCheckbox::createFromString);
   }
 
   static public void addListElementConstructor(Class<? extends DrawCommand> c) {
-    try {
-      ourBuildMap.put(c.getSimpleName(), c.getConstructor(String.class));
-    }
-    catch (NoSuchMethodException e) {
-      e.printStackTrace();
-    }
+    ourBuildMap.put(c.getSimpleName(), s -> {
+      try {
+        return c.getConstructor(String.class).newInstance(s);
+      }
+      catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+        e.printStackTrace();
+      }
+
+      return null;
+    });
   }
 
-  static public void addListElementConstructor(String cmd, Constructor<? extends DrawCommand> constructor) {
-    ourBuildMap.put(cmd, constructor);
+  static public void addListElementProvider(Class<? extends DrawCommand> c, Function<String, ? extends DrawCommand> provider) {
+    ourBuildMap.put(c.getSimpleName(), provider);
   }
 
+  @Nullable
   static private DrawCommand get(String cmd, String args) {
-    try {
-      return ourBuildMap.get(cmd).newInstance(args);
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
-    return null;
+    return ourBuildMap.get(cmd).apply(args);
   }
 
   public static DisplayList getDisplayList(String str) {

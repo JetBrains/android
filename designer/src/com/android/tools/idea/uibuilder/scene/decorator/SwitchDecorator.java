@@ -41,16 +41,35 @@ public class SwitchDecorator extends SceneDecorator {
       super(x, y, width, height, baseLineOffset, string);
     }
 
-    public DrawSwitch(String string) {
-      String[] sp = string.split(",");
-      int c = super.parse(sp, 0);
-      myBaseLineOffset = Integer.parseInt(sp[c++]);
-      mSingleLine = Boolean.parseBoolean(sp[c++]);
-      mToUpperCase = Boolean.parseBoolean(sp[c++]);
-      mAlignmentX = Integer.parseInt(sp[c++]);
-      mAlignmentY = Integer.parseInt(sp[c++]);
-      mText = string.substring(string.indexOf('\"') + 1, string.lastIndexOf('\"'));
-      super.parse(sp, 0);
+    DrawSwitch(int x,
+               int y,
+               int width,
+               int height,
+               int baseLineOffset,
+               boolean singleLine,
+               boolean toUpperCase,
+               int alignmentX,
+               int alignmentY,
+               String string) {
+      super(x, y, width, height, baseLineOffset, string, singleLine, toUpperCase, alignmentX, alignmentY, DEFAULT_FONT_SIZE, DEFAULT_SCALE);
+    }
+
+    @NotNull
+    public static DrawSwitch createFromString(@NotNull String s) {
+      String[] sp = s.split(",");
+      int c = 0;
+      int x = Integer.parseInt(sp[c++]);
+      int y = Integer.parseInt(sp[c++]);
+      int width = Integer.parseInt(sp[c++]);
+      int height = Integer.parseInt(sp[c++]);
+      int baseLineOffset = Integer.parseInt(sp[c++]);
+      boolean singleLine = Boolean.parseBoolean(sp[c++]);
+      boolean toUpperCase = Boolean.parseBoolean(sp[c++]);
+      int alignmentX = Integer.parseInt(sp[c++]);
+      int alignmentY = Integer.parseInt(sp[c++]);
+      String text = s.substring(s.indexOf('\"') + 1, s.lastIndexOf('\"'));
+
+      return new DrawSwitch(x, y, width, height, baseLineOffset,  text);
     }
 
     @Override
