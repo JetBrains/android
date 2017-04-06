@@ -30,7 +30,7 @@ public class SceneInteraction extends Interaction {
   /**
    * The surface associated with this interaction.
    */
-  private final SceneView mySceneView;
+  protected SceneView mySceneView;
 
   /**
    * Base constructor
