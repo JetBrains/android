@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.android.tools.idea.instantapp.provision.ProvisionPackageTests.getMockDevice;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -59,7 +60,7 @@ abstract class ProvisionPackageTest<T extends ProvisionPackage> extends AndroidG
     IDevice device = getMockDevice("arm64-v8a", 23, "dev-keys", myProvisionPackage.getPkgName(), 123456789);
     // Testing that no exception is thrown
     myProvisionPackage.install(device);
-    verify(device).installPackage(any(), eq(true), eq("-d"));
+    verify(device, atLeast(1)).installPackage(any(), eq(true), eq("-d"));
   }
 
   public void testGetInstalledApkVersion() throws Throwable {

@@ -39,7 +39,7 @@ class PolicySetsPackage extends ProvisionPackage {
     assert policyFolder.exists() && policyFolder.isDirectory();
     Set<String> apks = new HashSet<>();
     for (String apk : policyFolder.list()) {
-      apk = apk.replaceAll("_(arm64-v8a|x86)\\.apk", "");
+      apk = apk.replaceAll("_(arm64-v8a|x86|armeabi-v7a)\\.apk", "");
       if (!apks.contains(apk)) {
         apks.add(apk);
         myPolicyPackages.add(new PolicyPackage(instantAppSdk, apk));
