@@ -16,7 +16,6 @@
 package com.android.tools.idea;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.XmlBuilder;
 import org.intellij.lang.annotations.Language;
 import org.junit.Test;
 
@@ -171,6 +170,68 @@ public final class XmlBuilderTest {
       .attribute("", "name", "value")
       .endTag("Foo")
       .toString();
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void characterDataInElementWithNoAttributes() {
+    @Language("XML")
+    String expected = "<resources>\n" +
+                      "\n" +
+                      "    <style\n" +
+                      "        name=\"vertical_orientation\">\n" +
+                      "\n" +
+                      "        <item>\n" +
+                      "            vertical\n" +
+                      "        </item>\n" +
+                      "    </style>\n" +
+                      "</resources>\n";
+
+    // @formatter:off
+    String actual = new XmlBuilder()
+      .startTag("resources")
+        .startTag("style")
+        .attribute("name", "vertical_orientation")
+          .startTag("item")
+          .characterData("vertical")
+          .endTag("item")
+        .endTag("style")
+      .endTag("resources")
+      .toString();
+    // @formatter:on
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void characterDataInElementWithAttributes() {
+    @Language("XML")
+    String expected = "<resources>\n" +
+                      "\n" +
+                      "    <style\n" +
+                      "        name=\"vertical_orientation\">\n" +
+                      "\n" +
+                      "        <item\n" +
+                      "            name=\"android:orientation\">\n" +
+                      "            vertical\n" +
+                      "        </item>\n" +
+                      "    </style>\n" +
+                      "</resources>\n";
+
+    // @formatter:off
+    String actual = new XmlBuilder()
+      .startTag("resources")
+        .startTag("style")
+        .attribute("name", "vertical_orientation")
+          .startTag("item")
+          .attribute("name", "android:orientation")
+          .characterData("vertical")
+          .endTag("item")
+        .endTag("style")
+      .endTag("resources")
+      .toString();
+    // @formatter:on
 
     assertEquals(expected, actual);
   }
