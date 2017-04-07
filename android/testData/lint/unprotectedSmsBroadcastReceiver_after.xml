@@ -4,7 +4,7 @@
   <application android:icon="@drawable/ic_launcher">
     <receiver
             android:name=".SmsReceiver"
-            android:permission="android.permission.BROADCAST_SMS">
+        android:permission="android.permission.BROADCAST_SMS">
       <intent-filter>
         <action android:name="android.provider.Telephony.SMS_RECEIVED"/>
       </intent-filter>

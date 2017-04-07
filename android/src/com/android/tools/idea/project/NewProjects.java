@@ -38,7 +38,6 @@ import java.util.List;
 import static com.intellij.openapi.util.io.FileUtil.delete;
 import static com.intellij.openapi.util.io.FileUtil.ensureExists;
 import static com.intellij.openapi.wm.ToolWindowId.PROJECT_VIEW;
-import static org.jetbrains.android.util.AndroidUtils.addRunConfiguration;
 
 public class NewProjects {
   private static final Logger LOG = Logger.getInstance(NewProjects.class);
@@ -77,22 +76,5 @@ public class NewProjects {
     if (window != null) {
       window.activate(null, false);
     }
-  }
-
-  public static void createRunConfigurations(@NotNull AndroidFacet facet) {
-    Module module = facet.getModule();
-    RunManager runManager = RunManager.getInstance(module.getProject());
-    ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
-    List<RunConfiguration> configs = runManager.getConfigurationsList(configurationFactory.getType());
-    for (RunConfiguration config : configs) {
-      if (config instanceof AndroidRunConfiguration) {
-        AndroidRunConfiguration androidRunConfig = (AndroidRunConfiguration)config;
-        if (androidRunConfig.getConfigurationModule().getModule() == module) {
-          // There is already a run configuration for this module.
-          return;
-        }
-      }
-    }
-    addRunConfiguration(facet, null, false, TargetSelectionMode.SHOW_DIALOG, null);
   }
 }

@@ -17,8 +17,12 @@ public class PsiDbDefaultsImpl extends DataBindingPsiElement implements PsiDbDef
     super(node);
   }
 
+  public void accept(@NotNull PsiDbVisitor visitor) {
+    visitor.visitDefaults(this);
+  }
+
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof PsiDbVisitor) ((PsiDbVisitor)visitor).visitDefaults(this);
+    if (visitor instanceof PsiDbVisitor) accept((PsiDbVisitor)visitor);
     else super.accept(visitor);
   }
 

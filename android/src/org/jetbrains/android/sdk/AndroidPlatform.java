@@ -18,8 +18,9 @@ package org.jetbrains.android.sdk;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.google.common.collect.Sets;
 import com.android.sdklib.IAndroidTarget.OptionalLibrary;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
@@ -39,7 +40,6 @@ import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.sdklib.IAndroidTarget.ANDROID_JAR;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.util.PathUtil.getCanonicalPath;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -55,13 +55,16 @@ public class AndroidPlatform {
 
   @Nullable
   public static AndroidPlatform getInstance(@NotNull Module module) {
+    if (module.isDisposed()) {
+      return null;
+    }
     Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
     return sdk != null ? getInstance(sdk) : null;
   }
 
   @Nullable
   public static AndroidPlatform getInstance(@NotNull Sdk sdk) {
-    AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(sdk);
+    AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(sdk);
     return data != null ? data.getAndroidPlatform() : null;
   }
 
@@ -77,7 +80,7 @@ public class AndroidPlatform {
 
   @Nullable
   public static AndroidPlatform parse(@NotNull Sdk sdk) {
-    if (!isAndroidSdk(sdk)) {
+    if (!AndroidSdks.getInstance().isAndroidSdk(sdk)) {
       return null;
     }
     AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
@@ -184,7 +187,7 @@ public class AndroidPlatform {
   }
 
   public boolean needToAddAnnotationsJarToClasspath() {
-    return needsAnnotationsJarInClasspath(myTarget);
+    return AndroidSdks.getInstance().needsAnnotationsJarInClasspath(myTarget);
   }
 
   public int getApiLevel() {

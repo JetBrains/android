@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
-import java.util.EnumSet;
-
 /**
  * An enumerated type of different insertion events, such as an insertion from a
  * copy/paste operation or as the first half of a move operation.
@@ -34,7 +32,7 @@ public enum InsertType {
    * example as part of a palette static image render, or a palette drag initial
    * drag preview image. (This is useful to for example skip interactive operations,
    * such as querying the user to choose a drawable resource for an ImageButton
-   * via {@link ViewEditor#displayResourceInput(EnumSet, String)})
+   * via {@link ViewEditor#displayResourceInput})
    */
   CREATE_PREVIEW,
 

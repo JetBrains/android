@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
 import com.google.common.collect.ImmutableList;
@@ -30,13 +31,7 @@ import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredent
  * Represents a repository defined with maven {}.
  */
 public class MavenRepositoryModel extends UrlBasedRepositoryModel {
-  @NonNls private static final String URL = "url";
-  @NonNls private static final String NAME = "name";
   @NonNls private static final String ARTIFACT_URLS = "artifactUrls";
-
-  @NotNull private final MavenRepositoryDslElement myDslElement;
-  @NotNull private final String myDefaultRepoName;
-  @NotNull private final String myDefaultRepoUrl;
 
   public MavenRepositoryModel(@NotNull MavenRepositoryDslElement dslElement) {
     this(dslElement, "maven", "https://repo1.maven.org/maven2/");
@@ -45,34 +40,20 @@ public class MavenRepositoryModel extends UrlBasedRepositoryModel {
   protected MavenRepositoryModel(@NotNull MavenRepositoryDslElement dslElement,
                                  @NotNull String defaultRepoName,
                                  @NotNull String defaultRepoUrl) {
-    myDslElement = dslElement;
-    myDefaultRepoName = defaultRepoName;
-    myDefaultRepoUrl = defaultRepoUrl;
+    super(dslElement, defaultRepoName, defaultRepoUrl);
   }
 
   @NotNull
-  @Override
-  public String name() {
-    String name = myDslElement.getProperty(NAME, String.class);
-    return name != null ? name : myDefaultRepoName;
-  }
-
-  @NotNull
-  @Override
-  public String url() {
-    String url = myDslElement.getProperty(URL, String.class);
-    return url != null ? url : myDefaultRepoUrl;
-  }
-
-  @NotNull
-  public List<String> artifactUrls() {
-    List<String> artifactUrls = myDslElement.getListProperty(ARTIFACT_URLS, String.class);
-    return artifactUrls != null ? artifactUrls : ImmutableList.<String>of();
+  public List<GradleNotNullValue<String>> artifactUrls() {
+    assert myDslElement != null;
+    List<GradleNotNullValue<String>> artifactUrls = myDslElement.getListProperty(ARTIFACT_URLS, String.class);
+    return artifactUrls != null ? artifactUrls : ImmutableList.of();
   }
 
   @Nullable
   public MavenCredentialsModel credentials() {
-    MavenCredentialsDslElement credentials = myDslElement.getProperty(CREDENTIALS_BLOCK_NAME, MavenCredentialsDslElement.class);
+    assert myDslElement != null;
+    MavenCredentialsDslElement credentials = myDslElement.getPropertyElement(CREDENTIALS_BLOCK_NAME, MavenCredentialsDslElement.class);
     return credentials != null ? new MavenCredentialsModel(credentials) : null;
   }
 }

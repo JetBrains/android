@@ -83,7 +83,7 @@ public class AndroidTextUtils {
    *
    * @return {@code haystack}, with suffix of {@code needle} dropped
    */
-  @Nullable("when haystack doesn't end with needle")
+  @Nullable/*when haystack doesn't end with needle*/
   @Contract(pure = true)
   public static String trimEndOrNullize(@NotNull String haystack, @NotNull String needle) {
     if (haystack.endsWith(needle)) {

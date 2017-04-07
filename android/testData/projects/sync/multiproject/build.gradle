@@ -1,8 +1,9 @@
 buildscript {
   repositories {
-    jcenter()
     if (System.getenv("MAVEN_URL") != null) {
       maven {url System.getenv("MAVEN_URL")}
+    } else {
+      maven {url 'prebuilts/tools/common/m2/repository'}
     }
   }
   dependencies {

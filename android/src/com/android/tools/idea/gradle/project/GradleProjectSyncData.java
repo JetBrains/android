@@ -16,11 +16,13 @@
 package com.android.tools.idea.gradle.project;
 
 import com.android.annotations.VisibleForTesting;
-import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.GradleModel;
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Hashing;
 import com.intellij.openapi.application.PathManager;
@@ -41,8 +43,6 @@ import static com.android.SdkConstants.*;
 import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.Projects.isGradleProjectModule;
-import static com.android.tools.idea.sdk.IdeSdks.getAndroidSdkPath;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.google.common.io.Closeables.close;
 import static com.google.common.io.Files.toByteArray;
 import static com.intellij.openapi.util.io.FileUtil.*;
@@ -103,8 +103,8 @@ public class GradleProjectSyncData implements Serializable {
   }
 
   private static boolean needsAndroidSdkSync(@NotNull final Project project) {
-    if (isAndroidStudio()) {
-      final File ideSdkPath = getAndroidSdkPath();
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      final File ideSdkPath = IdeSdks.getInstance().getAndroidSdkPath();
       if (ideSdkPath != null) {
         try {
           LocalProperties localProperties = new LocalProperties(project);
@@ -179,11 +179,11 @@ public class GradleProjectSyncData implements Serializable {
     File rootDirPath = getBaseDirPath(project);
     Module[] modules = ModuleManager.getInstance(project).getModules();
     for (Module module : modules) {
-      AndroidGradleFacet gradleFacet = AndroidGradleFacet.getInstance(module);
+      GradleFacet gradleFacet = GradleFacet.getInstance(module);
       if (gradleFacet != null) {
-        GradleModel gradleModel = gradleFacet.getGradleModel();
-        if (gradleModel != null) {
-          data.addFileChecksum(rootDirPath, gradleModel.getBuildFile());
+        GradleModuleModel gradleModuleModel = gradleFacet.getGradleModuleModel();
+        if (gradleModuleModel != null) {
+          data.addFileChecksum(rootDirPath, gradleModuleModel.getBuildFile());
         }
         else {
           LOG.warn(String.format("Trying to create project data from a not initialized project '%1$s'. Abort.", project.getName()));
@@ -199,15 +199,15 @@ public class GradleProjectSyncData implements Serializable {
         data.addFileChecksum(rootDirPath, getGradleUserSettingsFile());
       }
 
-      NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
-      if (nativeAndroidModel != null) {
-        for (File externalBuildFile : nativeAndroidModel.getNativeAndroidProject().getBuildFiles()) {
+      NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+      if (ndkModuleModel != null) {
+        for (File externalBuildFile : ndkModuleModel.getAndroidProject().getBuildFiles()) {
           data.addFileChecksum(rootDirPath, externalBuildFile);
         }
       }
     }
     GradleSyncState syncState = GradleSyncState.getInstance(project);
-    data.myLastGradleSyncTimestamp = syncState.getLastGradleSyncTimestamp();
+    data.myLastGradleSyncTimestamp = syncState.getSummary().getSyncTimestamp();
     return data;
   }
 

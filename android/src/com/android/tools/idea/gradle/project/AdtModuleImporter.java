@@ -92,9 +92,6 @@ public final class AdtModuleImporter extends ModuleImporter {
     importer.setImportModuleNames(modules.build());
     if (builder.validate(null, project)) {
       builder.commit(project, null, ModulesProvider.EMPTY_MODULES_PROVIDER, null);
-      if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        project.save();
-      }
       builder.cleanup();
     }
   }

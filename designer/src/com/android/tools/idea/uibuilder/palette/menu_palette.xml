@@ -23,9 +23,19 @@
       <![CDATA[
         <item
             android:id="@+id/app_bar_search"
-            android:actionViewClass="android.support.v7.widget.SearchView"
             android:icon="@drawable/ic_search_black_24dp"
             android:title="Search" />
+      ]]>
+    </xml>
+  </item>
+
+  <item tag="item" title="Switch Item">
+    <xml>
+      <![CDATA[
+        <item
+            android:id="@+id/app_bar_switch"
+            android:title=""
+            app:actionLayout="@layout/switch_item" />
       ]]>
     </xml>
   </item>

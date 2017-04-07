@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.run;
 
 import com.android.tools.idea.fd.InstantRunTasksProvider;
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.compiler.CompileScope;
@@ -42,8 +42,8 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
   public List<String> getCleanAndGenerateSourcesTasks() {
     List<String> tasks = Lists.newArrayList();
 
-    tasks.addAll(GradleInvoker.findCleanTasksForModules(myModules));
-    tasks.addAll(GradleInvoker.findTasksToExecute(myModules, BuildMode.SOURCE_GEN, GradleInvoker.TestCompileType.NONE));
+    tasks.addAll(GradleBuildInvoker.findCleanTasksForModules(myModules));
+    tasks.addAll(GradleBuildInvoker.findTasksToExecute(myModules, BuildMode.SOURCE_GEN, GradleBuildInvoker.TestCompileType.NONE));
 
     return tasks;
   }
@@ -52,7 +52,7 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
   public List<String> getUnitTestTasks(@NotNull BuildMode buildMode) {
     // Make sure all "intermediates/classes" directories are up-to-date.
     Module[] affectedModules = getAffectedModules(myModules[0].getProject(), myModules);
-    return GradleInvoker.findTasksToExecute(affectedModules, buildMode, GradleInvoker.TestCompileType.JAVA_TESTS);
+    return GradleBuildInvoker.findTasksToExecute(affectedModules, buildMode, GradleBuildInvoker.TestCompileType.UNIT_TESTS);
   }
 
   @NotNull
@@ -65,11 +65,11 @@ public class GradleModuleTasksProvider implements InstantRunTasksProvider {
   @NotNull
   @Override
   public List<String> getFullBuildTasks() {
-    return getTasksFor(BuildMode.ASSEMBLE, GradleInvoker.TestCompileType.NONE);
+    return getTasksFor(BuildMode.ASSEMBLE, GradleBuildInvoker.TestCompileType.NONE);
   }
 
   @NotNull
-  public List<String> getTasksFor(@NotNull BuildMode buildMode, @NotNull GradleInvoker.TestCompileType testCompileType) {
-    return GradleInvoker.findTasksToExecute(myModules, buildMode, testCompileType);
+  public List<String> getTasksFor(@NotNull BuildMode buildMode, @NotNull GradleBuildInvoker.TestCompileType testCompileType) {
+    return GradleBuildInvoker.findTasksToExecute(myModules, buildMode, testCompileType);
   }
 }

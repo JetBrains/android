@@ -173,7 +173,7 @@ public class StateListPicker extends JPanel {
    * Returns a {@link ValidationInfo} in the case one of the state list state has a value that does not resolve to a valid resource,
    * or a value that is a private framework value. or if one of the state list component requires an API level higher than minApi.
    */
-  @Nullable("if there is no error")
+  @Nullable/*if there is no error*/
   public ValidationInfo doValidate(int minApi) {
     IAndroidTarget target = myConfiguration.getRealTarget();
     assert target != null;
@@ -507,7 +507,7 @@ public class StateListPicker extends JPanel {
       }
     }
 
-    @Nullable("if there is no error")
+    @Nullable/*if there is no error*/
     public ValidationInfo doValidate(int minApi, @NotNull AndroidTargetData androidTargetData) {
       ValidationInfo error = getResourceComponent().doValidate(minApi, androidTargetData);
       if (error == null && getAlphaValue() != null) {

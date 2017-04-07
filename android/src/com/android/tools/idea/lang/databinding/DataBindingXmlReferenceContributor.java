@@ -352,7 +352,7 @@ public class DataBindingXmlReferenceContributor extends PsiReferenceContributor 
     }
 
     @Override
-    @Nullable("Unable to resolve type for the variable.")
+    @Nullable/*Unable to resolve type for the variable.*/
     public PsiModelClass getResolvedType() {
       return myModelClass;
     }

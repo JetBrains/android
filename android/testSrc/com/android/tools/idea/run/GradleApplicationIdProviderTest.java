@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
+
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
 
 /**
  * Tests for {@link GradleApplicationIdProvider}.
  */
 public class GradleApplicationIdProviderTest extends AndroidGradleTestCase {
   public void testGetPackageName() throws Exception {
-    loadProject("projects/runConfig/activity");
+    loadProject(RUN_CONFIG_ACTIVITY);
     ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
     // See testData/Projects/runConfig/activity/build.gradle
     assertEquals("from.gradle.debug", provider.getPackageName());
@@ -31,7 +33,7 @@ public class GradleApplicationIdProviderTest extends AndroidGradleTestCase {
   }
 
   public void testGetPackageNameForTest() throws Exception {
-    loadProject("projects/runConfig/activity");
+    loadProject(RUN_CONFIG_ACTIVITY);
     ApplicationIdProvider provider = new GradleApplicationIdProvider(myAndroidFacet);
     // See testData/Projects/runConfig/activity/build.gradle
     assertEquals("from.gradle.debug", provider.getPackageName());

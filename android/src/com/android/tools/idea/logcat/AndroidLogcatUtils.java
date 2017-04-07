@@ -16,38 +16,13 @@
 
 package com.android.tools.idea.logcat;
 
-import com.android.ddmlib.*;
-import com.android.tools.idea.run.LoggingReceiver;
+import com.android.ddmlib.Log;
 import com.intellij.execution.process.ProcessOutputTypes;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public final class AndroidLogcatUtils {
-  private static final Logger LOG = Logger.getInstance(AndroidLogcatUtils.class);
-
   private AndroidLogcatUtils() {
-  }
-
-  static void clearLogcat(@Nullable final Project project, @NotNull IDevice device) {
-    try {
-      AndroidUtils.executeCommandOnDevice(device, "logcat -c", new LoggingReceiver(LOG), false);
-    }
-    catch (final Exception e) {
-      LOG.info(e);
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          Messages.showErrorDialog(project, "Error: " + e.getMessage(), AndroidBundle.message("android.logcat.error.dialog.title"));
-        }
-      });
-    }
   }
 
   public static Key getProcessOutputType(@NotNull Log.LogLevel level) {

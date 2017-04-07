@@ -19,9 +19,11 @@ import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.model.MergedManifest.ActivityAttributes;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.lint.checks.PermissionHolder;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -34,9 +36,30 @@ import java.util.List;
 import java.util.Map;
 
 import static com.android.resources.ScreenSize.*;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings("javadoc")
 public class MergedManifestTest extends AndroidTestCase {
+  public void testHandleDisposedModule() {
+    Module module = mock(Module.class);
+    when(module.isDisposed()).thenReturn(true);
+    MergedManifest manifest = MergedManifest.get(module);
+    assertThat(manifest.getActions()).isNull();
+    assertThat(manifest.getActivities()).isEmpty();
+    assertThat(manifest.getMinSdkVersion()).isEqualTo(AndroidVersion.DEFAULT);
+    assertThat(manifest.getTargetSdkVersion()).isEqualTo(AndroidVersion.DEFAULT);
+    assertThat(manifest.getDocument()).isNull();
+    assertThat(manifest.getApplicationIcon()).isNull();
+    assertThat(manifest.getVersionCode()).isNull();
+    assertThat(manifest.getPermissionHolder()).isNotNull();
+    assertThat(manifest.getManifestFiles()).isNull();
+    assertThat(manifest.getLoggingRecords()).isEmpty();
+    assertThat(manifest.getPackage()).isNull();
+    assertThat(manifest.findUsedFeature("foo")).isNull();
+  }
+
   public void testGetActivityThemes1() throws Exception {
     MergedManifest info = getMergedManifest("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
                                             "    package='com.android.unittest'>\n" +
@@ -238,6 +261,25 @@ public class MergedManifestTest extends AndroidTestCase {
                              "</manifest>\n");
     assertEquals("JellyBean", info.getMinSdkVersion().getApiString());
     assertEquals("JellyBean", info.getMinSdkVersion().getCodename());
+  }
+
+  public void testGetPermissionHolder() throws Exception {
+    MergedManifest info = getMergedManifest("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+                             "    package='com.android.unittest'>\n" +
+                             "    <uses-sdk android:minSdkVersion='9' android:targetSdkVersion='24'/>\n" +
+                             "    <uses-permission android:name=\"android.permission.BLUETOOTH\" />\n" +
+                             "    <uses-permission\n" +
+                             "        android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />\n" +
+                             "    <permission\n" +
+                             "        android:name=\"com.android.unittest.permission.DEADLY\"\n" +
+                             "        android:protectionLevel=\"dangerous\" />\n" +
+                             "</manifest>\n");
+
+    PermissionHolder permissionHolder = info.getPermissionHolder();
+    assertNotNull(permissionHolder);
+    assertTrue(permissionHolder.hasPermission("android.permission.BLUETOOTH"));
+    assertTrue(permissionHolder.hasPermission("android.permission.WRITE_EXTERNAL_STORAGE"));
+    assertTrue(permissionHolder.isRevocable("com.android.unittest.permission.DEADLY"));
   }
 
   @SuppressWarnings("ConstantConditions")

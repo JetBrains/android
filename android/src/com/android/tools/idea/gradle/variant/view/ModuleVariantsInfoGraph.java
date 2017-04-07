@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.variant.view;
 
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
@@ -58,7 +58,7 @@ import static javax.swing.SwingConstants.RIGHT;
 
 class ModuleVariantsInfoGraph extends DialogWrapper {
   @NotNull private final Module myModule;
-  @NotNull private final AndroidGradleModel myAndroidModel;
+  @NotNull private final AndroidModuleModel myAndroidModel;
 
   @NotNull private Variant mySelectedVariant;
 
@@ -69,7 +69,7 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
     super(module.getProject());
     myModule = module;
 
-    AndroidGradleModel androidModel = AndroidGradleModel.get(myModule);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(myModule);
     assert androidModel != null;
     myAndroidModel = androidModel;
     mySelectedVariant = myAndroidModel.getSelectedVariant();
@@ -123,7 +123,7 @@ class ModuleVariantsInfoGraph extends DialogWrapper {
       setCellsResizable(false);
     }
 
-    void render(@NotNull Module module, @NotNull AndroidGradleModel androidModel, @NotNull Variant variant) {
+    void render(@NotNull Module module, @NotNull AndroidModuleModel androidModel, @NotNull Variant variant) {
       setModel(new mxGraphModel());
 
       mxIGraphModel model = getModel();

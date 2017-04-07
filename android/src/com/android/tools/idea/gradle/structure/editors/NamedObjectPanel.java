@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.editors;
 
 import com.android.builder.model.*;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.NamedObject;
 import com.android.tools.idea.gradle.parser.ValueFactory;
@@ -432,7 +432,7 @@ public class NamedObjectPanel extends BuildFilePanel implements DocumentListener
     if (facet == null) {
       return results;
     }
-    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
     if (androidModel == null) {
       return results;
     }

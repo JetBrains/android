@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
@@ -27,9 +24,12 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.util.IconLoader;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.xml.bind.*;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.*;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -51,11 +51,11 @@ public class Palette {
   private final List<BaseItem> myItems;
   // @formatter:on
 
-  private final Set<GradleCoordinate> myGradleCoordinates;
+  private final Set<String> myGradleCoordinateIds;
 
   private Palette() {
-    myItems = new ArrayList<BaseItem>();
-    myGradleCoordinates = new HashSet<GradleCoordinate>();
+    myItems = new ArrayList<>();
+    myGradleCoordinateIds = new HashSet<>();
   }
 
   /**
@@ -63,30 +63,22 @@ public class Palette {
    */
   public static Palette parse(@NotNull Reader xmlReader, @NotNull ViewHandlerManager manager) throws JAXBException {
     Palette palette = unMarshal(xmlReader);
-
-    palette.resolve(manager);
-    palette.addGradleCoordinates(palette.myItems);
-
+    palette.accept(item -> item.resolve(manager));
+    palette.accept(item -> item.addGradleCoordinateId(palette.myGradleCoordinateIds));
+    palette.setParentGroups();
     return palette;
   }
 
-  private void addGradleCoordinates(@NotNull Iterable<BaseItem> items) {
-    for (Object item : items) {
-      if (item instanceof Item) {
-        String coordinateAsString = ((Item)item).getGradleCoordinate();
+  private void setParentGroups() {
+    accept(new Visitor() {
+      @Override
+      public void visit(@NotNull Item item) {}
 
-        if (!Strings.isNullOrEmpty(coordinateAsString)) {
-          GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateAsString + ":+");
-
-          if (coordinate != null) {
-            myGradleCoordinates.add(coordinate);
-          }
-        }
+      @Override
+      public void visit(@NotNull Group group) {
+        group.getItems().forEach(item -> item.setParent(group));
       }
-      else if (item instanceof Group) {
-        addGradleCoordinates(((Group)item).getItems());
-      }
-    }
+    });
   }
 
   @NotNull
@@ -95,25 +87,30 @@ public class Palette {
   }
 
   @NotNull
-  Set<GradleCoordinate> getGradleCoordinates() {
-    return myGradleCoordinates;
+  Set<String> getGradleCoordinateIds() {
+    return myGradleCoordinateIds;
   }
 
   private static Palette unMarshal(@NotNull Reader xmlReader) throws JAXBException {
     Unmarshaller unmarshaller = JAXBContext.newInstance(Palette.class).createUnmarshaller();
-    unmarshaller.setEventHandler(new ValidationEventHandler() {
-      @Override
-      public boolean handleEvent(ValidationEvent event) {
-        throw new RuntimeException(event.getLinkedException());
-      }
+    unmarshaller.setEventHandler(event -> {
+      throw new RuntimeException(event.getLinkedException());
     });
     return (Palette)unmarshaller.unmarshal(xmlReader);
   }
 
-  private void resolve(@NotNull ViewHandlerManager manager) {
+  public void accept(@NotNull Visitor visitor) {
     for (BaseItem item : myItems) {
-      item.resolve(manager);
+      item.accept(visitor);
     }
+  }
+
+  /**
+   * Interface for a visitor for {@link Group}s and {@link Item}s.
+   */
+  public interface Visitor {
+    void visit(@NotNull Item item);
+    default void visit(@SuppressWarnings("UnusedParameters") @NotNull Group group) {}
   }
 
   /**
@@ -121,9 +118,20 @@ public class Palette {
    */
   interface BaseItem {
     /**
-     * Resolve each {@link Item} contained in the current class to its corresponding {@link PaletteComponentHandler} if any.
+     * Implementation of the visitor pattern.
      */
-    void resolve(@NotNull ViewHandlerManager manager);
+    void accept(@NotNull Visitor visitor);
+
+    /**
+     * Return the parent group of an item or group.
+     */
+    @Nullable
+    Group getParent();
+
+    /**
+     * Set the parent group of this item or group.
+     */
+    void setParent(@NotNull Group group);
   }
 
   @SuppressWarnings("unused")
@@ -141,6 +149,17 @@ public class Palette {
     private List<BaseItem> myItems = Lists.newArrayList();
     // @formatter:on
 
+    @Nullable
+    private Group myParent;
+
+    // Needed for JAXB
+    private Group() {
+    }
+
+    public Group(@NotNull String name) {
+      myName = name;
+    }
+
     @NotNull
     public String getName() {
       return myName;
@@ -157,9 +176,21 @@ public class Palette {
     }
 
     @Override
-    public void resolve(@NotNull ViewHandlerManager manager) {
+    @Nullable
+    public Group getParent() {
+      return myParent;
+    }
+
+    @Override
+    public void setParent(@NotNull Group parent) {
+      myParent = parent;
+    }
+
+    @Override
+    public void accept(@NotNull Visitor visitor) {
+      visitor.visit(this);
       for (BaseItem item : myItems) {
-        item.resolve(manager);
+        item.accept(visitor);
       }
     }
 
@@ -189,9 +220,13 @@ public class Palette {
     @Nullable
     private String myIconName;
 
+    @XmlAttribute(name = "icon24")
+    @Nullable
+    private String myIcon24Name;
+
     @XmlAttribute(name = "coordinate")
     @Nullable
-    private String myGradleCoordinate;
+    private String myGradleCoordinateId;
 
     @XmlAttribute(name = "scale")
     @Nullable
@@ -217,6 +252,9 @@ public class Palette {
     @Language("XML")
     @Nullable
     private String myDragPreviewXml;
+
+    @Nullable
+    private Group myParent;
 
     private PaletteComponentHandler myHandler;
 
@@ -249,12 +287,29 @@ public class Palette {
       return myHandler.getIcon(myTagName);
     }
 
-    @Nullable
-    public String getGradleCoordinate() {
-      if (myGradleCoordinate != null) {
-        return myGradleCoordinate;
+    @NotNull
+    public Icon getLargeIcon() {
+      if (myIcon24Name != null) {
+        Icon icon = IconLoader.findIcon(myIcon24Name, getClass());
+        if (icon != null) {
+          return icon;
+        }
       }
-      return myHandler.getGradleCoordinate(myTagName);
+      if (myIconName != null) {
+        Icon icon = IconLoader.findIcon(myIconName + "Large", getClass());
+        if (icon != null) {
+          return icon;
+        }
+      }
+      return myHandler.getLargeIcon(myTagName);
+    }
+
+    @Nullable
+    public String getGradleCoordinateId() {
+      if (myGradleCoordinateId != null) {
+        return myGradleCoordinateId;
+      }
+      return myHandler.getGradleCoordinateId(myTagName);
     }
 
     @NotNull
@@ -299,7 +354,22 @@ public class Palette {
     }
 
     @Override
-    public void resolve(@NotNull ViewHandlerManager manager) {
+    @Nullable
+    public Group getParent() {
+      return myParent;
+    }
+
+    @Override
+    public void setParent(@NotNull Group parent) {
+      myParent = parent;
+    }
+
+    @Override
+    public void accept(@NotNull Visitor visitor) {
+      visitor.visit(this);
+    }
+
+    private void resolve(@NotNull ViewHandlerManager manager) {
       myHandler = manager.getHandlerOrDefault(myTagName);
       if (myXmlValuePart != null) {
         myXml = myXmlValuePart.getValue();
@@ -310,6 +380,14 @@ public class Palette {
           myDragPreviewXml = myXml;
         }
         myXmlValuePart = null; // No longer used
+      }
+    }
+
+    private void addGradleCoordinateId(@NotNull Set<String> coordinateIds) {
+      String coordinateId = getGradleCoordinateId();
+
+      if (!Strings.isNullOrEmpty(coordinateId)) {
+        coordinateIds.add(coordinateId);
       }
     }
 
@@ -363,4 +441,3 @@ public class Palette {
     }
   }
 }
-

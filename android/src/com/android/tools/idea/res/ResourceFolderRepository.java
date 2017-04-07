@@ -31,6 +31,7 @@ import com.android.tools.idea.rendering.LogWrapper;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.android.utils.ILogger;
 import com.google.common.collect.*;
+import com.intellij.debugger.settings.DataBinding;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -60,6 +61,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceFolderType.*;
@@ -577,17 +579,29 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
     if (myDataBindingResourceFilesModificationCount == modificationCount) {
       return myDataBindingResourceFiles;
     }
-    Map<String, DataBindingInfo> selected = Maps.newHashMap();
-    for (ResourceFile file : myResourceFiles.values()) {
-      if (file instanceof PsiResourceFile) {
-        DataBindingInfo info = ((PsiResourceFile)file).getDataBindingInfo();
-        if (info != null) {
-          selected.put(info.getQualifiedName(), info);
-        }
-      }
-    }
-    myDataBindingResourceFiles = Collections.unmodifiableMap(selected);
     myDataBindingResourceFilesModificationCount = modificationCount;
+    Map<String, List<LayoutDataBindingInfo>> infoFilesByConfiguration = myResourceFiles.values().stream()
+      .map(resourceFile -> resourceFile instanceof PsiResourceFile ? (((PsiResourceFile)resourceFile).getDataBindingInfo()) : null)
+      .filter(info -> info != null)
+      .collect(Collectors.groupingBy(LayoutDataBindingInfo::getFileName));
+
+    Map<String, DataBindingInfo> selected = infoFilesByConfiguration.entrySet().stream().flatMap(entry -> {
+      if (entry.getValue().size() == 1) {
+        LayoutDataBindingInfo info = entry.getValue().get(0);
+        info.setMergedInfo(null);
+        return entry.getValue().stream();
+      } else {
+        MergedDataBindingInfo mergedDataBindingInfo = new MergedDataBindingInfo(entry.getValue());
+        entry.getValue().forEach(info -> info.setMergedInfo(mergedDataBindingInfo));
+        ArrayList<DataBindingInfo> list = Lists.newArrayList(mergedDataBindingInfo);
+        list.addAll(entry.getValue());
+        return list.stream();
+      }
+    }).collect(Collectors.toMap(
+      DataBindingInfo::getQualifiedName,
+      (DataBindingInfo kls) -> kls
+    ));
+    myDataBindingResourceFiles = Collections.unmodifiableMap(selected);
     return myDataBindingResourceFiles;
   }
 
@@ -609,7 +623,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
   }
 
   private static void scanDataBindingDataTag(PsiResourceFile resourceFile, @Nullable XmlTag dataTag, long modificationCount) {
-    DataBindingInfo info = resourceFile.getDataBindingInfo();
+    LayoutDataBindingInfo info = resourceFile.getDataBindingInfo();
     assert info != null;
     List<PsiDataBindingResourceItem> items = Lists.newArrayList();
     if (dataTag == null) {
@@ -682,10 +696,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
         classAttrValue = StringUtil.unescapeXml(classAttrValue);
       }
     }
+    boolean hasClassNameAttr;
     if (StringUtil.isEmpty(classAttrValue)) {
       className = DataBindingUtil.convertToJavaClassName(resourceFile.getName()) + "Binding";
       classPackage = modulePackage + ".databinding";
+      hasClassNameAttr = false;
     } else {
+      hasClassNameAttr = true;
       int firstDotIndex = classAttrValue.indexOf('.');
 
       if (firstDotIndex < 0) {
@@ -702,9 +719,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository {
       }
     }
     if (resourceFile.getDataBindingInfo() == null) {
-      resourceFile.setDataBindingInfo(new DataBindingInfo(myFacet, resourceFile, className, classPackage));
+      resourceFile.setDataBindingInfo(new LayoutDataBindingInfo(myFacet, resourceFile, className, classPackage, hasClassNameAttr));
     } else {
-      resourceFile.getDataBindingInfo().update(className, classPackage, modificationCount);
+      resourceFile.getDataBindingInfo().update(className, classPackage, hasClassNameAttr, modificationCount);
     }
     scanDataBindingDataTag(resourceFile, dataTag, modificationCount);
   }

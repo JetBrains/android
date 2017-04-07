@@ -19,6 +19,7 @@ package com.android.tools.idea.npw;
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidProjectPath;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.wizard.WizardConstants;
+import org.jetbrains.annotations.TestOnly;
 
 import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
 import static com.android.tools.idea.templates.TemplateMetadata.*;
@@ -51,5 +52,10 @@ public class NewProjectWizardState extends NewModuleWizardState {
     setParameterDefaults();
 
     updateParameters();
+  }
+
+  @TestOnly
+  public Template getProjectTemplate() {
+    return myProjectTemplate;
   }
 }

@@ -37,7 +37,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.run.EmulatorConnectionListener;
-import com.android.tools.idea.run.ExternalToolRunner;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.utils.ILogger;
 import com.google.common.collect.ImmutableList;
@@ -62,7 +62,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.WeakHashMap;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,6 +77,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
@@ -90,12 +90,11 @@ public class AvdManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
   private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG);
   private static final ProgressIndicator REPO_LOG = new StudioLoggerProgressIndicator(AvdManagerConnection.class);
-  private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null, FileOpUtils.create());
+  private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null);
   private static final int MNC_API_LEVEL_23 = 23;
   private static final int LMP_MR1_API_LEVEL_22 = 22;
 
   public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
-  public static final String AVD_INI_DISPLAY_NAME = "avd.ini.displayname";
   public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0 rc1");
   public static final Revision TOOLS_REVISION_25_0_2_RC3 = Revision.parseRevision("25.0.2 rc3");
   public static final Revision PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0");
@@ -118,11 +117,13 @@ public class AvdManagerConnection {
   private static long ourMemorySize = -1;
   private final FileOp myFileOp;
 
+  private static Function<AndroidSdkHandler, AvdManagerConnection> ourConnectionFactory = AvdManagerConnection::new;
+
   @Nullable private final AndroidSdkHandler mySdkHandler;
 
   @NotNull
   public static AvdManagerConnection getDefaultAvdManagerConnection() {
-    AndroidSdkHandler handler = AndroidSdkUtils.tryToChooseSdkHandler();
+    AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     if (handler.getLocation() == null) {
       return NULL_CONNECTION;
     }
@@ -135,16 +136,26 @@ public class AvdManagerConnection {
   public synchronized static AvdManagerConnection getAvdManagerConnection(@NotNull AndroidSdkHandler handler) {
     File sdkPath = handler.getLocation();
     if (!ourCache.containsKey(sdkPath)) {
-      ourCache.put(sdkPath, new AvdManagerConnection(handler, FileOpUtils.create()));
+      ourCache.put(sdkPath, ourConnectionFactory.apply(handler));
     }
     return ourCache.get(sdkPath);
   }
 
   @VisibleForTesting
-  public AvdManagerConnection(@Nullable AndroidSdkHandler handler, FileOp fileOp) {
+  public AvdManagerConnection(@Nullable AndroidSdkHandler handler) {
     mySdkHandler = handler;
-    myFileOp = fileOp;
+    myFileOp = handler == null ? FileOpUtils.create() : handler.getFileOp();
   }
+
+  /**
+   * Sets a factory to be used for creating connections, so subclasses can be injected for testing.
+   */
+  @VisibleForTesting
+  protected synchronized static void setConnectionFactory(Function<AndroidSdkHandler, AvdManagerConnection> factory) {
+    ourCache.clear();
+    ourConnectionFactory = factory;
+  }
+
 
   /**
    * Setup our static instances if required. If the instance already exists, then this is a no-op.
@@ -156,7 +167,7 @@ public class AvdManagerConnection {
         return false;
       }
       try {
-        myAvdManager = AvdManager.getInstance(mySdkHandler, SDK_LOG, myFileOp);
+        myAvdManager = AvdManager.getInstance(mySdkHandler, new File(AndroidLocation.getAvdFolder()), SDK_LOG, myFileOp);
       }
       catch (AndroidLocation.AndroidLocationException e) {
         IJ_LOG.error("Could not instantiate AVD Manager from SDK", e);
@@ -169,14 +180,25 @@ public class AvdManagerConnection {
     return true;
   }
 
-  private File getEmulatorBinary() {
+  private File getBinaryLocation(String filename) {
     assert mySdkHandler != null;
-    return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, SdkConstants.FN_EMULATOR));
+    LocalPackage sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, REPO_LOG);
+    if (sdkPackage == null) {
+      sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_TOOLS, REPO_LOG);
+    }
+    if (sdkPackage != null) {
+      return new File(sdkPackage.getLocation(), filename);
+    }
+    // Fallback to old behavior, in the weird case nothing is installed.
+    return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, filename));
   }
 
-  private File getEmulatorCheckBinary() {
-    assert mySdkHandler != null;
-    return new File(mySdkHandler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, SdkConstants.FN_EMULATOR_CHECK));
+  private File getEmulatorBinary() {
+    return getBinaryLocation(SdkConstants.FN_EMULATOR);
+  }
+
+  public File getEmulatorCheckBinary() {
+    return getBinaryLocation(SdkConstants.FN_EMULATOR_CHECK);
   }
 
   /**
@@ -278,14 +300,25 @@ public class AvdManagerConnection {
     }
   }
 
+  public boolean deleteAvd(@NotNull String avdName) {
+    if (!initIfNecessary()) {
+      return false;
+    }
+    AvdInfo info = myAvdManager.getAvd(avdName, false);
+    if (info == null) {
+      return false;
+    }
+    return deleteAvd(info);
+  }
+
   /**
    * Delete the given AVD if it exists.
    */
-  public void deleteAvd(@NotNull AvdInfo info) {
+  public boolean deleteAvd(@NotNull AvdInfo info) {
     if (!initIfNecessary()) {
-      return;
+      return false;
     }
-    myAvdManager.deleteAvd(info, SDK_LOG);
+    return myAvdManager.deleteAvd(info, SDK_LOG);
   }
 
   public boolean isAvdRunning(@NotNull AvdInfo info) {
@@ -306,7 +339,7 @@ public class AvdManagerConnection {
     if (!initIfNecessary()) {
       return Futures.immediateFailedFuture(new RuntimeException("No Android SDK Found"));
     }
-    AccelerationErrorCode error = checkAcceration();
+    AccelerationErrorCode error = checkAcceleration();
     ListenableFuture<IDevice> errorResult = handleAccelerationError(project, info, error);
     if (errorResult != null) {
       return errorResult;
@@ -327,7 +360,7 @@ public class AvdManagerConnection {
     if (myAvdManager.isAvdRunning(info, SDK_LOG)) {
       String baseFolder;
       try {
-        baseFolder = myAvdManager.getBaseAvdFolder();
+        baseFolder = myAvdManager.getBaseAvdFolder().getAbsolutePath();
       }
       catch (AndroidLocation.AndroidLocationException e) {
         baseFolder = "$HOME";
@@ -341,24 +374,16 @@ public class AvdManagerConnection {
       return Futures.immediateFailedFuture(new RuntimeException(message));
     }
 
-    Map<String, String> properties = info.getProperties();
-    String netDelay = properties.get(AvdWizardUtils.AVD_INI_NETWORK_LATENCY);
-    String netSpeed = properties.get(AvdWizardUtils.AVD_INI_NETWORK_SPEED);
 
     GeneralCommandLine commandLine = new GeneralCommandLine();
     commandLine.setExePath(emulatorBinary.getPath());
 
-    if (netDelay != null) {
-      commandLine.addParameters("-netdelay", netDelay);
-    }
+    addParameters(info, commandLine);
 
-    if (netSpeed != null) {
-      commandLine.addParameters("-netspeed", netSpeed);
-    }
+    EmulatorRunner runner = new EmulatorRunner(commandLine, info);
+    EmulatorRunner.ProcessOutputCollector collector = new EmulatorRunner.ProcessOutputCollector();
+    runner.addProcessListener(collector);
 
-    commandLine.addParameters("-avd", avdName);
-
-    EmulatorRunner runner = new EmulatorRunner(project, "AVD: " + avdName, commandLine, info);
     final ProcessHandler processHandler;
     try {
       processHandler = runner.start();
@@ -379,9 +404,6 @@ public class AvdManagerConnection {
     // It takes >= 8 seconds to start the Emulator. Display a small progress indicator otherwise it seems like
     // the action wasn't invoked and users tend to click multiple times on it, ending up with several instances of the emulator
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      ExternalToolRunner.ProcessOutputCollector collector = new ExternalToolRunner.ProcessOutputCollector();
-      processHandler.addProcessListener(collector);
-
       try {
         p.start();
         p.setText("Starting AVD...");
@@ -422,6 +444,24 @@ public class AvdManagerConnection {
       offset = message.length();
     }
     return message.substring(0, Math.min(offset, 1024));
+  }
+
+  /**
+   * Adds necessary parameters to {@code commandLine}.
+   */
+  protected void addParameters(@NotNull AvdInfo info, GeneralCommandLine commandLine) {
+    Map<String, String> properties = info.getProperties();
+    String netDelay = properties.get(AvdWizardUtils.AVD_INI_NETWORK_LATENCY);
+    String netSpeed = properties.get(AvdWizardUtils.AVD_INI_NETWORK_SPEED);
+    if (netDelay != null) {
+      commandLine.addParameters("-netdelay", netDelay);
+    }
+
+    if (netSpeed != null) {
+      commandLine.addParameters("-netspeed", netSpeed);
+    }
+
+    commandLine.addParameters("-avd", info.getName());
   }
 
   /**
@@ -474,7 +514,7 @@ public class AvdManagerConnection {
    * Run "emulator -accel-check" to check the status for emulator acceleration on this machine.
    * Return a {@link AccelerationErrorCode}.
    */
-  public AccelerationErrorCode checkAcceration() {
+  public AccelerationErrorCode checkAcceleration() {
     if (!initIfNecessary()) {
       return AccelerationErrorCode.UNKNOWN_ERROR;
     }
@@ -487,10 +527,7 @@ public class AvdManagerConnection {
       return AccelerationErrorCode.NOT_ENOUGH_MEMORY;
     }
     if (!hasQEMU2Installed()) {
-      // TODO: Return this error when the new emulator has been released.
-      // return AccelerationErrorCode.TOOLS_UPDATE_REQUIRED;
-      // TODO: For now just ignore the rest of the checks
-      return AccelerationErrorCode.ALREADY_INSTALLED;
+      return AccelerationErrorCode.TOOLS_UPDATE_REQUIRED;
     }
     File checkBinary = getEmulatorCheckBinary();
     GeneralCommandLine commandLine = new GeneralCommandLine();
@@ -667,11 +704,10 @@ public class AvdManagerConnection {
   public boolean updateDeviceChanged(@NotNull AvdInfo avdInfo) {
     if (initIfNecessary()) {
       try {
-        myAvdManager.updateDeviceChanged(avdInfo, SDK_LOG);
-        return true;
+        return myAvdManager.updateDeviceChanged(avdInfo, SDK_LOG) != null;
       }
       catch (IOException e) {
-        IJ_LOG.error("Could not update AVD Device " + avdInfo.getName(), e);
+        IJ_LOG.warn("Could not update AVD Device " + avdInfo.getName(), e);
       }
     }
     return false;
@@ -689,7 +725,7 @@ public class AvdManagerConnection {
   }
 
   public static String getAvdDisplayName(@NotNull AvdInfo avdInfo) {
-    String displayName = avdInfo.getProperties().get(AVD_INI_DISPLAY_NAME);
+    String displayName = avdInfo.getProperties().get(AvdManager.AVD_INI_DISPLAY_NAME);
     if (displayName == null) {
       displayName = avdInfo.getName().replaceAll("[_-]+", " ");
     }

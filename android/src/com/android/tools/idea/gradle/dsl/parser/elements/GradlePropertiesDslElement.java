@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -66,12 +68,28 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
     myProperties.put(property, element);
   }
 
+  /**
+   * Sets or replaces the given {@code property} value with the given {@code element}.
+   *
+   * <p>This method should be used when the given {@code property} would reset the effect of the other property. Ex: {@code reset()} method
+   * in android.splits.abi block will reset the effect of the previously defined {@code includes} element.
+   */
+  protected void addParsedResettingElement(@NotNull String property, @NotNull GradleDslElement element, @NotNull String propertyToReset) {
+    element.myParent = this;
+    myProperties.put(property, element);
+    myProperties.remove(propertyToReset);
+  }
+
   protected void addAsParsedDslExpressionList(@NotNull String property, GradleDslExpression dslLiteral) {
     GroovyPsiElement psiElement = dslLiteral.getPsiElement();
     if (psiElement == null) {
       return;
     }
-    GradleDslExpressionList literalList = new GradleDslExpressionList(this, psiElement, property);
+    // Only elements which are added as expression list are the ones which supports both single argument and multiple arguments
+    // (ex: flavorDimensions in android block). To support that, we create an expression list where appending to the arguments list is
+    // supported even when there is only one element in it. This does not work in many other places like proguardFile elements where
+    // only one argument is supported and for this cases we use addToParsedExpressionList method.
+    GradleDslExpressionList literalList = new GradleDslExpressionList(this, psiElement, property, true);
     literalList.addParsedExpression(dslLiteral);
     myProperties.put(property, literalList);
   }
@@ -82,11 +100,12 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
       return;
     }
 
-    GradleDslExpressionList gradleDslExpressionList = getProperty(property, GradleDslExpressionList.class);
+    GradleDslExpressionList gradleDslExpressionList = getPropertyElement(property, GradleDslExpressionList.class);
     if (gradleDslExpressionList == null) {
       gradleDslExpressionList = new GradleDslExpressionList(this, psiElement, property);
       myProperties.put(property, gradleDslExpressionList);
-    } else {
+    }
+    else {
       gradleDslExpressionList.setPsiElement(psiElement);
     }
 
@@ -140,7 +159,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
       GradleDslElement element = nestedElement.getPropertyElement(propertyNameSegments.get(i).trim());
       if (element instanceof GradlePropertiesDslElement) {
         nestedElement = (GradlePropertiesDslElement)element;
-      } else {
+      }
+      else {
         return null;
       }
     }
@@ -148,36 +168,44 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   }
 
   /**
-   * Returns the value of the give {@code property} of the type {@code clazz} along with the variable resolution history.
+   * Returns the dsl element of the given {@code property} of the type {@code clazz}, or {@code null} if the given {@code property}
+   * does not exist in this element.
+   */
+  @Nullable
+  public <T extends GradleDslElement> T getPropertyElement(@NotNull String property, @NotNull Class<T> clazz) {
+    GradleDslElement propertyElement = getPropertyElement(property);
+    return clazz.isInstance(propertyElement) ? clazz.cast(propertyElement) : null;
+  }
+
+  /**
+   * Returns the literal value of the given {@code property} of the type {@code clazz} along with the variable resolution history.
    *
    * <p>The returned {@link GradleNullableValue} may contain a {@code null} value when either the given {@code property} does not exists in
    * this element or the given {@code property} value is not of the type {@code clazz}.
    */
   @NotNull
-  public <T> GradleNullableValue<T> getPropertyValue(@NotNull String property, @NotNull Class<T> clazz) {
-    GradleDslElement propertyElement = getPropertyElement(property);
-    if (propertyElement != null) {
-      T resultValue = null;
-      if (clazz.isInstance(propertyElement)) {
-        resultValue = clazz.cast(propertyElement);
-      }
-      else if (propertyElement instanceof GradleDslExpression) {
-        resultValue = ((GradleDslExpression)propertyElement).getValue(clazz);
-      }
-      if (resultValue != null) {
-        return new GradleNullableValue<>(propertyElement, resultValue);
-      }
-    }
-    return new GradleNullableValue<>(this, null);
-  }
+  public <T> GradleNullableValue<T> getLiteralProperty(@NotNull String property, @NotNull Class<T> clazz) {
+    Preconditions.checkArgument(clazz == String.class || clazz == Integer.class || clazz == Boolean.class);
 
-  /**
-   * Returns the value of the given {@code property} of the type {@code clazz}, or {@code null} when either the given {@code property} does
-   * not exists in this element or the given {@code property} value is not of the type {@code clazz}.
-   */
-  @Nullable
-  public <T> T getProperty(@NotNull String property, @NotNull Class<T> clazz) {
-    return getPropertyValue(property, clazz).value();
+    GradleDslElement propertyElement = getPropertyElement(property);
+    if (propertyElement == null) {
+      return new GradleNullableValue<>(this, null);
+    }
+
+    T resultValue = null;
+    if (clazz.isInstance(propertyElement)) {
+      resultValue = clazz.cast(propertyElement);
+    }
+    else if (propertyElement instanceof GradleDslExpression) {
+      resultValue = ((GradleDslExpression)propertyElement).getValue(clazz);
+    }
+
+    if (resultValue != null) {
+      return new GradleNotNullValue<>(propertyElement, resultValue);
+    }
+    else {
+      return new GradleNullableValue<>(propertyElement, null);
+    }
   }
 
   /**
@@ -209,7 +237,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
 
   @NotNull
   private GradlePropertiesDslElement setNewLiteralImpl(@NotNull String property, @NotNull Object value) {
-    GradleDslLiteral literalElement = getProperty(property, GradleDslLiteral.class);
+    GradleDslLiteral literalElement = getPropertyElement(property, GradleDslLiteral.class);
     if (literalElement == null) {
       literalElement = new GradleDslLiteral(this, property);
       myToBeAddedProperties.put(property, literalElement);
@@ -225,7 +253,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
 
   @NotNull
   private GradlePropertiesDslElement addToNewLiteralListImpl(@NotNull String property, @NotNull Object value) {
-    GradleDslExpressionList gradleDslExpressionList = getProperty(property, GradleDslExpressionList.class);
+    GradleDslExpressionList gradleDslExpressionList = getPropertyElement(property, GradleDslExpressionList.class);
     if (gradleDslExpressionList == null) {
       gradleDslExpressionList = new GradleDslExpressionList(this, property);
       myToBeAddedProperties.put(property, gradleDslExpressionList);
@@ -241,7 +269,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
 
   @NotNull
   private GradlePropertiesDslElement removeFromExpressionListImpl(@NotNull String property, @NotNull Object value) {
-    GradleDslExpressionList gradleDslExpressionList = getProperty(property, GradleDslExpressionList.class);
+    GradleDslExpressionList gradleDslExpressionList = getPropertyElement(property, GradleDslExpressionList.class);
     if (gradleDslExpressionList != null) {
       gradleDslExpressionList.removeExpression(value);
     }
@@ -257,7 +285,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
   private GradlePropertiesDslElement replaceInExpressionListImpl(@NotNull String property,
                                                                  @NotNull Object oldValue,
                                                                  @NotNull Object newValue) {
-    GradleDslExpressionList gradleDslExpressionList = getProperty(property, GradleDslExpressionList.class);
+    GradleDslExpressionList gradleDslExpressionList = getPropertyElement(property, GradleDslExpressionList.class);
     if (gradleDslExpressionList != null) {
       gradleDslExpressionList.replaceExpression(oldValue, newValue);
     }
@@ -281,7 +309,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
 
   @NotNull
   private GradlePropertiesDslElement setInNewLiteralMapImpl(@NotNull String property, @NotNull String name, @NotNull Object value) {
-    GradleDslExpressionMap gradleDslExpressionMap = getProperty(property, GradleDslExpressionMap.class);
+    GradleDslExpressionMap gradleDslExpressionMap = getPropertyElement(property, GradleDslExpressionMap.class);
     if (gradleDslExpressionMap == null) {
       gradleDslExpressionMap = new GradleDslExpressionMap(this, property);
       myToBeAddedProperties.put(property, gradleDslExpressionMap);
@@ -292,7 +320,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
 
   @NotNull
   public GradlePropertiesDslElement removeFromExpressionMap(@NotNull String property, @NotNull String name) {
-    GradleDslExpressionMap gradleDslExpressionMap = getProperty(property, GradleDslExpressionMap.class);
+    GradleDslExpressionMap gradleDslExpressionMap = getPropertyElement(property, GradleDslExpressionMap.class);
     if (gradleDslExpressionMap != null) {
       gradleDslExpressionMap.removeProperty(name);
     }
@@ -306,9 +334,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    *
    * <p>The property will be un-marked for removal when {@link #reset()} method is invoked.
    */
-  public void removeProperty(@NotNull String property) {
+  public GradlePropertiesDslElement removeProperty(@NotNull String property) {
     myToBeRemovedProperties.add(property);
     setModified(true);
+    return this;
   }
 
   /**
@@ -321,8 +350,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    * that list is empty or does not contain any element of type {@code clazz}.
    */
   @Nullable
-  public <E> List<E> getListProperty(@NotNull String property, @NotNull Class<E> clazz) {
-    GradleDslExpressionList gradleDslExpressionList = getProperty(property, GradleDslExpressionList.class);
+  public <E> List<GradleNotNullValue<E>> getListProperty(@NotNull String property, @NotNull Class<E> clazz) {
+    GradleDslExpressionList gradleDslExpressionList = getPropertyElement(property, GradleDslExpressionList.class);
     if (gradleDslExpressionList != null) {
       return gradleDslExpressionList.getValues(clazz);
     }
@@ -340,8 +369,8 @@ public abstract class GradlePropertiesDslElement extends GradleDslElement {
    * map is empty or does not contain any values of type {@code clazz}.
    */
   @Nullable
-  public <V> Map<String, V> getMapProperty(@NotNull String property, @NotNull Class<V> clazz) {
-    GradleDslExpressionMap gradleDslExpressionMap = getProperty(property, GradleDslExpressionMap.class);
+  public <V> Map<String, GradleNotNullValue<V>> getMapProperty(@NotNull String property, @NotNull Class<V> clazz) {
+    GradleDslExpressionMap gradleDslExpressionMap = getPropertyElement(property, GradleDslExpressionMap.class);
     if (gradleDslExpressionMap != null) {
       return gradleDslExpressionMap.getValues(clazz);
     }

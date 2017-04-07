@@ -9,16 +9,16 @@ public class Class {
     private void method() {
         try {
             willThrow();
-        } catch (<error descr="Class requires API level 5 (current min is 1): OperationApplicationException">OperationApplicationException</error> e) {
+        } catch (<error descr="Class requires API level 5 (current min is 1): android.content.OperationApplicationException">OperationApplicationException</error> e) {
             e.printStackTrace();
         }
     }
 
     private void willThrow() throws OperationApplicationException {
-        throw <error descr="Call requires API level 5 (current min is 1): android.content.OperationApplicationException#OperationApplicationException">new OperationApplicationException()</error>;
+        throw <error descr="Call requires API level 5 (current min is 1): new android.content.OperationApplicationException">new OperationApplicationException()</error>;
     }
 
-    private class MyException extends <error descr="Class requires API level 5 (current min is 1): OperationApplicationException">OperationApplicationException</error> {
+    private class MyException extends <error descr="Class requires API level 5 (current min is 1): android.content.OperationApplicationException">OperationApplicationException</error> {
     }
 
     @SuppressLint("NewApi")

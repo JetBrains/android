@@ -21,13 +21,12 @@ import com.android.tools.adtui.TimelineComponent;
 import com.android.tools.adtui.TimelineData;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
-import com.android.tools.idea.editors.gfxtrace.GfxTraceEditor;
-import com.android.tools.idea.editors.gfxtrace.actions.GfxTraceCaptureAction;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.JHandler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.LHandler;
 import com.android.tools.idea.monitor.gpu.gfxinfohandlers.MHandler;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.MonitorType;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
@@ -86,12 +85,8 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
   public ActionGroup getToolbarActions() {
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(new RecordingAction(this));
-    if (GfxTraceEditor.isEnabled()) {
-      group.add(new Separator());
-      group.add(new GfxTraceCaptureAction(this));
-      group.add(new Separator());
-      group.add(new BrowserHelpAction("GPU monitor", PROFILING_URL));
-    }
+    group.add(new Separator());
+    group.add(new BrowserHelpAction("GPU monitor", PROFILING_URL));
     return group;
   }
 
@@ -152,6 +147,11 @@ public class GpuMonitorView extends BaseMonitorView<GpuSampler> implements Profi
   @Override
   public String getDescription() {
     return "gpu usage";
+  }
+
+  @Override
+  public MonitorType getMonitorType() {
+    return MonitorType.GPU;
   }
 
   private void configureTimelineComponent(@NotNull TimelineData data) {

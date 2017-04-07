@@ -18,10 +18,12 @@ package org.jetbrains.android.sdk;
 
 import com.android.repository.Revision;
 import com.android.repository.api.ProgressIndicator;
+import com.android.repository.io.FileOpUtils;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -39,7 +41,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.android.SdkConstants.FD_PLATFORM_TOOLS;
-import static com.android.tools.idea.sdk.IdeSdks.isValidAndroidSdkPath;
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.targetHasId;
 import static org.jetbrains.android.util.AndroidCommonUtils.parsePackageRevision;
@@ -81,12 +82,12 @@ public class AndroidSdkData {
     }
 
     File canonicalLocation = new File(canonicalPath);
-    if (!isValidAndroidSdkPath(canonicalLocation)) {
+    if (!IdeSdks.getInstance().isValidAndroidSdkPath(canonicalLocation)) {
       return null;
     }
 
     AndroidSdkData sdkData = new AndroidSdkData(canonicalLocation);
-    ourCache.put(canonicalPath, new SoftReference<AndroidSdkData>(sdkData));
+    ourCache.put(canonicalPath, new SoftReference<>(sdkData));
     return sdkData;
   }
 
@@ -125,7 +126,10 @@ public class AndroidSdkData {
     String locationPath = location.getPath();
     Revision platformToolsRevision = parsePackageRevision(locationPath, FD_PLATFORM_TOOLS);
     myPlatformToolsRevision = platformToolsRevision == null ? -1 : platformToolsRevision.getMajor();
-    myDeviceManager = DeviceManager.createInstance(location, new MessageBuildingSdkLog());
+    myDeviceManager = DeviceManager.createInstance(location,
+                                                   mySdkHandler.getAndroidFolder(),
+                                                   new MessageBuildingSdkLog(),
+                                                   FileOpUtils.create());
   }
 
   @NotNull

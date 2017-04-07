@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors;
 
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.Lists;
@@ -36,7 +37,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.updateSdkSourceRoot;
 
 /**
@@ -48,9 +48,9 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
 
   private final Project myProject;
 
-  public AttachAndroidSdkSourcesNotificationProvider(@NotNull Project project, @NotNull final EditorNotifications notifications) {
+  public AttachAndroidSdkSourcesNotificationProvider(@NotNull Project project, @NotNull EditorNotifications notifications) {
     myProject = project;
-    myProject.getMessageBus().connect(project).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
+    myProject.getMessageBus().connect(project).subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootAdapter() {
       @Override
       public void rootsChanged(ModuleRootEvent event) {
         notifications.updateAllNotifications();
@@ -66,7 +66,7 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
 
   @Override
   @Nullable
-  public EditorNotificationPanel createNotificationPanel(@NotNull final VirtualFile file, @NotNull FileEditor fileEditor) {
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
     if (file.getFileType() != JavaClassFileType.INSTANCE) {
       return null;
     }
@@ -78,44 +78,33 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
       if (jdkOrderEntry == null) {
         return null;
       }
-      final Sdk sdk = jdkOrderEntry.getJdk();
+      Sdk sdk = jdkOrderEntry.getJdk();
 
       String sdkHome = sdk.getHomePath();
       if (sdkHome == null) {
         return null;
       }
-
       if (sdk.getRootProvider().getFiles(OrderRootType.SOURCES).length > 0) {
         return null;
       }
 
-      final AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
+      AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
       if (platform == null) {
         return null;
       }
       EditorNotificationPanel panel = new EditorNotificationPanel();
 
       panel.setText("Sources for '" + jdkOrderEntry.getJdkName() + "' not found.");
+      panel.createActionLabel("Download", () -> {
+        List<String> requested = Lists.newArrayList();
+        requested.add(DetailsTypes.getSourcesPath(platform.getApiVersion()));
 
-      panel.createActionLabel("Download", new Runnable() {
-        @Override
-        public void run() {
-          List<String> requested = Lists.newArrayList();
-          requested.add(DetailsTypes.getSourcesPath(platform.getApiVersion()));
-
-          ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myProject, requested);
-          if (dialog != null && dialog.showAndGet()) {
-            updateSdkSourceRoot(sdk);
-          }
-        }
-      });
-
-      panel.createActionLabel("Refresh (if already downloaded)", new Runnable() {
-        @Override
-        public void run() {
+        ModelWizardDialog dialog = SdkQuickfixUtils.createDialogForPaths(myProject, requested);
+        if (dialog != null && dialog.showAndGet()) {
           updateSdkSourceRoot(sdk);
         }
       });
+      panel.createActionLabel("Refresh (if already downloaded)", () -> updateSdkSourceRoot(sdk));
       return panel;
     }
     return null;
@@ -127,7 +116,7 @@ public class AttachAndroidSdkSourcesNotificationProvider extends EditorNotificat
     for (OrderEntry entry : index.getOrderEntriesForFile(file)) {
       if (entry instanceof JdkOrderEntry) {
         JdkOrderEntry jdkOrderEntry = (JdkOrderEntry) entry;
-        if (isAndroidSdk(jdkOrderEntry.getJdk())) {
+        if (AndroidSdks.getInstance().isAndroidSdk(jdkOrderEntry.getJdk())) {
           return jdkOrderEntry;
         }
       }

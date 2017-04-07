@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates;
 
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.intellij.openapi.module.Module;
 import freemarker.template.TemplateBooleanModel;
 import freemarker.template.TemplateModelException;
@@ -22,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.isUsingExperimentalPlugin;
+import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 
 /**
  * Method invoked by FreeMarker to check whether the Gradle component plugin (AKA experimental plugin) is used for a given module.
@@ -50,6 +51,6 @@ public class FmIsGradleComponentPluginUsed implements TemplateBooleanModel {
       return false;
     }
 
-    return isUsingExperimentalPlugin(module);
+    return AndroidPluginGeneration.find(module) == COMPONENT;
   }
 }

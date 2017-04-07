@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle;
 
 import com.android.builder.model.*;
 import com.android.tools.idea.gradle.AndroidModelView.ModuleNodeBuilder;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.ProxyUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -30,9 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.File;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.List;
@@ -56,7 +55,7 @@ public class AndroidModelViewTest extends TestCase {
     MyInterface proxyObject = ProxyUtil.reproxy(MyInterface.class, createProxyInstance(true));
     assertNotNull(proxyObject);
 
-    ModuleNodeBuilder mockNodeBuilder = new ModuleNodeBuilder("", mock(AndroidGradleModel.class), projectBasePath);
+    ModuleNodeBuilder mockNodeBuilder = new ModuleNodeBuilder("", mock(AndroidModuleModel.class), projectBasePath);
     mockNodeBuilder.addProxyObject(node, proxyObject);
     assertEquals(11, node.getChildCount());
 
@@ -184,7 +183,7 @@ public class AndroidModelViewTest extends TestCase {
     AndroidProject reproxyProject = ProxyUtil.reproxy(AndroidProject.class, createProxyInstance(AndroidProject.class, androidProject));
     assertNotNull(reproxyProject);
 
-    AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
+    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     when(androidModel.waitForAndGetProxyAndroidProject()).thenReturn(reproxyProject);
     ModuleNodeBuilder nodeBuilder = new ModuleNodeBuilder("test", androidModel, projectBasePath);
     DefaultMutableTreeNode node = nodeBuilder.getNode();
@@ -248,7 +247,7 @@ public class AndroidModelViewTest extends TestCase {
     AndroidProject reproxyProject = ProxyUtil.reproxy(AndroidProject.class, createProxyInstance(AndroidProject.class, androidProject));
     assertNotNull(reproxyProject);
 
-    AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
+    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     when(androidModel.waitForAndGetProxyAndroidProject()).thenReturn(reproxyProject);
     ModuleNodeBuilder nodeBuilder = new ModuleNodeBuilder("test", androidModel, projectBasePath);
     DefaultMutableTreeNode node = nodeBuilder.getNode();
@@ -300,7 +299,7 @@ public class AndroidModelViewTest extends TestCase {
     AndroidProject reproxyProject = ProxyUtil.reproxy(AndroidProject.class, createProxyInstance(AndroidProject.class, androidProject));
     assertNotNull(reproxyProject);
 
-    AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
+    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     when(androidModel.waitForAndGetProxyAndroidProject()).thenReturn(reproxyProject);
     ModuleNodeBuilder nodeBuilder = new ModuleNodeBuilder("test", androidModel, projectBasePath);
     DefaultMutableTreeNode node = nodeBuilder.getNode();
@@ -349,7 +348,7 @@ public class AndroidModelViewTest extends TestCase {
     AndroidProject reproxyProject = ProxyUtil.reproxy(AndroidProject.class, createProxyInstance(AndroidProject.class, androidProject));
     assertNotNull(reproxyProject);
 
-    AndroidGradleModel androidModel = mock(AndroidGradleModel.class);
+    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     when(androidModel.waitForAndGetProxyAndroidProject()).thenReturn(reproxyProject);
     when(androidModel.getVariantNames()).thenReturn(ImmutableList.of("dummyVariant"));
     List<SourceProvider> mockSourceProviders =
@@ -455,15 +454,12 @@ public class AndroidModelViewTest extends TestCase {
   @SuppressWarnings("unchecked")
   @NotNull
   private static <T> T createProxyInstance(final Class clazz, final T delegate) {
-    return (T)Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, new InvocationHandler() {
-      @Override
-      public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
-        try {
-          return method.invoke(delegate, objects);
-        }
-        catch (InvocationTargetException e) {
-          throw e.getCause();
-        }
+    return (T)Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, (o, method, objects) -> {
+      try {
+        return method.invoke(delegate, objects);
+      }
+      catch (InvocationTargetException e) {
+        throw e.getCause();
       }
     });
   }
@@ -561,8 +557,8 @@ public class AndroidModelViewTest extends TestCase {
     public Map<String, Collection<MyInterface>> getMapToProxy() {
       if (!recurse) return null;
 
-      return ImmutableMap.<String, Collection<MyInterface>>of("one", Sets.<MyInterface>newHashSet(new MyInterfaceImpl(false)), "two",
-                                                              Lists.newArrayList(createProxyInstance(false), createProxyInstance(false)));
+      return ImmutableMap.of("one", Sets.newHashSet(new MyInterfaceImpl(false)), "two",
+                             Lists.newArrayList(createProxyInstance(false), createProxyInstance(false)));
     }
 
     @Override

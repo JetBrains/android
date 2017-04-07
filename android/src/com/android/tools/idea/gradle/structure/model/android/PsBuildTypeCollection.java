@@ -18,13 +18,14 @@ package com.android.tools.idea.gradle.structure.model.android;
 import com.android.builder.model.BuildType;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.android.BuildTypeModel;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -40,13 +41,16 @@ public class PsBuildTypeCollection implements PsModelCollection<PsBuildType> {
 
     GradleBuildModel parsedModel = parent.getParsedModel();
     if (parsedModel != null) {
-      Collection<BuildTypeModel> parsedBuildTypes = parsedModel.android().buildTypes();
-      for (BuildTypeModel parsedBuildType : parsedBuildTypes) {
-        String name = parsedBuildType.name();
-        BuildType fromGradle = buildTypesFromGradle.remove(name);
+      AndroidModel android = parsedModel.android();
+      if (android != null) {
+        List<BuildTypeModel> parsedBuildTypes = android.buildTypes();
+        for (BuildTypeModel parsedBuildType : parsedBuildTypes) {
+          String name = parsedBuildType.name();
+          BuildType fromGradle = buildTypesFromGradle.remove(name);
 
-        PsBuildType model = new PsBuildType(parent, fromGradle, parsedBuildType);
-        myBuildTypesByName.put(name, model);
+          PsBuildType model = new PsBuildType(parent, fromGradle, parsedBuildType);
+          myBuildTypesByName.put(name, model);
+        }
       }
     }
 

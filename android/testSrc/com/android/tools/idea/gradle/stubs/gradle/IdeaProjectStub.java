@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.gradle;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.gradle.stubs.FileStructure;
-import com.google.common.collect.Lists;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -29,10 +27,13 @@ import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+
 public class IdeaProjectStub implements IdeaProject {
-  @NotNull private final List<IdeaModuleStub> modules = Lists.newArrayList();
+  @NotNull private final List<IdeaModuleStub> modules = new ArrayList<>();
 
   @NotNull private final String myName;
   @NotNull private final FileStructure myFileStructure;
@@ -41,12 +42,7 @@ public class IdeaProjectStub implements IdeaProject {
   public IdeaProjectStub(@NotNull String name) {
     myName = name;
     myFileStructure = new FileStructure(name);
-    myBuildFile = myFileStructure.createProjectFile(SdkConstants.FN_BUILD_GRADLE);
-  }
-
-  @Override
-  public IdeaJavaLanguageSettings getJavaLanguageSettings() throws UnsupportedMethodException {
-    throw new UnsupportedOperationException();
+    myBuildFile = myFileStructure.createProjectFile(FN_BUILD_GRADLE);
   }
 
   @Override
@@ -104,7 +100,7 @@ public class IdeaProjectStub implements IdeaProject {
    */
   @NotNull
   public File getRootDir() {
-    return myFileStructure.getRootDir();
+    return myFileStructure.getRootFolderPath();
   }
 
   /**
@@ -114,4 +110,7 @@ public class IdeaProjectStub implements IdeaProject {
   public File getBuildFile() {
     return myBuildFile;
   }
+
+  @Override
+  public IdeaJavaLanguageSettings getJavaLanguageSettings() throws UnsupportedMethodException { throw new UnsupportedOperationException(); }
 }

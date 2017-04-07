@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.psi.PsiElement;
@@ -24,8 +25,11 @@ import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
 import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -37,12 +41,23 @@ public final class GradleDslExpressionList extends GradleDslElement {
   @NotNull private final List<GradleDslExpression> myToBeAddedExpressions = Lists.newArrayList();
   @NotNull private final List<GradleDslExpression> myToBeRemovedExpressions = Lists.newArrayList();
 
+  private final boolean myAppendToArgumentListWithOneElement;
+
   public GradleDslExpressionList(@Nullable GradleDslElement parent, @NotNull String name) {
     super(parent, null, name);
+    myAppendToArgumentListWithOneElement = false;
   }
 
   public GradleDslExpressionList(@NotNull GradleDslElement parent, @NotNull GroovyPsiElement psiElement, @NotNull String name) {
+    this(parent, psiElement, name, false);
+  }
+
+  public GradleDslExpressionList(@NotNull GradleDslElement parent,
+                                 @NotNull GroovyPsiElement psiElement,
+                                 @NotNull String name,
+                                 boolean appendToArgumentListWithOneElement) {
     super(parent, psiElement, name);
+    myAppendToArgumentListWithOneElement = appendToArgumentListWithOneElement;
   }
 
   public void addParsedExpression(@NotNull GradleDslExpression expression) {
@@ -102,8 +117,8 @@ public final class GradleDslExpressionList extends GradleDslElement {
    * <p>Returns an empty list when there are no elements of type {@code clazz}.
    */
   @NotNull
-  public <E> List<E> getValues(Class<E> clazz) {
-    List<E> result = Lists.newArrayList();
+  public <E> List<GradleNotNullValue<E>> getValues(Class<E> clazz) {
+    List<GradleNotNullValue<E>> result = Lists.newArrayList();
     for (GradleDslExpression expression : getExpressions()) {
       if (expression instanceof GradleDslReference) {
         // See if the reference itself is pointing to a list.
@@ -115,7 +130,7 @@ public final class GradleDslExpressionList extends GradleDslElement {
       }
       E value = expression.getValue(clazz);
       if (value != null) {
-        result.add(value);
+        result.add(new GradleNotNullValue<>(expression, value));
       }
     }
     return result;
@@ -125,11 +140,14 @@ public final class GradleDslExpressionList extends GradleDslElement {
   @Nullable
   public GroovyPsiElement create() {
     GroovyPsiElement psiElement = getPsiElement();
-    if (psiElement != null) {
-      return psiElement;
+    if (psiElement == null) {
+      if (myParent instanceof GradleDslExpressionMap) {
+        // This is a list in the map element and we need to create a named argument for it.
+        return createNamedArgumentList();
+      }
+      psiElement = super.create();
     }
 
-    psiElement = super.create();
     if (psiElement == null) {
       return null;
     }
@@ -139,7 +157,9 @@ public final class GradleDslExpressionList extends GradleDslElement {
     }
 
     if (psiElement instanceof GrArgumentList) {
-      if (((GrArgumentList)psiElement).getAllArguments().length == 1) {
+      if (!myToBeAddedExpressions.isEmpty() &&
+          ((GrArgumentList)psiElement).getAllArguments().length == 1 &&
+          !myAppendToArgumentListWithOneElement) {
         // Sometimes it's not possible to append to the arguments list with one item. eg. proguardFile "xyz".
         // Set the psiElement to null and create a new psiElement of an empty application statement.
         setPsiElement(null);
@@ -162,6 +182,43 @@ public final class GradleDslExpressionList extends GradleDslElement {
       }
     }
 
+    return null;
+  }
+
+  @Nullable
+  private GroovyPsiElement createNamedArgumentList() {
+    assert myParent instanceof GradleDslExpressionMap;
+
+    GroovyPsiElement parentPsiElement = myParent.create();
+    if (parentPsiElement == null) {
+      return null;
+    }
+
+    GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
+    GrExpression expressionFromText = factory.createExpressionFromText("[]");
+    if (expressionFromText instanceof GrListOrMap) {
+      // Elements need to be added to the list before adding the list to the named argument.
+      GrListOrMap list = (GrListOrMap)expressionFromText;
+      for (GradleDslExpression expression : myToBeAddedExpressions) {
+        expression.setPsiElement(list);
+        expression.applyChanges();
+        myExpressions.add(expression);
+      }
+      myToBeAddedExpressions.clear();
+    }
+    GrNamedArgument namedArgument = factory.createNamedArgument(myName, expressionFromText);
+    PsiElement added;
+    if (parentPsiElement instanceof GrArgumentList) {
+      added = ((GrArgumentList)parentPsiElement).addNamedArgument(namedArgument);
+    }
+    else {
+      added = parentPsiElement.addAfter(namedArgument, parentPsiElement.getLastChild());
+    }
+    if (added instanceof GrNamedArgument) {
+      GrNamedArgument addedNameArgument = (GrNamedArgument)added;
+      setPsiElement(addedNameArgument.getExpression());
+      return getPsiElement();
+    }
     return null;
   }
 
@@ -205,6 +262,11 @@ public final class GradleDslExpressionList extends GradleDslElement {
   @Override
   @NotNull
   protected Collection<GradleDslElement> getChildren() {
-    return ImmutableList.of();
+    List<GradleDslExpression> expressions = getExpressions();
+    List<GradleDslElement> children = new ArrayList<>(expressions.size());
+    for (GradleDslExpression expression : expressions) {
+      children.add(expression);
+    }
+    return children;
   }
 }

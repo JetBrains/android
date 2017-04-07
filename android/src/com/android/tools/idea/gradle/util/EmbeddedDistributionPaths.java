@@ -17,26 +17,28 @@ package com.android.tools.idea.gradle.util;
 
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.io.FileUtil.*;
 
 public class EmbeddedDistributionPaths {
-  private static final Logger LOG = Logger.getInstance(EmbeddedDistributionPaths.class);
+  @NotNull
+  public static EmbeddedDistributionPaths getInstance() {
+    return ServiceManager.getService(EmbeddedDistributionPaths.class);
+  }
 
   @NotNull
-  public static List<File> findAndroidStudioLocalMavenRepoPaths() {
+  public List<File> findAndroidStudioLocalMavenRepoPaths() {
     File defaultRootDirPath = getDefaultRootDirPath();
     if (defaultRootDirPath != null) {
       // Release build
@@ -44,7 +46,7 @@ public class EmbeddedDistributionPaths {
       return repoPath.isDirectory() ? ImmutableList.of(repoPath) : ImmutableList.of();
     }
     // Development build
-    List<File> repoPaths = new LinkedList<>();
+    List<File> repoPaths = new ArrayList<>();
     File repoPath;
 
     // Add prebuilt offline repo
@@ -59,7 +61,7 @@ public class EmbeddedDistributionPaths {
       String relativePath = toSystemDependentName("/../../prebuilts/tools/common/offline-m2");
       repoPath = new File(toCanonicalPath(getIdeHomePath() + relativePath));
     }
-    LOG.info("Looking for embedded Maven repo at '" + repoPath.getPath() + "'");
+    getLog().info("Looking for embedded Maven repo at '" + repoPath.getPath() + "'");
     if (repoPath.isDirectory()) {
       repoPaths.add(repoPath);
     }
@@ -75,17 +77,18 @@ public class EmbeddedDistributionPaths {
   }
 
   @Nullable
-  public static File findEmbeddedGradleDistributionPath() {
+  public File findEmbeddedGradleDistributionPath() {
     File distributionPath = getDefaultRootDirPath();
     if (distributionPath != null) {
       // Release build
+      Logger log = getLog();
       File embeddedPath = new File(distributionPath, "gradle-" + GRADLE_LATEST_VERSION);
-      LOG.info("Looking for embedded Gradle distribution at '" + embeddedPath.getPath() + "'");
+      log.info("Looking for embedded Gradle distribution at '" + embeddedPath.getPath() + "'");
       if (embeddedPath.isDirectory()) {
-        LOG.info("Found embedded Gradle " + GRADLE_LATEST_VERSION);
+        log.info("Found embedded Gradle " + GRADLE_LATEST_VERSION);
         return embeddedPath;
       }
-      LOG.info("Unable to find embedded Gradle " + GRADLE_LATEST_VERSION);
+      log.info("Unable to find embedded Gradle " + GRADLE_LATEST_VERSION);
       return null;
     }
 
@@ -96,6 +99,11 @@ public class EmbeddedDistributionPaths {
     return distributionPath.isDirectory() ? distributionPath : null;
   }
 
+  @NotNull
+  private static Logger getLog() {
+    return Logger.getInstance(EmbeddedDistributionPaths.class);
+  }
+
   @Nullable
   private static File getDefaultRootDirPath() {
     String ideHomePath = getIdeHomePath();
@@ -104,7 +112,7 @@ public class EmbeddedDistributionPaths {
   }
 
   @Nullable
-  public static File getEmbeddedJdkPath() {
+  public File getEmbeddedJdkPath() {
     String ideHomePath = getIdeHomePath();
 
     File jdkRootPath = new File(ideHomePath, SystemInfo.isMac ? join("jre", "jdk") : "jre");
@@ -114,8 +122,9 @@ public class EmbeddedDistributionPaths {
     }
 
     // Development build.
-    String relativePath = toSystemDependentName("/../../prebuilts/studio/jdk");
-    jdkRootPath = new File(toCanonicalPath(ideHomePath + relativePath));
+    String jdkDevPath = System.getProperty("studio.dev.jdk", ideHomePath + "/../../prebuilts/studio/jdk");
+    String relativePath = toSystemDependentName(jdkDevPath);
+    jdkRootPath = new File(toCanonicalPath(relativePath));
     if (SystemInfo.isWindows) {
       jdkRootPath = new File(jdkRootPath, "win64");
     }

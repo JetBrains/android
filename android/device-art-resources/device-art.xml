@@ -15,6 +15,16 @@
 -->
 <devices>
 
+  <device id="pixel" name="Pixel">
+    <orientation name="port" size="1370,2534" screenPos="139,285" screenSize="1080,1920" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
+    <orientation name="land" size="2596,1258" screenPos="338,78" screenSize="1920,1080" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
+  </device>
+
+  <device id="pixel_xl" name="Pixel XL">
+    <orientation name="port" size="1840,3297" screenPos="200,325" screenSize="1440,2560" shadow="port_shadow.webp" back="port_back.webp" lights="port_fore.webp"/>
+    <orientation name="land" size="3427,1654" screenPos="393,92" screenSize="2560,1440" shadow="land_shadow.webp" back="land_back.webp" lights="land_fore.webp"/>
+  </device>
+
   <device id="pixel_c" name="Pixel C">
     <orientation name="port" size="2307,2971" screenPos="259,181" screenSize="1800,2560" shadow="port_shadow.png" back="port_back.png" lights="port_fore.png"/>
     <orientation name="land" size="3096,2215" screenPos="269,188" screenSize="2560,1800" shadow="land_shadow.png" back="land_back.png" lights="land_fore.png"/>

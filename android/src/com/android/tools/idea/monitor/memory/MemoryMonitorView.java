@@ -25,6 +25,7 @@ import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.DeviceSampler;
 import com.android.tools.idea.monitor.actions.RecordingAction;
 import com.android.tools.idea.monitor.memory.actions.ToggleDebugRender;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.MonitorType;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
@@ -121,5 +122,10 @@ public class MemoryMonitorView extends BaseMonitorView<MemorySampler> implements
   @Override
   public String getDescription() {
     return "memory usage";
+  }
+
+  @Override
+  public MonitorType getMonitorType() {
+    return MonitorType.NETWORK;
   }
 }

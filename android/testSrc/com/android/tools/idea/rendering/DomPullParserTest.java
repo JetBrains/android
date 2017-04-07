@@ -97,7 +97,6 @@ public class DomPullParserTest extends AndroidTestCase {
 
       Element element = null;
       if (expected == XmlPullParser.START_TAG) {
-        assertNotNull(parser.getViewKey());
         assertNotNull(parser.getViewCookie());
         assertTrue(parser.getViewCookie() == null || parser.getViewCookie() instanceof Element);
         element = (Element)parser.getViewCookie();

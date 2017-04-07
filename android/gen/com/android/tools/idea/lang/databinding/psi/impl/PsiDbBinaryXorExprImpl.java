@@ -16,8 +16,12 @@ public class PsiDbBinaryXorExprImpl extends PsiDbExprImpl implements PsiDbBinary
     super(node);
   }
 
+  public void accept(@NotNull PsiDbVisitor visitor) {
+    visitor.visitBinaryXorExpr(this);
+  }
+
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof PsiDbVisitor) ((PsiDbVisitor)visitor).visitBinaryXorExpr(this);
+    if (visitor instanceof PsiDbVisitor) accept((PsiDbVisitor)visitor);
     else super.accept(visitor);
   }
 

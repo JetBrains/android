@@ -19,14 +19,15 @@ import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.GradleSettingsFile;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.projectView.actions.MarkLibraryRootAction;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -75,7 +76,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
     final Project project = getEventProject(e);
     if (project == null) return;
 
-    if (!Projects.requiresAndroidModel(project)) {
+    if (!AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
       myDelegate.actionPerformed(e);
       return;
     }
@@ -116,7 +117,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
       return Collections.emptyList();
     }
 
-    List<VirtualFile> roots = new ArrayList<VirtualFile>();
+    List<VirtualFile> roots = new ArrayList<>();
     for (VirtualFile file : files) {
       VirtualFile root = JarFileSystem.getInstance().getJarRootForLocalFile(file);
       if (root != null) {
@@ -177,7 +178,8 @@ public class CreateLibraryFromFilesAction extends AnAction {
 
     @Override
     protected void doOKAction() {
-      WriteAction.run(() -> {
+      AccessToken token = WriteAction.start();
+      try {
         final Module module = myModulesComboBox.getSelectedModule();
         if (module == null) { return; }
         String moduleGradlePath = GradleSettingsFile.getModuleGradlePath(module);
@@ -209,8 +211,12 @@ public class CreateLibraryFromFilesAction extends AnAction {
             }.execute();
           }
         }
-      });
-      GradleProjectImporter.getInstance().requestProjectSync(myProject, null);
+      }
+      finally {
+        token.finish();
+      }
+      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, null);
+
       super.doOKAction();
     }
 

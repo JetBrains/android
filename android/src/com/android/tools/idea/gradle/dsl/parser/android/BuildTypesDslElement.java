@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.List;
 
 public final class BuildTypesDslElement extends GradleDslElementMap {
@@ -38,7 +37,7 @@ public final class BuildTypesDslElement extends GradleDslElementMap {
   }
 
   @NotNull
-  public Collection<BuildTypeModel> get() {
+  public List<BuildTypeModel> get() {
     List<BuildTypeModel> result = Lists.newArrayList();
     for (BuildTypeDslElement dslElement : getValues(BuildTypeDslElement.class)) {
       result.add(new BuildTypeModel(dslElement));

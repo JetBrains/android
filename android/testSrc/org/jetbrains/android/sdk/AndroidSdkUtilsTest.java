@@ -19,7 +19,8 @@ import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
-import com.android.tools.idea.AndroidTestCaseHelper;
+import com.android.testutils.TestUtils;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -29,18 +30,20 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.IdeaTestCase;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Tests for {@link AndroidSdkUtils}.
  */
 public class AndroidSdkUtilsTest extends IdeaTestCase {
-  private String mySdkPath;
+  private File mySdkPath;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    mySdkPath = AndroidTestCaseHelper.getAndroidSdkPath().getPath();
+    mySdkPath = TestUtils.getSdk();
 
     ApplicationManager.getApplication().runWriteAction(new Runnable() {
       @Override
@@ -59,36 +62,20 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
     }
   }
 
-  public void testFindSuitableAndroidSdkWhenNoSdkSet() {
-    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk("android-22");
-    assertNull(sdk);
-  }
-
-  public void testFindSuitableAndroidSdkWithPathOfExistingModernSdk() {
-    String targetHashString = "android-22";
-    Sdk jdk = getTestProjectJdk();
-    assertNotNull(jdk);
-    createAndroidSdk(mySdkPath, targetHashString, jdk);
-
-    Sdk sdk = AndroidSdkUtils.findSuitableAndroidSdk(targetHashString);
-    assertNotNull(sdk);
-    assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
-  }
-
   public void DISABLEDtestTryToCreateAndSetAndroidSdkWithPathOfModernSdk() {
-    boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, "android-22");
+    boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, TestUtils.getLatestAndroidPlatform());
     System.out.println("Trying to set sdk for module from: " + mySdkPath + " -> " + sdkSet);
     assertTrue(sdkSet);
     Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
     assertNotNull(sdk);
-    assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
+    assertTrue(FileUtil.pathsEqual(mySdkPath.getPath(), sdk.getHomePath()));
   }
 
   public void DISABLEDtestCreateNewAndroidPlatformWithPathOfModernSdkOnly() {
-    Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(mySdkPath, false);
+    Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(mySdkPath.getPath(), false);
     System.out.println("Creating new android platform from: " + mySdkPath + " -> " + sdk);
     assertNotNull(sdk);
-    assertTrue(FileUtil.pathsEqual(mySdkPath, sdk.getHomePath()));
+    assertTrue(FileUtil.pathsEqual(mySdkPath.getPath(), sdk.getHomePath()));
   }
 
   public void testGetTargetLabel() throws Exception {
@@ -111,13 +98,13 @@ public class AndroidSdkUtilsTest extends IdeaTestCase {
     assertEquals("API 100+: platform r100", AndroidSdkUtils.getTargetLabel(platformPreviewTarget));
   }
 
-  private static void createAndroidSdk(@NotNull String androidHomePath, @NotNull String targetHashString, @NotNull Sdk javaSdk) {
-    Sdk sdk = SdkConfigurationUtil.createAndAddSDK(androidHomePath, AndroidSdkType.getInstance());
+  private static void createAndroidSdk(@NotNull File androidHomePath, @NotNull String targetHashString, @NotNull Sdk javaSdk) {
+    Sdk sdk = SdkConfigurationUtil.createAndAddSDK(androidHomePath.getPath(), AndroidSdkType.getInstance());
     assertNotNull(sdk);
     AndroidSdkData sdkData = AndroidSdkData.getSdkData(androidHomePath);
     assertNotNull(sdkData);
     IAndroidTarget target = sdkData.findTargetByHashString(targetHashString);
     assertNotNull(target);
-    AndroidSdkUtils.setUpSdk(sdk, target.getName(), new Sdk[]{javaSdk}, target, javaSdk, true);
+    AndroidSdks.getInstance().setUpSdk(sdk, target, target.getName(), Collections.singletonList(javaSdk), javaSdk, true);
   }
 }

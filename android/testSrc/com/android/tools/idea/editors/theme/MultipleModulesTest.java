@@ -29,6 +29,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+
 public class MultipleModulesTest extends AndroidTestCase {
 
   // Additional module names
@@ -38,16 +40,16 @@ public class MultipleModulesTest extends AndroidTestCase {
   @Override
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                             @NotNull List<MyAdditionalModuleData> modules) {
-    addModuleWithAndroidFacet(projectBuilder, modules, USEDLIBRARY, true, true);
-    addModuleWithAndroidFacet(projectBuilder, modules, UNUSEDLIBRARY, true, false);
+    addModuleWithAndroidFacet(projectBuilder, modules, USEDLIBRARY, PROJECT_TYPE_LIBRARY, true);
+    addModuleWithAndroidFacet(projectBuilder, modules, UNUSEDLIBRARY, PROJECT_TYPE_LIBRARY, false);
   }
 
   public void testThemeResolver() {
     final VirtualFile appThemes = myFixture.copyFileToProject("themeEditor/multimodulesProject/app_themes.xml", "res/values/themes.xml");
     myFixture.copyFileToProject("themeEditor/multimodulesProject/unusedlibrary_themes.xml",
-                                getContentRootPath(UNUSEDLIBRARY) + "/res/values/themes.xml");
+                                getAdditionalModulePath(UNUSEDLIBRARY) + "/res/values/themes.xml");
     myFixture.copyFileToProject("themeEditor/multimodulesProject/usedlibrary_themes.xml",
-                                getContentRootPath(USEDLIBRARY) + "/res/values/themes.xml");
+                                getAdditionalModulePath(USEDLIBRARY) + "/res/values/themes.xml");
 
     // Main theme module
     final Configuration configuration1 = myFacet.getConfigurationManager().getConfiguration(appThemes);

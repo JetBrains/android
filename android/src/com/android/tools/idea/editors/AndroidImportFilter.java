@@ -30,7 +30,10 @@ public class AndroidImportFilter extends ImportFilter {
   /** Never import android.R, or inner classes of application R or android.R classes */
   @Override
   public boolean shouldUseFullyQualifiedName(@NotNull PsiFile targetFile, @NotNull String classQualifiedName) {
-    if (classQualifiedName.equals(CLASS_R) || classQualifiedName.startsWith(CLASS_R_PREFIX)) {
+    if (classQualifiedName.equals(CLASS_R) || classQualifiedName.startsWith(CLASS_R_PREFIX)
+        // Data binding: prevent local, generated BR class references during sync or builds (when they
+        // temporarily don't exist) to auto-import this BR class for users who have enabled auto-import:
+        || classQualifiedName.equals("android.databinding.tool.util.GenerationalClassUtil.ExtensionFilter.BR")) {
       return true;
     }
 

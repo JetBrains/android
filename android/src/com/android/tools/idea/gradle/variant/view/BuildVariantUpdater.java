@@ -17,30 +17,27 @@ package com.android.tools.idea.gradle.variant.view;
 
 import com.android.builder.model.AndroidLibrary;
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
-import com.android.tools.idea.gradle.NativeAndroidGradleModel.NativeVariant;
-import com.android.tools.idea.gradle.customizer.ModuleCustomizer;
-import com.android.tools.idea.gradle.facet.NativeAndroidGradleFacet;
-import com.android.tools.idea.gradle.project.PostProjectSetupTasksExecutor;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel.NdkVariant;
+import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
+import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
+import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.util.ExceptionUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.findModuleByGradlePath;
@@ -48,6 +45,7 @@ import static com.android.tools.idea.gradle.util.Projects.executeProjectChanges;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictSet.findConflicts;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.util.ExceptionUtil.rethrowAllAsUnchecked;
 
 /**
  * Updates the contents/settings of a module when a build variant changes.
@@ -66,21 +64,22 @@ class BuildVariantUpdater {
   boolean updateSelectedVariant(@NotNull Project project,
                                 @NotNull String moduleName,
                                 @NotNull String buildVariantName) {
-    List<AndroidFacet> affectedAndroidFacets = Lists.newArrayList();
-    List<NativeAndroidGradleFacet> affectedNativeAndroidFacets = Lists.newArrayList();
+    List<AndroidFacet> affectedAndroidFacets = new ArrayList<>();
+    List<NdkFacet> affectedNdkFacets = new ArrayList<>();
     executeProjectChanges(project, () -> {
-      Module updatedModule = doUpdate(project, moduleName, buildVariantName, affectedAndroidFacets, affectedNativeAndroidFacets);
+      Module updatedModule = doUpdate(project, moduleName, buildVariantName, affectedAndroidFacets, affectedNdkFacets);
       if (updatedModule != null) {
         ConflictSet conflicts = findConflicts(project);
         conflicts.showSelectionConflicts();
       }
 
-      PostProjectSetupTasksExecutor executor = PostProjectSetupTasksExecutor.getInstance(project);
-      executor.setGenerateSourcesAfterSync(false, false);
-      executor.onProjectSyncCompletion();
+      PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
+      setupRequest.setGenerateSourcesAfterSync(false).setCleanProjectAfterSync(false);
+      PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, null);
+
       generateSourcesIfNeeded(affectedAndroidFacets);
     });
-    return !affectedAndroidFacets.isEmpty() || !affectedNativeAndroidFacets.isEmpty();
+    return !affectedAndroidFacets.isEmpty() || !affectedNdkFacets.isEmpty();
   }
 
   @Nullable
@@ -88,7 +87,7 @@ class BuildVariantUpdater {
                           @NotNull String moduleName,
                           @NotNull String variant,
                           @NotNull List<AndroidFacet> affectedAndroidFacets,
-                          @NotNull List<NativeAndroidGradleFacet> affectedNativeAndroidFacets) {
+                          @NotNull List<NdkFacet> affectedNativeAndroidFacets) {
     Module moduleToUpdate = findModule(project, moduleName);
     if (moduleToUpdate == null) {
       logAndShowUpdateFailure(variant, String.format("Cannot find module '%1$s'.", moduleName));
@@ -96,21 +95,22 @@ class BuildVariantUpdater {
     }
 
     AndroidFacet androidFacet = AndroidFacet.getInstance(moduleToUpdate);
-    NativeAndroidGradleFacet nativeAndroidFacet = NativeAndroidGradleFacet.getInstance(moduleToUpdate);
+    NdkFacet ndkFacet = NdkFacet.getInstance(moduleToUpdate);
 
-    if (androidFacet == null && nativeAndroidFacet == null) {
+    if (androidFacet == null && ndkFacet == null) {
       String msg = String.format("Cannot find 'Android' or 'Native-Android-Gradle' facets in module '%1$s'.", moduleToUpdate.getName());
       logAndShowUpdateFailure(variant, msg);
     }
-    if (nativeAndroidFacet != null) {
-      NativeAndroidGradleModel nativeAndroidModel = getNativeAndroidModel(nativeAndroidFacet, variant);
-      if (updateSelectedVariant(nativeAndroidFacet, variant, nativeAndroidModel)) {
-        affectedNativeAndroidFacets.add(nativeAndroidFacet);
+    if (ndkFacet != null) {
+      NdkModuleModel ndkModuleModel = getNativeAndroidModel(ndkFacet, variant);
+      if (ndkModuleModel == null || !updateSelectedVariant(ndkFacet, ndkModuleModel, variant)) {
+        return null;
       }
+      affectedNativeAndroidFacets.add(ndkFacet);
     }
     if (androidFacet != null) {
-      AndroidGradleModel androidModel = getAndroidModel(androidFacet, variant);
-      if (androidModel == null || !updateSelectedVariant(androidModel, androidFacet, variant, affectedAndroidFacets)) {
+      AndroidModuleModel androidModel = getAndroidModel(androidFacet, variant);
+      if (androidModel == null || !updateSelectedVariant(androidFacet, androidModel, variant, affectedAndroidFacets)) {
         return null;
       }
       affectedAndroidFacets.add(androidFacet);
@@ -124,29 +124,8 @@ class BuildVariantUpdater {
     return moduleManager.findModuleByName(moduleName);
   }
 
-  private static boolean updateSelectedVariant(@NotNull NativeAndroidGradleFacet nativeAndroidFacet,
-                                               @NotNull String variantToSelect,
-                                               @Nullable NativeAndroidGradleModel nativeAndroidModel) {
-    // Always keep the facet in sync.
-    // See https://code.google.com/p/android/issues/detail?id=219116
-    nativeAndroidFacet.getConfiguration().SELECTED_BUILD_VARIANT = variantToSelect;
-
-    if (nativeAndroidModel != null) {
-      NativeVariant selectedVariant = nativeAndroidModel.getSelectedVariant();
-      if (variantToSelect.equals(selectedVariant.getName())) {
-        return false;
-      }
-      nativeAndroidModel.setSelectedVariantName(variantToSelect);
-      invokeCustomizers(nativeAndroidFacet.getModule(), nativeAndroidModel);
-
-      // TODO: Also update the dependent modules variants.
-      return true;
-    }
-    return false;
-  }
-
-  private boolean updateSelectedVariant(@NotNull AndroidGradleModel androidModel,
-                                        @NotNull AndroidFacet androidFacet,
+  private boolean updateSelectedVariant(@NotNull AndroidFacet androidFacet,
+                                        @NotNull AndroidModuleModel androidModel,
                                         @NotNull String variantToSelect,
                                         @NotNull List<AndroidFacet> affectedFacets) {
     Variant selectedVariant = androidModel.getSelectedVariant();
@@ -155,7 +134,7 @@ class BuildVariantUpdater {
     }
     androidModel.setSelectedVariantName(variantToSelect);
     androidModel.syncSelectedVariantAndTestArtifact(androidFacet);
-    Module module = invokeCustomizers(androidFacet.getModule(), androidModel);
+    Module module = setUpModule(androidFacet.getModule(), androidModel);
 
     for (AndroidLibrary library : androidModel.getSelectedMainCompileDependencies().getLibraries()) {
       String gradlePath = library.getProject();
@@ -167,6 +146,21 @@ class BuildVariantUpdater {
         ensureVariantIsSelected(module.getProject(), gradlePath, projectVariant, affectedFacets);
       }
     }
+    return true;
+  }
+
+  private static boolean updateSelectedVariant(@NotNull NdkFacet ndkFacet,
+                                               @NotNull NdkModuleModel ndkModuleModel,
+                                               @NotNull String variantToSelect) {
+    NdkVariant selectedVariant = ndkModuleModel.getSelectedVariant();
+    if (variantToSelect.equals(selectedVariant.getName())) {
+      return false;
+    }
+    ndkModuleModel.setSelectedVariantName(variantToSelect);
+    ndkFacet.getConfiguration().SELECTED_BUILD_VARIANT = ndkModuleModel.getSelectedVariant().getName();
+    setUpModule(ndkFacet.getModule(), ndkModuleModel);
+
+    // TODO: Also update the dependent modules variants.
     return true;
   }
 
@@ -182,85 +176,39 @@ class BuildVariantUpdater {
   }
 
   @NotNull
-  private static Module invokeCustomizers(@NotNull Module module, @NotNull AndroidGradleModel androidModel) {
+  private static Module setUpModule(@NotNull Module module, @NotNull AndroidModuleModel androidModel) {
     IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(module.getProject());
     try {
-      for (ModuleCustomizer<AndroidGradleModel> customizer : getCustomizers(androidModel.getProjectSystemId())) {
-        customizer.customizeModule(module.getProject(), module, modelsProvider, androidModel);
+      for (AndroidModuleSetupStep setupStep : AndroidModuleSetupStep.getExtensions()) {
+        if (setupStep.invokeOnBuildVariantChange()) {
+          setupStep.setUpModule(module, modelsProvider, androidModel, null, null);
+        }
       }
       modelsProvider.commit();
     }
     catch (Throwable t) {
       modelsProvider.dispose();
-      ExceptionUtil.rethrowAllAsUnchecked(t);
+      rethrowAllAsUnchecked(t);
     }
     return module;
   }
 
   @NotNull
-  private static List<BuildVariantModuleCustomizer<AndroidGradleModel>> getCustomizers(@NotNull ProjectSystemId targetProjectSystemId) {
-    return getCustomizers(targetProjectSystemId, BuildVariantModuleCustomizer.EP_NAME.getExtensions());
-  }
-
-  @VisibleForTesting
-  @NotNull
-  static List<BuildVariantModuleCustomizer<AndroidGradleModel>> getCustomizers(@NotNull ProjectSystemId targetProjectSystemId,
-                                                                               @NotNull BuildVariantModuleCustomizer... allCustomizers) {
-    List<BuildVariantModuleCustomizer<AndroidGradleModel>> customizers = Lists.newArrayList();
-    for (BuildVariantModuleCustomizer customizer : allCustomizers) {
-      // Supported model type must be AndroidGradleModel or subclass.
-      if (AndroidGradleModel.class.isAssignableFrom(customizer.getSupportedModelType())) {
-        // Build system should be ProjectSystemId.IDE or match the build system sent as parameter.
-        ProjectSystemId projectSystemId = customizer.getProjectSystemId();
-        if (Objects.equal(projectSystemId, targetProjectSystemId) || Objects.equal(projectSystemId, ProjectSystemId.IDE)) {
-          //noinspection unchecked
-          customizers.add(customizer);
-        }
-      }
-    }
-    return customizers;
-  }
-
-  @NotNull
-  private static Module invokeCustomizers(@NotNull Module module, @NotNull NativeAndroidGradleModel nativeAndroidModel) {
+  private static Module setUpModule(@NotNull Module module, @NotNull NdkModuleModel ndkModuleModel) {
     IdeModifiableModelsProviderImpl modelsProvider = new IdeModifiableModelsProviderImpl(module.getProject());
     try {
-      for (ModuleCustomizer<NativeAndroidGradleModel> customizer : getNativeAndroidCustomizers(nativeAndroidModel.getProjectSystemId())) {
-        customizer.customizeModule(module.getProject(), module, modelsProvider, nativeAndroidModel);
+      for (NdkModuleSetupStep setupStep : NdkModuleSetupStep.getExtensions()) {
+        if (setupStep.invokeOnBuildVariantChange()) {
+          setupStep.setUpModule(module, modelsProvider, ndkModuleModel, null, null);
+        }
       }
       modelsProvider.commit();
     }
     catch (Throwable t) {
       modelsProvider.dispose();
-      ExceptionUtil.rethrowAllAsUnchecked(t);
+      rethrowAllAsUnchecked(t);
     }
     return module;
-  }
-
-  @NotNull
-  private static List<BuildVariantModuleCustomizer<NativeAndroidGradleModel>> getNativeAndroidCustomizers(
-    @NotNull ProjectSystemId targetProjectSystemId) {
-    return getNativeAndroidCustomizers(targetProjectSystemId, BuildVariantModuleCustomizer.EP_NAME.getExtensions());
-  }
-
-  @VisibleForTesting
-  @NotNull
-  static List<BuildVariantModuleCustomizer<NativeAndroidGradleModel>> getNativeAndroidCustomizers(
-    @NotNull ProjectSystemId targetProjectSystemId,
-    @NotNull BuildVariantModuleCustomizer... allCustomizers) {
-    List<BuildVariantModuleCustomizer<NativeAndroidGradleModel>> customizers = Lists.newArrayList();
-    for (BuildVariantModuleCustomizer customizer : allCustomizers) {
-      // Supported model type must be NativeAndroidGradleModel or subclass.
-      if (NativeAndroidGradleModel.class.isAssignableFrom(customizer.getSupportedModelType())) {
-        // Build system should be ProjectSystemId.IDE or match the build system sent as parameter.
-        ProjectSystemId projectSystemId = customizer.getProjectSystemId();
-        if (Objects.equal(projectSystemId, targetProjectSystemId) || Objects.equal(projectSystemId, ProjectSystemId.IDE)) {
-          //noinspection unchecked
-          customizers.add(customizer);
-        }
-      }
-    }
-    return customizers;
   }
 
   private void ensureVariantIsSelected(@NotNull Project project,
@@ -279,12 +227,12 @@ class BuildVariantUpdater {
       return;
     }
 
-    AndroidGradleModel androidModel = getAndroidModel(facet, variant);
+    AndroidModuleModel androidModel = getAndroidModel(facet, variant);
     if (androidModel == null) {
       return;
     }
 
-    if (!updateSelectedVariant(androidModel, facet, variant, affectedFacets)) {
+    if (!updateSelectedVariant(facet, androidModel, variant, affectedFacets)) {
       return;
     }
     affectedFacets.add(facet);
@@ -292,8 +240,8 @@ class BuildVariantUpdater {
 
 
   @Nullable
-  private static AndroidGradleModel getAndroidModel(@NotNull AndroidFacet facet, @NotNull String variantToSelect) {
-    AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+  private static AndroidModuleModel getAndroidModel(@NotNull AndroidFacet facet, @NotNull String variantToSelect) {
+    AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
     if (androidModel == null) {
       logAndShowUpdateFailure(variantToSelect, String.format("Cannot find AndroidProject for module '%1$s'.", facet.getModule().getName()));
     }
@@ -301,13 +249,13 @@ class BuildVariantUpdater {
   }
 
   @Nullable
-  private static NativeAndroidGradleModel getNativeAndroidModel(@NotNull NativeAndroidGradleFacet facet, @NotNull String variantToSelect) {
-    NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(facet);
-    if (nativeAndroidModel == null) {
+  private static NdkModuleModel getNativeAndroidModel(@NotNull NdkFacet facet, @NotNull String variantToSelect) {
+    NdkModuleModel ndkModuleModel = NdkModuleModel.get(facet);
+    if (ndkModuleModel == null) {
       logAndShowUpdateFailure(variantToSelect,
                               String.format("Cannot find NativeAndroidProject for module '%1$s'.", facet.getModule().getName()));
     }
-    return nativeAndroidModel;
+    return ndkModuleModel;
   }
 
   private static void logAndShowUpdateFailure(@NotNull String buildVariantName, @NotNull String reason) {

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.model.pom;
 
+import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.vfs.VirtualFile;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -28,12 +28,8 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.findPomForLibrary;
 import static com.intellij.openapi.util.JDOMUtil.loadDocument;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.util.text.StringUtil.nullize;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.openapi.util.text.StringUtil.*;
 
 public class MavenPoms {
   private static final Logger LOG = Logger.getInstance(MavenPoms.class);
@@ -43,13 +39,13 @@ public class MavenPoms {
 
   @NotNull
   public static List<PsArtifactDependencySpec> findDependenciesInPomFile(@NotNull File libraryPath) {
-    VirtualFile pomFile = findPomForLibrary(libraryPath);
-    if (pomFile == null) {
+    File pomFilePath = LibraryFilePaths.getInstance().findPomPathForLibrary(libraryPath);
+    if (pomFilePath == null) {
       return Collections.emptyList();
     }
     List<PsArtifactDependencySpec> dependencies = Lists.newArrayList();
     try {
-      Document document = loadDocument(virtualToIoFile(pomFile));
+      Document document = loadDocument(pomFilePath);
       Element rootElement = document.getRootElement();
       if (rootElement != null) {
         Element dependenciesElement = null;

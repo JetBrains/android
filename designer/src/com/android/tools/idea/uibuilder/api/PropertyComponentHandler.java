@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
+import com.android.SdkConstants;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -29,10 +31,23 @@ import static com.android.SdkConstants.*;
 public abstract class PropertyComponentHandler extends PaletteComponentHandler {
   /**
    * Return the properties that should be shown in the inspector for this component.
+   * If a property is prefixed with "tools:" then the property must be in the
+   * {@link SdkConstants#TOOLS_URI} namespace.
+   * Otherwise the following namespaces are checked in order:
+   * {@link SdkConstants#AUTO_URI}, {@link SdkConstants#ANDROID_URI}, {@link SdkConstants#TOOLS_URI}.
    */
   @NotNull
   public List<String> getInspectorProperties() {
     return Collections.emptyList();
+  }
+
+  /**
+   * Return the preferred property that the user usually would edit the most
+   * for the given component (may be null).
+   */
+  @Nullable
+  public String getPreferredProperty() {
+    return ATTR_ID;
   }
 
   /**

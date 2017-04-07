@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding;
 
 import com.android.tools.idea.res.DataBindingInfo;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.PsiPackage;
@@ -39,14 +40,11 @@ public class DataBindingClassFinder extends PsiElementFinder {
   @Nullable
   @Override
   public PsiClass findClass(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+    if (!isEnabled()) {
       return null;
     }
     for (AndroidFacet facet : myComponent.getDataBindingEnabledFacets()) {
       LocalResourceRepository moduleResources = facet.getModuleResources(true);
-      if (moduleResources == null) {
-        continue;
-      }
       Map<String, DataBindingInfo> dataBindingResourceFiles = moduleResources.getDataBindingResourceFiles();
       if (dataBindingResourceFiles == null) {
         continue;
@@ -55,7 +53,10 @@ public class DataBindingClassFinder extends PsiElementFinder {
       if (dataBindingInfo == null) {
         continue;
       }
-      return DataBindingUtil.getOrCreatePsiClass(dataBindingInfo);
+      VirtualFile file = dataBindingInfo.getPsiFile().getVirtualFile();
+      if (file != null && scope.accept(file)) {
+        return DataBindingUtil.getOrCreatePsiClass(dataBindingInfo);
+      }
     }
     return null;
   }
@@ -63,7 +64,7 @@ public class DataBindingClassFinder extends PsiElementFinder {
   @NotNull
   @Override
   public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-    if (!myComponent.hasAnyDataBindingEnabledFacet()) {
+    if (!isEnabled()) {
       return PsiClass.EMPTY_ARRAY;
     }
     PsiClass aClass = findClass(qualifiedName, scope);
@@ -79,5 +80,9 @@ public class DataBindingClassFinder extends PsiElementFinder {
     // data binding packages are found only if corresponding java packages does not exists. For those, we have DataBindingPackageFinder
     // which has a low priority.
     return null;
+  }
+
+  private boolean isEnabled() {
+    return DataBindingUtil.inMemoryClassGenerationIsEnabled() && myComponent.hasAnyDataBindingEnabledFacet();
   }
 }

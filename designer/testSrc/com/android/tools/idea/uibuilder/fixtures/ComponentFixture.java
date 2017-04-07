@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
-import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.SegmentType;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 
@@ -103,7 +103,7 @@ public class ComponentFixture {
 
   @NotNull
   public ComponentFixture expectHierarchy(@NotNull String hierarchy) {
-    String tree = LayoutTestUtilities.toTree(Collections.singletonList(myComponent));
+    String tree = NlTreeDumper.dumpTree(Collections.singletonList(myComponent));
     assertEquals(tree, hierarchy);
     return this;
   }

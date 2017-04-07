@@ -26,8 +26,9 @@ public class DeepLinkChooserDialogTest extends AndroidTestCase {
   private static final String BASE_PATH = "deeplink/launch/";
   private static final String ANDROID_MANIFEST = "AndroidManifest.xml";
 
-  public DeepLinkChooserDialogTest() {
-    super(false);
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override

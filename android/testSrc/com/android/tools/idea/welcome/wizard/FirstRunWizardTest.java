@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.config.InstallerData;
 import com.android.tools.idea.welcome.install.ComponentCategory;
@@ -23,7 +24,7 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
-import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
@@ -40,22 +41,8 @@ public final class FirstRunWizardTest extends AndroidTestBase {
   public static final Key<Boolean> KEY_FALSE = ScopedStateStore.createKey("false", ScopedStateStore.Scope.WIZARD, Boolean.class);
   public static final Key<Integer> KEY_INTEGER = ScopedStateStore.createKey("42", ScopedStateStore.Scope.WIZARD, Integer.class);
 
-  @NotNull
-  private static File getPathChecked(String variable) {
-    String path = System.getenv(variable);
-    if (StringUtil.isEmpty(path)) {
-      throw new IllegalStateException("Missing " + variable + " environment variable");
-    }
-    return new File(path);
-  }
-
   private static <T> Key<T> createKey(Class<T> clazz) {
     return ScopedStateStore.createKey(clazz.getName(), ScopedStateStore.Scope.STEP, clazz);
-  }
-
-  @NotNull
-  public static File getAndroidHome() {
-    return getPathChecked("ANDROID_HOME");
   }
 
   private void assertPagesVisible(@Nullable InstallerData data, boolean isComponentsStepVisible, boolean hasAndroidSdkPath) {
@@ -101,8 +88,13 @@ public final class FirstRunWizardTest extends AndroidTestBase {
   }
 
   public void testStepsVisibility() {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     File wrongPath = new File("/$@@  \"\'should/not/exist");
-    File androidHome = getAndroidHome();
+    File androidHome = TestUtils.getSdk();
 
     assertPagesVisible(null, true, false);
 

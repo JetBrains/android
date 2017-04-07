@@ -148,9 +148,8 @@ public final class SunburstChart extends AnimatedComponent {
   }
 
   @Override
-  protected void draw(Graphics2D g) {
+  protected void draw(Graphics2D g, Dimension dim) {
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    Dimension dim = getSize();
 
     g.setColor(getBackground());
     g.fillRect(0, 0, dim.width, dim.height);

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.google.common.collect.ImmutableList;
+import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 
 /**
  * Tests for {@link GradleBuildModel} to test apply, add and remove plugins.
@@ -259,15 +260,22 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
     GradleBuildModel buildModel = getGradleBuildModel();
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyAppliedPlugins(buildModel, text);
 
     buildModel.applyPlugin("com.android.application");
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyAppliedPlugins(buildModel, text);
 
     applyChanges(buildModel);
-    assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    verifyAppliedPlugins(buildModel, text);
 
     buildModel.reparse();
+    verifyAppliedPlugins(buildModel, text);
+  }
+
+  private static void verifyAppliedPlugins(GradleBuildModel buildModel, String buildText) {
     assertEquals("apply", ImmutableList.of("com.android.application", "com.android.library"), buildModel.appliedPlugins());
+    GroovyPsiElement buildFilePsiElement = buildModel.getPsiElement();
+    assertNotNull(buildFilePsiElement);
+    assertEquals("buildText", buildText, buildFilePsiElement.getText());
   }
 }

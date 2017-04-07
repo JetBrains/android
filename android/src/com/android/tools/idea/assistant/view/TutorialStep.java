@@ -17,13 +17,22 @@ package com.android.tools.idea.assistant.view;
 
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.StepElementData;
-import com.android.tools.idea.structure.services.DeveloperServiceMap.DeveloperServiceList;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.CaretState;
+import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.openapi.editor.VisualPosition;
+import com.intellij.openapi.editor.event.EditorMouseAdapter;
+import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.border.AbstractBorder;
@@ -34,8 +43,6 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Renders a single step inside of a tutorial.
@@ -43,7 +50,6 @@ import java.util.logging.Logger;
  * TODO: Move render properties to a form.
  */
 public class TutorialStep extends JPanel {
-  private static final Logger logger = Logger.getLogger(TutorialStep.class.getName());
 
   // TODO: Refactor number related code to be an inner class + revisit colors.
   public final JBColor NUMBER_COLOR = new JBColor(0x52639B, 0x589df6);
@@ -53,11 +59,15 @@ public class TutorialStep extends JPanel {
   private final JPanel myContents;
   private final Project myProject;
 
-  TutorialStep(StepData step, int index, ActionListener listener, DeveloperServiceList services) {
+  private static Logger getLog() {
+    return Logger.getInstance(TutorialStep.class);
+  }
+
+  TutorialStep(@NotNull StepData step, int index, @NotNull ActionListener listener, @NotNull Project project) {
     super(new GridBagLayout());
     myIndex = index;
     myStep = step;
-    myProject = services.getProject();
+    myProject = project;
     myContents = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, true));
     setOpaque(false);
 
@@ -75,28 +85,28 @@ public class TutorialStep extends JPanel {
           JEditorPane section = new JEditorPane();
           section.setOpaque(false);
           section.setBorder(BorderFactory.createEmptyBorder());
+          section.setDragEnabled(false);
           // HACK ALERT: Without a margin on the outer html container, the contents are set to a height of zero on theme change.
           UIUtils.setHtml(section, element.getSection(), ".as-shim { margin-top: 1px; }");
           myContents.add(section);
           break;
         case ACTION:
-          myContents.add(new StatefulButton(element.getAction(), listener, services));
+          if (element.getAction() != null) {
+            myContents.add(new StatefulButton(element.getAction(), listener, project));
+          }
+          else {
+            getLog().warn("Found action element with no action definition: " + element.toString());
+          }
           break;
         case CODE:
           myContents.add(new CodePane(element));
           break;
         default:
-          logger.log(Level.SEVERE, "Found a StepElement of unknown type. " + element.toString());
+          getLog().error("Found a StepElement of unknown type. " + element.toString());
       }
       // Add 10px spacing between elements.
       myContents.add(Box.createRigidArea(new Dimension(0, 10)));
     }
-    // NOTE: Due to some calculation issues with html rendered content, we're forcing the element to do a relayout.
-    // TODO: SwingUtilities.updateComponentTreeUI(this) reverted some overridden properties and is no longer in use even though it might
-    // generally have been the better choice.Investigate the root cause and determine the best path forward.
-    invalidate();
-    validate();
-    repaint();
   }
 
   /**
@@ -114,7 +124,7 @@ public class TutorialStep extends JPanel {
     c.weightx = 1;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.anchor = GridBagConstraints.NORTHWEST;
-    c.insets = new Insets(7, 0, 10, 5);
+    c.insets = JBUI.insets(7, 0, 10, 5);
 
     add(label, c);
   }
@@ -130,7 +140,7 @@ public class TutorialStep extends JPanel {
     c.weightx = 1;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.anchor = GridBagConstraints.NORTHWEST;
-    c.insets = new Insets(0, 0, 0, 5);
+    c.insets = JBUI.insetsRight(5);
 
     add(myContents, c);
   }
@@ -168,9 +178,67 @@ public class TutorialStep extends JPanel {
     c.weightx = 0;
     c.fill = GridBagConstraints.NONE;
     c.anchor = GridBagConstraints.CENTER;
-    c.insets = new Insets(5, 5, 5, 5);
+    c.insets = JBUI.insets(5);
 
     add(stepNumber, c);
+  }
+
+  /**
+   * Selects all text within an {@link EditorEx} when a simple click (without drag or selection) happens in the editor.
+   *
+   * Achieved through tracking whether text is selected when the mouse is depressed. If nothing was selected then and nothing
+   * is selected after the mouse is released then select all of the text.
+   */
+  private static class AutoTextSelectionListener extends EditorMouseAdapter {
+    private final EditorEx myEditor;
+    private boolean myIsTextSelectedOnMousePressed = false;
+
+    AutoTextSelectionListener(@NotNull EditorEx editor) {
+      myEditor = editor;
+    }
+
+    private boolean isNothingSelected() {
+      return Strings.isNullOrEmpty(myEditor.getSelectionModel().getSelectedText(true));
+    }
+
+    private boolean isAnythingSelected() {
+      return !Strings.isNullOrEmpty(myEditor.getSelectionModel().getSelectedText(true));
+    }
+
+    @Override
+    public void mouseClicked(EditorMouseEvent e) {
+      if (!myIsTextSelectedOnMousePressed && isNothingSelected()) {
+        selectAllText();
+        e.consume();
+      }
+    }
+
+    @Override
+    public void mousePressed(EditorMouseEvent e) {
+      myIsTextSelectedOnMousePressed = isAnythingSelected();
+      if (myIsTextSelectedOnMousePressed) {
+        // This disables drag and drop, but ensures developers aren't required to click again to clear the selection before trying to select
+        // a different set of text.
+        selectNothing();
+      }
+    }
+
+    private void selectNothing() {
+      LogicalPosition docStart = myEditor.visualToLogicalPosition(new VisualPosition(0, 0));
+      myEditor.getCaretModel().setCaretsAndSelections(Lists.newArrayList(new CaretState(docStart, docStart, docStart)));
+    }
+
+    private void selectAllText() {
+      int lineCount = myEditor.getDocument().getLineCount() - 1;
+      if (lineCount < 0) {
+        // Tutorials shouldn't have empty code snippets, but just in case.
+        return;
+      }
+      int lastLineEndOffset = myEditor.getDocument().getLineEndOffset(lineCount);
+      LogicalPosition docStart = myEditor.visualToLogicalPosition(new VisualPosition(0, 0));
+      LogicalPosition docEnd = myEditor.visualToLogicalPosition(new VisualPosition(lineCount, lastLineEndOffset));
+      myEditor.getCaretModel().setCaretsAndSelections(Lists.newArrayList(new CaretState(docStart, docStart, docEnd)));
+    }
   }
 
   /**
@@ -196,7 +264,7 @@ public class TutorialStep extends JPanel {
 
     @Override
     public Insets getBorderInsets(Component c) {
-      return new Insets(INSET, INSET, INSET, INSET);
+      return JBUI.insets(INSET);
     }
 
     @Override
@@ -210,8 +278,6 @@ public class TutorialStep extends JPanel {
    * A read-only code editor designed to display code samples, this should live inside a
    * {@code NaturalHeightScrollPane} to render properly.
    *
-   * TODO: Add a listener to select all code when clicked. Potentially do a hover listener instead that surfaces a button that copies all
-   * content to your clipboard.
    * TODO(b/28357327): Try to reduce the number of hacks and fragile code paths.
    * TODO: Determine why the background does not update on theme change.
    */
@@ -227,7 +293,8 @@ public class TutorialStep extends JPanel {
 
     public CodePane(StepElementData element) {
       // Default to JAVA rather than PLAIN_TEXT display for better support for quoted strings and properties.
-      super(element.getCode(), myProject, element.getCodeType() != null ? element.getCodeType() : StdFileTypes.JAVA);
+      super(element.getCode() != null ? element.getCode() : "", myProject,
+            element.getCodeType() != null ? element.getCodeType() : StdFileTypes.JAVA);
       // Tell the editor that it's a multiline editor, defaults to false and can't be overridden in ctor unless passing in a document
       // instead of text as first argument.
       setOneLineMode(false);
@@ -278,13 +345,10 @@ public class TutorialStep extends JPanel {
       EditorEx editor = super.createEditor();
       // Set the background manually as it appears to persist as an old color on theme change.
       editor.setBackgroundColor(UIUtils.getBackgroundColor());
+      editor.addEditorMouseListener(new AutoTextSelectionListener(editor));
 
       JScrollPane scroll = editor.getScrollPane();
 
-      // Escape early, should not occur when we're doing the final render.
-      if (scroll == null) {
-        return editor;
-      }
       // Set the background manually as it appears to persist as an old color on theme change.
       scroll.getViewport().setBackground(UIUtils.getBackgroundColor());
       if (scroll.getViewport().getView() != null) {

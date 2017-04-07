@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.settings;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNewExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
@@ -34,16 +35,16 @@ public class ProjectPropertiesDslElement extends GradlePropertiesDslElement {
 
   @Nullable
   public File projectDir() {
-    GradleDslNewExpression projectDir = getProperty(PROJECT_DIR, GradleDslNewExpression.class);
+    GradleDslNewExpression projectDir = getPropertyElement(PROJECT_DIR, GradleDslNewExpression.class);
     if (projectDir != null) {
       return projectDir.getValue(File.class);
     }
     return null;
   }
 
-  @Nullable
-  public String buildFileName() {
-    return getProperty(BUILD_FILE_NAME, String.class);
+  @NotNull
+  public GradleNullableValue<String> buildFileName() {
+    return getLiteralProperty(BUILD_FILE_NAME, String.class);
   }
 
   @Nullable

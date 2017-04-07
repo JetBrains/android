@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.fd;
 
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.run.InstalledPatchCache;
 import com.google.common.hash.HashCode;
@@ -40,6 +41,14 @@ public interface InstantRunContext {
   String getApplicationId();
 
   /**
+   * @return the android gradle plugin version in use to build the instant run artifacts.
+   */
+  @NotNull
+  default GradleVersion getGradlePluginVersion() {
+    return new GradleVersion(0, 0, 0);
+  }
+
+  /**
    * @return a hashcode which encapsulates the set of resources referenced from the manifest along with the values of those resources.
    * A change to the resources referenced from the manifest should result in a full build and install.
    */
@@ -53,16 +62,6 @@ public interface InstantRunContext {
    * @return true if the manifest indicates that the application uses different processes
    */
   boolean usesMultipleProcesses();
-
-  /**
-   * Returns the changes that have happened in the IDE since the previous call to this method. If the IDE knows that only certain
-   * parts of the application have changed, then it can provide that information to the build system to help speed up which tasks
-   * of the build system are run. This method is optional and can return null if this information is not available.
-   *
-   * @return the changes that have happened in this project since the last build, or null if change information is not available.
-   */
-  @Nullable
-  FileChangeListener.Changes getFileChangesAndReset();
 
   /**
    * Returns the {@link InstantRunBuildInfo} that is generated once an IR build has completed.

@@ -19,8 +19,9 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.util.Projects;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.templates.RepositoryUrlManager;
@@ -40,7 +41,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
@@ -54,8 +54,6 @@ import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewUtil;
 import com.intellij.usages.*;
-import com.intellij.util.Consumer;
-import com.intellij.util.ObjectUtils;
 import com.intellij.util.Processor;
 import com.intellij.util.SequentialModalProgressTask;
 import com.intellij.util.containers.ContainerUtil;
@@ -86,9 +84,9 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       super.analyze(project, scope);
       return;
     }
-    int[] fileCount = new int[] {0};
+    int[] fileCount = new int[]{0};
     PsiDocumentManager.getInstance(project).commitAllDocuments();
-    final UsageInfo[] usageInfos = findUsages(project, scope, fileCount[0]);
+    UsageInfo[] usageInfos = findUsages(project, scope, fileCount[0]);
     if (usageInfos == null) return;
 
     Map<Module, PsiFile> modules = findModulesFromUsage(usageInfos);
@@ -98,12 +96,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     }
 
     if (usageInfos.length < 5) {
-      SwingUtilities.invokeLater(applyRunnable(project, new Computable<UsageInfo[]>() {
-        @Override
-        public UsageInfo[] compute() {
-          return usageInfos;
-        }
-      }));
+      SwingUtilities.invokeLater(applyRunnable(project, () -> usageInfos));
     }
     else {
       showUsageView(project, usageInfos, scope, this);
@@ -112,10 +105,10 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
 
   private static Map<Module, PsiFile> findModulesFromUsage(UsageInfo[] infos) {
     // We need 1 file from each module that requires changes (the file may be overwritten below):
-    final Map<Module, PsiFile> modules = new HashMap<Module, PsiFile>();
+    Map<Module, PsiFile> modules = new HashMap<>();
 
     for (UsageInfo info : infos) {
-      final PsiElement element = info.getElement();
+      PsiElement element = info.getElement();
       assert element != null;
       Module module = ModuleUtilCore.findModuleForPsiElement(element);
       PsiFile file = element.getContainingFile();
@@ -125,14 +118,14 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   }
 
   // For Android we need to check SDK version and possibly update the gradle project file
-  protected boolean checkModules(@NotNull final Project project,
-                                 @NotNull final AnalysisScope scope,
+  protected boolean checkModules(@NotNull Project project,
+                                 @NotNull AnalysisScope scope,
                                  @NotNull Map<Module, PsiFile> modules) {
-    final Set<Module> modulesWithoutAnnotations = new HashSet<Module>();
-    final Set<Module> modulesWithLowVersion = new HashSet<Module>();
+    Set<Module> modulesWithoutAnnotations = new HashSet<>();
+    Set<Module> modulesWithLowVersion = new HashSet<>();
     for (Module module : modules.keySet()) {
       AndroidModuleInfo info = AndroidModuleInfo.get(module);
-      if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() <  MIN_SDK_WITH_NULLABLE) {
+      if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() < MIN_SDK_WITH_NULLABLE) {
         modulesWithLowVersion.add(module);
       }
       GradleBuildModel buildModel = GradleBuildModel.get(module);
@@ -178,17 +171,18 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
                                    SupportLibrary.SUPPORT_ANNOTATIONS.getArtifactId(),
                                    pluralize("dependency", count));
     if (Messages.showOkCancelDialog(project, message, "Infer Nullity Annotations", Messages.getErrorIcon()) == Messages.OK) {
-      final LocalHistoryAction action = LocalHistory.getInstance().startAction(ADD_DEPENDENCY);
+      LocalHistoryAction action = LocalHistory.getInstance().startAction(ADD_DEPENDENCY);
       try {
         new WriteCommandAction(project, ADD_DEPENDENCY) {
           @Override
-          protected void run(@NotNull final Result result) throws Throwable {
+          protected void run(@NotNull Result result) throws Throwable {
             RepositoryUrlManager manager = RepositoryUrlManager.get();
             String annotationsLibraryCoordinate = manager.getLibraryStringCoordinate(SupportLibrary.SUPPORT_ANNOTATIONS, true);
             for (Module module : modulesWithoutAnnotations) {
               addDependency(module, annotationsLibraryCoordinate);
             }
-            GradleProjectImporter.getInstance().requestProjectSync(project, false, new GradleSyncListener.Adapter() {
+            GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
+            GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener.Adapter() {
               @Override
               public void syncSucceeded(@NotNull Project project) {
                 restartAnalysis(project, scope);
@@ -205,131 +199,107 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   }
 
   // Intellij code from InferNullityAnnotationsAction.
-  private static Runnable applyRunnable(final Project project, final Computable<UsageInfo[]> computable) {
-    return new Runnable() {
-      @Override
-      public void run() {
-        final LocalHistoryAction action = LocalHistory.getInstance().startAction(INFER_NULLITY_ANNOTATIONS);
-        try {
-          new WriteCommandAction(project, INFER_NULLITY_ANNOTATIONS) {
-            @Override
-            protected void run(@NotNull Result result) throws Throwable {
-              final UsageInfo[] infos = computable.compute();
-              if (infos.length > 0) {
+  private static Runnable applyRunnable(Project project, Computable<UsageInfo[]> computable) {
+    return () -> {
+      LocalHistoryAction action = LocalHistory.getInstance().startAction(INFER_NULLITY_ANNOTATIONS);
+      try {
+        new WriteCommandAction(project, INFER_NULLITY_ANNOTATIONS) {
+          @Override
+          protected void run(@NotNull Result result) throws Throwable {
+            UsageInfo[] infos = computable.compute();
+            if (infos.length > 0) {
 
-                final Set<PsiElement> elements = new LinkedHashSet<PsiElement>();
-                for (UsageInfo info : infos) {
-                  final PsiElement element = info.getElement();
-                  if (element != null) {
-                    ContainerUtil.addIfNotNull(elements, element.getContainingFile());
-                  }
+              Set<PsiElement> elements = new LinkedHashSet<>();
+              for (UsageInfo info : infos) {
+                PsiElement element = info.getElement();
+                if (element != null) {
+                  ContainerUtil.addIfNotNull(elements, element.getContainingFile());
                 }
-                if (!FileModificationService.getInstance().preparePsiElementsForWrite(elements)) return;
-
-                final SequentialModalProgressTask progressTask = new SequentialModalProgressTask(project, INFER_NULLITY_ANNOTATIONS, false);
-                progressTask.setMinIterationTime(200);
-                progressTask.setTask(new AnnotateTask(project, progressTask, infos));
-                ProgressManager.getInstance().run(progressTask);
-              } else {
-                NullityInferrer.nothingFoundMessage(project);
               }
+              if (!FileModificationService.getInstance().preparePsiElementsForWrite(elements)) return;
+
+              SequentialModalProgressTask progressTask = new SequentialModalProgressTask(project, INFER_NULLITY_ANNOTATIONS, false);
+              progressTask.setMinIterationTime(200);
+              progressTask.setTask(new AnnotateTask(project, progressTask, infos));
+              ProgressManager.getInstance().run(progressTask);
             }
-          }.execute();
-        }
-        finally {
-          action.finish();
-        }
+            else {
+              NullityInferrer.nothingFoundMessage(project);
+            }
+          }
+        }.execute();
+      }
+      finally {
+        action.finish();
       }
     };
   }
 
   // Intellij code from InferNullityAnnotationsAction.
-  protected void restartAnalysis(final Project project, final AnalysisScope scope) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        analyze(project, scope);
-      }
-    });
+  @Override
+  protected void restartAnalysis(Project project, AnalysisScope scope) {
+    ApplicationManager.getApplication().invokeLater(() -> analyze(project, scope));
   }
 
   // Intellij code from InferNullityAnnotationsAction.
   private static void showUsageView(@NotNull Project project,
-                                    final UsageInfo[] usageInfos,
+                                    UsageInfo[] usageInfos,
                                     @NotNull AnalysisScope scope,
                                     AndroidInferNullityAnnotationAction action) {
-    final UsageTarget[] targets = UsageTarget.EMPTY_ARRAY;
-    final Ref<Usage[]> convertUsagesRef = new Ref<Usage[]>();
-    if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable() {
-      @Override
-      public void run() {
-        ApplicationManager.getApplication().runReadAction(new Runnable() {
-          @Override
-          public void run() {
-            convertUsagesRef.set(UsageInfo2UsageAdapter.convert(usageInfos));
-          }
-        });
-      }
-    }, "Preprocess Usages", true, project)) return;
+    UsageTarget[] targets = UsageTarget.EMPTY_ARRAY;
+    Ref<Usage[]> convertUsagesRef = new Ref<>();
+    if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> ApplicationManager.getApplication().runReadAction(
+      () -> convertUsagesRef.set(UsageInfo2UsageAdapter.convert(usageInfos))), "Preprocess Usages", true, project)) {
+      return;
+    }
 
     if (convertUsagesRef.isNull()) return;
-    final Usage[] usages = convertUsagesRef.get();
+    Usage[] usages = convertUsagesRef.get();
 
-    final UsageViewPresentation presentation = new UsageViewPresentation();
+    UsageViewPresentation presentation = new UsageViewPresentation();
     presentation.setTabText("Infer Nullity Preview");
     presentation.setShowReadOnlyStatusAsRed(true);
     presentation.setShowCancelButton(true);
     presentation.setUsagesString(RefactoringBundle.message("usageView.usagesText"));
 
-    final UsageView usageView = UsageViewManager.getInstance(project).showUsages(targets, usages, presentation, rerunFactory(project, scope, action));
+    UsageView usageView = UsageViewManager.getInstance(project).showUsages(targets, usages, presentation, rerunFactory(project, scope, action));
 
-    final Runnable refactoringRunnable = applyRunnable(project, new Computable<UsageInfo[]>() {
-      @Override
-      public UsageInfo[] compute() {
-        final Set<UsageInfo> infos = UsageViewUtil.getNotExcludedUsageInfos(usageView);
-        return infos.toArray(new UsageInfo[infos.size()]);
-      }
+    Runnable refactoringRunnable = applyRunnable(project, () -> {
+      Set<UsageInfo> infos = UsageViewUtil.getNotExcludedUsageInfos(usageView);
+      return infos.toArray(new UsageInfo[infos.size()]);
     });
 
-    String canNotMakeString = "Cannot perform operation.\nThere were changes in code after usages have been found.\nPlease perform operation search again.";
+    String canNotMakeString =
+      "Cannot perform operation.\nThere were changes in code after usages have been found.\nPlease perform operation search again.";
 
     usageView.addPerformOperationAction(refactoringRunnable, INFER_NULLITY_ANNOTATIONS, canNotMakeString, INFER_NULLITY_ANNOTATIONS, false);
   }
 
   // Intellij code from InferNullityAnnotationsAction.
   @NotNull
-  private static Factory<UsageSearcher> rerunFactory(@NotNull final Project project,
-                                                     @NotNull final AnalysisScope scope,
+  private static Factory<UsageSearcher> rerunFactory(@NotNull Project project,
+                                                     @NotNull AnalysisScope scope,
                                                      AndroidInferNullityAnnotationAction action) {
-    return new Factory<UsageSearcher>() {
+    return () -> new UsageInfoSearcherAdapter() {
       @Override
-      public UsageSearcher create() {
-        return new UsageInfoSearcherAdapter() {
-          @NotNull
-          @Override
-          protected UsageInfo[] findUsages() {
-            return ObjectUtils.notNull(action.findUsages(project, scope, scope.getFileCount()),UsageInfo.EMPTY_ARRAY);
-          }
+      protected UsageInfo[] findUsages() {
+        return action.findUsages(project, scope, scope.getFileCount());
+      }
 
-          @Override
-          public void generate(@NotNull Processor<Usage> processor) {
-            processUsages(processor, project);
-          }
-        };
+      @Override
+      public void generate(@NotNull Processor<Usage> processor) {
+        processUsages(processor, project);
       }
     };
   }
 
-  private static void addDependency(@NotNull final Module module, @Nullable final String libraryCoordinate) {
+  private static void addDependency(@NotNull Module module, @Nullable String libraryCoordinate) {
     if (isNotEmpty(libraryCoordinate)) {
-      ModuleRootModificationUtil.updateModel(module, new Consumer<ModifiableRootModel>() {
-        @Override
-        public void consume(ModifiableRootModel model) {
-          GradleBuildModel buildModel = GradleBuildModel.get(module);
-          if (buildModel != null) {
-            buildModel.dependencies().addArtifact(COMPILE, libraryCoordinate);
-            buildModel.applyChanges();
-          }
+      ModuleRootModificationUtil.updateModel(module, model -> {
+        GradleBuildModel buildModel = GradleBuildModel.get(module);
+        if (buildModel != null) {
+          buildModel.dependencies().addArtifact(COMPILE, libraryCoordinate);
+          buildModel.applyChanges();
         }
       });
     }
@@ -338,9 +308,10 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   /* Android nullable annotations do not support annotations on local variables. */
   @Override
   protected JComponent getAdditionalActionSettings(Project project, BaseAnalysisActionDialog dialog) {
-    if (!Projects.isBuildWithGradle(project)) {
-      return super.getAdditionalActionSettings(project, dialog);
+    JComponent panel = super.getAdditionalActionSettings(project, dialog);
+    if (panel != null && GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+      panel.setVisible(false);
     }
-    return null;
+    return panel;
   }
 }

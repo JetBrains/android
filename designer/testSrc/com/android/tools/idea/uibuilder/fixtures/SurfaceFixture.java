@@ -15,18 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
-import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mockito;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.android.tools.idea.uibuilder.LayoutTestUtilities;
+import com.android.tools.idea.uibuilder.model.NlModel;
 
 public class SurfaceFixture {
   private DesignSurface mySurface;
-  private final List<ScreenFixture> myScreenFixtures = new ArrayList<>();
 
   public DesignSurface getSurface() {
     if (mySurface == null) {
@@ -35,17 +30,7 @@ public class SurfaceFixture {
     return mySurface;
   }
 
-  public void tearDown() {
-    Mockito.reset(mySurface);
-    for (ScreenFixture screenFixture : myScreenFixtures) {
-      screenFixture.tearDown();
-    }
-    myScreenFixtures.clear();
-  }
-
   public ScreenFixture screen(@NotNull NlModel model) {
-    ScreenFixture screenFixture = new ScreenFixture(this, model);
-    myScreenFixtures.add(screenFixture);
-    return screenFixture;
+    return new ScreenFixture(this, model);
   }
 }

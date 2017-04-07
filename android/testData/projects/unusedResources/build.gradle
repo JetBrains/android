@@ -1,10 +1,5 @@
 buildscript {
-  repositories {
-    jcenter()
-    if (System.getenv("MAVEN_URL") != null) {
-      maven {url System.getenv("MAVEN_URL")}
-    }
-  }
+  repositories {}
   dependencies {
     classpath 'com.android.tools.build:gradle:+'
   }

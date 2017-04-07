@@ -27,7 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
-import static com.android.tools.idea.gradle.util.PropertiesUtil.savePropertiesToFile;
+import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
 import static com.android.tools.idea.gradle.util.ProxySettings.HTTP_PROXY_TYPE;
 import static com.android.tools.idea.gradle.util.ProxySettings.HTTPS_PROXY_TYPE;
 
@@ -44,7 +44,7 @@ public class GradleProperties {
   @VisibleForTesting
   GradleProperties(@NotNull File path) throws IOException {
     myPath = path;
-    myProperties = PropertiesUtil.getProperties(myPath);
+    myProperties = PropertiesFiles.getProperties(myPath);
   }
 
   @VisibleForTesting

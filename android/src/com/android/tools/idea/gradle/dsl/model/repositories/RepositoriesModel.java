@@ -40,7 +40,7 @@ public class RepositoriesModel extends GradleDslBlockModel {
 
   @NotNull
   public List<RepositoryModel> repositories() {
-    GradleDslElementList repositoriesElementList = myDslElement.getProperty(REPOSITORIES_BLOCK_NAME, GradleDslElementList.class);
+    GradleDslElementList repositoriesElementList = myDslElement.getPropertyElement(REPOSITORIES_BLOCK_NAME, GradleDslElementList.class);
     if (repositoriesElementList == null) {
       return ImmutableList.of();
     }
@@ -49,7 +49,7 @@ public class RepositoriesModel extends GradleDslBlockModel {
     for (GradleDslElement element : repositoriesElementList.getElements()) {
       if (element instanceof GradleDslMethodCall) {
         if (MAVEN_CENTRAL_METHOD_NAME.equals(element.getName())) {
-          result.add(new MavenCentralRepositoryModel());
+          result.add(new MavenCentralRepositoryModel(null));
         }
         else if (JCENTER_METHOD_NAME.equals(element.getName())) {
           result.add(new JCenterDefaultRepositoryModel());

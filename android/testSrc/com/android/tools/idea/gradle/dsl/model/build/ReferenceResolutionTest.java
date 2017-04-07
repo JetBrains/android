@@ -45,12 +45,12 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
 
     String expectedRootDir = getBaseDirPath(myProject).getPath();
     ExtModel ext = getSubModuleGradleBuildModel().ext();
-    assertEquals("rootDir", expectedRootDir, ext.getProperty("rpd", String.class));
-    assertEquals("rootDir", expectedRootDir, ext.getProperty("rpd1", String.class));
-    assertEquals("rootDir", expectedRootDir, ext.getProperty("rpd2", String.class));
-    assertEquals("rootDir", expectedRootDir, ext.getProperty("rpd3", String.class));
-    assertEquals("rootDir", expectedRootDir, ext.getProperty("rpd4", String.class));
-    assertEquals("rootDir", expectedRootDir, ext.getProperty("rpd5", String.class));
+    assertEquals("rootDir", expectedRootDir, ext.getLiteralProperty("rpd", String.class));
+    assertEquals("rootDir", expectedRootDir, ext.getLiteralProperty("rpd1", String.class));
+    assertEquals("rootDir", expectedRootDir, ext.getLiteralProperty("rpd2", String.class));
+    assertEquals("rootDir", expectedRootDir, ext.getLiteralProperty("rpd3", String.class));
+    assertEquals("rootDir", expectedRootDir, ext.getLiteralProperty("rpd4", String.class));
+    assertEquals("rootDir", expectedRootDir, ext.getLiteralProperty("rpd5", String.class));
   }
 
   public void testResolveProjectDir() throws Exception {
@@ -74,12 +74,12 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     String expectedRootDir = getBaseDirPath(myProject).getPath();
     String expectedSubModuleDir = mySubModuleBuildFile.getParent();
     ExtModel ext = getSubModuleGradleBuildModel().ext();
-    assertEquals("projectDir", expectedSubModuleDir, ext.getProperty("pd", String.class));
-    assertEquals("projectDir", expectedSubModuleDir, ext.getProperty("pd1", String.class));
-    assertEquals("projectDir", expectedRootDir, ext.getProperty("pd2", String.class));
-    assertEquals("projectDir", expectedRootDir, ext.getProperty("pd3", String.class));
-    assertEquals("projectDir", expectedSubModuleDir, ext.getProperty("pd4", String.class));
-    assertEquals("projectDir", expectedRootDir, ext.getProperty("pd5", String.class));
+    assertEquals("projectDir", expectedSubModuleDir, ext.getLiteralProperty("pd", String.class));
+    assertEquals("projectDir", expectedSubModuleDir, ext.getLiteralProperty("pd1", String.class));
+    assertEquals("projectDir", expectedRootDir, ext.getLiteralProperty("pd2", String.class));
+    assertEquals("projectDir", expectedRootDir, ext.getLiteralProperty("pd3", String.class));
+    assertEquals("projectDir", expectedSubModuleDir, ext.getLiteralProperty("pd4", String.class));
+    assertEquals("projectDir", expectedRootDir, ext.getLiteralProperty("pd5", String.class));
   }
 
   public void testResolveProject() throws Exception {
@@ -99,6 +99,8 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleText);
 
     AndroidModel android = getSubModuleGradleBuildModel().android();
+    assertNotNull(android);
+
     assertEquals("compileSdkVersion", "android-23", android.compileSdkVersion());
     assertEquals("minSdkVersion", "android-23", android.defaultConfig().minSdkVersion());
   }
@@ -118,8 +120,13 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     writeToBuildFile(mainModuleText);
     writeToSubModuleBuildFile(subModuleText);
 
-    assertEquals("compileSdkVersion", "android-23", getGradleBuildModel().android().compileSdkVersion());
-    assertEquals("compileSdkVersion", "android-23", getSubModuleGradleBuildModel().android().compileSdkVersion());
+    AndroidModel androidModel = getGradleBuildModel().android();
+    assertNotNull(androidModel);
+    assertEquals("compileSdkVersion", "android-23", androidModel.compileSdkVersion());
+
+    AndroidModel subModuleAndroidModel = getSubModuleGradleBuildModel().android();
+    assertNotNull(subModuleAndroidModel);
+    assertEquals("compileSdkVersion", "android-23", subModuleAndroidModel.compileSdkVersion());
   }
 
   public void testResolveRootProject() throws Exception {
@@ -137,8 +144,13 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     writeToBuildFile(mainModuleText);
     writeToSubModuleBuildFile(subModuleText);
 
-    assertEquals("compileSdkVersion", "android-23", getGradleBuildModel().android().compileSdkVersion());
-    assertEquals("compileSdkVersion", "android-23", getSubModuleGradleBuildModel().android().compileSdkVersion());
+    AndroidModel androidModel = getGradleBuildModel().android();
+    assertNotNull(androidModel);
+    assertEquals("compileSdkVersion", "android-23", androidModel.compileSdkVersion());
+
+    AndroidModel subModuleAndroidModel = getSubModuleGradleBuildModel().android();
+    assertNotNull(subModuleAndroidModel);
+    assertEquals("compileSdkVersion", "android-23", subModuleAndroidModel.compileSdkVersion());
   }
 
   public void testResolveProjectPath() throws Exception {
@@ -158,6 +170,8 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     writeToSubModuleBuildFile(subModuleText);
 
     AndroidModel android = getSubModuleGradleBuildModel().android();
+    assertNotNull(android);
+
     assertEquals("compileSdkVersion", "android-23", android.compileSdkVersion());
     assertEquals("minSdkVersion", "android-23", android.defaultConfig().minSdkVersion());
   }
@@ -177,7 +191,12 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     writeToBuildFile(mainModuleText);
     writeToSubModuleBuildFile(subModuleText);
 
-    assertEquals("compileSdkVersion", "android-23", getGradleBuildModel().android().compileSdkVersion());
-    assertEquals("compileSdkVersion", "android-23", getSubModuleGradleBuildModel().android().compileSdkVersion());
+    AndroidModel androidModel = getGradleBuildModel().android();
+    assertNotNull(androidModel);
+    assertEquals("compileSdkVersion", "android-23", androidModel.compileSdkVersion());
+
+    AndroidModel subModuleAndroidModel = getSubModuleGradleBuildModel().android();
+    assertNotNull(subModuleAndroidModel);
+    assertEquals("compileSdkVersion", "android-23", subModuleAndroidModel.compileSdkVersion());
   }
 }

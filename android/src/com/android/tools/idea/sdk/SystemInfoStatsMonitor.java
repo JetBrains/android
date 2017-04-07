@@ -19,10 +19,17 @@ import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.startup.AndroidSdkInitializer;
-import com.android.tools.idea.stats.UsageTracker;
 import com.google.common.base.Joiner;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
+import com.google.wireless.android.sdk.stats.EmulatorHost;
+import com.google.wireless.android.sdk.stats.Hypervisor;
+import com.google.wireless.android.sdk.stats.Hypervisor.HyperVState;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -31,7 +38,6 @@ import com.intellij.execution.process.ProcessOutput;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,24 +56,6 @@ import java.util.concurrent.TimeUnit;
 public class SystemInfoStatsMonitor {
 
   private static final Logger LOG = Logger.getInstance(SystemInfoStatsMonitor.class);
-
-  public enum HyperVState {
-    ABSENT,     // No hyper-V found
-    INSTALLED,  // Hyper-V is installed but not running
-    RUNNING,    // Hyper-V is up and running
-    ERROR,      // Failed to detect status
-    UNKNOWN;    // Some error happened in Android Studio
-
-    public static HyperVState fromExitCode(int code) {
-      switch (code) {
-        case   0: return ABSENT;
-        case   1: return INSTALLED;
-        case   2: return RUNNING;
-        case 100: return ERROR;
-        default : return UNKNOWN;
-      }
-    }
-  }
 
   public enum CpuInfoFlags {
     ERROR(0),
@@ -109,7 +97,6 @@ public class SystemInfoStatsMonitor {
     }
   }
 
-
   // Upload and recalculate the state couple times a day, so we could have some
   // confidence that we drop at least one valid metric in 24 hours
   private static final int UPLOAD_INTERVAL_HOURS = 6;
@@ -121,11 +108,11 @@ public class SystemInfoStatsMonitor {
   private AndroidSdkHandler mySdkHandler = null;
   private ScheduledFuture<?> myUploadTask = null;
 
-  private HyperVState myHyperVState = HyperVState.UNKNOWN;
+  private HyperVState myHyperVState = HyperVState.UNKNOWN_HYPERV_STATE;
   private EnumSet<CpuInfoFlags> myCpuInfo = EnumSet.noneOf(CpuInfoFlags.class);
 
   public void start() {
-    if (!UsageTracker.getInstance().canTrack()) {
+    if (!UsageTracker.getInstance().getAnalyticsSettings().hasOptedIn()) {
       return;
     }
 
@@ -142,13 +129,13 @@ public class SystemInfoStatsMonitor {
   private void updateAndUploadStats() {
     // double-check if the user has opted out of the metrics reporting since the
     // last run
-    if (!UsageTracker.getInstance().canTrack()) {
+    if (!UsageTracker.getInstance().getAnalyticsSettings().hasOptedIn()) {
       myUploadTask.cancel(true);
       return;
     }
 
     if (mySdkHandler == null) {
-      mySdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+      mySdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     }
 
     if (SystemInfo.isWindows) {
@@ -160,22 +147,28 @@ public class SystemInfoStatsMonitor {
   }
 
   private void sendStats() {
-    String hyperVString = null;
-    if (myHyperVState != HyperVState.UNKNOWN && myHyperVState != HyperVState.ERROR) {
-      hyperVString = myHyperVState.toString();
+    if (myHyperVState != HyperVState.UNKNOWN_HYPERV_STATE && myHyperVState != HyperVState.HYPERV_CHECK_ERROR) {
     }
 
-    String cpuInfoString = null;
     if (!myCpuInfo.contains(CpuInfoFlags.UNKNOWN) && !myCpuInfo.contains(CpuInfoFlags.ERROR)) {
-      cpuInfoString = Joiner.on(',').join(myCpuInfo);
     }
 
-    UsageTracker.getInstance().trackSystemInfo(hyperVString, cpuInfoString);
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                   .setCategory(EventCategory.SYSTEM)
+                                   .setKind(EventKind.HYPERVISOR)
+                                   .setHypervisor(Hypervisor.newBuilder()
+                                                  .setHyperVState(myHyperVState)));
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                     .setCategory(EventCategory.SYSTEM)
+                                     .setKind(EventKind.EMULATOR_HOST)
+                                     .setEmulatorHost(EmulatorHost.newBuilder()
+                                                      .setCpuManufacturer(Joiner.on(',').join(myCpuInfo))
+                                     ));
   }
 
 
   private void updateHyperVState() {
-    if (myHyperVState != HyperVState.UNKNOWN && myHyperVState != HyperVState.ERROR) {
+    if (myHyperVState != HyperVState.UNKNOWN_HYPERV_STATE && myHyperVState != HyperVState.HYPERV_CHECK_ERROR) {
       // once calculated, it won't change until the OS restart
       return;
     }
@@ -196,7 +189,7 @@ public class SystemInfoStatsMonitor {
 
   @NotNull
   private static File getEmulatorCheckBinary(@NotNull AndroidSdkHandler handler) {
-    return new File(handler.getLocation(), FileUtil.join(SdkConstants.OS_SDK_TOOLS_FOLDER, SdkConstants.FN_EMULATOR_CHECK));
+    return AvdManagerConnection.getAvdManagerConnection(handler).getEmulatorCheckBinary();
   }
 
   @Nullable
@@ -236,12 +229,22 @@ public class SystemInfoStatsMonitor {
     try {
       Integer res = runEmulatorCheck("hyper-v", LOWEST_TOOLS_REVISION_HYPERV, handler);
       if (res == null) {
-        return HyperVState.UNKNOWN;
+        return HyperVState.UNKNOWN_HYPERV_STATE;
       }
-      return HyperVState.fromExitCode(res);
+      return exitCodeToHyperVState(res);
     } catch (ExecutionException e) {
       LOG.warn("Exception during Hyper-V state calculation", e);
-      return HyperVState.ERROR;
+      return HyperVState.HYPERV_CHECK_ERROR;
+    }
+  }
+
+  private static HyperVState exitCodeToHyperVState(int exitCode) {
+    switch (exitCode) {
+      case   0: return HyperVState.HYPERV_ABSENT;
+      case   1: return HyperVState.HYPERV_INSTALLED;
+      case   2: return HyperVState.HYPERV_RUNNING;
+      case 100: return HyperVState.HYPERV_CHECK_ERROR;
+      default : return HyperVState.UNKNOWN_HYPERV_STATE;
     }
   }
 

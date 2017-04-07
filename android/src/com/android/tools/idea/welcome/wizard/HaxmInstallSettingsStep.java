@@ -18,9 +18,9 @@ package com.android.tools.idea.welcome.wizard;
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
-import com.android.tools.idea.welcome.install.Haxm;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +35,7 @@ import java.util.Hashtable;
 import static com.android.tools.idea.welcome.install.Haxm.UI_UNITS;
 
 /**
- * Wizard page for setting up Intel® HAXM settings for Mac OS X platform
+ * Wizard page for setting up Intel® HAXM settings
  */
 public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
   private static final int MAJOR_TICKS = 4;
@@ -49,7 +49,7 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
   private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
   private final ScopedStateStore.Key<Boolean> myKeyInstallHaxm;
   private JPanel myRoot;
-  private com.intellij.ui.HyperlinkLabel myIntelHAXMDocumentationButton;
+  private HyperlinkLabel myIntelHAXMDocumentationButton;
   private JSlider myMemorySlider;
   private JSpinner myMemorySize;
   private JLabel myUnitLabel;

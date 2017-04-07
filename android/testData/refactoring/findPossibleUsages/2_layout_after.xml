@@ -28,7 +28,7 @@
 
   <Button android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          style="@style/style2.style1"
+      style="@style/style2.style1"
           android:text="Hello"/>
 
   <Button android:layout_width="wrap_content"

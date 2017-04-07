@@ -16,20 +16,29 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.model.android.external.ExternalNativeBuildModel;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.android.*;
-import com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 
+import static com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement.DATA_BINDING_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement.DEX_OPTIONS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement.LINT_OPTIONS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement.PACKAGING_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS_BLOCK_NAME;
-import static com.android.tools.idea.gradle.dsl.parser.android.external.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement.SIGNING_CONFIGS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement.SOURCE_SETS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement.SPLITS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement.TEST_OPTIONS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement.COMPILE_OPTIONS_BLOCK_NAME;
 
 public final class AndroidModel extends GradleDslBlockModel {
@@ -48,10 +57,29 @@ public final class AndroidModel extends GradleDslBlockModel {
     super(dslElement);
   }
 
-  @Nullable
-  public String buildToolsVersion() {
-    Integer intValue = myDslElement.getProperty(BUILD_TOOLS_VERSION, Integer.class);
-    return intValue != null ? intValue.toString() : myDslElement.getProperty(BUILD_TOOLS_VERSION, String.class);
+  @NotNull
+  public AaptOptionsModel aaptOptions() {
+    AaptOptionsDslElement aaptOptionsElement = myDslElement.getPropertyElement(AAPT_OPTIONS_BLOCK_NAME, AaptOptionsDslElement.class);
+    if (aaptOptionsElement == null) {
+      aaptOptionsElement = new AaptOptionsDslElement(myDslElement);
+      myDslElement.setNewElement(AAPT_OPTIONS_BLOCK_NAME, aaptOptionsElement);
+    }
+    return new AaptOptionsModel(aaptOptionsElement);
+  }
+
+  @NotNull
+  public AdbOptionsModel adbOptions() {
+    AdbOptionsDslElement adbOptionsElement = myDslElement.getPropertyElement(ADB_OPTIONS_BLOCK_NAME, AdbOptionsDslElement.class);
+    if (adbOptionsElement == null) {
+      adbOptionsElement = new AdbOptionsDslElement(myDslElement);
+      myDslElement.setNewElement(ADB_OPTIONS_BLOCK_NAME, adbOptionsElement);
+    }
+    return new AdbOptionsModel(adbOptionsElement);
+  }
+
+  @NotNull
+  public GradleNullableValue<String> buildToolsVersion() {
+    return getIntOrStringValue(BUILD_TOOLS_VERSION);
   }
 
   @NotNull
@@ -73,20 +101,20 @@ public final class AndroidModel extends GradleDslBlockModel {
   }
 
   @NotNull
-  public Collection<BuildTypeModel> buildTypes() {
-    BuildTypesDslElement buildTypes = myDslElement.getProperty(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);
-    return buildTypes == null ? ImmutableList.<BuildTypeModel>of() : buildTypes.get();
+  public List<BuildTypeModel> buildTypes() {
+    BuildTypesDslElement buildTypes = myDslElement.getPropertyElement(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);
+    return buildTypes == null ? ImmutableList.of() : buildTypes.get();
   }
 
   @NotNull
   public AndroidModel addBuildType(@NotNull String buildType) {
-    BuildTypesDslElement buildTypes = myDslElement.getProperty(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);
+    BuildTypesDslElement buildTypes = myDslElement.getPropertyElement(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);
     if (buildTypes == null) {
       buildTypes = new BuildTypesDslElement(myDslElement);
       myDslElement.setNewElement(BUILD_TYPES_BLOCK_NAME, buildTypes);
     }
 
-    BuildTypeDslElement buildTypeElement = buildTypes.getProperty(buildType, BuildTypeDslElement.class);
+    BuildTypeDslElement buildTypeElement = buildTypes.getPropertyElement(buildType, BuildTypeDslElement.class);
     if (buildTypeElement == null) {
       buildTypeElement = new BuildTypeDslElement(buildTypes, buildType);
       buildTypes.setNewElement(buildType, buildTypeElement);
@@ -96,7 +124,7 @@ public final class AndroidModel extends GradleDslBlockModel {
 
   @NotNull
   public AndroidModel removeBuildType(@NotNull String buildType) {
-    BuildTypesDslElement buildTypes = myDslElement.getProperty(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);
+    BuildTypesDslElement buildTypes = myDslElement.getPropertyElement(BUILD_TYPES_BLOCK_NAME, BuildTypesDslElement.class);
     if (buildTypes != null) {
       buildTypes.removeProperty(buildType);
     }
@@ -105,7 +133,7 @@ public final class AndroidModel extends GradleDslBlockModel {
 
   @NotNull
   public CompileOptionsModel compileOptions() {
-    CompileOptionsDslElement element = myDslElement.getProperty(COMPILE_OPTIONS_BLOCK_NAME, CompileOptionsDslElement.class);
+    CompileOptionsDslElement element = myDslElement.getPropertyElement(COMPILE_OPTIONS_BLOCK_NAME, CompileOptionsDslElement.class);
     if (element == null) {
       element = new CompileOptionsDslElement(myDslElement);
       myDslElement.setNewElement(COMPILE_OPTIONS_BLOCK_NAME, element);
@@ -113,10 +141,9 @@ public final class AndroidModel extends GradleDslBlockModel {
     return new CompileOptionsModel(element, false);
   }
 
-  @Nullable
-  public String compileSdkVersion() {
-    Integer intValue = myDslElement.getProperty(COMPILE_SDK_VERSION, Integer.class);
-    return intValue != null ? intValue.toString() : myDslElement.getProperty(COMPILE_SDK_VERSION, String.class);
+  @NotNull
+  public GradleNullableValue<String> compileSdkVersion() {
+    return getIntOrStringValue(COMPILE_SDK_VERSION);
   }
 
   @NotNull
@@ -138,8 +165,18 @@ public final class AndroidModel extends GradleDslBlockModel {
   }
 
   @NotNull
+  public DataBindingModel dataBinding() {
+    DataBindingDslElement dataBindingElement = myDslElement.getPropertyElement(DATA_BINDING_BLOCK_NAME, DataBindingDslElement.class);
+    if (dataBindingElement == null) {
+      dataBindingElement = new DataBindingDslElement(myDslElement);
+      myDslElement.setNewElement(DATA_BINDING_BLOCK_NAME, dataBindingElement);
+    }
+    return new DataBindingModel(dataBindingElement);
+  }
+
+  @NotNull
   public ProductFlavorModel defaultConfig() {
-    ProductFlavorDslElement defaultConfigElement = myDslElement.getProperty(DEFAULT_CONFIG, ProductFlavorDslElement.class);
+    ProductFlavorDslElement defaultConfigElement = myDslElement.getPropertyElement(DEFAULT_CONFIG, ProductFlavorDslElement.class);
     if (defaultConfigElement == null) {
       defaultConfigElement = new ProductFlavorDslElement(myDslElement, DEFAULT_CONFIG);
       myDslElement.setNewElement(DEFAULT_CONFIG, defaultConfigElement);
@@ -147,9 +184,9 @@ public final class AndroidModel extends GradleDslBlockModel {
     return new ProductFlavorModel(defaultConfigElement);
   }
 
-  @Nullable
-  public String defaultPublishConfig() {
-    return myDslElement.getProperty(DEFAULT_PUBLISH_CONFIG, String.class);
+  @NotNull
+  public GradleNullableValue<String> defaultPublishConfig() {
+    return myDslElement.getLiteralProperty(DEFAULT_PUBLISH_CONFIG, String.class);
   }
 
   @NotNull
@@ -165,9 +202,19 @@ public final class AndroidModel extends GradleDslBlockModel {
   }
 
   @NotNull
+  public DexOptionsModel dexOptions() {
+    DexOptionsDslElement dexOptionsElement = myDslElement.getPropertyElement(DEX_OPTIONS_BLOCK_NAME, DexOptionsDslElement.class);
+    if (dexOptionsElement == null) {
+      dexOptionsElement = new DexOptionsDslElement(myDslElement);
+      myDslElement.setNewElement(DEX_OPTIONS_BLOCK_NAME, dexOptionsElement);
+    }
+    return new DexOptionsModel(dexOptionsElement);
+  }
+
+  @NotNull
   public ExternalNativeBuildModel externalNativeBuild() {
-    ExternalNativeBuildDslElement externalNativeBuildDslElement = myDslElement.getProperty(EXTERNAL_NATIVE_BUILD_BLOCK_NAME,
-                                                                                           ExternalNativeBuildDslElement.class);
+    ExternalNativeBuildDslElement externalNativeBuildDslElement = myDslElement.getPropertyElement(EXTERNAL_NATIVE_BUILD_BLOCK_NAME,
+                                                                                                  ExternalNativeBuildDslElement.class);
     if (externalNativeBuildDslElement == null) {
       externalNativeBuildDslElement = new ExternalNativeBuildDslElement(myDslElement);
       myDslElement.setNewElement(EXTERNAL_NATIVE_BUILD_BLOCK_NAME, externalNativeBuildDslElement);
@@ -176,7 +223,7 @@ public final class AndroidModel extends GradleDslBlockModel {
   }
 
   @Nullable
-  public List<String> flavorDimensions() {
+  public List<GradleNotNullValue<String>> flavorDimensions() {
     return myDslElement.getListProperty(FLAVOR_DIMENSIONS, String.class);
   }
 
@@ -204,9 +251,9 @@ public final class AndroidModel extends GradleDslBlockModel {
     return this;
   }
 
-  @Nullable
-  public Boolean generatePureSplits() {
-    return myDslElement.getProperty(GENERATE_PURE_SPLITS, Boolean.class);
+  @NotNull
+  public GradleNullableValue<Boolean> generatePureSplits() {
+    return myDslElement.getLiteralProperty(GENERATE_PURE_SPLITS, Boolean.class);
   }
 
   @NotNull
@@ -222,20 +269,41 @@ public final class AndroidModel extends GradleDslBlockModel {
   }
 
   @NotNull
-  public Collection<ProductFlavorModel> productFlavors() {
-    ProductFlavorsDslElement productFlavors = myDslElement.getProperty(PRODUCT_FLAVORS_BLOCK_NAME, ProductFlavorsDslElement.class);
-    return productFlavors == null ? ImmutableList.<ProductFlavorModel>of() : productFlavors.get();
+  public LintOptionsModel lintOptions() {
+    LintOptionsDslElement lintOptionsDslElement = myDslElement.getPropertyElement(LINT_OPTIONS_BLOCK_NAME, LintOptionsDslElement.class);
+    if (lintOptionsDslElement == null) {
+      lintOptionsDslElement = new LintOptionsDslElement(myDslElement);
+      myDslElement.setNewElement(LINT_OPTIONS_BLOCK_NAME, lintOptionsDslElement);
+    }
+    return new LintOptionsModel(lintOptionsDslElement);
+  }
+
+  @NotNull
+  public PackagingOptionsModel packagingOptions() {
+    PackagingOptionsDslElement packagingOptionsDslElement =
+      myDslElement.getPropertyElement(PACKAGING_OPTIONS_BLOCK_NAME, PackagingOptionsDslElement.class);
+    if (packagingOptionsDslElement == null) {
+      packagingOptionsDslElement = new PackagingOptionsDslElement(myDslElement);
+      myDslElement.setNewElement(PACKAGING_OPTIONS_BLOCK_NAME, packagingOptionsDslElement);
+    }
+    return new PackagingOptionsModel(packagingOptionsDslElement);
+  }
+
+  @NotNull
+  public List<ProductFlavorModel> productFlavors() {
+    ProductFlavorsDslElement productFlavors = myDslElement.getPropertyElement(PRODUCT_FLAVORS_BLOCK_NAME, ProductFlavorsDslElement.class);
+    return productFlavors == null ? ImmutableList.of() : productFlavors.get();
   }
 
   @NotNull
   public AndroidModel addProductFlavor(@NotNull String flavor) {
-    ProductFlavorsDslElement productFlavors = myDslElement.getProperty(PRODUCT_FLAVORS_BLOCK_NAME, ProductFlavorsDslElement.class);
+    ProductFlavorsDslElement productFlavors = myDslElement.getPropertyElement(PRODUCT_FLAVORS_BLOCK_NAME, ProductFlavorsDslElement.class);
     if (productFlavors == null) {
       productFlavors = new ProductFlavorsDslElement(myDslElement);
       myDslElement.setNewElement(PRODUCT_FLAVORS_BLOCK_NAME, productFlavors);
     }
 
-    ProductFlavorDslElement flavorElement = productFlavors.getProperty(flavor, ProductFlavorDslElement.class);
+    ProductFlavorDslElement flavorElement = productFlavors.getPropertyElement(flavor, ProductFlavorDslElement.class);
     if (flavorElement == null) {
       flavorElement = new ProductFlavorDslElement(productFlavors, flavor);
       productFlavors.setNewElement(flavor, flavorElement);
@@ -245,16 +313,98 @@ public final class AndroidModel extends GradleDslBlockModel {
 
   @NotNull
   public AndroidModel removeProductFlavor(@NotNull String flavor) {
-    ProductFlavorsDslElement productFlavors = myDslElement.getProperty(PRODUCT_FLAVORS_BLOCK_NAME, ProductFlavorsDslElement.class);
+    ProductFlavorsDslElement productFlavors = myDslElement.getPropertyElement(PRODUCT_FLAVORS_BLOCK_NAME, ProductFlavorsDslElement.class);
     if (productFlavors != null) {
       productFlavors.removeProperty(flavor);
     }
     return this;
   }
 
-  @Nullable
-  public Boolean publishNonDefault() {
-    return myDslElement.getProperty(PUBLISH_NON_DEFAULT, Boolean.class);
+  @NotNull
+  public List<SigningConfigModel> signingConfigs() {
+    SigningConfigsDslElement signingConfigs = myDslElement.getPropertyElement(SIGNING_CONFIGS_BLOCK_NAME, SigningConfigsDslElement.class);
+    return signingConfigs == null ? ImmutableList.of() : signingConfigs.get();
+  }
+
+  @NotNull
+  public AndroidModel addSigningConfig(@NotNull String config) {
+    SigningConfigsDslElement signingConfigs = myDslElement.getPropertyElement(SIGNING_CONFIGS_BLOCK_NAME, SigningConfigsDslElement.class);
+    if (signingConfigs == null) {
+      signingConfigs = new SigningConfigsDslElement(myDslElement);
+      myDslElement.setNewElement(SIGNING_CONFIGS_BLOCK_NAME, signingConfigs);
+    }
+
+    SigningConfigDslElement configElement = signingConfigs.getPropertyElement(config, SigningConfigDslElement.class);
+    if (configElement == null) {
+      configElement = new SigningConfigDslElement(signingConfigs, config);
+      signingConfigs.setNewElement(config, configElement);
+    }
+    return this;
+  }
+
+  @NotNull
+  public AndroidModel removeSigningConfig(@NotNull String configName) {
+    SigningConfigsDslElement signingConfig = myDslElement.getPropertyElement(SIGNING_CONFIGS_BLOCK_NAME, SigningConfigsDslElement.class);
+    if (signingConfig != null) {
+      signingConfig.removeProperty(configName);
+    }
+    return this;
+  }
+
+  @NotNull
+  public List<SourceSetModel> sourceSets() {
+    SourceSetsDslElement sourceSets = myDslElement.getPropertyElement(SOURCE_SETS_BLOCK_NAME, SourceSetsDslElement.class);
+    return sourceSets == null ? ImmutableList.of() : sourceSets.get();
+  }
+
+  @NotNull
+  public AndroidModel addSourceSet(@NotNull String sourceSet) {
+    SourceSetsDslElement sourceSets = myDslElement.getPropertyElement(SOURCE_SETS_BLOCK_NAME, SourceSetsDslElement.class);
+    if (sourceSets == null) {
+      sourceSets = new SourceSetsDslElement(myDslElement);
+      myDslElement.setNewElement(SOURCE_SETS_BLOCK_NAME, sourceSets);
+    }
+
+    SourceSetDslElement sourceSetElement = sourceSets.getPropertyElement(sourceSet, SourceSetDslElement.class);
+    if (sourceSetElement == null) {
+      sourceSetElement = new SourceSetDslElement(sourceSets, sourceSet);
+      sourceSets.setNewElement(sourceSet, sourceSetElement);
+    }
+    return this;
+  }
+
+  @NotNull
+  public AndroidModel removeSourceSet(@NotNull String sourceSet) {
+    SourceSetsDslElement sourceSets = myDslElement.getPropertyElement(SOURCE_SETS_BLOCK_NAME, SourceSetsDslElement.class);
+    if (sourceSets != null) {
+      sourceSets.removeProperty(sourceSet);
+    }
+    return this;
+  }
+
+  @NotNull
+  public SplitsModel splits() {
+    SplitsDslElement splitsDslElement = myDslElement.getPropertyElement(SPLITS_BLOCK_NAME, SplitsDslElement.class);
+    if (splitsDslElement == null) {
+      splitsDslElement = new SplitsDslElement(myDslElement);
+      myDslElement.setNewElement(SPLITS_BLOCK_NAME, splitsDslElement);
+    }
+    return new SplitsModel(splitsDslElement);
+  }
+
+  @NotNull
+  public TestOptionsModel testOptions() {
+    TestOptionsDslElement testOptionsDslElement = myDslElement.getPropertyElement(TEST_OPTIONS_BLOCK_NAME, TestOptionsDslElement.class);
+    if (testOptionsDslElement == null) {
+      testOptionsDslElement = new TestOptionsDslElement(myDslElement);
+      myDslElement.setNewElement(TEST_OPTIONS_BLOCK_NAME, testOptionsDslElement);
+    }
+    return new TestOptionsModel(testOptionsDslElement);
+  }
+
+  @NotNull
+  public GradleNullableValue<Boolean> publishNonDefault() {
+    return myDslElement.getLiteralProperty(PUBLISH_NON_DEFAULT, Boolean.class);
   }
 
   @NotNull
@@ -269,9 +419,9 @@ public final class AndroidModel extends GradleDslBlockModel {
     return this;
   }
 
-  @Nullable
-  public String resourcePrefix() {
-    return myDslElement.getProperty(RESOURCE_PREFIX, String.class);
+  @NotNull
+  public GradleNullableValue<String> resourcePrefix() {
+    return myDslElement.getLiteralProperty(RESOURCE_PREFIX, String.class);
   }
 
   @NotNull

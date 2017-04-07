@@ -215,7 +215,7 @@ public class DevicePicker implements AndroidDebugBridge.IDebugBridgeChangeListen
       ApplicationManager.getApplication().executeOnPooledThread(new Runnable() {
         @Override
         public void run() {
-          final AccelerationErrorCode error = AvdManagerConnection.getDefaultAvdManagerConnection().checkAcceration();
+          final AccelerationErrorCode error = AvdManagerConnection.getDefaultAvdManagerConnection().checkAcceleration();
           if (error != AccelerationErrorCode.ALREADY_INSTALLED) {
             UIUtil.invokeLaterIfNeeded(new Runnable() {
               @Override

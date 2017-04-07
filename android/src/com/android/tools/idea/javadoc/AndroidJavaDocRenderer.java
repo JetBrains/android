@@ -35,8 +35,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.*;
 import com.android.utils.HtmlBuilder;
@@ -78,7 +77,7 @@ import static com.android.SdkConstants.DOT_PNG;
 import static com.android.SdkConstants.DOT_WEBP;
 import static com.android.SdkConstants.PREFIX_ANDROID;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
-import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static com.android.utils.SdkUtils.hasImageExtension;
 
 public class AndroidJavaDocRenderer {
@@ -319,7 +318,7 @@ public class AndroidJavaDocRenderer {
 
       for (AndroidFacet reachableFacet : Iterables.concat(ImmutableList.of(facet), dependencies)) {
         // TODO: b/22927607
-        AndroidGradleModel androidModel = AndroidGradleModel.get(reachableFacet);
+        AndroidModuleModel androidModel = AndroidModuleModel.get(reachableFacet);
         if (androidModel != null) {
           hasGradleModel = true;
           String facetModuleName = reachableFacet.getModule().getName();

@@ -16,8 +16,10 @@
 
 package com.android.tools.idea.run.editor;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
-import com.android.tools.idea.run.testing.*;
+import com.android.tools.idea.testartifacts.instrumented.*;
 import com.intellij.execution.ExecutionBundle;
 import com.intellij.execution.MethodListDlg;
 import com.intellij.execution.configuration.BrowseModuleValueActionListener;
@@ -40,10 +42,8 @@ import org.jetbrains.android.util.AndroidUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-import static com.android.tools.idea.run.testing.AndroidTestRunConfiguration.*;
+import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration.*;
 
 public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTestRunConfiguration> {
   private JRadioButton myAllInPackageButton;
@@ -56,7 +56,8 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
   private JPanel myPanel;
   private LabeledComponent<EditorTextFieldWithBrowseButton> myRunnerComponent;
   private JBLabel myLabelTest;
-  private JTextField myExtraOptionsFied;
+  private JTextField myExtraOptionsField;
+  private JBLabel myExtraOptionsLabel;
   private final JRadioButton[] myTestingType2RadioButton = new JRadioButton[4];
 
   private final Project myProject;
@@ -78,9 +79,9 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
 
     myRunnerComponent.setComponent(new EditorTextFieldWithBrowseButton(project, true,
                                                                        new AndroidInheritingClassVisibilityChecker(myProject, moduleSelector,
-                                                                                                         AndroidUtils.INSTRUMENTATION_RUNNER_BASE_CLASS)));
+                                                                                                                   AndroidUtils.INSTRUMENTATION_RUNNER_BASE_CLASS)));
     bind(myRunnerComponent, new AndroidInheritingClassBrowser(project, moduleSelector, AndroidUtils.INSTRUMENTATION_RUNNER_BASE_CLASS,
-                                                    AndroidBundle.message("android.browse.instrumentation.class.dialog.title"), true
+                                                              AndroidBundle.message("android.browse.instrumentation.class.dialog.title"), true
     ));
     bind(myMethodComponent, new MyMethodBrowser());
 
@@ -94,12 +95,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
 
   private void addTestingType(final int type, JRadioButton button) {
     myTestingType2RadioButton[type] = button;
-    button.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        updateLabelComponents(type);
-      }
-    });
+    button.addActionListener(e -> updateLabelComponents(type));
   }
 
   @Override
@@ -127,12 +123,19 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     myClassButton.setSelected(type == TEST_CLASS);
     myTestMethodButton.setSelected(type == TEST_METHOD);
     updateLabelComponents(type);
+    hideRunnerInstrumentationComponents(GradleProjectInfo.getInstance(myProject).isBuildWithGradle());
   }
 
   private void updateLabelComponents(int type) {
     myPackageComponent.setVisible(type == TEST_ALL_IN_PACKAGE);
     myClassComponent.setVisible(type == TEST_CLASS || type == TEST_METHOD);
     myMethodComponent.setVisible(type == TEST_METHOD);
+  }
+
+  private void hideRunnerInstrumentationComponents(boolean isGradleProject) {
+    myRunnerComponent.setVisible(!isGradleProject);
+    myExtraOptionsLabel.setVisible(!isGradleProject);
+    myExtraOptionsField.setVisible(!isGradleProject);
   }
 
   private class MyPackageBrowser extends BrowseModuleValueActionListener {
@@ -201,8 +204,11 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     configuration.CLASS_NAME = myClassComponent.getComponent().getText();
     configuration.METHOD_NAME = myMethodComponent.getComponent().getText();
     configuration.PACKAGE_NAME = myPackageComponent.getComponent().getText();
-    configuration.INSTRUMENTATION_RUNNER_CLASS = myRunnerComponent.getComponent().getText();
-    configuration.EXTRA_OPTIONS = myExtraOptionsFied.getText().trim();
+
+    if (!GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
+      configuration.INSTRUMENTATION_RUNNER_CLASS = myRunnerComponent.getComponent().getText();
+      configuration.EXTRA_OPTIONS = myExtraOptionsField.getText().trim();
+    }
   }
 
   @Override
@@ -211,12 +217,20 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
     myPackageComponent.getComponent().setText(configuration.PACKAGE_NAME);
     myClassComponent.getComponent().setText(configuration.CLASS_NAME);
     myMethodComponent.getComponent().setText(configuration.METHOD_NAME);
-    myRunnerComponent.getComponent().setText(configuration.INSTRUMENTATION_RUNNER_CLASS);
-    myExtraOptionsFied.setText(configuration.EXTRA_OPTIONS);
+
+    if (!GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
+      myRunnerComponent.getComponent().setText(configuration.INSTRUMENTATION_RUNNER_CLASS);
+      myExtraOptionsField.setText(configuration.EXTRA_OPTIONS);
+    }
   }
 
   @Override
   public Component getComponent() {
     return myPanel;
+  }
+
+  @VisibleForTesting
+  public Component getRunnerComponent() {
+    return myRunnerComponent;
   }
 }

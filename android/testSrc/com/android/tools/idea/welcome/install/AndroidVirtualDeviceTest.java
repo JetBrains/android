@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.welcome.install;
 
-import com.android.repository.Revision;
-import com.android.repository.api.Dependency;
 import com.android.repository.api.RemotePackage;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage;
@@ -29,10 +27,9 @@ import com.android.sdklib.repository.meta.RepoFactory;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.ddms.screenshot.DeviceArtDescriptor;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
@@ -68,10 +65,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     builder.put("hw.sensors.orientation", "yes");
     builder.put("hw.sensors.proximity", "yes");
     builder.put("hw.trackBall", "no");
-    // AVD Manager will return a system-dependent path, so the baseline must comply
-    String systemImageDir = "system-images/android-23/google_apis/x86/".replace('/', File.separatorChar);
-    builder.put("image.sysdir.1", systemImageDir);
-
+    builder.put("image.sysdir.1", "system-images/android-23/google_apis/x86/");
     builder.put("runtime.network.latency", "none");
     builder.put("runtime.network.speed", "full");
     builder.put("sdcard.size", "800M");
@@ -79,7 +73,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     builder.put("snapshot.present", "no");
     builder.put("tag.display", "Google APIs");
     builder.put("tag.id", "google_apis");
-    builder.put("vm.heapSize", "64");
+    builder.put("vm.heapSize", "256"); // Matches CDD Minimum Application Memory
     return builder.build();
   }
 
@@ -110,11 +104,11 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     recordGoogleApisSysImg23(fop);
     fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), "nexus_5x"));
 
-    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), fop);
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new File("/android-home"), fop);
 
-    final AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, fop);
-    FakePackage remotePlatform = new FakePackage("platforms;android-23", new Revision(1), ImmutableList.<Dependency>of());
-    RepoFactory factory = (RepoFactory)AndroidSdkHandler.getRepositoryModule().createLatestFactory();
+    final AvdManagerConnection connection = new AvdManagerConnection(sdkHandler);
+    FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
+    RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
 
     DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
     platformDetailsType.setApiLevel(23);
@@ -124,17 +118,12 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     AndroidVirtualDevice avd = new AndroidVirtualDevice(new ScopedStateStore(ScopedStateStore.Scope.STEP, null, null), remotes, true, fop);
     final AvdInfo avdInfo = avd.createAvd(connection, sdkHandler);
     assertNotNull(avdInfo);
-    disposeOnTearDown(new Disposable() {
-      @Override
-      public void dispose() {
-        connection.deleteAvd(avdInfo);
-      }
-    });
+    disposeOnTearDown(() -> connection.deleteAvd(avdInfo));
     assertNotNull(avdInfo);
     Map<String, String> properties = avdInfo.getProperties();
     Map<String, String> referenceMap = getReferenceMap();
     for (Map.Entry<String, String> entry : referenceMap.entrySet()) {
-      assertEquals(entry.getKey(), entry.getValue(), properties.get(entry.getKey()));
+      assertEquals(entry.getKey(), entry.getValue(), FileUtil.toSystemIndependentName(properties.get(entry.getKey())));
     }
     // AVD manager will set some extra properties that we don't care about and that may be system dependant.
     // We do not care about those so we only ensure we have the ones we need.

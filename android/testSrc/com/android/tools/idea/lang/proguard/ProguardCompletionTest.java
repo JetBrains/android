@@ -31,8 +31,9 @@ public class ProguardCompletionTest extends AndroidTestCase {
 
   private static final String TEST_FOLDER = "lang/proguard";
 
-  public ProguardCompletionTest() {
-    super(false);
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   public void testSingleFlagNameCompletionSingle() throws Throwable {

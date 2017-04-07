@@ -17,7 +17,7 @@ package com.android.tools.idea.actions;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.gradle.eclipse.AdtImportProvider;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;

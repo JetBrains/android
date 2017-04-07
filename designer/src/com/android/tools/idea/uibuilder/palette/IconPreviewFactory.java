@@ -32,12 +32,13 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.XmlElementFactory;
@@ -55,6 +56,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.*;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.NO_PREVIEW;
@@ -66,7 +68,7 @@ import static com.android.tools.idea.uibuilder.palette.NlPaletteModel.PALETTE_VE
  * The images are rendered from preview.xml and are used as an alternate representation on
  * the palette i.e. a button is rendered as the SDK button would look like on the target device.
  */
-public class IconPreviewFactory {
+public class IconPreviewFactory implements Disposable {
   private static final Logger LOG = Logger.getInstance(IconPreviewFactory.class);
   @AndroidDpCoordinate
   private static final int SHADOW_SIZE = 6;
@@ -86,18 +88,18 @@ public class IconPreviewFactory {
                                               "  %2$s\n" +
                                               "</LinearLayout>\n";
 
-  private static IconPreviewFactory ourInstance;
+  /**
+   * This {@link ExecutorService} is used to add a render timeout for the factory as temporary workaround for http://b.android.com/229723.
+   * In 2.4, all the rendering is asynchronous so this won't be necessary.
+   */
+  @VisibleForTesting
+  final ExecutorService myExecutorService = new ThreadPoolExecutor(0, 1,
+                                                                           60L, TimeUnit.SECONDS,
+                                                                           new LinkedBlockingQueue<>());
+  @VisibleForTesting
+  long myRenderTimeoutSeconds = 1L;
 
-  @NotNull
-  public static IconPreviewFactory get() {
-    if (ourInstance == null) {
-      ourInstance = new IconPreviewFactory();
-    }
-    return ourInstance;
-  }
-
-  private IconPreviewFactory() {
-  }
+  private RenderTask myRenderTask;
 
   @Nullable
   public BufferedImage getImage(@NotNull Palette.Item item, @NotNull Configuration configuration, double scale) {
@@ -106,9 +108,28 @@ public class IconPreviewFactory {
       return null;
     }
     if (scale != 1.0) {
-      image = ImageUtils.scale(image, scale, scale);
+      image = ImageUtils.scale(image, scale);
     }
     return image;
+  }
+
+  @Nullable
+  private RenderTask getRenderTask(Configuration configuration) {
+    if (myRenderTask == null || myRenderTask.getModule() != configuration.getModule()) {
+      if (myRenderTask != null) {
+        myRenderTask.dispose();
+      }
+
+      AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
+      if (facet == null) {
+        return null;
+      }
+      RenderService renderService = RenderService.get(facet);
+      RenderLogger logger = renderService.createLogger();
+      myRenderTask = renderService.createTask(null, configuration, logger, null);
+    }
+
+    return myRenderTask;
   }
 
   /**
@@ -141,18 +162,18 @@ public class IconPreviewFactory {
       return null;
     }
 
+
     // Some components require a parent to render correctly.
     xml = String.format(LINEAR_LAYOUT, CONTAINER_ID, component.getTag().getText());
-    RenderResult result = renderImage(xml, model.getConfiguration());
-    if (result == null) {
+
+    RenderResult result = renderImage(myExecutorService, myRenderTimeoutSeconds, getRenderTask(model.getConfiguration()), xml);
+    if (result == null || !result.hasImage()) {
       return null;
     }
-    BufferedImage image = result.getRenderedImage();
-    if (image == null) {
-      return null;
-    }
+
+    ImagePool.Image image = result.getRenderedImage();
     List<ViewInfo> infos = result.getRootViews();
-    if (infos == null || infos.isEmpty()) {
+    if (infos.isEmpty()) {
       return null;
     }
     infos = infos.get(0).getChildren();
@@ -161,14 +182,19 @@ public class IconPreviewFactory {
     }
     ViewInfo view = infos.get(0);
     if (image.getHeight() < view.getBottom() || image.getWidth() < view.getRight() ||
-      view.getBottom() <= view.getTop() || view.getRight() <= view.getLeft()) {
+    view.getBottom() <= view.getTop() || view.getRight() <= view.getLeft()) {
       return null;
     }
     @AndroidCoordinate
     int shadowWitdh = SHADOW_SIZE * screenView.getConfiguration().getDensity().getDpiValue() / Density.DEFAULT_DENSITY;
     @SwingCoordinate
     int shadowIncrement = 1 + Coordinates.getSwingDimension(screenView, shadowWitdh);
-    return image.getSubimage(view.getLeft(),
+
+    BufferedImage imageCopy = image.getCopy();
+    if (imageCopy == null) {
+      return null;
+    }
+    return imageCopy.getSubimage(view.getLeft(),
                              view.getTop(),
                              Math.min(view.getRight() + shadowIncrement, image.getWidth()),
                              Math.min(view.getBottom() + shadowIncrement, image.getHeight()));
@@ -181,8 +207,6 @@ public class IconPreviewFactory {
     }
     try {
       return ImageIO.read(file);
-    }
-    catch (IOException ignore) {
     }
     catch (Throwable ignore) {
       // corrupt cached image, e.g. I've seen
@@ -250,8 +274,8 @@ public class IconPreviewFactory {
         loadSources(sources, requestedIds, palette.getItems());
         for (StringBuilder source : sources) {
           String preview = String.format(LINEAR_LAYOUT, CONTAINER_ID, source);
-          RenderResult result = renderImage(preview, configuration);
-          addResultToCache(result, generatedIds, configuration);
+          addResultToCache(renderImage(myExecutorService, myRenderTimeoutSeconds, getRenderTask(configuration), preview), generatedIds,
+                           configuration);
         }
         return null;
       }
@@ -328,11 +352,9 @@ public class IconPreviewFactory {
     String theme = configuration.getTheme();
     if (theme == null) {
       theme = DEFAULT_THEME;
-    } else if (theme.startsWith(STYLE_RESOURCE_PREFIX)) {
-      theme = theme.substring(STYLE_RESOURCE_PREFIX.length());
-    } else if (theme.startsWith(ANDROID_STYLE_RESOURCE_PREFIX)) {
-      theme = theme.substring(ANDROID_STYLE_RESOURCE_PREFIX.length());
     }
+    theme = StringUtil.trimStart(theme, STYLE_RESOURCE_PREFIX);
+    theme = StringUtil.trimStart(theme, ANDROID_STYLE_RESOURCE_PREFIX);
     return theme;
   }
 
@@ -343,35 +365,53 @@ public class IconPreviewFactory {
     return target == null ? SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "U" : target.getVersion().getApiString();
   }
 
-  private static void addResultToCache(@Nullable RenderResult result, @Nullable List<String> ids, @NotNull Configuration configuration) {
-    if (result == null || result.getRenderedImage() == null || result.getRootViews() == null || result.getRootViews().isEmpty()) {
-      return;
+  @Nullable
+  private static BufferedImage addResultToCache(@Nullable RenderResult result, @Nullable List<String> ids, @NotNull Configuration configuration) {
+    if (result == null || result.getRenderedImage() == null || result.getRootViews().isEmpty()) {
+      return null;
     }
-    ImageAccumulator accumulator = new ImageAccumulator(result.getRenderedImage(), ids, configuration);
+    ImageAccumulator accumulator = new ImageAccumulator(result.getRenderedImage().getCopy(), ids, configuration);
     accumulator.run(result.getRootViews(), 0, null);
+    return null;
   }
 
   @Nullable
-  private static RenderResult renderImage(@NotNull String xml, @NotNull Configuration configuration) {
-    AndroidFacet facet = AndroidFacet.getInstance(configuration.getModule());
-    if (facet == null) {
+  private static RenderResult renderImage(@NotNull ExecutorService executorService,
+                                          long timeoutSeconds,
+                                          @Nullable RenderTask renderTask,
+                                          @NotNull String xml) {
+    if (renderTask == null) {
       return null;
     }
-    Project project = configuration.getModule().getProject();
-    PsiFile file = PsiFileFactory.getInstance(project).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml);
-    RenderService renderService = RenderService.get(facet);
-    RenderLogger logger = renderService.createLogger();
-    final RenderTask task = renderService.createTask(file, configuration, logger, null);
-    RenderResult result = null;
-    if (task != null) {
-      task.setOverrideBgColor(UIUtil.TRANSPARENT_COLOR.getRGB());
-      task.setDecorations(false);
-      task.setRenderingMode(SessionParams.RenderingMode.V_SCROLL);
-      task.setFolderType(ResourceFolderType.LAYOUT);
-      result = task.render();
-      task.dispose();
+    PsiFile file = PsiFileFactory.getInstance(renderTask.getModule().getProject()).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml);
+
+    renderTask.setPsiFile(file);
+    renderTask.setOverrideBgColor(UIUtil.TRANSPARENT_COLOR.getRGB());
+    renderTask.setDecorations(false);
+    renderTask.setRenderingMode(SessionParams.RenderingMode.V_SCROLL);
+    renderTask.setFolderType(ResourceFolderType.LAYOUT);
+
+    try {
+      return executorService.submit(() -> {
+        renderTask.inflate();
+        //noinspection deprecation
+        return renderTask.render();
+      }).get(timeoutSeconds, TimeUnit.SECONDS);
     }
-    return result;
+    catch (InterruptedException | ExecutionException | TimeoutException e) {
+      LOG.debug(e);
+    }
+
+    return null;
+  }
+
+  @Override
+  public void dispose() {
+    if (myRenderTask != null) {
+      myRenderTask.dispose();
+      myRenderTask = null;
+    }
+    myExecutorService.shutdown();
   }
 
   private static class ImageAccumulator {
@@ -447,5 +487,10 @@ public class IconPreviewFactory {
         }
       }
     }
+  }
+
+  private interface RenderResultHandler {
+    @Nullable
+    BufferedImage handle(@NotNull RenderResult result);
   }
 }

@@ -74,7 +74,7 @@ public class Recipe implements RecipeInstruction {
    */
   public static Recipe parse(@NotNull Reader xmlReader) throws JAXBException {
     Recipe recipe = unmarshal(xmlReader);
-    recipe.instructions.add(new UpdateAndSyncGradleInstruction());
+    recipe.addUpdateAndSyncGradleInstruction();
 
     return recipe;
   }
@@ -119,6 +119,14 @@ public class Recipe implements RecipeInstruction {
     for (RecipeInstruction instruction : instructions) {
       instruction.execute(executor);
     }
+  }
+
+  /**
+   * Appends a gradle update instruction. This should only be manually added if not using {@code #parse}, such as when your recipe is
+   * a node in a larger xml file rather than a recipe.xml file being passed in.
+   */
+  public void addUpdateAndSyncGradleInstruction() {
+    instructions.add(new UpdateAndSyncGradleInstruction());
   }
 
   @SuppressWarnings({"NullableProblems", "unused"})

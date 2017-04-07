@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.NativeAndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.plugin.AndroidPluginGeneration;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -26,7 +27,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.isUsingExperimentalPlugin;
+import static com.android.tools.idea.gradle.plugin.AndroidPluginGeneration.COMPONENT;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 
@@ -62,18 +63,18 @@ public class LinkExternalCppProjectAction extends AndroidStudioGradleAction {
       return false;
     }
 
-    AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+    AndroidModuleModel androidModel = AndroidModuleModel.get(module);
     if (androidModel == null || !androidModel.getFeatures().isExternalBuildSupported()) {
       return false;
     }
 
-    if (isUsingExperimentalPlugin(module)) {
+    AndroidPluginGeneration pluginGeneration = AndroidPluginGeneration.find(module);
+    if (pluginGeneration == COMPONENT) {
       return false; // Updating experimental plugin DSL is not yet supported.
     }
 
-
-    NativeAndroidGradleModel nativeAndroidModel = NativeAndroidGradleModel.get(module);
-    if (nativeAndroidModel != null) {
+    NdkModuleModel ndkModuleModel = NdkModuleModel.get(module);
+    if (ndkModuleModel != null) {
       return false; // Some external native project is already linked to this module.
     }
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint;
 
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.AndroidColorSet;
 import com.android.tools.sherpa.drawing.BlueprintColorSet;
@@ -37,7 +38,7 @@ import java.awt.event.InputEvent;
 /**
  * Utility class holding the necessary objects to draw a ConstraintModel
  */
-class DrawConstraintModel {
+class DrawConstraintModel implements MouseInteraction.NeedsLayoutCallback {
   private final ConstraintModel myConstraintModel;
 
   private final ViewTransform myViewTransform = new ViewTransform();
@@ -46,6 +47,11 @@ class DrawConstraintModel {
   private final MouseInteraction myMouseInteraction;
 
   private boolean mShowFakeUI = true;
+
+  @Override
+  public void needsLayout(boolean animate) {
+    myConstraintModel.requestLayout(animate);
+  }
 
   /**
    * Simple helper class to avoid reallocation
@@ -87,7 +93,7 @@ class DrawConstraintModel {
                                               widgetsScene, selection,
                                               widgetMotion, widgetResize,
                                               mySceneDraw, null);
-
+    myMouseInteraction.setNeedsLayoutCallback(this);
     if (screenView.getScreenViewType() == ScreenView.ScreenViewType.NORMAL) {
       mySceneDraw.setColorSet(new AndroidColorSet());
     }
@@ -152,7 +158,6 @@ class DrawConstraintModel {
     if (myMouseInteraction != null) {
       myMouseInteraction.mouseReleased(pxToDp(x), pxToDp(y));
     }
-    myConstraintModel.requestRender();
   }
 
   /**
@@ -197,17 +202,27 @@ class DrawConstraintModel {
   /**
    * Paint ourselves and our children
    * @param gc                 the graphic context
+   * @param screenView
    * @param component          the component to draw
    * @param width              width of the canvas
    * @param height             height of the canvas
    * @param showAllConstraints flag to show or not all the existing constraints
    */
   public boolean paint(@NotNull Graphics2D gc,
+                       ScreenView screenView,
                        ConstraintWidget component, int width,
                        int height,
                        boolean showAllConstraints) {
     Graphics2D g = (Graphics2D)gc.create();
     WidgetDecorator.setShowFakeUI(mShowFakeUI);
+
+    if (!ConstraintLayoutHandler.USE_SOLVER) {
+      int dpi = myConstraintModel.getNlModel().getConfiguration().getDensity().getDpiValue();
+      myConstraintModel.setDpiValue(dpi);
+      Scene scene = screenView.getScene();
+      myConstraintModel.updateNlModel(scene, myConstraintModel.getNlModel().getComponents(), true);
+    }
+
     if (mySceneDraw.getCurrentStyle() == WidgetDecorator.BLUEPRINT_STYLE) {
        mySceneDraw.drawBackground(myConstraintModel.getScene().getWidget(component),
                                   myViewTransform, g, width, height);
@@ -216,6 +231,7 @@ class DrawConstraintModel {
       mySceneDraw.animateConstraints(myConstraintModel.getNeedsAnimateConstraints());
       myConstraintModel.setNeedsAnimateConstraints(-1);
     }
+    mySceneDraw.setApplyConstraints(ConstraintLayoutHandler.USE_SOLVER);
     boolean ret = mySceneDraw.paintWidgets(component, width, height, myViewTransform, g, showAllConstraints, myMouseInteraction);
     g.dispose();
     return ret;

@@ -17,8 +17,9 @@ package com.android.tools.idea.templates;
 
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -33,6 +34,7 @@ import java.util.Set;
 
 import static com.android.tools.idea.templates.Template.*;
 import static com.android.tools.idea.templates.Parameter.Constraint.UNIQUE;
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 
 /**
  * Test for uniqueness and existence for Parameter validation. In fact, these are the same exact tests,
@@ -49,9 +51,9 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
 
-    loadProject("projects/projectWithAppandLib");
+    loadProject(PROJECT_WITH_APPAND_LIB);
     assertNotNull(myAndroidFacet);
-    AndroidModel androidModel = AndroidGradleModel.get(myAndroidFacet);
+    AndroidModel androidModel = AndroidModuleModel.get(myAndroidFacet);
     assertNotNull(androidModel);
 
     // Set up modules
@@ -68,13 +70,13 @@ public class UniqueParameterTest extends AndroidGradleTestCase {
 
     assertNotNull(myAppFacet);
 
-    addAndroidSdk(myAppModule, getTestSdkPath(), getPlatformDir());
+    addLatestAndroidSdk(myAppModule);
 
     assertNotNull(AndroidPlatform.getInstance(myAppModule));
 
     assertNotNull(myAppFacet.getAndroidModel());
     // TODO: b/23032990
-    ProductFlavorContainer paidFlavor = AndroidGradleModel.get(myAppFacet).findProductFlavor("paid");
+    ProductFlavorContainer paidFlavor = AndroidModuleModel.get(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     myPaidSourceProvider = paidFlavor.getSourceProvider();
     assertNotNull(myPaidSourceProvider);

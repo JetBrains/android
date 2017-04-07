@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.assistant;
 
+import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.assistant.view.StatefulButtonMessage;
 import com.android.tools.idea.structure.services.DeveloperService;
-import com.android.tools.idea.structure.services.DeveloperServiceMap.DeveloperServiceList;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,44 +31,42 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface AssistActionStateManager {
   ExtensionPointName<AssistActionStateManager> EP_NAME =
-    ExtensionPointName.create("com.android.tools.idea.structure.services.actionStateManager");
+    ExtensionPointName.create("com.android.tools.idea.assistant.actionStateManager");
 
   /**
    * Gets the opaque id for a state manager. Corresponds to the stateManager field in {@code TutorialBundle.Action} and is used to identify
    * which extension to use.
-   *
-   * TODO: Convert TutorialBundle.Action to a POJO and move it to this package.
    */
   @NotNull
   String getId();
 
   /**
    * Allows you to initialize your instance of your manager if necessary.
-   *
-   * TODO: Consider whether all calls need to provide some other argument in case the implementing party wants to have a configuration map
-   * inside their manager.
    */
-  void init(@NotNull DeveloperServiceList services);
+  void init(@NotNull Project project, @NotNull ActionData actionData);
 
   /**
    * Returns the current state of the action and any presentation data.
    */
-  ActionState getState(@NotNull DeveloperServiceList services);
+  ActionState getState(@NotNull Project project, @NotNull ActionData actionData);
 
   /**
    * Gets the display for a given action button when the action may not be completed. For example, if the action adds a dependency, this
    * would confirm that the dependency has already been added. It may also be used for things like permanent failures.
+   *
+   * When null and isCompletable returns false, defaults to disabling the button.
    */
-  @Nullable("When null and isCompletable returns false, defaults to disabling the button.")
-  StatefulButtonMessage getStateDisplay(@NotNull DeveloperServiceList services,
-                                        @Nullable("ignored if null") String message);
+  @Nullable
+  StatefulButtonMessage getStateDisplay(@NotNull Project project,
+                                        @NotNull ActionData actionData,
+                                        @Nullable/*ignored if null*/ String message);
 
   enum ActionState {
     INCOMPLETE, // Action is not complete.
     COMPLETE, // Action is complete and may not be run again.
     PARTIALLY_COMPLETE, // Action is complete for a subset of cases and may still be run again.
     IN_PROGRESS,// TODO: Use this to disable the button and indicate the state is being determined.
-    ERROR, // [stub-used in future] There is a pre-existing error condition that prevents completion.
+    ERROR, // There is a pre-existing error condition that prevents completion.
     NOT_APPLICABLE // [stub-used in future] Similar to INCOMPLETE but action completion doesn't make sense. e.g. Trigger debug event.
   }
 }

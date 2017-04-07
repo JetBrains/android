@@ -218,7 +218,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
 
       resName = dialog.getResourceName();
       if (!AndroidResourceUtil
-        .createValueResource(project, resourceDir, resName, type, dialog.getFileName(), dialog.getDirNames(), value)) {
+        .createValueResource(project, resourceDir, resName, type, dialog.getFileName(), dialog.getDirNames(), dialog.getValue())) {
         return;
       }
     }

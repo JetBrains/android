@@ -20,12 +20,15 @@ import com.android.tools.adtui.Choreographer;
 import com.android.tools.adtui.chart.SunburstChart;
 import com.android.tools.adtui.ValuedTreeNode;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
+import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
-import com.android.tools.idea.actions.PsiFileAndLineNavigation;
+import com.android.tools.idea.actions.PsiClassNavigation;
 import com.android.tools.idea.editors.allocations.nodes.*;
 import com.android.utils.HtmlBuilder;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
 import com.intellij.openapi.project.Project;
@@ -36,7 +39,6 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.Alarm;
 import com.intellij.util.PlatformIcons;
-import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NonNls;
@@ -45,15 +47,26 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.Comparator;
+import java.util.*;
+import java.util.List;
+
+import static com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN;
 
 public class AllocationsView implements SunburstChart.SliceSelectionListener {
+  @NotNull private static final String ALLOCATION_VIEW_ID = "AllocationView";
+  @NotNull private static final String GROUP_BY_NAME = ".GroupBy";
+  @NotNull private static final String SHOW_CHART_STATE = ".ShowChart";
+
+  private static final int MAX_AUTO_EXPANSION_DEPTH = 5;
+
   @NotNull private final Project myProject;
 
   @NotNull private final AllocationInfo[] myAllocations;
@@ -72,7 +85,11 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
 
   @NotNull private final Component myComponent;
 
-  private GroupBy myGroupBy;
+  private final Map<String, GroupBy> myGroupBy = new ImmutableMap.Builder<String, GroupBy>()
+    .put(GroupByMethod.NAME, new GroupByMethod())
+    .put(GroupByAllocator.NAME, new GroupByAllocator())
+    .build();
+  private String myGroupByName;
   private final SunburstChart myLayout;
   private String myChartOrientation;
   private String myChartUnit;
@@ -83,7 +100,15 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
   public AllocationsView(@NotNull Project project, @NotNull final AllocationInfo[] allocations) {
     myProject = project;
     myAllocations = allocations;
-    myGroupBy = new GroupByMethod();
+    myGroupByName = PropertiesComponent.getInstance(project).getValue(ALLOCATION_VIEW_ID + GROUP_BY_NAME, GroupByMethod.NAME);
+    myPackageFilter = new SearchTextFieldWithStoredHistory("alloc.package.filter");
+    myPackageFilter.addDocumentListener(new DocumentAdapter() {
+      @Override
+      protected void textChanged(DocumentEvent e) {
+        myAlarm.cancelAllRequests();
+        myAlarm.addRequest(() -> setGroupByName(GroupByAllocator.NAME), 1000);
+      }
+    });
     myTreeNode = generateTree();
     myTreeModel = new DefaultTreeModel(myTreeNode);
     myAlarm = new Alarm(project);
@@ -102,109 +127,117 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
       }
     });
 
-    ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
-        .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-            .setName("Method")
-            .setPreferredWidth(600)
-            .setHeaderAlignment(SwingConstants.LEFT)
-            .setComparator(new Comparator<AbstractTreeNode>() {
-              @Override
-              public int compare(AbstractTreeNode a, AbstractTreeNode b) {
-                if (a instanceof ThreadNode && b instanceof ThreadNode) {
-                  return ((ThreadNode)a).getThreadId() - ((ThreadNode)b).getThreadId();
-                }
-                else if (a instanceof StackNode && b instanceof StackNode) {
-                  StackTraceElement ea = ((StackNode)a).getStackTraceElement();
-                  StackTraceElement eb = ((StackNode)b).getStackTraceElement();
-                  int value = ea.getMethodName().compareTo(eb.getMethodName());
-                  if (value == 0) value = ea.getLineNumber() - eb.getLineNumber();
-                  return value;
-                }
-                else {
-                  return a.getClass().toString().compareTo(b.getClass().toString());
-                }
-              }
-            })
-            .setRenderer(new NodeTreeCellRenderer()))
-        .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-            .setName("Count")
-            .setPreferredWidth(150)
-            .setHeaderAlignment(SwingConstants.RIGHT)
-            .setComparator(new Comparator<AbstractTreeNode>() {
-                @Override
-                public int compare(AbstractTreeNode a, AbstractTreeNode b) {
-                  return a.getCount() - b.getCount();
-                }
-              })
-            .setRenderer(new ColoredTreeCellRenderer() {
-              @Override
-              public void customizeCellRenderer(@NotNull JTree tree,
-                                                Object value,
-                                                boolean selected,
-                                                boolean expanded,
-                                                boolean leaf,
-                                                int row,
-                                                boolean hasFocus) {
-                if (value instanceof ValuedTreeNode) {
-                  int v = ((ValuedTreeNode)value).getCount();
-                  int total = myTreeNode.getCount();
-                  setTextAlign(SwingConstants.RIGHT);
-                  append(String.valueOf(v));
-                  append(String.format(" (%.2f%%)", 100.0f * v / total), new SimpleTextAttributes(Font.PLAIN, JBColor.GRAY));
-                }
-              }
-            }))
-        .addColumn(new ColumnTreeBuilder.ColumnBuilder()
-            .setName("Size")
-            .setPreferredWidth(150)
-            .setHeaderAlignment(SwingConstants.RIGHT)
-            .setInitialOrder(SortOrder.DESCENDING)
-            .setComparator(new Comparator<AbstractTreeNode>() {
-                @Override
-                public int compare(AbstractTreeNode a, AbstractTreeNode b) {
-                  return a.getValue() - b.getValue();
-                }
-              })
-            .setRenderer(new ColoredTreeCellRenderer() {
-              @Override
-              public void customizeCellRenderer(@NotNull JTree tree,
-                                                Object value,
-                                                boolean selected,
-                                                boolean expanded,
-                                                boolean leaf,
-                                                int row,
-                                                boolean hasFocus) {
-                if (value instanceof ValuedTreeNode) {
-                  int v = ((ValuedTreeNode)value).getValue();
-                  int total = myTreeNode.getValue();
-                  setTextAlign(SwingConstants.RIGHT);
-                  append(String.valueOf(v));
-                  append(String.format(" (%.2f%%)", 100.0f * v / total), new SimpleTextAttributes(Font.PLAIN, JBColor.GRAY));
-                }
-              }
-            }));
+    myTree.addTreeExpansionListener(new TreeExpansionListener() {
+      private boolean myIsCurrentlyExpanding = false;
 
-    builder.setTreeSorter(new ColumnTreeBuilder.TreeSorter<AbstractTreeNode>() {
       @Override
-      public void sort(Comparator<AbstractTreeNode> comparator, SortOrder sortOrder) {
-        myTreeNode.sort(comparator);
-        myTreeModel.nodeStructureChanged(myTreeNode);
+      public void treeExpanded(TreeExpansionEvent event) {
+        if (myIsCurrentlyExpanding) {
+          return;
+        }
+
+        myIsCurrentlyExpanding = true;
+        // Do a fast expansion of descendant nodes if they only have one child each.
+        AbstractTreeNode node = (AbstractTreeNode)event.getPath().getLastPathComponent();
+        AbstractTreeNode currentNode = node;
+        int recursiveDepth = 0;
+        List<Object> expandedPath = new ArrayList<>(Arrays.asList(event.getPath().getPath()));
+        while (currentNode.getChildCount() == 1 && recursiveDepth < MAX_AUTO_EXPANSION_DEPTH) {
+          AbstractTreeNode childNode = (AbstractTreeNode)currentNode.getChildAt(0);
+          if (childNode.isLeaf()) {
+            break;
+          }
+          expandedPath.add(childNode);
+          currentNode = childNode;
+          ++recursiveDepth;
+        }
+
+        if (node != currentNode) {
+          myTree.expandPath(new TreePath(expandedPath.toArray()));
+        }
+        myIsCurrentlyExpanding = false;
       }
+
+      @Override
+      public void treeCollapsed(TreeExpansionEvent event) {
+      }
+    });
+
+    ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree).addColumn(
+      new ColumnTreeBuilder.ColumnBuilder().setName("Method").setPreferredWidth(600).setHeaderAlignment(SwingConstants.LEFT)
+        .setComparator((a, b) -> {
+          if (a instanceof ThreadNode && b instanceof ThreadNode) {
+            return ((ThreadNode)a).getThreadId() - ((ThreadNode)b).getThreadId();
+          }
+          else if (a instanceof StackNode && b instanceof StackNode) {
+            StackTraceElement ea = ((StackNode)a).getStackTraceElement();
+            StackTraceElement eb = ((StackNode)b).getStackTraceElement();
+            int value = ea.getMethodName().compareTo(eb.getMethodName());
+            if (value == 0) value = ea.getLineNumber() - eb.getLineNumber();
+            return value;
+          }
+          else {
+            return a.getClass().toString().compareTo(b.getClass().toString());
+          }
+        }).setRenderer(new NodeTreeCellRenderer())
+    ).addColumn(
+      new ColumnTreeBuilder.ColumnBuilder().setName("Count").setPreferredWidth(150).setHeaderAlignment(SwingConstants.RIGHT)
+        .setComparator((AbstractTreeNode a, AbstractTreeNode b) -> a.getCount() - b.getCount()).setRenderer(new ColoredTreeCellRenderer() {
+          @Override
+          public void customizeCellRenderer(@NotNull JTree tree,
+                                            Object value,
+                                            boolean selected,
+                                            boolean expanded,
+                                            boolean leaf,
+                                            int row,
+                                            boolean hasFocus) {
+            if (value instanceof ValuedTreeNode) {
+              int v = ((ValuedTreeNode)value).getCount();
+              int total = myTreeNode.getCount();
+              setTextAlign(SwingConstants.RIGHT);
+              append(String.valueOf(v));
+              append(String.format(" (%.2f%%)", 100.0f * v / total), new SimpleTextAttributes(STYLE_PLAIN, JBColor.GRAY));
+            }
+          }
+        })
+    ).addColumn(
+      new ColumnTreeBuilder.ColumnBuilder().setName("Total Size").setPreferredWidth(150).setHeaderAlignment(SwingConstants.RIGHT)
+        .setInitialOrder(SortOrder.DESCENDING).setComparator((AbstractTreeNode a, AbstractTreeNode b) -> a.getValue() - b.getValue())
+        .setRenderer(new ColoredTreeCellRenderer() {
+          @Override
+          public void customizeCellRenderer(@NotNull JTree tree,
+                                            Object value,
+                                            boolean selected,
+                                            boolean expanded,
+                                            boolean leaf,
+                                            int row,
+                                            boolean hasFocus) {
+            if (value instanceof ValuedTreeNode) {
+              int v = ((ValuedTreeNode)value).getValue();
+              int total = myTreeNode.getValue();
+              setTextAlign(SwingConstants.RIGHT);
+              append(String.valueOf(v));
+              append(String.format(" (%.2f%%)", 100.0f * v / total), new SimpleTextAttributes(STYLE_PLAIN, JBColor.GRAY));
+            }
+          }
+        })
+    );
+
+    builder.setTreeSorter((Comparator<AbstractTreeNode> comparator, SortOrder sortOrder) -> {
+      myTreeNode.sort(comparator);
+      myTreeModel.nodeStructureChanged(myTreeNode);
     });
     JComponent columnTree = builder.build();
 
     mySplitter = new JBSplitter(true);
 
-    new TreeSpeedSearch(myTree, new Convertor<TreePath, String>() {
-      @Override
-      public String convert(TreePath e) {
-        Object o = e.getLastPathComponent();
-        if (o instanceof StackNode) {
-          StackTraceElement ee = ((StackNode)o).getStackTraceElement();
-          return ee.toString();
-        }
-        return o.toString();
+    new TreeSpeedSearch(myTree, e -> {
+      Object o = e.getLastPathComponent();
+      if (o instanceof StackNode) {
+        StackTraceElement ee = ((StackNode)o).getStackTraceElement();
+        return ee.toString();
       }
+      return o.toString();
     }, true);
 
     JPanel panel = new JPanel(new BorderLayout());
@@ -212,19 +245,6 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
     JPanel topPanel = new JPanel(new BorderLayout());
     ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN, getMainActions(), true);
     topPanel.add(toolbar.getComponent(), BorderLayout.CENTER);
-    myPackageFilter = new SearchTextFieldWithStoredHistory("alloc.package.filter");
-    myPackageFilter.addDocumentListener(new DocumentAdapter() {
-      @Override
-      protected void textChanged(DocumentEvent e) {
-        myAlarm.cancelAllRequests();
-        myAlarm.addRequest(new Runnable() {
-          @Override
-          public void run() {
-            setGroupBy(new GroupByAllocator());
-          }
-        }, 1000);
-      }
-    });
     myPackageFilter.setVisible(false);
     topPanel.add(myPackageFilter, BorderLayout.EAST);
     panel.add(topPanel, BorderLayout.NORTH);
@@ -247,10 +267,14 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
     myChartOrientation = "Sunburst";
     myChartUnit = "Size";
 
+    myChartPane = new JPanel(new BorderLayout());
     myChartPane.add(toolbar.getComponent(), BorderLayout.NORTH);
     JBSplitter chartSplitter = new JBSplitter();
     myChartPane.add(chartSplitter, BorderLayout.CENTER);
     chartSplitter.setFirstComponent(myLayout);
+    if (PropertiesComponent.getInstance().getBoolean(ALLOCATION_VIEW_ID + SHOW_CHART_STATE, false)) {
+      mySplitter.setSecondComponent(myChartPane);
+    }
 
     JPanel infoPanel = new JPanel(new BorderLayout());
     infoPanel.setBorder(IdeBorderFactory.createBorder());
@@ -300,6 +324,8 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
     chartSplitter.setProportion(0.7f);
 
     myComponent = mySplitter;
+
+    setGroupByName(myGroupByName);
   }
 
   @NotNull
@@ -307,14 +333,17 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
     return myComponent;
   }
 
-  private void setGroupBy(@NotNull GroupBy groupBy) {
-    myGroupBy = groupBy;
-    myTreeNode = generateTree();
-    myTreeModel.setRoot(myTreeNode);
-    myLayout.setData(myTreeNode);
-    myLayout.resetZoom();
-    myTreeModel.nodeStructureChanged(myTreeNode);
-    myPackageFilter.setVisible(groupBy instanceof GroupByAllocator);
+  private void setGroupByName(@NotNull String groupByName) {
+    if (myGroupBy.containsKey(groupByName)) {
+      myGroupByName = groupByName;
+      myTreeNode = generateTree();
+      myTreeModel.setRoot(myTreeNode);
+      myLayout.setData(myTreeNode);
+      myLayout.resetZoom();
+      myTreeModel.nodeStructureChanged(myTreeNode);
+      myPackageFilter.setVisible(myGroupBy.get(myGroupByName) instanceof GroupByAllocator);
+      PropertiesComponent.getInstance(myProject).setValue(ALLOCATION_VIEW_ID + GROUP_BY_NAME, myGroupByName);
+    }
   }
 
   private ActionGroup getMainActions() {
@@ -325,20 +354,22 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
       @Override
       protected DefaultActionGroup createPopupActionGroup(JComponent button) {
         DefaultActionGroup group = new DefaultActionGroup();
-        group.add(new ChangeGroupAction(new GroupByMethod()));
-        group.add(new ChangeGroupAction(new GroupByAllocator()));
+        group.add(new ChangeGroupAction(GroupByMethod.NAME));
+        group.add(new ChangeGroupAction(GroupByAllocator.NAME));
         return group;
       }
 
       @Override
       public void update(AnActionEvent e) {
         super.update(e);
-        getTemplatePresentation().setText(myGroupBy.getName());
-        e.getPresentation().setText(myGroupBy.getName());
+        getTemplatePresentation().setText(myGroupBy.get(myGroupByName).getName());
+        e.getPresentation().setText(myGroupBy.get(myGroupByName).getName());
       }
     });
     group.add(new EditMultipleSourcesAction());
     group.add(new ShowChartAction());
+    group.add(new Separator());
+    group.add(new BrowserHelpAction("Hprof Viewer", "http://developer.android.com/r/studio-ui/am-allocation.html"));
 
     return group;
   }
@@ -419,7 +450,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
 
   @NotNull
   private MainTreeNode generateTree() {
-    MainTreeNode tree = myGroupBy.create();
+    MainTreeNode tree = myGroupBy.get(myGroupByName).create();
     for (AllocationInfo alloc : myAllocations) {
       tree.insert(alloc);
     }
@@ -470,7 +501,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
       renderer.append(":" + element.getLineNumber() + ", ");
       renderer.append(name);
       if (pkg != null) {
-        renderer.append(" (" + pkg + ")", new SimpleTextAttributes(Font.PLAIN, JBColor.GRAY));
+        renderer.append(" (" + pkg + ")", new SimpleTextAttributes(STYLE_PLAIN, JBColor.GRAY));
       }
     }
     else if (value instanceof AllocNode) {
@@ -489,16 +520,16 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
         renderer.append(name);
       }
     }
-    else if (value instanceof StackTraceNode) {
-      // Do nothing
-    }
-    else if (value != null) {
-      renderer.append(value.toString());
-    }
+    else //noinspection StatementWithEmptyBody
+      if (value instanceof StackTraceRootNode) {
+      }
+      else if (value != null) {
+        renderer.append(value.toString());
+      }
   }
 
   @Nullable
-  private PsiFileAndLineNavigation[] getTargetFiles(Object node) {
+  private PsiClassNavigation[] getTargetFiles(Object node) {
     if (node == null) {
       return null;
     }
@@ -520,7 +551,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
         }
       }
       if (element != null) {
-        lineNumber = element.getLineNumber();
+        lineNumber = element.getLineNumber() - 1; // Line numbers are shown as 1-based, but are 0-based in the psi.
         className = element.getClassName();
         int ix = className.indexOf("$");
         if (ix >= 0) {
@@ -529,7 +560,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
       }
     }
 
-    return PsiFileAndLineNavigation.wrappersForClassName(myProject, className, lineNumber);
+    return PsiClassNavigation.getNavigationForClass(myProject, className, lineNumber);
   }
 
   public static class NodeTableCellRenderer extends ColoredTableCellRenderer {
@@ -565,21 +596,25 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
   }
 
   static class GroupByMethod implements GroupBy {
+    public static final String NAME = "Group by Method";
+
     @Override
     public String getName() {
-      return "Group by Method";
+      return NAME;
     }
 
     @Override
     public MainTreeNode create() {
-      return new StackTraceNode();
+      return new StackTraceRootNode();
     }
   }
 
   class GroupByAllocator implements GroupBy {
+    public static final String NAME = "Group by Allocator";
+
     @Override
     public String getName() {
-      return "Group by Allocator";
+      return NAME;
     }
 
     @Override
@@ -589,23 +624,23 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
   }
 
   class ChangeGroupAction extends AnAction {
+    @NotNull
+    private String myGroupByName;
 
-    private GroupBy myGroupBy;
-
-    public ChangeGroupAction(GroupBy groupBy) {
-      super(groupBy.getName());
-      myGroupBy = groupBy;
+    public ChangeGroupAction(@NotNull String groupByName) {
+      super(groupByName);
+      myGroupByName = groupByName;
     }
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-      setGroupBy(myGroupBy);
+      setGroupByName(myGroupByName);
     }
   }
 
   class ShowChartAction extends ToggleAction {
     public ShowChartAction() {
-      super("", "", AndroidIcons.Sunburst);
+      super("Show/Hide Chart", "Shows/hides the allocation chart and stack trace", AndroidIcons.Sunburst);
     }
 
     @Override
@@ -615,6 +650,7 @@ public class AllocationsView implements SunburstChart.SliceSelectionListener {
 
     @Override
     public void setSelected(AnActionEvent e, boolean state) {
+      PropertiesComponent.getInstance().setValue(ALLOCATION_VIEW_ID + SHOW_CHART_STATE, state);
       if (state) {
         mySplitter.setSecondComponent(myChartPane);
       }

@@ -18,13 +18,15 @@ package com.android.tools.adtui.common.formatter;
 import gnu.trove.TIntArrayList;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.DecimalFormat;
+
 /**
  * An auxiliary object that formats the axis by determining the marker placement positions and their
  * corresponding labels.
  */
 public abstract class BaseAxisFormatter {
 
-  private int mMultiplier;
+  private long mMultiplier;
 
   private final int mMaxMinorTicks;
 
@@ -53,13 +55,17 @@ public abstract class BaseAxisFormatter {
   /**
    * @param globalRange The global range of the axis.
    * @param value       The value to display.
+   * @param includeUnit Whether to include unit in the display.
    * @return A nicely formatted string to display as the tick label.
    */
   @NotNull
-  public String getFormattedString(double globalRange, double value) {
+  public String getFormattedString(double globalRange, double value, boolean includeUnit) {
     int index = getMultiplierIndex(globalRange, 1);
-    String unit = getUnit(index);
-    return String.format("%.2f%s", (float)value / mMultiplier, unit);
+    // If value is an integer number, don't include the floating point/decimal places in the formatted string.
+    // Otherwise, add up to two decimal places of value.
+    DecimalFormat decimalFormat = new DecimalFormat("#.##");
+    String formattedValue = decimalFormat.format((float)(value) / mMultiplier);
+    return includeUnit ? String.format("%s%s", formattedValue, getUnit(index)) : formattedValue;
   }
 
   /**
@@ -67,7 +73,7 @@ public abstract class BaseAxisFormatter {
    *
    * @param range The range to calculate intervals for.
    */
-  public int getMajorInterval(double range) {
+  public long getMajorInterval(double range) {
     return getInterval(range, mMaxMajorTicks);
 
   }
@@ -77,7 +83,7 @@ public abstract class BaseAxisFormatter {
    *
    * @param range The range to calculate intervals for.
    */
-  public int getMinorInterval(double range) {
+  public long getMinorInterval(double range) {
     return getInterval(range, mMaxMinorTicks);
 
   }
@@ -85,7 +91,7 @@ public abstract class BaseAxisFormatter {
   /**
    * Determines the interval value for a particular range given the number of ticks that should be used.
    */
-  public int getInterval(double range, int numTicks) {
+  public long getInterval(double range, int numTicks) {
     int index = getMultiplierIndex(range, mSwitchThreshold);
     int base = getUnitBase(index);
     int minInterval = getUnitMinimalInterval(index);
@@ -140,7 +146,7 @@ public abstract class BaseAxisFormatter {
     mMultiplier = 1;
     int count = getNumUnits();
     for (int i = 0; i < count; i++) {
-      int temp = mMultiplier * getUnitMultiplier(i);
+      long temp = mMultiplier * getUnitMultiplier(i);
       if (value <= temp * threshold) {
         return i;
       }
@@ -221,7 +227,7 @@ public abstract class BaseAxisFormatter {
     return factors;
   }
 
-  protected int getMultiplier() {
+  protected long getMultiplier() {
     return mMultiplier;
   };
 }

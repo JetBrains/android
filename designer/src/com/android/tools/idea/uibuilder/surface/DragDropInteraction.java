@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.uibuilder.api.*;
+import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Interaction where you insert a new component into a parent layout (which can vary
@@ -57,30 +59,45 @@ import java.util.List;
  */
 public class DragDropInteraction extends Interaction {
 
-  /** The surface associated with this interaction. */
+  /**
+   * The surface associated with this interaction.
+   */
   private final DesignSurface myDesignSurface;
 
-  /** The components being dragged */
+  /**
+   * The components being dragged
+   */
   private final List<NlComponent> myDraggedComponents;
 
-  /** The current view group handler, if any. This is the layout widget we're dragging over (or the
+  /**
+   * The current view group handler, if any. This is the layout widget we're dragging over (or the
    * nearest layout widget containing the non-layout views we're dragging over
    */
   private ViewGroupHandler myCurrentHandler;
 
-  /** The drag handler for the layout view, if it supports drags */
+  /**
+   * The drag handler for the layout view, if it supports drags
+   */
   private DragHandler myDragHandler;
 
-  /** The view group we're dragging over/into */
+  /**
+   * The view group we're dragging over/into
+   */
   private NlComponent myDragReceiver;
 
-  /** Whether we're copying or moving */
+  /**
+   * Whether we're copying or moving
+   */
   private DragType myType = DragType.MOVE;
 
-  /** The last accessed screen view. */
+  /**
+   * The last accessed screen view.
+   */
   private ScreenView myScreenView;
 
-  /** The transfer item for this drag if any */
+  /**
+   * The transfer item for this drag if any
+   */
   private DnDTransferItem myTransferItem;
 
   public DragDropInteraction(@NotNull DesignSurface designSurface, @NotNull List<NlComponent> dragged) {
@@ -136,11 +153,15 @@ public class DragDropInteraction extends Interaction {
     if (myScreenView == null) {
       return;
     }
+    myDesignSurface.getLayeredPane().scrollRectToVisible(
+      new Rectangle(x - NlConstants.DEFAULT_SCREEN_OFFSET_X, y - NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+                    2 * NlConstants.DEFAULT_SCREEN_OFFSET_X, 2 * NlConstants.DEFAULT_SCREEN_OFFSET_Y));
     final int ax = Coordinates.getAndroidX(myScreenView, x);
     final int ay = Coordinates.getAndroidY(myScreenView, y);
 
     Project project = myScreenView.getModel().getProject();
     ViewGroupHandler handler = findViewGroupHandlerAt(ax, ay);
+
     if (handler != myCurrentHandler) {
       if (myDragHandler != null) {
         myDragHandler.cancel();
@@ -155,7 +176,7 @@ public class DragDropInteraction extends Interaction {
         String error = null;
         ViewHandlerManager viewHandlerManager = ViewHandlerManager.get(project);
         for (NlComponent component : myDraggedComponents) {
-          if (!myCurrentHandler.acceptsChild(myDragReceiver, component)) {
+          if (!myCurrentHandler.acceptsChild(myDragReceiver, component, ax, ay)) {
             error = String.format("<%1$s> does not accept <%2$s> as a child", myDragReceiver.getTagName(), component.getTagName());
             break;
           }
@@ -171,7 +192,8 @@ public class DragDropInteraction extends Interaction {
             myDragHandler
               .start(Coordinates.getAndroidX(myScreenView, myStartX), Coordinates.getAndroidY(myScreenView, myStartY), myStartMask);
           }
-        } else {
+        }
+        else {
           myCurrentHandler = null;
         }
       }
@@ -188,16 +210,8 @@ public class DragDropInteraction extends Interaction {
         WriteCommandAction action = new WriteCommandAction(project, label, file) {
           @Override
           protected void run(@NotNull Result result) throws Throwable {
-            myDragHandler.commit(ax, ay, modifiers); // TODO: Run this *after* making a copy
-
-            NlComponent before = null;
-            int insertIndex = myDragHandler.getInsertIndex();
-            if (insertIndex != -1 && insertIndex < myDragReceiver.getChildCount()) {
-              before = myDragReceiver.getChild(insertIndex);
-            }
-
             InsertType insertType = model.determineInsertType(myType, myTransferItem, false /* not for preview */);
-            model.addComponents(myDraggedComponents, myDragReceiver, before, insertType);
+            myDragHandler.commit(ax, ay, modifiers, insertType); // TODO: Run this *after* making a copy
           }
         };
         action.execute();
@@ -218,7 +232,9 @@ public class DragDropInteraction extends Interaction {
    */
   private ViewGroupHandler myCachedHandler;
 
-  /** Cached handler for the most recent call to {@link #findViewGroupHandlerAt} */
+  /**
+   * Cached handler for the most recent call to {@link #findViewGroupHandlerAt}
+   */
   private NlComponent myCachedComponent;
 
   @Nullable
@@ -239,9 +255,10 @@ public class DragDropInteraction extends Interaction {
 
     ViewHandlerManager handlerManager = ViewHandlerManager.get(model.getFacet());
     while (component != null) {
-      ViewHandler handler = handlerManager.getHandler(component);
-      if (handler instanceof ViewGroupHandler && dropIsPossible(handlerManager, component, (ViewGroupHandler)handler)) {
-        myCachedHandler = (ViewGroupHandler)handler;
+      Object handler = handlerManager.getHandler(component);
+
+      if (handler instanceof ViewGroupHandler && acceptsDrop(component, (ViewGroupHandler)handler, x, y)) {
+        myCachedHandler = (ViewGroupHandler)handlerManager.getHandler(component);
         myDragReceiver = component; // HACK: This method should not side-effect set this; instead the method should compute it!
         return myCachedHandler;
       }
@@ -250,19 +267,6 @@ public class DragDropInteraction extends Interaction {
     }
 
     return null;
-  }
-
-  private boolean dropIsPossible(@NotNull ViewHandlerManager handlerManager, @NotNull NlComponent component, @NotNull ViewGroupHandler layout) {
-    for (NlComponent dragged : myDraggedComponents) {
-      if (!layout.acceptsChild(component, dragged)) {
-        return false;
-      }
-      ViewHandler handler = handlerManager.getHandler(dragged);
-      if (handler != null && !handler.acceptsParent(component, dragged)) {
-        return false;
-      }
-    }
-    return true;
   }
 
   @Nullable
@@ -277,19 +281,33 @@ public class DragDropInteraction extends Interaction {
     return receiver;
   }
 
+  private boolean acceptsDrop(@NotNull NlComponent parent,
+                              @NotNull ViewGroupHandler parentHandler,
+                              @AndroidCoordinate int x,
+                              @AndroidCoordinate int y) {
+    ScreenView view = myDesignSurface.getScreenView(x, y);
+    assert view != null;
+
+    ViewHandlerManager manager = ViewHandlerManager.get(view.getModel().getFacet());
+
+    Predicate<NlComponent> acceptsChild = child -> parentHandler.acceptsChild(parent, child, x, y);
+
+    Predicate<NlComponent> acceptsParent = child -> {
+      ViewHandler childHandler = manager.getHandler(child);
+      return childHandler != null && childHandler.acceptsParent(parent, child);
+    };
+
+    return myDraggedComponents.stream().allMatch(acceptsChild.and(acceptsParent));
+  }
+
   @Override
   public List<Layer> createOverlays() {
-    return Collections.<Layer>singletonList(new DragLayer());
+    return Collections.singletonList(new DragLayer());
   }
 
   @NotNull
   public List<NlComponent> getDraggedComponents() {
     return myDraggedComponents;
-  }
-
-  @Nullable
-  public NlComponent getDragReceiver() {
-    return myDragReceiver;
   }
 
   /**

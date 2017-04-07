@@ -15,40 +15,44 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
+import com.android.tools.idea.uibuilder.util.NlTreeDumper;
+import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.xml.XmlTag;
-import org.junit.Before;
-import org.junit.Test;
+import org.jetbrains.android.AndroidTestCase;
 
 import java.util.Arrays;
 import java.util.Collections;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.TOOLS_URI;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public final class NlComponentTest {
+public final class NlComponentTest extends AndroidTestCase {
   private NlModel myModel;
 
-  @Before
-  public void mockModel() {
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+
     myModel = mock(NlModel.class);
   }
 
   private static XmlTag createTag(String tagName) {
     XmlTag tag = mock(XmlTag.class);
     when(tag.getName()).thenReturn(tagName);
+
     return tag;
   }
 
-  @Test
-  public void needsDefaultId() {
+  public void testNeedsDefaultId() {
     assertFalse(new NlComponent(myModel, createTag("SwitchPreference")).needsDefaultId());
   }
 
-  @Test
-  public void test() {
+  public void testBasic() {
     NlComponent linearLayout = new NlComponent(myModel, createTag("LinearLayout"));
     NlComponent textView = new NlComponent(myModel, createTag("TextView"));
     NlComponent button = new NlComponent(myModel, createTag("Button"));
@@ -78,6 +82,127 @@ public final class NlComponentTest {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x800}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[0,0:200x100}\n" +
                  "    NlComponent{tag=<Button>, bounds=[10,110:400x100}",
-                 LayoutTestUtilities.toTree(Collections.singletonList(linearLayout)));
+                 NlTreeDumper.dumpTree(Collections.singletonList(linearLayout)));
+  }
+
+  private XmlTag createTagFromXml(String xml) {
+    return XmlElementFactory.getInstance(myModule.getProject()).createTagFromText(xml);
+  }
+
+  public void testAttributeTransactions() {
+    XmlTag linearLayoutXmlTag = createTagFromXml(
+      "<LinearLayout" +
+      " xmlns:android=\"" + ANDROID_URI + "\"" +
+      " xmlns:tools=\"" + TOOLS_URI + "\"" +
+      " android:layout_width=\"wrap_content\"" +
+      " android:layout_height=\"wrap_content\" />");
+    XmlTag textViewXmlTag = createTagFromXml(
+      "<TextView" +
+      " xmlns:android=\"" + ANDROID_URI + "\"" +
+      " xmlns:tools=\"" + TOOLS_URI + "\"" +
+      " android:text=\"Initial\"" +
+      " android:layout_width=\"wrap_content\"" +
+      " android:layout_height=\"wrap_content\" />");
+
+    NlComponent linearLayout = new NlComponent(myModel, linearLayoutXmlTag);
+    NlComponent textView = new NlComponent(myModel, textViewXmlTag);
+
+    linearLayout.addChild(textView);
+
+    AttributesTransaction transaction = textView.startAttributeTransaction();
+    assertEquals(transaction, textView.startAttributeTransaction());
+    assertNotEquals(transaction, linearLayout.startAttributeTransaction());
+
+    assertFalse(transaction.isComplete());
+    assertFalse(transaction.isSuccessful());
+
+    assertEquals("wrap_content", transaction.getAndroidAttribute("layout_width"));
+    assertEquals("Initial", transaction.getAndroidAttribute("text"));
+
+    transaction.setAndroidAttribute("layout_width", "150dp");
+    transaction.setAttribute(ANDROID_URI, "text", "Hello world");
+
+    // Before rollback
+    assertEquals("150dp", transaction.getAndroidAttribute("layout_width"));
+    assertEquals("Hello world", transaction.getAndroidAttribute("text"));
+    assertEquals("wrap_content", textViewXmlTag.getAttribute("android:layout_width").getValue());
+    assertEquals("Initial", textViewXmlTag.getAttribute("android:text").getValue());
+
+    assertTrue(transaction.rollback());
+
+    assertTrue(transaction.isComplete());
+    assertFalse(transaction.isSuccessful());
+
+    assertEquals("wrap_content", textViewXmlTag.getAttribute("android:layout_width").getValue());
+    assertEquals("Initial", textViewXmlTag.getAttribute("android:text").getValue());
+
+    AttributesTransaction oldTransaction = transaction;
+    transaction = textView.startAttributeTransaction();
+    assertNotEquals(oldTransaction, transaction);
+    assertFalse(transaction.commit()); // Empty commit
+
+    transaction = textView.startAttributeTransaction();
+    transaction.setAttribute(ANDROID_URI, "layout_width", "150dp");
+    // Check the namespace handling
+    transaction.setAttribute(TOOLS_URI, "layout_width", "TOOLS-WIDTH");
+    transaction.setAndroidAttribute("text", "Hello world");
+
+    // Before commit
+    // - The XML tag will have the old values
+    // - The NlComponent will have the old values
+    // - Only the transaction will have the new values
+    assertEquals("wrap_content", textViewXmlTag.getAttribute("android:layout_width").getValue());
+    assertEquals("Initial", textViewXmlTag.getAttribute("android:text").getValue());
+    assertEquals("wrap_content", textView.getAndroidAttribute("layout_width"));
+    assertEquals("Initial", textView.getAndroidAttribute("text"));
+    assertEquals("150dp", transaction.getAndroidAttribute("layout_width"));
+    assertEquals("Hello world", transaction.getAndroidAttribute("text"));
+
+    assertTrue(transaction.commit());
+    assertTrue(transaction.isSuccessful());
+    assertTrue(transaction.isComplete());
+
+    // Check XML tag values after the commit
+    assertEquals("150dp", textViewXmlTag.getAttribute("android:layout_width").getValue());
+    assertEquals("TOOLS-WIDTH", textViewXmlTag.getAttribute("tools:layout_width").getValue());
+    assertEquals("Hello world", textViewXmlTag.getAttribute("android:text").getValue());
+  }
+
+  public void testAttributeTransactionsConflicts() {
+    XmlTag linearLayoutXmlTag = createTagFromXml(
+      "<LinearLayout" +
+      " xmlns:android=\"" + ANDROID_URI + "\"" +
+      " xmlns:tools=\"" + TOOLS_URI + "\"" +
+      " android:layout_width=\"wrap_content\"" +
+      " android:layout_height=\"wrap_content\" />");
+    XmlTag textViewXmlTag = createTagFromXml(
+      "<TextView" +
+      " xmlns:android=\"" + ANDROID_URI + "\"" +
+      " xmlns:tools=\"" + TOOLS_URI + "\"" +
+      " android:text=\"Initial\"" +
+      " android:layout_width=\"wrap_content\"" +
+      " android:layout_height=\"wrap_content\" />");
+    linearLayoutXmlTag.addSubTag(textViewXmlTag, true);
+
+    NlComponent linearLayout = new NlComponent(myModel, linearLayoutXmlTag);
+    NlComponent textView = new NlComponent(myModel, textViewXmlTag);
+
+    linearLayout.addChild(textView);
+
+    AttributesTransaction transaction = textView.startAttributeTransaction();
+    transaction.setAndroidAttribute("layout_width", "150dp");
+    transaction.setAndroidAttribute("layout_height", null);
+
+    // Change the XML tag content before the transaction is committed and remove one tag
+    textViewXmlTag.setAttribute("android:layout_width", "300dp");
+    textViewXmlTag.setAttribute("android:layout_height", "900dp");
+    assertTrue(transaction.commit());
+    assertTrue(transaction.isComplete());
+    assertTrue(transaction.isSuccessful());
+
+    // Check XML tag values after the commit (the commit takes precedence to the XML modifications)
+    assertEquals("150dp", textViewXmlTag.getAttribute("android:layout_width").getValue());
+    // Check we haven't executed the delete on the attribute that was modified
+    assertEquals("900dp", textViewXmlTag.getAttribute("android:layout_height").getValue());
   }
 }

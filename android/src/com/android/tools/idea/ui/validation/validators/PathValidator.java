@@ -200,11 +200,14 @@ public final class PathValidator implements Validator<File> {
     @NotNull
     @Override
     public String getMessage(@NotNull File file, @NotNull String fieldName) {
-      return String.format("A non-empty directory already exists at the specified %1$s.", fieldName);
+      return String.format("'%1s' already exists at the specified %2$s.", file.getName(), fieldName);
     }
   };
 
-  public static final Rule ILLEGAL_FILENAME = new RecursiveRule() {
+  /**
+   * Note: This should be an error only under Windows (for other platforms should be a warning)
+   */
+  public static final Rule ILLEGAL_WINDOWS_FILENAME = new RecursiveRule() {
     @SuppressWarnings("SpellCheckingInspection")
     private final Set<String> RESERVED_WINDOWS_FILENAMES = ImmutableSet
       .of("con", "prn", "aux", "clock$", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9", "lpt1", "lpt2",
@@ -213,13 +216,13 @@ public final class PathValidator implements Validator<File> {
 
     @Override
     public boolean matches(@NotNull FileOp fileOp, @NotNull File file) {
-      return fileOp.isWindows() && RESERVED_WINDOWS_FILENAMES.contains(file.getName().toLowerCase(Locale.US));
+      return RESERVED_WINDOWS_FILENAMES.contains(file.getName().toLowerCase(Locale.US));
     }
 
     @NotNull
     @Override
     public String getMessage(@NotNull File file, @NotNull String fieldName) {
-      return String.format("Illegal filename in %1$s path: %2$s.", fieldName, file.getName());
+      return String.format("Illegal (Windows) filename in %1$s path: %2$s.", fieldName, file.getName());
     }
   };
 
@@ -357,7 +360,7 @@ public final class PathValidator implements Validator<File> {
     public Builder withCommonRules() {
       withRule(INVALID_SLASHES, Severity.ERROR);
       withRule(ILLEGAL_CHARACTER, Severity.ERROR);
-      withRule(ILLEGAL_FILENAME, Severity.ERROR);
+      withRule(ILLEGAL_WINDOWS_FILENAME, SystemInfo.isWindows ? Severity.ERROR : Severity.WARNING);
       withRule(WHITESPACE, Severity.WARNING);
       withRule(NON_ASCII_CHARS, SystemInfo.isWindows ? Severity.ERROR : Severity.WARNING);
       withRule(PARENT_DIRECTORY_NOT_WRITABLE, Severity.ERROR);

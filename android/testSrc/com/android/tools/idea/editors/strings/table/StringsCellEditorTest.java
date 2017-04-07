@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.editors.strings.StringResourceParser;
+import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.idea.ui.TableUtils;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -24,18 +25,16 @@ import org.jetbrains.android.AndroidTestCase;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 public final class StringsCellEditorTest extends AndroidTestCase {
   public void testIsCellEditable() {
-    List<VirtualFile> resourceDirectories = Collections.singletonList(myFixture.copyDirectoryToProject("stringsEditor/base/res", "res"));
+    Collection<VirtualFile> directories = Collections.singletonList(myFixture.copyDirectoryToProject("stringsEditor/base/res", "res"));
+    LocalResourceRepository repository = ModuleResourceRepository.createForTest(myFacet, directories);
 
-    StringResourceTableModel model = new StringResourceTableModel();
-    model.setData(StringResourceParser.parse(myFacet, ModuleResourceRepository.createForTest(myFacet, resourceDirectories)));
-
-    JTable table = new JBTable(model);
-    TableUtils.selectCellAt(table, 0, 1);
+    JTable table = new JBTable(new StringResourceTableModel(StringResourceParser.parse(myFacet, repository)));
+    TableUtils.selectCellAt(table, 0, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
 
     assertTrue(new StringsCellEditor().isCellEditable(new ActionEvent(table, 0, null)));
   }

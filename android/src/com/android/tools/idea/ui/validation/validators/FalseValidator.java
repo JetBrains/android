@@ -19,7 +19,7 @@ import com.android.tools.idea.ui.validation.Validator;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A validator that returns invalid if the boolean value it is testing against is true.
+ * A validator that returns valid when the boolean value it is testing against is false.
  */
 public final class FalseValidator implements Validator<Boolean> {
   private final Result myInvalidResult;

@@ -66,8 +66,15 @@ public class AllocationsEditor implements FileEditor {
         ByteBuffer data;
         try {
           data = ByteBufferUtil.mapFile(allocationsFile, 0, ByteOrder.BIG_ENDIAN);
-        } catch (IOException ex) {
+        }
+        catch (IOException ex) {
           myErrorMessage = "Error reading from allocations file " + allocationsFile.getAbsolutePath();
+          throw new ProcessCanceledException();
+        }
+
+        if (AllocationsParser.hasOverflowedNumEntriesBug(data)) {
+          myErrorMessage =
+            "Invalid allocations file detected. Please refer to https://code.google.com/p/android/issues/detail?id=204503 for details.";
           throw new ProcessCanceledException();
         }
 
@@ -92,12 +99,8 @@ public class AllocationsEditor implements FileEditor {
         Messages.showErrorDialog(project, myErrorMessage, getName());
       }
     };
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        parseTask.queue();
-      }
-    });
+
+    ApplicationManager.getApplication().invokeLater(parseTask::queue);
   }
 
   @NotNull

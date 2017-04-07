@@ -16,6 +16,8 @@
 package com.android.tools.idea.npw.template.components;
 
 import com.android.tools.idea.templates.Parameter;
+import com.android.tools.idea.ui.wizard.WizardUtils;
+import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -37,7 +39,7 @@ public abstract class ParameterComponentProvider<T extends JComponent> extends C
   @Override
   public final T createComponent() {
     T component = createComponent(myParameter);
-    component.setToolTipText(myParameter.help);
+    component.setToolTipText(WizardUtils.toHtmlString(Strings.nullToEmpty(myParameter.help)));
     return component;
   }
 

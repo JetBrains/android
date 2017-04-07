@@ -22,6 +22,7 @@ import com.android.tools.adtui.EventData;
 import com.android.tools.adtui.TimelineComponent;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.ddms.EdtExecutor;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
@@ -131,13 +132,8 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
     myOverlayText.setBackground(UIUtil.TRANSPARENT_COLOR);
     myOverlayText.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
 
-    myOverlayLookup = new HashMap<String, ZOrderedOverlayText>();
-    myVisibleOverlays = new PriorityQueue<ZOrderedOverlayText>(5, new Comparator<ZOrderedOverlayText>() {
-      @Override
-      public int compare(ZOrderedOverlayText a, ZOrderedOverlayText b) {
-        return a.myZ - b.myZ;
-      }
-    });
+    myOverlayLookup = new HashMap<>();
+    myVisibleOverlays = new PriorityQueue<>(5, (a, b) -> a.myZ - b.myZ);
 
     myTextPanel.add(myOverlayText);
     myTextPanel.setVisible(false);
@@ -229,22 +225,12 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
 
   @Override
   public void onStart() {
-    EdtExecutor.INSTANCE.execute(new Runnable() {
-      @Override
-      public void run() {
-        setOverlayEnabled(PAUSED_LABEL, false);
-      }
-    });
+    EdtExecutor.INSTANCE.execute(() -> setOverlayEnabled(PAUSED_LABEL, getIsPaused()));
   }
 
   @Override
   public void onStop() {
-    EdtExecutor.INSTANCE.execute(new Runnable() {
-      @Override
-      public void run() {
-        setOverlayEnabled(PAUSED_LABEL, true);
-      }
-    });
+    EdtExecutor.INSTANCE.execute(() -> setOverlayEnabled(PAUSED_LABEL, true));
   }
 
   @NotNull
@@ -258,6 +244,9 @@ public abstract class BaseMonitorView<T extends DeviceSampler>
 
   @NotNull
   public abstract String getDescription();
+
+  public abstract AndroidStudioEvent.MonitorType getMonitorType();
+
 
   @NotNull
   public Color getViewBackgroundColor() {

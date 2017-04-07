@@ -215,10 +215,11 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
                              @Nullable Collection<String> plugins,
                              @Nullable Collection<File> sourceFiles,
                              @Nullable Collection<File> targetFiles) {
+    RenderingContext context = null;
     try {
       File moduleRoot = new File(myModule.getModuleFilePath()).getParentFile();
       // @formatter:off
-      RenderingContext context = RenderingContext.Builder
+      context = RenderingContext.Builder
         .newContext(myRootPath, myModule.getProject())
         .withParams(myContext.toValueMap())
         .withOutputRoot(moduleRoot)
@@ -239,6 +240,8 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
       recipe.execute(recipeExecutor);
     }
     catch (TemplateProcessingException e) {
+      // TODO(b/31039466): Extra logging to track down a rare issue.
+      LOG.warn("Template processing exception with context in the following state: " + context);
       throw new RuntimeException(e);
     }
     catch (JAXBException e) {

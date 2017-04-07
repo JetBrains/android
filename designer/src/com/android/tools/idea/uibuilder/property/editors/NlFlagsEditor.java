@@ -18,23 +18,21 @@ package com.android.tools.idea.uibuilder.property.editors;
 import com.android.tools.idea.uibuilder.property.NlFlagPropertyItem;
 import com.android.tools.idea.uibuilder.property.NlProperty;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextFieldUI;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.ui.Gray;
-import com.intellij.ui.JBColor;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.plaf.TextUI;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowFocusListener;
+import java.awt.event.*;
 
 import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
@@ -60,11 +58,18 @@ public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentE
                                            ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE);
     myValue = new CustomTextField();
     myValue.setEditable(false);
+    myValue.setFocusable(true);
     myPanel = new JPanel(new BorderLayout(HORIZONTAL_COMPONENT_GAP, 0));
-    myPanel.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, 1, VERTICAL_SPACING, 0));
+    myPanel.setBorder(BorderFactory.createEmptyBorder(VERTICAL_SPACING, 0, VERTICAL_SPACING, 0));
     myPanel.add(myValue, BorderLayout.CENTER);
     myPanel.add(button, BorderLayout.LINE_END);
     myValue.addActionListener(event -> displayFlagEditor());
+    myValue.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyTyped(KeyEvent e) {
+        displayFlagEditor();
+      }
+    });
     myValue.addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
@@ -171,22 +176,36 @@ public class NlFlagsEditor extends NlBaseComponentEditor implements NlComponentE
     }
   }
 
+  /**
+   * {@link CustomTextField} gives us a consistent UI between all the editors.
+   * We achieve this by always using a Darcula UI.
+   * Note: forcing the Darcula UI does not imply dark colors.
+   *
+   * Instead we get consistent spacing with ComboBox and the text editor.
+   */
   private static class CustomTextField extends JTextField {
-    private static final JBColor BORDER_COLOR = new JBColor(Gray._150, Gray._100);
 
     public CustomTextField() {
-      setBorder(BorderFactory.createCompoundBorder(
-        BorderFactory.createLineBorder(BORDER_COLOR, 1),
-        BorderFactory.createEmptyBorder(VERTICAL_PADDING, HORIZONTAL_PADDING - 2, VERTICAL_PADDING, 0)));
+      setBorder(new DarculaTextBorder());
     }
 
     @Override
     public void setUI(TextUI ui) {
-      // We always want the Darcula UI.
-      // This allows us to show a consistent UI between all the editors.
-      // In this case we get consistent spacing with ComboBox and the text editor.
-      // Note: forcing the Darcula UI does not imply dark colors.
-      super.setUI(new DarculaTextFieldUI(this));
+      super.setUI(new CustomTextFieldUI(this));
+    }
+  }
+
+  private static class CustomTextFieldUI extends DarculaTextFieldUI {
+
+    public CustomTextFieldUI(JTextField textField) {
+      super(textField);
+    }
+
+    @Override
+    protected void paintDarculaBackground(Graphics2D graphics2D, JTextComponent component, Border border) {
+      // Override the background color of this non editable JTextField
+      graphics2D.setColor(component.getBackground());
+      super.paintDarculaBackground(graphics2D, component, border);
     }
   }
 }

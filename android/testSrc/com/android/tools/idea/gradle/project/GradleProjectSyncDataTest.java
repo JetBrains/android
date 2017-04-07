@@ -15,21 +15,23 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.PathUtil;
 
 import java.io.*;
 import java.util.Map;
 
+import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
+
 public class GradleProjectSyncDataTest extends AndroidGradleTestCase {
   public void testEndToEnd() throws Exception {
-    loadProject("projects/projectWithAppandLib");
+    loadProject(PROJECT_WITH_APPAND_LIB);
 
     Project project = myAndroidFacet.getModule().getProject();
     GradleSyncState syncState = GradleSyncState.getInstance(project);
-    long previousSyncTime = syncState.getLastGradleSyncTimestamp();
+    long previousSyncTime = syncState.getSummary().getSyncTimestamp();
 
     GradleProjectSyncData data = GradleProjectSyncData.createFrom(project);
     verifyGradleProjectSyncData(data, previousSyncTime);
@@ -47,7 +49,7 @@ public class GradleProjectSyncDataTest extends AndroidGradleTestCase {
     verifyGradleProjectSyncData(newData, previousSyncTime);
   }
 
-  private void verifyGradleProjectSyncData(GradleProjectSyncData data, long previousSyncTime) {
+  private static void verifyGradleProjectSyncData(GradleProjectSyncData data, long previousSyncTime) {
     assertNotNull(data);
 
     Map<String, byte[]> checksums = data.getFileChecksums();

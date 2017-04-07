@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.preference;
 
+import com.android.tools.idea.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.intellij.lang.annotations.Language;

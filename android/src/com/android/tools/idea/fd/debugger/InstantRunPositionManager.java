@@ -23,6 +23,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.run.AndroidSessionInfo;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -41,7 +42,6 @@ import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XDebuggerManager;
 import com.sun.jdi.Location;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -145,7 +145,7 @@ public class InstantRunPositionManager extends PositionManagerImpl {
   }
 
   private static Collection<? extends LocalPackage> getAllPlatformSourcePackages() {
-    AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+    AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     RepoManager sdkManager =
       sdkHandler.getSdkManager(new StudioLoggerProgressIndicator(InstantRunPositionManager.class));
     return sdkManager.getPackages().getLocalPackagesForPrefix(SdkConstants.FD_ANDROID_SOURCES);

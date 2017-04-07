@@ -60,7 +60,7 @@ public class ThemePreviewComponent extends JPanel implements Disposable {
     // Adds the Device selection button
     DefaultActionGroup group = new DefaultActionGroup();
     group.add(new OrientationMenuAction(myPreviewPanel));
-    group.add(new DeviceMenuAction(myPreviewPanel, false));
+    group.add(new DeviceMenuAction(myPreviewPanel));
     group.add(new TargetMenuAction(myPreviewPanel, true, false));
     group.add(new LocaleMenuAction(myPreviewPanel, false));
 

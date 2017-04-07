@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.uibuilder.actions.UpgradeConstraintLayoutFix;
+import com.android.tools.idea.lint.UpgradeConstraintLayoutFix;
 import com.android.utils.HtmlBuilder;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -733,7 +733,7 @@ public class RenderLogger extends LayoutLog {
       builder.add("Please rebuild the project and then clear the cache by clicking the refresh icon above the preview.").newline();
       return;
     }
-    builder.addLink("Please try a ", "rebuild", ".", linkManager.createCompileModuleUrl());
+    builder.addLink("Please try a ", "rebuild", ".", linkManager.createBuildProjectUrl());
     builder.newline().newline();
     if (!addShowExceptionLink) {
       return;

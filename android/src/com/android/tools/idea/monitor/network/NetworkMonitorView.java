@@ -20,6 +20,7 @@ import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.ddms.DeviceContext;
 import com.android.tools.idea.monitor.BaseMonitorView;
 import com.android.tools.idea.monitor.actions.RecordingAction;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.MonitorType;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Separator;
@@ -137,5 +138,10 @@ public class NetworkMonitorView extends BaseMonitorView<NetworkSampler> implemen
   @Override
   public String getDescription() {
     return "network data usage";
+  }
+
+  @Override
+  public MonitorType getMonitorType() {
+    return MonitorType.NETWORK;
   }
 }

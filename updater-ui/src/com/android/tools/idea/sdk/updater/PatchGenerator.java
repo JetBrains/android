@@ -113,7 +113,7 @@ public class PatchGenerator {
 
       // The expected format is for the patch to be inside the package zip.
       try (FileSystem destFs =
-             FileSystems.newFileSystem(URI.create("jar:" + outputJar.toURI()), ImmutableMap.of("create", "true"));
+             FileSystems.newFileSystem(URI.create("jar:" + outputJar.toURI()), ImmutableMap.of("create", "true", "useTempFile", true));
            InputStream is = new BufferedInputStream(new FileInputStream(patchZip))) {
         Files.copy(is, destFs.getPath("patch-file.zip"));
       }

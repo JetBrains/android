@@ -51,14 +51,16 @@ public class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
   }
 
   private boolean check(String name, GlobalSearchScope scope) {
-    return SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT.equals(name) && myComponent.hasAnyDataBindingEnabledFacet() &&
-           scope.getProject() != null && myComponent.getProject().equals(scope.getProject());
+    return isEnabled()
+           && SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT.equals(name)
+           && scope.getProject() != null
+           && myComponent.getProject().equals(scope.getProject());
   }
 
   @NotNull
   @Override
   public String[] getAllClassNames() {
-    if (myComponent.hasAnyDataBindingEnabledFacet()) {
+    if (isEnabled()) {
       return ourClassNames;
     } else {
       return ArrayUtil.EMPTY_STRING_ARRAY;
@@ -67,7 +69,7 @@ public class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
 
   @Override
   public void getAllClassNames(@NotNull HashSet<String> dest) {
-    if (myComponent.hasAnyDataBindingEnabledFacet()) {
+    if (isEnabled()) {
       dest.add(SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT);
     }
   }
@@ -123,5 +125,9 @@ public class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
   @Override
   public void getAllFieldNames(@NotNull HashSet<String> set) {
 
+  }
+
+  private boolean isEnabled() {
+    return DataBindingUtil.inMemoryClassGenerationIsEnabled() && myComponent.hasAnyDataBindingEnabledFacet();
   }
 }

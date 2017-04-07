@@ -22,7 +22,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.fd.client.InstantRunBuildInfo;
 import com.android.tools.idea.fd.InstantRunContext;
 import com.android.tools.idea.fd.InstantRunManager;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.GradleInstantRunContext;
 import com.android.tools.idea.run.ApkProviderUtil;
 import com.android.tools.idea.run.ApkProvisionException;
@@ -40,16 +40,9 @@ import java.io.IOException;
 
 public class InstantRunGradleUtils {
   @NotNull
-  public static InstantRunGradleSupport getIrSupportStatus(@Nullable AndroidGradleModel model, @Nullable AndroidVersion deviceVersion) {
+  public static InstantRunGradleSupport getIrSupportStatus(@Nullable AndroidModuleModel model, @Nullable AndroidVersion deviceVersion) {
     if (model == null) {
       return InstantRunGradleSupport.NO_GRADLE_MODEL;
-    }
-
-    if (!modelSupportsInstantRun(model)) {
-      if (model.getAndroidProject().getPluginGeneration() == AndroidProject.GENERATION_COMPONENT) {
-        return InstantRunGradleSupport.USES_EXPERIMENTAL_PLUGIN;
-      }
-      return InstantRunGradleSupport.GRADLE_PLUGIN_TOO_OLD;
     }
 
     try {
@@ -58,7 +51,12 @@ public class InstantRunGradleUtils {
         return modelStatus;
       }
     } catch (UnsupportedOperationException e) {
-      // gradle model does not support getting instant run status, query the variant
+      // If we failed to get details about why IR is not supported, then it is possible we are using an older version of the model
+      if (!modelSupportsInstantRun(model)) {
+        return InstantRunGradleSupport.GRADLE_PLUGIN_TOO_OLD;
+      }
+
+      // If model is high enough that it supports instant run, then check whether the variant supports it as well..
       if (!variantSupportsInstantRun(model)) {
         return InstantRunGradleSupport.VARIANT_DOES_NOT_SUPPORT_INSTANT_RUN;
       }
@@ -95,7 +93,7 @@ public class InstantRunGradleUtils {
     return false;
   }
 
-  public static boolean variantSupportsInstantRun(@NotNull AndroidGradleModel model) {
+  public static boolean variantSupportsInstantRun(@NotNull AndroidModuleModel model) {
     try {
       return model.getSelectedVariant().getMainArtifact().getInstantRun().isSupportedByArtifact();
     } catch (Throwable e) {
@@ -104,19 +102,19 @@ public class InstantRunGradleUtils {
   }
 
   /** Returns true if Instant Run is supported for this gradle model (whether or not it's enabled) */
-  public static boolean modelSupportsInstantRun(@NotNull AndroidGradleModel model) {
+  public static boolean modelSupportsInstantRun(@NotNull AndroidModuleModel model) {
     GradleVersion modelVersion = model.getModelVersion();
     return modelVersion == null || modelVersion.compareTo(InstantRunManager.MINIMUM_GRADLE_PLUGIN_VERSION) >= 0;
   }
 
   @Nullable
-  public static AndroidGradleModel getAppModel(@NotNull Module module) {
+  public static AndroidModuleModel getAppModel(@NotNull Module module) {
     AndroidFacet facet = findAppModule(module, module.getProject());
     if (facet == null) {
       return null;
     }
 
-    return AndroidGradleModel.get(facet);
+    return AndroidModuleModel.get(facet);
   }
 
   @Nullable
@@ -124,7 +122,7 @@ public class InstantRunGradleUtils {
     if (module != null) {
       assert module.getProject() == project;
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && !facet.isLibraryProject()) {
+      if (facet != null && facet.isAppProject()) {
         return facet;
       }
     }
@@ -135,7 +133,7 @@ public class InstantRunGradleUtils {
 
     for (Module m : ModuleManager.getInstance(project).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(m);
-      if (facet != null && !facet.isLibraryProject()) {
+      if (facet != null && facet.isAppProject()) {
         return facet;
       }
     }
@@ -143,7 +141,7 @@ public class InstantRunGradleUtils {
   }
 
   @Nullable
-  public static InstantRunBuildInfo getBuildInfo(@NonNull AndroidGradleModel model) {
+  public static InstantRunBuildInfo getBuildInfo(@NonNull AndroidModuleModel model) {
     File buildInfo = getLocalBuildInfoFile(model);
     if (!buildInfo.exists()) {
       return null;
@@ -161,7 +159,7 @@ public class InstantRunGradleUtils {
   }
 
   @NotNull
-  private static File getLocalBuildInfoFile(@NotNull AndroidGradleModel model) {
+  private static File getLocalBuildInfoFile(@NotNull AndroidModuleModel model) {
     InstantRun instantRun = model.getSelectedVariant().getMainArtifact().getInstantRun();
     return instantRun.getInfoFile();
   }

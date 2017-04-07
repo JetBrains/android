@@ -1,6 +1,6 @@
 package com.android.tools.idea.gradle.run;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.Projects;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
@@ -20,7 +20,7 @@ public class AndroidGradleTestTasksProvider implements GradleTestTasksProvider {
   @Override
   public List<String> getTasks(@NotNull Module module) {
     if (Projects.isBuildWithGradle(module)) {
-      AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+      AndroidModuleModel androidModel = AndroidModuleModel.get(module);
       if (androidModel != null) {
         final String variant = androidModel.getSelectedVariant().getName();
         final String testTask = "test" + StringUtil.capitalize(variant) + "UnitTest";

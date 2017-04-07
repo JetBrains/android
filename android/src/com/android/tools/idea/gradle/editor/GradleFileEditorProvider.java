@@ -47,10 +47,6 @@ public class GradleFileEditorProvider implements FileEditorProvider, DumbAware {
     return new GradleFileEditor(file, project);
   }
 
-  @Override
-  public void disposeEditor(@NotNull FileEditor editor) {
-  }
-
   @NotNull
   @Override
   public String getEditorTypeId() {

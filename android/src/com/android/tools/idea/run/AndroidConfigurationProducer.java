@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.run.testing.AndroidTestRunConfigurationType;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.Location;
 import com.intellij.execution.actions.ConfigurationContext;
@@ -90,7 +90,7 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
       .getDefaultTargetSelectionMode(context.getModule(), AndroidRunConfigurationType.getInstance(),
                                      AndroidTestRunConfigurationType.getInstance());
     if (targetSelectionMode != null) {
-      configuration.setTargetSelectionMode(targetSelectionMode);
+      configuration.getDeployTargetContext().setTargetSelectionMode(targetSelectionMode);
     }
     return true;
   }

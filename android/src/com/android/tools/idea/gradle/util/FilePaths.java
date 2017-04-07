@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.util;
 
 import com.intellij.openapi.roots.ContentEntry;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,12 +23,15 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 
+import static com.android.SdkConstants.EXT_JAR;
+import static com.android.SdkConstants.EXT_ZIP;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.vfs.StandardFileSystems.FILE_PROTOCOL;
+import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL;
 import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
-import static com.intellij.openapi.vfs.VfsUtilCore.pathToUrl;
-import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
+import static com.intellij.openapi.vfs.VfsUtilCore.*;
+import static com.intellij.openapi.vfs.VirtualFileManager.constructUrl;
 import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
 public final class FilePaths {
@@ -64,7 +66,7 @@ public final class FilePaths {
       rootFilePath = new File(s);
     }
     else {
-      rootFilePath = VfsUtilCore.virtualToIoFile(rootFile);
+      rootFilePath = virtualToIoFile(rootFile);
     }
     return isAncestor(rootFilePath, path, false);
   }
@@ -81,6 +83,27 @@ public final class FilePaths {
   @NotNull
   public static String pathToIdeaUrl(@NotNull File path) {
     return pathToUrl(toSystemIndependentName(path.getPath()));
+  }
+
+  /**
+   * Converts the given path to an URL. It handles both "file" and "jar" file systems.
+   *
+   * @param path the given path.
+   * @return the created URL.
+   */
+  @NotNull
+  public static String pathToUrl(@NotNull String path) {
+    File file = new File(path);
+
+    String name = file.getName();
+    boolean isJarFile = extensionEquals(name, EXT_JAR) || extensionEquals(name, EXT_ZIP);
+    // .jar files require an URL with "jar" protocol.
+    String protocol = isJarFile ? JAR_PROTOCOL : FILE_PROTOCOL;
+    String url = constructUrl(protocol, toSystemIndependentName(file.getPath()));
+    if (isJarFile) {
+      url += JAR_SEPARATOR;
+    }
+    return url;
   }
 
   @Nullable

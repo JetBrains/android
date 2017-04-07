@@ -180,7 +180,7 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
       if (constraintModel != null) {
         int dpi = model.getConfiguration().getDensity().getDpiValue();
         constraintModel.setDpiValue(dpi);
-        constraintModel.updateNlModel(model.getComponents(), true);
+        constraintModel.updateNlModel(null, model.getComponents(), true);
         // Infer new constraints
         WidgetsScene scene = constraintModel.getScene();
         try {
@@ -227,6 +227,11 @@ public class ConvertToConstraintLayoutAction extends AnAction implements ModelLi
 
   @Override
   public void modelRendered(@NotNull NlModel model) {
+  }
+
+  @Override
+  public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+    // Do nothing
   }
 
   private static class ConstraintLayoutConverter extends WriteCommandAction {

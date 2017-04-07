@@ -23,7 +23,6 @@ import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.ui.JBCardLayout;
@@ -39,6 +38,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.Optional;
 
 import static com.android.tools.idea.wizard.WizardConstants.DEFAULT_GALLERY_THUMBNAIL_SIZE;
 import static com.android.tools.idea.wizard.WizardConstants.IS_LIBRARY_KEY;
@@ -193,7 +193,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
     register(myCurrentSelectionKey, myGallery, new ComponentBinding<TemplateEntry, ASGallery<Optional<TemplateEntry>>>() {
       @Override
       public void setValue(TemplateEntry newValue, @NotNull ASGallery<Optional<TemplateEntry>> component) {
-        component.setSelectedElement(Optional.fromNullable(newValue));
+        component.setSelectedElement(Optional.ofNullable(newValue));
       }
 
       @Override
@@ -225,7 +225,7 @@ public class ActivityGalleryStep extends DynamicWizardStepWithDescription {
     int i;
     if (myShowSkipEntry) {
       model = new Optional[newValue.length + 1];
-      model[0] = Optional.absent();
+      model[0] = Optional.empty();
       i = 1;
     }
     else {

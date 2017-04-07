@@ -117,7 +117,10 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       components.add(platforms);
     }
     if (Haxm.canRun() && reason == FirstRunWizardMode.NEW_INSTALL) {
-      components.add(new Haxm(stateStore, FirstRunWizard.KEY_CUSTOM_INSTALL, myInstallUpdates));
+      Haxm.HaxmInstallationIntention haxmInstallationIntention =
+        myInstallUpdates ? Haxm.HaxmInstallationIntention.INSTALL_WITH_UPDATES
+                         : Haxm.HaxmInstallationIntention.INSTALL_WITHOUT_UPDATES;
+      components.add(new Haxm(haxmInstallationIntention, stateStore, FirstRunWizard.KEY_CUSTOM_INSTALL));
     }
     if (createAvd) {
       components.add(new AndroidVirtualDevice(stateStore, remotePackages, myInstallUpdates, myFileOp));
@@ -368,7 +371,7 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
       assert input != null;
 
       ApplicationUtils.invokeWriteActionAndWait(ModalityState.any(), () -> {
-        IdeSdks.setAndroidSdkPath(input, ProjectManager.getInstance().getDefaultProject());
+        IdeSdks.getInstance().setAndroidSdkPath(input, ProjectManager.getInstance().getDefaultProject());
         AndroidFirstRunPersistentData.getInstance().markSdkUpToDate(myInstallerTimestamp);
       });
 

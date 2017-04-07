@@ -42,15 +42,16 @@ public class StringsCellRenderer extends ColoredTableCellRenderer {
     column = table.convertColumnIndexToModel(column);
 
     String problem = ((StringResourceTableModel)table.getModel()).getCellProblem(row, column);
-    SimpleTextAttributes attributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
+    SimpleTextAttributes attributes;
 
-    if (problem != null) {
-      if (ConstantColumn.KEY.ordinal() == column) {
-        attributes = SimpleTextAttributes.ERROR_ATTRIBUTES;
-      }
-      else {
-        attributes = CELL_ERROR_ATTRIBUTES;
-      }
+    if (problem == null) {
+      attributes = SimpleTextAttributes.REGULAR_ATTRIBUTES;
+    }
+    else if (column == StringResourceTableModel.KEY_COLUMN) {
+      attributes = SimpleTextAttributes.ERROR_ATTRIBUTES;
+    }
+    else {
+      attributes = CELL_ERROR_ATTRIBUTES;
     }
 
     Font currentFont = table.getFont();

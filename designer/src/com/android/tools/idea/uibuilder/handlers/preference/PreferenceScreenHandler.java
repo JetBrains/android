@@ -17,15 +17,12 @@ package com.android.tools.idea.uibuilder.handlers.preference;
 
 import android.widget.ListView;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-
-import static com.android.SdkConstants.FQCN_LIST_VIEW;
 
 public final class PreferenceScreenHandler extends ViewGroupHandler {
   @NotNull
@@ -45,54 +42,12 @@ public final class PreferenceScreenHandler extends ViewGroupHandler {
       return null;
     }
 
-    RenderResult result = editor.getModel().getRenderResult();
-
-    if (result == null) {
-      return null;
-    }
-
-    Iterable<ViewInfo> rootViews = result.getRootViews();
-
-    if (rootViews == null) {
-      return null;
-    }
-
-    ViewInfo listView = findListView(rootViews);
+    ViewInfo listView = ViewInfoUtils.findListView(editor.getRootViews());
 
     if (listView == null) {
       return null;
     }
 
     return new ListViewScrollHandler((ListView)listView.getViewObject());
-  }
-
-  @Nullable
-  private static ViewInfo findListView(@NotNull Iterable<ViewInfo> rootViews) {
-    for (ViewInfo rootView : rootViews) {
-      ViewInfo listView = findViewWithName(rootView, FQCN_LIST_VIEW);
-
-      if (listView != null) {
-        return listView;
-      }
-    }
-
-    return null;
-  }
-
-  @Nullable
-  private static ViewInfo findViewWithName(@NotNull ViewInfo parent, @NotNull String name) {
-    if (parent.getClassName().equals(name)) {
-      return parent;
-    }
-
-    for (ViewInfo child : parent.getChildren()) {
-      ViewInfo view = findViewWithName(child, name);
-
-      if (view != null) {
-        return view;
-      }
-    }
-
-    return null;
   }
 }

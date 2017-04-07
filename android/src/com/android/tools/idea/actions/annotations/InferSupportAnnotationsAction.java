@@ -19,9 +19,9 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.util.Projects;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.templates.RepositoryUrlManager;
 import com.android.tools.idea.templates.SupportLibrary;
@@ -80,10 +80,14 @@ import static com.intellij.openapi.util.text.StringUtil.pluralize;
  * Analyze support annotations
  */
 public class InferSupportAnnotationsAction extends BaseAnalysisAction {
-  /** Whether this feature is enabled or not during development */
+  /**
+   * Whether this feature is enabled or not during development
+   */
   static final boolean ENABLED = Boolean.valueOf(System.getProperty("studio.infer.annotations"));
 
-  /** Number of times we pass through the project files */
+  /**
+   * Number of times we pass through the project files
+   */
   static final int MAX_PASSES = 3;
 
   @NonNls private static final String INFER_SUPPORT_ANNOTATIONS = "Infer Support Annotations";
@@ -106,7 +110,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
     }
     super.update(event);
     Project project = event.getProject();
-    if (project == null || !Projects.isBuildWithGradle(project)) {
+    if (project == null || !GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
       Presentation presentation = event.getPresentation();
       presentation.setEnabled(false);
     }
@@ -114,12 +118,12 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
 
   @Override
   protected void analyze(@NotNull Project project, @NotNull AnalysisScope scope) {
-    if (!Projects.isBuildWithGradle(project)) {
+    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
       return;
     }
-    int[] fileCount = new int[] {0};
+    int[] fileCount = new int[]{0};
     PsiDocumentManager.getInstance(project).commitAllDocuments();
-    final UsageInfo[] usageInfos = findUsages(project, scope, fileCount[0]);
+    UsageInfo[] usageInfos = findUsages(project, scope, fileCount[0]);
     if (usageInfos == null) return;
 
     Map<Module, PsiFile> modules = findModulesFromUsage(usageInfos);
@@ -138,10 +142,10 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
 
   private static Map<Module, PsiFile> findModulesFromUsage(UsageInfo[] infos) {
     // We need 1 file from each module that requires changes (the file may be overwritten below):
-    final Map<Module, PsiFile> modules = new HashMap<>();
+    Map<Module, PsiFile> modules = new HashMap<>();
 
     for (UsageInfo info : infos) {
-      final PsiElement element = info.getElement();
+      PsiElement element = info.getElement();
       assert element != null;
       Module module = ModuleUtilCore.findModuleForPsiElement(element);
       if (module == null) {
@@ -153,22 +157,22 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
     return modules;
   }
 
-  private static UsageInfo[] findUsages(@NotNull final Project project,
-                                        @NotNull final AnalysisScope scope,
-                                        final int fileCount) {
-    final InferSupportAnnotations inferrer = new InferSupportAnnotations(false, project);
-    final PsiManager psiManager = PsiManager.getInstance(project);
-    final Runnable searchForUsages = () -> scope.accept(new PsiElementVisitor() {
+  private static UsageInfo[] findUsages(@NotNull Project project,
+                                        @NotNull AnalysisScope scope,
+                                        int fileCount) {
+    InferSupportAnnotations inferrer = new InferSupportAnnotations(false, project);
+    PsiManager psiManager = PsiManager.getInstance(project);
+    Runnable searchForUsages = () -> scope.accept(new PsiElementVisitor() {
       int myFileCount = 0;
 
       @Override
-      public void visitFile(final PsiFile file) {
+      public void visitFile(PsiFile file) {
         myFileCount++;
-        final VirtualFile virtualFile = file.getVirtualFile();
-        final FileViewProvider viewProvider = psiManager.findViewProvider(virtualFile);
-        final Document document = viewProvider == null ? null : viewProvider.getDocument();
+        VirtualFile virtualFile = file.getVirtualFile();
+        FileViewProvider viewProvider = psiManager.findViewProvider(virtualFile);
+        Document document = viewProvider == null ? null : viewProvider.getDocument();
         if (document == null || virtualFile.getFileType().isBinary()) return; //do not inspect binary files
-        final ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
+        ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
         if (progressIndicator != null) {
           progressIndicator.setText2(ProjectUtil.calcRelativeToProjectPath(virtualFile, project));
           progressIndicator.setFraction(((double)myFileCount) / (MAX_PASSES * fileCount));
@@ -204,29 +208,31 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(multipass, INFER_SUPPORT_ANNOTATIONS, true, project)) {
         return null;
       }
-    } else {
+    }
+    else {
       multipass.run();
     }
 
-    final List<UsageInfo> usages = new ArrayList<>();
+    List<UsageInfo> usages = new ArrayList<>();
     inferrer.collect(usages, scope);
     return usages.toArray(new UsageInfo[usages.size()]);
   }
 
   // For Android we need to check SDK version and possibly update the gradle project file
-  protected boolean checkModules(@NotNull final Project project,
-                                 @NotNull final AnalysisScope scope,
+  protected boolean checkModules(@NotNull Project project,
+                                 @NotNull AnalysisScope scope,
                                  @NotNull Map<Module, PsiFile> modules) {
-    final Set<Module> modulesWithoutAnnotations = new HashSet<>();
-    final Set<Module> modulesWithLowVersion = new HashSet<>();
+    Set<Module> modulesWithoutAnnotations = new HashSet<>();
+    Set<Module> modulesWithLowVersion = new HashSet<>();
     for (Module module : modules.keySet()) {
       AndroidModuleInfo info = AndroidModuleInfo.get(module);
-      if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() <  MIN_SDK_WITH_NULLABLE) {
+      if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() < MIN_SDK_WITH_NULLABLE) {
         modulesWithLowVersion.add(module);
       }
       GradleBuildModel buildModel = GradleBuildModel.get(module);
       if (buildModel == null) {
-        Logger.getInstance(InferSupportAnnotationsAction.class).warn("Unable to find Gradle build model for module " + module.getModuleFilePath());
+        Logger.getInstance(InferSupportAnnotationsAction.class)
+          .warn("Unable to find Gradle build model for module " + module.getModuleFilePath());
         continue;
       }
       boolean dependencyFound = false;
@@ -267,17 +273,18 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
                                    SupportLibrary.SUPPORT_ANNOTATIONS.getArtifactId(),
                                    pluralize("dependency", count));
     if (Messages.showOkCancelDialog(project, message, "Infer Nullity Annotations", Messages.getErrorIcon()) == Messages.OK) {
-      final LocalHistoryAction action = LocalHistory.getInstance().startAction(ADD_DEPENDENCY);
+      LocalHistoryAction action = LocalHistory.getInstance().startAction(ADD_DEPENDENCY);
       try {
         new WriteCommandAction(project, ADD_DEPENDENCY) {
           @Override
-          protected void run(@NotNull final Result result) throws Throwable {
+          protected void run(@NotNull Result result) throws Throwable {
             RepositoryUrlManager manager = RepositoryUrlManager.get();
             String annotationsLibraryCoordinate = manager.getLibraryStringCoordinate(SupportLibrary.SUPPORT_ANNOTATIONS, true);
             for (Module module : modulesWithoutAnnotations) {
               addDependency(module, annotationsLibraryCoordinate);
             }
-            GradleProjectImporter.getInstance().requestProjectSync(project, false, new GradleSyncListener.Adapter() {
+            GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setGenerateSourcesOnSuccess(false);
+            GradleSyncInvoker.getInstance().requestProjectSync(project, request, new GradleSyncListener.Adapter() {
               @Override
               public void syncSucceeded(@NotNull Project project) {
                 restartAnalysis(project, scope);
@@ -293,19 +300,19 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
     return false;
   }
 
-  private static Runnable applyRunnable(final Project project, final Computable<UsageInfo[]> computable) {
+  private static Runnable applyRunnable(Project project, Computable<UsageInfo[]> computable) {
     return () -> {
-      final LocalHistoryAction action = LocalHistory.getInstance().startAction(INFER_SUPPORT_ANNOTATIONS);
+      LocalHistoryAction action = LocalHistory.getInstance().startAction(INFER_SUPPORT_ANNOTATIONS);
       try {
         new WriteCommandAction(project, INFER_SUPPORT_ANNOTATIONS) {
           @Override
           protected void run(@NotNull Result result) throws Throwable {
-            final UsageInfo[] infos = computable.compute();
+            UsageInfo[] infos = computable.compute();
             if (infos.length > 0) {
 
-              final Set<PsiElement> elements = new LinkedHashSet<>();
+              Set<PsiElement> elements = new LinkedHashSet<>();
               for (UsageInfo info : infos) {
-                final PsiElement element = info.getElement();
+                PsiElement element = info.getElement();
                 if (element != null) {
                   PsiFile containingFile = element.getContainingFile();
                   // Skip results in .class files; these are typically from extracted AAR files
@@ -319,11 +326,12 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
               }
               if (!FileModificationService.getInstance().preparePsiElementsForWrite(elements)) return;
 
-              final SequentialModalProgressTask progressTask = new SequentialModalProgressTask(project, INFER_SUPPORT_ANNOTATIONS, false);
+              SequentialModalProgressTask progressTask = new SequentialModalProgressTask(project, INFER_SUPPORT_ANNOTATIONS, false);
               progressTask.setMinIterationTime(200);
               progressTask.setTask(new AnnotateTask(project, progressTask, infos));
               ProgressManager.getInstance().run(progressTask);
-            } else {
+            }
+            else {
               InferSupportAnnotations.nothingFoundMessage(project);
             }
           }
@@ -335,40 +343,44 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
     };
   }
 
-  private void restartAnalysis(final Project project, final AnalysisScope scope) {
+  private void restartAnalysis(Project project, AnalysisScope scope) {
     ApplicationManager.getApplication().invokeLater(() -> analyze(project, scope));
   }
 
-  private static void showUsageView(@NotNull Project project, final UsageInfo[] usageInfos, @NotNull AnalysisScope scope) {
-    final UsageTarget[] targets = UsageTarget.EMPTY_ARRAY;
-    final Ref<Usage[]> convertUsagesRef = new Ref<>();
-    if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> ApplicationManager.getApplication().runReadAction(() -> {
-      convertUsagesRef.set(UsageInfo2UsageAdapter.convert(usageInfos));
-    }), "Preprocess Usages", true, project)) return;
+  private static void showUsageView(@NotNull Project project, UsageInfo[] usageInfos, @NotNull AnalysisScope scope) {
+    UsageTarget[] targets = UsageTarget.EMPTY_ARRAY;
+    Ref<Usage[]> convertUsagesRef = new Ref<>();
+    if (!ProgressManager.getInstance().runProcessWithProgressSynchronously(
+      () -> ApplicationManager.getApplication().runReadAction(() -> convertUsagesRef.set(UsageInfo2UsageAdapter.convert(usageInfos))),
+      "Preprocess Usages", true, project)) {
+      return;
+    }
 
     if (convertUsagesRef.isNull()) return;
-    final Usage[] usages = convertUsagesRef.get();
+    Usage[] usages = convertUsagesRef.get();
 
-    final UsageViewPresentation presentation = new UsageViewPresentation();
+    UsageViewPresentation presentation = new UsageViewPresentation();
     presentation.setTabText("Infer Nullity Preview");
     presentation.setShowReadOnlyStatusAsRed(true);
     presentation.setShowCancelButton(true);
     presentation.setUsagesString(RefactoringBundle.message("usageView.usagesText"));
 
-    final UsageView usageView = UsageViewManager.getInstance(project).showUsages(targets, usages, presentation, rerunFactory(project, scope));
+    UsageView usageView =
+      UsageViewManager.getInstance(project).showUsages(targets, usages, presentation, rerunFactory(project, scope));
 
-    final Runnable refactoringRunnable = applyRunnable(project, () -> {
-      final Set<UsageInfo> infos = UsageViewUtil.getNotExcludedUsageInfos(usageView);
+    Runnable refactoringRunnable = applyRunnable(project, () -> {
+      Set<UsageInfo> infos = UsageViewUtil.getNotExcludedUsageInfos(usageView);
       return infos.toArray(new UsageInfo[infos.size()]);
     });
 
-    String canNotMakeString = "Cannot perform operation.\nThere were changes in code after usages have been found.\nPlease perform operation search again.";
+    String canNotMakeString =
+      "Cannot perform operation.\nThere were changes in code after usages have been found.\nPlease perform operation search again.";
 
     usageView.addPerformOperationAction(refactoringRunnable, INFER_SUPPORT_ANNOTATIONS, canNotMakeString, INFER_SUPPORT_ANNOTATIONS, false);
   }
 
   @NotNull
-  private static Factory<UsageSearcher> rerunFactory(@NotNull final Project project, @NotNull final AnalysisScope scope) {
+  private static Factory<UsageSearcher> rerunFactory(@NotNull Project project, @NotNull AnalysisScope scope) {
     return () -> new UsageInfoSearcherAdapter() {
       @NotNull
       @Override
@@ -383,7 +395,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
     };
   }
 
-  private static void addDependency(@NotNull final Module module, @Nullable final String libraryCoordinate) {
+  private static void addDependency(@NotNull Module module, @Nullable String libraryCoordinate) {
     if (isNotEmpty(libraryCoordinate)) {
       ModuleRootModificationUtil.updateModel(module, model -> {
         GradleBuildModel buildModel = GradleBuildModel.get(module);
@@ -398,7 +410,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
   /* Android nullable annotations do not support annotations on local variables. */
   @Override
   protected JComponent getAdditionalActionSettings(Project project, BaseAnalysisActionDialog dialog) {
-    if (!Projects.isBuildWithGradle(project)) {
+    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
       return super.getAdditionalActionSettings(project, dialog);
     }
     return null;
@@ -429,7 +441,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
 
     @Override
     public boolean iteration() {
-      final ProgressIndicator indicator = myTask.getIndicator();
+      ProgressIndicator indicator = myTask.getIndicator();
       if (indicator != null) {
         indicator.setFraction(((double)myCount) / myTotal);
       }
@@ -441,7 +453,8 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       if (isDone()) {
         try {
           showReport();
-        } catch (Throwable ignore) {
+        }
+        catch (Throwable ignore) {
         }
       }
       return done;

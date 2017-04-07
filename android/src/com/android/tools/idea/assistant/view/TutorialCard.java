@@ -18,25 +18,23 @@ package com.android.tools.idea.assistant.view;
 import com.android.tools.idea.assistant.datamodel.FeatureData;
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
-import com.android.tools.idea.structure.services.DeveloperServiceMap.DeveloperServiceList;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
 
 /**
  * Generic view for tutorial content. Represents a single view in a collection
  * of tutorials. Content is rendered via XML configured content and couples to
  * {@code TutorialChooser} where each card appears as a line item below their
  * related service.
- *
- * TODO: Attempt to migrate render logic to a form.
  */
 public class TutorialCard extends CardViewPanel {
 
@@ -45,29 +43,21 @@ public class TutorialCard extends CardViewPanel {
   /**
    * Partial label used in the back button.
    */
-  String myMutorialsTitle;
+  String myTutorialsTitle;
 
   TutorialCard(@NotNull ActionListener listener,
                @NotNull TutorialData tutorial,
                @NotNull FeatureData feature,
                @NotNull String tutorialsTitle,
-               @NotNull DeveloperServiceList services) {
+               @NotNull Project project,
+               boolean hideChooserAndNavigationalBar) {
     super(listener);
-    myMutorialsTitle = tutorialsTitle;
+    myTutorialsTitle = tutorialsTitle;
 
-    // TODO: Add a short label to the xml and use that here instead.
-    add(new HeaderNav(feature.getName(), myListener), BorderLayout.NORTH);
-
-    TutorialDescription description = new TutorialDescription();
-    String text = "<p class=\"title\">" + tutorial.getLabel() + "</p><p class=\"description\">" +
-                  tutorial.getDescription() +
-                  "<br><br><a href=\"" +
-                  tutorial.getRemoteLink() +
-                  "\" target=\"_blank\">" +
-                  tutorial.getRemoteLinkLabel() +
-                  "</a></p>";
-    UIUtils.setHtml(description, text,
-                    ".title {margin: 10px 10px 0 10px; font-size: 16px; font-weight: bold;}\n.description { margin: 10px;}");
+    if (!hideChooserAndNavigationalBar) {
+      // TODO: Add a short label to the xml and use that here instead.
+      add(new HeaderNav(feature.getName(), myListener), BorderLayout.NORTH);
+    }
 
     JPanel contents = new JPanel();
     contents.setLayout(new GridBagLayout());
@@ -79,18 +69,36 @@ public class TutorialCard extends CardViewPanel {
     c.weightx = 1;
     c.fill = GridBagConstraints.HORIZONTAL;
     c.anchor = GridBagConstraints.NORTHWEST;
-    c.insets = new Insets(0, 0, 5, 0);
+    c.insets = JBUI.insetsBottom(5);
+
+    JBLabel title = new JBLabel(tutorial.getLabel());
+    title.setFont(title.getFont().deriveFont(Font.BOLD, 16F));
+    title.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+    if (tutorial.getIcon() != null) {
+      title.setIcon(tutorial.getIcon());
+    }
+    contents.add(title, c);
+    c.gridy++;
+
+    TutorialDescription description = new TutorialDescription();
+    StringBuffer sb = new StringBuffer();
+    sb.append("<p class=\"description\">").append(tutorial.getDescription());
+    if (tutorial.getRemoteLink() != null && tutorial.getRemoteLinkLabel() != null) {
+      sb.append("<br><br><a href=\"").append(tutorial.getRemoteLink()).append("\" target=\"_blank\">").append(tutorial.getRemoteLinkLabel()).append("</a>");
+    }
+    sb.append("</p>");
+    UIUtils.setHtml(description, sb.toString(), ".description { margin: 10px;}");
 
     contents.add(description, c);
     c.gridy++;
 
     // Add extra padding for tutorial steps.
-    c.insets = new Insets(0, 5, 5, 5);
+    c.insets = JBUI.insets(0, 5, 5, 5);
 
     // Add each of the tutorial steps in order.
     int numericLabel = 1;
     for (StepData step : tutorial.getSteps()) {
-      TutorialStep stepDisplay = new TutorialStep(step, numericLabel, listener, services);
+      TutorialStep stepDisplay = new TutorialStep(step, numericLabel, listener, project);
       contents.add(stepDisplay, c);
       c.gridy++;
       numericLabel++;
@@ -100,9 +108,11 @@ public class TutorialCard extends CardViewPanel {
     contents.add(Box.createVerticalGlue(), glueConstraints);
     c.gridy++;
 
-    // remove insets for footer.
-    c.insets = new Insets(0, 0, 0, 0);
-    contents.add(new FooterNav(), c);
+    if (!hideChooserAndNavigationalBar) {
+      // remove insets for footer.
+      c.insets = JBUI.emptyInsets();
+      contents.add(new FooterNav(), c);
+    }
 
     // HACK ALERT: For an unknown reason (possibly race condition calculating inner contents)
     // this scrolls exceptionally slowly without an explicit increment. Using fixed values is not
@@ -124,12 +134,6 @@ public class TutorialCard extends CardViewPanel {
   @Override
   public void setVisible(boolean aFlag) {
     super.setVisible(aFlag);
-
-    // HACK ALERT: For an unknown reason, a subset of html components fail to report the correct sizing and run into an order of events
-    // issue with layouts (overlapping and clipping). Thus far the only thing that corrects the problem is resize. Force a resize to
-    // address this in the short term.
-    processEvent(new ComponentEvent(this, ComponentEvent.COMPONENT_RESIZED));
-
     JScrollBar verticalScrollBar = myContentsScroller.getVerticalScrollBar();
     JScrollBar horizontalScrollBar = myContentsScroller.getHorizontalScrollBar();
     verticalScrollBar.setValue(verticalScrollBar.getMinimum());
@@ -154,7 +158,7 @@ public class TutorialCard extends CardViewPanel {
    */
   private class HeaderNav extends JPanel {
 
-    public final String ROOT_TITLE = "<html><b>" + myMutorialsTitle + "</b> &nbsp;&rsaquo;</html>";
+    public final String ROOT_TITLE = "<html><b>" + myTutorialsTitle + "</b> &nbsp;&rsaquo;</html>";
 
     HeaderNav(String location, ActionListener listener) {
       super(new HorizontalLayout(5, SwingConstants.CENTER));
@@ -169,7 +173,7 @@ public class TutorialCard extends CardViewPanel {
   }
 
   private class FooterNav extends JPanel {
-    private final String BACK_LABEL = "Back to " + myMutorialsTitle;
+    private final String BACK_LABEL = "Back to " + myTutorialsTitle;
 
     FooterNav() {
       super(new FlowLayout(FlowLayout.LEADING));

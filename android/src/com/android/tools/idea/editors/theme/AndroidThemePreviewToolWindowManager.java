@@ -140,12 +140,8 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
   public void projectOpened() {
     initToolWindow();
 
-    StartupManager.getInstance(myProject).registerPostStartupActivity(new Runnable() {
-      @Override
-      public void run() {
-        processFileEditorChange();
-      }
-    });
+    StartupManager.getInstance(myProject).registerPostStartupActivity(() -> ApplicationManager.getApplication().invokeLater(
+      this::processFileEditorChange));
   }
 
   @Override
@@ -190,7 +186,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
     return AndroidThemePreviewToolWindowManager.class.getSimpleName();
   }
 
-  @Nullable("if there is no available configuration that would select the passed file")
+  @Nullable/*if there is no available configuration that would select the passed file*/
   private static Configuration getBestConfiguration(@Nullable PsiFile psiFile) {
     Module module = psiFile != null ? ModuleUtilCore.findModuleForPsiElement(psiFile) : null;
     if (module == null) {
@@ -330,7 +326,7 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
   /**
    * Finds the closest theme to the given offset position
    */
-  @Nullable("if there is no theme at the given offset or the theme couldn't be loaded")
+  @Nullable/*if there is no theme at the given offset or the theme couldn't be loaded*/
   private ConfiguredThemeEditorStyle getThemeAtEditorOffset(@NotNull Document document, int offset) {
     if (offset == -1 || myThemeEditorContext == null) {
       return null;

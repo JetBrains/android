@@ -18,9 +18,14 @@ package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
 
-public class AndroidAnimationDomTest extends AndroidDomTest {
+public class AndroidAnimationDomTest extends AndroidDomTestCase {
   public AndroidAnimationDomTest() {
-    super(false, "dom/anim");
+    super("dom/anim");
+  }
+
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.subset;
 
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.Project;
@@ -25,7 +26,7 @@ public class ProjectSubsetGroup extends DefaultActionGroup {
   @Override
   public void update(AnActionEvent e) {
     Project project = e.getProject();
-    boolean visible = ProjectSubset.isSettingEnabled() &&
+    boolean visible = GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT &&
                       project != null &&
                       isBuildWithGradle(project) &&
                       ProjectSubset.getInstance(project).hasCachedModules();

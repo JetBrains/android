@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
+import com.android.tools.swing.util.FormScalingUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
@@ -121,6 +122,7 @@ public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep
   }
 
   protected final void setBodyComponent(JComponent component) {
+    FormScalingUtil.scaleComponentTree(this.getClass(), component);
     component.setBorder(
       new EmptyBorder(new Insets(STUDIO_WIZARD_INSET_SIZE, STUDIO_WIZARD_INSET_SIZE, STUDIO_WIZARD_INSET_SIZE, STUDIO_WIZARD_INSET_SIZE)));
     myRootPane.add(component, BorderLayout.CENTER);

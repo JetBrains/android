@@ -19,9 +19,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.repository.io.FileOp;
 import com.android.repository.io.FileOpUtils;
-import com.android.resources.Keyboard;
-import com.android.resources.Navigation;
-import com.android.resources.ScreenOrientation;
+import com.android.resources.*;
 import com.android.sdklib.devices.*;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
@@ -58,6 +56,7 @@ public final class AvdDeviceData {
 
   private BoolProperty mySupportsLandscape = new BoolValueProperty();
   private BoolProperty mySupportsPortrait = new BoolValueProperty();
+  private BoolProperty myNotLong = new BoolValueProperty();
 
   private BoolProperty myHasBackCamera = new BoolValueProperty();
   private BoolProperty myHasFrontCamera = new BoolValueProperty();
@@ -75,6 +74,7 @@ public final class AvdDeviceData {
   private State myDefaultState;
   private File myLastSkinFolder;
   private Dimension myLastSkinDimension;
+  private ObjectProperty<Density> myDensity = new ObjectValueProperty<Density>(Density.MEDIUM);
 
   private OptionalProperty<Software> mySoftware = new OptionalValueProperty<Software>();
 
@@ -207,6 +207,11 @@ public final class AvdDeviceData {
   }
 
   @NotNull
+  public BoolProperty notLong() {
+    return myNotLong;
+  }
+
+  @NotNull
   public BoolProperty supportsPortrait() {
     return mySupportsPortrait;
   }
@@ -276,6 +281,11 @@ public final class AvdDeviceData {
     return mySkinSizeIsCompatible;
   }
 
+  @NotNull
+  public ObjectProperty<Density> density() {
+    return myDensity;
+  }
+
   /**
    * Initialize a reasonable set of default values (based on the Nexus 5)
    */
@@ -292,6 +302,8 @@ public final class AvdDeviceData {
 
     mySupportsPortrait.set(true);
     mySupportsLandscape.set(true);
+    myNotLong.set(false);
+    myDensity.set(Density.MEDIUM);
 
     myHasFrontCamera.set(true);
     myHasBackCamera.set(true);
@@ -362,6 +374,7 @@ public final class AvdDeviceData {
     myHasHardwareButtons.set(defaultHardware.getButtonType() == ButtonType.HARD);
     myHasHardwareKeyboard.set(defaultHardware.getKeyboard() != Keyboard.NOKEY);
     myNavigation.setValue(defaultHardware.getNav());
+    myDensity.set(defaultHardware.getScreen().getPixelDensity());
 
     List<State> states = device.getAllStates();
 
@@ -376,6 +389,9 @@ public final class AvdDeviceData {
       }
       if (state.getOrientation().equals(ScreenOrientation.LANDSCAPE)) {
         mySupportsLandscape.set(true);
+      }
+      if (state.getHardware().getScreen().getRatio().equals(ScreenRatio.NOTLONG)) {
+        myNotLong.set(true);
       }
     }
 
@@ -413,14 +429,24 @@ public final class AvdDeviceData {
     // compute width and height to take orientation into account.
     int finalWidth, finalHeight;
 
-    // Landscape should always be longer than taller; portrait taller than longer
-    if (orientation == ScreenOrientation.LANDSCAPE) {
-      finalWidth = Math.max(width, height);
-      finalHeight = Math.min(width, height);
+    if (myNotLong.get()) {
+      // The device is 'not long': its width and height are
+      // pretty similar. Accept the user's values directly.
+      finalWidth = width;
+      finalHeight = height;
     }
     else {
-      finalWidth = Math.min(width, height);
-      finalHeight = Math.max(width, height);
+      // The height and width are significantly different.
+      // Landscape should always be more wide than tall;
+      // portrait should be more tall than wide.
+      if (orientation == ScreenOrientation.LANDSCAPE) {
+        finalWidth = Math.max(width, height);
+        finalHeight = Math.min(width, height);
+      }
+      else {
+        finalWidth = Math.min(width, height);
+        finalHeight = Math.max(width, height);
+      }
     }
     return new Dimension(finalWidth, finalHeight);
   }

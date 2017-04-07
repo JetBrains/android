@@ -15,31 +15,56 @@
  */
 package com.android.tools.idea.uibuilder.api;
 
+import com.android.ide.common.rendering.api.RenderResources;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.EnumSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 
 import static com.android.SdkConstants.VALUE_N_DP;
 import static com.android.resources.Density.DEFAULT_DENSITY;
+import static com.android.tools.idea.res.ResourceHelper.parseFloatAttribute;
+import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
 
 /**
  * The UI builder / layout editor as exposed to {@link ViewHandler} instances.
  * This allows the view handlers to query the surrounding editor for more information.
  */
 public abstract class ViewEditor {
+
+  /**
+   * Tries to resolve the given resource value to a dimension in pixels. The returned value is
+   * function of the configuration's device's density.
+   *
+   * @param resources     the resource resolver to use to follow references
+   * @param value         the dimension to resolve
+   * @param configuration the device configuration
+   * @return a dimension in pixels, or null
+   */
+  @Nullable
+  @AndroidCoordinate
+  public static Integer resolveDimensionPixelSize(@NotNull RenderResources resources, @NotNull String value,
+                                                  @NotNull Configuration configuration) {
+    String resValue = resolveStringValue(resources, value);
+    ResourceHelper.TypedValue out = new ResourceHelper.TypedValue();
+    if (parseFloatAttribute(resValue, out, true)) {
+      return ResourceHelper.TypedValue.complexToDimensionPixelSize(out.data, configuration);
+    }
+    return null;
+  }
+
   public abstract int getDpi();
 
   /**
@@ -106,9 +131,14 @@ public abstract class ViewEditor {
   @NotNull
   public abstract NlModel getModel();
 
+  @NotNull
+  public abstract Collection<ViewInfo> getRootViews();
+
   public abstract boolean moduleContainsResource(@NotNull ResourceType type, @NotNull String name);
 
   public abstract void copyVectorAssetToMainModuleSourceSet(@NotNull String asset);
+
+  public abstract void copyLayoutToMainModuleSourceSet(@NotNull String layout, @Language("XML") @NotNull String xml);
 
   /**
    * Measures the children of the given parent and returns them as a map to view info instances.

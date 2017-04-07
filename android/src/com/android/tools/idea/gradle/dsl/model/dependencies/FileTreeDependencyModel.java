@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -34,16 +35,85 @@ public class FileTreeDependencyModel extends DependencyModel {
   @NonNls private static final String INCLUDE = "include";
   @NonNls private static final String EXCLUDE = "exclude";
 
+  @NotNull private String myConfigurationName;
   @NotNull private final GradleDslMethodCall myDslElement;
   @NotNull private final GradleDslExpression myDir;
 
   @Nullable private final GradleDslElement myIncludeElement;
   @Nullable private final GradleDslElement myExcludeElement;
 
-  public FileTreeDependencyModel(@NotNull GradleDslMethodCall dslElement,
-                                 @NotNull GradleDslExpression dir,
-                                 @Nullable GradleDslElement includeElement,
-                                 @Nullable GradleDslElement excludeElement) {
+  static Collection<? extends FileTreeDependencyModel> create(@NotNull String configurationName, @NotNull GradleDslMethodCall methodCall) {
+    List<FileTreeDependencyModel> result = Lists.newArrayList();
+    if (FILE_TREE.equals(methodCall.getName())) {
+      List<GradleDslElement> arguments = methodCall.getArguments();
+      for (GradleDslElement argument : arguments) {
+        if (argument instanceof GradleDslExpression) {
+          result.add(new FileTreeDependencyModel(configurationName, methodCall, (GradleDslExpression)argument, null, null));
+        }
+        else if (argument instanceof GradleDslExpressionMap) {
+          GradleDslExpressionMap dslMap = (GradleDslExpressionMap)argument;
+          GradleDslExpression dirElement = dslMap.getPropertyElement(DIR, GradleDslExpression.class);
+          if (dirElement == null) {
+            assert methodCall.getPsiElement() != null;
+            String msg = String.format("'%1$s' is not a valid file tree dependency", methodCall.getPsiElement().getText());
+            LOG.warn(msg);
+            continue;
+          }
+          GradleDslElement includeElement = dslMap.getPropertyElement(INCLUDE);
+          GradleDslElement excludeElement = dslMap.getPropertyElement(EXCLUDE);
+          result.add(new FileTreeDependencyModel(configurationName, methodCall, dirElement, includeElement, excludeElement));
+        }
+      }
+    }
+    return result;
+  }
+
+  static void createAndAddToList(@NotNull GradleDslElementList list,
+                                 @NotNull String configurationName,
+                                 @NotNull String dir,
+                                 @Nullable List<String> includes,
+                                 @Nullable List<String> excludes) {
+    String methodName = FILE_TREE;
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(list, methodName, configurationName);
+    if ((includes == null || includes.isEmpty()) && (excludes == null || excludes.isEmpty())) {
+      GradleDslLiteral directory = new GradleDslLiteral(methodCall, methodName);
+      directory.setValue(dir);
+      methodCall.addNewArgument(directory);
+    }
+    else {
+      GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, methodName);
+      mapArguments.setNewLiteral(DIR, dir);
+      if (includes != null && !includes.isEmpty()) {
+        if (includes.size() == 1) {
+          mapArguments.setNewLiteral(INCLUDE, includes.get(0));
+        }
+        else {
+          for (String include : includes) {
+            mapArguments.addToNewLiteralList(INCLUDE, include);
+          }
+        }
+      }
+      if (excludes != null && !excludes.isEmpty()) {
+        if (excludes.size() == 1) {
+          mapArguments.setNewLiteral(EXCLUDE, excludes.get(0));
+        }
+        else {
+          for (String exclude : excludes) {
+            mapArguments.addToNewLiteralList(EXCLUDE, exclude);
+          }
+        }
+      }
+      methodCall.addNewArgument(mapArguments);
+    }
+    list.addNewElement(methodCall);
+  }
+
+  private FileTreeDependencyModel(@NotNull String configurationName,
+                                  @NotNull GradleDslMethodCall dslElement,
+                                  @NotNull GradleDslExpression dir,
+                                  @Nullable GradleDslElement includeElement,
+                                  @Nullable GradleDslElement excludeElement) {
+    myConfigurationName = configurationName;
     myDslElement = dslElement;
     myDir = dir;
     myIncludeElement = includeElement;
@@ -56,11 +126,17 @@ public class FileTreeDependencyModel extends DependencyModel {
     return myDslElement;
   }
 
+  @Override
   @NotNull
-  public String dir() {
+  public String configurationName() {
+    return myConfigurationName;
+  }
+
+  @NotNull
+  public GradleNotNullValue<String> dir() {
     String dir = myDir.getValue(String.class);
     assert dir != null;
-    return dir;
+    return new GradleNotNullValue<>(myDir, dir);
   }
 
   public void setDir(@NotNull String dir) {
@@ -68,17 +144,17 @@ public class FileTreeDependencyModel extends DependencyModel {
   }
 
   @NotNull
-  public List<String> include() {
+  public List<GradleNotNullValue<String>> includes() {
     return getStringValues(myIncludeElement);
   }
 
   @NotNull
-  public List<String> exclude() {
+  public List<GradleNotNullValue<String>> excludes() {
     return getStringValues(myExcludeElement);
   }
 
   @NotNull
-  private static List<String> getStringValues(@Nullable GradleDslElement expressionOrList) {
+  private static List<GradleNotNullValue<String>> getStringValues(@Nullable GradleDslElement expressionOrList) {
     if (expressionOrList instanceof GradleDslExpressionList) {
       return ((GradleDslExpressionList)expressionOrList).getValues(String.class);
     }
@@ -86,36 +162,10 @@ public class FileTreeDependencyModel extends DependencyModel {
     if (expressionOrList instanceof GradleDslExpression) {
       String value = ((GradleDslExpression)expressionOrList).getValue(String.class);
       if (value != null) {
-        return Collections.singletonList(value);
+        return Collections.singletonList(new GradleNotNullValue<>(expressionOrList, value));
       }
     }
 
     return Collections.emptyList();
-  }
-
-  public static Collection<? extends FileTreeDependencyModel> create(@NotNull GradleDslMethodCall methodCall) {
-    List<FileTreeDependencyModel> result = Lists.newArrayList();
-    if (FILE_TREE.equals(methodCall.getName())) {
-      List<GradleDslElement> arguments = methodCall.getArguments();
-      for (GradleDslElement argument : arguments) {
-        if (argument instanceof GradleDslExpression) {
-          result.add(new FileTreeDependencyModel(methodCall, (GradleDslExpression)argument, null, null));
-        }
-        else if (argument instanceof GradleDslExpressionMap) {
-          GradleDslExpressionMap dslMap = (GradleDslExpressionMap)argument;
-          GradleDslExpression dirElement = dslMap.getProperty(DIR, GradleDslExpression.class);
-          if (dirElement == null) {
-            assert methodCall.getPsiElement() != null;
-            String msg = String.format("'%1$s' is not a valid file tree dependency", methodCall.getPsiElement().getText());
-            LOG.warn(msg);
-            continue;
-          }
-          GradleDslElement includeElement = dslMap.getPropertyElement(INCLUDE);
-          GradleDslElement excludeElement = dslMap.getPropertyElement(EXCLUDE);
-          result.add(new FileTreeDependencyModel(methodCall, dirElement, includeElement, excludeElement));
-        }
-      }
-    }
-    return result;
   }
 }

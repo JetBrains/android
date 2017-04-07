@@ -17,17 +17,16 @@ package com.android.tools.idea.welcome.install;
 
 import com.android.repository.api.*;
 import com.android.repository.impl.installer.BasicInstallerFactory;
+import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.StudioDownloader;
-import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Installs SDK components.
@@ -67,6 +66,42 @@ public final class ComponentInstaller {
       Installer installer = factory.createInstaller(request, sdkManager, new StudioDownloader(), mySdkHandler.getFileOp());
       if (installer.prepare(progress)) {
         installer.complete(progress);
+      }
+    }
+    sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, null, null);
+  }
+
+  public void ensureSdkPackagesUninstalled(@NotNull Collection<String> packageNames, ProgressIndicator progress) throws WizardException {
+    RepoManager sdkManager = mySdkHandler.getSdkManager(progress);
+    RepositoryPackages packages = sdkManager.getPackages();
+    Map<String, LocalPackage> localPackages = packages.getLocalPackages();
+    List<LocalPackage> packagesToUninstall = new ArrayList<>();
+
+    for (String packageName : packageNames) {
+      LocalPackage p = localPackages.get(packageName);
+      if (p != null) {
+        packagesToUninstall.add(p);
+      }
+      else {
+        progress.logInfo(String.format("Package '%1$s' does not appear to be installed - ignoring", packageName));
+      }
+    }
+
+    for (LocalPackage request : packagesToUninstall) {
+      // This is pretty much symmetric to the installPackages() method above, so the same comments apply.
+      // Should we have registered listeners, HaxmInstallListener would have invoked another instance of HaxmWizard.
+      // The good news is that as of writing this,
+      // this class is used in Welcome and Haxm wizards only, and plays the role of a utility class.
+      // If we have more packages which require custom pre- and post-installation steps like Haxm,
+      // then we might still need a way to invoke non-recursive / listener-free uninstall operations for cleanup purposes
+      // It's possible that a change in packaging API would make sense to support that later -
+      // there is already some cleanup() support in operation chain implementation, but its limitation is that cleanup()
+      // is executed unconditionally, whereas in most cases it should be dependent on the next operation success status -
+      // like stack unwinding after an exception.
+      InstallerFactory factory = new BasicInstallerFactory();
+      Uninstaller uninstaller = factory.createUninstaller(request, sdkManager, mySdkHandler.getFileOp());
+      if (uninstaller.prepare(progress)) {
+        uninstaller.complete(progress);
       }
     }
     sdkManager.loadSynchronously(RepoManager.DEFAULT_EXPIRATION_PERIOD_MS, progress, null, null);

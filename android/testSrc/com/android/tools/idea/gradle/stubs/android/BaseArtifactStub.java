@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.Dependencies;
 import com.android.builder.model.SourceProvider;
+import com.android.builder.model.level2.DependencyGraphs;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -71,31 +72,32 @@ public class BaseArtifactStub implements BaseArtifact {
   @NotNull
   public File getClassesFolder() {
     String path = "build/intermediates/classes/" + myDirName;
-    return new File(myFileStructure.getRootDir(), path);
+    return new File(myFileStructure.getRootFolderPath(), path);
   }
 
   @NonNull
   @Override
   public File getJavaResourcesFolder() {
     String path = "build/intermediates/javaResources/" + myDirName;
-    return new File(myFileStructure.getRootDir(), path);
+    return new File(myFileStructure.getRootFolderPath(), path);
   }
 
   @Override
   @NotNull
   public DependenciesStub getDependencies() {
-    return getCompileDependencies();
-  }
-
-  @Override
-  @NotNull
-  public DependenciesStub getCompileDependencies() {
     return myDependencies;
   }
 
   @Override
   @NotNull
-  public Dependencies getPackageDependencies() {
+  @Deprecated
+  public DependenciesStub getCompileDependencies() {
+    return getDependencies();
+  }
+
+  @NonNull
+  @Override
+  public DependencyGraphs getDependencyGraphs() {
     throw new UnsupportedOperationException();
   }
 

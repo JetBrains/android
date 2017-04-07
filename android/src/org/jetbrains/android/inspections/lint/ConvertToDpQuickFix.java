@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 /**
  * @author Eugene.Kudelevsky
  */
-class ConvertToDpQuickFix implements AndroidLintQuickFix {
+public class ConvertToDpQuickFix implements AndroidLintQuickFix {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.inspections.lint.ConvertToDpQuickFix");
   private static final Pattern PX_ATTR_VALUE_PATTERN = Pattern.compile("(\\d+)px");
 

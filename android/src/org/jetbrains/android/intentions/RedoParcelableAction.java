@@ -19,7 +19,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
-import static org.jetbrains.android.inspections.lint.ParcelableQuickFix.Operation.REIMPLEMENT;
+import static com.android.tools.idea.lint.ParcelableQuickFix.Operation.REIMPLEMENT;
 
 public class RedoParcelableAction extends ImplementParcelableAction {
 

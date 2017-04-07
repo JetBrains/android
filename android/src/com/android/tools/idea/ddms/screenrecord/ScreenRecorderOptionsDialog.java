@@ -17,6 +17,7 @@
 package com.android.tools.idea.ddms.screenrecord;
 
 import com.android.ddmlib.ScreenRecorderOptions;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
@@ -72,6 +73,19 @@ public class ScreenRecorderOptionsDialog extends DialogWrapper {
   @Override
   protected String getDimensionServiceKey() {
     return SCREENRECORDER_DIMENSIONS_KEY;
+  }
+
+  @Nullable
+  @Override
+  protected String getHelpId() {
+    return "https://developer.android.com/r/studio-ui/am-video.html";
+  }
+
+  @Override
+  protected void doHelpAction() {
+    String helpId = getHelpId();
+    assert helpId != null; // Otherwise, doHelpAction would not be triggered
+    BrowserUtil.browse(helpId);
   }
 
   @Override

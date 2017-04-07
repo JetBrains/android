@@ -2,6 +2,7 @@ package com.android.tools.idea.editors.theme;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.resources.ResourceValueMap;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -65,7 +66,7 @@ public class ThemeResolver {
   /**
    * Create a ThemeEditorStyle instance stored in ThemeResolver, which can be added to one of theme lists.
    */
-  @Nullable("if theme with this name was already added or resolution has failed")
+  @Nullable/*if theme with this name was already added or resolution has failed*/
   private ConfiguredThemeEditorStyle constructThemeFromResourceValue(@NotNull StyleResourceValue value, @Nullable Module sourceModule) {
     final String name = ResolutionUtils.getQualifiedStyleName(value);
 
@@ -149,7 +150,7 @@ public class ThemeResolver {
   }
 
   @NotNull
-  private List<StyleResourceValue> getThemes(@NotNull Map<String, ResourceValue> styles,
+  private List<StyleResourceValue> getThemes(@NotNull ResourceValueMap styles,
                                              boolean isFramework) {
     // Collect the themes out of all the styles.
     Collection<ResourceValue> values = styles.values();

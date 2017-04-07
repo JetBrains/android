@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.sdk;
 
+import com.android.testutils.TestUtils;
 import com.google.common.base.Strings;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-
-import static com.android.tools.idea.AndroidTestCaseHelper.getAndroidSdkPath;
 
 /**
  * Tests for {@link VersionCheck}.
@@ -35,7 +34,7 @@ public class VersionCheckTest extends TestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    mySdkPath = getAndroidSdkPath();
+    mySdkPath = TestUtils.getSdk();
   }
 
   @Nullable

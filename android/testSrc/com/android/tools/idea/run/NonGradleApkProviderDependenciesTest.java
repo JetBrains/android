@@ -29,6 +29,9 @@ import org.mockito.Mockito;
 
 import java.util.*;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+
 /**
  * Additional tests for {@link NonGradleApkProvider} that require a project setup with
  * module dependencies. These are separated because the test framework is oriented toward setting up all the test project
@@ -38,9 +41,9 @@ public class NonGradleApkProviderDependenciesTest extends AndroidTestCase {
   @Override
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                             @NotNull List<MyAdditionalModuleData> modules) {
-    addModuleWithAndroidFacet(projectBuilder, modules, "dependencyApp1", false);
-    addModuleWithAndroidFacet(projectBuilder, modules, "dependencyApp2", false);
-    addModuleWithAndroidFacet(projectBuilder, modules, "dependencyLibrary", true);
+    addModuleWithAndroidFacet(projectBuilder, modules, "dependencyApp1", PROJECT_TYPE_APP);
+    addModuleWithAndroidFacet(projectBuilder, modules, "dependencyApp2", PROJECT_TYPE_APP);
+    addModuleWithAndroidFacet(projectBuilder, modules, "dependencyLibrary", PROJECT_TYPE_LIBRARY);
   }
 
   /** For testing convenience, quickly specify a facet's package and APK. */

@@ -26,14 +26,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+
 public class AndroidMultiModuleRenameTest extends AndroidTestCase {
   public static final String LIBRARY_MODULE = "library";
-  public static final String LIBRARY_PATH = getContentRootPath(LIBRARY_MODULE);
+  public static final String LIBRARY_PATH = getAdditionalModulePath(LIBRARY_MODULE);
 
   @Override
   protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
                                             @NotNull List<MyAdditionalModuleData> modules) {
-    addModuleWithAndroidFacet(projectBuilder, modules, LIBRARY_MODULE, true);
+    addModuleWithAndroidFacet(projectBuilder, modules, LIBRARY_MODULE, PROJECT_TYPE_LIBRARY);
   }
 
   // Check that renaming package in a library module would rename corresponding reference in AndroidManifest.xml

@@ -19,7 +19,6 @@ import com.android.tools.idea.rendering.ImageUtils;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -41,8 +40,8 @@ import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -312,7 +311,7 @@ public class ASGallery<E> extends JBList {
     @Override
     public Optional<R> apply(P input) {
       R result = myFunction.apply(input);
-      return Optional.fromNullable(result);
+      return Optional.ofNullable(result);
     }
   }
 
@@ -333,7 +332,7 @@ public class ASGallery<E> extends JBList {
   private Image getCellImage(E element) {
     try {
       Optional<Image> image = myImagesCache.get(element);
-      return image.orNull();
+      return image.orElse(null);
     }
     catch (ExecutionException e) {
       Logger.getInstance(getClass()).error(e);

@@ -18,7 +18,9 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.res2.ResourceItem;
 import com.android.resources.ResourceType;
+import com.android.util.Pair;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -27,15 +29,15 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.util.ui.UIUtil;
+import gnu.trove.TIntObjectHashMap;
+import gnu.trove.TObjectIntHashMap;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
+
+import static org.junit.Assert.assertNotEquals;
 
 public class AppResourceRepositoryTest extends AndroidTestCase {
   private static final String LAYOUT = "resourceRepository/layout.xml";
@@ -140,7 +142,6 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
         assertNotSame(item, newItem);
       }
     });
-    UIUtil.dispatchAllInvocationEvents();
   }
 
   public void testGetDeclaredArrayValues() throws IOException {
@@ -150,6 +151,12 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     ImmutableList<AttrResourceValue> attrList = builder.add(new AttrResourceValue(ResourceType.ATTR, "some-attr", false, null)).build();
     Integer[] foundValues = appResources.getDeclaredArrayValues(attrList, "Styleable1");
     assertOrderedEquals(foundValues, 0x7f010000);
+
+    // Declared styleables mismatch
+    attrList = builder.add(
+      new AttrResourceValue(ResourceType.ATTR, "some-attr", false, null),
+      new AttrResourceValue(ResourceType.ATTR, "other-attr", false, null)).build();
+    assertNull(appResources.getDeclaredArrayValues(attrList, "Styleable1"));
 
     // slightly complex test.
     builder = ImmutableList.builder();
@@ -206,6 +213,84 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     assertContainsElements(idResources, aarIds);
     assertFalse(aarIds.contains("btn_title_refresh"));
     assertContainsElements(idResources, "btn_title_refresh");
+  }
+
+  @SuppressWarnings("deprecation")  // For Pair
+  public void testDynamicIds() {
+    AppResourceRepository repository = AppResourceRepository.getAppResources(myFacet, true);
+    Integer stringId = repository.getResourceId(ResourceType.STRING, "string");
+    assertNotNull(stringId);
+    Integer styleId = repository.getResourceId(ResourceType.STYLE, "style");
+    assertNotNull(styleId);
+    Integer layoutId = repository.getResourceId(ResourceType.LAYOUT, "layout");
+    assertNotNull(layoutId);
+    assertEquals(stringId, repository.getResourceId(ResourceType.STRING, "string"));
+    assertEquals(Pair.of(ResourceType.STRING, "string"), repository.resolveResourceId(stringId));
+    assertEquals(styleId, repository.getResourceId(ResourceType.STYLE, "style"));
+    assertEquals(Pair.of(ResourceType.STYLE, "style"), repository.resolveResourceId(styleId));
+    assertEquals(layoutId, repository.getResourceId(ResourceType.LAYOUT, "layout"));
+    assertEquals(Pair.of(ResourceType.LAYOUT, "layout"), repository.resolveResourceId(layoutId));
+  }
+
+  public void testResetDynamicIds() {
+    AppResourceRepository repository = AppResourceRepository.getAppResources(myFacet, true);
+    Integer stringId = repository.getResourceId(ResourceType.STRING, "string");
+    Integer styleId = repository.getResourceId(ResourceType.STYLE, "style");
+    Integer layoutId = repository.getResourceId(ResourceType.LAYOUT, "layout");
+    repository.resetDynamicIds(false);
+    // They should be all gone now.
+    assertNull(repository.resolveResourceId(stringId));
+    assertNull(repository.resolveResourceId(styleId));
+    assertNull(repository.resolveResourceId(layoutId));
+    // Check in different order. These should be new IDs.
+    assertNotEquals(layoutId, repository.getResourceId(ResourceType.LAYOUT, "layout"));
+    assertNotEquals(stringId, repository.getResourceId(ResourceType.STRING, "string"));
+    assertNotEquals(styleId, repository.getResourceId(ResourceType.STYLE, "style"));
+  }
+
+  @SuppressWarnings("deprecation")  // For Pair
+  public void testSetCompiledResources() {
+    AppResourceRepository repository = AppResourceRepository.getAppResources(myFacet, true);
+    Integer stringId = repository.getResourceId(ResourceType.STRING, "string");
+    Integer styleId = repository.getResourceId(ResourceType.STYLE, "style");
+    Integer layoutId = repository.getResourceId(ResourceType.LAYOUT, "layout");
+
+    TIntObjectHashMap<Pair<ResourceType, String>> id2res = new TIntObjectHashMap<Pair<ResourceType, String>>();
+    id2res.put(0x7F000000, Pair.of(ResourceType.STRING, "string"));
+    id2res.put(0x7F010000, Pair.of(ResourceType.STYLE, "style"));
+    id2res.put(0x7F020000, Pair.of(ResourceType.LAYOUT, "layout"));
+
+    Map<ResourceType, TObjectIntHashMap<String>> res2id = Maps.newHashMap();
+    TObjectIntHashMap<String> stringIdMap = new TObjectIntHashMap<>();
+    stringIdMap.put("string", 0x7F000000);
+    res2id.put(ResourceType.STRING, stringIdMap);
+    TObjectIntHashMap<String> styleIdMap = new TObjectIntHashMap<>();
+    styleIdMap.put("style", 0x7F010000);
+    res2id.put(ResourceType.STYLE, styleIdMap);
+    TObjectIntHashMap<String> layoutIdMap = new TObjectIntHashMap<>();
+    layoutIdMap.put("layout", 0x7F020000);
+    res2id.put(ResourceType.LAYOUT, layoutIdMap);
+
+    repository.setCompiledResources(id2res, Collections.emptyMap(), res2id);
+
+    // Compiled resources should replace the dynamic IDs.
+    assertNotEquals(stringId, repository.getResourceId(ResourceType.STRING, "string"));
+    assertEquals(Integer.valueOf(0x7F000000), repository.getResourceId(ResourceType.STRING, "string"));
+    assertNotEquals(styleId, repository.getResourceId(ResourceType.STYLE, "style"));
+    assertEquals(Integer.valueOf(0x7F010000), repository.getResourceId(ResourceType.STYLE, "style"));
+    assertNotEquals(layoutId, repository.getResourceId(ResourceType.LAYOUT, "layout"));
+    assertEquals(Integer.valueOf(0x7F020000), repository.getResourceId(ResourceType.LAYOUT, "layout"));
+
+    // Dynamic IDs should still resolve though.
+    assertEquals(Pair.of(ResourceType.STRING, "string"), repository.resolveResourceId(stringId));
+    assertEquals(Pair.of(ResourceType.STYLE, "style"), repository.resolveResourceId(styleId));
+    assertEquals(Pair.of(ResourceType.LAYOUT, "layout"), repository.resolveResourceId(layoutId));
+
+    // But not after reset.
+    repository.resetDynamicIds(false);
+    assertNull(repository.resolveResourceId(stringId));
+    assertNull(repository.resolveResourceId(styleId));
+    assertNull(repository.resolveResourceId(layoutId));
   }
 
   static AppResourceRepository createTestAppResourceRepository(AndroidFacet facet) throws IOException {

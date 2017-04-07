@@ -76,6 +76,7 @@
     TILDE='~'
     QUESTQUEST='??'
     QUEST='?'
+    COLONCOLON='::'
     COLON=':'
     PLUS='+'
     MINUS='-'
@@ -126,6 +127,7 @@ expr
   |   castExpr
   |   methodExpr
   |   bracketExpr          //  array op - []
+  |   functionRefExpr      //  method reference using '::'
   |   dotExpr              //  field access
   |   resourcesExpr
   |   classExtractionExpr
@@ -152,6 +154,7 @@ signChangeExpr ::= signOp expr
 castExpr ::= '(' type ')' expr
 methodExpr ::= expr '.' methodName '(' expressionList? ')'
 bracketExpr ::= expr '[' expr ']'
+functionRefExpr ::= expr '::' methodName
 dotExpr ::= expr '.' fieldName
 resourcesExpr ::= RESOURCE_REFERENCE resourceParameters?
 classExtractionExpr ::= type '.' 'class'
@@ -216,7 +219,7 @@ lambdaExpression
   ::= lambdaParameters '->' expr
 
 lambdaParameters
-  ::= IDENTIFIER
-  |   '(' inferredFormalParameterList? ')'
+  ::= '(' inferredFormalParameterList? ')'
+  |   IDENTIFIER
 
 inferredFormalParameterList ::= IDENTIFIER (',' IDENTIFIER)*

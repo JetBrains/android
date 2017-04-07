@@ -21,7 +21,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.ddms.DeviceRenderer;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.google.common.base.Predicate;
@@ -97,8 +97,8 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
     myFilter = filter;
     myMinSdkVersion = AndroidModuleInfo.get(facet).getRuntimeMinSdkVersion();
     myProjectTarget = projectTarget;
-    mySupportedAbis = facet.getAndroidModel() instanceof AndroidGradleModel ?
-                      ((AndroidGradleModel)facet.getAndroidModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
+    mySupportedAbis = facet.getAndroidModel() instanceof AndroidModuleModel ?
+                      ((AndroidModuleModel)facet.getAndroidModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
                       null;
 
     // Currently, we only look at whether the device supports the watch feature.

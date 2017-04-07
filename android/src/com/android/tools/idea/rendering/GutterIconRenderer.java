@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.ide.common.resources.ResourceResolver;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -36,9 +37,11 @@ import java.io.File;
 public class GutterIconRenderer extends com.intellij.openapi.editor.markup.GutterIconRenderer implements DumbAware {
   private final PsiElement myElement;
   private final File myFile;
+  private final ResourceResolver myResourceResolver;
   private Icon myIcon;
 
-  public GutterIconRenderer(@NotNull PsiElement element, @NotNull File file) {
+  public GutterIconRenderer(ResourceResolver resourceResolver, @NotNull PsiElement element, @Nullable File file) {
+    myResourceResolver = resourceResolver;
     myElement = element;
     myFile = file;
   }
@@ -47,7 +50,9 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
   @Override
   public Icon getIcon() {
     if (myIcon == null) {
-      myIcon = GutterIconCache.getInstance().getIcon(myFile.getPath());
+      if (myFile != null) {
+        myIcon = GutterIconCache.getInstance().getIcon(myFile.getPath(), myResourceResolver);
+      }
       if (myIcon == null) {
         myIcon = AllIcons.General.Error;
       }

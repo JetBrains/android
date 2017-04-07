@@ -18,12 +18,12 @@ package com.android.tools.idea.apk.viewer;
 import com.android.SdkConstants;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.execution.util.ExecUtil;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,7 +69,7 @@ public class AaptInvoker {
    */
   @Nullable
   private static Path getPathToAapt() {
-    AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+    AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     BuildToolInfo latestBuildTool = sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(AaptInvoker.class), true);
     if (latestBuildTool == null) {
       return null;

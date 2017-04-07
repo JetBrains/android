@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.project;
 
-import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -46,49 +45,24 @@ public final class AndroidPackageUtils {
   }
 
   /**
-   * Return a suggested package given the project's current paths and a particular target directory
-   * (which is a likely candidate for where the user wants to add some new code)
+   * Return the package associated with the target directory.
    */
   @NotNull
-  public static String getPackageForPath(@NotNull AndroidProjectPaths paths, @NotNull VirtualFile targetDirectory) {
-    Module module = paths.getModule();
-    File srcDirectory = paths.getSrcDirectory();
-    if (srcDirectory != null) {
-      ProjectRootManager projectManager = ProjectRootManager.getInstance(module.getProject());
-      String suggestedPackage = projectManager.getFileIndex().getPackageNameByDirectory(targetDirectory);
-      if (suggestedPackage != null && !suggestedPackage.isEmpty()) {
-        return suggestedPackage;
+  public static String getPackageForPath(@NotNull AndroidFacet androidFacet,
+                                         @NotNull List<AndroidSourceSet> sourceSets,
+                                         @NotNull VirtualFile targetDirectory) {
+    if (sourceSets.size() > 0) {
+      Module module = androidFacet.getModule();
+      File srcDirectory = sourceSets.get(0).getPaths().getSrcDirectory();
+      if (srcDirectory != null) {
+        ProjectRootManager projectManager = ProjectRootManager.getInstance(module.getProject());
+        String suggestedPackage = projectManager.getFileIndex().getPackageNameByDirectory(targetDirectory);
+        if (suggestedPackage != null && !suggestedPackage.isEmpty()) {
+          return suggestedPackage;
+        }
       }
     }
 
-    return getPackageForApplication(paths.getAndroidFacet());
-  }
-
-  /**
-   * Convenience method for calling {@link #getPackageForPath(AndroidProjectPaths, VirtualFile)}
-   * when you don't have an {@link AndroidProjectPaths} instance.
-   */
-  @NotNull
-  public static String getPackageForPath(@NotNull AndroidFacet androidFacet,
-                                         @NotNull SourceProvider sourceProvider,
-                                         @NotNull VirtualFile targetDirectory) {
-    return getPackageForPath(new AndroidProjectPaths(androidFacet, sourceProvider), targetDirectory);
-  }
-
-  /**
-   * Convenience method when we have a list of 0 or more source providers. For example, when
-   * querying {@link AndroidProjectPaths#getSourceProviders(AndroidFacet, VirtualFile)}, it's nice
-   * to just pass the list along to this method, instead of doing list size checks externally.
-   */
-  @NotNull
-  public static String getPackageForPath(@NotNull AndroidFacet androidFacet,
-                                         @NotNull List<SourceProvider> sourceProviders,
-                                         @NotNull VirtualFile targetDirectory) {
-    if (sourceProviders.size() > 0) {
-      return getPackageForPath(androidFacet, sourceProviders.get(0), targetDirectory);
-    }
-    else {
-      return getPackageForApplication(androidFacet);
-    }
+    return getPackageForApplication(androidFacet);
   }
 }

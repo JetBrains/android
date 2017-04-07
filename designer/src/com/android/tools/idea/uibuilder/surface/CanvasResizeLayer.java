@@ -8,7 +8,7 @@ import java.awt.*;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.*;
 
 /**
- * Layer to paint the canvas resizing cue in the bottom-right corner of the screen view.
+ * Layer to buildDisplayList the canvas resizing cue in the bottom-right corner of the screen view.
  */
 public class CanvasResizeLayer extends Layer {
   private final DesignSurface myDesignSurface;

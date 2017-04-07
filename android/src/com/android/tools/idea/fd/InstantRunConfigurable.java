@@ -20,10 +20,14 @@ import com.android.repository.Revision;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.fd.gradle.InstantRunGradleUtils;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
+import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.GradleWrapper;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
@@ -34,13 +38,14 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.ui.CollectionComboBoxModel;
+import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,7 +53,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-import java.io.File;
+
+import java.util.Arrays;
 
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION;
@@ -145,13 +151,6 @@ public class InstantRunConfigurable
     myBuildConfiguration.SHOW_TOAST = isShowToast();
     myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS = isShowStatusNotifications();
     myBuildConfiguration.ENABLE_RECORDER = isEnableRecorder();
-
-    for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-      if (project.isDefault()) {
-        continue;
-      }
-      InstantRunManager.updateFileListener(project);
-    }
   }
 
   @Override
@@ -161,6 +160,10 @@ public class InstantRunConfigurable
     myShowToastCheckBox.setSelected(myBuildConfiguration.SHOW_TOAST);
     myShowIrStatusNotifications.setSelected(myBuildConfiguration.SHOW_IR_STATUS_NOTIFICATIONS);
     myEnableRecorder.setSelected(myBuildConfiguration.ENABLE_RECORDER);
+  }
+
+  @Override
+  public void disposeUIResources() {
   }
 
   private boolean isInstantRunEnabled() {
@@ -203,7 +206,7 @@ public class InstantRunConfigurable
         continue;
       }
       for (Module module : ModuleManager.getInstance(project).getModules()) {
-        AndroidGradleModel model = AndroidGradleModel.get(module);
+        AndroidModuleModel model = AndroidModuleModel.get(module);
         if (model != null) {
           isGradle = true;
           if (InstantRunGradleUtils.modelSupportsInstantRun(model)) {
@@ -254,10 +257,12 @@ public class InstantRunConfigurable
     }
 
     // Update plugin version
-    if (GradleUtil.updateGradlePluginVersion(project, pluginVersion, GRADLE_LATEST_VERSION)) {
+    AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
+    UpdateResult result = updater.updatePluginVersion(GradleVersion.parse(pluginVersion), GradleVersion.parse(GRADLE_LATEST_VERSION));
+    if (result.isPluginVersionUpdated() && result.versionUpdateSuccess()) {
       // Should be at least 23.0.2
       String buildToolsVersion = "23.0.2";
-      AndroidSdkHandler sdk = AndroidSdkUtils.tryToChooseSdkHandler();
+      AndroidSdkHandler sdk = AndroidSdks.getInstance().tryToChooseSdkHandler();
       BuildToolInfo latestBuildTool = sdk.getLatestBuildTool(new StudioLoggerProgressIndicator(InstantRunConfigurable.class), false);
       if (latestBuildTool != null) {
         Revision revision = latestBuildTool.getRevision();
@@ -270,13 +275,14 @@ public class InstantRunConfigurable
       GradleUtil.setBuildToolsVersion(project, buildToolsVersion);
 
       // Also update Gradle wrapper version
-      File wrapperPropertiesFile = GradleUtil.findWrapperPropertiesFile(project);
-      if (wrapperPropertiesFile != null) {
-        GradleUtil.updateGradleDistributionUrl(project, wrapperPropertiesFile, GRADLE_LATEST_VERSION);
+      GradleWrapper gradleWrapper = GradleWrapper.find(project);
+      if (gradleWrapper != null) {
+        gradleWrapper.updateDistributionUrlAndDisplayFailure(GRADLE_LATEST_VERSION);
       }
 
       // Request a sync
-      GradleProjectImporter.getInstance().syncProjectSynchronously(project, true, listener);
+      GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setRunInBackground(false);
+      GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
       return true;
     }
     else {
@@ -296,6 +302,10 @@ public class InstantRunConfigurable
   }
 
   @Override
+  public void setupStarted(@NotNull Project project) {
+  }
+
+  @Override
   public void syncSucceeded(@NotNull Project project) {
     updateUi(false, false);
   }
@@ -311,19 +321,16 @@ public class InstantRunConfigurable
   }
 
   private void updateUi(final boolean syncing, final boolean failed) {
-    UIUtil.invokeLaterIfNeeded(new Runnable() {
-      @Override
-      public void run() {
-        if (myContentPanel.isShowing()) {
-          if (syncing) {
-            setSyncLinkMessage("(Syncing)");
-          } else if (failed) {
-            setSyncLinkMessage("(Sync Failed)");
-          } else {
-            setSyncLinkMessage("");
-          }
-          updateLinkState();
+    UIUtil.invokeLaterIfNeeded(() -> {
+      if (myContentPanel.isShowing()) {
+        if (syncing) {
+          setSyncLinkMessage("(Syncing)");
+        } else if (failed) {
+          setSyncLinkMessage("(Sync Failed)");
+        } else {
+          setSyncLinkMessage("");
         }
+        updateLinkState();
       }
     });
   }

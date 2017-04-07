@@ -23,7 +23,10 @@ import com.intellij.util.ui.tree.WideSelectionTreeUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.*;
 import javax.swing.tree.AbstractLayoutCache;
 import javax.swing.tree.TreeCellRenderer;
@@ -74,22 +77,30 @@ public class ColumnTreeBuilder {
   private TreeSorter myTreeSorter;
 
   @NotNull
-  private List<ColumnBuilder> myColumBuilders;
+  private List<ColumnBuilder> myColumnBuilders;
+
+  @Nullable
+  private Color myBackground;
 
   public ColumnTreeBuilder(@NotNull JTree tree) {
     myTree = tree;
     myTableModel = new DefaultTableModel();
     myTable = new JBTable(myTableModel);
     myCellRenderer = new ColumnTreeCellRenderer(myTree, myTable.getColumnModel());
-    myRowSorter = new TableRowSorter<TableModel>(myTable.getModel());
-    myColumBuilders = new LinkedList<ColumnBuilder>();
+    myRowSorter = new TableRowSorter<>(myTable.getModel());
+    myColumnBuilders = new LinkedList<>();
   }
 
   /**
    * Sets the tree sorter to call when a column wants to be sorted.
    */
-  public ColumnTreeBuilder setTreeSorter(@NotNull TreeSorter sorter) {
+  public ColumnTreeBuilder setTreeSorter(@NotNull TreeSorter<?> sorter) {
     myTreeSorter = sorter;
+    return this;
+  }
+
+  public ColumnTreeBuilder setBackground(@NotNull Color background) {
+    myBackground = background;
     return this;
   }
 
@@ -124,32 +135,34 @@ public class ColumnTreeBuilder {
     });
 
     myTable.setRowSorter(myRowSorter);
-    myRowSorter.addRowSorterListener(new RowSorterListener() {
-      @Override
-      public void sorterChanged(RowSorterEvent event) {
-        if (myTreeSorter != null && !myRowSorter.getSortKeys().isEmpty()) {
-          RowSorter.SortKey key = myRowSorter.getSortKeys().get(0);
-          Comparator<?> comparator = myRowSorter.getComparator(key.getColumn());
-          Enumeration<TreePath> expanded = myTree.getExpandedDescendants(new TreePath(myTree.getModel().getRoot()));
-          comparator = key.getSortOrder() == SortOrder.ASCENDING ? comparator : Collections.reverseOrder(comparator);
-          myTreeSorter.sort(comparator, key.getSortOrder());
-          if (expanded != null) {
-            while (expanded.hasMoreElements()) {
-              myTree.expandPath(expanded.nextElement());
-            }
+    myRowSorter.addRowSorterListener(event -> {
+      if (myTreeSorter != null && !myRowSorter.getSortKeys().isEmpty()) {
+        RowSorter.SortKey key = myRowSorter.getSortKeys().get(0);
+        Comparator<?> comparator = myRowSorter.getComparator(key.getColumn());
+        Enumeration<TreePath> expanded = myTree.getExpandedDescendants(new TreePath(myTree.getModel().getRoot()));
+        comparator = key.getSortOrder() == SortOrder.ASCENDING ? comparator : Collections.reverseOrder(comparator);
+        myTreeSorter.sort(comparator, key.getSortOrder());
+        if (expanded != null) {
+          while (expanded.hasMoreElements()) {
+            myTree.expandPath(expanded.nextElement());
           }
         }
       }
     });
     myTable.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
-    for (ColumnBuilder column : myColumBuilders) {
+    for (ColumnBuilder column : myColumnBuilders) {
       column.create(myTableModel);
     }
-    for (ColumnBuilder column : myColumBuilders) {
-      column.configure(myTable, myRowSorter, myCellRenderer);
+
+    for (int i = 0; i < myColumnBuilders.size(); i++) {
+      ColumnBuilder column = myColumnBuilders.get(i);
+      column.configure(i, myTable, myRowSorter, myCellRenderer);
     }
 
     JPanel panel = new TreeWrapperPanel(myTable, myTree);
+    if (myBackground != null) {
+      panel.setBackground(myBackground);
+    }
 
     JTableHeader header = myTable.getTableHeader();
     header.setReorderingAllowed(false);
@@ -164,7 +177,7 @@ public class ColumnTreeBuilder {
   }
 
   public ColumnTreeBuilder addColumn(ColumnBuilder column) {
-    myColumBuilders.add(column);
+    myColumnBuilders.add(column);
     return this;
   }
 
@@ -329,8 +342,8 @@ public class ColumnTreeBuilder {
       model.addColumn(myName);
     }
 
-    public void configure(JTable table, TableRowSorter<TableModel> sorter, ColumnTreeCellRenderer renderer) {
-      TableColumn column = table.getColumn(myName);
+    public void configure(int index, JTable table, TableRowSorter<TableModel> sorter, ColumnTreeCellRenderer renderer) {
+      TableColumn column = table.getColumnModel().getColumn(index);
       column.setPreferredWidth(myWidth);
 
       final TableCellRenderer tableCellRenderer = table.getTableHeader().getDefaultRenderer();
@@ -404,12 +417,22 @@ public class ColumnTreeBuilder {
 
     @Override
     public boolean getScrollableTracksViewportWidth() {
-      return myTree.getScrollableTracksViewportWidth();
+      Container parent = SwingUtilities.getUnwrappedParent(this);
+      if (parent instanceof JViewport) {
+        // Note: This assumes myTree extends the full width of the panel
+        return parent.getWidth() > myTree.getPreferredSize().width;
+      }
+      return false;
     }
 
     @Override
     public boolean getScrollableTracksViewportHeight() {
-      return myTree.getScrollableTracksViewportHeight();
+      Container parent = SwingUtilities.getUnwrappedParent(this);
+      if (parent instanceof JViewport) {
+        // Note: This assumes myTable has a height of 0
+        return parent.getHeight() > myTree.getPreferredSize().height;
+      }
+      return false;
     }
   }
 }

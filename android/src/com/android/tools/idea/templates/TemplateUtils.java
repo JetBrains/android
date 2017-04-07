@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.npw.WizardUtils;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.utils.SparseArray;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
@@ -34,11 +35,13 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -54,7 +57,10 @@ import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Static utility methods pertaining to templates for projects, modules, and activities.
@@ -189,7 +195,7 @@ public class TemplateUtils {
    */
   @NotNull
   public static String[] getKnownVersions() {
-    final AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    final AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     assert sdkData != null;
     int max = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API;
     IAndroidTarget[] targets = sdkData.getTargets();
@@ -290,9 +296,36 @@ public class TemplateUtils {
   }
 
   /**
-   * Note: reformatting the PSI file requires that this be wrapped in a write command.
+   * Reformats and rearranges the part of the File concerning the PsiElement received
+   *
+   * @param project The project which contains the given element
+   * @param psiElement The element to be reformated and rearranged
+   */
+  public static void reformatAndRearrange(@NotNull Project project, @NotNull PsiElement psiElement) {
+    reformatAndRearrange(project, psiElement.getContainingFile().getVirtualFile(), psiElement, true);
+  }
+
+  /**
+   * Reformats and rearranges the entire File
    */
   public static void reformatAndRearrange(@NotNull Project project, @NotNull VirtualFile virtualFile) {
+    reformatAndRearrange(project, virtualFile, null, false);
+  }
+
+  /**
+   * Reformats and rearranges the file (entirely or part of it)
+   *
+   * Note: reformatting the PSI file requires that this be wrapped in a write command.
+   *
+   * @param project The project which contains the given element
+   * @param virtualFile Virtual file to be reformatted and rearranged, if null, the entire file will be considered
+   * @param psiElement The element in the file to be reformatted and rearranged
+   * @param keepDocumentLocked True if the document will still be modified in the same write action
+   */
+  private static void reformatAndRearrange(@NotNull Project project,
+                                           @NotNull VirtualFile virtualFile,
+                                           @Nullable PsiElement psiElement,
+                                           boolean keepDocumentLocked) {
     ApplicationManager.getApplication().assertWriteAccessAllowed();
     PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(project);
 
@@ -306,10 +339,17 @@ public class TemplateUtils {
 
     PsiFile psiFile = psiDocumentManager.getPsiFile(document);
     if (psiFile != null) {
-      CodeStyleManager.getInstance(project).reformat(psiFile);
+      TextRange textRange = psiElement == null ? psiFile.getTextRange() : psiElement.getTextRange();
+      CodeStyleManager.getInstance(project).reformatRange(psiFile, textRange.getStartOffset(), textRange.getEndOffset());
 
+      // The textRange of psiElement in the file can change after reformatting
+      textRange = psiElement == null ? psiFile.getTextRange() : psiElement.getTextRange();
       psiDocumentManager.doPostponedOperationsAndUnblockDocument(document);
-      ServiceManager.getService(project, ArrangementEngine.class).arrange(psiFile, Collections.singleton(psiFile.getTextRange()));
+      ServiceManager.getService(project, ArrangementEngine.class).arrange(psiFile, Collections.singleton(textRange));
+
+      if (keepDocumentLocked) {
+        psiDocumentManager.commitDocument(document);
+      }
     }
   }
 
@@ -383,11 +423,10 @@ public class TemplateUtils {
   }
 
   /**
-   * Reads the given file as text.
+   * Returns the contents of {@code file}, or {@code null} if an {@link IOException} occurs.
+   * If an {@link IOException} occurs and {@code warnIfNotExists} is {@code true}, logs a warning.
    *
-   * @param file            the file to read. Must be an absolute reference.
-   * @param warnIfNotExists if true, logs a warning if the file does not exist.
-   * @return the contents of the file as text
+   * @throws AssertionError if {@code file} is not absolute
    */
   @Nullable
   public static String readTextFromDisk(@NotNull File file, boolean warnIfNotExists) {
@@ -404,10 +443,10 @@ public class TemplateUtils {
   }
 
   /**
-   * Reads the given file as text.
+   * Returns the contents of {@code file}, or {@code null} if an {@link IOException} occurs.
+   * If an {@link IOException} occurs, logs a warning.
    *
-   * @param file The file to read. Must be an absolute reference.
-   * @return the contents of the file as text
+   * @throws AssertionError if {@code file} is not absolute
    */
   @Nullable
   public static String readTextFromDisk(@NotNull File file) {

@@ -15,30 +15,21 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.SdkConstants;
-import com.android.tools.idea.gradle.GradleModel;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.IdeaTestCase;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Properties;
 
-import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
-import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
 import static org.easymock.EasyMock.*;
-import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 /**
  * Tests for {@link GradleUtil}.
@@ -52,8 +43,8 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
     super.setUp();
     File moduleFilePath = new File(myModule.getModuleFilePath());
     myModuleRootDir = moduleFilePath.getParentFile();
-    myBuildFile = new File(myModuleRootDir, SdkConstants.FN_BUILD_GRADLE);
-    FileUtilRt.createIfNotExists(myBuildFile);
+    myBuildFile = new File(myModuleRootDir, FN_BUILD_GRADLE);
+    createIfNotExists(myBuildFile);
   }
 
   public void testGetGradleBuildFileFromRootDir() {
@@ -78,23 +69,10 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
     expect(tasks.isEmpty()).andReturn(true);
     replay(project, tasks);
 
-    GradleModel gradleModel = GradleModel.create(myModule.getName(), project, myBuildFile, "2.2.1");
+    GradleModuleModel gradleModuleModel = new GradleModuleModel(myModule.getName(), project, myBuildFile, "2.2.1");
 
-    final FacetManager facetManager = FacetManager.getInstance(myModule);
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        ModifiableFacetModel model = facetManager.createModifiableModel();
-        try {
-          AndroidGradleFacet facet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
-          model.addFacet(facet);
-          facet.setGradleModel(gradleModel);
-        }
-        finally {
-          model.commit();
-        }
-      }
-    });
+    GradleFacet facet = createAndAddGradleFacet(myModule);
+    facet.setGradleModuleModel(gradleModuleModel);
 
     VirtualFile buildFile = GradleUtil.getGradleBuildFile(myModule);
     assertIsGradleBuildFile(buildFile);
@@ -106,37 +84,6 @@ public class GradleUtilIdeaTest extends IdeaTestCase {
     assertNotNull(buildFile);
     assertFalse(buildFile.isDirectory());
     assertTrue(buildFile.isValid());
-    assertEquals(SdkConstants.FN_BUILD_GRADLE, buildFile.getName());
-  }
-
-  public void testCreateGradleWrapperWithSpecificGradleVersion() throws IOException {
-    File projectDirPath = new File(myProject.getBasePath());
-    File projectWrapperDirPath = new File(projectDirPath, FD_GRADLE_WRAPPER);
-    assertFalse(projectWrapperDirPath.exists());
-
-    String gradleVersion = "1.5";
-    boolean created = GradleUtil.createGradleWrapper(projectDirPath, gradleVersion);
-    assertTrue(created);
-    assertGradleWrapperCreated(projectWrapperDirPath, gradleVersion);
-  }
-
-  public void testCreateGradleWrapperWithoutSpecificGradleVersion() throws IOException {
-    File projectDirPath = new File(myProject.getBasePath());
-    File projectWrapperDirPath = new File(projectDirPath, FD_GRADLE_WRAPPER);
-    assertFalse(projectWrapperDirPath.exists());
-
-    boolean created = GradleUtil.createGradleWrapper(projectDirPath);
-    assertTrue(created);
-    assertGradleWrapperCreated(projectWrapperDirPath, SdkConstants.GRADLE_LATEST_VERSION);
-  }
-
-  private static void assertGradleWrapperCreated(@NotNull File projectWrapperDirPath, @NotNull String gradleVersion) throws IOException {
-    assertTrue(projectWrapperDirPath.isDirectory());
-    File[] wrapperFiles = FileUtil.notNullize(projectWrapperDirPath.listFiles());
-    assertEquals(2, wrapperFiles.length);
-
-    Properties gradleProperties = PropertiesUtil.getProperties(new File(projectWrapperDirPath, FN_GRADLE_WRAPPER_PROPERTIES));
-    String distributionUrl = gradleProperties.getProperty(DISTRIBUTION_URL_PROPERTY);
-    assertEquals("https://services.gradle.org/distributions/gradle-" + gradleVersion + "-all.zip", distributionUrl);
+    assertEquals(FN_BUILD_GRADLE, buildFile.getName());
   }
 }

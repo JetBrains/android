@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.npw.deprecated.ConfigureAndroidModuleStepDynamic;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -33,25 +33,22 @@ public class ConfigureAndroidModuleStepDynamicTest extends AndroidGradleTestCase
   public void setUp() throws Exception {
     super.setUp();
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        final ModuleManager manager = ModuleManager.getInstance(getProject());
-        File moduleRoot = new File(getProject().getBasePath(), "app");
-        manager.newModule(moduleRoot.getPath(), ModuleTypeId.JAVA_MODULE);
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      final ModuleManager manager = ModuleManager.getInstance(getProject());
+      File moduleRoot = new File(getProject().getBasePath(), "app");
+      manager.newModule(moduleRoot.getPath(), ModuleTypeId.JAVA_MODULE);
 
-        moduleRoot = new File(getProject().getBasePath(), "Lib");
-        manager.newModule(moduleRoot.getPath(), ModuleTypeId.JAVA_MODULE);
+      moduleRoot = new File(getProject().getBasePath(), "Lib");
+      manager.newModule(moduleRoot.getPath(), ModuleTypeId.JAVA_MODULE);
 
-        moduleRoot = new File(getProject().getBasePath(), "lib2");
-        manager.newModule(moduleRoot.getPath(), ModuleTypeId.JAVA_MODULE);
-      }
+      moduleRoot = new File(getProject().getBasePath(), "lib2");
+      manager.newModule(moduleRoot.getPath(), ModuleTypeId.JAVA_MODULE);
     });
 
     ScopedStateStore wizardState = new ScopedStateStore(ScopedStateStore.Scope.WIZARD, null, null);
     ScopedStateStore pathState = new ScopedStateStore(ScopedStateStore.Scope.PATH, wizardState, null);
 
-    myStep = new ConfigureAndroidModuleStepDynamic(getTestRootDisposable(), null);
+    myStep = new ConfigureAndroidModuleStepDynamic(getTestRootDisposable(), FormFactor.MOBILE);
     myStep.myState = new ScopedStateStore(ScopedStateStore.Scope.STEP, pathState, myStep);
   }
 
@@ -66,5 +63,4 @@ public class ConfigureAndroidModuleStepDynamicTest extends AndroidGradleTestCase
     // "app" already exists
     assertEquals("app2", WizardUtils.computeModuleName("app", getProject()));
   }
-
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates;
 
 import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.AndroidTestCase;
@@ -54,7 +55,7 @@ public class TypedVariableTest extends AndroidTestCase {
     final Map<String, Object> paramMap = new HashMap<>();
 
     File xmlFile = new File(FileUtil.join(getTestDataPath(), "templates", "globals.xml"));
-    String xml = TemplateUtils.readTextFromDisk(xmlFile);
+    String xml = Files.toString(xmlFile, Charsets.UTF_8);
     ByteArrayInputStream inputStream = new ByteArrayInputStream(xml.getBytes(Charsets.UTF_8.toString()));
     Reader reader = new InputStreamReader(inputStream, Charsets.UTF_8.toString());
     InputSource inputSource = new InputSource(reader);

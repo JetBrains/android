@@ -31,7 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static com.intellij.testFramework.UsefulTestCase.assertSameElements;
 import static java.io.File.separatorChar;
 

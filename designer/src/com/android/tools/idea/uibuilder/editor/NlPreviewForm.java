@@ -15,18 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.adtui.workbench.AutoHide;
+import com.android.tools.adtui.workbench.Side;
+import com.android.tools.adtui.workbench.Split;
+import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.palette.NlPaletteDefinition;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.intellij.designer.DesignerEditorPanelFacade;
-import com.intellij.designer.LightFillLayout;
-import com.intellij.designer.LightToolWindow;
-import com.intellij.designer.LightToolWindowManager;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.CaretModel;
@@ -35,11 +33,8 @@ import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.fileEditor.TextEditor;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.Alarm;
@@ -50,13 +45,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
-public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorPanelFacade {
+public class NlPreviewForm implements Disposable, CaretListener {
   private final NlPreviewManager myManager;
   private final DesignSurface mySurface;
-  private final ThreeComponentsSplitter myContentSplitter;
+  private final WorkBench<DesignSurface> myWorkBench;
   private final MergingUpdateQueue myRenderingQueue =
     new MergingUpdateQueue("android.layout.preview.caret", 250/*ms*/, true, null, this, null, Alarm.ThreadToUse.SWING_THREAD);
   private boolean myUseInteractiveSelector = true;
@@ -64,7 +60,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
   private RenderResult myRenderResult;
   private XmlFile myFile;
   private boolean isActive = true;
-  private NlActionsToolbar myActionsToolbar;
+  private final NlActionsToolbar myActionsToolbar;
 
   /**
    * When {@link #deactivate()} is called, the file will be saved here and the preview will not be rendered anymore.
@@ -78,10 +74,12 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
   private Pending myPendingFile;
   private TextEditor myEditor;
   private CaretModel myCaretModel;
+  private DesignSurface.ScreenMode myScreenMode;
 
   public NlPreviewForm(NlPreviewManager manager) {
     myManager = manager;
-    mySurface = new DesignSurface(manager.getProject(), this);
+    Project project = myManager.getProject();
+    mySurface = new DesignSurface(project, true);
     Disposer.register(this, mySurface);
     mySurface.setCentered(true);
     mySurface.setScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY, false);
@@ -110,34 +108,21 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
 
     myRenderingQueue.setRestartTimerOnAdd(true);
 
-    myContentSplitter = new ThreeComponentsSplitter();
-
-    // The {@link LightFillLayout} provides the UI for the minimized forms of the {@link LightToolWindow}
-    // used for the palette and the structure/properties panes.
-    JPanel contentPanel = new JPanel(new LightFillLayout());
 
     myActionsToolbar = new NlActionsToolbar(mySurface);
-    contentPanel.add(myActionsToolbar.getToolbarComponent());
-    contentPanel.add(mySurface);
+    JPanel contentPanel = new JPanel(new BorderLayout());
+    contentPanel.add(myActionsToolbar.getToolbarComponent(), BorderLayout.NORTH);
+    contentPanel.add(mySurface, BorderLayout.CENTER);
 
-    myContentSplitter.setDividerWidth(0);
-    myContentSplitter.setDividerMouseZoneSize(Registry.intValue("ide.splitter.mouseZone"));
-    myContentSplitter.setInnerComponent(contentPanel);
-
-    Project project = myManager.getProject();
-    NlPaletteManager paletteManager = NlPaletteManager.get(project);
-    PropertiesComponent properties = PropertiesComponent.getInstance(project);
-    // Keep in sync with LightToolWindow#myShowStateKey's logic
-    String key = LightToolWindowManager.EDITOR_MODE + paletteManager.getVisibilityKeyName(this) + ".SHOW";
-    boolean showing = properties.getBoolean(key, true);
-    if (showing) {
-      properties.setValue(key, Boolean.toString(false));
-    }
+    myWorkBench = new WorkBench<>(project, "Preview", null);
+    myWorkBench.init(contentPanel, mySurface, Collections.singletonList(
+      new NlPaletteDefinition(project, Side.LEFT, Split.TOP, AutoHide.AUTO_HIDE)));
   }
 
   private void setEditor(@Nullable TextEditor editor) {
     if (editor != myEditor) {
       myEditor = editor;
+      mySurface.setFileEditorDelegate(editor);
 
       if (myCaretModel != null) {
         myCaretModel.removeCaretListener(this);
@@ -166,12 +151,14 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
           screenView.getSelectionModel().setSelection(Collections.singletonList(component));
           editor.getCaretModel().moveToOffset(offset);
           editor.getScrollingModel().scrollToCaret(ScrollType.MAKE_VISIBLE);
-        } finally {
+        }
+        finally {
           myIgnoreListener = false;
         }
       }
     }
   }
+
   private void updateCaret() {
     if (myCaretModel != null && !myIgnoreListener && myUseInteractiveSelector) {
       ScreenView screenView = mySurface.getCurrentScreenView();
@@ -197,7 +184,8 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
                 return true;
               }
             });
-          } finally {
+          }
+          finally {
             myIgnoreListener = false;
           }
         }
@@ -207,19 +195,22 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
 
   @Nullable
   public XmlFile getFile() {
+    if (myFile == null && myPendingFile != null) {
+      return myPendingFile.file;
+    }
+
     return myFile;
   }
 
   @NotNull
-  public JPanel getContentPanel() {
-    return myContentSplitter;
+  public JComponent getComponent() {
+    return myWorkBench;
   }
 
   @Override
   public void dispose() {
     deactivate();
     myInactiveFile = null;
-    NlPaletteManager.get(myManager.getProject()).dispose(this);
   }
 
   public void setUseInteractiveSelector(boolean useInteractiveSelector) {
@@ -235,7 +226,7 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       this.file = file;
       this.model = model;
       model.addListener(this);
-      model.render(); // on file switches, render as soon as possible; the delay is for edits
+      model.requestRender(); // on file switches, render as soon as possible; the delay is for edits
     }
 
     @Override
@@ -245,11 +236,16 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
     }
 
     @Override
+    public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+      // do nothing
+    }
+
+    @Override
     public void modelRendered(@NotNull NlModel model) {
       model.removeListener(this);
       if (valid) {
         valid = false;
-        ApplicationManager.getApplication().invokeLater(this);
+        ApplicationManager.getApplication().invokeLater(this, model.getProject().getDisposed());
       }
     }
 
@@ -282,7 +278,8 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       myPendingFile.invalidate();
       // Set the model to null so the progressbar is displayed
       mySurface.setModel(null);
-    } else if (file == myFile) {
+    }
+    else if (file == myFile) {
       return false;
     }
 
@@ -291,7 +288,8 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
       myPendingFile = null;
       myFile = null;
       setActiveModel(null);
-    } else {
+    }
+    else {
       XmlFile xmlFile = (XmlFile)file;
       NlModel model = NlModel.create(mySurface, null, facet, xmlFile);
       myPendingFile = new Pending(xmlFile, model);
@@ -309,8 +307,9 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
 
     if (model == null) {
       setEditor(null);
-      myManager.setDesignSurface(null);
-    } else {
+      myWorkBench.setToolContext(null);
+    }
+    else {
       myFile = model.getFile();
       mySurface.setModel(model);
       if (!mySurface.isCanvasResizing() && mySurface.isZoomFitted()) {
@@ -318,28 +317,24 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
         // only if the zoom was previously set to FIT
         mySurface.zoomToFit();
       }
+      else {
+        mySurface.updateScrolledAreaSize();
+      }
       setEditor(myManager.getActiveLayoutXmlEditor());
       model.activate();
-      myManager.setDesignSurface(mySurface);
+      myWorkBench.setToolContext(mySurface);
+      myWorkBench.setFileEditor(myEditor);
       myActionsToolbar.setModel(model);
-
-      attachPalette();
+      if (!model.getType().isSupportedByDesigner()) {
+        myScreenMode = mySurface.getScreenMode();
+        mySurface.setScreenMode(DesignSurface.ScreenMode.SCREEN_ONLY, false);
+        myWorkBench.setMinimizePanelsVisible(false);
+      }
+      else if (myScreenMode != null && mySurface.getScreenMode() == DesignSurface.ScreenMode.SCREEN_ONLY) {
+        mySurface.setScreenMode(myScreenMode, false);
+        myWorkBench.setMinimizePanelsVisible(true);
+      }
     }
-  }
-
-  private void attachPalette() {
-    Project project = myManager.getProject();
-    DumbService.getInstance(project).runWhenSmart(() -> {
-      if (NlLayoutType.typeOf(myFile).isSupportedByDesigner()) {
-        // While we wait for the index to be ready, the preview might become inactive so we need to check first
-        if (isActive && myFile != null) {
-          NlPaletteManager.get(project).bind(this);
-        }
-      }
-      else {
-        NlPaletteManager.get(project).dispose(this);
-      }
-    });
   }
 
   @Nullable
@@ -349,15 +344,6 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
 
   public void setRenderResult(@NotNull RenderResult renderResult) {
     myRenderResult = renderResult;
-  }
-
-  @Nullable
-  public Configuration getConfiguration() {
-    ScreenView screenView = mySurface.getCurrentScreenView();
-    if (screenView != null) {
-      return screenView.getModel().getConfiguration();
-    }
-    return null;
   }
 
   @NotNull
@@ -386,19 +372,6 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
 
   }
 
-  /** Minimize the palette tool window, if possible */
-  public void minimizePalette() {
-    if (myToolWindow != null) {
-      try {
-        // When LightToolWindow#minimize() is added to the base platform and upstreamed,
-        // replace this:
-        LightToolWindow.class.getDeclaredMethod("minimize").invoke(myToolWindow);
-        // with myToolWindow.minimize();
-      } catch (Exception ignore) {
-      }
-    }
-  }
-
   /**
    * Re-enables updates for this preview form. See {@link #deactivate()}
    */
@@ -425,36 +398,12 @@ public class NlPreviewForm implements Disposable, CaretListener, DesignerEditorP
 
     if (myFile != null) {
       myInactiveFile = myFile;
-    } else {
+    }
+    else {
       // The file might still be rendering
       myInactiveFile = myPendingFile != null ? myPendingFile.file : null;
     }
     setFile(null);
     isActive = false;
-  }
-
-  // ---- Implements DesignerEditorPanelFacade ----
-
-  @Override
-  public Object getClientProperty(Object key) {
-    return myContentSplitter.getClientProperty(key);
-  }
-
-  private LightToolWindow myToolWindow;
-
-  @Override
-  public void putClientProperty(Object key, Object value) {
-    Project project = myManager.getProject();
-    NlPaletteManager paletteManager = NlPaletteManager.get(project);
-    String paletteKey = paletteManager.getComponentName();
-    myContentSplitter.putClientProperty(key, value);
-    if (key.equals(paletteKey)) {
-      myToolWindow = (LightToolWindow) value;
-    }
-  }
-
-  @Override
-  public ThreeComponentsSplitter getContentSplitter() {
-    return myContentSplitter;
   }
 }

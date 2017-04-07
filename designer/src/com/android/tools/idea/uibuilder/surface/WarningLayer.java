@@ -68,7 +68,7 @@ public class WarningLayer extends Layer {
       int y = Coordinates.getSwingY(myScreenView, component.y);
       int w = Coordinates.getSwingDimension(myScreenView, component.w);
 
-      // paint the icon at the top right corner of the component
+      // buildDisplayList the icon at the top right corner of the component
       icon.paintIcon(null, gc, x + w - icon.getIconWidth() - PADDING, y + PADDING);
       myAnnotatedComponents.add(component);
     }

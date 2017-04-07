@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.navigator;
 
-import com.android.tools.idea.gradle.project.GradleSyncListener;
-import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.importing.NewProjectImportGradleSyncListener;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.GroupByTypeComparator;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
@@ -45,9 +42,6 @@ import com.intellij.testFramework.ProjectViewTestUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Comparator;
-import java.util.List;
 
 // TODO: Test available actions for each node!
 public class AndroidProjectViewTest extends AndroidGradleTestCase {
@@ -229,6 +223,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       " Gradle Scripts\n" +
       "  build.gradle (Module: " + modules[0].getName() + ")\n" +
       "  gradle-wrapper.properties (Gradle Version)\n" +
+      "  local.properties (SDK Location)\n" +
       " " + modules[0].getName() + " (Android)\n" +
       "  java\n" +
       "   foo (main)\n" +
@@ -247,7 +242,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   }
 
   public void testFailedImport() throws Exception {
-    loadProject("projects/navigator/invalid", false, new GradleSyncListener.Adapter() {
+    loadProject("projects/navigator/invalid", new GradleSyncListener.Adapter() {
       @Override
       public void syncFailed(@NotNull final Project project, @NotNull String errorMessage) {
         // If the sync fails, then IDE creates an empty top level module. Mimic the same behavior for this test.
@@ -281,6 +276,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       " Gradle Scripts\n" +
       "  build.gradle (Project: " + modules[0].getName() + ")\n" +
       "  gradle-wrapper.properties (Gradle Version)\n" +
+      "  local.properties (SDK Location)\n" +
       " " + modules[0].getName() + "\n" +
       "  .idea\n" +
       "  AndroidManifest.xml\n" +
@@ -290,27 +286,13 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       "    gradle-wrapper.jar\n" +
       "    gradle-wrapper.properties\n" +
       "  gradlew\n" +
-      "  gradlew.bat\n";
+      "  gradlew.bat\n" +
+      "  local.properties\n";
     int numLines = expected.split("\n").length;
 
-    Object rootNode = structure.getRootElement();
-    ProjectViewTestUtil.checkGetParentConsistency(structure, rootNode);
-    Comparator<AbstractTreeNode> comparator = PlatformTestUtil.createComparator(printInfo);
-
-    // Android Studio now bundles a local maven repo. Our gradle builds pass this via an init script. It turns out that this drops
-    // in an additional gradle file into the project view. This gradle file is named asLocalRepo???.gradle. Since we can't predict
-    // the exact name, we just trim it out from the actual output.
-    String actual = PlatformTestUtil.print(structure, rootNode, 0, comparator, numLines + 1, ' ', printInfo).toString();
-    List<String> filtered = Lists.newArrayList();
-    for (String s : Splitter.on('\n').split(actual)) {
-      if (!s.contains("asLocalRepo")) {
-        filtered.add(s);
-      }
-    }
-
-    actual = Joiner.on('\n').join(filtered);
-
-    assertEquals(expected, actual);
+    ProjectViewTestUtil
+      .assertStructureEqual(structure, expected, numLines, PlatformTestUtil.createComparator(printInfo), structure.getRootElement(),
+                            printInfo);
   }
 
   @Nullable

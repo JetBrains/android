@@ -59,7 +59,8 @@ public class ExportSignedPackageTest extends TestCase {
     return model;
   }
 
-  public void testNoFlavors() {
+  // ignored: http://b.android.com/226579
+  public void ignore_testNoFlavors() {
     AndroidProject androidProject = getAndroidProject("no_flavors");
     assertNotNull(androidProject);
 
@@ -71,7 +72,8 @@ public class ExportSignedPackageTest extends TestCase {
     assertEquals(":assembleRelease", assembleTasks.get(0));
   }
 
-  public void testFlavors() {
+  // ignored: http://b.android.com/226579
+  public void ignore_testFlavors() {
     AndroidProject androidProject = getAndroidProject("multiflavor");
     assertNotNull(androidProject);
 
