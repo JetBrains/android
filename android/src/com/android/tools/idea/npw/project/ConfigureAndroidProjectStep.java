@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.project;
 
-import com.android.tools.adtui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.idea.npw.cpp.ConfigureCppSupportStep;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
@@ -58,7 +58,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
   private JTextField myAppName;
   private JPanel myPanel;
   private JTextField myCompanyDomain;
-  private LabelWithEditLink myPackageName;
+  private LabelWithEditButton myPackageName;
   private JCheckBox myCppSupportCheck;
 
   public ConfigureAndroidProjectStep(@NotNull NewProjectModel model) {

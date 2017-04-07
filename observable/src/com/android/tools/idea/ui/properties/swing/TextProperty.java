@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.swing;
 
-import com.android.tools.adtui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.core.StringProperty;
 import com.intellij.ui.EditorComboBox;
@@ -50,7 +50,7 @@ public final class TextProperty extends StringProperty implements DocumentListen
     label.addPropertyChangeListener("text", this);
   }
 
-  public TextProperty(@NotNull LabelWithEditLink editLabel) {
+  public TextProperty(@NotNull LabelWithEditButton editLabel) {
     myComponent = editLabel;
     editLabel.getDocument().addDocumentListener(this);
   }
@@ -102,8 +102,8 @@ public final class TextProperty extends StringProperty implements DocumentListen
     else if (myComponent instanceof JLabel) {
       return ((JLabel)myComponent).getText();
     }
-    else if (myComponent instanceof LabelWithEditLink) {
-      return ((LabelWithEditLink)myComponent).getText();
+    else if (myComponent instanceof LabelWithEditButton) {
+      return ((LabelWithEditButton)myComponent).getText();
     }
     else if (myComponent instanceof EditorComboBox) {
       return ((EditorComboBox)myComponent).getText();
@@ -124,8 +124,8 @@ public final class TextProperty extends StringProperty implements DocumentListen
     else if (myComponent instanceof JLabel) {
       ((JLabel)myComponent).setText(value);
     }
-    else if (myComponent instanceof LabelWithEditLink) {
-      ((LabelWithEditLink)myComponent).setText(value);
+    else if (myComponent instanceof LabelWithEditButton) {
+      ((LabelWithEditButton)myComponent).setText(value);
     }
     else if (myComponent instanceof EditorComboBox) {
       ((EditorComboBox)myComponent).setText(value);

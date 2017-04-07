@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.npw.deprecated;
 
-import com.android.tools.adtui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.FormFactorUtils;
-import com.android.tools.idea.npw.WizardUtils;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.intellij.openapi.Disposable;
@@ -39,7 +38,7 @@ public final class ConfigureInstantModuleStep extends DynamicWizardStepWithDescr
   @NotNull private final FormFactor myFormFactor;
   private JTextField mySplitNameField;
   private JPanel myPanel;
-  private LabelWithEditLink myPackageName;
+  private LabelWithEditButton myPackageName;
 
   public ConfigureInstantModuleStep(@Nullable Disposable parentDisposable, @NotNull FormFactor formFactor) {
     super(parentDisposable);

@@ -16,30 +16,30 @@
 package com.android.tools.idea.npw.template.components;
 
 import com.android.tools.idea.templates.Parameter;
-import com.android.tools.adtui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Provides a {@link LabelWithEditLink} for more advanced {@link Parameter.Type#STRING}
+ * Provides a {@link LabelWithEditButton} for more advanced {@link Parameter.Type#STRING}
  * parameters that only users who know what they're doing should modify.
  */
-public final class LabelWithEditLinkProvider extends ParameterComponentProvider<LabelWithEditLink> {
+public final class LabelWithEditLinkProvider extends ParameterComponentProvider<LabelWithEditButton> {
   public LabelWithEditLinkProvider(@NotNull Parameter parameter) {
     super(parameter);
   }
 
   @NotNull
   @Override
-  protected LabelWithEditLink createComponent(@NotNull Parameter parameter) {
-    return new LabelWithEditLink();
+  protected LabelWithEditButton createComponent(@NotNull Parameter parameter) {
+    return new LabelWithEditButton();
   }
 
   @Nullable
   @Override
-  public AbstractProperty<?> createProperty(@NotNull LabelWithEditLink editLink) {
+  public AbstractProperty<?> createProperty(@NotNull LabelWithEditButton editLink) {
     return new TextProperty(editLink);
   }
 }
