@@ -40,6 +40,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -166,7 +168,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     getStudioProfilers().getUpdater().unregister(myObjectsAxis);
     getStudioProfilers().getUpdater().unregister(myLegends);
     getStudioProfilers().getUpdater().unregister(myGcCount);
-    selectCapture(null, null);
+    selectCaptureObject(null, null);
     myLoader.stop();
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
@@ -204,7 +206,6 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       }
     }
 
-
     List<SeriesData<CaptureDurationData<AllocationsCaptureObject>>>
       allocs = getAllocationInfosDurations().getSeries().getDataSeries().getDataForXRange(range);
     for (SeriesData<CaptureDurationData<AllocationsCaptureObject>> data : allocs) {
@@ -216,7 +217,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       }
     }
 
-    selectCapture(captureObject, SwingUtilities::invokeLater);
+    selectCaptureObject(captureObject, SwingUtilities::invokeLater);
   }
 
   @NotNull
@@ -225,7 +226,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   /**
-   * @param loadJoiner if specified, the joiner executor will be passed down to {@link #selectCapture(CaptureObject, Executor)} so
+   * @param loadJoiner if specified, the joiner executor will be passed down to {@link #selectCaptureObject(CaptureObject, Executor)} so
    *                   that the load operation of the CaptureObject will be joined and the CURRENT_LOAD_CAPTURE aspect would be
    *                   fired via the desired executor.
    */
@@ -235,9 +236,9 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
         .triggerHeapDump(MemoryProfiler.TriggerHeapDumpRequest.newBuilder().setSession(mySessionData).setProcessId(myProcessId).build());
     switch (response.getStatus()) {
       case SUCCESS:
-        selectCapture(new HeapDumpCaptureObject(myClient, mySessionData, myProcessId, response.getInfo(), null,
-                                                getStudioProfilers().getRelativeTimeConverter(),
-                                                getStudioProfilers().getIdeServices().getFeatureTracker()), loadJoiner);
+        selectCaptureObject(new HeapDumpCaptureObject(myClient, mySessionData, myProcessId, response.getInfo(), null,
+                                                      getStudioProfilers().getRelativeTimeConverter(),
+                                                      getStudioProfilers().getIdeServices().getFeatureTracker()), loadJoiner);
         break;
       case IN_PROGRESS:
         getLogger().debug(String.format("A heap dump for %d is already in progress.", myProcessId));
@@ -261,7 +262,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
 
   /**
    * @param enabled    whether to enable or disable allocation tracking.
-   * @param loadJoiner if specified, the joiner executor will be passed down to {@link #selectCapture(CaptureObject, Executor)} so
+   * @param loadJoiner if specified, the joiner executor will be passed down to {@link #selectCaptureObject(CaptureObject, Executor)} so
    *                   that the load operation of the CaptureObject will be joined and the CURRENT_LOAD_CAPTURE aspect would be
    *                   fired via the desired executor.
    * @return the actual status, which may be different from the input
@@ -279,9 +280,9 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       case SUCCESS:
         myTrackingAllocations = enabled;
         if (!myTrackingAllocations) {
-          selectCapture(new AllocationsCaptureObject(myClient, mySessionData, myProcessId, response.getInfo(),
-                                                     getStudioProfilers().getRelativeTimeConverter(),
-                                                     getStudioProfilers().getIdeServices().getFeatureTracker()), loadJoiner);
+          selectCaptureObject(new AllocationsCaptureObject(myClient, mySessionData, myProcessId, response.getInfo(),
+                                                           getStudioProfilers().getRelativeTimeConverter(),
+                                                           getStudioProfilers().getIdeServices().getFeatureTracker()), loadJoiner);
         }
         break;
       case IN_PROGRESS:
@@ -308,36 +309,36 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
     return myAllocationDurations;
   }
 
-  public void selectInstance(@Nullable InstanceObject instanceObject) {
-    mySelection.setInstanceObject(instanceObject);
+  public void selectInstanceObject(@Nullable InstanceObject instanceObject) {
+    mySelection.selectInstanceObject(instanceObject);
   }
 
   @Nullable
-  public InstanceObject getSelectedInstance() {
+  public InstanceObject getSelectedInstanceObject() {
     return mySelection.getInstanceObject();
   }
 
-  public void selectClass(@Nullable ClassObject classObject) {
-    mySelection.setClassObject(classObject);
+  public void selectClassSet(@Nullable ClassSet classSet) {
+    mySelection.selectClassSet(classSet);
   }
 
   @Nullable
-  public ClassObject getSelectedClass() {
-    return mySelection.getClassObject();
+  public ClassSet getSelectedClassSet() {
+    return mySelection.getClassSet();
   }
 
-  public void selectHeap(@Nullable HeapObject heapObject) {
-    mySelection.setHeapObject(heapObject);
+  public void selectHeapSet(@Nullable HeapSet heapSet) {
+    mySelection.selectHeapSet(heapSet);
   }
 
   @Nullable
-  public HeapObject getSelectedHeap() {
-    return mySelection.getHeapObject();
+  public HeapSet getSelectedHeapSet() {
+    return mySelection.getHeapSet();
   }
 
   @VisibleForTesting
-  void selectCapture(@Nullable CaptureObject captureObject, @Nullable Executor joiner) {
-    if (!mySelection.setCaptureObject(captureObject)) {
+  void selectCaptureObject(@Nullable CaptureObject captureObject, @Nullable Executor joiner) {
+    if (!mySelection.selectCaptureObject(captureObject)) {
       return;
     }
 
@@ -351,20 +352,42 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       future.addListener(() -> {
                            try {
                              CaptureObject loadedCaptureObject = future.get();
-                             if (loadedCaptureObject != null && loadedCaptureObject == mySelection.getCaptureObject()) {
-                               myAspect.changed(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE);
+                             if (mySelection.finishSelectingCaptureObject(loadedCaptureObject)) {
+                               Collection<HeapSet> heaps = loadedCaptureObject.getHeapSets();
+                               if (heaps.size() == 0) {
+                                 return;
+                               }
+
+                               for (HeapSet heap : heaps) {
+                                 if (heap.getName().equals("app")) {
+                                   selectHeapSet(heap);
+                                   return;
+                                 }
+                               }
+
+                               for (HeapSet heap : heaps) {
+                                 if (heap.getName().equals("default")) {
+                                   selectHeapSet(heap);
+                                   return;
+                                 }
+                               }
+
+                               HeapSet heap = new ArrayList<>(heaps).get(0);
+                               selectHeapSet(heap);
                              }
                              else {
-                               // Capture loading failed. TODO: loading has somehow failed - we need to inform users about the error status.
-                               selectCapture(null, null);
+                               // Capture loading failed.
+                               // TODO: loading has somehow failed - we need to inform users about the error status.
+                               selectCaptureObject(null, null);
                              }
                            }
                            catch (InterruptedException exception) {
                              Thread.currentThread().interrupt();
-                             selectCapture(null, null);
+                             selectCaptureObject(null, null);
                            }
                            catch (ExecutionException exception) {
-                             selectCapture(null, null);
+                             selectCaptureObject(null, null);
+                             getLogger().error(exception);
                            }
                            catch (CancellationException ignored) {
                              // No-op: a previous load-capture task is canceled due to another capture being selected and loaded.
@@ -374,6 +397,7 @@ public class MemoryProfilerStage extends Stage implements CodeNavigator.Listener
       setProfilerMode(ProfilerMode.EXPANDED);
     }
     else {
+      myAspect.changed(MemoryProfilerAspect.CURRENT_LOADED_CAPTURE);
       timeline.getSelectionRange().clear();
       setProfilerMode(ProfilerMode.NORMAL);
     }

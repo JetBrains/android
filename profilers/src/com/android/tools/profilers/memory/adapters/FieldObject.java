@@ -16,10 +16,12 @@
 package com.android.tools.profilers.memory.adapters;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public interface FieldObject extends InstanceObject {
-  String FIELD_DISPLAY_FORMAT = "%s = %s";
-
+public interface FieldObject extends ValueObject {
   @NotNull
   String getFieldName();
+
+  @Nullable
+  InstanceObject getAsInstance();
 }
