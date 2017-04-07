@@ -20,6 +20,7 @@ import com.android.io.FileWrapper;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.xml.AndroidManifest;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
