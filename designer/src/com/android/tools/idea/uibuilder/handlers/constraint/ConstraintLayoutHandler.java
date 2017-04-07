@@ -27,10 +27,8 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayou
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.*;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.scene.Scene;
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import com.android.tools.idea.uibuilder.scene.SceneDragHandler;
-import com.android.tools.idea.uibuilder.scene.SceneInteraction;
+import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.*;
 import com.android.tools.idea.uibuilder.scene.target.ActionTarget;
 import com.android.tools.idea.uibuilder.scene.target.LassoTarget;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
@@ -41,13 +39,18 @@ import com.android.tools.idea.uibuilder.surface.Interaction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.sherpa.drawing.WidgetDraw;
 import com.android.tools.sherpa.drawing.decorator.WidgetDecorator;
+import com.android.utils.Pair;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.Computable;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
@@ -67,7 +70,7 @@ import static com.android.SdkConstants.*;
 /**
  * Handles interactions for the ConstraintLayout
  */
-public class ConstraintLayoutHandler extends ViewGroupHandler {
+public class ConstraintLayoutHandler extends ViewGroupHandler implements ComponentProvider {
 
   private static final String PREFERENCE_KEY_PREFIX = "ConstraintLayoutPreference";
   /**
@@ -438,7 +441,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   public List<Target> createTargets(@NotNull SceneComponent component, boolean isParent) {
     List<Target> result = new ArrayList<>();
     boolean showAnchors = !isParent;
-    NlComponent nlComponent = component.getNlComponent();
+    NlComponent nlComponent = component.getAuthoritativeNlComponent();
     ViewInfo vi = nlComponent.viewInfo;
     if (vi != null) {
 
@@ -469,6 +472,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
       }
     }
 
+    if (!isParent) {
+      component.setComponentProvider(this);
+    }
     if (showAnchors) {
       DragTarget dragTarget = new DragTarget();
       result.add(dragTarget);
@@ -1118,5 +1124,103 @@ public class ConstraintLayoutHandler extends ViewGroupHandler {
   @NotNull
   public List<String> getInspectorProperties() {
     return ImmutableList.of(ATTR_MIN_WIDTH, ATTR_MAX_WIDTH, ATTR_MIN_HEIGHT, ATTR_MAX_HEIGHT, ATTR_LAYOUT_CONSTRAINTSET);
+  }
+
+  /**
+   * Returns a component provider instance
+   *
+   * @return the component provider
+   */
+  @Override
+  public ComponentProvider getComponentProvider(@NotNull SceneComponent component) {
+    SceneComponent parent = component.getParent();
+    if (parent == null) {
+      return null;
+    }
+    NlComponent nlComponent = parent.getNlComponent();
+    if (nlComponent.isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT)) {
+      String attribute = nlComponent.getLiveAttribute(SHERPA_URI, "constraints");
+      if (attribute != null) {
+        return this;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns the NlComponent associated with the given SceneComponent.
+   *
+   * @param component a given SceneComponent
+   * @return the associated NlComponent
+   */
+  @Override
+  public NlComponent getComponent(@NotNull SceneComponent component) {
+    component.getNlComponent().ensureId();
+    SceneComponent parent = component.getParent();
+    NlComponent nlComponent = parent.getNlComponent();
+    String attribute = nlComponent.getLiveAttribute(SHERPA_URI, ATTR_LAYOUT_CONSTRAINTSET);
+    attribute = NlComponent.extractId(attribute);
+    if (attribute == null) {
+      return component.getNlComponent();
+    }
+    // else, let's get the component indicated
+    NlComponent constraints = null;
+    for (SceneComponent child : parent.getChildren()) {
+      if (child.getNlComponent().getId().equals(attribute)) {
+        constraints = child.getNlComponent();
+        break;
+      }
+    }
+    if (constraints == null) {
+      return component.getNlComponent();
+    }
+    for (NlComponent child : constraints.getChildren()) {
+      String reference = child.getLiveAttribute(ANDROID_URI, ATTR_ID);
+      reference = NlComponent.extractId(reference);
+      if (reference != null && reference.equals(component.getNlComponent().getId())) {
+        return child;
+      }
+    }
+    if (component.getNlComponent().isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
+      return component.getNlComponent();
+    }
+    if (component.getNlComponent().getTagName().equals(CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)) {
+      return component.getNlComponent();
+    }
+    if (component.getNlComponent().isOrHasSuperclass(CLASS_CONSTRAINT_LAYOUT_REFERENCE)) {
+      return component.getNlComponent();
+    }
+    if (component.getNlComponent().getTagName().equals(CLASS_CONSTRAINT_LAYOUT_REFERENCE)) {
+      return component.getNlComponent();
+    }
+    // child not found, we should insert it
+    NlComponent finalConstraints = constraints;
+    final NlComponent[] child = {null};
+    ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+      @Override
+      public void run() {
+        child[0] = ApplicationManager.getApplication().runWriteAction(
+          (Computable<NlComponent>)() -> {
+            XmlTag parentTag = finalConstraints.getTag();
+            XmlTag childTag = parentTag.createChildTag(CLASS_CONSTRAINT_LAYOUT_REFERENCE, null, null, false);
+            //        childTag = parentTag.addSubTag(childTag, false);
+            childTag.setAttribute(PREFIX_ANDROID + ATTR_ID, NEW_ID_PREFIX + component.getNlComponent().getId());
+            for (Pair<String, String> pair : ConstraintComponentUtilities.ourLayoutAttributes) {
+              String value = component.getNlComponent().getLiveAttribute(pair.getFirst(), pair.getSecond());
+              String prefix = ConstraintComponentUtilities.ourLayoutUriToPrefix.get(pair.getFirst());
+              childTag.setAttribute(prefix + pair.getSecond(), value);
+            }
+            NlComponent original = component.getNlComponent();
+            original.getAttributes();
+
+            NlModel model = finalConstraints.getModel();
+            NlComponent c = new NlComponent(model, childTag);
+            model.addTags(Arrays.asList(c), finalConstraints, null, InsertType.CREATE);
+            return c;
+          }
+        );
+      }
+    }, ModalityState.defaultModalityState());
+    return child[0];
   }
 }
