@@ -27,17 +27,21 @@ import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -142,27 +146,45 @@ public class ProvisionBeforeRunTaskProvider extends BeforeRunTaskProvider<Provis
     progressManager.run(new Task.Backgroundable(configuration.getProject(), getDescription(task), true) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
+        AtomicBoolean tryAgain = new AtomicBoolean(true);
+        Set<IDevice> succeededProvisioned = new HashSet<>();
         try {
-          indicator.setIndeterminate(true);
-          ProvisionRunner provisionRunner = new ProvisionRunner(indicator);
+          while (tryAgain.get()) {
+            try {
+              indicator.setIndeterminate(true);
+              ProvisionRunner provisionRunner = new ProvisionRunner(indicator);
 
-          for (ListenableFuture<IDevice> deviceListenableFuture : deviceFutures.get()) {
-            IDevice device = waitForDevice(deviceListenableFuture, indicator);
-            if (device == null) {
-              result.set(false);
-              return;
+              for (ListenableFuture<IDevice> deviceListenableFuture : deviceFutures.get()) {
+                IDevice device = waitForDevice(deviceListenableFuture, indicator);
+                if (device == null) {
+                  result.set(false);
+                  return;
+                }
+
+                if (!succeededProvisioned.contains(device)) {
+                  provisionRunner.runProvision(device);
+                  succeededProvisioned.add(device);
+                }
+              }
+              tryAgain.set(false);
             }
+            catch (ProvisionException e) {
+              getLogger().warn("Error while provisioning devices", e);
 
-            provisionRunner.runProvision(device);
+              ApplicationManager.getApplication().invokeAndWait(() -> {
+                int choice = Messages
+                  .showYesNoDialog("Provision failed with message: " + e.getMessage() + ". Do you want to retry?", "Instant Apps", null);
+                if (choice != Messages.OK) {
+                  tryAgain.set(false);
+                  // If there was an error while provisioning, we stop running the RunConfiguration
+                  result.set(false);
+                }
+              });
+            }
           }
         }
-        catch (ProvisionException e) {
-          getLogger().warn("Error while provisioning devices", e);
-
-          // If there was an error while provisioning, we stop running the RunConfiguration
-          result.set(false);
-        }
         finally {
+          // In case an unknown exception (e.g. runtime) is thrown, the countDownLatch unblocks the other thread so the user doesn't expect the timeout
           countDownLatch.countDown();
         }
       }
