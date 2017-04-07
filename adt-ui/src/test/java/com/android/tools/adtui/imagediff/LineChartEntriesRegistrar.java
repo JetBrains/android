@@ -118,7 +118,13 @@ class LineChartEntriesRegistrar extends ImageDiffEntriesRegistrar {
       @Override
       protected void generateComponent() {
         // Create a stepped line chart and register the components to the choreographer. Add thick lines to generate relevant images.
-        addLine(0.0, 50.0, "First Series", new LineConfig(Color.BLUE).setStroke(new BasicStroke(10)).setStepped(true));
+        BasicStroke dashedStroke = new BasicStroke(10.0f,
+                                                   BasicStroke.CAP_SQUARE,
+                                                   BasicStroke.JOIN_MITER,
+                                                   10.0f,  // Miter limit, Swing's default
+                                                   new float[]{4.0f, 20.0f},  // Dash pattern in pixel
+                                                   0.0f);  // Dash phase - just starts at zero.
+        addLine(0.0, 50.0, "First Series", new LineConfig(Color.BLUE).setStroke(dashedStroke).setStepped(true));
         addLine(0.0, 100.0, "Second Series", new LineConfig(Color.RED).setStroke(new BasicStroke(10)).setStepped(true));
         addLine(0.0, 200.0, "Third Series", new LineConfig(Color.GREEN).setStroke(new BasicStroke(10)).setStepped(true));
       }
