@@ -34,7 +34,8 @@ class GmsCorePackage extends ProvisionPackage {
   }
 
   @Override
-  void setFlags(@NotNull IDevice device, @NotNull String osBuildType) throws ProvisionException {
+  void setFlags(@NotNull IDevice device) throws ProvisionException {
+    String osBuildType = getOsBuildType(device);
     getLogger().info("Setting flags for build type \"" + osBuildType + "\"");
 
     if (osBuildType.compareTo(RELEASE_TYPE) == 0) {

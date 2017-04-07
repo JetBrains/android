@@ -20,6 +20,7 @@ import com.android.ddmlib.NullOutputReceiver;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import org.jetbrains.annotations.NotNull;
@@ -64,12 +65,12 @@ class ProvisionRunner {
     myIndicator.setText("Provisioning device " + device.getName());
     myIndicator.setIndeterminate(false);
 
-    checkSignedIn(device);
-
     if (isPostO(device)) {
       // No need to provision the device
       return;
     }
+
+    checkSignedIn(device);
 
     double index = 1.0;
     for (ProvisionPackage pack : myPackages) {
@@ -90,6 +91,7 @@ class ProvisionRunner {
 
         pack.install(device);
       }
+      pack.setFlags(device);
     }
 
     try {
@@ -120,7 +122,8 @@ class ProvisionRunner {
     getLogger().info("Checking Google account");
 
     try {
-      if (isLoggedInGoogleAccount(device, true)) {
+      boolean showDialog = !ApplicationManager.getApplication().isUnitTestMode();
+      if (isLoggedInGoogleAccount(device, showDialog)) {
         return;
       }
     }

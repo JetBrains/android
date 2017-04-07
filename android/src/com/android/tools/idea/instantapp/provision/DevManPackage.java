@@ -40,6 +40,10 @@ class DevManPackage extends ProvisionPackage {
       uninstall(device);
     }
     super.install(device);
+  }
+
+  @Override
+  void setFlags(@NotNull IDevice device) throws ProvisionException {
     executeShellCommand(device, "pm grant " + PKG_NAME + " android.permission.READ_EXTERNAL_STORAGE", false /* root is not required */);
     executeShellCommand(device, "am force-stop com.google.android.gms", false /* root is not required */);
   }

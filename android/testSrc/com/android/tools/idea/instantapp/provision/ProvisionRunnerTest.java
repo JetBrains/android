@@ -59,6 +59,25 @@ public class ProvisionRunnerTest extends AndroidTestCase {
     verify(pack, times(1)).install(device);
   }
 
+  public void testProvisionSucceedsWhenNotLoggedPostO() throws Throwable {
+    IDevice device = new ProvisionPackageTests.DeviceGenerator().setApiLevel(26).getDevice();
+    myProvisionRunner.runProvision(device);
+    verify(pack, times(0)).shouldInstall(device);
+    // No exception is thrown means provision succeeded
+  }
+
+  public void testProvisionFailsWhenNotLoggedPreO() throws Throwable {
+    IDevice device = new ProvisionPackageTests.DeviceGenerator().setApiLevel(24).getDevice();
+    assertExceptionInRunProvision(device);
+  }
+
+  public void testSetFlagsIsExecutedWhenPackageAlreadyInstalled() throws Throwable {
+    IDevice device = new ProvisionPackageTests.DeviceGenerator().setApiLevel(23).setGoogleAccountLogged().getDevice();
+    when(pack.shouldInstall(device)).thenReturn(false);
+    myProvisionRunner.runProvision(device);
+    verify(pack, times(1)).setFlags(device);
+  }
+
   void assertExceptionInRunProvision(IDevice device) throws Throwable {
     assertException(new AbstractExceptionCase() {
       @Override

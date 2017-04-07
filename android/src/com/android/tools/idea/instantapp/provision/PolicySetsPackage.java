@@ -69,14 +69,11 @@ class PolicySetsPackage extends ProvisionPackage {
           pack.install(device);
         }
       }
-      setFlags(device, getOsBuildType(device));
     }
   }
 
   @Override
-  void setFlags(@NotNull IDevice device, @NotNull String osBuildType) throws ProvisionException {
-    getLogger().info("Setting flags for build type \"" + osBuildType + "\"");
-
+  void setFlags(@NotNull IDevice device) throws ProvisionException {
     if (!myPolicyPackages.isEmpty()) {
       String allPolicyPackages = String.join(",", Lists.transform(myPolicyPackages, PolicyPackage::getPkgName));
 
