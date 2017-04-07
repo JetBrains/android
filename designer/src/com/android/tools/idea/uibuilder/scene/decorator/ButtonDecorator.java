@@ -56,24 +56,22 @@ public class ButtonDecorator extends SceneDecorator {
       mVerticalPadding = (int)(8 * scale);
       mHorizontalMargin = (int)(8 * scale);
       mVerticalMargin = (int)(12 * scale);
-
-      mToUpperCase = true;
-      mAlignmentX = TEXT_ALIGNMENT_CENTER;
-      mAlignmentY = TEXT_ALIGNMENT_CENTER;
     }
 
-    public DrawButton(String s) {
+    @NotNull
+    public static DrawButton createFromString(@NotNull String s) {
       String[] sp = s.split(",");
       int c = 0;
-      x = Integer.parseInt(sp[c++]);
-      y = Integer.parseInt(sp[c++]);
-      width = Integer.parseInt(sp[c++]);
-      height = Integer.parseInt(sp[c++]);
-      myBaseLineOffset = Integer.parseInt(sp[c++]);
-      mScale = java.lang.Float.parseFloat(sp[c++]);
-      mFontSize = java.lang.Integer.parseInt(sp[c++]);
-      mFont = mFont.deriveFont(mFontSize * mScale);
-      mText = s.substring(s.indexOf('\"') + 1, s.lastIndexOf('\"'));
+      int x = Integer.parseInt(sp[c++]);
+      int y = Integer.parseInt(sp[c++]);
+      int width = Integer.parseInt(sp[c++]);
+      int height = Integer.parseInt(sp[c++]);
+      int baseLineOffset = Integer.parseInt(sp[c++]);
+      float scale = java.lang.Float.parseFloat(sp[c++]);
+      int fontSize = java.lang.Integer.parseInt(sp[c++]);
+      String text = s.substring(s.indexOf('\"') + 1, s.lastIndexOf('\"'));
+
+      return new DrawButton(x, y, width, height, baseLineOffset, scale, fontSize, text);
     }
 
     @Override
