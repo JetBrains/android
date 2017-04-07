@@ -115,9 +115,7 @@ public abstract class BaseTarget implements Target {
     String str = myComponent.getNlComponent().getId();
     if (str == null) {
       str = myComponent.getComponentClassName();
-      if (str != null) {
-        str = str.substring(str.lastIndexOf('.') + 1);
-      }
+      str = str.substring(str.lastIndexOf('.')+1);
     }
     return str;
   }
