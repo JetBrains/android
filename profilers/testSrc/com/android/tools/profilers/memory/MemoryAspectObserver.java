@@ -25,10 +25,11 @@ public class MemoryAspectObserver extends AspectObserver {
   protected int myLegacyAllocationAspectCount;
   protected int myCurrentLoadedCaptureAspectCount;
   protected int myCurrentLoadingCaptureAspectCount;
+  protected int myCurrentGroupingAspectCount;
   protected int myCurrentHeapAspectCount;
   protected int myCurrentClassAspectCount;
   protected int myCurrentInstanceAspectCount;
-  protected int myCurrentGroupingAspectCount;
+  protected int myCurrentFieldPathAspectCount;
 
   public MemoryAspectObserver(@NotNull AspectModel<MemoryProfilerAspect> model) {
     resetCounts();
@@ -40,16 +41,18 @@ public class MemoryAspectObserver extends AspectObserver {
       .onChange(MemoryProfilerAspect.CLASS_GROUPING, () -> ++myCurrentGroupingAspectCount)
       .onChange(MemoryProfilerAspect.CURRENT_HEAP, () -> ++myCurrentHeapAspectCount)
       .onChange(MemoryProfilerAspect.CURRENT_CLASS, () -> ++myCurrentClassAspectCount)
-      .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, () -> ++myCurrentInstanceAspectCount);
+      .onChange(MemoryProfilerAspect.CURRENT_INSTANCE, () -> ++myCurrentInstanceAspectCount)
+      .onChange(MemoryProfilerAspect.CURRENT_FIELD_PATH, () -> ++myCurrentFieldPathAspectCount);
   }
 
   public void assertAndResetCounts(int legacyAllocationAspect,
-                                      int currentLoadingCaptureAspectCount,
-                                      int currentLoadedCaptureAspect,
-                                      int currentGroupingAspectCount,
-                                      int currentHeapAspectCount,
-                                      int currentClassAspectCount,
-                                      int currentInstanceAspectCount) {
+                                   int currentLoadingCaptureAspectCount,
+                                   int currentLoadedCaptureAspect,
+                                   int currentGroupingAspectCount,
+                                   int currentHeapAspectCount,
+                                   int currentClassAspectCount,
+                                   int currentInstanceAspectCount,
+                                   int currentFieldPathAspectCount) {
     assertEquals(legacyAllocationAspect, myLegacyAllocationAspectCount);
     assertEquals(currentLoadingCaptureAspectCount, myCurrentLoadingCaptureAspectCount);
     assertEquals(currentLoadedCaptureAspect, myCurrentLoadedCaptureAspectCount);
@@ -57,6 +60,7 @@ public class MemoryAspectObserver extends AspectObserver {
     assertEquals(currentHeapAspectCount, myCurrentHeapAspectCount);
     assertEquals(currentClassAspectCount, myCurrentClassAspectCount);
     assertEquals(currentInstanceAspectCount, myCurrentInstanceAspectCount);
+    assertEquals(currentFieldPathAspectCount, myCurrentFieldPathAspectCount);
     resetCounts();
   }
 
@@ -68,5 +72,6 @@ public class MemoryAspectObserver extends AspectObserver {
     myCurrentHeapAspectCount = 0;
     myCurrentClassAspectCount = 0;
     myCurrentInstanceAspectCount = 0;
+    myCurrentFieldPathAspectCount = 0;
   }
 }
