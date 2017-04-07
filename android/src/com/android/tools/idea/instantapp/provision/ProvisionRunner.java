@@ -122,8 +122,7 @@ class ProvisionRunner {
     getLogger().info("Checking Google account");
 
     try {
-      boolean showDialog = !ApplicationManager.getApplication().isUnitTestMode();
-      if (isLoggedInGoogleAccount(device, showDialog)) {
+      if (isLoggedInGoogleAccount(device, false)) {
         return;
       }
     }
