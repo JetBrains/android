@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.perflib.vmtrace.ThreadInfo;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profilers.*;
 import com.android.tools.profilers.stacktrace.CodeLocation;
@@ -394,6 +395,55 @@ public class CpuProfilerStageTest extends AspectObserver {
     selection.set(1, 5);
     assertEquals(detailsRange.getMin(), 1, eps);
     assertEquals(detailsRange.getMax(), 5, eps);
+  }
+
+  @Test
+  public void settingACaptureAfterNullShouldSelectMainThread() throws Exception {
+    assertEquals(CaptureModel.INVALID_THREAD, myStage.getSelectedThread());
+    assertNull(myStage.getCapture());
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+
+    CpuCapture capture = new CpuCapture(CpuCaptureTest.readValidTrace());
+    assertNotNull(capture);
+    myStage.setAndSelectCapture(capture);
+    assertEquals(ProfilerMode.EXPANDED, myStage.getProfilerMode());
+    // Capture main thread should be selected
+    assertEquals(capture.getMainThreadId(), myStage.getSelectedThread());
+
+    myStage.setAndSelectCapture(null);
+    assertEquals(ProfilerMode.NORMAL, myStage.getProfilerMode());
+    // Thread selection is reset when going to NORMAL mode
+    assertEquals(CaptureModel.INVALID_THREAD, myStage.getSelectedThread());
+  }
+
+  @Test
+  public void changingCaptureShouldKeepThreadSelection() throws Exception {
+    CpuCapture capture1 = new CpuCapture(CpuCaptureTest.readValidTrace());
+    CpuCapture capture2 = new CpuCapture(CpuCaptureTest.readValidTrace());
+    assertNotEquals(capture1, capture2);
+
+    myStage.setAndSelectCapture(capture1);
+    // Capture main thread should be selected
+    int mainThread = capture1.getMainThreadId();
+    assertEquals(mainThread, myStage.getSelectedThread());
+
+    int otherThread = mainThread;
+    // Select a thread other than main
+    for (ThreadInfo thread : capture1.getThreads()) {
+      if (thread.getId() != mainThread) {
+        otherThread = thread.getId();
+        break;
+      }
+    }
+
+    assertNotEquals(otherThread, mainThread);
+    myStage.setSelectedThread(otherThread);
+    assertEquals(otherThread, myStage.getSelectedThread());
+
+    myStage.setAndSelectCapture(capture2);
+    assertEquals(capture2, myStage.getCapture());
+    // Thread selection should be kept instead of selecting capture2 main thread.
+    assertEquals(otherThread, myStage.getSelectedThread());
   }
 
   private void captureSuccessfully() throws InterruptedException {
