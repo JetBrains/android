@@ -144,24 +144,16 @@ public class ActionTarget extends BaseTarget {
   @NotNull
   public static CurvePoints getCurvePoints(@SwingCoordinate @NotNull Rectangle source,
                                             @SwingCoordinate @NotNull Rectangle dest) {
-    ConnectionDirection sourceDirection;
-    ConnectionDirection destDirection;
-    if (dest.y - source.y > Math.abs(dest.x - source.x)) {
-      sourceDirection = BOTTOM;
-      destDirection = TOP;
-    }
-    else {
-      sourceDirection = RIGHT;
-      destDirection = LEFT;
-    }
+    ConnectionDirection sourceDirection = RIGHT;
+    ConnectionDirection destDirection = LEFT;
     int startx = getConnectionX(sourceDirection, source);
     int starty = getConnectionY(sourceDirection, source);
     int endx = getConnectionX(destDirection, dest);
     int endy = getConnectionY(destDirection, dest);
     int dx = getDestinationDx(destDirection);
     int dy = getDestinationDy(destDirection);
-    int scale_source = 40;
-    int scale_dest = 40;
+    int scale_source = 100;
+    int scale_dest = 100;
     CurvePoints result = new CurvePoints();
     result.dir = destDirection;
     result.p1 = new Point(startx, starty);

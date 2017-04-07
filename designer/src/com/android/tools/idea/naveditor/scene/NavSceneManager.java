@@ -16,9 +16,10 @@
 package com.android.tools.idea.naveditor.scene;
 
 import com.android.tools.idea.naveditor.scene.decorator.NavSceneDecoratorFactory;
-import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider;
 import com.android.tools.idea.naveditor.scene.layout.DummyAlgorithm;
+import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
 import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
+import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
@@ -33,8 +34,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.*;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * {@link SceneManager} for the navigation editor.
@@ -44,15 +46,17 @@ public class NavSceneManager extends SceneManager {
   public static final String ATTR_DESTINATION = "destination";
   public static final String TAG_ACTION = "action";
   public static final String TAG_NAVIGATION = "navigation";
-  public static final NavScreenTargetProvider SCREEN_TARGET_PROVIDER = new NavScreenTargetProvider();
-  private NavSceneLayoutAlgorithm myLayoutAlgorithm = new DummyAlgorithm();
+  public final NavScreenTargetProvider myScreenTargetProvider;
+  private NavSceneLayoutAlgorithm myLayoutAlgorithm;
 
   private static final SceneDecoratorFactory DECORATOR_FACTORY = new NavSceneDecoratorFactory();
   private static final String ENABLE_NAV_PROPERTY = "enable.nav.editor";
 
   public NavSceneManager(@NotNull NlModel model, @NotNull DesignSurface surface) {
     super(model, surface);
+    myLayoutAlgorithm = new ManualLayoutAlgorithm(new DummyAlgorithm());
     surface.zoomActual();
+    myScreenTargetProvider = new NavScreenTargetProvider(myLayoutAlgorithm);
   }
 
   public static boolean enableNavigationEditor() {
@@ -61,8 +65,7 @@ public class NavSceneManager extends SceneManager {
 
   @Override
   protected void addTargets(@NotNull SceneComponent component) {
-    // TODO
-    // Note Action targets are added in updateFromComponent
+    // TODO: Remove this method?
   }
 
   @NotNull
@@ -72,7 +75,7 @@ public class NavSceneManager extends SceneManager {
     Scene scene = super.build();
     getModel().addListener(new ModelChangeListener());
     getDesignSurface().getSelectionModel().addListener((model, selection) -> scene.needsRebuildList());
-    layout(false);
+    requestRender();
     return scene;
   }
 
@@ -88,7 +91,7 @@ public class NavSceneManager extends SceneManager {
     }
     else if (component.getTagName().equals(TAG_FRAGMENT)) {
       sceneComponent.setSize(50, 50, true);
-      sceneComponent.setTargetProvider(SCREEN_TARGET_PROVIDER, false);
+      sceneComponent.setTargetProvider(myScreenTargetProvider, false);
     }
   }
 
@@ -121,11 +124,6 @@ public class NavSceneManager extends SceneManager {
 
   @Override
   public void requestRender() {
-    layout(true);
-  }
-
-  @Override
-  public void layout(boolean animate) {
     List<NlComponent> components = getModel().getComponents();
     if (components.size() != 0) {
       NlComponent rootComponent = components.get(0).getRoot();
@@ -136,8 +134,17 @@ public class NavSceneManager extends SceneManager {
       root.setSize(Coordinates.getAndroidDimensionDip(getDesignSurface(), (int)surfaceSize.getWidth()),
                    Coordinates.getAndroidDimensionDip(getDesignSurface(), (int)surfaceSize.getHeight()),
                    false);
-      myLayoutAlgorithm.layout(root);
+      layoutAll(root);
     }
+    getScene().needsRebuildList();
+  }
+
+  private void layoutAll(@NotNull SceneComponent root) {
+    root.flatten().forEach(myLayoutAlgorithm::layout);
+  }
+
+  @Override
+  public void layout(boolean animate) {
     getScene().needsRebuildList();
   }
 
