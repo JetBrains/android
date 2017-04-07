@@ -21,8 +21,8 @@ import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
 import com.android.tools.idea.gradle.structure.model.PsModel;
 import com.google.common.collect.Lists;
+import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.util.treeView.NodeRenderer;
-import com.intellij.ide.util.treeView.PresentableNodeDescriptor;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.roots.ui.CellAppearanceEx;
 import com.intellij.ui.SimpleTextAttributes;
@@ -70,21 +70,22 @@ public class NodeHyperlinkSupport<T extends SimpleNode> implements Disposable {
 
   private void addHyperlinkBehaviorToSupportedNodes() {
     myTree.setCellRenderer(new NodeRenderer() {
+      @NotNull
       @Override
-      protected SimpleTextAttributes getSimpleTextAttributes(PresentableNodeDescriptor node, Color color) {
+      protected SimpleTextAttributes getSimpleTextAttributes(@NotNull PresentationData presentation, Color color, @NotNull Object node) {
         List<PsIssue> issues = Collections.emptyList();
 
         if (myShowIssues && node instanceof AbstractPsModelNode) {
           AbstractPsModelNode<? extends PsModel> modelNode = (AbstractPsModelNode<? extends PsModel>)node;
           issues = findIssues(modelNode, IssuesByTypeAndTextComparator.INSTANCE);
-          node.getPresentation().setTooltip(getTooltipText(issues, false));
+          presentation.setTooltip(getTooltipText(issues, false));
         }
 
         if (myHoveredNode != null && myHoveredNode == node) {
           return LINK_ATTRIBUTES;
         }
 
-        SimpleTextAttributes textAttributes = super.getSimpleTextAttributes(node, color);
+        SimpleTextAttributes textAttributes = super.getSimpleTextAttributes(presentation, color, node);
         if (!issues.isEmpty()) {
           PsIssue issue = issues.get(0);
           Color waveColor = issue.getSeverity().getColor();

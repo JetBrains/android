@@ -60,6 +60,11 @@ public class IdeaModuleStub implements IdeaModule {
     return myFileStructure.getRootFolderPath();
   }
 
+  @Override
+  public String getJdkName() throws UnsupportedMethodException {
+    throw new UnsupportedOperationException();
+  }
+
   @NotNull
   @Override
   public DomainObjectSet<? extends IdeaContentRoot> getContentRoots() {
