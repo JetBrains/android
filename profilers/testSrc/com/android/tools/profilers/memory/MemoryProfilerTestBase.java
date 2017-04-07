@@ -16,12 +16,10 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
 import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.stacktrace.ThreadId;
-import com.android.tools.profilers.memory.adapters.*;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
@@ -29,21 +27,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.IntStream;
-
-import static java.util.stream.Collectors.toList;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 public abstract class MemoryProfilerTestBase {
   protected StudioProfilers myProfilers;
   protected MemoryProfilerStage myStage;
-  protected MockCaptureObjectLoader myMockLoader;
+  protected FakeCaptureObjectLoader myMockLoader;
   protected MemoryAspectObserver myAspectObserver;
   protected FakeTimer myTimer;
 
@@ -51,10 +38,10 @@ public abstract class MemoryProfilerTestBase {
   public void setupBase() {
     myTimer = new FakeTimer();
     myProfilers = new StudioProfilers(getGrpcChannel().getClient(), new FakeIdeProfilerServices(), myTimer);
-    onProfilersCreated(myProfilers);
-    myMockLoader = new MockCaptureObjectLoader();
+    myMockLoader = new FakeCaptureObjectLoader();
     myStage = new MemoryProfilerStage(myProfilers, myMockLoader);
     myAspectObserver = new MemoryAspectObserver(myStage.getAspect());
+    onProfilersCreated(myProfilers);
     myProfilers.setStage(myStage);
   }
 
@@ -66,7 +53,7 @@ public abstract class MemoryProfilerTestBase {
   protected void onProfilersCreated(StudioProfilers profilers) {
   }
 
-  protected static class MockCaptureObjectLoader extends CaptureObjectLoader {
+  protected static class FakeCaptureObjectLoader extends CaptureObjectLoader {
     @Nullable
     private ListenableFutureTask<CaptureObject> myTask;
     private boolean isReturnImmediateFuture;
@@ -102,132 +89,5 @@ public abstract class MemoryProfilerTestBase {
       isReturnImmediateFuture = val;
       cancelTask();
     }
-  }
-
-  @NotNull
-  static CaptureObject mockCaptureObject(@NotNull String name, long startTimeNs, long endTimeNs,
-                                         @NotNull List<HeapObject> heaps, boolean loadSuccess) {
-    CaptureObject object = mock(CaptureObject.class);
-    when(object.getName()).thenReturn(name);
-    when(object.getStartTimeNs()).thenReturn(startTimeNs);
-    when(object.getEndTimeNs()).thenReturn(endTimeNs);
-    when(object.getHeaps()).thenReturn(heaps);
-    when(object.load()).thenReturn(loadSuccess);
-    when(object.isDoneLoading()).thenReturn(true);
-    when(object.isError()).thenReturn(!loadSuccess);
-    return object;
-  }
-
-  @NotNull
-  static NamespaceObject mockPackageObject(@NotNull String name) {
-    NamespaceObject object = mock(NamespaceObject.class);
-    when(object.getName()).thenReturn(name);
-    return object;
-  }
-
-  @NotNull
-  static HeapObject mockHeapObject(@NotNull String name, @NotNull List<ClassObject> klasses) {
-    HeapObject object = mock(HeapObject.class);
-    when(object.getName()).thenReturn(name);
-    when(object.getClasses()).thenReturn(klasses);
-    when(object.getClassAttributes()).thenReturn(Arrays.asList(ClassObject.ClassAttribute.values()));
-    return object;
-  }
-
-  @NotNull
-  static ClassObject mockClassObject(@NotNull String name,
-                                     int instanceSize,
-                                     int shallowSize,
-                                     long retainedSize,
-                                     @NotNull List<InstanceObject> instances) {
-    ClassObject object = mock(ClassObject.class);
-    when(object.getName()).thenReturn(name);
-    when(object.getInstanceSize()).thenReturn(instanceSize);
-    when(object.getShallowSize()).thenReturn(shallowSize);
-    when(object.getRetainedSize()).thenReturn(retainedSize);
-    int lastDotIndex = name.lastIndexOf('.');
-    when(object.getClassName()).thenReturn(name.substring(lastDotIndex + 1));
-    when(object.getPackageName()).thenReturn(lastDotIndex > 0 ? name.substring(0, lastDotIndex) : "");
-    when(object.getSplitPackageName()).thenReturn(lastDotIndex > 0 ? name.substring(0, lastDotIndex).split("\\.") : new String[0]);
-    when(object.getTotalCount()).thenReturn(instances.size());
-    when(object.getHeapCount()).thenReturn(instances.size());
-    when(object.getInstances()).thenReturn(instances);
-    when(object.isInNamespace(any())).thenCallRealMethod();
-    when(object.getInstanceAttributes()).thenReturn(Arrays.asList(InstanceObject.InstanceAttribute.values()));
-    when(object.hasStackInfo()).thenAnswer(invocationOnMock ->
-      instances.stream().anyMatch(instance -> instance.getCallStack() != null && instance.getCallStack().getStackFramesCount() > 0));
-    return object;
-  }
-
-  @NotNull
-  static InstanceObject mockInstanceObject(@NotNull String className,
-                                           @NotNull String label,
-                                           @Nullable String toString,
-                                           @Nullable AllocationStack allocationStack,
-                                           @Nullable ClassObject classObject,
-                                           int fieldCount,
-                                           int depth,
-                                           int shallowSize,
-                                           long retainedSize) {
-    List<FieldObject> mockedFields = new ArrayList<>(fieldCount);
-    for (int i = 0; i < fieldCount; i++) {
-      mockedFields.add(mockFieldObject(className, label, "field" + i));
-    }
-    InstanceObject object = mock(InstanceObject.class);
-    when(object.getClassName()).thenReturn(className);
-    when(object.getName()).thenReturn(label);
-    when(object.getToStringText()).thenReturn(toString);
-    when(object.getDepth()).thenReturn(depth);
-    when(object.getShallowSize()).thenReturn(shallowSize);
-    when(object.getRetainedSize()).thenReturn(retainedSize);
-    when(object.getAllocationThreadId()).thenReturn(ThreadId.INVALID_THREAD_ID);
-    when(object.getFields()).thenReturn(mockedFields);
-    when(object.getFieldCount()).thenReturn(fieldCount);
-    when(object.getCallStack()).thenReturn(allocationStack);
-    when(object.getReferenceAttributes()).thenReturn(Arrays.asList(InstanceObject.InstanceAttribute.values()));
-    when(object.getClassObject()).thenReturn(classObject);
-    return object;
-  }
-
-  @NotNull
-  static ReferenceObject mockReferenceObject(@NotNull String label,
-                                             int depth,
-                                             int shallowSize,
-                                             long retainedSize,
-                                             @NotNull List<ReferenceObject> referrers,
-                                             @Nullable AllocationStack stack) {
-    ReferenceObject object = mock(ReferenceObject.class);
-    when(object.getName()).thenReturn(label);
-    when(object.getDepth()).thenReturn(depth);
-    when(object.getShallowSize()).thenReturn(shallowSize);
-    when(object.getRetainedSize()).thenReturn(retainedSize);
-    when(object.getReferences()).thenReturn(referrers);
-    when(object.getAllocationThreadId()).thenReturn(ThreadId.INVALID_THREAD_ID);
-    when(object.getReferenceFieldNames()).thenReturn(Collections.emptyList());
-    when(object.getReferenceAttributes()).thenReturn(Arrays.asList(InstanceObject.InstanceAttribute.values()));
-    when(object.getCallStack()).thenReturn(stack == null ? AllocationStack.newBuilder().build() : stack);
-    return object;
-  }
-
-  @NotNull
-  static FieldObject mockFieldObject(@NotNull String className, @NotNull String label, @NotNull String fieldName) {
-    FieldObject object = mock(FieldObject.class);
-    when(object.getClassName()).thenReturn(className);
-    when(object.getName()).thenReturn(label);
-    when(object.getFieldName()).thenReturn(fieldName);
-    when(object.getAllocationThreadId()).thenReturn(ThreadId.INVALID_THREAD_ID);
-    return object;
-  }
-
-  static ClassObject mockClassObjectAutogeneratedInstances(@NotNull String className,
-                                                           int size,
-                                                           int shallowSize,
-                                                           long retainedSize,
-                                                           int instancesCount) {
-    List<InstanceObject> instances = IntStream.range(0, instancesCount)
-      .mapToObj(
-        i -> mockInstanceObject(className, "instance" + i, null, null, null, 0, 0, shallowSize, retainedSize / (long)instancesCount))
-      .collect(toList());
-    return mockClassObject(className, size, shallowSize, retainedSize, instances);
   }
 }

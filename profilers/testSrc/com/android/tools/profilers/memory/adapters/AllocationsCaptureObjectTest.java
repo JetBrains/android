@@ -25,14 +25,15 @@ import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.memory.FakeMemoryService;
+import com.android.tools.profilers.memory.MemoryProfilerTestUtils;
 import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -52,8 +53,8 @@ public class AllocationsCaptureObjectTest {
 
   /**
    * This is a high-level test that validates the generation of allocation tracking MemoryObjects hierarchy based on fake allocation events.
-   * We want to ensure not only the AllocationsCaptureObject holds the correct HeapObject(s) representing the allocated classes, but
-   * children MemoryObject nodes (e.g. ClassObject, InstanceObject) hold correct information as well.
+   * We want to ensure not only the AllocationsCaptureObject holds the correct HeapSet(s) representing the allocated classes, but
+   * children MemoryObject nodes (e.g. ClassSet, InstanceObject) hold correct information as well.
    */
   @Test
   public void testAllocationsObjectGeneration() throws Exception {
@@ -99,24 +100,27 @@ public class AllocationsCaptureObjectTest {
     assertFalse(capture.isError());
 
     // Allocation Tracking only shows "default" heap
-    List<HeapObject> heaps = capture.getHeaps();
+    Collection<HeapSet> heaps = capture.getHeapSets();
     assertEquals(1, heaps.size());
 
-    HeapObject defaultHeap = heaps.get(0);
-    verifyHeap(defaultHeap, "default", 2);
+    HeapSet defaultHeap = heaps.stream().filter(heap -> "default".equals(heap.getName())).findFirst().orElse(null);
+    assertNotNull(defaultHeap);
+    defaultHeap.getChildrenClassifierSets(); // expand the children
 
-    ClassObject klass0 = defaultHeap.getClasses().get(0);
-    ClassObject klass1 = defaultHeap.getClasses().get(1);
-    verifyClass(klass0, "test.klass0", 1);
-    verifyClass(klass1, "test.klass1", 1);
+    ClassSet class0 = MemoryProfilerTestUtils.findChildClassSetWithName(defaultHeap, "test.klass0");
+    assertEquals(1, class0.getInstancesCount());
+    ClassSet class1 = MemoryProfilerTestUtils.findChildClassSetWithName(defaultHeap, "test.klass1");
+    assertEquals(1, class1.getInstancesCount());
 
-    InstanceObject instance0 = klass0.getInstances().get(0);
-    InstanceObject instance1 = klass1.getInstances().get(0);
+    InstanceObject instance0 = class0.getInstancesStream().findFirst().orElse(null);
+    InstanceObject instance1 = class1.getInstancesStream().findFirst().orElse(null);
     // Note: allocation records contains no depth/fields/references information
     verifyInstance(instance0, "test.klass0", Integer.MAX_VALUE, 0, 0, 1);
     verifyInstance(instance1, "test.klass1", Integer.MAX_VALUE, 0, 0, 1);
 
+    assertNotNull(instance0.getCallStack());
     AllocationStack.StackFrame frame0 = instance0.getCallStack().getStackFramesList().get(0);
+    assertNotNull(instance1.getCallStack());
     AllocationStack.StackFrame frame1 = instance1.getCallStack().getStackFramesList().get(0);
     verifyStackFrame(frame0, "test.klass1", "testMethod1", 7);
     verifyStackFrame(frame1, "test.klass0", "testMethod0", 3);
@@ -140,16 +144,7 @@ public class AllocationsCaptureObjectTest {
 
     assertTrue(capture.isDoneLoading());
     assertTrue(capture.isError());
-    try {
-      // If loading failed, we are not allowed to query HeapObjects
-      capture.getHeaps();
-    }
-    catch (AssertionError ignored) {
-      return;
-    }
-
-    // Should not reach here.
-    assert false;
+    capture.getHeapSets().forEach(heapSet -> assertEquals(0, heapSet.getInstancesCount()));
   }
 
   @Test
@@ -191,25 +186,16 @@ public class AllocationsCaptureObjectTest {
     assertEquals(captureWithDifferentStatus, capture);
   }
 
-  private void verifyHeap(HeapObject heap, String name, int klassSize) {
-    assertEquals(name, heap.getName());
-    assertEquals(klassSize, heap.getClasses().size());
-  }
-
-  private void verifyClass(ClassObject klass, String name, int instanceSize) {
-    assertEquals(name, klass.getName());
-    assertEquals(instanceSize, klass.getInstances().size());
-  }
-
-  private void verifyInstance(InstanceObject instance, String name, int depth, int fieldSize, int referenceSize, int frameCount) {
-    assertEquals(name, instance.getName());
+  private static void verifyInstance(InstanceObject instance, String className, int depth, int fieldSize, int referenceSize, int frameCount) {
+    assertEquals(className, instance.getClassEntry().getClassName());
     assertEquals(depth, instance.getDepth());
     assertEquals(fieldSize, instance.getFields().size());
     assertEquals(referenceSize, instance.getReferences().size());
+    assertNotNull(instance.getCallStack());
     assertEquals(frameCount, instance.getCallStack().getStackFramesCount());
   }
 
-  private void verifyStackFrame(MemoryProfiler.AllocationStack.StackFrame frame, String klass, String method, int line) {
+  private static void verifyStackFrame(MemoryProfiler.AllocationStack.StackFrame frame, String klass, String method, int line) {
     assertEquals(klass, frame.getClassName());
     assertEquals(method, frame.getMethodName());
     assertEquals(line, frame.getLineNumber());

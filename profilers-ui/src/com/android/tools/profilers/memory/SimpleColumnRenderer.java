@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
@@ -22,19 +23,20 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.function.Function;
 
-class SimpleColumnRenderer extends ColoredTreeCellRenderer {
-  private final Function<MemoryObjectTreeNode, String> myTextGetter;
-  private final Function<MemoryObjectTreeNode, Icon> myIconGetter;
+class SimpleColumnRenderer<T extends MemoryObject> extends ColoredTreeCellRenderer {
+  private final Function<MemoryObjectTreeNode<T>, String> myTextGetter;
+  private final Function<MemoryObjectTreeNode<T>, Icon> myIconGetter;
   private final int myAlignment;
 
-  public SimpleColumnRenderer(@NotNull Function<MemoryObjectTreeNode, String> textGetter,
-                              @NotNull Function<MemoryObjectTreeNode, Icon> iconGetter,
+  public SimpleColumnRenderer(@NotNull Function<MemoryObjectTreeNode<T>, String> textGetter,
+                              @NotNull Function<MemoryObjectTreeNode<T>, Icon> iconGetter,
                               int alignment) {
     myTextGetter = textGetter;
     myIconGetter = iconGetter;
     myAlignment = alignment;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public void customizeCellRenderer(@NotNull JTree tree,
                                     Object value,
@@ -44,14 +46,14 @@ class SimpleColumnRenderer extends ColoredTreeCellRenderer {
                                     int row,
                                     boolean hasFocus) {
     if (value instanceof MemoryObjectTreeNode) {
-      /**
-       * Note - the same text is added as a fragment tag so it can be exposed for us to validate
-       * the values we are setting to the fragments.
-       * See {@link com.intellij.ui.SimpleColoredComponent#getFragmentTag(int)} for details.
+      /*
+        Note - the same text is added as a fragment tag so it can be exposed for us to validate
+        the values we are setting to the fragments.
+        See {@link com.intellij.ui.SimpleColoredComponent#getFragmentTag(int)} for details.
        */
-      String text = myTextGetter.apply((MemoryObjectTreeNode)value);
+      String text = myTextGetter.apply((MemoryObjectTreeNode<T>)value);
       append(text, SimpleTextAttributes.REGULAR_ATTRIBUTES, text);
-      Icon icon = myIconGetter.apply((MemoryObjectTreeNode)value);
+      Icon icon = myIconGetter.apply((MemoryObjectTreeNode<T>)value);
       if (icon != null) {
         setIcon(icon);
       }

@@ -48,9 +48,9 @@ import static com.android.tools.profilers.ProfilerLayout.*;
 public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   @NotNull private final MemoryCaptureView myCaptureView = new MemoryCaptureView(getStage(), getIdeComponents());
   @NotNull private final MemoryHeapView myHeapView = new MemoryHeapView(getStage());
-  @NotNull private final MemoryClassView myClassView = new MemoryClassView(getStage(), getIdeComponents());
+  @NotNull private final MemoryClassifierView myClassifierView = new MemoryClassifierView(getStage(), getIdeComponents());
   @NotNull private final MemoryClassGrouping myClassGrouping = new MemoryClassGrouping(getStage());
-  @NotNull private final MemoryInstanceView myInstanceView = new MemoryInstanceView(getStage(), getIdeComponents());
+  @NotNull private final MemoryClassSetView myClassSetView = new MemoryClassSetView(getStage(), getIdeComponents());
   @NotNull private final MemoryInstanceDetailsView myInstanceDetailsView = new MemoryInstanceDetailsView(getStage(), getIdeComponents());
 
   @Nullable private CaptureObject myCaptureObject = null;
@@ -70,7 +70,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     myChartCaptureSplitter.setFirstComponent(buildMonitorUi());
     myCapturePanel = buildCaptureUi();
     myInstanceDetailsSplitter.setOpaque(true);
-    myInstanceDetailsSplitter.setFirstComponent(myInstanceView.getComponent());
+    myInstanceDetailsSplitter.setFirstComponent(myClassSetView.getComponent());
     myInstanceDetailsSplitter.setSecondComponent(myInstanceDetailsView.getComponent());
     myMainSplitter.setFirstComponent(myChartCaptureSplitter);
     myMainSplitter.setSecondComponent(myInstanceDetailsSplitter);
@@ -170,14 +170,14 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
 
   @VisibleForTesting
   @NotNull
-  MemoryClassView getClassView() {
-    return myClassView;
+  MemoryClassifierView getClassifierView() {
+    return myClassifierView;
   }
 
   @VisibleForTesting
   @NotNull
-  MemoryInstanceView getInstanceView() {
-    return myInstanceView;
+  MemoryClassSetView getClassSetView() {
+    return myClassSetView;
   }
 
   @VisibleForTesting
@@ -200,7 +200,6 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
       myAllocationButton.setDisabledIcon(IconLoader.getDisabledIcon(ProfilerIcons.RECORD));
       myAllocationButton.setToolTipText("Starts recording of memory allocation");
     }
-
   }
 
   @NotNull
@@ -352,7 +351,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
     headingPanel.add(toolbar, BorderLayout.WEST);
     JPanel capturePanel = new JPanel(new BorderLayout());
     capturePanel.add(headingPanel, BorderLayout.PAGE_START);
-    capturePanel.add(myClassView.getComponent(), BorderLayout.CENTER);
+    capturePanel.add(myClassifierView.getComponent(), BorderLayout.CENTER);
     return capturePanel;
   }
 
@@ -378,7 +377,7 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   private void captureObjectFinishedLoading() {
     myAllocationButton.setEnabled(true);
     myHeapDumpButton.setEnabled(true);
-    if (myCaptureObject != getStage().getSelectedCapture()) {
+    if (myCaptureObject != getStage().getSelectedCapture() || myCaptureObject == null) {
       return;
     }
 
@@ -401,41 +400,44 @@ public class MemoryProfilerStageView extends StageView<MemoryProfilerStage> {
   }
 
   /**
-   * TODO currently we have slightly different icons for the MemoryInstanceView vs the MemoryInstanceDetailsView.
+   * TODO currently we have slightly different icons for the MemoryClassSetView vs the MemoryInstanceDetailsView.
    * Re-investigate and see if they should share the same conditions.
    */
   @NotNull
-  static Icon getInstanceObjectIcon(@NotNull InstanceObject instance) {
-    if (instance instanceof FieldObject) {
-      FieldObject field = (FieldObject)instance;
-      if (field.getIsArray()) {
-        return getStackedIcon(instance, ProfilerIcons.ARRAY_STACK, AllIcons.Debugger.Db_array);
+  static Icon getValueObjectIcon(@NotNull ValueObject valueObject) {
+    if (valueObject instanceof FieldObject) {
+      FieldObject field = (FieldObject)valueObject;
+      if (field.getValueType() == ValueObject.ValueType.ARRAY) {
+        return getStackedIcon(field.getAsInstance(), ProfilerIcons.ARRAY_STACK, AllIcons.Debugger.Db_array);
       }
-      else if (field.getIsPrimitive()) {
+      else if (field.getValueType().getIsPrimitive()) {
         return AllIcons.Debugger.Db_primitive;
       }
       else {
-        return getStackedIcon(instance, ProfilerIcons.FIELD_STACK, PlatformIcons.FIELD_ICON);
+        return getStackedIcon(field.getAsInstance(), ProfilerIcons.FIELD_STACK, PlatformIcons.FIELD_ICON);
       }
     }
-    else if (instance instanceof ReferenceObject) {
-      ReferenceObject referrer = (ReferenceObject)instance;
-      if (referrer.getIsRoot()) {
+    else if (valueObject instanceof ReferenceObject) {
+      ReferenceObject referrer = (ReferenceObject)valueObject;
+      if (referrer.getReferenceInstance().getIsRoot()) {
         return AllIcons.Hierarchy.Subtypes;
       }
-      else if (referrer.getIsArray()) {
-        return getStackedIcon(instance, ProfilerIcons.ARRAY_STACK, AllIcons.Debugger.Db_array);
+      else if (referrer.getReferenceInstance().getValueType() == ValueObject.ValueType.ARRAY) {
+        return getStackedIcon(referrer.getReferenceInstance(), ProfilerIcons.ARRAY_STACK, AllIcons.Debugger.Db_array);
       }
       else {
-        return getStackedIcon(instance, ProfilerIcons.FIELD_STACK, PlatformIcons.FIELD_ICON);
+        return getStackedIcon(referrer.getReferenceInstance(), ProfilerIcons.FIELD_STACK, PlatformIcons.FIELD_ICON);
       }
     }
+    else if (valueObject instanceof InstanceObject) {
+      return getStackedIcon((InstanceObject)valueObject, ProfilerIcons.INTERFACE_STACK, PlatformIcons.INTERFACE_ICON);
+    }
     else {
-      return getStackedIcon(instance, ProfilerIcons.INTERFACE_STACK, PlatformIcons.INTERFACE_ICON);
+      return PlatformIcons.INTERFACE_ICON;
     }
   }
 
-  private static Icon getStackedIcon(@NotNull InstanceObject instance, @NotNull Icon stackedIcon, @NotNull Icon nonStackedIcon) {
-    return (instance.getCallStack() == null || instance.getCallStack().getStackFramesCount() == 0) ? nonStackedIcon : stackedIcon;
+  private static Icon getStackedIcon(@Nullable InstanceObject instance, @NotNull Icon stackedIcon, @NotNull Icon nonStackedIcon) {
+    return (instance == null || instance.getCallStack() == null || instance.getCallStack().getStackFramesCount() == 0) ? nonStackedIcon : stackedIcon;
   }
 }

@@ -156,13 +156,18 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
   }
 
   public void sort(@NotNull Comparator<MemoryObjectTreeNode<T>> comparator) {
-    // Note - this is only called on the root node.
+    // Note - this can only be called on the root node.
     assert myParent == null;
     if (myComparator != comparator) {
       myComparator = comparator;
       myComparatorChanged = true;
       ensureOrder();
     }
+  }
+
+  @Nullable
+  public Comparator<MemoryObjectTreeNode<T>> getComparator() {
+    return myComparator;
   }
 
   @NotNull

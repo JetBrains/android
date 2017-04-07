@@ -17,8 +17,8 @@ package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profilers.memory.adapters.ClassDb.ClassEntry;
 import com.android.tools.profilers.stacktrace.ThreadId;
-import com.android.tools.profilers.memory.adapters.ClassObject.ValueType;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,63 +26,69 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 final class AllocationsInstanceObject implements InstanceObject {
-  @NotNull static final Map<String, ValueType> ourTypeMap = ImmutableMap.<String, ValueType>builder()
-    .put("boolean", ValueType.BOOLEAN)
-    .put("byte", ValueType.BYTE)
-    .put("char", ValueType.CHAR)
-    .put("short", ValueType.SHORT)
-    .put("int", ValueType.INT)
-    .put("long", ValueType.LONG)
-    .put("float", ValueType.FLOAT)
-    .put("double", ValueType.DOUBLE)
+  @NotNull static final Map<String, ValueObject.ValueType> ourTypeMap = ImmutableMap.<String, ValueObject.ValueType>builder()
+    .put("boolean", ValueObject.ValueType.BOOLEAN)
+    .put("byte", ValueObject.ValueType.BYTE)
+    .put("char", ValueObject.ValueType.CHAR)
+    .put("short", ValueObject.ValueType.SHORT)
+    .put("int", ValueObject.ValueType.INT)
+    .put("long", ValueObject.ValueType.LONG)
+    .put("float", ValueObject.ValueType.FLOAT)
+    .put("double", ValueObject.ValueType.DOUBLE)
     .build();
 
   @NotNull private final AllocationEvent myEvent;
-  @NotNull private final AllocationsClassObject myAllocationsClassObject;
+  @NotNull private final ClassEntry myAllocationClassEntry;
   @NotNull private final AllocationStack myCallStack;
-  @NotNull private final ValueType myValueType;
+  @NotNull private final ValueObject.ValueType myValueType;
 
   public AllocationsInstanceObject(@NotNull AllocationEvent event,
-                                   @NotNull AllocationsClassObject allocationsClassObject,
+                                   @NotNull ClassEntry allocationClassEntry,
                                    @NotNull AllocationStack callStack) {
     myEvent = event;
-    myAllocationsClassObject = allocationsClassObject;
+    myAllocationClassEntry = allocationClassEntry;
     myCallStack = callStack;
 
-    String className = myAllocationsClassObject.getName();
+    String className = myAllocationClassEntry.getClassName();
     if (className.contains(".")) {
-      if (className.equals(ClassObject.JAVA_LANG_STRING)) {
-        myValueType = ValueType.STRING;
+      if (className.equals(ClassDb.JAVA_LANG_STRING)) {
+        myValueType = ValueObject.ValueType.STRING;
       }
       else {
-        myValueType = ValueType.OBJECT;
+        myValueType = ValueObject.ValueType.OBJECT;
       }
     }
     else {
-      String trimmedClassName = className;
-      if (getIsArray()) {
-        trimmedClassName = className.substring(0, className.length() - "[]".length());
+      if (myAllocationClassEntry.getClassName().endsWith("[]")) {
+        myValueType = ValueObject.ValueType.ARRAY;
       }
-      myValueType = ourTypeMap.getOrDefault(trimmedClassName, ValueType.OBJECT);
+      else {
+        myValueType = ourTypeMap.getOrDefault(className, ValueObject.ValueType.OBJECT);
+      }
     }
   }
 
   @NotNull
   @Override
   public String getName() {
-    return getClassName();
+    return "";
+  }
+
+  @Override
+  public int getHeapId() {
+    return AllocationsCaptureObject.DEFAULT_HEAP_ID;
+  }
+
+  @NotNull
+  @Override
+  public ClassEntry getClassEntry() {
+    return myAllocationClassEntry;
   }
 
   @Nullable
   @Override
-  public ClassObject getClassObject() {
-    return myAllocationsClassObject;
-  }
-
-  @Nullable
-  @Override
-  public String getClassName() {
-    return myAllocationsClassObject.getName();
+  public InstanceObject getClassObject() {
+    return null;
   }
 
   @Override
@@ -104,17 +110,13 @@ final class AllocationsInstanceObject implements InstanceObject {
 
   @NotNull
   @Override
-  public ValueType getValueType() {
+  public ValueObject.ValueType getValueType() {
     return myValueType;
   }
 
+  @NotNull
   @Override
-  public boolean getIsArray() {
-    return myAllocationsClassObject.getName().endsWith("[]");
-  }
-
-  @Override
-  public boolean getIsPrimitive() {
-    return myValueType.getIsPrimitive();
+  public String getValueText() {
+    return myAllocationClassEntry.getSimpleClassName();
   }
 }
