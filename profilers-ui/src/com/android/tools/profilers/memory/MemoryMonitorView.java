@@ -46,6 +46,7 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
     JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(JLabel.TOP);
+    label.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
 
     JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
@@ -74,6 +75,7 @@ public class MemoryMonitorView extends ProfilerMonitorView<MemoryMonitor> {
 
     MemoryMonitor.MemoryLegend legends = getMonitor().getMemoryLegend();
     LegendComponent legend = new LegendComponent(legends);
+    legend.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
     legend.configure(legends.getTotalLegend(), new LegendConfig(memoryConfig));
 
     JPanel legendPanel = new JBPanel(new BorderLayout());
