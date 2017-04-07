@@ -22,7 +22,6 @@ import com.android.tools.profiler.proto.MemoryProfiler.AllocationEvent;
 import com.android.tools.profiler.proto.MemoryServiceGrpc.MemoryServiceBlockingStub;
 import com.android.tools.profilers.RelativeTimeConverter;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.memory.adapters.ClassObject.ClassAttribute;
 import com.google.protobuf3jarjar.ByteString;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,19 +31,25 @@ import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class AllocationsCaptureObject implements CaptureObject {
+  static final int DEFAULT_HEAP_ID = 0;
+  static final String DEFAULT_HEAP_NAME = "default";
+  static final long DEFAULT_CLASSLOADER_ID = -1;
+
   @NotNull private final MemoryServiceBlockingStub myClient;
-  private final int myProcessId;
+  @NotNull private final ClassDb myClassDb;
   @NotNull private final String myLabel;
+  private final int myProcessId;
   private final Common.Session mySession;
   private long myStartTimeNs;
   private long myEndTimeNs;
   private final FeatureTracker myFeatureTracker;
-  private volatile List<ClassObject> myClassObjs;
-  private volatile boolean myIsLoadingError;
-  // Allocation records do not have heap information, but we create a fake HeapObject container anyway so that we have a consistent MemoryObject model.
-  private final AllocationsHeapObject myFakeHeapObject;
+  private volatile boolean myIsDoneLoading = false;
+  private volatile boolean myIsLoadingError = false;
+  // Allocation records do not have heap information, but we create a fake HeapSet container anyway so that we have a consistent MemoryObject model.
+  private final HeapSet myFakeHeapSet;
 
   public AllocationsCaptureObject(@NotNull MemoryServiceBlockingStub client,
                                   @Nullable Common.Session session,
@@ -53,11 +58,12 @@ public final class AllocationsCaptureObject implements CaptureObject {
                                   @NotNull RelativeTimeConverter converter,
                                   @NotNull FeatureTracker featureTracker) {
     myClient = client;
+    myClassDb = new ClassDb();
     myProcessId = processId;
     mySession = session;
     myStartTimeNs = info.getStartTime();
     myEndTimeNs = info.getEndTime();
-    myFakeHeapObject = new AllocationsHeapObject();
+    myFakeHeapSet = new HeapSet(this, DEFAULT_HEAP_ID);
     myLabel = "Allocations" +
               (myStartTimeNs != Long.MAX_VALUE ?
                " from " + TimeAxisFormatter.DEFAULT.getFixedPointFormattedString(
@@ -108,10 +114,10 @@ public final class AllocationsCaptureObject implements CaptureObject {
 
   @NotNull
   @Override
-  public List<HeapObject> getHeaps() {
+  public Stream<InstanceObject> getInstances() {
     //noinspection ConstantConditions
     assert isDoneLoading() && !isError();
-    return Collections.singletonList(myFakeHeapObject);
+    return myFakeHeapSet.getInstancesStream();
   }
 
   @Override
@@ -158,28 +164,27 @@ public final class AllocationsCaptureObject implements CaptureObject {
       .build();
     MemoryProfiler.AllocationContextsResponse contextsResponse = myClient.listAllocationContexts(contextRequest);
 
-    Map<Integer, AllocationsClassObject> classNodes = new HashMap<>();
+    Map<Integer, ClassDb.ClassEntry> classEntryMap = new HashMap<>();
     Map<ByteString, MemoryProfiler.AllocationStack> callStacks = new HashMap<>();
-    contextsResponse.getAllocatedClassesList().forEach(className -> classNodes.put(className.getClassId(),
-                                                                                   new AllocationsClassObject(myFakeHeapObject,
-                                                                                                              className)));
+    contextsResponse.getAllocatedClassesList().forEach(
+      className -> classEntryMap.put(className.getClassId(), myClassDb.registerClass(DEFAULT_CLASSLOADER_ID, className.getClassName())));
     contextsResponse.getAllocationStacksList().forEach(callStack -> callStacks.putIfAbsent(callStack.getStackId(), callStack));
 
     // TODO make sure class IDs fall into a global pool
     for (AllocationEvent event : response.getEventsList()) {
-      assert classNodes.containsKey(event.getAllocatedClassId());
+      assert classEntryMap.containsKey(event.getAllocatedClassId());
       assert callStacks.containsKey(event.getAllocationStackId());
-      classNodes.get(event.getAllocatedClassId()).addInstance(
-        new AllocationsInstanceObject(event, classNodes.get(event.getAllocatedClassId()), callStacks.get(event.getAllocationStackId())));
+      myFakeHeapSet.addInstanceObject(
+        new AllocationsInstanceObject(event, classEntryMap.get(event.getAllocatedClassId()), callStacks.get(event.getAllocationStackId())));
     }
+    myIsDoneLoading = true;
 
-    myClassObjs = new ArrayList<>(classNodes.values());
     return true;
   }
 
   @Override
   public boolean isDoneLoading() {
-    return myClassObjs != null || myIsLoadingError;
+    return myIsDoneLoading || myIsLoadingError;
   }
 
   @Override
@@ -187,28 +192,35 @@ public final class AllocationsCaptureObject implements CaptureObject {
     return myIsLoadingError;
   }
 
-  final class AllocationsHeapObject implements HeapObject {
-    @Override
-    public String toString() {
-      return getName();
-    }
+  @Override
+  @NotNull
+  public List<ClassifierAttribute> getClassifierAttributes() {
+    return Arrays.asList(ClassifierAttribute.LABEL, ClassifierAttribute.COUNT);
+  }
 
-    @NotNull
-    @Override
-    public String getName() {
-      return "default";
-    }
+  @NotNull
+  @Override
+  public List<CaptureObject.InstanceAttribute> getInstanceAttributes() {
+    return Arrays.asList(CaptureObject.InstanceAttribute.LABEL, CaptureObject.InstanceAttribute.SHALLOW_SIZE);
+  }
 
-    @NotNull
-    @Override
-    public List<ClassObject> getClasses() {
-      return myClassObjs;
-    }
+  @NotNull
+  @Override
+  public Collection<HeapSet> getHeapSets() {
+    return Collections.singletonList(myFakeHeapSet);
+  }
 
-    @NotNull
-    @Override
-    public List<ClassObject.ClassAttribute> getClassAttributes() {
-      return Arrays.asList(ClassAttribute.LABEL, ClassAttribute.HEAP_COUNT);
-    }
+  @NotNull
+  @Override
+  public String getHeapName(int heapId) {
+    assert heapId == DEFAULT_HEAP_ID;
+    return DEFAULT_HEAP_NAME;
+  }
+
+  @Override
+  @Nullable
+  public HeapSet getHeapSet(int heapId) {
+    assert heapId == DEFAULT_HEAP_ID;
+    return myFakeHeapSet;
   }
 }

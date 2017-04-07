@@ -27,10 +27,13 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Supplier;
 
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
@@ -47,8 +50,8 @@ public class HeapDumpCaptureObjectTest {
 
   /**
    * This is a high-level test that validates the generation of the hprof MemoryObject hierarchy based on a Snapshot buffer.
-   * We want to ensure not only the HeapDumpCaptureObject holds the correct HeapObject(s) representing the Snapshot, but
-   * children MemoryObject nodes (e.g. ClassObject, InstanceObject) hold correct information as well.
+   * We want to ensure not only the HeapDumpCaptureObject holds the correct HeapSet(s) representing the Snapshot, but
+   * children MemoryObject nodes (e.g. ClassSet, InstanceObject) hold correct information as well.
    */
   @Test
   public void testHeapDumpObjectsGeneration() throws Exception {
@@ -91,34 +94,38 @@ public class HeapDumpCaptureObjectTest {
     assertTrue(capture.isDoneLoading());
     assertFalse(capture.isError());
 
-    List<HeapObject> heaps = capture.getHeaps();
+    Collection<HeapSet> heaps = capture.getHeapSets();
     assertEquals(2, heaps.size());
 
     // "default" heap only contains roots, no ClassObjects
-    HeapObject defaultHeap = heaps.get(0);
-    verifyHeap(defaultHeap, "default", 0);
+    HeapSet defaultHeap = heaps.stream().filter(heap -> "default".equals(heap.getName())).findFirst().orElse(null);
+    assertNotNull(defaultHeap);
+    assertEquals(0, defaultHeap.getInstancesCount());
 
     // "testHeap" contains the reference, softreference classes, plus a unique class for each instance we created (2).
-    HeapObject testHeap = heaps.get(1);
-    verifyHeap(testHeap, "testHeap", 4);
-    List<ClassObject> testHeapKlasses = testHeap.getClasses();
-    verifyClass(testHeapKlasses.get(0), "java.lang.ref.Reference", 0);
-    verifyClass(testHeapKlasses.get(1), "SoftAndHardReference", 0);
-    verifyClass(testHeapKlasses.get(2), "Class0", 1);
-    verifyClass(testHeapKlasses.get(3), "Class1", 1);
+    HeapSet testHeap = heaps.stream().filter(heap -> "testHeap".equals(heap.getName())).findFirst().orElse(null);
+    assertEquals(testHeap.getName(), "testHeap");
+    assertEquals(6, testHeap.getInstancesCount());
 
-    InstanceObject instance0 = testHeapKlasses.get(2).getInstances().get(0);
-    InstanceObject instance1 = testHeapKlasses.get(3).getInstances().get(0);
+    ClassifierSet.Classifier classClassifier = ClassSet.createDefaultClassifier();
+    classClassifier.partition(
+      testHeap.getInstancesStream().collect((Supplier<ArrayList<InstanceObject>>)ArrayList::new, ArrayList::add, ArrayList::addAll));
+    List<ClassifierSet> classSets = classClassifier.getClassifierSets();
+    assertEquals(3, classSets.size());
+    assertTrue(classSets.stream().allMatch(classifier -> classifier instanceof ClassSet));
+    assertTrue(classSets.stream().anyMatch(classifier -> "java.lang.Class".equals(((ClassSet)classifier).getClassEntry().getClassName())));
+    assertTrue(classSets.stream().anyMatch(classifier -> "Class0".equals(((ClassSet)classifier).getClassEntry().getClassName())));
+    assertTrue(classSets.stream().anyMatch(classifier -> "Class1".equals(((ClassSet)classifier).getClassEntry().getClassName())));
+
+    InstanceObject instance0 = findChildClassSetWithName(classClassifier, "Class0").getInstancesStream().findFirst().orElse(null);
+    InstanceObject instance1 = findChildClassSetWithName(classClassifier, "Class1").getInstancesStream().findFirst().orElse(null);
     verifyInstance(instance0, "Class0@1 (0x1)", 0, 1, 0);
     verifyInstance(instance1, "Class1@2 (0x2)", 1, 0, 1);
 
     FieldObject field0 = instance0.getFields().get(0);
-    verifyField(field0, "field0", "Class1@2 (0x2)");
-    // Ensure that the various info in the field match those of instance1
-    verifyInstance(field0, String.format(FieldObject.FIELD_DISPLAY_FORMAT, "field0", "Class1@2 (0x2)"), 1, 0, 1);
-
+    assertEquals(field0.getAsInstance(), instance1);
     ReferenceObject reference1 = instance1.getReferences().get(0);
-    verifyReference(reference1, "Class0@1 (0x1)", Arrays.asList("field0"));
+    assertEquals(reference1.getReferenceInstance(), instance0);
   }
 
   @Test
@@ -136,7 +143,7 @@ public class HeapDumpCaptureObjectTest {
 
     assertTrue(capture.isDoneLoading());
     assertTrue(capture.isError());
-    assertEquals(0, capture.getHeaps().size());
+    assertEquals(0, capture.getHeapSets().size());
   }
 
   @Test
@@ -218,29 +225,14 @@ public class HeapDumpCaptureObjectTest {
     assertArrayEquals(buffer, baos.toByteArray());
   }
 
-  private void verifyHeap(HeapObject heap, String name, int klassSize) {
-    assertEquals(name, heap.getName());
-    assertEquals(klassSize, heap.getClasses().size());
-  }
-
-  private void verifyClass(ClassObject klass, String name, int instanceSize) {
-    assertEquals(name, klass.getName());
-    assertEquals(instanceSize, klass.getInstances().size());
-  }
-
-  private void verifyInstance(InstanceObject instance, String name, int depth, int fieldSize, int referenceSize) {
-    assertEquals(name, instance.getName());
+  private static void verifyInstance(@NotNull InstanceObject instance,
+                                     @NotNull String valueText,
+                                     int depth,
+                                     int fieldsCount,
+                                     int referencesCount) {
+    assertEquals(valueText, instance.getValueText());
     assertEquals(depth, instance.getDepth());
-    assertEquals(fieldSize, instance.getFields().size());
-    assertEquals(referenceSize, instance.getReferences().size());
-  }
-
-  private void verifyField(FieldObject field, String fieldName, String valueName) {
-    assertEquals(String.format(FieldObject.FIELD_DISPLAY_FORMAT, fieldName, valueName), field.getName());
-  }
-
-  private void verifyReference(ReferenceObject reference, String referrerName, List<String> referrerFieldNames) {
-    assertEquals(referrerName, reference.getName());
-    assertEquals(referrerFieldNames, reference.getReferenceFieldNames());
+    assertEquals(fieldsCount, instance.getFields().size());
+    assertEquals(referencesCount, instance.getReferences().size());
   }
 }

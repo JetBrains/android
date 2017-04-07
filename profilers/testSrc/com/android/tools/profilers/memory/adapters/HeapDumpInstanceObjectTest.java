@@ -17,60 +17,95 @@ package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.perflib.heap.Instance;
 import com.android.tools.perflib.heap.Type;
+import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
+import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profilers.*;
+import com.android.tools.profilers.memory.FakeMemoryService;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 
 public class HeapDumpInstanceObjectTest {
+  private static final String MOCK_CLASS = "MockClass";
+
+  @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryNavigationTestGrpc", new FakeMemoryService());
+
+  private FakeHeapDumpCaptureObject myCaptureObject;
+
+  @Before
+  public void setup() {
+    FakeIdeProfilerServices profilerServices = new FakeIdeProfilerServices();
+    StudioProfilers profilers = new StudioProfilers(myGrpcChannel.getClient(), profilerServices);
+    myCaptureObject = new FakeHeapDumpCaptureObject(profilers.getClient().getMemoryClient());
+  }
 
   /**
    * Tests that FieldObjects are generated correctly based on a Hprof ClassInstance object.
    */
   @Test
   public void testExtractFieldsWithClassInstance() throws Exception {
-    MockClassInstance classInstance = new MockClassInstance(-1, 0, "MockClass1");
-    classInstance.addFieldValue(Type.OBJECT, "objectTest", new MockClassInstance(-1, 0, "MockClass2"));
-    classInstance.addFieldValue(Type.BOOLEAN, "boolTest", true);
-    classInstance.addFieldValue(Type.CHAR, "charTest", 'a');
-    classInstance.addFieldValue(Type.FLOAT, "floatTest", new Float(1f));
-    classInstance.addFieldValue(Type.DOUBLE, "doubleTest", new Double(2.0));
-    classInstance.addFieldValue(Type.BYTE, "byteTest", new Byte((byte)1));
-    classInstance.addFieldValue(Type.SHORT, "shortTest", new Short((short)3));
-    classInstance.addFieldValue(Type.INT, "intTest", new Integer(4));
-    classInstance.addFieldValue(Type.LONG, "longTest", new Integer(5));
-    classInstance.addFieldValue(Type.OBJECT, "classTest", new MockClassObj(-1, "MockClass3", 0));
-    classInstance.addFieldValue(Type.OBJECT, "stringTest", new MockClassInstance(-1, 0, "java.lang.String"));
-    classInstance.addFieldValue(Type.OBJECT, "nullTest", null);
+    MockClassInstance classInstance = new MockClassInstance(-1, 0, "MockClass2");
+    MockClassObj classObj = new MockClassObj(-1, "MockClass3", 0);
+    MockClassInstance stringInstance = new MockClassInstance(-1, 0, "java.lang.String");
 
-    List<FieldObject> fields = HeapDumpInstanceObject.extractFields(classInstance);
+    MockClassInstance targetInstance = new MockClassInstance(-1, 0, "MockClass1");
+    targetInstance.addFieldValue(Type.OBJECT, "objectTest", classInstance);
+    targetInstance.addFieldValue(Type.BOOLEAN, "boolTest", true);
+    targetInstance.addFieldValue(Type.CHAR, "charTest", 'a');
+    targetInstance.addFieldValue(Type.FLOAT, "floatTest", new Float(1f));
+    targetInstance.addFieldValue(Type.DOUBLE, "doubleTest", new Double(2.0));
+    targetInstance.addFieldValue(Type.BYTE, "byteTest", new Byte((byte)1));
+    targetInstance.addFieldValue(Type.SHORT, "shortTest", new Short((short)3));
+    targetInstance.addFieldValue(Type.INT, "intTest", new Integer(4));
+    targetInstance.addFieldValue(Type.LONG, "longTest", new Integer(5));
+    targetInstance.addFieldValue(Type.OBJECT, "classTest", classObj);
+    targetInstance.addFieldValue(Type.OBJECT, "stringTest", stringInstance);
+    targetInstance.addFieldValue(Type.OBJECT, "nullTest", null);
+
+    myCaptureObject.addInstance(classInstance, new HeapDumpInstanceObject(
+      myCaptureObject, null, classInstance, myCaptureObject.getClassDb().registerClass(0, "MockClass2"), OBJECT));
+    myCaptureObject.addInstance(classObj, new HeapDumpInstanceObject(
+      myCaptureObject, null, classObj, myCaptureObject.getClassDb().registerClass(0, "MockClass3"), CLASS));
+    myCaptureObject.addInstance(stringInstance, new HeapDumpInstanceObject(
+      myCaptureObject, null, stringInstance, myCaptureObject.getClassDb().registerClass(0, "java.lang.String"), STRING));
+    myCaptureObject.addInstance(targetInstance, new HeapDumpInstanceObject(
+      myCaptureObject, null, targetInstance, myCaptureObject.getClassDb().registerClass(0, "MockClass1"), OBJECT));
+
+    List<FieldObject> fields = myCaptureObject.getInstance(targetInstance).getFields();
     assertEquals(12, fields.size());
     assertEquals("objectTest", fields.get(0).getFieldName());
-    assertEquals(ClassObject.ValueType.OBJECT, fields.get(0).getValueType());
+    assertEquals(OBJECT, fields.get(0).getValueType());
     assertEquals("boolTest", fields.get(1).getFieldName());
-    assertEquals(ClassObject.ValueType.BOOLEAN, fields.get(1).getValueType());
+    assertEquals(BOOLEAN, fields.get(1).getValueType());
     assertEquals("charTest", fields.get(2).getFieldName());
-    assertEquals(ClassObject.ValueType.CHAR, fields.get(2).getValueType());
+    assertEquals(CHAR, fields.get(2).getValueType());
     assertEquals("floatTest", fields.get(3).getFieldName());
-    assertEquals(ClassObject.ValueType.FLOAT, fields.get(3).getValueType());
+    assertEquals(FLOAT, fields.get(3).getValueType());
     assertEquals("doubleTest", fields.get(4).getFieldName());
-    assertEquals(ClassObject.ValueType.DOUBLE, fields.get(4).getValueType());
+    assertEquals(DOUBLE, fields.get(4).getValueType());
     assertEquals("byteTest", fields.get(5).getFieldName());
-    assertEquals(ClassObject.ValueType.BYTE, fields.get(5).getValueType());
+    assertEquals(BYTE, fields.get(5).getValueType());
     assertEquals("shortTest", fields.get(6).getFieldName());
-    assertEquals(ClassObject.ValueType.SHORT, fields.get(6).getValueType());
+    assertEquals(SHORT, fields.get(6).getValueType());
     assertEquals("intTest", fields.get(7).getFieldName());
-    assertEquals(ClassObject.ValueType.INT, fields.get(7).getValueType());
+    assertEquals(INT, fields.get(7).getValueType());
     assertEquals("longTest", fields.get(8).getFieldName());
-    assertEquals(ClassObject.ValueType.LONG, fields.get(8).getValueType());
+    assertEquals(LONG, fields.get(8).getValueType());
     assertEquals("classTest", fields.get(9).getFieldName());
-    assertEquals(ClassObject.ValueType.CLASS, fields.get(9).getValueType());
+    assertEquals(CLASS, fields.get(9).getValueType());
     assertEquals("stringTest", fields.get(10).getFieldName());
-    assertEquals(ClassObject.ValueType.STRING, fields.get(10).getValueType());
+    assertEquals(STRING, fields.get(10).getValueType());
     assertEquals("nullTest", fields.get(11).getFieldName());
-    assertEquals(ClassObject.ValueType.NULL, fields.get(11).getValueType());
+    assertEquals(NULL, fields.get(11).getValueType());
   }
 
   /**
@@ -78,19 +113,30 @@ public class HeapDumpInstanceObjectTest {
    */
   @Test
   public void testExtractFieldsWithArrayInstance() throws Exception {
+    MockClassInstance element0 = new MockClassInstance(-1, 0, MOCK_CLASS);
+    MockClassInstance element1 = new MockClassInstance(-1, 0, MOCK_CLASS);
+    MockClassInstance element2 = new MockClassInstance(-1, 0, MOCK_CLASS);
     MockArrayInstance arrayInstance = new MockArrayInstance(-1, Type.OBJECT, 3, 0);
-    arrayInstance.setValue(0, new MockClassInstance(-1, 0, "MockClass"));
-    arrayInstance.setValue(1, new MockClassInstance(-1, 0, "MockClass"));
-    arrayInstance.setValue(2, new MockClassInstance(-1, 0, "MockClass"));
+    arrayInstance.setValue(0, element0);
+    arrayInstance.setValue(1, element1);
+    arrayInstance.setValue(2, element2);
+    myCaptureObject.addInstance(element0, new HeapDumpInstanceObject(
+      myCaptureObject, null, element0, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), OBJECT));
+    myCaptureObject.addInstance(element1, new HeapDumpInstanceObject(
+      myCaptureObject, null, element1, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), OBJECT));
+    myCaptureObject.addInstance(element2, new HeapDumpInstanceObject(
+      myCaptureObject, null, element2, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), OBJECT));
+    myCaptureObject.addInstance(arrayInstance, new HeapDumpInstanceObject(
+      myCaptureObject, null, arrayInstance, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), ARRAY));
 
-    List<FieldObject> fields = HeapDumpInstanceObject.extractFields(arrayInstance);
+    List<FieldObject> fields = myCaptureObject.getInstance(arrayInstance).getFields();
     assertEquals(3, fields.size());
     assertEquals("0", fields.get(0).getFieldName());
-    assertEquals(ClassObject.ValueType.OBJECT, fields.get(0).getValueType());
+    assertEquals(OBJECT, fields.get(0).getValueType());
     assertEquals("1", fields.get(1).getFieldName());
-    assertEquals(ClassObject.ValueType.OBJECT, fields.get(1).getValueType());
+    assertEquals(OBJECT, fields.get(1).getValueType());
     assertEquals("2", fields.get(2).getFieldName());
-    assertEquals(ClassObject.ValueType.OBJECT, fields.get(2).getValueType());
+    assertEquals(OBJECT, fields.get(2).getValueType());
   }
 
   /**
@@ -98,8 +144,10 @@ public class HeapDumpInstanceObjectTest {
    */
   @Test
   public void testExtractFieldsWithClassObj() throws Exception {
+    MockClassInstance classInstance = new MockClassInstance(-1, 0, MOCK_CLASS);
+
     MockClassObj classObj = new MockClassObj(-1, "testClass", 0);
-    classObj.addStaticField(Type.OBJECT, "staticObj", new MockClassInstance(-1, 0, "MockClass"));
+    classObj.addStaticField(Type.OBJECT, "staticObj", classInstance);
     classObj.addStaticField(Type.BOOLEAN, "staticBool", true);
     classObj.addStaticField(Type.CHAR, "staticChar", 'a');
     classObj.addStaticField(Type.FLOAT, "staticFloat", new Float(1f));
@@ -109,26 +157,31 @@ public class HeapDumpInstanceObjectTest {
     classObj.addStaticField(Type.INT, "staticInt", new Integer(4));
     classObj.addStaticField(Type.LONG, "staticLong", new Integer(5));
 
-    List<FieldObject> fields = HeapDumpInstanceObject.extractFields(classObj);
+    myCaptureObject.addInstance(classInstance, new HeapDumpInstanceObject(
+      myCaptureObject, null, classInstance, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), OBJECT));
+    myCaptureObject.addInstance(classObj, new HeapDumpInstanceObject(
+      myCaptureObject, null, classObj, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), CLASS));
+
+    List<FieldObject> fields = myCaptureObject.getInstance(classObj).getFields();
     assertEquals(9, fields.size());
     assertEquals("staticObj", fields.get(0).getFieldName());
-    assertEquals(ClassObject.ValueType.OBJECT, fields.get(0).getValueType());
+    assertEquals(OBJECT, fields.get(0).getValueType());
     assertEquals("staticBool", fields.get(1).getFieldName());
-    assertEquals(ClassObject.ValueType.BOOLEAN, fields.get(1).getValueType());
+    assertEquals(BOOLEAN, fields.get(1).getValueType());
     assertEquals("staticChar", fields.get(2).getFieldName());
-    assertEquals(ClassObject.ValueType.CHAR, fields.get(2).getValueType());
+    assertEquals(CHAR, fields.get(2).getValueType());
     assertEquals("staticFloat", fields.get(3).getFieldName());
-    assertEquals(ClassObject.ValueType.FLOAT, fields.get(3).getValueType());
+    assertEquals(FLOAT, fields.get(3).getValueType());
     assertEquals("staticDouble", fields.get(4).getFieldName());
-    assertEquals(ClassObject.ValueType.DOUBLE, fields.get(4).getValueType());
+    assertEquals(DOUBLE, fields.get(4).getValueType());
     assertEquals("staticByte", fields.get(5).getFieldName());
-    assertEquals(ClassObject.ValueType.BYTE, fields.get(5).getValueType());
+    assertEquals(BYTE, fields.get(5).getValueType());
     assertEquals("staticShort", fields.get(6).getFieldName());
-    assertEquals(ClassObject.ValueType.SHORT, fields.get(6).getValueType());
+    assertEquals(SHORT, fields.get(6).getValueType());
     assertEquals("staticInt", fields.get(7).getFieldName());
-    assertEquals(ClassObject.ValueType.INT, fields.get(7).getValueType());
+    assertEquals(INT, fields.get(7).getValueType());
     assertEquals("staticLong", fields.get(8).getFieldName());
-    assertEquals(ClassObject.ValueType.LONG, fields.get(8).getValueType());
+    assertEquals(LONG, fields.get(8).getValueType());
   }
 
   /**
@@ -138,26 +191,26 @@ public class HeapDumpInstanceObjectTest {
    */
   @Test
   public void testExtractReferences() throws Exception {
-    MockClassInstance mockInstance = new MockClassInstance(-1, 0, "MockClass");
+    MockClassInstance mockInstance = new MockClassInstance(-1, 0, MOCK_CLASS);
 
-    // Test valid/invalid reference case
-    MockClassInstance hardInstanceRef = new MockClassInstance(-1, 3, "MockClass");
+    // Set up valid/invalid reference case
+    MockClassInstance hardInstanceRef = new MockClassInstance(-1, 3, MOCK_CLASS);
     hardInstanceRef.addFieldValue(Type.OBJECT, "hardInstanceRef", mockInstance);
     hardInstanceRef.addFieldValue(Type.OBJECT, "invalidRef", new Object());
 
-    // Test multiple case
+    // Set up multiple case
     MockArrayInstance hardArrayRef = new MockArrayInstance(-1, Type.OBJECT, 3, 2);
     hardArrayRef.setValue(0, new Object());
     hardArrayRef.setValue(1, mockInstance);
     hardArrayRef.setValue(2, mockInstance);
 
-    // Test different type case
+    // Set up different type case
     MockClassObj hardClassRef = new MockClassObj(-1, "hardClassRef", 1);
     hardClassRef.addStaticField(Type.OBJECT, "staticClassRef", mockInstance);
     hardClassRef.addStaticField(Type.BOOLEAN, "invalidBoolRef", false);
 
-    // Test soft references appear at end
-    MockClassInstance softInstanceRef = new MockClassInstance(-1, 0, "MockClass");
+    // Set up soft references appear at end
+    MockClassInstance softInstanceRef = new MockClassInstance(-1, 0, MOCK_CLASS);
     softInstanceRef.addFieldValue(Type.OBJECT, "softInstanceRef", mockInstance);
     softInstanceRef.addFieldValue(Type.OBJECT, "invalidRef", new Object());
 
@@ -166,9 +219,20 @@ public class HeapDumpInstanceObjectTest {
     mockInstance.addHardReference(hardClassRef);
     mockInstance.addSoftReferences(softInstanceRef);
 
+    myCaptureObject.addInstance(hardInstanceRef, new HeapDumpInstanceObject(
+      myCaptureObject, null, hardInstanceRef, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), OBJECT));
+    myCaptureObject.addInstance(hardArrayRef, new HeapDumpInstanceObject(
+      myCaptureObject, null, hardArrayRef, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), ARRAY));
+    myCaptureObject.addInstance(hardClassRef, new HeapDumpInstanceObject(
+      myCaptureObject, null, hardClassRef, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), CLASS));
+    myCaptureObject.addInstance(softInstanceRef, new HeapDumpInstanceObject(
+      myCaptureObject, null, softInstanceRef, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), OBJECT));
+    myCaptureObject.addInstance(mockInstance, new HeapDumpInstanceObject(
+      myCaptureObject, null, mockInstance, myCaptureObject.getClassDb().registerClass(0, MOCK_CLASS), OBJECT));
+
     // extractReference is expected to return a list of sorted hard references first
     // then sorted soft references.
-    List<ReferenceObject> referrers = HeapDumpInstanceObject.extractReferences(mockInstance);
+    List<ReferenceObject> referrers = myCaptureObject.getInstance(mockInstance).extractReferences();
     assertEquals(4, referrers.size());
     // The first object should refer to the hardClassRef which has the shortest distance to root.
     List<String> refs = referrers.get(0).getReferenceFieldNames();
@@ -189,20 +253,32 @@ public class HeapDumpInstanceObjectTest {
     assertEquals("softInstanceRef", refs.get(0));
   }
 
-  @Test
-  public void testEqual() throws Exception {
-    MockClassInstance mockInstance = new MockClassInstance(-1, 1, "MockClass1");
-    HeapDumpInstanceObject instance1 = new HeapDumpInstanceObject(null, mockInstance, null);
-    HeapDumpInstanceObject instance2 = new HeapDumpInstanceObject(null, mockInstance, null);
-    assertEquals(instance1, instance2);
-  }
+  private static class FakeHeapDumpCaptureObject extends HeapDumpCaptureObject {
+    private Map<Instance, HeapDumpInstanceObject> myInstanceObjectMap = new HashMap<>();
 
-  @Test
-  public void testNotEqual() throws Exception {
-    MockClassInstance mockInstance1 = new MockClassInstance(-1, 1, "MockClass1");
-    MockClassInstance mockInstance2 = new MockClassInstance(-1, 1, "MockClass1");
-    HeapDumpInstanceObject instance1 = new HeapDumpInstanceObject(null, mockInstance1, null);
-    HeapDumpInstanceObject instance2 = new HeapDumpInstanceObject(null, mockInstance2, null);
-    assertNotEquals(instance1, instance2);
+    public FakeHeapDumpCaptureObject(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client) {
+      super(client, null, 0, HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build(), null, new RelativeTimeConverter(0),
+            new FakeFeatureTracker());
+    }
+
+    public void addInstance(@NotNull Instance instance, @NotNull HeapDumpInstanceObject instanceObject) {
+      myInstanceObjectMap.put(instance, instanceObject);
+    }
+
+    @NotNull
+    public HeapDumpInstanceObject getInstance(@NotNull Instance instance) {
+      return myInstanceObjectMap.get(instance);
+    }
+
+    @Override
+    public boolean load() {
+      return true;
+    }
+
+    @Nullable
+    @Override
+    public InstanceObject findInstanceObject(@NotNull Instance instance) {
+      return myInstanceObjectMap.get(instance);
+    }
   }
 }

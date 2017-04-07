@@ -23,46 +23,19 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-public interface InstanceObject extends MemoryObject {
-  enum InstanceAttribute {
-    LABEL(1),
-    DEPTH(0),
-    SHALLOW_SIZE(2),
-    RETAINED_SIZE(3);
+public interface InstanceObject extends ValueObject {
+  int getHeapId();
 
-    private final int myWeight;
-
-    InstanceAttribute(int weight) {
-      myWeight = weight;
-    }
-
-    public int getWeight() {
-      return myWeight;
-    }
+  @NotNull
+  default ThreadId getAllocationThreadId() {
+    return ThreadId.INVALID_THREAD_ID;
   }
+
+  @NotNull
+  ClassDb.ClassEntry getClassEntry();
 
   @Nullable
-  default String getToStringText() {
-    return null;
-  }
-
-  @Nullable
-  ClassObject getClassObject();
-
-  @Nullable
-  String getClassName();
-
-  default int getDepth() {
-    return Integer.MAX_VALUE;
-  }
-
-  default int getShallowSize() {
-    return INVALID_VALUE;
-  }
-
-  default long getRetainedSize() {
-    return INVALID_VALUE;
-  }
+  InstanceObject getClassObject();
 
   default int getFieldCount() {
     return 0;
@@ -71,11 +44,6 @@ public interface InstanceObject extends MemoryObject {
   @NotNull
   default List<FieldObject> getFields() {
     return Collections.emptyList();
-  }
-
-  @NotNull
-  default ThreadId getAllocationThreadId() {
-    return ThreadId.INVALID_THREAD_ID;
   }
 
   @Nullable
@@ -88,24 +56,7 @@ public interface InstanceObject extends MemoryObject {
     return Collections.emptyList();
   }
 
-  @NotNull
-  default ClassObject.ValueType getValueType() {
-    return ClassObject.ValueType.NULL;
-  }
-
-  default boolean getIsArray() {
-    return false;
-  }
-
-  default boolean getIsPrimitive() {
-    return false;
-  }
-
   default boolean getIsRoot() {
     return false;
-  }
-
-  default List<InstanceAttribute> getReferenceAttributes() {
-    return Collections.emptyList();
   }
 }
