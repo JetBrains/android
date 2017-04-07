@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.fd;
 
-import com.android.SdkConstants;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.repository.GradleVersion;
@@ -119,28 +118,6 @@ public final class InstantRunManager {
   public static boolean hasLocalCacheOfDeviceData(@NotNull IDevice device, @NotNull InstantRunContext context) {
     InstalledPatchCache cache = context.getInstalledPatchCache();
     return cache.getInstalledManifestResourcesHash(device, context.getApplicationId()) != null;
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return "InstantRunManager";
-  }
-
-  @Override
-  public void projectOpened() {
-  }
-
-  @Override
-  public void projectClosed() {
-  }
-
-  @Override
-  public void initComponent() {
-  }
-
-  @Override
-  public void disposeComponent() {
   }
 
   @Nullable
