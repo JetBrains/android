@@ -25,6 +25,9 @@ class GmsCorePackage extends ProvisionPackage {
   @NotNull private static final String PKG_DESCRIPTION = "Gms Core";
   @NotNull private static final String APK_PREFIX = "GmsCore_prodmnc_xxhdpi";
   @NotNull private static final String PKG_NAME = "com.google.android.gms";
+  
+  // See dev/modules/instantapps/src/com/google/android/gms/instantapps/common/G.java in AIA project for details.
+  @NotNull private static final String WHITELISTED_SERVICES = "68,23,4,71,8,123,46,95,91,93,40,24,64,65,67,11,44,112";
 
   GmsCorePackage(@NotNull File instantAppSdk) {
     super(instantAppSdk);
@@ -43,7 +46,8 @@ class GmsCorePackage extends ProvisionPackage {
                         "CLASSPATH=/system/framework/am.jar su root app_process " +
                         "/system/bin com.android.commands.am.Am broadcast " +
                         "-a com.google.gservices.intent.action.GSERVICES_OVERRIDE " +
-                        "-e gms:wh:enable_westinghouse_support true",
+                        "-e gms:wh:enable_westinghouse_support true " +
+                        "-e gms:wh:whitelistedServiceIds " + WHITELISTED_SERVICES,
                         true /* root is required */);
   }
 

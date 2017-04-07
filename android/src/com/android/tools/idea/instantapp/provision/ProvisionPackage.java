@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.List;
 
 abstract class ProvisionPackage {
-  @NotNull private static final List<String> SUPPORTED_ARCHITECTURES = Lists.newArrayList("x86", "arm64-v8a");
+  @NotNull private static final List<String> SUPPORTED_ARCHITECTURES = Lists.newArrayList("x86", "arm64-v8a", "armeabi-v7a");
   // These are the variants of the apks contained in the SDK. Basically the names of the folders with apks
   @NotNull private static final List<String> SUPPORTED_VARIANTS = Lists.newArrayList("release", "debug");
   @NotNull private static final String OS_BUILD_TYPE_PROPERTY = "ro.build.tags";
