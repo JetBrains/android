@@ -288,7 +288,6 @@ public class CpuProfilerStage extends Stage implements CodeNavigator.Listener {
             // Intentionally not firing the aspect because it will be done by setCapture with the new capture value
             myCaptureState = CaptureState.IDLE;
             setAndSelectCapture(capture);
-            setSelectedThread(capture.getMainThreadId());
           }
           else {
             assert exception != null;

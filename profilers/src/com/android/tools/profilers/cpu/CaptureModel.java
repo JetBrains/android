@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.model.HNode;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,8 +29,16 @@ import java.util.function.BiFunction;
  * When a state changes, this class lets all view know about the changes they're interested in.
  */
 class CaptureModel {
-  // A negligible number. It is used for comparision.
+  /**
+   * A negligible number. It is used for comparision.
+   */
   private static final double EPSILON = 1e-5;
+
+  /**
+   * Negative number used when no thread is selected.
+   */
+  @VisibleForTesting
+  static final int INVALID_THREAD = -1;
 
   @NotNull
   private final CpuProfilerStage myStage;
@@ -53,6 +62,7 @@ class CaptureModel {
   CaptureModel(@NotNull CpuProfilerStage stage) {
     myStage = stage;
     myCaptureConvertedRange = new Range();
+    myThread = INVALID_THREAD;
 
     Range selection = myStage.getStudioProfilers().getTimeline().getSelectionRange();
     selection.addDependency(myStage.getAspect()).onChange(Range.Aspect.RANGE, this::updateCaptureConvertedRange);
@@ -65,7 +75,11 @@ class CaptureModel {
     }
     myCapture = capture;
     if (myCapture != null) {
+      // If a thread was already selected, keep the selection. Otherwise select the capture main thread.
+      setThread(myThread != INVALID_THREAD ? myThread : capture.getMainThreadId());
       myCapture.updateClockType(myClockType);
+    } else {
+      setThread(INVALID_THREAD);
     }
     rebuildDetails();
     myStage.getAspect().changed(CpuProfilerAspect.CAPTURE);
