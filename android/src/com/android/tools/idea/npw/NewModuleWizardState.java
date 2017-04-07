@@ -19,10 +19,12 @@ package com.android.tools.idea.npw;
 import com.android.SdkConstants;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.npw.deprecated.ImportModuleWizard;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.templates.KeystoreUtils;
-import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.templates.RepositoryUrlManager;
+import com.android.tools.idea.templates.SupportLibrary;
 import com.android.tools.idea.templates.TemplateMetadata;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.android.tools.idea.wizard.template.TemplateWizardState;
@@ -32,7 +34,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,10 +54,12 @@ import static com.android.tools.idea.templates.TemplateMetadata.*;
 public class NewModuleWizardState extends TemplateWizardState {
   private static final Logger LOG = Logger.getInstance(NewModuleWizardState.class);
 
-  public static final String ATTR_CREATE_ACTIVITY = "createActivity";
+  /*
+   * @deprecated Use {@link TemplateMetadata.ATTR_CREATE_ACTIVITY} instead.
+   */
+  @Deprecated
+  public static final String ATTR_CREATE_ACTIVITY = TemplateMetadata.ATTR_CREATE_ACTIVITY;
   public static final String ATTR_PROJECT_LOCATION = "projectLocation";
-  public static final String APP_NAME = "app";
-  public static final String LIB_NAME = "lib";
   public static final String MODULE_IMPORT_NAME = "Import Existing Project";
   public static final String ARCHIVE_IMPORT_NAME = "Import .JAR or .AAR Package";
   /**
@@ -156,7 +159,7 @@ public class NewModuleWizardState extends TemplateWizardState {
   }
 
   public void putSdkDependentParams() {
-    final AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+    final AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(getClass()), false);
     if (buildTool != null) {
       // If buildTool is null, the template will use buildApi instead, which might be good enough.

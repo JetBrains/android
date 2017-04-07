@@ -15,13 +15,24 @@
  */
 package com.android.tools.idea.startup;
 
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
+import com.android.tools.idea.monitor.tool.AndroidMonitorToolWindowFactory;
+import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.android.tools.idea.testartifacts.junit.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.intellij.androidstudio.actions.CreateClassAction;
 import com.intellij.concurrency.JobScheduler;
+import com.intellij.execution.actions.RunConfigurationProducer;
+import com.intellij.execution.configurations.ConfigurationType;
+import com.intellij.execution.junit.JUnitConfigurationProducer;
+import com.intellij.execution.junit.JUnitConfigurationType;
+import com.intellij.ide.fileTemplates.FileTemplate;
+import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.lang.injection.MultiHostInjector;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.ex.ApplicationManagerEx;
 import com.intellij.openapi.diagnostic.Logger;
@@ -38,20 +49,21 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerAdapter;
 import com.intellij.openapi.roots.OrderEnumerationHandler;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.util.SystemProperties;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowAnchor;
+import com.intellij.openapi.wm.ToolWindowManager;
+import icons.AndroidIcons;
 import org.intellij.plugins.intelliLang.inject.groovy.GrConcatenationInjector;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.execution.GradleOrderEnumeratorHandler;
 
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static com.android.SdkConstants.EXT_JAR;
-import static com.android.tools.idea.gradle.util.GradleUtil.cleanUpPreferences;
+import static com.android.tools.idea.gradle.util.AndroidStudioPreferences.cleanUpPreferences;
 import static com.android.tools.idea.startup.Actions.hideAction;
 import static com.android.tools.idea.startup.Actions.replaceAction;
 import static com.intellij.openapi.actionSystem.IdeActions.*;
@@ -59,7 +71,6 @@ import static com.intellij.openapi.options.Configurable.APPLICATION_CONFIGURABLE
 import static com.intellij.openapi.util.io.FileUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.getExtension;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.util.PlatformUtils.getPlatformPrefix;
 
 /**
  * Performs Android Studio specific initialization tasks that are build-system-independent.
@@ -76,15 +87,6 @@ public class AndroidStudioInitializer implements Runnable {
                                                                                 "org.intellij.plugins.xpathView.XPathConfigurable",
                                                                                 "org.intellij.lang.xpath.xslt.impl.XsltConfigImpl$UIImpl");
 
-  public static boolean isAndroidStudio() {
-    return "AndroidStudio".equals(getPlatformPrefix());
-  }
-
-  public static boolean isAndroidSdkManagerEnabled() {
-    boolean sdkManagerDisabled = SystemProperties.getBooleanProperty("android.studio.sdk.manager.disabled", false);
-    return !sdkManagerDisabled;
-  }
-
   @Override
   public void run() {
     checkInstallation();
@@ -96,6 +98,7 @@ public class AndroidStudioInitializer implements Runnable {
     setUpExperimentalFeatures();
     setupAnalytics();
     disableGradleOrderEnumeratorHandler();
+    disableIdeaJUnitConfigurations();
 
     // Modify built-in "Default" color scheme to remove background from XML tags.
     // "Darcula" and user schemes will not be touched.
@@ -115,14 +118,31 @@ public class AndroidStudioInitializer implements Runnable {
 
   /*
    * sets up collection of Android Studio specific analytics.
-   * Delayed by 1 minute, not to add to load time of Android Studio.
    */
   private static void setupAnalytics() {
-    ScheduledExecutorService scheduler = JobScheduler.getScheduler();
-    scheduler.schedule(() -> AndroidStudioUsageTracker.setup(scheduler), 1, TimeUnit.MINUTES);
+    AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
+    ApplicationInfo application = ApplicationInfo.getInstance();
+    UsageTracker.getInstance().setVersion(application.getStrictVersion());
   }
 
   private static void setUpExperimentalFeatures() {
+    if (System.getProperty(ProfilerState.ENABLE_EXPERIMENTAL_PROFILING) != null) {
+      ProjectManager.getInstance().addProjectManagerListener(new ProjectManagerAdapter() {
+        @Override
+        public void projectOpened(final Project project) {
+          StartupManager.getInstance(project).runWhenProjectIsInitialized(
+            () -> {
+              ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
+              ToolWindow toolWindow =
+                toolWindowManager.registerToolWindow(AndroidMonitorToolWindowFactory.ID, false, ToolWindowAnchor.BOTTOM, project, true);
+              toolWindow.setIcon(AndroidIcons.AndroidToolWindow);
+              new AndroidMonitorToolWindowFactory().createToolWindowContent(project, toolWindow);
+              toolWindow.show(null);
+            }
+          );
+        }
+      });
+    }
   }
 
   private static void checkInstallation() {
@@ -243,6 +263,18 @@ public class AndroidStudioInitializer implements Runnable {
     });
   }
 
+  private static void setUpNewProjectActions() {
+    replaceAction("NewClass", new CreateClassAction());
+
+    // Update the text for the file creation templates.
+    FileTemplateManager fileTemplateManager = FileTemplateManager.getDefaultInstance();
+    fileTemplateManager.getTemplate("Singleton").setText(fileTemplateManager.getJ2eeTemplate("Singleton").getText());
+    for (String templateName : new String[]{"Class", "Interface", "Enum", "AnnotationType"}) {
+      FileTemplate template = fileTemplateManager.getInternalTemplate(templateName);
+      template.setText(fileTemplateManager.getJ2eeTemplate(templateName).getText());
+    }
+  }
+
   // GradleOrderEnumeratorHandler turns off the "exported" dependency mechanism in IDE for Gradle projects.
   private static void disableGradleOrderEnumeratorHandler() {
     ExtensionPoint<OrderEnumerationHandler.Factory> extensionPoint =
@@ -255,7 +287,30 @@ public class AndroidStudioInitializer implements Runnable {
     }
   }
 
-  private static void setUpNewProjectActions() {
-    replaceAction("NewClass", new CreateClassAction());
+  // JUnit original Extension JUnitConfigurationType is disabled so it can be replaced by its child class AndroidJUnitConfigurationType
+  private static void disableIdeaJUnitConfigurations() {
+    // First we unregister the ConfigurationProducers, and after the ConfigurationType
+    ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint =
+      Extensions.getRootArea().getExtensionPoint(RunConfigurationProducer.EP_NAME);
+    for (RunConfigurationProducer runConfigurationProducer : configurationProducerExtensionPoint.getExtensions()) {
+      if (runConfigurationProducer instanceof JUnitConfigurationProducer
+          && !(runConfigurationProducer instanceof AndroidJUnitConfigurationProducer)) {
+        // In AndroidStudio these ConfigurationProducer s are replaced
+        configurationProducerExtensionPoint.unregisterExtension(runConfigurationProducer);
+      }
+    }
+
+    ExtensionPoint<ConfigurationType> configurationTypeExtensionPoint =
+      Extensions.getRootArea().getExtensionPoint(ConfigurationType.CONFIGURATION_TYPE_EP);
+    for (ConfigurationType configurationType : configurationTypeExtensionPoint.getExtensions()) {
+      if (configurationType instanceof JUnitConfigurationType && !(configurationType instanceof AndroidJUnitConfigurationType)) {
+        // In Android Studio the user is forced to use AndroidJUnitConfigurationType instead of JUnitConfigurationType
+        configurationTypeExtensionPoint.unregisterExtension(configurationType);
+      }
+    }
+
+    // We hide actions registered by the JUnit plugin and instead we use those registered in android-junit.xml
+    hideAction("excludeFromSuite");
+    hideAction("AddToISuite");
   }
 }

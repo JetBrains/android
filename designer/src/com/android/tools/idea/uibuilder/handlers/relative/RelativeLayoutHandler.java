@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
@@ -25,9 +23,12 @@ import com.android.tools.idea.uibuilder.model.SegmentType;
 import com.android.tools.idea.uibuilder.model.TextDirection;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /** Handler for the {@code <RelativeLayout>} layout */
 public class RelativeLayoutHandler extends ViewGroupHandler {
@@ -66,7 +67,7 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
       }
 
       @Override
-      public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+      public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
         moveHandler.removeCycles();
 
         NlComponent previous = null;
@@ -90,6 +91,15 @@ public class RelativeLayoutHandler extends ViewGroupHandler {
           }
           previous = component;
         }
+        insertAddedComponents(insertType);
+      }
+
+      private void insertAddedComponents(@NotNull InsertType insertType) {
+        List<NlComponent> added = components
+          .stream()
+          .filter(component -> component.getParent() != layout)
+          .collect(Collectors.toList());
+        editor.getModel().addComponents(added, layout, null, insertType);
       }
     };
   }

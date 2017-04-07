@@ -17,14 +17,13 @@ package com.android.tools.idea.npw.template;
 
 import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconGenerator;
+import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.project.AndroidProjectPaths;
+import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.templates.recipe.RenderingContext;
-import com.android.tools.idea.ui.properties.InvalidationListener;
-import com.android.tools.idea.ui.properties.ObservableValue;
-import com.android.tools.idea.ui.properties.core.OptionalProperty;
-import com.android.tools.idea.ui.properties.core.OptionalValueProperty;
+import com.android.tools.idea.ui.properties.core.*;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -32,9 +31,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,64 +44,82 @@ import java.util.Map;
  * representing an Android component.
  */
 public final class RenderTemplateModel extends WizardModel {
-
-  @NotNull private final TemplateHandle myTemplateHandle;
   @NotNull private final String myCommandName;
+  @NotNull private final OptionalProperty<Project> myProject;
+  @NotNull private final ObjectProperty<AndroidSourceSet> mySourceSet;
+  @NotNull private final OptionalProperty<AndroidVersionsInfo.VersionItem> myAndroidSdkInfo = new OptionalValueProperty<>();
+  @NotNull private final StringProperty myPackageName;
 
-  private final OptionalProperty<SourceProvider> mySourceSet = new OptionalValueProperty<>();
-
-  private final Map<String, Object> myTemplateValues = Maps.newHashMap();
-  @NotNull private final AndroidFacet myAndroidFacet;
-
-  @Nullable private AndroidProjectPaths myPaths;
+  @NotNull private final Map<String, Object> myTemplateValues = Maps.newHashMap();
+  @NotNull private TemplateHandle myTemplateHandle;
   @Nullable private AndroidIconGenerator myIconGenerator;
 
-  public RenderTemplateModel(@NotNull AndroidFacet androidFacet, @NotNull TemplateHandle templateHandle, @NotNull String commandName) {
-    myAndroidFacet = androidFacet;
+  public RenderTemplateModel(@NotNull Project project,
+                             @NotNull TemplateHandle templateHandle,
+                             @NotNull String initialPackageSuggestion,
+                             @NotNull AndroidSourceSet sourceSet,
+                             @NotNull String commandName) {
+    myProject = new OptionalValueProperty<>(project);
+    myPackageName = new StringValueProperty(initialPackageSuggestion);
+    mySourceSet = new ObjectValueProperty<>(sourceSet);
     myTemplateHandle = templateHandle;
     myCommandName = commandName;
+  }
 
-    mySourceSet.addListener(new InvalidationListener() {
-      @Override
-      public void onInvalidated(@NotNull ObservableValue<?> sender) {
-        myPaths = null;
-        if (mySourceSet.get().isPresent()) {
-          myPaths = new AndroidProjectPaths(myAndroidFacet, mySourceSet.getValue());
-        }
-      }
-    });
+  public RenderTemplateModel(@NotNull OptionalProperty<Project> project,
+                             @NotNull StringProperty packageName,
+                             @NotNull TemplateHandle templateHandle,
+                             @NotNull AndroidSourceSet sourceSet,
+                             @NotNull String commandName) {
+    myProject = project;
+    myPackageName = packageName;
+    mySourceSet = new ObjectValueProperty<>(sourceSet);
+    myTemplateHandle = templateHandle;
+    myCommandName = commandName;
   }
 
   private static Logger getLog() {
     return Logger.getInstance(RenderTemplateModel.class);
   }
 
+  @NotNull
   public Map<String, Object> getTemplateValues() {
     return myTemplateValues;
   }
 
-  public AndroidFacet getFacet() {
-    return myAndroidFacet;
-  }
-
+  /**
+   * Get the current {@link SourceProvider} used by this model (the source provider affects which
+   * paths the template's output will be rendered into).
+   */
   @NotNull
-  public Module getModule() {
-    return myAndroidFacet.getModule();
+  public ObjectProperty<AndroidSourceSet> getSourceSet() {
+    return mySourceSet;
   }
 
   /**
-   * Get the current {@link SourceProvider} used by this model (the source provider affects which
-   * paths the template's output will be rendered into). When this value is present,
-   * {@link #getPaths()} will also be present.
+   * The package name affects which paths the template's output will be rendered into.
    */
   @NotNull
-  public OptionalProperty<SourceProvider> getSourceSet() {
-    return mySourceSet;
+  public StringProperty packageName() {
+    return myPackageName;
+  }
+
+  public void setTemplateHandle(@NotNull TemplateHandle templateHandle) {
+    myTemplateHandle = templateHandle;
   }
 
   @NotNull
   public TemplateHandle getTemplateHandle() {
     return myTemplateHandle;
+  }
+
+  @NotNull
+  public OptionalProperty<Project> getProject() {
+    return myProject;
+  }
+
+  public OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo() {
+    return myAndroidSdkInfo;
   }
 
   /**
@@ -114,25 +129,17 @@ public final class RenderTemplateModel extends WizardModel {
     myIconGenerator = iconGenerator;
   }
 
-  /**
-   * Return the paths this model will use when rendering templates. This will be a present value
-   * as long as {@link #getSourceSet()} is also present.
-   */
-  @Nullable
-  public AndroidProjectPaths getPaths() {
-    return myPaths;
-  }
-
   @Override
   protected void handleFinished() {
-    if (!mySourceSet.get().isPresent()) {
+    if (!myProject.get().isPresent()) {
       getLog().error("RenderTemplateModel did not collect expected information and will not complete. Please report this error.");
       return;
     }
-    assert myPaths != null; // Should always be set if mySourceSet is present
 
-    final Project project = getModule().getProject();
-    boolean canRender = renderTemplate(true, myPaths, null, null);
+    AndroidProjectPaths paths = mySourceSet.get().getPaths();
+    final Project project = myProject.getValue();
+
+    boolean canRender = renderTemplate(true, project, paths, null, null);
     if (!canRender) {
       // If here, there was a render conflict and the user chose to cancel creating the template
       return;
@@ -144,9 +151,9 @@ public final class RenderTemplateModel extends WizardModel {
     boolean success = new WriteCommandAction<Boolean>(project, myCommandName) {
       @Override
       protected void run(@NotNull Result<Boolean> result) throws Throwable {
-        boolean success = renderTemplate(false, myPaths, filesToOpen, filesToReformat);
+        boolean success = renderTemplate(false, project, paths, filesToOpen, filesToReformat);
         if (success && myIconGenerator != null) {
-          myIconGenerator.generateImageIconsIntoPath(myPaths);
+          myIconGenerator.generateImageIconsIntoPath(paths);
         }
 
         result.setResult(success);
@@ -154,21 +161,15 @@ public final class RenderTemplateModel extends WizardModel {
     }.execute().getResultObject();
 
     if (success) {
-      ApplicationManager.getApplication().invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          TemplateUtils.openEditors(project, filesToOpen, true);
-        }
-      });
+      ApplicationManager.getApplication().invokeLater(() -> TemplateUtils.openEditors(project, filesToOpen, true));
     }
   }
 
   private boolean renderTemplate(boolean dryRun,
+                                 @NotNull Project project,
                                  @NotNull AndroidProjectPaths paths,
                                  @Nullable List<File> filesToOpen,
                                  @Nullable List<File> filesToReformat) {
-    final Module module = getModule();
-    final Project project = module.getProject();
     final Template template = myTemplateHandle.getTemplate();
     File moduleRoot = paths.getModuleRoot();
     if (moduleRoot == null) {
@@ -180,7 +181,7 @@ public final class RenderTemplateModel extends WizardModel {
       .withCommandName(myCommandName)
       .withDryRun(dryRun)
       .withShowErrors(true)
-      .withModule(getModule())
+      .withModuleRoot(paths.getModuleRoot())
       .withParams(myTemplateValues)
       .intoOpenFiles(filesToOpen)
       .intoTargetFiles(filesToReformat)

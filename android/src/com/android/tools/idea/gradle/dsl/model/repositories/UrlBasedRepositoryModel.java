@@ -15,12 +15,44 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleDefaultValue;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Base class for all the url based repository models like Maven and JCenter.
  */
 public abstract class UrlBasedRepositoryModel extends RepositoryModel {
+  @NonNls private static final String URL = "url";
+
+  @NotNull private final String myDefaultRepoUrl;
+
+  protected UrlBasedRepositoryModel(@Nullable GradlePropertiesDslElement dslElement,
+                                    @NotNull String defaultRepoName,
+                                    @NotNull String defaultRepoUrl) {
+    super(dslElement, defaultRepoName);
+    myDefaultRepoUrl = defaultRepoUrl;
+  }
+
   @NotNull
-  public abstract String url();
+  public GradleDefaultValue<String> url() {
+    if (myDslElement == null) {
+      return new GradleDefaultValue<>(null, myDefaultRepoUrl);
+    }
+
+    GradleDslExpression nameExpression = myDslElement.getPropertyElement(URL, GradleDslExpression.class);
+
+    String url = null;
+    if (nameExpression != null) {
+      url = nameExpression.getValue(String.class);
+    }
+    if (url == null) {
+      url = myDefaultRepoUrl;
+    }
+
+    return new GradleDefaultValue<>(nameExpression, url);
+  }
 }

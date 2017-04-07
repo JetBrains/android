@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.rendering;
 
+import com.android.annotations.NonNull;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourceUrl;
 import com.android.ide.common.vectordrawable.VdPreview;
+import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
@@ -27,16 +32,19 @@ import com.intellij.util.ui.UIUtil;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 
-import static com.android.SdkConstants.DOT_XML;
+import static com.android.SdkConstants.*;
 
 public class GutterIconCache {
   private static final Logger LOG = Logger.getInstance(GutterIconCache.class);
@@ -59,7 +67,7 @@ public class GutterIconCache {
   }
 
   @Nullable
-  public Icon getIcon(@NotNull String path) {
+  public Icon getIcon(@NotNull String path, @Nullable ResourceResolver resolver) {
     boolean isRetina = UIUtil.isRetina();
     if (myRetina != isRetina) {
       myRetina = isRetina;
@@ -67,7 +75,7 @@ public class GutterIconCache {
     }
     Icon myIcon = myThumbnailCache.get(path);
     if (myIcon == null) {
-      myIcon = createIcon(path);
+      myIcon = createIcon(path, resolver);
 
       if (myIcon == null) {
         myIcon = NONE;
@@ -79,26 +87,39 @@ public class GutterIconCache {
     return myIcon != NONE ? myIcon : null;
   }
 
+  // TODO: Make method which passes in the image here!
   @Nullable
-  private static Icon createIcon(@NotNull String path) {
+  private static Icon createIcon(@NotNull String path, @Nullable ResourceResolver resolver) {
     if (path.endsWith(DOT_XML)) {
-      return createXmlIcon(path);
+      return createXmlIcon(path, resolver);
     } else {
       return createBitmapIcon(path);
     }
   }
 
   @Nullable
-  private static Icon createXmlIcon(@NotNull String path) {
+  private static Icon createXmlIcon(@NotNull String path, @Nullable ResourceResolver resolver) {
     try {
+      boolean isRetina = ourRetinaEnabled && UIUtil.isRetina();
+      VdPreview.TargetSize imageTargetSize = VdPreview.TargetSize.createSizeFromWidth(isRetina ? 2 * MAX_WIDTH : MAX_WIDTH);
+
       String xml = Files.toString(new File(path), Charsets.UTF_8);
       // See if this drawable is a vector; we can't render other drawables yet.
       // TODO: Consider resolving selectors to render for example the default image!
       if (xml.contains("<vector")) {
-        StringBuilder builder = new StringBuilder();
-        boolean isRetina = ourRetinaEnabled && UIUtil.isRetina();
-        VdPreview.TargetSize imageTargetSize = VdPreview.TargetSize.createSizeFromWidth(isRetina ? 2 * MAX_WIDTH : MAX_WIDTH);
-        BufferedImage image = VdPreview.getPreviewFromVectorXml(imageTargetSize, xml, builder);
+        Document document = XmlUtils.parseDocumentSilently(xml, true);
+        if (document == null) {
+          return null;
+        }
+        Element root = document.getDocumentElement();
+        if (root == null) {
+          return null;
+        }
+        if (resolver != null) {
+          replaceResourceReferences(root, resolver);
+        }
+        StringBuilder builder = new StringBuilder(100);
+        BufferedImage image = VdPreview.getPreviewFromVectorDocument(imageTargetSize, document, builder);
         if (builder.length() > 0) {
           LOG.warn("Problems rendering " + path + ": " + builder);
         }
@@ -128,6 +149,53 @@ public class GutterIconCache {
     }
 
     return null;
+  }
+
+  private static void replaceResourceReferences(@NonNull Node node, @NonNull ResourceResolver resolver) {
+    if (node.getNodeType() == Node.ELEMENT_NODE) {
+      Element element = (Element)node;
+      NamedNodeMap attributes = element.getAttributes();
+
+      attributes:
+      for (int i = 0, n = attributes.getLength(); i < n; i++) {
+        Node attribute = attributes.item(i);
+        String value = attribute.getNodeValue();
+        if (!(value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF))) {
+          continue;
+        }
+        for (int j = 0; j < 10; j++) {
+          ResourceUrl resolvedUrl = ResourceUrl.parse(value);
+          if (resolvedUrl == null) {
+            continue attributes;
+          }
+          ResourceValue resourceValue;
+          if (resolvedUrl.theme) {
+            resourceValue = resolver.findItemInTheme(resolvedUrl.name, resolvedUrl.framework);
+          }
+          else {
+            resourceValue = resolver.findResValue(resolvedUrl.toString(), resolvedUrl.framework);
+          }
+          if (resourceValue == null) {
+            continue attributes;
+          }
+          value = resourceValue.getValue();
+          if (value == null) {
+            continue attributes;
+          }
+          if (!(value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF))) {
+            // Found leaf value
+            attribute.setNodeValue(value);
+            break;
+          }
+        }
+      }
+    }
+
+    node = node.getFirstChild();
+    while (node != null) {
+      replaceResourceReferences(node, resolver);
+      node = node.getNextSibling();
+    }
   }
 
   @Nullable

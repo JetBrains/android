@@ -18,9 +18,9 @@ package org.jetbrains.android.dom;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 
-public class AndroidColorsTest extends AndroidDomTest {
+public class AndroidColorsTest extends AndroidDomTestCase {
   public AndroidColorsTest() {
-    super(true, "dom/color");
+    super("dom/color");
   }
 
   @Override

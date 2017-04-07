@@ -15,23 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.tools.idea.uibuilder.LayoutTestUtilities;
+import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.model.NlModel;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.android.tools.idea.uibuilder.util.NlTreeDumper;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.Mockito;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.uibuilder.model.SegmentType.*;
 
-public class LinearLayoutHandlerTest extends AbstractViewHandlerTest {
-  @Override
-  protected void tearDown() throws Exception {
-    Mockito.reset();
-    super.tearDown();
-  }
+public class LinearLayoutHandlerTest extends LayoutTestCase {
 
   public void testDragNothing() throws Exception {
     surface().screen(createModel())
@@ -83,9 +76,9 @@ public class LinearLayoutHandlerTest extends AbstractViewHandlerTest {
       .expectWidth("100dp")
       .expectHeight("100dp")
       .expectXml("<TextView\n" +
-                 "            android:id=\"@id/myText1\"\n" +
-                 "            android:layout_width=\"100dp\"\n" +
-                 "            android:layout_height=\"100dp\"/>");
+                 "        android:id=\"@id/myText1\"\n" +
+                 "        android:layout_width=\"100dp\"\n" +
+                 "        android:layout_height=\"100dp\" />");
   }
 
   @NotNull
@@ -113,13 +106,8 @@ public class LinearLayoutHandlerTest extends AbstractViewHandlerTest {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100}",
-                 LayoutTestUtilities.toTree(model.getComponents()));
-    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
-      @Override
-      public void run() {
-        CodeStyleManager.getInstance(getProject()).reformat(model.getFile());
-      }
-    });
+                 NlTreeDumper.dumpTree(model.getComponents()));
+    format(model.getFile());
     return model;
   }
 }

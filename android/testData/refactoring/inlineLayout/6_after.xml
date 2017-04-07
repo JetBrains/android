@@ -6,10 +6,10 @@
               android:layout_height="fill_parent">
 
     <TextView
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="Hello World, MyActivity"
-            android:background="@android:color/holo_red_dark"
-            app:customAttr="true"/>
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Hello World, MyActivity"
+        android:background="@android:color/holo_red_dark"
+        app:customAttr="true" />
     <include layout="@layout/included" android:layout_height="wrap_content" android:layout_width="fill_parent"/>
 </LinearLayout>

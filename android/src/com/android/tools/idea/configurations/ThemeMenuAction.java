@@ -30,7 +30,7 @@ public class ThemeMenuAction extends FlatAction {
     myRenderContext = renderContext;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Theme in Editor");
-    presentation.setIcon(RenderService.NELE_ENABLED ? AndroidIcons.NeleIcons.Theme : AndroidIcons.Themes);
+    presentation.setIcon(AndroidIcons.NeleIcons.Theme);
     updatePresentation(presentation);
   }
 

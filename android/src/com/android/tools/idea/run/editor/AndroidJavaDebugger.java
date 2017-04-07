@@ -17,7 +17,6 @@ package com.android.tools.idea.run.editor;
 
 import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.google.common.collect.ImmutableSet;
@@ -30,6 +29,7 @@ import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.remote.RemoteConfiguration;
 import com.intellij.execution.remote.RemoteConfigurationType;
@@ -85,7 +85,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
 
   @NotNull
   @Override
-  public AndroidDebuggerConfigurable<AndroidDebuggerState> createConfigurable(@NotNull AndroidRunConfigurationBase runConfiguration) {
+  public AndroidDebuggerConfigurable<AndroidDebuggerState> createConfigurable(@NotNull RunConfiguration runConfiguration) {
     return new AndroidDebuggerConfigurable<>();
   }
 
@@ -96,8 +96,9 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
                                                    @NotNull Set<String> applicationIds,
                                                    @NotNull AndroidFacet facet,
                                                    @NotNull AndroidDebuggerState state,
-                                                   @NotNull String runConfigTypeId) {
-    return new ConnectJavaDebuggerTask(applicationIds, this, env.getProject());
+                                                   @NotNull String runConfigTypeId,
+                                                   boolean monitorRemoteProcess) {
+    return new ConnectJavaDebuggerTask(applicationIds, this, env.getProject(), monitorRemoteProcess);
   }
 
   @Override

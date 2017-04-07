@@ -211,31 +211,32 @@ public class AttributeDefinitionsImpl implements AttributeDefinitions {
       final String valueName = value.getAttributeValue(ATTR_NAME);
       if (valueName == null) {
         LOG.info("Unknown value for tag: " + value.getText());
+        continue;
       }
-      else {
-        def.addValue(valueName);
-        PsiElement comment = XmlDocumentationProvider.findPreviousComment(value);
-        if (comment != null) {
-          String docValue = XmlUtil.getCommentText((XmlComment)comment);
-          if (!StringUtil.isEmpty(docValue)) {
-            def.addValueDoc(valueName, docValue);
-          }
-        }
 
-        final String strIntValue = value.getAttributeValue(ATTR_VALUE);
-        if (strIntValue != null) {
-          try {
-            // Integer.decode cannot handle "ffffffff", see JDK issue 6624867
-            int intValue = (int) (long) Long.decode(strIntValue);
-            Map<String, Integer> value2Int = myEnumMap.get(def.getName());
-            if (value2Int == null) {
-              value2Int = new HashMap<>();
-              myEnumMap.put(def.getName(), value2Int);
-            }
-            value2Int.put(valueName, intValue);
+      def.addValue(valueName);
+      PsiElement comment = XmlDocumentationProvider.findPreviousComment(value);
+      if (comment != null) {
+        String docValue = XmlUtil.getCommentText((XmlComment)comment);
+        if (!StringUtil.isEmpty(docValue)) {
+          def.addValueDoc(valueName, docValue);
+        }
+      }
+
+      final String strIntValue = value.getAttributeValue(ATTR_VALUE);
+      if (strIntValue != null) {
+        try {
+          // Integer.decode cannot handle "ffffffff", see JDK issue 6624867
+          int intValue = (int) (long) Long.decode(strIntValue);
+          def.addValueMapping(valueName, intValue);
+          Map<String, Integer> value2Int = myEnumMap.get(def.getName());
+          if (value2Int == null) {
+            value2Int = new HashMap<>();
+            myEnumMap.put(def.getName(), value2Int);
           }
-          catch (NumberFormatException ignored) {
-          }
+          value2Int.put(valueName, intValue);
+        }
+        catch (NumberFormatException ignored) {
         }
       }
     }

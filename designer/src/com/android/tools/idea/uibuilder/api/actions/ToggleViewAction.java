@@ -121,6 +121,7 @@ public abstract class ToggleViewAction extends ViewAction {
                                  @NotNull List<NlComponent> selectedChildren,
                                  @InputEventMask int modifiers,
                                  boolean selected) {
+    presentation.setIcon(selected ? mySelectedIcon : myIcon);
   }
 
   /**

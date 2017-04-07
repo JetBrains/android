@@ -185,7 +185,7 @@ public class ResourceComponent extends JPanel {
     return new Dimension(mySwatchComponent.getHeight(), mySwatchComponent.getHeight());
   }
 
-  @Nullable("if there is no error")
+  @Nullable/*if there is no error*/
   public ValidationInfo doValidate(int minApi, @NotNull AndroidTargetData androidTargetData) {
     return mySwatchComponent.doValidate(minApi, androidTargetData);
   }

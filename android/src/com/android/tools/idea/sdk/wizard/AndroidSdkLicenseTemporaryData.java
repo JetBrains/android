@@ -26,7 +26,7 @@ import com.android.repository.impl.meta.CommonFactory;
 public class AndroidSdkLicenseTemporaryData {
 
   public static License getLicense(boolean preview) {
-    CommonFactory f = (CommonFactory)RepoManager.getCommonModule().createLatestFactory();
+    CommonFactory f = RepoManager.getCommonModule().createLatestFactory();
     License l = f.createLicenseType();
     l.setValue(preview ? HARDCODED_ANDROID_PREVIEW_SDK_LICENSE : HARDCODED_ANDROID_SDK_LICENSE);
     l.setId(preview ? "Android SDK Preview License" : "Android SDK License");

@@ -16,11 +16,13 @@
 package com.android.tools.idea.ddms.hprof;
 
 import com.android.SdkConstants;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.editors.hprof.HprofCaptureType;
 import com.android.tools.idea.profiling.capture.Capture;
 import com.android.tools.idea.profiling.capture.CaptureTypeService;
 import com.android.tools.idea.profiling.view.CapturesToolWindow;
-import com.android.tools.idea.stats.UsageTracker;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.BaseOSProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
@@ -43,7 +45,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidCommonUtils;
 import org.jetbrains.annotations.NotNull;
@@ -73,22 +74,21 @@ public class RunHprofConvAndSaveAsAction extends DumbAwareAction {
 
   @Override
   public void actionPerformed(@NotNull final AnActionEvent e) {
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        if (e.getProject() == null) {
-          return;
-        }
-        ConvertHprofDialog dialog = new ConvertHprofDialog(e.getProject());
-        if (!dialog.showAndGet()) {
-          return;
-        }
+    ApplicationManager.getApplication().invokeLater(() -> {
+      if (e.getProject() == null) {
+        return;
+      }
+      ConvertHprofDialog dialog = new ConvertHprofDialog(e.getProject());
+      if (!dialog.showAndGet()) {
+        return;
+      }
 
-        Capture[] captures = CapturesToolWindow.CAPTURE_ARRAY.getData(e.getDataContext());
-        if (isValidCaptureSelection(captures)) {
-          UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_PROFILING, UsageTracker.ACTION_PROFILING_CONVERT_HPROF, null, null);
-          new RunHprofConvAndSaveTask(e.getProject(), captures[0].getFile(), dialog.getHprofFile()).queue();
-        }
+      Capture[] captures = CapturesToolWindow.CAPTURE_ARRAY.getData(e.getDataContext());
+      if (isValidCaptureSelection(captures)) {
+        UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                       .setCategory(AndroidStudioEvent.EventCategory.PROFILING)
+                                       .setKind(AndroidStudioEvent.EventKind.PROFILING_CONVERT_HPROF));
+        new RunHprofConvAndSaveTask(e.getProject(), captures[0].getFile(), dialog.getHprofFile()).queue();
       }
     }, ModalityState.defaultModalityState());
   }
@@ -124,7 +124,7 @@ public class RunHprofConvAndSaveAsAction extends DumbAwareAction {
 
     private void convertAndSave() throws IOException, ExecutionException {
       // run hprof-conv, transforming androidHprof -> destination
-      AndroidSdkData sdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+      AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
       if (sdkData == null) {
         throw new ExecutionException("Unable to find path to SDK.");
       }

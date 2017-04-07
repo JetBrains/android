@@ -16,12 +16,10 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.ISystemImage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.utils.HtmlBuilder;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -36,8 +34,6 @@ import java.util.Map;
  * Display a summary of the AVD
  */
 public class AvdSummaryAction extends AvdUiAction {
-  private static final Logger LOG = Logger.getInstance(AvdSummaryAction.class);
-
   public AvdSummaryAction(AvdInfoProvider avdInfoProvider) {
     super(avdInfoProvider, "View Details", "View details for debugging", AllIcons.General.BalloonInformation);
   }

@@ -65,10 +65,6 @@ public class FrameLayoutHandler extends ViewGroupHandler {
         graphics.drawRect(x, y, w, h);
       }
     }
-
-    @Override
-    public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
-    }
   }
 
   @Override

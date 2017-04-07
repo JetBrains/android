@@ -24,10 +24,25 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public abstract class PTableItem {
   private TableCellRenderer myCellRenderer;
   private PTableItem myParent;
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getName(), getNamespace());
+  }
+
+  public boolean equals(@Nullable Object other) {
+    if (!(other instanceof PTableItem)) {
+      return false;
+    }
+    PTableItem item = (PTableItem)other;
+    return Objects.equals(getName(), item.getName()) &&
+           Objects.equals(getNamespace(), item.getNamespace());
+  }
 
   public boolean hasChildren() {
     return false;
@@ -60,6 +75,11 @@ public abstract class PTableItem {
 
   public void setExpanded(boolean expanded) {
   }
+
+  @NotNull
+  public abstract StarState getStarState();
+
+  public abstract void setStarState(@NotNull StarState starState);
 
   @NotNull
   public abstract String getName();

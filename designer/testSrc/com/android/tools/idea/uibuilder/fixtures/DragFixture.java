@@ -47,7 +47,7 @@ public class DragFixture {
     // Drag from center of primary
     NlComponent primary = componentList.get(0);
     int startX = Coordinates.getSwingX(myScreen, primary.x + primary.w / 2);
-    int startY = Coordinates.getSwingX(myScreen, primary.y + primary.h / 2);
+    int startY = Coordinates.getSwingY(myScreen, primary.y + primary.h / 2);
     myInteraction.begin(startX, startY, 0);
     myCurrentX = startX;
     myCurrentY = startY;

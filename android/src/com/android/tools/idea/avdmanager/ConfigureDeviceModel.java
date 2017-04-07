@@ -24,6 +24,7 @@ import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.wizard.model.WizardModel;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,6 +54,11 @@ public final class ConfigureDeviceModel extends WizardModel {
         throw new IllegalArgumentException("Can't clone a device without specifying a device.");
       }
       myDeviceData.setUniqueName(String.format("%s (Edited)", device.getDisplayName()));
+    }
+    if (cloneDevice || device == null) {
+      // Clear device's density. This will cause us to calculate
+      // the most accurate setting based on the final screen size.
+      myDeviceData.density().set(Density.NODPI);
     }
     if (device != null) {
       initBootProperties(device);
@@ -98,6 +104,11 @@ public final class ConfigureDeviceModel extends WizardModel {
     }
 
     return state;
+  }
+
+  @Nullable
+  public Project getProject() {
+    return myProvider.getProject();
   }
 
   public AvdDeviceData getDeviceData() {

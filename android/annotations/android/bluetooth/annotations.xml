@@ -123,7 +123,7 @@
   </item>
   <item name="android.bluetooth.BluetoothDevice boolean setPairingConfirmation(boolean)">
     <annotation name="android.support.annotation.RequiresPermission">
-      <val name="value" val="&quot;android.permission.BLUETOOTH_ADMIN&quot;" />
+      <val name="value" val="&quot;android.permission.BLUETOOTH_PRIVILEGED&quot;" />
     </annotation>
   </item>
   <item name="android.bluetooth.BluetoothDevice int getBondState()">

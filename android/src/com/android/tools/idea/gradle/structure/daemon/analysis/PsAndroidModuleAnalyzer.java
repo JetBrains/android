@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.daemon.analysis;
 
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.*;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
@@ -49,7 +49,7 @@ public class PsAndroidModuleAnalyzer extends PsModuleAnalyzer<PsAndroidModule> {
   @Override
   protected void doAnalyze(@NotNull PsAndroidModule module, @NotNull PsIssueCollection issueCollection) {
     Multimap<String, SyncIssue> issuesByData = ArrayListMultimap.create();
-    AndroidGradleModel gradleModel = module.getGradleModel();
+    AndroidModuleModel gradleModel = module.getGradleModel();
     Collection<SyncIssue> syncIssues = gradleModel.getAndroidProject().getSyncIssues();
     for (SyncIssue syncIssue : syncIssues) {
       String data = nullToEmpty(syncIssue.getData());

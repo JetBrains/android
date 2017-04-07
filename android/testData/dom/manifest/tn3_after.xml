@@ -2,6 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="p1.a">
     <instrumentation
-            android:name=""
-            android:targetPackage=""
+        android:name=""
+        android:targetPackage=""
 </manifest>

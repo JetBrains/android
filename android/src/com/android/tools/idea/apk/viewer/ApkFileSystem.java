@@ -16,11 +16,10 @@
 package com.android.tools.idea.apk.viewer;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.apk.AndroidApkFileType;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Shorts;
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -42,8 +41,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Set;
 
 public class ApkFileSystem extends ArchiveFileSystem {
+  public static final Set<String> EXTENSIONS = ImmutableSet.of(
+    SdkConstants.EXT_ANDROID_PACKAGE,
+    SdkConstants.EXT_AAR,
+    SdkConstants.EXT_INSTANTAPP_PACKAGE,
+    SdkConstants.EXT_ATOM
+  );
+
   public static final String PROTOCOL = "apk";
   public static final String APK_SEPARATOR = URLUtil.JAR_SEPARATOR;
 
@@ -140,7 +147,7 @@ public class ApkFileSystem extends ArchiveFileSystem {
       return true;
     }
 
-    return FileTypeRegistry.getInstance().getFileTypeByFileName(local.getName()) == AndroidApkFileType.INSTANCE;
+    return EXTENSIONS.contains(local.getExtension());
   }
 
   /**

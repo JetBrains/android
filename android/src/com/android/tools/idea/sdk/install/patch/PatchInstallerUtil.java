@@ -36,6 +36,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Utilities for creating and installing binary diff packages.
@@ -68,7 +69,7 @@ public class PatchInstallerUtil {
   private static final String PATCH_ZIP_FN = "patch-file.zip";
 
   /**
-   * Gets the patcher jar required by our package.
+   * Gets the installed patcher package required by our package.
    *
    * @return The patcher package that the given package depends on, or null if none was found.
    */
@@ -91,18 +92,28 @@ public class PatchInstallerUtil {
   @Nullable
   static LocalPackage getLatestPatcher(@NotNull RepoManager mgr) {
     LocalPackage patcher = null;
-    int maxVersion = 0;
     for (LocalPackage p : mgr.getPackages().getLocalPackagesForPrefix(PATCHER_PATH_PREFIX)) {
-      try {
-        int version = Integer.parseInt(p.getPath().substring(p.getPath().lastIndexOf('v') + 1));
-        if (version > maxVersion) {
-          patcher = p;
-        }
-      }
-      catch (NumberFormatException ignored) {
+      if (patcher == null || comparePatcherPaths(p.getPath(), patcher.getPath()) > 0) {
+        patcher = p;
       }
     }
     return patcher;
+  }
+
+  static int comparePatcherPaths(@NotNull String path1, @NotNull String path2) {
+    int v1 = -1;
+    int v2 = -1;
+    try {
+      v1 = Integer.parseInt(path1.substring(path1.lastIndexOf('v') + 1));
+    }
+    catch (NumberFormatException ignored) {
+    }
+    try {
+      v2 = Integer.parseInt(path2.substring(path2.lastIndexOf('v') + 1));
+    }
+    catch (NumberFormatException ignored) {
+    }
+    return Integer.compare(v1, v2);
   }
 
   /**
@@ -115,7 +126,11 @@ public class PatchInstallerUtil {
     if (patch == null) {
       return false;
     }
-    PatchRunner patcher = PatchRunner.getPatchRunner(op.getPatcher(), progress, fop);
+    LocalPackage patcherPackage = op.getPatcher(progress);
+    if (patcherPackage == null) {
+      return false;
+    }
+    PatchRunner patcher = PatchRunner.getPatchRunner(patcherPackage, progress, fop);
     if (patcher == null) {
       return false;
     }
@@ -237,7 +252,11 @@ public class PatchInstallerUtil {
    * @return A handle to the generated patch, or {@code null} if there was a problem.
    */
   public static File generatePatch(PatchOperation patchOp, File destDir, FileOp fop, ProgressIndicator progress) {
-    PatchRunner runner = PatchRunner.getPatchRunner(patchOp.getPatcher(), progress, fop);
+    LocalPackage patcher = patchOp.getPatcher(progress);
+    if (patcher == null) {
+      return null;
+    }
+    PatchRunner runner = PatchRunner.getPatchRunner(patcher, progress, fop);
     if (runner == null) {
       return null;
     }
@@ -249,6 +268,30 @@ public class PatchInstallerUtil {
     File newFilesRoot = patchOp.getNewFilesRoot();
     if (runner.generatePatch(existingRoot, newFilesRoot, existingDescription, description, destination, progress)) {
       return destination;
+    }
+    return null;
+  }
+
+  /**
+   * If a patcher is being installed at the same time as a patch, we need to make sure the patcher install completes before trying to
+   * apply the patch.
+   *
+   * @param remote The patch we're trying to apply
+   * @return The in-progress install operation, or {@code null} if there is none.
+   */
+  @Nullable
+  public static PackageOperation getInProgressDependantPatcherInstall(@NotNull RemotePackage remote, @NotNull RepoManager mgr) {
+    Map<String, RemotePackage> remotePackages = mgr.getPackages().getRemotePackages();
+    for (Dependency dependency : remote.getAllDependencies()) {
+      if (dependency.getPath().startsWith(PATCHER_PATH_PREFIX + RepoPackage.PATH_SEPARATOR)) {
+        RemotePackage remotePatcher = remotePackages.get(dependency.getPath());
+        if (remotePatcher != null) {
+          PackageOperation inProgress = mgr.getInProgressInstallOperation(remotePatcher);
+          if (inProgress != null && inProgress.getInstallStatus() != PackageOperation.InstallStatus.FAILED) {
+            return inProgress;
+          }
+        }
+      }
     }
     return null;
   }

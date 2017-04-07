@@ -16,10 +16,13 @@
 package com.android.tools.idea.profiling.view;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.stats.UsageTracker;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.perflib.analyzer.AnalysisReport;
 import com.android.tools.perflib.analyzer.AnalysisResultEntry;
 import com.android.tools.perflib.analyzer.AnalyzerTask;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
@@ -206,7 +209,9 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
   public void performAnalysis() {
     myCanRunAnalysis = false;
 
-    UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_PROFILING, UsageTracker.ACTION_PROFILING_ANALYSIS_RUN, null, null);
+    UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                   .setCategory(EventCategory.PROFILING)
+                                   .setKind(EventKind.PROFILING_ANALYSIS_RUN));
 
     final DefaultTreeModel model = (DefaultTreeModel)myResultsTree.getModel();
     final DefaultMutableTreeNode root = (DefaultMutableTreeNode)model.getRoot();
@@ -215,14 +220,14 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
 
     Set<AnalysisReport.Listener> singletonListener = Collections.<AnalysisReport.Listener>singleton(new AnalysisReport.Listener() {
       @Override
-      public void onResultsAdded(@NonNull final List<AnalysisResultEntry> entries) {
+      public void onResultsAdded(@NonNull final List<AnalysisResultEntry<?>> entries) {
         UIUtil.invokeLaterIfNeeded(new Runnable() {
           @Override
           public void run() {
             boolean rootChanged = false;
             Set<DefaultMutableTreeNode> changedCategories = new HashSet<DefaultMutableTreeNode>();
 
-            for (AnalysisResultEntry entry : entries) {
+            for (AnalysisResultEntry<?> entry : entries) {
               String category = entry.getCategory();
               DefaultMutableTreeNode categoryNode;
               if (!myCategoryNodes.containsKey(category)) {
@@ -269,5 +274,5 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
   }
 
   @Nullable
-  public abstract DefaultMutableTreeNode getNodeForEntry(int index, @NotNull AnalysisResultEntry entry);
+  public abstract DefaultMutableTreeNode getNodeForEntry(int index, @NotNull AnalysisResultEntry<?> entry);
 }

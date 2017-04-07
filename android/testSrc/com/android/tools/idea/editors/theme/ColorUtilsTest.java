@@ -52,7 +52,8 @@ public class ColorUtilsTest extends AndroidTestCase {
 
     assertEquals("<html>Not enough contrast with <b>colorPrimary</b>", ColorUtils
       .getContrastWarningMessage(textColorContrastColors, Color.WHITE, ColorUtils.isBackgroundAttribute("textColor")));
-    assertEquals("", ColorUtils.getContrastWarningMessage(textColorContrastColors, Color.BLACK, ColorUtils.isBackgroundAttribute("textColor")));
+    assertEquals("<html>Not enough contrast with <b>colorBackground</b>",
+                 ColorUtils.getContrastWarningMessage(textColorContrastColors, Color.BLACK, ColorUtils.isBackgroundAttribute("textColor")));
     assertEquals("<html>Not enough contrast with <b>textColor</b> and <b>textColorPrimary</b>",
                  ColorUtils.getContrastWarningMessage(colorPrimaryContrastColors, Color.WHITE, ColorUtils.isBackgroundAttribute("colorPrimary")));
     assertEquals("", ColorUtils.getContrastWarningMessage(colorPrimaryContrastColors, Color.BLACK, ColorUtils.isBackgroundAttribute("colorPrimary")));
@@ -62,9 +63,9 @@ public class ColorUtilsTest extends AndroidTestCase {
     assertEquals("", ColorUtils.getContrastWarningMessage(ColorUtils.getContrastColorsWithDescription(context, "invented"), Color.WHITE, true));
 
     // Test transparent colors
-    assertEquals("<html>Not enough contrast with <b>colorPrimary</b>", ColorUtils
+    assertEquals("<html>Not enough contrast with <b>colorBackground</b>", ColorUtils
       .getContrastWarningMessage(textColorContrastColors, new Color(0, 0, 0, 50), ColorUtils.isBackgroundAttribute("textColor")));
-    assertEquals("", ColorUtils
+    assertEquals("<html>Not enough contrast with <b>colorBackground</b>", ColorUtils
       .getContrastWarningMessage(textColorContrastColors, new Color(0, 0, 0, 250), ColorUtils.isBackgroundAttribute("textColor")));
 
     LinkedHashMap<String, Color> colorsWithDescription = new LinkedHashMap<>();

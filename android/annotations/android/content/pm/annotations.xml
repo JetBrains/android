@@ -5,6 +5,75 @@
       <val name="value" val="{android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_BEHIND, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_NOSENSOR, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_FULL_USER, android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LOCKED}" />
     </annotation>
   </item>
+  <item name="android.content.pm.LauncherApps android.graphics.drawable.Drawable getShortcutIconDrawable(android.content.pm.ShortcutInfo, int) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps java.util.List&lt;android.content.pm.ShortcutInfo&gt; getShortcuts(android.content.pm.LauncherApps.ShortcutQuery, android.os.UserHandle)">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.LauncherApps java.util.List&lt;android.content.pm.ShortcutInfo&gt; getShortcuts(android.content.pm.LauncherApps.ShortcutQuery, android.os.UserHandle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps java.util.List&lt;android.content.pm.ShortcutInfo&gt; getShortcuts(android.content.pm.LauncherApps.ShortcutQuery, android.os.UserHandle) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps void pinShortcuts(java.lang.String, java.util.List&lt;java.lang.String&gt;, android.os.UserHandle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps void pinShortcuts(java.lang.String, java.util.List&lt;java.lang.String&gt;, android.os.UserHandle) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps void pinShortcuts(java.lang.String, java.util.List&lt;java.lang.String&gt;, android.os.UserHandle) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps void startShortcut(android.content.pm.ShortcutInfo, android.graphics.Rect, android.os.Bundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps void startShortcut(android.content.pm.ShortcutInfo, android.graphics.Rect, android.os.Bundle) 1">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.LauncherApps void startShortcut(android.content.pm.ShortcutInfo, android.graphics.Rect, android.os.Bundle) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.LauncherApps void startShortcut(java.lang.String, java.lang.String, android.graphics.Rect, android.os.Bundle, android.os.UserHandle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps void startShortcut(java.lang.String, java.lang.String, android.graphics.Rect, android.os.Bundle, android.os.UserHandle) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps void startShortcut(java.lang.String, java.lang.String, android.graphics.Rect, android.os.Bundle, android.os.UserHandle) 2">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.LauncherApps void startShortcut(java.lang.String, java.lang.String, android.graphics.Rect, android.os.Bundle, android.os.UserHandle) 3">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.LauncherApps void startShortcut(java.lang.String, java.lang.String, android.graphics.Rect, android.os.Bundle, android.os.UserHandle) 4">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps.Callback void onShortcutsChanged(java.lang.String, java.util.List&lt;android.content.pm.ShortcutInfo&gt;, android.os.UserHandle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps.Callback void onShortcutsChanged(java.lang.String, java.util.List&lt;android.content.pm.ShortcutInfo&gt;, android.os.UserHandle) 1">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps.Callback void onShortcutsChanged(java.lang.String, java.util.List&lt;android.content.pm.ShortcutInfo&gt;, android.os.UserHandle) 2">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.LauncherApps.ShortcutQuery android.content.pm.LauncherApps.ShortcutQuery setActivity(android.content.ComponentName) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.LauncherApps.ShortcutQuery android.content.pm.LauncherApps.ShortcutQuery setPackage(java.lang.String) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.LauncherApps.ShortcutQuery android.content.pm.LauncherApps.ShortcutQuery setQueryFlags(int) 0">
+    <annotation name="android.support.annotation.IntDef">
+      <val name="value" val="{android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_DYNAMIC, android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_PINNED, android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_MANIFEST, android.content.pm.LauncherApps.ShortcutQuery.FLAG_GET_KEY_FIELDS_ONLY}" />
+      <val name="flag" val="true" />
+    </annotation>
+  </item>
+  <item name="android.content.pm.LauncherApps.ShortcutQuery android.content.pm.LauncherApps.ShortcutQuery setShortcutIds(java.util.List&lt;java.lang.String&gt;) 0">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
   <item name="android.content.pm.PackageInstaller android.content.pm.PackageInstaller.Session openSession(int)">
     <annotation name="android.support.annotation.NonNull" />
   </item>
@@ -307,6 +376,117 @@
       <val name="value" val="{android.content.pm.PackageManager.GET_META_DATA, android.content.pm.PackageManager.GET_RESOLVED_FILTER, android.content.pm.PackageManager.GET_SHARED_LIBRARY_FILES, android.content.pm.PackageManager.MATCH_ALL, android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS, android.content.pm.PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_AWARE, android.content.pm.PackageManager.MATCH_DIRECT_BOOT_UNAWARE, android.content.pm.PackageManager.MATCH_SYSTEM_ONLY, android.content.pm.PackageManager.MATCH_UNINSTALLED_PACKAGES, android.content.pm.PackageManager.GET_DISABLED_COMPONENTS, android.content.pm.PackageManager.GET_DISABLED_UNTIL_USED_COMPONENTS, android.content.pm.PackageManager.GET_UNINSTALLED_PACKAGES}" />
       <val name="flag" val="true" />
     </annotation>
+  </item>
+  <item name="android.content.pm.ShortcutInfo android.content.ComponentName getActivity()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo android.content.Intent getIntent()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo android.content.Intent[] getIntents()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo android.os.PersistableBundle getExtras()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo java.lang.CharSequence getDisabledMessage()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo java.lang.CharSequence getLongLabel()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo java.lang.CharSequence getShortLabel()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo java.lang.String getId()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo java.lang.String getPackage()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo java.util.Set&lt;java.lang.String&gt; getCategories()">
+    <annotation name="android.support.annotation.Nullable" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo build()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setActivity(android.content.ComponentName)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setActivity(android.content.ComponentName) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setCategories(java.util.Set&lt;java.lang.String&gt;)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setDisabledMessage(java.lang.CharSequence)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setDisabledMessage(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setExtras(android.os.PersistableBundle)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setExtras(android.os.PersistableBundle) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setIcon(android.graphics.drawable.Icon)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setIntent(android.content.Intent)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setIntent(android.content.Intent) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setIntents(android.content.Intent[])">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setIntents(android.content.Intent[]) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setLongLabel(java.lang.CharSequence)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setLongLabel(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setRank(int)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setShortLabel(java.lang.CharSequence)">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutInfo.Builder android.content.pm.ShortcutInfo.Builder setShortLabel(java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutManager boolean addDynamicShortcuts(java.util.List&lt;android.content.pm.ShortcutInfo&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutManager boolean setDynamicShortcuts(java.util.List&lt;android.content.pm.ShortcutInfo&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutManager java.util.List&lt;android.content.pm.ShortcutInfo&gt; getDynamicShortcuts()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutManager java.util.List&lt;android.content.pm.ShortcutInfo&gt; getManifestShortcuts()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutManager java.util.List&lt;android.content.pm.ShortcutInfo&gt; getPinnedShortcuts()">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutManager void disableShortcuts(java.util.List&lt;java.lang.String&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutManager void disableShortcuts(java.util.List&lt;java.lang.String&gt;, java.lang.CharSequence) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutManager void enableShortcuts(java.util.List&lt;java.lang.String&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
+  </item>
+  <item name="android.content.pm.ShortcutManager void removeDynamicShortcuts(java.util.List&lt;java.lang.String&gt;) 0">
+    <annotation name="android.support.annotation.NonNull" />
   </item>
 </root>
 

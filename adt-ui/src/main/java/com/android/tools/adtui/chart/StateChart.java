@@ -16,19 +16,24 @@
 
 package com.android.tools.adtui.chart;
 
+import com.android.annotations.VisibleForTesting;
 import com.android.tools.adtui.AnimatedComponent;
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.common.datareducer.DefaultStateChartReducer;
+import com.android.tools.adtui.common.datareducer.StateChartReducer;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.intellij.util.containers.ImmutableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.awt.geom.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A chart component that renders series of state change events as rectangles.
@@ -46,7 +51,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   private final List<RangedSeries<E>> mSeriesList;
 
   @NotNull
-  private final EnumMap<E, Color> mColors;
+  private final Map<E, Color> mColors;
 
   private float mArcWidth;
 
@@ -63,15 +68,28 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   @NotNull
   private RenderMode mRenderMode;
 
+  @NotNull
+  private StateChartReducer<E> myReducer;
+
   /**
    * @param colors map of a state to corresponding color
    */
-  public StateChart(@NotNull EnumMap<E, Color> colors) {
+  public StateChart(@NotNull Map<E, Color> colors) {
+    // TODO: Replace with new DefaultStateChartReducer()
+    // Having a real reducer will be important for the final release, but we don't want to risk
+    // unintentional side effects to distract us as we prepare to meet an initial milestone.
+    this(colors, (rectangles, values) -> {});
+  }
+
+  @VisibleForTesting
+  public StateChart(@NotNull Map<E, Color> colors, @NotNull StateChartReducer<E> reducer) {
     mColors = colors;
     mRectangles = new ArrayList<>();
     mValues = new ArrayList<>();
     mSeriesList = new ArrayList<>();
     mRenderMode = RenderMode.BAR;
+    myReducer = reducer;
+    setFont(AdtUiUtils.DEFAULT_FONT);
   }
 
   public void setRenderMode(RenderMode mode) {
@@ -136,11 +154,12 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
 
         float startHeight = 1 - (height * (seriesIndex + 1));
 
-        if (i > 0) {
+        // Don't draw if this block doesn't intersect with [min..max]
+        if (i > 0 && x >= min) {
           // Draw the previous block.
           setRectangleAndValueData(rectCount,
-                                   previousX,
-                                   x,
+                                   Math.max(min, previousX),
+                                   Math.min(max, x),
                                    min,
                                    max,
                                    previousValue,
@@ -160,7 +179,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
         else if (i == size - 1) {
           // Reached the end, assumes the last data point continues till max.
           setRectangleAndValueData(rectCount,
-                                   previousX,
+                                   Math.max(min, previousX),
                                    max,
                                    min,
                                    max,
@@ -179,16 +198,26 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
   }
 
   @Override
-  protected void draw(Graphics2D g2d) {
-    Dimension dim = getSize();
-    g2d.setFont(AdtUiUtils.DEFAULT_FONT);
+  protected void draw(Graphics2D g2d, Dimension dim) {
+    g2d.setFont(getFont());
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     assert mRectangles.size() == mValues.size();
+
+    List<Shape> transformedShapes = new ArrayList<>(mRectangles.size());
+    List<E> transformedValues = new ArrayList<>(mRectangles.size());
     AffineTransform scale = AffineTransform.getScaleInstance(dim.getWidth(), dim.getHeight());
-    for (int i = 0; i < mRectangles.size(); i++) {
-      g2d.setColor(mColors.get(mValues.get(i)));
-      Shape shape = scale.createTransformedShape(mRectangles.get(i));
+    for (int i = 0; i < mRectangles.size(); ++i) {
+      transformedShapes.add(scale.createTransformedShape(mRectangles.get(i)));
+      transformedValues.add(mValues.get(i));
+    }
+    myReducer.reduce(transformedShapes, transformedValues);
+    assert transformedShapes.size() == transformedValues.size();
+
+    for (int i = 0; i < transformedShapes.size(); i++) {
+      Shape shape = transformedShapes.get(i);
+      E value = transformedValues.get(i);
+      g2d.setColor(mColors.get(value));
 
       switch (mRenderMode) {
         case BAR:
@@ -198,7 +227,7 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
           Rectangle2D rect = shape.getBounds2D();
           g2d.draw(new Line2D.Double(rect.getX(), rect.getY(), rect.getX(), rect.getY() + rect.getHeight()));
           String text = AdtUiUtils.getFittedString(mDefaultFontMetrics,
-                                                   mValues.get(i).toString(),
+                                                   value.toString(),
                                                    (float)rect.getWidth() - TEXT_PADDING * 2,
                                                    1);
           if (!text.isEmpty()) {
@@ -208,6 +237,8 @@ public class StateChart<E extends Enum<E>> extends AnimatedComponent {
           break;
       }
     }
+
+    addDebugInfo("# of drawn rects: %d", transformedShapes.size());
   }
 
   private void setRectangleAndValueData(int rectCount,

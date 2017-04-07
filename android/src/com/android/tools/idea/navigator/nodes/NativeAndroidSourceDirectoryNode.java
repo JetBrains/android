@@ -28,15 +28,20 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
+import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
 
+import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
+
 public class NativeAndroidSourceDirectoryNode extends PsiDirectoryNode {
   @NotNull private final Collection<String> myFileExtensions;
   @NotNull private final Collection<VirtualFile> mySourceFolders;
   @NotNull private final Collection<VirtualFile> mySourceFiles;
+
+  private boolean myShowDirectoryPath;
 
   public NativeAndroidSourceDirectoryNode(@NotNull Project project,
                                           @NotNull PsiDirectory dir,
@@ -62,7 +67,14 @@ public class NativeAndroidSourceDirectoryNode extends PsiDirectoryNode {
 
   @Override
   protected void updateImpl(PresentationData presentation) {
-    super.updateImpl(presentation);
+    VirtualFile directoryFile = getVirtualFile();
+    assert directoryFile != null;
+    presentation.setPresentableText(directoryFile.getName());
+    presentation.addText(directoryFile.getName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    if (myShowDirectoryPath) {
+      presentation.addText(" (" + getLocationRelativeToUserHome(directoryFile.getPresentableUrl()) + ")",
+                           SimpleTextAttributes.GRAY_ATTRIBUTES);
+    }
     presentation.setIcon(AllIcons.Nodes.Folder);
   }
 
@@ -116,5 +128,9 @@ public class NativeAndroidSourceDirectoryNode extends PsiDirectoryNode {
     }
 
     return result;
+  }
+
+  void setShowDirectoryPath(boolean showDirectoryPath) {
+    myShowDirectoryPath = showDirectoryPath;
   }
 }

@@ -70,7 +70,7 @@ public class RestrictedConfiguration {
     }
   }
 
-  @Nullable("if empty intersection, i.e some of the qualifiers can't have any value due to the restrictions in both")
+  @Nullable/*if empty intersection, i.e some of the qualifiers can't have any value due to the restrictions in both*/
   public RestrictedConfiguration intersect(@NotNull RestrictedConfiguration otherRestricted) {
     RestrictedConfiguration resultRestricted = new RestrictedConfiguration();
 
@@ -117,7 +117,7 @@ public class RestrictedConfiguration {
    * @return FolderConfiguration that matches with compatible, but doesn't match with any from incompatibles.
    * Backward implementation to the <a href="http://developer.android.com/guide/topics/resources/providing-resources.html">algorithm</a>.
    */
-  @Nullable("if there is no configuration that matches the constraints")
+  @Nullable/*if there is no configuration that matches the constraints*/
   public static RestrictedConfiguration restrict(@NotNull FolderConfiguration compatible,
                                                  @NotNull Collection<FolderConfiguration> incompatibles) {
     RestrictedConfiguration restricted = new RestrictedConfiguration();
@@ -177,7 +177,7 @@ public class RestrictedConfiguration {
    * item. This configuration can be used when we want to make sure that the configuration selected will be displayed.
    * Note: allItems should contain compatible
    */
-  @Nullable("if there is no configuration that matches the constraints")
+  @Nullable/*if there is no configuration that matches the constraints*/
   public static <T> FolderConfiguration restrict(@NotNull ConfiguredElement<T> compatible,
                                                  Collection<ConfiguredElement<T>> allItems) {
     ArrayList<FolderConfiguration> incompatibleConfigurations = Lists.newArrayListWithCapacity(allItems.size());

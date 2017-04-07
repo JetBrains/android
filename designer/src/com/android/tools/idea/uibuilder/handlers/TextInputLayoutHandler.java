@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.SdkConstants;
-import com.android.tools.idea.uibuilder.api.XmlBuilder;
+import com.android.tools.idea.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;

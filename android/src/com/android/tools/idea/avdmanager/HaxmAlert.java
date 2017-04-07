@@ -158,6 +158,6 @@ public class HaxmAlert extends JPanel {
 
   private static AccelerationErrorCode computeAccelerationState() {
     AvdManagerConnection manager = AvdManagerConnection.getDefaultAvdManagerConnection();
-    return manager.checkAcceration();
+    return manager.checkAcceleration();
   }
 }

@@ -17,7 +17,7 @@ package com.android.tools.idea.model;
 
 import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +38,7 @@ public class ManifestPlaceholderResolver {
   private final ImmutableMap<String, Object> myPlaceholders;
 
   public ManifestPlaceholderResolver(@NotNull Module module) {
-    AndroidGradleModel model = AndroidGradleModel.get(module);
+    AndroidModuleModel model = AndroidModuleModel.get(module);
 
     if (model != null) {
       ImmutableMap.Builder<String, Object> placeholdersBuilder = ImmutableMap.builder();

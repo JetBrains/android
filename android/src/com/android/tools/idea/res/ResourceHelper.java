@@ -31,8 +31,7 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.databinding.DataBindingUtil;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.lint.detector.api.LintUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.*;
@@ -546,27 +545,6 @@ public class ResourceHelper {
     return result;
   }
 
-  /**
-   * Tries to resolve the given resource value to a dimension in pixels. The returned value is
-   * function of the configuration's device's density.
-   *
-   * @param resources     the resource resolver to use to follow references
-   * @param value         the dimension to resolve
-   * @param configuration the device configuration
-   * @return a dimension in pixels, or null
-   */
-  @Nullable
-  @AndroidCoordinate
-  public static Integer resolveDimensionPixelSize(@NotNull RenderResources resources, @NotNull String value,
-                                                  @NotNull Configuration configuration) {
-    String resValue = resolveStringValue(resources, value);
-    ResourceHelper.TypedValue out = new ResourceHelper.TypedValue();
-    if (parseFloatAttribute(resValue, out, true)) {
-      return ResourceHelper.TypedValue.complexToDimensionPixelSize(out.data, configuration);
-    }
-    return null;
-  }
-
   @NotNull
   public static String resolveStringValue(@NotNull RenderResources resources, @NotNull String value) {
     ResourceValue resValue = resources.findResValue(value, false);
@@ -866,14 +844,14 @@ public class ResourceHelper {
   /**
    * Returns a {@link StateList} description of the state list value, or null if value is not a state list.
    */
-  @Nullable("if there is no statelist with this name")
+  @Nullable/*if there is no statelist with this name*/
   public static StateList resolveStateList(@NotNull RenderResources renderResources,
                                             @NotNull ResourceValue value,
                                             @NotNull Project project) {
     return resolveStateList(renderResources, value, project, 0);
   }
 
-  @Nullable("if there is no statelist with this name")
+  @Nullable/*if there is no statelist with this name*/
   private static StateList resolveStateList(@NotNull RenderResources renderResources,
                                            @NotNull ResourceValue resourceValue,
                                            @NotNull Project project, int depth) {
@@ -1107,19 +1085,19 @@ public class ResourceHelper {
    * @param name the resource name
    * @return the resource name, possibly with a new prefix at the beginning of it
    */
-  @Contract("_, !null -> !null")
+  @Contract("_, !null, _ -> !null")
   @Nullable
-  public static String prependResourcePrefix(@Nullable Module module, @Nullable String name) {
+  public static String prependResourcePrefix(@Nullable Module module, @Nullable String name, @Nullable ResourceFolderType folderType) {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
         // TODO: b/23032391
-        AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+        AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
         if (androidModel != null) {
           String resourcePrefix = LintUtils.computeResourcePrefix(androidModel.getAndroidProject());
           if (resourcePrefix != null) {
             if (name != null) {
-              return name.startsWith(resourcePrefix) ? name : LintUtils.computeResourceName(resourcePrefix, name);
+              return name.startsWith(resourcePrefix) ? name : LintUtils.computeResourceName(resourcePrefix, name, folderType);
             } else {
               return resourcePrefix;
             }

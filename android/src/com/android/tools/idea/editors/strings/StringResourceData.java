@@ -16,169 +16,92 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
-import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
-import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.rendering.Locale;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
-import com.google.common.collect.*;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class StringResourceData {
   private final AndroidFacet myFacet;
-  private final List<String> myKeys;
-  private final Set<String> myUntranslatableKeys;
-  private final List<Locale> myLocales;
-  private final Map<String, ResourceItem> myDefaultValues;
-  private final HashBasedTable<String, Locale, ResourceItem> myTranslations;
+  private final Map<String, StringResource> myKeyToResourceMap;
 
   public StringResourceData(@NotNull AndroidFacet facet,
-                            @NotNull List<String> keys,
-                            @NotNull Collection<String> untranslatableKeys,
-                            @NotNull Collection<Locale> locales,
-                            @NotNull Map<String, ResourceItem> defaultValues,
-                            @NotNull Table<String, Locale, ResourceItem> translations) {
+                            @NotNull Map<String, StringResource> keyToResourceMap) {
     myFacet = facet;
-    myKeys = Lists.newArrayList(keys);
-    myUntranslatableKeys = Sets.newHashSet(untranslatableKeys);
-    myLocales = Lists.newArrayList(locales);
-    myDefaultValues = Maps.newHashMap(defaultValues);
-    myTranslations = HashBasedTable.create(translations);
+    myKeyToResourceMap = keyToResourceMap;
   }
 
-  @NotNull
-  public List<String> getKeys() {
-    return myKeys;
-  }
-
-  @NotNull
-  public Set<String> getUntranslatableKeys() {
-    return myUntranslatableKeys;
-  }
-
-  @NotNull
-  public List<Locale> getLocales() {
-    return myLocales;
-  }
-
-  @NotNull
-  public Map<String, ResourceItem> getDefaultValues() {
-    return myDefaultValues;
-  }
-
-  @NotNull
-  public Table<String, Locale, ResourceItem> getTranslations() {
-    return myTranslations;
-  }
-
-  @NotNull
-  public String resourceToString(@NotNull String key) {
-    ResourceItem item = myDefaultValues.get(key);
-    return item == null ? "" : resourceToString(item);
-  }
-
-  @NotNull
-  public String resourceToString(@NotNull String key, @NotNull Locale locale) {
-    ResourceItem item = myTranslations.get(key, locale);
-    return item == null ? "" : resourceToString(item);
-  }
-
-  @NotNull
-  private String resourceToString(@NotNull ResourceItem item) {
-    XmlTag tag = LocalResourceRepository.getItemTag(myFacet.getModule().getProject(), item);
-    String string;
-
-    if (tag == null) {
-      // TODO Make item.getResourceValue(false).getRawXmlValue() work in all cases so we can avoid the LocalResourceRepository
-      ResourceValue value = item.getResourceValue(false);
-
-      if (value == null) {
-        return "";
-      }
-
-      string = value.getRawXmlValue();
-    }
-    else {
-      string = tag.getValue().getText();
+  public void changeKeyName(@NotNull String oldKey, @NotNull String newKey) {
+    Set<String> keys = myKeyToResourceMap.keySet();
+    if (!keys.contains(oldKey)) {
+      throw new IllegalArgumentException("The old key \"" + oldKey + "\" doesn't exist.");
     }
 
-    return Strings.nullToEmpty(ValueXmlHelper.unescapeResourceString(string, false, false));
+    if (keys.contains(newKey)) {
+      throw new IllegalArgumentException("The new key \"" + newKey + "\" already exists.");
+    }
+
+    StringResource stringResource = myKeyToResourceMap.remove(oldKey);
+    assert stringResource != null;
+    stringResource.setKey(newKey);
+    myKeyToResourceMap.put(newKey, stringResource);
   }
 
-  public void changeKeyName(int index, String name) {
-    if (index >= myKeys.size()) {
-      throw new IllegalArgumentException(String.format("Cannot change key at index %1$d (# of entries: %2$d)", index, myKeys.size()));
-    }
-
-    if (myKeys.contains(name)) {
-      throw new IllegalArgumentException("Key " + name + " already exists.");
-    }
-
-    String currentName = myKeys.get(index);
-    ResourceItem defaultValue = myDefaultValues.get(currentName);
-    Map<Locale, ResourceItem> translations = myTranslations.row(currentName);
-
-    myKeys.remove(index);
-    myKeys.add(name);
-    Collections.sort(myKeys);
-
-    if (defaultValue != null) {
-      myDefaultValues.remove(currentName);
-      myDefaultValues.put(name, defaultValue);
-    }
-
-    if (!translations.isEmpty()) {
-      // TODO: can this be done? wouldn't this have to be re-read since the ResourceItems might be different?
-      // TODO: Is this whole thing better done as a refactoring operation?
-      myTranslations.row(name).putAll(translations);
-      translations.clear();
-    }
-  }
-
-  public boolean setDoNotTranslate(String key, boolean doNotTranslate) {
-    ResourceItem item = myDefaultValues.get(key);
+  public boolean setTranslatable(String key, boolean translatable) {
+    StringResource stringResource = getStringResource(key);
+    ResourceItem item = stringResource.getDefaultValueAsResourceItem();
     if (item != null) {
-      String translatable;
-      if (doNotTranslate) {
-        translatable = SdkConstants.VALUE_FALSE;
-        myUntranslatableKeys.add(key);
+      String translatableAsString;
+      if (translatable) {
+        translatableAsString = null;
+        stringResource.setTranslatable(true);
       }
       else {
-        translatable = null;
-        myUntranslatableKeys.remove(key);
+        translatableAsString = SdkConstants.VALUE_FALSE;
+        stringResource.setTranslatable(false);
       }
-      return StringsWriteUtils.setAttributeForItems(myFacet.getModule().getProject(), SdkConstants.ATTR_TRANSLATABLE, translatable,
+
+      return StringsWriteUtils.setAttributeForItems(myFacet.getModule().getProject(), SdkConstants.ATTR_TRANSLATABLE, translatableAsString,
                                                     Collections.singletonList(item));
     }
     return false;
   }
 
   public boolean setTranslation(@NotNull String key, @Nullable Locale locale, @NotNull String value) {
-    ResourceItem currentItem = locale == null ? myDefaultValues.get(key) : myTranslations.get(key, locale);
+    StringResource stringResource = getStringResource(key);
+    ResourceItem currentItem =
+      locale == null ? stringResource.getDefaultValueAsResourceItem() : stringResource.getTranslationAsResourceItem(locale);
     if (currentItem != null) { // modify existing item
-      CharSequence oldText = resourceToString(currentItem);
+      CharSequence oldText = locale == null ? stringResource.getDefaultValueAsString() : stringResource.getTranslationAsString(locale);
 
       if (!StringUtil.equals(oldText, value)) {
         boolean changed = StringsWriteUtils.setItemText(myFacet.getModule().getProject(), currentItem, value);
-
-        if (changed && value.isEmpty()) {
-          if (locale == null) {
-            myDefaultValues.remove(key);
+        if (changed) {
+          if (value.isEmpty()) {
+            if (locale == null) {
+              stringResource.removeDefaultValue();
+            }
+            else {
+              stringResource.removeTranslation(locale);
+            }
           }
           else {
-            myTranslations.remove(key, locale);
+            if (locale == null) {
+              stringResource.setDefaultValue(currentItem, value);
+            }
+            else {
+              stringResource.putTranslation(locale, currentItem, value);
+            }
           }
         }
         return changed;
@@ -188,14 +111,14 @@ public class StringResourceData {
       @SuppressWarnings("deprecation") VirtualFile primaryResourceDir = myFacet.getPrimaryResourceDir();
       assert primaryResourceDir != null;
 
-      ResourceItem item =
-        StringsWriteUtils.createItem(myFacet, primaryResourceDir, locale, key, value, !getUntranslatableKeys().contains(key));
+      boolean translatable = stringResource.isTranslatable();
+      ResourceItem item = StringsWriteUtils.createItem(myFacet, primaryResourceDir, locale, key, value, translatable);
       if (item != null) {
         if (locale == null) {
-          myDefaultValues.put(key, item);
+          stringResource.setDefaultValue(item, value);
         }
         else {
-          myTranslations.put(key, locale, item);
+          stringResource.putTranslation(locale, item, value);
         }
         return true;
       }
@@ -206,25 +129,24 @@ public class StringResourceData {
 
   @Nullable
   public String validateKey(@NotNull String key) {
-    if (!myKeys.contains(key)) {
+    if (!myKeyToResourceMap.keySet().contains(key)) {
       throw new IllegalArgumentException("Key " + key + " does not exist.");
     }
 
-    Map<Locale, ResourceItem> translationsForKey = myTranslations.row(key);
-    if (myUntranslatableKeys.contains(key)) {
-      if (!translationsForKey.isEmpty()) {
-        Set<Locale> localesWithTranslation = translationsForKey.keySet();
+    StringResource stringResource = getStringResource(key);
+    if (!stringResource.isTranslatable()) {
+      Collection<Locale> localesWithTranslation = stringResource.getTranslatedLocales();
+      if (!localesWithTranslation.isEmpty()) {
         return String.format("Key '%1$s' is marked as non translatable, but is translated in %2$s %3$s", key,
                              StringUtil.pluralize("locale", localesWithTranslation.size()), summarizeLocales(localesWithTranslation));
       }
     }
     else { // translatable key
-      if (myDefaultValues.get(key) == null) {
+      if (stringResource.getDefaultValueAsResourceItem() == null) {
         return "Key '" + key + "' missing default value";
       }
 
       Collection<Locale> missingTranslations = getMissingTranslations(key);
-
       if (!missingTranslations.isEmpty()) {
         return String
           .format("Key '%1$s' has translations missing for %2$s %3$s", key, StringUtil.pluralize("locale", missingTranslations.size()),
@@ -236,22 +158,24 @@ public class StringResourceData {
 
   @Nullable
   public String validateTranslation(@NotNull String key, @Nullable Locale locale) {
-    if (!myKeys.contains(key)) {
+    if (!myKeyToResourceMap.keySet().contains(key)) {
       throw new IllegalArgumentException("Key " + key + " does not exist.");
     }
 
+    StringResource stringResource = getStringResource(key);
+
     if (locale == null) {
-      ResourceItem item = myDefaultValues.get(key);
+      ResourceItem item = stringResource.getDefaultValueAsResourceItem();
       return (item == null) ? String.format("Key '%1$s' is missing the default value", key) : null;
     }
 
-    final boolean translationMissing = isTranslationMissing(key, locale);
-    final boolean doNotTranslate = myUntranslatableKeys.contains(key);
+    final boolean translationMissing = stringResource.isTranslationMissing(locale);
+    final boolean doNotTranslate = !stringResource.isTranslatable();
     if (translationMissing && !doNotTranslate) {
       return String.format("Key '%1$s' is missing %2$s translation", key, getLabel(locale));
     }
     else if (doNotTranslate && !translationMissing) {
-      return String.format("Key '%1$s' is marked as non-localizable, and should not be translated to %2$s", key, getLabel(locale));
+      return "Key '" + key + "' is marked as untranslatable and should not be translated to " + getLabel(locale);
     }
     return null;
   }
@@ -260,29 +184,14 @@ public class StringResourceData {
   @VisibleForTesting
   Collection<Locale> getMissingTranslations(@NotNull String key) {
     Set<Locale> missingTranslations = Sets.newHashSet();
-    for (Locale locale : myLocales) {
-      if (isTranslationMissing(key, locale)) {
+    for (Locale locale : getLocales()) {
+      StringResource stringResource = getStringResource(key);
+      if (stringResource.isTranslationMissing(locale)) {
         missingTranslations.add(locale);
       }
     }
 
     return missingTranslations;
-  }
-
-  @VisibleForTesting
-  boolean isTranslationMissing(@NotNull String key, @NotNull Locale locale) {
-    ResourceItem item = myTranslations.get(key, locale);
-
-    if (isTranslationMissing(item) && locale.hasRegion()) {
-      locale = Locale.create(locale.qualifier.getLanguage());
-      item = myTranslations.get(key, locale);
-    }
-
-    return isTranslationMissing(item);
-  }
-
-  private boolean isTranslationMissing(@Nullable ResourceItem item) {
-    return item == null || resourceToString(item).isEmpty();
   }
 
   @VisibleForTesting
@@ -301,7 +210,7 @@ public class StringResourceData {
     final int max = 3;
     List<Locale> sorted = getLowest(locales, max);
     if (size <= max) {
-      return String.format("%1$s and %2$s", getLabels(Iterables.limit(sorted, size - 1)), getLabel(sorted.get(size - 1)));
+      return getLabels(sorted.subList(0, size - 1)) + " and " + getLabel(sorted.get(size - 1));
     }
     else {
       return String.format("%1$s and %2$d more", getLabels(sorted), size - max);
@@ -309,36 +218,53 @@ public class StringResourceData {
   }
 
   private static List<Locale> getLowest(Collection<Locale> locales, int n) {
-    List<Locale> result = Lists.newArrayListWithExpectedSize(n);
-    List<Locale> input = Lists.newArrayList(locales);
-
-    Comparator<Locale> comparator = new Comparator<Locale>() {
-      @Override
-      public int compare(Locale l1, Locale l2) {
-        return getLabel(l1).compareTo(getLabel(l2));
-      }
-    };
-
-    // rather than sorting the whole list, we just extract the first n
-    for (int i = 0; i < locales.size() && i < n; i++) {
-      Locale min = Collections.min(input, comparator);
-      result.add(min);
-      input.remove(min);
-    }
-
-    return result;
+    return locales.stream()
+      .limit(n)
+      .sorted((locale1, locale2) -> getLabel(locale1).compareTo(getLabel(locale2)))
+      .collect(Collectors.toList());
   }
 
-  private static String getLabels(Iterable<Locale> locales) {
-    return Joiner.on(", ").join(Iterables.transform(locales, new Function<Locale, String>() {
-      @Override
-      public String apply(Locale locale) {
-        return getLabel(locale);
-      }
-    }));
+  private static String getLabels(Collection<Locale> locales) {
+    return locales.stream()
+      .map(StringResourceData::getLabel)
+      .collect(Collectors.joining(", "));
   }
 
   private static String getLabel(@Nullable Locale locale) {
     return locale == null ? "" : LocaleMenuAction.getLocaleLabel(locale, false);
+  }
+
+  boolean containsKey(@NotNull String key) {
+    return myKeyToResourceMap.containsKey(key);
+  }
+
+  @NotNull
+  public StringResource getStringResource(@NotNull String key) {
+    StringResource stringResource = myKeyToResourceMap.get(key);
+    if (stringResource != null) {
+      return stringResource;
+    }
+    throw new IllegalArgumentException("No StringResource for key " + key);
+  }
+
+  @NotNull
+  public Collection<StringResource> getResources() {
+    return myKeyToResourceMap.values();
+  }
+
+  @NotNull
+  public List<String> getKeys() {
+    List<String> keys = new ArrayList<>(myKeyToResourceMap.keySet());
+    Collections.sort(keys);
+    return keys;
+  }
+
+  @NotNull
+  public List<Locale> getLocales() {
+    Set<Locale> locales = new TreeSet<>(Locale.LANGUAGE_CODE_COMPARATOR);
+    for (StringResource stringResource : myKeyToResourceMap.values()) {
+      locales.addAll(stringResource.getTranslatedLocales());
+    }
+    return new ArrayList<>(locales);
   }
 }

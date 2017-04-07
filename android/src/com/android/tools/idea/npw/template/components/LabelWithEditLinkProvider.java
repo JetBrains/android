@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.template.components;
 
 import com.android.tools.idea.templates.Parameter;
-import com.android.tools.idea.ui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditLink;
 import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import org.jetbrains.annotations.NotNull;

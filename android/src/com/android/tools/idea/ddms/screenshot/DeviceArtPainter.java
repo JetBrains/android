@@ -21,17 +21,18 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.tools.idea.rendering.ImageUtils;
-import com.android.tools.idea.rendering.RenderedImage;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.reference.SoftReference;
 import com.intellij.ui.Gray;
 import com.intellij.util.PathUtil;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -267,6 +268,44 @@ public class DeviceArtPainter {
     }
   }
 
+  @Nullable
+  private static Shape getClip(@Nullable Device device, int x, int y, int width, int height) {
+    boolean round = device != null && device.isScreenRound();
+    if (round) {
+      int slop = 3; // to hide mask aliasing effects under device chrome by a pixel or two
+      return new Ellipse2D.Double(x - slop, y - slop, width + 2 * slop, height + 2 * slop);
+    }
+
+    return null;
+  }
+
+
+  /** Paints a rendered device image into the given graphics context  */
+  public static void paintClipped(@NotNull Graphics2D g,
+                                  @NotNull BufferedImage image,
+                                  @Nullable Device device,
+                                  int x,
+                                  int y,
+                                  boolean withRetina) {
+    Shape prevClip = null;
+    Shape clip = getClip(device, x, y, image.getWidth(), image.getHeight());
+    if (clip != null) {
+      prevClip = g.getClip();
+      g.setClip(clip);
+    }
+
+    if (withRetina) {
+      //noinspection ConstantConditions
+      UIUtil.drawImage(g, image, x, y, null);
+    } else {
+      g.drawImage(image, x, y, null);
+    }
+
+    if (clip != null) {
+      g.setClip(prevClip);
+    }
+  }
+
   @NotNull
   public BufferedImage createFrame(@NotNull BufferedImage image,
                                    @NotNull Device device,
@@ -311,7 +350,7 @@ public class DeviceArtPainter {
       g.setColor(Gray.TRANSPARENT);
       g.fillRect(0, 0, result.getWidth(), result.getHeight());
 
-      RenderedImage.paintClipped(g, scaledImage, device, screenX, screenY, false);
+      paintClipped(g, scaledImage, device, screenX, screenY, false);
 
       BufferedImage scaledFrameImage = ImageUtils.scale(frameImage, downScale, downScale, 0, 0);
       g.drawImage(scaledFrameImage, 0, 0, null);

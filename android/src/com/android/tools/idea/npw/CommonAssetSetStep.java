@@ -25,7 +25,6 @@ import com.android.tools.idea.wizard.template.TemplateWizardState;
 import com.android.tools.idea.wizard.template.TemplateWizardStep;
 import com.google.common.collect.Iterators;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -50,7 +49,6 @@ import static com.android.tools.idea.npw.AssetStudioAssetGenerator.*;
  */
 abstract public class CommonAssetSetStep extends TemplateWizardStep implements Disposable {
   public static final String ATTR_OUTPUT_FOLDER = "outputFolder";
-  private static final Logger LOG = Logger.getInstance(CommonAssetSetStep.class);
   protected SourceProvider mySourceProvider = null;
 
   protected AssetStudioAssetGenerator myAssetGenerator;

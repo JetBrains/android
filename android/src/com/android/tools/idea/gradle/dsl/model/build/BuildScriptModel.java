@@ -34,7 +34,7 @@ public class BuildScriptModel extends GradleDslBlockModel {
 
   @NotNull
   public DependenciesModel dependencies() {
-    DependenciesDslElement dependenciesDslElement = myDslElement.getProperty(DEPENDENCIES_BLOCK_NAME, DependenciesDslElement.class);
+    DependenciesDslElement dependenciesDslElement = myDslElement.getPropertyElement(DEPENDENCIES_BLOCK_NAME, DependenciesDslElement.class);
     if (dependenciesDslElement == null) {
       dependenciesDslElement = new DependenciesDslElement(myDslElement);
       myDslElement.setNewElement(DEPENDENCIES_BLOCK_NAME, dependenciesDslElement);
@@ -44,7 +44,7 @@ public class BuildScriptModel extends GradleDslBlockModel {
 
   @NotNull
   public RepositoriesModel repositories() {
-    RepositoriesDslElement repositoriesDslElement = myDslElement.getProperty(REPOSITORIES_BLOCK_NAME, RepositoriesDslElement.class);
+    RepositoriesDslElement repositoriesDslElement = myDslElement.getPropertyElement(REPOSITORIES_BLOCK_NAME, RepositoriesDslElement.class);
     if (repositoriesDslElement == null) {
       repositoriesDslElement = new RepositoriesDslElement(myDslElement);
       myDslElement.setNewElement(REPOSITORIES_BLOCK_NAME, repositoriesDslElement);

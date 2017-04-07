@@ -1,0 +1,19 @@
+buildscript {
+  dependencies {
+    classpath 'com.android.tools.build:gradle:2.2.0'
+  }
+}
+
+apply plugin: 'com.android.application'
+
+android {
+  compileSdkVersion 23
+  buildToolsVersion "23.0.2"
+
+  defaultConfig {
+    applicationId "com.android.simpleapplication"
+    minSdkVersion 19
+    targetSdkVersion 23
+    testInstrumentationRunnerArguments size:"medium", foo:"bar"
+  }
+}

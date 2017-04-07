@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.assistant.view;
 
+import com.android.tools.idea.assistant.datamodel.AnalyticsProvider;
 import com.android.tools.idea.assistant.datamodel.FeatureData;
 import com.android.tools.idea.assistant.datamodel.TutorialData;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBLabel;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,12 +32,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 /**
- * Renderer and behaviors for a single service in the {@code TutorialChooser}.
- *
- * TODO: Either move to a form or clean up instantiation of visual elements.
- * TODO: Refactor everything related to "service" to "feature" or "API" as
- * service is an artifact of "Developer Services" which we don't need to
- * inherit in our own code.
+ * Renderer and behaviors for a single feature in the {@code TutorialChooser}.
  */
 public class FeatureEntryPoint extends JPanel {
   private boolean myExpanded = false;
@@ -42,14 +40,25 @@ public class FeatureEntryPoint extends JPanel {
   private ActionListener myListener;
   private JLabel myArrow;
   private JPanel myTargetPane;
+  private AnalyticsProvider myAnalyticsProvider;
+  private FeatureData myFeature;
+  private Project myProject;
 
-  public FeatureEntryPoint(FeatureData feature, ActionListener listener) {
+  public FeatureEntryPoint(
+    @NotNull FeatureData feature,
+    @NotNull ActionListener listener,
+    @NotNull AnalyticsProvider analyticsProvider,
+    @NotNull Project project) {
     super(new VerticalFlowLayout(0, 0));
     setOpaque(false);
 
-    String label = feature.getName();
-    String description = feature.getDescription();
     myListener = listener;
+    myAnalyticsProvider = analyticsProvider;
+    myFeature = feature;
+    myProject = project;
+
+    String label = myFeature.getName();
+    String description = myFeature.getDescription();
 
     myTargetPane = new JPanel();
     myTargetPane.setOpaque(false);
@@ -75,18 +84,18 @@ public class FeatureEntryPoint extends JPanel {
     // of a feature icon.
     int innerContentsOffset = 0;
 
-    JBLabel serviceLabel = new JBLabel();
-    serviceLabel.addMouseListener(summaryMouseHandler);
-    serviceLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 5));
-    serviceLabel.setFont(serviceLabel.getFont().deriveFont(Font.BOLD));
-    serviceLabel.setText(label);
-    Icon featureIcon = feature.getIcon();
+    JBLabel featureLabel = new JBLabel();
+    featureLabel.addMouseListener(summaryMouseHandler);
+    featureLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 5));
+    featureLabel.setFont(featureLabel.getFont().deriveFont(Font.BOLD));
+    featureLabel.setText(label);
+    Icon featureIcon = myFeature.getIcon();
     if (featureIcon != null) {
-      serviceLabel.setIcon(featureIcon);
-      serviceLabel.setIconTextGap(5);
-      innerContentsOffset += featureIcon.getIconWidth() + serviceLabel.getIconTextGap();
+      featureLabel.setIcon(featureIcon);
+      featureLabel.setIconTextGap(5);
+      innerContentsOffset += featureIcon.getIconWidth() + featureLabel.getIconTextGap();
     }
-    summary.add(serviceLabel);
+    summary.add(featureLabel);
 
     JTextPane descriptionPane = new JTextPane();
     descriptionPane.setOpaque(false);
@@ -100,7 +109,7 @@ public class FeatureEntryPoint extends JPanel {
     myTutorialsList.setLayout(new BoxLayout(myTutorialsList, BoxLayout.Y_AXIS));
     myTutorialsList.setBorder(BorderFactory.createEmptyBorder(5, myArrow.getPreferredSize().width + innerContentsOffset, 0, 5));
     myTutorialsList.setVisible(false);
-    for (TutorialData tutorial : feature.getTutorials()) {
+    for (TutorialData tutorial : myFeature.getTutorials()) {
       addTutorial(tutorial.getLabel(), tutorial.getKey());
     }
     add(myTutorialsList);
@@ -118,12 +127,15 @@ public class FeatureEntryPoint extends JPanel {
 
   /**
    * Toggles the visibility of the tutorial list associated with the given
-   * service.
+   * feature.
    */
   private void toggleTutorials() {
     myExpanded = !myExpanded;
-    getLog().debug("Toggled service summary view to expand state: " + myExpanded);
-    // Update the related icon to show whether the service summary is in an
+    getLog().debug("Toggled feature summary view to expand state: " + myExpanded);
+    if (myExpanded) {
+      myAnalyticsProvider.trackFeatureGroupExpanded(myFeature.getName(), myProject);
+    }
+    // Update the related icon to show whether the feature summary is in an
     // expanded state.
     myArrow.setIcon(myExpanded ? AllIcons.Nodes.TreeDownArrow : AllIcons.Nodes.TreeRightArrow);
     myTutorialsList.setVisible(myExpanded);
@@ -150,5 +162,4 @@ public class FeatureEntryPoint extends JPanel {
       myTargetPane.setBackground(null);
     }
   }
-
 }

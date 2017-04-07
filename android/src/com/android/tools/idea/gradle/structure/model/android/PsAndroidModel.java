@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.model.android;
 
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import org.jetbrains.annotations.NotNull;
 
 public interface PsAndroidModel {
   @NotNull
-  AndroidGradleModel getGradleModel();
+  AndroidModuleModel getGradleModel();
 }

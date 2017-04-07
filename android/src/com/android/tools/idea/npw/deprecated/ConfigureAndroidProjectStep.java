@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.deprecated;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.npw.WizardUtils;
-import com.android.tools.idea.ui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditLink;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -54,6 +54,8 @@ import java.util.Set;
  * @deprecated Replaced by {@link com.android.tools.idea.npw.project.ConfigureAndroidProjectStep}
  */
 public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndDescription {
+  public static final String STEP_NAME = "Create Android Project";
+
   private static final String EXAMPLE_DOMAIN = "example.com";
   public static final String SAVED_COMPANY_DOMAIN = "SAVED_COMPANY_DOMAIN";
 
@@ -165,7 +167,8 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
       return false;
     }
     else {
-      String message = AndroidUtils.validateAndroidPackageName(packageName);
+      // Fully qualified reference can be deleted once com.android.tools.idea.npw.WizardUtils has been removed
+      String message = com.android.tools.idea.ui.wizard.WizardUtils.validatePackageName(packageName);
       if (message != null) {
         setErrorHtml("Invalid package name: " + message);
         return false;
@@ -177,7 +180,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   @NotNull
   @Override
   public String getStepName() {
-    return "Create Android Project";
+    return STEP_NAME;
   }
 
   @Override

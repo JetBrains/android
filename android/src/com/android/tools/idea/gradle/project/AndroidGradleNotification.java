@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import com.android.tools.idea.gradle.service.notification.hyperlink.CustomNotificationListener;
-import com.android.tools.idea.gradle.service.notification.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.CustomNotificationListener;
+import com.android.tools.idea.gradle.project.sync.hyperlink.NotificationHyperlink;
 import com.google.common.base.Objects;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
@@ -97,21 +97,18 @@ public class AndroidGradleNotification {
                           @NotNull NotificationType type,
                           @NotNull NotificationGroup group,
                           @Nullable NotificationListener listener) {
-    final Notification notification = group.createNotification(title, text, type, listener);
-    Runnable notificationTask = new Runnable() {
-      @Override
-      public void run() {
-        if (!myProject.isDisposed() && myProject.isOpen()) {
-          Notification old = myNotification;
-          if (old != null) {
-            boolean similar = Objects.equal(notification.getContent(), old.getContent());
-            if (similar) {
-              old.expire();
-            }
+    Notification notification = group.createNotification(title, text, type, listener);
+    Runnable notificationTask = () -> {
+      if (!myProject.isDisposed() && myProject.isOpen()) {
+        Notification old = myNotification;
+        if (old != null) {
+          boolean similar = Objects.equal(notification.getContent(), old.getContent());
+          if (similar) {
+            old.expire();
           }
-          myNotification = notification;
-          notification.notify(myProject);
         }
+        myNotification = notification;
+        notification.notify(myProject);
       }
     };
     Application application = ApplicationManager.getApplication();

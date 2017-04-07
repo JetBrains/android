@@ -19,10 +19,12 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.templates.TemplateUtils;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.ptable.PTableGroupItem;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.idea.uibuilder.property.ptable.StarState;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.android.util.PropertiesMap;
 import com.google.common.base.MoreObjects;
@@ -52,11 +54,18 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     SdkConstants.ATTR_LAYOUT // <include layout="..." />
   );
 
-  @NotNull protected final List<NlComponent> myComponents;
-  @Nullable protected final AttributeDefinition myDefinition;
-  @NotNull private final String myName;
-  @Nullable private final String myNamespace;
-  @Nullable private PropertiesMap.Property myDefaultValue;
+  @NotNull
+  protected final List<NlComponent> myComponents;
+  @Nullable
+  protected final AttributeDefinition myDefinition;
+  @NotNull
+  private final String myName;
+  @Nullable
+  private final String myNamespace;
+  @Nullable
+  private PropertiesMap.Property myDefaultValue;
+  @NotNull
+  private StarState myStarState;
 
   public static NlPropertyItem create(@NotNull List<NlComponent> components,
                                       @NotNull XmlAttributeDescriptor descriptor,
@@ -95,6 +104,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     myName = descriptor.getName();
     myNamespace = namespace;
     myDefinition = attributeDefinition;
+    myStarState = StarState.STAR_ABLE;
   }
 
   public NlPropertyItem(@NotNull List<NlComponent> components,
@@ -106,6 +116,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     myName = attributeDefinition.getName();
     myNamespace = namespace;
     myDefinition = attributeDefinition;
+    myStarState = StarState.STAR_ABLE;
   }
 
   protected NlPropertyItem(@NotNull NlPropertyItem property, @NotNull String namespace) {
@@ -114,6 +125,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     myName = property.myName;
     myNamespace = namespace;
     myDefinition = property.myDefinition;
+    myStarState = StarState.STAR_ABLE;
     if (property.getParent() != null) {
       PTableGroupItem group = (PTableGroupItem)property.getParent();
       group.addChild(this, property);
@@ -135,6 +147,27 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
 
   @Override
   @NotNull
+  public StarState getStarState() {
+    return myStarState;
+  }
+
+  public void setInitialStarred() {
+    myStarState = StarState.STARRED;
+  }
+
+  @Override
+  public void setStarState(@NotNull StarState starState) {
+    myStarState = starState;
+    NlProperties.saveStarState(myNamespace, myName, starState == StarState.STARRED);
+    updateAllProperties();
+  }
+
+  private void updateAllProperties() {
+    getModel().getSelectionModel().updateListeners();
+  }
+
+  @Override
+  @NotNull
   public String getName() {
     return myName;
   }
@@ -152,20 +185,10 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   @Override
   @Nullable
   public String getValue() {
-    return getValue(false);
-  }
-
-  @Override
-  public boolean isValueUnset() {
-    return getValue(true) == null;
-  }
-
-  @Nullable
-  private String getValue(boolean raw) {
     ApplicationManager.getApplication().assertIsDispatchThread();
     String prev = null;
     for (NlComponent component : myComponents) {
-      String value = getComponentValue(component, raw);
+      String value = component.getAttribute(myNamespace, myName);
       if (value == null) {
         return null;
       }
@@ -179,22 +202,10 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     return prev;
   }
 
-  private String getComponentValue(@NotNull NlComponent component, boolean raw) {
-    String value = component.getAttribute(myNamespace, myName);
-    if (raw) {
-      return value;
-    }
-    return value == null && myDefaultValue != null ? myDefaultValue.resource : value;
-  }
-
   @Override
   @Nullable
   public String getResolvedValue() {
-    String value = getValue();
-    if (value != null) {
-      value = resolveValue(value);
-    }
-    return value;
+    return resolveValue(getValue());
   }
 
   @Override
@@ -209,15 +220,15 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
   }
 
   @Override
-  @NotNull
-  public String resolveValue(@NotNull String value) {
-    if (myDefaultValue != null && myDefaultValue.value != null && isDefaultValue(value)) {
+  @Nullable
+  public String resolveValue(@Nullable String value) {
+    if (myDefaultValue != null && isDefaultValue(value)) {
       if (myDefaultValue.value == null) {
         myDefaultValue = new PropertiesMap.Property(myDefaultValue.resource, resolveValueUsingResolver(myDefaultValue.resource));
       }
       return myDefaultValue.value;
     }
-    return resolveValueUsingResolver(value);
+    return value != null ? resolveValueUsingResolver(value) : null;
   }
 
   public void delete() {
@@ -341,12 +352,13 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
     NlComponent first = myComponents.get(0);
     String componentName = myComponents.size() == 1 ? first.getTagName() : "Multiple";
     String msg = String.format("Set %1$s.%2$s to %3$s", componentName, myName, attrValue);
-    new WriteCommandAction.Simple(getModel().getProject(), msg, first.getTag().getContainingFile()) {
+    new WriteCommandAction.Simple(getModel().getProject(), msg, getModel().getFile()) {
       @Override
       protected void run() throws Throwable {
         for (NlComponent component : myComponents) {
           String v = StringUtil.isEmpty(attrValue) ? null : attrValue;
           component.setAttribute(myNamespace, myName, v);
+          TemplateUtils.reformatAndRearrange(getProject(), component.getTag());
         }
       }
     }.execute();
@@ -357,7 +369,7 @@ public class NlPropertyItem extends PTableItem implements NlProperty {
       // Special case: When the tools:parentTag is updated on a <merge> tag, the set of attributes for
       // the <merge> tag may change e.g. if the value is set to "LinearLayout" the <merge> tag will
       // then have all attributes from a <LinearLayout>. Force an update of all properties:
-      getModel().getSelectionModel().updateListeners();
+      updateAllProperties();
     }
   }
 

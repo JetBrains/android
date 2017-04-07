@@ -27,6 +27,7 @@ import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.execution.process.ProcessOutput;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Solution strings used in {@link AccelerationErrorCode}, and associated Runnables to fix them.
@@ -52,7 +54,7 @@ public class AccelerationErrorSolution {
     " 2) Start the emulator on a non-virtualized operating system\n" +
     " 3) Use an Android Virtual Device based on an ARM system image (This is 10x slower than hardware accelerated virtualization)\n";
 
-  static final String SOLUTION_ACCERATION_NOT_SUPPORTED =
+  static final String SOLUTION_ACCELERATION_NOT_SUPPORTED =
     "Unfortunately, your computer does not support hardware accelerated virtualization.\n" +
     "Here are some of your options:\n" +
     " 1) Use a physical device for testing\n" +
@@ -71,6 +73,8 @@ public class AccelerationErrorSolution {
   static final String SOLUTION_REBOOT_AFTER_TURNING_HYPER_V_OFF =
     "Hyper-V was successfully turned off. However a system restart is required for this to take effect.\n\n" +
     "Do you want to reboot now?\n";
+
+  private static final AtomicBoolean ourRebootRequestedAsync = new AtomicBoolean(false);
 
   /**
    * Solution to problems that we can fix from Android Studio.
@@ -216,7 +220,7 @@ public class AccelerationErrorSolution {
           @Override
           public void run() {
             try {
-              HaxmWizard wizard = new HaxmWizard();
+              HaxmWizard wizard = new HaxmWizard(false);
               wizard.init();
               myChangesMade = wizard.showAndGet();
             }
@@ -237,15 +241,7 @@ public class AccelerationErrorSolution {
               turnHyperVOff.setWorkDirectory(FileUtilRt.getTempDirectory());
               try {
                 execute(turnHyperVOff);
-                int response = Messages
-                  .showOkCancelDialog(myProject, SOLUTION_REBOOT_AFTER_TURNING_HYPER_V_OFF, "Reboot Now", Messages.getQuestionIcon());
-                if (response == Messages.OK) {
-                  GeneralCommandLine reboot = new ElevatedCommandLine();
-                  reboot.setExePath("shutdown");
-                  reboot.addParameters("/g", "/t", "10");  // shutdown & restart after a 10 sec delay
-                  reboot.setWorkDirectory(FileUtilRt.getTempDirectory());
-                  execute(reboot);
-                }
+                promptAndReboot(SOLUTION_REBOOT_AFTER_TURNING_HYPER_V_OFF);
               }
               catch (ExecutionException ex) {
                 LOG.error(ex);
@@ -270,6 +266,56 @@ public class AccelerationErrorSolution {
             }
           }
         };
+    }
+  }
+
+  /**
+   * Prompts the user to reboot now, and performs the reboot if accepted.
+   * HAXM Installer may need a reboot only on Windows, so this method is intended to work only on Windows
+   * and only for HAXM installer use case
+   *
+   * @param prompt the message to display to the user
+   * @exception ExecutionException if the shutdown command fails to execute
+   * @return No return value
+   */
+  public static void promptAndReboot(@NotNull String prompt) throws ExecutionException {
+    int response = Messages
+      .showOkCancelDialog((Project)null, prompt, "Reboot Now", Messages.getQuestionIcon());
+    if (response == Messages.OK) {
+      GeneralCommandLine reboot = new ElevatedCommandLine();
+      reboot.setExePath("shutdown");
+      reboot.addParameters("/g", "/t", "10");  // shutdown & restart after a 10 sec delay
+      reboot.setWorkDirectory(FileUtilRt.getTempDirectory());
+      execute(reboot);
+    }
+  }
+
+  /**
+   * Async version of {@link #promptAndReboot(String)}, which uses {@link ModalityState} to determine when to prompt for the reboot.
+   * This is required when a reboot may be requested from multiple places during one wizard execution, and:
+   * - we don't want the prompt to appear before the wizard finishes
+   * - we don't want the prompt to appear several times
+   *
+   * If one reboot request is already queued, subsequent calls will be a no-op even when called with a different
+   * {@link ModalityState} or reboot message. Once a prompt is released to the user and the choice has been made,
+   * another call to this method will queue another reboot request.
+   *
+   * @param prompt the message to display to the user
+   * @param modality ModalityState which determines when the reboot prompt will actually appear
+   * @return No return value
+   */
+  public static void promptAndRebootAsync(@NotNull String prompt, @NotNull ModalityState modality) {
+    if (ourRebootRequestedAsync.compareAndSet(false, true)) {
+      ApplicationManager.getApplication().invokeLater(() -> {
+        try {
+          promptAndReboot(prompt);
+        }
+        catch (ExecutionException e) {
+          LOG.warn("Automatic reboot attempt failed due to an exception", e);
+          Messages.showErrorDialog("Reboot attempt failed. Please reboot manually", "Automatic Reboot");
+        }
+        ourRebootRequestedAsync.set(false);
+      }, modality);
     }
   }
 

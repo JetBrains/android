@@ -20,7 +20,9 @@ import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
-import java.util.Collection;
+import java.util.List;
+
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link ProductFlavorsDslElement}.
@@ -49,29 +51,22 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    Collection<ProductFlavorModel> productFlavors = getGradleBuildModel().android().productFlavors();
-    assertSize(2, productFlavors);
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
 
-    boolean flavor1Found = false;
-    boolean flavor2Found = false;
-    for (ProductFlavorModel flavor : productFlavors) {
-      if ("flavor1".equals(flavor.name())) {
-        flavor1Found = true;
-        assertEquals("applicationId", "com.example.myFlavor1", flavor.applicationId());
-        assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.txt"), flavor.proguardFiles());
-        assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key1", "value1", "key2", "value2"),
-                     flavor.testInstrumentationRunnerArguments());
-      }
-      else if ("flavor2".equals(flavor.name())) {
-        flavor2Found = true;
-        assertEquals("applicationId", "com.example.myFlavor2", flavor.applicationId());
-        assertEquals("proguardFiles", ImmutableList.of("proguard-android-2.txt", "proguard-rules-2.txt"), flavor.proguardFiles());
-        assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key3", "value3", "key4", "value4"),
-                     flavor.testInstrumentationRunnerArguments());
-      }
-    }
-    assertTrue("flavor1", flavor1Found);
-    assertTrue("flavor2", flavor2Found);
+    List<ProductFlavorModel> productFlavors = android.productFlavors();
+    assertThat(productFlavors).hasSize(2);
+
+    ProductFlavorModel flavor1 = productFlavors.get(0);
+    assertEquals("applicationId", "com.example.myFlavor1", flavor1.applicationId());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.txt"), flavor1.proguardFiles());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key1", "value1", "key2", "value2"),
+                 flavor1.testInstrumentationRunnerArguments());
+    ProductFlavorModel flavor2 = productFlavors.get(1);
+    assertEquals("applicationId", "com.example.myFlavor2", flavor2.applicationId());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android-2.txt", "proguard-rules-2.txt"), flavor2.proguardFiles());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key3", "value3", "key4", "value4"),
+                 flavor2.testInstrumentationRunnerArguments());
   }
 
   public void testProductFlavorsWithAssignmentStatements() throws Exception {
@@ -90,29 +85,23 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    Collection<ProductFlavorModel> productFlavors = getGradleBuildModel().android().productFlavors();
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
+
+    List<ProductFlavorModel> productFlavors = android.productFlavors();
     assertSize(2, productFlavors);
 
-    boolean flavor1Found = false;
-    boolean flavor2Found = false;
-    for (ProductFlavorModel flavor : productFlavors) {
-      if ("flavor1".equals(flavor.name())) {
-        flavor1Found = true;
-        assertEquals("applicationId", "com.example.myFlavor1", flavor.applicationId());
-        assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.txt"), flavor.proguardFiles());
+    ProductFlavorModel flavor1 = productFlavors.get(0);
+        assertEquals("applicationId", "com.example.myFlavor1", flavor1.applicationId());
+        assertEquals("proguardFiles", ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.txt"), flavor1.proguardFiles());
         assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key1", "value1", "key2", "value2"),
-                     flavor.testInstrumentationRunnerArguments());
-      }
-      else if ("flavor2".equals(flavor.name())) {
-        flavor2Found = true;
-        assertEquals("applicationId", "com.example.myFlavor2", flavor.applicationId());
-        assertEquals("proguardFiles", ImmutableList.of("proguard-android-2.txt", "proguard-rules-2.txt"), flavor.proguardFiles());
+                     flavor1.testInstrumentationRunnerArguments());
+
+    ProductFlavorModel flavor2 = productFlavors.get(1);
+        assertEquals("applicationId", "com.example.myFlavor2", flavor2.applicationId());
+        assertEquals("proguardFiles", ImmutableList.of("proguard-android-2.txt", "proguard-rules-2.txt"), flavor2.proguardFiles());
         assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key3", "value3", "key4", "value4"),
-                     flavor.testInstrumentationRunnerArguments());
-      }
-    }
-    assertTrue("flavor1", flavor1Found);
-    assertTrue("flavor2", flavor2Found);
+                     flavor2.testInstrumentationRunnerArguments());
   }
 
   public void testProductFlavorsWithOverrideStatements() throws Exception {
@@ -145,29 +134,23 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    Collection<ProductFlavorModel> productFlavors = getGradleBuildModel().android().productFlavors();
-    assertSize(2, productFlavors);
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
 
-    boolean flavor1Found = false;
-    boolean flavor2Found = false;
-    for (ProductFlavorModel flavor : productFlavors) {
-      if ("flavor1".equals(flavor.name())) {
-        flavor1Found = true;
-        assertEquals("applicationId", "com.example.myFlavor1-1", flavor.applicationId());
-        assertEquals("proguardFiles", ImmutableList.of("proguard-android-3.txt", "proguard-rules-3.txt"), flavor.proguardFiles());
+    List<ProductFlavorModel> productFlavors = android.productFlavors();
+    assertThat(productFlavors).hasSize(2);
+
+    ProductFlavorModel flavor1 = productFlavors.get(0);
+        assertEquals("applicationId", "com.example.myFlavor1-1", flavor1.applicationId());
+        assertEquals("proguardFiles", ImmutableList.of("proguard-android-3.txt", "proguard-rules-3.txt"), flavor1.proguardFiles());
         assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key5", "value5", "key6", "value6"),
-                     flavor.testInstrumentationRunnerArguments());
-      }
-      else if ("flavor2".equals(flavor.name())) {
-        flavor2Found = true;
-        assertEquals("applicationId", "com.example.myFlavor2-1", flavor.applicationId());
-        assertEquals("proguardFiles", ImmutableList.of("proguard-android-4.txt", "proguard-rules-4.txt"), flavor.proguardFiles());
-        assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key7", "value7", "key8", "value8"),
-                     flavor.testInstrumentationRunnerArguments());
-      }
-    }
-    assertTrue("flavor1", flavor1Found);
-    assertTrue("flavor2", flavor2Found);
+                     flavor1.testInstrumentationRunnerArguments());
+
+    ProductFlavorModel flavor2 = productFlavors.get(1);
+    assertEquals("applicationId", "com.example.myFlavor2-1", flavor2.applicationId());
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android-4.txt", "proguard-rules-4.txt"), flavor2.proguardFiles());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key7", "value7", "key8", "value8"),
+                     flavor2.testInstrumentationRunnerArguments());
   }
 
   public void testProductFlavorsWithAppendStatements() throws Exception {
@@ -196,29 +179,23 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     writeToBuildFile(text);
 
-    Collection<ProductFlavorModel> productFlavors = getGradleBuildModel().android().productFlavors();
-    assertSize(2, productFlavors);
+    AndroidModel android = getGradleBuildModel().android();
+    assertNotNull(android);
 
-    boolean flavor1Found = false;
-    boolean flavor2Found = false;
-    for (ProductFlavorModel flavor : productFlavors) {
-      if ("flavor1".equals(flavor.name())) {
-        flavor1Found = true;
-        assertEquals("proguardFiles",
-                     ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.txt", "proguard-android-3.txt", "proguard-rules-3.txt"),
-                     flavor.proguardFiles());
-        assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key1", "value1", "key2", "value2", "key5", "value5"),
-                     flavor.testInstrumentationRunnerArguments());
-      }
-      else if ("flavor2".equals(flavor.name())) {
-        flavor2Found = true;
-        assertEquals("proguardFiles", ImmutableList.of("proguard-android-2.txt", "proguard-rules-2.txt", "proguard-android-4.txt"),
-                     flavor.proguardFiles());
-        assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key3", "value3", "key4", "value4", "key6", "value6"),
-                     flavor.testInstrumentationRunnerArguments());
-      }
-    }
-    assertTrue("flavor1", flavor1Found);
-    assertTrue("flavor2", flavor2Found);
+    List<ProductFlavorModel> productFlavors = android.productFlavors();
+    assertThat(productFlavors).hasSize(2);
+
+    ProductFlavorModel flavor1 = productFlavors.get(0);
+    assertEquals("proguardFiles",
+                 ImmutableList.of("proguard-android-1.txt", "proguard-rules-1.txt", "proguard-android-3.txt", "proguard-rules-3.txt"),
+                 flavor1.proguardFiles());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key1", "value1", "key2", "value2", "key5", "value5"),
+                 flavor1.testInstrumentationRunnerArguments());
+
+    ProductFlavorModel flavor2 = productFlavors.get(1);
+    assertEquals("proguardFiles", ImmutableList.of("proguard-android-2.txt", "proguard-rules-2.txt", "proguard-android-4.txt"),
+                 flavor2.proguardFiles());
+    assertEquals("testInstrumentationRunnerArguments", ImmutableMap.of("key3", "value3", "key4", "value4", "key6", "value6"),
+                 flavor2.testInstrumentationRunnerArguments());
   }
 }

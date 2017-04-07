@@ -30,6 +30,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.res.AppResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
@@ -62,7 +63,6 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.idea.ui.resourcechooser.ColorPicker;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,6 +74,7 @@ import org.w3c.dom.NodeList;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.List;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
@@ -94,17 +95,13 @@ public class AndroidColorAnnotator implements Annotator {
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      // disable it in test mode temporary, because of failing AndroidLayoutDomTest#testAttrReferences1()
-      return;
-    }
     if (element instanceof XmlTag) {
       XmlTag tag = (XmlTag)element;
       String tagName = tag.getName();
       if ((ResourceType.COLOR.getName().equals(tagName) || ResourceType.DRAWABLE.getName().equals(tagName)
             || ResourceType.MIPMAP.getName().equals(tagName))) {
         DomElement domElement = DomManager.getDomManager(element.getProject()).getDomElement(tag);
-        if (domElement instanceof ResourceElement) {
+        if (domElement instanceof ResourceElement || ApplicationManager.getApplication().isUnitTestMode()) {
           String value = tag.getValue().getText().trim();
           annotateXml(element, holder, value);
         }
@@ -219,7 +216,6 @@ public class AndroidColorAnnotator implements Annotator {
     if (file == null) {
       return;
     }
-
     Configuration configuration = pickConfiguration(facet, module, file);
     if (configuration == null) {
       return;
@@ -230,7 +226,7 @@ public class AndroidColorAnnotator implements Annotator {
       // TODO: Use a *shared* fallback resolver for this?
       ResourceResolver resourceResolver = configuration.getResourceResolver();
       if (resourceResolver != null) {
-        annotateResourceValue(type, holder, element, value, resourceResolver);
+        annotateResourceValue(type, holder, element, value, resourceResolver, facet);
       }
     }
   }
@@ -266,7 +262,8 @@ public class AndroidColorAnnotator implements Annotator {
                                             @NotNull AnnotationHolder holder,
                                             @NotNull PsiElement element,
                                             @NotNull ResourceValue value,
-                                            @NotNull ResourceResolver resourceResolver) {
+                                            @NotNull ResourceResolver resourceResolver,
+                                            @NotNull AndroidFacet facet) {
     Project project = element.getProject();
     if (type == ResourceType.COLOR) {
       Color color = ResourceHelper.resolveColor(resourceResolver, value, project);
@@ -279,18 +276,22 @@ public class AndroidColorAnnotator implements Annotator {
 
       File file = ResourceHelper.resolveDrawable(resourceResolver, value, project);
       if (file != null && file.getPath().endsWith(DOT_XML)) {
-        file = pickBitmapFromXml(file, resourceResolver, project);
+        file = pickBitmapFromXml(file, resourceResolver, project, facet, value);
       }
       File iconFile = pickBestBitmap(file);
       if (iconFile != null) {
         Annotation annotation = holder.createInfoAnnotation(element, null);
-        annotation.setGutterIconRenderer(new com.android.tools.idea.rendering.GutterIconRenderer(element, iconFile));
+        annotation.setGutterIconRenderer(new com.android.tools.idea.rendering.GutterIconRenderer(resourceResolver, element, iconFile));
       }
     }
   }
 
   @Nullable
-  private static File pickBitmapFromXml(@NotNull File file, @NotNull ResourceResolver resourceResolver, @NotNull Project project) {
+  private static File pickBitmapFromXml(@NotNull File file,
+                                        @NotNull ResourceResolver resourceResolver,
+                                        @NotNull Project project,
+                                        @NonNull AndroidFacet facet,
+                                        @NonNull ResourceValue resourceValue) {
     try {
       String xml = Files.toString(file, Charsets.UTF_8);
       Document document = XmlUtils.parseDocumentSilently(xml, true);
@@ -300,6 +301,26 @@ public class AndroidColorAnnotator implements Annotator {
         Element target = null;
         String attribute = null;
         if ("vector".equals(tag)) {
+          // Take a look and see if we have a bitmap we can fall back to
+          AppResourceRepository resourceRepository = AppResourceRepository.getAppResources(facet, true);
+          List<com.android.ide.common.res2.ResourceItem> items =
+            resourceRepository.getResourceItem(resourceValue.getResourceType(), resourceValue.getName());
+          if (items != null) {
+            for (com.android.ide.common.res2.ResourceItem item : items) {
+              FolderConfiguration configuration = item.getConfiguration();
+              DensityQualifier densityQualifier = configuration.getDensityQualifier();
+              if (densityQualifier != null) {
+                Density density = densityQualifier.getValue();
+                if (density != null && density.isValidValueForDevice()) {
+                  File bitmap = item.getFile();
+                  if (bitmap != null && bitmap.isFile()) {
+                    return bitmap;
+                  }
+                }
+              }
+            }
+          }
+
           // Vectors are handled in the icon cache
           return file;
         }

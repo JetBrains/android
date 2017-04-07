@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui;
 
+import com.android.tools.adtui.model.Range;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.util.ui.ButtonlessScrollBarUI;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -53,6 +55,12 @@ public final class RangeScrollbar extends JBScrollBar implements Animatable {
   }
 
   /**
+   * The default viewing length when the scrollbar is in STREAMING mode. As time advances, both the min and max values
+   * of the view range is shifted to maintain the viewing length.
+   */
+  public static final double DEFAULT_VIEW_LENGTH_US = TimeUnit.SECONDS.toMicros(15);
+
+  /**
    * Percentage threshold to switch the scrollbar to STREAMING mode.
    */
   private static final float STREAMING_POSITION_THRESHOLD = 0.1f;
@@ -68,12 +76,15 @@ public final class RangeScrollbar extends JBScrollBar implements Animatable {
   @NotNull
   private final Range mRange;
 
+  private double mCurrentViewLength;
+
   public RangeScrollbar(@NotNull Range globalRange, @NotNull Range range) {
     super(HORIZONTAL);
 
     mGlobalRange = globalRange;
     mRange = range;
     mScrollingMode = ScrollingMode.STREAMING;
+    mCurrentViewLength = DEFAULT_VIEW_LENGTH_US;
 
     addMouseListener(new MouseAdapter() {
       @Override
@@ -85,6 +96,10 @@ public final class RangeScrollbar extends JBScrollBar implements Animatable {
       public void mouseReleased(MouseEvent e) {
         mScrollingMode = closeToMaxRange() ?
                          ScrollingMode.STREAMING : ScrollingMode.VIEWING;
+        if (mScrollingMode == ScrollingMode.STREAMING) {
+          // When the user switches back to STREAMING mode, use the current length as the view length.
+          mCurrentViewLength = mRange.getLength();
+        }
       }
     });
   }
@@ -105,20 +120,20 @@ public final class RangeScrollbar extends JBScrollBar implements Animatable {
   @Override
   public void reset() {
     mScrollingMode = ScrollingMode.STREAMING;
+    mCurrentViewLength = DEFAULT_VIEW_LENGTH_US;
 
     // Reset the global and current data range to start from the current point onwards.
     double now = mGlobalRange.getMax();
-    mGlobalRange.setMin(now);
+    mGlobalRange.set(now, now + mCurrentViewLength);
     mRange.set(now, now);
   }
 
   @Override
   public void animate(float frameLength) {
     if (mScrollingMode == ScrollingMode.STREAMING) {
-      if (!mRange.setMax(mGlobalRange.getMax())) {
-        // If something else has finalized the range, quit streaming mode.
-        mScrollingMode = ScrollingMode.VIEWING;
-      }
+      double globalMax = mGlobalRange.getMax();
+      // TODO reinvestigate how to quit streaming mode.
+      mRange.set(globalMax - mCurrentViewLength, globalMax);
     }
 
     // Keeps the scrollbar visuals in sync with the global and current data range.
@@ -170,9 +185,9 @@ public final class RangeScrollbar extends JBScrollBar implements Animatable {
           adjustedValue = 0f;
         }
         // Use the ratio of adjustValue relative to scrollbarRange to get new min
+        // TODO reinvestigate how to prevent other components from modifying range.
         double newMin = (globalLength * adjustedValue / scrollbarRange) + mGlobalRange.getMin();
         mRange.set(newMin, newMin + currentLength);
-        mRange.lockValues();
         break;
     }
   }

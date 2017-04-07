@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.api.XmlBuilder;
+import com.android.tools.idea.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.google.common.collect.ImmutableSet;
@@ -66,5 +66,11 @@ public class TextViewHandler extends ViewHandler {
       return 0.8;
     }
     return super.getPreviewScale(tagName);
+  }
+
+  @Override
+  @NotNull
+  public String getPreferredProperty() {
+    return ATTR_TEXT;
   }
 }

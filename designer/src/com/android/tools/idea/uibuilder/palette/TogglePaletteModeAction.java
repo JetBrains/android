@@ -21,10 +21,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class TogglePaletteModeAction extends ToggleAction {
   private final NlPalettePanel myPalette;
-  private final NlPalettePanel.Mode myMode;
+  private final PaletteMode myMode;
 
-  public TogglePaletteModeAction(@NotNull NlPalettePanel palette, @NotNull NlPalettePanel.Mode mode) {
-    super(mode.getMenuText());
+  public TogglePaletteModeAction(@NotNull NlPalettePanel palette, @NotNull PaletteMode mode) {
+    super(mode.getMenuTitle());
     myPalette = palette;
     myMode = mode;
   }

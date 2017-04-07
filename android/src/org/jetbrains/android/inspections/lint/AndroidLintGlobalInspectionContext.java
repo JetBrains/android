@@ -1,8 +1,15 @@
 package org.jetbrains.android.inspections.lint;
 
+import com.android.builder.model.LintOptions;
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.editors.strings.StringsVirtualFile;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.lint.*;
+import com.android.tools.lint.client.api.LintBaseline;
 import com.android.tools.lint.client.api.LintDriver;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.LintUtils;
 import com.android.tools.lint.detector.api.Scope;
 import com.google.common.collect.Lists;
 import com.intellij.analysis.AnalysisScope;
@@ -10,8 +17,11 @@ import com.intellij.codeInspection.GlobalInspectionContext;
 import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.codeInspection.ex.Tools;
 import com.intellij.codeInspection.lang.GlobalInspectionContextExtension;
+import com.intellij.facet.ProjectFacetManager;
+import com.intellij.notification.NotificationDisplayType;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -22,6 +32,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.util.ProgressWrapper;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
@@ -34,17 +45,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-/**
- * @author Eugene.Kudelevsky
- */
+import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
+
 class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExtension<AndroidLintGlobalInspectionContext> {
   static final Key<AndroidLintGlobalInspectionContext> ID = Key.create("AndroidLintGlobalInspectionContext");
   private Map<Issue, Map<File, List<ProblemData>>> myResults;
+  private LintBaseline myBaseline;
+  private Issue myEnabledIssue;
 
   @NotNull
   @Override
@@ -56,23 +65,47 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
   public void performPreRunActivities(@NotNull List<Tools> globalTools, @NotNull List<Tools> localTools, @NotNull final GlobalInspectionContext context) {
     final Project project = context.getProject();
 
-    if (!AndroidFacet.hasAndroid(project)) {
+    // Running a single inspection that's not lint? If so don't run lint
+    if (localTools.isEmpty() && globalTools.size() == 1) {
+      Tools tool = globalTools.get(0);
+      if (!tool.getShortName().startsWith(LINT_INSPECTION_PREFIX)) {
+        return;
+      }
+    }
+
+    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
       return;
     }
 
-    final List<Issue> issues = AndroidLintExternalAnnotator.getIssuesFromInspections(project, null);
+    List<Issue> issues = AndroidLintExternalAnnotator.getIssuesFromInspections(project, null);
     if (issues.size() == 0) {
       return;
     }
 
-    final Map<Issue, Map<File, List<ProblemData>>> problemMap = new HashMap<Issue, Map<File, List<ProblemData>>>();
-    final AnalysisScope scope = context.getRefManager().getScope();
-    if (scope == null) {
-      return;
+    // If running a single check by name, turn it on if it's off by default.
+    if (localTools.isEmpty() && globalTools.size() == 1) {
+      Tools tool = globalTools.get(0);
+      String id = tool.getShortName().substring(LINT_INSPECTION_PREFIX.length());
+      Issue issue = new LintIdeIssueRegistry().getIssue(id);
+      if (issue != null && !issue.isEnabledByDefault()) {
+        issues = Collections.singletonList(issue);
+        issue.setEnabledByDefault(true);
+        // And turn it back off again in cleanup
+        myEnabledIssue = issue;
+      }
     }
 
-    final IntellijLintClient client = IntellijLintClient.forBatch(project, problemMap, scope, issues);
-    final LintDriver lint = new LintDriver(new IntellijLintIssueRegistry(), client);
+    final Map<Issue, Map<File, List<ProblemData>>> problemMap = new HashMap<>();
+    AnalysisScope scope = context.getRefManager().getScope();
+    if (scope == null) {
+      scope = AndroidLintLintBaselineInspection.ourRerunScope;
+      if (scope == null) {
+        return;
+      }
+    }
+
+    final LintIdeClient client = LintIdeClient.forBatch(project, problemMap, scope, issues);
+    final LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client);
 
     final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
     if (indicator != null) {
@@ -81,7 +114,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
     EnumSet<Scope> lintScope;
     //noinspection ConstantConditions
-    if (!IntellijLintProject.SUPPORT_CLASS_FILES) {
+    if (!LintIdeProject.SUPPORT_CLASS_FILES) {
       lintScope = EnumSet.copyOf(Scope.ALL);
       // Can't run class file based checks
       lintScope.remove(Scope.CLASS_FILE);
@@ -97,7 +130,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
     int scopeType = scope.getScopeType();
     switch (scopeType) {
       case AnalysisScope.MODULE: {
-        SearchScope searchScope = ReadAction.compute(() -> scope.toSearchScope());
+        SearchScope searchScope = scope.toSearchScope();
         if (searchScope instanceof ModuleWithDependenciesScope) {
           ModuleWithDependenciesScope s = (ModuleWithDependenciesScope)searchScope;
           if (!s.isSearchInLibraries()) {
@@ -110,23 +143,27 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       case AnalysisScope.VIRTUAL_FILES:
       case AnalysisScope.UNCOMMITTED_FILES: {
         files = Lists.newArrayList();
-        SearchScope searchScope = ReadAction.compute(() -> scope.toSearchScope());
+        SearchScope searchScope = scope.toSearchScope();
         if (searchScope instanceof LocalSearchScope) {
           final LocalSearchScope localSearchScope = (LocalSearchScope)searchScope;
           final PsiElement[] elements = localSearchScope.getScope();
           final List<VirtualFile> finalFiles = files;
 
-          ApplicationManager.getApplication().runReadAction(new Runnable() {
-            @Override
-            public void run() {
-              for (PsiElement element : elements) {
-                if (element instanceof PsiFile) { // should be the case since scope type is FILE
-                  Module module = ModuleUtilCore.findModuleForPsiElement(element);
-                  if (module != null && !modules.contains(module)) {
-                    modules.add(module);
-                  }
-                  VirtualFile virtualFile = ((PsiFile)element).getVirtualFile();
-                  if (virtualFile != null) {
+          ApplicationManager.getApplication().runReadAction(() -> {
+            for (PsiElement element : elements) {
+              if (element instanceof PsiFile) { // should be the case since scope type is FILE
+                Module module = ModuleUtilCore.findModuleForPsiElement(element);
+                if (module != null && !modules.contains(module)) {
+                  modules.add(module);
+                }
+                VirtualFile virtualFile = ((PsiFile)element).getVirtualFile();
+                if (virtualFile != null) {
+                  if (virtualFile instanceof StringsVirtualFile) {
+                    StringsVirtualFile f = (StringsVirtualFile)virtualFile;
+                    if (!modules.contains(f.getFacet().getModule())) {
+                      modules.add(f.getFacet().getModule());
+                    }
+                  } else {
                     finalFiles.add(virtualFile);
                   }
                 }
@@ -196,10 +233,47 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       }
     }
 
-    LintRequest request = new IntellijLintRequest(client, project, files, modules, false);
+    LintRequest request = new LintIdeRequest(client, project, files, modules, false);
     request.setScope(lintScope);
 
+    // Baseline analysis?
+    myBaseline = null;
+    for (Module module : modules) {
+      AndroidModuleModel model = AndroidModuleModel.get(module);
+      if (model != null) {
+        GradleVersion version = model.getModelVersion();
+        if (version != null && version.isAtLeast(2, 3, 0, "beta", 2, true)) {
+          LintOptions options = model.getAndroidProject().getLintOptions();
+          try {
+            File baselineFile = options.getBaselineFile();
+            if (baselineFile != null && !AndroidLintLintBaselineInspection.ourSkipBaselineNextRun) {
+              if (!baselineFile.isAbsolute()) {
+                String path = module.getProject().getBasePath();
+                if (path != null) {
+                  baselineFile = new File(FileUtil.toSystemDependentName(path), baselineFile.getPath());
+                }
+              }
+              myBaseline = new LintBaseline(client, baselineFile);
+              lint.setBaseline(myBaseline);
+              if (!baselineFile.isFile()) {
+                myBaseline.setWriteOnClose(true);
+              } else if (AndroidLintLintBaselineInspection.ourUpdateBaselineNextRun) {
+                myBaseline.setRemoveFixed(true);
+                myBaseline.setWriteOnClose(true);
+              }
+
+            }
+          } catch (Throwable unsupported) {
+            // During 2.3 development some builds may have this method, others may not
+          }
+        }
+        break;
+      }
+    }
+
     lint.analyze(request);
+
+    AndroidLintLintBaselineInspection.clearNextRunState();
 
     myResults = problemMap;
   }
@@ -211,9 +285,35 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
 
   @Override
   public void performPostRunActivities(@NotNull List<InspectionToolWrapper> inspections, @NotNull final GlobalInspectionContext context) {
+    if (myBaseline != null) {
+      // Close the baseline; we need to hold a read lock such that line numbers can be computed from PSI file contents
+      if (myBaseline.isWriteOnClose()) {
+        ApplicationManager.getApplication().runReadAction(() -> myBaseline.close());
+      }
+
+      // If we wrote a baseline file, post a notification
+      if (myBaseline.isWriteOnClose()) {
+        String message;
+        if (myBaseline.isRemoveFixed()) {
+          message = String.format("Updated baseline file %1$s<br>Removed %2$d issues<br>%3$s remaining", myBaseline.getFile().getName(),
+                                  myBaseline.getFixedCount(),
+                                  LintUtils.describeCounts(myBaseline.getFoundErrorCount(), myBaseline.getFoundWarningCount(), false));
+        } else {
+          message = String.format("Created baseline file %1$s<br>%2$d issues will be filtered out", myBaseline.getFile().getName(),
+                                  myBaseline.getTotalCount());
+        }
+        new NotificationGroup("Convert to WebP", NotificationDisplayType.BALLOON, true)
+          .createNotification(message, NotificationType.INFORMATION)
+          .notify(context.getProject());
+      }
+    }
   }
 
   @Override
   public void cleanup() {
+    if (myEnabledIssue != null) {
+      myEnabledIssue.setEnabledByDefault(false);
+      myEnabledIssue = null;
+    }
   }
 }

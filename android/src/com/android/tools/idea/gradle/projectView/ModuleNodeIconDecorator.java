@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.projectView;
 
-import com.android.tools.idea.gradle.testing.TestArtifactSearchScopes;
+import com.android.tools.idea.testartifacts.scopes.TestArtifactSearchScopes;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;

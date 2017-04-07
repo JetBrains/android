@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.menu;
 
-import com.android.resources.ResourceType;
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
@@ -31,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -43,16 +39,9 @@ import static com.android.SdkConstants.*;
  * contain items.
  */
 final class GroupDragHandler extends DragHandler {
-  private static final String SEARCH_ICON = "ic_search_black_24dp";
-
   private final NlComponent myGroup;
   private final List<NlComponent> myItems;
-
-  private final List<NlComponent> myActionBarGroup;
-  private final List<NlComponent> myOverflowGroup;
-
-  private final Rectangle myActionBarGroupBounds;
-  private final Rectangle myOverflowGroupBounds;
+  private final ActionBar myActionBar;
 
   private NlComponent myActiveItem;
 
@@ -66,77 +55,14 @@ final class GroupDragHandler extends DragHandler {
 
     myGroup = group;
     myItems = items;
-
-    myActionBarGroup = new ArrayList<>();
-    myOverflowGroup = new ArrayList<>();
-    addToActionBarOrOverflowGroups(group);
-
-    // noinspection SuspiciousNameCombination
-    myActionBarGroup.sort((item1, item2) -> Integer.compare(item1.x, item2.x));
-
-    // noinspection SuspiciousNameCombination
-    myOverflowGroup.sort((item1, item2) -> Integer.compare(item1.y, item2.y));
-
-    myActionBarGroupBounds = getBounds(myActionBarGroup);
-    myOverflowGroupBounds = getBounds(myOverflowGroup);
-  }
-
-  private void addToActionBarOrOverflowGroups(@NotNull NlComponent group) {
-    for (NlComponent item : group.getChildren()) {
-      if (item.w == -1 || item.h == -1) {
-        continue;
-      }
-
-      if (item.viewInfo == null) {
-        // item corresponds to a group element
-        addToActionBarOrOverflowGroups(item);
-        continue;
-      }
-
-      switch (item.viewInfo.getViewType()) {
-        case ACTION_BAR_MENU:
-          myActionBarGroup.add(item);
-          break;
-        case ACTION_BAR_OVERFLOW_MENU:
-          myOverflowGroup.add(item);
-          break;
-        default:
-          break;
-      }
-    }
-  }
-
-  @Nullable
-  private static Rectangle getBounds(@NotNull List<NlComponent> items) {
-    if (items.isEmpty()) {
-      return null;
-    }
-
-    NlComponent firstItem = items.get(0);
-    Rectangle bounds = new Rectangle(firstItem.x, firstItem.y, firstItem.w, firstItem.h);
-    items.subList(1, items.size()).forEach(item -> bounds.add(new Rectangle(item.x, item.y, item.w, item.h)));
-
-    return bounds;
+    myActionBar = new ActionBar(group);
   }
 
   @Override
-  public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
-    possiblyCopySearchIconToMainModuleSourceSet();
+  public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
     updateOrderInCategoryAttributes();
     updateShowAsActionAttribute();
-  }
-
-  private void possiblyCopySearchIconToMainModuleSourceSet() {
-    // TODO Handle more than one item
-    if (!(DRAWABLE_PREFIX + SEARCH_ICON).equals(myItems.get(0).getAndroidAttribute(ATTR_ICON))) {
-      return;
-    }
-
-    if (editor.moduleContainsResource(ResourceType.DRAWABLE, SEARCH_ICON)) {
-      return;
-    }
-
-    editor.copyVectorAssetToMainModuleSourceSet(SEARCH_ICON);
+    insertComponents(getInsertIndex(), insertType);
   }
 
   private void updateOrderInCategoryAttributes() {
@@ -164,7 +90,7 @@ final class GroupDragHandler extends DragHandler {
       order++;
     }
 
-    incrementOrderInCategoryAttributes(createOrderToItemMultimap(myActionBarGroup), order);
+    incrementOrderInCategoryAttributes(createOrderToItemMultimap(myActionBar.getItems()), order);
 
     // TODO Handle more than one item
     myItems.get(0).setAndroidAttribute(ATTR_ORDER_IN_CATEGORY, Integer.toString(order));
@@ -175,7 +101,7 @@ final class GroupDragHandler extends DragHandler {
       order++;
     }
 
-    incrementOrderInCategoryAttributes(createOrderToItemMultimap(myOverflowGroup), order);
+    incrementOrderInCategoryAttributes(createOrderToItemMultimap(myActionBar.getOverflowItems()), order);
 
     // TODO Handle more than one item
     myItems.get(0).setAndroidAttribute(ATTR_ORDER_IN_CATEGORY, Integer.toString(order));
@@ -254,28 +180,32 @@ final class GroupDragHandler extends DragHandler {
   }
 
   private void updateUsingActionBarGroup() {
-    if (lastX < myActionBarGroup.get(0).x) {
-      myActiveItem = myActionBarGroup.get(0);
+    List<NlComponent> items = myActionBar.getItems();
+
+    if (lastX < items.get(0).x) {
+      myActiveItem = items.get(0);
     }
     else {
-      Optional<NlComponent> activeItem = myActionBarGroup.stream()
+      Optional<NlComponent> activeItem = items.stream()
         .filter(item -> item.containsX(lastX))
         .findFirst();
 
-      myActiveItem = activeItem.orElse(myActionBarGroup.get(myActionBarGroup.size() - 1));
+      myActiveItem = activeItem.orElse(items.get(items.size() - 1));
     }
   }
 
   private void updateUsingOverflowGroup() {
-    if (lastY < myOverflowGroup.get(0).y) {
-      myActiveItem = myOverflowGroup.get(0);
+    List<NlComponent> overflowItems = myActionBar.getOverflowItems();
+
+    if (lastY < overflowItems.get(0).y) {
+      myActiveItem = overflowItems.get(0);
     }
     else {
-      Optional<NlComponent> activeItem = myOverflowGroup.stream()
+      Optional<NlComponent> activeItem = overflowItems.stream()
         .filter(item -> item.containsY(lastY))
         .findFirst();
 
-      myActiveItem = activeItem.orElse(myOverflowGroup.get(myOverflowGroup.size() - 1));
+      myActiveItem = activeItem.orElse(overflowItems.get(overflowItems.size() - 1));
     }
   }
 
@@ -305,28 +235,35 @@ final class GroupDragHandler extends DragHandler {
   }
 
   private void drawActionBarGroupDropRecipientLines(@NotNull NlGraphics graphics) {
+    Rectangle itemBounds = myActionBar.getItemBounds();
+    assert itemBounds != null;
+
+    List<NlComponent> items = myActionBar.getItems();
+
     graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
-    graphics.drawTop(myActionBarGroupBounds);
+    graphics.drawTop(itemBounds);
 
-    if (lastX >= myActionBarGroup.get(0).getMidpointX()) {
-      graphics.drawLeft(myActionBarGroupBounds);
+    if (lastX >= items.get(0).getMidpointX()) {
+      graphics.drawLeft(itemBounds);
     }
 
-    if (lastX < myActionBarGroup.get(myActionBarGroup.size() - 1).getMidpointX()) {
-      graphics.drawRight(myActionBarGroupBounds);
+    if (lastX < items.get(items.size() - 1).getMidpointX()) {
+      graphics.drawRight(itemBounds);
     }
 
-    graphics.drawBottom(myActionBarGroupBounds);
+    graphics.drawBottom(itemBounds);
   }
 
   private void drawActionBarGroupDropZoneLines(@NotNull NlGraphics graphics) {
+    List<NlComponent> items = myActionBar.getItems();
     int midpointX = myActiveItem.getMidpointX();
+
     graphics.useStyle(NlDrawingStyle.DROP_ZONE);
 
-    for (int i = 1, size = myActionBarGroup.size(); i < size; i++) {
-      NlComponent item = myActionBarGroup.get(i);
+    for (int i = 1, size = items.size(); i < size; i++) {
+      NlComponent item = items.get(i);
 
-      if (myActiveItem == myActionBarGroup.get(i - 1)) {
+      if (myActiveItem == items.get(i - 1)) {
         if (lastX < midpointX) {
           graphics.drawLeft(item);
         }
@@ -354,28 +291,35 @@ final class GroupDragHandler extends DragHandler {
   }
 
   private void drawOverflowGroupDropRecipientLines(@NotNull NlGraphics graphics) {
+    List<NlComponent> overflowItems = myActionBar.getOverflowItems();
+
+    Rectangle overflowItemBounds = myActionBar.getOverflowItemBounds();
+    assert overflowItemBounds != null;
+
     graphics.useStyle(NlDrawingStyle.DROP_RECIPIENT);
 
-    if (lastY >= myOverflowGroup.get(0).getMidpointY()) {
-      graphics.drawTop(myOverflowGroupBounds);
+    if (lastY >= overflowItems.get(0).getMidpointY()) {
+      graphics.drawTop(overflowItemBounds);
     }
 
-    graphics.drawLeft(myOverflowGroupBounds);
-    graphics.drawRight(myOverflowGroupBounds);
+    graphics.drawLeft(overflowItemBounds);
+    graphics.drawRight(overflowItemBounds);
 
-    if (lastY < myOverflowGroup.get(myOverflowGroup.size() - 1).getMidpointY()) {
-      graphics.drawBottom(myOverflowGroupBounds);
+    if (lastY < overflowItems.get(overflowItems.size() - 1).getMidpointY()) {
+      graphics.drawBottom(overflowItemBounds);
     }
   }
 
   private void drawOverflowGroupDropZoneLines(@NotNull NlGraphics graphics) {
+    List<NlComponent> overflowItems = myActionBar.getOverflowItems();
     int midpointY = myActiveItem.getMidpointY();
+
     graphics.useStyle(NlDrawingStyle.DROP_ZONE);
 
-    for (int i = 1, size = myOverflowGroup.size(); i < size; i++) {
-      NlComponent item = myOverflowGroup.get(i);
+    for (int i = 1, size = overflowItems.size(); i < size; i++) {
+      NlComponent item = overflowItems.get(i);
 
-      if (myActiveItem == myOverflowGroup.get(i - 1)) {
+      if (myActiveItem == overflowItems.get(i - 1)) {
         if (lastY < midpointY) {
           graphics.drawTop(item);
         }
@@ -391,8 +335,8 @@ final class GroupDragHandler extends DragHandler {
     }
   }
 
-  @Override
-  public int getInsertIndex() {
+  @VisibleForTesting
+  int getInsertIndex() {
     if (isActionBarGroupActive()) {
       return getInsertIndexUsingActionBarGroup();
     }
@@ -405,10 +349,13 @@ final class GroupDragHandler extends DragHandler {
   }
 
   private int getInsertIndexUsingActionBarGroup() {
-    if (lastX < myActionBarGroupBounds.x) {
+    Rectangle itemBounds = myActionBar.getItemBounds();
+    assert itemBounds != null;
+
+    if (lastX < itemBounds.x) {
       return 0;
     }
-    else if (lastX >= myActionBarGroupBounds.x + myActionBarGroupBounds.width) {
+    else if (lastX >= itemBounds.x + itemBounds.width) {
       return -1;
     }
 
@@ -423,10 +370,13 @@ final class GroupDragHandler extends DragHandler {
   }
 
   private int getInsertIndexUsingOverflowGroup() {
-    if (lastY < myOverflowGroupBounds.y) {
+    Rectangle overflowItemBounds = myActionBar.getOverflowItemBounds();
+    assert overflowItemBounds != null;
+
+    if (lastY < overflowItemBounds.y) {
       return 0;
     }
-    else if (lastY >= myOverflowGroupBounds.y + myOverflowGroupBounds.height) {
+    else if (lastY >= overflowItemBounds.y + overflowItemBounds.height) {
       return -1;
     }
 
@@ -441,10 +391,11 @@ final class GroupDragHandler extends DragHandler {
   }
 
   private boolean isActionBarGroupActive() {
-    return myActionBarGroupBounds != null && lastY < myActionBarGroupBounds.y + myActionBarGroupBounds.height;
+    Rectangle itemBounds = myActionBar.getItemBounds();
+    return itemBounds != null && lastY < itemBounds.y + itemBounds.height;
   }
 
   private boolean isOverflowGroupActive() {
-    return myOverflowGroupBounds != null;
+    return myActionBar.getOverflowItemBounds() != null;
   }
 }

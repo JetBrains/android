@@ -84,7 +84,7 @@ public class IdeaContentRootStub implements IdeaContentRoot {
   @NotNull
   @Override
   public File getRootDirectory() {
-    return myFileStructure.getRootDir();
+    return myFileStructure.getRootFolderPath();
   }
 
   @Override

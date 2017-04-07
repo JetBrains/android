@@ -126,4 +126,8 @@ public class DbParserTest extends ParsingTestCase {
   public void testTernary() {
     doTest(true);
   }
+
+  public void testMethodRef() {
+    doTest(true);
+  }
 }

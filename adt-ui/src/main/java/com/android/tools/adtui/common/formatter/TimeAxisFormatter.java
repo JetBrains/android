@@ -20,10 +20,10 @@ import org.jetbrains.annotations.NotNull;
 
 public final class TimeAxisFormatter extends BaseAxisFormatter {
 
-  private static final int[] MULTIPLIERS = new int[]{1000, 60, 60, 24};   // 1s, 1m, 1h, 1d
-  private static final int[] BASES = new int[]{10, 60, 60, 24};
-  private static final int[] MIN_INTERVALS = new int[]{10, 1, 1, 1};    // 10ms, 1s, 1m, 1h
-  private static final String[] UNITS = new String[]{"ms", "s", "m", "h"};
+  private static final int[] MULTIPLIERS = new int[]{1000, 1000, 60, 60, 24};   // 1ms, 1s, 1m, 1h, 1d
+  private static final int[] BASES = new int[]{10, 10, 60, 60, 24};
+  private static final int[] MIN_INTERVALS = new int[]{10, 10, 1, 1, 1};    // 10ms, 1s, 1m, 1h
+  private static final String[] UNITS = new String[]{"us", "ms", "s", "m", "h"};
   private static final TIntArrayList[] BASE_FACTORS;
 
   public static final TimeAxisFormatter DEFAULT = new TimeAxisFormatter(5, 10, 5);
@@ -48,13 +48,17 @@ public final class TimeAxisFormatter extends BaseAxisFormatter {
    */
   @Override
   @NotNull
-  public String getFormattedString(double globalRange, double value) {
+  public String getFormattedString(double globalRange, double value, boolean includeUnit) {
+    if (!includeUnit) {
+      return super.getFormattedString(globalRange, value, includeUnit);
+    }
+
     int index1 = getMultiplierIndex(globalRange, 1);
-    int scale1 = getMultiplier();
+    long scale1 = getMultiplier();
     String unit1 = getUnit(index1);
     if (index1 > 1) {
       int index2 = index1 - 1;
-      int scale2 = scale1 / getUnitMultiplier(index2);
+      long scale2 = scale1 / getUnitMultiplier(index2);
       String unit2 = getUnit(index2);
       int value1 = (int)(value / scale1);
       float value2 = (float)(value - value1 * scale1) / scale2;

@@ -19,13 +19,17 @@ import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.compiler.CompilerConfigurationImpl;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.compiler.server.BuildManager;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.compiler.options.ExcludeEntryDescription;
 import com.intellij.openapi.compiler.options.ExcludesConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModuleOrderEntry;
@@ -68,7 +72,7 @@ public class AndroidPrecompileTask implements CompileTask {
   public boolean execute(CompileContext context) {
     final Project project = context.getProject();
 
-    if (!AndroidFacet.hasAndroid(project)) {
+    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
       return true;
     }
     BuildManager.forceModelLoading(context);
@@ -109,7 +113,7 @@ public class AndroidPrecompileTask implements CompileTask {
 
       LOG.debug("Platform-tools revision for module " + module.getName() + " is " + platformToolsRevision);
 
-      if (facet.isLibraryProject()) {
+      if (!facet.isAppProject()) {
         if (platformToolsRevision >= 0 && platformToolsRevision <= 7) {
           LOG.debug("Excluded sources of module " + module.getName());
           excludeAllSourceRoots(module, configuration, addedEntries);
@@ -129,6 +133,7 @@ public class AndroidPrecompileTask implements CompileTask {
   }
 
   private static void createGenModulesAndSourceRoots(final Project project) {
+    final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
     final List<AndroidFacet> facets = new ArrayList<AndroidFacet>();
 
     for (Module module : ModuleManager.getInstance(project).getModules()) {
@@ -145,7 +150,7 @@ public class AndroidPrecompileTask implements CompileTask {
         public void run() {
           AndroidCompileUtil.createGenModulesAndSourceRoots(project, facets);
         }
-      });
+      }, indicator != null ? indicator.getModalityState() : ModalityState.NON_MODAL);
     }
   }
 
@@ -275,7 +280,7 @@ public class AndroidPrecompileTask implements CompileTask {
                            manifestMergerProp.getSecond().getUrl(), -1, -1);
       }
 
-      if (!facet.isLibraryProject()) {
+      if (facet.isAppProject()) {
 
         for (OrderEntry entry : ModuleRootManager.getInstance(module).getOrderEntries()) {
           if (entry instanceof ModuleOrderEntry) {
@@ -287,7 +292,7 @@ public class AndroidPrecompileTask implements CompileTask {
               if (depModule != null) {
                 final AndroidFacet depFacet = AndroidFacet.getInstance(depModule);
 
-                if (depFacet != null && !depFacet.isLibraryProject()) {
+                if (depFacet != null && !depFacet.canBeDependency()) {
                   String message = "Suspicious module dependency " +
                                    module.getName() +
                                    " -> " +

@@ -28,7 +28,7 @@ import com.android.tools.idea.actions.OverrideResourceAction;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.rendering.multi.RenderPreviewMode;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -48,22 +48,13 @@ import java.util.List;
 import static com.android.SdkConstants.FD_RES_LAYOUT;
 
 public class ConfigurationMenuAction extends FlatComboAction {
-  private final DesignSurface mySurface;
+  private final EditorDesignSurface mySurface;
 
-  public ConfigurationMenuAction(DesignSurface surface) {
+  public ConfigurationMenuAction(EditorDesignSurface surface) {
     mySurface = surface;
     Presentation presentation = getTemplatePresentation();
     presentation.setDescription("Layout Variants");
-    /* TODO: We'll have a preview action here later;
-    if (RenderService.NELE_ENABLED) {
-      presentation.setText("Variations");
-      presentation.setIcon(AndroidIcons.NeleIcons.VirtualDevice);
-    } else {
-
-    ... but for now this is just for variations
-    */
-    presentation.setIcon(AndroidIcons.NeleIcons.VirtualDevice);
-    //presentation.setIcon(AndroidIcons.AndroidFile);
+    presentation.setIcon(AndroidIcons.NeleIcons.Variants);
   }
 
   @Override
@@ -188,21 +179,21 @@ public class ConfigurationMenuAction extends FlatComboAction {
     });
   }
 
-  static void addLocalePreviewAction(@NotNull DesignSurface context, @NotNull DefaultActionGroup group, boolean enabled) {
+  static void addLocalePreviewAction(@NotNull EditorDesignSurface context, @NotNull DefaultActionGroup group, boolean enabled) {
     group.add(new PreviewAction(context, "Preview All Locales", ACTION_PREVIEW_MODE, RenderPreviewMode.LOCALES, enabled));
   }
 
-  static void addRtlPreviewAction(@NotNull DesignSurface context, @NotNull DefaultActionGroup group) {
+  static void addRtlPreviewAction(@NotNull EditorDesignSurface context, @NotNull DefaultActionGroup group) {
     boolean enabled = hasCapability(context, Features.RTL);
     group.add(new PreviewAction(context, "Preview Right-to-Left Layout", ACTION_PREVIEW_MODE, RenderPreviewMode.RTL, enabled));
   }
 
-  static void addApiLevelPreviewAction(@NotNull DesignSurface context, @NotNull DefaultActionGroup group) {
+  static void addApiLevelPreviewAction(@NotNull EditorDesignSurface context, @NotNull DefaultActionGroup group) {
     boolean enabled = hasCapability(context, Features.SIMULATE_PLATFORM);
     group.add(new PreviewAction(context, "Preview Android Versions", ACTION_PREVIEW_MODE, RenderPreviewMode.API_LEVELS, enabled));
   }
 
-  private static boolean hasCapability(DesignSurface context, int capability) {
+  private static boolean hasCapability(EditorDesignSurface context, int capability) {
     Configuration configuration = context.getConfiguration();
     if (configuration == null) {
       return false;
@@ -219,12 +210,12 @@ public class ConfigurationMenuAction extends FlatComboAction {
     return enabled;
   }
 
-  static void addScreenSizeAction(@NotNull DesignSurface context, @NotNull DefaultActionGroup group) {
+  static void addScreenSizeAction(@NotNull EditorDesignSurface context, @NotNull DefaultActionGroup group) {
     boolean enabled = false;
     group.add(new PreviewAction(context, "Preview All Screen Sizes", ACTION_PREVIEW_MODE, RenderPreviewMode.SCREENS, enabled));
   }
 
-  static void addRemovePreviewsAction(@NotNull DesignSurface context, @NotNull DefaultActionGroup group) {
+  static void addRemovePreviewsAction(@NotNull EditorDesignSurface context, @NotNull DefaultActionGroup group) {
     boolean enabled = false;
     group.add(new PreviewAction(context, "Remove Previews", ACTION_PREVIEW_MODE, RenderPreviewMode.NONE, enabled));
   }
@@ -236,9 +227,9 @@ public class ConfigurationMenuAction extends FlatComboAction {
   private static class PreviewAction extends AnAction {
     private final int myAction;
     private final RenderPreviewMode myMode;
-    private final DesignSurface mySurface;
+    private final EditorDesignSurface mySurface;
 
-    public PreviewAction(@NotNull DesignSurface surface, @NotNull String title, int action,
+    public PreviewAction(@NotNull EditorDesignSurface surface, @NotNull String title, int action,
                          @Nullable RenderPreviewMode mode, boolean enabled) {
       super(title, null, null);
       mySurface = surface;
@@ -287,10 +278,10 @@ public class ConfigurationMenuAction extends FlatComboAction {
   }
 
   private static class CreateVariationAction extends AnAction {
-    @NotNull private DesignSurface mySurface;
+    @NotNull private EditorDesignSurface mySurface;
     @Nullable private String myNewFolder;
 
-    public CreateVariationAction(@NotNull DesignSurface surface, @NotNull String title, @Nullable String newFolder) {
+    public CreateVariationAction(@NotNull EditorDesignSurface surface, @NotNull String title, @Nullable String newFolder) {
       super(title, null, null);
       mySurface = surface;
       myNewFolder = newFolder;

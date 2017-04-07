@@ -11,14 +11,18 @@ import static com.android.tools.idea.lang.databinding.psi.DbTokenTypes.*;
 import com.android.tools.idea.lang.databinding.DataBindingPsiElement;
 import com.android.tools.idea.lang.databinding.psi.*;
 
-public class PsiDbExprImpl extends DataBindingPsiElement implements PsiDbExpr {
+public abstract class PsiDbExprImpl extends DataBindingPsiElement implements PsiDbExpr {
 
   public PsiDbExprImpl(ASTNode node) {
     super(node);
   }
 
+  public void accept(@NotNull PsiDbVisitor visitor) {
+    visitor.visitExpr(this);
+  }
+
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof PsiDbVisitor) ((PsiDbVisitor)visitor).visitExpr(this);
+    if (visitor instanceof PsiDbVisitor) accept((PsiDbVisitor)visitor);
     else super.accept(visitor);
   }
 

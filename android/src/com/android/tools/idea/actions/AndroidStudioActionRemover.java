@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.actions;
 
+import com.android.tools.idea.project.AndroidProjectInfo;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-import static com.android.tools.idea.gradle.util.Projects.requiresAndroidModel;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 /**
@@ -55,7 +55,7 @@ public class AndroidStudioActionRemover extends AnAction {
   public void update(AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     Project project = e.getProject();
-    if (project != null && requiresAndroidModel(project)) {
+    if (project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
       presentation.setEnabledAndVisible(false);
       return;
     }

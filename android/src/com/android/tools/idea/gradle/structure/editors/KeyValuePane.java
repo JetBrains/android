@@ -25,6 +25,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.BuildFileKeyType;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
@@ -33,6 +34,7 @@ import com.google.common.collect.*;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.openapi.ui.FixedComboBoxEditor;
 import com.intellij.openapi.ui.TextBrowseFolderListener;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.JBColor;
@@ -41,20 +43,16 @@ import com.intellij.ui.components.JBTextField;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.*;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.util.*;
-import java.util.List;
 
 import static com.android.sdklib.AndroidTargetHash.getAddonHashString;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetLabel;
@@ -90,7 +88,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     myProject = project;
     myListener = listener;
     AndroidSdkHandler sdkHandler = null;
-    AndroidSdkData androidSdkData = AndroidSdkUtils.tryToChooseAndroidSdk();
+    AndroidSdkData androidSdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
     if (androidSdkData != null) {
       sdkHandler = androidSdkData.getSdkHandler();
     }
@@ -194,7 +192,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
       switch(property.getType()) {
         case BOOLEAN: {
           constraints.setFill(GridConstraints.FILL_NONE);
-          ComboBox comboBox = getComboBox(false);
+          ComboBox comboBox = createComboBox(false);
           comboBox.addItem("");
           comboBox.addItem("true");
           comboBox.addItem("false");
@@ -215,7 +213,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
         }
         case REFERENCE: {
           constraints.setFill(GridConstraints.FILL_NONE);
-          ComboBox comboBox = getComboBox(true);
+          ComboBox comboBox = createComboBox(true);
           if (hasKnownValues(property)) {
             for (String s : myKeysWithKnownValues.get(property).values()) {
               comboBox.addItem(s);
@@ -232,7 +230,7 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
         default: {
           if (hasKnownValues(property)) {
             constraints.setFill(GridConstraints.FILL_NONE);
-            ComboBox comboBox = getComboBox(true);
+            ComboBox comboBox = createComboBox(true);
             for (String s : myKeysWithKnownValues.get(property).values()) {
               comboBox.addItem(s);
             }
@@ -280,47 +278,17 @@ public class KeyValuePane extends JPanel implements DocumentListener, ItemListen
     }
   }
 
-  private ComboBox getComboBox(boolean editable) {
+  private ComboBox createComboBox(boolean editable) {
     ComboBox comboBox = new ComboBox();
     comboBox.addItemListener(this);
-    comboBox.setEditor(new ComboBoxEditor() {
-      private final JBTextField myTextField = new JBTextField();
-
-      @Override
-      public Component getEditorComponent() {
-        return myTextField;
-      }
-
-      @Override
-      public void setItem(Object o) {
-        myTextField.setText(o != null ? o.toString() : "");
-      }
-
-      @Override
-      public Object getItem() {
-        return myTextField.getText();
-      }
-
-      @Override
-      public void selectAll() {
-        myTextField.selectAll();
-      }
-
-      @Override
-      public void addActionListener(ActionListener actionListener) {
-      }
-
-      @Override
-      public void removeActionListener(ActionListener actionListener) {
-      }
-    });
+    comboBox.setEditor(new FixedComboBoxEditor());
     comboBox.setEditable(true);
+    comboBox.setMinLength(60); // Default is only 20 chars
     JBTextField editorComponent = (JBTextField)comboBox.getEditor().getEditorComponent();
     editorComponent.setEditable(editable);
     editorComponent.getDocument().addDocumentListener(this);
     return comboBox;
   }
-
 
   /**
    * Reads the state of the UI form objects and writes them into the currently selected object in the list, setting the dirty bit as

@@ -32,7 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidSdkManagerEnabled;
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
 
 /**
  * Plugin to set up the android sdk {@link UpdatableExternalComponent} and

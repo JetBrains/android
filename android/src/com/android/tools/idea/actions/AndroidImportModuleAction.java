@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.npw.ImportModuleWizard;
+import com.android.tools.idea.npw.deprecated.ImportModuleWizard;
+import com.android.tools.idea.npw.importing.SourceToGradleModuleModel;
+import com.android.tools.idea.npw.importing.SourceToGradleModuleStep;
+import com.android.tools.idea.ui.wizard.StudioWizardDialogBuilder;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+
+import java.awt.event.InputEvent;
 
 /**
  * Action for importing existing sources as an Android project modules.
@@ -32,18 +36,25 @@ public class AndroidImportModuleAction extends AnAction implements DumbAware {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
-    Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
+    Project project = e.getProject();
     if (project != null) {
-      ImportModuleWizard wizard = new ImportModuleWizard(project);
-      if (wizard.showAndGet()) {
-        wizard.createModule(true);
+      // TODO: Temporary! This will be the main code path after we completely convert over ImportModuleWizard
+      if (Boolean.getBoolean("use.npw.modelwizard") && (e.getModifiers() & InputEvent.SHIFT_MASK) == 0) {
+        new StudioWizardDialogBuilder(new SourceToGradleModuleStep(new SourceToGradleModuleModel(project)), "Import module from source").build()
+          .show();
+      }
+      else {
+        ImportModuleWizard wizard = new ImportModuleWizard(project);
+        if (wizard.showAndGet()) {
+          wizard.createModule(true);
+        }
       }
     }
   }
 
   @Override
   public void update(AnActionEvent e) {
-    Project project = CommonDataKeys.PROJECT.getData(e.getDataContext());
+    Project project = e.getProject();
     e.getPresentation().setEnabled(project != null);
   }
 }

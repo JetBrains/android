@@ -16,12 +16,12 @@
 package com.android.tools.idea.sdk;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.AndroidTestCaseHelper;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.google.common.collect.Lists;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Computable;
@@ -30,63 +30,66 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getEmbeddedJdkPath;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link IdeSdks}.
  */
 public class IdeSdksTest extends IdeaTestCase {
+  @Mock private IdeInfo myIdeInfo;
+
   private File myAndroidSdkPath;
+  private EmbeddedDistributionPaths myEmbeddedDistributionPaths;
+  private IdeSdks myIdeSdks;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    initMocks(this);
+    Mockito.when(myIdeInfo.isAndroidStudio()).thenReturn(true);
+
     AndroidTestCaseHelper.removeExistingAndroidSdks();
-    myAndroidSdkPath = AndroidTestCaseHelper.getAndroidSdkPath();
+    myAndroidSdkPath = TestUtils.getSdk();
 
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      FacetManager facetManager = FacetManager.getInstance(myModule);
-
-      ModifiableFacetModel model = facetManager.createModifiableModel();
-      try {
-        model.addFacet(facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null));
-        model.addFacet(facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null));
-      }
-      finally {
-        model.commit();
-      }
-    });
-    AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    assertNotNull(facet);
+    AndroidFacet facet = createAndAddAndroidFacet(myModule);
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;
+
+    createAndAddGradleFacet(myModule);
+
+    Jdks jdks = new Jdks(myIdeInfo);
+    myEmbeddedDistributionPaths = EmbeddedDistributionPaths.getInstance();
+    myIdeSdks = new IdeSdks(new AndroidSdks(jdks, myIdeInfo), jdks, myEmbeddedDistributionPaths, myIdeInfo);
   }
 
   public void testCreateAndroidSdkPerAndroidTarget() {
-    List<Sdk> sdks = IdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
+    List<Sdk> sdks = myIdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
     assertOneSdkPerAvailableTarget(sdks);
   }
 
   public void testGetAndroidSdkPath() {
     // Create default SDKs first.
-    IdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
+    myIdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
 
-    File androidHome = IdeSdks.getAndroidSdkPath();
+    File androidHome = myIdeSdks.getAndroidSdkPath();
     assertNotNull(androidHome);
     assertEquals(myAndroidSdkPath.getPath(), androidHome.getPath());
   }
 
   public void testGetEligibleAndroidSdks() {
     // Create default SDKs first.
-    List<Sdk> sdks = IdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
+    List<Sdk> sdks = myIdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
 
-    List<Sdk> eligibleSdks = IdeSdks.getEligibleAndroidSdks();
+    List<Sdk> eligibleSdks = myIdeSdks.getEligibleAndroidSdks();
     assertEquals(sdks.size(), eligibleSdks.size());
   }
 
@@ -96,7 +99,7 @@ public class IdeSdksTest extends IdeaTestCase {
     localProperties.save();
 
     List<Sdk> sdks =
-      ApplicationManager.getApplication().runWriteAction((Computable<List<Sdk>>)() -> IdeSdks.setAndroidSdkPath(myAndroidSdkPath, null));
+      ApplicationManager.getApplication().runWriteAction((Computable<List<Sdk>>)() -> myIdeSdks.setAndroidSdkPath(myAndroidSdkPath, null));
     assertOneSdkPerAvailableTarget(sdks);
 
     localProperties = new LocalProperties(myProject);
@@ -128,20 +131,18 @@ public class IdeSdksTest extends IdeaTestCase {
   }
 
   public void testUseEmbeddedJdk() {
-    if (!isAndroidStudio()) {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
       System.out.println("SKIPPED: IdeSdksTest.testUseEmbeddedJdk runs only in Android Studio");
       return;
     }
 
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      IdeSdks.setUseEmbeddedJdk();
-    });
+    ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setUseEmbeddedJdk());
 
     // The path of the JDK should be the same as the embedded one.
-    File jdkPath = IdeSdks.getJdkPath();
+    File jdkPath = myIdeSdks.getJdkPath();
     assertNotNull(jdkPath);
 
-    File embeddedJdkPath = getEmbeddedJdkPath();
+    File embeddedJdkPath = myEmbeddedDistributionPaths.getEmbeddedJdkPath();
     assertTrue(String.format("'%1$s' should be the embedded one ('%2$s')", jdkPath.getPath(), embeddedJdkPath.getPath()),
                filesEqual(jdkPath, embeddedJdkPath));
   }

@@ -39,7 +39,7 @@ public class UnusedResourcesHandler implements RefactoringActionHandler {
                             @Nullable final String filter,
                             boolean skipDialog,
                             boolean skipIds) {
-    if (modules == null) {
+    if (modules == null || modules.length == 0) {
       modules = ModuleManager.getInstance(project).getModules();
     }
 

@@ -17,12 +17,15 @@ package org.jetbrains.android.maven;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.gradle.service.notification.hyperlink.CustomNotificationListener;
-import com.android.tools.idea.gradle.service.notification.hyperlink.OpenAndroidSdkManagerHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.CustomNotificationListener;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.intellij.facet.FacetType;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -51,14 +54,16 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.sdk.*;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidNativeLibData;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.idea.maven.importing.FacetImporter;
-import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import org.jetbrains.idea.maven.importing.MavenModuleImporter;
 import org.jetbrains.idea.maven.importing.MavenRootModelAdapter;
 import org.jetbrains.idea.maven.model.MavenArtifact;
@@ -76,9 +81,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static org.jetbrains.android.sdk.AndroidSdkUtils.getAndroidSdkAdditionalData;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdk;
-
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
 /**
  * @author Eugene.Kudelevsky
@@ -138,7 +142,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
     if (AndroidMavenUtil.APKLIB_DEPENDENCY_AND_PACKAGING_TYPE.equals(packaging) ||
         AndroidMavenUtil.AAR_DEPENDENCY_AND_PACKAGING_TYPE.equals(packaging)) {
-      facet.setLibraryProject(true);
+      facet.setProjectType(PROJECT_TYPE_LIBRARY);
     }
     facet.getConfiguration().setIncludeAssetsFromLibraries(true);
 
@@ -199,7 +203,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       rootModel.addExcludedFolder(aidlPath);
     }
 
-    if (facet.getProperties().LIBRARY_PROJECT) {
+    if (facet.isLibraryProject()) {
       removeAttachedJarDependency(modelsProvider, mavenTree, mavenProject);
     }
   }
@@ -981,7 +985,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   }
 
   private boolean isAppropriateSdk(@NotNull Sdk sdk, MavenProject mavenProject) {
-    if (!isAndroidSdk(sdk)) {
+    if (!AndroidSdks.getInstance().isAndroidSdk(sdk)) {
       return false;
     }
     final String platformId = getPlatformFromConfig(mavenProject);
@@ -1020,11 +1024,11 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
       }
     }
 
-    final Collection<String> candidates = AndroidSdkUtils.getAndroidSdkPathsFromExistingPlatforms();
+    final Collection<File> candidates = AndroidSdks.getInstance().getAndroidSdkPathsFromExistingPlatforms();
     LOG.info("suggested sdks: " + candidates);
 
-    for (String candidate : candidates) {
-      final Sdk sdk = doFindOrCreateAndroidPlatform(candidate, apiLevel);
+    for (File candidate : candidates) {
+      final Sdk sdk = doFindOrCreateAndroidPlatform(candidate.getPath(), apiLevel);
       if (sdk != null) {
         return sdk;
       }
@@ -1043,7 +1047,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         if (target != null) {
           Sdk library = AndroidSdkUtils.findAppropriateAndroidPlatform(target, sdkData, true);
           if (library == null) {
-            library = createNewAndroidSdkForMaven(sdkPath, target);
+            library = createNewAndroidSdkForMaven(new File(toSystemDependentName(sdkPath)), target);
           }
           return library;
         }
@@ -1065,19 +1069,24 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
   }
 
   @Nullable
-  private static Sdk createNewAndroidSdkForMaven(String sdkPath, IAndroidTarget target) {
-    String sdkName = "Maven " + AndroidSdkUtils.chooseNameForNewLibrary(target);
-    Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(target, sdkPath, sdkName, false);
+  private static Sdk createNewAndroidSdkForMaven(File sdkPath, IAndroidTarget target) {
+    AndroidSdks androidSdks = AndroidSdks.getInstance();
+    Sdk sdk = null;
+    Sdk jdk = Jdks.getInstance().chooseOrCreateJavaSdk();
+    if (jdk != null) {
+      String sdkName = "Maven " + androidSdks.chooseNameForNewLibrary(target);
+      sdk = androidSdks.create(target, sdkPath, sdkName, jdk, false);
+    }
 
     if (sdk == null) {
       return null;
     }
     SdkModificator modificator = sdk.getSdkModificator();
 
-    for (OrderRoot root : AndroidSdkUtils.getLibraryRootsForTarget(target, sdkPath, false)) {
+    for (OrderRoot root : androidSdks.getLibraryRootsForTarget(target, sdkPath, false)) {
       modificator.addRoot(root.getFile(), root.getType());
     }
-    AndroidSdkAdditionalData data = getAndroidSdkAdditionalData(sdk);
+    AndroidSdkAdditionalData data = androidSdks.getAndroidSdkAdditionalData(sdk);
 
     if (data != null) {
       final Sdk javaSdk = data.getJavaSdk();

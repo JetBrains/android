@@ -16,104 +16,131 @@
 package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.configurations.LocaleMenuAction;
+import com.android.tools.idea.editors.strings.StringResource;
 import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.rendering.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.table.AbstractTableModel;
+import java.util.Collections;
+import java.util.List;
 
 public class StringResourceTableModel extends AbstractTableModel {
-  @Nullable private StringResourceData myData;
+  public static final int KEY_COLUMN = 0;
+  public static final int UNTRANSLATABLE_COLUMN = 1;
+  public static final int DEFAULT_VALUE_COLUMN = 2;
+  public static final int FIXED_COLUMN_COUNT = 3;
 
-  public void setData(@NotNull StringResourceData data) {
-    myData = data;
+  private final StringResourceData myData;
+  private final List<String> myKeys;
+  private final List<Locale> myLocales;
+
+  StringResourceTableModel() {
+    myData = null;
+    myKeys = Collections.emptyList();
+    myLocales = Collections.emptyList();
   }
 
-  @NotNull
-  public String keyOfRow(int row) {
-    return myData == null ? "" : myData.getKeys().get(row);
+  public StringResourceTableModel(@NotNull StringResourceData data) {
+    myData = data;
+    myKeys = data.getKeys();
+    myLocales = data.getLocales();
   }
 
   @Nullable
-  public Locale localeOfColumn(int column) {
-    return (column < ConstantColumn.COUNT || myData == null) ? null : myData.getLocales().get(column - ConstantColumn.COUNT);
+  public StringResourceData getData() {
+    return myData;
+  }
+
+  @NotNull
+  public StringResource getStringResourceAt(int row) {
+    return myData.getStringResource(myKeys.get(row));
+  }
+
+  @NotNull
+  public String getKey(int row) {
+    return myKeys.get(row);
+  }
+
+  @Nullable
+  public Locale getLocale(int column) {
+    assert 0 <= column && column < getColumnCount() : column;
+    return column < FIXED_COLUMN_COUNT ? null : myLocales.get(column - FIXED_COLUMN_COUNT);
   }
 
   @Override
   public int getRowCount() {
-    return myData == null ? 0 : myData.getKeys().size();
+    return myKeys.size();
   }
 
   @Override
   public int getColumnCount() {
-    return myData == null ? 0 : myData.getLocales().size() + ConstantColumn.COUNT;
+    return FIXED_COLUMN_COUNT + myLocales.size();
   }
 
   @Override
   public void setValueAt(Object value, int row, int column) {
-    assert myData != null;
+    assert myData != null && myKeys != null;
 
-    if (ConstantColumn.KEY.ordinal() == column) {
-      myData.changeKeyName(row, (String)value);
-      fireTableRowsUpdated(0, myData.getKeys().size());
-    }
-    else if (ConstantColumn.UNTRANSLATABLE.ordinal() == column) {
-      Boolean doNotTranslate = (Boolean)value;
-      if (myData.setDoNotTranslate(keyOfRow(row), doNotTranslate)) {
-        fireTableCellUpdated(row, column);
-      }
-    }
-    else {
-      if (myData.setTranslation(keyOfRow(row), localeOfColumn(column), (String)value)) {
-        fireTableCellUpdated(row, column);
-      }
+    switch (column) {
+      case KEY_COLUMN:
+        myData.changeKeyName(myKeys.get(row), (String)value);
+        fireTableRowsUpdated(0, myKeys.size());
+
+        break;
+      case UNTRANSLATABLE_COLUMN:
+        Boolean doNotTranslate = (Boolean)value;
+        if (myData.setTranslatable(getKey(row), !doNotTranslate)) {
+          fireTableCellUpdated(row, column);
+        }
+
+        break;
+      default:
+        if (myData.setTranslation(getKey(row), getLocale(column), (String)value)) {
+          fireTableCellUpdated(row, column);
+        }
+
+        break;
     }
   }
 
   @NotNull
   @Override
   public Object getValueAt(int row, int column) {
-    if (myData == null) {
-      return "";
-    }
-
-    String key = keyOfRow(row);
-
-    if (column >= ConstantColumn.COUNT) {
-      Locale locale = localeOfColumn(column);
-      return locale == null ? "" : myData.resourceToString(key, locale);
-    }
-    switch (ConstantColumn.values()[column]) {
-      case KEY:
-        return key;
-      case DEFAULT_VALUE:
-        return myData.resourceToString(key);
-      case UNTRANSLATABLE:
-        return myData.getUntranslatableKeys().contains(key);
+    switch (column) {
+      case KEY_COLUMN:
+        return getKey(row);
+      case UNTRANSLATABLE_COLUMN:
+        return !getStringResourceAt(row).isTranslatable();
+      case DEFAULT_VALUE_COLUMN:
+        return getStringResourceAt(row).getDefaultValueAsString();
       default:
-        return "";
+        Locale locale = getLocale(column);
+        assert locale != null;
+
+        return getStringResourceAt(row).getTranslationAsString(locale);
     }
   }
 
+  @NotNull
   @Override
   public String getColumnName(int column) {
-    if (column >= ConstantColumn.COUNT) {
-      // The names of the translation columns are set by TranslationHeaderCellRenderer.
-      // The value returned here will be shown only if the renderer somehow cannot set the names.
-      return LocaleMenuAction.getLocaleLabel(localeOfColumn(column), false);
+    switch (column) {
+      case KEY_COLUMN:
+        return "Key";
+      case UNTRANSLATABLE_COLUMN:
+        return "Untranslatable";
+      case DEFAULT_VALUE_COLUMN:
+        return "Default Value";
+      default:
+        return LocaleMenuAction.getLocaleLabel(getLocale(column), false);
     }
-    return ConstantColumn.values()[column].name;
   }
 
   @Override
   public Class getColumnClass(int column) {
-    if (column >= ConstantColumn.COUNT) {
-      return ConstantColumn.DEFAULT_VALUE.sampleData.getClass();
-    }
-    else {
-      return ConstantColumn.values()[column].sampleData.getClass();
-    }
+    return column == UNTRANSLATABLE_COLUMN ? Boolean.class : String.class;
   }
 
   @Override
@@ -123,17 +150,6 @@ public class StringResourceTableModel extends AbstractTableModel {
 
   @Nullable
   public String getCellProblem(int row, int column) {
-    if (myData == null) {
-      return null;
-    }
-
-    String key = keyOfRow(row);
-    if (ConstantColumn.KEY.ordinal() == column) {
-      return myData.validateKey(key);
-    }
-    else {
-      Locale l = localeOfColumn(column);
-      return myData.validateTranslation(key, l);
-    }
+    return column == KEY_COLUMN ? myData.validateKey(getKey(row)) : myData.validateTranslation(getKey(row), getLocale(column));
   }
 }

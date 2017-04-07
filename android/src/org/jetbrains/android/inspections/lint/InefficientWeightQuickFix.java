@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author Eugene.Kudelevsky
  */
-class InefficientWeightQuickFix implements AndroidLintQuickFix {
+public class InefficientWeightQuickFix implements AndroidLintQuickFix {
 
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {

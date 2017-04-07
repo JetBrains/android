@@ -33,6 +33,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.JavaConstantExpressionEvaluator;
+import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.searches.OverridingMethodsSearch;
@@ -79,6 +80,11 @@ import static com.android.tools.lint.detector.api.ResourceEvaluator.*;
 @SuppressWarnings("ALL")
 public class InferSupportAnnotations {
   static final boolean CREATE_INFERENCE_REPORT = true;
+  /**
+   * Whether to look for @hide markers in the javadocs and skip annotation generation from
+   * hidden APIs. This is primarily used when this action is invoked on the framework itself.
+   */
+  static final boolean FILTER_HIDDEN = true;
 
   public static final String KEEP_ANNOTATION = SUPPORT_ANNOTATIONS_PREFIX + "Keep"; //$NON-NLS-1$
 
@@ -101,16 +107,18 @@ public class InferSupportAnnotations {
 
     public boolean keep;
 
-    public void addResourceType(@NotNull ResourceType type) {
-      if (types == null) {
-        types = EnumSet.of(type);
-      }
-      else {
-        types.add(type);
+    public void addResourceType(@Nullable ResourceType type) {
+      if (type != null) {
+        if (types == null) {
+          types = EnumSet.of(type);
+        }
+        else {
+          types.add(type);
+        }
       }
     }
 
-    public void addResourceTypes(@NotNull EnumSet<ResourceType> types) {
+    public void addResourceTypes(@Nullable EnumSet<ResourceType> types) {
       if (types != null) {
         if (this.types == null) {
           this.types = EnumSet.copyOf(types);
@@ -145,13 +153,25 @@ public class InferSupportAnnotations {
 
         StringBuilder sb = new StringBuilder();
         if (cls != null) {
-          sb.append("Class{").append(cls.getName()).append('}');
+          sb.append("Class{").append(cls.getName());
+          if (isHidden(cls)) {
+            sb.append(" (Hidden)");
+          }
+          sb.append('}');
         }
         if (member instanceof PsiMethod) {
-          sb.append(" Method{").append(member.getName()).append('}');
+          sb.append(" Method{").append(member.getName());
+          if (isHidden((PsiMethod)member)) {
+            sb.append(" (Hidden)");
+          }
+          sb.append('}');
         }
         if (member instanceof PsiField) {
-          sb.append("Field{").append(member.getName()).append('}');
+          sb.append("Field{").append(member.getName());
+          if (isHidden((PsiField)member)) {
+            sb.append(" (Hidden)");
+          }
+          sb.append('}');
         }
         if (parameter != null) {
           sb.append("Parameter");
@@ -228,7 +248,7 @@ public class InferSupportAnnotations {
           if (type == COLOR_INT_MARKER_TYPE) {
             sb.append(COLOR_INT_ANNOTATION);
           }
-          else if (type == PX_MARKER_TYPE) {
+          else if (type == DIMENSION_MARKER_TYPE) {
             sb.append(PX_ANNOTATION);
           }
           else {
@@ -415,6 +435,24 @@ public class InferSupportAnnotations {
     }
   }
 
+  private static boolean isHidden(@NotNull PsiDocCommentOwner owner) {
+    if (FILTER_HIDDEN) {
+      while (owner != null) {
+        PsiDocComment docComment = owner.getDocComment();
+        if (docComment != null) {
+          // We cna't just look for a PsiDocTag with name "hide" from docComment.getTags()
+          // because that method only works for "@hide", not "{@hide}" which is used in a bunch
+          // of places; we'd need to search for PsiInlineDocTags too
+          String text = docComment.getText();
+          return text.contains("@hide");
+        }
+        owner = PsiTreeUtil.getParentOfType(owner, PsiDocCommentOwner.class, true);
+      }
+    }
+
+    return false;
+  }
+
   private static void annotateConstraints(Project project,
                                           Constraints constraints,
                                           PsiModifierListOwner element) {
@@ -426,6 +464,14 @@ public class InferSupportAnnotations {
     if (constraints.readOnly || ModuleUtilCore.findModuleForPsiElement(element) == null) {
       return;
     }
+
+    if (FILTER_HIDDEN) {
+      PsiDocCommentOwner doc = PsiTreeUtil.getParentOfType(element, PsiDocCommentOwner.class, false);
+      if (doc != null && isHidden(doc)) {
+        return;
+      }
+    }
+
 
     for (String code : constraints.getResourceTypeAnnotations()) {
       insertAnnotation(project, element, code);
@@ -562,7 +608,7 @@ public class InferSupportAnnotations {
         type = COLOR_INT_MARKER_TYPE;
       }
       else if (qualifiedName.equals(PX_ANNOTATION)) {
-        type = PX_MARKER_TYPE;
+        type = DIMENSION_MARKER_TYPE;
       }
       if (type != null) {
         if (constraints == null) {
@@ -679,6 +725,9 @@ public class InferSupportAnnotations {
 
       if (className != null) {
         PsiClass psiClass = JavaPsiFacade.getInstance(myProject).findClass(className, GlobalSearchScope.allScope(myProject));
+        if (psiClass == null) {
+          return null;
+        }
         PsiMethod[] methods = psiClass.findMethodsByName(methodName, true);
         if (methods.length == 1) {
           return methods[0];
@@ -970,7 +1019,7 @@ public class InferSupportAnnotations {
                   PsiElement resolved = reference.resolve();
                   if (resolved instanceof PsiField) {
                     PsiField field = (PsiField)resolved;
-                    if (field.hasModifierProperty(PsiModifier.FINAL)) {
+                    if (field.hasModifierProperty(PsiModifier.FINAL) && field.hasModifierProperty(PsiModifier.STATIC)) {
                       Constraints constraints = registerPermissionRequirement(method, true, field);
                       if (CREATE_INFERENCE_REPORT && constraints != null && !constraints.readOnly) {
                         constraints.addReport(method, constraints.getPermissionAnnotationsString() + " because it calls " + name);

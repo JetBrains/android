@@ -23,23 +23,18 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Base class for representing compileOptions block or others blocks which have sourceCompatibility / targetCompatibility fields.
  */
-public abstract class BaseCompileOptionsDslElement extends GradlePropertiesDslElement {
+public abstract class BaseCompileOptionsDslElement extends GradleDslBlockElement {
   @NonNls public static final String COMPILE_OPTIONS_BLOCK_NAME = "compileOptions";
 
   @NonNls public static final String SOURCE_COMPATIBILITY_ATTRIBUTE_NAME = "sourceCompatibility";
   @NonNls public static final String TARGET_COMPATIBILITY_ATTRIBUTE_NAME = "targetCompatibility";
 
   protected BaseCompileOptionsDslElement(@Nullable GradleDslElement parent, @NotNull String name) {
-    super(parent, null, name);
+    super(parent, name);
   }
 
   public BaseCompileOptionsDslElement(@Nullable GradleDslElement parent) {
-    super(parent, null, COMPILE_OPTIONS_BLOCK_NAME);
-  }
-
-  @Override
-  protected boolean isBlockElement() {
-    return true;
+    super(parent, COMPILE_OPTIONS_BLOCK_NAME);
   }
 
   @Override

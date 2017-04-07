@@ -16,12 +16,13 @@
 package com.android.tools.idea.gradle.project.subset;
 
 import com.android.builder.model.Variant;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.AndroidGradleModel.SourceFileContainerInfo;
-import com.android.tools.idea.gradle.GradleModel;
-import com.android.tools.idea.gradle.JavaProject;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel.SourceFileContainerInfo;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.AndroidGradleNotification;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -41,8 +42,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 
-import static com.android.tools.idea.gradle.AndroidProjectKeys.*;
-import static com.android.tools.idea.gradle.util.GradleUtil.getCachedProjectData;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
+import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.Request.DEFAULT_REQUEST;
 import static com.android.tools.idea.gradle.util.Projects.populate;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.notification.NotificationType.INFORMATION;
@@ -58,7 +59,7 @@ import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
  * IDE. This feature is handy when users work with big projects (e.g. 300+ modules) but, in practice, modify sources in a few of them. A
  * smaller set of source code can make IDE's performance better (e.g. indexing and building.)
  */
-public final class ProjectSubset {
+public class ProjectSubset {
   @NonNls private static final String PROJECT_SUBSET_PROPERTY_NAME = "com.android.studio.selected.modules.on.import";
 
   private static final String MODULE_LOOKUP_MESSAGE_TITLE = "Module Lookup";
@@ -74,12 +75,12 @@ public final class ProjectSubset {
     myProject = project;
   }
 
-  public static boolean isSettingEnabled() {
+  public boolean isFeatureEnabled() {
     return GradleExperimentalSettings.getInstance().SELECT_MODULES_ON_PROJECT_IMPORT;
   }
 
   public boolean hasCachedModules() {
-    DataNode<ProjectData> projectInfo = getCachedProjectData(myProject);
+    DataNode<ProjectData> projectInfo = DataNodeCaches.getInstance(myProject).getCachedProjectData();
     if (projectInfo != null) {
       return !findAll(projectInfo, MODULE).isEmpty();
     }
@@ -87,7 +88,7 @@ public final class ProjectSubset {
   }
 
   public void addOrRemoveModules() {
-    DataNode<ProjectData> projectInfo = getCachedProjectData(myProject);
+    DataNode<ProjectData> projectInfo = DataNodeCaches.getInstance(myProject).getCachedProjectData();
     if (projectInfo == null) {
       return;
     }
@@ -101,7 +102,7 @@ public final class ProjectSubset {
     if (selectedModules != null) {
       setSelection(selectedModules);
       if (!Arrays.equals(getSelection(), selection)) {
-        populate(myProject, projectInfo, selectedModules, true);
+        populate(myProject, projectInfo, selectedModules, DEFAULT_REQUEST);
       }
     }
   }
@@ -121,7 +122,7 @@ public final class ProjectSubset {
    * @param virtualFile the given file.
    */
   public void findAndIncludeModuleContainingSourceFile(@NotNull VirtualFile virtualFile) {
-    DataNode<ProjectData> projectInfo = getCachedProjectData(myProject);
+    DataNode<ProjectData> projectInfo = DataNodeCaches.getInstance(myProject).getCachedProjectData();
     if (projectInfo == null) {
       return;
     }
@@ -192,19 +193,19 @@ public final class ProjectSubset {
    */
   @Nullable
   private static ModuleSearchResult containsSourceFile(@NotNull DataNode<ModuleData> moduleInfos, @NotNull File file, boolean selected) {
-    DataNode<AndroidGradleModel> androidProjectNode = find(moduleInfos, ANDROID_MODEL);
+    DataNode<AndroidModuleModel> androidProjectNode = find(moduleInfos, ANDROID_MODEL);
     if (androidProjectNode != null) {
-      AndroidGradleModel androidModel = androidProjectNode.getData();
+      AndroidModuleModel androidModel = androidProjectNode.getData();
       SourceFileContainerInfo result = androidModel.containsSourceFile(file);
       if (result != null) {
         return new ModuleSearchResult(moduleInfos, result, selected);
       }
     }
 
-    DataNode<JavaProject> javaProjectNode = find(moduleInfos, JAVA_PROJECT);
+    DataNode<JavaModuleModel> javaProjectNode = find(moduleInfos, JAVA_MODULE_MODEL);
     if (javaProjectNode != null) {
-      JavaProject javaProject = javaProjectNode.getData();
-      if (javaProject.containsSourceFile(file)) {
+      JavaModuleModel javaModuleModel = javaProjectNode.getData();
+      if (javaModuleModel.containsSourceFile(file)) {
         return new ModuleSearchResult(moduleInfos, null, selected);
       }
     }
@@ -254,7 +255,7 @@ public final class ProjectSubset {
       notification.showBalloon(MODULE_LOOKUP_MESSAGE_TITLE, text, INFORMATION);
     });
 
-    populate(myProject, projectInfo, selectedModules, true);
+    populate(myProject, projectInfo, selectedModules, DEFAULT_REQUEST);
   }
 
   /**
@@ -306,14 +307,14 @@ public final class ProjectSubset {
 
           finalSelection.addAll(selectedModules);
           setSelection(finalSelection);
-          populate(myProject, projectInfo, finalSelection, true);
+          populate(myProject, projectInfo, finalSelection, DEFAULT_REQUEST);
         }
       }
     });
   }
 
   public void findAndIncludeModules(@NotNull Collection<String> moduleGradlePaths) {
-    DataNode<ProjectData> projectInfo = getCachedProjectData(myProject);
+    DataNode<ProjectData> projectInfo = DataNodeCaches.getInstance(myProject).getCachedProjectData();
     if (projectInfo == null) {
       return;
     }
@@ -339,10 +340,10 @@ public final class ProjectSubset {
               selectedModules.add(moduleInfo);
               continue;
             }
-            DataNode<GradleModel> gradleProjectNode = find(moduleInfo, GRADLE_MODEL);
+            DataNode<GradleModuleModel> gradleProjectNode = find(moduleInfo, GRADLE_MODULE_MODEL);
             if (gradleProjectNode != null) {
-              GradleModel gradleModel = gradleProjectNode.getData();
-              if (moduleGradlePaths.contains(gradleModel.getGradlePath())) {
+              GradleModuleModel gradleModuleModel = gradleProjectNode.getData();
+              if (moduleGradlePaths.contains(gradleModuleModel.getGradlePath())) {
                 selection.add(name);
                 selectedModules.add(moduleInfo);
                 found = true;
@@ -351,7 +352,7 @@ public final class ProjectSubset {
           }
           if (!selectedModules.isEmpty() && found) {
             setSelection(selectedModules);
-            populate(project, projectInfo, selectedModules, true);
+            populate(project, projectInfo, selectedModules, DEFAULT_REQUEST);
           }
         }
       }.queue();

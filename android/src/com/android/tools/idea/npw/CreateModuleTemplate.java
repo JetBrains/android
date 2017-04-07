@@ -41,11 +41,6 @@ public class CreateModuleTemplate extends AbstractModuleTemplate {
     templateMetadata = metadata;
   }
 
-  @Override
-  public String toString() {
-    return getName();
-  }
-
   @Nullable
   public TemplateMetadata getMetadata() {
     return templateMetadata;

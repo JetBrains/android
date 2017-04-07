@@ -37,25 +37,21 @@ public class BrClassFinder extends PsiElementFinder {
   public BrClassFinder(DataBindingProjectComponent component) {
     myComponent = component;
     myClassByPackageCache = CachedValuesManager.getManager(component.getProject()).createCachedValue(
-      new CachedValueProvider<Map<String, PsiClass>>() {
-        @Nullable
-        @Override
-        public Result<Map<String, PsiClass>> compute() {
-          Map<String, PsiClass> classes = new HashMap<String, PsiClass>();
-          for (AndroidFacet facet : myComponent.getDataBindingEnabledFacets()) {
-            if (facet.isDataBindingEnabled()) {
-              classes.put(DataBindingUtil.getBrQualifiedName(facet), DataBindingUtil.getOrCreateBrClassFor(facet));
-            }
+      () -> {
+        Map<String, PsiClass> classes = new HashMap<>();
+        for (AndroidFacet facet : myComponent.getDataBindingEnabledFacets()) {
+          if (facet.isDataBindingEnabled()) {
+            classes.put(DataBindingUtil.getBrQualifiedName(facet), DataBindingUtil.getOrCreateBrClassFor(facet));
           }
-          return Result.create(classes, myComponent);
         }
+        return CachedValueProvider.Result.create(classes, myComponent);
       }, false);
   }
 
   @Nullable
   @Override
   public PsiClass findClass(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
-    if (!myComponent.hasAnyDataBindingEnabledFacet() || !qualifiedName.endsWith(DataBindingUtil.BR)) {
+    if (!isEnabled() || !qualifiedName.endsWith(DataBindingUtil.BR)) {
       return null;
     }
     PsiClass psiClass = myClassByPackageCache.getValue().get(qualifiedName);
@@ -79,6 +75,9 @@ public class BrClassFinder extends PsiElementFinder {
   @NotNull
   @Override
   public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
+    if (!isEnabled()) {
+      return PsiClass.EMPTY_ARRAY;
+    }
     PsiClass aClass = findClass(qualifiedName, scope);
     if (aClass == null) {
       return PsiClass.EMPTY_ARRAY;
@@ -89,7 +88,10 @@ public class BrClassFinder extends PsiElementFinder {
   @Nullable
   @Override
   public PsiPackage findPackage(@NotNull String qualifiedName) {
-    // DO NOT find package. BR package is the same as R and it always exists
     return null;
+  }
+
+  private boolean isEnabled() {
+    return DataBindingUtil.inMemoryClassGenerationIsEnabled() && myComponent.hasAnyDataBindingEnabledFacet();
   }
 }

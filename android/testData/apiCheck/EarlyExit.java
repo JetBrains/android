@@ -36,7 +36,7 @@ public class Class {
             }
         }
 
-        <error descr="Call requires API level 14 (current min is 1): android.widget.GridLayout#GridLayout">new GridLayout(null)</error>; // ERROR
+        <error descr="Call requires API level 14 (current min is 1): new android.widget.GridLayout">new GridLayout(null)</error>; // ERROR
 
         if (Utils.isLollipop()) { // too late
             //noinspection UnnecessaryReturnStatement

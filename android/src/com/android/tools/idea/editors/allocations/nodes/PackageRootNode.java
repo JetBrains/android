@@ -57,7 +57,7 @@ public class PackageRootNode extends PackageNode implements MainTreeNode {
     insert(packages, alloc, 0);
   }
 
-  static Pattern globToRegex(String glob) {
+  static Pattern globToRegex(@NotNull String glob) {
     String regex = "";
     int ix = glob.indexOf("*");
     while (ix != -1) {

@@ -33,10 +33,10 @@ public class Class extends Activity {
         // This is a final int, which means it gets inlined
         int matchParent = LayoutParams.MATCH_PARENT; // API 8
         // Field access: non final
-        BatteryInfo batteryInfo = <error descr="Field requires API level 14 (current min is 1): android.app.ApplicationErrorReport#batteryInfo">getReport().batteryInfo</error>;
+        BatteryInfo batteryInfo = <error descr="Field requires API level 14 (current min is 1): `android.app.ApplicationErrorReport#batteryInfo`">getReport().batteryInfo</error>;
 
         // Enum access
-        Mode mode = <error descr="Field requires API level 11 (current min is 1): android.graphics.PorterDuff.Mode#OVERLAY">PorterDuff.Mode.OVERLAY</error>; // API 11
+        Mode mode = <error descr="Field requires API level 11 (current min is 1): `android.graphics.PorterDuff.Mode#OVERLAY`">PorterDuff.Mode.OVERLAY</error>; // API 11
     }
 
     // Return type
@@ -115,30 +115,30 @@ public class Class extends Activity {
         @Override
         @TargetApi(2)
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            int measuredWidth = View.<error descr="Call requires API level 11 (current min is 1): android.view.View#resolveSizeAndState">resolveSizeAndState</error>(widthMeasureSpec,
+            int measuredWidth = View.<error descr="Call requires API level 11 (current min is 2): android.view.View#resolveSizeAndState">resolveSizeAndState</error>(widthMeasureSpec,
                     widthMeasureSpec, 0);
-            int measuredHeight = <error descr="Call requires API level 11 (current min is 1): android.view.View#resolveSizeAndState">resolveSizeAndState</error>(heightMeasureSpec,
+            int measuredHeight = <error descr="Call requires API level 11 (current min is 2): android.view.View#resolveSizeAndState">resolveSizeAndState</error>(heightMeasureSpec,
                     heightMeasureSpec, 0);
-            View.<error descr="Call requires API level 11 (current min is 1): android.view.View#combineMeasuredStates">combineMeasuredStates</error>(0, 0);
-            ApiCallTest5.<error descr="Call requires API level 11 (current min is 1): android.view.View#combineMeasuredStates">combineMeasuredStates</error>(0, 0);
+            View.<error descr="Call requires API level 11 (current min is 2): android.view.View#combineMeasuredStates">combineMeasuredStates</error>(0, 0);
+            ApiCallTest5.<error descr="Call requires API level 11 (current min is 2): android.view.View#combineMeasuredStates">combineMeasuredStates</error>(0, 0);
         }
     }
 
     public static class ApiCallTest6 {
         public void test(Throwable throwable) {
             // IOException(Throwable) requires API 9
-            IOException ioException = <error descr="Call requires API level 9 (current min is 1): java.io.IOException#IOException">new IOException(throwable)</error>;
+            IOException ioException = <error descr="Call requires API level 9 (current min is 1): new java.io.IOException">new IOException(throwable)</error>;
         }
     }
 
     @SuppressWarnings("serial")
     public static class ApiCallTest7 extends IOException {
         public ApiCallTest7(String message, Throwable cause) {
-            <error descr="Call requires API level 9 (current min is 1): java.io.IOException#IOException">super(message, cause)</error>; // API 9
+            <error descr="Call requires API level 9 (current min is 1): new java.io.IOException">super</error>(message, cause); // API 9
         }
 
         public void fun() throws IOException {
-            super.toString(); throw <error descr="Call requires API level 9 (current min is 1): java.io.IOException#IOException">new IOException((Throwable) null)</error>; // API 9
+            super.toString(); throw <error descr="Call requires API level 9 (current min is 1): new java.io.IOException">new IOException((Throwable) null)</error>; // API 9
         }
     }
 

@@ -144,7 +144,7 @@ public class LocalPropertiesTest extends IdeaTestCase {
     outProperties.setProperty(SDK_DIR_PROPERTY, sdk.getPath());
 
     // First write properties using the default encoding (which will \\u escape all non-iso-8859 chars)
-    PropertiesUtil.savePropertiesToFile(outProperties, localPropertiesFile, null);
+    PropertiesFiles.savePropertiesToFile(outProperties, localPropertiesFile, null);
 
     // Read back platform default version of string; confirm that it gets converted properly
     LocalProperties properties1 = new LocalProperties(myProject);

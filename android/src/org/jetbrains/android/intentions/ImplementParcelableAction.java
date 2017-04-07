@@ -24,13 +24,13 @@ import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
-import org.jetbrains.android.inspections.lint.ParcelableQuickFix;
+import com.android.tools.idea.lint.ParcelableQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.jetbrains.android.inspections.lint.ParcelableQuickFix.Operation.IMPLEMENT;
+import static com.android.tools.idea.lint.ParcelableQuickFix.Operation.IMPLEMENT;
 
 public class ImplementParcelableAction extends AbstractIntentionAction implements HighPriorityAction {
   private final ParcelableQuickFix myQuickFix;

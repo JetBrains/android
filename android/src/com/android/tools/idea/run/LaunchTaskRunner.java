@@ -26,6 +26,7 @@ import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
@@ -102,6 +103,11 @@ public class LaunchTaskRunner extends Task.Backgroundable {
       }
       catch (com.intellij.execution.ExecutionException e) {
         launchStatus.terminateLaunch(e.getMessage());
+        return;
+      }
+      catch (IllegalStateException e) {
+        launchStatus.terminateLaunch(e.getMessage());
+        Logger.getInstance(LaunchTaskRunner.class).error(e);
         return;
       }
 

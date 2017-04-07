@@ -17,12 +17,9 @@ package com.android.tools.idea.assistant.view;
 
 
 import com.android.tools.idea.assistant.AssistActionHandler;
-import com.android.tools.idea.assistant.datamodel.FeatureData;
-import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
-import com.android.tools.idea.assistant.datamodel.TutorialData;
-import com.android.tools.idea.structure.services.DeveloperServiceMap;
-import com.android.tools.idea.structure.services.DeveloperServiceMap.DeveloperServiceList;
+import com.android.tools.idea.assistant.datamodel.*;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -34,23 +31,31 @@ import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.android.tools.idea.assistant.view.TutorialChooser.NAVIGATION_KEY;
+
 /**
  * Entry point for the complete set of services and tutorials associated with
  * Firebase. Initializes presentation data from xml and arranges into cards for
  * navigation purposes.
  */
 public class FeaturesPanel extends JPanel implements ItemListener, ActionListener {
-  private final List<String> myCardKeys = new ArrayList<String>();
+  private final List<String> myCardKeys = new ArrayList<>();
   private JPanel myCards;
   private CardLayout myCardLayout;
+  private AnalyticsProvider myAnalyticsProvider;
+  private Project myProject;
 
-  @SuppressWarnings("FieldCanBeLocal")
-  @NotNull
-  private TutorialBundleData myTutorialBundle;
+  /**
+   * If non-null, the key of the currently open tutorial.
+   * Used for analytics tracking purposes.
+   */
+  private TutorialMetadata myOpenTutorial;
 
-  public FeaturesPanel(@NotNull TutorialBundleData bundle, DeveloperServiceMap serviceMap) {
+  public FeaturesPanel(@NotNull TutorialBundleData bundle, @NotNull Project project, @NotNull AnalyticsProvider analyticsProvider) {
     super(new BorderLayout());
-    myTutorialBundle = bundle;
+
+    myAnalyticsProvider = analyticsProvider;
+    myProject = project;
 
     setBackground(UIUtils.getBackgroundColor());
 
@@ -61,13 +66,21 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
 
     // NOTE: the card labels cannot be from an enum since the views will be
     // built up from xml.
-    addCard(new TutorialChooser(this, myTutorialBundle), "chooser");
+    List<? extends FeatureData> featureList = bundle.getFeatures();
+    // Note: Hides Tutorial Chooser panel if there is only one feature and one tutorial.
+    boolean hideChooserAndNavigationalBar = false;
+    if (featureList.size() == 1 && featureList.get(0).getTutorials().size() == 1) {
+      hideChooserAndNavigationalBar = true;
+      getLog().debug("Tutorial chooser and head/bottom navigation bars are hidden because the assistant panel contains only one tutorial.");
+    }
+    else {
+      addCard(new TutorialChooser(this, bundle, myAnalyticsProvider, myProject), NAVIGATION_KEY);
+    }
 
     // Add all tutorial cards.
-    for (FeatureData feature : myTutorialBundle.getFeatures()) {
-      DeveloperServiceList services = serviceMap.get(feature.getServiceId());
+    for (FeatureData feature : bundle.getFeatures()) {
       for (TutorialData tutorial : feature.getTutorials()) {
-        addCard(new TutorialCard(this, tutorial, feature, bundle.getName(), services), tutorial.getKey());
+        addCard(new TutorialCard(this, tutorial, feature, bundle.getName(), myProject, hideChooserAndNavigationalBar), tutorial.getKey());
       }
     }
     add(myCards);
@@ -98,12 +111,14 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
     // type. Current thinking is to use extensions so that it's completely generic.
     if (source instanceof NavigationButton) {
       NavigationButton t = (NavigationButton)e.getSource();
-      String key = t.getKey();
-      if (!myCardKeys.contains(key)) {
-        throw new RuntimeException("No views exist with key: " + key);
+      // Track that user has navigated away from a tutorial. Note that the
+      // "chooser" card is special cased in {@code #showCard} such that
+      // no myOpenTutorial + myTimeTutorialOpened are not set.
+      if (myOpenTutorial != null) {
+        myAnalyticsProvider.trackTutorialClosed(myOpenTutorial.getKey(), myOpenTutorial.getReadDuration(), myProject);
+        myOpenTutorial = null;
       }
-      myCardLayout.show(myCards, key);
-      getLog().debug("Received request to navigate to view with key: " + key);
+      showCard(t.getKey());
     }
     else if (source instanceof StatefulButton.ActionButton) {
       StatefulButton.ActionButton a = (StatefulButton.ActionButton)e.getSource();
@@ -120,12 +135,8 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
         throw new IllegalArgumentException("Unhandled action, no handler found for key \"" + actionId + "\".");
       }
 
-      DeveloperServiceList services = a.getDeveloperServices();
-      if (services == null) {
-        throw new RuntimeException("Unable to find a service to to complete the requested action.");
-      }
-
-      handler.handleAction(a.getActionArgument(), services);
+      ActionData actionData = a.getActionData();
+      handler.handleAction(actionData, a.getProject());
       a.updateState();
     }
     else {
@@ -133,4 +144,39 @@ public class FeaturesPanel extends JPanel implements ItemListener, ActionListene
     }
   }
 
+  /**
+   * Shows the card matching the given key.
+   *
+   * @param key The key of the card to show.
+   */
+  private void showCard(@NotNull String key) {
+    if (!myCardKeys.contains(key)) {
+      throw new IllegalArgumentException("No views exist with key: " + key);
+    }
+    getLog().debug("Received request to navigate to view with key: " + key);
+    if (!key.equals(NAVIGATION_KEY)) {
+      myAnalyticsProvider.trackTutorialOpen(key, myProject);
+      myOpenTutorial = new TutorialMetadata(key);
+    }
+    myCardLayout.show(myCards, key);
+  }
+
+  static class TutorialMetadata {
+    private final String myKey;
+    private final long myTimeOpenedMs;
+
+    TutorialMetadata(@NotNull String key) {
+      myKey = key;
+      myTimeOpenedMs = System.currentTimeMillis();
+    }
+
+    long getReadDuration() {
+      return System.currentTimeMillis() - myTimeOpenedMs;
+    }
+
+    @NotNull
+    String getKey() {
+      return myKey;
+    }
+  }
 }

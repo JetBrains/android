@@ -63,7 +63,7 @@ public class PsParsedDependencies {
           }
           else if (parsedDependency instanceof ModuleDependencyModel) {
             ModuleDependencyModel module = (ModuleDependencyModel)parsedDependency;
-            myParsedModuleDependencies.put(module.path(), module);
+            myParsedModuleDependencies.put(module.path().value(), module);
           }
         }
       });

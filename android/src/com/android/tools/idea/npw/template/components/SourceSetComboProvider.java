@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.npw.template.components;
 
-import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.npw.project.AndroidProjectPaths;
+import com.android.tools.idea.npw.project.AndroidSourceSet;
 import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.swing.SelectedItemProperty;
 import com.intellij.ui.ListCellRendererWrapper;
@@ -29,15 +28,14 @@ import java.util.List;
 /**
  * Provides a combobox which presents the user with a list of source sets.
  *
- * @see SourceProvider
- * @see AndroidProjectPaths
+ * @see AndroidSourceSet
  */
 // Disable JComboBox warnings. We have no choice but to use it as we're stuck with JDK6
 @SuppressWarnings({"UndesirableClassUsage", "unchecked"})
 public final class SourceSetComboProvider extends ComponentProvider<JComboBox> {
-  @NotNull private final List<SourceProvider> mySourceSets;
+  @NotNull private final List<AndroidSourceSet> mySourceSets;
 
-  public SourceSetComboProvider(@NotNull List<SourceProvider> sourceSets) {
+  public SourceSetComboProvider(@NotNull List<AndroidSourceSet> sourceSets) {
     mySourceSets = sourceSets;
   }
 
@@ -45,7 +43,7 @@ public final class SourceSetComboProvider extends ComponentProvider<JComboBox> {
   @Override
   public JComboBox createComponent() {
     DefaultComboBoxModel comboBoxModel = new DefaultComboBoxModel();
-    for (SourceProvider sourceSet : mySourceSets) {
+    for (AndroidSourceSet sourceSet : mySourceSets) {
       comboBoxModel.addElement(sourceSet);
     }
 
@@ -53,7 +51,7 @@ public final class SourceSetComboProvider extends ComponentProvider<JComboBox> {
     sourceSetCombo.setRenderer(new ListCellRendererWrapper() {
       @Override
       public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        setText(((SourceProvider)value).getName());
+        setText(((AndroidSourceSet)value).getName());
       }
     });
     sourceSetCombo.setToolTipText("<html>The source set within which to generate new project files.<br>" +
@@ -64,7 +62,7 @@ public final class SourceSetComboProvider extends ComponentProvider<JComboBox> {
   @Nullable
   @Override
   public AbstractProperty<?> createProperty(@NotNull JComboBox sourceSetCombo) {
-    return new SelectedItemProperty<SourceProvider>(sourceSetCombo);
+    return new SelectedItemProperty<AndroidSourceSet>(sourceSetCombo);
   }
 }
 

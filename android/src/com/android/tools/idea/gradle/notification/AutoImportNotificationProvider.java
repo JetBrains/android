@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.notification;
 
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
@@ -27,9 +30,6 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleProjectSettings;
-import static com.android.tools.idea.gradle.util.Projects.isBuildWithGradle;
-import static com.android.tools.idea.startup.AndroidStudioInitializer.isAndroidStudio;
 import static com.intellij.ide.BrowserUtil.browse;
 
 /**
@@ -56,13 +56,13 @@ public class AutoImportNotificationProvider extends EditorNotifications.Provider
   @Override
   @Nullable
   public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-    if (!isBuildWithGradle(myProject)) {
+    if (!GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
       return null;
     }
     String name = file.getName();
     if (FN_BUILD_GRADLE.equals(name) || FN_SETTINGS_GRADLE.equals(name)) {
-      GradleProjectSettings settings = getGradleProjectSettings(myProject);
-      if (isAndroidStudio() && settings != null && settings.isUseAutoImport()) {
+      GradleProjectSettings settings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(myProject);
+      if (IdeInfo.getInstance().isAndroidStudio() && settings != null && settings.isUseAutoImport()) {
         return new DisableAutoImportNotificationPanel(settings);
       }
     }
@@ -70,22 +70,14 @@ public class AutoImportNotificationProvider extends EditorNotifications.Provider
   }
 
   private class DisableAutoImportNotificationPanel extends EditorNotificationPanel {
-    DisableAutoImportNotificationPanel(@NotNull final GradleProjectSettings settings) {
+    DisableAutoImportNotificationPanel(@NotNull GradleProjectSettings settings) {
       setText("Gradle 'auto-import' will considerably slow down the IDE, due to a known bug.");
 
-      createActionLabel("Open bug report", new Runnable() {
-        @Override
-        public void run() {
-          browse("https://code.google.com/p/android/issues/detail?id=59965");
-        }
-      });
+      createActionLabel("Open bug report", () -> browse("https://code.google.com/p/android/issues/detail?id=59965"));
 
-      createActionLabel("Disable 'auto-import'", new Runnable() {
-        @Override
-        public void run() {
-          settings.setUseAutoImport(false);
-          myNotifications.updateAllNotifications();
-        }
+      createActionLabel("Disable 'auto-import'", () -> {
+        settings.setUseAutoImport(false);
+        myNotifications.updateAllNotifications();
       });
     }
   }

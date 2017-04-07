@@ -28,9 +28,12 @@ import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
+import com.android.tools.lint.checks.PermissionHolder;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -47,6 +50,8 @@ import org.w3c.dom.Node;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
+import static com.android.tools.lint.checks.PermissionRequirement.ATTR_PROTECTION_LEVEL;
+import static com.android.tools.lint.checks.PermissionRequirement.VALUE_DANGEROUS;
 import static com.android.xml.AndroidManifest.*;
 
 /**
@@ -68,9 +73,10 @@ public class MergedManifest {
   private String myApplicationLabel;
   private boolean myApplicationSupportsRtl;
   private Boolean myApplicationDebuggable;
-  private @Nullable("is lazy initialised") Map<String, XmlNode.NodeKey> myNodeKeys;
+  private @Nullable Map<String, XmlNode.NodeKey> myNodeKeys;
   private Document myDocument;
   private List<VirtualFile> myManifestFiles;
+  private ModulePermissions myPermissionHolder;
 
   /**
    * Constructs a new MergedManifest
@@ -88,6 +94,13 @@ public class MergedManifest {
    */
   @NotNull
   public static MergedManifest get(@NotNull Module module) {
+    if (module.isDisposed()) {
+      return new MergedManifest(module) {
+        @Override
+        protected void syncWithReadPermission() {
+        }
+      };
+    }
     MergedManifest manifest = module.getComponent(MergedManifest.class);
     assert manifest != null;
     return manifest;
@@ -309,6 +322,18 @@ public class MergedManifest {
   }
 
   /**
+   * @return instance of {@link PermissionHolder}
+   */
+  @NotNull
+  public PermissionHolder getPermissionHolder() {
+    sync();
+    if (myPermissionHolder == null) {
+      return new ModulePermissions(Collections.emptySet(), Collections.emptySet());
+    }
+    return myPermissionHolder;
+  }
+
+  /**
    * Ensure that the package, theme and activity maps are initialized and up to date
    * with respect to the manifest file
    */
@@ -340,7 +365,7 @@ public class MergedManifest {
     return Strings.emptyToNull(element.getAttributeNS(namespace, localName));
   }
 
-  private void syncWithReadPermission() {
+  protected void syncWithReadPermission() {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assert facet != null : "Attempt to obtain manifest info from a non Android module: " + myModule.getName();
 
@@ -369,6 +394,8 @@ public class MergedManifest {
     myActivities = Lists.newArrayList();
     myActivityAliases = Lists.newArrayListWithExpectedSize(4);
     myServices = Lists.newArrayListWithExpectedSize(4);
+    Set<String> permissions = Sets.newHashSetWithExpectedSize(30);
+    Set<String> revocable = Sets.newHashSetWithExpectedSize(2);
 
     try {
       Document document = myManifestFile.getXmlDocument();
@@ -431,11 +458,30 @@ public class MergedManifest {
             Element usesSdk = (Element) node;
             myMinSdk = getApiVersion(usesSdk, ATTRIBUTE_MIN_SDK_VERSION, AndroidVersion.DEFAULT);
             myTargetSdk = getApiVersion(usesSdk, ATTRIBUTE_TARGET_SDK_VERSION, myMinSdk);
+          } else if (TAG_USES_PERMISSION.equals(nodeName)
+                     || TAG_USES_PERMISSION_SDK_23.equals(nodeName)
+                     || TAG_USES_PERMISSION_SDK_M.equals(nodeName)) {
+            Element element = (Element) node;
+            String name = element.getAttributeNS(ANDROID_URI, ATTR_NAME);
+            if (!name.isEmpty()) {
+              permissions.add(name);
+            }
+          } else if (nodeName.equals(TAG_PERMISSION)) {
+            Element element = (Element) node;
+            String protectionLevel = element.getAttributeNS(ANDROID_URI,
+                                                            ATTR_PROTECTION_LEVEL);
+            if (VALUE_DANGEROUS.equals(protectionLevel)) {
+              String name = element.getAttributeNS(ANDROID_URI, ATTR_NAME);
+              if (!name.isEmpty()) {
+                revocable.add(name);
+              }
+            }
           }
         }
 
         node = node.getNextSibling();
       }
+      myPermissionHolder = new ModulePermissions(ImmutableSet.copyOf(permissions), ImmutableSet.copyOf(revocable));
     }
     catch (ProcessCanceledException e) {
       myManifestFile = null; // clear the file, to make sure we reload everything on next call to this method
@@ -489,6 +535,9 @@ public class MergedManifest {
   @Nullable
   public Element findUsedFeature(@NotNull String name) {
     sync();
+    if (myDocument == null) {
+      return null;
+    }
     Node node = myDocument.getDocumentElement().getFirstChild();
     while (node != null) {
       if (node.getNodeType() == Node.ELEMENT_NODE && NODE_USES_FEATURE.equals(node.getNodeName())) {
@@ -515,7 +564,7 @@ public class MergedManifest {
     return myManifestFile == null ? null : myManifestFile.getActions();
   }
 
-  @Nullable("can not find a node key with that name")
+  @Nullable
   public XmlNode.NodeKey getNodeKey(String name) {
     sync();
     if (myNodeKeys == null) {
@@ -684,6 +733,43 @@ public class MergedManifest {
     @Nullable
     public String getUiOptions() {
       return myUiOptions;
+    }
+  }
+
+  private class ModulePermissions implements PermissionHolder {
+
+    @NotNull private final Set<String> myPermissions;
+    @NotNull private final Set<String> myRevocable;
+
+    private ModulePermissions(@NotNull Set<String> permissions, @NotNull Set<String> revocable) {
+      myPermissions = permissions;
+      myRevocable = revocable;
+    }
+
+    @Override
+    public boolean hasPermission(@NotNull String permission) {
+      return myPermissions.contains(permission);
+    }
+
+    @Override
+    public boolean isRevocable(@NotNull String permission) {
+      return myRevocable.contains(permission);
+    }
+
+    @NotNull
+    @Override
+    public AndroidVersion getMinSdkVersion() {
+      AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.get(myModule);
+      return androidModuleInfo != null ?
+             androidModuleInfo.getMinSdkVersion() : MergedManifest.this.getMinSdkVersion();
+    }
+
+    @NotNull
+    @Override
+    public AndroidVersion getTargetSdkVersion() {
+      AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.get(myModule);
+      return androidModuleInfo != null ?
+             androidModuleInfo.getTargetSdkVersion() : MergedManifest.this.getTargetSdkVersion();
     }
   }
 }

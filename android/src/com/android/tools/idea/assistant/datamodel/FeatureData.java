@@ -22,27 +22,44 @@ import javax.swing.*;
 import java.util.List;
 
 /**
- * TODO document me
+ * Representation of a "feature" within the context of a tutorial side panel.
+ * Generally used to express a collection of tutorials based on similarity in
+ * subject matter.
  */
 public interface FeatureData {
-  @NotNull
-  List<String> getResources();
 
-  @NotNull
-  String getResourceRoot();
-
+  /**
+   * Returns the short name of the feature/tutorial-group.
+   */
   @NotNull
   String getName();
 
-  @Nullable("Feature icons are optional")
+  /**
+   * Returns an icon for the feature if one is provided. It is suggested that
+   * your features either all have an icon or none do. When only a subset are
+   * provided, the layout becomes difficult to read.
+   */
+  @Nullable/*Feature icons are optional*/
   Icon getIcon();
 
+  /**
+   * Returns the descriptive text for the feature. May contain limited markup such as links
+   * and bolding.
+   */
   @NotNull
   String getDescription();
 
-  @Nullable("Optional if you have no actions requiring DeveloperService")
-  String getServiceId();
-
+  /**
+   * Returns the collection of tutorials that fall under this feature. The list is
+   * not displayed by default, the UI element for the feature needs to be toggled for
+   * them to be shown.
+   */
   @NotNull
   List<? extends TutorialData> getTutorials();
+
+
+  /**
+   * Sets a class for use in loading resources such as icons.
+   */
+  void setResourceClass(@NotNull Class clazz);
 }

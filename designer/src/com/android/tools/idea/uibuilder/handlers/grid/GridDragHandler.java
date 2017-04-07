@@ -16,11 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.grid;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.uibuilder.api.*;
 import org.jetbrains.annotations.NotNull;
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.DragType;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.graphics.NlDrawingStyle;
 import com.android.tools.idea.uibuilder.graphics.NlGraphics;
 import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
@@ -43,7 +40,7 @@ final class GridDragHandler extends DragHandler {
   }
 
   @Override
-  public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers) {
+  public void commit(@AndroidCoordinate int x, @AndroidCoordinate int y, int modifiers, @NotNull InsertType insertType) {
     if (info.cellHasChild(row, column)) {
       return;
     }
@@ -55,6 +52,8 @@ final class GridDragHandler extends DragHandler {
 
     child.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW, Integer.toString(row));
     child.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, Integer.toString(column));
+
+    insertComponents(-1, insertType);
   }
 
   /**

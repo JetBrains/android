@@ -15,21 +15,31 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
+import com.android.annotations.VisibleForTesting;
+import com.android.tools.idea.uibuilder.api.InsertType;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Sets;
+import com.intellij.ide.CopyProvider;
+import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
+import com.intellij.ide.PasteProvider;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.IJSwingUtilities;
+import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -46,6 +56,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.awt.Insets;
+import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DropTarget;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -59,12 +70,13 @@ import static com.android.tools.idea.uibuilder.property.NlPropertiesManager.UPDA
 import static com.android.tools.idea.uibuilder.structure.NlComponentTree.InsertionPoint.INSERT_INTO;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
-public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, DataProvider,
-                                                     DeleteProvider {
-  private static final Insets INSETS = new Insets(0, 6, 0, 6);
+public class NlComponentTree extends Tree implements DesignSurfaceListener, ModelListener, SelectionListener, Disposable,
+                                                     DataProvider, DeleteProvider, CutProvider, CopyProvider, PasteProvider {
+  private static final Insets INSETS = new JBInsets(0, 6, 0, 6);
 
   private final AtomicBoolean mySelectionIsUpdating;
   private final MergingUpdateQueue myUpdateQueue;
+  private final CopyPasteManager myCopyPasteManager;
 
   private ScreenView myScreenView;
   private NlModel myModel;
@@ -73,7 +85,13 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   private boolean mySkipWait;
 
   public NlComponentTree(@Nullable DesignSurface designSurface) {
+    this(designSurface, CopyPasteManager.getInstance());
+  }
+
+  @VisibleForTesting
+  NlComponentTree(@Nullable DesignSurface designSurface, @NotNull CopyPasteManager copyPasteManager) {
     mySelectionIsUpdating = new AtomicBoolean(false);
+    myCopyPasteManager = copyPasteManager;
     myUpdateQueue = new MergingUpdateQueue(
       "android.layout.structure-pane", UPDATE_DELAY_MSECS, true, null, null, null, SWING_THREAD);
     setModel(new NlComponentTreeModel());
@@ -133,6 +151,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     return myModel;
   }
 
+  @Override
   public void dispose() {
     if (myModel != null) {
       myModel.removeListener(this);
@@ -225,7 +244,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
 
     expandAll(root);
-    components.stream().forEach(component -> collapsePath(newTreePath(component)));
+    components.forEach(component -> collapsePath(newTreePath(component)));
   }
 
   private void expandAll(@NotNull NlComponent parent) {
@@ -235,7 +254,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
     else {
       // Recurse
-      parent.getChildren().stream().forEach(this::expandAll);
+      parent.getChildren().forEach(this::expandAll);
     }
   }
 
@@ -286,7 +305,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     }
   }
 
-  enum InsertionPoint {
+  public enum InsertionPoint {
     INSERT_INTO,
     INSERT_BEFORE,
     INSERT_AFTER
@@ -362,6 +381,11 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   public void modelRendered(@NotNull NlModel model) {
+  }
+
+  @Override
+  public void modelChangedOnLayout(@NotNull NlModel model, boolean animate) {
+    // Do nothing
   }
 
   // ---- Implemented DesignSurfaceListener ----
@@ -453,10 +477,51 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   @Override
   public Object getData(@NonNls String dataId) {
-    if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId)) {
+    if (PlatformDataKeys.DELETE_ELEMENT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.CUT_PROVIDER.is(dataId) ||
+        PlatformDataKeys.COPY_PROVIDER.is(dataId) ||
+        PlatformDataKeys.PASTE_PROVIDER.is(dataId)) {
       return this;
     }
     return null;
+  }
+
+  // ---- Implements CopyProvider ----
+
+  @Override
+  public boolean isCopyEnabled(@NotNull DataContext dataContext) {
+    return !myModel.getSelectionModel().isEmpty();
+  }
+
+  @Override
+  public boolean isCopyVisible(@NotNull DataContext dataContext) {
+    return true;
+  }
+
+  @Override
+  public void performCopy(@NotNull DataContext dataContext) {
+    if (myModel.getSelectionModel().isEmpty()) {
+      return;
+    }
+    myCopyPasteManager.setContents(myModel.getSelectionAsTransferable());
+  }
+
+  // ---- Implements CutProvider ----
+
+  @Override
+  public boolean isCutEnabled(@NotNull DataContext dataContext) {
+    return !myModel.getSelectionModel().isEmpty();
+  }
+
+  @Override
+  public boolean isCutVisible(@NotNull DataContext dataContext) {
+    return true;
+  }
+
+  @Override
+  public void performCut(@NotNull DataContext dataContext) {
+    performCopy(dataContext);
+    deleteElement(dataContext);
   }
 
   // ---- Implements DeleteProvider ----
@@ -472,5 +537,71 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     NlModel model = myScreenView.getModel();
     skipNextUpdateDelay();
     model.delete(selectionModel.getSelection());
+  }
+
+  // ---- Implements PasteProvider ----
+
+  @Override
+  public boolean isPastePossible(@NotNull DataContext dataContext) {
+    return getInsertSpecification() != null;
+  }
+
+  @Override
+  public boolean isPasteEnabled(@NotNull DataContext dataContext) {
+    return true;
+  }
+
+  @Override
+  public void performPaste(@NotNull DataContext dataContext) {
+    InsertSpecification spec = getInsertSpecification();
+    if (spec == null) {
+      return;
+    }
+    Transferable transferable = myCopyPasteManager.getContents();
+    if (transferable == null) {
+      return;
+    }
+    DnDTransferItem item = NlModel.getTransferItem(transferable, true /* allow placeholders */);
+    if (item == null) {
+      return;
+    }
+    List<NlComponent> components = ApplicationManager.getApplication().runWriteAction(
+      (Computable<List<NlComponent>>)() -> myModel.createComponents(myScreenView, item, InsertType.PASTE));
+    myModel.addComponents(components, spec.layout, spec.before, InsertType.PASTE);
+  }
+
+  private static class InsertSpecification {
+    private final NlComponent layout;
+    private final NlComponent before;
+
+    private InsertSpecification(@NotNull NlComponent layout, @Nullable NlComponent before) {
+      this.layout = layout;
+      this.before = before;
+    }
+  }
+
+  @Nullable
+  private InsertSpecification getInsertSpecification() {
+    int selectionCount = myModel.getSelectionModel().getSelection().size();
+    if (selectionCount > 1) {
+      return null;
+    }
+    else if (selectionCount == 1) {
+      NlComponent component = myModel.getSelectionModel().getSelection().get(0);
+      if (component.getViewHandler() instanceof ViewGroupHandler) {
+        return new InsertSpecification(component, component.getChild(0));
+      }
+      else {
+        NlComponent parent = component.getParent();
+        return parent != null ? new InsertSpecification(parent, component.getNextSibling()) : null;
+      }
+    }
+    else{
+      if (myModel.getComponents().size() != 1) {
+        return null;
+      }
+      NlComponent component = myModel.getComponents().get(0);
+      return component.getViewHandler() instanceof ViewGroupHandler ? new InsertSpecification(component, component.getChild(0)) : null;
+    }
   }
 }

@@ -32,10 +32,13 @@ import java.util.List;
  */
 public class Choreographer implements ActionListener {
 
+  private static final int DEFAULT_FPS = 60;
   private static final float NANOSECONDS_IN_SECOND = 1000000000.0f;
-  private static final float DEFAULT_FRAME_LENGTH = 1.0f / 60.0f;
+  private static final float DEFAULT_FRAME_LENGTH = 1.0f / DEFAULT_FPS;
 
   private final List<Animatable> mComponents;
+  private List<Animatable> mToRegister;
+  private List<Animatable> mToUnregister;
   private final Timer mTimer;
   private boolean mUpdate;
   private long mFrameTime;
@@ -49,6 +52,7 @@ public class Choreographer implements ActionListener {
    */
   @NotNull
   private final JComponent mParentContainer;
+  private boolean mUpdating;
 
   /**
    * @param fps    The frame rate that this Choreographer should run at.
@@ -58,27 +62,43 @@ public class Choreographer implements ActionListener {
   public Choreographer(int fps, @NotNull JComponent parent) {
     mParentContainer = parent;
     mComponents = new LinkedList<>();
+    mToRegister = new LinkedList<>();
+    mToUnregister = new LinkedList<>();
     mUpdate = true;
+    mUpdating = false;
     mTimer = new Timer(1000 / fps, this);
     mTimer.start();
   }
 
+  public Choreographer(@NotNull JComponent parent) {
+    this(DEFAULT_FPS, parent);
+  }
+
   public void register(Animatable animatable) {
-    mComponents.add(animatable);
+    if (mUpdating) {
+      mToRegister.add(animatable);
+    } else {
+      mComponents.add(animatable);
+    }
   }
 
   public void register(@NotNull List<Animatable> animatables) {
-    mComponents.addAll(animatables);
+    for (Animatable animatable : animatables) {
+      register(animatable);
+    }
   }
 
-  /**
-   * Turns on/off debug rendering on all AnimatedComponents registered with this {@link Choreographer} instance.
-   */
-  public void toggleDebug(boolean isDebug) {
-    for (Animatable component : mComponents) {
-      if (component instanceof AnimatedComponent) {
-        ((AnimatedComponent)component).setDrawDebugInfo(isDebug);
-      }
+  public void unregister(@NotNull Animatable animatable) {
+    if (mUpdating) {
+      mToUnregister.add(animatable);
+    } else {
+      mComponents.remove(animatable);
+    }
+  }
+
+  public void stop() {
+    if (mTimer.isRunning()) {
+      mTimer.stop();
     }
   }
 
@@ -99,6 +119,7 @@ public class Choreographer implements ActionListener {
    * choreographer that is bound to that component's visibility. This can be safely removed once
    * all the legacy AnimatedComponents in Studio has been replaced by the new UI.
    */
+  @Deprecated
   public static void animate(final AnimatedComponent component) {
     final Choreographer choreographer = new Choreographer(30, component);
     choreographer.register(component);
@@ -127,20 +148,21 @@ public class Choreographer implements ActionListener {
   }
 
   private void step(float frameLength) {
+    mUpdating = true;
     if (mReset) {
-      for (Animatable component : mComponents) {
-        component.reset();
-      }
+      mComponents.forEach(Animatable::reset);
       mReset = false;
     }
 
-    for (Animatable component : mComponents) {
-      component.animate(frameLength);
-    }
+    mComponents.forEach(component -> component.animate(frameLength));
+    mComponents.forEach(Animatable::postAnimate);
+    mUpdating = false;
 
-    for (Animatable component : mComponents) {
-      component.postAnimate();
-    }
+    mToUnregister.forEach(this::unregister);
+    mToRegister.forEach(this::register);
+
+    mToUnregister.clear();
+    mToRegister.clear();
 
     mParentContainer.repaint();
   }

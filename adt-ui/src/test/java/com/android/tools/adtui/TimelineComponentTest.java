@@ -15,22 +15,25 @@
  */
 package com.android.tools.adtui;
 
-import junit.framework.TestCase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 import static com.android.tools.adtui.TimelineComponent.formatTime;
+import static com.google.common.truth.Truth.assertThat;
 
+public class TimelineComponentTest {
 
-public class TimelineComponentTest extends TestCase {
-
+  @Test
   public void testFormatTime() {
-    assertEquals("0s", formatTime(0));
-    assertEquals("42s", formatTime(42));
-    assertEquals("59s", formatTime(59));
-    assertEquals("1m 0s", formatTime(60));
-    assertEquals("59m 59s", formatTime(3599));
-    assertEquals("1h 0m 0s", formatTime(3600));
-    assertEquals("23h 59m 59s", formatTime(86399));
-    assertEquals("24h 0m 0s", formatTime(86400));
-    assertEquals("277h 46m 40s", formatTime(1000000));
+    assertThat(formatTime(0)).isEqualTo("0s");
+    assertThat(formatTime(42)).isEqualTo("42s");
+    assertThat(formatTime(59)).isEqualTo("59s");
+    assertThat(formatTime(60)).isEqualTo("1m 0s");
+    assertThat(formatTime(3599)).isEqualTo("59m 59s");
+    assertThat(formatTime(3600)).isEqualTo("1h 0m 0s");
+    assertThat(formatTime(86399)).isEqualTo("23h 59m 59s");
+    assertThat(formatTime(86400)).isEqualTo("24h 0m 0s");
+    assertThat(formatTime(1000000)).isEqualTo("277h 46m 40s");
   }
 }

@@ -23,7 +23,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.utils.Pair;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
@@ -279,7 +279,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
    * @param newFolder the resource folder to create, or null to ask the user
    * @param open      if true, open the file after creating it
    */
-  public static void forkResourceFile(@NotNull DesignSurface surface, @Nullable String newFolder, boolean open) {
+  public static void forkResourceFile(@NotNull EditorDesignSurface surface, @Nullable String newFolder, boolean open) {
     Configuration configuration = surface.getConfiguration();
     if (configuration == null) {
       assert false;

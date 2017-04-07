@@ -16,6 +16,8 @@
 package org.jetbrains.android.dom;
 
 import com.android.tools.idea.AndroidTextUtils;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.CompletionUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -42,6 +44,7 @@ import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestElement;
 import org.jetbrains.android.dom.manifest.UsesSdk;
+import org.jetbrains.android.dom.menu.MenuItem;
 import org.jetbrains.android.dom.raw.XmlRawResourceElement;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.Intent;
@@ -114,7 +117,7 @@ public class AttributeProcessingUtil {
   @Nullable
   public static String getNamespaceKeyByResourcePackage(@NotNull AndroidFacet facet, @Nullable String resPackage) {
     if (resPackage == null) {
-      if (facet.getProperties().LIBRARY_PROJECT || facet.requiresAndroidModel()) {
+      if (!facet.isAppProject() || facet.requiresAndroidModel()) {
         return AUTO_URI;
       }
       Manifest manifest = facet.getManifest();
@@ -383,6 +386,11 @@ public class AttributeProcessingUtil {
           (psiClass.isEquivalentTo(drawerLayout) || psiClass.isInheritor(drawerLayout, true))) {
         registerToolsAttribute(ATTR_OPEN_DRAWER, callback);
       }
+
+      // Mockup attributes can be associated with any View, even include tag
+      registerToolsAttribute(ATTR_MOCKUP, callback);
+      registerToolsAttribute(ATTR_MOCKUP_CROP, callback);
+      registerToolsAttribute(ATTR_MOCKUP_OPACITY, callback);
     }
 
     if (element instanceof Tag || element instanceof Include || element instanceof Data) {
@@ -519,6 +527,11 @@ public class AttributeProcessingUtil {
       return;
     }
 
+    if (element instanceof MenuItem) {
+      processMenuItemAttributes(facet, element, skippedAttributes, callback);
+      return;
+    }
+
     for (String styleableName : styleableAnnotation.value()) {
       final StyleableDefinition styleable = definitions.getStyleableByName(styleableName);
       if (styleable == null) {
@@ -578,6 +591,52 @@ public class AttributeProcessingUtil {
     }
     if (element instanceof UsesSdk) {
       registerToolsAttribute(ToolsAttributeUtil.ATTR_OVERRIDE_LIBRARY, callback);
+    }
+  }
+
+  private static void processMenuItemAttributes(@NotNull AndroidFacet facet,
+                                                @NotNull DomElement element,
+                                                @NotNull Collection<XmlName> skippedAttributes,
+                                                @NotNull AttributeProcessor callback) {
+    ResourceManager manager = facet.getSystemResourceManager();
+
+    if (manager == null) {
+      return;
+    }
+
+    AttributeDefinitions styleables = manager.getAttributeDefinitions();
+
+    if (styleables == null) {
+      return;
+    }
+
+    StyleableDefinition styleable = styleables.getStyleableByName("MenuItem");
+
+    if (styleable == null) {
+      getLog().warn("No StyleableDefinition for MenuItem");
+      return;
+    }
+
+    for (AttributeDefinition attribute : styleable.getAttributes()) {
+      String name = attribute.getName();
+
+      // android:showAsAction was introduced in API Level 11. Use the app: one if the project depends on appcompat. See com.android.tools
+      // .lint.checks.AppCompatResourceDetector.
+      if (name.equals(ATTR_SHOW_AS_ACTION)) {
+        AndroidModuleModel model = AndroidModuleModel.get(facet);
+
+        if (model != null && GradleUtil.dependsOn(model, APPCOMPAT_LIB_ARTIFACT)) {
+          if (skippedAttributes.add(new XmlName(name, AUTO_URI))) {
+            registerAttribute(attribute, "MenuItem", AUTO_URI, element, callback);
+          }
+
+          continue;
+        }
+      }
+
+      if (skippedAttributes.add(new XmlName(name, ANDROID_URI))) {
+        registerAttribute(attribute, "MenuItem", ANDROID_URI, element, callback);
+      }
     }
   }
 

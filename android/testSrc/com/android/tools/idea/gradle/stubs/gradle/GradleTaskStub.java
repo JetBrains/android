@@ -39,11 +39,6 @@ public class GradleTaskStub implements GradleTask {
   }
 
   @Override
-  public ProjectIdentifier getProjectIdentifier() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public String getDisplayName() {
     return myName;
   }
@@ -67,4 +62,7 @@ public class GradleTaskStub implements GradleTask {
   public boolean isPublic() {
     return true;
   }
+
+  @Override
+  public ProjectIdentifier getProjectIdentifier() { throw new UnsupportedOperationException(); }
 }

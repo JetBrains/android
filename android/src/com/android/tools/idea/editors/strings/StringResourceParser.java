@@ -16,12 +16,15 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.res2.ResourceItem;
+import com.android.ide.common.res2.ValueXmlHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.rendering.Locale;
+import com.google.common.base.Strings;
 import com.google.common.collect.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -31,9 +34,9 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class StringResourceParser {
   public static StringResourceData parse(@NotNull final AndroidFacet facet, @NotNull final LocalResourceRepository repository) {
@@ -49,14 +52,12 @@ public class StringResourceParser {
     }
   }
 
+  @NotNull
   private static StringResourceData parseUnderReadLock(AndroidFacet facet, LocalResourceRepository repository) {
     List<String> keys = Lists.newArrayList(repository.getItemsOfType(ResourceType.STRING));
     Collections.sort(keys);
 
-    final Set<String> untranslatableKeys = Sets.newHashSet();
-    final Set<Locale> locales = Sets.newTreeSet(Locale.LANGUAGE_CODE_COMPARATOR); // tree set to sort the locales by language code
-    Map<String, ResourceItem> defaultValues = Maps.newHashMapWithExpectedSize(keys.size());
-    Table<String, Locale, ResourceItem> translations = HashBasedTable.create();
+    Map<String, StringResource> keyToResourceMap = new HashMap<>();
 
     Project project = facet.getModule().getProject();
     for (String key : keys) {
@@ -65,25 +66,50 @@ public class StringResourceParser {
         continue;
       }
 
+      StringResource stringResource = new StringResource(key);
       for (ResourceItem item : items) {
         XmlTag tag = LocalResourceRepository.getItemTag(project, item);
         if (tag != null && SdkConstants.VALUE_FALSE.equals(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE))) {
-          untranslatableKeys.add(key);
+          stringResource.setTranslatable(false);
         }
 
+        String itemStringRepresentation = resourceToString(project, item);
         FolderConfiguration config = item.getConfiguration();
         LocaleQualifier qualifier = config == null ? null : config.getLocaleQualifier();
         if (qualifier == null) {
-          defaultValues.put(key, item);
+          stringResource.setDefaultValue(item, itemStringRepresentation);
         }
         else {
           Locale locale = Locale.create(qualifier);
-          locales.add(locale);
-          translations.put(key, locale, item);
+          stringResource.putTranslation(locale, item, itemStringRepresentation);
         }
       }
+
+      keyToResourceMap.put(key, stringResource);
     }
 
-    return new StringResourceData(facet, keys, untranslatableKeys, locales, defaultValues, translations);
+    return new StringResourceData(facet, keyToResourceMap);
+  }
+
+  @NotNull
+  private static String resourceToString(@NotNull Project project, @NotNull ResourceItem item) {
+    XmlTag tag = LocalResourceRepository.getItemTag(project, item);
+    String string;
+
+    if (tag == null) {
+      // TODO Make item.getResourceValue(false).getRawXmlValue() work in all cases so we can avoid the LocalResourceRepository
+      ResourceValue value = item.getResourceValue(false);
+
+      if (value == null) {
+        return "";
+      }
+
+      string = value.getRawXmlValue();
+    }
+    else {
+      string = tag.getValue().getText();
+    }
+
+    return Strings.nullToEmpty(ValueXmlHelper.unescapeResourceString(string, false, false));
   }
 }

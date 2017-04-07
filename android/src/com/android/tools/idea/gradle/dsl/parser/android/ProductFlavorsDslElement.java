@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.List;
 
 public final class ProductFlavorsDslElement extends GradleDslElementMap {
@@ -38,7 +37,7 @@ public final class ProductFlavorsDslElement extends GradleDslElementMap {
   }
 
   @NotNull
-  public Collection<ProductFlavorModel> get() {
+  public List<ProductFlavorModel> get() {
     List<ProductFlavorModel> result = Lists.newArrayList();
     for (ProductFlavorDslElement dslElement : getValues(ProductFlavorDslElement.class)) {
       result.add(new ProductFlavorModel(dslElement));

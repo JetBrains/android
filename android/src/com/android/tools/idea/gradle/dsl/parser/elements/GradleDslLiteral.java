@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElementFactory;
+import org.jetbrains.plugins.groovy.lang.psi.api.auxiliary.GrListOrMap;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrNamedArgument;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrClosableBlock;
@@ -94,7 +95,7 @@ public final class GradleDslLiteral extends GradleDslExpression {
 
         GrClosableBlock closableBlock = injection.getClosableBlock();
         if (closableBlock != null) {
-          String blockText  = closableBlock.getText();
+          String blockText = closableBlock.getText();
           variableName = blockText.substring(1, blockText.length() - 1);
         }
         else {
@@ -144,6 +145,8 @@ public final class GradleDslLiteral extends GradleDslExpression {
   public void setConfigBlock(@NotNull GrClosableBlock block) {
     // For now we only support setting the config block on literals for newly created dependencies.
     Preconditions.checkState(getPsiElement() == null, "Can't add configuration block to an existing DSL literal.");
+
+    // TODO: Use com.android.tools.idea.gradle.dsl.parser.dependencies.DependencyConfigurationDslElement to add a dependency configuration.
 
     myUnsavedConfigBlock = block;
     setModified(true);
@@ -202,7 +205,7 @@ public final class GradleDslLiteral extends GradleDslExpression {
 
   @Override
   protected void delete() {
-    if(myExpression == null) {
+    if (myExpression == null) {
       return;
     }
     PsiElement parent = myExpression.getParent();
@@ -229,8 +232,9 @@ public final class GradleDslLiteral extends GradleDslExpression {
     }
     else {
       PsiElement added;
-      if (psiElement instanceof GrArgumentList && !(psiElement instanceof GrCommandArgumentList)) { // Method call arguments in ().
-        added = psiElement.addBefore(newLiteral, psiElement.getLastChild()); // add before )
+      if (psiElement instanceof GrListOrMap || // Entries in [].
+          (psiElement instanceof GrArgumentList && !(psiElement instanceof GrCommandArgumentList))) { // Method call arguments in ().
+        added = psiElement.addBefore(newLiteral, psiElement.getLastChild()); // add before ) or ]
       }
       else {
         added = psiElement.addAfter(newLiteral, psiElement.getLastChild());
@@ -279,19 +283,20 @@ public final class GradleDslLiteral extends GradleDslExpression {
 
   @Nullable
   private GrLiteral createLiteral() {
-    if(myUnsavedValue == null) {
+    if (myUnsavedValue == null) {
       return null;
     }
 
     CharSequence unsavedValueText = null;
     if (myUnsavedValue instanceof String) {
       unsavedValueText = GrStringUtil.getLiteralTextByValue((String)myUnsavedValue);
-    } else if (myUnsavedValue instanceof Integer || myUnsavedValue instanceof Boolean) {
+    }
+    else if (myUnsavedValue instanceof Integer || myUnsavedValue instanceof Boolean) {
       unsavedValueText = myUnsavedValue.toString();
     }
     myUnsavedValue = null;
 
-    if(unsavedValueText == null) {
+    if (unsavedValueText == null) {
       return null;
     }
 

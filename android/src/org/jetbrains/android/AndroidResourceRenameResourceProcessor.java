@@ -85,8 +85,7 @@ import java.util.*;
 import static com.android.SdkConstants.*;
 import static com.android.resources.ResourceType.DECLARE_STYLEABLE;
 import static com.android.resources.ResourceType.STYLEABLE;
-import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
-import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_BUNDLES;
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
 /**
@@ -723,7 +722,7 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
           File current = sourceFile.getParentFile();
           while (current != null) {
             String name = current.getName();
-            if (EXPLODED_AAR.equals(name) || EXPLODED_BUNDLES.equals(name)) {
+            if (EXPLODED_AAR.equals(name)) {
               localRoot = prev;
               break;
             }

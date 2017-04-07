@@ -16,13 +16,16 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.idea.configurations.FlatComboAction;
-import com.android.tools.idea.rendering.SaveScreenshotAction;
+import com.android.tools.idea.actions.MockupDeleteAction;
+import com.android.tools.idea.actions.MockupEditAction;
+import com.android.tools.idea.actions.SaveScreenshotAction;
 import com.android.tools.idea.uibuilder.actions.*;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.actions.*;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
+import com.android.tools.idea.uibuilder.mockup.Mockup;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
@@ -182,6 +185,12 @@ public class NlActionManager {
       group.add(createSelectActionGroup(screenView.getSelectionModel()));
       group.addSeparator();
     }
+
+    group.add(new MockupEditAction(mySurface));
+    if(leafComponent != null && Mockup.hasMockupAttribute(leafComponent)) {
+      group.add(new MockupDeleteAction(leafComponent));
+    }
+    group.addSeparator();
 
     group.add(actionManager.getAction(IdeActions.ACTION_CUT));
     group.add(actionManager.getAction(IdeActions.ACTION_COPY));

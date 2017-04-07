@@ -24,6 +24,10 @@ public interface StatefulButtonNotifier {
 
   Topic<StatefulButtonNotifier> BUTTON_STATE_TOPIC = Topic.create("Button state change", StatefulButtonNotifier.class);
 
+  /**
+   * Called when there is a signal that your underlying state for your
+   * button may have changed.
+   */
   void stateUpdated();
 
 }

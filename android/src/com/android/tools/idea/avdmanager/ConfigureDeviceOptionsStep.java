@@ -35,12 +35,10 @@ import com.android.tools.idea.ui.wizard.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.swing.util.FormScalingUtil;
-import com.google.common.base.Optional;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -168,8 +166,8 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     SelectedItemProperty<IdDisplay> selectedDeviceType = new SelectedItemProperty<>(myDeviceTypeComboBox);
     myBindings.bindTwoWay(selectedDeviceType, deviceModel.deviceType());
     myListeners.receive(selectedDeviceType, idDisplayOptional -> {
-      IdDisplay selectedType = idDisplayOptional.orNull();
-      if (selectedType != null) {
+      if (idDisplayOptional.isPresent()) {
+        IdDisplay selectedType = idDisplayOptional.get();
         /**
          * TODO When the user selects round, the following could be done to make the UI cleaner
          * if(selectedType == WEAR){
@@ -213,7 +211,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
       "A device must support at least one orientation (Portrait or Landscape).");
 
     myValidatorPanel.registerValidator(deviceModel.customSkinFile(), value -> {
-      File skinPath = value.orNull();
+      File skinPath = value.orElse(null);
       if (skinPath != null && !FileUtil.filesEqual(skinPath, AvdWizardUtils.NO_SKIN) &&
           !skinPath.getPath().equals(skinPath.getName())) {
         File layoutFile = new File(skinPath, SdkConstants.FN_SKIN_LAYOUT);
@@ -234,7 +232,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
       public ListCellRenderer getRenderer() {
         return new ColoredListCellRenderer() {
           @Override
-          protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+          protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
             append(((Navigation)value).getShortDisplayValue());
           }
         };

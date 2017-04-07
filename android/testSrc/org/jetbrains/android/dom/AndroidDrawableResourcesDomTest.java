@@ -22,9 +22,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.io.IOException;
 import java.util.List;
 
-public class AndroidDrawableResourcesDomTest extends AndroidDomTest {
+public class AndroidDrawableResourcesDomTest extends AndroidDomTestCase {
   public AndroidDrawableResourcesDomTest() {
-    super(true, "dom/drawable");
+    super("dom/drawable");
   }
 
   @Override

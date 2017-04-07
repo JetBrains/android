@@ -19,7 +19,7 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GradleFilePsiMergerTest extends GradleFileBaseMergerTest {
+public class GradleFilePsiMergerTest extends GradleFileMergerTestCase {
   @Override
   public String mergeGradleFile(@NotNull String source,
                                 @NotNull String dest,

@@ -15,102 +15,78 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.builder.model.AndroidProject;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.openapi.module.Module;
 import junit.framework.TestCase;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import static org.easymock.EasyMock.*;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link ModuleTypeComparator}.
  */
 public class ModuleTypeComparatorTest extends TestCase {
-  private Module myModule1;
-  private Module myModule2;
+  @Mock private Module myModule1;
+  @Mock private Module myModule2;
 
-  private AndroidProject myProject1;
-  private AndroidProject myProject2;
+  @Mock private AndroidModuleModel myGradleModel1;
+  @Mock private AndroidModuleModel myGradleModel2;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myModule1 = createMock(Module.class);
-    myModule2 = createMock(Module.class);
+    MockitoAnnotations.initMocks(this);
 
-    myProject1 = createMock(AndroidProject.class);
-    myProject2 = createMock(AndroidProject.class);
-
-    expect(myModule1.getName()).andStubReturn("a");
-    expect(myModule2.getName()).andStubReturn("b");
+    when(myModule1.getName()).thenReturn("a");
+    when(myModule2.getName()).thenReturn("b");
   }
 
   public void testWithJavaModules() {
-    replay(myModule1, myModule2);
-
     assertTrue(ModuleTypeComparator.compareModules(myModule1, myModule2, null, null) < 0);
     assertTrue(ModuleTypeComparator.compareModules(myModule2, myModule1, null, null) > 0);
     assertEquals(0, ModuleTypeComparator.compareModules(myModule1, myModule1, null, null));
-
-    verify(myModule1, myModule2);
   }
 
   public void testWithAndroidApplicationModules() {
-    expect(myProject1.isLibrary()).andStubReturn(false);
-    expect(myProject2.isLibrary()).andStubReturn(false);
+    when(myGradleModel1.getProjectType()).thenReturn(PROJECT_TYPE_APP);
+    when(myGradleModel2.getProjectType()).thenReturn(PROJECT_TYPE_APP);
 
-    replay(myModule1, myModule2, myProject1, myProject2);
-
-    assertTrue(ModuleTypeComparator.compareModules(myModule1, myModule2, myProject1, myProject2) < 0);
-    assertTrue(ModuleTypeComparator.compareModules(myModule2, myModule1, myProject2, myProject1) > 0);
-    assertEquals(0, ModuleTypeComparator.compareModules(myModule1, myModule1, myProject1, myProject1));
-
-    verify(myModule1, myModule2, myProject1, myProject2);
+    assertTrue(ModuleTypeComparator.compareModules(myModule1, myModule2, myGradleModel1, myGradleModel2) < 0);
+    assertTrue(ModuleTypeComparator.compareModules(myModule2, myModule1, myGradleModel2, myGradleModel1) > 0);
+    assertEquals(0, ModuleTypeComparator.compareModules(myModule1, myModule1, myGradleModel1, myGradleModel1));
   }
 
   public void testWithAndroidLibraryModules() {
-    expect(myProject1.isLibrary()).andStubReturn(true);
-    expect(myProject2.isLibrary()).andStubReturn(true);
+    when(myGradleModel1.getProjectType()).thenReturn(PROJECT_TYPE_LIBRARY);
+    when(myGradleModel2.getProjectType()).thenReturn(PROJECT_TYPE_LIBRARY);
 
-    replay(myModule1, myModule2, myProject1, myProject2);
-
-    assertTrue(ModuleTypeComparator.compareModules(myModule1, myModule2, myProject1, myProject2) < 0);
-    assertTrue(ModuleTypeComparator.compareModules(myModule2, myModule1, myProject2, myProject1) > 0);
-    assertEquals(0, ModuleTypeComparator.compareModules(myModule1, myModule1, myProject1, myProject1));
-
-    verify(myModule1, myModule2, myProject1, myProject2);
+    assertTrue(ModuleTypeComparator.compareModules(myModule1, myModule2, myGradleModel1, myGradleModel2) < 0);
+    assertTrue(ModuleTypeComparator.compareModules(myModule2, myModule1, myGradleModel2, myGradleModel1) > 0);
+    assertEquals(0, ModuleTypeComparator.compareModules(myModule1, myModule1, myGradleModel1, myGradleModel1));
   }
 
   public void testWithAndroidApplicationModuleAndLibraryModule() {
-    expect(myProject1.isLibrary()).andStubReturn(false);
-    expect(myProject2.isLibrary()).andStubReturn(true);
+    when(myGradleModel1.getProjectType()).thenReturn(PROJECT_TYPE_APP);
+    when(myGradleModel2.getProjectType()).thenReturn(PROJECT_TYPE_LIBRARY);
 
-    replay(myModule1, myModule2, myProject1, myProject2);
-
-    assertTrue(ModuleTypeComparator.compareModules(myModule1, myModule2, myProject1, myProject2) < 0);
-    assertTrue(ModuleTypeComparator.compareModules(myModule2, myModule1, myProject2, myProject1) > 0);
-
-    verify(myModule1, myModule2, myProject1, myProject2);
+    assertTrue(ModuleTypeComparator.compareModules(myModule1, myModule2, myGradleModel1, myGradleModel2) < 0);
+    assertTrue(ModuleTypeComparator.compareModules(myModule2, myModule1, myGradleModel2, myGradleModel1) > 0);
   }
 
   public void testWithAndroidApplicationModuleAndJavaModule() {
-    expect(myProject1.isLibrary()).andStubReturn(false);
+    when(myGradleModel1.getProjectType()).thenReturn(PROJECT_TYPE_APP);
 
-    replay(myModule1, myModule2, myProject1);
-
-    assertTrue(ModuleTypeComparator.compareModules(myModule1, myModule2, myProject1, null) < 0);
-    assertTrue(ModuleTypeComparator.compareModules(myModule2, myModule1, null, myProject1) > 0);
-
-    verify(myModule1, myModule2, myProject1);
+    assertTrue(ModuleTypeComparator.compareModules(myModule1, myModule2, myGradleModel1, null) < 0);
+    assertTrue(ModuleTypeComparator.compareModules(myModule2, myModule1, null, myGradleModel1) > 0);
   }
 
   public void testWithAndroidLibraryModuleAndJavaModule() {
-    expect(myProject1.isLibrary()).andStubReturn(true);
+    when(myGradleModel1.getProjectType()).thenReturn(PROJECT_TYPE_LIBRARY);
 
-    replay(myModule1, myModule2, myProject1);
-
-    assertTrue(ModuleTypeComparator.compareModules(myModule1, myModule2, myProject1, null) < 0);
-    assertTrue(ModuleTypeComparator.compareModules(myModule2, myModule1, null, myProject1) > 0);
-
-    verify(myModule1, myModule2, myProject1);
+    assertTrue(ModuleTypeComparator.compareModules(myModule1, myModule2, myGradleModel1, null) < 0);
+    assertTrue(ModuleTypeComparator.compareModules(myModule2, myModule1, null, myGradleModel1) > 0);
   }
 }

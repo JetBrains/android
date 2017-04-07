@@ -127,7 +127,7 @@ public class PackageClassConverter extends ResolvingConverter<PsiClass> implemen
   /**
    * @return whether the given file is contained within the test sources
    */
-  private static boolean isTestFile(@NotNull AndroidFacet facet, @Nullable VirtualFile file) {
+  public static boolean isTestFile(@NotNull AndroidFacet facet, @Nullable VirtualFile file) {
     if (file != null) {
       for (IdeaSourceProvider sourceProvider : IdeaSourceProvider.getCurrentTestSourceProviders(facet)) {
         if (sourceProvider.containsFile(file)) {

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.fixtures;
 
+import com.android.tools.idea.uibuilder.surface.ScreenView;
 import org.jetbrains.annotations.NotNull;
 import com.android.tools.idea.uibuilder.model.NlComponent;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.Lists;
 
 import java.util.List;

@@ -19,8 +19,8 @@ package com.android.tools.idea.run;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -136,7 +136,7 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
         newAvdList.add(IdDisplay.create("", ""));
       }
       for (AvdInfo avd : facet.getAllAvds()) {
-        String displayName = avd.getProperties().get(AvdManagerConnection.AVD_INI_DISPLAY_NAME);
+        String displayName = avd.getProperties().get(AvdManager.AVD_INI_DISPLAY_NAME);
         final String avdName = displayName == null || displayName.isEmpty() ? avd.getName() : displayName;
         if (!filteringSet.contains(avdName)) {
           newAvdList.add(IdDisplay.create(avd.getName(), avdName));

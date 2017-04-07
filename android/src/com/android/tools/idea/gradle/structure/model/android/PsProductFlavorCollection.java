@@ -19,13 +19,14 @@ import com.android.annotations.NonNull;
 import com.android.builder.model.ProductFlavor;
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.tools.idea.gradle.dsl.model.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.model.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.structure.model.PsModelCollection;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -41,13 +42,16 @@ class PsProductFlavorCollection implements PsModelCollection<PsProductFlavor> {
 
     GradleBuildModel parsedModel = parent.getParsedModel();
     if (parsedModel != null) {
-      Collection<ProductFlavorModel> parsedProductFlavors = parsedModel.android().productFlavors();
-      for (ProductFlavorModel parsedProductFlavor : parsedProductFlavors) {
-        String name = parsedProductFlavor.name();
-        ProductFlavor fromGradle = productFlavorsFromGradle.remove(name);
+      AndroidModel android = parsedModel.android();
+      if (android != null) {
+        List<ProductFlavorModel> parsedProductFlavors = android.productFlavors();
+        for (ProductFlavorModel parsedProductFlavor : parsedProductFlavors) {
+          String name = parsedProductFlavor.name();
+          ProductFlavor fromGradle = productFlavorsFromGradle.remove(name);
 
-        PsProductFlavor model = new PsProductFlavor(parent, fromGradle, parsedProductFlavor);
-        myProductFlavorsByName.put(name, model);
+          PsProductFlavor model = new PsProductFlavor(parent, fromGradle, parsedProductFlavor);
+          myProductFlavorsByName.put(name, model);
+        }
       }
     }
 

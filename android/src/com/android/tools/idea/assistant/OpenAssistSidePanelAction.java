@@ -15,23 +15,15 @@
  */
 package com.android.tools.idea.assistant;
 
-import com.android.tools.idea.gradle.util.Projects;
-import com.android.tools.idea.structure.services.DeveloperServiceMap;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.util.containers.HashSet;
 import icons.AndroidIcons;
-import org.jetbrains.android.facet.AndroidFacet;
-
-import java.util.Set;
 
 /**
  * Triggers the creation of the Developer Services side panel.
@@ -45,42 +37,22 @@ public class OpenAssistSidePanelAction extends AnAction {
     final Project thisProject = event.getProject();
     final String actionId = ActionManager.getInstance().getId(this);
 
-    ApplicationManager.getApplication().invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        ModuleManager moduleManager = ModuleManager.getInstance(thisProject);
-        Module[] modules = moduleManager.getModules();
+    ApplicationManager.getApplication().invokeLater(() -> {
 
-        Set<Module> moduleList = new HashSet<Module>();
-        if (Projects.isBuildWithGradle(thisProject)) {
-          for (Module module : modules) {
-            // Filter to Android modules
-            if (AndroidFacet.getInstance(module) != null) {
-              moduleList.add(module);
-            }
-          }
-        }
+      AssistToolWindowFactory factory = new AssistToolWindowFactory(actionId);
+      ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(thisProject);
+      ToolWindow toolWindow = toolWindowManager.getToolWindow(TOOL_WINDOW_TITLE);
 
-        // TODO: Subscribe to changes on the editor and notify the assist panel when the focused file's project or module changes. Send down
-        // the new service map when this occurs. The plugin will be responsible for updating state (buttons generally) as necessary.
-        // subscription.
-        DeveloperServiceMap serviceMap = new DeveloperServiceMap(moduleList);
-
-        AssistToolWindowFactory factory = new AssistToolWindowFactory(actionId, serviceMap);
-        ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(thisProject);
-        ToolWindow toolWindow = toolWindowManager.getToolWindow(TOOL_WINDOW_TITLE);
-
-        if (toolWindow == null) {
-          // NOTE: canWorkInDumbMode must be true or the window will close on gradle sync.
-          toolWindow = toolWindowManager.registerToolWindow(TOOL_WINDOW_TITLE, true, ToolWindowAnchor.RIGHT, thisProject, true);
-        }
-        toolWindow.setIcon(AndroidIcons.Assistant.Assist);
-
-        factory.createToolWindowContent(thisProject, toolWindow);
-
-        // Always active the window, in case it was previously minimized.
-        toolWindow.activate(null);
+      if (toolWindow == null) {
+        // NOTE: canWorkInDumbMode must be true or the window will close on gradle sync.
+        toolWindow = toolWindowManager.registerToolWindow(TOOL_WINDOW_TITLE, false, ToolWindowAnchor.RIGHT, thisProject, true);
       }
+      toolWindow.setIcon(AndroidIcons.Assistant.Assist);
+
+      factory.createToolWindowContent(thisProject, toolWindow);
+
+      // Always active the window, in case it was previously minimized.
+      toolWindow.activate(null);
     });
     onActionPerformed(event);
   }
@@ -90,4 +62,5 @@ public class OpenAssistSidePanelAction extends AnAction {
    */
   public void onActionPerformed(AnActionEvent event) {
   }
+
 }

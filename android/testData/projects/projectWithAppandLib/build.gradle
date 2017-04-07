@@ -2,10 +2,7 @@
 
 buildscript {
     repositories {
-        jcenter()
-        if (System.getenv("MAVEN_URL") != null) {
-          maven {url System.getenv("MAVEN_URL")}
-        }
+        // This will be populated by AndroidGradleTestCase
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:0.14.4'
@@ -14,6 +11,6 @@ buildscript {
 
 allprojects {
     repositories {
-        jcenter()
+        // This will be populated by AndroidGradleTestCase
     }
 }

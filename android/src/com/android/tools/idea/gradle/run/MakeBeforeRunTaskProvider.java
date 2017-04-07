@@ -21,21 +21,21 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.fd.InstantRunBuilder;
 import com.android.tools.idea.fd.InstantRunContext;
-import com.android.tools.idea.fd.RunAsValidityService;
-import com.android.tools.idea.gradle.GradleModel;
-import com.android.tools.idea.gradle.GradleSyncState;
-import com.android.tools.idea.gradle.compiler.AndroidGradleBuildConfiguration;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.GradleSyncListener;
+import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.AndroidRunConfigContext;
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.DeviceFutures;
+import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.run.*;
+import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfiguration;
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.options.CompileStepBeforeRun;
 import com.intellij.execution.BeforeRunTaskProvider;
@@ -56,10 +56,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -68,7 +67,10 @@ import java.util.stream.Collectors;
 
 import static com.android.builder.model.AndroidProject.*;
 import static com.android.tools.idea.apk.ApkProjects.isApkProject;
-import static com.android.tools.idea.gradle.util.Projects.*;
+import static com.android.tools.idea.gradle.util.Projects.getModulesToBuildFromSelection;
+import static com.android.tools.idea.gradle.util.Projects.isDirectGradleInvocationEnabled;
+import static com.android.tools.idea.run.editor.ProfilerState.ENABLE_EXPERIMENTAL_PROFILING;
+import static com.intellij.openapi.util.io.FileUtil.createTempFile;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 /**
@@ -130,7 +132,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     // "Gradle-aware Make" is only available in Android Studio.
     if (configurationTypeIsSupported(runConfiguration)) {
       MakeBeforeRunTask task = new MakeBeforeRunTask();
-      if (runConfiguration instanceof AndroidRunConfigurationBase) {
+      if (runConfiguration instanceof PreferGradleMake) {
         // For Android configurations, we want to replace the default make, so this new task needs to be enabled.
         // In AndroidRunConfigurationType#configureBeforeTaskDefaults we disable the default make, which is
         // enabled by default. For other configurations we leave it disabled, so we don't end up with two different
@@ -149,7 +151,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     if (isApkProject(runConfiguration.getProject())) {
       return false;
     }
-    return runConfiguration instanceof AndroidRunConfigurationBase || isUnitTestConfiguration(runConfiguration);
+    return runConfiguration instanceof PreferGradleMake || isUnitTestConfiguration(runConfiguration);
   }
 
   private static boolean isUnitTestConfiguration(@NotNull RunConfiguration runConfiguration) {
@@ -179,17 +181,17 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
     ModuleManager moduleManager = ModuleManager.getInstance(myProject);
     List<String> gradleTasks = Lists.newArrayList();
     for (Module module : moduleManager.getModules()) {
-      AndroidGradleFacet facet = AndroidGradleFacet.getInstance(module);
+      GradleFacet facet = GradleFacet.getInstance(module);
       if (facet == null) {
         continue;
       }
 
-      GradleModel gradleModel = facet.getGradleModel();
-      if (gradleModel == null) {
+      GradleModuleModel gradleModuleModel = facet.getGradleModuleModel();
+      if (gradleModuleModel == null) {
         continue;
       }
 
-      gradleTasks.addAll(gradleModel.getTaskNames());
+      gradleTasks.addAll(gradleModuleModel.getTaskNames());
     }
 
     return gradleTasks;
@@ -202,7 +204,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   @Override
   public boolean executeTask(DataContext context, RunConfiguration configuration, ExecutionEnvironment env, MakeBeforeRunTask task) {
-    if (!requiresAndroidModel(myProject) || !isDirectGradleInvocationEnabled(myProject)) {
+    if (!AndroidProjectInfo.getInstance(myProject).requiresAndroidModel() || !isDirectGradleInvocationEnabled(myProject)) {
       CompileStepBeforeRun regularMake = new CompileStepBeforeRun(myProject);
       return regularMake.executeTask(context, configuration, env, new CompileStepBeforeRun.MakeBeforeRunTask());
     }
@@ -214,7 +216,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       // See: https://code.google.com/p/android/issues/detail?id=70718
       GradleSyncState syncState = GradleSyncState.getInstance(myProject);
       if (syncState.isSyncNeeded() != ThreeState.NO) {
-        GradleProjectImporter.getInstance().syncProjectSynchronously(myProject, false, new GradleSyncListener.Adapter() {
+        GradleSyncInvoker.Request request = new GradleSyncInvoker.Request().setRunInBackground(false);
+        GradleSyncInvoker.getInstance().requestProjectSync(myProject, request, new GradleSyncListener.Adapter() {
           @Override
           public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
             errorMsgRef.set(errorMessage);
@@ -318,7 +321,30 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
   @NotNull
   public static List<String> getProfilingOptions(@NotNull RunConfiguration configuration) {
-    return Collections.emptyList();
+    if (System.getProperty(ENABLE_EXPERIMENTAL_PROFILING) == null) {
+      return Collections.emptyList();
+    }
+
+    if (!(configuration instanceof AndroidRunConfigurationBase)) {
+      return Collections.emptyList();
+    }
+
+    Properties profilerProperties = ((AndroidRunConfigurationBase)configuration).getProfilerState().toProperties();
+    try {
+      File propertiesFile = createTempFile("profiler", ".properties");
+      propertiesFile.deleteOnExit(); // TODO: It'd be nice to clean this up sooner than at exit.
+
+      Writer writer = new OutputStreamWriter(new FileOutputStream(propertiesFile), Charsets.UTF_8);
+      profilerProperties.store(writer, "Android Studio Profiler Gradle Plugin Properties");
+      writer.close();
+
+      String profilingOption = AndroidGradleSettings.createProjectProperty("android.profiler.properties", propertiesFile.getAbsolutePath());
+      return Collections.singletonList(profilingOption);
+    }
+    catch (IOException e) {
+      Throwables.propagate(e);
+      return Collections.emptyList();
+    }
   }
 
   private static BeforeRunBuilder createBuilder(@NotNull ExecutionEnvironment env,
@@ -336,8 +362,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     GradleModuleTasksProvider gradleTasksProvider = new GradleModuleTasksProvider(modules);
 
-    GradleInvoker.TestCompileType testCompileType = GradleInvoker.getTestCompileType(configuration.getType().getId());
-    if (testCompileType == GradleInvoker.TestCompileType.JAVA_TESTS) {
+    GradleBuildInvoker.TestCompileType testCompileType = GradleBuildInvoker.getTestCompileType(configuration.getType().getId());
+    if (testCompileType == GradleBuildInvoker.TestCompileType.UNIT_TESTS) {
       BuildMode buildMode = BuildMode.COMPILE_JAVA;
       return new DefaultGradleBuilder(gradleTasksProvider.getUnitTestTasks(buildMode), buildMode);
     }
@@ -350,13 +376,17 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     List<AndroidDevice> targetDevices = deviceFutures.getDevices();
     assert targetDevices.size() == 1 : "instant run context available, but deploying to > 1 device";
-    return new InstantRunBuilder(getLaunchedDevice(targetDevices.get(0)), irContext, runConfigContext, gradleTasksProvider,
-                                 RunAsValidityService.getInstance());
+    return new InstantRunBuilder(getLaunchedDevice(targetDevices.get(0)), irContext, runConfigContext, gradleTasksProvider);
   }
 
   @NotNull
   private static Module[] getModules(@NotNull Project project, @Nullable DataContext context, @Nullable RunConfiguration configuration) {
     if (configuration instanceof ModuleRunProfile) {
+      // If running JUnit tests for "whole project", all the modules should be compiled, but getModules() return an empty array.
+      // See http://b.android.com/230678
+      if (configuration instanceof AndroidJUnitConfiguration) {
+        return ((AndroidJUnitConfiguration)configuration).getModulesToCompile();
+      }
       // ModuleBasedConfiguration includes Android and JUnit run configurations, including "JUnit: Rerun Failed Tests",
       // which is AbstractRerunFailedTestsAction.MyRunProfile.
       return ((ModuleRunProfile)configuration).getModules();

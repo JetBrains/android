@@ -27,7 +27,7 @@ public class AndroidTestUtils {
   /**
    * Get an {@link IntentionAction} with given name
    */
-  @Nullable("if no intention with given message hasn't found")
+  @Nullable/*if no intention with given message hasn't found*/
   public static IntentionAction getIntentionAction(@NotNull JavaCodeInsightTestFixture fixture,
                                                    @NotNull String message) {
     for (IntentionAction action : fixture.getAvailableIntentions()) {
@@ -43,7 +43,7 @@ public class AndroidTestUtils {
   /**
    * Get an intention action with given name and class
    */
-  @Nullable("if no such intention has found")
+  @Nullable/*if no such intention has found*/
   public static <T extends IntentionAction> T getIntentionAction(@NotNull JavaCodeInsightTestFixture fixture,
                                                                  @NotNull Class<T> aClass,
                                                                  @NotNull String message) {

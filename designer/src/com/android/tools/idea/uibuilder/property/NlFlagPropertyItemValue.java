@@ -20,6 +20,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.ptable.PTableItem;
+import com.android.tools.idea.uibuilder.property.ptable.StarState;
 import com.android.tools.idea.uibuilder.property.renderer.NlPropertyRenderers;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
@@ -54,13 +55,19 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
   }
 
   @Override
-  public String getValue() {
-    return myFlags.isItemSet(this) ? SdkConstants.VALUE_TRUE : SdkConstants.VALUE_FALSE;
+  @NotNull
+  public StarState getStarState() {
+    return StarState.NOT_STAR_ABLE;
   }
 
   @Override
-  public boolean isValueUnset() {
-    return !myFlags.isItemSet(this);
+  public void setStarState(@NotNull StarState starState) {
+    throw new IllegalStateException();
+  }
+
+  @Override
+  public String getValue() {
+    return myFlags.isItemSet(this) ? SdkConstants.VALUE_TRUE : SdkConstants.VALUE_FALSE;
   }
 
   @Override
@@ -75,8 +82,8 @@ public class NlFlagPropertyItemValue extends PTableItem implements NlProperty {
   }
 
   @Override
-  @NotNull
-  public String resolveValue(@NotNull String value) {
+  @Nullable
+  public String resolveValue(@Nullable String value) {
     return value;
   }
 

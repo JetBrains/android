@@ -16,8 +16,11 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.utils.Pair;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NonNls;
@@ -48,7 +51,7 @@ public abstract class AbstractFlavorTypeModel extends GradleDslBlockModel {
   }
 
   @Nullable
-  public List<String> consumerProguardFiles() {
+  public List<GradleNotNullValue<String>> consumerProguardFiles() {
     return myDslElement.getListProperty(CONSUMER_PROGUARD_FILES, String.class);
   }
 
@@ -78,7 +81,7 @@ public abstract class AbstractFlavorTypeModel extends GradleDslBlockModel {
   }
 
   @Nullable
-  public Map<String, Object> manifestPlaceholders() {
+  public Map<String, GradleNotNullValue<Object>> manifestPlaceholders() {
     return myDslElement.getMapProperty(MANIFEST_PLACEHOLDERS, Object.class);
   }
 
@@ -112,9 +115,9 @@ public abstract class AbstractFlavorTypeModel extends GradleDslBlockModel {
     return this;
   }
 
-  @Nullable
-  public Boolean multiDexEnabled() {
-    return myDslElement.getProperty(MULTI_DEX_ENABLED, Boolean.class);
+  @NotNull
+  public GradleNullableValue<Boolean> multiDexEnabled() {
+    return myDslElement.getLiteralProperty(MULTI_DEX_ENABLED, Boolean.class);
   }
 
   @NotNull
@@ -130,7 +133,7 @@ public abstract class AbstractFlavorTypeModel extends GradleDslBlockModel {
   }
 
   @Nullable
-  public List<String> proguardFiles() {
+  public List<GradleNotNullValue<String>> proguardFiles() {
     return myDslElement.getListProperty(PROGUARD_FILES, String.class);
   }
 
@@ -159,19 +162,20 @@ public abstract class AbstractFlavorTypeModel extends GradleDslBlockModel {
   }
 
   @Nullable
-  protected List<TypeNameValueElement> getTypeNameValueElements(@NotNull String elementName) {
-    GradleDslElementList typeNameValueElements = myDslElement.getProperty(elementName, GradleDslElementList.class);
+  protected List<Pair<GradleDslExpressionList, TypeNameValueElement>> getTypeNameValueElements(@NotNull String elementName) {
+    GradleDslElementList typeNameValueElements = myDslElement.getPropertyElement(elementName, GradleDslElementList.class);
     if (typeNameValueElements == null) {
       return null;
     }
 
-    List<TypeNameValueElement> result = Lists.newArrayList();
+    List<Pair<GradleDslExpressionList, TypeNameValueElement>> result = Lists.newArrayList();
     for (GradleDslElement typeNameValue : typeNameValueElements.getElements()) {
       if (typeNameValue instanceof GradleDslExpressionList) {
         GradleDslExpressionList listElement = (GradleDslExpressionList)typeNameValue;
-        List<String> values = listElement.getValues(String.class);
+        List<GradleNotNullValue<String>> values = listElement.getValues(String.class);
         if (values.size() == 3) {
-          result.add(new TypeNameValueElement(elementName, values.get(0), values.get(1), values.get(2)));
+          result.add(Pair.of(listElement,
+                             new TypeNameValueElement(elementName, values.get(0).value(), values.get(1).value(), values.get(2).value())));
         }
       }
     }
@@ -179,15 +183,18 @@ public abstract class AbstractFlavorTypeModel extends GradleDslBlockModel {
   }
 
   @Nullable
-  public List<ResValue> resValues() {
-    List<TypeNameValueElement> typeNameValueElements = getTypeNameValueElements(RES_VALUE);
+  public List<GradleNotNullValue<ResValue>> resValues() {
+    List<Pair<GradleDslExpressionList, TypeNameValueElement>> typeNameValueElements = getTypeNameValueElements(RES_VALUE);
     if (typeNameValueElements == null) {
       return null;
     }
 
-    List<ResValue> resValues = Lists.newArrayListWithCapacity(typeNameValueElements.size());
-    for (TypeNameValueElement typeNameValueElement : typeNameValueElements) {
-      resValues.add(new ResValue(typeNameValueElement.type(), typeNameValueElement.name(), typeNameValueElement.value()));
+    List<GradleNotNullValue<ResValue>> resValues = Lists.newArrayListWithCapacity(typeNameValueElements.size());
+    for (Pair<GradleDslExpressionList, TypeNameValueElement> elementPair : typeNameValueElements) {
+      GradleDslExpressionList listElement = elementPair.getFirst();
+      TypeNameValueElement typeNameValueElement = elementPair.getSecond();
+      resValues.add(new GradleNotNullValue<>(listElement, new ResValue(typeNameValueElement.type(), typeNameValueElement.name(),
+                                                                       typeNameValueElement.value())));
     }
 
     return resValues;
@@ -195,7 +202,7 @@ public abstract class AbstractFlavorTypeModel extends GradleDslBlockModel {
 
   @NotNull
   protected AbstractFlavorTypeModel addTypeNameValueElement(@NotNull TypeNameValueElement typeNameValueElement) {
-    GradleDslElementList elementList = myDslElement.getProperty(typeNameValueElement.myElementName, GradleDslElementList.class);
+    GradleDslElementList elementList = myDslElement.getPropertyElement(typeNameValueElement.myElementName, GradleDslElementList.class);
     if (elementList == null) {
       elementList = new GradleDslElementList(myDslElement, typeNameValueElement.myElementName);
       myDslElement.setNewElement(typeNameValueElement.myElementName, elementList);
@@ -212,14 +219,14 @@ public abstract class AbstractFlavorTypeModel extends GradleDslBlockModel {
 
   @NotNull
   protected AbstractFlavorTypeModel removeTypeNameValueElement(@NotNull TypeNameValueElement typeNameValueElement) {
-    GradleDslElementList elementList = myDslElement.getProperty(typeNameValueElement.myElementName, GradleDslElementList.class);
+    GradleDslElementList elementList = myDslElement.getPropertyElement(typeNameValueElement.myElementName, GradleDslElementList.class);
     if (elementList != null) {
       for (GradleDslExpressionList element : elementList.getElements(GradleDslExpressionList.class)) {
-        List<String> values = element.getValues(String.class);
+        List<GradleNotNullValue<String>> values = element.getValues(String.class);
         if (values.size() == 3
-            && typeNameValueElement.type().equals(values.get(0))
-            && typeNameValueElement.name().equals(values.get(1))
-            && typeNameValueElement.value().equals(values.get(2))) {
+            && typeNameValueElement.type().equals(values.get(0).value())
+            && typeNameValueElement.name().equals(values.get(1).value())
+            && typeNameValueElement.value().equals(values.get(2).value())) {
           elementList.removeElement(element);
         }
       }
@@ -242,7 +249,7 @@ public abstract class AbstractFlavorTypeModel extends GradleDslBlockModel {
   protected AbstractFlavorTypeModel replaceTypeNameValueElement(@NotNull TypeNameValueElement oldElement,
                                                                 @NotNull TypeNameValueElement newElement) {
     if (oldElement.myElementName.equals(newElement.myElementName)) {
-      GradleDslElementList elementList = myDslElement.getProperty(oldElement.myElementName, GradleDslElementList.class);
+      GradleDslElementList elementList = myDslElement.getPropertyElement(oldElement.myElementName, GradleDslElementList.class);
       if (elementList != null) {
         for (GradleDslExpressionList element : elementList.getElements(GradleDslExpressionList.class)) {
           List<GradleDslExpression> gradleDslLiterals = element.getExpressions();
@@ -265,9 +272,9 @@ public abstract class AbstractFlavorTypeModel extends GradleDslBlockModel {
     return replaceTypeNameValueElement(oldResValue, newResValue);
   }
 
-  @Nullable
-  public Boolean useJack() {
-    return myDslElement.getProperty(USE_JACK, Boolean.class);
+  @NotNull
+  public GradleNullableValue<Boolean> useJack() {
+    return myDslElement.getLiteralProperty(USE_JACK, Boolean.class);
   }
 
   @NotNull
@@ -286,13 +293,15 @@ public abstract class AbstractFlavorTypeModel extends GradleDslBlockModel {
    * Represents a statement like {@code resValue} or {@code buildConfigField} which contains type, name and value parameters.
    */
   public static class TypeNameValueElement {
-
     @NotNull private final String myElementName;
     @NotNull private final String myType;
     @NotNull private final String myName;
     @NotNull private final String myValue;
 
-    public TypeNameValueElement(@NotNull String elementName, @NotNull String type, @NotNull String name, @NotNull String value) {
+    public TypeNameValueElement(@NotNull String elementName,
+                                @NotNull String type,
+                                @NotNull String name,
+                                @NotNull String value) {
       myElementName = elementName;
       myType = type;
       myName = name;

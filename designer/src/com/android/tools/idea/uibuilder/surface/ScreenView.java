@@ -15,19 +15,21 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import com.android.resources.ScreenRound;
-import com.android.sdklib.devices.Screen;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.HardwareConfig;
+import com.android.resources.ScreenRound;
 import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.Scene;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.Area;
@@ -43,16 +45,21 @@ public class ScreenView {
   private final DesignSurface mySurface;
   private ScreenViewType myType;
   private final NlModel myModel;
+  private Scene myScene = null;
 
   public enum ScreenViewType { NORMAL, BLUEPRINT }
 
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
 
-  public ScreenView(@NotNull DesignSurface surface, @NotNull ScreenViewType type, @NotNull NlModel model) {
+  public ScreenView(DesignSurface surface, @NotNull ScreenViewType type, @NotNull NlModel model) {
     mySurface = surface;
     myType = type;
     myModel = model;
+
+    if (!ConstraintLayoutHandler.USE_SOLVER) {
+      myScene = Scene.createScene(myModel, this);
+    }
 
     myModel.getSelectionModel().addListener(new SelectionListener() {
       @Override
@@ -60,12 +67,17 @@ public class ScreenView {
         ApplicationManager.getApplication().invokeLater(new Runnable() {
           @Override
           public void run() {
-            mySurface.repaint();
+            if (mySurface!=null) {
+              mySurface.repaint();
+            }
           }
         });
       }
     });
   }
+
+  @Nullable
+  public Scene getScene() { return myScene; }
 
   @Nullable
   public RenderResult getResult() {
@@ -179,10 +191,6 @@ public class ScreenView {
     return myModel.getConfiguration();
   }
 
-  public void setConfiguration(@NotNull Configuration configuration) {
-    myModel.setConfiguration(configuration);
-  }
-
   @NotNull
   public NlModel getModel() {
     return myModel;
@@ -226,6 +234,7 @@ public class ScreenView {
     }
   }
 
+  @NotNull
   public DesignSurface getSurface() {
     return mySurface;
   }

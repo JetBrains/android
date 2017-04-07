@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw;
 
 import com.android.tools.idea.gradle.project.ModuleToImport;
+import com.android.tools.idea.npw.importing.ModuleListModel;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
@@ -30,12 +31,12 @@ import org.jetbrains.android.AndroidTestCase;
 import java.io.IOException;
 import java.util.Collection;
 
-import static com.android.tools.idea.npw.ModuleListModel.ModuleValidationState.*;
+import static com.android.tools.idea.npw.importing.ModuleListModel.ModuleValidationState.*;
 
 public final class ModulesListModelTest extends AndroidTestCase {
   public static final String NEW_NAME = "a new name";
   public static final String EXISTING_MODULE = "existing_module";
-  public static final Supplier<? extends Iterable<String>> NO_DEPS = Suppliers.ofInstance(ImmutableSet.<String>of());
+  public static final Supplier<? extends Iterable<String>> NO_DEPS = Suppliers.ofInstance(ImmutableSet.of());
 
   private VirtualFile myTempDir;
   private ModuleToImport myModule1;

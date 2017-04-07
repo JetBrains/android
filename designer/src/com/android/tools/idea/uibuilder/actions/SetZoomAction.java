@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
+import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +39,23 @@ public class SetZoomAction extends AnAction {
 
   @Override
   public void actionPerformed(AnActionEvent e) {
+    // track user triggered change
+    switch (myType) {
+      case ACTUAL:
+        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_ACTUAL);
+        break;
+      case IN:
+        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_IN);
+        break;
+      case OUT:
+        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_OUT);
+        break;
+      case FIT_INTO:
+      case FIT:
+        NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.ZOOM_FIT);
+        break;
+      default:
+    }
     mySurface.zoom(myType);
   }
 }

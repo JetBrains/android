@@ -22,6 +22,7 @@ import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.progress.RepoProgressIndicatorAdapter;
@@ -90,7 +91,7 @@ public class SdkComponentSource implements ExternalComponentSource {
   @VisibleForTesting
   @NotNull
   RepoManager getRepoManager() {
-    return AndroidSdkUtils.tryToChooseSdkHandler().getSdkManager(LOGGER);
+    return AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(LOGGER);
   }
 
   /**

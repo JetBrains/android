@@ -107,6 +107,11 @@ public abstract class AvdUiAction implements Action, HyperlinkListener {
     return myAvdInfoProvider.getAvdInfo();
   }
 
+  @Nullable
+  protected Project getProject() {
+    return myAvdInfoProvider.getProject();
+  }
+
   protected void refreshAvds() {
     myAvdInfoProvider.refreshAvds();
   }

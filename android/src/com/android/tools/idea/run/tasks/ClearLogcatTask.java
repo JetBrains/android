@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.logcat.AndroidLogcatService;
 import com.android.tools.idea.logcat.AndroidLogcatView;
 import com.android.tools.idea.monitor.AndroidToolWindowFactory;
 import com.android.tools.idea.run.ConsolePrinter;
@@ -64,7 +65,7 @@ public class ClearLogcatTask implements LaunchTask {
           final AndroidLogcatView view = content.getUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY);
 
           if (view != null) {
-            view.clearLogcat(device);
+            AndroidLogcatService.getInstance().clearLogcat(device, project);
           }
         }
       }

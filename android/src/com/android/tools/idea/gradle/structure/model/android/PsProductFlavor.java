@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.ProductFlavor;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.structure.model.PsChildModel;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +42,7 @@ public class PsProductFlavor extends PsChildModel implements PsAndroidModel {
 
   @Override
   @NotNull
-  public AndroidGradleModel getGradleModel() {
+  public AndroidModuleModel getGradleModel() {
     return getParent().getGradleModel();
   }
 

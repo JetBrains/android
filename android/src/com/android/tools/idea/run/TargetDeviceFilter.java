@@ -16,7 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.base.Predicate;
 import com.intellij.openapi.diagnostic.Logger;
@@ -62,8 +62,8 @@ public abstract class TargetDeviceFilter implements Predicate<IDevice> {
         return false;
       } else {
         AndroidDevice connectedDevice = new ConnectedAndroidDevice(device, null);
-        Set<String> supportedAbis = myFacet.getAndroidModel() instanceof AndroidGradleModel ?
-                                 ((AndroidGradleModel)myFacet.getAndroidModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
+        Set<String> supportedAbis = myFacet.getAndroidModel() instanceof AndroidModuleModel ?
+                                 ((AndroidModuleModel)myFacet.getAndroidModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
                                  null;
 
         LaunchCompatibility compatibility = connectedDevice.canRun(AndroidModuleInfo.get(myFacet).getRuntimeMinSdkVersion(),

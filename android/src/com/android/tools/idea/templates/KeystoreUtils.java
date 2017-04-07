@@ -166,8 +166,8 @@ public class KeystoreUtils {
    */
   @NotNull
   public static String sha1(@NotNull File keyStoreFile,
-                            @Nullable("When requesting the first certificate sha1") String keyAlias,
-                            @Nullable("When default android keystore password should be used") String keyStorePassword) throws Exception {
+                            @Nullable/*When requesting the first certificate sha1*/ String keyAlias,
+                            @Nullable/*When default android keystore password should be used*/ String keyStorePassword) throws Exception {
     Certificate signingCert = getCertificate(keyStoreFile, keyAlias, keyStorePassword);
     try {
       byte[] certBytes = MessageDigest.getInstance("SHA1").digest(signingCert.getEncoded());
@@ -185,8 +185,8 @@ public class KeystoreUtils {
    */
   @NotNull
   private static Certificate getCertificate(@NotNull File keyStoreFile,
-                                            @Nullable("When requesting the first certificate sha1") String certificateAlias,
-                                            @Nullable("When default android keystore password should be used") String keyStorePassword)
+                                            @Nullable/*When requesting the first certificate sha1*/ String certificateAlias,
+                                            @Nullable/*When default android keystore password should be used*/ String keyStorePassword)
     throws Exception {
     try {
       KeyStore keyStore = KeyStore.getInstance("JKS");

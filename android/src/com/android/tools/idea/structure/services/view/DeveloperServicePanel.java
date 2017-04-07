@@ -87,6 +87,8 @@ public final class DeveloperServicePanel extends EditorPanel {
     // yet committing to install it.
     myBindings.bind(enabledCheckboxSelected, context.installed().or(context.modified()));
 
+    myEnabledCheckbox.setName("enableService");
+
     enabledCheckboxSelected.addListener(new InvalidationListener() {
       @Override
       public void onInvalidated(@NotNull ObservableValue<?> sender) {

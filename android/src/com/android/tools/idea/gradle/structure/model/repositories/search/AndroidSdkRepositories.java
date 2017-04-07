@@ -51,7 +51,7 @@ public final class AndroidSdkRepositories {
 
   @Nullable
   private static File getRepositoryLocation(@NotNull SdkMavenRepository repository) {
-    File androidSdkPath = IdeSdks.getAndroidSdkPath();
+    File androidSdkPath = IdeSdks.getInstance().getAndroidSdkPath();
     return repository.getRepositoryLocation(androidSdkPath, true, FileOpUtils.create());
   }
 }

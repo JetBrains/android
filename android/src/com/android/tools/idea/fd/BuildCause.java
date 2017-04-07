@@ -15,25 +15,46 @@
  */
 package com.android.tools.idea.fd;
 
+import org.jetbrains.annotations.NotNull;
+
 public enum BuildCause {
   // reasons for clean build
-  NO_DEVICE,
-  APP_NOT_INSTALLED,
-  MISMATCHING_TIMESTAMPS,
-  USER_REQUESTED_CLEAN_BUILD,
+  USER_REQUESTED_CLEAN_BUILD(BuildMode.CLEAN),
 
   // reasons for full build
-  API_TOO_LOW_FOR_INSTANT_RUN,
-  FIRST_INSTALLATION_TO_DEVICE, // first installation in this Android Studio session
-  MANIFEST_RESOURCE_CHANGED,
-  FREEZE_SWAP_REQUIRES_API21,
-  FREEZE_SWAP_REQUIRES_WORKING_RUN_AS,
+  NO_DEVICE(BuildMode.FULL),
+  APP_NOT_INSTALLED(BuildMode.FULL),
+  MISMATCHING_TIMESTAMPS(BuildMode.FULL),
+  API_TOO_LOW_FOR_INSTANT_RUN(BuildMode.FULL),
+  FIRST_INSTALLATION_TO_DEVICE(BuildMode.FULL), // first installation in this Android Studio session
+  MANIFEST_RESOURCE_CHANGED(BuildMode.FULL),
+  FREEZE_SWAP_REQUIRES_API21(BuildMode.FULL),
 
   // reasons for forced cold swap build
-  APP_NOT_RUNNING,
-  APP_USES_MULTIPLE_PROCESSES,
-  ANDROID_TV_UNSUPPORTED,
+  USER_REQUESTED_COLDSWAP(BuildMode.COLD), // User pressed Run, and only Run button was enabled (name not ideal, but matches existing proto)
+  USER_CHOSE_TO_COLDSWAP(BuildMode.COLD),  // Both Run and Hotswap were enabled, and user chose Run
+  APP_NOT_RUNNING(BuildMode.COLD),
+  APP_USES_MULTIPLE_PROCESSES(BuildMode.COLD),
+  ANDROID_TV_UNSUPPORTED(BuildMode.COLD),
 
-  INCREMENTAL_BUILD,
-  NO_INSTANT_RUN,
+  INCREMENTAL_BUILD(BuildMode.HOT),
+  ;
+
+  @NotNull
+  public BuildMode getBuildMode() {
+    return myBuildMode;
+  }
+
+  @NotNull
+  private final BuildMode myBuildMode;
+
+  BuildCause(@NotNull BuildMode mode) {
+    myBuildMode = mode;
+  }
+
+  @Override
+  public String toString() {
+    return "BuildCause: " + super.name() + ", BuildMode: " + myBuildMode.toString();
+  }
+
 }

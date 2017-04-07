@@ -20,6 +20,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -30,7 +31,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ComboboxWithBrowseButton;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,9 +39,9 @@ import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import static com.android.tools.idea.avdmanager.AvdWizardUtils.NO_SKIN;
 
@@ -59,7 +59,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
     //noinspection unchecked
     getComboBox().setRenderer(new ColoredListCellRenderer() {
       @Override
-      protected void customizeCellRenderer(JList list, Object value, int index, boolean selected, boolean hasFocus) {
+      protected void customizeCellRenderer(@NotNull JList list, Object value, int index, boolean selected, boolean hasFocus) {
         File skinFile = ((value) == null) ? NO_SKIN : (File)value;
         String skinPath = skinFile.getPath();
         if (FileUtil.filesEqual(skinFile, NO_SKIN)) {
@@ -114,7 +114,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
       }
     }
     StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(SkinChooser.class);
-    AndroidSdkHandler sdkHandler = AndroidSdkUtils.tryToChooseSdkHandler();
+    AndroidSdkHandler sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
     for (IAndroidTarget target : sdkHandler.getAndroidTargetManager(progress).getTargets(progress)) {
       Arrays.stream(target.getSkins())
         .map(this::resolve)

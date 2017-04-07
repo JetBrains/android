@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
+import com.android.tools.idea.gradle.dsl.model.values.GradleNullableValue;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NonNls;
@@ -28,35 +30,25 @@ import java.util.List;
 public class FlatDirRepositoryModel extends RepositoryModel {
   @NonNls public static final String FLAT_DIR_ATTRIBUTE_NAME = "flatDir";
 
-  @NonNls private static final String DEFAULT_REPO_NAME = "flatDir";
-
-  @NonNls private static final String NAME = "name";
   @NonNls private static final String DIRS = "dirs";
 
-  @NotNull
-  private final GradlePropertiesDslElement myDslElement;
-
   public FlatDirRepositoryModel(@NotNull GradlePropertiesDslElement dslElement) {
-    myDslElement = dslElement;
+    super(dslElement, "flatDir");
   }
 
   @NotNull
-  @Override
-  public String name() {
-    String name = myDslElement.getProperty(NAME, String.class);
-    return name != null ? name : DEFAULT_REPO_NAME;
-  }
+  public List<GradleNotNullValue<String>> dirs() {
+    assert myDslElement != null;
 
-  @NotNull
-  public List<String> dirs() {
-    List<String> dirs = myDslElement.getListProperty(DIRS, String.class);
+    List<GradleNotNullValue<String>> dirs = myDslElement.getListProperty(DIRS, String.class);
     if (dirs != null) {
       return dirs;
     }
 
-    String dir = myDslElement.getProperty(DIRS, String.class);
-    if (dir != null) {
-      return ImmutableList.of(dir);
+    GradleNullableValue<String> dir = myDslElement.getLiteralProperty(DIRS, String.class);
+    if (dir.value() != null) {
+      assert dir instanceof GradleNotNullValue;
+      return ImmutableList.of((GradleNotNullValue<String>)dir);
     }
 
     return ImmutableList.of();

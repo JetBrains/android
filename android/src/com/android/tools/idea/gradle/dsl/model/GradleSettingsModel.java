@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import com.android.tools.idea.gradle.dsl.model.values.GradleNotNullValue;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
@@ -64,13 +65,13 @@ public class GradleSettingsModel extends GradleFileModel {
     List<String> result = Lists.newArrayList();
     result.add(":"); // Indicates the root module.
 
-    List<String> includePaths = myGradleDslFile.getListProperty(INCLUDE, String.class);
+    List<GradleNotNullValue<String>> includePaths = myGradleDslFile.getListProperty(INCLUDE, String.class);
     if (includePaths == null) {
       return result;
     }
 
-    for (String includePath : includePaths) {
-      result.add(standardiseModulePath(includePath));
+    for (GradleNotNullValue<String> includePath : includePaths) {
+      result.add(standardiseModulePath(includePath.value()));
     }
     return result;
   }
@@ -119,7 +120,7 @@ public class GradleSettingsModel extends GradleFileModel {
     }
 
     String projectKey = "project('" + modulePath + "')";
-    ProjectPropertiesDslElement projectProperties = myGradleDslFile.getProperty(projectKey, ProjectPropertiesDslElement.class);
+    ProjectPropertiesDslElement projectProperties = myGradleDslFile.getPropertyElement(projectKey, ProjectPropertiesDslElement.class);
     if (projectProperties != null) {
       File projectDir = projectProperties.projectDir();
       if (projectDir != null) {
@@ -205,9 +206,9 @@ public class GradleSettingsModel extends GradleFileModel {
 
     String buildFileName = null;
     String projectKey = "project('" + modulePath + "')";
-    ProjectPropertiesDslElement projectProperties = myGradleDslFile.getProperty(projectKey, ProjectPropertiesDslElement.class);
+    ProjectPropertiesDslElement projectProperties = myGradleDslFile.getPropertyElement(projectKey, ProjectPropertiesDslElement.class);
     if (projectProperties != null) {
-      buildFileName = projectProperties.buildFileName();
+      buildFileName = projectProperties.buildFileName().value();
     }
 
     if (buildFileName == null) {

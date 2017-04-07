@@ -30,8 +30,9 @@ import java.io.IOException;
 public class OverrideResourceActionTest extends AndroidTestCase {
   private static final String BASE_PATH = "forkResource/";
 
-  public OverrideResourceActionTest() {
-    super(false);
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override

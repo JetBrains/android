@@ -134,6 +134,9 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
         result.add(XLIFF_URI);
       } else if (type != ResourceFolderType.MIPMAP && type != ResourceFolderType.RAW) {
         result.add(NS_RESOURCES);
+        if (type == ResourceFolderType.DRAWABLE) {
+          result.add(AAPT_URI);
+        }
         String localNs = getLocalXmlNamespace(facet);
         if (localNs != null) {
           result.add(localNs);
@@ -158,8 +161,11 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
     else if (namespace.equals(AUTO_URI) || namespace.startsWith(URI_PREFIX)) {
       return APP_PREFIX;
     }
-    else if (namespace.equals(XLIFF_PREFIX)) {
+    else if (namespace.equals(XLIFF_URI)) {
       return XLIFF_PREFIX;
+    }
+    else if (namespace.equals(AAPT_URI)) {
+      return AAPT_PREFIX;
     }
     return null;
   }

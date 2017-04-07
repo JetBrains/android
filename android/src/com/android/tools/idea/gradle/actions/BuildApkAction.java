@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.invoker.GradleInvoker;
-import com.android.tools.idea.gradle.invoker.GradleInvoker.TestCompileType;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.TestCompileType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -57,11 +57,11 @@ public class BuildApkAction extends DumbAwareAction {
         }
       }
 
-      GradleInvoker gradleInvoker = GradleInvoker.getInstance(project);
+      GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
       if (task != null) {
-        gradleInvoker.addAfterGradleInvocationTask(task);
+        gradleBuildInvoker.add(task);
       }
-      gradleInvoker.assemble(modules, TestCompileType.NONE);
+      gradleBuildInvoker.assemble(modules, TestCompileType.NONE);
     }
   }
 }

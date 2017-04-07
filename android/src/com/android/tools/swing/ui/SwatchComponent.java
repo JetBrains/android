@@ -313,7 +313,7 @@ public class SwatchComponent extends JPanel {
     myTextField.setVariants(completionStrings);
   }
 
-  @Nullable("if there is no error")
+  @Nullable/*if there is no error*/
   public ValidationInfo doValidate(int minApi, @NotNull AndroidTargetData androidTargetData) {
     String resourceValue = getText();
     String errorText = null;

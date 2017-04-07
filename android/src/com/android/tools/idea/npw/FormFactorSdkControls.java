@@ -38,6 +38,8 @@ import java.util.Set;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.android.tools.idea.npw.FormFactorUtils.getMinApiLevelKey;
 import static com.android.tools.idea.npw.FormFactorUtils.getTargetComboBoxKey;
+import static com.android.tools.idea.wizard.WizardConstants.IS_INSTANT_APP_KEY;
+import static com.android.tools.idea.wizard.WizardConstants.WH_SDK_ENABLED_KEY;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Scope.STEP;
 import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.createKey;
 
@@ -53,7 +55,6 @@ final class FormFactorSdkControls {
   private static final ScopedStateStore.Key<String> API_FEEDBACK_KEY = createKey("API Feedback", STEP, String.class);
   private JBLabel myHelpMeChooseLabel2;
   private HyperlinkLabel myHelpMeChooseLink;
-  private ChooseApiLevelDialog myChooseApiLevelDialog = new ChooseApiLevelDialog(null, -1);
   private final ScopedDataBinder myBinder;
   private JCheckBox myInclusionCheckBox;
   private JPanel myRootPanel;
@@ -64,6 +65,7 @@ final class FormFactorSdkControls {
   private final ScopedStateStore.Key<Boolean> myInclusionKey;
   private JBLabel myStatsLoadFailedLabel;
   private JBLabel myHelpMeChooseLabel1;
+  private JCheckBox myInstantAppCheckbox;
 
   /**
    * Creates a new FormFactorSdkControls.
@@ -78,7 +80,6 @@ final class FormFactorSdkControls {
                                ScopedDataBinder binder) {
     myFormFactor = formFactor;
     myMinApi = minApi;
-    Disposer.register(disposable, myChooseApiLevelDialog.getDisposable());
     myBinder = binder;
     myInclusionCheckBox.setText(formFactor.toString());
     myDisposable = disposable;
@@ -119,10 +120,10 @@ final class FormFactorSdkControls {
       @Override
       protected void hyperlinkActivated(HyperlinkEvent e) {
         Integer minApiLevel = state.get(getMinApiLevelKey(MOBILE));
-        myChooseApiLevelDialog = new ChooseApiLevelDialog(null, minApiLevel == null ? 0 : minApiLevel);
-        Disposer.register(myDisposable, myChooseApiLevelDialog.getDisposable());
-        if (myChooseApiLevelDialog.showAndGet()) {
-          int selectedApiLevel = myChooseApiLevelDialog.getSelectedApiLevel();
+        ChooseApiLevelDialog chooseApiLevelDialog = new ChooseApiLevelDialog(null, minApiLevel == null ? 0 : minApiLevel);
+        Disposer.register(myDisposable, chooseApiLevelDialog.getDisposable());
+        if (chooseApiLevelDialog.showAndGet()) {
+          int selectedApiLevel = chooseApiLevelDialog.getSelectedApiLevel();
           ScopedDataBinder.setSelectedItem(myMinSdkCombobox, Integer.toString(selectedApiLevel));
         }
       }
@@ -184,6 +185,11 @@ final class FormFactorSdkControls {
           myBinder.invokeUpdate(getTargetComboBoxKey(MOBILE));
           myStatsLoadFailedLabel.setVisible(true);
         }));
+    }
+
+    if (myFormFactor.equals(MOBILE) && state.getNotNull(WH_SDK_ENABLED_KEY, false)) {
+      myBinder.register(IS_INSTANT_APP_KEY, myInstantAppCheckbox);
+      myInstantAppCheckbox.setVisible(true);
     }
   }
 

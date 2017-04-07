@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.npw;
 
-import com.android.tools.idea.templates.TemplateMetadata;
+import com.android.tools.idea.npw.deprecated.ImportWizardModuleBuilder;
+import com.android.tools.idea.npw.deprecated.WrapArchiveWizardPath;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
@@ -24,6 +25,7 @@ import com.intellij.openapi.project.Project;
 import icons.AndroidIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import javax.swing.*;
 import java.io.File;
@@ -36,22 +38,17 @@ import static com.android.tools.idea.templates.Template.CATEGORY_PROJECTS;
  * Builder that also supports creating Android modules
  */
 public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
-  protected static final String PROJECT_NAME = "Android Project";
   protected static final String MODULE_NAME = "Android Module";
   protected static final String APP_TEMPLATE_NAME = "Android Application";
   protected static final String LIB_TEMPLATE_NAME = "Android Library";
 
-  @Nullable private final String myBuilderId;
-
   public TemplateWizardModuleBuilder(@Nullable File templateLocation,
-                                     @Nullable TemplateMetadata metadata,
                                      @Nullable Project project,
                                      @Nullable Icon sidePanelIcon,
                                      @NotNull List<ModuleWizardStep> steps,
                                      @NotNull Disposable disposable,
                                      boolean inGlobalWizard) {
     super(templateLocation, project, sidePanelIcon, steps, disposable, inGlobalWizard);
-    myBuilderId = metadata == null ? null : metadata.getTitle();
     if (!inGlobalWizard) {
       mySteps.add(0, buildChooseModuleStep(project));
     }
@@ -62,12 +59,6 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
     List<WizardPath> paths = Lists.newArrayList(super.setupWizardPaths(project, sidePanelIcon, disposable));
     paths.add(new WrapArchiveWizardPath(myWizardState, project, this, sidePanelIcon));
     return paths;
-  }
-
-  @Nullable
-  @Override
-  public String getBuilderId() {
-    return myBuilderId;
   }
 
   /**
@@ -106,5 +97,17 @@ public class TemplateWizardModuleBuilder extends ImportWizardModuleBuilder {
     list.addAll(templateList);
     chooseModuleStep.setListData(list);
     return chooseModuleStep;
+  }
+
+  // Temporary hack for tests while refactoring is in progress
+  @TestOnly
+  protected NewModuleWizardState getWizardState() {
+    return myWizardState;
+  }
+
+  // Temporary hack for tests while refactoring is in progress
+  @TestOnly
+  protected boolean getInitializationComplete() {
+    return myInitializationComplete;
   }
 }

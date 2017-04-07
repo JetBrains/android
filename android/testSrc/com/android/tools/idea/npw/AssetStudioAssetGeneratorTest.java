@@ -31,7 +31,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Map;
 
-import static com.android.assetstudiolib.BitmapGeneratorTest.assertImageSimilar;
 import static com.android.tools.idea.npw.AssetStudioAssetGenerator.*;
 import static org.mockito.Mockito.*;
 
@@ -277,7 +276,7 @@ public class AssetStudioAssetGeneratorTest extends AndroidTestCase {
     convertedExpected.getGraphics().drawImage(expected, 0, 0, null);
     BufferedImage convertedActual = new BufferedImage(actual.getWidth(), actual.getHeight(), BufferedImage.TYPE_INT_ARGB);
     convertedActual.getGraphics().drawImage(actual, 0, 0, null);
-    assertImageSimilar(name, convertedExpected, convertedActual, allowedDifference);
+    BitmapGeneratorTests.assertImageSimilar(name, convertedExpected, convertedActual, allowedDifference);
   }
 
   public void testClipartSource() throws Exception {

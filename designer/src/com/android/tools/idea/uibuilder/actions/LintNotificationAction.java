@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
+import com.android.tools.idea.uibuilder.analytics.NlUsageTrackerManager;
 import com.android.tools.idea.uibuilder.lint.LintAnnotationsModel;
 import com.android.tools.idea.uibuilder.lint.LintNotificationPanel;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -78,11 +80,19 @@ public class LintNotificationAction extends AnAction {
   /** Shows list of warnings/errors */
   @Override
   public void actionPerformed(AnActionEvent e) {
+    NlUsageTrackerManager.getInstance(mySurface).logAction(LayoutEditorEvent.LayoutEditorEventType.SHOW_LINT_MESSAGES);
     ScreenView screenView = mySurface.getCurrentScreenView();
     if (screenView != null) {
       LintAnnotationsModel lintModel = screenView.getModel().getLintAnnotationsModel();
       if (lintModel != null && lintModel.getIssueCount() > 0) {
-        new LintNotificationPanel(screenView, lintModel).show(e);
+        LintNotificationPanel notificationPanel = new LintNotificationPanel(screenView, lintModel);
+        Object source = e.getInputEvent().getSource();
+        if (source instanceof JComponent) {
+          notificationPanel.showInBestPositionFor(e.getProject(), (JComponent)source);
+        }
+        else {
+          notificationPanel.showInBestPositionFor(e.getProject(), e.getDataContext());
+        }
       }
     }
   }

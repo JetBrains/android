@@ -86,7 +86,7 @@ public class EmulatorTargetProvider extends DeployTargetProvider<EmulatorTargetP
 
   @Override
   public DeployTargetConfigurable createConfigurable(@NotNull Project project,
-                                                     Disposable parentDisposable,
+                                                     @NotNull Disposable parentDisposable,
                                                      @NotNull DeployTargetConfigurableContext context) {
     return new EmulatorTargetConfigurable(project, parentDisposable, context);
   }

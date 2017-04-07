@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates.recipe;
 
 import com.android.tools.idea.templates.FreemarkerConfiguration;
+import com.android.tools.idea.templates.FreemarkerUtils;
 import com.android.tools.idea.templates.StudioTemplateLoader;
 import com.android.tools.idea.templates.Template;
 import com.google.common.collect.LinkedHashMultimap;
@@ -87,7 +88,7 @@ public class RenderingContext {
                            @Nullable SetMultimap<String, String> outDependencies) {
     myProject = useDefaultProjectIfNeeded(project);
     myTitle = commandName;
-    myParamMap = Template.createParameterMap(paramMap);
+    myParamMap = FreemarkerUtils.createParameterMap(paramMap);
     myOutputRoot = outputRoot;
     myModuleRoot = moduleRoot;
     myGradleSync = gradleSyncIfNeeded;
@@ -266,6 +267,30 @@ public class RenderingContext {
    */
   public boolean canCausePartialRendering() {
     return !myDryRun;
+  }
+
+  @Override
+  public String toString() {
+    return "RenderingContext{" +
+           "myProject=" + myProject +
+           ", myTitle='" + myTitle + '\'' +
+           ", myParamMap=" + myParamMap +
+           ", myOutputRoot=" + myOutputRoot +
+           ", myModuleRoot=" + myModuleRoot +
+           ", myGradleSync=" + myGradleSync +
+           ", myFindOnlyReferences=" + myFindOnlyReferences +
+           ", myLoader=" + myLoader +
+           ", myFreemarker=" + myFreemarker +
+           ", mySourceFiles=" + mySourceFiles +
+           ", myTargetFiles=" + myTargetFiles +
+           ", myFilesToOpen=" + myFilesToOpen +
+           ", myPlugins=" + myPlugins +
+           ", myClasspathEntries=" + myClasspathEntries +
+           ", myDependencies=" + myDependencies +
+           ", myWarnings=" + myWarnings +
+           ", myDryRun=" + myDryRun +
+           ", myShowErrors=" + myShowErrors +
+           '}';
   }
 
   @NotNull

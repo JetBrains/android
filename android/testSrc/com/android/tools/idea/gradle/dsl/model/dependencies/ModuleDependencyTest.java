@@ -42,7 +42,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":javalib1";
-    expected.assertMatches(dependencies.get(0));
+    assertMatches(expected, dependencies.get(0));
   }
 
   public void testParsingWithDependencyOnRoot() throws IOException {
@@ -61,7 +61,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":";
-    expected.assertMatches(actual);
+    assertMatches(expected, actual);
 
     assertEquals("", actual.name());
   }
@@ -84,20 +84,20 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     expected.configurationName = "compile";
     expected.path = ":androidlib1";
     expected.configuration = "flavor1Release";
-    expected.assertMatches(dependencies.get(0));
+    assertMatches(expected, dependencies.get(0));
 
     expected.reset();
 
     expected.configurationName = "compile";
     expected.path = ":androidlib2";
     expected.configuration = "flavor2Release";
-    expected.assertMatches(dependencies.get(1));
+    assertMatches(expected, dependencies.get(1));
 
     expected.reset();
 
     expected.configurationName = "runtime";
     expected.path = ":javalib2";
-    expected.assertMatches(dependencies.get(2));
+    assertMatches(expected, dependencies.get(2));
   }
 
   public void testSetNameOnCompactNotation() throws IOException {
@@ -121,7 +121,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":newName";
-    expected.assertMatches(dependency);
+    assertMatches(expected, dependency);
   }
 
   public void testSetNameOnMapNotationWithConfiguration() throws IOException {
@@ -147,7 +147,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     expected.configurationName = "compile";
     expected.path = ":newName";
     expected.configuration = "flavor1Release";
-    expected.assertMatches(dependency);
+    assertMatches(expected, dependency);
   }
 
   public void testSetNameOnMapNotationWithoutConfiguration() throws IOException {
@@ -172,7 +172,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":newName";
-    expected.assertMatches(dependency);
+    assertMatches(expected, dependency);
   }
 
   public void testSetNameWithPathHavingSameSegmentNames() throws IOException {
@@ -199,7 +199,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":name:helloWorld";
-    expected.assertMatches(actual);
+    assertMatches(expected, actual);
 
     assertEquals("helloWorld", actual.name());
   }
@@ -229,22 +229,13 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     ExpectedModuleDependency expected = new ExpectedModuleDependency();
     expected.configurationName = "compile";
     expected.path = ":javalib1";
-    expected.assertMatches(dependency);
+    assertMatches(expected, dependency);
   }
 
-  public static class ExpectedModuleDependency {
-    public String configurationName;
-    public String path;
-    public String configuration;
-
-    public void assertMatches(@NotNull ModuleDependencyModel actual) {
-      assertEquals("configurationName", configurationName, actual.configurationName());
-      assertEquals("path", path, actual.path());
-      assertEquals("configuration", configuration, actual.configuration());
-    }
-
-    public void reset() {
-      configurationName = path = configuration = null;
-    }
+  public void assertMatches(@NotNull ExpectedModuleDependency expected, @NotNull ModuleDependencyModel actual) {
+    assertEquals("configurationName", expected.configurationName, actual.configurationName());
+    assertEquals("path", expected.path, actual.path());
+    assertEquals("configuration", expected.configuration, actual.configuration());
   }
+
 }

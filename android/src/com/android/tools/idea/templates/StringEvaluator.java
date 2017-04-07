@@ -54,7 +54,7 @@ public class StringEvaluator implements TemplateLoader {
       myCurrentExpression = expression;
       Template inputsTemplate = myFreemarker.getTemplate(expression);
       StringWriter out = new StringWriter();
-      Map<String, Object> args = com.android.tools.idea.templates.Template.createParameterMap(inputs);
+      Map<String, Object> args = FreemarkerUtils.createParameterMap(inputs);
       inputsTemplate.process(args, out);
       out.flush();
       return out.toString();

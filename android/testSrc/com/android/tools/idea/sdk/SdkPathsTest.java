@@ -16,6 +16,7 @@
 package com.android.tools.idea.sdk;
 
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.Nullable;
@@ -120,6 +121,11 @@ public class SdkPathsTest extends TestCase {
   }
 
   public void testNoPlatformsNdkDirectory() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     tmpDir = createTempDirectory(SdkPathsTest.class.getSimpleName(), "testNoPlatformsNdkDirectory");
     ValidationResult result = validateAndroidNdk(tmpDir, false);
     assertFalse(result.success);
@@ -131,6 +137,11 @@ public class SdkPathsTest extends TestCase {
   }
 
   public void testNoToolchainsNdkDirectory() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     tmpDir = createTempDirectory(SdkPathsTest.class.getSimpleName(), "testNoToolchainsNdkDirectory");
     createDirectory(new File(tmpDir, "platforms"));
 
@@ -144,6 +155,11 @@ public class SdkPathsTest extends TestCase {
   }
 
   public void testValidNdkDirectory() throws Exception {
+    if (SystemInfo.isWindows) {
+      // Do not run tests on Windows (see http://b.android.com/222904)
+      return;
+    }
+
     tmpDir = createTempDirectory(SdkPathsTest.class.getName(), "testValidNdkDirectory");
     createDirectory(new File(tmpDir, "platforms"));
     createDirectory(new File(tmpDir, "toolchains"));

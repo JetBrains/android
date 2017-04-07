@@ -16,19 +16,13 @@
 package com.android.tools.idea.templates;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.collect.SetMultimap;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectLocator;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import freemarker.template.*;
 import org.jetbrains.android.facet.AndroidFacet;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -85,7 +79,7 @@ public class FmHasDependencyMethod implements TemplateMethodModelEx {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null) {
           // TODO: b/23032990
-          AndroidGradleModel androidModel = AndroidGradleModel.get(facet);
+          AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
           if (androidModel != null) {
             boolean dependsOn;
             switch (configuration) {

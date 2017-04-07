@@ -16,7 +16,7 @@
 package com.android.tools.idea.templates;
 
 import com.android.sdklib.SdkVersionInfo;
-import com.android.tools.idea.stats.UsageTracker;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateProcessingException;
 import com.android.tools.idea.templates.FreemarkerUtils.TemplateUserVisibleException;
 import com.android.tools.idea.templates.recipe.Recipe;
@@ -25,6 +25,9 @@ import com.android.tools.idea.templates.recipe.RenderingContext;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.RunResult;
@@ -162,20 +165,6 @@ public class Template {
     return new Template(new File(getTemplateRootFolder(), category + File.separator + name));
   }
 
-
-  @NotNull
-  public static Map<String, Object> createParameterMap(@NotNull Map<String, Object> args) {
-    final Map<String, Object> paramMap = FreemarkerUtils.createParameterMap(args);
-
-    // Root folder of the templates
-    // TODO: This doesn't look like it's used anywhere. Confirm...?
-    if (ApplicationManager.getApplication() != null && getTemplateRootFolder() != null) {
-      paramMap.put("templateRoot", getTemplateRootFolder().getAbsolutePath());
-    }
-
-    return paramMap;
-  }
-
   /**
    * Iterate through parameters and ensure the given map has the correct for each
    * parameter.
@@ -254,7 +243,11 @@ public class Template {
 
     String title = myMetadata.getTitle();
     if (title != null) {
-      UsageTracker.getInstance().trackEvent(UsageTracker.CATEGORY_TEMPLATE, UsageTracker.ACTION_TEMPLATE_RENDER, title, null);
+      UsageTracker.getInstance().log(AndroidStudioEvent.newBuilder()
+                                     .setCategory(EventCategory.TEMPLATE)
+                                     .setKind(AndroidStudioEvent.EventKind.TEMPLATE_RENDER)
+                                     .setTemplateRenderer(titleToTemplateRenderer(title))
+      );
     }
 
     if (context.shouldReformat()) {
@@ -262,6 +255,83 @@ public class Template {
     }
 
     return success;
+  }
+
+  private static TemplateRenderer titleToTemplateRenderer(String title) {
+    switch (title) {
+      case "":
+        return TemplateRenderer.UNKNOWN_TEMPLATE_RENDERER;
+      case "Android Module":
+        return TemplateRenderer.ANDROID_MODULE;
+      case "Android Project":
+        return TemplateRenderer.ANDROID_PROJECT;
+      case "Empty Activity":
+        return TemplateRenderer.EMPTY_ACTIVITY;
+      case "Blank Activity":
+        return TemplateRenderer.BLANK_ACTIVITY;
+      case "Layout XML File":
+        return TemplateRenderer.LAYOUT_XML_FILE;
+      case "Fragment (Blank)":
+        return TemplateRenderer.FRAGMENT_BLANK;
+      case "Navigation Drawer Activity":
+        return TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY;
+      case "Values XML File":
+        return TemplateRenderer.VALUES_XML_FILE;
+      case "Google Maps Activity":
+        return TemplateRenderer.GOOGLE_MAPS_ACTIVITY;
+      case "Login Activity":
+        return TemplateRenderer.LOGIN_ACTIVITY;
+      case "Assets Folder":
+        return TemplateRenderer.ASSETS_FOLDER;
+      case "Tabbed Activity":
+        return TemplateRenderer.TABBED_ACTIVITY;
+      case "Scrolling Activity":
+        return TemplateRenderer.SCROLLING_ACTIVITY;
+      case "Fullscreen Activity":
+        return TemplateRenderer.FULLSCREEN_ACTIVITY;
+      case "Service":
+        return TemplateRenderer.SERVICE;
+      case "Java Library":
+        return TemplateRenderer.JAVA_LIBRARY;
+      case "Settings Activity":
+        return TemplateRenderer.SETTINGS_ACTIVITY;
+      case "Fragment (List)":
+        return TemplateRenderer.FRAGMENT_LIST;
+      case "Master/Detail Flow":
+        return TemplateRenderer.MASTER_DETAIL_FLOW;
+      case "Android Wear Module":
+        return TemplateRenderer.ANDROID_WEAR_MODULE;
+      case "Broadcast Receiver":
+        return TemplateRenderer.BROADCAST_RECEIVER;
+      case "AIDL File":
+        return TemplateRenderer.AIDL_FILE;
+      case "Service (IntentService)":
+        return TemplateRenderer.INTENT_SERVICE;
+      case "JNI Folder":
+        return TemplateRenderer.JNI_FOLDER;
+      case "Java Folder":
+        return TemplateRenderer.JAVA_FOLDER;
+      case "Custom View":
+        return TemplateRenderer.CUSTOM_VIEW;
+      case "Android TV Module":
+        return TemplateRenderer.ANDROID_TV_MODULE;
+      case "Google AdMob Ads Activity":
+        return TemplateRenderer.GOOGLE_ADMOBS_ADS_ACTIVITY;
+      case "Always On Wear Activity":
+        return TemplateRenderer.ALWAYS_ON_WEAR_ACTIVITY;
+      case "Res Folder":
+        return TemplateRenderer.RES_FOLDER;
+      case "Android TV Activity":
+        return TemplateRenderer.ANDROID_TV_ACTIVITY;
+      case "Blank Wear Activity":
+        return TemplateRenderer.BLANK_WEAR_ACTIVITY;
+      case "Basic Activity":
+        return TemplateRenderer.BASIC_ACTIVITIY;
+      case "App Widget":
+        return TemplateRenderer.APP_WIDGET;
+      default:
+        return TemplateRenderer.CUSTOM_TEMPLATE_RENDERER;
+    }
   }
 
   /**

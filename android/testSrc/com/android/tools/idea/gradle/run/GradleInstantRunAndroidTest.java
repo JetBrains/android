@@ -28,8 +28,9 @@ import static org.junit.Assert.assertNotEquals;
 public class GradleInstantRunAndroidTest extends AndroidTestCase {
   public static final String BASEDIR = "projects/projectWithAppandLib/app/src/main/";
 
-  public GradleInstantRunAndroidTest() {
-    super(false);
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   public void testResourceChangeIsDetected() throws Exception {

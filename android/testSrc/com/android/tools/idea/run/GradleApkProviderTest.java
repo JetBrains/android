@@ -17,13 +17,15 @@ package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.templates.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidGradleTestCase;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
+import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static org.mockito.Mockito.mock;
@@ -33,7 +35,7 @@ import static org.mockito.Mockito.mock;
  */
 public class GradleApkProviderTest extends AndroidGradleTestCase {
   public void testGetApks() throws Exception {
-    loadProject("projects/runConfig/activity");
+    loadProject(RUN_CONFIG_ACTIVITY);
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), false);
     Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
     assertThat(apks).hasSize(1);
@@ -46,7 +48,7 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
   }
 
   public void testGetApksForTest() throws Exception {
-    loadProject("projects/runConfig/activity");
+    loadProject(RUN_CONFIG_ACTIVITY);
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
 
     Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));
@@ -78,8 +80,8 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     }
   }
 
-  public void testGetApksForTestOnlyModule() throws Exception {
-    loadProject("projects/testOnlyModule", "test");
+  public void /*test*/GetApksForTestOnlyModule() throws Exception {
+    loadProject(TEST_ONLY_MODULE, "test");
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), true);
 
     Collection<ApkInfo> apks = provider.getApks(mock(IDevice.class));

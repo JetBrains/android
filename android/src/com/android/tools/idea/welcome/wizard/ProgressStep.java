@@ -52,7 +52,11 @@ public abstract class ProgressStep extends FirstRunWizardStep {
   private double myFraction = 0;
 
   public ProgressStep(@NotNull Disposable parent) {
-    super("Downloading Components");
+    this(parent, "Downloading Components");
+  }
+
+  public ProgressStep(@NotNull Disposable parent, @NotNull String name) {
+    super(name);
     setComponent(myRoot);
     myLabel.setText("Installing");
     //noinspection ConstantConditions
@@ -127,7 +131,7 @@ public abstract class ProgressStep extends FirstRunWizardStep {
    */
   public void print(@NotNull String s, @NotNull ConsoleViewContentType contentType) {
     myHighlighter.setModalityState(ModalityState.stateForComponent(myConsole));
-    myHighlighter.print(s, contentType.getAttributes());
+    myHighlighter.print(s + (s.endsWith("\n") ? "" : "\n"), contentType.getAttributes());
   }
 
   /**

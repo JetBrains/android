@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.eclipse;
 
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
-import com.android.tools.idea.gradle.project.NewProjectImportGradleSyncListener;
+import com.android.tools.idea.gradle.project.importing.NewProjectImportGradleSyncListener;
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.TemplateManager;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -45,7 +47,6 @@ import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 import static com.android.tools.idea.project.NewProjects.activateProjectView;
 import static com.android.tools.idea.templates.TemplateUtils.openEditor;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.tryToChooseAndroidSdk;
 
 /**
  * Importer which can import an ADT project as a Gradle project (it will first
@@ -83,7 +84,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
         File wrapper = TemplateManager.getWrapperLocation(templates);
         if (wrapper.exists()) {
           importer.setGradleWrapperLocation(wrapper);
-          AndroidSdkData sdkData = tryToChooseAndroidSdk();
+          AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
           if (sdkData != null) {
             importer.setSdkLocation(sdkData.getLocation());
           }
@@ -130,7 +131,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
 
   @Nullable
   @Override
-  public List<Module> commit(final Project project,
+  public List<Module> commit(Project project,
                              @Nullable ModifiableModuleModel model,
                              ModulesProvider modulesProvider,
                              @Nullable ModifiableArtifactModel artifactModel) {
@@ -158,34 +159,29 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
     }
 
     try {
-      final NewProjectImportGradleSyncListener callback = new NewProjectImportGradleSyncListener() {
+      NewProjectImportGradleSyncListener syncListener = new NewProjectImportGradleSyncListener() {
         @Override
-        public void syncSucceeded(@NotNull final Project project) {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              activateProjectView(project);
-              openSummary(project);
-            }
+        public void syncSucceeded(@NotNull Project project) {
+          ApplicationManager.getApplication().invokeLater(() -> {
+            activateProjectView(project);
+            openSummary(project);
           });
         }
 
         @Override
-        public void syncFailed(@NotNull final Project project, @NotNull String errorMessage) {
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              createTopLevelProjectAndOpen(project);
-              openSummary(project);
-            }
+        public void syncFailed(@NotNull Project project, @NotNull String errorMessage) {
+          ApplicationManager.getApplication().invokeLater(() -> {
+            createTopLevelProjectAndOpen(project);
+            openSummary(project);
           });
         }
       };
-      final GradleProjectImporter importer = GradleProjectImporter.getInstance();
+      GradleProjectImporter importer = GradleProjectImporter.getInstance();
       if (myCreateProject) {
-        importer.importProject(project.getName(), destDir, true, callback, project, null);
+        GradleProjectImporter.Request request = new GradleProjectImporter.Request().setProject(project);
+        importer.importProject(project.getName(), destDir, request, syncListener);
       } else {
-        importer.requestProjectSync(project, true, callback);
+        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, syncListener);
       }
     }
     catch (ConfigurationException e) {

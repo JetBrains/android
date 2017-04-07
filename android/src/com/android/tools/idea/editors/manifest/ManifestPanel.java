@@ -23,11 +23,12 @@ import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.manifmerger.XmlNode;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
 import com.android.tools.idea.gradle.parser.GradleBuildFile;
 import com.android.tools.idea.gradle.parser.NamedObject;
-import com.android.tools.idea.gradle.project.GradleProjectImporter;
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.MergedManifest;
 import com.android.tools.idea.rendering.HtmlLinkManager;
@@ -64,6 +65,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -79,14 +81,17 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.gradle.AndroidGradleModel.EXPLODED_AAR;
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.tools.idea.gradle.project.model.AndroidModuleModel.EXPLODED_AAR;
 
 // TODO for permission if not from main file
 // TODO then have option to tools:node="remove" tools:selector="com.example.lib1"
@@ -102,17 +107,23 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private static final String SUGGESTION_MARKER = "Suggestion: ";
   private static final Pattern ADD_SUGGESTION_FORMAT = Pattern.compile(".*? 'tools:([\\w:]+)=\"([\\w:]+)\"' to \\<(\\w+)\\> element at [^:]+:(\\d+):(\\d+)-[\\d:]+ to override\\.", Pattern.DOTALL);
 
+  /**
+   * We don't have an exact position for values coming from the
+   * Gradle model. This file is used as a marker pointing to the
+   * Gradle model.
+   */
+  private static final File GRADLE_MODEL_MARKER_FILE = new File(FN_BUILD_GRADLE);
+
   private final AndroidFacet myFacet;
   private final Font myDefaultFont;
-  private Tree myTree;
-  private JEditorPane myDetails;
+  private final Tree myTree;
+  private final JEditorPane myDetails;
   private JPopupMenu myPopup;
   private JMenuItem myRemoveItem;
-  private JMenuItem myGotoItem;
 
   private MergedManifest myManifest;
-  private final List<File> myFiles = new ArrayList<File>();
-  private final List<File> myOtherFiles = new ArrayList<File>();
+  private final List<File> myFiles = new ArrayList<>();
+  private final List<File> myOtherFiles = new ArrayList<>();
   private final HtmlLinkManager myHtmlLinkManager = new HtmlLinkManager();
   private VirtualFile myFile;
   private final Color myBackgroundColor;
@@ -148,18 +159,15 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   private JEditorPane createDetailsPane(@NotNull final AndroidFacet facet) {
     JEditorPane details = new JEditorPane();
-    details.setMargin(new Insets(5, 5, 5, 5));
+    details.setMargin(JBUI.insets(5));
     details.setContentType(UIUtil.HTML_MIME);
     details.setEditable(false);
     details.setFont(myDefaultFont);
     details.setBackground(myBackgroundColor);
-    HyperlinkListener hyperLinkListener = new HyperlinkListener() {
-      @Override
-      public void hyperlinkUpdate(HyperlinkEvent e) {
-        if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-          String url = e.getDescription();
-          myHtmlLinkManager.handleUrl(url, facet.getModule(), null, null, null);
-        }
+    HyperlinkListener hyperLinkListener = e -> {
+      if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+        String url = e.getDescription();
+        myHtmlLinkManager.handleUrl(url, facet.getModule(), null, null, null);
       }
     };
     details.addHyperlinkListener(hyperLinkListener);
@@ -169,32 +177,26 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   private void createPopupMenu() {
     myPopup = new JBPopupMenu();
-    myGotoItem = new JBMenuItem("Go to Declaration");
-    myGotoItem.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(@NotNull ActionEvent e) {
-        TreePath treePath = myTree.getSelectionPath();
-        final ManifestTreeNode node = (ManifestTreeNode)treePath.getLastPathComponent();
-        if (node != null) {
-          goToDeclaration(node.getUserObject());
-        }
+    JMenuItem gotoItem = new JBMenuItem("Go to Declaration");
+    gotoItem.addActionListener(e -> {
+      TreePath treePath = myTree.getSelectionPath();
+      final ManifestTreeNode node = (ManifestTreeNode)treePath.getLastPathComponent();
+      if (node != null) {
+        goToDeclaration(node.getUserObject());
       }
     });
-    myPopup.add(myGotoItem);
+    myPopup.add(gotoItem);
     myRemoveItem = new JBMenuItem("Remove");
-    myRemoveItem.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(@NotNull ActionEvent e) {
-        TreePath treePath = myTree.getSelectionPath();
-        final ManifestTreeNode node = (ManifestTreeNode)treePath.getLastPathComponent();
+    myRemoveItem.addActionListener(e -> {
+      TreePath treePath = myTree.getSelectionPath();
+      final ManifestTreeNode node = (ManifestTreeNode)treePath.getLastPathComponent();
 
-        new WriteCommandAction.Simple(myFacet.getModule().getProject(), "Removing manifest tag", ManifestUtils.getMainManifest(myFacet)) {
-          @Override
-          protected void run() throws Throwable {
-            ManifestUtils.toolsRemove(ManifestUtils.getMainManifest(myFacet), node.getUserObject());
-          }
-        }.execute();
-      }
+      new WriteCommandAction.Simple(myFacet.getModule().getProject(), "Removing manifest tag", ManifestUtils.getMainManifest(myFacet)) {
+        @Override
+        protected void run() throws Throwable {
+          ManifestUtils.toolsRemove(ManifestUtils.getMainManifest(myFacet), node.getUserObject());
+        }
+      }.execute();
     });
     myPopup.add(myRemoveItem);
 
@@ -295,6 +297,11 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       }
       Collections.sort(myFiles, MANIFEST_SORTER);
       Collections.sort(myOtherFiles, MANIFEST_SORTER);
+
+      // Build.gradle - injected
+      if (referenced.contains(GRADLE_MODEL_MARKER_FILE)) {
+        myFiles.add(GRADLE_MODEL_MARKER_FILE);
+      }
     }
 
     if (root != null) {
@@ -305,19 +312,15 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     updateDetails(null);
   }
 
-  private static final Comparator<File> MANIFEST_SORTER = new Comparator<File>() {
-
-    @Override
-    public int compare(File o1, File o2) {
-      String p1 = o1.getPath();
-      String p2 = o2.getPath();
-      boolean lib1 = p1.contains(EXPLODED_AAR);
-      boolean lib2 = p2.contains(EXPLODED_AAR);
-      if (lib1 != lib2) {
-        return lib1 ? 1 : -1;
-      }
-      return p1.compareTo(p2);
+  private static final Comparator<File> MANIFEST_SORTER = (o1, o2) -> {
+    String p1 = o1.getPath();
+    String p2 = o2.getPath();
+    boolean lib1 = p1.contains(EXPLODED_AAR);
+    boolean lib2 = p2.contains(EXPLODED_AAR);
+    if (lib1 != lib2) {
+      return lib1 ? 1 : -1;
     }
+    return p1.compareTo(p2);
   };
 
   private void recordLocationReferences(@NotNull Node node, @NotNull Set<File> files) {
@@ -325,13 +328,21 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     if (type == Node.ATTRIBUTE_NODE) {
       List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, node);
       if (!records.isEmpty()) {
-        for (Actions.Record record : records) {
+        Actions.Record record = records.get(0);
+
+        // Ignore keys specified on the parent element; those are misleading
+        XmlNode.NodeKey targetId = record.getTargetId();
+        if (targetId.toString().contains("@")) {
+          // Injected values correspond to the Gradle model; we don't have
+          // an accurate file location so just use a marker file.
           if (record.getActionType() == Actions.ActionType.INJECTED) {
-            continue;
+            files.add(GRADLE_MODEL_MARKER_FILE);
           }
-          File location = record.getActionLocation().getFile().getSourceFile();
-          if (location != null && !files.contains(location)) {
-            files.add(location);
+          else {
+            File location = record.getActionLocation().getFile().getSourceFile();
+            if (location != null && !files.contains(location)) {
+              files.add(location);
+            }
           }
         }
       }
@@ -423,6 +434,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       }
 
       SourceFilePosition prev = null;
+      boolean prevInjected = false;
       for (Actions.Record record : records) {
         // There are currently some duplicated entries; filter these out
         SourceFilePosition location = ManifestUtils.getActionLocation(myFacet.getModule(), record);
@@ -432,7 +444,12 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         prev = location;
 
         Actions.ActionType actionType = record.getActionType();
-        if (actionType == Actions.ActionType.INJECTED) {
+        boolean injected = actionType == Actions.ActionType.INJECTED;
+        if (injected && prevInjected) {
+          continue;
+        }
+        prevInjected = injected;
+        if (injected) {
           sb.add("Value provided by Gradle"); // TODO: include module source? Are we certain it's correct?
           sb.newline();
           continue;
@@ -477,7 +494,13 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private Color getNodeColor(@NotNull Node item) {
     List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, item);
     if (!records.isEmpty()) {
-      File file = ManifestUtils.getActionLocation(myFacet.getModule(), records.get(0)).getFile().getSourceFile();
+      Actions.Record record = records.get(0);
+      File file;
+      if (record.getActionType() == Actions.ActionType.INJECTED) {
+        file = GRADLE_MODEL_MARKER_FILE;
+      } else {
+        file = ManifestUtils.getActionLocation(myFacet.getModule(), record).getFile().getSourceFile();
+      }
       if (file != null) {
         return getFileColor(file);
       }
@@ -600,12 +623,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     Element element = getElementAt(mainManifest, line, col);
     if (element != null && tagName.equals(element.getTagName())) {
       final Element xmlTag = element;
-      sb.addLink(message, htmlLinkManager.createRunnableLink(new Runnable() {
-        @Override
-        public void run() {
-          addToolsAttribute(mainManifest, xmlTag, attributeName, attributeValue);
-        }
-      }));
+      sb.addLink(message, htmlLinkManager.createRunnableLink(() -> addToolsAttribute(mainManifest, xmlTag, attributeName, attributeValue)));
     }
     else {
       Logger.getInstance(ManifestPanel.class).warn("can not find " + tagName + " tag " + element);
@@ -659,14 +677,11 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       XmlFile mainManifest = ManifestUtils.getMainManifest(facet);
       Element element = getElementAt(mainManifest, position.getPosition().getStartLine(), position.getPosition().getStartColumn());
       if (element != null && SdkConstants.TAG_USES_SDK.equals(element.getTagName())) {
-        sb.addLink(message.substring(0, end + 1), htmlLinkManager.createRunnableLink(new Runnable() {
-          @Override
-          public void run() {
-            int eq = suggestion.indexOf('=');
-            String attributeName = suggestion.substring(suggestion.indexOf(':') + 1, eq);
-            String attributeValue = suggestion.substring(eq + 2, suggestion.length() - 1);
-            addToolsAttribute(mainManifest, element, attributeName, attributeValue);
-          }
+        sb.addLink(message.substring(0, end + 1), htmlLinkManager.createRunnableLink(() -> {
+          int eq1 = suggestion.indexOf('=');
+          String attributeName = suggestion.substring(suggestion.indexOf(':') + 1, eq1);
+          String attributeValue = suggestion.substring(eq1 + 2, suggestion.length() - 1);
+          addToolsAttribute(mainManifest, element, attributeName, attributeValue);
         }));
         sb.add(message.substring(end + 1));
       }
@@ -718,69 +733,63 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       assert sourceProvider != null;
       final String name = sourceProvider.getName();
 
-      AndroidGradleModel androidGradleModel = AndroidGradleModel.get(facet.getModule());
-      assert androidGradleModel != null;
+      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet.getModule());
+      assert androidModuleModel != null;
 
       final XmlFile manifestOverlayPsiFile = (XmlFile)PsiManager.getInstance(facet.getModule().getProject()).findFile(manifestOverlayVirtualFile);
       assert manifestOverlayPsiFile != null;
 
-      if (androidGradleModel.getBuildTypeNames().contains(name)) {
+      if (androidModuleModel.getBuildTypeNames().contains(name)) {
         final String packageName = MergedManifest.get(facet).getPackage();
         assert packageName != null;
         if (applicationId.startsWith(packageName)) {
-          link = new Runnable() {
+          link = () -> new WriteCommandAction.Simple(facet.getModule().getProject(), "Apply manifest suggestion", buildFile.getPsiFile(), manifestOverlayPsiFile) {
             @Override
-            public void run() {
-              new WriteCommandAction.Simple(facet.getModule().getProject(), "Apply manifest suggestion", buildFile.getPsiFile(), manifestOverlayPsiFile) {
-                @Override
-                protected void run() throws Throwable {
-                  if (currentlyOpenFile != null) {
-                    // We mark this action as affecting the currently open file, so the Undo is available in this editor
-                    CommandProcessor.getInstance().addAffectedFiles(facet.getModule().getProject(), currentlyOpenFile);
-                  }
-                  removePackageAttribute(manifestOverlayPsiFile);
-                  final String applicationIdSuffix = applicationId.substring(packageName.length());
-                  List<NamedObject> buildTypes = (List<NamedObject>)buildFile.getValue(BuildFileKey.BUILD_TYPES);
-                  if (buildTypes == null) {
-                    buildTypes = new ArrayList<NamedObject>();
-                  }
-                  NamedObject buildType = find(buildTypes, name);
-                  if (buildType == null) {
-                    buildType = new NamedObject(name);
-                    buildTypes.add(buildType);
-                  }
-                  buildType.setValue(BuildFileKey.APPLICATION_ID_SUFFIX, applicationIdSuffix);
-                  buildFile.setValue(BuildFileKey.BUILD_TYPES, buildTypes);
-                  GradleProjectImporter.getInstance().requestProjectSync(facet.getModule().getProject(), null);
-                }
-              }.execute();
+            protected void run() throws Throwable {
+              if (currentlyOpenFile != null) {
+                // We mark this action as affecting the currently open file, so the Undo is available in this editor
+                CommandProcessor.getInstance().addAffectedFiles(facet.getModule().getProject(), currentlyOpenFile);
+              }
+              removePackageAttribute(manifestOverlayPsiFile);
+              final String applicationIdSuffix = applicationId.substring(packageName.length());
+              @SuppressWarnings("unchecked")
+              List<NamedObject> buildTypes = (List<NamedObject>)buildFile.getValue(BuildFileKey.BUILD_TYPES);
+              if (buildTypes == null) {
+                buildTypes = new ArrayList<>();
+              }
+              NamedObject buildType = find(buildTypes, name);
+              if (buildType == null) {
+                buildType = new NamedObject(name);
+                buildTypes.add(buildType);
+              }
+              buildType.setValue(BuildFileKey.APPLICATION_ID_SUFFIX, applicationIdSuffix);
+              buildFile.setValue(BuildFileKey.BUILD_TYPES, buildTypes);
+
+              GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(), null);
             }
-          };
+          }.execute();
         }
       }
-      else if (androidGradleModel.getProductFlavorNames().contains(name)) {
-        link = new Runnable() {
+      else if (androidModuleModel.getProductFlavorNames().contains(name)) {
+        link = () -> new WriteCommandAction.Simple(facet.getModule().getProject(), "Apply manifest suggestion", buildFile.getPsiFile(), manifestOverlayPsiFile) {
           @Override
-          public void run() {
-            new WriteCommandAction.Simple(facet.getModule().getProject(), "Apply manifest suggestion", buildFile.getPsiFile(), manifestOverlayPsiFile) {
-              @Override
-              protected void run() throws Throwable {
-                if (currentlyOpenFile != null) {
-                  // We mark this action as affecting the currently open file, so the Undo is available in this editor
-                  CommandProcessor.getInstance().addAffectedFiles(facet.getModule().getProject(), currentlyOpenFile);
-                }
-                removePackageAttribute(manifestOverlayPsiFile);
-                List<NamedObject> flavors = (List<NamedObject>)buildFile.getValue(BuildFileKey.FLAVORS);
-                assert flavors != null;
-                NamedObject flavor = find(flavors, name);
-                assert flavor != null;
-                flavor.setValue(BuildFileKey.APPLICATION_ID, applicationId);
-                buildFile.setValue(BuildFileKey.FLAVORS, flavors);
-                GradleProjectImporter.getInstance().requestProjectSync(facet.getModule().getProject(), null);
-              }
-            }.execute();
+          protected void run() throws Throwable {
+            if (currentlyOpenFile != null) {
+              // We mark this action as affecting the currently open file, so the Undo is available in this editor
+              CommandProcessor.getInstance().addAffectedFiles(facet.getModule().getProject(), currentlyOpenFile);
+            }
+            removePackageAttribute(manifestOverlayPsiFile);
+            @SuppressWarnings("unchecked")
+            List<NamedObject> flavors = (List<NamedObject>)buildFile.getValue(BuildFileKey.FLAVORS);
+            assert flavors != null;
+            NamedObject flavor = find(flavors, name);
+            assert flavor != null;
+            flavor.setValue(BuildFileKey.APPLICATION_ID, applicationId);
+            buildFile.setValue(BuildFileKey.FLAVORS, flavors);
+
+            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(facet.getModule().getProject(), null);
           }
-        };
+        }.execute();
       }
     }
 
@@ -800,7 +809,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     tag.setAttribute("package", null);
   }
 
-  @Nullable("item not found")
+  @Nullable/*item not found*/
   static NamedObject find(@NotNull List<NamedObject> items, @NotNull String name) {
     for (NamedObject item : items) {
       if (name.equals(item.getName())) {
@@ -845,7 +854,24 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     SourceFile sourceFile = sourceFilePosition.getFile();
     SourcePosition sourcePosition = sourceFilePosition.getPosition();
     File file = sourceFile.getSourceFile();
-    AndroidLibrary library = null;
+
+    if (file == GRADLE_MODEL_MARKER_FILE) {
+      VirtualFile gradleBuildFile = GradleUtil.getGradleBuildFile(facet.getModule());
+      if (gradleBuildFile != null) {
+        file = VfsUtilCore.virtualToIoFile(gradleBuildFile);
+        sb.addHtml("<a href=\"");
+        sb.add(file.toURI().toString());
+        sb.addHtml("\">");
+        sb.add(file.getName());
+        sb.addHtml("</a>");
+        sb.add(" injection");
+      } else {
+        sb.add("build.gradle injection (source location unknown)");
+      }
+      return;
+    }
+
+    AndroidLibrary library;
     if (file != null) {
       String source = null;
 
@@ -861,7 +887,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
           // AAR Library?
           if (file.getPath().contains(EXPLODED_AAR)) {
-            AndroidGradleModel androidModel = AndroidGradleModel.get(module);
+            AndroidModuleModel androidModel = AndroidModuleModel.get(module);
             if (androidModel != null) {
               library = GradleUtil.findLibrary(file.getParentFile(), androidModel.getSelectedVariant(), androidModel.getModelVersion());
               if (library != null) {

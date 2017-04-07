@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.tools.idea.uibuilder.api.actions.*;
-import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -82,8 +81,8 @@ public class ViewHandler extends StructurePaneComponentHandler {
    * Paints the constraints for this component. If it returns true, it has handled
    * the children as well.
    *
-   * @param graphics  the graphics to paint into
-   * @param component the component whose constraints we want to paint
+   * @param graphics  the graphics to buildDisplayList into
+   * @param component the component whose constraints we want to buildDisplayList
    * @return true if we're done with this component <b>and</b> it's children
    */
   public boolean paintConstraints(@NotNull ScreenView screenView, @NotNull Graphics2D graphics, @NotNull NlComponent component) {

@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.variant.conflict;
 
-import com.android.builder.model.AndroidProject;
-import com.android.tools.idea.gradle.AndroidGradleModel;
-import com.android.tools.idea.gradle.facet.AndroidGradleFacet;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.stubs.android.*;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
@@ -30,11 +29,12 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
-import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 import java.io.File;
 import java.util.List;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
 
 /**
@@ -42,8 +42,8 @@ import static com.android.tools.idea.gradle.util.Projects.getBaseDirPath;
  */
 public class ConflictSetTest extends IdeaTestCase {
   private Module myLibModule;
-  private AndroidGradleModel myApp;
-  private AndroidGradleModel myLib;
+  private AndroidModuleModel myApp;
+  private AndroidModuleModel myLib;
   private String myLibGradlePath;
 
   @Override
@@ -56,13 +56,10 @@ public class ConflictSetTest extends IdeaTestCase {
     setUpApp();
     setUpLib();
 
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        setUpMainModuleAsApp();
-        setUpLibModule();
-        setUpModuleDependencies();
-      }
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      setUpMainModuleAsApp();
+      setUpLibModule();
+      setUpModuleDependencies();
     });
   }
 
@@ -80,26 +77,24 @@ public class ConflictSetTest extends IdeaTestCase {
     AndroidProjectStub project = new AndroidProjectStub("app");
     VariantStub variant = project.addVariant("debug");
 
-    myApp = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myModule.getName(), rootDirPath, project, variant.getName(),
-                                   AndroidProject.ARTIFACT_ANDROID_TEST);
+    myApp = new AndroidModuleModel(myModule.getName(), rootDirPath, project, variant.getName());
   }
 
   private void setUpLib() {
     File moduleFilePath = new File(myLibModule.getModuleFilePath());
 
     AndroidProjectStub project = new AndroidProjectStub("lib");
-    project.setIsLibrary(true);
+    project.setProjectType(PROJECT_TYPE_LIBRARY);
     VariantStub variant = project.addVariant("debug");
 
-    myLib = new AndroidGradleModel(GradleConstants.SYSTEM_ID, myModule.getName(), moduleFilePath.getParentFile(), project,
-                                   variant.getName(), AndroidProject.ARTIFACT_ANDROID_TEST);
+    myLib = new AndroidModuleModel(myModule.getName(), moduleFilePath.getParentFile(), project, variant.getName());
   }
 
   private void setUpMainModuleAsApp() {
     FacetManager facetManager = FacetManager.getInstance(myModule);
     ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     try {
-      AndroidFacet facet = createFacet(facetManager, false);
+      AndroidFacet facet = createFacet(facetManager, PROJECT_TYPE_APP);
       facet.setAndroidModel(myApp);
       facetModel.addFacet(facet);
     }
@@ -112,11 +107,11 @@ public class ConflictSetTest extends IdeaTestCase {
     FacetManager facetManager = FacetManager.getInstance(myLibModule);
     ModifiableFacetModel facetModel = facetManager.createModifiableModel();
     try {
-      AndroidFacet androidFacet = createFacet(facetManager, true);
+      AndroidFacet androidFacet = createFacet(facetManager, PROJECT_TYPE_LIBRARY);
       androidFacet.setAndroidModel(myLib);
       facetModel.addFacet(androidFacet);
 
-      AndroidGradleFacet gradleFacet = facetManager.createFacet(AndroidGradleFacet.getFacetType(), AndroidGradleFacet.NAME, null);
+      GradleFacet gradleFacet = facetManager.createFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
       gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = myLibGradlePath;
       facetModel.addFacet(gradleFacet);
     }
@@ -126,11 +121,11 @@ public class ConflictSetTest extends IdeaTestCase {
   }
 
   @NotNull
-  private static AndroidFacet createFacet(@NotNull FacetManager facetManager, boolean library) {
+  private static AndroidFacet createFacet(@NotNull FacetManager facetManager, int projectType) {
     AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
     JpsAndroidModuleProperties facetState = facet.getProperties();
     facetState.ALLOW_USER_CONFIGURATION = false;
-    facetState.LIBRARY_PROJECT = library;
+    facetState.PROJECT_TYPE = projectType;
     return facet;
   }
 

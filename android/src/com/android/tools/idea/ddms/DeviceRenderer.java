@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.ddms;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ColoredTableCellRenderer;
@@ -51,7 +49,7 @@ public class DeviceRenderer {
       if (avdManager != null) {
         AvdInfo info = avdManager.getAvd(avdName, true);
         if (info != null) {
-          avdName = info.getProperties().get(AvdManagerConnection.AVD_INI_DISPLAY_NAME);
+          avdName = info.getProperties().get(AvdManager.AVD_INI_DISPLAY_NAME);
         }
       }
       if (avdName == null) {

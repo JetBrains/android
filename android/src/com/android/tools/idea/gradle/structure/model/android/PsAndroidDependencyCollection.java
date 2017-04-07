@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.structure.model.android;
 
 import com.android.builder.model.*;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.AndroidGradleModel;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ModuleDependencyModel;
@@ -64,7 +64,7 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
     if (resolvedArtifact == null) {
       return;
     }
-    AndroidGradleModel gradleModel = artifact.getGradleModel();
+    AndroidModuleModel gradleModel = artifact.getGradleModel();
     Dependencies dependencies = GradleUtil.getDependencies(resolvedArtifact, gradleModel.getModelVersion());
 
     for (AndroidLibrary androidLibrary : dependencies.getLibraries()) {
@@ -192,13 +192,6 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
       addTransitive(library, artifact, dependency);
     }
 
-    AndroidGradleModel gradleModel = artifact.getGradleModel();
-    if (gradleModel.getFeatures().isDependencyGraphSupported()) {
-      for (Library library : androidLibrary.getJavaDependencies()) {
-        addTransitive(library, artifact, dependency);
-      }
-    }
-
     updateDependency(dependency, artifact, parsedModel);
     return dependency;
   }
@@ -270,15 +263,11 @@ class PsAndroidDependencyCollection implements PsModelCollection<PsAndroidDepend
       else if (library instanceof JavaLibrary) {
         libraryPath = ((JavaLibrary)library).getJarFile();
       }
-      if (!artifact.getGradleModel().getFeatures().isDependencyGraphSupported()) {
-        // If the Android model supports the full dependency graph (v. 2.2.0+), we don't need to look for transitive dependencies in POM
-        // files.
-        List<PsArtifactDependencySpec> pomDependencies = Collections.emptyList();
-        if (libraryPath != null) {
-          pomDependencies = findDependenciesInPomFile(libraryPath);
-        }
-        dependency.setDependenciesFromPomFile(pomDependencies);
+      List<PsArtifactDependencySpec> pomDependencies = Collections.emptyList();
+      if (libraryPath != null) {
+        pomDependencies = findDependenciesInPomFile(libraryPath);
       }
+      dependency.setDependenciesFromPomFile(pomDependencies);
     }
     else {
       if (parsedModel != null) {

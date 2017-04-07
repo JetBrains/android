@@ -33,8 +33,9 @@ import static com.android.resources.ResourceType.DIMEN;
 public class AndroidExtractDimensionActionTest extends AndroidTestCase {
   private static final String BASE_PATH = "extractDimen/";
 
-  public AndroidExtractDimensionActionTest() {
-    super(false);
+  @Override
+  protected boolean providesCustomManifest() {
+    return true;
   }
 
   @Override

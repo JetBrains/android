@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.project;
 
-import com.android.tools.idea.ui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditLink;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
 import com.android.tools.idea.ui.properties.core.*;
@@ -35,7 +35,6 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -103,7 +102,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModel
     myValidatorPanel.registerValidator(locationFile, PathValidator.createDefault("project location"));
 
     myValidatorPanel.registerValidator(model.packageName(), value -> {
-      return Validator.Result.fromNullableMessage(AndroidUtils.validateAndroidPackageName(value));
+      return Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value));
     });
 
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel, "Configure your new project");

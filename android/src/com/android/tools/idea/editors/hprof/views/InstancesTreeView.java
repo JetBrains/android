@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.hprof.views;
 
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.idea.actions.EditMultipleSourcesAction;
-import com.android.tools.idea.actions.PsiFileAndLineNavigation;
+import com.android.tools.idea.actions.PsiClassNavigation;
 import com.android.tools.idea.editors.hprof.descriptors.*;
 import com.android.tools.perflib.heap.*;
 import com.android.tools.perflib.heap.memoryanalyzer.HprofBitmapProvider;
@@ -222,12 +222,7 @@ public final class InstancesTreeView implements DataProvider, Disposable {
           final TreePath targetPath = new TreePath(targetNode.getPath());
           myDebuggerTree.treeChanged();
           myDebuggerTree.setSelectionPath(targetPath);
-          ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-              myDebuggerTree.scrollPathToVisible(targetPath);
-            }
-          });
+          ApplicationManager.getApplication().invokeLater(() -> myDebuggerTree.scrollPathToVisible(targetPath));
         }
       }
 
@@ -258,45 +253,42 @@ public final class InstancesTreeView implements DataProvider, Disposable {
       }
     });
 
-    myDebuggerTree.addTreeSelectionListener(new TreeSelectionListener() {
-      @Override
-      public void valueChanged(TreeSelectionEvent e) {
-        TreePath path = e.getPath();
-        if (path == null || path.getPathCount() < 2 || !e.isAddedPath()) {
-          mySelectionModel.setInstance(null);
-          return;
+    myDebuggerTree.addTreeSelectionListener(e -> {
+      TreePath path = e.getPath();
+      if (path == null || path.getPathCount() < 2 || !e.isAddedPath()) {
+        mySelectionModel.setInstance(null);
+        return;
+      }
+
+      DebuggerTreeNodeImpl instanceNode = (DebuggerTreeNodeImpl)path.getPathComponent(1);
+      if (instanceNode.getDescriptor() instanceof InstanceFieldDescriptorImpl) {
+        InstanceFieldDescriptorImpl descriptor = (InstanceFieldDescriptorImpl)instanceNode.getDescriptor();
+        if (descriptor.getInstance() != mySelectionModel.getInstance()) {
+          mySelectionModel.setInstance(descriptor.getInstance());
+        }
+      }
+
+      // Handle node expansions (this is present when the list is large).
+      DebuggerTreeNodeImpl lastPathNode = (DebuggerTreeNodeImpl)path.getLastPathComponent();
+      if (lastPathNode.getDescriptor() instanceof ExpansionDescriptorImpl) {
+        ExpansionDescriptorImpl expansionDescriptor = (ExpansionDescriptorImpl)lastPathNode.getDescriptor();
+        DebuggerTreeNodeImpl parentNode = lastPathNode.getParent();
+        myDebuggerTree.getMutableModel().removeNodeFromParent(lastPathNode);
+
+        if (parentNode.getDescriptor() instanceof ContainerDescriptorImpl) {
+          addContainerChildren(parentNode, expansionDescriptor.getStartIndex(), true);
+        }
+        else if (parentNode.getDescriptor() instanceof InstanceFieldDescriptorImpl) {
+          InstanceFieldDescriptorImpl instanceFieldDescriptor = (InstanceFieldDescriptorImpl)parentNode.getDescriptor();
+          addChildren(parentNode, instanceFieldDescriptor.getHprofField(), instanceFieldDescriptor.getInstance(),
+                      expansionDescriptor.getStartIndex());
         }
 
-        DebuggerTreeNodeImpl instanceNode = (DebuggerTreeNodeImpl)path.getPathComponent(1);
-        if (instanceNode.getDescriptor() instanceof InstanceFieldDescriptorImpl) {
-          InstanceFieldDescriptorImpl descriptor = (InstanceFieldDescriptorImpl)instanceNode.getDescriptor();
-          if (descriptor.getInstance() != mySelectionModel.getInstance()) {
-            mySelectionModel.setInstance(descriptor.getInstance());
-          }
-        }
+        sortTree(parentNode);
+        myDebuggerTree.getMutableModel().nodeStructureChanged(parentNode);
 
-        // Handle node expansions (this is present when the list is large).
-        DebuggerTreeNodeImpl lastPathNode = (DebuggerTreeNodeImpl)path.getLastPathComponent();
-        if (lastPathNode.getDescriptor() instanceof ExpansionDescriptorImpl) {
-          ExpansionDescriptorImpl expansionDescriptor = (ExpansionDescriptorImpl)lastPathNode.getDescriptor();
-          DebuggerTreeNodeImpl parentNode = lastPathNode.getParent();
-          myDebuggerTree.getMutableModel().removeNodeFromParent(lastPathNode);
-
-          if (parentNode.getDescriptor() instanceof ContainerDescriptorImpl) {
-            addContainerChildren(parentNode, expansionDescriptor.getStartIndex(), true);
-          }
-          else if (parentNode.getDescriptor() instanceof InstanceFieldDescriptorImpl) {
-            InstanceFieldDescriptorImpl instanceFieldDescriptor = (InstanceFieldDescriptorImpl)parentNode.getDescriptor();
-            addChildren(parentNode, instanceFieldDescriptor.getHprofField(), instanceFieldDescriptor.getInstance(),
-                        expansionDescriptor.getStartIndex());
-          }
-
-          sortTree(parentNode);
-          myDebuggerTree.getMutableModel().nodeStructureChanged(parentNode);
-
-          if (myComparator != null) {
-            myDebuggerTree.scrollPathToVisible(new TreePath(((DebuggerTreeNodeImpl)parentNode.getLastChild()).getPath()));
-          }
+        if (myComparator != null) {
+          myDebuggerTree.scrollPathToVisible(new TreePath(((DebuggerTreeNodeImpl)parentNode.getLastChild()).getPath()));
         }
       }
     });
@@ -607,7 +599,7 @@ public final class InstancesTreeView implements DataProvider, Disposable {
   private void addContainerChildren(@NotNull DebuggerTreeNodeImpl node, int startIndex, boolean addExpansionNode) {
     ContainerDescriptorImpl containerDescriptor = (ContainerDescriptorImpl)node.getDescriptor();
     List<Instance> instances = containerDescriptor.getInstances();
-    List<HprofFieldDescriptorImpl> descriptors = new ArrayList<HprofFieldDescriptorImpl>(NODES_PER_EXPANSION);
+    List<HprofFieldDescriptorImpl> descriptors = new ArrayList<>(NODES_PER_EXPANSION);
     int currentIndex = startIndex;
     int limit = currentIndex + NODES_PER_EXPANSION;
     for (int loopCounter = currentIndex; loopCounter < instances.size() && currentIndex < limit; ++loopCounter) {
@@ -651,7 +643,7 @@ public final class InstancesTreeView implements DataProvider, Disposable {
     List<HprofFieldDescriptorImpl> descriptors;
     if (instance instanceof ClassInstance) {
       ClassInstance classInstance = (ClassInstance)instance;
-      descriptors = new ArrayList<HprofFieldDescriptorImpl>(classInstance.getValues().size());
+      descriptors = new ArrayList<>(classInstance.getValues().size());
       int i = 0;
       for (ClassInstance.FieldValue entry : classInstance.getValues()) {
         if (entry.getField().getType() == Type.OBJECT) {
@@ -667,7 +659,7 @@ public final class InstancesTreeView implements DataProvider, Disposable {
       assert (field != null);
       ArrayInstance arrayInstance = (ArrayInstance)instance;
       Object[] values = arrayInstance.getValues();
-      descriptors = new ArrayList<HprofFieldDescriptorImpl>(values.length);
+      descriptors = new ArrayList<>(values.length);
       arrayLength = values.length;
 
       if (arrayInstance.getArrayType() == Type.OBJECT) {
@@ -725,7 +717,7 @@ public final class InstancesTreeView implements DataProvider, Disposable {
   }
 
   @Nullable
-  private PsiFileAndLineNavigation[] getTargetFiles() {
+  private PsiClassNavigation[] getTargetFiles() {
     Object node = myDebuggerTree.getSelectionPath().getLastPathComponent();
 
     String className = null;
@@ -747,7 +739,7 @@ public final class InstancesTreeView implements DataProvider, Disposable {
       }
     }
 
-    return PsiFileAndLineNavigation.wrappersForClassName(myProject, className, 0);
+    return PsiClassNavigation.getNavigationForClass(myProject, className);
   }
 
   @Override
