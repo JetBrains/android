@@ -261,16 +261,26 @@ public final class ModelWizard implements Disposable {
     ensureWizardIsRunning();
 
     ModelWizardStep prevStep = null;
-    ModelWizardStep nextStep = null;
-
     if (myCurrIndex >= 0) {
       ModelWizardStep currStep = mySteps.get(myCurrIndex);
       if (!currStep.canGoForward().get()) {
         throw new IllegalStateException("Can't call goForward on wizard when the step prevents it");
       }
       prevStep = currStep;
+
+      try {
+        prevStep.onProceeding();
+      }
+      catch (Exception e) {
+        for (WizardListener listener : getListeners()) {
+          listener.onWizardAdvanceError(e);
+        }
+        throw e;
+      }
     }
 
+    // Note: calling onProceeding() may change a step "children's" visibility. We can only calculate the next step, after its call.
+    ModelWizardStep nextStep = null;
     int nextIndex = myCurrIndex;
     while (true) {
       nextIndex++;
@@ -289,9 +299,6 @@ public final class ModelWizard implements Disposable {
 
     try {
       // Try to go to the next step. Methods here are not safe and may throw an exception.
-      if (prevStep != null) {
-        prevStep.onProceeding();
-      }
       if (nextStep != null) {
         nextStep.onEntering();
       }
@@ -388,7 +395,7 @@ public final class ModelWizard implements Disposable {
             continue;
           }
           seenModels.add(model);
-          model.handleSkipped();;
+          model.handleSkipped();
         }
       }
     }
