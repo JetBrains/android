@@ -411,8 +411,8 @@ public class Scene implements SelectionListener {
     // TODO: this should really be delegated to the handlers
     SceneComponent component = target.getComponent();
     if (component.isSelected()) {
-      boolean hasBaselineConnection = component.getAuthoritativeNlComponent().getAttribute(SHERPA_URI,
-                                                                                           ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
+      boolean hasBaselineConnection = component.getNlComponent().getAttribute(SdkConstants.SHERPA_URI,
+                                                                              SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF) != null;
       if (target instanceof AnchorTarget) {
         AnchorTarget anchor = (AnchorTarget)target;
         if (anchor.getType() == AnchorTarget.Type.BASELINE) {

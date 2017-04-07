@@ -96,7 +96,7 @@ public class GuidelineCycleTarget extends BaseTarget {
 
   @Override
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
-    AttributesTransaction attributes = myComponent.getAuthoritativeNlComponent().startAttributeTransaction();
+    AttributesTransaction attributes = myComponent.getNlComponent().startAttributeTransaction();
     String begin = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
     String end = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
     String percent = attributes.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);
@@ -117,7 +117,7 @@ public class GuidelineCycleTarget extends BaseTarget {
 
     attributes.apply();
 
-    NlModel nlModel = myComponent.getAuthoritativeNlComponent().getModel();
+    NlModel nlModel = myComponent.getNlComponent().getModel();
     Project project = nlModel.getProject();
     XmlFile file = nlModel.getFile();
 

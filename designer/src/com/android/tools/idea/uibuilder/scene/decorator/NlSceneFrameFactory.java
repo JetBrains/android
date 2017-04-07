@@ -36,8 +36,8 @@ public class NlSceneFrameFactory implements SceneFrameFactory {
     Rectangle rect = new Rectangle();
     component.fillRect(rect); // get the rectangle from the component
 
-    int layout_width = layoutDimToMode(component.getAuthoritativeNlComponent(), SdkConstants.ATTR_LAYOUT_WIDTH);
-    int layout_height = layoutDimToMode(component.getAuthoritativeNlComponent(), SdkConstants.ATTR_LAYOUT_HEIGHT);
+    int layout_width = layoutDimToMode(component.getNlComponent(), SdkConstants.ATTR_LAYOUT_WIDTH);
+    int layout_height = layoutDimToMode(component.getNlComponent(), SdkConstants.ATTR_LAYOUT_HEIGHT);
     SceneComponent.DrawState mode = component.getDrawState();
     boolean paint = sceneContext.showOnlySelection() ? mode == SceneComponent.DrawState.SELECTED : true;
     if (paint) {

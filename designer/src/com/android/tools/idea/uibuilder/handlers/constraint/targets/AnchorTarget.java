@@ -219,26 +219,26 @@ public class AnchorTarget extends BaseTarget {
     switch (myType) {
       case LEFT: {
         attribute = ConstraintComponentUtilities
-          .getConnectionId(myComponent.getAuthoritativeNlComponent(), SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourLeftAttributes);
+          .getConnectionId(myComponent.getNlComponent(), SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourLeftAttributes);
         break;
       }
       case RIGHT: {
         attribute = ConstraintComponentUtilities
-          .getConnectionId(myComponent.getAuthoritativeNlComponent(), SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourRightAttributes);
+          .getConnectionId(myComponent.getNlComponent(), SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourRightAttributes);
         break;
       }
       case TOP: {
         attribute = ConstraintComponentUtilities
-          .getConnectionId(myComponent.getAuthoritativeNlComponent(), SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourTopAttributes);
+          .getConnectionId(myComponent.getNlComponent(), SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourTopAttributes);
         break;
       }
       case BOTTOM: {
         attribute = ConstraintComponentUtilities
-          .getConnectionId(myComponent.getAuthoritativeNlComponent(), SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBottomAttributes);
+          .getConnectionId(myComponent.getNlComponent(), SdkConstants.SHERPA_URI, ConstraintComponentUtilities.ourBottomAttributes);
         break;
       }
       case BASELINE: {
-        attribute = myComponent.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.SHERPA_URI,
+        attribute = myComponent.getNlComponent().getLiveAttribute(SdkConstants.SHERPA_URI,
                                                                   SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF);
         if (attribute != null) {
           attribute = NlComponent.extractId(attribute);
@@ -253,7 +253,7 @@ public class AnchorTarget extends BaseTarget {
   }
 
   private boolean isConnected() {
-    return ConstraintComponentUtilities.isAnchorConnected(myType, myComponent.getAuthoritativeNlComponent(), useRtlAttributes(), isRtl());
+    return ConstraintComponentUtilities.isAnchorConnected(myType, myComponent.getNlComponent(), useRtlAttributes(), isRtl());
   }
 
   @SuppressWarnings("UseJBColor")
@@ -304,7 +304,7 @@ public class AnchorTarget extends BaseTarget {
    * @param attributes
    */
   private void rememberPreviousAttribute(@NotNull String uri, @NotNull ArrayList<String> attributes) {
-    NlComponent component = myComponent.getAuthoritativeNlComponent();
+    NlComponent component = myComponent.getNlComponent();
     int count = attributes.size();
     for (int i = 0; i < count; i++) {
       String attribute = attributes.get(i);
@@ -338,7 +338,7 @@ public class AnchorTarget extends BaseTarget {
    * Revert to the original (on mouse down) state.
    */
   private void revertToPreviousState() {
-    NlComponent component = myComponent.getAuthoritativeNlComponent();
+    NlComponent component = myComponent.getNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
     attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF, null);
     for (String key : mPreviousAttributes.keySet()) {
@@ -520,7 +520,7 @@ public class AnchorTarget extends BaseTarget {
     myLastY = -1;
     myConnectedX = -1;
     myConnectedY = -1;
-    NlComponent component = myComponent.getAuthoritativeNlComponent();
+    NlComponent component = myComponent.getNlComponent();
     mPreviousAttributes.clear();
     mPreviousAttributes.put(SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
                             component.getLiveAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X));
@@ -582,12 +582,12 @@ public class AnchorTarget extends BaseTarget {
       }
     }
     if (closestTarget != null && closestTarget instanceof AnchorTarget) {
-      NlComponent component = myComponent.getAuthoritativeNlComponent();
+      NlComponent component = myComponent.getNlComponent();
       String attribute = getAttribute(closestTarget);
       if (attribute != null) {
         AnchorTarget targetAnchor = (AnchorTarget)closestTarget;
         if (targetAnchor.myComponent != myComponent && !targetAnchor.isConnected(this)) {
-          NlComponent targetComponent = targetAnchor.myComponent.getAuthoritativeNlComponent();
+          NlComponent targetComponent = targetAnchor.myComponent.getNlComponent();
           connectMe(component, attribute, targetComponent);
           return;
         }
@@ -623,7 +623,7 @@ public class AnchorTarget extends BaseTarget {
       closestTarget = this;
     }
     if (closestTarget != null && closestTarget instanceof AnchorTarget && !(((AnchorTarget)closestTarget).isConnected(this))) {
-      NlComponent component = myComponent.getAuthoritativeNlComponent();
+      NlComponent component = myComponent.getNlComponent();
       if (closestTarget == this) {
         disconnectMe(component);
       }
@@ -631,7 +631,7 @@ public class AnchorTarget extends BaseTarget {
         String attribute = getAttribute(closestTarget);
         if (attribute != null) {
           AnchorTarget targetAnchor = (AnchorTarget)closestTarget;
-          NlComponent targetComponent = targetAnchor.myComponent.getAuthoritativeNlComponent();
+          NlComponent targetComponent = targetAnchor.myComponent.getNlComponent();
           AttributesTransaction attributes = connectMe(component, attribute, targetComponent);
 
           NlModel nlModel = component.getModel();

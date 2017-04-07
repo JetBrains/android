@@ -219,7 +219,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
 
   @Override
   public void mouseDrag(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
-    NlComponent component = myComponent.getAuthoritativeNlComponent();
+    NlComponent component = myComponent.getNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
     updateAttributes(attributes, x, y);
     attributes.apply();
@@ -228,7 +228,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
 
   @Override
   public void mouseRelease(@AndroidDpCoordinate int x, @AndroidDpCoordinate int y, @Nullable List<Target> closestTargets) {
-    NlComponent component = myComponent.getAuthoritativeNlComponent();
+    NlComponent component = myComponent.getNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
     updateAttributes(attributes, x, y);
     attributes.apply();

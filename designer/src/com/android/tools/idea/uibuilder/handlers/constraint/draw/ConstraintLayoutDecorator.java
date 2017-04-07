@@ -126,7 +126,7 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
     String id = null;
     ConnectionType type = ConnectionType.SAME;
     for (int i = 0; i < atributes.length; i++) {
-      id = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.SHERPA_URI, atributes[i]);
+      id = child.getNlComponent().getLiveAttribute(SdkConstants.SHERPA_URI, atributes[i]);
       type = DIR_TABLE[i];
       if (id != null) {
         break;
@@ -292,26 +292,26 @@ public class ConstraintLayoutDecorator extends SceneDecorator {
         float bias = 0.5f;
         boolean rtl = component.getScene().isInRTL();
         String []margin_attr = (rtl)?MARGIN_ATTR_RTL[i]:MARGIN_ATTR_LTR[i];
-        String marginString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, margin_attr[0]);
+        String marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, margin_attr[0]);
         if (marginString == null && margin_attr.length>1) {
-          marginString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, margin_attr[1]);
+          marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, margin_attr[1]);
         }
         if (marginString == null) {
           if (i == 0) { // left check if it is start
-            marginString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START);
+            marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_START);
           }
           else if (i == 1) { // right check if it is end
-            marginString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END);
+            marginString = child.getNlComponent().getLiveAttribute(SdkConstants.NS_RESOURCES, SdkConstants.ATTR_LAYOUT_MARGIN_END);
           }
         }
         if (marginString != null) {
           if (marginString.startsWith("@")) {
             isMarginReference = true;
           }
-          margin = ConstraintUtilities.getDpValue(child.getAuthoritativeNlComponent(), marginString);
+          margin = ConstraintUtilities.getDpValue(child.getNlComponent(), marginString);
           marginDistance = sceneContext.getSwingDimension(margin);
         }
-        String biasString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.SHERPA_URI, BIAS_ATTR[i]);
+        String biasString = child.getNlComponent().getLiveAttribute(SdkConstants.SHERPA_URI, BIAS_ATTR[i]);
         if (biasString != null) {
           try {
             bias = Float.parseFloat(biasString);
