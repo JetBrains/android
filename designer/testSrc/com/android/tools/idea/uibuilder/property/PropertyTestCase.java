@@ -61,6 +61,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
   protected NlComponent myUnknown;
   protected NlComponent myMerge;
   protected NlComponent myConstraintLayout;
+  protected NlComponent myConstraintLayoutWithConstraintSet;
   protected NlComponent myButton;
   protected NlComponent myImageView;
   protected NlComponent myAutoCompleteTextView;
@@ -98,6 +99,7 @@ public abstract class PropertyTestCase extends LayoutTestCase {
     myButton = myComponentMap.get("button");
     myMerge = myComponentMap.get("merge");
     myConstraintLayout = myComponentMap.get("constraintLayout");
+    myConstraintLayoutWithConstraintSet = myComponentMap.get("constraintLayoutWithConstraintSet");
     myButtonInConstraintLayout = myComponentMap.get("button2");
     myTextViewInLinearLayout = myComponentMap.get("textview_in_linearlayout");
     myButtonInLinearLayout = myComponentMap.get("button_in_linearlayout");
@@ -237,6 +239,19 @@ public abstract class PropertyTestCase extends LayoutTestCase {
                                            .width("wrap_content")
                                            .height("wrap_content")
                                            .text("OtherButton")
+                                       ),
+                                     component(CONSTRAINT_LAYOUT)
+                                       .withBounds(300, 0, 700, 1000)
+                                       .id("@id/constraintLayoutWithConstraintSet")
+                                       .width("700dp")
+                                       .height("1000dp")
+                                       .withAttribute(SHERPA_URI, ATTR_LAYOUT_CONSTRAINTSET, "@+id/constraints")
+                                       .children(
+                                         component(CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS)
+                                           .withBounds(400, 100, 100, 100)
+                                           .id("@+id/constraints")
+                                           .width("wrap_content")
+                                           .height("wrap_content")
                                        ),
                                      component(TAB_LAYOUT)
                                        .withBounds(300, 0, 700, 1000)
