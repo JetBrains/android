@@ -37,6 +37,7 @@ abstract class ProvisionPackage {
   // These are the variants of the apks contained in the SDK. Basically the names of the folders with apks
   @NotNull private static final List<String> SUPPORTED_VARIANTS = Lists.newArrayList("release", "debug");
   @NotNull private static final String OS_BUILD_TYPE_PROPERTY = "ro.build.tags";
+  @NotNull private static final String HARDWARE_PROPERTY = "ro.hardware";
   @NotNull static final String DEV_TYPE = "dev-keys";
   @NotNull static final String TEST_TYPE = "test-keys";
   @NotNull static final String RELEASE_TYPE = "release-keys";
@@ -73,7 +74,6 @@ abstract class ProvisionPackage {
         getLogger().info("APK " + apk + "failed to install. Trying other variant if available", e);
         continue;
       }
-      setFlags(device, getOsBuildType(device));
       return;
     }
     throw new ProvisionException("Couldn't install package " + getPkgName());
@@ -114,7 +114,7 @@ abstract class ProvisionPackage {
     return apk;
   }
 
-  void setFlags(@NotNull IDevice device, @NotNull String osBuildType) throws ProvisionException {}
+  void setFlags(@NotNull IDevice device) throws ProvisionException {}
 
   @NotNull
   static String getOsBuildType(@NotNull IDevice device) throws ProvisionException {
@@ -130,6 +130,13 @@ abstract class ProvisionPackage {
     if (!androidVersion.isGreaterOrEqualThan(MIN_API_LEVEL)) {
       throw new ProvisionException("Device API level must be higher or equal " + MIN_API_LEVEL);
     }
+  }
+
+  static boolean isEmulator(@NotNull IDevice device) {
+    // "test-keys" doesn't imply emulators necessarily. We have to check the hardware.
+    String hardware = device.getProperty(HARDWARE_PROPERTY);
+    // "goldfish" and "ranchu" are the names of emulators hardware.
+    return hardware != null && (hardware.compareTo("goldfish") == 0 | hardware.compareTo("ranchu") == 0);
   }
 
   void executeShellCommand(@NotNull IDevice device, @NotNull String command, boolean rootRequired) throws ProvisionException {
