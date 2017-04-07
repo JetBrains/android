@@ -72,7 +72,7 @@ public class NewModuleTest {
   @Test
   public void createNewModuleFromJar() throws Exception {
     String jarFile = GuiTests.getTestDataDir() + "/LocalJarsAsModules/localJarAsModule/local.jar";
-    boolean isNewWizard = WizardUtils.isNpwModelWizardEnabled(WizardUtils.Feature.IMPORT_MODULE);
+    boolean isNewWizard = WizardUtils.isNpwModelWizardEnabled(WizardUtils.Feature.NEW_MODULE);
 
     guiTest.importSimpleApplication()
       .openFromMenu(NewModuleDialogFixture::find, "File", "New", "New Module...")
