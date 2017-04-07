@@ -44,7 +44,8 @@ class SupervisorPackage extends ProvisionPackage {
   }
 
   @Override
-  void setFlags(@NotNull IDevice device, @NotNull String osBuildType) throws ProvisionException {
+  void setFlags(@NotNull IDevice device) throws ProvisionException {
+    String osBuildType = getOsBuildType(device);
     getLogger().info("Setting flags for build type \"" + osBuildType + "\"");
 
     if (osBuildType.compareTo(RELEASE_TYPE) == 0) {
@@ -53,7 +54,7 @@ class SupervisorPackage extends ProvisionPackage {
     }
 
     // Disable GPU Proxying only on emulators. Emulator GPU proxying is in the works. (b/34277156)
-    boolean enableGpuProxying = osBuildType.compareTo(TEST_TYPE) != 0;
+    boolean enableGpuProxying = !isEmulator(device);
     executeShellCommand(device,
                         "CLASSPATH=/system/framework/am.jar su root app_process " +
                         "/system/bin com.android.commands.am.Am broadcast " +
@@ -103,14 +104,12 @@ class SupervisorPackage extends ProvisionPackage {
 
     // Disable domain filter fetch on emulators when devman is present
     // TODO(b/34235489): When OnePlatform issue is resolved we could remove this
-    if (osBuildType.compareTo(TEST_TYPE) == 0) {
-      executeShellCommand(device,
-                          "CLASSPATH=/system/framework/am.jar su root app_process " +
-                          "/system/bin com.android.commands.am.Am broadcast " +
-                          "-a com.google.gservices.intent.action.GSERVICES_OVERRIDE " +
-                          "-e gms:wh:disableDomainFilterFallback true",
-                          true /* root is required */);
-    }
+    executeShellCommand(device,
+                        "CLASSPATH=/system/framework/am.jar su root app_process " +
+                        "/system/bin com.android.commands.am.Am broadcast " +
+                        "-a com.google.gservices.intent.action.GSERVICES_OVERRIDE " +
+                        "-e gms:wh:disableDomainFilterFallback true",
+                        true /* root is required */);
   }
 
   @NotNull
