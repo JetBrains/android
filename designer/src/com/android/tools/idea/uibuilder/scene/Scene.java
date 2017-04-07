@@ -457,7 +457,7 @@ public class Scene implements SelectionListener {
     if (myFilterTarget == FilterType.RESIZE && target instanceof ResizeBaseTarget) {
       return true;
     }
-    if (target instanceof DragTarget) {
+    if (target instanceof MultiComponentTarget) {
       return true;
     }
     if (target instanceof DragBaseTarget) {
@@ -749,9 +749,8 @@ public class Scene implements SelectionListener {
         SceneComponent c = currentComponent.getScene().getSceneComponent(nlComponent);
         if (c != null && c != currentComponent) {
           for (Target target : c.getTargets()) {
-            if (target instanceof DragTarget) {
-              DragTarget dragTarget = (DragTarget)target;
-              dragTarget.mouseDown(x, y);
+            if (target instanceof MultiComponentTarget) {
+              target.mouseDown(x, y);
             }
           }
         }
@@ -770,11 +769,10 @@ public class Scene implements SelectionListener {
         SceneComponent c = currentComponent.getScene().getSceneComponent(nlComponent);
         if (c != null && c != currentComponent) {
           for (Target target : c.getTargets()) {
-            if (target instanceof DragTarget) {
-              DragTarget dragTarget = (DragTarget)target;
+            if (target instanceof MultiComponentTarget) {
               ArrayList<Target> list = new ArrayList<>();
               list.add(closestTarget);
-              dragTarget.mouseDrag(x, y, list);
+              target.mouseDrag(x, y, list);
             }
           }
         }
@@ -795,9 +793,8 @@ public class Scene implements SelectionListener {
         SceneComponent c = currentComponent.getScene().getSceneComponent(nlComponent);
         if (c != null) {
           for (Target target : c.getTargets()) {
-            if (target instanceof DragTarget) {
-              DragTarget dragTarget = (DragTarget)target;
-              dragTarget.mouseRelease(x, y, Collections.singletonList(closestTarget));
+            if (target instanceof MultiComponentTarget) {
+              target.mouseRelease(x, y, Collections.singletonList(closestTarget));
             }
           }
         }
@@ -833,7 +830,7 @@ public class Scene implements SelectionListener {
         }
       }
       myHitTarget.mouseDown(x, y);
-      if (myHitTarget instanceof DragTarget) {
+      if (myHitTarget instanceof MultiComponentTarget) {
         delegateMouseDownToSelection(x, y, myHitTarget.getComponent());
       }
     }
@@ -858,7 +855,7 @@ public class Scene implements SelectionListener {
       myHitListener.find(transform, myRoot, x, y);
       myHitTarget.mouseDrag(x, y, myHitListener.myHitTargets);
       myHitTarget.getComponent().setDragging(true);
-      if (myHitTarget instanceof DragTarget) {
+      if (myHitTarget instanceof MultiComponentTarget) {
         delegateMouseDragToSelection(x, y, myHitListener.getClosestTarget(), myHitTarget.getComponent());
       }
       myHitListener.skipTarget(null);
@@ -887,7 +884,7 @@ public class Scene implements SelectionListener {
       Target closest = myHitListener.getFilteredTarget(myHitTarget);
       myHitTarget.mouseRelease(x, y, closest != null ? Collections.singletonList(closest) : Collections.emptyList());
       myHitTarget.getComponent().setDragging(false);
-      if (myHitTarget instanceof DragTarget) {
+      if (myHitTarget instanceof MultiComponentTarget) {
         delegateMouseReleaseToSelection(x, y, myHitListener.getClosestTarget(), myHitTarget.getComponent());
       }
     }

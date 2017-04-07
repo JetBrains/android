@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.naveditor.scene.layout;
+package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
-import com.android.tools.idea.uibuilder.scene.SceneComponent;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.uibuilder.scene.target.Target;
 
 /**
- * A mechanism for layout out screens in the navigation editor.
+ * Marker interface to indicate that a {@link Target} should act on all selected components.
  */
-public interface NavSceneLayoutAlgorithm {
-  void layout(@NotNull SceneComponent component);
+public interface MultiComponentTarget extends Target {
 }

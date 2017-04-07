@@ -44,13 +44,13 @@ public class NavSceneTest extends SceneTest {
     DisplayList list = new DisplayList();
     myScene.buildDisplayList(list, 0);
     assertEquals("Clip,0,0,0,0\n" +
-                 "DrawComponentBackground,50,180,50,50,1\n" +
-                 "DrawNavScreen,50,180,50,50,fragment1\n" +
-                 "DrawComponentFrame,50,180,50,50,1\n" +
-                 "DrawAction,NORMAL,50x180x50x50,50x50x50x50,NORMAL\n" +
                  "DrawComponentBackground,50,50,50,50,1\n" +
-                 "DrawNavScreen,50,50,50,50,fragment2\n" +
+                 "DrawNavScreen,50,50,50,50,fragment1\n" +
                  "DrawComponentFrame,50,50,50,50,1\n" +
+                 "DrawAction,NORMAL,50x50x50x50,50x180x50x50,NORMAL\n" +
+                 "DrawComponentBackground,50,180,50,50,1\n" +
+                 "DrawNavScreen,50,180,50,50,fragment2\n" +
+                 "DrawComponentFrame,50,180,50,50,1\n" +
                  "UNClip\n", list.serialize());
   }
 }

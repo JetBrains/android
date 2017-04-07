@@ -42,7 +42,7 @@ import java.util.List;
  * Implements a target allowing dragging a widget for the ConstraintLayout viewgroup
  */
 @SuppressWarnings("ForLoopReplaceableByForEach")
-public class DragTarget extends BaseTarget {
+public class DragTarget extends BaseTarget implements MultiComponentTarget {
 
   private static final boolean DEBUG_RENDERER = false;
   @AndroidDpCoordinate protected int myOffsetX;

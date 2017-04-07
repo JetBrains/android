@@ -18,8 +18,9 @@ package com.android.tools.idea.naveditor.scene.layout;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.awt.*;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.android.tools.idea.naveditor.scene.NavSceneManager.TAG_FRAGMENT;
 
@@ -30,22 +31,40 @@ import static com.android.tools.idea.naveditor.scene.NavSceneManager.TAG_FRAGMEN
  */
 public class DummyAlgorithm implements NavSceneLayoutAlgorithm {
   @Override
-  public void layout(@NotNull SceneComponent root) {
-    Deque<SceneComponent> toBeProcessed = new ArrayDeque<>();
-    toBeProcessed.add(root);
+  public void layout(@NotNull SceneComponent component) {
+    if (!component.getNlComponent().getTagName().equals(TAG_FRAGMENT)) {
+      return;
+    }
+    SceneComponent root = component.getScene().getRoot();
+    Map<SceneComponent, Rectangle> bounds =
+      root.flatten()
+        .filter(c -> c.getNlComponent().getTagName().equals(TAG_FRAGMENT))
+        .collect(Collectors.toMap(c -> c, c -> c.fillDrawRect(null, 0)));
+
     int xOffset = 50;
     int yOffset = 50;
-    while (!toBeProcessed.isEmpty()) {
-      SceneComponent component = toBeProcessed.removeLast();
-      toBeProcessed.addAll(component.getChildren());
-      if (component.getNlComponent().getTagName().equals(TAG_FRAGMENT)) {
-        component.setPosition(xOffset, yOffset);
-        xOffset += 130;
-        if (xOffset + 100 > root.getDrawWidth()) {
-          yOffset += 130;
-          xOffset = 50;
-        }
+    while (true) {
+      component.setPosition(xOffset, yOffset);
+      Rectangle newBounds = component.fillDrawRect(null, 0);
+      bounds.put(component, newBounds);
+      xOffset += 130;
+      if (xOffset + 100 > root.getDrawWidth()) {
+        yOffset += 130;
+        xOffset = 50;
+      }
+      if (checkOverlaps(bounds, component)) {
+        break;
       }
     }
+  }
+
+  private static boolean checkOverlaps(@NotNull Map<SceneComponent, Rectangle> bounds, @NotNull SceneComponent component) {
+    Rectangle componentBounds = component.fillDrawRect(null, 0);
+    for (Map.Entry<SceneComponent, Rectangle> existing : bounds.entrySet()) {
+      if (componentBounds.intersects(existing.getValue()) && existing.getKey() != component) {
+        return false;
+      }
+    }
+    return true;
   }
 }

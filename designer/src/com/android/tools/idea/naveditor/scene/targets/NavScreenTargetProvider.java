@@ -16,6 +16,8 @@
 package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
+import com.android.tools.idea.naveditor.scene.layout.ManualLayoutAlgorithm;
+import com.android.tools.idea.naveditor.scene.layout.NavSceneLayoutAlgorithm;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.TargetProvider;
@@ -31,6 +33,12 @@ import java.util.List;
  * Notably, adds the actions going from this screen to others.
  */
 public class NavScreenTargetProvider implements TargetProvider {
+  private final NavSceneLayoutAlgorithm myLayoutAlgorithm;
+
+  public NavScreenTargetProvider(NavSceneLayoutAlgorithm algorithm) {
+    myLayoutAlgorithm = algorithm;
+  }
+
   @NotNull
   @Override
   public List<Target> createTargets(@NotNull SceneComponent sceneComponent, boolean isParent) {
@@ -38,6 +46,11 @@ public class NavScreenTargetProvider implements TargetProvider {
     for (NlComponent nlChild : sceneComponent.getNlComponent().getChildren()) {
       if (nlChild.getTagName().equals(NavSceneManager.TAG_ACTION)) {
         result.add(new ActionTarget(sceneComponent, nlChild));
+      }
+    }
+    if (sceneComponent.getNlComponent().getTagName().equals(NavSceneManager.TAG_FRAGMENT)) {
+      if (myLayoutAlgorithm instanceof ManualLayoutAlgorithm) {
+        result.add(new ScreenDragTarget(sceneComponent, (ManualLayoutAlgorithm)myLayoutAlgorithm));
       }
     }
     return result;

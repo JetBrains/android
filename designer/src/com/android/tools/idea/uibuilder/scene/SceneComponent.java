@@ -754,6 +754,17 @@ public class SceneComponent {
     return rectangle;
   }
 
+  public Rectangle fillDrawRect(@Nullable Rectangle rectangle, long time) {
+    if (rectangle == null) {
+      rectangle = new Rectangle();
+    }
+    rectangle.x = myAnimatedDrawX.getValue(time);
+    rectangle.y = myAnimatedDrawY.getValue(time);
+    rectangle.width = myAnimatedDrawWidth.getValue(time);
+    rectangle.height = myAnimatedDrawHeight.getValue(time);
+    return rectangle;
+  }
+
   public void addHit(@NotNull SceneContext sceneTransform, @NotNull ScenePicker picker) {
     if (myDrawState == DrawState.HOVER) {
       myDrawState = DrawState.NORMAL;
@@ -791,7 +802,7 @@ public class SceneComponent {
     rec.height = getDrawHeight(time);
   }
 
-  public Object getId() {
+  public String getId() {
     return myNlComponent.getId();
   }
 
