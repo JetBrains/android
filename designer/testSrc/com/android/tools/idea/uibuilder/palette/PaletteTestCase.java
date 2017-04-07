@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.tools.idea.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.TextViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
@@ -156,7 +156,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
   }
 
   @Language("XML")
-  private static final String DISCRETE_SEEKBAR_XML =
+  private static final String DISCRETE_SEEK_BAR_XML =
     "<SeekBar\n" +
     "  style=\"@style/Widget.AppCompat.SeekBar.Discrete\"\n" +
     "  android:layout_width=\"wrap_content\"\n" +
@@ -166,7 +166,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "/>\n";
 
   @Language("XML")
-  private static final String DISCRETE_SEEKBAR_PREVIEW_XML =
+  private static final String DISCRETE_SEEK_BAR_PREVIEW_XML =
     "<SeekBar\n" +
     "  android:id=\"@+id/DiscreteSeekBar\"\n" +
     "  style=\"@style/Widget.AppCompat.SeekBar.Discrete\"\n" +
@@ -177,8 +177,9 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     "/>\n";
 
   public void assertDiscreteSeekBar(@NotNull Palette.BaseItem item) {
-    checkItem(item, "SeekBar", "SeekBar (Discrete)", AndroidIcons.Views.SeekBarDiscrete, DISCRETE_SEEKBAR_XML, DISCRETE_SEEKBAR_PREVIEW_XML,
-              DISCRETE_SEEKBAR_XML, IN_PLATFORM, 1.0);
+    checkItem(item, "SeekBar", "SeekBar (Discrete)", AndroidIcons.Views.SeekBarDiscrete, DISCRETE_SEEK_BAR_XML,
+              DISCRETE_SEEK_BAR_PREVIEW_XML,
+              DISCRETE_SEEK_BAR_XML, IN_PLATFORM, 1.0);
     NlComponent component = createMockComponent("SeekBar");
     when(component.getAttribute(null, TAG_STYLE)).thenReturn(ANDROID_STYLE_RESOURCE_PREFIX + "Widget.Material.SeekBar.Discrete");
     checkComponent(component, "SeekBar", AndroidIcons.Views.SeekBar);
@@ -275,7 +276,7 @@ public abstract class PaletteTestCase extends AndroidTestCase {
     checkItem(item, LINEAR_LAYOUT, "LinearLayout (vertical)", AndroidIcons.Views.VerticalLinearLayout, VERTICAL_LINEAR_LAYOUT_XML,
               NO_PREVIEW, NO_PREVIEW, IN_PLATFORM, NO_SCALE);
     NlComponent component = createMockComponent(LINEAR_LAYOUT);
-    when(component.getAttribute(ANDROID_URI, ATTR_ORIENTATION)).thenReturn(VALUE_VERTICAL);
+    when(component.resolveAttribute(ANDROID_URI, ATTR_ORIENTATION)).thenReturn(VALUE_VERTICAL);
     checkComponent(component, "LinearLayout (vertical)", AndroidIcons.Views.VerticalLinearLayout);
   }
 

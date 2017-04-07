@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import com.android.ide.common.rendering.api.RenderResources;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -79,9 +82,9 @@ public class NlComponent implements NlAttributesHolder {
   @NotNull private XmlTag myTag;
   @NotNull private String myTagName; // for non-read lock access elsewhere
   @Nullable private TagSnapshot mySnapshot;
-  HashMap<Object, Object> myClientProperties = new HashMap<>();;
-  private ArrayList<ChangeListener> myListeners = new ArrayList<ChangeListener>();
-  private ChangeEvent myChangeEvent = new ChangeEvent(this);
+  final HashMap<Object, Object> myClientProperties = new HashMap<>();
+  private final ArrayList<ChangeListener> myListeners = new ArrayList<>();
+  private final ChangeEvent myChangeEvent = new ChangeEvent(this);
 
   /**
    * Current open attributes transaction or null if none is open
@@ -685,6 +688,41 @@ public class NlComponent implements NlAttributesHolder {
     }
   }
 
+  @Nullable
+  public String resolveAttribute(@NotNull String namespace, @NotNull String attribute) {
+    String attributeValue = getAttribute(namespace, attribute);
+
+    if (attributeValue != null) {
+      return attributeValue;
+    }
+
+    String styleAttributeValue = getAttribute(null, "style");
+
+    if (styleAttributeValue == null) {
+      return null;
+    }
+
+    RenderResources resources = myModel.getConfiguration().getResourceResolver();
+
+    if (resources == null) {
+      return null;
+    }
+
+    StyleResourceValue styleResourceValue = (StyleResourceValue)resources.findResValue(styleAttributeValue, false);
+
+    if (styleResourceValue == null) {
+      return null;
+    }
+
+    ResourceValue itemResourceValue = resources.findItemInStyle(styleResourceValue, attribute, true);
+
+    if (itemResourceValue == null) {
+      return null;
+    }
+
+    return itemResourceValue.getValue();
+  }
+
   @NotNull
   public List<AttributeSnapshot> getAttributes() {
     if (mySnapshot != null) {
@@ -809,7 +847,8 @@ public class NlComponent implements NlAttributesHolder {
 
   /**
    * A cache for use by system to reduce recalculating information
-   * The cache may be destroyed at any time as the system rebuilds the nlcomponents
+   * The cache may be destroyed at any time as the system rebuilds the components
+   *
    * @param key
    * @param value
    */
@@ -819,7 +858,8 @@ public class NlComponent implements NlAttributesHolder {
 
   /**
    * A cache for use by system to reduce recalculating information
-   * The cache may be destroyed at any time as the system rebuilds the nlcomponents
+   * The cache may be destroyed at any time as the system rebuilds the components
+   *
    * @param key
    * @return
    */
@@ -830,9 +870,10 @@ public class NlComponent implements NlAttributesHolder {
   /**
    * You can add listeners to track interactive updates
    * Listeners should look at the liveUpdates for changes
+   *
    * @param listener
    */
-  public void addLiveChangeListener(ChangeListener listener){
+  public void addLiveChangeListener(ChangeListener listener) {
     if (!myListeners.contains(listener)) {
       myListeners.add(listener);
     }
@@ -840,9 +881,10 @@ public class NlComponent implements NlAttributesHolder {
 
   /**
    * remove a listener you have already added
+   *
    * @param listener
    */
-  public void removeLiveChangeListener(ChangeListener listener){
+  public void removeLiveChangeListener(ChangeListener listener) {
     myListeners.remove(listener);
   }
 
