@@ -19,7 +19,10 @@ import com.android.tools.idea.uibuilder.model.ModelListener;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
-import com.android.tools.idea.uibuilder.surface.*;
+import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
+import com.android.tools.idea.uibuilder.surface.PanZoomListener;
+import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -27,7 +30,6 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
-import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -161,9 +163,6 @@ final class ActionsToolbar implements DesignSurfaceListener, Disposable, ModelLi
     if (screenView == null) {
       return;
     }
-
-    boolean isSupportedByDesigner = mySurface.getLayoutType().isSupportedByDesigner();
-    UIUtil.invokeLaterIfNeeded(() -> myNorthToolbar.getComponent().setVisible(isSupportedByDesigner));
 
     // TODO: Perform caching
     myDynamicGroup.removeAll();
