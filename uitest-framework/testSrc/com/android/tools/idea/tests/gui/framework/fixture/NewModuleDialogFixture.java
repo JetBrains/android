@@ -16,6 +16,8 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.npw.ModuleTemplate;
+import com.android.tools.idea.npw.WizardUtils;
+import com.android.tools.idea.npw.module.ModuleGalleryEntry;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.ASGallery;
@@ -51,7 +53,12 @@ public class NewModuleDialogFixture implements ContainerFixture<JDialog> {
   @NotNull
   public NewModuleDialogFixture chooseModuleType(String name) {
     JListFixture listFixture = new JListFixture(robot(), robot().finder().findByType(target(), ASGallery.class));
-    listFixture.replaceCellReader((list, index) -> ((ModuleTemplate)list.getModel().getElementAt(index)).getName());
+    if (WizardUtils.isNpwModelWizardEnabled(WizardUtils.Feature.NEW_MODULE)) {
+      listFixture.replaceCellReader((list, index) -> ((ModuleGalleryEntry)list.getModel().getElementAt(index)).getName());
+    }
+    else {
+      listFixture.replaceCellReader((list, index) -> ((ModuleTemplate)list.getModel().getElementAt(index)).getName());
+    }
     listFixture.clickItem(name);
     return this;
   }
