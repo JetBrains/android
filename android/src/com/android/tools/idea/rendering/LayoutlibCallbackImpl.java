@@ -83,6 +83,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                                                                           "android.support.v7.internal.app.WindowDecorActionBar"));
   /** Directory name for the bundled layoutlib installation */
   public static final String FD_LAYOUTLIB = "layoutlib";
+  /** Directory name for the gradle build-cache. Exploded AARs will end up there when using build cache */
+  public static final String BUILD_CACHE = "build-cache";
 
   @NotNull private final Module myModule;
   @NotNull private final AppResourceRepository myProjectRes;
@@ -251,7 +253,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   public XmlPullParser getXmlFileParser(String fileName) {
     // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files in build outputs or
     // layoutlib built-in directories
-    if (fileName.contains(EXPLODED_AAR) || fileName.contains(FD_LAYOUTLIB)) {
+    if (fileName.contains(EXPLODED_AAR) || fileName.contains(FD_LAYOUTLIB) || fileName.contains(BUILD_CACHE)) {
       return null;
     }
 
@@ -375,7 +377,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       String path = xml.getPath();
       // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files in build outputs or
       // layoutlib built-in directories
-      if (parent != null && !path.contains(EXPLODED_AAR) && !path.contains(FD_LAYOUTLIB)) {
+      if (parent != null && !path.contains(EXPLODED_AAR) && !path.contains(FD_LAYOUTLIB) && !path.contains(BUILD_CACHE)) {
         String parentName = parent.getName();
         if (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_DRAWABLE) || parentName.startsWith(FD_RES_MENU)) {
           VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(xml);
