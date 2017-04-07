@@ -32,6 +32,7 @@ import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.spellchecker.quickfixes.AcceptWordAsCorrect;
 import com.intellij.spellchecker.quickfixes.RenameTo;
 import com.intellij.testFramework.UsefulTestCase;
+import org.jetbrains.android.AndroidLintTest;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.inspections.AndroidDomInspection;
 import org.jetbrains.android.inspections.AndroidElementNotAllowedInspection;
@@ -70,6 +71,8 @@ abstract class AndroidDomTestCase extends AndroidTestCase {
     super.setUp();
     ensureWebserverAccess();
     myFixture.copyFileToProject("R.java", "gen/p1/p2/R.java");
+    // Prevent other lint checks from polluting output
+    AndroidLintTest.enableOnlySpecificLintInspections(myFixture);
     myFixture.enableInspections(AndroidDomInspection.class,
                                 AndroidUnknownAttributeInspection.class,
                                 AndroidElementNotAllowedInspection.class);
