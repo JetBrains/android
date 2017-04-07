@@ -87,9 +87,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    * @return true if the layout is in vertical mode, otherwise false
    */
   public boolean isVertical(@NotNull NlComponent component) {
-    // Horizontal is the default, so if no value is specified it is horizontal.
-    String orientation = component.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
-    return VALUE_VERTICAL.equals(orientation);
+    return VALUE_VERTICAL.equals(component.resolveAttribute(ANDROID_URI, ATTR_ORIENTATION));
   }
 
   @Override
@@ -432,7 +430,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
    * for the children.
    *
    * @param sceneComponent The component we'll add the targets on
-   * @param isParent       is it the parent viewgroup component
+   * @param isParent       is it the parent view group component
    * @return The list of target to add
    */
   @Override

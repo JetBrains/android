@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.layout;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
-import com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard.NewProjectWizardFixture;
+import com.android.tools.idea.tests.util.WizardUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,18 +29,6 @@ public final class NlPreviewFormTest {
 
   @Test
   public void setActiveModelDoesntThrowNullPointerException() {
-    NewProjectWizardFixture wizard = myGuiTest.welcomeFrame().createNewProject();
-
-    myGuiTest.setProjectPath(wizard.getConfigureAndroidProjectStep().getLocationInFileSystem());
-    wizard.clickNext();
-
-    wizard.clickNext();
-
-    wizard.chooseActivity("Basic Activity");
-    wizard.clickNext();
-
-    wizard.clickFinish();
-
-    myGuiTest.ideFrame().waitForGradleProjectSyncToFinish();
+    WizardUtils.createNewProject(myGuiTest, "Basic Activity");
   }
 }
