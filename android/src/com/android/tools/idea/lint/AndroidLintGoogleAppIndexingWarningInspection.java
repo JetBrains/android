@@ -16,20 +16,11 @@
 package com.android.tools.idea.lint;
 
 import com.android.tools.lint.checks.AppIndexingApiDetector;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintGoogleAppIndexingWarningInspection extends AndroidLintInspectionBase {
   public AndroidLintGoogleAppIndexingWarningInspection() {
     super(AndroidBundle.message("android.lint.inspections.google.app.indexing.warning"), AppIndexingApiDetector.ISSUE_APP_INDEXING);
-  }
-
-  @NotNull
-  @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-    return AndroidLintGoogleAppIndexingApiWarningInspection.getAppIndexingQuickFix(startElement, message);
   }
 }
