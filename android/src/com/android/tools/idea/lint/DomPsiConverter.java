@@ -968,6 +968,17 @@ class DomPsiConverter {
       return myTag.getName();
     }
 
+    @Nullable
+    @Override
+    public String getLocalName() {
+      Application application = ApplicationManager.getApplication();
+      if (!application.isReadAccessAllowed()) {
+        return application.runReadAction((Computable<String>)this::getTagName);
+      }
+
+      return myTag.getLocalName();
+    }
+
     @NotNull
     @Override
     public String getAttribute(@NotNull String name) {
