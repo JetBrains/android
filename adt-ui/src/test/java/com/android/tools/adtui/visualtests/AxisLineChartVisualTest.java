@@ -25,6 +25,7 @@ import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.*;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
+import com.intellij.ui.Gray;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.NotNull;
@@ -76,6 +77,9 @@ public class AxisLineChartVisualTest extends VisualTest {
   private AxisComponentModel mMemoryAxisModel2;
   private LegendComponentModel mLegendComponentModel;
 
+  private AxisComponentModel mTimeAxisGuideModel;
+  private AxisComponent mTimeAxisGuide;
+
   @Override
   protected List<Updatable> createModelList() {
     mRangedData = new ArrayList<>();
@@ -95,6 +99,22 @@ public class AxisLineChartVisualTest extends VisualTest {
 
     mTimeAxis = new AxisComponent(mTimeAxisModel, AxisComponent.AxisOrientation.BOTTOM);
     mTimeAxis.setMargins(AXIS_SIZE, AXIS_SIZE);
+
+    // add axis guide to time axis
+    mTimeAxisGuideModel = new AxisComponentModel(timeCurrentRangeUs, TimeAxisFormatter.DEFAULT_WITHOUT_MINOR_TICKS);
+    mTimeAxisGuideModel.setGlobalRange(mTimeGlobalRangeUs);
+
+    mTimeAxisGuide = new AxisComponent(mTimeAxisGuideModel, AxisComponent.AxisOrientation.BOTTOM);
+    mTimeAxisGuide.setMargins(AXIS_SIZE, AXIS_SIZE);
+    mTimeAxisGuide.setMarkerColor(Gray._100);
+    mTimeAxisGuide.setShowAxisLine(false);
+    mTimeAxisGuide.setShowLabels(false);
+    mLineChart.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        mTimeAxisGuide.setMarkerLengths(mLineChart.getHeight(), 0);
+      }
+    });
 
     // left memory data + axis
     Range yRange1Animatable = new Range(0, 100);
@@ -145,6 +165,7 @@ public class AxisLineChartVisualTest extends VisualTest {
                          mMemoryAxisModel1, // Clamp/interpolate ranges to major ticks if enabled.
                          mMemoryAxisModel2, // Sync with mMemoryAxis1 if enabled.
                          mTimeAxisModel, // Read ranges.
+                         mTimeAxisGuideModel,
                          mLegendComponentModel); // Reset flags.
   }
 
@@ -220,6 +241,9 @@ public class AxisLineChartVisualTest extends VisualTest {
     controls.add(VisualTest.createCheckbox("Clamp To Major Ticks",
                   itemEvent -> mMemoryAxisModel1.setClampToMajorTicks(itemEvent.getStateChange() == ItemEvent.SELECTED)));
 
+    controls.add(VisualTest.createCheckbox("Show Axis Guide",
+                                           itemEvent -> mTimeAxisGuide.setVisible(itemEvent.getStateChange() == ItemEvent.SELECTED), true));
+
     controls.add(
       new Box.Filler(new Dimension(0, 0), new Dimension(300, Integer.MAX_VALUE),
                      new Dimension(300, Integer.MAX_VALUE)));
@@ -230,6 +254,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     timelinePane.add(mMemoryAxis1);
     timelinePane.add(mMemoryAxis2);
     timelinePane.add(mTimeAxis);
+    timelinePane.add(mTimeAxisGuide);
     timelinePane.add(mLineChart);
     timelinePane.add(mSelection);
     timelinePane.add(mScrollbar);
@@ -244,7 +269,12 @@ public class AxisLineChartVisualTest extends VisualTest {
         if (host != null) {
           Dimension dim = host.getSize();
           for (Component c : host.getComponents()) {
-            if (c instanceof AxisComponent) {
+            if (c == mTimeAxisGuide) {
+              // Axis Guide should located on top of the linechart
+              c.setBounds(0, AXIS_SIZE, dim.width,
+                          dim.height);
+            }
+            else if (c instanceof AxisComponent) {
               AxisComponent axis = (AxisComponent)c;
               switch (axis.getOrientation()) {
                 case LEFT:

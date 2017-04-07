@@ -50,6 +50,8 @@ import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
@@ -202,6 +204,18 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     details.add(monitorPanel, new TabularLayout.Constraint(1, 0));
 
     layout.setRowSizing(2, "6*");
+    AxisComponent timeAxisGuide = new AxisComponent(myStage.getTimeAxisGuide(), AxisComponent.AxisOrientation.BOTTOM);
+    timeAxisGuide.setShowAxisLine(false);
+    timeAxisGuide.setShowLabels(false);
+    timeAxisGuide.setHideTickAtMin(true);
+    timeAxisGuide.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR);
+    scrollingThreads.addComponentListener(new ComponentAdapter() {
+      @Override
+      public void componentResized(ComponentEvent e) {
+        timeAxisGuide.setMarkerLengths(scrollingThreads.getHeight(), 0);
+      }
+    });
+    details.add(timeAxisGuide, new TabularLayout.Constraint(2, 0));
     details.add(scrollingThreads, new TabularLayout.Constraint(2, 0));
 
     AxisComponent timeAxis = buildTimeAxis(profilers);
