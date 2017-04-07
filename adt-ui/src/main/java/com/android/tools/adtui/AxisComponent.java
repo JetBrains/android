@@ -117,6 +117,12 @@ public final class AxisComponent extends AnimatedComponent {
   private boolean myShowMax;
   private boolean myShowUnitAtMax;
   private boolean myShowAxisLine = true;
+
+  /**
+   * Whether labels of axis markers are shown, true by default
+   */
+  private boolean myShowLabels = true;
+
   private boolean myHideTickAtMin;
 
   public AxisComponent(@NotNull AxisComponentModel model, AxisOrientation orientation) {
@@ -298,11 +304,13 @@ public final class AxisComponent extends AnimatedComponent {
   private void drawMarkers(Graphics2D g2d, Point origin) {
     g2d.setFont(getFont());
 
-    if (myShowMin && myMinLabel != null) {
-      drawMarkerLabel(g2d, 0, origin, myMinLabel, true);
-    }
-    if (myShowMax && myMaxLabel != null) {
-      drawMarkerLabel(g2d, myAxisLength, origin, myMaxLabel, true);
+    if (myShowLabels) {
+      if (myShowMin && myMinLabel != null) {
+        drawMarkerLabel(g2d, 0, origin, myMinLabel, true);
+      }
+      if (myShowMax && myMaxLabel != null) {
+        drawMarkerLabel(g2d, myAxisLength, origin, myMaxLabel, true);
+      }
     }
 
     Line2D.Float line = new Line2D.Float();
@@ -316,7 +324,9 @@ public final class AxisComponent extends AnimatedComponent {
     for (int i = 0; i < myMajorMarkerPositions.size(); i++) {
       float scaledPosition = myMajorMarkerPositions.get(i) * myAxisLength;
       drawMarkerLine(g2d, line, scaledPosition, origin, myMajorMarkerLength);
-      drawMarkerLabel(g2d, scaledPosition, origin, myMarkerLabels.get(i), false);
+      if (myShowLabels) {
+        drawMarkerLabel(g2d, scaledPosition, origin, myMarkerLabels.get(i), false);
+      }
     }
   }
 
@@ -441,6 +451,10 @@ public final class AxisComponent extends AnimatedComponent {
 
   public void setMarkerColor(@NotNull Color markerColor) {
     myMarkerColor = markerColor;
+  }
+
+  public void setShowLabels(boolean show) {
+    myShowLabels = show;
   }
 
   @VisibleForTesting
