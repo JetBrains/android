@@ -21,10 +21,10 @@ import com.android.tools.profilers.FakeGrpcChannel;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.memory.MemoryProfilerTestBase.FakeCaptureObjectLoader;
+import com.android.tools.profilers.memory.adapters.*;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
-import com.android.tools.profilers.memory.adapters.ClassObject;
-import com.android.tools.profilers.memory.adapters.HeapObject;
-import com.android.tools.profilers.memory.adapters.ReferenceObject;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,10 +36,10 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
-import static com.android.tools.profilers.memory.MemoryProfilerTestBase.*;
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.OBJECT;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.when;
 
 public class MemoryInstanceDetailsViewTest {
   @Rule
@@ -48,19 +48,23 @@ public class MemoryInstanceDetailsViewTest {
   private MemoryProfilerStage myStage;
   private MemoryInstanceDetailsView myDetailsView;
   private FakeIdeProfilerComponents myFakeIdeProfilerComponents;
+  private FakeCaptureObject myFakeCaptureObject;
 
   @Before
   public void setup() {
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
-    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices()));
+    FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
+    loader.setReturnImmediateFuture(true);
+    myStage = new MemoryProfilerStage(new StudioProfilers(myGrpcChannel.getClient(), new FakeIdeProfilerServices()), loader);
     myDetailsView = new MemoryInstanceDetailsView(myStage, myFakeIdeProfilerComponents);
+    myFakeCaptureObject = new FakeCaptureObject.Builder().setCaptureName("DUMMY_CAPTURE").build();
   }
 
   @Test
   public void NullSelectionVisibilityTest() throws Exception {
     // Null selection
     Component component = myDetailsView.getComponent();
-    assertNull(myStage.getSelectedInstance());
+    assertNull(myStage.getSelectedInstanceObject());
     assertFalse(component.isVisible());
   }
 
@@ -68,23 +72,27 @@ public class MemoryInstanceDetailsViewTest {
   public void NoCallstackOrReferenceVisibilityTest() throws Exception {
     // Selection with no callstack / reference information
     Component component = myDetailsView.getComponent();
-    ReferenceObject mockInstance = mockReferenceObject("MockInstance", 1, 2, 3, Collections.emptyList(), null);
-    myStage.selectInstance(mockInstance);
+    FakeInstanceObject fakeInstanceObject = new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").build();
+    myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(fakeInstanceObject));
+    myStage.selectCaptureObject(myFakeCaptureObject, null);
+    myStage.selectInstanceObject(fakeInstanceObject);
     assertFalse(component.isVisible());
   }
-
 
   @Test
   public void SelectionWithReferenceVisibilityTest() throws Exception {
     // Selection with reference information
     Component component = myDetailsView.getComponent();
-    ReferenceObject mockRef = mockReferenceObject("MockReference", 1, 2, 3, Collections.emptyList(), null);
-    ReferenceObject mockInstance =
-      mockReferenceObject("MockInstanceWithRef", 1, 2, 3, Collections.singletonList(mockRef), null);
-    myStage.selectInstance(mockInstance);
+    FakeInstanceObject referee = new FakeInstanceObject.Builder(myFakeCaptureObject, "REFEREE").setName("referee").build();
+    FakeInstanceObject referer =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, "REFERER").setName("referee").setFields(Collections.singletonList("mField"))
+        .build();
+    referer.setFieldValue("mField", OBJECT, referee);
+    myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(referee, referer));
+    myStage.selectCaptureObject(myFakeCaptureObject, null);
+    myStage.selectInstanceObject(referee);
     assertTrue(component.isVisible());
   }
-
 
   @Test
   public void SelectionWithCallstackVisibilityTest() throws Exception {
@@ -93,17 +101,20 @@ public class MemoryInstanceDetailsViewTest {
     MemoryProfiler.AllocationStack stack = MemoryProfiler.AllocationStack.newBuilder().addStackFrames(
       MemoryProfiler.AllocationStack.StackFrame.newBuilder().setClassName("MockClass").setMethodName("MockMethod").setLineNumber(1))
       .build();
-    ReferenceObject mockInstance = mockReferenceObject("MockInstanceWithCallstack", 1, 2, 3, Collections.emptyList(), stack);
-    myStage.selectInstance(mockInstance);
+    FakeInstanceObject instance = new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").setAllocationStack(stack).build();
+    myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(instance));
+    myStage.selectCaptureObject(myFakeCaptureObject, null);
+    myStage.selectInstanceObject(instance);
     assertTrue(component.isVisible());
   }
 
   /**
-   * Test that the component generates the instances JTree model accurately based on the reference hierarchy
-   * of an InstanceObject. We currently only populate up to two levels of children at a time to avoid
+   * Test that the component accurately generates the instances JTree model based on the reference hierarchy
+   * of an InstanceObject. We currently only populate up to one level of children at a time to avoid
    * building a unnecessarily large tree at the beginning - descendants are further populated upon expansion.
    * This test ensures such behavior as well.
    */
+  @SuppressWarnings("unchecked")
   @Test
   public void buildTreeTest() throws Exception {
     // Setup mock reference hierarchy:
@@ -113,90 +124,131 @@ public class MemoryInstanceDetailsViewTest {
     // --> Ref3
     // ---> Ref4
     // -> Ref5
-    ReferenceObject mockRef2 = mockReferenceObject("Ref2", 1, 2, 3, Collections.emptyList(), null);
-    ReferenceObject mockRef4 = mockReferenceObject("Ref4", 1, 2, 3, Collections.emptyList(), null);
-    ReferenceObject mockRef5 = mockReferenceObject("Ref5", 1, 2, 3, Collections.emptyList(), null);
-    ReferenceObject mockRef3 = mockReferenceObject("Ref3", 1, 2, 3, Collections.singletonList(mockRef4), null);
-    ReferenceObject mockRef1 = mockReferenceObject("Ref1", 1, 2, 3, Arrays.asList(mockRef2, mockRef3), null);
-    ReferenceObject mockRootObject = mockReferenceObject("MockRoot", 1, 2, 3, Arrays.asList(mockRef1, mockRef5), null);
+    FakeInstanceObject fakeInstance1 =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").setName("fake1").setFields(Collections.singletonList("mField"))
+        .build();
+    FakeInstanceObject fakeInstance2 =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").setName("fake2").setFields(Collections.singletonList("mField"))
+        .build();
+    FakeInstanceObject fakeInstance3 =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").setName("fake3").setFields(Collections.singletonList("mField"))
+        .build();
+    FakeInstanceObject fakeInstance4 =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").setName("fake4").setFields(Collections.singletonList("mField"))
+        .build();
+    FakeInstanceObject fakeInstance5 =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_CLASS").setName("fake5").setFields(Collections.singletonList("mField"))
+        .build();
+    FakeInstanceObject fakeRootObject =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, "DUMMY_ROOT").setName("FakeRoot").build();
 
-    JTree tree = myDetailsView.buildTree(mockRootObject);
+    fakeInstance1.setFieldValue("mField", OBJECT, fakeRootObject);
+    fakeInstance2.setFieldValue("mField", OBJECT, fakeInstance1);
+    fakeInstance3.setFieldValue("mField", OBJECT, fakeInstance1);
+    fakeInstance4.setFieldValue("mField", OBJECT, fakeInstance3);
+    fakeInstance5.setFieldValue("mField", OBJECT, fakeRootObject);
+
+    myFakeCaptureObject
+      .addInstanceObjects(ImmutableSet.of(fakeInstance1, fakeInstance2, fakeInstance3, fakeInstance4, fakeInstance5, fakeRootObject));
+
+    myStage.selectCaptureObject(myFakeCaptureObject, null);
+    JTree tree = myDetailsView.buildTree(fakeRootObject);
     DefaultTreeModel treeModel = (DefaultTreeModel)tree.getModel();
     assertNotNull(treeModel);
-    MemoryObjectTreeNode treeRoot = (MemoryObjectTreeNode)treeModel.getRoot();
+    MemoryObjectTreeNode<ValueObject> treeRoot = (MemoryObjectTreeNode<ValueObject>)treeModel.getRoot();
     assertNotNull(treeRoot);
 
     // Check the initialize tree structure is correctly populated
-    assertEquals(mockRootObject, treeRoot.getAdapter());
+    assertEquals(fakeRootObject, treeRoot.getAdapter());
     assertEquals(2, treeRoot.getChildCount());
-    MemoryObjectTreeNode ref1Child = (MemoryObjectTreeNode)treeRoot.getChildAt(0);
-    MemoryObjectTreeNode ref5Child = (MemoryObjectTreeNode)treeRoot.getChildAt(1);
-    assertEquals(mockRef1, ref1Child.getAdapter());
-    assertEquals(mockRef5, ref5Child.getAdapter());
-    assertEquals(2, ref1Child.getChildCount());
-    assertEquals(0, ref5Child.getChildCount());
-    MemoryObjectTreeNode ref2Child = (MemoryObjectTreeNode)ref1Child.getChildAt(0);
-    MemoryObjectTreeNode ref3Child = (MemoryObjectTreeNode)ref1Child.getChildAt(1);
-    assertEquals(mockRef2, ref2Child.getAdapter());
-    assertEquals(mockRef3, ref3Child.getAdapter());
+    MemoryObjectTreeNode ref1 = treeRoot.getChildren().stream().filter(child -> child.getAdapter() instanceof ReferenceObject && "fake1".equals(((ReferenceObject)child.getAdapter()).getReferenceInstance().getName())).findFirst().orElse(null);
+    assertNotNull(ref1);
+    assertEquals(fakeInstance1, ((ReferenceObject)ref1.getAdapter()).getReferenceInstance());
+    MemoryObjectTreeNode ref5 = treeRoot.getChildren().stream().filter(child -> child.getAdapter() instanceof ReferenceObject && "fake5".equals(((ReferenceObject)child.getAdapter()).getReferenceInstance().getName())).findFirst().orElse(null);
+    assertNotNull(ref5);
+    assertEquals(fakeInstance5, ((ReferenceObject)ref5.getAdapter()).getReferenceInstance());
 
-    // Check that nodes are not populated beyond the first two levels
-    assertEquals(0, ref2Child.getChildCount());
-    assertEquals(0, ref3Child.getChildCount());
+    assertEquals(2, ref1.getChildCount());
+    assertEquals(0, ref5.getChildCount());
 
-    // Check that nodes are populated once expansion happens
-    TreePath path = new TreePath(new Object[]{treeRoot, ref1Child});
+    MemoryObjectTreeNode<ReferenceObject> ref2 = (MemoryObjectTreeNode<ReferenceObject>)ref1.getChildAt(0);
+    MemoryObjectTreeNode<ReferenceObject> ref3 = (MemoryObjectTreeNode<ReferenceObject>)ref1.getChildAt(1);
+    assertEquals(fakeInstance2, ref2.getAdapter().getReferenceInstance());
+    assertEquals(fakeInstance3, ref3.getAdapter().getReferenceInstance());
+
+    TreePath path = new TreePath(new Object[]{treeRoot, ref1});
     tree.expandPath(path);
-    assertEquals(0, ref2Child.getChildCount());
-    assertEquals(1, ref3Child.getChildCount());
-    assertEquals(mockRef4, ((MemoryObjectTreeNode)ref3Child.getChildAt(0)).getAdapter());
+    assertEquals(0, ref2.getChildCount());
+    assertEquals(1, ref3.getChildCount());
+    assertEquals(fakeInstance4, ((MemoryObjectTreeNode<ReferenceObject>)ref3.getChildAt(0)).getAdapter().getReferenceInstance());
   }
 
   @Test
   public void testGoToInstance() {
-    ReferenceObject mockRef1 = mockReferenceObject("Ref1", 1, 2, 3, Collections.emptyList(), null);
-    ClassObject ref1Class = mockClassObject("ref1Class", 1, 2, 3, Collections.singletonList(mockRef1));
-    HeapObject ref1Heap = mockHeapObject("ref1Heap", Collections.singletonList(ref1Class));
-    when(mockRef1.getClassObject()).thenReturn(ref1Class);
-    when(ref1Class.getHeapObject()).thenReturn(ref1Heap);
-    ReferenceObject mockRoot = mockReferenceObject("MockRoot", 1, 2, 3, Arrays.asList(mockRef1), null);
+    FakeInstanceObject referer =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, "REFERER").setFields(Collections.singletonList("mField")).build();
+    FakeInstanceObject referee = new FakeInstanceObject.Builder(myFakeCaptureObject, "REFEREE").build();
+    referer.setFieldValue("mField", OBJECT, referee);
+    myFakeCaptureObject.addInstanceObjects(ImmutableSet.of(referer, referee));
 
-    myStage.selectInstance(mockRoot);
+    myStage.selectCaptureObject(myFakeCaptureObject, null);
+    assertNotNull(myStage.getSelectedCapture());
+    myStage
+      .selectClassSet((ClassSet)myFakeCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID).findContainingClassifierSet(referee));
+    assertNotNull(myStage.getSelectedClassSet());
+    myStage.selectInstanceObject(referee);
     JTree tree = myDetailsView.getReferenceTree();
     assertNotNull(tree);
-    assertEquals(mockRoot, myStage.getSelectedInstance());
-    assertNull(myStage.getSelectedClass());
+    assertEquals(referee, myStage.getSelectedInstanceObject());
 
     // Check that the Go To Instance menu item exists but is disabled since no instance is selected
-    java.util.List<ContextMenuItem> menus = myFakeIdeProfilerComponents.getComponentContextMenus(tree);
+    List<ContextMenuItem> menus = myFakeIdeProfilerComponents.getComponentContextMenus(tree);
+    assertNotNull(menus);
     assertEquals(1, menus.size());
     assertEquals("Go to Instance", menus.get(0).getText());
     assertFalse(menus.get(0).isEnabled());
 
-    // Selects the mockRef1 node and triggers the context menu action to select the ref instance.
+    // Selects the referer node and triggers the context menu action to select the ref instance.
     TreeNode refNode = ((MemoryObjectTreeNode)tree.getModel().getRoot()).getChildAt(0);
     tree.setSelectionPath(new TreePath(refNode));
     assertTrue(menus.get(0).isEnabled());
     menus.get(0).run();
-    assertEquals(ref1Heap, myStage.getSelectedHeap());
-    assertEquals(ref1Class, myStage.getSelectedClass());
-    assertEquals(mockRef1, myStage.getSelectedInstance());
+    assertEquals(myFakeCaptureObject.getHeapSet(FakeCaptureObject.DEFAULT_HEAP_ID), myStage.getSelectedHeapSet());
+    assertNotNull(myStage.getSelectedClassSet());
+    assertEquals(myStage.getSelectedClassSet(), myStage.getSelectedClassSet().findContainingClassifierSet(referer));
+    assertEquals(referer, myStage.getSelectedInstanceObject());
   }
 
   @Test
   public void testCorrectColumnsAndRendererContents() {
     // TODO test more sophisticated cases (e.g. multiple field names, icons, etc)
     // Setup mock reference hierarchy:
-    // MockRoot
-    // -> Ref1
-    // -> Ref2
-    // -> Ref3
-    ReferenceObject mockRef1 = mockReferenceObject("Ref1", 1, 2, 3, Collections.emptyList(), null);
-    ReferenceObject mockRef2 = mockReferenceObject("Ref2", 4, 5, 6, Collections.emptyList(), null);
-    ReferenceObject mockRef3 = mockReferenceObject("Ref3", 7, 8, 9, Collections.emptyList(), null);
-    java.util.List<ReferenceObject> references = Arrays.asList(mockRef1, mockRef2, mockRef3);
-    ReferenceObject mockRootObject = mockReferenceObject("MockRoot", 1, 2, 3, references, null);
-    myStage.selectInstance(mockRootObject);
+    // fakeRootObject
+    // -> fake1
+    // -> fake2
+    // -> fake3
+    FakeInstanceObject fake1 =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, "REFERER").setName("Ref1").setFields(Collections.singletonList("mField"))
+        .setDepth(1).setShallowSize(2).setRetainedSize(3).build();
+    FakeInstanceObject fake2 =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, "REFERER").setName("Ref2").setFields(Collections.singletonList("mField"))
+        .setDepth(4).setShallowSize(5).setRetainedSize(6).build();
+    FakeInstanceObject fake3 =
+      new FakeInstanceObject.Builder(myFakeCaptureObject, "REFERER").setName("Ref3").setFields(Collections.singletonList("mField"))
+        .setDepth(7).setShallowSize(8).setRetainedSize(9).build();
+    List<FakeInstanceObject> references = Arrays.asList(fake1, fake2, fake3);
+
+    FakeInstanceObject fakeRootObject = new FakeInstanceObject.Builder(myFakeCaptureObject, "REFEREE").setName("MockRoot").build();
+
+    fake1.setFieldValue("mField", OBJECT, fakeRootObject);
+    fake2.setFieldValue("mField", OBJECT, fakeRootObject);
+    fake3.setFieldValue("mField", OBJECT, fakeRootObject);
+
+    myFakeCaptureObject
+      .addInstanceObjects(ImmutableSet.of(fake1, fake2, fake3, fakeRootObject));
+
+    myStage.selectCaptureObject(myFakeCaptureObject, null);
+    myStage.selectInstanceObject(fakeRootObject);
 
     JTree tree = myDetailsView.getReferenceTree();
     assertNotNull(tree);
@@ -208,9 +260,9 @@ public class MemoryInstanceDetailsViewTest {
     MemoryObjectTreeNode root = (MemoryObjectTreeNode)tree.getModel().getRoot();
     assertEquals(references.size(), root.getChildCount());
     for (int i = 0; i < root.getChildCount(); i++) {
-      ReferenceObject ref = references.get(i);
+      FakeInstanceObject ref = references.get(i);
       treeInfo.verifyRendererValues(root.getChildAt(i),
-                                    new String[]{ref.getName()},
+                                    new String[]{"mField in "},
                                     new String[]{Integer.toString(ref.getDepth())},
                                     new String[]{Integer.toString(ref.getShallowSize())},
                                     new String[]{Long.toString(ref.getRetainedSize())});

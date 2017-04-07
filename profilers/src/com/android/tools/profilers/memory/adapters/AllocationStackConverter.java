@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,16 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.perflib.heap.Instance;
+import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack.StackFrame;
+import com.android.tools.profilers.stacktrace.CodeLocation;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
-class HeapDumpReferenceObject extends HeapDumpInstanceObject implements ReferenceObject {
-  @NotNull private final List<String> myReferencingFieldNames;
-
-  public HeapDumpReferenceObject(@NotNull ClassObject klass, @NotNull Instance instance, @NotNull List<String> referencingFieldNames) {
-    super(klass, instance, null);
-    myReferencingFieldNames = referencingFieldNames;
-  }
-
-  @NotNull
-  @Override
-  public List<String> getReferenceFieldNames() {
-    return myReferencingFieldNames;
+public class AllocationStackConverter {
+  public static CodeLocation getCodeLocation(@NotNull StackFrame stackFrame) {
+    return new CodeLocation.Builder(stackFrame.getClassName())
+      .setFileName(stackFrame.getFileName())
+      .setMethodName(stackFrame.getMethodName())
+      .setLineNumber(stackFrame.getLineNumber() - 1)
+      .build();
   }
 }

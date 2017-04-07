@@ -22,11 +22,77 @@ import java.util.List;
 /**
  * A {@link MemoryObject} that describes an object instance having a reference to another.
  */
-public interface ReferenceObject extends InstanceObject {
+public class ReferenceObject implements ValueObject {
+  @NotNull private final List<String> myReferencingFieldNames;
+
+  @NotNull private final InstanceObject myReferencingInstance;
+
+  @NotNull private final String myName;
+
+  public ReferenceObject(@NotNull List<String> referencingFieldNames, @NotNull InstanceObject referencingInstance) {
+    myReferencingFieldNames = referencingFieldNames;
+    myReferencingInstance = referencingInstance;
+
+    StringBuilder builder = new StringBuilder();
+    if (myReferencingFieldNames.size() > 0) {
+      if (getValueType() == ValueObject.ValueType.ARRAY) {
+        builder.append("Index ");
+      }
+      builder.append(String.join(", ", myReferencingFieldNames));
+    }
+    myName = builder.toString();
+  }
+
+  @NotNull
+  @Override
+  public String getName() {
+    return myName;
+  }
+
   /**
    * @return the names of the fields of this object instance that holds a reference to the referree.
    * If this object is an array, then a list of indices pointing to the referree is returned.
    */
   @NotNull
-  List<String> getReferenceFieldNames();
+  public List<String> getReferenceFieldNames() {
+    return myReferencingFieldNames;
+  }
+
+  @NotNull
+  public InstanceObject getReferenceInstance() {
+    return myReferencingInstance;
+  }
+
+  @Override
+  public int getDepth() {
+    return myReferencingInstance.getDepth();
+  }
+
+  @Override
+  public int getShallowSize() {
+    return myReferencingInstance.getShallowSize();
+  }
+
+  @Override
+  public long getRetainedSize() {
+    return myReferencingInstance.getRetainedSize();
+  }
+
+  @NotNull
+  @Override
+  public ValueType getValueType() {
+    return myReferencingInstance.getValueType();
+  }
+
+  @NotNull
+  @Override
+  public String getValueText() {
+    return myReferencingInstance.getValueText();
+  }
+
+  @NotNull
+  @Override
+  public String getToStringText() {
+    return myReferencingInstance.getToStringText();
+  }
 }
