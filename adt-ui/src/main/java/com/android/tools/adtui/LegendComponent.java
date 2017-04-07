@@ -168,6 +168,7 @@ public class LegendComponent extends AnimatedComponent {
       Legend data = myModel.getLegends().get(i);
       LegendConfig config = getConfig(data);
       JLabel label = myLabelsToDraw.get(i);
+      label.setForeground(getForeground());
       Dimension labelPreferredSize = label.getPreferredSize();
       int xOffset = 0;
 
@@ -180,6 +181,7 @@ public class LegendComponent extends AnimatedComponent {
           g2d.setColor(fillColor);
           g2d.fillRect(0, boxY, ICON_WIDTH_PX, ICON_WIDTH_PX);
 
+          // TODO: make the border customizable. Profilers, for instance, shouldn't have a border in Darcula.
           int r = (int)(fillColor.getRed() * .8f);
           int g = (int)(fillColor.getGreen() * .8f);
           int b = (int)(fillColor.getBlue() * .8f);

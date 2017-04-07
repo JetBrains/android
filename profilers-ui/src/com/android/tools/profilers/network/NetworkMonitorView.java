@@ -46,6 +46,7 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
     final JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(JLabel.TOP);
+    label.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
@@ -75,6 +76,7 @@ public class NetworkMonitorView extends ProfilerMonitorView<NetworkMonitor> {
 
     NetworkMonitor.NetworkLegends legends = getMonitor().getLegends();
     LegendComponent legend = new LegendComponent(legends);
+    legend.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
     legend.configure(legends.getRxLegend(), new LegendConfig(lineChart.getLineConfig(usage.getRxSeries())));
     legend.configure(legends.getTxLegend(), new LegendConfig(lineChart.getLineConfig(usage.getTxSeries())));
 
