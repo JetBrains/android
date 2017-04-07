@@ -147,20 +147,22 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       .setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
     lineChart.configure(cpuUsage.getOtherCpuSeries(), new LineConfig(ProfilerColors.CPU_OTHER_USAGE)
       .setFilled(true).setStacked(true).setLegendIconType(LegendConfig.IconType.BOX));
-    lineChart.configure(cpuUsage.getThreadsCountSeries(), new LineConfig(ProfilerColors.THREADS_COUNT_COLOR)
+    lineChart.configure(cpuUsage.getThreadsCountSeries(), new LineConfig(ProfilerColors.THREADS_COUNT)
       .setStepped(true).setStroke(LineConfig.DEFAULT_DASH_STROKE).setLegendIconType(LegendConfig.IconType.DASHED_LINE));
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
     monitorPanel.add(lineChartPanel, new TabularLayout.Constraint(0, 0));
 
     CpuProfilerStage.CpuStageLegends legends = getStage().getLegends();
     final LegendComponent legend = new LegendComponent(legends);
-    legend.configure(legends.getCpuLegend(), new LegendConfig(lineChart.getLineConfig(cpuUsage.getCpuSeries())));
-    legend.configure(legends.getOthersLegend(), new LegendConfig(lineChart.getLineConfig(cpuUsage.getOtherCpuSeries())));
-    legend.configure(legends.getThreadsLegend(), new LegendConfig(lineChart.getLineConfig(cpuUsage.getThreadsCountSeries())));
+    legend.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
+    legend.configure(legends.getCpuLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_USAGE_LEGEND));
+    legend.configure(legends.getOthersLegend(), new LegendConfig(LegendConfig.IconType.BOX, ProfilerColors.CPU_OTHER_LEGEND));
+    legend.configure(legends.getThreadsLegend(), new LegendConfig(LegendConfig.IconType.DASHED_LINE, ProfilerColors.THREADS_COUNT_LEGEND));
 
     final JLabel label = new JLabel(getStage().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(SwingConstants.TOP);
+    label.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
 
     final JPanel legendPanel = new JBPanel(new BorderLayout());
     legendPanel.setOpaque(false);
