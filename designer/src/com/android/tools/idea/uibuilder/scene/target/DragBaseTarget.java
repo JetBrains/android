@@ -125,7 +125,7 @@ public abstract class DragBaseTarget extends BaseTarget {
       return;
     }
     myComponent.setDragging(true);
-    NlComponent component = myComponent.getAuthoritativeNlComponent();
+    NlComponent component = myComponent.getNlComponent();
     AttributesTransaction attributes = component.startAttributeTransaction();
     updateAttributes(attributes, x - myOffsetX, y - myOffsetY);
     attributes.apply();
@@ -142,7 +142,7 @@ public abstract class DragBaseTarget extends BaseTarget {
       if (Math.abs(x - myFirstMouseX) <= 1 && Math.abs(y - myFirstMouseY) <= 1) {
         commitChanges = false;
       }
-      NlComponent component = myComponent.getAuthoritativeNlComponent();
+      NlComponent component = myComponent.getNlComponent();
       AttributesTransaction attributes = component.startAttributeTransaction();
       updateAttributes(attributes, x - myOffsetX, y - myOffsetY);
       attributes.apply();
