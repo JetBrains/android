@@ -16,6 +16,7 @@
 package com.android.tools.idea.instantapp.provision;
 
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.NullOutputReceiver;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -89,6 +90,15 @@ class ProvisionRunner {
 
         pack.install(device);
       }
+    }
+
+    try {
+      // Trigger a domain filter reload. Domain filters need to be populated in order to have an eligible account on the device, and this happens on a
+      // loose 24-hour schedule. Developers need AIA on their device right away, and this will cause our GCore module to pull new domain filters.
+      device.executeShellCommand("am broadcast -a com.google.android.finsky.action.CONTENT_FILTERS_CHANGED", new NullOutputReceiver());
+    }
+    catch (Exception e) {
+      throw new ProvisionException("Couldn't execute shell command", e);
     }
 
     getLogger().info("Device " + device.getName() + " provisioned successfully");

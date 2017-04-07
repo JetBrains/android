@@ -41,6 +41,6 @@ public class DevManPackageTest extends ProvisionPackageTest<DevManPackage> {
   }
 
   public void testGetApkVersion() throws Throwable {
-    assertEquals(1, getApkVersion(myProvisionPackage.getApk("arm64-v8a", "release")));
+    assertEquals(29, getApkVersion(myProvisionPackage.getApk("arm64-v8a", "release")));
   }
 }
