@@ -26,13 +26,13 @@ import javax.swing.text.Document;
 import java.awt.*;
 
 /**
- * A label with an "edit" link that turns it into a text button
+ * A label with an "edit" button that turns it into a text field
  */
-public class LabelWithEditLink extends JPanel implements DocumentAccessor  {
-  private static final String EDIT_TEXT = "<html><a>Edit</a></html>";
-  private static final String DONE_TEXT = "<html><a>Done</a></html>";
+public class LabelWithEditButton extends JPanel implements DocumentAccessor  {
+  private static final String EDIT_TEXT = "Edit";
+  private static final String DONE_TEXT = "Done";
 
-  private final HyperlinkLabel myLinkLabel = new HyperlinkLabel();
+  private final JButton myButton = new JButton();
   private final JTextField myTextField = new JTextField() {
     @Override
     public Border getBorder() {
@@ -46,28 +46,24 @@ public class LabelWithEditLink extends JPanel implements DocumentAccessor  {
     }
   };
 
-  public LabelWithEditLink() {
+  public LabelWithEditButton() {
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
     add(myTextField);
-    add(myLinkLabel);
+    add(myButton);
 
     // Start with "edit" and disabled
-    myLinkLabel.setHtmlText(EDIT_TEXT);
+    myButton.setLabel(EDIT_TEXT);
     myTextField.setEnabled(false);
 
-    myLinkLabel.addHyperlinkListener(e -> {
-      if (HyperlinkEvent.EventType.ACTIVATED.equals(e.getEventType())) {
-        toggleEdit();
-      }
-    });
+    myButton.addActionListener(e -> toggleEdit());
 
     setFont(UIUtil.getLabelFont());
   }
 
   private void toggleEdit() {
     boolean isEnabled = myTextField.isEnabled();
-    myLinkLabel.setHtmlText(isEnabled ? EDIT_TEXT : DONE_TEXT);
+    myButton.setLabel(isEnabled ? EDIT_TEXT : DONE_TEXT);
     myTextField.setEnabled(!isEnabled);
 
     if (!isEnabled) {
@@ -90,12 +86,8 @@ public class LabelWithEditLink extends JPanel implements DocumentAccessor  {
   public void setFont(Font font) {
     super.setFont(font);
 
-    if (font != null && myLinkLabel != null) {
+    if (font != null && myTextField != null) {
       myTextField.setFont(font);
-
-      float smallFontSize = font.getSize() - 1; // deriveFont() takes a float
-      Font smallerFont = (smallFontSize <= 0) ? font : font.deriveFont(smallFontSize);
-      myLinkLabel.setFont(smallerFont);
     }
   }
 

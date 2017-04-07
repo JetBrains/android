@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.module;
 
-import com.android.tools.adtui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.idea.gradle.npw.project.GradleAndroidProjectPaths;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
@@ -68,7 +68,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewModuleMod
   private JTextField myModuleName;
   private JPanel myPanel;
   private JTextField myAppName;
-  private LabelWithEditLink myPackageName;
+  private LabelWithEditButton myPackageName;
 
   protected RenderTemplateModel myRenderModel;
 

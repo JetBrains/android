@@ -19,7 +19,7 @@ import com.android.SdkConstants;
 import com.android.annotations.VisibleForTesting;
 import com.android.builder.model.SourceProvider;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.adtui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.idea.npw.importing.ImportUIUtil;
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep;
 import com.android.tools.idea.templates.*;
@@ -194,7 +194,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     gridConstraints.setColumn(column);
 
     boolean isGreedyComponent = component instanceof JTextField || component instanceof Spacer ||
-                                component instanceof LabelWithEditLink || component instanceof TextAccessor ||
+                                component instanceof LabelWithEditButton || component instanceof TextAccessor ||
                                 component instanceof EditorComboBox;
 
     int columnSpan = (isLast && isGreedyComponent) ? COLUMN_COUNT - column : 1;
@@ -259,7 +259,7 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
         dataComponent = createPackageEntry(parameter, module);
       }
       else {
-        dataComponent = new LabelWithEditLink();
+        dataComponent = new LabelWithEditButton();
       }
     }
     else if (AddAndroidActivityPath.CLASS_NAME_PARAMETERS.contains(parameter.id)) {
@@ -380,22 +380,22 @@ public class TemplateParameterStep2 extends DynamicWizardStepWithDescription {
     else if (dataComponent instanceof TextFieldWithBrowseButton) {
       register((Key<String>)key, (TextFieldWithBrowseButton)dataComponent);
     }
-    else if (dataComponent instanceof LabelWithEditLink) {
-      register((Key<String>)key, (LabelWithEditLink)dataComponent, new ComponentBinding<String, LabelWithEditLink>() {
+    else if (dataComponent instanceof LabelWithEditButton) {
+      register((Key<String>)key, (LabelWithEditButton)dataComponent, new ComponentBinding<String, LabelWithEditButton>() {
         @Override
-        public void setValue(@Nullable String newValue, @NotNull LabelWithEditLink component) {
+        public void setValue(@Nullable String newValue, @NotNull LabelWithEditButton component) {
           component.setText(Strings.nullToEmpty(newValue));
         }
 
         @Nullable
         @Override
-        public String getValue(@NotNull LabelWithEditLink component) {
+        public String getValue(@NotNull LabelWithEditButton component) {
           return component.getText();
         }
 
         @Nullable
         @Override
-        public Document getDocument(@NotNull LabelWithEditLink component) {
+        public Document getDocument(@NotNull LabelWithEditButton component) {
           return component.getDocument();
         }
       });
