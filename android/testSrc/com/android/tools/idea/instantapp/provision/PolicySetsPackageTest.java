@@ -16,6 +16,7 @@
 package com.android.tools.idea.instantapp.provision;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
@@ -40,11 +41,25 @@ public class PolicySetsPackageTest extends ProvisionPackageTest<PolicySetsPackag
   }
 
   public void testGetApk() throws Throwable {
+    ProvisionPackage policyPackage = getSpecificPackageForeTest("drive");
+    assertNotNull(policyPackage);
     assertEquals((getInstantAppSdk().getPath() + "/tools/apks/debug/policy_sets/drive_arm64-v8a.apk").replace('/', File.separatorChar),
-                 myProvisionPackage.getPolicyPackages().get(0).getApk("arm64-v8a", "debug").getPath());
+                 policyPackage.getApk("arm64-v8a", "debug").getPath());
   }
 
   public void testGetApkVersion() throws Throwable {
-    assertEquals(10010, getApkVersion(myProvisionPackage.getPolicyPackages().get(0).getApk("arm64-v8a", "debug")));
+    ProvisionPackage policyPackage = getSpecificPackageForeTest("drive");
+    assertNotNull(policyPackage);
+    assertEquals(10010, getApkVersion(policyPackage.getApk("arm64-v8a", "debug")));
+  }
+
+  @Nullable
+  private ProvisionPackage getSpecificPackageForeTest(String name) {
+    for (ProvisionPackage pack : myProvisionPackage.getPolicyPackages()) {
+      if (pack.getApkPrefix().compareTo(name) == 0) {
+        return pack;
+      }
+    }
+    return null;
   }
 }
