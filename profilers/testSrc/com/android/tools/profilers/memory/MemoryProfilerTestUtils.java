@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory;
 import com.android.tools.profilers.memory.adapters.ClassSet;
 import com.android.tools.profilers.memory.adapters.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.MemoryObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,9 +78,9 @@ public class MemoryProfilerTestUtils {
   }
 
   @NotNull
-  public static MemoryObjectTreeNode<? extends ClassifierSet> findChildWithPredicate(@NotNull MemoryObjectTreeNode<? extends ClassifierSet> root,
-                                                                                     @NotNull Function<ClassifierSet, Boolean> predicate) {
-    List<MemoryObjectTreeNode<? extends ClassifierSet>> nodes = root.getChildren().stream()
+  public static MemoryObjectTreeNode<? extends MemoryObject> findChildWithPredicate(@NotNull MemoryObjectTreeNode<? extends MemoryObject> root,
+                                                                                    @NotNull Function<MemoryObject, Boolean> predicate) {
+    List<MemoryObjectTreeNode<? extends MemoryObject>> nodes = root.getChildren().stream()
       .filter(child -> predicate.apply(child.getAdapter())).collect(Collectors.toList());
     assertEquals(1, nodes.size());
     return nodes.get(0);

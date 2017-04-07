@@ -18,6 +18,9 @@ package com.android.tools.profilers.memory.adapters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 public class FakeFieldObject implements FieldObject {
   @NotNull private final String myFieldName;
   @NotNull private ValueType myValueType;
@@ -27,6 +30,21 @@ public class FakeFieldObject implements FieldObject {
     myFieldName = fieldName;
     myValueType = valueType;
     myValue = value;
+  }
+
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(new Object[]{myFieldName, myValueType, myValue});
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof FakeFieldObject)) {
+      return false;
+    }
+
+    FakeFieldObject other = (FakeFieldObject)obj;
+    return myFieldName.equals(other.myFieldName) && Objects.equals(myValue, other.myValue) && myValueType == other.myValueType;
   }
 
   @NotNull
