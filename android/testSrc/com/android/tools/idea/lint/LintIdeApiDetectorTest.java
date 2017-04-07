@@ -228,7 +228,7 @@ public class LintIdeApiDetectorTest extends AndroidTestCase {
     if (createManifest) {
       createManifest();
     }
-    AndroidLintTest.enableExactlyOneInspection(myFixture, inspection);
+    AndroidLintTest.enableOnlySpecificLintInspections(myFixture, inspection);
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".java", "src/p1/p2/Class.java");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);
