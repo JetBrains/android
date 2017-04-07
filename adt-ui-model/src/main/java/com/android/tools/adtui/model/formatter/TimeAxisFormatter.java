@@ -30,6 +30,7 @@ public final class TimeAxisFormatter extends BaseAxisFormatter {
   private static final TIntArrayList[] BASE_FACTORS;
 
   public static final TimeAxisFormatter DEFAULT = new TimeAxisFormatter(5, 10, 5);
+  public static final TimeAxisFormatter DEFAULT_WITHOUT_MINOR_TICKS = new TimeAxisFormatter(1, 10, 5);
 
   static {
     int size = BASES.length;
