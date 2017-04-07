@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.deprecated;
 
-import com.android.tools.adtui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.idea.npw.*;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -66,7 +66,7 @@ public class ConfigureAndroidModuleStepDynamic extends DynamicWizardStepWithHead
   private JTextField myModuleName;
   private JPanel myPanel;
   private JTextField myAppName;
-  private LabelWithEditLink myPackageName;
+  private LabelWithEditButton myPackageName;
 
 
   public ConfigureAndroidModuleStepDynamic(@Nullable Disposable parentDisposable, @NotNull FormFactor formFactor) {
