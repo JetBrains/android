@@ -32,7 +32,7 @@ import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 public class NlComponentTreePanel extends JPanel implements ToolContent<DesignSurface> {
@@ -41,7 +41,9 @@ public class NlComponentTreePanel extends JPanel implements ToolContent<DesignSu
   public NlComponentTreePanel(@NotNull Project project) {
     super(new BorderLayout());
     myTree = new NlComponentTree(project, null);
-    add(ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.CENTER);
+    JScrollPane pane = ScrollPaneFactory.createScrollPane(myTree, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    pane.setBorder(null);
+    add(pane, BorderLayout.CENTER);
     Disposer.register(this, myTree);
   }
 
