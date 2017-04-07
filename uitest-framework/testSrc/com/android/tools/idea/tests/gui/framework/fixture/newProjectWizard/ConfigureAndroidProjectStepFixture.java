@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newProjectWizard;
 
-import com.android.tools.adtui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditButton;
 import com.intellij.ui.HyperlinkLabel;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.JCheckBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -54,16 +53,16 @@ public class ConfigureAndroidProjectStepFixture extends AbstractWizardStepFixtur
 
   @NotNull
   public ConfigureAndroidProjectStepFixture enterPackageName(@NotNull String text) {
-    LabelWithEditLink link = robot().finder().findByType(target(), LabelWithEditLink.class);
+    LabelWithEditButton link = robot().finder().findByType(target(), LabelWithEditButton.class);
 
-    HyperlinkLabel editLabel = robot().finder().findByType(link, HyperlinkLabel.class);
-    robot().click(editLabel);
+    JButton editButton = robot().finder().findByType(link, JButton.class);
+    robot().click(editButton);
 
     JTextComponent textField = findTextFieldWithLabel("Package name:");
     replaceText(textField, text);
 
     // click "Done"
-    robot().click(editLabel);
+    robot().click(editButton);
     return this;
   }
 

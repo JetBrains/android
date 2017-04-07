@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.npw.instantapp;
 
-import com.android.tools.adtui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.ui.properties.BindingsManager;
 import com.android.tools.idea.ui.properties.ListenerManager;
@@ -42,7 +42,7 @@ public final class ConfigureInstantModuleStep extends ModelWizardStep<NewModuleM
 
   private JTextField mySplitNameField;
   private JPanel myPanel;
-  private LabelWithEditLink myPackageName;
+  private LabelWithEditButton myPackageName;
 
   public ConfigureInstantModuleStep(@NotNull NewModuleModel moduleModel) {
     super(moduleModel, message("android.wizard.module.new.instant.app"));

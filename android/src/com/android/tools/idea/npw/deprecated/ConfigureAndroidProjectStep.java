@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.deprecated;
 
 import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.npw.WizardUtils;
-import com.android.tools.adtui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStepWithHeaderAndDescription;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
@@ -63,7 +63,7 @@ public class ConfigureAndroidProjectStep extends DynamicWizardStepWithHeaderAndD
   private JTextField myAppName;
   private JPanel myPanel;
   private JTextField myCompanyDomain;
-  private LabelWithEditLink myPackageName;
+  private LabelWithEditButton myPackageName;
   private JBCheckBox myIncludeCppCheck;
 
   public ConfigureAndroidProjectStep(@NotNull Disposable disposable) {
