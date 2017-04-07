@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.properties.swing;
 
-import com.android.tools.adtui.LabelWithEditLink;
+import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.idea.ui.properties.CountListener;
 import com.intellij.ui.EditorComboBox;
 import org.junit.Test;
@@ -98,7 +98,7 @@ public final class TextPropertyTest {
 
   @Test
   public void textPropertyCanWrapLabelWithEditLink() {
-    LabelWithEditLink editLabel = new LabelWithEditLink();
+    LabelWithEditButton editLabel = new LabelWithEditButton();
     TextProperty textProperty = new TextProperty(editLabel);
     CountListener listener = new CountListener();
     textProperty.addListener(listener);
