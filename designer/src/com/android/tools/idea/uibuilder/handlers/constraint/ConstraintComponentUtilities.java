@@ -60,6 +60,63 @@ public final class ConstraintComponentUtilities {
   public static final ArrayList<String> ourVerticalAttributes;
   public static final ArrayList<String> ourCreatorAttributes;
 
+  public static final HashMap<String, String> ourLayoutUriToPrefix = new HashMap<>();
+  static {
+    ourLayoutUriToPrefix.put(ANDROID_URI, PREFIX_ANDROID);
+    ourLayoutUriToPrefix.put(SHERPA_URI, PREFIX_APP);
+  }
+
+  public static final ArrayList<Pair<String, String>> ourLayoutAttributes = new ArrayList();
+  static {
+    ourLayoutAttributes.add(Pair.of(ANDROID_URI, ATTR_LAYOUT_WIDTH));
+    ourLayoutAttributes.add(Pair.of(ANDROID_URI, ATTR_LAYOUT_HEIGHT));
+    ourLayoutAttributes.add(Pair.of(ANDROID_URI, ATTR_LAYOUT_MARGIN_START));
+    ourLayoutAttributes.add(Pair.of(ANDROID_URI, ATTR_LAYOUT_MARGIN_END));
+    ourLayoutAttributes.add(Pair.of(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT));
+    ourLayoutAttributes.add(Pair.of(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT));
+    ourLayoutAttributes.add(Pair.of(ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP));
+    ourLayoutAttributes.add(Pair.of(ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_END_TO_START_OF));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_END_TO_END_OF));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_START_TO_START_OF));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_START_TO_END_OF));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_LEFT_TO_LEFT_OF));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_LEFT_TO_RIGHT_OF));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_RIGHT_TO_LEFT_OF));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_RIGHT_TO_RIGHT_OF));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_TOP_TO_TOP_OF));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_TOP_TO_BOTTOM_OF));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_BOTTOM_TO_TOP_OF));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_VERTICAL_CHAIN_STYLE));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_WEIGHT));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_VERTICAL_WEIGHT));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_DIMENSION_RATIO));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_GUIDELINE_ORIENTATION_HORIZONTAL));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_GUIDELINE_ORIENTATION_VERTICAL));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_GONE_MARGIN_START));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_GONE_MARGIN_END));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_GONE_MARGIN_LEFT));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_GONE_MARGIN_RIGHT));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_GONE_MARGIN_TOP));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_GONE_MARGIN_BOTTOM));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_WIDTH_DEFAULT));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_HEIGHT_DEFAULT));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_MIN_WIDTH));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_MIN_HEIGHT));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_MAX_WIDTH));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_MAX_HEIGHT));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_MIN_WIDTH));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_END));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_PERCENT));
+  }
+
   private static final HashMap<Pair<AnchorTarget.Type, AnchorTarget.Type>, String> ourConstraintAttributes = new HashMap<>();
   static {
     ourConstraintAttributes.put(Pair.of(AnchorTarget.Type.LEFT, AnchorTarget.Type.LEFT), ATTR_LAYOUT_LEFT_TO_LEFT_OF);
@@ -489,7 +546,7 @@ public final class ConstraintComponentUtilities {
   }
 
   public static int getGuidelineMode(SceneComponent component) {
-    NlComponent nlComponent = component.getNlComponent();
+    NlComponent nlComponent = component.getAuthoritativeNlComponent();
     String begin = nlComponent.getLiveAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN);
     String end = nlComponent.getLiveAttribute(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_END);
 
@@ -901,7 +958,7 @@ public final class ConstraintComponentUtilities {
 
   public static SceneComponent findChainHead(SceneComponent component, ArrayList<String> sideA, ArrayList<String> sideB) {
     while (true) {
-      NlComponent nlComponent = component.getNlComponent();
+      NlComponent nlComponent = component.getAuthoritativeNlComponent();
       String attributeA = getConnectionId(nlComponent, SHERPA_URI, sideA);
       if (attributeA == null) {
         return component;
@@ -910,7 +967,7 @@ public final class ConstraintComponentUtilities {
       if (target == null) {
         return component;
       }
-      String attributeB = getConnectionId(target.getNlComponent(), SHERPA_URI, sideB);
+      String attributeB = getConnectionId(target.getAuthoritativeNlComponent(), SHERPA_URI, sideB);
       if (attributeB == null) {
         return component;
       }
@@ -924,13 +981,13 @@ public final class ConstraintComponentUtilities {
   }
 
   public static boolean isInChain(ArrayList<String> sideA, ArrayList<String> sideB, SceneComponent component) {
-    String attributeA = getConnectionId(component.getNlComponent(), SHERPA_URI, sideA);
+    String attributeA = getConnectionId(component.getAuthoritativeNlComponent(), SHERPA_URI, sideA);
     if (attributeA != null) {
       SceneComponent target = component.getScene().getSceneComponent(attributeA);
       if (target != null) {
-        String attributeB = getConnectionId(target.getNlComponent(), SHERPA_URI, sideB);
+        String attributeB = getConnectionId(target.getAuthoritativeNlComponent(), SHERPA_URI, sideB);
         if (attributeB != null) {
-          if (attributeB.equalsIgnoreCase(component.getNlComponent().getId())) {
+          if (attributeB.equalsIgnoreCase(component.getAuthoritativeNlComponent().getId())) {
             return true;
           }
         }
@@ -942,7 +999,7 @@ public final class ConstraintComponentUtilities {
   public static void cycleChainStyle(@NotNull SceneComponent chainHeadComponent,
                                      @NotNull String orientationStyle,
                                      @NotNull SceneComponent component) {
-    NlComponent chainHead = chainHeadComponent.getNlComponent();
+    NlComponent chainHead = chainHeadComponent.getAuthoritativeNlComponent();
     String chainStyle = chainHead.getLiveAttribute(SHERPA_URI, orientationStyle);
     if (chainStyle != null) {
       if (chainStyle.equalsIgnoreCase(ATTR_LAYOUT_CHAIN_SPREAD)) {
