@@ -79,6 +79,7 @@ public class LineConfig {
 
   /**
    * Type of the legend icon that represents the line.
+   * TODO: extract it to LegendConfig
    */
   @NotNull
   private LegendConfig.IconType myLegendIconType;

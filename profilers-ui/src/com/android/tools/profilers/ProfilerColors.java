@@ -30,12 +30,18 @@ public class ProfilerColors {
 
   public static final Color CPU_USAGE = new JBColor(0x57D9B2, 0x387358);
 
-  public static final Color CPU_OTHER_USAGE = new JBColor(0xDFE6EE, 0x34383D);
+  public static final Color CPU_USAGE_LEGEND = new JBColor(0x53B5A0, 0x44B67F);
+
+  public static final Color CPU_OTHER_USAGE = new JBColor(0xE8F2F6, 0x313537);
+
+  public static final Color CPU_OTHER_LEGEND = new JBColor(0xD8EAF0, 0x444B53);
+
+  public static final Color THREADS_COUNT = new JBColor(0x6AA78A, 0x5E9A7D);
+
+  public static final Color THREADS_COUNT_LEGEND = new JBColor(0x558A71, 0x71D7A6);
 
   // TODO: define final color
   public static final Color CPU_CAPTURE_EVENT = new JBColor(0x888888, 0x888888);
-
-  public static final Color THREADS_COUNT_COLOR = new JBColor(0x558A71, 0x71D7A6);
 
   /**
    * Represents pair of colors of non-selected and selected states of a thread.
@@ -141,4 +147,6 @@ public class ProfilerColors {
   public static final Color MEMORY_OBJECTS = new JBColor(new Color(84, 110, 121), new Color(159, 190, 213));
 
   public static final Color MESSAGE_COLOR = new JBColor(0x787878, 0xC8C8C8);
+
+  public static final Color MONITORS_HEADER_TEXT = new JBColor(0x545454, 0xCACACA);
 }

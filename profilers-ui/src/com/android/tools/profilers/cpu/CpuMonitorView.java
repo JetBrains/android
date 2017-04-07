@@ -46,6 +46,7 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
     final JLabel label = new JLabel(getMonitor().getName());
     label.setBorder(MONITOR_LABEL_PADDING);
     label.setVerticalAlignment(JLabel.TOP);
+    label.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
 
     final JPanel axisPanel = new JBPanel(new BorderLayout());
     axisPanel.setOpaque(false);
@@ -74,6 +75,7 @@ public class CpuMonitorView extends ProfilerMonitorView<CpuMonitor> {
 
     CpuMonitor.Legends legends = getMonitor().getLegends();
     LegendComponent legend = new LegendComponent(legends);
+    legend.setForeground(ProfilerColors.MONITORS_HEADER_TEXT);
     legend.configure(legends.getCpuLegend(), new LegendConfig(config));
 
     JPanel legendPanel = new JBPanel(new BorderLayout());
