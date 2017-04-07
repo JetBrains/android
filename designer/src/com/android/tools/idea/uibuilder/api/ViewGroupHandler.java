@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.api;
 import com.android.SdkConstants;
 import com.android.tools.idea.XmlBuilder;
 import com.android.tools.idea.uibuilder.model.*;
+import com.android.tools.idea.uibuilder.scene.ComponentProvider;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.TargetProvider;
 import com.android.tools.idea.uibuilder.scene.target.Target;
@@ -37,7 +38,6 @@ import java.util.List;
  */
 @SuppressWarnings("UnusedParameters")
 public class ViewGroupHandler extends ViewHandler implements TargetProvider {
-
   @Override
   @NotNull
   @Language("XML")
@@ -220,6 +220,15 @@ public class ViewGroupHandler extends ViewHandler implements TargetProvider {
    */
   public void clearAttributes(@NotNull NlComponent component) {
     // do nothing
+  }
+
+  /**
+   * Returns a component provider instance
+   *
+   * @return the component provider
+   */
+  public ComponentProvider getComponentProvider(@NotNull SceneComponent component) {
+    return null;
   }
 
   /**

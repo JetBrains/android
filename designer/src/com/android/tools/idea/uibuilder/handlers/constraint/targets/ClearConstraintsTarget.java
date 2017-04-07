@@ -32,7 +32,7 @@ public class ClearConstraintsTarget extends ActionTarget implements ActionTarget
 
   @Override
   public void apply(SceneComponent component) {
-    ConstraintComponentUtilities.clearAttributes(component.getNlComponent());
+    ConstraintComponentUtilities.clearAttributes(component.getAuthoritativeNlComponent());
   }
 
   @Override

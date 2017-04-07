@@ -95,7 +95,7 @@ public class GuidelineTarget extends DragTarget {
         myBottom = parent.getDrawY() + parent.getDrawHeight();
       }
     }
-    NlComponent component = myComponent.getNlComponent();
+    NlComponent component = myComponent.getAuthoritativeNlComponent();
     String begin = component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN);
     String end = component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END);
     String percent = component.getLiveAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT);
