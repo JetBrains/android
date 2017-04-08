@@ -1,7 +1,6 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.lint.AndroidLintNewApiInspection;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -451,9 +450,6 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
 
   public void testSpellchecker1() throws Throwable {
-    // Prevent other lint checks from polluting output
-    AndroidLintTest.enableExactlyOneInspection(myFixture, new AndroidLintNewApiInspection());
-
     myFixture.enableInspections(SpellCheckingInspection.class);
     doTestHighlighting();
   }

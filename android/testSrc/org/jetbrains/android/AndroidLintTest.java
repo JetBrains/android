@@ -48,10 +48,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
@@ -1000,7 +997,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testSingleLine() throws Exception {
     deleteManifest();
     myFixture.copyFileToProject(BASE_PATH_GLOBAL + "deprecation/AndroidManifest.xml", "AndroidManifest.xml");
-    enableExactlyOneInspection(myFixture, new AndroidLintDeprecatedInspection());
+    enableOnlySpecificLintInspections(myFixture, new AndroidLintDeprecatedInspection());
     myFixture.configureFromExistingVirtualFile(
       myFixture.copyFileToProject(BASE_PATH + "singleLine.xml", "res/layout/singleLine.xml"));
     final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Replace singleLine=\"true\" with maxLines=\"1\"");
@@ -1014,7 +1011,7 @@ public class AndroidLintTest extends AndroidTestCase {
   public void testSingleLineFalse() throws Exception {
     deleteManifest();
     myFixture.copyFileToProject(BASE_PATH_GLOBAL + "deprecation/AndroidManifest.xml", "AndroidManifest.xml");
-    enableExactlyOneInspection(myFixture, new AndroidLintDeprecatedInspection());
+    enableOnlySpecificLintInspections(myFixture, new AndroidLintDeprecatedInspection());
     myFixture.configureFromExistingVirtualFile(
       myFixture.copyFileToProject(BASE_PATH + "singleLineFalse.xml", "res/layout/singleLineFalse.xml"));
     final IntentionAction action = AndroidTestUtils.getIntentionAction(myFixture, "Replace singleLine=\"true\" with maxLines=\"1\"");
@@ -1137,7 +1134,7 @@ public class AndroidLintTest extends AndroidTestCase {
   }
 
   private Map<RefEntity, CommonProblemDescriptor[]> doGlobalInspectionTest(@NotNull AndroidLintInspectionBase inspection) {
-    enableExactlyOneInspection(myFixture, inspection);
+    enableOnlySpecificLintInspections(myFixture, inspection);
     return doGlobalInspectionTest(inspection, getGlobalTestDir(), new AnalysisScope(myModule));
   }
 
@@ -1241,7 +1238,7 @@ public class AndroidLintTest extends AndroidTestCase {
   }
   private void doTestHighlighting(@NotNull AndroidLintInspectionBase inspection, @NotNull String copyTo, @NotNull String extension,
                                   boolean skipCheck) throws IOException {
-    enableExactlyOneInspection(myFixture, inspection);
+    enableOnlySpecificLintInspections(myFixture, inspection);
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + "." + extension, copyTo);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.doHighlighting();
@@ -1250,25 +1247,34 @@ public class AndroidLintTest extends AndroidTestCase {
     }
   }
 
-  public static void enableExactlyOneInspection(@NotNull JavaCodeInsightTestFixture fixture, @NotNull AndroidLintInspectionBase inspection) {
+  // Here to prevent having to insert explicit cast when using varargs version
+  public static void enableOnlySpecificLintInspections(@NotNull JavaCodeInsightTestFixture fixture, @NotNull AndroidLintInspectionBase inspection) {
+    enableOnlySpecificLintInspections(fixture, new AndroidLintInspectionBase[] { inspection });
+  }
+
+  public static void enableOnlySpecificLintInspections(@NotNull JavaCodeInsightTestFixture fixture, @NotNull AndroidLintInspectionBase... inspections) {
     // Ensure all issues are initially registered but disabled
+    Set<Issue> enabledIssues = Sets.newHashSet();
+    for (AndroidLintInspectionBase inspection : inspections) {
+      enabledIssues.add(inspection.getIssue());
+    }
     Project project = fixture.getProject();
     for (Issue issue : new LintIdeIssueRegistry().getIssues()) {
       AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue);
       InspectionProfileImpl profile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
       String shortName = AndroidLintInspectionBase.LINT_INSPECTION_PREFIX + issue.getId();
       try {
-        if (issue != inspection.getIssue()) {
-          profile.disableTool(shortName, project);
+        if (enabledIssues.contains(issue)) {
+          profile.enableTool(shortName, project);
         }
         else {
-          profile.enableTool(shortName, project);
+          profile.disableTool(shortName, project);
         }
       } catch (Throwable ignore) {
         // Ignore potential third party issues picked up from the environment
       }
     }
 
-    fixture.enableInspections(inspection);
+    fixture.enableInspections(inspections);
   }
 }
