@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
  * in which case the entire text range is replaced (this is used where lint's error range corresponds exactly to
  * the portion we want to replace.)
  */
-class ReplaceStringQuickFix implements AndroidLintQuickFix {
+public class ReplaceStringQuickFix implements AndroidLintQuickFix {
   private final String myName;
   @RegEx private final String myRegexp;
   private final String myNewValue;
@@ -48,7 +48,7 @@ class ReplaceStringQuickFix implements AndroidLintQuickFix {
    * @param regexp the regular expression
    * @param newValue
    */
-  ReplaceStringQuickFix(@Nullable String name, @Nullable @RegEx String regexp, @NotNull String newValue) {
+  public ReplaceStringQuickFix(@Nullable String name, @Nullable @RegEx String regexp, @NotNull String newValue) {
     myName = name;
     myNewValue = newValue;
     if (regexp != null && regexp.indexOf('(') == -1) {

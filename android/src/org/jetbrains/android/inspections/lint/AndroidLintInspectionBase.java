@@ -1,8 +1,11 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.tools.idea.lint.ReplaceStringQuickFix;
 import com.android.tools.idea.lint.SuppressLintIntentionAction;
 import com.android.tools.lint.detector.api.*;
+import com.android.tools.lint.detector.api.QuickfixData.ReplaceString;
+import com.android.tools.lint.detector.api.QuickfixData.SetAttribute;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
@@ -33,6 +36,7 @@ import org.jetbrains.annotations.TestOnly;
 
 import java.io.File;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static com.android.tools.lint.detector.api.TextFormat.*;
 import static com.intellij.xml.CommonXmlStrings.HTML_END;
@@ -61,7 +65,13 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   @NotNull
   public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message,
                                              @Nullable Object extraData) {
-    return getQuickFixes(startElement, endElement, message);
+    AndroidLintQuickFix[] fixes = getQuickFixes(startElement, endElement, message);
+
+    if (extraData != null && fixes.length == 0) {
+      return createFixes(extraData);
+    }
+
+    return fixes;
   }
 
   @NotNull
@@ -501,6 +511,28 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
   @NotNull
   public Issue getIssue() {
     return myIssue;
+  }
+
+  /** Wraps quickfixes from {@link QuickfixData} with default implementations */
+  static AndroidLintQuickFix[] createFixes(@Nullable Object quickfixData) {
+    if (quickfixData instanceof QuickfixData) {
+      if (quickfixData instanceof SetAttribute) {
+        SetAttribute data = (SetAttribute)quickfixData;
+        return new AndroidLintQuickFix[]{new SetAttributeQuickFix("Set " + data.attribute, data.attribute,
+                                                                  data.namespace, data.value)};
+
+      } else if (quickfixData instanceof ReplaceString) {
+        ReplaceString data = (ReplaceString)quickfixData;
+        String regexp = null;
+        if (data.oldPattern != null) {
+          regexp = data.oldPattern;
+        } else {
+          regexp = "(" + Pattern.quote(data.oldString) + ")";
+        }
+        return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, regexp, data.replacement)};
+      }
+    }
+    return AndroidLintQuickFix.EMPTY_ARRAY;
   }
 
   static class MyLocalQuickFix implements LocalQuickFix {
