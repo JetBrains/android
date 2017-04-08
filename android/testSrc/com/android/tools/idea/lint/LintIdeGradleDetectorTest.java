@@ -124,7 +124,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
 
   private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName) throws Exception {
     createManifest();
-    AndroidLintTest.enableExactlyOneInspection(myFixture, inspection);
+    AndroidLintTest.enableOnlySpecificLintInspections(myFixture, inspection);
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".gradle", "build.gradle");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);
