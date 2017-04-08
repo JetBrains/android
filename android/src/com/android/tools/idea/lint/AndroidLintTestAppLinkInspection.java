@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.tools.lint.checks.AppIndexingApiDetector;
+import com.android.tools.lint.checks.AppLinksValidDetector;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
-public class AndroidLintGoogleAppIndexingApiWarningInspection extends AndroidLintInspectionBase {
-  public AndroidLintGoogleAppIndexingApiWarningInspection() {
-    super(AndroidBundle.message("android.lint.inspections.google.app.indexing.api.warning"), AppIndexingApiDetector.ISSUE_APP_INDEXING_API);
+public class AndroidLintTestAppLinkInspection extends AndroidLintInspectionBase {
+  public AndroidLintTestAppLinkInspection() {
+    super(AndroidBundle.message("android.lint.inspections.test.app.link"), AppLinksValidDetector.TEST_URL);
   }
 }
