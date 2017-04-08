@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2017 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
@@ -6,6 +21,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.lint.checks.CommentDetector;
 import com.android.tools.lint.checks.IconDetector;
 import com.android.tools.lint.checks.TextViewDetector;
+import com.android.tools.lint.detector.api.CharSequences;
 import com.android.tools.lint.detector.api.Issue;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -21,12 +37,14 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.ProjectViewTestUtil;
@@ -48,7 +66,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
@@ -495,6 +516,11 @@ public class AndroidLintTest extends AndroidTestCase {
     doTestWithFix(new AndroidLintInvalidUsesTagAttributeInspection(),
                   "Replace with \"media\"",
                   "res/xml/automotive_app_desc.xml", "xml");
+  }
+
+  public void testVectorScientificNotation() throws Exception {
+    doTestWithFix(new AndroidLintInvalidVectorPathInspection(),
+                  "Convert to plain float format", "res/drawable/vector.xml", "xml");
   }
 
   public void testUnsupportedChromeOsHardware() throws Exception {
@@ -1241,10 +1267,78 @@ public class AndroidLintTest extends AndroidTestCase {
     enableOnlySpecificLintInspections(myFixture, inspection);
     final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + "." + extension, copyTo);
     myFixture.configureFromExistingVirtualFile(file);
+
+    // Strip out <error> and <warning> markers. It's not clear why the test framework
+    // doesn't do this (it *does* strip out the <caret> markers). Without this,
+    // lint is passed markup files that contain the error markers, which makes
+    // for example quick fixes not work.
+    String prev = stripMarkers(file);
     myFixture.doHighlighting();
+    // Restore markers before diffing.
+    restoreMarkers(file, prev);
+
     if (!skipCheck) {
       myFixture.checkHighlighting(true, false, false);
     }
+  }
+
+  /** Removes any error and warning markers from a file, and returns the original text */
+  @Nullable
+  private String stripMarkers(VirtualFile file) {
+    Project project = getProject();
+    PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+    if (psiFile == null) {
+      return null;
+    }
+    Document document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
+    if (document == null) {
+      return null;
+    }
+
+    String prev = document.getText();
+    WriteCommandAction.runWriteCommandAction(project, (Runnable)() -> {
+      while (true) {
+        if (!(removeTag(document, "<error", ">")
+              || removeTag(document, "</error", ">")
+              || removeTag(document, "<warning", ">")
+              || removeTag(document, "</warning", ">"))) {
+          break;
+        }
+      }
+    });
+
+    return prev;
+  }
+
+  /** Searches the given document for a prefix and suffix and deletes it if found. Caller must hold write lock. */
+  private static boolean removeTag(@NotNull Document document, @NotNull String prefix, @NotNull String suffix) {
+    CharSequence sequence = document.getCharsSequence();
+    int start = CharSequences.indexOf(sequence, prefix);
+    if (start != -1) {
+      int end = CharSequences.indexOf(sequence, suffix, start + prefix.length());
+      if (end != -1) {
+        end += suffix.length();
+        document.deleteString(start, end);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /** Sets the contents of the given file to the given string. */
+  private void restoreMarkers(VirtualFile file, String contents) {
+    Project project = getProject();
+    PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+    if (psiFile == null) {
+      return;
+    }
+    Document document = PsiDocumentManager.getInstance(project).getDocument(psiFile);
+    if (document == null) {
+      return;
+    }
+
+    WriteCommandAction.runWriteCommandAction(project, () -> document.setText(contents));
   }
 
   // Here to prevent having to insert explicit cast when using varargs version
