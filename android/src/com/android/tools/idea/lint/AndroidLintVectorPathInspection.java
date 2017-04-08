@@ -21,6 +21,6 @@ import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintVectorPathInspection extends AndroidLintInspectionBase {
   public AndroidLintVectorPathInspection() {
-    super(AndroidBundle.message("android.lint.inspections.vector.path"), VectorPathDetector.ISSUE);
+    super(AndroidBundle.message("android.lint.inspections.vector.path"), VectorPathDetector.PATH_LENGTH);
   }
 }
