@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.AnchorTarget;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.android.tools.idea.uibuilder.scout.Direction;
 import com.android.utils.Pair;
@@ -1208,5 +1209,16 @@ public final class ConstraintComponentUtilities {
       transaction.setAttribute(ANDROID_URI, ATTRIB_MARGIN[srcIndex], margin + "dp");
     }
     transaction.apply();
+    String str = null;
+    switch (sourceDirection) {
+      case BASELINE: str = DecoratorUtilities.BASELINE_CONNECTION; break;
+      case BOTTOM: str = DecoratorUtilities.BOTTOM_CONNECTION; break;
+      case LEFT: str = DecoratorUtilities.LEFT_CONNECTION; break;
+      case RIGHT: str = DecoratorUtilities.RIGHT_CONNECTION; break;
+      case TOP: str = DecoratorUtilities.TOP_CONNECTION; break;
+    }
+    if (str != null) {
+      DecoratorUtilities.setTimeChange(source, str, DecoratorUtilities.ViewStates.NORMAL, DecoratorUtilities.ViewStates.SELECTED);
+    }
   }
 }
