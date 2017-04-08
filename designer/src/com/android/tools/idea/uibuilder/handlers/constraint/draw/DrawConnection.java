@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
 import com.android.tools.idea.uibuilder.model.SwingCoordinate;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
+import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.DrawCommand;
 import com.android.tools.idea.uibuilder.scene.draw.FancyStroke;
@@ -38,14 +39,23 @@ public class DrawConnection implements DrawCommand {
   public static final int TYPE_CENTER = 4; // connected on both sides to the same anchor
   public static final int TYPE_BASELINE = 5;  // connected such that anchor connects back
   public static final int TYPE_CENTER_WIDGET = 6; // connected on both sides to same widget different anchors
+  private static final long MILISECONDS = 1000000; // 1 mill in nano seconds
+  // modes define the the Color potentially style of
+  public static final int MODE_NORMAL = DecoratorUtilities.ViewStates.NORMAL_VALUE;
+  public static final int MODE_SELECTED = DecoratorUtilities.ViewStates.SELECTED_VALUE;
+  public static final int MODE_COMPUTED = DecoratorUtilities.ViewStates.INFERRED_VALUE;
+  public static final int MODE_WILL_DESTROY = DecoratorUtilities.ViewStates.WILL_DESTROY_VALUE;
+  public static final int MODE_SUBDUED = DecoratorUtilities.ViewStates.SUBDUED_VALUE;
 
-  public static final int MODE_NORMAL = 0;
-  public static final int MODE_SELECTED = 1;
+  public static final int TOTAL_MODES = 3;
+  private static int[] ourModeLookup = null;
+
   public static final int DIR_LEFT = 0;
   public static final int DIR_RIGHT = 1;
   public static final int DIR_TOP = 2;
   public static final int DIR_BOTTOM = 3;
   private static final int OVER_HANG = 20;
+  private static final long TRANSITION_TIME = 100 * MILISECONDS;
   static GeneralPath ourPath = new GeneralPath();
   final static int[] dirDeltaX = {-1, +1, 0, 0};
   final static int[] dirDeltaY = {0, 0, -1, 1};
@@ -65,8 +75,9 @@ public class DrawConnection implements DrawCommand {
   @SwingCoordinate int myMarginDistance;
   boolean myIsMarginReference;
   float myBias;
-  int myMode; // use to describe various display modes 0=default 1 = Source selected
-
+  int myModeFrom; // use to describe various display modes 0=default 1 = Source selected
+  int myModeTo;
+  long myStateChangeTime;
   static Stroke myBackgroundStroke = new BasicStroke(8);
   static Stroke myDashStroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 6}, 0f);
   static Stroke mySpringStroke = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{4, 4}, 0f);
@@ -87,7 +98,7 @@ public class DrawConnection implements DrawCommand {
     return "DrawConnection," + myConnectionType + "," + rectToString(mySource) + "," +
            mySourceDirection + "," + rectToString(myDest) + "," + myDestDirection + "," +
            myDestType + "," + myShift + "," + myMargin + "," + myMarginDistance + "," +
-           myIsMarginReference + "," + myBias + "," + myMode;
+           myIsMarginReference + "," + myBias + "," + myModeFrom + "," + myModeTo + "," + 0;
   }
 
   private static String rectToString(Rectangle r) {
@@ -119,7 +130,9 @@ public class DrawConnection implements DrawCommand {
     myMarginDistance = Integer.parseInt(sp[c++]);
     myIsMarginReference = Boolean.parseBoolean(sp[c++]);
     myBias = Float.parseFloat(sp[c++]);
-    myMode = Integer.parseInt(sp[c++]);
+    myModeFrom = Integer.parseInt(sp[c++]);
+    myModeTo = Integer.parseInt(sp[c++]);
+    myStateChangeTime = Long.parseLong(sp[c++]);
   }
 
   @Override
@@ -127,7 +140,7 @@ public class DrawConnection implements DrawCommand {
     ColorSet color = sceneContext.getColorSet();
     g.setColor(color.getConstraints());
     draw(g, color, myConnectionType, mySource, mySourceDirection, myDest, myDestDirection, myDestType, myMargin, myMarginDistance,
-         myIsMarginReference, myMode);
+         myIsMarginReference, myModeFrom, myModeTo, myStateChangeTime);
   }
 
   public DrawConnection(int connectionType,
@@ -141,9 +154,9 @@ public class DrawConnection implements DrawCommand {
                         @SwingCoordinate int marginDistance,
                         boolean isMarginReference,
                         Float bias,
-                        int mode) {
+                        int modeFrom, int modeTo, long nanoTime) {
     config(connectionType, source, sourceDirection, dest, destDirection, destType, shift, margin, marginDistance, isMarginReference, bias,
-           mode);
+           modeFrom, modeTo, nanoTime);
   }
 
   public static void buildDisplayList(DisplayList list,
@@ -158,10 +171,10 @@ public class DrawConnection implements DrawCommand {
                                       @SwingCoordinate int marginDistance,
                                       boolean isMarginReference,
                                       Float bias,
-                                      int mode) {
+                                      int modeFrom, int modeTo, long nanoTime) {
     list
       .add(new DrawConnection(connectionType, source, sourceDirection, dest, destDirection, destType, shift, margin, marginDistance,
-                              isMarginReference, bias, mode));
+                              isMarginReference, bias, modeFrom, modeTo, nanoTime));
   }
 
   public void config(int connectionType,
@@ -175,7 +188,9 @@ public class DrawConnection implements DrawCommand {
                      @SwingCoordinate int marginDistance,
                      boolean isMarginReference,
                      Float bias,
-                     int mode) {
+                     int modeFrom,
+                     int modeTo,
+                     long stateChangeTime) {
     mySource.setBounds(source);
     myDest.setBounds(dest);
     myConnectionType = connectionType;
@@ -189,7 +204,47 @@ public class DrawConnection implements DrawCommand {
     myMarginDistance = marginDistance;
     myIsMarginReference = isMarginReference;
     myBias = bias;
-    myMode = mode;
+    myModeFrom = modeFrom;
+    myModeTo = modeTo;
+    myStateChangeTime = stateChangeTime;
+  }
+
+  public static Color modeGetConstraintsColor(int mode, ColorSet color) {
+    switch (mode) {
+      case MODE_NORMAL:
+        return color.getConstraints();
+      case MODE_SELECTED:
+        return color.getSelectedConstraints();
+      case MODE_COMPUTED:
+        return color.getHighlightedConstraints();
+      case MODE_WILL_DESTROY:
+        return color.getAnchorDisconnectionCircle();
+
+    }
+    return color.getConstraints();
+  }
+
+  public static Color modeGetMarginColor(int mode, ColorSet color) {
+    switch (mode) {
+      case MODE_NORMAL:
+        return color.getMargins();
+      case MODE_SELECTED:
+        return color.getConstraints();
+      case MODE_COMPUTED:
+        return color.getHighlightedConstraints();
+    }
+    return color.getMargins();
+  }
+
+  static Color interpolate(Color fromColor, Color toColor, float percent) {
+    float[] hsb = new float[3];
+    Color.RGBtoHSB(fromColor.getRed(), fromColor.getGreen(), fromColor.getBlue(), hsb);
+    float fromH = hsb[0], fromS = hsb[1], fromB = hsb[2];
+    Color.RGBtoHSB(toColor.getRed(), toColor.getGreen(), toColor.getBlue(), hsb);
+    float toH = hsb[0], toS = hsb[1], toB = hsb[2];
+    return Color.getHSBColor(fromH * (1 - percent) + toH * percent,
+                             fromS * (1 - percent) + toS * percent,
+                             fromB * (1 - percent) + toB * percent);
   }
 
   public static void draw(Graphics2D g,
@@ -202,7 +257,9 @@ public class DrawConnection implements DrawCommand {
                           int margin,
                           @SwingCoordinate int marginDistance,
                           boolean isMarginReference,
-                          int mode) {
+                          int modeFrom,
+                          int modeTo,
+                          long stateChange) {
     if (connectionType == TYPE_BASELINE) {
       drawBaseLine(g, source, dest);
     }
@@ -212,8 +269,18 @@ public class DrawConnection implements DrawCommand {
     int endy = getConnectionY(destDirection, dest);
     int dx = getDestinationDX(destDirection);
     int dy = getDestinationDY(destDirection);
-    Color constraintColor = (mode == MODE_SELECTED) ? color.getSelectedConstraints() : color.getConstraints();
-    Color marginColor = color.getMargins();
+
+    Color constraintColor = modeGetConstraintsColor(modeTo, color);
+    Color marginColor = modeGetMarginColor(modeTo, color);
+    long timeSince = System.nanoTime() - stateChange;
+    if (timeSince < TRANSITION_TIME ) {
+      float t = (float)((timeSince) / (double)TRANSITION_TIME);
+      Color fromColor = modeGetConstraintsColor(modeFrom, color);
+      Color toColor = modeGetConstraintsColor(modeTo, color);
+
+      constraintColor = interpolate(fromColor, toColor, t);
+    }
+
     int scale_source = 40;
     int scale_dest = (myDestType == DEST_PARENT) ? -40 : 40;
     boolean flip_arrow = false;
@@ -327,6 +394,7 @@ public class DrawConnection implements DrawCommand {
         else {
           g.setColor(constraintColor);
           if (destDirection == DIR_LEFT || destDirection == DIR_RIGHT) {
+            g.setColor(constraintColor);
             DrawConnectionUtils.drawHorizontalZigZagLine(ourPath, startx, endx, starty);
             defaultStroke = g.getStroke();
             g.setStroke(mySpringStroke);
@@ -335,6 +403,7 @@ public class DrawConnection implements DrawCommand {
             g.setStroke(defaultStroke);
           }
           else {
+            g.setColor(constraintColor);
             DrawConnectionUtils.drawVerticalZigZagLine(ourPath, startx, starty, endy);
             defaultStroke = g.getStroke();
             g.setStroke(mySpringStroke);
@@ -346,6 +415,7 @@ public class DrawConnection implements DrawCommand {
         g.setColor(constraintColor);
         g.draw(ourPath);
         if (drawArrow) {
+          g.setColor(constraintColor);
           DrawConnectionUtils.getArrow(dir, endx, endy, xPoints, yPoints);
           g.fillPolygon(xPoints, yPoints, 3);
         }
@@ -447,6 +517,7 @@ public class DrawConnection implements DrawCommand {
               Stroke stroke = g.getStroke();
               g.setStroke(myDashStroke);
               int overlap = (above) ? -OVER_HANG : OVER_HANG;
+              g.setColor(constraintColor);
               g.drawLine(constraintX, line_y + overlap, constraintX, above ? dest.y : dest.y + dest.height);
               g.setStroke(stroke);
             }
@@ -461,6 +532,7 @@ public class DrawConnection implements DrawCommand {
               int constraint_y = (destDirection == DIR_TOP) ? dest.y : dest.y + dest.height;
               Stroke stroke = g.getStroke();
               g.setStroke(myDashStroke);
+              g.setColor(constraintColor);
               int overlap = (left) ? -OVER_HANG : OVER_HANG;
               g.drawLine(line_x + overlap, constraint_y,
                          left ? dest.x : dest.x + dest.width, constraint_y);
