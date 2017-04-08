@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
 import com.android.tools.idea.uibuilder.scene.draw.Notch;
@@ -495,9 +496,13 @@ public class SceneComponent {
   }
 
   public void setDrawState(@NotNull DrawState drawState) {
+    DrawState oldState = myDrawState;
     myDrawState = drawState;
     if (myIsSelected) {
       myDrawState = DrawState.SELECTED;
+    }
+    if (oldState != myDrawState) {
+      DecoratorUtilities.setTimeChange(myNlComponent, DecoratorUtilities.VIEW, DecoratorUtilities.mapState(drawState));
     }
   }
 
@@ -512,10 +517,10 @@ public class SceneComponent {
     }
     myIsSelected = selected;
     if (myIsSelected) {
-      myDrawState = DrawState.SELECTED;
+      setDrawState(DrawState.SELECTED);
     }
     else {
-      myDrawState = DrawState.NORMAL;
+      setDrawState(DrawState.NORMAL);
     }
   }
 
