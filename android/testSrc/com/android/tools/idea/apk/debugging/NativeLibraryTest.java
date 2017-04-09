@@ -75,6 +75,31 @@ public class NativeLibraryTest extends IdeaTestCase {
     assertThat(library.getFilePaths()).containsAllIn(getPaths(files));
   }
 
+  public void testCopyFrom() throws IOException {
+    List<VirtualFile> files = createLibraryFiles("x86", "arm65-v8a");
+    NativeLibrary library1 = new NativeLibrary("library1");
+    library1.addFiles(files.toArray(new VirtualFile[files.size()]));
+
+    NativeLibrary library2 = new NativeLibrary("library2");
+    assertThat(library2).isNotEqualTo(library1);
+
+    library2.copyFrom(library1);
+    assertEquals(library1, library2);
+  }
+
+  public void testCopyConstructor() throws IOException {
+    NativeLibrary library = new NativeLibrary("library");
+    library.addFiles(createLibraryFiles("x86", "arm65-v8a"));
+
+    NativeLibrary copy = new NativeLibrary(library);
+    assertEquals(library.hasDebugSymbols, copy.hasDebugSymbols);
+    assertEquals(library.name, copy.name);
+    assertEquals(library.sourceFolderPaths, copy.sourceFolderPaths);
+    assertEquals(library.pathMappings, copy.pathMappings);
+    assertEquals(library.getFilePaths(), copy.getFilePaths());
+    assertEquals(library.debuggableFilePath, copy.debuggableFilePath);
+  }
+
   @NotNull
   private List<VirtualFile> createLibraryFiles(@NotNull String... abis) throws IOException {
     return ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<List<VirtualFile>, IOException>() {
