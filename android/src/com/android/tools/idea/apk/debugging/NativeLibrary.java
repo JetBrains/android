@@ -21,10 +21,7 @@ import com.intellij.util.xmlb.annotations.Transient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class NativeLibrary {
   // These fields get serialized to/from XML in ApkFacet.
@@ -41,6 +38,32 @@ public class NativeLibrary {
   public boolean hasDebugSymbols;
 
   public NativeLibrary() {
+  }
+
+  public NativeLibrary(@NotNull NativeLibrary library) {
+    copyFrom(library);
+  }
+
+  public void copyFrom(@NotNull NativeLibrary library) {
+    name = library.name;
+
+    sourceFolderPaths.clear();
+    sourceFolderPaths.addAll(library.sourceFolderPaths);
+
+    pathMappings.clear();
+    pathMappings.putAll(library.pathMappings);
+
+    filePaths.clear();
+    filePaths.addAll(library.filePaths);
+
+    files.clear();
+    files.addAll(library.files);
+
+    abis.clear();
+    abis.addAll(library.abis);
+
+    debuggableFilePath = library.debuggableFilePath;
+    hasDebugSymbols = library.hasDebugSymbols;
   }
 
   public NativeLibrary(@NotNull String name) {
@@ -106,5 +129,32 @@ public class NativeLibrary {
     VirtualFile parent = file.getParent();
     assert parent != null;
     return parent.getName();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    NativeLibrary library = (NativeLibrary)o;
+    return hasDebugSymbols == library.hasDebugSymbols &&
+           Objects.equals(name, library.name) &&
+           Objects.equals(sourceFolderPaths, library.sourceFolderPaths) &&
+           Objects.equals(pathMappings, library.pathMappings) &&
+           Objects.equals(filePaths, library.filePaths) &&
+           Objects.equals(debuggableFilePath, library.debuggableFilePath);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, sourceFolderPaths, pathMappings, filePaths, debuggableFilePath, hasDebugSymbols);
+  }
+
+  @Override
+  public String toString() {
+    return name;
   }
 }

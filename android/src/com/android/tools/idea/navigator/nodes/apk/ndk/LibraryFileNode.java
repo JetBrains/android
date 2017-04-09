@@ -19,8 +19,10 @@ import com.android.tools.idea.apk.debugging.NativeLibrary;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.SimpleTextAttributes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,8 +36,11 @@ import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static com.intellij.ui.SimpleTextAttributes.STYLE_WAVED;
 
 public class LibraryFileNode extends LibraryNode {
+  @Nullable private VirtualFile myFile;
+
   public LibraryFileNode(@NotNull Project project, @NotNull NativeLibrary library, @NotNull ViewSettings settings) {
     super(project, library, settings);
+    myFile = getFirstFile();
   }
 
   @Override
@@ -54,6 +59,30 @@ public class LibraryFileNode extends LibraryNode {
     if (!hasDebugSymbols) {
       presentation.setTooltip("Library does not have debug symbols");
     }
+  }
+
+  @Override
+  public boolean canNavigate() {
+    return true;
+  }
+
+  @Override
+  public void navigate(boolean requestFocus) {
+    if (myFile == null) {
+      myFile = getFirstFile();
+    }
+    if (myFile != null) {
+      FileEditorManager.getInstance(myProject).openFile(myFile, requestFocus);
+    }
+  }
+
+  @Override
+  public boolean canRepresent(Object element) {
+    if (element instanceof VirtualFile) {
+      VirtualFile file = (VirtualFile)element;
+      return myLibrary.files.contains(file);
+    }
+    return false;
   }
 
   @Override
