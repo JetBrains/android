@@ -93,7 +93,7 @@ class ClassNode extends ProjectViewNode<ApkClass> {
       VirtualFile smaliFile = myDexSourceFiles.findSmaliFile(fqn);
       if (smaliFile != null) {
         // Found .smali file
-        FileEditorManager.getInstance(myProject).openFile(smaliFile, true);
+        FileEditorManager.getInstance(myProject).openFile(smaliFile, requestFocus);
       }
     }
   }
