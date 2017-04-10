@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.template.components;
 
-import com.android.tools.idea.templates.Parameter;
 import com.android.tools.adtui.LabelWithEditButton;
+import com.android.tools.idea.templates.Parameter;
 import com.android.tools.idea.ui.properties.AbstractProperty;
 import com.android.tools.idea.ui.properties.swing.TextProperty;
 import org.jetbrains.annotations.NotNull;
@@ -26,8 +26,8 @@ import org.jetbrains.annotations.Nullable;
  * Provides a {@link LabelWithEditButton} for more advanced {@link Parameter.Type#STRING}
  * parameters that only users who know what they're doing should modify.
  */
-public final class LabelWithEditLinkProvider extends ParameterComponentProvider<LabelWithEditButton> {
-  public LabelWithEditLinkProvider(@NotNull Parameter parameter) {
+public final class LabelWithEditButtonProvider extends ParameterComponentProvider<LabelWithEditButton> {
+  public LabelWithEditButtonProvider(@NotNull Parameter parameter) {
     super(parameter);
   }
 
