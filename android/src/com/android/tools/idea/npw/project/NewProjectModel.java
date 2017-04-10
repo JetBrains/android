@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.npw.module.NewModuleModel;
 import com.android.tools.idea.npw.template.MultiTemplateRenderer;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.templates.Template;
 import com.android.tools.idea.templates.recipe.RenderingContext;
@@ -36,6 +37,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.projectRoots.JavaSdk;
+import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.ui.Messages;
@@ -45,6 +49,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -294,27 +299,6 @@ public class NewProjectModel extends WizardModel {
         getLogger().warn("Failed to update Gradle wrapper file", e);
       }
 
-      // Pick the highest language level of all the modules/form factors.
-      // We have to pick the language level up front while creating the project rather than
-      // just reacting to it during sync, because otherwise the user gets prompted with
-      // a changing-language-level-requires-reopening modal dialog box and have to reload
-      // the project
-      // TODO: We don't have a way at the moment of getting the language level of each module.
-      // Possible solutions:
-      // 1 - We have already a Set of <NewModuleModel>, and from there we can get templateFile, but maybe what we should get is a formFactor
-      // 2 - Add a new field to NewModuleModel with the FormFactor or something similar... we may need this anyway when we check if we need
-      // to install a new API (That step is missing at the moment)
-      LanguageLevel initialLanguageLevel = null;
-      //for (FormFactor factor : FormFactor.values()) {
-      //  Object version = getState().get(FormFactorUtils.getLanguageLevelKey(factor));
-      //  if (version != null) {
-      //    LanguageLevel level = LanguageLevel.parse(version.toString());
-      //    if (level != null && (initialLanguageLevel == null || level.isAtLeast(initialLanguageLevel))) {
-      //      initialLanguageLevel = level;
-      //    }
-      //  }
-      //}
-
       // This is required for Android plugin in IDEA
       if (!IdeInfo.getInstance().isAndroidStudio()) {
         final Sdk jdk = IdeSdks.getInstance().getJdk();
@@ -322,7 +306,22 @@ public class NewProjectModel extends WizardModel {
           ApplicationManager.getApplication().runWriteAction(() -> ProjectRootManager.getInstance(project().getValue()).setProjectSdk(jdk));
         }
       }
+
       try {
+        // Java language level; should be 7 for L and above
+        LanguageLevel initialLanguageLevel = null;
+        AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
+        if (sdkData != null) {
+          JavaSdk jdk = JavaSdk.getInstance();
+          Sdk sdk = ProjectJdkTable.getInstance().findMostRecentSdkOfType(jdk);
+          if (sdk != null) {
+            JavaSdkVersion version = jdk.getVersion(sdk);
+            if (version != null && version.isAtLeast(JavaSdkVersion.JDK_1_7)) {
+              initialLanguageLevel = LanguageLevel.JDK_1_7;
+            }
+          }
+        }
+
         GradleProjectImporter.Request request = new GradleProjectImporter.Request();
         request.setLanguageLevel(initialLanguageLevel).setProject(project().getValue());
         projectImporter.importProject(applicationName().get(), rootLocation, request, null);
