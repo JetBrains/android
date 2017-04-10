@@ -263,7 +263,6 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <debugger.positionManagerFactory implementation="com.android.tools.idea.fd.debugger.InstantRunPositionManagerFactory"/>
-    <debuggerExtension implementation="com.android.tools.idea.fd.debugger.InstantRunDebuggerExtension"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity"/>
     <applicationService serviceInterface="com.android.tools.idea.res.ResourceFolderRepositoryFileCache"
                         serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl"/>
@@ -316,9 +315,6 @@
                         serviceImplementation="org.jetbrains.android.uipreview.AndroidEditorSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.profiling.capture.CaptureTypeService"/>
     <fileEditorProvider implementation="com.android.tools.idea.profiling.capture.CaptureEditorProvider" />
-
-    <applicationService serviceInterface="com.android.tools.idea.stats.UsageTracker"
-                        serviceImplementation="com.android.tools.idea.stats.UsageTrackerAnalyticsImpl"/>
 
     <stepsBeforeRunProvider implementation="com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider" />
     <projectConfigurable groupId="build" id="gradle.compiler"
@@ -1091,8 +1087,6 @@
                     interface="com.android.tools.idea.assistant.AssistantBundleCreator"/>
     <extensionPoint qualifiedName="com.android.ide.sdkEventListener"
                     interface="com.android.tools.idea.sdk.IdeSdks$AndroidSdkEventListener"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.stats.tracker"
-                    interface="com.android.tools.idea.stats.UsageUploader" />
     <extensionPoint qualifiedName="com.android.ide.developerServiceBuildSystemOperations"
                     interface="com.android.tools.idea.structure.services.DeveloperServiceBuildSystemOperations"/>
     <extensionPoint qualifiedName="com.android.run.deployTargetProvider" interface="com.android.tools.idea.run.editor.DeployTargetProvider" />
