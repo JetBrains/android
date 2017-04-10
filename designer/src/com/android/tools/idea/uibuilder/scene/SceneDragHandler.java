@@ -23,8 +23,12 @@ import com.android.tools.idea.uibuilder.model.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
 import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.DragDndTarget;
+import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.scene.target.Target;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.command.WriteCommandAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -106,15 +110,19 @@ public class SceneDragHandler extends DragHandler {
     Scene scene = ((ViewEditorImpl) editor).getSceneView().getScene();
     if (myComponent != null) {
       NlComponent root = myComponent.getNlComponent().getRoot();
-      root.ensureNamespace(SdkConstants.SHERPA_PREFIX, SdkConstants.AUTO_URI);
-      if (myComponent != null) {
-        @AndroidDpCoordinate int dx = editor.pxToDp(x) - myComponent.getDrawWidth() / 2;
-        @AndroidDpCoordinate int dy = editor.pxToDp(y) - myComponent.getDrawHeight() / 2;
-        for (Target target : myComponent.getTargets()) {
-          if (target instanceof DragDndTarget) {
-            ((DragDndTarget)target).mouseRelease(dx, dy, components.get(0));
-            break;
-          }
+      NlModel model = editor.getModel();
+      new WriteCommandAction(model.getProject(), type.getDescription(), model.getFile()) {
+        @Override
+        protected void run(@NotNull Result result) throws Throwable {
+          root.ensureNamespace(SdkConstants.SHERPA_PREFIX, SdkConstants.AUTO_URI);
+        }
+      }.execute();
+      @AndroidDpCoordinate int dx = editor.pxToDp(x) - myComponent.getDrawWidth() / 2;
+      @AndroidDpCoordinate int dy = editor.pxToDp(y) - myComponent.getDrawHeight() / 2;
+      for (Target target : myComponent.getTargets()) {
+        if (target instanceof DragDndTarget) {
+          ((DragDndTarget)target).mouseRelease(dx, dy, components.get(0));
+          break;
         }
       }
     }
