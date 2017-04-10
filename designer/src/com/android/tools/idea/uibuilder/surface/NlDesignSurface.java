@@ -219,7 +219,6 @@ public class NlDesignSurface extends DesignSurface {
       default:
         assert false : myScreenMode;
     }
-    myLayers.add(new MyTopLayer(bottom));
   }
 
   private void addScreenLayers() {
@@ -538,6 +537,8 @@ public class NlDesignSurface extends DesignSurface {
   }
 
   private class MyBottomLayer extends Layer {
+
+
     private boolean myPaintedFrame;
 
     @Override
@@ -567,130 +568,24 @@ public class NlDesignSurface extends DesignSurface {
 
       if (!myPaintedFrame) {
         // Only show bounds dashed lines when there's no device
-        paintBoundsRectangle(g2d);
+        paintBorder(g2d);
       }
     }
 
-    private void paintBoundsRectangle(Graphics2D g2d) {
+    private void paintBorder(Graphics2D g2d) {
       if (myScreenView == null) {
         return;
       }
 
-      g2d.setColor(BOUNDS_RECT_COLOR);
-      int x = myScreenX;
-      int y = myScreenY;
-      Dimension size = myScreenView.getSize();
-
-      Stroke prevStroke = g2d.getStroke();
-      g2d.setStroke(DASHED_STROKE);
-
       Shape screenShape = myScreenView.getScreenShape();
-      if (screenShape == null) {
-        g2d.drawLine(x - 1, y - BOUNDS_RECT_DELTA, x - 1, y + size.height + BOUNDS_RECT_DELTA);
-        g2d.drawLine(x - BOUNDS_RECT_DELTA, y - 1, x + size.width + BOUNDS_RECT_DELTA, y - 1);
-        g2d.drawLine(x + size.width, y - BOUNDS_RECT_DELTA, x + size.width, y + size.height + BOUNDS_RECT_DELTA);
-        g2d.drawLine(x - BOUNDS_RECT_DELTA, y + size.height, x + size.width + BOUNDS_RECT_DELTA, y + size.height);
-      }
-      else {
+      if (screenShape != null) {
         g2d.draw(screenShape);
-      }
-
-      g2d.setStroke(prevStroke);
-    }
-  }
-
-  private class MyTopLayer extends Layer {
-
-    private MyBottomLayer myBottomLayer;
-
-    public MyTopLayer(@NotNull MyBottomLayer bottom) {
-      myBottomLayer = bottom;
-    }
-
-    @Override
-    public void paint(@NotNull Graphics2D g2d) {
-      if (getLayoutType().isSupportedByDesigner()) {
-        Composite oldComposite = g2d.getComposite();
-        if (myBottomLayer.myPaintedFrame) {
-          // Only use alpha on the ruler bar if overlaying the device art
-          g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.9f));
-        }
-        // Paint rulers on top of whatever is under the scroll panel
-        // (x,y) coordinates of the top left corner in the view port
-        int tlx = myScrollPane.getHorizontalScrollBar().getValue();
-        int tly = myScrollPane.getVerticalScrollBar().getValue();
-        paintRulers(g2d, tlx, tly);
-        g2d.setComposite(oldComposite);
-      }
-    }
-
-    private void paintRulers(@NotNull Graphics2D g, int scrolledX, int scrolledY) {
-      if (myScale < 0) {
         return;
       }
 
-      final Graphics2D graphics = (Graphics2D)g.create();
-      try {
-        int width = myScrollPane.getWidth();
-        int height = myScrollPane.getHeight();
-
-        graphics.setColor(RULER_BG);
-        graphics.fillRect(scrolledX, scrolledY, width, RULER_SIZE_PX);
-        graphics.fillRect(scrolledX, scrolledY + RULER_SIZE_PX, RULER_SIZE_PX, height - RULER_SIZE_PX);
-
-        graphics.setColor(RULER_TICK_COLOR);
-        graphics.setStroke(SOLID_STROKE);
-        graphics.setFont(RULER_TEXT_FONT);
-
-        // Distance between two minor ticks (corrected with the current scale)
-        int minorTickDistance = Math.max((int)Math.round(RULER_TICK_DISTANCE * myScale), 1);
-        // If we keep reducing the scale, at some point we only buildDisplayList half of the minor ticks
-        int tickIncrement = (minorTickDistance > RULER_MINOR_TICK_MIN_DIST_PX) ? 1 : 2;
-        int labelWidth = RULER_TEXT_FONT.getStringBounds("0000", graphics.getFontRenderContext()).getBounds().width;
-        // Only display the text if it fits between major ticks
-        boolean displayText = labelWidth < minorTickDistance * 10;
-
-        // Get the first tick that is within the viewport
-        int firstVisibleTickX = scrolledX / minorTickDistance - Math.min(myScreenX / minorTickDistance, 10);
-        for (int i = firstVisibleTickX; i * minorTickDistance < width + scrolledX; i += tickIncrement) {
-          if (i == -10) {
-            continue;
-          }
-
-          int tickPosition = i * minorTickDistance + myScreenX;
-          boolean majorTick = i >= 0 && (i % 10) == 0;
-
-          graphics.drawLine(tickPosition, scrolledY, tickPosition, scrolledY + (majorTick ? RULER_MAJOR_TICK_PX : RULER_MINOR_TICK_PX));
-
-          if (displayText && majorTick) {
-            graphics.setColor(RULER_TEXT_COLOR);
-            graphics.drawString(Integer.toString(i * 10), tickPosition + 2, scrolledY + RULER_MAJOR_TICK_PX);
-            graphics.setColor(RULER_TICK_COLOR);
-          }
-        }
-
-        graphics.rotate(-Math.PI / 2);
-        int firstVisibleTickY = scrolledY / minorTickDistance - Math.min(myScreenY / minorTickDistance, 10);
-        for (int i = firstVisibleTickY; i * minorTickDistance < height + scrolledY; i += tickIncrement) {
-          if (i == -10) {
-            continue;
-          }
-
-          int tickPosition = i * minorTickDistance + myScreenY;
-          boolean majorTick = i >= 0 && (i % 10) == 0;
-
-          //noinspection SuspiciousNameCombination (we rotate the drawing 90 degrees)
-          graphics.drawLine(-tickPosition, scrolledX, -tickPosition, scrolledX + (majorTick ? RULER_MAJOR_TICK_PX : RULER_MINOR_TICK_PX));
-
-          if (displayText && majorTick) {
-            graphics.setColor(RULER_TEXT_COLOR);
-            graphics.drawString(Integer.toString(i * 10), -tickPosition + 2, scrolledX + RULER_MAJOR_TICK_PX);
-            graphics.setColor(RULER_TICK_COLOR);
-          }
-        }
-      }
-      finally {
-        graphics.dispose();
+      ScreenView.BorderPainter.paint(g2d, myScreenView);
+      if (myScreenMode == ScreenMode.BOTH) {
+        ScreenView.BorderPainter.paint(g2d, myBlueprintView);
       }
     }
   }
