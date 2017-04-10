@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.common;
 
+import com.android.java.model.JavaProject;
+import com.android.java.model.builder.JavaLibraryPlugin;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -63,27 +65,24 @@ public class CommandLineArgs {
   // Create init script that applies java library plugin to all projects
   @Nullable
   private static File getClasspathInitScript() {
+    String javaPluginClasspath = String.format("classpath files(['%s', '%s'])",
+                                               PathManager.getJarPathForClass(JavaProject.class),
+                                               PathManager.getJarPathForClass(JavaLibraryPlugin.class));
     String initScriptContent = "initscript{\n" +
-                               "    repositories {\n" +
-                               "        flatDir {\n" +
-                               "            dirs " +
-                               "                '" + EmbeddedDistributionPaths.getInstance().findEmbeddedJavaLibPluginPath() + "'\n" +
-                               "        }\n" +
-                               "    }\n" +
                                "    dependencies {\n" +
-                               "        classpath \":java-lib-model-builder:studio\", \":java-lib-model:studio\"\n" +
+                               "        " + javaPluginClasspath + "\n" +
                                "    }\n" +
                                "}\n" +
                                "allprojects{\n" +
-                               "    apply plugin: com.android.java.model.builder.JavaLibraryPlugin\n" +
+                               "    apply plugin: " + JavaLibraryPlugin.class.getName() + "\n" +
                                "}\n";
 
     try {
       return writeToFileGradleInitScript(initScriptContent, "sync.init");
     }
     catch (Exception e) {
-        LOG.warn("Unable to create init script.", e);
-        return null;
+      LOG.warn("Unable to create init script.", e);
+      return null;
     }
   }
 
