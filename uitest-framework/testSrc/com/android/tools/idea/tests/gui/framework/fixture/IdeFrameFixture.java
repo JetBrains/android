@@ -634,6 +634,12 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public IdeSettingsDialogFixture invokeSdkManager() {
+    robot().click(robot().finder().find(Matchers.byTooltip(JComponent.class, "SDK Manager").andIsShowing()));
+    return IdeSettingsDialogFixture.find(robot());
+  }
+
+  @NotNull
   public ProjectViewFixture getProjectView() {
     return new ProjectViewFixture(getProject(), robot());
   }
