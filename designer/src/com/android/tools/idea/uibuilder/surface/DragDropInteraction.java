@@ -25,10 +25,7 @@ import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.SceneContext;
 import com.google.common.collect.Lists;
-import com.intellij.openapi.application.Result;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlFile;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -232,17 +229,9 @@ public class DragDropInteraction extends Interaction {
       if (commit && error == null) {
         added.addAll(myDraggedComponents);
         final NlModel model = mySceneView.getModel();
-        XmlFile file = model.getFile();
-        String label = myType.getDescription();
-        WriteCommandAction action = new WriteCommandAction(project, label, file) {
-          @Override
-          protected void run(@NotNull Result result) throws Throwable {
-            InsertType insertType = model.determineInsertType(myType, myTransferItem, false /* not for preview */);
-            // TODO: Run this *after* making a copy
-            myDragHandler.commit(ax, ay, modifiers, insertType);
-          }
-        };
-        action.execute();
+        InsertType insertType = model.determineInsertType(myType, myTransferItem, false /* not for preview */);
+        // TODO: Run this *after* making a copy
+        myDragHandler.commit(ax, ay, modifiers, insertType);
         model.notifyModified(NlModel.ChangeType.DND_COMMIT);
         // Select newly dropped components
         model.getSelectionModel().setSelection(added);
