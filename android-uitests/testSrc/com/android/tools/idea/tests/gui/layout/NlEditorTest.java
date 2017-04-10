@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.layout.NlEditorFixture;
 import org.fest.swing.core.MouseButton;
@@ -154,5 +155,27 @@ public class NlEditorTest {
     oldScale = nele.getScale();
     nele.mouseWheelZoomIn(3);
     assertThat(nele.getScale()).isLessThan(oldScale);
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test
+  public void testAddDesignLibrary() throws Exception {
+    guiTest.importSimpleApplication()
+      .getEditor()
+      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
+      .getLayoutEditor(true)
+      .dragComponentToSurface("Design", "android.support.design.widget.TextInputLayout");
+    MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk();
+    guiTest.ideFrame()
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("app/build.gradle")
+      .moveBetween("compile 'com.android.support:design", "")
+      .invokeAction(EditorFixture.EditorAction.DELETE_LINE)
+      .invokeAction(EditorFixture.EditorAction.SAVE)
+      .awaitNotification(
+        "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
+      .performAction("Sync Now")
+      .waitForGradleProjectSyncToFinish();
   }
 }
