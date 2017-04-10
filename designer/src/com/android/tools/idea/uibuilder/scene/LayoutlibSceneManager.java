@@ -421,6 +421,7 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
+  @Override
   @NotNull
   public Map<Object, PropertiesMap> getDefaultProperties() {
     myRenderResultLock.readLock().lock();

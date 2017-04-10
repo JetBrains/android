@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.model.SelectionModel;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
+import com.android.util.PropertiesMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -155,4 +157,6 @@ abstract public class SceneManager implements Disposable {
 
   @NotNull
   public abstract SceneDecoratorFactory getSceneDecoratorFactory();
+
+  public abstract Map<Object, PropertiesMap> getDefaultProperties();
 }

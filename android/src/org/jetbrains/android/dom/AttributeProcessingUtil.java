@@ -46,6 +46,8 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.ManifestElement;
 import org.jetbrains.android.dom.manifest.UsesSdk;
 import org.jetbrains.android.dom.menu.MenuItem;
+import org.jetbrains.android.dom.navigation.NavDestinationElement;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.dom.raw.XmlRawResourceElement;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.Intent;
@@ -304,10 +306,14 @@ public class AttributeProcessingUtil {
   }
 
   public static Map<String, PsiClass> getViewClassMap(@NotNull AndroidFacet facet) {
+    return getClassMap(facet, VIEW_CLASS_NAME);
+  }
+
+  public static Map<String, PsiClass> getClassMap(@NotNull AndroidFacet facet, @NotNull String className) {
     if (DumbService.isDumb(facet.getModule().getProject())) {
       return Collections.emptyMap();
     }
-    return ClassMaps.getInstance(facet).getClassMap(VIEW_CLASS_NAME);
+    return ClassMaps.getInstance(facet).getClassMap(className);
   }
 
   private static void registerAttributesFromSuffixedStyleables(@NotNull AndroidFacet facet,
@@ -356,6 +362,22 @@ public class AttributeProcessingUtil {
     }
 
     registerAttributes(facet, element, styleableName, callback, skipAttrNames);
+  }
+
+  /**
+   * Entry point for XML elements in navigation XMLs
+   */
+  public static void processNavAttributes(@NotNull AndroidFacet facet,
+                                          @NotNull XmlTag tag,
+                                          @NotNull NavDestinationElement element,
+                                          @NotNull Set<XmlName> skipAttrNames,
+                                          @NotNull AttributeProcessor callback) {
+    NavigationSchema schema = NavigationSchema.getOrCreateSchema(facet);
+    final PsiClass psiClass = schema.getDestinationClassByTag(tag.getName());
+
+    if (psiClass != null) {
+      registerAttributesForClassAndSuperclasses(facet, element, psiClass, callback, skipAttrNames);
+    }
   }
 
   /**
@@ -518,6 +540,9 @@ public class AttributeProcessingUtil {
     }
     else if (element instanceof XmlRawResourceElement) {
       processRawAttributes(tag, callback);
+    }
+    else if (element instanceof NavDestinationElement) {
+      processNavAttributes(facet, tag, (NavDestinationElement)element, skippedAttributes, callback);
     }
 
     // If DOM element is annotated with @Styleable annotation, load a styleable definition

@@ -16,27 +16,27 @@
 package com.android.tools.idea.naveditor.scene;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.naveditor.model.NavigationSchema;
-import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.draw.DisplayList;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 
 /**
  * Tests for the nav editor Scene.
  */
-public class NavSceneTest extends LayoutTestCase {
+public class NavSceneTest extends NavigationTestCase {
 
   public void testDisplayList() {
-    SyncNlModel model = navModel("nav.xml", component(NavigationSchema.TAG_NAVIGATION.tag)
+    SyncNlModel model = model("nav.xml", component(NavigationSchema.TAG_NAVIGATION)
       .unboundedChildren(
-        component(NavigationSchema.TAG_FRAGMENT.tag)
+        component(NavigationSchema.TAG_FRAGMENT)
           .id("@+id/fragment1")
           .unboundedChildren(
             component(NavigationSchema.TAG_ACTION)
               .withAttribute(SdkConstants.AUTO_URI, NavigationSchema.ATTR_DESTINATION, "@+id/fragment2")
           ),
-        component(NavigationSchema.TAG_FRAGMENT.tag)
+        component(NavigationSchema.TAG_FRAGMENT)
           .id("@+id/fragment2"))
     ).build();
     Scene scene = model.getSurface().getScene();

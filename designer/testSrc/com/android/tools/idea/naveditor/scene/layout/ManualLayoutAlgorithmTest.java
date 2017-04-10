@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.naveditor.scene.layout;
 
-import com.android.tools.idea.naveditor.model.NavigationSchema;
-import com.android.tools.idea.naveditor.scene.NavSceneManager;
-import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.naveditor.NavigationTestCase;
 import com.android.tools.idea.uibuilder.SyncNlModel;
 import com.android.tools.idea.uibuilder.scene.Scene;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 
 import static com.android.SdkConstants.TOOLS_URI;
 import static org.mockito.Mockito.*;
@@ -28,19 +27,20 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for {@link ManualLayoutAlgorithm}
  */
-public class ManualLayoutAlgorithmTest extends LayoutTestCase {
+public class ManualLayoutAlgorithmTest extends NavigationTestCase {
+
   public void testSimple() throws Exception {
-    SyncNlModel model = navModel("nav.xml",
-                                 component(NavigationSchema.TAG_NAVIGATION.tag).unboundedChildren(
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment1")
+    SyncNlModel model = model("nav.xml",
+                              component(NavigationSchema.TAG_NAVIGATION).unboundedChildren(
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1")
                                      .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_X, "123dp")
                                      .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_Y, "456dp"),
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment2")
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2")
                                      .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_X, "456dp")
                                      .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_Y, "789dp"))).build();
     Scene scene = model.getSurface().getScene();
     NavSceneLayoutAlgorithm fallback = mock(NavSceneLayoutAlgorithm.class);
-    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, new NavigationSchema(getProject()));
+    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myAndroidFacet));
     scene.getRoot().flatten().forEach(algorithm::layout);
     verifyZeroInteractions(fallback);
 
@@ -51,18 +51,18 @@ public class ManualLayoutAlgorithmTest extends LayoutTestCase {
   }
 
   public void testFallback() throws Exception {
-    SyncNlModel model = navModel("nav.xml",
-                                 component(NavigationSchema.TAG_NAVIGATION.tag).unboundedChildren(
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment1")
+    SyncNlModel model = model("nav.xml",
+                              component(NavigationSchema.TAG_NAVIGATION).unboundedChildren(
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1")
                                      .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_X, "60dp")
                                      .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_Y, "60dp"),
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment2"),
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment3")
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2"),
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment3")
                                      .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_X, "200dp")
                                      .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_Y, "200dp"))).build();
     Scene scene = model.getSurface().getScene();
     NavSceneLayoutAlgorithm fallback = mock(NavSceneLayoutAlgorithm.class);
-    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, new NavigationSchema(getProject()));
+    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myAndroidFacet));
     scene.getRoot().flatten().forEach(algorithm::layout);
     verify(fallback).layout(scene.getSceneComponent("fragment2"));
     verifyNoMoreInteractions(fallback);
@@ -74,18 +74,18 @@ public class ManualLayoutAlgorithmTest extends LayoutTestCase {
   }
 
   public void testSave() throws Exception {
-    SyncNlModel model = navModel("nav.xml",
-                                 component(NavigationSchema.TAG_NAVIGATION.tag).unboundedChildren(
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment1")
+    SyncNlModel model = model("nav.xml",
+                              component(NavigationSchema.TAG_NAVIGATION).unboundedChildren(
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment1")
                                      .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_X, "60dp")
                                      .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_Y, "60dp"),
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment2"),
-                                   component(NavigationSchema.TAG_FRAGMENT.tag).id("@id/fragment3")
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment2"),
+                                   component(NavigationSchema.TAG_FRAGMENT).id("@id/fragment3")
                                      .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_X, "200dp")
                                      .withAttribute(TOOLS_URI, ManualLayoutAlgorithm.ATTR_Y, "200dp"))).build();
     Scene scene = model.getSurface().getScene();
     NavSceneLayoutAlgorithm fallback = mock(NavSceneLayoutAlgorithm.class);
-    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, new NavigationSchema(getProject()));
+    ManualLayoutAlgorithm algorithm = new ManualLayoutAlgorithm(fallback, NavigationSchema.getOrCreateSchema(myAndroidFacet));
     scene.getRoot().flatten().forEach(algorithm::layout);
     SceneComponent fragment = scene.getSceneComponent("fragment2");
     fragment.setPosition(150, 160);

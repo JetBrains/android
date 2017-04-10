@@ -148,6 +148,7 @@ public class AndroidResourceUtil {
     XML_FILE_RESOURCE_TYPES.put(ResourceType.FONT, ResourceFolderType.FONT);
     XML_FILE_RESOURCE_TYPES.put(ResourceType.INTERPOLATOR, ResourceFolderType.INTERPOLATOR);
     XML_FILE_RESOURCE_TYPES.put(ResourceType.LAYOUT, ResourceFolderType.LAYOUT);
+    XML_FILE_RESOURCE_TYPES.put(ResourceType.NAVIGATION, ResourceFolderType.NAVIGATION);
     XML_FILE_RESOURCE_TYPES.put(ResourceType.MENU, ResourceFolderType.MENU);
     XML_FILE_RESOURCE_TYPES.put(ResourceType.MIPMAP, ResourceFolderType.MIPMAP);
     XML_FILE_RESOURCE_TYPES.put(ResourceType.RAW, ResourceFolderType.RAW);

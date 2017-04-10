@@ -65,7 +65,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     myContentPanel = new JPanel(new BorderLayout());
 
     if (NlLayoutType.typeOf(myFile) == NlLayoutType.NAV) {
-      mySurface = new NavDesignSurface(project);
+      mySurface = new NavDesignSurface(facet);
     }
     else {
       mySurface = new NlDesignSurface(project, false);
@@ -101,7 +101,7 @@ public class NlEditorPanel extends WorkBench<DesignSurface> {
     myContentPanel.add(mySurface);
 
     List<ToolWindowDefinition<DesignSurface>> tools = new ArrayList<>(4);
-    tools.add(new NlPropertyPanelDefinition(project, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
+    tools.add(new NlPropertyPanelDefinition(myFacet, Side.RIGHT, Split.TOP, AutoHide.DOCKED));
     if (NlLayoutType.typeOf(myFile) != NlLayoutType.NAV) {
       tools.add(new NlPaletteDefinition(project, Side.LEFT, Split.TOP, AutoHide.DOCKED));
       tools.add(new NlComponentTreeDefinition(project, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED));

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.layout;
 
-import com.android.tools.idea.naveditor.model.NavigationSchema;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import com.android.tools.idea.uibuilder.model.AndroidDpCoordinate;
