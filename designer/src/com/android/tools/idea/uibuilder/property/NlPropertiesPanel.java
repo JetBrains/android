@@ -123,10 +123,11 @@ public class NlPropertiesPanel extends JPanel implements ViewAllPropertiesAction
 
     myCardLayout = new JBCardLayout();
     myCardPanel = new JPanel(myCardLayout);
-    myCardPanel.add(PropertiesViewMode.INSPECTOR.name(),
-                    ScrollPaneFactory.createScrollPane(myInspectorPanel,
-                                                       ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                                       ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER));
+    JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myInspectorPanel,
+                                                                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                                                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    scrollPane.setBorder(null);
+    myCardPanel.add(PropertiesViewMode.INSPECTOR.name(), scrollPane);
     JScrollPane tableScrollPane = ScrollPaneFactory.createScrollPane(myTablePanel);
     tableScrollPane.getVerticalScrollBar().setUnitIncrement(VERTICAL_SCROLLING_UNIT_INCREMENT);
     tableScrollPane.getVerticalScrollBar().setBlockIncrement(VERTICAL_SCROLLING_BLOCK_INCREMENT);
