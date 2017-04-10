@@ -26,11 +26,8 @@ import static com.android.tools.idea.testing.TestProjectPaths.UNUSED_RESOURCES;
  * tested in {@link UnusedResourcesTest}.
  */
 public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
-  public void testDummy() {
-    // Actual test disabled because of http://b.android.com/230725
-  }
 
-  public void ignored_test() throws Exception {
+  public void test() throws Exception {
     loadProject(UNUSED_RESOURCES);
 
     UnusedResourcesHandler.invoke(getProject(), null, null, true, true);
