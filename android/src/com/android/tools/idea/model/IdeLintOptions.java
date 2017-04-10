@@ -48,6 +48,7 @@ public class IdeLintOptions implements LintOptions, Serializable {
   private final boolean myIgnoreWarnings;
   private final boolean myWarningsAsErrors;
   private final boolean myCheckTestSources;
+  private final boolean myCheckGeneratedSources;
   private final boolean myExplainIssues;
   private final boolean myShowAll;
   private final boolean myTextReport;
@@ -92,6 +93,13 @@ public class IdeLintOptions implements LintOptions, Serializable {
     }
     else {
       myCheckTestSources = false;
+    }
+
+    if (myGradleVersion.isAtLeast(2,4,0, "alpha", 6, true)) {
+      myCheckGeneratedSources = options.isCheckGeneratedSources();
+    }
+    else {
+      myCheckGeneratedSources = false;
     }
 
     myExplainIssues = options.isExplainIssues();
@@ -197,6 +205,11 @@ public class IdeLintOptions implements LintOptions, Serializable {
   }
 
   @Override
+  public boolean isCheckGeneratedSources() {
+    return myCheckGeneratedSources;
+  }
+
+  @Override
   public boolean isExplainIssues() {
     return myExplainIssues;
   }
@@ -239,6 +252,7 @@ public class IdeLintOptions implements LintOptions, Serializable {
            isIgnoreWarnings() == options.isIgnoreWarnings() &&
            isWarningsAsErrors() == options.isWarningsAsErrors() &&
            isCheckTestSources() == options.isCheckTestSources() &&
+           isCheckGeneratedSources() == options.isCheckGeneratedSources() &&
            isExplainIssues() == options.isExplainIssues() &&
            isShowAll() == options.isShowAll() &&
            getTextReport() == options.getTextReport() &&

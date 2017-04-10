@@ -46,6 +46,7 @@ public class IdeLintOptionsStub implements LintOptions {
   private final static boolean myIgnoreWarnings = true;
   private final static boolean myWarningsAsErrors = true;
   private final static boolean myCheckTestSources = false;
+  private final static boolean myCheckGeneratedSources = false;
   private final static boolean myExplainIssues = true;
   private final static boolean myShowAll = true;
   private final static boolean myTextReport = false;
@@ -149,6 +150,11 @@ public class IdeLintOptionsStub implements LintOptions {
   @Override
   public boolean isCheckTestSources() {
     return myCheckTestSources;
+  }
+
+  @Override
+  public boolean isCheckGeneratedSources() {
+    return myCheckGeneratedSources;
   }
 
   @Override
