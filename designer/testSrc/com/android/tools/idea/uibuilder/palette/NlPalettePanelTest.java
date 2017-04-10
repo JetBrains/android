@@ -38,9 +38,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
-import static com.android.tools.idea.uibuilder.palette.NlPalettePanel.DEFAULT_PREVIEW_HEIGHT;
-import static com.android.tools.idea.uibuilder.palette.NlPalettePanel.PALETTE_MODE;
-import static com.android.tools.idea.uibuilder.palette.NlPalettePanel.PALETTE_PREVIEW_HEIGHT;
+import static com.android.tools.idea.uibuilder.palette.NlPalettePanel.*;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.*;
 

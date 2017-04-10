@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene.layout;
 
-import com.android.tools.idea.naveditor.model.NavigationSchema;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import org.jetbrains.annotations.NotNull;
 

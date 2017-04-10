@@ -38,7 +38,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.concurrent.GuardedBy;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;

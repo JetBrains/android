@@ -25,10 +25,8 @@ import com.android.tools.idea.uibuilder.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlModel;
 import com.android.tools.idea.uibuilder.property.editors.NlPropertyEditors;
 import com.android.tools.idea.uibuilder.property.inspector.InspectorPanel;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.DesignSurfaceListener;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneView;
 import com.android.util.PropertiesMap;
 import com.google.common.collect.ImmutableList;
@@ -44,6 +42,7 @@ import com.intellij.util.Alarm;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -62,9 +61,10 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   public final static int UPDATE_DELAY_MSECS = 250;
 
   private final Project myProject;
-  private final JBLoadingPanel myLoadingPanel;
-  private final NlPropertiesPanel myPropertiesPanel;
+  private JBLoadingPanel myLoadingPanel;
+  private NlPropertiesPanel myPropertiesPanel;
   private final NlPropertyEditors myEditors;
+  private final AndroidFacet myFacet;
 
   @Nullable private DesignSurface mySurface;
   @Nullable private SceneView mySceneView;
@@ -74,23 +74,22 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   private boolean myLoading;
   private int myUpdateCount;
 
-  public NlPropertiesManager(@NotNull Project project, @Nullable DesignSurface designSurface) {
-    myProject = project;
-    myLoadingPanel = new JBLoadingPanel(new BorderLayout(), project, 20);
-    myEditors = NlPropertyEditors.getInstance(project);
-    myPropertiesPanel = new NlPropertiesPanel(this, this);
-    myLoadingPanel.add(myPropertiesPanel);
-    setToolContext(designSurface);
+  public NlPropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface) {
+    myProject = facet.getModule().getProject();
+    myFacet = facet;
+    myEditors = NlPropertyEditors.getInstance(myProject);
+    mySurface = designSurface;
+    setToolContextWithoutCheck(designSurface);
   }
 
   // TODO:
   public void activatePropertySheet() {
-    myPropertiesPanel.activatePropertySheet();
+    getPropertiesPanel().activatePropertySheet();
   }
 
   // TODO:
   public void activateInspector() {
-    myPropertiesPanel.activateInspector();
+    getPropertiesPanel().activateInspector();
   }
 
   @Override
@@ -98,7 +97,27 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
     if (designSurface == mySurface) {
       return;
     }
+    setToolContextWithoutCheck(designSurface);
+  }
 
+  @NotNull
+  private JBLoadingPanel getLoadingPanel() {
+    if (myLoadingPanel == null) {
+      myLoadingPanel = new JBLoadingPanel(new BorderLayout(), myProject, 20);
+      myLoadingPanel.add(getPropertiesPanel());
+    }
+    return myLoadingPanel;
+  }
+
+  @NotNull
+  private NlPropertiesPanel getPropertiesPanel() {
+    if (myPropertiesPanel == null) {
+      myPropertiesPanel = new NlPropertiesPanel(this, this);
+    }
+    return myPropertiesPanel;
+  }
+
+  private void setToolContextWithoutCheck(@Nullable DesignSurface designSurface) {
     if (mySurface != null) {
       mySurface.removeListener(this);
     }
@@ -120,13 +139,13 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   @NotNull
   @Override
   public JComponent getComponent() {
-    return myLoadingPanel;
+    return getLoadingPanel();
   }
 
   @NotNull
   @Override
   public JComponent getFocusedComponent() {
-    return myPropertiesPanel;
+    return getPropertiesPanel();
   }
 
   @NotNull
@@ -141,7 +160,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   @NotNull
   @Override
   public List<AnAction> getAdditionalActions() {
-    return Collections.singletonList(new ViewAllPropertiesAction(myPropertiesPanel));
+    return Collections.singletonList(new ViewAllPropertiesAction(getPropertiesPanel()));
   }
 
   @Override
@@ -151,13 +170,13 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
 
   @Override
   public void setFilter(@NotNull String filter) {
-    myPropertiesPanel.setFilter(filter);
+    getPropertiesPanel().setFilter(filter);
   }
 
   @Override
   @NotNull
   public KeyListener getFilterKeyListener() {
-    return myPropertiesPanel.getFilterKeyListener();
+    return getPropertiesPanel().getFilterKeyListener();
   }
 
   @Nullable
@@ -186,13 +205,18 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   }
 
   @NotNull
+  public AndroidFacet getFacet() {
+    return myFacet;
+  }
+
+  @NotNull
   public NlPropertyEditors getPropertyEditors() {
     return myEditors;
   }
 
   @NotNull
   public InspectorPanel getInspector() {
-    return myPropertiesPanel.getInspector();
+    return getPropertiesPanel().getInspector();
   }
 
   @Nullable
@@ -218,7 +242,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
         if (myProject.isDisposed()) {
           return;
         }
-        myPropertiesPanel.setItems(components, properties, this);
+        getPropertiesPanel().setItems(components, properties, this);
         if (postUpdateRunnable != null) {
           myLoading = false;
           postUpdateRunnable.run();
@@ -239,7 +263,7 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
     if (view == null) {
       return PropertiesMap.EMPTY_MAP;
     }
-    Map<Object, PropertiesMap> map = ((LayoutlibSceneManager)view.getSceneManager()).getDefaultProperties();
+    Map<Object, PropertiesMap> map = view.getSceneManager().getDefaultProperties();
     List<PropertiesMap> propertiesMaps = new ArrayList<>(components.size());
     for (NlComponent component : components) {
       PropertiesMap propertiesMap = map.get(component.getSnapshot());
@@ -322,8 +346,8 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
   public void logPropertyChange(@NotNull NlProperty property) {
     NlUsageTrackerManager.getInstance(mySurface).logPropertyChange(
       property,
-      myPropertiesPanel.getPropertiesViewMode(),
-      myPropertiesPanel.getFilterMatchCount());
+      getPropertiesPanel().getPropertiesViewMode(),
+      getPropertiesPanel().getFilterMatchCount());
   }
 
   public void logFavoritesChange(@NotNull String added, @NotNull String removed, @NotNull List<String> favorites) {
@@ -348,13 +372,13 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
 
     if (!newSelection.isEmpty() && myFirstLoad) {
       myFirstLoad = false;
-      myLoadingPanel.startLoading();
+      getLoadingPanel().startLoading();
     }
     myLoading = true;
     queue.queue(new Update("updateProperties") {
       @Override
       public void run() {
-        setSelectedComponents(newSelection, myLoadingPanel::stopLoading);
+        setSelectedComponents(newSelection, getLoadingPanel()::stopLoading);
       }
 
       @Override
@@ -384,12 +408,12 @@ public class NlPropertiesManager implements ToolContent<DesignSurface>, DesignSu
     if (propertyName == null) {
       return false;
     }
-    return myPropertiesPanel.activatePreferredEditor(propertyName, myLoading);
+    return getPropertiesPanel().activatePreferredEditor(propertyName, myLoading);
   }
 
   @Override
   public void modelRendered(@NotNull NlModel model) {
-    myPropertiesPanel.modelRendered(this);
+    getPropertiesPanel().modelRendered(this);
   }
 
   @Override

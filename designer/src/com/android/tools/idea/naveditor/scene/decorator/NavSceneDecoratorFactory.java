@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.naveditor.scene.decorator;
 
-import com.android.tools.idea.naveditor.model.NavigationSchema;
-import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.uibuilder.model.NlComponent;
+import com.android.tools.idea.uibuilder.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecorator;
 import com.android.tools.idea.uibuilder.scene.decorator.SceneDecoratorFactory;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
@@ -33,21 +33,17 @@ public class NavSceneDecoratorFactory extends SceneDecoratorFactory {
   private static final Map<String, Constructor<? extends SceneDecorator>> ourConstructorMap = new HashMap<>();
 
   public NavSceneDecoratorFactory(@NotNull NavigationSchema schema) {
-    for (NavigationSchema.DestinationTag tag : schema.getDestinationTags()) {
-      try {
-        switch (tag.type) {
-          case NAVIGATION:
-            ourConstructorMap.put(tag.tag, NavigationDecorator.class.getConstructor());
-            break;
-          case FRAGMENT:
-            ourConstructorMap.put(tag.tag, NavScreenDecorator.class.getConstructor());
-            break;
-          default:
-            // TODO
+    for (NavigationSchema.DestinationType type : NavigationSchema.DestinationType.values()) {
+      for (String tag : schema.getDestinationClassByTagMap(type).keySet()) {
+        try {
+          Constructor<? extends SceneDecorator> constructor = type == NavigationSchema.DestinationType.NAVIGATION
+                                       ? NavigationDecorator.class.getConstructor()
+                                       : NavScreenDecorator.class.getConstructor();
+          ourConstructorMap.put(tag, constructor);
         }
-      }
-      catch (NoSuchMethodException e) {
-        // shouldn't happen, ignore
+        catch (NoSuchMethodException e) {
+          // shouldn't happen, ignore
+        }
       }
     }
   }

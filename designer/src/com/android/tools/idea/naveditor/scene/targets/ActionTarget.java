@@ -16,8 +16,7 @@
 package com.android.tools.idea.naveditor.scene.targets;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.naveditor.model.NavigationSchema;
-import com.android.tools.idea.naveditor.scene.NavSceneManager;
+import org.jetbrains.android.dom.navigation.NavigationSchema;
 import com.android.tools.idea.naveditor.scene.draw.DrawAction;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils;
 import com.android.tools.idea.uibuilder.model.Coordinates;
