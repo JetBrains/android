@@ -251,7 +251,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
   private void createUIComponents() {
     // JBColor keeps a strong reference to its parameter func, so, using a lambda avoids this reference and fixes a leak
-    myOldVersionLabel = new HyperlinkLabel("", JBColor.RED, new JBColor(UIUtil::getLabelBackground), PlatformColors.BLUE);
+    myOldVersionLabel = new HyperlinkLabel();
 
     setSyncLinkMessage("");
     myOldVersionLabel.addHyperlinkListener(this);
