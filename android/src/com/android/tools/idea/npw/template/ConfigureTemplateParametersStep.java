@@ -309,7 +309,7 @@ public final class ConfigureTemplateParametersStep extends ModelWizardStep<Rende
                                                            getRecentsKeyForParameter(parameter)));
       }
       else {
-        rowEntry = new RowEntry<>(parameter.name, new LabelWithEditLinkProvider(parameter));
+        rowEntry = new RowEntry<>(parameter.name, new LabelWithEditButtonProvider(parameter));
       }
 
       // All ATTR_PACKAGE_NAME providers should be string types and provide StringProperties
