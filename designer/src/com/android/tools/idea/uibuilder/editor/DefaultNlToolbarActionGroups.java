@@ -36,7 +36,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
   @NotNull
   @Override
-  ActionGroup getNorthGroup() {
+  protected ActionGroup getNorthGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
 
     group.add(new DesignModeAction((NlDesignSurface)mySurface));
@@ -61,7 +61,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
   @NotNull
   @Override
-  ActionGroup getEastGroup() {
+  protected ActionGroup getEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
 
     group.add(new SetZoomAction(mySurface, ZoomType.OUT));

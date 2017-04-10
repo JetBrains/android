@@ -20,6 +20,7 @@ import com.android.resources.ResourceConstants;
 import com.android.tools.idea.uibuilder.editor.DefaultNlToolbarActionGroups;
 import com.android.tools.idea.uibuilder.editor.ToolbarActionGroups;
 import com.android.tools.idea.uibuilder.editor.VectorToolbarActionGroups;
+import com.android.tools.idea.uibuilder.statelist.StateListActionGroups;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.openapi.application.ApplicationManager;
@@ -39,6 +40,13 @@ import java.util.Locale;
  * Describes the supported types of editors (where each editor type refers to the type of resource that the editor can handle
  */
 public enum NlLayoutType {
+  FONT(false) {
+    @Override
+    public boolean isResourceTypeOf(@NotNull XmlFile file) {
+      return FontFamilyDomFileDescription.isFontFamilyFile(file);
+    }
+  },
+
   LAYOUT(true) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
@@ -60,24 +68,16 @@ public enum NlLayoutType {
     }
   },
 
-  VECTOR(false) {
+  STATE_LIST(false) {
     @Override
     public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return isResourceTypeOf(file, ResourceConstants.FD_RES_DRAWABLE, SdkConstants.TAG_VECTOR) ||
-             AdaptiveIconDomFileDescription.isAdaptiveIcon(file);
+      return isResourceTypeOf(file, ResourceConstants.FD_RES_DRAWABLE, SdkConstants.TAG_SELECTOR);
     }
 
     @NotNull
     @Override
     public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
-      return new VectorToolbarActionGroups(surface);
-    }
-  },
-
-  FONT(false) {
-    @Override
-    public boolean isResourceTypeOf(@NotNull XmlFile file) {
-      return FontFamilyDomFileDescription.isFontFamilyFile(file);
+      return new StateListActionGroups(surface);
     }
   },
 
@@ -96,7 +96,21 @@ public enum NlLayoutType {
     @NotNull
     @Override
     public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
-      return new ToolbarActionGroups((NlDesignSurface)surface);
+      return new ToolbarActionGroups(surface);
+    }
+  },
+
+  VECTOR(false) {
+    @Override
+    public boolean isResourceTypeOf(@NotNull XmlFile file) {
+      return isResourceTypeOf(file, ResourceConstants.FD_RES_DRAWABLE, SdkConstants.TAG_VECTOR) ||
+             AdaptiveIconDomFileDescription.isAdaptiveIcon(file);
+    }
+
+    @NotNull
+    @Override
+    public ToolbarActionGroups getToolbarActionGroups(@NotNull DesignSurface surface) {
+      return new VectorToolbarActionGroups(surface);
     }
   };
 

@@ -20,19 +20,19 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import org.jetbrains.annotations.NotNull;
 
 public class ToolbarActionGroups {
-  final DesignSurface mySurface;
+  protected final DesignSurface mySurface;
 
   public ToolbarActionGroups(@NotNull DesignSurface surface) {
     mySurface = surface;
   }
 
   @NotNull
-  ActionGroup getNorthGroup() {
+  protected ActionGroup getNorthGroup() {
     return ActionGroup.EMPTY_GROUP;
   }
 
   @NotNull
-  ActionGroup getEastGroup() {
+  protected ActionGroup getEastGroup() {
     return ActionGroup.EMPTY_GROUP;
   }
 }

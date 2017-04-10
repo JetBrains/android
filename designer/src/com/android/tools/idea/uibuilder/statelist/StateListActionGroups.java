@@ -13,19 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.editor;
+package com.android.tools.idea.uibuilder.statelist;
 
 import com.android.tools.idea.uibuilder.actions.SetZoomAction;
 import com.android.tools.idea.uibuilder.actions.ZoomLabelAction;
+import com.android.tools.idea.uibuilder.editor.ToolbarActionGroups;
 import com.android.tools.idea.uibuilder.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.ZoomType;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
 
-public final class VectorToolbarActionGroups extends ToolbarActionGroups {
-  public VectorToolbarActionGroups(@NotNull DesignSurface surface) {
+import java.util.Arrays;
+
+public final class StateListActionGroups extends ToolbarActionGroups {
+  public StateListActionGroups(@NotNull DesignSurface surface) {
     super(surface);
+  }
+
+  @NotNull
+  @Override
+  protected ActionGroup getNorthGroup() {
+    DefaultActionGroup group = new DefaultActionGroup();
+    Arrays.asList(State.values()).forEach(state -> group.add(new ToggleStateAction(state, mySurface)));
+
+    return group;
   }
 
   @NotNull
