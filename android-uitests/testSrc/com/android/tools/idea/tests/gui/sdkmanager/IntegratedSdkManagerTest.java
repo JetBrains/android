@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.sdkmanager;
 
-import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.SdkConstants;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.*;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.tests.gui.framework.fixture.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.dualView.TreeTableView;
 import org.fest.reflect.exception.ReflectionError;
@@ -32,8 +31,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import java.io.File;
 import java.util.Collections;
 
 import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabelWhenEnabled;
@@ -109,31 +108,55 @@ public class IntegratedSdkManagerTest {
     finish.click();
   }
 
-
   @Test
   public void androidSdkManagerShowsFromWelcomeScreen() throws Exception {
-    ApplicationManager.getApplication().invokeLater(SdkQuickfixUtils::showAndroidSdkManager);
-    IdeSettingsDialogFixture.findDefault(guiTest.robot()).clickOK();
+    setInvalidSdk(guiTest.welcomeFrame())
+      .createNewProjectWhenSdkIsInvalid()
+      .openSDKManager()
+      .clickOK();
   }
 
   @Test
   public void androidSdkManagerShowsFromOpenProject() throws Exception {
-    guiTest.importSimpleApplication();
-    ApplicationManager.getApplication().invokeLater(SdkQuickfixUtils::showAndroidSdkManager);
-    IdeSettingsDialogFixture.findDefault(guiTest.robot()).clickOK();
+    setInvalidSdk(guiTest.importSimpleApplication())
+      .openFromMenu(SdkProblemDialogFixture::find, "File", "New", "New Project...")
+      .openSDKManager()
+      .clickOK();
   }
 
   @Test
   public void androidSdkManagerShowsFromToolbar() throws Exception {
-    guiTest.importSimpleApplication();
-    guiTest.robot().click(guiTest.robot().finder().find(Matchers.byTooltip(JComponent.class, "SDK Manager").andIsShowing()));
-    IdeSettingsDialogFixture.findDefault(guiTest.robot()).clickOK();
+    guiTest
+      .importSimpleApplication()
+      .invokeSdkManager()
+      .clickOK();
   }
 
-  @Test
-  public void androidSdkManagerShowsFromMissingSdkDialog() throws Exception {
-    ApplicationManager.getApplication().invokeLater(SdkQuickfixUtils::showSdkMissingDialog);
-    guiTest.robot().click(guiTest.robot().finder().find(Matchers.byText(JButton.class, "Open SDK Manager").andIsShowing()));
-    IdeSettingsDialogFixture.findDefault(guiTest.robot()).clickOK();
+  private static WelcomeFrameFixture setInvalidSdk(WelcomeFrameFixture fixture) {
+    setInvalidSdkPath();
+    return fixture;
+  }
+
+  private static IdeFrameFixture setInvalidSdk(IdeFrameFixture fixture) {
+    setInvalidSdkPath();
+    // Gradle tries to set the sdkData after a sync, so we wait for the sync to finish before setting the sdkData to null
+    fixture.waitForGradleProjectSyncToFail();
+    AndroidSdks.getInstance().setSdkData(null);
+    return fixture;
+  }
+
+  /**
+   * Its OK to call this method, and not set the Android SDK back on tear down. The value is reset every time a test starts by
+   * a call to {@link GuiTests#setUpSdks()}
+   */
+  private static void setInvalidSdkPath() {
+    ApplicationManager.getApplication().invokeAndWait(() -> ApplicationManager.getApplication().runWriteAction(
+      () -> {
+        File invalidAndroidSdkPath = GuiTests.getProjectCreationDirPath();
+        boolean ignored = new File(invalidAndroidSdkPath, SdkConstants.FD_PLATFORMS).mkdir();
+        IdeSdks.getInstance().setAndroidSdkPath(invalidAndroidSdkPath, null);
+      }));
+
+    AndroidSdks.getInstance().setSdkData(null);
   }
 }
