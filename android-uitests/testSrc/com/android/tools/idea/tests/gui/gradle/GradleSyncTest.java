@@ -437,7 +437,7 @@ public class GradleSyncTest {
     proxyDialog.setDoNotShowThisDialog(true);
     proxyDialog.clickOk();
 
-    ideFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish();
+    ideFrame.waitForGradleProjectSyncToStart().waitForGradleProjectSyncToFinish(Wait.seconds(20));
 
     // Verify gradle.properties has proxy settings.
     assertAbout(file()).that(gradlePropertiesPath).isFile();
