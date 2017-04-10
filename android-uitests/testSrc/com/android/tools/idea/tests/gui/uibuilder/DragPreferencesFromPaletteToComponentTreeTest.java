@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.tests.gui.layout;
+package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRunner;
@@ -26,7 +26,7 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
-import static com.android.tools.idea.tests.gui.layout.Assert.assertPathExists;
+import static com.android.tools.idea.tests.gui.uibuilder.Assert.assertPathExists;
 
 @RunWith(GuiTestRunner.class)
 public final class DragPreferencesFromPaletteToComponentTreeTest {
