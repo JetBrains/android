@@ -21,7 +21,6 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -107,9 +106,10 @@ public class AndroidMoveWithResourcesGradleTest extends AndroidGradleTestCase {
   }
 
   private void verifyMoved(String relativePath) {
-    VirtualFile srcFile = getProject().getBaseDir().findFileByRelativePath(FileUtil.join("app", relativePath));
+    VirtualFile srcFile = getProject().getBaseDir().findFileByRelativePath("app/" + relativePath);
     assertFalse("Expected to have moved: " + srcFile, srcFile != null && srcFile.exists());
-    VirtualFile destFile = getProject().getBaseDir().findFileByRelativePath(FileUtil.join("library", relativePath));
-    assertTrue("Expected to find: " + destFile, destFile != null && destFile.exists());
+    VirtualFile destFile = getProject().getBaseDir().findFileByRelativePath("library/" + relativePath);
+    assertTrue("Expected to find: " + getProject().getBaseDir() + "/library/" + relativePath,
+               destFile != null && destFile.exists());
   }
 }
