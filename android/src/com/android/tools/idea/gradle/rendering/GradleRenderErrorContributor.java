@@ -54,7 +54,7 @@ public class GradleRenderErrorContributor extends RenderErrorContributor {
 
   private void reportIssue170841(RenderLogger logger, AndroidFacet facet) {
     Map<String, Throwable> brokenClasses = logger.getBrokenClasses();
-    if (brokenClasses == null || brokenClasses.isEmpty() || facet == null) {
+    if (brokenClasses.isEmpty() || facet == null) {
       return;
     }
     AndroidModuleModel model = AndroidModuleModel.get(facet);
