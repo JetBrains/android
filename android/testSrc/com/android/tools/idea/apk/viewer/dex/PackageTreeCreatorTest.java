@@ -34,6 +34,7 @@ import java.text.ParseException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import static com.android.tools.idea.apk.dex.DexFiles.getDexFile;
 import static org.junit.Assert.assertEquals;
@@ -65,7 +66,7 @@ public class PackageTreeCreatorTest {
   public static Map<Path, DexBackedDexFile> getDexMap(String s) throws IOException{
     Path path = getDexPath(s);
     DexBackedDexFile dexFile = getTestDexFile(path);
-    HashMap<Path, DexBackedDexFile> map = new HashMap<>();
+    TreeMap<Path, DexBackedDexFile> map = new TreeMap<>();
     map.put(path, dexFile);
     return map;
   }
@@ -129,6 +130,10 @@ public class PackageTreeCreatorTest {
                  "    ~util: 0,1\n" +
                  "      ~Collections: 0,1\n" +
                  "        ~java.util.List emptyList(): 0,1\n" +
+                 "  Test: 3,3\n" +
+                 "    void <init>(): 1,1\n" +
+                 "    java.lang.Integer get(): 1,1\n" +
+                 "    java.util.List getList(): 1,1\n" +
                  "  Test2: 3,3\n" +
                  "    void <init>(): 1,1\n" +
                  "    java.lang.Integer get(): 1,1\n" +
@@ -139,10 +144,6 @@ public class PackageTreeCreatorTest {
                  "    void <init>(): 1,1\n" +
                  "    java.util.List getAnotherList(): 1,1\n" +
                  "    ~java.util.List getList(): 0,1\n" +
-                 "  Test: 3,3\n" +
-                 "    void <init>(): 1,1\n" +
-                 "    java.lang.Integer get(): 1,1\n" +
-                 "    java.util.List getList(): 1,1\n" +
                  "  a: 1,1\n" +
                  "    void <init>(): 1,1\n", sb.toString());
   }
