@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.uibuilder;
 
+import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.fixtures.ComponentDescriptor;
 import com.android.tools.idea.uibuilder.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.Coordinates;
 import com.android.tools.idea.uibuilder.model.NlModel;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -32,6 +37,9 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 
 import java.io.File;
+import java.util.List;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public abstract class LayoutTestCase extends AndroidTestCase {
 
@@ -60,7 +68,30 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   }
 
   protected ModelBuilder model(@NotNull String name, @NotNull ComponentDescriptor root) {
-    return new ModelBuilder(myFacet, myFixture, name, root);
+    return new ModelBuilder(myFacet, myFixture, name, root,
+                            model -> {
+                              SyncLayoutlibSceneManager manager = new SyncLayoutlibSceneManager(model);
+                              SyncLayoutlibSceneManager.updateHierarchy(buildViewInfos(model, root), model);
+                              return manager;
+                            },
+                            (model, newModel) ->
+                              LayoutlibSceneManager
+                                .updateHierarchy(AndroidPsiUtils.getRootTagSafely(newModel.getFile()), buildViewInfos(newModel, root),
+                                                 model), "layout");
+  }
+
+  protected ModelBuilder navModel(@NotNull String name, @NotNull ComponentDescriptor root) {
+    return new ModelBuilder(myFacet, myFixture, name, root, model -> new NavSceneManager(model, model.getSurface()),
+                            (model, newModel) -> {}, "nav");
+  }
+
+  private List<ViewInfo> buildViewInfos(@NotNull NlModel model, @NotNull ComponentDescriptor root) {
+    List<ViewInfo> infos = Lists.newArrayList();
+    XmlFile file = model.getFile();
+    assertThat(file).isNotNull();
+    assertThat(file.getRootTag()).isNotNull();
+    infos.add(root.createViewInfo(null, file.getRootTag()));
+    return infos;
   }
 
   protected ComponentDescriptor component(@NotNull String tag) {
@@ -88,5 +119,4 @@ public abstract class LayoutTestCase extends AndroidTestCase {
 
     return editor;
   }
-
 }
