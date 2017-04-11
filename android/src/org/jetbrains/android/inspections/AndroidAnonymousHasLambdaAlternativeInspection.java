@@ -33,4 +33,14 @@ public class AndroidAnonymousHasLambdaAlternativeInspection extends AnonymousHas
 
     return super.buildVisitor(holder, isOnTheFly);
   }
+
+  /**
+   * Override the short name registration since it can't be deduced from the classname anymore
+   * (we've added the prefix Android)
+   */
+  @NotNull
+  @Override
+  public String getShortName() {
+    return "AnonymousHasLambdaAlternative";
+  }
 }
