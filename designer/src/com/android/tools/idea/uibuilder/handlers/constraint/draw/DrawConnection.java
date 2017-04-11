@@ -140,8 +140,11 @@ public class DrawConnection implements DrawCommand {
   public void paint(Graphics2D g, SceneContext sceneContext) {
     ColorSet color = sceneContext.getColorSet();
     g.setColor(color.getConstraints());
-    draw(g, color, myConnectionType, mySource, mySourceDirection, myDest, myDestDirection, myDestType, myMargin, myMarginDistance,
+    boolean animate = draw(g, color, myConnectionType, mySource, mySourceDirection, myDest, myDestDirection, myDestType, myMargin, myMarginDistance,
          myIsMarginReference, myModeFrom, myModeTo, myStateChangeTime);
+    if (animate) {
+      sceneContext.repaint();
+    }
   }
 
   public DrawConnection(int connectionType,
@@ -246,19 +249,19 @@ public class DrawConnection implements DrawCommand {
     return new Color(c3,c2,c1);
   }
 
-  public static void draw(Graphics2D g,
-                          ColorSet color, int connectionType,
-                          @SwingCoordinate Rectangle source,
-                          int sourceDirection,
-                          @SwingCoordinate Rectangle dest,
-                          int destDirection,
-                          int myDestType,
-                          int margin,
-                          @SwingCoordinate int marginDistance,
-                          boolean isMarginReference,
-                          int modeFrom,
-                          int modeTo,
-                          long stateChange) {
+  public static boolean draw(Graphics2D g,
+                             ColorSet color, int connectionType,
+                             @SwingCoordinate Rectangle source,
+                             int sourceDirection,
+                             @SwingCoordinate Rectangle dest,
+                             int destDirection,
+                             int myDestType,
+                             int margin,
+                             @SwingCoordinate int marginDistance,
+                             boolean isMarginReference,
+                             int modeFrom,
+                             int modeTo,
+                             long stateChange) {
     if (connectionType == TYPE_BASELINE) {
       drawBaseLine(g, source, dest);
     }
@@ -268,7 +271,7 @@ public class DrawConnection implements DrawCommand {
     int endy = getConnectionY(destDirection, dest);
     int dx = getDestinationDX(destDirection);
     int dy = getDestinationDY(destDirection);
-
+    boolean animate = false;
     Color constraintColor = modeGetConstraintsColor(modeTo, color);
     Color marginColor = modeGetMarginColor(modeTo, color);
     long timeSince = System.nanoTime() - stateChange;
@@ -278,6 +281,7 @@ public class DrawConnection implements DrawCommand {
       Color toColor = modeGetConstraintsColor(modeTo, color);
 
       constraintColor = interpolate(fromColor, toColor, t);
+      animate = true;
     }
 
     int manhattanDistance = Math.abs(startx - endx) + Math.abs(starty - endy);
@@ -582,6 +586,7 @@ public class DrawConnection implements DrawCommand {
         g.fillPolygon(xPoints, yPoints, 3);
         g.draw(ourPath);
     }
+    return animate;
   }
 
   private static void drawBaseLine(Graphics2D g,
