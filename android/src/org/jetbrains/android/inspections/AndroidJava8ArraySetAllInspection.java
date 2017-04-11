@@ -16,14 +16,21 @@
 package org.jetbrains.android.inspections;
 
 import com.android.tools.idea.lint.LintIdeUtils;
-import com.intellij.psi.PsiFile;
-import com.siyeh.ig.migration.TryWithIdenticalCatchesInspection;
+import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.codeInspection.java18api.Java8ArraySetAllInspection;
+import com.intellij.psi.PsiElementVisitor;
+import org.jetbrains.annotations.NotNull;
 
-/** Subclass which makes the parent inspection only apply for API level 19 or higher */
-public class AndroidTryWithIdenticalCatchesInspection extends TryWithIdenticalCatchesInspection {
+/** Subclass which makes the parent inspection only apply for API level 24 or higher */
+public class AndroidJava8ArraySetAllInspection extends Java8ArraySetAllInspection {
+  @NotNull
   @Override
-  public boolean shouldInspect(PsiFile file) {
-    // Default true: plain Java module: use IDE language level instead
-    return LintIdeUtils.isApiLevelAtLeast(file, 19, true) && super.shouldInspect(file);
+  public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, boolean isOnTheFly) {
+    // java.util.Arrays.setAll requires API 24
+    if (!LintIdeUtils.isApiLevelAtLeast(holder.getFile(), 24, true)) {
+      return PsiElementVisitor.EMPTY_VISITOR;
+    }
+
+    return super.buildVisitor(holder, isOnTheFly);
   }
 }
