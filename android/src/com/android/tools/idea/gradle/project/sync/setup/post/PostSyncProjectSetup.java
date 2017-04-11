@@ -252,8 +252,7 @@ public class PostSyncProjectSetup {
       }
 
       // Set the correct "Make step" in existing JUnit Configurations.
-      RunConfiguration[] junitRunConfigurations = myRunManager.getConfigurations(junitConfigurationType);
-      for (RunConfiguration runConfiguration : junitRunConfigurations) {
+      for (RunConfiguration runConfiguration : myRunManager.getConfigurationsList(junitConfigurationType)) {
         setMakeStepInJUnitConfiguration(targetProvider, runConfiguration);
       }
     }
