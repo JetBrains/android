@@ -80,12 +80,6 @@ public class AndroidJava8CollectionRemoveIfInspectionTest extends AndroidInspect
   @Override
   protected InspectionProfileEntry getInspection() {
     return new AndroidJava8CollectionRemoveIfInspection() {
-      @NotNull
-      @Override
-      public String getShortName() {
-        return "Java8CollectionRemoveIf";
-      }
-
       @Nls
       @NotNull
       @Override
