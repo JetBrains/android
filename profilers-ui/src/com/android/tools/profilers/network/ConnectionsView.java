@@ -335,6 +335,7 @@ final class ConnectionsView {
       if (row == 0) {
         AxisComponent axis = createAxis();
         axis.setForeground(isSelected ? NETWORK_TABLE_AXIS_SELECTED : NETWORK_TABLE_AXIS);
+        axis.setMarkerColor(isSelected ? NETWORK_TABLE_AXIS_SELECTED : NETWORK_TABLE_AXIS);
         panel.add(axis, new TabularLayout.Constraint(0, 0));
       }
       panel.add(chart.getComponent(), new TabularLayout.Constraint(0, 0));
