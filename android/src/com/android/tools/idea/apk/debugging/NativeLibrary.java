@@ -23,6 +23,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+
 public class NativeLibrary {
   // These fields get serialized to/from XML in ApkFacet.
   @NotNull public String name = "";
@@ -30,8 +32,12 @@ public class NativeLibrary {
   @NotNull public Map<String, String> pathMappings = new HashMap<>();
 
   @NotNull private List<String> filePaths = new ArrayList<>();
-  @Transient @NotNull public List<VirtualFile> files = new ArrayList<>();
-  @Transient @NotNull public List<String> abis = new ArrayList<>();
+  @Transient
+  @NotNull
+  public List<VirtualFile> files = new ArrayList<>();
+  @Transient
+  @NotNull
+  public List<String> abis = new ArrayList<>();
 
   @Nullable public String debuggableFilePath;
 
@@ -129,6 +135,21 @@ public class NativeLibrary {
     VirtualFile parent = file.getParent();
     assert parent != null;
     return parent.getName();
+  }
+
+  public boolean isMissingPathMappings() {
+    for (String mappedPath : pathMappings.values()) {
+      if (isEmpty(mappedPath)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public void setDebuggableFile(@NotNull VirtualFile debuggableFile) {
+    hasDebugSymbols = true;
+    debuggableFilePath = debuggableFile.getPath();
+    pathMappings.clear();
   }
 
   @Override
