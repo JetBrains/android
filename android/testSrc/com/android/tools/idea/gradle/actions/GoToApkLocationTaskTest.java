@@ -33,6 +33,7 @@ import org.mockito.MockitoAnnotations;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import static com.intellij.notification.NotificationType.INFORMATION;
@@ -45,18 +46,21 @@ import static org.mockito.Mockito.when;
 public class GoToApkLocationTaskTest extends IdeaTestCase {
   private static final String NOTIFICATION_TITLE = "Build APK";
 
-  @Mock ApkPathFinder myApkPathFinder;
-
   private AndroidNotification myMockNotification;
   private AndroidNotification myOriginalNotification;
   private GoToApkLocationTask myTask;
+  private File myApkPath;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     MockitoAnnotations.initMocks(this);
 
-    myTask = new GoToApkLocationTask(getProject(), Collections.singletonList(Pair.create(getModule(), null)), myApkPathFinder,
+    // Simulate the path of the APK for the project's module.
+    myApkPath = createTempDir("apkLocation");
+    Map<Module, File> modulesToPaths = Collections.singletonMap(getModule(), myApkPath);
+
+    myTask = new GoToApkLocationTask(getProject(), modulesToPaths,
                                      NOTIFICATION_TITLE);
     myOriginalNotification = AndroidNotification.getInstance(myProject);
     myMockNotification = IdeComponents.replaceServiceWithMock(myProject, AndroidNotification.class);
@@ -90,17 +94,14 @@ public class GoToApkLocationTaskTest extends IdeaTestCase {
   public void testExecuteWithSuccessfulBuild() throws IOException {
     Module module = getModule();
 
-    // Simulate the path of the APK for the project's module.
-    File apkPath = createTempDir("apkLocation");
-    when(myApkPathFinder.findExistingApkPath(module, null)).thenReturn(apkPath);
-
     myTask.execute(createBuildResult(null /* build successful - no errors */));
     if (ShowFilePathAction.isSupported()) {
       String moduleName = module.getName();
-      String message = "APK(s) generated successfully: <a href=\"" + moduleName + "\">" + moduleName + "</a>.";
-      Map<String, File> apkPathsPerModule = Collections.singletonMap(moduleName, apkPath);
+      String message = "APK(s) generated successfully: <a href=\"" + GoToApkLocationTask.MODULE + moduleName + "\">" + moduleName + 
+                       "</a> <a href=\"" + GoToApkLocationTask.ANALYZE + moduleName + "\">(analyze)</a>.";
+      Map<String, File> apkPathsPerModule = Collections.singletonMap(moduleName, myApkPath);
       verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
-                                             new OpenFolderNotificationListener(apkPathsPerModule));
+                                             new OpenFolderNotificationListener(apkPathsPerModule, myProject));
     }
   }
 
